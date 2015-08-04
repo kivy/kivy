@@ -75,6 +75,9 @@ class SaveDialog(FloatLayout):
 
 class MPLKivyApp(App):
 
+    figure = ObjectProperty(None)
+    toolbar = ObjectProperty(None)
+
     def __init__(self, **kwargs):
         super(MPLKivyApp, self).__init__(**kwargs)
         self.figure = kwargs['figure']
