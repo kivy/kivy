@@ -70,7 +70,8 @@ offers:
 '''
 
 __all__ = ('ButtonBehavior', 'ToggleButtonBehavior', 'DragBehavior',
-           'FocusBehavior', 'CompoundSelectionBehavior', 'CodeNavigationBehavior')
+           'FocusBehavior', 'CompoundSelectionBehavior',
+           'CodeNavigationBehavior')
 
 from kivy.clock import Clock
 from kivy.properties import OptionProperty, ObjectProperty, NumericProperty,\

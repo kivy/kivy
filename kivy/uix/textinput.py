@@ -965,7 +965,8 @@ class TextInput(FocusBehavior, Widget):
             rto += 1
         return max(0, rfrom), min(rmax, rto)
 
-    def _shift_lines(self, direction, rows=None, old_cursor=None, from_undo=False):
+    def _shift_lines(self, direction, rows=None, old_cursor=None,
+                     from_undo=False):
         if self._selection_callback:
             if from_undo:
                 self._selection_callback.cancel()
@@ -1030,7 +1031,8 @@ class TextInput(FocusBehavior, Widget):
                 undo_rows = ((srow + cdiff, erow + cdiff),
                              (psrow - xdiff, perow - xdiff))
                 self._undo.append({
-                    'undo_command': ('shiftln', direction * -1, undo_rows, self.cursor),
+                    'undo_command': ('shiftln', direction * -1, undo_rows,
+                                     self.cursor),
                     'redo_command': ('shiftln', direction, rows, orig_cursor),
                 })
                 self._redo = []
@@ -1083,7 +1085,8 @@ class TextInput(FocusBehavior, Widget):
         elif action == 'cursor_down':
             if self.multiline and control:
                 maxy = self.minimum_height - self.height
-                self.scroll_y = max(0, min(maxy, self.scroll_y + self.line_height))
+                self.scroll_y = max(0, min(maxy,
+                                           self.scroll_y + self.line_height))
             elif not self.readonly and self.multiline and alt:
                 self._shift_lines(1)
                 return
