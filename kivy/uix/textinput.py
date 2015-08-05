@@ -124,7 +124,8 @@ PageUp          Move cursor to 3 lines before
 PageDown        Move cursor to 3 lines after
 Backspace       Delete the selection or character before the cursor
 Del             Delete the selection of character after the cursor
-Shift + <dir>   Start a text selection. Dir can be Up, Down, Left, Right
+Shift + <dir>   Start a text selection. Dir can be Up, Down, Left or
+                Right
 Control + c     Copy selection
 Control + x     Cut selection
 Control + p     Paste selection
@@ -421,16 +422,16 @@ class TextInput(FocusBehavior, Widget):
         text (select_all, select_text).
 
     .. versionchanged:: 1.9.0
+
         :class:`TextInput` now inherits from
         :class:`~kivy.uix.behaviors.FocusBehavior`.
-
         :attr:`~kivy.uix.behaviors.FocusBehavior.keyboard_mode`,
         :meth:`~kivy.uix.behaviors.FocusBehavior.show_keyboard`,
         :meth:`~kivy.uix.behaviors.FocusBehavior.hide_keyboard`,
         :meth:`~kivy.uix.behaviors.FocusBehavior.focus`,
-        and :attr:`~kivy.uix.behaviors.FocusBehavior.input_type`,
-        have been removed from :class:`TextInput` since they already inherit
-        them from :class:`~kivy.uix.behaviors.FocusBehavior`.
+        and :attr:`~kivy.uix.behaviors.FocusBehavior.input_type`
+        have been removed since they are now inherited
+        from :class:`~kivy.uix.behaviors.FocusBehavior`.
 
     .. versionchanged:: 1.7.0
         `on_double_tap`, `on_triple_tap` and `on_quad_touch` events added.
