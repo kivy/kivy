@@ -100,6 +100,10 @@ class MPLKivyApp(App):
     def on_resume(self):
         App.on_resume(self)
 
+    def on_stop(self):
+        global app
+        app = None
+
 
 def _create_App(fig_canvas, toolbar):
     global app
@@ -384,31 +388,6 @@ class NavigationToolbar2Kivy(NavigationToolbar2):
         self.show_save()
 
 
-# class ToolbarKivy(ToolContainerBase, ActionView):
-#
-#     def __init__(self, toolmanager):
-#         ToolContainerBase.__init__(self, toolmanager)
-#         ActionView.__init__(self)
-#         self._toolitems = {}
-#
-#     def add_toolitem(self, name, group, position, image, description, toggle):
-#         basedir = os.path.join(rcParams['datapath'], 'images')
-#         fname = os.path.join(basedir, image_file + '.png')
-#         if toggle:
-#             tbutton = ActionToggleButton()
-#         else:
-#             tbutton = ActionButton()
-#         tbutton.text = name
-#         tbutton.icon = fname
-#         self.add_widget(tbutton)
-#         signal = tbutton.connect('clicked', self._call_tool, name)
-#         self._toolitems.setdefault(name, [])
-#         self._toolitems[name].append((tbutton, signal))
-#
-#     def _call_tool(self, btn, name):
-#         self.trigger_tool(name)
-
-
 class GraphicsContextKivy(GraphicsContextBase):
     """
     The graphics context provides the color, line styles, etc... See the gtk
@@ -457,12 +436,6 @@ class GraphicsContextKivy(GraphicsContextBase):
 
     def set_clip_rectangle(self, rectangle):
         GraphicsContextBase.set_clip_rectangle(self, rectangle)
-#         if rectangle is None:
-#             return
-#         l, b, w, h = rectangle.bounds
-#         self._cliprect = Bbox.from_bounds(float(l), self.renderer.height
-#                            - float(b + h) + 1, float(w), float(h))
-#         self._cliprect = Bbox([[0,0],[100,100]])
 
     def set_dashes(self, dash_offset, dash_list):
         GraphicsContextBase.set_dashes(self, dash_offset, dash_list)
@@ -740,8 +713,6 @@ class FigureManagerKivy(FigureManagerBase):
     def _get_toolbar(self):
         if rcParams['toolbar'] == 'toolbar2':
             toolbar = NavigationToolbar2Kivy(self.canvas)
-        elif rcParams['toolbar'] == 'toolmanager':
-            toolbar = ToolbarKivy(self.toolmanager)
         else:
             toolbar = None
         return toolbar
@@ -750,12 +721,12 @@ class FigureManagerKivy(FigureManagerBase):
         global app
         if app is not None:
             app.stop()
+
 ########################################################################
 #
 # Now just provide the standard names that backend.__init__ is expecting
 #
 ########################################################################
 
-# Toolbar = ToolbarKivy
 FigureCanvas = FigureCanvasKivy
 FigureManager = FigureManagerKivy

@@ -11,7 +11,6 @@ from matplotlib.figure import Figure
 from matplotlib.transforms import Bbox
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.backend_bases import register_backend
-import numpy as np
 
 try:
     import kivy
@@ -27,13 +26,6 @@ from kivy.core.image import Image
 from kivy.ext.mpl.backend_kivy import FigureCanvasKivy, FigureManagerKivy, \
                                 _create_App
 
-# try:
-#     kivy.require('1.9.0')
-# except AttributeError:
-#     raise ImportError(
-#         "kivy version too old -- it must have require_version")
-
-# EventLoop.ensure_window()
 register_backend('png', 'backend_kivyagg', 'PNG File Format')
 
 _debug = True
@@ -124,24 +116,7 @@ class FigureCanvasKivyAgg(FigureCanvasKivy, FigureCanvasAgg, Widget):
         texture.blit_buffer(bytes(buf_rgba), colorfmt='rgba', bufferfmt='ubyte')
         self.img_texture = texture
 
-
-# class FigureManagerKivyAgg(FigureManagerBase):
-#     '''
-#     Wrap everything up into a window for the pylab interface
-#     For non interactive backends, the base class does all the work
-#     '''
-#     def show(self):
-#         FigureManagerBase.show(self)
-#
-#     def destroy(self):
-#         FigureManagerBase.destroy(self)
-
-########################################################################
-#
-# Now just provide the standard names that backend.__init__ is expecting
-#
-########################################################################
-
+''' Standard names that backend.__init__ is expecting '''
 FigureCanvas = FigureCanvasKivyAgg
 FigureManager = FigureManagerKivy
 show = kivy.ext.mpl.backend_kivy.show
