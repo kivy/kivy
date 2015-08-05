@@ -142,6 +142,7 @@ __all__ = ('TextInput', )
 
 import re
 import sys
+import string
 from functools import partial
 from os import environ
 from weakref import ref
@@ -450,6 +451,7 @@ class TextInput(FocusBehavior, Widget):
         self.selection_text = u''
         self._selection_from = None
         self._selection_to = None
+        self._selection_callback = None
         self._handle_left = None
         self._handle_right = None
         self._handle_middle = None
@@ -467,6 +469,10 @@ class TextInput(FocusBehavior, Widget):
         self._command = ''
         self.reset_undo()
         self._touch_count = 0
+        self._ctrl_l = False
+        self._ctrl_r = False
+        self._alt_l = False
+        self._alt_r = False
         self.interesting_keys = {
             8: 'backspace',
             13: 'enter',
@@ -481,7 +487,11 @@ class TextInput(FocusBehavior, Widget):
             280: 'cursor_pgup',
             281: 'cursor_pgdown',
             303: 'shift_L',
-            304: 'shift_R'}
+            304: 'shift_R',
+            305: 'ctrl_L',
+            306: 'ctrl_R',
+            308: 'alt_L',
+            307: 'alt_R'}
 
         super(TextInput, self).__init__(**kwargs)
 
@@ -632,6 +642,12 @@ class TextInput(FocusBehavior, Widget):
         if self.readonly or not substring:
             return
 
+        if isinstance(substring, bytes):
+            substring = substring.decode('utf8')
+
+        if self.replace_crlf:
+            substring = substring.replace(u'\r\n', u'\n')
+
         mode = self.input_filter
         if mode is not None:
             chr = type(substring)
@@ -744,6 +760,9 @@ class TextInput(FocusBehavior, Widget):
             elif undo_type == 'bkspc':
                 self.cursor = _get_cusror_from_index(x_item['redo_command'])
                 self.do_backspace(from_undo=True)
+            elif undo_type == 'shiftln':
+                direction, rows, cursor = x_item['redo_command'][1:]
+                self._shift_lines(direction, rows, cursor, True)
             else:
                 # delsel
                 ci, sci = x_item['redo_command']
@@ -780,6 +799,9 @@ class TextInput(FocusBehavior, Widget):
             elif undo_type == 'bkspc':
                 substring = x_item['undo_command'][2:][0]
                 self.insert_text(substring, True)
+            elif undo_type == 'shiftln':
+                direction, rows, cursor = x_item['undo_command'][1:]
+                self._shift_lines(direction, rows, cursor, True)
             else:
                 # delsel
                 substring = x_item['undo_command'][2:][0]
@@ -847,7 +869,182 @@ class TextInput(FocusBehavior, Widget):
         #reset redo when undo is appended to
         self._redo = []
 
-    def do_cursor_movement(self, action):
+    _re_whitespace = re.compile(r'\s+')
+
+    def _move_cursor_word_left(self, index=None):
+        pos = index or self.cursor_index()
+        if pos == 0:
+            return self.cursor
+        lines = self._lines
+        col, row = self.get_cursor_from_index(pos)
+        if col == 0:
+            row -= 1
+            col = len(lines[row])
+        while True:
+            matches = list(self._re_whitespace.finditer(lines[row], 0, col))
+            if not matches:
+                if col == 0:
+                    if row == 0:
+                        return 0, 0
+                    row -= 1
+                    col = len(lines[row])
+                    continue
+                return 0, row
+            match = matches[-1]
+            mpos = match.end()
+            if mpos == col:
+                if len(matches) > 1:
+                    match = matches[-2]
+                    mpos = match.end()
+                else:
+                    if match.start() == 0:
+                        if row == 0:
+                            return 0, 0
+                        row -= 1
+                        col = len(lines[row])
+                        continue
+                    return 0, row
+            col = mpos
+            return col, row
+
+    def _move_cursor_word_right(self, index=None):
+        pos = index or self.cursor_index()
+        col, row = self.get_cursor_from_index(pos)
+        lines = self._lines
+        mrow = len(lines) - 1
+        if row == mrow and col == len(lines[row]):
+            return col, row
+        if col == len(lines[row]):
+            row += 1
+            col = 0
+        while True:
+            matches = list(self._re_whitespace.finditer(lines[row], col))
+            if not matches:
+                if col == len(lines[row]):
+                    if row == mrow:
+                        return col, row
+                    row += 1
+                    col = 0
+                    continue
+                return len(lines[row]), row
+            match = matches[0]
+            mpos = match.start()
+            if mpos == col:
+                if len(matches) > 1:
+                    match = matches[1]
+                    mpos = match.start()
+                else:
+                    if match.end() == len(lines[row]):
+                        if row == mrow:
+                            return col, row
+                        row += 1
+                        col = 0
+                        continue
+                    return len(lines[row]), row
+            col = mpos
+            return col, row
+
+    def _expand_range(self, ifrom, ito=None):
+        if ito is None:
+            ito = ifrom
+        rfrom = self.get_cursor_from_index(ifrom)[1]
+        rtcol, rto = self.get_cursor_from_index(ito)
+        rfrom, rto = self._expand_rows(rfrom, rto + 1 if rtcol else rto)
+
+        return (self.cursor_index((0, rfrom)),
+                self.cursor_index((0, rto)))
+
+    def _expand_rows(self, rfrom, rto=None):
+        if rto is None or rto == rfrom:
+            rto = rfrom + 1
+        lines = self._lines
+        flags = list(reversed(self._lines_flags))
+        while rfrom > 0 and not (flags[rfrom - 1] & FL_IS_NEWLINE):
+            rfrom -= 1
+        rmax = len(lines) - 1
+        while 0 < rto < rmax and not (flags[rto - 1] & FL_IS_NEWLINE):
+            rto += 1
+        return max(0, rfrom), min(rmax, rto)
+
+    def _shift_lines(self, direction, rows=None, old_cursor=None,
+                     from_undo=False):
+        if self._selection_callback:
+            if from_undo:
+                self._selection_callback.cancel()
+            else:
+                return
+        lines = self._lines
+        flags = list(reversed(self._lines_flags))
+        labels = self._lines_labels
+        rects = self._lines_rects
+        orig_cursor = self.cursor
+        sel = None
+        if old_cursor is not None:
+            self.cursor = old_cursor
+
+        if not rows:
+            sindex = self.selection_from
+            eindex = self.selection_to
+            if (sindex or eindex) and sindex != eindex:
+                sindex, eindex = tuple(sorted((sindex, eindex)))
+                sindex, eindex = self._expand_range(sindex, eindex)
+            else:
+                sindex, eindex = self._expand_range(self.cursor_index())
+            srow = self.get_cursor_from_index(sindex)[1]
+            erow = self.get_cursor_from_index(eindex)[1]
+            sel = sindex, eindex
+
+            if direction < 0 and srow > 0:
+                psrow, perow = self._expand_rows(srow - 1)
+                rows = ((srow, erow), (psrow, perow))
+            elif direction > 0 and erow < len(lines) - 1:
+                psrow, perow = self._expand_rows(erow)
+                rows = ((srow, erow), (psrow, perow))
+
+        if rows:
+            (srow, erow), (psrow, perow) = rows
+            if direction < 0:
+                m1srow, m1erow = psrow, perow
+                m2srow, m2erow = srow, erow
+                cdiff = psrow - perow
+                xdiff = srow - erow
+            else:
+                m1srow, m1erow = srow, erow
+                m2srow, m2erow = psrow, perow
+                cdiff = perow - psrow
+                xdiff = erow - srow
+            self._lines_flags = list(reversed(
+                flags[:m1srow] + flags[m2srow:m2erow] + flags[m1srow:m1erow] +
+                flags[m2erow:]))
+            self._lines = (lines[:m1srow] + lines[m2srow:m2erow] +
+                           lines[m1srow:m1erow] + lines[m2erow:])
+            self._lines_labels = (labels[:m1srow] + labels[m2srow:m2erow] +
+                                  labels[m1srow:m1erow] + labels[m2erow:])
+            self._lines_rects = (rects[:m1srow] + rects[m2srow:m2erow] +
+                                 rects[m1srow:m1erow] + rects[m2erow:])
+            self._trigger_update_graphics()
+            csrow = srow + cdiff
+            cerow = erow + cdiff
+            sel = (self.cursor_index((0, csrow)),
+                   self.cursor_index((0, cerow)))
+            self.cursor = self.cursor_col, self.cursor_row + cdiff
+            if not from_undo:
+                undo_rows = ((srow + cdiff, erow + cdiff),
+                             (psrow - xdiff, perow - xdiff))
+                self._undo.append({
+                    'undo_command': ('shiftln', direction * -1, undo_rows,
+                                     self.cursor),
+                    'redo_command': ('shiftln', direction, rows, orig_cursor),
+                })
+                self._redo = []
+
+        if sel:
+            def cb(dt):
+                self.select_text(*sel)
+                self._selection_callback = None
+            self._selection_callback = Clock.schedule_once(cb)
+
+    def do_cursor_movement(self, action, control=False, alt=False):
         '''Move the cursor relative to it's current position.
         Action can be one of :
 
@@ -860,33 +1057,70 @@ class TextInput(FocusBehavior, Widget):
             - cursor_pgup: move one "page" before
             - cursor_pgdown: move one "page" after
 
+        In addition, the behavior of certain actions can be modified:
+
+            - control + cursor_left: move the cursor one word to the left
+            - control + cursor_right: move the cursor one word to the right
+            - control + cursor_up: scroll up one line
+            - control + cursor_down: scroll down one line
+            - control + cursor_home: go to beginning of text
+            - control + cursor_end: go to end of text
+            - alt + cursor_up: shift line(s) up
+            - alt + cursor_down: shift line(s) down
+
+        .. versionchanged:: 1.9.1
+
         '''
         pgmove_speed = int(self.height /
             (self.line_height + self.line_spacing) - 1)
         col, row = self.cursor
         if action == 'cursor_up':
-            row = max(row - 1, 0)
-            col = min(len(self._lines[row]), col)
+            if self.multiline and control:
+                self.scroll_y = max(0, self.scroll_y - self.line_height)
+            elif not self.readonly and self.multiline and alt:
+                self._shift_lines(-1)
+                return
+            else:
+                row = max(row - 1, 0)
+                col = min(len(self._lines[row]), col)
         elif action == 'cursor_down':
-            row = min(row + 1, len(self._lines) - 1)
-            col = min(len(self._lines[row]), col)
+            if self.multiline and control:
+                maxy = self.minimum_height - self.height
+                self.scroll_y = max(0, min(maxy,
+                                           self.scroll_y + self.line_height))
+            elif not self.readonly and self.multiline and alt:
+                self._shift_lines(1)
+                return
+            else:
+                row = min(row + 1, len(self._lines) - 1)
+                col = min(len(self._lines[row]), col)
         elif action == 'cursor_left':
-            if col == 0:
-                if row:
-                    row -= 1
-                    col = len(self._lines[row])
+            if not self.password and control:
+                col, row = self._move_cursor_word_left()
             else:
-                col, row = col - 1, row
+                if col == 0:
+                    if row:
+                        row -= 1
+                        col = len(self._lines[row])
+                else:
+                    col, row = col - 1, row
         elif action == 'cursor_right':
-            if col == len(self._lines[row]):
-                if row < len(self._lines) - 1:
-                    col = 0
-                    row += 1
+            if not self.password and control:
+                col, row = self._move_cursor_word_right()
             else:
-                col, row = col + 1, row
+                if col == len(self._lines[row]):
+                    if row < len(self._lines) - 1:
+                        col = 0
+                        row += 1
+                else:
+                    col, row = col + 1, row
         elif action == 'cursor_home':
             col = 0
+            if control:
+                row = 0
         elif action == 'cursor_end':
+            if control:
+                row = len(self._lines) - 1
             col = len(self._lines[row])
         elif action == 'cursor_pgup':
             row = max(0, row - pgmove_speed)
@@ -1035,11 +1269,8 @@ class TextInput(FocusBehavior, Widget):
         event to provide additional functionality.
         '''
         ci = self.cursor_index()
-        cc = self.cursor_col
-        line = self._lines[self.cursor_row]
-        len_line = len(line)
-        Clock.schedule_once(lambda dt:
-                            self.select_text(ci - cc, ci + (len_line - cc)))
+        sindex, eindex = self._expand_range(ci)
+        Clock.schedule_once(lambda dt: self.select_text(sindex, eindex))
 
     def on_quad_touch(self):
         '''This event is dispatched when four fingers are touching
@@ -1961,9 +2192,19 @@ class TextInput(FocusBehavior, Widget):
                 self._selection_from = self._selection_to = self.cursor_index()
                 self._selection = True
             self._selection_finished = False
+        elif internal_action == 'ctrl_L':
+            self._ctrl_l = True
+        elif internal_action == 'ctrl_R':
+            self._ctrl_r = True
+        elif internal_action == 'alt_L':
+            self._alt_l = True
+        elif internal_action == 'alt_R':
+            self._alt_r = True
         elif internal_action.startswith('cursor_'):
             cc, cr = self.cursor
-            self.do_cursor_movement(internal_action)
+            self.do_cursor_movement(internal_action,
+                                    self._ctrl_l or self._ctrl_r,
+                                    self._alt_l or self._alt_r)
             if self._selection and not self._selection_finished:
                 self._selection_to = self.cursor_index()
                 self._update_selection()
@@ -1997,6 +2238,14 @@ class TextInput(FocusBehavior, Widget):
         if internal_action in ('shift', 'shift_L', 'shift_R'):
             if self._selection:
                 self._update_selection(True)
+        elif internal_action == 'ctrl_L':
+            self._ctrl_l = False
+        elif internal_action == 'ctrl_R':
+            self._ctrl_r = False
+        elif internal_action == 'alt_L':
+            self._alt_l = False
+        elif internal_action == 'alt_R':
+            self._alt_r = False
 
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
         # Keycodes on OSX:
@@ -2573,7 +2822,7 @@ class TextInput(FocusBehavior, Widget):
             if CutBuffer and not self.password:
                 self._trigger_update_cutbuffer()
 
-    def _get_text(self, encode=True):
+    def _get_text(self, encode=False):
         lf = self._lines_flags
         l = self._lines
         len_l = len(l)
@@ -2584,13 +2833,16 @@ class TextInput(FocusBehavior, Widget):
         text = u''.join([(u'\n' if (lf[i] & FL_IS_NEWLINE) else u'') + l[i]
                         for i in range(len_l)])
 
-        if PY2 and encode and type(text) is not str:
-            text = text.encode('utf-8')
+        if encode and not isinstance(text, bytes):
+            text = text.encode('utf8')
         return text
 
     def _set_text(self, text):
-        if PY2 and type(text) is str:
-            text = text.decode('utf-8')
+        if isinstance(text, bytes):
+            text = text.decode('utf8')
+
+        if self.replace_crlf:
+            text = text.replace(u'\r\n', u'\n')
 
         if self._get_text(encode=False) == text:
             return
@@ -2668,6 +2920,15 @@ class TextInput(FocusBehavior, Widget):
 
     :attr:`auto_indent` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
+    '''
+
+    replace_crlf = BooleanProperty(True)
+    '''Automatically replace CRLF with LF.
+
+    .. versionadded:: 1.9.1
+
+    :attr:`replace_crlf` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
     '''
 
     allow_copy = BooleanProperty(True)
