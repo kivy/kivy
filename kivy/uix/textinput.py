@@ -81,8 +81,8 @@ Filtering
 ---------
 
 You can control which text can be added to the :class:`TextInput` by
-overwriting :meth:`TextInput.insert_text`.Every string that is typed, pasted
-or inserted by any other means to the :class:`TextInput` is passed through
+overwriting :meth:`TextInput.insert_text`. Every string that is typed, pasted
+or inserted by any other means into the :class:`TextInput` is passed through
 this function. By overwriting it you can reject or change unwanted characters.
 
 For example, to write only in capitalized characters::
