@@ -1,3 +1,81 @@
+'''
+Backend KivyAgg
+=====
+
+.. versionadded:: 1.9.1
+
+.. image:: images/backend_agg_example.jpg
+    :align: right
+
+The :class:`FigureCanvasKivyAgg` widget is used to create a matplotlib graph.
+will cover the whole "parent" window. When you are creating a popup, you
+must at least set a :attr:`Popup.title` and :attr:`Popup.content`.
+
+Remember that the default size of a Widget is size_hint=(1, 1). If you don't
+want your popup to be fullscreen, either use size hints with values less than 1
+(for instance size_hint=(.8, .8)) or deactivate the size_hint and use
+fixed size attributes.
+
+
+.. versionchanged:: 1.4.0
+    The :class:`Popup` class now inherits from
+    :class:`~kivy.uix.modalview.ModalView`. The :class:`Popup` offers a default
+    layout with a title and a separation bar.
+
+Examples
+--------
+
+Example of a simple 400x400 Hello world popup::
+
+    popup = Popup(title='Test popup',
+        content=Label(text='Hello world'),
+        size_hint=(None, None), size=(400, 400))
+
+By default, any click outside the popup will dismiss/close it. If you don't
+want that, you can set
+:attr:`~kivy.uix.modalview.ModalView.auto_dismiss` to False::
+
+    popup = Popup(title='Test popup', content=Label(text='Hello world'),
+                  auto_dismiss=False)
+    popup.open()
+
+To manually dismiss/close the popup, use
+:attr:`~kivy.uix.modalview.ModalView.dismiss`::
+
+    popup.dismiss()
+
+Both :meth:`~kivy.uix.modalview.ModalView.open` and
+:meth:`~kivy.uix.modalview.ModalView.dismiss` are bindable. That means you
+can directly bind the function to an action, e.g. to a button's on_press::
+
+    # create content and add to the popup
+    content = Button(text='Close me!')
+    popup = Popup(content=content, auto_dismiss=False)
+
+    # bind the on_press event of the button to the dismiss function
+    content.bind(on_press=popup.dismiss)
+
+    # open the popup
+    popup.open()
+
+
+Popup Events
+------------
+
+There are two events available: `on_open` which is raised when the popup is
+opening, and `on_dismiss` which is raised when the popup is closed.
+For `on_dismiss`, you can prevent the
+popup from closing by explictly returning True from your callback::
+
+    def my_callback(instance):
+        print('Popup', instance, 'is being dismissed but is prevented!')
+        return True
+    popup = Popup(content=Label(text='Hello world'))
+    popup.bind(on_dismiss=my_callback)
+    popup.open()
+
+'''
+
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -74,6 +152,16 @@ class FigureCanvasKivyAgg(FigureCanvasKivy, FigureCanvasAgg, Widget):
     motion_notify_event, key_press_event, and key_release_event. See,
     e.g., backend_gtk.py, backend_wx.py and backend_tkagg.py
     """
+
+    '''
+    FigureCanvasKivyAgg
+    ===================
+    The ::
+        # Create a Point
+        pointA = Point(2,3)
+        pointB = Point(4,5)
+        distance = pointA.distance_to(pointB)
+    '''
 
     def __init__(self, figure, **kwargs):
         if _debug:

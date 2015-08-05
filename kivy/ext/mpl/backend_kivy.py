@@ -291,7 +291,7 @@ class RendererKivy(RendererBase):
         w = ftimage.get_width()
         h = ftimage.get_height()
         texture = Texture.create(size=(w, h))
-        texture.blit_buffer(ftimage.as_rgba_str()[0][0], colorfmt='rgba',
+        texture.blit_buffer(ftimage.as_rgba_str(), colorfmt='rgba',
                             bufferfmt='ubyte')
         texture.flip_vertical()
         with self.widget.canvas:
