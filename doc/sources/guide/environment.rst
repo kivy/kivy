@@ -105,7 +105,7 @@ KIVY_TEXT
 KIVY_VIDEO
     Implementation to use for rendering video
 
-    Values: pygst, gstplayer, pyglet, ffmpeg, null
+    Values: pygst, gstplayer, pyglet, ffpyplayer, null
 
 KIVY_AUDIO
     Implementation to use for playing audio
