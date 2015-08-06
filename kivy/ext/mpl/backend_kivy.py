@@ -39,14 +39,14 @@ Example of a simple Hello world matplotlib App::
 
 The object canvas can be added as a widget into the kivy tree widget.
 If a change is done on the figure an update can be performed using
-:meth:`~kivy.ext.mpl.backend_kivyagg.FigureCanvasKivyAgg.draw`.
+:meth:`~kivy.ext.mpl.backend_kivyagg.FigureCanvasKivyAgg.draw`.::
 
     # update graph
     canvas.draw()
 
 The plot can be exported to png with
 :meth:`~kivy.ext.mpl.backend_kivyagg.FigureCanvasKivyAgg.print_png`, as an
-argument receives the `filename`.
+argument receives the `filename`.::
 
     # export to png
     canvas.print_png("my_plot.png")
@@ -72,36 +72,36 @@ is released, `motion_notify_event` which is raised when the mouse is on motion,
 
     def release(event):
         print('release released from test', event.x, event.y, event.button)
-    
-    
+
+
     def keypress(event):
         print('key down', event.key)
-    
-    
+
+
     def keyup(event):
         print('key up', event.key)
-    
-    
+
+
     def motionnotify(event):
         print('mouse move to ', event.x, event.y)
-    
-    
+
+
     def resize(event):
         print('resize from mpl ', event)
-    
-    
+
+
     def scroll(event):
         print('scroll event from mpl ', event.x, event.y, event.step)
-    
-    
+
+
     def figure_enter(event):
         print('figure enter mpl')
-    
-    
+
+
     def figure_leave(event):
         print('figure leaving mpl')
-    
-    
+
+
     def close(event):
         print('closing figure')
 
@@ -766,13 +766,18 @@ class FigureCanvasKivy(FocusBehavior, Widget, FigureCanvasBase):
 
     def _on_size_changed(self, *args):
         print("self.size", self.size)
+        dad = self.parent
+        print("dad.size", dad.size)
         w, h = self.size
+        max_size_y = dad.size[1]
+        for child in dad.children:
+            if child is not self:
+                max_size_y = max_size_y - child.size[1]
+        print ("max size figure canvas", max_size_y)
         dpival = self.figure.dpi
         winch = w / dpival
-        hinch = h / dpival
+        hinch = max_size_y / dpival
         self.figure.set_size_inches(winch, hinch)
-        print("set size", winch, hinch)
-#         FigureCanvasBase.resize_event(self)
         self.draw()
 
     def callback(self, *largs):
