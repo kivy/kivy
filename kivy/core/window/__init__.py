@@ -790,6 +790,23 @@ class WindowBase(EventDispatcher):
         Logger.warning('Window: show() is not implemented in the current '
                         'window provider.')
 
+    def raise_window(self):
+        '''Raise the window. This method should be used on desktop
+        platforms only.
+
+        .. versionadded:: 1.9.1
+
+        .. note::
+            This feature requires a SDL2 window provider and is currently only
+            supported on desktop platforms.
+
+        .. warning::
+            This code is still experimental, and its API may be subject to
+            change in a future version.
+        '''
+        Logger.warning('Window: raise_window is not implemented in the current '
+                        'window provider.')
+
     def close(self):
         '''Close the window'''
         pass
