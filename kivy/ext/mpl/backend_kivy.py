@@ -833,6 +833,7 @@ class FigureManagerKivy(FigureManagerBase):
 
     def resize(self, w, h):
         print("Enter resize")
+        self.canvas.size = w,h
         Window.size(w, h)
 
     def _get_toolbar(self):

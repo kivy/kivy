@@ -8,10 +8,12 @@ Backend KivyAgg
     :align: right
 
 The :class:`FigureCanvasKivyAgg` widget is used to create a matplotlib graph.
-This widget will cover the whole "parent" window. When you are creating a
-FigureCanvasKivyAgg widget, you must at least initialize it with a matplotlib
-figure object. This class uses agg to get a static image of the plot and then
-the image is render using a :class:`~kivy.graphics.texture.Texture`.
+The render will cover the whole are of the widget unless something different is
+specified using a :meth:`blit`.
+When you are creating a FigureCanvasKivyAgg widget, you must at least
+initialize it with a matplotlib figure object. This class uses agg to get a
+static image of the plot and then the image is render using a
+:class:`~kivy.graphics.texture.Texture`.
 
 
 Examples
