@@ -765,17 +765,16 @@ class FigureCanvasKivy(FocusBehavior, Widget, FigureCanvasBase):
             self.inside_figure = True
 
     def _on_size_changed(self, *args):
-        
         print ("----------instance------------")
-#         print("self.size", self.size)
+        print("self.size", self.size)
         dad = self.parent
-#         print("dad.size", dad.size)
+        print("dad.size", dad.size)
         w, h = self.size
         max_size_y = dad.size[1]
         for child in dad.children:
             if child is not self:
                 max_size_y = max_size_y - child.size[1]
-#         print ("max size figure canvas", max_size_y)
+        print ("max size figure canvas", max_size_y)
         dpival = self.figure.dpi
         winch = w / dpival
         hinch = max_size_y / dpival

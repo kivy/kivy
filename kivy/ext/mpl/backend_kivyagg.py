@@ -122,6 +122,7 @@ class FigureCanvasKivyAgg(FigureCanvasKivy, FigureCanvasAgg):
         if _debug:
             print('FigureCanvasKivyAgg: ', figure)
         self.figure = figure
+        self.bind(size=self._on_size_changed)
         super(FigureCanvasKivyAgg, self).__init__(figure=self.figure, **kwargs)
         self.img = None
         self.img_texture = None
@@ -179,6 +180,16 @@ class FigureCanvasKivyAgg(FigureCanvasKivy, FigureCanvasAgg):
         else:
             img = Image(self.img_texture)
         img.save(filename)
+
+    def _on_size_changed(self, *args):
+        print("self.size", self.size)
+        w, h = self.size
+        dpival = self.figure.dpi
+        winch = w / dpival
+        hinch = h / dpival
+        self.figure.set_size_inches(winch, hinch)
+        print("set size", winch, hinch)
+        self.draw()
 
 ''' Standard names that backend.__init__ is expecting '''
 FigureCanvas = FigureCanvasKivyAgg
