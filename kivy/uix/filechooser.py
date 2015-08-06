@@ -2,14 +2,20 @@
 FileChooser
 ===========
 
-.. versionadded:: 1.0.5
+The FileChooser module provides various classes for describing, displaying and
+browsing file systems.
 
+There are two main widgets that provide a 'view' of the file system, each of
+which present the files/folders in a different style:
 
-.. versionchanged:: 1.2.0
-    In the chooser template, the `controller` is not a direct reference anymore
-    but a weak-reference.
-    You must update all the notation `root.controller.xxx` to
-    `root.controller().xxx`.
+* :class:`FileChooserListView`: text items are displayed in a vertical list,
+  where folders can be collapsed and expanded.
+
+* :class:`FileChooserIconView`: icons and text are displayed from left to
+  right and wrapped when required.
+
+Both of these widgets act identically and provide the same interface, namely
+that of a :class:`FileChooserController`.
 
 Simple example
 --------------
@@ -25,6 +31,14 @@ editor.kv
 
 .. include:: ../../examples/RST_Editor/editor.kv
     :literal:
+
+.. versionadded:: 1.0.5
+
+.. versionchanged:: 1.2.0
+
+    In the chooser template, the `controller` is no longer a direct reference
+    but a weak-reference. If you are upgrading, you should change the notation
+    `root.controller.xxx` to `root.controller().xxx`.
 
 '''
 
