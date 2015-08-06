@@ -864,6 +864,7 @@ setup(
         'kivy.core.window',
         'kivy.effects',
         'kivy.ext',
+        'kivy.ext.mpl',
         'kivy.graphics',
         'kivy.garden',
         'kivy.input',
