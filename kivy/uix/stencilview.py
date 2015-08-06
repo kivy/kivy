@@ -12,7 +12,7 @@ provides an efficient way to clip the drawing area of children.
 
 .. note::
 
-    As with the stencil graphics instructions, you cannot stack more than 8
+    As with the stencil graphics instructions, you cannot stack more than 128
     stencil-aware widgets.
 
 .. note::
