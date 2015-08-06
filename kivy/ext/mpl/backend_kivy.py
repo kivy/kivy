@@ -1,3 +1,124 @@
+'''
+Backend Kivy
+=====
+
+.. versionadded:: 1.9.1
+
+.. image:: images/backend_kivy_example.jpg
+    :align: right
+
+The :class:`FigureCanvasKivy` widget is used to create a matplotlib graph.
+This widget has the same properties as
+:class:`kivy.ext.mpl.backend_kivyagg.Backend_KivyAgg`. This widget instead
+of rendering a static image, uses the kivy graphics instructions
+:class:`kivy.graphics.Line` and :class:`kivy.graphics.Mesh` to render on the
+canvas.
+
+
+Examples
+--------
+
+Example of a simple Hello world matplotlib App::
+
+    fig, ax = plt.subplots()
+    ax.text(0.6, 0.5, "hello", size=50, rotation=30.,
+            ha="center", va="center",
+            bbox=dict(boxstyle="round",
+                      ec=(1., 0.5, 0.5),
+                      fc=(1., 0.8, 0.8),
+                      )
+            )
+    ax.text(0.5, 0.4, "world", size=50, rotation=-30.,
+            ha="right", va="top",
+            bbox=dict(boxstyle="square",
+                      ec=(1., 0.5, 0.5),
+                      fc=(1., 0.8, 0.8),
+                      )
+            )
+    canvas = FigureCanvasKivy(figure=fig)
+
+The object canvas can be added as a widget into the kivy tree widget.
+If a change is done on the figure an update can be performed using
+:meth:`~kivy.ext.mpl.backend_kivyagg.FigureCanvasKivyAgg.draw`.
+
+    # update graph
+    canvas.draw()
+
+The plot can be exported to png with
+:meth:`~kivy.ext.mpl.backend_kivyagg.FigureCanvasKivyAgg.print_png`, as an
+argument receives the `filename`.
+
+    # export to png
+    canvas.print_png("my_plot.png")
+
+
+Backend Kivy Events
+-----------------------
+
+All ten matplotlib events are available: `button_press_event` which is raised
+on a mouse button clicked or on touch down, `button_release_event` which is
+raised when a click button is released or on touch up, `key_press_event` which
+is raised when a key is pressed, `key_release_event` which is raised when a key
+is released, `motion_notify_event` which is raised when the mouse is on motion,
+`resize_event` which is raised when the dimensions of the widget change,
+`scroll_event` which is raised when the mouse scroll wheel is rolled,
+`figure_enter_event` which is raised when mouse enters a new figure,
+`figure_leave_event` which is raised when mouse leaves a figure,
+`close_event` which is raised when the window is closed.::
+
+    def press(event):
+        print('press released from test', event.x, event.y, event.button)
+
+
+    def release(event):
+        print('release released from test', event.x, event.y, event.button)
+    
+    
+    def keypress(event):
+        print('key down', event.key)
+    
+    
+    def keyup(event):
+        print('key up', event.key)
+    
+    
+    def motionnotify(event):
+        print('mouse move to ', event.x, event.y)
+    
+    
+    def resize(event):
+        print('resize from mpl ', event)
+    
+    
+    def scroll(event):
+        print('scroll event from mpl ', event.x, event.y, event.step)
+    
+    
+    def figure_enter(event):
+        print('figure enter mpl')
+    
+    
+    def figure_leave(event):
+        print('figure leaving mpl')
+    
+    
+    def close(event):
+        print('closing figure')
+
+
+    fig.canvas.mpl_connect('button_press_event', press)
+    fig.canvas.mpl_connect('button_release_event', release)
+    fig.canvas.mpl_connect('key_press_event', keypress)
+    fig.canvas.mpl_connect('key_release_event', keyup)
+    fig.canvas.mpl_connect('motion_notify_event', motionnotify)
+    fig.canvas.mpl_connect('resize_event', resize)
+    fig.canvas.mpl_connect('scroll_event', scroll)
+    fig.canvas.mpl_connect('figure_enter_event', figure_enter)
+    fig.canvas.mpl_connect('figure_leave_event', figure_leave)
+    fig.canvas.mpl_connect('close_event', close)
+
+'''
+
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -650,6 +771,7 @@ class FigureCanvasKivy(FocusBehavior, Widget, FigureCanvasBase):
         winch = w / dpival
         hinch = h / dpival
         self.figure.set_size_inches(winch, hinch)
+        print("set size", winch, hinch)
 #         FigureCanvasBase.resize_event(self)
         self.draw()
 

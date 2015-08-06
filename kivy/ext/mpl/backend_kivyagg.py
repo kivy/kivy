@@ -10,7 +10,8 @@ Backend KivyAgg
 The :class:`FigureCanvasKivyAgg` widget is used to create a matplotlib graph.
 This widget will cover the whole "parent" window. When you are creating a
 FigureCanvasKivyAgg widget, you must at least initialize it with a matplotlib
-figure object.
+figure object. This class uses agg to get a static image of the plot and then
+the image is render using a :class:`~kivy.graphics.texture.Texture`.
 
 
 Examples
@@ -37,14 +38,14 @@ Example of a simple Hello world matplotlib App::
 
 The object canvas can be added as a widget into the kivy tree widget.
 If a change is done on the figure an update can be performed using
-:meth:`~kivy.ext.mpl.backend_kivyagg.FigureCanvasKivyAgg.draw`.
+:meth:`~kivy.ext.mpl.backend_kivyagg.FigureCanvasKivyAgg.draw`.::
 
     # update graph
     canvas.draw()
 
 The plot can be exported to png with
 :meth:`~kivy.ext.mpl.backend_kivyagg.FigureCanvasKivyAgg.print_png`, as an
-argument receives the `filename`.
+argument receives the `filename`.::
 
     # export to png
     canvas.print_png("my_plot.png")
@@ -53,7 +54,7 @@ argument receives the `filename`.
 Backend KivyAgg Events
 -----------------------
 
-The events available are the same events available from Backend Kivy.
+The events available are the same events available from Backend Kivy.::
 
     def my_callback(event):
         print('press released from test', event.x, event.y, event.button)
