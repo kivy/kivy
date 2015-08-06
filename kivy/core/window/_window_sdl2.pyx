@@ -150,6 +150,9 @@ cdef class _WindowSDL2Storage:
     def show_cursor(self, value):
         SDL_ShowCursor(value)
 
+    def raise_window(self):
+        SDL_RaiseWindow(self.win)
+
     def _get_gl_size(self):
         cdef int w, h
         SDL_GL_GetDrawableSize(self.win, &w, &h)

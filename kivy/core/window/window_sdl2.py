@@ -317,6 +317,12 @@ class WindowSDL(WindowBase):
         else:
             Logger.warning('Window: show() is used only on desktop OSes.')
 
+    def raise_window(self):
+        if self._is_desktop:
+            self._win.raise_window()
+        else:
+            Logger.warning('Window: show() is used only on desktop OSes.')
+
     @deprecated
     def toggle_fullscreen(self):
         if self.fullscreen in (True, 'auto'):
