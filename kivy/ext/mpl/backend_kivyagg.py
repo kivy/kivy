@@ -8,76 +8,64 @@ Backend KivyAgg
     :align: right
 
 The :class:`FigureCanvasKivyAgg` widget is used to create a matplotlib graph.
-will cover the whole "parent" window. When you are creating a popup, you
-must at least set a :attr:`Popup.title` and :attr:`Popup.content`.
+This widget will cover the whole "parent" window. When you are creating a
+FigureCanvasKivyAgg widget, you must at least initialize it with a matplotlib
+figure object.
 
-Remember that the default size of a Widget is size_hint=(1, 1). If you don't
-want your popup to be fullscreen, either use size hints with values less than 1
-(for instance size_hint=(.8, .8)) or deactivate the size_hint and use
-fixed size attributes.
-
-
-.. versionchanged:: 1.4.0
-    The :class:`Popup` class now inherits from
-    :class:`~kivy.uix.modalview.ModalView`. The :class:`Popup` offers a default
-    layout with a title and a separation bar.
 
 Examples
 --------
 
-Example of a simple 400x400 Hello world popup::
+Example of a simple Hello world matplotlib App::
 
-    popup = Popup(title='Test popup',
-        content=Label(text='Hello world'),
-        size_hint=(None, None), size=(400, 400))
+    fig, ax = plt.subplots()
+    ax.text(0.6, 0.5, "hello", size=50, rotation=30.,
+            ha="center", va="center",
+            bbox=dict(boxstyle="round",
+                      ec=(1., 0.5, 0.5),
+                      fc=(1., 0.8, 0.8),
+                      )
+            )
+    ax.text(0.5, 0.4, "world", size=50, rotation=-30.,
+            ha="right", va="top",
+            bbox=dict(boxstyle="square",
+                      ec=(1., 0.5, 0.5),
+                      fc=(1., 0.8, 0.8),
+                      )
+            )
+    canvas = FigureCanvasKivyAgg(figure=fig)
 
-By default, any click outside the popup will dismiss/close it. If you don't
-want that, you can set
-:attr:`~kivy.uix.modalview.ModalView.auto_dismiss` to False::
+The object canvas can be added as a widget into the kivy tree widget.
+If a change is done on the figure an update can be performed using
+:meth:`~kivy.ext.mpl.backend_kivyagg.FigureCanvasKivyAgg.draw`.
 
-    popup = Popup(title='Test popup', content=Label(text='Hello world'),
-                  auto_dismiss=False)
-    popup.open()
+    # update graph
+    canvas.draw()
 
-To manually dismiss/close the popup, use
-:attr:`~kivy.uix.modalview.ModalView.dismiss`::
+The plot can be exported to png with
+:meth:`~kivy.ext.mpl.backend_kivyagg.FigureCanvasKivyAgg.print_png`, as an
+argument receives the `filename`.
 
-    popup.dismiss()
-
-Both :meth:`~kivy.uix.modalview.ModalView.open` and
-:meth:`~kivy.uix.modalview.ModalView.dismiss` are bindable. That means you
-can directly bind the function to an action, e.g. to a button's on_press::
-
-    # create content and add to the popup
-    content = Button(text='Close me!')
-    popup = Popup(content=content, auto_dismiss=False)
-
-    # bind the on_press event of the button to the dismiss function
-    content.bind(on_press=popup.dismiss)
-
-    # open the popup
-    popup.open()
+    # export to png
+    canvas.print_png("my_plot.png")
 
 
-Popup Events
-------------
+Backend KivyAgg Events
+-----------------------
 
-There are two events available: `on_open` which is raised when the popup is
-opening, and `on_dismiss` which is raised when the popup is closed.
-For `on_dismiss`, you can prevent the
-popup from closing by explictly returning True from your callback::
+The events available are the same events available from Backend Kivy.
 
-    def my_callback(instance):
-        print('Popup', instance, 'is being dismissed but is prevented!')
-        return True
-    popup = Popup(content=Label(text='Hello world'))
-    popup.bind(on_dismiss=my_callback)
-    popup.open()
+    def my_callback(event):
+        print('press released from test', event.x, event.y, event.button)
+
+    fig.canvas.mpl_connect('mpl_event', my_callback)
 
 '''
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+
+__all__ = ('FigureCanvasKivyAgg')
 
 import six
 
@@ -100,36 +88,19 @@ from kivy.graphics import Rectangle
 from kivy.uix.widget import Widget
 from kivy.base import EventLoop
 from kivy.core.image import Image
-
 from kivy.ext.mpl.backend_kivy import FigureCanvasKivy, FigureManagerKivy, \
-                                _create_App
+                                _create_App, show, new_figure_manager
 
 register_backend('png', 'backend_kivyagg', 'PNG File Format')
 
+# Set a debug flag
 _debug = True
-
-'''
-Backend KivyAgg
-===================
-This set of classes implement an interface in Kivy for matplotlib.
-It uses the canonical Agg renderer which returns a static image,
-which is placed on a texture in Kivy.::
-'''
-
-
-def new_figure_manager(num, *args, **kwargs):
-    """
-    Create a new figure manager instance
-    """
-    FigureClass = kwargs.pop('FigureClass', Figure)
-    thisFig = FigureClass(*args, **kwargs)
-    return new_figure_manager_given_figure(num, thisFig)
 
 
 def new_figure_manager_given_figure(num, figure):
-    """
-    Create a new figure manager instance for the given figure.
-    """
+    '''Create a new figure manager instance and a new figure canvas instance
+       for the given figure.
+    '''
     canvas = FigureCanvasKivyAgg(figure)
     canvas.draw()
     manager = FigureManagerKivy(canvas, num)
@@ -137,30 +108,11 @@ def new_figure_manager_given_figure(num, figure):
     return manager
 
 
-class FigureCanvasKivyAgg(FigureCanvasKivy, FigureCanvasAgg, Widget):
-    """
-    A widget where the figure renders into. Calls the draw and print fig
-    methods, creates the renderers, etc...
+class FigureCanvasKivyAgg(FigureCanvasKivy, FigureCanvasAgg):
+    '''FigureCanvasKivyAgg class. See module documentation for more
+    information.
 
-    Public attribute
-
-      figure - A Figure instance
-
-    Note GUI templates will want to connect events for button presses,
-    mouse movements and key presses to functions that call the base
-    class methods button_press_event, button_release_event,
-    motion_notify_event, key_press_event, and key_release_event. See,
-    e.g., backend_gtk.py, backend_wx.py and backend_tkagg.py
-    """
-
-    '''
-    FigureCanvasKivyAgg
-    ===================
-    The ::
-        # Create a Point
-        pointA = Point(2,3)
-        pointB = Point(4,5)
-        distance = pointA.distance_to(pointB)
+    .. versionadded:: 1.9.1
     '''
 
     def __init__(self, figure, **kwargs):
@@ -174,8 +126,9 @@ class FigureCanvasKivyAgg(FigureCanvasKivy, FigureCanvasAgg, Widget):
 
     def draw(self):
         '''
-        Draw the figure using the renderer
+        Draw the figure using the agg renderer
         '''
+        self.canvas.clear()
         FigureCanvasAgg.draw(self)
         update = False
         if self.blitbox is None:
@@ -204,7 +157,27 @@ class FigureCanvasKivyAgg(FigureCanvasKivy, FigureCanvasAgg, Widget):
         texture.blit_buffer(bytes(buf_rgba), colorfmt='rgba', bufferfmt='ubyte')
         self.img_texture = texture
 
+    filetypes = FigureCanvasKivy.filetypes.copy()
+    filetypes['png'] = 'Portable Network Graphics'
+
+    def print_png(self, filename, *args, **kwargs):
+        FigureCanvasKivy.print_png(self, filename, *args, **kwargs)
+
+    def _print_image(self, filename, *args, **kwargs):
+        '''Write out format png. The image is saved with the filename given.
+        '''
+        l, b, w, h = self.figure.bbox.bounds
+        if self.img_texture is None:
+            texture = Texture.create(size=(w, h))
+            texture.blit_buffer(bytes(self.get_renderer().buffer_rgba()),
+                                colorfmt='rgba', bufferfmt='ubyte')
+            texture.flip_vertical()
+            img = Image(texture)
+        else:
+            img = Image(self.img_texture)
+        img.save(filename)
+
 ''' Standard names that backend.__init__ is expecting '''
 FigureCanvas = FigureCanvasKivyAgg
 FigureManager = FigureManagerKivy
-show = kivy.ext.mpl.backend_kivy.show
+show = show

@@ -49,19 +49,19 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.popup import Popup
 from kivy.properties import ObjectProperty
+from kivy.clock import Clock
 
 import numpy as np
 import io
-
+from _functools import partial
 from math import cos, sin, pi
+
 # try:
 #     kivy.require('1.9.0') # I would need to check which release of
 #     Kivy would be the best suitable.
 # except AttributeError:
 #     raise ImportError(
 #         "kivy version too old -- it must have require_version")
-
-# EventLoop.ensure_window()
 
 _debug = True
 
@@ -486,7 +486,6 @@ def draw_if_interactive():
 
 class Show(ShowBase):
     def mainloop(self):
-        print("calling show")
         global app
         if app is not None:
             app.run()
@@ -528,7 +527,7 @@ def new_figure_manager_given_figure(num, figure):
     canvas.draw()
     manager = FigureManagerKivy(canvas, num)
     _create_App(canvas, manager.toolbar.actionbar)
-    #manager.show()
+#     manager.show()
     return manager
 
 
@@ -562,6 +561,8 @@ class FigureCanvasKivy(FocusBehavior, Widget, FigureCanvasBase):
         """
         Draw the figure using the KivyRenderer
         """
+        self.clear_widgets()
+        self.canvas.clear()
         renderer = RendererKivy(self.figure.dpi, self)
         self.figure.draw(renderer)
 
@@ -643,19 +644,20 @@ class FigureCanvasKivy(FocusBehavior, Widget, FigureCanvasBase):
             self.inside_figure = True
 
     def _on_size_changed(self, *args):
+        print("self.size", self.size)
         w, h = self.size
         dpival = self.figure.dpi
         winch = w / dpival
         hinch = h / dpival
         self.figure.set_size_inches(winch, hinch)
-        FigureCanvasBase.resize_event(self)
+#         FigureCanvasBase.resize_event(self)
+        self.draw()
+
+    def callback(self, *largs):
         self.draw()
 
     def close_event(self, guiEvent=None):
         FigureCanvasBase.close_event(self, guiEvent=guiEvent)
-
-    filetypes = FigureCanvasBase.filetypes.copy()
-    filetypes['png'] = 'My image format'
 
     def blit(self, bbox=None):
         '''
@@ -664,22 +666,17 @@ class FigureCanvasKivy(FocusBehavior, Widget, FigureCanvasBase):
         '''
         self.blitbox = bbox
 
+    filetypes = FigureCanvasBase.filetypes.copy()
+    filetypes['png'] = 'Portable Network Graphics'
+
     def print_png(self, filename, *args, **kwargs):
-        '''
-        Write out format png. The dpi, facecolor and edgecolor are restored
-        to their original values after this call, so you don't need to
-        save and restore them.
-        '''
-        l, b, w, h = self.figure.bbox.bounds
-        texture = Texture.create(size=(w, h))
-        texture.blit_buffer(self.get_renderer().buffer_rgba(), colorfmt='rgba',
-                            bufferfmt='ubyte')
-        texture.flip_vertical()
-        img = Image(texture)
-        img.save(filename)
+        Clock.schedule_once(partial(self._print_image, filename), 1)
 
     def get_default_filetype(self):
         return 'png'
+
+    def _print_image(self, filename, *largs):
+        self.export_to_png(filename)
 
 
 class FigureManagerKivy(FigureManagerBase):
@@ -708,6 +705,7 @@ class FigureManagerKivy(FigureManagerBase):
         EventLoop.window.title = title
 
     def resize(self, w, h):
+        print("Enter resize")
         Window.size(w, h)
 
     def _get_toolbar(self):

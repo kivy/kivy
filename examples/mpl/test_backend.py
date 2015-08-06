@@ -3,10 +3,11 @@ from numpy import arange, sin, pi
 from kivy.app import App
 
 import numpy as np
-from kivy.ext.mpl.backend_kivyagg import FigureCanvasKivyAgg as FigureCanvas
-#from backend_kivy import FigureCanvasKivy as FigureCanvas
+from kivy.ext.mpl.backend_kivyagg import FigureCanvasKivy as FigureCanvas
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.boxlayout import BoxLayout
 from matplotlib.transforms import Bbox
+from kivy.uix.button import Button
 
 import matplotlib.pyplot as plt
 
@@ -91,19 +92,25 @@ def autolabel(rects):
         ax.text(rect.get_x() + rect.get_width() / 2., 1.05 * height,
                 '%d' % int(height), ha='center', va='bottom')
 
-autolabel(rects1)
-autolabel(rects2)
 
 canvas = FigureCanvas(figure=fig)
-#canvas.blit(Bbox(np.array([[0, 0], [400, 400]], np.int32)))
-canvas.draw()
+# canvas.blit(Bbox(np.array([[0, 0], [400, 400]], np.int32)))
+
+
+def callback(instance):
+    autolabel(rects1)
+    autolabel(rects2)
+    canvas.draw()
 
 
 class MatplotlibTest(App):
     title = 'Matplotlib Test'
 
     def build(self):
-        fl = FloatLayout()
+        fl = BoxLayout(orientation="vertical")
+        a = Button(text="press me", height=40, size_hint_y=None)
+        a.bind(on_press=callback)
+        fl.add_widget(a)
         fl.add_widget(canvas)
         return fl
 
