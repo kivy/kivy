@@ -199,10 +199,10 @@ class MPLKivyApp(App):
     def build(self):
         EventLoop.ensure_window()
         layout = FloatLayout()
-        if self.figure is not None:
+        if self.figure:
             self.figure.size_hint_y = 0.9
             layout.add_widget(self.figure)
-        if self.toolbar is not None:
+        if self.toolbar:
             self.toolbar.size_hint_y = 0.1
             layout.add_widget(self.toolbar)
         return layout
@@ -259,7 +259,7 @@ class RendererKivy(RendererBase):
         if collides > -1:
             return collides
         new_bounds = gc.get_clip_rectangle()
-        if new_bounds is not None:
+        if new_bounds:
             x = self.widget.x + int(new_bounds.bounds[0])
             y = self.widget.y + int(new_bounds.bounds[1])
             w = int(new_bounds.bounds[2])
@@ -309,7 +309,7 @@ class RendererKivy(RendererBase):
         if isinstance(gc.line['dash_list'], tuple):
             gc.line['dash_list'] = list(gc.line['dash_list'])
         with widget.canvas:
-            if rgbFace is not None:
+            if rgbFace:
                 Color(*rgbFace)
                 for vertices, indices in polygons.meshes:
                     Mesh(
@@ -328,7 +328,7 @@ class RendererKivy(RendererBase):
         x = self.widget.x + x
         y = self.widget.y + y
         bbox = gc.get_clip_rectangle()
-        if bbox is not None:
+        if bbox:
             l, b, w, h = bbox.bounds
         else:
             l = 0
@@ -556,9 +556,9 @@ class GraphicsContextKivy(GraphicsContextBase):
         GraphicsContextBase.set_dashes(self, dash_offset, dash_list)
         # dash_list is a list with numbers denoting the number of points
         # in a dash and if it is on or off.
-        if dash_list is not None:
+        if dash_list:
             self.line['dash_list'] = dash_list
-        if dash_offset is not None:
+        if dash_offset:
             self.line['dash_offset'] = int(dash_offset)
             # needs improvement since kivy seems not to support
             # dashes with different lengths and offsets
@@ -589,14 +589,14 @@ def draw_if_interactive():
     """
     if matplotlib.is_interactive():
         figManager = Gcf.get_active()
-        if figManager is not None:
+        if figManager:
             figManager.canvas.draw_idle()
 
 
 class Show(ShowBase):
     def mainloop(self):
         app = App.get_running_app()
-        if app is not None:
+        if app:
             app.run()
 
 show = Show()
@@ -797,7 +797,7 @@ class FigureManagerKivy(FigureManagerBase):
 
     def show(self):
         app = App.get_running_app()
-        if app is not None:
+        if app:
             app.run()
 
     def get_window_title(self):
@@ -818,7 +818,7 @@ class FigureManagerKivy(FigureManagerBase):
 
     def destroy(self):
         app = App.get_running_app()
-        if app is not None:
+        if app:
             app.stop()
 
 ########################################################################
