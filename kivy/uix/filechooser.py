@@ -5,20 +5,57 @@ FileChooser
 The FileChooser module provides various classes for describing, displaying and
 browsing file systems.
 
-There are two main widgets that provide a 'view' of the file system, each of
-which present the files/folders in a different style:
-
-* :class:`FileChooserListView`: text items are displayed in a vertical list,
-  where folders can be collapsed and expanded.
-
-* :class:`FileChooserIconView`: icons and text are displayed from left to
-  right and wrapped when required.
-
-Both of these widgets act identically and provide the same interface, namely
-that of a :class:`FileChooserController`.
-
-Simple example
+Simple widgets
 --------------
+
+There are two ready-to-use widgets that provide views of the file system. Each
+of these present the files and folders in a different style.
+
+The :class:`FileChooserListView` displays file entries as text items in a
+vertical list, where folders can be collapsed and expanded.
+
+.. image:: images/filechooser_list.png
+
+The :class:`FileChooserIconView` presents icons and text from left to right,
+wrappping them as required.
+
+.. image:: images/filechooser_icon.png
+
+They both provide for scrolling, selection and basic user interaction.
+Please refer to the :class:`FileChooserController` for details on supported
+events and properties.
+
+Widget composition
+------------------
+
+FileChooser classes adopt a
+`MVC <https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller>`_
+design. They are exposed so that you to extend and customize your file chooser
+according to your needs.
+
+The FileChooser classes can be categorized as follows:
+
+* Models are represented by concrete implementations of the
+  :class:`FileSystemAbstract` class, such as the :class:`FileSystemLocal`.
+
+* Views are represented by the :class:`FileChooserListLayout` and
+  :class:`FileChooserIconLayout` classes. These are used by the
+  :class:`FileChooserListView` and :class:`FileChooserIconView` widgets
+  respectively.
+
+* Controllers are represented by concrete implementations of the
+  :class:`FileChooserController`, namely the :class:`FileChooser`,
+  :class:`FileChooserIconView` and :class:`FileChooserListView` classes.
+
+This means you can define your own views or provide :class:`FileSystemAbstract`
+implementations for alternative file systems for use with these widgets.
+The :class:`FileChooser` can be used as a controller for handling multiple,
+synchronized views of the same path. By combining these elements, you can add
+your own views and file systems and have them easily interact with the existing
+components.
+
+Usage example
+-------------
 
 main.py
 
