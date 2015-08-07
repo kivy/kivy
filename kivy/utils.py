@@ -441,6 +441,8 @@ class Platform(object):
             return 'macosx'
         elif _sys_platform[:5] == 'linux':
             return 'linux'
+        elif _sys_platform.startswith('freebsd'):
+            return 'linux'
         return 'unknown'
 
 
