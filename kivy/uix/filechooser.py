@@ -350,7 +350,7 @@ class FileChooserController(RelativeLayout):
     '''
     filters specifies the filters to be applied to the files in the directory.
     filters is a :class:`~kivy.properties.ListProperty` and defaults to []. This
-    is equivalent to '*' i.e. nothing is filtered.
+    is equivalent to '\*' i.e. nothing is filtered.
 
     The filters are not reset when the path changes. You need to do that
     yourself if desired.
@@ -379,25 +379,24 @@ class FileChooserController(RelativeLayout):
         indicate a match and False otherwise.
 
     .. versionchanged:: 1.4.0
-        If the filter is a callable (function or method), it will be called
-        with the path and the file name as arguments for each file in the
-        directory.
-        The callable should returns True to indicate a match and False
-        overwise.
+        Added the option to specify the filter as a callback.
     '''
 
     filter_dirs = BooleanProperty(False)
     '''
-    :class:`~kivy.properties.BooleanProperty`, defaults to False.
     Indicates whether filters should also apply to directories.
+    filter_dirs is a :class:`~kivy.properties.BooleanProperty` and defaults to
+    False.
     '''
 
     sort_func = ObjectProperty(alphanumeric_folders_first)
     '''
-    :class:`~kivy.properties.ObjectProperty`.
-    Provides a function to be called with a list of filenames, and the
-    filesystem implementation as the second argument.
-    Returns a list of filenames sorted for display in the view.
+    Provides a function to be called with a list of filenames as the first
+    argument and the filesystem implementation as the second argument. It
+    returns a list of filenames sorted for display in the view.
+
+    sort_func is an :class:`~kivy.properties.ObjectProperty` and defaults to a
+    function returning alphanumerically named folders first.
 
     .. versionchanged:: 1.8.0
 
@@ -407,33 +406,41 @@ class FileChooserController(RelativeLayout):
 
     files = ListProperty([])
     '''
-    Read-only :class:`~kivy.properties.ListProperty`.
     The list of files in the directory specified by path after applying the
     filters.
+
+    files is a read-only :class:`~kivy.properties.ListProperty`.
     '''
 
     show_hidden = BooleanProperty(False)
     '''
-    :class:`~kivy.properties.BooleanProperty`, defaults to False.
     Determines whether hidden files and folders should be shown.
+
+    show_hidden is a :class:`~kivy.properties.BooleanProperty` and defaults to
+    False.
     '''
 
     selection = ListProperty([])
     '''
-    Read-only :class:`~kivy.properties.ListProperty`.
     Contains the list of files that are currently selected.
+
+    selection is a read-only :class:`~kivy.properties.ListProperty`.
     '''
 
     multiselect = BooleanProperty(False)
     '''
-    :class:`~kivy.properties.BooleanProperty`, defaults to False.
     Determines whether the user is able to select multiple files or not.
+
+    multiselect is a :class:`~kivy.properties.BooleanProperty` and defaults to
+    False.
     '''
 
     dirselect = BooleanProperty(False)
     '''
-    :class:`~kivy.properties.BooleanProperty`, defaults to False.
     Determines whether directories are valid selections or not.
+
+    dirselect is a :class:`~kivy.properties.BooleanProperty` and defaults to
+    False.
 
     .. versionadded:: 1.1.0
     '''
@@ -445,9 +452,9 @@ class FileChooserController(RelativeLayout):
     rootpath to /users/foo, the user will be unable to go to /users or to any
     other directory not starting with /users/foo.
 
-    .. versionadded:: 1.2.0
+    rootpath is a :class:`~kivy.properties.StringProperty` and defaults to None.
 
-    :class:`~kivy.properties.StringProperty`, defaults to None.
+    .. versionadded:: 1.2.0
 
     .. note::
 
@@ -462,7 +469,7 @@ class FileChooserController(RelativeLayout):
 
     .. versionadded:: 1.2.0
 
-    :class:`~kivy.properties.ObjectProperty`, defaults to
+    progress_cls is an :class:`~kivy.properties.ObjectProperty` and defaults to
     :class:`FileChooserProgress`.
 
     .. versionchanged:: 1.8.0
@@ -474,11 +481,14 @@ class FileChooserController(RelativeLayout):
 
     file_encodings = ListProperty(['utf-8', 'latin1', 'cp1252'])
     '''Possible encodings for decoding a filename to unicode. In the case that
-    the user has a weird filename, undecodable without knowing it's
+    the user has a non-ascii filename, undecodable without knowing it's
     initial encoding, we have no other choice than to guess it.
 
     Please note that if you encounter an issue because of a missing encoding
     here, we'll be glad to add it to this list.
+
+    file_encodings is a :class:`~kivy.properties.ListProperty` and defaults to
+    ['utf-8', 'latin1', 'cp1252'].
 
     .. versionadded:: 1.3.0
 
@@ -486,19 +496,17 @@ class FileChooserController(RelativeLayout):
        This property is no longer used as the filechooser no longer decodes
        the file names.
 
-    file_encodings is a :class:`~kivy.properties.ListProperty` and defaults to
-    ['utf-8', 'latin1', 'cp1252'],
     '''
 
     file_system = ObjectProperty(FileSystemLocal(),
                                  baseclass=FileSystemAbstract)
-    '''The file system obejct used to access the file system. This should be a
+    '''The file system object used to access the file system. This should be a
     subclass of :class:`FileSystemAbstract`.
-
-    .. versionadded:: 1.8.0
 
     file_system is an :class:`~kivy.properties.ObjectProperty` and defaults to
     :class:`FileSystemLocal()`
+
+    .. versionadded:: 1.8.0
     '''
 
     __events__ = ('on_entry_added', 'on_entries_cleared',
