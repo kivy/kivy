@@ -184,8 +184,6 @@ from math import cos, sin, pi
 #     raise ImportError(
 #         "kivy version too old -- it must have require_version")
 
-app = None
-
 
 class SaveDialog(FloatLayout):
     save = ObjectProperty(None)
@@ -210,12 +208,12 @@ class MPLKivyApp(App):
         return layout
 
     def on_stop(self):
-        global app
-        app = None
+        app = App.get_running_app()
+        App.on_stop(self)
 
 
 def _create_App(fig_canvas, toolbar):
-    global app
+    app = App.get_running_app()
     if app is None:
         app = MPLKivyApp(figure=fig_canvas, toolbar=toolbar)
 
@@ -597,7 +595,7 @@ def draw_if_interactive():
 
 class Show(ShowBase):
     def mainloop(self):
-        global app
+        app = App.get_running_app()
         if app is not None:
             app.run()
 
@@ -638,7 +636,6 @@ def new_figure_manager_given_figure(num, figure):
     canvas.draw()
     manager = FigureManagerKivy(canvas, num)
     _create_App(canvas, manager.toolbar.actionbar)
-#     manager.show()
     return manager
 
 
@@ -799,7 +796,7 @@ class FigureManagerKivy(FigureManagerBase):
         self.toolbar = self._get_toolbar()
 
     def show(self):
-        global app
+        app = App.get_running_app()
         if app is not None:
             app.run()
 
@@ -820,7 +817,7 @@ class FigureManagerKivy(FigureManagerBase):
         return toolbar
 
     def destroy(self):
-        global app
+        app = App.get_running_app()
         if app is not None:
             app.stop()
 
