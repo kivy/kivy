@@ -8,6 +8,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 from matplotlib.transforms import Bbox
 from kivy.uix.button import Button
+from kivy.graphics import Color, Line, Rectangle
 
 import matplotlib.pyplot as plt
 

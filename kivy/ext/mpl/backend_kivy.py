@@ -571,15 +571,9 @@ class GraphicsContextKivy(GraphicsContextBase):
 
     def set_foreground(self, fg, isRGBA=False):
         GraphicsContextBase.set_foreground(self, fg, isRGBA=isRGBA)
-        with self.renderer.canvas.before:
-            Color(*self.get_rgb())
-            Rectangle(pos=self.renderer.pos, size=self.renderer.size)
 
     def set_graylevel(self, frac):
         GraphicsContextBase.set_graylevel(self, frac)
-        with self.renderer.canvas.before:
-            Color(*self.get_rgb())
-            Rectangle(pos=self.renderer.pos, size=self.renderer.size)
 
     def set_linewidth(self, w):
         GraphicsContextBase.set_linewidth(self, w)
@@ -765,13 +759,11 @@ class FigureCanvasKivy(FocusBehavior, Widget, FigureCanvasBase):
             self.inside_figure = True
 
     def _on_size_changed(self, *args):
-        print("self.size", self.size)
         w, h = self.size
         dpival = self.figure.dpi
         winch = w / dpival
         hinch = h / dpival
         self.figure.set_size_inches(winch, hinch)
-        print("set size", winch, hinch)
         self.draw()
 
     def callback(self, *largs):

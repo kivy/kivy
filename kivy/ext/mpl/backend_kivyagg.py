@@ -181,16 +181,6 @@ class FigureCanvasKivyAgg(FigureCanvasKivy, FigureCanvasAgg):
             img = Image(self.img_texture)
         img.save(filename)
 
-    def _on_size_changed(self, *args):
-        print("self.size", self.size)
-        w, h = self.size
-        dpival = self.figure.dpi
-        winch = w / dpival
-        hinch = h / dpival
-        self.figure.set_size_inches(winch, hinch)
-        print("set size", winch, hinch)
-        self.draw()
-
 ''' Standard names that backend.__init__ is expecting '''
 FigureCanvas = FigureCanvasKivyAgg
 FigureManager = FigureManagerKivy
