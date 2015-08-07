@@ -531,7 +531,7 @@ class GraphicsContextKivy(GraphicsContextBase):
     }
 
     def __init__(self, renderer):
-        #super(GraphicsContextBase, self).__init__()
+        #super(GraphicsContextKivy, self).__init__()
         GraphicsContextBase.__init__(self)
         self.renderer = renderer
         self.line = {}
@@ -797,8 +797,6 @@ class FigureManagerKivy(FigureManagerBase):
 
     def show(self):
         app = App.get_running_app()
-        if app:
-            app.run()
 
     def get_window_title(self):
         return EventLoop.window.title
