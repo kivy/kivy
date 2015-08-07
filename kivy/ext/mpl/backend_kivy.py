@@ -184,8 +184,6 @@ from math import cos, sin, pi
 #     raise ImportError(
 #         "kivy version too old -- it must have require_version")
 
-_debug = True
-
 app = None
 
 
@@ -219,8 +217,6 @@ class MPLKivyApp(App):
 def _create_App(fig_canvas, toolbar):
     global app
     if app is None:
-        if _debug:
-            print("Starting up Kivy Application")
         app = MPLKivyApp(figure=fig_canvas, toolbar=toolbar)
 
 
@@ -653,8 +649,6 @@ class FigureCanvasKivy(FocusBehavior, Widget, FigureCanvasBase):
     """
 
     def __init__(self, figure, **kwargs):
-        if _debug:
-            print('FigureCanvasKivy: ', figure)
         Window.bind(mouse_pos=self._on_mouse_pos)
         self.bind(size=self._on_size_changed)
         self.inside_figure = True
@@ -790,8 +784,6 @@ class FigureManagerKivy(FigureManagerBase):
     """
 
     def __init__(self, canvas, num):
-        if _debug:
-            print('FigureManagerKivy: ', canvas)
         super(FigureManagerKivy, self).__init__(canvas, num)
         self.canvas = canvas
         self.toolbar = self._get_toolbar()
