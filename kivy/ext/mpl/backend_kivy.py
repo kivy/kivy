@@ -238,7 +238,9 @@ class RendererKivy(RendererBase):
         self.clip_rectangles = []
 
     def contains(self, widget, x, y):
-        ''' Returns whether or not a stroke_point is inside the widget '''
+        ''' Returns whether or not a point is inside the widget '''
+        x = widget.x + x
+        y = widget.y + y
         left = widget.x
         bottom = widget.y
         top = widget.y + widget.height
@@ -248,17 +250,20 @@ class RendererKivy(RendererBase):
 
     def handle_clip_rectangle(self, gc, x, y):
         '''It checks whether the point (x,y) collides with any already
-        existent stencil. If so it returns the index position of the
-        stencil it collides with. if the new clip rectangle bounds are
-        None it draws in the canvas otherwise it finds the correspondent
-        stencil or creates a new one for the new graphics instructions.'''
+           existent stencil. If so it returns the index position of the
+           stencil it collides with. if the new clip rectangle bounds are
+           None it draws in the canvas otherwise it finds the correspondent
+           stencil or creates a new one for the new graphics instructions.
+        '''
+        x = self.widget.x + x
+        y = self.widget.y + y
         collides = self.collides_with_existent_stencil(x, y)
         if collides > -1:
             return collides
         new_bounds = gc.get_clip_rectangle()
         if new_bounds is not None:
-            x = int(new_bounds.bounds[0])
-            y = int(new_bounds.bounds[1])
+            x = self.widget.x + int(new_bounds.bounds[0])
+            y = self.widget.y + int(new_bounds.bounds[1])
             w = int(new_bounds.bounds[2])
             h = int(new_bounds.bounds[3])
             collides = self.collides_with_existent_stencil(x, y)
@@ -287,6 +292,8 @@ class RendererKivy(RendererBase):
         for polygon in polygons:
             vertices = []
             for x, y in polygon:
+                x = x + self.widget.x
+                y = y + self.widget.y
                 points_line += [float(x), float(y), ]
             tess = Tesselator()
             tess.add_contour(points_line)
@@ -320,6 +327,8 @@ class RendererKivy(RendererBase):
                  dash_list=gc.line['dash_list'])
 
     def draw_image(self, gc, x, y, im):
+        x = self.widget.x + x
+        y = self.widget.y + y
         bbox = gc.get_clip_rectangle()
         if bbox is not None:
             l, b, w, h = bbox.bounds
@@ -361,7 +370,8 @@ class RendererKivy(RendererBase):
 #                                     colors.reshape((1, 3, 4)), trans)
 
     def draw_text(self, gc, x, y, s, prop, angle, ismath=False, mtext=None):
-        x, y = int(x), int(y)
+        x = int(x) + self.widget.x
+        y = int(y) + self.widget.y
         if x < 0 or y < 0:
             return
         if ismath:
