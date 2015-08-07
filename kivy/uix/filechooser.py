@@ -314,8 +314,8 @@ class FileChooserController(RelativeLayout):
             Fired when the the entries list is cleared, usually when the
             root is refreshed.
         `on_subentry_to_entry`: entry, parent
-            Fired when a sub-entry is added to an existing entry.
-            Fired when entries are removed from an entry, usually when
+            Fired when a sub-entry is added to an existing entry or
+            when entries are removed from an entry e.g. when
             a node is closed.
         `on_submit`: selection, touch
             Fired when a file has been selected with a double-tap.
@@ -333,22 +333,24 @@ class FileChooserController(RelativeLayout):
 
     path = StringProperty(u'/')
     '''
-    :class:`~kivy.properties.StringProperty`, defaults to the current working
-    directory as a unicode string. It specifies the path on the filesystem that
-    this controller should refer to.
+    path is a :class:`~kivy.properties.StringProperty` and defaults to the
+    current working directory as a unicode string. It specifies the path on the
+    filesystem that this controller should refer to.
 
     .. warning::
 
         If a unicode path is specified, all the files returned will be in
-        unicode allowing the display of unicode files and paths. If a bytes
+        unicode, allowing the display of unicode files and paths. If a bytes
         path is specified, only files and paths with ascii names will be
         displayed properly: non-ascii filenames will be displayed and listed
         with questions marks (?) instead of their unicode characters.
     '''
 
     filters = ListProperty([])
-    ''':class:`~kivy.properties.ListProperty`, defaults to [], equal to '\*'.
-    Specifies the filters to be applied to the files in the directory.
+    '''
+    filters specifies the filters to be applied to the files in the directory.
+    filters is a :class:`~kivy.properties.ListProperty` and defaults to []. This
+    is equivalent to '*' i.e. nothing is filtered.
 
     The filters are not reset when the path changes. You need to do that
     yourself if desired.
@@ -490,12 +492,12 @@ class FileChooserController(RelativeLayout):
 
     file_system = ObjectProperty(FileSystemLocal(),
                                  baseclass=FileSystemAbstract)
-    '''Implementation to access the file system. Must be an instance of
-    FileSystemAbstract.
+    '''The file system obejct used to access the file system. This should be a
+    subclass of :class:`FileSystemAbstract`.
 
     .. versionadded:: 1.8.0
 
-    :class:`~kivy.properties.ObjectProperty`, defaults to
+    file_system is an :class:`~kivy.properties.ObjectProperty` and defaults to
     :class:`FileSystemLocal()`
     '''
 
