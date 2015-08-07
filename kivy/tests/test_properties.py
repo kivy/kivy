@@ -402,20 +402,20 @@ class PropertiesTestCase(unittest.TestCase):
 
         a.set(wid, '55dp')
         from kivy.core.window import Window
-        dpi = Window.dpi
-        self.assertEqual(a.get(wid), 55 * dpi)
+        density = Window._density if hasattr(Window, '_density') else 1
+        self.assertEqual(a.get(wid), 55 * density)
         self.assertEqual(a.get_format(wid), 'dp')
 
         a.set(wid, u'55dp')
-        self.assertEqual(a.get(wid), 55)
+        self.assertEqual(a.get(wid), 55 * density)
         self.assertEqual(a.get_format(wid), 'dp')
 
         a.set(wid, '99in')
-        self.assertEqual(a.get(wid), 9504.0)
+        self.assertEqual(a.get(wid), 9504.0 * density)
         self.assertEqual(a.get_format(wid), 'in')
 
         a.set(wid, u'99in')
-        self.assertEqual(a.get(wid), 9504.0)
+        self.assertEqual(a.get(wid), 9504.0 * density)
         self.assertEqual(a.get_format(wid), 'in')
 
     def test_property_rebind(self):

@@ -200,7 +200,6 @@ class UtilsTest(unittest.TestCase):
     def test_Platform_android(self):
         with patch.dict('os.environ', {'ANDROID_ARGUMENT': ''}):
             pf = Platform()
-            print pf
             self.assertTrue(pf == 'android')
         self.assertNotIn('ANDROID_ARGUMENT', os.environ)
 
