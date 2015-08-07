@@ -401,7 +401,9 @@ class PropertiesTestCase(unittest.TestCase):
         self.assertEqual(a.get(wid), 0)
 
         a.set(wid, '55dp')
-        self.assertEqual(a.get(wid), 55)
+        from kivy.core.window import Window
+        dpi = Window.dpi
+        self.assertEqual(a.get(wid), 55 * dpi)
         self.assertEqual(a.get_format(wid), 'dp')
 
         a.set(wid, u'55dp')
