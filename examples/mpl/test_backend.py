@@ -3,7 +3,7 @@ from numpy import arange, sin, pi
 from kivy.app import App
 
 import numpy as np
-from kivy.ext.mpl.backend_kivyagg import FigureCanvasKivyAgg as FigureCanvas
+from kivy.ext.mpl.backend_kivyagg import FigureCanvasKivy as FigureCanvas
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 from matplotlib.transforms import Bbox

@@ -174,7 +174,7 @@ from kivy.clock import Clock
 
 import numpy as np
 import io
-from _functools import partial
+from functools import partial
 from math import cos, sin, pi
 
 # try:
@@ -200,26 +200,16 @@ class MPLKivyApp(App):
     figure = ObjectProperty(None)
     toolbar = ObjectProperty(None)
 
-    def __init__(self, **kwargs):
-        super(MPLKivyApp, self).__init__(**kwargs)
-        self.figure = kwargs['figure']
-        self.toolbar = kwargs['toolbar']
-
     def build(self):
         EventLoop.ensure_window()
         layout = FloatLayout()
-        layout.clear_widgets()
-        self.figure.size_hint_y = 0.9
-        layout.add_widget(self.figure)
-        self.toolbar.size_hint_y = 0.1
-        layout.add_widget(self.toolbar)
+        if self.figure is not None:
+            self.figure.size_hint_y = 0.9
+            layout.add_widget(self.figure)
+        if self.toolbar is not None:
+            self.toolbar.size_hint_y = 0.1
+            layout.add_widget(self.toolbar)
         return layout
-
-    def on_pause(self):
-        return App.on_pause(self)
-
-    def on_resume(self):
-        App.on_resume(self)
 
     def on_stop(self):
         global app

@@ -105,7 +105,6 @@ def new_figure_manager_given_figure(num, figure):
        for the given figure.
     '''
     canvas = FigureCanvasKivyAgg(figure)
-    canvas.draw()
     manager = FigureManagerKivy(canvas, num)
     _create_App(canvas, manager.toolbar.actionbar)
     return manager
