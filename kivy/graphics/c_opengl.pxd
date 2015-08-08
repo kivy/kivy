@@ -333,6 +333,7 @@ cdef extern from "gl_redirect.h":
     int GL_RGB565
     int GL_DEPTH_COMPONENT16
     int GL_STENCIL_INDEX8
+    int GL_DEPTH24_STENCIL8
 
     int GL_RENDERBUFFER_WIDTH
     int GL_RENDERBUFFER_HEIGHT

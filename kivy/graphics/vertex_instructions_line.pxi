@@ -1211,7 +1211,7 @@ cdef class SmoothLine(Line):
     cdef float _owidth
 
     def __init__(self, **kwargs):
-        VertexInstruction.__init__(self, **kwargs)
+        Line.__init__(self, **kwargs)
         self._owidth = kwargs.get("overdraw_width") or 1.2
         self.batch.set_mode("triangles")
         self.texture = self.premultiplied_texture()
