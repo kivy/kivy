@@ -158,7 +158,7 @@ class FileSystemAbstract(object):
 
 
 class FileSystemLocal(FileSystemAbstract):
-    '''Implementation of :class:`FileSystemAbstract` for local files
+    '''Implementation of :class:`FileSystemAbstract` for local files.
 
     .. versionadded:: 1.8.0
     '''
@@ -304,8 +304,6 @@ class FileChooserController(RelativeLayout):
     '''Base for implementing a FileChooser. Don't use this class directly, but
     prefer using an implementation such as the :class:`FileChooser`,
     :class:`FileChooserListView` or :class:`FileChooserIconView`.
-
-    .. versionchanged:: 1.9.0
 
     :Events:
         `on_entry_added`: entry, parent
@@ -475,8 +473,8 @@ class FileChooserController(RelativeLayout):
 
     .. versionchanged:: 1.8.0
 
-        If you set a string, the :class:`~kivy.factory.Factory` will be used to
-        resolve the class.
+        If set to a string, the :class:`~kivy.factory.Factory` will be used to
+        resolve the class name.
 
     '''
 
@@ -885,6 +883,29 @@ class FileChooserIconView(FileChooserController):
 class FileChooser(FileChooserController):
     '''Implementation of a :class:`FileChooserController` which supports
     switching between multiple, synced layout views.
+
+    The FileChooser can be used as follows:
+
+    .. code-block:: kv
+
+        BoxLayout:
+            orientation: 'vertical'
+
+            BoxLayout:
+                size_hint_y: None
+                height: sp(52)
+
+                Button:
+                    text: 'Icon View'
+                    on_press: fc.view_mode = 'icon'
+                Button:
+                    text: 'List View'
+                    on_press: fc.view_mode = 'list'
+
+            FileChooser:
+                id: fc
+                FileChooserIconLayout
+                FileChooserListLayout
 
     .. versionadded:: 1.9.0
     '''
