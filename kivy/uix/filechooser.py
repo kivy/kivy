@@ -424,7 +424,8 @@ class FileChooserController(RelativeLayout):
     '''
     Contains the list of files that are currently selected.
 
-    selection is a read-only :class:`~kivy.properties.ListProperty`.
+    selection is a read-only :class:`~kivy.properties.ListProperty` and defaults
+    to [].
     '''
 
     multiselect = BooleanProperty(False)
@@ -467,10 +468,10 @@ class FileChooserController(RelativeLayout):
     '''Class to use for displaying a progress indicator for filechooser
     loading.
 
-    .. versionadded:: 1.2.0
-
     progress_cls is an :class:`~kivy.properties.ObjectProperty` and defaults to
     :class:`FileChooserProgress`.
+
+    .. versionadded:: 1.2.0
 
     .. versionchanged:: 1.8.0
 
@@ -656,7 +657,7 @@ class FileChooserController(RelativeLayout):
 
     def get_nice_size(self, fn):
         '''Pass the filepath. Returns the size in the best human readable
-        format or '' if it is a directory (Don't recursively calculate size.).
+        format or '' if it is a directory (Don't recursively calculate size).
         '''
         if self.file_system.is_dir(fn):
             return ''
@@ -866,7 +867,7 @@ class FileChooserController(RelativeLayout):
 
 
 class FileChooserListView(FileChooserController):
-    '''Implementation of :class:`FileChooserController` using a list view.
+    '''Implementation of a :class:`FileChooserController` using a list view.
 
     .. versionadded:: 1.9.0
     '''
@@ -874,7 +875,7 @@ class FileChooserListView(FileChooserController):
 
 
 class FileChooserIconView(FileChooserController):
-    '''Implementation of :class:`FileChooserController` using an icon view.
+    '''Implementation of a :class:`FileChooserController` using an icon view.
 
     .. versionadded:: 1.9.0
     '''
@@ -882,7 +883,7 @@ class FileChooserIconView(FileChooserController):
 
 
 class FileChooser(FileChooserController):
-    '''Implementation of :class:`FileChooserController` which supports
+    '''Implementation of a :class:`FileChooserController` which supports
     switching between multiple, synced layout views.
 
     .. versionadded:: 1.9.0
@@ -892,7 +893,7 @@ class FileChooser(FileChooserController):
     '''
     Reference to the :class:`~kivy.uix.screenmanager.ScreenManager` instance.
 
-    :class:`~kivy.properties.ObjectProperty`
+    manager is an :class:`~kivy.properties.ObjectProperty`.
     '''
 
     _view_list = ListProperty()
@@ -904,7 +905,8 @@ class FileChooser(FileChooserController):
     '''
     List of views added to this FileChooser.
 
-    :class:`~kivy.properties.AliasProperty` of type :class:`list`.
+    view_list is an :class:`~kivy.properties.AliasProperty` of type
+    :class:`list`.
     '''
 
     _view_mode = StringProperty()
@@ -922,7 +924,8 @@ class FileChooser(FileChooserController):
     '''
     Current layout view mode.
 
-    :class:`~kivy.properties.AliasProperty` of type :class:`str`.
+    view_mode is an :class:`~kivy.properties.AliasProperty` of type
+    :class:`str`.
     '''
 
     @property
