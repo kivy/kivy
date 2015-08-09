@@ -72,11 +72,11 @@ cdef extern from "tesselator.h":
         pass
     ctypedef struct TESSalloc:
         pass
-    ctypedef enum TessElementType:
+    cdef enum TessElementType:
         TESS_POLYGONS
         TESS_CONNECTED_POLYGONS
         TESS_BOUNDARY_CONTOURS
-    ctypedef enum TessWindingRule:
+    cdef enum TessWindingRule:
         TESS_WINDING_ODD
         TESS_WINDING_NONZERO
         TESS_WINDING_POSITIVE
