@@ -26,8 +26,8 @@ Installation, Documentation and Examples
 ----------------------------------------
 
 Extensive installation instructions as well as tutorials and general
-documentation, including an API reference, can be found at: http://kivy.org/docs/.
-An offline [PDF version](http://kivy.org/docs/pdf/Kivy-latest.pdf) is also available.
+documentation, including an API reference, can be found at http://kivy.org/docs.
+A [PDF version](http://kivy.org/docs/pdf/Kivy-latest.pdf) is also available.
 
 Kivy ships with many examples which can be found in the `examples` folder.
 
