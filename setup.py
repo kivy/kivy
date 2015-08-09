@@ -31,7 +31,7 @@ if PY3:  # fix error with py3's LooseVersion comparisons
 
 MIN_CYTHON_STRING = '0.20'
 MIN_CYTHON_VERSION = LooseVersion(MIN_CYTHON_STRING)
-MAX_CYTHON_STRING = '0.21.2'
+MAX_CYTHON_STRING = '0.23'
 MAX_CYTHON_VERSION = LooseVersion(MAX_CYTHON_STRING)
 CYTHON_UNSUPPORTED = (
     LooseVersion('0.22'),
