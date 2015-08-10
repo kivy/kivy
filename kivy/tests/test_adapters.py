@@ -287,7 +287,7 @@ class AdaptersTestCase(unittest.TestCase):
 
         # The third of the four cls_dict items has no kwargs nor text, so
         # rec['text'] will be set for it. Likewise, the fifth item has kwargs,
-        # but it has no 'text' key/value, so should receive the same treatment.
+        # but it has no 'text' key-value, so should receive the same treatment.
         self.composite_args_converter = \
             lambda row_index, rec: \
                 {'text': rec['text'],

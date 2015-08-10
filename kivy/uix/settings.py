@@ -82,7 +82,7 @@ properties of that class.
     ============== =================================================
 
 In the JSON example above, the first element is of type "title". It will create
-a new instance of :class:`SettingTitle` and apply the rest of the key/value
+a new instance of :class:`SettingTitle` and apply the rest of the key-value
 pairs to the properties of that class, i.e. "title": "Windows" sets the
 :attr:`SettingTitle.title` property to "Windows".
 
@@ -853,7 +853,7 @@ class Settings(BoxLayout):
 
     :Events:
         `on_config_change`: ConfigParser instance, section, key, value
-            Fired when section/key/value of a ConfigParser changes.
+            Fired when the section's key-value pair of a ConfigParser changes.
 
             .. warning:
 
