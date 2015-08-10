@@ -458,7 +458,7 @@ class FileChooserController(RelativeLayout):
     .. note::
 
         Similarly to :attr:`path`, whether `rootpath` is specified as
-        bytes or unicode string determines the type of the filenames and paths
+        bytes or a unicode string determines the type of the filenames and paths
         read.
     '''
 
