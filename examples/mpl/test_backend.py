@@ -111,8 +111,8 @@ class MatplotlibTest(App):
         fl = BoxLayout(orientation="vertical")
         a = Button(text="press me", height=40, size_hint_y=None)
         a.bind(on_press=callback)
-        fl.add_widget(a)
         fl.add_widget(canvas)
+        fl.add_widget(a)
         return fl
 
 if __name__ == '__main__':
