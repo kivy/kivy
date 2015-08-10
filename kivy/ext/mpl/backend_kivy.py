@@ -397,8 +397,6 @@ class RendererKivy(RendererBase):
         '''
         x = int(x) + self.widget.x
         y = int(y) + self.widget.y
-        if x < 0 or y < 0:
-            return
         if ismath:
             self.draw_mathtext(gc, x, y, s, prop, angle)
         else:
@@ -848,9 +846,7 @@ class FigureManagerKivy(FigureManagerBase):
         self.toolbar = self._get_toolbar()
 
     def show(self):
-        '''Instantiate the App.
-        '''
-        app = App.get_running_app()
+        pass
 
     def get_window_title(self):
         return EventLoop.window.title
