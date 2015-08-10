@@ -131,7 +131,7 @@ def alphanumeric_folders_first(files, filesystem):
 
 class FileSystemAbstract(object):
     '''Class for implementing a File System view that can be used with the
-    :class:`FileChooser`.:attr:`~FileChooser.file_system`.
+    :class:`FileChooser <FileChooser>`.
 
     .. versionadded:: 1.8.0
     '''
@@ -457,7 +457,7 @@ class FileChooserController(RelativeLayout):
 
     .. note::
 
-        Similar to :attr:`path`, if `rootpath` is specified, whether it's a
+        Similarly to :attr:`path`, whether `rootpath` is specified as
         bytes or unicode string determines the type of the filenames and paths
         read.
     '''
