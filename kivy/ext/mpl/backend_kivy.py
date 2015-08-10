@@ -126,17 +126,19 @@ import six
 import os
 import scipy
 import matplotlib
+import matplotlib.transforms as transforms
 from matplotlib._pylab_helpers import Gcf
 from matplotlib.backend_bases import RendererBase, GraphicsContextBase,\
     FigureManagerBase, FigureCanvasBase, NavigationToolbar2
 from matplotlib.figure import Figure
-from matplotlib.transforms import Bbox
+from matplotlib.transforms import Bbox, Affine2D
 from matplotlib.backend_bases import ShowBase
 from matplotlib.mathtext import MathTextParser
 from matplotlib import rcParams
 from hashlib import md5
 from matplotlib import _png
 from matplotlib.font_manager import weight_as_number
+from matplotlib import _path
 
 try:
     import kivy
@@ -156,7 +158,7 @@ from kivy.uix.actionbar import ActionBar, ActionView, \
 from kivy.base import EventLoop
 from kivy.core.text import Label as CoreLabel
 from kivy.graphics import Color, Line
-from kivy.graphics import Rotate, Translate
+from kivy.graphics import Rotate, Translate, Fbo
 from kivy.graphics.tesselator import Tesselator
 from kivy.graphics.context_instructions import PopMatrix, PushMatrix
 from kivy.logger import Logger
@@ -234,6 +236,7 @@ class RendererKivy(RendererBase):
         super(RendererKivy, self).__init__()
         self.widget = widget
         self.dpi = widget.figure.dpi
+        self._markers = {}
         #  Can be enhanced by using TextToPath matplotlib, textpath.py
         self.mathtext_parser = MathTextParser("Bitmap")
         self.list_goraud_triangles = []
@@ -315,15 +318,16 @@ class RendererKivy(RendererBase):
                 return
             newclip = self.handle_clip_rectangle(gc, x, y)
             if newclip > -1:
-                self.draw_graphics(self.clip_rectangles[newclip], gc, tess,
-                                points_line, rgbFace)
+                self.draw_graphics(self.clip_rectangles[newclip].canvas, gc,
+                                tess, points_line, rgbFace)
             else:
-                self.draw_graphics(self.widget, gc, tess, points_line, rgbFace)
+                self.draw_graphics(self.widget.canvas, gc, tess, points_line,
+                                   rgbFace)
 
-    def draw_graphics(self, widget, gc, polygons, points_line, rgbFace):
+    def draw_graphics(self, canvas, gc, polygons, points_line, rgbFace):
         if isinstance(gc.line['dash_list'], tuple):
             gc.line['dash_list'] = list(gc.line['dash_list'])
-        with widget.canvas:
+        with canvas:
             if rgbFace:
                 Color(*rgbFace)
                 for vertices, indices in polygons.meshes:
@@ -439,13 +443,64 @@ class RendererKivy(RendererBase):
 
     def draw_markers(self, gc, marker_path, marker_trans, path,
         trans, rgbFace=None):
-        print ("draw_markers")
-        print ("markerpath", marker_path)
-        RendererBase.draw_markers(self, gc, marker_path, marker_trans, path,
-                                  trans, rgbFace=rgbFace)
+        if not len(path.vertices):
+            return
+        path_data = self._convert_path(
+            marker_path,
+            marker_trans + Affine2D().scale(1.0, -1.0),
+            simplify=False)
+        dictkey = (path_data, gc)
+        oid = self._markers.get(dictkey)
+        if oid is None:
+            oid = self._make_id('m', dictkey)
+            self._markers[dictkey] = oid
+        print("oid", oid)
+        for vertices, codes in path.iter_segments(trans, simplify=False):
+            if len(vertices):
+                x, y = vertices[-2:]
+                fbo = self.draw_marker_to_fbo(marker_path, gc, marker_trans,
+                                              rgbFace)
+                with self.widget.canvas:
+                    Color(*gc.get_rgb())
+                    Rectangle(pos=(x, y), size=(50, 50), texture=fbo.texture)
 
     def flipy(self):
         return False
+
+    def draw_marker_to_fbo(self, path, gc, transform=None, clip=None,
+                           simplify=None, rgbFace=None):
+        bbox = path.get_extents(transform=transform)
+        print ("width", bbox.width)
+        print ("height", bbox.height)
+
+        fbo = Fbo(size=(50, 50))
+        points_line = []
+        polygons = path.to_polygons(transform)
+        for polygon in polygons:
+            vertices = []
+            for x, y in polygon:
+                points_line += [float(x), float(y), ]
+            tess = Tesselator()
+            tess.add_contour(points_line)
+            if not tess.tesselate():
+                print("Tesselator didn't work :(")
+                return
+            self.draw_graphics(fbo, gc, tess, points_line, rgbFace)
+        return fbo
+
+    # method should be overwritten with matplotlib 1.5.1
+    def _convert_path(self, path, transform=None, clip=None, simplify=None):
+        if clip:
+            clip = (0.0, 0.0, self.width, self.height)
+        else:
+            clip = None
+        return _path.convert_to_svg(path, transform, clip, simplify, 6)
+
+    def _make_id(self, type, content):
+        content = str(content)
+        if six.PY3:
+            content = content.encode('utf8')
+        return '%s%s' % (type, md5(content).hexdigest()[:10])
 
     def get_canvas_width_height(self):
         return self.widget.width, self.widget.height
