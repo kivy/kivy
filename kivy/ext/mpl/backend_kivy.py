@@ -158,7 +158,8 @@ from kivy.uix.actionbar import ActionBar, ActionView, \
 from kivy.base import EventLoop
 from kivy.core.text import Label as CoreLabel
 from kivy.graphics import Color, Line
-from kivy.graphics import Rotate, Translate, Fbo
+from kivy.graphics import Rotate, Translate
+from kivy.graphics.instructions import InstructionGroup
 from kivy.graphics.tesselator import Tesselator
 from kivy.graphics.context_instructions import PopMatrix, PushMatrix
 from kivy.logger import Logger
@@ -175,6 +176,7 @@ from kivy.properties import ObjectProperty
 from kivy.clock import Clock
 from kivy.uix.textinput import TextInput
 from kivy.lang import Builder
+from kivy.logger import Logger
 
 import numpy as np
 import io
@@ -241,6 +243,7 @@ class RendererKivy(RendererBase):
         self.mathtext_parser = MathTextParser("Bitmap")
         self.list_goraud_triangles = []
         self.clip_rectangles = []
+        self.contador = 0
 
     def contains(self, widget, x, y):
         '''Returns whether or not a point is inside the widget. The value
@@ -302,11 +305,18 @@ class RendererKivy(RendererBase):
            rendering. Paths are received in matplotlib coordinates. The
            aesthetics is defined by the `GraphicsContextKivy` gc.
         '''
-        points_line = []
+
         polygons = path.to_polygons(transform, self.widget.width,
                                     self.widget.height)
+        inst_list = self.get_path_instructions(gc, polygons, transform,
+                                               rgbFace=rgbFace)
+        for inst in inst_list:
+            inst[0].canvas.add(inst[1])
+
+    def get_path_instructions(self, gc, polygons, transform, rgbFace=None):
+        instructions_list = []
+        points_line = []
         for polygon in polygons:
-            vertices = []
             for x, y in polygon:
                 x = x + self.widget.x
                 y = y + self.widget.y
@@ -314,34 +324,38 @@ class RendererKivy(RendererBase):
             tess = Tesselator()
             tess.add_contour(points_line)
             if not tess.tesselate():
-                print("Tesselator didn't work :(")
+                Logger.warning("Tesselator didn't work :(")
                 return
             newclip = self.handle_clip_rectangle(gc, x, y)
             if newclip > -1:
-                self.draw_graphics(self.clip_rectangles[newclip].canvas, gc,
-                                tess, points_line, rgbFace)
+                instructions_list.append((self.clip_rectangles[newclip],
+                        self.get_graphics(gc, tess, points_line, rgbFace)))
             else:
-                self.draw_graphics(self.widget.canvas, gc, tess, points_line,
-                                   rgbFace)
+                instructions_list.append((self.widget,
+                        self.get_graphics(gc, tess, points_line, rgbFace)))
+        return instructions_list
 
-    def draw_graphics(self, canvas, gc, polygons, points_line, rgbFace):
+    def get_graphics(self, gc, polygons, points_line, rgbFace):
+        '''Change draw_graphics to return instructions'''
+        marker_inst = InstructionGroup()
         if isinstance(gc.line['dash_list'], tuple):
             gc.line['dash_list'] = list(gc.line['dash_list'])
-        with canvas:
-            if rgbFace:
-                Color(*rgbFace)
-                for vertices, indices in polygons.meshes:
-                    Mesh(
-                        vertices=vertices,
-                        indices=indices,
-                        mode=str("triangle_fan")
-                    )
-            Color(*gc.get_rgb())
-            Line(points=points_line, width=int(gc.line['width'] / 2),
-                dash_length=gc.line['dash_length'],
-                dash_offset=gc.line['dash_offset'],
-                 dash_joint=gc.line['joint_style'],
-                 dash_list=gc.line['dash_list'])
+        if rgbFace:
+            marker_inst.add(Color(*rgbFace))
+            for vertices, indices in polygons.meshes:
+                marker_inst.add(Mesh(
+                    vertices=vertices,
+                    indices=indices,
+                    mode=str("triangle_fan")
+                ))
+        marker_inst.add(Color(*gc.get_rgb()))
+        marker_inst.add(Line(points=points_line,
+            width=int(gc.line['width'] / 2),
+            dash_length=gc.line['dash_length'],
+            dash_offset=gc.line['dash_offset'],
+            dash_joint=gc.line['joint_style'],
+            dash_list=gc.line['dash_list']))
+        return marker_inst
 
     def draw_image(self, gc, x, y, im):
         '''Render images that can be displayed on a matplotlib figure.
@@ -443,50 +457,55 @@ class RendererKivy(RendererBase):
 
     def draw_markers(self, gc, marker_path, marker_trans, path,
         trans, rgbFace=None):
-        if not len(path.vertices):
-            return
-        path_data = self._convert_path(
-            marker_path,
-            marker_trans + Affine2D().scale(1.0, -1.0),
-            simplify=False)
-        dictkey = (path_data, gc)
-        oid = self._markers.get(dictkey)
-        if oid is None:
-            oid = self._make_id('m', dictkey)
-            self._markers[dictkey] = oid
-        print("oid", oid)
-        for vertices, codes in path.iter_segments(trans, simplify=False):
-            if len(vertices):
-                x, y = vertices[-2:]
-                fbo = self.draw_marker_to_fbo(marker_path, gc, marker_trans,
-                                              rgbFace)
-                with self.widget.canvas:
-                    Color(*gc.get_rgb())
-                    Rectangle(pos=(x, y), size=(50, 50), texture=fbo.texture)
+        if self.contador < 8:
+            if not len(path.vertices):
+                return
+            path_data = self._convert_path(
+                marker_path,
+                marker_trans + Affine2D().scale(1.0, -1.0),
+                simplify=False)
+            dictkey = path_data
+            oid = self._markers.get(dictkey)
+            print("oid", oid)
+            cont = 0
+            for vertices, codes in path.iter_segments(trans, simplify=False):
+                if cont == 0:
+                    if len(vertices):
+                        x, y = vertices[-2:]
+                        self.draw_path(gc, marker_path,
+                                       marker_trans +
+                                       transforms.Affine2D().translate(x, y),
+                                       rgbFace)
+                cont += 1
+        self.contador += 1
 
     def flipy(self):
         return False
 
     def draw_marker_to_fbo(self, path, gc, transform=None, clip=None,
                            simplify=None, rgbFace=None):
-        bbox = path.get_extents(transform=transform)
-        print ("width", bbox.width)
-        print ("height", bbox.height)
-
-        fbo = Fbo(size=(50, 50))
         points_line = []
-        polygons = path.to_polygons(transform)
+        polygons = path.to_polygons(transform, self.widget.width,
+                                    self.widget.height)
         for polygon in polygons:
             vertices = []
             for x, y in polygon:
+                x = x + self.widget.x
+                y = y + self.widget.y
                 points_line += [float(x), float(y), ]
             tess = Tesselator()
             tess.add_contour(points_line)
             if not tess.tesselate():
                 print("Tesselator didn't work :(")
                 return
-            self.draw_graphics(fbo, gc, tess, points_line, rgbFace)
-        return fbo
+            newclip = self.handle_clip_rectangle(gc, x, y)
+            if newclip > -1:
+                self.draw_graphics(marker_inst, gc, tess,
+                                   points_line, rgbFace)
+            else:
+                self.draw_graphics(marker_inst, gc, tess, points_line,
+                                   rgbFace)
+        return marker_inst
 
     # method should be overwritten with matplotlib 1.5.1
     def _convert_path(self, path, transform=None, clip=None, simplify=None):
