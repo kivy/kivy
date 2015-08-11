@@ -98,7 +98,9 @@ for your widget, you can do the following:
 size=self.size)
     widget.bind(pos=redraw, size=redraw)
 
-To draw a background in kv::
+To draw a background in kv:
+
+.. code-block:: kv
 
     Widget:
         canvas:
@@ -173,7 +175,7 @@ A common mistake when using one of the computed properties such as
 :attr:`Widget.right` is to use it to make a widget follow its parent with a
 KV rule such as `right: self.parent.right`. Consider, for example:
 
-.. code-block:: python
+.. code-block:: kv
 
     FloatLayout:
         id: layout
@@ -686,7 +688,9 @@ class Widget(WidgetBase):
             A generator that walks the tree, returning widgets in the
             forward layout order.
 
-        For example, given a tree with the following structure::
+        For example, given a tree with the following structure:
+
+        .. code-block:: kv
 
             GridLayout:
                 Button
@@ -773,7 +777,9 @@ class Widget(WidgetBase):
             A generator that walks the tree, returning widgets in the
             reverse layout order.
 
-        For example, given a tree with the following structure::
+        For example, given a tree with the following structure:
+
+        .. code-block:: kv
 
             GridLayout:
                 Button
@@ -1100,7 +1106,9 @@ class Widget(WidgetBase):
     empty dict {}.
 
     The :attr:`ids` are populated for each root level widget definition. For
-    example::
+    example:
+
+    .. code-block:: kv
 
         # in kv
         <MyWidget@Widget>:
