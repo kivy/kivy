@@ -202,7 +202,12 @@ class MouseMotionEventProvider(MotionEventProvider):
         cur.is_double_tap = is_double_tap
         self.touches[id] = cur
         if do_graphics:
-            cur.update_graphics(EventLoop.window, True)
+           # only draw red circle if multitouch is not disabled, and
+           # if the multitouch_on_demenad feature is not enabled (because in that
+           # case, we wait to see if multitouch_sim is True or not before doing
+           # the multitouch)
+           create_flag = (not self.disable_multitouch) and (not self.multitouch_on_demenad)
+           cur.update_graphics(EventLoop.window, create_flag)
         self.waiting_event.append(('begin', cur))
         return cur
 
