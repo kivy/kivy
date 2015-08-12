@@ -541,13 +541,23 @@ class RendererKivy(RendererBase):
         return False
 
     # method should be overwritten with matplotlib 1.5.1
-    def _convert_path(self, path, transform=None, clip=None, simplify=None):
-        '''Returns a string representation of the path.'''
+#     def _convert_path(self, path, transform=None, clip=None, simplify=None):
+#         '''Returns a string representation of the path.'''
+#         if clip:
+#             clip = (0.0, 0.0, self.widget.width, self.widget.height)
+#         else:
+#             clip = None
+#         return _path.convert_to_svg(path, transform, clip, simplify, 6)
+
+    def _convert_path(self, path, transform=None, clip=None, simplify=None,
+                      sketch=None):
         if clip:
-            clip = (0.0, 0.0, self.widget.width, self.widget.height)
+            clip = (0.0, 0.0, self.width, self.height)
         else:
             clip = None
-        return _path.convert_to_svg(path, transform, clip, simplify, 6)
+        return _path.convert_to_string(
+            path, transform, clip, simplify, sketch, 6,
+            [b'M', b'L', b'Q', b'C', b'z'], False).decode('ascii')
 
     def get_canvas_width_height(self):
         '''Get the actual width and height of the widget.
