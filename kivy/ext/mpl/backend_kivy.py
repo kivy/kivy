@@ -384,12 +384,13 @@ class RendererKivy(RendererBase):
                     mode=str("triangle_fan")
                 ))
         instruction_group.add(Color(*gc.get_rgb()))
-        instruction_group.add(Line(points=points_line,
-            width=int(gc.line['width'] / 2),
-            dash_length=gc.line['dash_length'],
-            dash_offset=gc.line['dash_offset'],
-            dash_joint=gc.line['joint_style'],
-            dash_list=gc.line['dash_list']))
+        if gc.line['width'] > 0:
+            instruction_group.add(Line(points=points_line,
+                width=int(gc.line['width'] / 2),
+                dash_length=gc.line['dash_length'],
+                dash_offset=gc.line['dash_offset'],
+                dash_joint=gc.line['joint_style'],
+                dash_list=gc.line['dash_list']))
         return instruction_group
 
     def draw_image(self, gc, x, y, im):
@@ -416,27 +417,28 @@ class RendererKivy(RendererBase):
             Color(1.0, 1.0, 1.0, 1.0)
             Rectangle(texture=texture, pos=(x, y), size=(w, h))
 
-    def draw_gouraud_triangle(self, gc, points, colors, transform):
-        RendererBase.draw_gouraud_triangle(self, gc, points, colors, transform)
-        assert len(points) == len(colors)
-        assert points.ndim == 3
-        assert points.shape[1] == 3
-        assert points.shape[2] == 2
-        assert colors.ndim == 3
-        assert colors.shape[1] == 3
-        assert colors.shape[2] == 4
-        shape = points.shape
-        points = points.reshape((shape[0] * shape[1], 2))
-        tpoints = trans.transform(points)
-        tpoints = tpoints.reshape(shape)
-        name = self.list_goraud_triangles.append((tpoints, colors))
-        ''' Implement this pseudocode with points and colors:
-        http://www-users.mat.uni.torun.pl/~wrona/3d_tutor/tri_fillers.html '''
-
-    def draw_gouraud_triangles(self, gc, triangles_array, colors_array,
-        transform):
-        self.draw_gouraud_triangles(gc, points.reshape((1, 3, 2)),
-                                    colors.reshape((1, 3, 4)), trans)
+#     def draw_gouraud_triangle(self, gc, points, colors, transform):
+#         RendererBase.draw_gouraud_triangle(self, gc, points, colors,
+#         transform)
+#         assert len(points) == len(colors)
+#         assert points.ndim == 3
+#         assert points.shape[1] == 3
+#         assert points.shape[2] == 2
+#         assert colors.ndim == 3
+#         assert colors.shape[1] == 3
+#         assert colors.shape[2] == 4
+#         shape = points.shape
+#         points = points.reshape((shape[0] * shape[1], 2))
+#         tpoints = trans.transform(points)
+#         tpoints = tpoints.reshape(shape)
+#         name = self.list_goraud_triangles.append((tpoints, colors))
+#         ''' Implement this pseudocode with points and colors:
+#         http://www-users.mat.uni.torun.pl/~wrona/3d_tutor/tri_fillers.html '''
+#
+#     def draw_gouraud_triangles(self, gc, triangles_array, colors_array,
+#         transform):
+#         self.draw_gouraud_triangles(gc, points.reshape((1, 3, 2)),
+#                                     colors.reshape((1, 3, 4)), trans)
 
     def draw_text(self, gc, x, y, s, prop, angle, ismath=False, mtext=None):
         '''Render text that is displayed in the canvas. The position x, y is
@@ -541,23 +543,13 @@ class RendererKivy(RendererBase):
         return False
 
     # method should be overwritten with matplotlib 1.5.1
-#     def _convert_path(self, path, transform=None, clip=None, simplify=None):
-#         '''Returns a string representation of the path.'''
-#         if clip:
-#             clip = (0.0, 0.0, self.widget.width, self.widget.height)
-#         else:
-#             clip = None
-#         return _path.convert_to_svg(path, transform, clip, simplify, 6)
-
-    def _convert_path(self, path, transform=None, clip=None, simplify=None,
-                      sketch=None):
+    def _convert_path(self, path, transform=None, clip=None, simplify=None):
+        '''Returns a string representation of the path.'''
         if clip:
-            clip = (0.0, 0.0, self.width, self.height)
+            clip = (0.0, 0.0, self.widget.width, self.widget.height)
         else:
             clip = None
-        return _path.convert_to_string(
-            path, transform, clip, simplify, sketch, 6,
-            [b'M', b'L', b'Q', b'C', b'z'], False).decode('ascii')
+        return _path.convert_to_svg(path, transform, clip, simplify, 6)
 
     def get_canvas_width_height(self):
         '''Get the actual width and height of the widget.
