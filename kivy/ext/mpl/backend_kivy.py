@@ -139,7 +139,6 @@ from hashlib import md5
 from matplotlib import _png
 from matplotlib.font_manager import weight_as_number
 from matplotlib import _path
-from matplotlib.backends.backend_svg import RendererSVG
 
 try:
     import kivy
@@ -244,7 +243,6 @@ class RendererKivy(RendererBase):
         self.mathtext_parser = MathTextParser("Bitmap")
         self.list_goraud_triangles = []
         self.clip_rectangles = []
-        self.count = 0
 
     def contains(self, widget, x, y):
         '''Returns whether or not a point is inside the widget. The value
