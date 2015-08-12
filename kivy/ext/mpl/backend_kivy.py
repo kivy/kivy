@@ -678,7 +678,7 @@ class NavigationToolbar2Kivy(NavigationToolbar2):
         self.show_save()
 
 
-class GraphicsContextKivy(GraphicsContextBase):
+class GraphicsContextKivy(GraphicsContextBase, object):
     '''The graphics context provides the color, line styles, etc... All the
        mapping between matplotlib and kivy styling is done here.
        The GraphicsContextKivy stores colors as a RGB tuple on the unit
