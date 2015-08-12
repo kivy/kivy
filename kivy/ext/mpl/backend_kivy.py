@@ -139,6 +139,7 @@ from hashlib import md5
 from matplotlib import _png
 from matplotlib.font_manager import weight_as_number
 from matplotlib import _path
+from matplotlib.backends.backend_svg import RendererSVG
 
 try:
     import kivy
@@ -243,7 +244,7 @@ class RendererKivy(RendererBase):
         self.mathtext_parser = MathTextParser("Bitmap")
         self.list_goraud_triangles = []
         self.clip_rectangles = []
-        self.contador = 0
+        self.count = 0
 
     def contains(self, widget, x, y):
         '''Returns whether or not a point is inside the widget. The value
@@ -286,6 +287,53 @@ class RendererKivy(RendererBase):
         else:
             return -2
 
+    def draw_path_collection(self, gc, master_transform, paths, all_transforms,
+        offsets, offsetTrans, facecolors, edgecolors,
+        linewidths, linestyles, antialiaseds, urls,
+        offset_position):
+        '''Draws a collection of paths selecting drawing properties from
+           the lists *facecolors*, *edgecolors*, *linewidths*,
+           *linestyles* and *antialiaseds*. *offsets* is a list of
+           offsets to apply to each of the paths. The offsets in
+           *offsets* are first transformed by *offsetTrans* before being
+           applied.  *offset_position* may be either "screen" or "data"
+           depending on the space that the offsets are in.
+        '''
+        len_path = len(paths[0].vertices) if len(paths) > 0 else 0
+        uses_per_path = self._iter_collection_uses_per_path(
+            paths, all_transforms, offsets, facecolors, edgecolors)
+        # check whether an optimization is needed by calculating the cost of
+        # generating and use a path with the cost of emitting a path in-line.
+        should_do_optimization = \
+            len_path + uses_per_path + 5 < len_path * uses_per_path
+        if not should_do_optimization:
+            return RendererBase.draw_path_collection(
+                self, gc, master_transform, paths, all_transforms,
+                offsets, offsetTrans, facecolors, edgecolors,
+                linewidths, linestyles, antialiaseds, urls,
+                offset_position)
+        # Generate an array of unique paths with the respective transformations
+        path_codes = []
+        for i, (path, transform) in enumerate(self._iter_collection_raw_paths(
+            master_transform, paths, all_transforms)):
+            transform = Affine2D(transform.get_matrix()).scale(1.0, -1.0)
+            polygons = path.to_polygons(transform)
+            path_codes.append(polygons)
+        # Apply the styles and rgbFace to each one of the raw paths from
+        # the list. Additionally a transformation is being applied to
+        # translate each independent path
+        for xo, yo, path_poly, gc0, rgbFace in self._iter_collection(
+            gc, master_transform, all_transforms, path_codes, offsets,
+            offsetTrans, facecolors, edgecolors, linewidths, linestyles,
+            antialiaseds, urls, offset_position):
+            list_canvas_instruction = self.get_path_instructions(gc0, path_poly,
+                                    rgbFace=rgbFace)
+            for widget, instructions in list_canvas_instruction:
+                widget.canvas.add(PushMatrix())
+                widget.canvas.add(Translate(xo, yo))
+                widget.canvas.add(instructions)
+                widget.canvas.add(PopMatrix())
+
     def collides_with_existent_stencil(self, x, y):
         '''Check all the clipareas and returns the index of the clip area that
            contains this point. The point x, y is given in kivy coordinates.
@@ -297,23 +345,10 @@ class RendererKivy(RendererBase):
                 return idx
         return -1
 
-    def draw_path(self, gc, path, transform, rgbFace=None):
-        '''Produce the rendering of the graphics elements using
-           :class:`kivy.graphics.Line` and :class:`kivy.graphics.Mesh` kivy
-           graphics instructions. The paths are converted into polygons and
-           assigned either to a clip rectangle or to the same canvas for
-           rendering. Paths are received in matplotlib coordinates. The
-           aesthetics is defined by the `GraphicsContextKivy` gc.
+    def get_path_instructions(self, gc, polygons, rgbFace=None):
+        '''With a graphics context and a set of polygons it returns a list
+           of InstructionGroups required to render the path.
         '''
-
-        polygons = path.to_polygons(transform, self.widget.width,
-                                    self.widget.height)
-        inst_list = self.get_path_instructions(gc, polygons, transform,
-                                               rgbFace=rgbFace)
-        for inst in inst_list:
-            inst[0].canvas.add(inst[1])
-
-    def get_path_instructions(self, gc, polygons, transform, rgbFace=None):
         instructions_list = []
         points_line = []
         for polygon in polygons:
@@ -336,26 +371,28 @@ class RendererKivy(RendererBase):
         return instructions_list
 
     def get_graphics(self, gc, polygons, points_line, rgbFace):
-        '''Change draw_graphics to return instructions'''
-        marker_inst = InstructionGroup()
+        '''Return an instruction group which contains the necessary graphics
+           instructions to draw the respective graphics.
+        '''
+        instruction_group = InstructionGroup()
         if isinstance(gc.line['dash_list'], tuple):
             gc.line['dash_list'] = list(gc.line['dash_list'])
-        if rgbFace:
-            marker_inst.add(Color(*rgbFace))
+        if rgbFace is not None:
+            instruction_group.add(Color(*rgbFace))
             for vertices, indices in polygons.meshes:
-                marker_inst.add(Mesh(
+                instruction_group.add(Mesh(
                     vertices=vertices,
                     indices=indices,
                     mode=str("triangle_fan")
                 ))
-        marker_inst.add(Color(*gc.get_rgb()))
-        marker_inst.add(Line(points=points_line,
+        instruction_group.add(Color(*gc.get_rgb()))
+        instruction_group.add(Line(points=points_line,
             width=int(gc.line['width'] / 2),
             dash_length=gc.line['dash_length'],
             dash_offset=gc.line['dash_offset'],
             dash_joint=gc.line['joint_style'],
             dash_list=gc.line['dash_list']))
-        return marker_inst
+        return instruction_group
 
     def draw_image(self, gc, x, y, im):
         '''Render images that can be displayed on a matplotlib figure.
@@ -366,7 +403,7 @@ class RendererKivy(RendererBase):
         x = self.widget.x + x
         y = self.widget.y + y
         bbox = gc.get_clip_rectangle()
-        if bbox:
+        if bbox is not None:
             l, b, w, h = bbox.bounds
         else:
             l = 0
@@ -383,7 +420,6 @@ class RendererKivy(RendererBase):
 
     def draw_gouraud_triangle(self, gc, points, colors, transform):
         RendererBase.draw_gouraud_triangle(self, gc, points, colors, transform)
-        print("Entering draw_gouraud_triangle")
         assert len(points) == len(colors)
         assert points.ndim == 3
         assert points.shape[1] == 3
@@ -401,9 +437,8 @@ class RendererKivy(RendererBase):
 
     def draw_gouraud_triangles(self, gc, triangles_array, colors_array,
         transform):
-        print ("Entra en draw_gouraud_triangles")
-#         self.draw_gouraud_triangles(gc, points.reshape((1, 3, 2)),
-#                                     colors.reshape((1, 3, 4)), trans)
+        self.draw_gouraud_triangles(gc, points.reshape((1, 3, 2)),
+                                    colors.reshape((1, 3, 4)), trans)
 
     def draw_text(self, gc, x, y, s, prop, angle, ismath=False, mtext=None):
         '''Render text that is displayed in the canvas. The position x, y is
@@ -455,73 +490,70 @@ class RendererKivy(RendererBase):
         with self.widget.canvas:
             Rectangle(texture=texture, pos=(x, y), size=(w, h))
 
+    def draw_path(self, gc, path, transform, rgbFace=None):
+        '''Produce the rendering of the graphics elements using
+           :class:`kivy.graphics.Line` and :class:`kivy.graphics.Mesh` kivy
+           graphics instructions. The paths are converted into polygons and
+           assigned either to a clip rectangle or to the same canvas for
+           rendering. Paths are received in matplotlib coordinates. The
+           aesthetics is defined by the `GraphicsContextKivy` gc.
+        '''
+        polygons = path.to_polygons(transform, self.widget.width,
+                                    self.widget.height)
+        list_canvas_instruction = self.get_path_instructions(gc, polygons,
+                                    rgbFace=rgbFace)
+        for widget, instructions in list_canvas_instruction:
+            widget.canvas.add(instructions)
+
     def draw_markers(self, gc, marker_path, marker_trans, path,
         trans, rgbFace=None):
-        if self.contador < 8:
-            if not len(path.vertices):
-                return
-            path_data = self._convert_path(
-                marker_path,
-                marker_trans + Affine2D().scale(1.0, -1.0),
-                simplify=False)
-            dictkey = path_data
-            oid = self._markers.get(dictkey)
-            print("oid", oid)
-            cont = 0
-            for vertices, codes in path.iter_segments(trans, simplify=False):
-                if cont == 0:
-                    if len(vertices):
-                        x, y = vertices[-2:]
-                        self.draw_path(gc, marker_path,
-                                       marker_trans +
-                                       transforms.Affine2D().translate(x, y),
-                                       rgbFace)
-                cont += 1
-        self.contador += 1
+        '''Markers graphics instructions are stored on a dictionary and
+           hashed through graphics context and rgbFace values. If a marker_path
+           with the corresponding graphics context exist then the instructions
+           are pulled from the markers dictionary.
+        '''
+        if not len(path.vertices):
+            return
+        # get a string representation of the path
+        path_data = self._convert_path(
+            marker_path,
+            marker_trans + Affine2D().scale(1.0, -1.0),
+            simplify=False)
+        # get a string representation of the graphics context and rgbFace.
+        style = str(gc._get_style_dict(rgbFace))
+        dictkey = (path_data, str(style))
+        # check whether this marker has been created before.
+        list_instructions = self._markers.get(dictkey)
+        # creating a list of instructions for the specific marker.
+        if list_instructions is None:
+            polygons = marker_path.to_polygons(marker_trans)
+            self._markers[dictkey] = self.get_path_instructions(gc,
+                                            polygons, rgbFace=rgbFace)
+        # Traversing all the positions where a marker should be rendered
+        for vertices, codes in path.iter_segments(trans, simplify=False):
+            if len(vertices):
+                x, y = vertices[-2:]
+                for widget, instructions in self._markers[dictkey]:
+                    widget.canvas.add(PushMatrix())
+                    widget.canvas.add(Translate(x, y))
+                    widget.canvas.add(instructions)
+                    widget.canvas.add(PopMatrix())
 
     def flipy(self):
         return False
 
-    def draw_marker_to_fbo(self, path, gc, transform=None, clip=None,
-                           simplify=None, rgbFace=None):
-        points_line = []
-        polygons = path.to_polygons(transform, self.widget.width,
-                                    self.widget.height)
-        for polygon in polygons:
-            vertices = []
-            for x, y in polygon:
-                x = x + self.widget.x
-                y = y + self.widget.y
-                points_line += [float(x), float(y), ]
-            tess = Tesselator()
-            tess.add_contour(points_line)
-            if not tess.tesselate():
-                print("Tesselator didn't work :(")
-                return
-            newclip = self.handle_clip_rectangle(gc, x, y)
-            if newclip > -1:
-                self.draw_graphics(marker_inst, gc, tess,
-                                   points_line, rgbFace)
-            else:
-                self.draw_graphics(marker_inst, gc, tess, points_line,
-                                   rgbFace)
-        return marker_inst
-
     # method should be overwritten with matplotlib 1.5.1
     def _convert_path(self, path, transform=None, clip=None, simplify=None):
+        '''Returns a string representation of the path.'''
         if clip:
-            clip = (0.0, 0.0, self.width, self.height)
+            clip = (0.0, 0.0, self.widget.width, self.widget.height)
         else:
             clip = None
         return _path.convert_to_svg(path, transform, clip, simplify, 6)
 
-    def _make_id(self, type, content):
-        content = str(content)
-        if six.PY3:
-            content = content.encode('utf8')
-        return '%s%s' % (type, md5(content).hexdigest()[:10])
-
     def get_canvas_width_height(self):
+        '''Get the actual width and height of the widget.
+        '''
         return self.widget.width, self.widget.height
 
     def get_text_width_height_descent(self, s, prop, ismath):
@@ -545,6 +577,8 @@ class RendererKivy(RendererBase):
         return plot_text.texture.size[0], plot_text.texture.size[1], 1
 
     def new_gc(self):
+        '''Instantiate a GraphicsContextKivy object
+        '''
         return GraphicsContextKivy(self.widget)
 
     def points_to_pixels(self, points):
@@ -687,21 +721,51 @@ class GraphicsContextKivy(GraphicsContextBase):
         GraphicsContextBase.set_dashes(self, dash_offset, dash_list)
         # dash_list is a list with numbers denoting the number of points
         # in a dash and if it is on or off.
-        if dash_list:
+        if dash_list is not None:
             self.line['dash_list'] = dash_list
-        if dash_offset:
+        if dash_offset is not None:
             self.line['dash_offset'] = int(dash_offset)
 
     def set_linewidth(self, w):
         GraphicsContextBase.set_linewidth(self, w)
         self.line['width'] = w
 
-########################################################################
-#
-# The following functions and classes are for pylab and implement
-# window/figure managers, etc...
-#
-########################################################################
+    def _get_style_dict(self, rgbFace):
+        '''Return the style string. style is generated from the
+           GraphicsContext and rgbFace
+        '''
+        attrib = {}
+        forced_alpha = self.get_forced_alpha()
+        if rgbFace is None:
+            attrib['fill'] = 'none'
+        else:
+            if tuple(rgbFace[:3]) != (0, 0, 0):
+                attrib['fill'] = str(rgbFace)
+            if len(rgbFace) == 4 and rgbFace[3] != 1.0 and not forced_alpha:
+                attrib['fill-opacity'] = str(rgbFace[3])
+
+        if forced_alpha and self.get_alpha() != 1.0:
+            attrib['opacity'] = str(self.get_alpha())
+
+        offset, seq = self.get_dashes()
+        if seq is not None:
+            attrib['line-dasharray'] = ','.join(['%f' % val for val in seq])
+            attrib['line-dashoffset'] = six.text_type(float(offset))
+
+        linewidth = self.get_linewidth()
+        if linewidth:
+            rgb = self.get_rgb()
+            attrib['line'] = str(rgb)
+            if not forced_alpha and rgb[3] != 1.0:
+                attrib['line-opacity'] = str(rgb[3])
+            if linewidth != 1.0:
+                attrib['line-width'] = str(linewidth)
+            if self.get_joinstyle() != 'round':
+                attrib['line-linejoin'] = self.get_joinstyle()
+            if self.get_capstyle() != 'butt':
+                attrib['line-linecap'] = _capstyle_d[self.get_capstyle()]
+
+        return attrib
 
 
 def draw_if_interactive():
