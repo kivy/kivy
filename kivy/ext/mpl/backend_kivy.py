@@ -448,8 +448,39 @@ class RendererKivy(RendererBase):
            If the text is a math expression it will be rendered using a
            MathText parser.
         '''
-        x = int(x) + self.widget.x
-        y = int(y) + self.widget.y
+        x = int(x)
+        y = int(y)
+
+        if mtext:
+            # Get anchor coordinates.
+            transform = mtext.get_transform()
+            ax, ay = transform.transform_point(mtext.get_position())
+            ay = self.widget.height - ay
+
+            angle_rad = angle * np.pi / 180.
+            dir_vert = np.array([np.sin(angle_rad), np.cos(angle_rad)])
+            v_offset = np.dot(dir_vert, [(x - ax), (y - ay)])
+            ax = ax + v_offset * dir_vert[0]
+            ay = ay + v_offset * dir_vert[1]
+            x = ax
+            y = ay
+
+            w, h, d = self.get_text_width_height_descent(s, prop, ismath)
+            ha = mtext.get_ha()
+            if ha == "center":
+                x -= w / 2
+            elif ha == "right":
+                x -= w
+
+            print ("ha", mtext.get_ha())
+
+        x += self.widget.x
+        y += self.widget.y
+
+#         with self.widget.canvas:
+#             Color(1.0, 1.0, 0.0, 1.0)
+#             Rectangle(pos=(x,y), size=(w,h))
+
         if ismath:
             self.draw_mathtext(gc, x, y, s, prop, angle)
         else:
@@ -459,7 +490,7 @@ class RendererKivy(RendererBase):
             else:
                 plot_text = CoreLabel(font_size=prop.get_size_in_points(),
                                 font_name=prop.get_name())
-            plot_text.text = "{}".format(s)
+            plot_text.text = six.text_type("{}".format(s))
             if prop.get_style() == 'italic':
                 plot_text.italic = True
             if weight_as_number(prop.get_weight()) > 500:
@@ -469,11 +500,11 @@ class RendererKivy(RendererBase):
                 if isinstance(angle, float):
                     PushMatrix()
                     Rotate(angle=angle, origin=(x, y))
-                    Rectangle(pos=(x, y), texture=plot_text.texture,
+                    Rectangle(pos=(int(x), int(y)), texture=plot_text.texture,
                               size=plot_text.texture.size)
                     PopMatrix()
                 else:
-                    Rectangle(pos=(x, y), texture=plot_text.texture,
+                    Rectangle(pos=(int(x), int(y)), texture=plot_text.texture,
                               size=plot_text.texture.size)
 
     def draw_mathtext(self, gc, x, y, s, prop, angle):
