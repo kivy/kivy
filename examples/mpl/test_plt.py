@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # a bar plot with errorbars
 import matplotlib
-# matplotlib.use('Gtk')
+## matplotlib.use('Gtk')
 matplotlib.use('module://kivy.ext.mpl.backend_kivy')
 #matplotlib.use('Gtk')
 

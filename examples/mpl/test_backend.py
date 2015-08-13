@@ -3,7 +3,7 @@ from numpy import arange, sin, pi
 from kivy.app import App
 
 import numpy as np
-from kivy.ext.mpl.backend_kivyagg import FigureCanvasKivy as FigureCanvas
+from kivy.ext.mpl.backend_kivy import FigureCanvasKivy as FigureCanvas
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 from matplotlib.transforms import Bbox
@@ -62,17 +62,6 @@ width = 0.35       # the width of the bars
 fig, ax = plt.subplots()
 rects1 = ax.bar(ind, menMeans, width, color='r', yerr=menStd)
 
-fig.canvas.mpl_connect('button_press_event', press)
-fig.canvas.mpl_connect('button_release_event', release)
-fig.canvas.mpl_connect('key_press_event', keypress)
-fig.canvas.mpl_connect('key_release_event', keyup)
-fig.canvas.mpl_connect('motion_notify_event', motionnotify)
-fig.canvas.mpl_connect('resize_event', resize)
-fig.canvas.mpl_connect('scroll_event', scroll)
-fig.canvas.mpl_connect('figure_enter_event', figure_enter)
-fig.canvas.mpl_connect('figure_leave_event', figure_leave)
-fig.canvas.mpl_connect('close_event', close)
-
 womenMeans = (25, 32, 34, 20, 25)
 womenStd = (3, 5, 2, 3, 3)
 rects2 = ax.bar(ind + width, womenMeans, width, color='y', yerr=womenStd)
@@ -93,10 +82,19 @@ def autolabel(rects):
         ax.text(rect.get_x() + rect.get_width() / 2., 1.05 * height,
                 '%d' % int(height), ha='center', va='bottom')
 
+fig.canvas.mpl_connect('button_press_event', press)
+fig.canvas.mpl_connect('button_release_event', release)
+fig.canvas.mpl_connect('key_press_event', keypress)
+fig.canvas.mpl_connect('key_release_event', keyup)
+fig.canvas.mpl_connect('motion_notify_event', motionnotify)
+fig.canvas.mpl_connect('resize_event', resize)
+fig.canvas.mpl_connect('scroll_event', scroll)
+fig.canvas.mpl_connect('figure_enter_event', figure_enter)
+fig.canvas.mpl_connect('figure_leave_event', figure_leave)
+fig.canvas.mpl_connect('close_event', close)
 
 canvas = FigureCanvas(figure=fig)
 # canvas.blit(Bbox(np.array([[0, 0], [400, 400]], np.int32)))
-
 
 def callback(instance):
     autolabel(rects1)

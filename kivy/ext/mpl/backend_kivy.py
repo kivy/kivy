@@ -821,18 +821,23 @@ class FigureCanvasKivy(FocusBehavior, Widget, FigureCanvasBase):
     def __init__(self, figure, **kwargs):
         Window.bind(mouse_pos=self._on_mouse_pos)
         self.bind(size=self._on_size_changed)
-        self.inside_figure = True
+        self.entered_figure = True
         self.figure = figure
         super(FigureCanvasKivy, self).__init__(figure=self.figure, **kwargs)
-        self.focus = True
+        self._isDrawn = False
+
+    def draw_idle(self, *args, **kwargs):
+        self._isDrawn = False
+        FigureCanvasBase.draw_idle(self, *args, **kwargs)
 
     def draw(self):
         '''Draw the figure using the KivyRenderer
         '''
         self.clear_widgets()
         self.canvas.clear()
-        renderer = RendererKivy(self)
-        self.figure.draw(renderer)
+        self._renderer = RendererKivy(self)
+        self.figure.draw(self._renderer)
+        self._isDrawn = True
 
     def on_touch_down(self, touch):
         '''Kivy Event to trigger the following matplotlib events:
@@ -852,11 +857,11 @@ class FigureCanvasKivy(FocusBehavior, Widget, FigureCanvasBase):
                 FigureCanvasBase.button_press_event(self, touch.x, touch.y,
                                                 self.get_mouse_button(touch),
                                                 dblclick=False, guiEvent=None)
-            if self.inside_figure:
+            if self.entered_figure:
                 FigureCanvasBase.enter_notify_event(self, guiEvent=None,
                                                     xy=None)
         else:
-            if not self.inside_figure:
+            if not self.entered_figure:
                 FigureCanvasBase.leave_notify_event(self, guiEvent=None)
         return False
 
@@ -867,12 +872,12 @@ class FigureCanvasKivy(FocusBehavior, Widget, FigureCanvasBase):
         inside = self.collide_point(touch.x, touch.y)
         FigureCanvasBase.motion_notify_event(self, touch.x, touch.y,
                                              guiEvent=None)
-        if inside and self.inside_figure:
+        if inside and self.entered_figure:
             FigureCanvasBase.enter_notify_event(self, guiEvent=None, xy=None)
-            self.inside_figure = False
-        elif not inside and not self.inside_figure:
+            self.entered_figure = False
+        elif not inside and not self.entered_figure:
             FigureCanvasBase.leave_notify_event(self, guiEvent=None)
-            self.inside_figure = True
+            self.entered_figure = True
         return False
 
     def get_mouse_button(self, touch):
@@ -926,12 +931,12 @@ class FigureCanvasKivy(FocusBehavior, Widget, FigureCanvasBase):
         inside = self.collide_point(*pos)
         FigureCanvasBase.motion_notify_event(self, pos[0], pos[1],
                                                 guiEvent=None)
-        if inside and self.inside_figure:
+        if inside and self.entered_figure:
             FigureCanvasBase.enter_notify_event(self, guiEvent=None, xy=None)
-            self.inside_figure = False
-        elif not inside and not self.inside_figure:
+            self.entered_figure = False
+        elif not inside and not self.entered_figure:
             FigureCanvasBase.leave_notify_event(self, guiEvent=None)
-            self.inside_figure = True
+            self.entered_figure = True
 
     def _on_size_changed(self, *args):
         '''Changes the size of the matplotlib figure based on the size of the

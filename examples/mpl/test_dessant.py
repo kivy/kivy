@@ -7,6 +7,30 @@ import matplotlib.pyplot as plt
 from kivy.ext.mpl.backend_kivy import FigureCanvas
 
 
+def enter_axes(event):
+    print ('enter_axes', event.inaxes)
+    event.inaxes.patch.set_facecolor('yellow')
+    event.canvas.draw()
+
+
+def leave_axes(event):
+    print ('leave_axes', event.inaxes)
+    event.inaxes.patch.set_facecolor('white')
+    event.canvas.draw()
+
+
+def enter_figure(event):
+    print ('enter_figure', event.canvas.figure)
+    event.canvas.figure.patch.set_facecolor('red')
+    event.canvas.draw()
+
+
+def leave_figure(event):
+    print ('leave_figure', event.canvas.figure)
+    event.canvas.figure.patch.set_facecolor('grey')
+    event.canvas.draw()
+
+
 kv = """
 <Test>:
     orientation: 'vertical'
@@ -24,18 +48,21 @@ class Test(BoxLayout):
         self.add_plot()
 
     def get_fc(self):
-        fig, ax = plt.subplots()
-        x = np.linspace(0, 10)
-        with plt.style.context('fivethirtyeight'):
-            ax.plot(x, np.sin(x) + x + np.random.randn(50))
-            ax.plot(x, np.sin(x) + 0.5 * x + np.random.randn(50))
-            ax.plot(x, np.sin(x) + 2 * x + np.random.randn(50))
-        return FigureCanvas(fig)
+
+	fig1 = plt.figure()
+	fig1.suptitle('mouse hover over figure or axes to trigger events')
+	ax1 = fig1.add_subplot(211)
+	ax2 = fig1.add_subplot(212)
+	wid = FigureCanvas(fig1)
+	fig1.canvas.mpl_connect('figure_enter_event', enter_figure)
+	fig1.canvas.mpl_connect('figure_leave_event', leave_figure)
+	fig1.canvas.mpl_connect('axes_enter_event', enter_axes)
+	fig1.canvas.mpl_connect('axes_leave_event', leave_axes)
+        return wid
 
     def add_plot(self):
         self.add_widget(self.get_fc())
         self.add_widget(self.get_fc())
-
 
 class TestApp(App):
     def build(self):
