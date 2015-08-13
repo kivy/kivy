@@ -944,15 +944,14 @@ class FigureCanvasKivy(FocusBehavior, Widget, FigureCanvasBase):
         y = newcoord[1]
 
         inside = self.collide_point(*pos)
-        if inside:
-            FigureCanvasBase.motion_notify_event(self, x, y,
+        FigureCanvasBase.motion_notify_event(self, x, y,
                                         guiEvent=None)
-        if inside and self.entered_figure:
-            FigureCanvasBase.enter_notify_event(self, guiEvent=None, xy=None)
-            self.entered_figure = False
-        elif not inside and not self.entered_figure:
+        if not inside and not self.entered_figure:
             FigureCanvasBase.leave_notify_event(self, guiEvent=None)
             self.entered_figure = True
+        elif inside and self.entered_figure:
+            FigureCanvasBase.enter_notify_event(self, guiEvent=None, xy=None)
+            self.entered_figure = False
 
     def _on_size_changed(self, *args):
         '''Changes the size of the matplotlib figure based on the size of the

@@ -47,22 +47,21 @@ class Test(BoxLayout):
         super(Test, self).__init__(*args, **kwargs)
         self.add_plot()
 
-    def get_fc(self):
-
-	fig1 = plt.figure()
-	fig1.suptitle('mouse hover over figure or axes to trigger events')
-	ax1 = fig1.add_subplot(211)
-	ax2 = fig1.add_subplot(212)
-	wid = FigureCanvas(fig1)
-	fig1.canvas.mpl_connect('figure_enter_event', enter_figure)
-	fig1.canvas.mpl_connect('figure_leave_event', leave_figure)
-	fig1.canvas.mpl_connect('axes_enter_event', enter_axes)
-	fig1.canvas.mpl_connect('axes_leave_event', leave_axes)
+    def get_fc(self, i):
+        fig1 = plt.figure()
+        fig1.suptitle('mouse hover over figure or axes to trigger events' + str(i))
+        ax1 = fig1.add_subplot(211)
+        ax2 = fig1.add_subplot(212)
+        wid = FigureCanvas(fig1)
+        fig1.canvas.mpl_connect('figure_enter_event', enter_figure)
+        fig1.canvas.mpl_connect('figure_leave_event', leave_figure)
+        fig1.canvas.mpl_connect('axes_enter_event', enter_axes)
+        fig1.canvas.mpl_connect('axes_leave_event', leave_axes)
         return wid
 
     def add_plot(self):
-        self.add_widget(self.get_fc())
-        self.add_widget(self.get_fc())
+        self.add_widget(self.get_fc(1))
+        self.add_widget(self.get_fc(2))
 
 class TestApp(App):
     def build(self):
