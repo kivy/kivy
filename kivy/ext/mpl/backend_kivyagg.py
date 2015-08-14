@@ -158,9 +158,6 @@ class FigureCanvasKivyAgg(FigureCanvasKivy, FigureCanvasAgg):
     filetypes = FigureCanvasKivy.filetypes.copy()
     filetypes['png'] = 'Portable Network Graphics'
 
-    def print_png(self, filename, *args, **kwargs):
-        FigureCanvasKivy.print_png(self, filename, *args, **kwargs)
-
     def _print_image(self, filename, *args, **kwargs):
         '''Write out format png. The image is saved with the filename given.
         '''
