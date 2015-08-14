@@ -5,9 +5,9 @@ IOS Prerequisites
 
 The following guide assumes:
 
-    * XCode 5.1
-    * MacOSX 10.9
-    
+    * XCode 5.1 or above
+    * MacOSX 10.9 or above
+
 Your experience may vary with different versions.
 
 Getting started
@@ -15,8 +15,7 @@ Getting started
 
 In order to submit any application to the iTunes store, you will need an
 `iOS Developer License <https://developer.apple.com/programs/ios/>`_. For
-testing, you will need an actual device as kivy does not yet support the
-iOS emulators that Apple supplies.
+testing, you can use a physical device or the XCode iOS emulator.
 
 Please note that in order to test on the device, you need to register these
 devices and install your "provisioning profile" on them. Please refer to the
@@ -28,8 +27,8 @@ Homebrew
 --------
 
 We use the `Homebrew <http://brew.sh/>`_ package mananger for OSX to install
-some of the dependencies and tools used by Kivy. It's a really helpful tool and
-is an Open Source project hosted on
+some of the dependencies and tools used by Kivy. It's a really helpful tool
+and is an Open Source project hosted on
 `Github <https://github.com/Homebrew/homebrew>`_.
 
 Due to the nature of package management (complications with versions and
@@ -49,11 +48,12 @@ If you still receive build errors, check your Homebrew is in a healthy state::
 
     brew doctor
 
-For further help, please refer to the `Homebrew wiki <https://github.com/Homebrew/homebrew/wiki>`_.
-    
+For further help, please refer to the
+`Homebrew wiki <https://github.com/Homebrew/homebrew/wiki>`_.
+
 The last, final and desperate step to get things working might be to remove
 Homebrew altogether, get the lastest version, install that and then re-install
 the dependencies.
 
-    `How to Uninstall and Remove Homebrew for Mac OSX <http://www.curvve.com/blog/guides/2013/uninstall-homebrew-mac-osx/>`_
-
+    `How to Uninstall and Remove Homebrew for Mac OSX
+    <http://www.curvve.com/blog/guides/2013/uninstall-homebrew-mac-osx/>`_
