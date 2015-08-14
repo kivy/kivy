@@ -8,9 +8,11 @@ Create a package for IOS
 .. note::
 
     From the 4th march 2015, the toolchain for iOS has been rewritten. The
-    previous instructions doesn't work anymore. If you still want to use the
-    older version, try the old-toolchain tag in git.
-    The new version supports i386, x86_64, armv7, arm64 = it works on emulator.
+    previous instructions don't work anymore (using `build_all.sh`). We
+    strongly recommend you upgrade to the latest toochain which contains many
+    improvements, including support for i386, x86_64, armv7, arm64 and the
+    iOS emulators. If you must use the older version, try the old-toolchain
+    tag in git.
 
 .. note::
 
@@ -22,8 +24,6 @@ The overall process for creating a package for IOS can be explained in 4 steps:
 #. Compile python + modules for IOS
 #. Create an Xcode project and link your source code
 #. Customize
-
-This process has been tested with Xcode 6.1
 
 Prerequisites
 -------------
