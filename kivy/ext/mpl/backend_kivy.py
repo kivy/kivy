@@ -177,6 +177,9 @@ from kivy.clock import Clock
 from kivy.uix.textinput import TextInput
 from kivy.lang import Builder
 from kivy.logger import Logger
+from distutils.version import LooseVersion
+
+_mpl_1_5 = LooseVersion(matplotlib.__version__) >= LooseVersion('1.5.0')
 
 import numpy as np
 import io
@@ -325,7 +328,7 @@ class RendererKivy(RendererBase):
             offsetTrans, facecolors, edgecolors, linewidths, linestyles,
             antialiaseds, urls, offset_position):
             list_canvas_instruction = self.get_path_instructions(gc0, path_poly,
-                                    rgbFace=rgbFace)
+                                    closed=True, rgbFace=rgbFace)
             for widget, instructions in list_canvas_instruction:
                 widget.canvas.add(PushMatrix())
                 widget.canvas.add(Translate(xo, yo))
@@ -343,7 +346,7 @@ class RendererKivy(RendererBase):
                 return idx
         return -1
 
-    def get_path_instructions(self, gc, polygons, rgbFace=None):
+    def get_path_instructions(self, gc, polygons, closed=False, rgbFace=None):
         '''With a graphics context and a set of polygons it returns a list
            of InstructionGroups required to render the path.
         '''
@@ -362,13 +365,15 @@ class RendererKivy(RendererBase):
             newclip = self.handle_clip_rectangle(gc, x, y)
             if newclip > -1:
                 instructions_list.append((self.clip_rectangles[newclip],
-                        self.get_graphics(gc, tess, points_line, rgbFace)))
+                        self.get_graphics(gc, tess, points_line, rgbFace,
+                                          closed=closed)))
             else:
                 instructions_list.append((self.widget,
-                        self.get_graphics(gc, tess, points_line, rgbFace)))
+                        self.get_graphics(gc, tess, points_line, rgbFace,
+                                          closed=closed)))
         return instructions_list
 
-    def get_graphics(self, gc, polygons, points_line, rgbFace):
+    def get_graphics(self, gc, polygons, points_line, rgbFace, closed=False):
         '''Return an instruction group which contains the necessary graphics
            instructions to draw the respective graphics.
         '''
@@ -384,22 +389,17 @@ class RendererKivy(RendererBase):
                     mode=str("triangle_fan")
                 ))
         instruction_group.add(Color(*gc.get_rgb()))
-        if matplotlib.__version__ == "1.5.dev1":
-            if gc.line['width'] > 0:
-                instruction_group.add(Line(points=points_line[:-2],
-                    width=int(gc.line['width'] / 2),
-                    dash_length=gc.line['dash_length'],
-                    dash_offset=gc.line['dash_offset'],
-                    dash_joint=gc.line['joint_style'],
-                    dash_list=gc.line['dash_list']))
+        if _mpl_1_5 and closed:
+            points_poly_line = points_line[:-2]
         else:
-            if gc.line['width'] > 0:
-                instruction_group.add(Line(points=points_line,
-                    width=int(gc.line['width'] / 2),
-                    dash_length=gc.line['dash_length'],
-                    dash_offset=gc.line['dash_offset'],
-                    dash_joint=gc.line['joint_style'],
-                    dash_list=gc.line['dash_list']))
+            points_poly_line = points_line
+        if gc.line['width'] > 0:
+            instruction_group.add(Line(points=points_poly_line,
+                width=int(gc.line['width'] / 2),
+                dash_length=gc.line['dash_length'],
+                dash_offset=gc.line['dash_offset'],
+                dash_joint=gc.line['joint_style'],
+                dash_list=gc.line['dash_list']))
         return instruction_group
 
     def draw_image(self, gc, x, y, im):
@@ -512,7 +512,7 @@ class RendererKivy(RendererBase):
             with self.widget.canvas:
                 if isinstance(angle, float):
                     PushMatrix()
-                    Rotate(angle=angle, origin=(x, y))
+                    Rotate(angle=angle, origin=(int(x), int(y)))
                     Rectangle(pos=(int(x), int(y)), texture=plot_text.texture,
                               size=plot_text.texture.size)
                     PopMatrix()
@@ -528,7 +528,7 @@ class RendererKivy(RendererBase):
         w = ftimage.get_width()
         h = ftimage.get_height()
         texture = Texture.create(size=(w, h))
-        if matplotlib.__version__ == "1.5.dev1":
+        if _mpl_1_5:
             texture.blit_buffer(ftimage.as_rgba_str()[0][0], colorfmt='rgba',
                                 bufferfmt='ubyte')
         else:
@@ -549,7 +549,7 @@ class RendererKivy(RendererBase):
         polygons = path.to_polygons(transform, self.widget.width,
                                     self.widget.height)
         list_canvas_instruction = self.get_path_instructions(gc, polygons,
-                                    rgbFace=rgbFace)
+                                    closed=True, rgbFace=rgbFace)
         for widget, instructions in list_canvas_instruction:
             widget.canvas.add(instructions)
 
@@ -576,16 +576,12 @@ class RendererKivy(RendererBase):
         if list_instructions is None:
             polygons = marker_path.to_polygons(marker_trans)
             self._markers[dictkey] = self.get_path_instructions(gc,
-                                            polygons, rgbFace=rgbFace)
+                                        polygons, rgbFace=rgbFace)
         # Traversing all the positions where a marker should be rendered
         for vertices, codes in path.iter_segments(trans, simplify=False):
             if len(vertices):
                 x, y = vertices[-2:]
                 for widget, instructions in self._markers[dictkey]:
-#                     with widget.canvas:
-#                         Color(1.0,0.0,0.0,1.0)
-#                         Line(circle=(x, y, 5))
-#                     print("instructions number",instructions.length())
                     widget.canvas.add(PushMatrix())
                     widget.canvas.add(Translate(x, y))
                     widget.canvas.add(instructions)
@@ -600,7 +596,7 @@ class RendererKivy(RendererBase):
             clip = (0.0, 0.0, self.width, self.height)
         else:
             clip = None
-        if matplotlib.__version__ == "1.5.dev1":
+        if _mpl_1_5:
             return _path.convert_to_string(
                 path, transform, clip, simplify, sketch, 6,
                 [b'M', b'L', b'Q', b'C', b'z'], False).decode('ascii')
