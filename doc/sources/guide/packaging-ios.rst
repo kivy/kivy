@@ -51,9 +51,10 @@ Open a terminal, and type::
     $ cd kivy-ios
     $ ./toolchain.py build kivy
 
-Most of the python distribution will be packed into a `python27.zip`. If you
-experience any issues or would like more detail on this process, please refer
-to :ref:`Compiling for IOS <packaging_ios_compile>`.
+Most of the python distribution is packed into `python27.zip`. If you
+experience any issues, please refer to our
+`user group <https://groups.google.com/forum/#!forum/kivy-users>`_ or the
+`kivy-ios project page <https://github.com/kivy/kivy-ios>`_.
 
 .. _Create an Xcode project:
 
