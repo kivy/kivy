@@ -96,9 +96,6 @@ from kivy.ext.mpl.backend_kivy import FigureCanvasKivy, FigureManagerKivy, \
 
 register_backend('png', 'backend_kivyagg', 'PNG File Format')
 
-# Set a debug flag
-_debug = True
-
 
 def new_figure_manager_given_figure(num, figure):
     '''Create a new figure manager instance and a new figure canvas instance
@@ -118,8 +115,6 @@ class FigureCanvasKivyAgg(FigureCanvasKivy, FigureCanvasAgg):
     '''
 
     def __init__(self, figure, **kwargs):
-        if _debug:
-            print('FigureCanvasKivyAgg: ', figure)
         self.figure = figure
         self.bind(size=self._on_size_changed)
         super(FigureCanvasKivyAgg, self).__init__(figure=self.figure, **kwargs)

@@ -124,7 +124,6 @@ from __future__ import (absolute_import, division, print_function,
 
 import six
 import os
-import scipy
 import matplotlib
 import matplotlib.transforms as transforms
 from matplotlib._pylab_helpers import Gcf
@@ -163,7 +162,7 @@ from kivy.graphics.instructions import InstructionGroup
 from kivy.graphics.tesselator import Tesselator
 from kivy.graphics.context_instructions import PopMatrix, PushMatrix
 from kivy.logger import Logger
-from kivy.graphics import Mesh
+from kivy.graphics import Mesh, Quad
 from kivy.resources import resource_find
 from kivy.uix.stencilview import StencilView
 from kivy.core.window import Window
@@ -877,10 +876,6 @@ class FigureCanvasKivy(FocusBehavior, Widget, FigureCanvasBase):
         self.figure = figure
         super(FigureCanvasKivy, self).__init__(figure=self.figure, **kwargs)
         self._isDrawn = False
-
-    def draw_idle(self, *args, **kwargs):
-        self._isDrawn = False
-        FigureCanvasBase.draw_idle(self, *args, **kwargs)
 
     def draw(self):
         '''Draw the figure using the KivyRenderer

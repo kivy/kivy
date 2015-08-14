@@ -4,6 +4,7 @@ from kivy.app import App
 
 import numpy as np
 from kivy.ext.mpl.backend_kivy import FigureCanvasKivy as FigureCanvas
+from kivy.ext.mpl.backend_kivy import NavigationToolbar2Kivy
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 from matplotlib.transforms import Bbox
@@ -72,8 +73,9 @@ ax.set_ylabel('Scores')
 ax.set_title('Scores by group and gender')
 ax.set_xticks(ind + width)
 ax.set_xticklabels(('G1', 'G2', 'G3', 'G4', 'G5'))
-
 ax.legend((rects1[0], rects2[0]), ('Men', 'Women'))
+
+rects2 = ax2.bar(ind + width, womenMeans, width, color='y', yerr=womenStd)
 
 
 def autolabel(rects):
@@ -123,7 +125,11 @@ class MatplotlibTest(App):
         fl = BoxLayout(orientation="vertical")
         a = Button(text="press me", height=40, size_hint_y=None)
         a.bind(on_press=callback)
+        nav1 = NavigationToolbarKivy(canvas)
+        nav2 = NavigationToolbarKivy(canvas2)
+        fl.add_widget(nav1.actionbar)
         fl.add_widget(canvas)
+        fl.add_widget(nav2.actionbar)
         fl.add_widget(canvas2)
         fl.add_widget(a)
         return fl
