@@ -8,25 +8,25 @@ from kivy.ext.mpl.backend_kivy import FigureCanvas
 
 
 def enter_axes(event):
-    print ('enter_axes', event.inaxes)
+    print('enter_axes', event.inaxes)
     event.inaxes.patch.set_facecolor('yellow')
     event.canvas.draw()
 
 
 def leave_axes(event):
-    print ('leave_axes', event.inaxes)
+    print('leave_axes', event.inaxes)
     event.inaxes.patch.set_facecolor('white')
     event.canvas.draw()
 
 
 def enter_figure(event):
-    print ('enter_figure', event.canvas.figure)
+    print('enter_figure', event.canvas.figure)
     event.canvas.figure.patch.set_facecolor('red')
     event.canvas.draw()
 
 
 def leave_figure(event):
-    print ('leave_figure', event.canvas.figure)
+    print('leave_figure', event.canvas.figure)
     event.canvas.figure.patch.set_facecolor('grey')
     event.canvas.draw()
 
@@ -49,7 +49,8 @@ class Test(BoxLayout):
 
     def get_fc(self, i):
         fig1 = plt.figure()
-        fig1.suptitle('mouse hover over figure or axes to trigger events' + str(i))
+        fig1.suptitle('mouse hover over figure or axes to trigger events' +
+                      str(i))
         ax1 = fig1.add_subplot(211)
         ax2 = fig1.add_subplot(212)
         wid = FigureCanvas(fig1)
@@ -62,6 +63,7 @@ class Test(BoxLayout):
     def add_plot(self):
         self.add_widget(self.get_fc(1))
         self.add_widget(self.get_fc(2))
+
 
 class TestApp(App):
     def build(self):

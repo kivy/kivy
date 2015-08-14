@@ -384,13 +384,22 @@ class RendererKivy(RendererBase):
                     mode=str("triangle_fan")
                 ))
         instruction_group.add(Color(*gc.get_rgb()))
-        if gc.line['width'] > 0:
-            instruction_group.add(Line(points=points_line,
-                width=int(gc.line['width'] / 2),
-                dash_length=gc.line['dash_length'],
-                dash_offset=gc.line['dash_offset'],
-                dash_joint=gc.line['joint_style'],
-                dash_list=gc.line['dash_list']))
+        if matplotlib.__version__ == "1.5.dev1":
+            if gc.line['width'] > 0:
+                instruction_group.add(Line(points=points_line[:-2],
+                    width=int(gc.line['width'] / 2),
+                    dash_length=gc.line['dash_length'],
+                    dash_offset=gc.line['dash_offset'],
+                    dash_joint=gc.line['joint_style'],
+                    dash_list=gc.line['dash_list']))
+        else:
+            if gc.line['width'] > 0:
+                instruction_group.add(Line(points=points_line,
+                    width=int(gc.line['width'] / 2),
+                    dash_length=gc.line['dash_length'],
+                    dash_offset=gc.line['dash_offset'],
+                    dash_joint=gc.line['joint_style'],
+                    dash_list=gc.line['dash_list']))
         return instruction_group
 
     def draw_image(self, gc, x, y, im):
@@ -519,8 +528,12 @@ class RendererKivy(RendererBase):
         w = ftimage.get_width()
         h = ftimage.get_height()
         texture = Texture.create(size=(w, h))
-        texture.blit_buffer(ftimage.as_rgba_str(), colorfmt='rgba',
-                            bufferfmt='ubyte')
+        if matplotlib.__version__ == "1.5.dev1":
+            texture.blit_buffer(ftimage.as_rgba_str()[0][0], colorfmt='rgba',
+                                bufferfmt='ubyte')
+        else:
+            texture.blit_buffer(ftimage.as_rgba_str(), colorfmt='rgba',
+                                bufferfmt='ubyte')
         texture.flip_vertical()
         with self.widget.canvas:
             Rectangle(texture=texture, pos=(x, y), size=(w, h))
@@ -569,6 +582,10 @@ class RendererKivy(RendererBase):
             if len(vertices):
                 x, y = vertices[-2:]
                 for widget, instructions in self._markers[dictkey]:
+#                     with widget.canvas:
+#                         Color(1.0,0.0,0.0,1.0)
+#                         Line(circle=(x, y, 5))
+#                     print("instructions number",instructions.length())
                     widget.canvas.add(PushMatrix())
                     widget.canvas.add(Translate(x, y))
                     widget.canvas.add(instructions)
@@ -577,14 +594,18 @@ class RendererKivy(RendererBase):
     def flipy(self):
         return False
 
-    # method should be overwritten with matplotlib 1.5.1
-    def _convert_path(self, path, transform=None, clip=None, simplify=None):
-        '''Returns a string representation of the path.'''
+    def _convert_path(self, path, transform=None, clip=None, simplify=None,
+                      sketch=None):
         if clip:
-            clip = (0.0, 0.0, self.widget.width, self.widget.height)
+            clip = (0.0, 0.0, self.width, self.height)
         else:
             clip = None
-        return _path.convert_to_svg(path, transform, clip, simplify, 6)
+        if matplotlib.__version__ == "1.5.dev1":
+            return _path.convert_to_string(
+                path, transform, clip, simplify, sketch, 6,
+                [b'M', b'L', b'Q', b'C', b'z'], False).decode('ascii')
+        else:
+            return _path.convert_to_svg(path, transform, clip, simplify, 6)
 
     def get_canvas_width_height(self):
         '''Get the actual width and height of the widget.

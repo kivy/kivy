@@ -109,6 +109,7 @@ fig2.canvas.mpl_connect('figure_enter_event', figure_enter)
 fig2.canvas.mpl_connect('figure_leave_event', figure_leave)
 fig2.canvas.mpl_connect('close_event', close)
 
+
 def callback(instance):
     autolabel(rects1)
     autolabel(rects2)
