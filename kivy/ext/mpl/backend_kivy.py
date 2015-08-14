@@ -448,10 +448,7 @@ class RendererKivy(RendererBase):
            If the text is a math expression it will be rendered using a
            MathText parser.
         '''
-        x = int(x)
-        y = int(y)
-
-        if mtext:
+        if mtext and mtext.get_rotation_mode() == "anchor":
             # Get anchor coordinates.
             transform = mtext.get_transform()
             ax, ay = transform.transform_point(mtext.get_position())
@@ -471,8 +468,15 @@ class RendererKivy(RendererBase):
                 x -= w / 2
             elif ha == "right":
                 x -= w
-
-            print ("ha", mtext.get_ha())
+            elif ha == "left":
+                x += w
+            va = mtext.get_va()
+            if va == "top":
+                y -= h
+            elif va == "center":
+                y -= h / 2
+            elif va == "bottom":
+                y += h
 
         x += self.widget.x
         y += self.widget.y
