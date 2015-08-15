@@ -4,7 +4,8 @@ Clipboard SDL2: an implementation of the Clipboard using sdl2.
 
 __all__ = ('ClipboardSDL2', )
 
-from kivy.utils import platform, PY2
+from kivy.utils import platform
+from kivy.compat import PY2
 from kivy.core.clipboard import ClipboardBase
 
 if platform not in ('win', 'linux', 'macosx', 'android', 'ios'):
