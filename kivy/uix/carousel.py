@@ -575,7 +575,7 @@ class Carousel(StencilView):
         slide.add_widget(widget)
         super(Carousel, self).add_widget(slide, index)
         if index != 0:
-            self.slides.insert(index, widget)
+            self.slides.insert(index - len(self.slides), widget)
         else:
             self.slides.append(widget)
 
