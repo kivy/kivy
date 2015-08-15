@@ -28,7 +28,7 @@ class ClipboardTestCase(unittest.TestCase):
     def test_clipboard_put(self):
         clippy = self._clippy
         try:
-            clippy.put("Hello World", self._cliptype)
+            clippy.put(u"Hello World", self._cliptype)
         except:
             self.fail(
                 'Can not get put data to clipboard of type {}'.format(cliptype))
