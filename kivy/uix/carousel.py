@@ -11,17 +11,22 @@ The carousel can display pages in loop or not.
 
 Example::
 
-    class Example1(App):
+    from kivy.app import App
+    from kivy.uix.carousel import Carousel
+    from kivy.uix.image import AsyncImage
 
+
+    class CarouselApp(App):
         def build(self):
             carousel = Carousel(direction='right')
             for i in range(10):
                 src = "http://placehold.it/480x270.png&text=slide-%d&.png" % i
-                image = Factory.AsyncImage(source=src, allow_stretch=True)
+                image = AsyncImage(source=src, allow_stretch=True)
                 carousel.add_widget(image)
             return carousel
 
-    Example1().run()
+
+    CarouselApp().run()
 
 .. versionchanged:: 1.5.0
     The carousel now supports active children, like the
