@@ -6,7 +6,7 @@ Carousel
 
 The :class:`Carousel` widget provides the classic mobile-friendly carousel view
 where you can swipe between slides.
-You can add any content to the carousel and use it horizontally or verticaly.
+You can add any content to the carousel and use it horizontally or vertically.
 The carousel can display pages in loop or not.
 
 Example::
@@ -26,12 +26,11 @@ Example::
 .. versionchanged:: 1.5.0
     The carousel now supports active children, like the
     :class:`~kivy.uix.scrollview.ScrollView`. It will detect a swipe gesture
-    according to :attr:`Carousel.scroll_timeout` and
-    :attr:`Carousel.scroll_distance`.
+    according to the :attr:`Carousel.scroll_timeout` and
+    :attr:`Carousel.scroll_distance` properties.
 
-    In addition, the container used for adding a slide is now hidden in
-    the API. We made a mistake by exposing it to the user. The impacted
-    properties are:
+    In addition, the slide container is no longer exposed by the API.
+    The impacted properties are
     :attr:`Carousel.slides`, :attr:`Carousel.current_slide`,
     :attr:`Carousel.previous_slide` and :attr:`Carousel.next_slide`.
 
@@ -54,8 +53,8 @@ class Carousel(StencilView):
     '''
 
     slides = ListProperty([])
-    '''List of slides inside the Carousel. The slides are added when a
-    widget is added to Carousel using add_widget().
+    '''List of slides inside the Carousel. Slides are added when a
+    widget is added to the Carousel using :attr:`add_widget`.
 
     :attr:`slides` is a :class:`~kivy.properties.ListProperty` and is
     read-only.
@@ -71,12 +70,12 @@ class Carousel(StencilView):
                                options=('right', 'left', 'top', 'bottom'))
     '''Specifies the direction in which the slides are ordered i.e. the
     direction from which the user swipes to go from one slide to the next.
-    Can be `right`, `left`, 'top', or `bottom`. For example, with
+    Can be `right`, `left`, `top`, or `bottom`. For example, with
     the default value of `right`, the second slide is to the right
     of the first and the user would swipe from the right towards the
     left to get to the second slide.
 
-    :attr:`direction` is a :class:`~kivy.properties.OptionProperty` and
+    :attr:`direction` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'right'.
     '''
 
@@ -100,7 +99,7 @@ class Carousel(StencilView):
 
     anim_cancel_duration = NumericProperty(0.3)
     '''Defines the duration of the animation when a swipe movement is not
-    accepted. This is generally when the user doesnt swipe enough.
+    accepted. This is generally when the user does not swipe enough.
     See :attr:`min_move`.
 
     :attr:`anim_cancel_duration` is a :class:`~kivy.properties.NumericProperty`
@@ -108,8 +107,8 @@ class Carousel(StencilView):
     '''
 
     loop = BooleanProperty(False)
-    '''Allow the Carousel to swipe infinitely. When the user reaches the last
-    page, they will return to first page when trying to swipe to the next.
+    '''Allow the Carousel to loop infinitely. When the user tries to swipe
+    beyond last page, it will return to the first.
 
     :attr:`loop` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
@@ -126,7 +125,7 @@ class Carousel(StencilView):
         else:
             self._index = None
     index = AliasProperty(_get_index, _set_index, bind=('_index', 'slides'))
-    '''Get/Set the current visible slide based on the index.
+    '''Get/Set the current slide based on the index.
 
     :attr:`index` is a :class:`~kivy.properties.AliasProperty` and defaults
     to 0 (the first item).
@@ -157,8 +156,8 @@ class Carousel(StencilView):
     :attr:`previous_slide` is a :class:`~kivy.properties.AliasProperty`.
 
     .. versionchanged:: 1.5.0
-        This property doesn't expose the container used for storing the slide.
-        It returns the widget you have added.
+        This property no longer exposes the slides container. It returns
+        the widget you have added.
     '''
 
     def _curr_slide(self):
@@ -170,8 +169,8 @@ class Carousel(StencilView):
     :attr:`current_slide` is an :class:`~kivy.properties.AliasProperty`.
 
     .. versionchanged:: 1.5.0
-        The property doesn't expose the container used for storing the slide.
-        It returns widget you have added.
+        The property no longer exposes the slides container. It returns
+        the widget you have added.
     '''
 
     def _next_slide(self):
@@ -192,17 +191,17 @@ class Carousel(StencilView):
     the next slide is to the right. If :attr:`orientation` is 'vertical',
     the next slide is towards the bottom.
 
-    :attr:`next_slide` is a :class:`~kivy.properties.AliasProperty`.
+    :attr:`next_slide` is an :class:`~kivy.properties.AliasProperty`.
 
     .. versionchanged:: 1.5.0
-        The property doesn't expose the container used for storing the slide.
+        The property no longer exposes the slides container.
         It returns the widget you have added.
     '''
 
     scroll_timeout = NumericProperty(200)
     '''Timeout allowed to trigger the :attr:`scroll_distance`, in milliseconds.
     If the user has not moved :attr:`scroll_distance` within the timeout,
-    the scrolling will be disabled and the touch event will go to the children.
+    no scrolling will occur and the touch event will go to the children.
 
     :attr:`scroll_timeout` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 200 (milliseconds)
