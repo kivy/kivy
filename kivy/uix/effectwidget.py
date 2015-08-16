@@ -743,6 +743,10 @@ class EffectWidget(RelativeLayout):
         self.fbo_list[0].texture_rectangle.texture = self.fbo.texture
         self.texture = self.fbo_list[-1].texture
 
+        for fbo in self.fbo_list:
+            fbo.draw()
+        self.fbo.draw()
+
     def add_widget(self, widget):
         # Add the widget to our Fbo instead of the normal canvas
         c = self.canvas
