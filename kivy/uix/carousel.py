@@ -6,7 +6,8 @@ Carousel
 
 The :class:`Carousel` widget provides the classic mobile-friendly carousel view
 where you can swipe between slides.
-You can add any content to the carousel and use it horizontally or vertically.
+You can add any content to the carousel and have it move horizontally or
+vertically.
 The carousel can display pages in loop or not.
 
 Example::
@@ -58,8 +59,8 @@ class Carousel(StencilView):
     '''
 
     slides = ListProperty([])
-    '''List of slides inside the Carousel. Slides are added when a
-    widget is added to the Carousel using :attr:`add_widget`.
+    '''List of slides inside the Carousel. The slides are the
+    widgets added to the Carousel using the :attr:`add_widget` method.
 
     :attr:`slides` is a :class:`~kivy.properties.ListProperty` and is
     read-only.
@@ -73,9 +74,10 @@ class Carousel(StencilView):
 
     direction = OptionProperty('right',
                                options=('right', 'left', 'top', 'bottom'))
-    '''Specifies the direction in which the slides are ordered i.e. the
-    direction from which the user swipes to go from one slide to the next.
-    Can be `right`, `left`, `top`, or `bottom`. For example, with
+    '''Specifies the direction in which the slides are ordered. This
+    corresponds to the direction from which the user swipes to go from one
+    slide to the next. It
+    can be `right`, `left`, `top`, or `bottom`. For example, with
     the default value of `right`, the second slide is to the right
     of the first and the user would swipe from the right towards the
     left to get to the second slide.
@@ -85,10 +87,10 @@ class Carousel(StencilView):
     '''
 
     min_move = NumericProperty(0.2)
-    '''Defines the minimal distance from the edge where the movement is
-    considered a swipe gesture and the Carousel will change its content.
+    '''Defines the minimum distance to be covered before the touch is
+    considered a swipe gesture and the Carousel content changed.
     This is a percentage of the Carousel width.
-    If the movement doesn't reach this minimal value, then the movement is
+    If the movement doesn't reach this minimum value, then the movement is
     cancelled and the content is restored to its original position.
 
     :attr:`min_move` is a :class:`~kivy.properties.NumericProperty` and
@@ -104,8 +106,8 @@ class Carousel(StencilView):
 
     anim_cancel_duration = NumericProperty(0.3)
     '''Defines the duration of the animation when a swipe movement is not
-    accepted. This is generally when the user does not swipe enough.
-    See :attr:`min_move`.
+    accepted. This is generally when the user does not make a large enough
+    swipe. See :attr:`min_move`.
 
     :attr:`anim_cancel_duration` is a :class:`~kivy.properties.NumericProperty`
     and defaults to 0.3.
@@ -154,9 +156,9 @@ class Carousel(StencilView):
 
     previous_slide = AliasProperty(_prev_slide, None, bind=('slides', 'index'))
     '''The previous slide in the Carousel. It is None if the current slide is
-    the first slide in the Carousel. If :attr:`orientation` is 'horizontal',
-    the previous slide is to the left. If :attr:`orientation` is 'vertical',
-    the previous slide towards the bottom.
+    the first slide in the Carousel. This ordering reflects the order in which
+    the slides are added: their presentation varies according to the
+    :attr:`direction` property.
 
     :attr:`previous_slide` is an :class:`~kivy.properties.AliasProperty`.
 
@@ -192,9 +194,9 @@ class Carousel(StencilView):
             return self.slides[self.index + 1]
     next_slide = AliasProperty(_next_slide, None, bind=('slides', 'index'))
     '''The next slide in the Carousel. It is None if the current slide is
-    the last slide in the Carousel. If :attr:`orientation` is 'horizontal',
-    the next slide is to the right. If :attr:`orientation` is 'vertical',
-    the next slide is towards the bottom.
+    the last slide in the Carousel. This ordering reflects the order in which
+    the slides are added: their presentation varies according to the
+    :attr:`direction` property.
 
     :attr:`next_slide` is an :class:`~kivy.properties.AliasProperty`.
 
