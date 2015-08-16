@@ -132,7 +132,7 @@ class Carousel(StencilView):
     index = AliasProperty(_get_index, _set_index, bind=('_index', 'slides'))
     '''Get/Set the current slide based on the index.
 
-    :attr:`index` is a :class:`~kivy.properties.AliasProperty` and defaults
+    :attr:`index` is an :class:`~kivy.properties.AliasProperty` and defaults
     to 0 (the first item).
     '''
 
@@ -158,7 +158,7 @@ class Carousel(StencilView):
     the previous slide is to the left. If :attr:`orientation` is 'vertical',
     the previous slide towards the bottom.
 
-    :attr:`previous_slide` is a :class:`~kivy.properties.AliasProperty`.
+    :attr:`previous_slide` is an :class:`~kivy.properties.AliasProperty`.
 
     .. versionchanged:: 1.5.0
         This property no longer exposes the slides container. It returns
