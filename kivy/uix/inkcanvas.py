@@ -2,8 +2,7 @@ from kivy.properties import OptionProperty, ListProperty, StringProperty, \
                     ObjectProperty, NumericProperty, BooleanProperty
 from kivy.graphics import Color, Line, SmoothLine, Ellipse
 from kivy.event import EventDispatcher
-from math import sqrt, atan2, cos, sin, min
-import numpy as np
+from math import sqrt, atan2, cos, sin, pow, degrees, acos, fabs, radians
 
 
 class StrokePoint(object):
@@ -173,6 +172,7 @@ class Stroke(EventDispatcher):
         self._color = (0.0, 0.0, 0.0, 1.0)
         self.shortstraw_const = shortstraw_const
         self.group_id = group_id
+        self.vector = (None, None)
         # processed points just for getting them independently for further
         # analysis
         self.filtered_points = []
@@ -409,28 +409,33 @@ class NDolarRecognizer():
         self.O = StrokePoint(0.0, 0.0)
         self.I = 12
         self.Phi = 0.5 * (-1 + sqrt(5))  # Golden Ratio
+        self.N = 96.0
+        self.omega = 30.0
+        self.SIZE = 250.0
 
-    def Resample(self, points_list, n):
+    def resample(self, points_list, n):
         D = 0.0
         _points = []
         sampled_points = []
         I = self.path_length(points_list) / (n - 1)
-        clone_points = self.filtered_points[:]
+        clone_points = points_list[:]
         self.sampled_points.append(clone_points[0])
         for i, point in enumerate(clone_points):
             if i > 0:
                 d = clone_points[i - 1].distance_to(clone_points[i])
-                if (D + d) >= S:
-                    q = StrokePoint(-1, -1)
-                    q.x = clone_points[i - 1].x + ((S - D) / d) * \
+                if (D + d) >= I:
+                    qx = clone_points[i - 1].x + ((I - D) / d) * \
                                 (clone_points[i].x - clone_points[i - 1].x)
-                    q.y = clone_points[i - 1].y + ((S - D) / d) * \
+                    qy = clone_points[i - 1].y + ((I - D) / d) * \
                                 (clone_points[i].y - clone_points[i - 1].y)
+                    q = StrokePoint(qx, qy)
                     self.sampled_points.append(q)
                     clone_points.insert(i, q)
                     D = 0.0
                 else:
                     D = D + d
+        if len(sampled_points) == n - 1:
+            sampled_points.append(clone_points[len(points_list) - 1])
 
     def path_length(self, points_list):
         d = 0.0
@@ -511,24 +516,146 @@ class NDolarRecognizer():
             new_points.append(StrokePoint(px, py))
         return new_points
 
-    def calc_start_unit_vector(self, points_list, I=self.I):
+    def calc_start_unit_vector(self, points_list, I=12.0):
         qx = points_list[I].x - points_list[0].x
         qy = points_list[I].y - points_list[0].y
         v = self.unit_vector((qx, qy))
         return v
 
-    def unit_vector(vector):
+    def unit_vector(self, vector):
         '''Returns the unit vector of the vector
         '''
-        return vector / np.linalg.norm(vector)
+        norm = sqrt(pow(vector[0], 2.0) + pow(vector[1], 2.0))
+        return (vector[0] / norm, vector[1] / norm)
+
+    def generate_unistroke_permutations(self, strokes_list):
+        order = []
+        orders = []
+        for i in xrange(0, len(strokes_list)):
+            order.append(i)
+        self.heap_permute(len(strokes_list), order, orders)
+        M = self.make_unistrokes(strokes_list, orders)
+        for stroke in M:
+            stroke.points = self.resample(stroke.points, self.N)
+            w = self.indicative_angle(stroke.points)
+            stroke.points = self.rotate_by(stroke.points, -w)
+            stroke.points = self.scale_dim_to(stroke.points)
+            stroke.points = self.check_restore_orientation(stroke.points, w)
+            stroke.points = self.translate_to(stroke.points, self.O)
+            stroke.vector = self.calc_start_unit_vector(stroke.points, self.I)
+        return M
+
+    def make_unistrokes(self, strokes_list, orders):
+        unistrokes = []
+        for order in orders:
+            for b in xrange(0, pow(2.0, len(order))):
+                unistroke = Stroke()
+                for i in xrange(0, len(order)):
+                    stroke = Stroke()
+                    stroke.points = strokes_list[order[i]].points[:]
+                    if self.bit_at(b, i):
+                        stroke.points.reverse()
+                    unistroke.points.extend(stroke.points)
+                unistrokes.append(unistroke)
+        return unistrokes
+
+    def bit_at(self, b, i):
+        if ((b >> i) & 1) == 1:
+            return True
+        return False
+
+    def heap_permute(self, n, order, orders):
+        if n == 1:
+            orders.append(order[:])
+        else:
+            for i in xrange(0, n):
+                self.heap_permute(n - 1, order, orders)
+                if self.is_odd(n):
+                    self.swap(order, 0, n - 1)
+                else:
+                    self.swap(order, i, n - 1)
+
+    def swap(self, order, index1, index2):
+        temp = order[index1]
+        order[index1] = order[index2]
+        order[index2] = temp
+
+    def is_odd(self, n):
+        if n % 2 == 0:
+            return False
+        return True
 
     def Recognize(self, stroke, v, S, samples):
         b = float("inf")
         score = -1.0
         name = ""
         best_angle = -1.0
+        best_stroke = Stroke()
         for sample in samples:
-            pass
+            for strokes_list in sample:
+                M = self.generate_unistroke_permutations()
+                for uni in M:
+                    angle = self.angle_between(stroke.vector, uni.vector)
+                    if fabs(degrees(angle)) <= omega:
+                        d = self.golden_section_search(stroke.points,
+                                uni.points, radians(-45.0), radians(45.0),
+                                radians(2.0))
+                        if d[0] < b:
+                            b = d[0]
+                            best_stroke = uni
+                            best_angle = d[1]
+                            name = sample.name
+        score = 1 - (b / (0.5 * sqrt(pow(self.SIZE, 2.0) +
+                                     pow(self.SIZE, 2.0))))
+        return (best_stroke, score, name, best_angle)
+
+    def golden_section_search(self, pts_list1, pts_list2, a, b, threshold):
+        x1 = self.Phi * a + (1 - self.Phi) * b
+        new_points = self.rotate_by(pts_list1, x1)
+        fx1 = self.path_distance(new_points, pts_list2)
+
+        x2 = (1 - self.Phi) * a + self.Phi * b
+        new_points = self.rotate_by(pts_list1, x2)
+        fx2 = self.path_distance(new_points, pts_list2)
+
+        i = 2.0
+        while fabs(b - a) > threshold:
+            if fx1 < fx2:
+                b = x2
+                x2 = x1
+                fx2 = fx1
+                x1 = self.Phi * a + (1 - self.Phi) * b
+                new_points = self.rotate_by(pts_list1, x1)
+                fx1 = self.path_distance(new_points, pts_list2)
+            else:
+                a = x1
+                x1 = x2
+                fx1 = fx2
+                x2 = (1 - self.Phi) * a + self.Phi * b
+                new_points = self.rotate_by(pts_list1, x2)
+                fx2 = self.path_distance(new_points, pts_list2)
+            i += 1
+        return (min(fx1, fx2), degrees((b + a) / 2.0), i)
+
+    def dotproduct(self, v1, v2):
+        return sum((a * b) for a, b in zip(v1, v2))
+
+    def length(self, v):
+        return sqrt(dotproduct(v, v))
+
+    def angle_between(self, v1, v2):
+        return acos(dotproduct(v1, v2) / (length(v1) * length(v2)))
+
+    def path_distance(self, pts1, pts2):
+        d = 0.0
+        for i in xrange(0, len(pts1)):
+            d = d + pts1[i].distance_to(pts2[i])
+        return d / len(pts1)
+
+    def distance_at_angle(self, pts1, pts2, theta):
+        new_points = self.rotate_by(pts1, theta)
+        d = self.path_distance(pts1, pts2)
+        return d
 
 
 class StrokeCanvasBehavior(object):
