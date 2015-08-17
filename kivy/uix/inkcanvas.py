@@ -2,7 +2,8 @@ from kivy.properties import OptionProperty, ListProperty, StringProperty, \
                     ObjectProperty, NumericProperty, BooleanProperty
 from kivy.graphics import Color, Line, SmoothLine, Ellipse
 from kivy.event import EventDispatcher
-from math import sqrt
+from math import sqrt, atan2, cos, sin, min
+import numpy as np
 
 
 class StrokePoint(object):
@@ -170,9 +171,12 @@ class Stroke(EventDispatcher):
     def __init__(self, group_id="", shortstraw_const=40.0, **kwargs):
         super(Stroke, self).__init__(**kwargs)
         self._color = (0.0, 0.0, 0.0, 1.0)
-        self.group_id = group_id
-        self.sampled_points = []
         self.shortstraw_const = shortstraw_const
+        self.group_id = group_id
+        # processed points just for getting them independently for further
+        # analysis
+        self.filtered_points = []
+        self.sampled_points = []
         self.corners = []
 
     def __eq__(self, other):
@@ -269,7 +273,8 @@ class Stroke(EventDispatcher):
                 d = clone_points[i - 1].distance_to(clone_points[i])
                 if d <= 2.0:
                     clone_points.remove(point)
-        return clone_points
+        self.filtered_points = clone_points
+        return self.filtered_points
 
     def sample_points(self):
         '''Stores a copy of the points list in self.sampled_points that
@@ -284,14 +289,13 @@ class Stroke(EventDispatcher):
                     PointC.distance_to(PointD)
         .. versionadded:: 1.9.0
         '''
+        D = 0.0
         bounds = self.get_bounds()
         S = bounds.top_left().distance_to(bounds.bottom_right()) /\
-                             self.shortstraw_const
-        print "these are the bounds ", bounds
-        print "This is S value", S
-        D = 0.0
-        self.sampled_points.append(self.points[0])
-        clone_points = self.points[:]
+                            self.shortstraw_const
+        self.filtering()
+        clone_points = self.filtered_points[:]
+        self.sampled_points.append(clone_points[0])
         for i, point in enumerate(clone_points):
             if i > 0:
                 d = clone_points[i - 1].distance_to(clone_points[i])
@@ -324,8 +328,9 @@ class Stroke(EventDispatcher):
             for i in xrange(W, len(self.sampled_points) - W):
                 straws[i - W] = self.sampled_points[i - W].distance_to(
                                             self.sampled_points[i + W])
-            t = float(sum(straws)) / float(len(straws)) * 0.95
-            for i in xrange(W, len(self.sampled_points) - W):
+            t = (float(sum(straws)) / float(len(straws))) * 0.95
+            iterable = iter(xrange(W, len(self.sampled_points) - W))
+            for i in iterable:
                 if straws[i - W] < t:
                     localMin = float("inf")
                     localMinIndex = i
@@ -334,6 +339,7 @@ class Stroke(EventDispatcher):
                             localMin = straws[i - W]
                             localMinIndex = i
                         i += 1
+                        iterable.next()
                     self.corners.append(localMinIndex)
             self.corners.append(len(self.sampled_points) - 1)
             self.corners = [ii for n, ii in enumerate(self.corners)
@@ -394,6 +400,135 @@ class Stroke(EventDispatcher):
                 minValue = corners[i]
                 minIndex = i
         return minIndex
+
+
+class NDolarRecognizer():
+
+    def __init__(self):
+        self.usingboundedrotationinvariance = True
+        self.O = StrokePoint(0.0, 0.0)
+        self.I = 12
+        self.Phi = 0.5 * (-1 + sqrt(5))  # Golden Ratio
+
+    def Resample(self, points_list, n):
+        D = 0.0
+        _points = []
+        sampled_points = []
+        I = self.path_length(points_list) / (n - 1)
+        clone_points = self.filtered_points[:]
+        self.sampled_points.append(clone_points[0])
+        for i, point in enumerate(clone_points):
+            if i > 0:
+                d = clone_points[i - 1].distance_to(clone_points[i])
+                if (D + d) >= S:
+                    q = StrokePoint(-1, -1)
+                    q.x = clone_points[i - 1].x + ((S - D) / d) * \
+                                (clone_points[i].x - clone_points[i - 1].x)
+                    q.y = clone_points[i - 1].y + ((S - D) / d) * \
+                                (clone_points[i].y - clone_points[i - 1].y)
+                    self.sampled_points.append(q)
+                    clone_points.insert(i, q)
+                    D = 0.0
+                else:
+                    D = D + d
+
+    def path_length(self, points_list):
+        d = 0.0
+        for i in xrange(1, len(points_list)):
+            d += point[i - 1].distance_to(point[i])
+        return d
+
+    def combine_strokes(self, strokes):
+        combined_stroke = Stroke()
+        for stroke in strokes:
+            for point in stroke.points:
+                pt = StrokePoint(point.x, point.y)
+                combined_stroke.points.append(pt)
+        return combined_stroke
+
+    def indicative_angle(self, points_list):
+        c = self.centroid(points_list)
+        return atan2(c.y - points_list[0].y, c.x - points_list[0].x)
+
+    def centroid(self, points_list):
+        xsum = 0.0
+        ysum = 0.0
+        size = len(points_list)
+        for point in points_list:
+            xum += point.x
+            ysum += point.y
+        return StrokePoint(xsum / size, ysum / size)
+
+    def rotate_by(self, points_list, radians):
+        new_points = []
+        c = self.centroid(points_list)
+        cosine = cos(radians)
+        sine = sin(radians)
+        cx = c.x
+        cy = c.y
+        for point in points_list:
+            dx = point.x - cx
+            dy = point.y - cy
+            newx = dx * cosine - dy * sine + cx
+            newy = dx * sine + dy * cosine + cy
+            q = StrokePoint(newx, newy)
+            new_points.append(q)
+        return new_points
+
+    def scale_dim_to(self, points_list, size=250.0, d=0.3):
+        new_points = []
+        stroke = Stroke()
+        stroke.points = points_list
+        b = stroke.get_bounds()
+        for point in points_list:
+            qx = 0.0
+            qy = 0.0
+            if min((b.width / b.height), (b.height / b.width)) <= d:
+                qx = (point.x * size) / max(b.width, b.height)
+                qy = (point.y * size) / max(b.width, b.height)
+            else:
+                qx = (point.x * size) / b.width
+                qy = (point.y * size) / b.height
+            new_points.append(StrokePoint(qx, qy))
+        return new_points
+
+    def check_restore_orientation(self, points_list, w):
+        new_points = []
+        if self.usingboundedrotationinvariance:
+            new_points = self.rotate_by(points_list, w)
+            return new_points
+        else:
+            return points_list
+
+    def translate_to(self, points_list, k):
+        new_points = []
+        stroke = Stroke()
+        stroke.points = points_list
+        r = stroke.get_bounds()
+        for point in points_list:
+            px = point.x + (k.x - r.x)
+            py = point.y + (k.y - r.y)
+            new_points.append(StrokePoint(px, py))
+        return new_points
+
+    def calc_start_unit_vector(self, points_list, I=self.I):
+        qx = points_list[I].x - points_list[0].x
+        qy = points_list[I].y - points_list[0].y
+        v = self.unit_vector((qx, qy))
+        return v
+
+    def unit_vector(vector):
+        '''Returns the unit vector of the vector
+        '''
+        return vector / np.linalg.norm(vector)
+
+    def Recognize(self, stroke, v, S, samples):
+        b = float("inf")
+        score = -1.0
+        name = ""
+        best_angle = -1.0
+        for sample in samples:
+            pass
 
 
 class StrokeCanvasBehavior(object):
