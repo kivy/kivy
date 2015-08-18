@@ -7,8 +7,7 @@ Carousel
 The :class:`Carousel` widget provides the classic mobile-friendly carousel view
 where you can swipe between slides.
 You can add any content to the carousel and have it move horizontally or
-vertically.
-The carousel can display pages in loop or not.
+vertically. The carousel can display pages in a sequence or a loop.
 
 Example::
 
@@ -114,8 +113,9 @@ class Carousel(StencilView):
     '''
 
     loop = BooleanProperty(False)
-    '''Allow the Carousel to loop infinitely. When the user tries to swipe
-    beyond last page, it will return to the first.
+    '''Allow the Carousel to loop infinitely. If True, when the user tries to
+    swipe beyond last page, it will return to the first. If False, it will
+    remain on the last page.
 
     :attr:`loop` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
@@ -230,7 +230,12 @@ class Carousel(StencilView):
     '''
 
     anim_type = StringProperty('out_quad')
-    '''Type of animation to use while animating in the next/previous slide.
+    '''Type of animation to use while animating to the next/previous slide.
+    This should be the name of an
+    :class:`~kivy.animation.AnimationTransition` function.
+
+    :attr:`anim_type` is a :class:`~kivy.properties.StringProperty` and
+    defaults to 'out_quad'.
 
     .. versionadded:: 1.8.0
     '''
@@ -275,7 +280,7 @@ class Carousel(StencilView):
         self.load_next(mode='prev')
 
     def load_next(self, mode='next'):
-        '''Animate to next slide.
+        '''Animate to the next slide.
 
         .. versionadded:: 1.7.0
         '''
