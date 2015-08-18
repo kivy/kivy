@@ -2861,7 +2861,7 @@ class TextInput(FocusBehavior, Widget):
 
         widget = TextInput(text=u'My unicode string')
 
-    :attr:`text` a :class:`~kivy.properties.StringProperty`.
+    :attr:`text` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     font_name = StringProperty('Roboto')
