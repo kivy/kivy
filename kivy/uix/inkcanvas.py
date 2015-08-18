@@ -3,6 +3,8 @@ from kivy.properties import OptionProperty, ListProperty, StringProperty, \
 from kivy.graphics import Color, Line, SmoothLine, Ellipse
 from kivy.event import EventDispatcher
 from math import sqrt, atan2, cos, sin, pow, degrees, acos, fabs, radians
+from itertools import islice
+import six
 
 
 class StrokePoint(object):
@@ -325,11 +327,11 @@ class Stroke(EventDispatcher):
         W = 3
         if len(self.sampled_points) >= 2 * W:
             straws = [None] * (len(self.sampled_points) - (2 * W))
-            for i in xrange(W, len(self.sampled_points) - W):
+            for i in range(W, len(self.sampled_points) - W):
                 straws[i - W] = self.sampled_points[i - W].distance_to(
                                             self.sampled_points[i + W])
             t = (float(sum(straws)) / float(len(straws))) * 0.95
-            iterable = iter(xrange(W, len(self.sampled_points) - W))
+            iterable = iter(range(W, len(self.sampled_points) - W))
             for i in iterable:
                 if straws[i - W] < t:
                     localMin = float("inf")
@@ -339,7 +341,10 @@ class Stroke(EventDispatcher):
                             localMin = straws[i - W]
                             localMinIndex = i
                         i += 1
-                        iterable.next()
+                        if six.PY3:
+                            iterable.__next__()
+                        elif six.PY2:
+                            iterable.next()
                     self.corners.append(localMinIndex)
             self.corners.append(len(self.sampled_points) - 1)
             self.corners = [ii for n, ii in enumerate(self.corners)
@@ -351,7 +356,7 @@ class Stroke(EventDispatcher):
         continuar = False
         while not continuar:
             continuar = True
-            for i in xrange(1, len(self.corners)):
+            for i in range(1, len(self.corners)):
                 c1 = self.corners[i - 1]
                 c2 = self.corners[i]
                 if self.is_line(c1, c2):
@@ -360,7 +365,7 @@ class Stroke(EventDispatcher):
                         self.corners.insert(i, new_corner)
                         continuar = False
         del_indexes = []
-        for i in xrange(1, len(self.corners) - 1):
+        for i in range(1, len(self.corners) - 1):
             c1 = self.corners[i - 1]
             c2 = self.corners[i + 1]
             if self.is_line(c1, c2):
@@ -380,14 +385,19 @@ class Stroke(EventDispatcher):
 
     def path_distance(self, a, b):
         d = 0.0
-        for i in xrange(a, b):
+        for i in range(a, b):
             d = d + self.sampled_points[i].distance_to(
                                             self.sampled_points[i + 1])
         return d
 
     def print_distances(self):
-        for i in xrange(1, len(self.sampled_points)):
-            print self.sampled_points[i - 1].distance_to(self.sampled_points[i])
+        for i in range(1, len(self.sampled_points)):
+            print (self.sampled_points[i - 1].distance_to(
+                                                self.sampled_points[i]))
+
+    def print_distances_points(self):
+        for i in range(1, len(self.points)):
+            print (self.points[i - 1].distance_to(self.points[i]))
 
     ''' Function to evaluate if there is anny corner missed by false
         corner detection. '''
@@ -395,14 +405,14 @@ class Stroke(EventDispatcher):
         quarter = (b - a) / 2
         minValue = float("inf")
         minIndex = -1
-        for i in xrange(a + quarter, b - quarter - 1):
+        for i in range(int(a + quarter), int(b - quarter - 1)):
             if corners[i] < minValue:
                 minValue = corners[i]
                 minIndex = i
         return minIndex
 
 
-class NDolarRecognizer():
+class NDolarRecognizer(object):
 
     def __init__(self):
         self.usingboundedrotationinvariance = True
@@ -419,7 +429,7 @@ class NDolarRecognizer():
         sampled_points = []
         I = self.path_length(points_list) / (n - 1)
         clone_points = points_list[:]
-        self.sampled_points.append(clone_points[0])
+        sampled_points.append(clone_points[0])
         for i, point in enumerate(clone_points):
             if i > 0:
                 d = clone_points[i - 1].distance_to(clone_points[i])
@@ -429,18 +439,19 @@ class NDolarRecognizer():
                     qy = clone_points[i - 1].y + ((I - D) / d) * \
                                 (clone_points[i].y - clone_points[i - 1].y)
                     q = StrokePoint(qx, qy)
-                    self.sampled_points.append(q)
+                    sampled_points.append(q)
                     clone_points.insert(i, q)
                     D = 0.0
                 else:
                     D = D + d
         if len(sampled_points) == n - 1:
             sampled_points.append(clone_points[len(points_list) - 1])
+        return sampled_points
 
     def path_length(self, points_list):
         d = 0.0
-        for i in xrange(1, len(points_list)):
-            d += point[i - 1].distance_to(point[i])
+        for i in range(1, len(points_list)):
+            d += points_list[i - 1].distance_to(points_list[i])
         return d
 
     def combine_strokes(self, strokes):
@@ -460,7 +471,7 @@ class NDolarRecognizer():
         ysum = 0.0
         size = len(points_list)
         for point in points_list:
-            xum += point.x
+            xsum += point.x
             ysum += point.y
         return StrokePoint(xsum / size, ysum / size)
 
@@ -508,11 +519,11 @@ class NDolarRecognizer():
     def translate_to(self, points_list, k):
         new_points = []
         stroke = Stroke()
-        stroke.points = points_list
+        stroke.points = points_list[:]
         r = stroke.get_bounds()
         for point in points_list:
-            px = point.x + (k.x - r.x)
-            py = point.y + (k.y - r.y)
+            px = point.x + (k.x - r.left)
+            py = point.y + (k.y - r.bottom)
             new_points.append(StrokePoint(px, py))
         return new_points
 
@@ -531,7 +542,7 @@ class NDolarRecognizer():
     def generate_unistroke_permutations(self, strokes_list):
         order = []
         orders = []
-        for i in xrange(0, len(strokes_list)):
+        for i in range(0, len(strokes_list)):
             order.append(i)
         self.heap_permute(len(strokes_list), order, orders)
         M = self.make_unistrokes(strokes_list, orders)
@@ -548,9 +559,9 @@ class NDolarRecognizer():
     def make_unistrokes(self, strokes_list, orders):
         unistrokes = []
         for order in orders:
-            for b in xrange(0, pow(2.0, len(order))):
+            for b in range(0, int(pow(2, len(order)))):
                 unistroke = Stroke()
-                for i in xrange(0, len(order)):
+                for i in range(0, len(order)):
                     stroke = Stroke()
                     stroke.points = strokes_list[order[i]].points[:]
                     if self.bit_at(b, i):
@@ -568,7 +579,7 @@ class NDolarRecognizer():
         if n == 1:
             orders.append(order[:])
         else:
-            for i in xrange(0, n):
+            for i in range(0, n):
                 self.heap_permute(n - 1, order, orders)
                 if self.is_odd(n):
                     self.swap(order, 0, n - 1)
@@ -585,18 +596,18 @@ class NDolarRecognizer():
             return False
         return True
 
-    def Recognize(self, stroke, v, S, samples):
+    def recognize(self, stroke, v, S, samples):
         b = float("inf")
         score = -1.0
         name = ""
         best_angle = -1.0
         best_stroke = Stroke()
         for sample in samples:
-            for strokes_list in sample:
-                M = self.generate_unistroke_permutations()
+            for strokes_list in sample.array_strokes_list:
+                M = self.generate_unistroke_permutations(strokes_list)
                 for uni in M:
                     angle = self.angle_between(stroke.vector, uni.vector)
-                    if fabs(degrees(angle)) <= omega:
+                    if fabs(degrees(angle)) <= self.omega:
                         d = self.golden_section_search(stroke.points,
                                 uni.points, radians(-45.0), radians(45.0),
                                 radians(2.0))
@@ -641,14 +652,15 @@ class NDolarRecognizer():
         return sum((a * b) for a, b in zip(v1, v2))
 
     def length(self, v):
-        return sqrt(dotproduct(v, v))
+        return sqrt(self.dotproduct(v, v))
 
     def angle_between(self, v1, v2):
-        return acos(dotproduct(v1, v2) / (length(v1) * length(v2)))
+        return acos(self.dotproduct(v1, v2) /
+                    (self.length(v1) * self.length(v2)))
 
     def path_distance(self, pts1, pts2):
         d = 0.0
-        for i in xrange(0, len(pts1)):
+        for i in range(0, len(pts1)):
             d = d + pts1[i].distance_to(pts2[i])
         return d / len(pts1)
 
@@ -656,6 +668,13 @@ class NDolarRecognizer():
         new_points = self.rotate_by(pts1, theta)
         d = self.path_distance(pts1, pts2)
         return d
+
+
+class Sample(object):
+
+    def __init__(self, name, array_strokes_list, **kwargs):
+        self.name = name
+        self.array_strokes_list = array_strokes_list
 
 
 class StrokeCanvasBehavior(object):
@@ -777,7 +796,7 @@ class StrokeCanvasBehavior(object):
                 touch.ud['stroke'].points.append(pt)
                 self.add_stroke(touch.ud['stroke'])
                 touch.ud['stroke'].sample_points()
-                touch.ud['stroke'].print_distances()
+#                 touch.ud['stroke'].print_distances()
                 touch.ud['stroke'].get_corners()
 
                 for c in touch.ud['stroke'].corners:
@@ -833,3 +852,29 @@ class StrokeCanvasBehavior(object):
                 Stroke received. The stroke contains a list of points in <x,y>.
         '''
         pass
+
+    def save(self, name, filename):
+        with open(filename, 'w') as f:
+            f.write(name + "\n")
+            for stroke in self.strokes:
+                f.write("stroke\n")
+                for point in stroke.points:
+                    f.write("{:.2f}".format(point.x) + ","
+                            + "{:.2f}".format(point.y) + "\n")
+
+    def load(self, filename):
+        name = ""
+        strks = []
+        i = -1
+        with open(filename, 'r') as f:
+            name = f.readline()
+            for line in f:
+                if line == "stroke\n":
+                    i += 1
+                    strks.append(Stroke())
+                else:
+                    point_str = line.split(',')
+                    point = StrokePoint(float(point_str[0]),
+                                        float(point_str[1]))
+                    strks[i].points.append(point)
+        return strks
