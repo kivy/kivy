@@ -678,12 +678,14 @@ class TextInput(FocusBehavior, Widget):
         cc, cr = self.cursor
         sci = self.cursor_index
         ci = sci()
-        if not self._lines:
-            self._lines = ['']
-            self._refresh_text('')
-        text = self._lines[cr]
+        new_text = text = substring
         len_str = len(substring)
-        new_text = text[:cc] + substring + text[cc:]
+
+        if self._lines:
+            text = self._lines[cr]
+            new_text = text[:cc] + substring + text[cc:]
+        else:
+            ci = len_str
         self._set_line_text(cr, new_text)
 
         wrap = (self._get_text_width(
@@ -1746,8 +1748,12 @@ class TextInput(FocusBehavior, Widget):
 
     def _set_line_text(self, line_num, text):
         # Set current line with other text than the default one.
-        self._lines_labels[line_num] = self._create_line_label(text)
-        self._lines[line_num] = text
+        try:
+            self._lines_labels[line_num] = self._create_line_label(text)
+            self._lines[line_num] = text
+        except IndexError:
+            self._lines_labels = [self._create_line_label(text)]
+            self._lines = [text]
 
     def _trigger_refresh_line_options(self, *largs):
         Clock.unschedule(self._refresh_line_options)
@@ -1793,7 +1799,7 @@ class TextInput(FocusBehavior, Widget):
             self.cursor = self.get_cursor_from_index(
                 self.cursor_index() if cursor is None else cursor)
             # if we back to a new line, reset the scroll, otherwise,
-            # the effect is ugly
+            # the effect is ugly.
             if self.cursor_row != row:
                 self.scroll_x = 0
             # with the new text don't forget to update graphics again
