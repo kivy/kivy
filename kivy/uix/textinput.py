@@ -1765,6 +1765,9 @@ class TextInput(FocusBehavior, Widget):
     def _refresh_text(self, text, *largs):
         # Refresh all the lines from a new text.
         # By using cache in internal functions, this method should be fast.
+        if not text:
+            return
+
         mode = 'all'
         if len(largs) > 1:
             mode, start, finish, _lines, _lines_flags, len_lines = largs
