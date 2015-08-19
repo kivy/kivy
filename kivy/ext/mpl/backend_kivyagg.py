@@ -92,9 +92,12 @@ from kivy.uix.widget import Widget
 from kivy.base import EventLoop
 from kivy.core.image import Image
 from kivy.ext.mpl.backend_kivy import FigureCanvasKivy, FigureManagerKivy, \
-                                _create_App, show, new_figure_manager
+                                show, new_figure_manager
 
 register_backend('png', 'backend_kivyagg', 'PNG File Format')
+
+toolbar = None
+my_canvas = None
 
 
 def new_figure_manager_given_figure(num, figure):
@@ -103,7 +106,10 @@ def new_figure_manager_given_figure(num, figure):
     '''
     canvas = FigureCanvasKivyAgg(figure)
     manager = FigureManagerKivy(canvas, num)
-    _create_App(canvas, manager.toolbar.actionbar)
+    global my_canvas
+    global toolbar
+    toolbar = manager.toolbar.actionbar if manager.toolbar else None
+    my_canvas = canvas
     return manager
 
 

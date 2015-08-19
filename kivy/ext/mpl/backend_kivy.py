@@ -128,7 +128,7 @@ import matplotlib
 import matplotlib.transforms as transforms
 from matplotlib._pylab_helpers import Gcf
 from matplotlib.backend_bases import RendererBase, GraphicsContextBase,\
-    FigureManagerBase, FigureCanvasBase, NavigationToolbar2
+    FigureManagerBase, FigureCanvasBase, NavigationToolbar2, TimerBase
 from matplotlib.figure import Figure
 from matplotlib.transforms import Bbox, Affine2D
 from matplotlib.backend_bases import ShowBase
@@ -193,6 +193,9 @@ except AttributeError:
     raise ImportError(
         "kivy version too old -- it must have require_version")
 
+toolbar = None
+my_canvas = None
+
 
 class SaveDialog(FloatLayout):
     save = ObjectProperty(None)
@@ -219,14 +222,6 @@ class MPLKivyApp(App):
         return layout
 
 
-def _create_App(fig_canvas, toolbar):
-    '''Method to instantiate a MPLKivyApp.
-    '''
-    app = App.get_running_app()
-    if app is None and toolbar is not None and fig_canvas is not None:
-        app = MPLKivyApp(figure=fig_canvas, toolbar=toolbar)
-
-
 def draw_if_interactive():
     '''Handle whether or not the backend is in interactive mode or not.
     '''
@@ -242,7 +237,8 @@ class Show(ShowBase):
     '''
     def mainloop(self):
         app = App.get_running_app()
-        if app:
+        if app is None:
+            app = MPLKivyApp(figure=my_canvas, toolbar=toolbar)
             app.run()
 
 show = Show()
@@ -266,7 +262,10 @@ def new_figure_manager_given_figure(num, figure):
     '''
     canvas = FigureCanvasKivy(figure)
     manager = FigureManagerKivy(canvas, num)
-    _create_App(canvas, manager.toolbar.actionbar)
+    global my_canvas
+    global toolbar
+    toolbar = manager.toolbar.actionbar if manager.toolbar else None
+    my_canvas = canvas
     return manager
 
 
@@ -1089,7 +1088,7 @@ class FigureManagerKivy(FigureManagerBase):
 
     def destroy(self):
         app = App.get_running_app()
-        if app:
+        if app is not None:
             app.stop()
 
 '''Now just provide the standard names that backend.__init__ is expecting
