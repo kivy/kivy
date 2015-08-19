@@ -162,7 +162,7 @@ from kivy.graphics.instructions import InstructionGroup
 from kivy.graphics.tesselator import Tesselator
 from kivy.graphics.context_instructions import PopMatrix, PushMatrix
 from kivy.logger import Logger
-from kivy.graphics import Mesh, Quad
+from kivy.graphics import Mesh
 from kivy.resources import resource_find
 from kivy.uix.stencilview import StencilView
 from kivy.core.window import Window
@@ -223,8 +223,51 @@ def _create_App(fig_canvas, toolbar):
     '''Method to instantiate a MPLKivyApp.
     '''
     app = App.get_running_app()
-    if app is None:
+    if app is None and toolbar is not None and fig_canvas is not None:
         app = MPLKivyApp(figure=fig_canvas, toolbar=toolbar)
+
+
+def draw_if_interactive():
+    '''Handle whether or not the backend is in interactive mode or not.
+    '''
+    if matplotlib.is_interactive():
+        figManager = Gcf.get_active()
+        if figManager:
+            figManager.canvas.draw_idle()
+
+
+class Show(ShowBase):
+    '''mainloop needs to be overwritten to define the show() behavior for kivy
+       framework.
+    '''
+    def mainloop(self):
+        app = App.get_running_app()
+        if app:
+            app.run()
+
+show = Show()
+
+
+def new_figure_manager(num, *args, **kwargs):
+    '''Create a new figure manager instance for the figure given.
+    '''
+    # if a main-level app must be created, this (and
+    # new_figure_manager_given_figure) is the usual place to
+    # do it -- see backend_wx, backend_wxagg and backend_tkagg for
+    # examples. Not all GUIs require explicit instantiation of a
+    # main-level app (egg backend_gtk, backend_gtkagg) for pylab
+    FigureClass = kwargs.pop('FigureClass', Figure)
+    thisFig = FigureClass(*args, **kwargs)
+    return new_figure_manager_given_figure(num, thisFig)
+
+
+def new_figure_manager_given_figure(num, figure):
+    '''Create a new figure manager instance for the given figure.
+    '''
+    canvas = FigureCanvasKivy(figure)
+    manager = FigureManagerKivy(canvas, num)
+    _create_App(canvas, manager.toolbar.actionbar)
+    return manager
 
 
 class RendererKivy(RendererBase):
@@ -653,6 +696,8 @@ class NavigationToolbar2Kivy(NavigationToolbar2):
     def __init__(self, canvas, **kwargs):
         self.actionbar = ActionBar(pos_hint={'top': 1.0})
         super(NavigationToolbar2Kivy, self).__init__(canvas)
+        self.rubberband_color = (1.0, 0.0, 0.0, 1.0)
+        self.lastrect = None
         self.save_dialog = Builder.load_string(textwrap.dedent('''\
             <SaveDialog>:
                 text_input: text_input
@@ -703,7 +748,8 @@ class NavigationToolbar2Kivy(NavigationToolbar2):
                 continue
             fname = os.path.join(basedir, image_file + '.png')
             if text in ['Pan', 'Zoom']:
-                action_button = ActionToggleButton(text=text, icon=fname)
+                action_button = ActionToggleButton(text=text, icon=fname,
+                                                   group='pz')
             else:
                 action_button = ActionButton(text=text, icon=fname)
             action_button.bind(on_press=getattr(self, callback))
@@ -729,6 +775,22 @@ class NavigationToolbar2Kivy(NavigationToolbar2):
 
     def save_figure(self, *args):
         self.show_save()
+
+    def draw_rubberband(self, event, x0, y0, x1, y1):
+        w = abs(x1 - x0)
+        h = abs(y1 - y0)
+        rect = [int(val)for val in (min(x0, x1), min(y0, y1), w, h)]
+        if self.lastrect is None:
+            self.canvas.canvas.add(Color(*self.rubberband_color))
+        else:
+            self.canvas.canvas.remove(self.lastrect)
+        self.lastrect = Line(rectangle=rect, width=1.0, dash_length=5.0,
+                dash_offset=5.0)
+        self.canvas.canvas.add(self.lastrect)
+
+    def release_zoom(self, event):
+        self.lastrect = None
+        return super(NavigationToolbar2Kivy, self).release_zoom(event)
 
 
 class GraphicsContextKivy(GraphicsContextBase, object):
@@ -815,52 +877,7 @@ class GraphicsContextKivy(GraphicsContextBase, object):
                 attrib['line-linejoin'] = self.get_joinstyle()
             if self.get_capstyle() != 'butt':
                 attrib['line-linecap'] = _capstyle_d[self.get_capstyle()]
-
         return attrib
-
-
-def draw_if_interactive():
-    '''Handle whether or not the backend is in interactive mode or not.
-    '''
-    if matplotlib.is_interactive():
-        figManager = Gcf.get_active()
-        if figManager:
-            figManager.canvas.draw_idle()
-
-
-class Show(ShowBase):
-    '''mainloop needs to be overwritten to define the show() behavior for kivy
-       framework.
-    '''
-    def mainloop(self):
-        app = App.get_running_app()
-        if app:
-            app.run()
-
-show = Show()
-
-
-def new_figure_manager(num, *args, **kwargs):
-    '''Create a new figure manager instance for the figure given.
-    '''
-    # if a main-level app must be created, this (and
-    # new_figure_manager_given_figure) is the usual place to
-    # do it -- see backend_wx, backend_wxagg and backend_tkagg for
-    # examples. Not all GUIs require explicit instantiation of a
-    # main-level app (egg backend_gtk, backend_gtkagg) for pylab
-    FigureClass = kwargs.pop('FigureClass', Figure)
-    thisFig = FigureClass(*args, **kwargs)
-    return new_figure_manager_given_figure(num, thisFig)
-
-
-def new_figure_manager_given_figure(num, figure):
-    '''Create a new figure manager instance for the given figure.
-    '''
-    canvas = FigureCanvasKivy(figure)
-    canvas.draw()
-    manager = FigureManagerKivy(canvas, num)
-    _create_App(canvas, manager.toolbar.actionbar)
-    return manager
 
 
 class FigureCanvasKivy(FocusBehavior, Widget, FigureCanvasBase):
@@ -991,8 +1008,9 @@ class FigureCanvasKivy(FocusBehavior, Widget, FigureCanvasBase):
         y = newcoord[1]
 
         inside = self.collide_point(*pos)
-        FigureCanvasBase.motion_notify_event(self, x, y,
-                                        guiEvent=None)
+        if inside:
+            FigureCanvasBase.motion_notify_event(self, x, y,
+                                            guiEvent=None)
         if not inside and not self.entered_figure:
             FigureCanvasBase.leave_notify_event(self, guiEvent=None)
             self.entered_figure = True
