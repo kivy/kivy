@@ -678,15 +678,17 @@ class TextInput(FocusBehavior, Widget):
         cc, cr = self.cursor
         sci = self.cursor_index
         ci = sci()
-        new_text = text = substring
+        text = new_text = substring
         len_str = len(substring)
 
         if self._lines:
             text = self._lines[cr]
             new_text = text[:cc] + substring + text[cc:]
+            self._set_line_text(cr, new_text)
         else:
-            ci = len_str
-        self._set_line_text(cr, new_text)
+            self._lines_labels = [self._create_line_label(substring)]
+            self._lines_flags = [0]
+            self._lines = [substring]
 
         wrap = (self._get_text_width(
             new_text,
@@ -1078,6 +1080,9 @@ class TextInput(FocusBehavior, Widget):
         .. versionchanged:: 1.9.1
 
         '''
+        if not self._lines:
+            return
+
         pgmove_speed = int(self.height /
             (self.line_height + self.line_spacing) - 1)
         col, row = self.cursor
@@ -1748,12 +1753,8 @@ class TextInput(FocusBehavior, Widget):
 
     def _set_line_text(self, line_num, text):
         # Set current line with other text than the default one.
-        try:
-            self._lines_labels[line_num] = self._create_line_label(text)
-            self._lines[line_num] = text
-        except IndexError:
-            self._lines_labels = [self._create_line_label(text)]
-            self._lines = [text]
+        self._lines_labels[line_num] = self._create_line_label(text)
+        self._lines[line_num] = text
 
     def _trigger_refresh_line_options(self, *largs):
         Clock.unschedule(self._refresh_line_options)
