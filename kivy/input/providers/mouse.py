@@ -46,16 +46,18 @@ touch will simulate a multi-touch event. For example::
     if 'multitouch_sim' in touch.profile:
         touch.multitouch_sim = True
 
-Following is a list of the supported profiles for :class:`MouseMotionEvent`.
+Following is a list of the supported profiles for the
+:class:`MouseMotionEvent`.
 
 =================== ==========================================================
 Profile name        Description
 ------------------- ----------------------------------------------------------
-button              Mouse button (left, right, middle, scrollup, scrolldown)
-                    Use property `button`
-pos                 2D position. Use properties `x`, `y` or `pos``
-multitouch_sim      If multitouch is simulated. Use property `multitouch_sim`.
-                    See documatation above.
+button              Mouse button (one of `left`, `right`, `middle`, `scrollup`
+                    or `scrolldown`). Read using the `button` property.
+pos                 2D position. Read using the `x`, `y` or `pos` properties.
+multitouch_sim      Specifies wheather multitouch is simulated or not. Read
+                    using the `multitouch_sim` property. See documatation
+                    above.
 =================== ==========================================================
 
 '''
