@@ -678,9 +678,6 @@ class TextInput(FocusBehavior, Widget):
         cc, cr = self.cursor
         sci = self.cursor_index
         ci = sci()
-        if not self._lines:
-            self._lines = ['']
-            self._refresh_text('')
         text = self._lines[cr]
         len_str = len(substring)
         new_text = text[:cc] + substring + text[cc:]
@@ -823,8 +820,6 @@ class TextInput(FocusBehavior, Widget):
             - do nothing, if we are at the start.
 
         '''
-        if not self._lines:
-            return
         if self.readonly:
             return
         cc, cr = self.cursor
@@ -1152,8 +1147,6 @@ class TextInput(FocusBehavior, Widget):
         _get_text_width = self._get_text_width
         _tab_width = self.tab_width
         _label_cached = self._label_cached
-        if not l:
-            return 0, cy
         for i in range(1, len(l[cy]) + 1):
             if _get_text_width(l[cy][:i],
                                _tab_width,
@@ -1178,8 +1171,6 @@ class TextInput(FocusBehavior, Widget):
     def delete_selection(self, from_undo=False):
         '''Delete the current text selection (if any).
         '''
-        if not self._lines:
-            return
         if self.readonly:
             return
         self._hide_handles(EventLoop.window)
@@ -1261,8 +1252,6 @@ class TextInput(FocusBehavior, Widget):
         different behavior. Alternatively, you can bind to this
         event to provide additional functionality.
         '''
-        if not self._lines:
-            return
         ci = self.cursor_index()
         cc = self.cursor_col
         line = self._lines[self.cursor_row]
@@ -1279,8 +1268,6 @@ class TextInput(FocusBehavior, Widget):
         different behavior. Alternatively, you can bind to this
         event to provide additional functionality.
         '''
-        if not self._lines:
-            return
         ci = self.cursor_index()
         sindex, eindex = self._expand_range(ci)
         Clock.schedule_once(lambda dt: self.select_text(sindex, eindex))
@@ -1291,8 +1278,6 @@ class TextInput(FocusBehavior, Widget):
         Override this to provide different behavior. Alternatively,
         you can bind to this event to provide additional functionality.
         '''
-        if not self._lines:
-            return
         Clock.schedule_once(lambda dt: self.select_all())
 
     def on_touch_down(self, touch):
@@ -1780,25 +1765,6 @@ class TextInput(FocusBehavior, Widget):
     def _refresh_text(self, text, *largs):
         # Refresh all the lines from a new text.
         # By using cache in internal functions, this method should be fast.
-        if not self._lines:
-            min_line_ht = self._label_cached.get_extents('_')[1]
-            # with markup texture can be of height `1`
-            self.line_height = min_line_ht
-            #self.line_spacing = 2
-            # now, if the text change, maybe the cursor is not at
-            # the same place as before. so, try to set the cursor on the
-            # good place
-            row = self.cursor_row
-            cursor = None
-            self.cursor = self.get_cursor_from_index(
-                self.cursor_index() if cursor is None else cursor)
-            # if we back to a new line, reset the scroll, otherwise,
-            # the effect is ugly
-            if self.cursor_row != row:
-                self.scroll_x = 0
-            # with the new text don't forget to update graphics again
-            self._trigger_update_graphics()
-            return
         mode = 'all'
         if len(largs) > 1:
             mode, start, finish, _lines, _lines_flags, len_lines = largs
@@ -2895,7 +2861,7 @@ class TextInput(FocusBehavior, Widget):
 
         widget = TextInput(text=u'My unicode string')
 
-    :attr:`text` a :class:`~kivy.properties.StringProperty`.
+    :attr:`text` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     font_name = StringProperty('Roboto')

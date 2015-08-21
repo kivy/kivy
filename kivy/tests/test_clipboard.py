@@ -17,18 +17,18 @@ class ClipboardTestCase(unittest.TestCase):
         if clippy.__class__.__name__ == 'ClipboardDummy':
             self.fail('Something went wrong "dummy" clipboard is being used')
 
-    def test_clipboard_get(self):
+    def test_clipboard_paste(self):
         clippy = self._clippy
         try:
-            clippy.get(self._cliptype)
+            clippy.paste()
         except:
             self.fail(
-                'Can not get data from clipboard of type {}'.format(cliptype))
+                'Can not get data from clipboard')
 
-    def test_clipboard_put(self):
+    def test_clipboard_copy(self):
         clippy = self._clippy
         try:
-            clippy.put(u"Hello World", self._cliptype)
+            clippy.copy("Hello World")
         except:
             self.fail(
-                'Can not get put data to clipboard of type {}'.format(cliptype))
+                'Can not get put data to clipboard')
