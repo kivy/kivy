@@ -55,6 +55,9 @@ class CameraOpenCV(CameraBase):
         if self.fps <= 0:
             self.fps = 1 / 30.0
 
+        if not self.stopped:
+            self.start()
+
     def _update(self, delta):
         if self.stopped:
             # Don't update it camere stopped
