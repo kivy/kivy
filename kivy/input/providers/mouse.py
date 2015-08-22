@@ -55,7 +55,7 @@ Profile name        Description
 button              Mouse button (one of `left`, `right`, `middle`, `scrollup`
                     or `scrolldown`). Read using the `button` property.
 pos                 2D position. Read using the `x`, `y` or `pos` properties.
-multitouch_sim      Specifies wheather multitouch is simulated or not. Read
+multitouch_sim      Specifies whether multitouch is simulated or not. Read
                     using the `multitouch_sim` property. See documatation
                     above.
 =================== ==========================================================
