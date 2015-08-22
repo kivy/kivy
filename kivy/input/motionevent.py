@@ -4,8 +4,8 @@
 Motion Event
 ============
 
-The :class:`MotionEvent` is the base class used for touch and non-touch
-events provided by a pointing device. This class defines all the properties
+The :class:`MotionEvent` is the base class used for events provided by
+pointing devices (touch and non-touch). This class defines all the properties
 and methods needed to handle 2D and 3D movements but has many more
 capabilities.
 
@@ -47,27 +47,27 @@ You can also listen to changes of the mouse position by watching
 Profiles
 --------
 
-The :class:`MotionEvent` stores device specific information in the
-:attr:`~MotionEvent.profile` dictionary.
+The :class:`MotionEvent` stores device specific information in various
+properties listed in the :attr:`~MotionEvent.profile`.
 For example, you can receive a MotionEvent that has an angle, a fiducial
 ID, or even a shape. You can check the :attr:`~MotionEvent.profile`
 attribute to see what is currently supported by the MotionEvent provider.
 
-This is a short list of the profile keys supported by default. Please check
+This is a short list of the profile values supported by default. Please check
 the :attr:`MotionEvent.profile` property to see what profile values are
 available.
 
 ============== ================================================================
-Profile key    Description
+Profile value   Description
 -------------- ----------------------------------------------------------------
-angle          2D angle. Use property `a`.
+angle          2D angle. Accessed via the `a` property.
 button         Mouse button ('left', 'right', 'middle', 'scrollup' or
-               'scrolldown'). Use property `button`.
-markerid       Marker or Fiducial ID. Use property `fid`.
-pos            2D position. Use properties `x`, `y` or `pos`.
-pos3d          3D position. Use properties `x`, `y` or `z`.
-pressure       Pressure of the contact. Use property `pressure`.
-shape          Contact shape. Use property `shape`.
+               'scrolldown'). Accessed via the `button` property.
+markerid       Marker or Fiducial ID. Accessed via the `fid` property.
+pos            2D position. Accessed via the `x`, `y` or `pos` properties.
+pos3d          3D position. Accessed via the `x`, `y` or `z` properties.
+pressure       Pressure of the contact. Accessed via the `pressure` property.
+shape          Contact shape. Accessed via the `shape` property .
 ============== ================================================================
 
 If you want to know whether the current :class:`MotionEvent` has an angle::

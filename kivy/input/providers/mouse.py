@@ -46,21 +46,22 @@ touch will simulate a multi-touch event. For example::
     if 'multitouch_sim' in touch.profile:
         touch.multitouch_sim = True
 
-Following is a list of the supported key values for the
-:attr:`~kivy.input.motionevent.MotionEvent.profile` dictionary.
+Following is a list of the supported values for the
+:attr:`~kivy.input.motionevent.MotionEvent.profile` property list.
 
-=================== ==========================================================
-Profile key name    Description
-------------------- ----------------------------------------------------------
-button              Mouse button (one of `left`, `right`, `middle`, `scrollup`
-                    or `scrolldown`).
-pos                 2D position. Also reflected in the
-                    :attr:`~kivy.input.motionevent.MotionEvent.x`,
-                    :attr:`~kivy.input.motionevent.MotionEvent.y`
-                    and :attr:`~kivy.input.motionevent.MotionEvent.pos`
-                    properties.
-multitouch_sim      Specifies whether multitouch is simulated or not.
-=================== ==========================================================
+================ ==========================================================
+Profile value    Description
+---------------- ----------------------------------------------------------
+button           Mouse button (one of `left`, `right`, `middle`, `scrollup`
+                 or `scrolldown`). Accessed via the 'button' property.
+pos              2D position. Also reflected in the
+                 :attr:`~kivy.input.motionevent.MotionEvent.x`,
+                 :attr:`~kivy.input.motionevent.MotionEvent.y`
+                 and :attr:`~kivy.input.motionevent.MotionEvent.pos`
+                 properties.
+multitouch_sim   Specifies whether multitouch is simulated or not. Accessed
+                 via the 'multitouch_sim' property.
+================ ==========================================================
 
 '''
 
