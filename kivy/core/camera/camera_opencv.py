@@ -1,100 +1,79 @@
-'''
-OpenCV Camera: Implement CameraBase with OpenCV
-'''
-
+"""
+OpenCV Camera: Implement CameraBase with OpenCV (cv2 module)
+"""
 #
-# TODO: make usage of thread or multiprocess
+# TODO: use threads or multiprocessing instead of dirty rescheduling
 #
-
-__all__ = ('CameraOpenCV')
-
 from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
 from kivy.core.camera import CameraBase
 
-try:
-    import opencv as cv
-    import opencv.highgui as hg
-except ImportError:
-    import cv
+import cv2
+# TODO: confirm OSX support ?
 
-    class Hg(object):
-        '''
-        On OSX, not only are the import names different, but the API also
-        differs. There is no module called 'highgui' but the names are directly
-        available in the 'cv' module. Some of them even have a different
-        names.
+from cv2 import (
+    CAP_PROP_FRAME_WIDTH as FRAME_WIDTH,
+    CAP_PROP_FRAME_HEIGHT as FRAME_HEIGHT,
+    CAP_PROP_FPS as FPS,
+)
 
-        Therefore we use this proxy object.
-        '''
-
-        def __getattr__(self, attr):
-            if attr.startswith('cv'):
-                attr = attr[2:]
-            got = getattr(cv, attr)
-            return got
-
-    hg = Hg()
-
+__all__ = ['CameraOpenCV', ]
 
 class CameraOpenCV(CameraBase):
     '''Implementation of CameraBase using OpenCV
     '''
 
     def __init__(self, **kwargs):
-        self._device = None
+        self._format = 'bgr'
+        self.capture = cv2.VideoCapture()
         super(CameraOpenCV, self).__init__(**kwargs)
 
     def init_camera(self):
-        # create the device
-        self._device = hg.cvCreateCameraCapture(self._index)
+        index = self._width
+        width, height = self._resolution
+        
+        self.capture.open(index)
+        self.capture.set(FRAME_WIDTH, width)
+        self.capture.set(FRAME_HEIGHT, height)
+        
+        self.grab()
 
-        # Set preferred resolution
-        cv.SetCaptureProperty(self._device, cv.CV_CAP_PROP_FRAME_WIDTH,
-                              self.resolution[0])
-        cv.SetCaptureProperty(self._device, cv.CV_CAP_PROP_FRAME_HEIGHT,
-                              self.resolution[1])
-
-        # and get frame to check if it's ok
-        frame = hg.cvQueryFrame(self._device)
-        # Just set the resolution to the frame we just got, but don't use
-        # self.resolution for that as that would cause an infinite recursion
-        # with self.init_camera (but slowly as we'd have to always get a
-        # frame).
-        self._resolution = (int(frame.width), int(frame.height))
-
-        #get fps
-        self.fps = cv.GetCaptureProperty(self._device, cv.CV_CAP_PROP_FPS)
+        ok, frame = self.capture.read()
+        
+        if not ok:
+            Logger.exception('OpenCV: Couldn\'t get initial image from Camera')
+        
+        frame_height = len(frame)
+        frame_width = len(frame[0])
+            
+        self._resolution = frame_height, frame_width
+        
+        self.fps = cv.get(FPS)
+        # needed because FPS determines rescheduling rate
         if self.fps <= 0:
-            self.fps = 1 / 30.
+            self.fps = 1 / 30.0
 
-        if not self.stopped:
-            self.start()
-
-    def _update(self, dt):
+    def _update(self, delta):
         if self.stopped:
+            # Don't update it camere stopped
             return
         if self._texture is None:
-            # Create the texture
+            # Create the initial texture
             self._texture = Texture.create(self._resolution)
             self._texture.flip_vertical()
             self.dispatch('on_load')
         try:
-            frame = hg.cvQueryFrame(self._device)
-            self._format = 'bgr'
-            try:
-                self._buffer = frame.imageData
-            except AttributeError:
-                # On OSX there is no imageData attribute but a tostring()
-                # method.
-                self._buffer = frame.tostring()
+            # Read buffer
+            ok, frame = self.capture.read()
+            self._buffer = frame.tostring()
             self._copy_to_gpu()
         except:
             Logger.exception('OpenCV: Couldn\'t get image from Camera')
 
     def start(self):
         super(CameraOpenCV, self).start()
+        
         Clock.unschedule(self._update)
         Clock.schedule_interval(self._update, self.fps)
 
