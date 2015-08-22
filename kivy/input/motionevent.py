@@ -4,9 +4,10 @@
 Motion Event
 ============
 
-The :class:`MotionEvent` is the base class used for every touch and non-touch
-event. This class defines all the properties and methods needed to
-handle 2D and 3D movements but has many more capabilities.
+The :class:`MotionEvent` is the base class used for touch and non-touch
+events provided by a pointing device. This class defines all the properties
+and methods needed to handle 2D and 3D movements but has many more
+capabilities.
 
 .. note::
 
