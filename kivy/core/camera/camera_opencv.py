@@ -38,7 +38,7 @@ class CameraOpenCV(CameraBase):
         self.capture.set(FRAME_WIDTH, width)
         self.capture.set(FRAME_HEIGHT, height)
 
-        self.grab()
+        self.capture.grab()
 
         ok, frame = self.capture.read()
 
