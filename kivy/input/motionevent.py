@@ -47,15 +47,16 @@ You can also listen to changes of the mouse position by watching
 Profiles
 --------
 
-A capability is the ability of a :class:`MotionEvent` to store new
-information or a way to indicate what is supported by the MotionEvent.
+The :class:`MotionEvent` stores device specific information in the
+:attr:`~MotionEvent.profile` dictionary.
 For example, you can receive a MotionEvent that has an angle, a fiducial
 ID, or even a shape. You can check the :attr:`~MotionEvent.profile`
-attribute to check what is currently supported by the MotionEvent and
-how to access it.
+attribute to see what is currently supported by the MotionEvent provider
+and how to access it.
 
-This is a tiny list of the supported profiles by default. Check other input
-providers to see if there are other profiles available.
+This is a short list of the profile keys supported by default. Please check
+the the :attr:`MotionEvent.profile` property to see what profile values are
+available.
 
 ============== ================================================================
 Profile name   Description
