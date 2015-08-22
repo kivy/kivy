@@ -50,7 +50,7 @@ class CameraOpenCV(CameraBase):
 
         self._resolution = frame_height, frame_width
 
-        self.fps = frame.get(FPS)
+        self.fps = self.capture.get(FPS)
         # needed because FPS determines rescheduling rate
         if self.fps <= 0:
             self.fps = 1 / 30.0
