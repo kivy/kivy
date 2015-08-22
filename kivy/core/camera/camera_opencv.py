@@ -20,6 +20,7 @@ from cv2 import (
 
 __all__ = ['CameraOpenCV', ]
 
+
 class CameraOpenCV(CameraBase):
     '''Implementation of CameraBase using OpenCV
     '''
@@ -30,26 +31,26 @@ class CameraOpenCV(CameraBase):
         super(CameraOpenCV, self).__init__(**kwargs)
 
     def init_camera(self):
-        index = self._width
+        index = self._index
         width, height = self._resolution
-        
+
         self.capture.open(index)
         self.capture.set(FRAME_WIDTH, width)
         self.capture.set(FRAME_HEIGHT, height)
-        
+
         self.grab()
 
         ok, frame = self.capture.read()
-        
+
         if not ok:
             Logger.exception('OpenCV: Couldn\'t get initial image from Camera')
-        
+
         frame_height = len(frame)
         frame_width = len(frame[0])
-            
+
         self._resolution = frame_height, frame_width
-        
-        self.fps = cv.get(FPS)
+
+        self.fps = frame.get(FPS)
         # needed because FPS determines rescheduling rate
         if self.fps <= 0:
             self.fps = 1 / 30.0
@@ -73,7 +74,7 @@ class CameraOpenCV(CameraBase):
 
     def start(self):
         super(CameraOpenCV, self).start()
-        
+
         Clock.unschedule(self._update)
         Clock.schedule_interval(self._update, self.fps)
 
