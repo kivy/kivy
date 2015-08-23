@@ -82,6 +82,9 @@ class CameraOpenCV(CameraBase):
             self.start()
 
     def _update(self, delta):
+        if __debug__:
+            Logger.trace("updating GPU buffer... (delta: {})".format(delta))
+
         if self.stopped:
             # Don't update it camere stopped
             if __debug__:
@@ -112,12 +115,15 @@ class CameraOpenCV(CameraBase):
             self._buffer = frame.tostring()
 
             if __debug__:
-                Logger.trace(
-                    "got new frame from camera (delta: {})"
-                    "".format(delta)
-                )
+                Logger.trace("got new frame from camera")
 
             self._copy_to_gpu()
+
+            if __debug__:
+                Logger.trace(
+                    "GPU buffer updated"
+                )
+
 
     def start(self):
         if __debug__:
@@ -126,7 +132,10 @@ class CameraOpenCV(CameraBase):
         super(CameraOpenCV, self).start()
 
         if __debug__:
-            Logger.trace("unschedule & reschedule with current FPS")
+            Logger.trace(
+                "unschedule update & reschedule with current FPS ({})"
+                "".format(self.fps)
+            )
 
         Clock.unschedule(self._update)
         Clock.schedule_interval(self._update, self.fps)
