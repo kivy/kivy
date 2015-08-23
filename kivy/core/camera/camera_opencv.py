@@ -25,7 +25,7 @@ from cv2 import (
 
 # Constants
 # ---------
-IMAGE_FORMAT = 'bgr'  # OpenCV image format
+IMAGE_FORMAT = 'rgb'  # OpenCV image format
 
 
 # Exports
@@ -62,7 +62,6 @@ class CameraOpenCV(CameraBase):
 
     def __init__(self, **kwargs):
         """Initialize OpenCV Camera provider"""
-        self._format = IMAGE_FORMAT
         self.capture = VideoCapture()
 
         if __debug__:
@@ -83,6 +82,7 @@ class CameraOpenCV(CameraBase):
         """Acquire camera and initialize capture
 
         """
+        self._format = IMAGE_FORMAT
         index = self._index
         width, height = self._resolution
 
@@ -139,9 +139,9 @@ class CameraOpenCV(CameraBase):
             )
             self.fps = 1 / 30.0
 
-        if self.stopped:
+        if not self.stopped:
             if __debug__:
-                Logger.debug("starting camera (initializing, and not open)")
+                Logger.debug("starting camera (initializing)")
             self.start()
 
     def _release(self):
@@ -179,6 +179,7 @@ class CameraOpenCV(CameraBase):
                     "frame update skipped as camera is stopped"
                 )
             return
+
         if self._texture is None:
             if __debug__:
                 Logger.debug(
@@ -246,8 +247,8 @@ class CameraOpenCV(CameraBase):
                 "".format(self.fps)
             )
 
-        Clock.unschedule(self._update)
-        Clock.schedule_interval(self._update, 1 / self.fps)
+        Clock.unschedule(self._update_frame)
+        Clock.schedule_interval(self._update_frame, 1 / self.fps)
 
         if __debug__:
             Logger.debug("capture started")
@@ -267,7 +268,7 @@ class CameraOpenCV(CameraBase):
         if __debug__:
             Logger.debug("unschedule next update")
 
-        Clock.unschedule(self._update)
+        Clock.unschedule(self._update_frame)
 
         if __debug__:
             Logger.debug("capture stopped")
