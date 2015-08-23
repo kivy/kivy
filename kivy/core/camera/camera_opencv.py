@@ -66,7 +66,7 @@ class CameraOpenCV(CameraBase):
 
         if __debug__:
             Logger.debug(
-                "initializing capture ({})'"
+                "Camera: initializing capture ({})'"
                 "".format(self.capture)
             )
 
@@ -74,7 +74,7 @@ class CameraOpenCV(CameraBase):
             super(CameraOpenCV, self).__init__(**kwargs)
         except CaptureError as ex:
             Logger.exception(
-                "Exception while initializing camera : {}"
+                "Camera: Exception while initializing camera : {}"
                 "".format(ex)
             )
 
@@ -88,7 +88,7 @@ class CameraOpenCV(CameraBase):
 
         if __debug__:
             Logger.debug(
-                "initializing camera (index: {}, image format: {}), "
+                "Camera: initializing (index: {}, image format: {}), "
                 "asking for size {}x{}"
                 "".format(index, image_format, width, height)
             )
@@ -96,13 +96,13 @@ class CameraOpenCV(CameraBase):
         self.capture.open(index)
 
         if __debug__:
-            Logger.debug("opened camera, setting resolution")
+            Logger.debug("Camera: opened, setting resolution...")
 
         self.capture.set(FRAME_WIDTH, width)
         self.capture.set(FRAME_HEIGHT, height)
 
         if __debug__:
-            Logger.debug("resolution set, grab & read...")
+            Logger.debug("Camera: resolution set, grab & read...")
 
         self.capture.grab()
 
@@ -118,14 +118,14 @@ class CameraOpenCV(CameraBase):
 
         if __debug__:
             Logger.debug(
-                "first frame size: {}x{}"
+                "Camera: first frame size: {}x{}"
                 "".format(frame_width, frame_height)
             )
 
         if width != frame_width or height != frame_height:
             if __debug__:
                 Logger.debug(
-                    "size corrected by camera : {}x{}"
+                    "Camera: size corrected by camera : {}x{}"
                     "".format(frame_width, frame_height)
                 )
             self._resolution = frame_width, frame_height
@@ -153,13 +153,13 @@ class CameraOpenCV(CameraBase):
 
         """
         if __debug__:
-            Logger.debug("releasing camera...")
+            Logger.debug("Camera: releasing...")
 
         if not self.stopped:
             self.stop()
 
         if __debug__:
-            Logger.debug("scheduled stop of camera update tasks")
+            Logger.debug("Camera: schedule stop of update tasks")
 
         self.capture.release()
 
@@ -171,7 +171,7 @@ class CameraOpenCV(CameraBase):
 
         """
         if __debug__:
-            Logger.debug("updating GPU buffer... (delta: {})".format(delta))
+            Logger.debug("Camera: updating GPU buffer... (delta: {})".format(delta))
 
         if self.stopped:
             # Don't update it camere stopped
@@ -184,7 +184,7 @@ class CameraOpenCV(CameraBase):
         if self._texture is None:
             if __debug__:
                 Logger.debug(
-                    "creating initial texture"
+                    "Camera: creating initial texture"
                 )
             # Create the initial texture
             self._texture = Texture.create(self._resolution)
@@ -210,7 +210,7 @@ class CameraOpenCV(CameraBase):
 
             if __debug__:
                 Logger.debug(
-                    "got new frame from camera (size: {})"
+                    "Camera: got new frame (size: {})"
                     "".format(len(self._buffer))
                 )
 
@@ -238,7 +238,7 @@ class CameraOpenCV(CameraBase):
             return
 
         if __debug__:
-            Logger.debug("starting capture...")
+            Logger.debug("Camera: starting capture...")
 
         super(CameraOpenCV, self).start()
 
@@ -252,7 +252,7 @@ class CameraOpenCV(CameraBase):
         Clock.schedule_interval(self._update_frame, 1 / self.fps)
 
         if __debug__:
-            Logger.debug("capture started")
+            Logger.debug("Camera: capture started")
 
     def stop(self):
         """Stop frame updating. This does not release the camera.
@@ -262,14 +262,14 @@ class CameraOpenCV(CameraBase):
 
         """
         if __debug__:
-            Logger.debug("stopping capture...")
+            Logger.debug("Camera: stopping capture...")
 
         super(CameraOpenCV, self).stop()
 
         if __debug__:
-            Logger.debug("unschedule next update")
+            Logger.debug("Camera: unschedule next update")
 
         Clock.unschedule(self._update_frame)
 
         if __debug__:
-            Logger.debug("capture stopped")
+            Logger.debug("Camera: capture stopped")
