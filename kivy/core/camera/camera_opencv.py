@@ -66,8 +66,8 @@ class CameraOpenCV(CameraBase):
 
         if __debug__:
             Logger.debug(
-                "initializing capture ({}), format is '{}'"
-                "".format(self.capture, self._format)
+                "initializing capture ({})'"
+                "".format(self.capture)
             )
 
         try:
@@ -82,14 +82,15 @@ class CameraOpenCV(CameraBase):
         """Acquire camera and initialize capture
 
         """
-        self._format = IMAGE_FORMAT
+        image_format = self._format = IMAGE_FORMAT
         index = self._index
         width, height = self._resolution
 
         if __debug__:
             Logger.debug(
-                "initializing camera (index: {}), asking for size {}x{}"
-                "".format(index, width, height)
+                "initializing camera (index: {}, image format: {}), "
+                "asking for size {}x{}"
+                "".format(index, image_format, width, height)
             )
 
         self.capture.open(index)
