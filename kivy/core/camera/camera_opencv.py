@@ -171,7 +171,9 @@ class CameraOpenCV(CameraBase):
 
         """
         if __debug__:
-            Logger.debug("Camera: updating GPU buffer... (delta: {})".format(delta))
+            Logger.debug(
+                "Camera: updating GPU buffer... (delta: {})".format(delta)
+            )
 
         if self.stopped:
             # Don't update it camere stopped
