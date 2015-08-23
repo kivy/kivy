@@ -25,7 +25,7 @@ from cv2 import (
 
 # Constants
 # ---------
-IMAGE_FORMAT = 'rgb'  # OpenCV image format
+IMAGE_FORMAT = 'bgr'  # OpenCV image format
 
 
 # Exports
@@ -119,7 +119,7 @@ class CameraOpenCV(CameraBase):
         if __debug__:
             Logger.debug(
                 "first frame size: {}x{}"
-                "".format(frame_height, frame_width)
+                "".format(frame_width, frame_height)
             )
 
         if width != frame_width or height != frame_height:
