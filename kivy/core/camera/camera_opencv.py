@@ -138,7 +138,7 @@ class CameraOpenCV(CameraBase):
             )
 
         Clock.unschedule(self._update)
-        Clock.schedule_interval(self._update, self.fps)
+        Clock.schedule_interval(self._update, 1 / self.fps)
 
         if __debug__:
             Logger.trace("capture started")
