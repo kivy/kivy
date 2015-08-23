@@ -255,7 +255,7 @@ class CameraOpenCV(CameraBase):
             Logger.debug("capture started")
 
     def stop(self):
-        """Stop frame updating. This does not release the camera (see :func:`release`).
+        """Stop frame updating. This does not release the camera.
 
         This method is not blocking, the update routine is just unscheduled
         from Kivy's clock.
