@@ -607,12 +607,12 @@ class EffectWidget(RelativeLayout):
     setting effects and creating your own.
     '''
 
-    background_color = ListProperty((0, 0, 0, 1))
+    background_color = ListProperty((0, 0, 0, 0))
     '''This defines the background color to be used for the fbo in the
     EffectWidget.
 
     :attr:`background_color` is a :class:`ListProperty` defaults to
-    (0, 0, 0, 1)
+    (0, 0, 0, 0)
     '''
 
     texture = ObjectProperty(None)
