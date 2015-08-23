@@ -144,10 +144,11 @@ elif platform == 'macosx':
 elif platform == 'android':
     providers += (('android', 'camera_android', 'CameraAndroid'), )
 else:
-    #providers += (('gi', 'camera_gi', 'CameraGi'), )
+    # providers += (('gi', 'camera_gi', 'CameraGi'), )
+    # TODO: Why is Gi disabled ?
     providers += (('pygst', 'camera_pygst', 'CameraPyGst'), )
 
 providers += (('opencv', 'camera_opencv', 'CameraOpenCV'), )
-
+providers += (('opencv3', 'camera_opencv3', 'CameraOpenCV'))
 
 Camera = core_select_lib('camera', (providers))
