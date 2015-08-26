@@ -84,7 +84,7 @@ properties of that class.
 In the JSON example above, the first element is of type "title". It will create
 a new instance of :class:`SettingTitle` and apply the rest of the key-value
 pairs to the properties of that class, i.e. "title": "Windows" sets the
-:attr:`SettingTitle.title` property to "Windows".
+:attr:`~SettingsPanel.title` property of the panel to "Windows".
 
 To load the JSON example to a :class:`Settings` instance, use the
 :meth:`Settings.add_json_panel` method. It will automatically instantiate a
