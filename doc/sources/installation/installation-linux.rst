@@ -318,7 +318,13 @@ Installation
 
     pip install Cython==0.21.2
 
+    # If you want to install pygame backend instead of sdl2
+    # you can install pygame using command below and enforce using
+    # export USE_SDL2=0. If kivy's setup can't find sdl2 libs it will
+    # automatically set this value to 0 then try to build using pygame.
     pip install hg+http://bitbucket.org/pygame/pygame
+    
+    
 
     # Install stable version of Kivy into the virtualenv
     pip install kivy
