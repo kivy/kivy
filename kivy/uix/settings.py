@@ -71,15 +71,18 @@ created and used for the setting - other keys are assigned to corresponding
 properties of that class.
 
     ============== =================================================
-     Type           Associated class
+    Type           Associated class
     -------------- -------------------------------------------------
     title          :class:`SettingTitle`
     bool           :class:`SettingBoolean`
     numeric        :class:`SettingNumeric`
     options        :class:`SettingOptions`
     string         :class:`SettingString`
-    path           :class:`SettingPath` (new from 1.1.0)
+    path           :class:`SettingPath`
     ============== =================================================
+
+    .. versionadded:: 1.1.0
+        Added :attr:`SettingPath` type
 
 In the JSON example above, the first element is of type "title". It will create
 a new instance of :class:`SettingTitle` and apply the rest of the key-value
