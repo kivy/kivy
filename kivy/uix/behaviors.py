@@ -767,7 +767,7 @@ class FocusBehavior(object):
     When shift+tab is pressed, focus cycles through all the
     :class:`FocusBehavior` widgets that are linked through
     :attr:`focus_previous` and are focusable. If :attr:`focus_previous` is
-    `None', it instead walks the children tree to find the
+    `None`, it instead walks the children tree to find the
     previous focusable widget. Finally, if :attr:`focus_previous` is the
     `StopIteration` class, focus won't move backward, but end here.
 
