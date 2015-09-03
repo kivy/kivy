@@ -478,12 +478,12 @@ class WindowBase(EventDispatcher):
     |                | the soft keyboard.                                    |
     +----------------+-------------------------------------------------------+
 
-    .. versionchanged::1.9.1
+    :attr:`softinput_mode` is a :class:`OptionProperty` defaults to None.
 
     .. versionadded:: 1.9.0
 
-    :attr:`softinput_mode` is a :class:`OptionProperty` defaults to None.
-
+    .. versionchanged:: 1.9.1
+        The 'below_target' option was added.
     '''
 
     _keyboard_changed = BooleanProperty(False)
