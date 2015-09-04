@@ -361,7 +361,8 @@ class Widget(WidgetBase):
     # Collision
     #
     def collide_point(self, x, y):
-        '''Check if a point (x, y) is inside the widget's axis aligned bounding
+        '''
+        Check if a point (x, y) is inside the widget's axis aligned bounding
         box.
 
         :Parameters:
@@ -373,16 +374,17 @@ class Widget(WidgetBase):
         :Returns:
             bool, True if the point is inside the bounding box.
 
-    .. code-block:: python
+        .. code-block:: python
 
-        >>> Widget(pos=(10, 10), size=(50, 50)).collide_point(40, 40)
-        True
+            >>> Widget(pos=(10, 10), size=(50, 50)).collide_point(40, 40)
+            True
         '''
         return self.x <= x <= self.right and self.y <= y <= self.top
 
     def collide_widget(self, wid):
-        '''Check if the other widget collides with this widget.
-        Performs an axis-aligned bounding box intersection test by default.
+        '''
+        Check if another widget collides with this widget. This function
+        performs an axis-aligned bounding box intersection test by default.
 
         :Parameters:
             `wid`: :class:`Widget` class
@@ -391,15 +393,15 @@ class Widget(WidgetBase):
         :Returns:
             bool, True if the other widget collides with this widget.
 
-    .. code-block:: python
+        .. code-block:: python
 
-        >>> wid = Widget(size=(50, 50))
-        >>> wid2 = Widget(size=(50, 50), pos=(25, 25))
-        >>> wid.collide_widget(wid2)
-        True
-        >>> wid2.pos = (55, 55)
-        >>> wid.collide_widget(wid2)
-        False
+            >>> wid = Widget(size=(50, 50))
+            >>> wid2 = Widget(size=(50, 50), pos=(25, 25))
+            >>> wid.collide_widget(wid2)
+            True
+            >>> wid2.pos = (55, 55)
+            >>> wid.collide_widget(wid2)
+            False
         '''
         if self.right < wid.x:
             return False
