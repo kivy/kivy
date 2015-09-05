@@ -28,7 +28,7 @@ This widget class was designed with a couple of principles in mind:
   Often you want to know if a certain point is within the bounds of your
   widget. An example would be a button widget where you only want to
   trigger an action when the button itself is actually touched.
-  For this, you can use the :meth:`Widget.collide_point` method, which
+  For this, you can use the :meth:`~Widget.collide_point` method, which
   will return True if the point you pass to it is inside the axis-aligned
   bounding box defined by the widget's position and size.
   If a simple AABB is not sufficient, you can override the method to
@@ -367,12 +367,13 @@ class Widget(WidgetBase):
 
         :Parameters:
             `x`: numeric
-                X position of the point (in window coordinates)
+                x position of the point (in window coordinates)
             `y`: numeric
-                Y position of the point (in window coordinates)
+                y position of the point (in window coordinates)
 
         :Returns:
-            bool, True if the point is inside the bounding box.
+            A bool. True if the point is inside the bounding box, False
+            otherwise.
 
         .. code-block:: python
 
@@ -391,7 +392,8 @@ class Widget(WidgetBase):
                 Widget to collide with.
 
         :Returns:
-            bool, True if the other widget collides with this widget.
+            bool. True if the other widget collides with this widget, False
+            otherwise.
 
         .. code-block:: python
 
@@ -427,6 +429,8 @@ class Widget(WidgetBase):
 
         :Returns:
             bool. If True, the dispatching of the touch event will stop.
+            If False, the event will continue to be dispatched to the rest
+            of the widget tree.
         '''
         if self.disabled and self.collide_point(*touch.pos):
             return True
@@ -561,12 +565,14 @@ class Widget(WidgetBase):
         widget.parent = None
 
     def clear_widgets(self, children=None):
-        '''Remove all widgets added to this widget.
+        '''
+        Remove all (or the specified) :attr:`~Widget.children` of this widget.
+        If the 'children' argument is specified, it should be a list (or
+        filtered list) of children of the current widget.
 
         .. versionchanged:: 1.8.0
-            `children` argument can be used to select the children we want to
-            remove. It should be a list of children (or filtered list) of the
-            current widget.
+            The `children` argument can be used to specify the children you
+            want to remove.
         '''
 
         if not children:
@@ -586,7 +592,7 @@ class Widget(WidgetBase):
             The image includes only this widget and its children. If you want
             to include widgets elsewhere in the tree, you must call
             :meth:`~Widget.export_to_png` from their common parent, or use
-            :meth:`~kivy.core.window.Window.screenshot` to capture the whole
+            :meth:`~kivy.core.window.WindowBase.screenshot` to capture the whole
             window.
 
         .. note::
@@ -1021,13 +1027,12 @@ class Widget(WidgetBase):
     '''
 
     parent = ObjectProperty(None, allownone=True)
-    '''Parent of this widget.
+    '''Parent of this widget. The parent of a widget is set when the widget
+    is added to another widget and unset when the widget is removed from its
+    parent.
 
     :attr:`parent` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
-
-    The parent of a widget is set when the widget is added to another widget
-    and unset when the widget is removed from its parent.
     '''
 
     size_hint_x = NumericProperty(1, allownone=True)
