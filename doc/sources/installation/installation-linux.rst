@@ -143,7 +143,7 @@ Gentoo
 
 
 *Installation in a Virtual Environment*
-=================================================================
+=======================================
 
 
 Common dependencies
@@ -151,7 +151,7 @@ Common dependencies
 
 
 Cython
--------
+------
 
 
 Different versions of Kivy have only been tested up to a certain Cython version.
@@ -166,12 +166,12 @@ Kivy       Cython
 ========   =============
 
 
-*System dependencies with modern SDL2*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*Dependencies with SDL2*
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Ubuntu example
-------------------------------
+--------------
 
 
 ::
@@ -180,16 +180,13 @@ Ubuntu example
     sudo apt-get install -y \
         python-pip \
         build-essential \
-        mercurial \
         git \
         python \
         python-dev \
         ffmpeg \
         libsdl2-dev \
-        libsdl2-gfx-dev \
         libsdl2-image-dev \
         libsdl2-mixer-dev \
-        libsdl2-net-dev \
         libsdl2-ttf-dev \
         libportmidi-dev \
         libswscale-dev \
@@ -234,7 +231,7 @@ If you want to use Python 3 you install "python3" and "python3-dev" and then pas
 
 
 Ubuntu example
-------------------------------
+--------------
 
 
 ::
