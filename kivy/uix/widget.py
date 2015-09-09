@@ -464,6 +464,11 @@ class Widget(WidgetBase):
         for child in self.children:
             child.disabled = value
 
+    def on_deleted(self, instance, value):
+        if value and self.parent is None:
+            for child in self.children:
+                child.deleted = value
+
     #
     # Tree management
     #
@@ -563,6 +568,7 @@ class Widget(WidgetBase):
         elif widget.canvas in self.canvas.before.children:
             self.canvas.before.remove(widget.canvas)
         widget.parent = None
+        widget.deleted = True
 
     def clear_widgets(self, children=None):
         '''
@@ -1214,5 +1220,18 @@ class Widget(WidgetBase):
     .. versionadded:: 1.8.0
 
     :attr:`disabled` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
+    '''
+
+    deleted = BooleanProperty(False)
+    '''Indicates whether this widget has been removed from the parent or not.
+
+    .. warning::
+
+            Internal usage only.
+
+    .. versionadded:: 1.9.1
+
+    :attr:`deleted` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
