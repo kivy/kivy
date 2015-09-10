@@ -4,6 +4,6 @@ strictness: veryhigh
 max-line-length: 80
 autodetect: yes
 ignore-paths:
-    - docs
-    - kivy/libs
+    - doc
+    - kivy/lib
     - examples

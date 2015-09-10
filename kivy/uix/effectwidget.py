@@ -607,12 +607,12 @@ class EffectWidget(RelativeLayout):
     setting effects and creating your own.
     '''
 
-    background_color = ListProperty((0, 0, 0, 1))
+    background_color = ListProperty((0, 0, 0, 0))
     '''This defines the background color to be used for the fbo in the
     EffectWidget.
 
     :attr:`background_color` is a :class:`ListProperty` defaults to
-    (0, 0, 0, 1)
+    (0, 0, 0, 0)
     '''
 
     texture = ObjectProperty(None)
@@ -742,6 +742,10 @@ class EffectWidget(RelativeLayout):
 
         self.fbo_list[0].texture_rectangle.texture = self.fbo.texture
         self.texture = self.fbo_list[-1].texture
+
+        for fbo in self.fbo_list:
+            fbo.draw()
+        self.fbo.draw()
 
     def add_widget(self, widget):
         # Add the widget to our Fbo instead of the normal canvas

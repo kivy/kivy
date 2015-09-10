@@ -4,9 +4,10 @@
 Motion Event
 ============
 
-The :class:`MotionEvent` is the base class used for every touch and non-touch
-event. This class defines all the properties and methods needed to
-handle 2D and 3D movements but has many more capabilities.
+The :class:`MotionEvent` is the base class used for events provided by
+pointing devices (touch and non-touch). This class defines all the properties
+and methods needed to handle 2D and 3D movements but has many more
+capabilities.
 
 .. note::
 
@@ -46,27 +47,27 @@ You can also listen to changes of the mouse position by watching
 Profiles
 --------
 
-A capability is the ability of a :class:`MotionEvent` to store new
-information or a way to indicate what is supported by the MotionEvent.
+The :class:`MotionEvent` stores device specific information in various
+properties listed in the :attr:`~MotionEvent.profile`.
 For example, you can receive a MotionEvent that has an angle, a fiducial
 ID, or even a shape. You can check the :attr:`~MotionEvent.profile`
-attribute to check what is currently supported by the MotionEvent and
-how to access it.
+attribute to see what is currently supported by the MotionEvent provider.
 
-This is a tiny list of the supported profiles by default. Check other input
-providers to see if there are other profiles available.
+This is a short list of the profile values supported by default. Please check
+the :attr:`MotionEvent.profile` property to see what profile values are
+available.
 
 ============== ================================================================
-Profile name   Description
+Profile value   Description
 -------------- ----------------------------------------------------------------
-angle          2D angle. Use property `a`
-button         Mouse button (left, right, middle, scrollup, scrolldown)
-               Use property `button`
-markerid       Marker or Fiducial ID. Use property `fid`
-pos            2D position. Use properties `x`, `y` or `pos``
-pos3d          3D position. Use properties `x`, `y`, `z`
-pressure       Pressure of the contact. Use property `pressure`
-shape          Contact shape. Use property `shape`
+angle          2D angle. Accessed via the `a` property.
+button         Mouse button ('left', 'right', 'middle', 'scrollup' or
+               'scrolldown'). Accessed via the `button` property.
+markerid       Marker or Fiducial ID. Accessed via the `fid` property.
+pos            2D position. Accessed via the `x`, `y` or `pos` properties.
+pos3d          3D position. Accessed via the `x`, `y` or `z` properties.
+pressure       Pressure of the contact. Accessed via the `pressure` property.
+shape          Contact shape. Accessed via the `shape` property .
 ============== ================================================================
 
 If you want to know whether the current :class:`MotionEvent` has an angle::
@@ -122,7 +123,7 @@ MotionEventBase = MotionEventMetaclass('MotionEvent', (object, ), {})
 
 
 class MotionEvent(MotionEventBase):
-    '''Abstract class to represent a touch and non-touch object.
+    '''Abstract class that represents an input event (touch or non-touch).
 
     :Parameters:
         `id` : str
@@ -298,9 +299,12 @@ class MotionEvent(MotionEventBase):
         self.dsz = self.sz - self.psz
 
     def grab(self, class_instance, exclusive=False):
-        '''Grab this motion event. You can grab a touch if you absolutly
-        want to receive on_touch_move() and on_touch_up(), even if the
-        touch is not dispatched by your parent::
+        '''Grab this motion event. You can grab a touch if you want
+        to receive subsequent :meth:`~kivy.uix.widget.Widget.on_touch_move`
+        and :meth:`~kivy.uix.widget.Widget.on_touch_up`
+        events, even if the touch is not dispatched by the parent:
+
+        .. code-block:: python
 
             def on_touch_down(self, touch):
                 touch.grab(self)

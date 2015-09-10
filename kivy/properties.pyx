@@ -1311,7 +1311,7 @@ cdef class AliasProperty(Property):
             return self.x + self.width
         def set_right(self, value):
             self.x = value - self.width
-        right = AliasProperty(get_right, set_right, bind=('x', 'width'))
+        right = AliasProperty(get_right, set_right, bind=['x', 'width'])
 
     :Parameters:
         `getter`: function
