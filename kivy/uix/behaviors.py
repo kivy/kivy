@@ -549,7 +549,8 @@ class FocusBehavior(object):
     as visualized when cycling through the nodes using tab (forward) or
     shift+tab (backward). If a previous or next widget is not specified,
     :attr:`focus_next` and :attr:`focus_previous` defaults to `None`. This
-    means that the :attr:`~kivy.uix.widget.Widget.children` list and parents are
+    means that the :attr:`~kivy.uix.widget.Widget.children` list and
+    :attr:`parents <kivy.uix.widget.Widget.parent>` are
     walked to find the next focusable widget, unless :attr:`focus_next` or
     :attr:`focus_previous` is set to the `StopIteration` class, in which case
     focus stops there.
