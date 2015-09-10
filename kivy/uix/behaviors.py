@@ -567,6 +567,11 @@ class FocusBehavior(object):
         # clicking on a widget will activate focus, and tab can now be used
         # to cycle through
 
+    When using a software keyboard, typical on mobile and touch devices, the
+    keyboard display behavior is determined by the
+    :attr:`~kivy.core.window.WindowBase.softinput_mode` property. You can use
+    this property to ensure the focused widget is not covered or obscured by the
+    keyboard.
 
     .. versionadded:: 1.9.0
 
@@ -654,6 +659,11 @@ class FocusBehavior(object):
       another keyboard. In order to remove its keyboard, rather set its
       :attr:`focus` to False.
 
+    * When using a software keyboard, typical on mobile and touch devices, the
+      keyboard display behavior is determined by the
+      :attr:`~kivy.core.window.WindowBase.softinput_mode` property. You can use
+      this property to ensure the focused widget is not covered or obscured.
+
     :attr:`keyboard` is an :class:`~kivy.properties.AliasProperty` and defaults
     to None.
 
@@ -684,6 +694,10 @@ class FocusBehavior(object):
     and/or release the keyboard. For a given keyboard, only one widget can
     have its focus, so focusing one will automatically unfocus the other
     instance holding its focus.
+
+    When using a software keyboard, please refer to the
+    :attr:`~kivy.core.window.WindowBase.softinput_mode` property to determine
+    how the keyboard display is handled.
 
     :attr:`focus` is a :class:`~kivy.properties.BooleanProperty` and defaults to
     False.
