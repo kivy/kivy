@@ -444,7 +444,7 @@ class SettingPath(SettingItem):
     '''
 
     show_hidden = BooleanProperty(False)
-    '''Whether to show 'hidden' filenames.  What that means is 
+    '''Whether to show 'hidden' filenames. What that means is
     operating-system-dependent.
 
     :attr:`show_hidden` is an :class:`~kivy.properties.BooleanProperty` and
