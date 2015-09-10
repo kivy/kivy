@@ -717,7 +717,7 @@ class FocusBehavior(object):
             return
         if not isinstance(value, FocusBehavior):
             raise ValueError('focus_next accepts only objects based'
-                             ' on FocusBehavior, or the StopIteration class.')
+                             ' on FocusBehavior, or the `StopIteration` class.')
         value.focus_previous = self
 
     focus_next = ObjectProperty(None, allownone=True)
@@ -758,7 +758,7 @@ class FocusBehavior(object):
             return
         if not isinstance(value, FocusBehavior):
             raise ValueError('focus_previous accepts only objects based'
-                             ' on FocusBehavior, or the StopIteration class.')
+                             ' on FocusBehavior, or the `StopIteration` class.')
         value.focus_next = self
 
     focus_previous = ObjectProperty(None, allownone=True)
