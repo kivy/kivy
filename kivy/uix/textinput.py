@@ -49,9 +49,9 @@ callback when the text changes::
     textinput = TextInput()
     textinput.bind(text=on_text)
 
-You can set the :class:`focus <kivy.uix.behaviors.FocusBehavior' to a Textinput,
-meaning that the input box will be highlighted and keyboard focus will be
-requested::
+You can set the :class:`focus <kivy.uix.behaviors.FocusBehavior>` to a
+Textinput, meaning that the input box will be highlighted and keyboard focus
+will be requested::
 
     textinput = TextInput(focus=True)
 
@@ -68,8 +68,8 @@ get notified of focus changes::
     textinput = TextInput()
     textinput.bind(focus=on_focus)
 
-See :class:`~kivy.uix.behaviors.FocusBehavior` from which :class:`TextInput`
-inherits for more details.
+See :class:`~kivy.uix.behaviors.FocusBehavior`, from which the
+:class:`TextInput` inherits, for more details.
 
 
 Selection
