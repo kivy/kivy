@@ -883,7 +883,7 @@ class Settings(BoxLayout):
 
     :attr:`interface_cls` is an
     :class:`~kivy.properties.ObjectProperty` and defaults to
-    :class`InterfaceWithSidebar`.
+    :class:`InterfaceWithSidebar`.
 
     .. versionchanged:: 1.8.0
         If you set a string, the :class:`~kivy.factory.Factory` will be used to
