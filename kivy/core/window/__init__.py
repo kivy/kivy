@@ -457,8 +457,8 @@ class WindowBase(EventDispatcher):
     softinput_mode = OptionProperty('', options=(
         '', 'below_target', 'pan', 'scale', 'resize'))
     '''This specifies the behavior of window contents on display of the soft
-    keyboard on mobile platform. It can be one of '', 'pan', 'scale', 'resize'
-    or 'below_target'. Their effects are listed below.
+    keyboard on mobile platforms. It can be one of '', 'pan', 'scale',
+    'resize' or 'below_target'. Their effects are listed below.
 
     +----------------+-------------------------------------------------------+
     | Value          | Effect                                                |
