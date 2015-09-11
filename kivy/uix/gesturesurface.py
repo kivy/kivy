@@ -98,6 +98,9 @@ class GestureContainer(EventDispatcher):
     height = NumericProperty(0)
 
     def __init__(self, touch, **kwargs):
+        # The color is applied to all canvas items of this gesture
+        self.color = kwargs.pop('color', [1., 1., 1.])
+
         super(GestureContainer, self).__init__(**kwargs)
 
         # This is the touch.uid of the oldest touch represented
@@ -111,13 +114,6 @@ class GestureContainer(EventDispatcher):
 
         # We can cache the candidate here to save zip()/Vector instantiation
         self._vectors = None
-
-        # The color is applied to all canvas items of this gesture
-        col = kwargs.get('color', None)
-        if col is not None:
-            self.color = col
-        else:
-            self.color = [1.0, 1.0, 1.0]
 
         # Key is touch.uid; value is a kivy.graphics.Line(); it's used even
         # if line_width is 0 (ie not actually drawn anywhere)
