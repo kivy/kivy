@@ -148,7 +148,12 @@ class SoundSDL2(Sound):
         self.unload()
         if self.filename is None:
             return
-        fn = self.filename.encode('UTF-8')
+
+        if isinstance(self.filename, bytes):
+            fn = self.filename
+        else:
+            fn = self.filename.encode('UTF-8')
+
         mc.chunk = Mix_LoadWAV(<char *><bytes>fn)
         if mc.chunk == NULL:
             Logger.warning('AudioSDL2: Unable to load %r' % self.filename)
