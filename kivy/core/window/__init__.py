@@ -478,7 +478,8 @@ class WindowBase(EventDispatcher):
     |                | the soft keyboard.                                    |
     +----------------+-------------------------------------------------------+
 
-    :attr:`softinput_mode` is a :class:`OptionProperty` defaults to None.
+    :attr:`softinput_mode` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to `None`.
 
     .. versionadded:: 1.9.0
 
@@ -557,8 +558,11 @@ class WindowBase(EventDispatcher):
 
     fullscreen = OptionProperty(False, options=(True, False, 'auto', 'fake'))
     '''This property sets the fullscreen mode of the window. Available options
-    are: True, False, 'auto', 'fake'. Check the :mod:`~kivy.config`
-    documentation for a more detailed explanation on the values.
+    are: True, False, 'auto' and 'fake'. Check the :mod:`~kivy.config`
+    documentation for more detailed explanations on these values.
+
+    fullscreen is an :class:`~kivy.properties.OptionProperty` and defaults to
+    `False`.
 
     .. versionadded:: 1.2.0
 
@@ -1348,7 +1352,7 @@ class WindowBase(EventDispatcher):
     def set_vkeyboard_class(self, cls):
         '''.. versionadded:: 1.0.8
 
-        Set the VKeyboard class to use. If set to None, it will use the
+        Set the VKeyboard class to use. If set to `None`, it will use the
         :class:`kivy.uix.vkeyboard.VKeyboard`.
         '''
         self._vkeyboard_cls = cls
