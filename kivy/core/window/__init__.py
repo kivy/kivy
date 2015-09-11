@@ -343,7 +343,7 @@ class WindowBase(EventDispatcher):
 
     .. versionadded:: 1.9.1
 
-    :attr:`minimum_width` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`minimum_width` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
@@ -352,7 +352,7 @@ class WindowBase(EventDispatcher):
 
     .. versionadded:: 1.9.1
 
-    :attr:`minimum_height` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`minimum_height` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
@@ -517,8 +517,8 @@ class WindowBase(EventDispatcher):
 
     .. versionadded:: 1.9.0
 
-    :attr:`keyboard_height` is a read-only :class:`AliasProperty`,
-    defaults to 0.
+    :attr:`keyboard_height` is a read-only
+    :class:`~kivy.propertries.AliasProperty` and defaults to 0.
     '''
 
     def _set_system_size(self, size):
@@ -553,7 +553,8 @@ class WindowBase(EventDispatcher):
 
     .. versionadded:: 1.9.0
 
-    :attr:`borderless` is a :class:`BooleanProperty`, defaults to False.
+    :attr:`borderless` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
     '''
 
     fullscreen = OptionProperty(False, options=(True, False, 'auto', 'fake'))
