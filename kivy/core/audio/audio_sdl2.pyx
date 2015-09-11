@@ -112,13 +112,11 @@ class SoundSDL2(Sound):
         cdef unsigned short fmt
         if mc.chunk == NULL:
             return 0
-        Mix_QuerySpec(&freq, &fmt, &channels)
-        if fmt == AUDIO_S8 or fmt == AUDIO_U8:
-            mixerbytes = 1
-        else:
-            mixerbytes = 2
-        numsamples = mc.chunk.alen / mixerbytes / channels
-        return <double>numsamples / <double>channels
+        if not Mix_QuerySpec(&freq, &fmt, &channels):
+            return 0
+        points = mc.chunk.alen / ((fmt & 0xFF) / 8)
+        frames = points / channels
+        return <double>frames / <double>freq
 
     def play(self):
         cdef MixContainer mc = self.mc
