@@ -32,6 +32,7 @@ cdef mix_init():
     cdef int audio_channels = 2
     cdef int audio_buffers = 4096
     global mix_is_init
+    global mix_flags
 
     # avoid next call
     if mix_is_init != 0:
@@ -42,7 +43,7 @@ cdef mix_init():
         mix_is_init = -1
         return 0
 
-    mix_flags = Mix_Init(0)
+    mix_flags = Mix_Init(MIX_INIT_FLAC|MIX_INIT_MOD|MIX_INIT_MP3|MIX_INIT_OGG)
 
     if Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers):
         Logger.critical('AudioSDL2: Unable to open mixer')
@@ -111,13 +112,11 @@ class SoundSDL2(Sound):
         cdef unsigned short fmt
         if mc.chunk == NULL:
             return 0
-        Mix_QuerySpec(&freq, &fmt, &channels)
-        if fmt == AUDIO_S8 or fmt == AUDIO_U8:
-            mixerbytes = 1
-        else:
-            mixerbytes = 2
-        numsamples = mc.chunk.alen / mixerbytes / channels
-        return <double>numsamples / <double>channels
+        if not Mix_QuerySpec(&freq, &fmt, &channels):
+            return 0
+        points = mc.chunk.alen / ((fmt & 0xFF) / 8)
+        frames = points / channels
+        return <double>frames / <double>freq
 
     def play(self):
         cdef MixContainer mc = self.mc
@@ -149,7 +148,13 @@ class SoundSDL2(Sound):
         self.unload()
         if self.filename is None:
             return
-        mc.chunk = Mix_LoadWAV(<char *><bytes>self.filename)
+
+        if isinstance(self.filename, bytes):
+            fn = self.filename
+        else:
+            fn = self.filename.encode('UTF-8')
+
+        mc.chunk = Mix_LoadWAV(<char *><bytes>fn)
         if mc.chunk == NULL:
             Logger.warning('AudioSDL2: Unable to load %r' % self.filename)
         else:
