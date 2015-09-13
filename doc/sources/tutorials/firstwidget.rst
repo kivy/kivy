@@ -130,25 +130,25 @@ If you run your code with these modifications, you will see that every time
 you touch, there will be a small yellow circle drawn where you touched.
 How does it work?
 
-    * Line 8: We use Python's ``with`` statement with the widget's
+    * Line 9: We use Python's ``with`` statement with the widget's
       :class:`~kivy.graphics.instructions.Canvas` object. This is like an
       area in which the widget can draw things to represent itself on the
       screen. By using the ``with`` statement with it, all successive
       drawing commands that are properly indented will modify this canvas.
       The ``with`` statement also makes sure that after our drawing,
       internal state can be cleaned up properly.
-    * Line 9: You might have guessed it already: This sets the
+    * Line 10: You might have guessed it already: This sets the
       :class:`~kivy.graphics.context_instructions.Color` for successive
       drawing operations to yellow (default color format is RGB, so (1, 1, 0) is
       yellow). This is true until another
       :class:`~kivy.graphics.context_instructions.Color` is set.
       Think of this as dipping your brushes in that color, which you can
       then use to draw on a canvas until you dip the brushes into another color.
-    * Line 10: We specify the diameter for the circle that we are about to
+    * Line 11: We specify the diameter for the circle that we are about to
       draw. Using a variable for that is preferable since we need to refer
       to that value multiple times and we don't want to have to change it
       in several places if we want the circle bigger or smaller.
-    * Line 11: To draw a circle, we simply draw an
+    * Line 12: To draw a circle, we simply draw an
       :class:`~kivy.graphics.vertex_instructions.Ellipse` with equal width
       and height. Since we want the circle to be drawn where the user
       touches, we pass the touch's position to the ellipse.
