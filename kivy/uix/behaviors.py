@@ -873,12 +873,19 @@ class FocusBehavior(object):
                 keyboards[keyboard] = None
 
     def _bind_keyboard(self):
-        self._ensure_keyboard()
-        keyboard = self._keyboard
+        if self.disabled or not self.is_focusable:
+            keyboard = False
+        else:
+            self._ensure_keyboard()
+            keyboard = self._keyboard
 
-        if not keyboard or self.disabled or not self.is_focusable:
-            self.focus = False
+        if not keyboard:
+            # Schedule to prevent recurive event cascading
+            def remove_focus(dt):
+                self.focus = False
+            Clock.schedule_once(remove_focus)
             return
+
         keyboards = FocusBehavior._keyboards
         old_focus = keyboards[keyboard]  # keyboard should be in dict
         if old_focus:
