@@ -6,7 +6,8 @@ This core audio implementation require SDL_mixer library.
 It might conflict with any other library that are using SDL_mixer, such as
 ffmpeg-android.
 
-Depending the compilation of SDL2 mixer, it can support wav, ogg, mp3, flac.
+Depending the compilation of SDL2 mixer, it can support wav, ogg, mp3, flac,
+and mod, s3m etc (libmikmod).
 '''
 
 __all__ = ('SoundSDL2', )
@@ -108,7 +109,8 @@ class SoundSDL2(Sound):
 
     def _get_length(self):
         cdef MixContainer mc = self.mc
-        cdef int freq, channels, mixerbytes, numsamples
+        cdef int freq, channels
+        cdef unsigned int points, frames
         cdef unsigned short fmt
         if mc.chunk == NULL:
             return 0
