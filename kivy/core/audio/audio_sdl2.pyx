@@ -56,7 +56,7 @@ cdef mix_init():
     mix_is_init = 1
     return 1
 
-cdef class MixContainer:
+cdef class ChunkContainer:
     cdef Mix_Chunk *chunk
     cdef int channel
 
@@ -89,15 +89,15 @@ class SoundSDL2(Sound):
         return extensions
 
     def __init__(self, **kwargs):
-        self.mc = MixContainer()
+        self.cc = ChunkContainer()
         mix_init()
         super(SoundSDL2, self).__init__(**kwargs)
 
     def _check_play(self, dt):
-        cdef MixContainer mc = self.mc
-        if mc.channel == -1 or mc.chunk == NULL:
+        cdef ChunkContainer cc = self.cc
+        if cc.channel == -1 or cc.chunk == NULL:
             return False
-        if Mix_Playing(mc.channel):
+        if Mix_Playing(cc.channel):
             return
         if self.loop:
             def do_loop(dt):
@@ -108,26 +108,26 @@ class SoundSDL2(Sound):
         return False
 
     def _get_length(self):
-        cdef MixContainer mc = self.mc
+        cdef ChunkContainer cc = self.cc
         cdef int freq, channels
         cdef unsigned int points, frames
         cdef unsigned short fmt
-        if mc.chunk == NULL:
+        if cc.chunk == NULL:
             return 0
         if not Mix_QuerySpec(&freq, &fmt, &channels):
             return 0
-        points = mc.chunk.alen / ((fmt & 0xFF) / 8)
+        points = cc.chunk.alen / ((fmt & 0xFF) / 8)
         frames = points / channels
         return <double>frames / <double>freq
 
     def play(self):
-        cdef MixContainer mc = self.mc
+        cdef ChunkContainer cc = self.cc
         self.stop()
-        if mc.chunk == NULL:
+        if cc.chunk == NULL:
             return
-        mc.chunk.volume = int(self.volume * 128)
-        mc.channel = Mix_PlayChannel(-1, mc.chunk, 0)
-        if mc.channel == -1:
+        cc.chunk.volume = int(self.volume * 128)
+        cc.channel = Mix_PlayChannel(-1, cc.chunk, 0)
+        if cc.channel == -1:
             Logger.warning(
                 'AudioSDL2: Unable to play %r, no more free channel' % self.filename)
             return
@@ -136,17 +136,17 @@ class SoundSDL2(Sound):
         super(SoundSDL2, self).play()
 
     def stop(self):
-        cdef MixContainer mc = self.mc
-        if mc.chunk == NULL or mc.channel == -1:
+        cdef ChunkContainer cc = self.cc
+        if cc.chunk == NULL or cc.channel == -1:
             return
-        if Mix_GetChunk(mc.channel) == mc.chunk:
-            Mix_HaltChannel(mc.channel)
-        mc.channel = -1
+        if Mix_GetChunk(cc.channel) == cc.chunk:
+            Mix_HaltChannel(cc.channel)
+        cc.channel = -1
         Clock.unschedule(self._check_play)
         super(SoundSDL2, self).stop()
 
     def load(self):
-        cdef MixContainer mc = self.mc
+        cdef ChunkContainer cc = self.cc
         self.unload()
         if self.filename is None:
             return
@@ -156,22 +156,22 @@ class SoundSDL2(Sound):
         else:
             fn = self.filename.encode('UTF-8')
 
-        mc.chunk = Mix_LoadWAV(<char *><bytes>fn)
-        if mc.chunk == NULL:
+        cc.chunk = Mix_LoadWAV(<char *><bytes>fn)
+        if cc.chunk == NULL:
             Logger.warning('AudioSDL2: Unable to load %r' % self.filename)
         else:
-            mc.chunk.volume = int(self.volume * 128)
+            cc.chunk.volume = int(self.volume * 128)
 
     def unload(self):
-        cdef MixContainer mc = self.mc
+        cdef ChunkContainer cc = self.cc
         self.stop()
-        if mc.chunk != NULL:
-            Mix_FreeChunk(mc.chunk)
-            mc.chunk = NULL
+        if cc.chunk != NULL:
+            Mix_FreeChunk(cc.chunk)
+            cc.chunk = NULL
 
     def on_volume(self, instance, volume):
-        cdef MixContainer mc = self.mc
-        if mc.chunk != NULL:
-            mc.chunk.volume = int(volume * 128)
+        cdef ChunkContainer cc = self.cc
+        if cc.chunk != NULL:
+            cc.chunk.volume = int(volume * 128)
 
 SoundLoader.register(SoundSDL2)
