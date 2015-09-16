@@ -45,7 +45,7 @@ class CameraBase(EventDispatcher):
         `on_load`
             Fired when the camera is loaded and the texture has become
             available.
-        `on_frame`
+        `on_texture`
             Fired each time the camera texture is updated.
     '''
 
