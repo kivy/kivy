@@ -6,8 +6,23 @@ This core audio implementation require SDL_mixer library.
 It might conflict with any other library that are using SDL_mixer, such as
 ffmpeg-android.
 
-Depending the compilation of SDL2 mixer, it can support wav, ogg, mp3, flac,
-and mod, s3m etc (libmikmod).
+Native formats:
+
+* wav, since 1.9.0
+
+Depending the compilation of SDL2 mixer and/or installed libraries:
+
+* ogg since 1.9.1 (mixer needs libvorbis/libogg)
+* flac since 1.9.1 (mixer needs libflac)
+* mp3 since 1.9.1 (mixer needs libsmpeg/libmad; only use mad for GPL apps)
+* sequenced formats since 1.9.1 (midi, mod, s3m, etc. Mixer needs
+  libmodplug or libmikmod)
+
+.. Warning::
+
+    Sequenced formats use the SDL2 Mixer music channel, you can only play
+    one at a time, and .length will be 0 if no music is loaded, and -1
+    if loaded (can't get duration of these formats)
 '''
 
 __all__ = ('SoundSDL2', )
@@ -32,6 +47,7 @@ cdef mix_init():
     cdef unsigned short audio_format = AUDIO_S16SYS
     cdef int audio_channels = 2
     cdef int audio_buffers = 4096
+    cdef int want_flags = 0
     global mix_is_init
     global mix_flags
 
@@ -40,14 +56,19 @@ cdef mix_init():
         return
 
     if SDL_Init(SDL_INIT_AUDIO) < 0:
-        Logger.critical('AudioSDL2: Unable to initialize SDL')
+        Logger.critical('AudioSDL2: Unable to initialize SDL: {}'.format(
+                        SDL_GetError()))
         mix_is_init = -1
         return 0
 
-    mix_flags = Mix_Init(MIX_INIT_FLAC|MIX_INIT_MOD|MIX_INIT_MP3|MIX_INIT_OGG)
+    want_flags = MIX_INIT_FLAC | MIX_INIT_OGG | MIX_INIT_MP3
+    want_flags |= MIX_INIT_MOD | MIX_INIT_MODPLUG | MIX_INIT_FLUIDSYNTH
+
+    mix_flags = Mix_Init(want_flags)
 
     if Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers):
-        Logger.critical('AudioSDL2: Unable to open mixer')
+        Logger.critical('AudioSDL2: Unable to open mixer: {}'.format(
+                        SDL_GetError()))
         mix_is_init = -1
         return 0
 
@@ -56,6 +77,7 @@ cdef mix_init():
     mix_is_init = 1
     return 1
 
+# Container for samples (Mix_LoadWAV)
 cdef class ChunkContainer:
     cdef Mix_Chunk *chunk
     cdef int channel
@@ -71,6 +93,23 @@ cdef class ChunkContainer:
             Mix_FreeChunk(self.chunk)
             self.chunk = NULL
 
+# Container for music (Mix_LoadMUS), one channel only
+cdef class MusicContainer:
+    cdef Mix_Music *music
+    cdef int playing
+
+    def __init__(self):
+        self.music = NULL
+        self.playing = 0
+
+    def __dealloc__(self):
+        if self.music != NULL:
+            # I think FreeMusic halts automatically, probably not needed
+            if Mix_PlayingMusic() and self.playing:
+                Mix_HaltMusic()
+            Mix_FreeMusic(self.music)
+            self.music = NULL
+
 
 class SoundSDL2(Sound):
 
@@ -80,8 +119,6 @@ class SoundSDL2(Sound):
         extensions = ["wav"]
         if mix_flags & MIX_INIT_FLAC:
             extensions.append("flac")
-        if mix_flags & MIX_INIT_MOD:
-            extensions.append("mod")
         if mix_flags & MIX_INIT_MP3:
             extensions.append("mp3")
         if mix_flags & MIX_INIT_OGG:
@@ -174,4 +211,114 @@ class SoundSDL2(Sound):
         if cc.chunk != NULL:
             cc.chunk.volume = int(volume * 128)
 
+
+# LoadMUS supports OGG, MP3, WAV but we only use it for native midi,
+# libmikmod, libmodplug and libfluidsynth to avoid confusion
+class MusicSDL2(Sound):
+
+    @staticmethod
+    def extensions():
+        mix_init()
+
+        # Assume native midi support (defaults to enabled), but may use
+        # modplug, fluidsynth or timidity in reality. It may also be
+        # disabled completely, in which case loading it will fail
+        extensions = set(['mid', 'midi'])
+
+        # libmodplug, may be incomplete
+        if mix_flags & MIX_INIT_MODPLUG:
+            extensions.update(['669', 'abc', 'amf', 'ams', 'dbm', 'dmf',
+                               'dsm', 'far', 'it', 'j2b', 'mdl', 'med',
+                               'mod', 'mt2', 'mtm', 'okt', 'pat', 'psm',
+                               'ptm', 's3m', 'stm', 'ult', 'umx', 'xm'])
+
+        # libmikmod, may be incomplete
+        if mix_flags & MIX_INIT_MOD:
+            extensions.update(['669', 'amf', 'apun', 'dsm', 'far', 'gdm',
+                               'gt2', 'it',  'med', 'mod', 'mtm', 'okt',
+                               's3m', 'stm', 'stx', 'ult', 'umx', 'uni',
+                               'xm'])
+        return list(extensions)
+
+    def __init__(self, **kwargs):
+        self.mc = MusicContainer()
+        mix_init()
+        super(MusicSDL2, self).__init__(**kwargs)
+
+    def _check_play(self, dt):
+        cdef MusicContainer mc = self.mc
+        if mc.music == NULL:
+            return False
+        if mc.playing and Mix_PlayingMusic():
+            return
+        if self.loop:
+            def do_loop(dt):
+                self.play()
+            Clock.schedule_once(do_loop)
+        else:
+            self.stop()
+        return False
+
+    # No way to check length; return -1 if music is loaded, 0 otherwise
+    def _get_length(self):
+        cdef MusicContainer mc = self.mc
+        if mc.music == NULL:
+            return 0
+        return -1
+
+    def play(self):
+        cdef MusicContainer mc = self.mc
+        self.stop()
+        if mc.music == NULL:
+            return
+        Mix_VolumeMusic(int(self.volume * 128))
+        if Mix_PlayMusic(mc.music, 1) == -1:
+            Logger.warning(
+                'AudioSDL2: Unable to play music file: %r' % self.filename)
+            return
+        mc.playing = 1
+        # schedule event to check if the sound is still playing or not
+        Clock.schedule_interval(self._check_play, 0.1)
+        super(MusicSDL2, self).play()
+
+    def stop(self):
+        cdef MusicContainer mc = self.mc
+        if mc.music == NULL or not mc.playing:
+            return
+        Mix_HaltMusic()
+        mc.playing = 0
+        Clock.unschedule(self._check_play)
+        super(MusicSDL2, self).stop()
+
+    def load(self):
+        cdef MusicContainer mc = self.mc
+        self.unload()
+        if self.filename is None:
+            return
+
+        if isinstance(self.filename, bytes):
+            fn = self.filename
+        else:
+            fn = self.filename.encode('UTF-8')
+
+        mc.music = Mix_LoadMUS(<char *><bytes>fn)
+        if mc.music == NULL:
+            Logger.warning('AudioSDL2: Unable to load music %r' % self.filename)
+        else:
+            Mix_VolumeMusic(int(self.volume * 128))
+
+    def unload(self):
+        cdef MusicContainer mc = self.mc
+        self.stop()
+        if mc.music != NULL:
+            Mix_FreeMusic(mc.music)
+            mc.music = NULL
+
+    def on_volume(self, instance, volume):
+        cdef MusicContainer mc = self.mc
+        if mc.music != NULL and mc.playing:
+            Mix_VolumeMusic(int(volume * 128))
+
+
 SoundLoader.register(SoundSDL2)
+SoundLoader.register(MusicSDL2)
