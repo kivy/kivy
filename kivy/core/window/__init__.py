@@ -1057,7 +1057,7 @@ class WindowBase(EventDispatcher):
         if smode == 'pan':
             y = kheight
         elif smode == 'below_target':
-            y = 0 if kheight < targettop else (kheight - targettop) + dp(9)
+            y = 0 if kheight < targettop else (kheight - targettop)
         if smode == 'scale':
             _h -= kheight
 
