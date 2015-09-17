@@ -53,6 +53,7 @@ See :file:`kivy/examples/application/app_with_kv.py`.
 The relationship between main.py and test.kv is explained in
 :meth:`App.load_kv`.
 
+.. _Application configuration:
 
 Application configuration
 -------------------------

@@ -41,6 +41,9 @@ Change the configuration and save it::
     >>> Config.set('postproc', 'retain_time', '50')
     >>> Config.write()
 
+For information on configuring your :class:`~kivy.app.App`, please see the
+:ref:`Application configuration` section.
+
 .. versionchanged:: 1.7.1
     The ConfigParser should work correctly with utf-8 now. The values are
     converted from ascii to unicode only when needed. The method get() returns
