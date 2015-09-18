@@ -74,8 +74,9 @@ the section key-value pair to the :meth:`App.build_config` method using the
             })
 
 As soon as you add one section to the config, a file is created on the
-disk and named based your class name. "TestApp" will give
-a config file named "test.ini" with the content::
+disk (see :attr:`~App.get_application_config` for its location) and
+named based your class name. "TestApp" will give a config file named
+"test.ini" with the content::
 
     [section1]
     key1 = value1
