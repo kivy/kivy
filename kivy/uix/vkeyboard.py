@@ -718,6 +718,8 @@ class VKeyboard(Scatter):
         return True
 
     def process_key_on(self, touch):
+        if not touch:
+            return
         x, y = self.to_local(*touch.pos)
         key = self.get_key_at_pos(x, y)
         if not key:
