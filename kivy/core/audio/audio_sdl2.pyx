@@ -68,7 +68,7 @@ cdef mix_init():
 
     if Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers):
         Logger.critical('AudioSDL2: Unable to open mixer: {}'.format(
-                        SDL_GetError()))
+                        Mix_GetError()))
         mix_is_init = -1
         return 0
 
@@ -165,8 +165,8 @@ class SoundSDL2(Sound):
         cc.chunk.volume = int(self.volume * 128)
         cc.channel = Mix_PlayChannel(-1, cc.chunk, 0)
         if cc.channel == -1:
-            Logger.warning(
-                'AudioSDL2: Unable to play %r, no more free channel' % self.filename)
+            Logger.warning('AudioSDL2: Unable to play {}: {}'.format(
+                           self.filename, Mix_GetError()))
             return
         # schedule event to check if the sound is still playing or not
         Clock.schedule_interval(self._check_play, 0.1)
@@ -195,7 +195,8 @@ class SoundSDL2(Sound):
 
         cc.chunk = Mix_LoadWAV(<char *><bytes>fn)
         if cc.chunk == NULL:
-            Logger.warning('AudioSDL2: Unable to load %r' % self.filename)
+            Logger.warning('AudioSDL2: Unable to load {}: {}'.format(
+                           self.filename, Mix_GetError()))
         else:
             cc.chunk.volume = int(self.volume * 128)
 
@@ -273,8 +274,8 @@ class MusicSDL2(Sound):
             return
         Mix_VolumeMusic(int(self.volume * 128))
         if Mix_PlayMusic(mc.music, 1) == -1:
-            Logger.warning(
-                'AudioSDL2: Unable to play music file: %r' % self.filename)
+            Logger.warning('AudioSDL2: Unable to play music {}: {}'.format(
+                           self.filename, Mix_GetError()))
             return
         mc.playing = 1
         # schedule event to check if the sound is still playing or not
@@ -303,7 +304,8 @@ class MusicSDL2(Sound):
 
         mc.music = Mix_LoadMUS(<char *><bytes>fn)
         if mc.music == NULL:
-            Logger.warning('AudioSDL2: Unable to load music %r' % self.filename)
+            Logger.warning('AudioSDL2: Unable to load music {}: {}'.format(
+                           self.filename, Mix_GetError()))
         else:
             Mix_VolumeMusic(int(self.volume * 128))
 

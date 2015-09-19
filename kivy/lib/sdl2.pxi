@@ -878,3 +878,4 @@ cdef extern from "SDL_mixer.h":
     #cdef int  Mix_EachSoundFont(int (*function)( char*, void*), void *data)
     cdef Mix_Chunk *  Mix_GetChunk(int channel)
     cdef void  Mix_CloseAudio()
+    cdef char * Mix_GetError()
