@@ -603,7 +603,7 @@ def bcm_display_open(bcm.uint32_t device):
     cdef:
         bcm.DISPMANX_DISPLAY_HANDLE_T disp
         bcm.DisplayHandle D
-    disp = bcm.vc_dispmanx_display_open( 0 )
+    disp = bcm.vc_dispmanx_display_open( device )
     if disp == 0:
         raise bcm.BCMDisplayException("Couldn't open handle to display")
     D = bcm.DisplayHandle()
