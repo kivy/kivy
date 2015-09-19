@@ -21,11 +21,11 @@ Depending the compilation of SDL2 mixer and/or installed libraries:
 .. Warning::
 
     Sequenced formats use the SDL2 Mixer music channel, you can only play
-    one at a time, and .length will be 0 if no music is loaded, and -1
-    if loaded (can't get duration of these formats)
+    one at a time, and .length will be -1 if music fails to load, and 0
+    if loaded successfully (we can't get duration of these formats)
 '''
 
-__all__ = ('SoundSDL2', )
+__all__ = ('SoundSDL2', 'MusicSDL2')
 
 include "../../../kivy/lib/sdl2.pxi"
 
@@ -263,8 +263,8 @@ class MusicSDL2(Sound):
     def _get_length(self):
         cdef MusicContainer mc = self.mc
         if mc.music == NULL:
-            return 0
-        return -1
+            return -1
+        return 0
 
     def play(self):
         cdef MusicContainer mc = self.mc
