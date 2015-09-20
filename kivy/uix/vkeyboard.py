@@ -338,7 +338,7 @@ class VKeyboard(Scatter):
             self._load_layouts)
         layout = self._trigger_load_layout = Clock.create_trigger(
             self._load_layout)
-        fbind = self.fast_bind
+        fbind = self.fbind
 
         fbind('docked', self.setup_mode)
         fbind('have_shift', layout_mode)
@@ -718,6 +718,8 @@ class VKeyboard(Scatter):
         return True
 
     def process_key_on(self, touch):
+        if not touch:
+            return
         x, y = self.to_local(*touch.pos)
         key = self.get_key_at_pos(x, y)
         if not key:

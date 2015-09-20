@@ -50,21 +50,21 @@ Contents of 'main.py':
 
 See :file:`kivy/examples/application/app_with_kv.py`.
 
-The relation between main.py and test.kv is explained in :meth:`App.load_kv`.
+The relationship between main.py and test.kv is explained in
+:meth:`App.load_kv`.
 
+.. _Application configuration:
 
 Application configuration
 -------------------------
 
-.. versionadded:: 1.0.7
-
 Use the configuration file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Your application might want to have its own configuration file. The
-:class:`App` is able to handle an INI file automatically. You add your
-section/key/value in the :meth:`App.build_config` method by using the `config`
-parameter (which is an instance of :class:`~kivy.config.ConfigParser`)::
+Your application might need its own configuration file. The
+:class:`App` class handles 'ini' files automatically if you add
+the section key-value pair to the :meth:`App.build_config` method using the
+`config` parameter (an instance of :class:`~kivy.config.ConfigParser`)::
 
     class TestApp(App):
         def build_config(self, config):
@@ -73,9 +73,10 @@ parameter (which is an instance of :class:`~kivy.config.ConfigParser`)::
                 'key2': '42'
             })
 
-As soon as you add one section in the config, a file is created on the
-disk and named from the mangled name of your class. "TestApp" will give
-a config file-name "test.ini" with the content::
+As soon as you add one section to the config, a file is created on the
+disk (see :attr:`~App.get_application_config` for its location) and
+named based your class name. "TestApp" will give a config file named
+"test.ini" with the content::
 
     [section1]
     key1 = value1
@@ -187,6 +188,8 @@ altogether, you can do this::
     class TestApp(App):
         def open_settings(self, *largs):
             pass
+
+.. versionadded:: 1.0.7
 
 Profiling with on_start and on_stop
 -----------------------------------

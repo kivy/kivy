@@ -71,6 +71,8 @@ else:
     from urllib.parse import urlparse
 
 try:
+    import ssl
+
     HTTPSConnection = None
     if PY2:
         from httplib import HTTPSConnection
@@ -139,6 +141,9 @@ class UrlRequest(Thread):
         `file_path`: str, defaults to None
             If set, the result of the UrlRequest will be written to this path
             instead of in memory.
+        `ca_file`: str, defaults to None
+            Indicates a SSL CA certificate file path to validate HTTPS
+            certificates against
 
     .. versionchanged:: 1.8.0
 
@@ -153,7 +158,7 @@ class UrlRequest(Thread):
                  on_failure=None, on_error=None, on_progress=None,
                  req_body=None, req_headers=None, chunk_size=8192,
                  timeout=None, method=None, decode=True, debug=False,
-                 file_path=None):
+                 file_path=None, ca_file=None):
         super(UrlRequest, self).__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
@@ -175,6 +180,7 @@ class UrlRequest(Thread):
         self._chunk_size = chunk_size
         self._timeout = timeout
         self._method = method
+        self.ca_file = ca_file
 
         #: Url of the request
         self.url = url
@@ -224,6 +230,7 @@ class UrlRequest(Thread):
         report_progress = self.on_progress is not None
         timeout = self._timeout
         file_path = self.file_path
+        ca_file = self.ca_file
 
         if self._debug:
             Logger.debug('UrlRequest: {0} Fetch url <{1}>'.format(
@@ -250,6 +257,12 @@ class UrlRequest(Thread):
         args = {}
         if timeout is not None:
             args['timeout'] = timeout
+
+        if ca_file is not None and hasattr(ssl, 'create_default_context'):
+            ctx = ssl.create_default_context(cafile=ca_file)
+            ctx.verify_mode = ssl.CERT_REQUIRED
+            args['context'] = ctx
+
         req = cls(host, port, **args)
 
         # reconstruct path to pass on the request

@@ -436,6 +436,7 @@ GL_APICALL void         GL_APIENTRY glViewport (GLint x, GLint y, GLsizei width,
 #define GL_FRAMEBUFFER                    0x8D40
 #define GL_RENDERBUFFER                   0x8D41
 #define GL_STENCIL_INDEX8                 0x8D48
+#define GL_DEPTH24_STENCIL8_OES           0x88F0
 #define GL_RENDERBUFFER_WIDTH             0x8D42
 #define GL_RENDERBUFFER_HEIGHT            0x8D43
 #define GL_RENDERBUFFER_INTERNAL_FORMAT   0x8D44

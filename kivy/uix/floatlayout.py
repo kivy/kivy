@@ -64,7 +64,7 @@ class FloatLayout(Layout):
     def __init__(self, **kwargs):
         kwargs.setdefault('size', (1, 1))
         super(FloatLayout, self).__init__(**kwargs)
-        fbind = self.fast_bind
+        fbind = self.fbind
         update = self._trigger_layout
         fbind('children', update)
         fbind('pos', update)

@@ -85,7 +85,7 @@ class Camera(Image):
         if self.index == -1:
             self.index = 0
         on_index = self._on_index
-        fbind = self.fast_bind
+        fbind = self.fbind
         fbind('index', on_index)
         fbind('resolution', on_index)
         on_index()

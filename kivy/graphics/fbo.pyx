@@ -173,7 +173,7 @@ cdef class Fbo(RenderContext):
         self.observers = []
 
         if self._depthbuffer_attached and self._stencilbuffer_attached:
-            self.raise_exception('Depth+stencil buffer is not supported yet.')
+            Logger.warning('Fbo: depth+stencil buffer support is experimental')
 
         self.create_fbo()
 
@@ -206,8 +206,21 @@ cdef class Fbo(RenderContext):
         glGetIntegerv(GL_FRAMEBUFFER_BINDING, &old_fid)
         glBindFramebuffer(GL_FRAMEBUFFER, self.buffer_id)
 
+        # experimental depth+stencil renderbuffer
+        if self._depthbuffer_attached and self._stencilbuffer_attached:
+            glGenRenderbuffers(1, &f_id)
+            self.depthbuffer_id = self.stencilbuffer_id = f_id
+            glBindRenderbuffer(GL_RENDERBUFFER, f_id)
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8,
+                                  self._width, self._height)
+            glBindRenderbuffer(GL_RENDERBUFFER, 0)
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                                      GL_RENDERBUFFER, f_id)
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
+                                      GL_RENDERBUFFER, f_id)
+
         # if we need depth, create a renderbuffer
-        if self._depthbuffer_attached:
+        elif self._depthbuffer_attached:
             glGenRenderbuffers(1, &f_id)
             self.depthbuffer_id = f_id
             glBindRenderbuffer(GL_RENDERBUFFER, self.depthbuffer_id)
@@ -218,7 +231,7 @@ cdef class Fbo(RenderContext):
                                       GL_RENDERBUFFER, self.depthbuffer_id)
 
         # if we need stencil, create a renderbuffer
-        if self._stencilbuffer_attached:
+        elif self._stencilbuffer_attached:
             glGenRenderbuffers(1, &f_id)
             self.stencilbuffer_id = f_id
             glBindRenderbuffer(GL_RENDERBUFFER, self.stencilbuffer_id)
@@ -234,6 +247,17 @@ cdef class Fbo(RenderContext):
 
         # check the status of the framebuffer
         status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
+
+        if (status == GL_FRAMEBUFFER_UNSUPPORTED and
+                (self._stencilbuffer_attached ^ self._depthbuffer_attached)):
+            # attempt to automatically fall back to a depth+stencil buffer
+            Logger.warning('Fbo: unsupported mode; ' +
+                           'attempting to create depth+stencil buffer instead')
+            self._stencilbuffer_attached = self._depthbuffer_attached = True
+            glBindFramebuffer(GL_FRAMEBUFFER, old_fid)
+            self.create_fbo()
+            return
+
         if status != GL_FRAMEBUFFER_COMPLETE:
             self.raise_exception('FBO Initialization failed', status)
 
@@ -316,7 +340,10 @@ cdef class Fbo(RenderContext):
         '''
         glClearColor(self._clear_color[0], self._clear_color[1],
                      self._clear_color[2], self._clear_color[3])
-        if self._depthbuffer_attached:
+        if self._depthbuffer_attached and self._stencilbuffer_attached:
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
+                    GL_STENCIL_BUFFER_BIT)
+        elif self._depthbuffer_attached:
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         elif self._stencilbuffer_attached:
             glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT)

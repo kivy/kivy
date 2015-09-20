@@ -36,6 +36,7 @@ cdef class Svg(RenderContext):
     cdef list paths
     cdef object transform
     cdef object fill
+    cdef object tree
     cdef public object current_color
     cdef object stroke
     cdef float opacity

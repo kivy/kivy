@@ -220,7 +220,7 @@ class GridLayout(Layout):
 
     .. versionadded:: 1.0.8
 
-    :attr:`minimum_width` is a :class:`kivy.properties.NumericProperty` and
+    :attr:`minimum_width` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
@@ -229,7 +229,7 @@ class GridLayout(Layout):
 
     .. versionadded:: 1.0.8
 
-    :attr:`minimum_height` is a :class:`kivy.properties.NumericProperty` and
+    :attr:`minimum_height` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
@@ -246,7 +246,7 @@ class GridLayout(Layout):
     def __init__(self, **kwargs):
         self._cols = self._rows = None
         super(GridLayout, self).__init__(**kwargs)
-        fbind = self.fast_bind
+        fbind = self.fbind
         update = self._trigger_layout
         fbind('col_default_width', update)
         fbind('row_default_height', update)

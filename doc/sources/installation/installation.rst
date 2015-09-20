@@ -91,7 +91,7 @@ that will install all necessary packages::
       build-essential libgl1-mesa-dev-lts-quantal libgles2-mesa-dev-lts-quantal\ 
       python-pip
 
-For older versions of Ubuntu, this one should work::
+For Ubuntu 15.04 and versions older than 12.04, this one should work::
 
     $ sudo apt-get install python-setuptools python-pygame python-opengl \
       python-gst0.10 python-enchant gstreamer0.10-plugins-good python-dev \

@@ -43,7 +43,8 @@ from kivy.uix.textinput import TextInput
 from kivy.core.text.markup import MarkupLabel as Label
 from kivy.cache import Cache
 from kivy.properties import ObjectProperty, OptionProperty
-from kivy.utils import get_hex_from_color
+from kivy.utils import get_hex_from_color, get_color_from_hex
+from kivy.uix.behaviors import CodeNavigationBehavior
 
 Cache_get = Cache.get
 Cache_append = Cache.append
@@ -51,7 +52,7 @@ Cache_append = Cache.append
 # TODO: color chooser for keywords/strings/...
 
 
-class CodeInput(TextInput):
+class CodeInput(CodeNavigationBehavior, TextInput):
     '''CodeInput class, used for displaying highlighted code.
     '''
 
@@ -111,6 +112,8 @@ class CodeInput(TextInput):
 
     def on_style_name(self, *args):
         self.style = styles.get_style_by_name(self.style_name)
+        self.background_color = get_color_from_hex(self.style.background_color)
+        self._trigger_refresh_text()
 
     def on_style(self, *args):
         self.formatter = BBCodeFormatter(style=self.style)
@@ -169,13 +172,15 @@ class CodeInput(TextInput):
             ntext[0]
             # replace brackets with special chars that aren't highlighted
             # by pygment. can't use &bl; ... cause & is highlighted
-            ntext = ntext.replace(u'[', u'\x01;').replace(u']', u'\x02;')
+            ntext = ntext.replace(u'[', u'\x01').replace(u']', u'\x02')
             ntext = highlight(ntext, self.lexer, self.formatter)
-            ntext = ntext.replace(u'\x01;', u'&bl;').replace(u'\x02;', u'&br;')
+            ntext = ntext.replace(u'\x01', u'&bl;').replace(u'\x02', u'&br;')
             # replace special chars with &bl; and &br;
             ntext = ''.join((u'[color=', str(self.text_color), u']',
                              ntext, u'[/color]'))
             ntext = ntext.replace(u'\n', u'')
+            # remove possibles extra highlight options
+            ntext = ntext.replace(u'[u]', '').replace(u'[/u]', '')
             return ntext
         except IndexError:
             return ''
@@ -215,7 +220,6 @@ if __name__ == '__main__':
     class CodeInputTest(App):
         def build(self):
             return CodeInput(lexer=KivyLexer(),
-                             font_name='data/fonts/DroidSansMono.ttf',
                              font_size=12,
                              text='''
 #:kivy 1.0

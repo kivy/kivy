@@ -500,7 +500,7 @@ cdef class Callback(Instruction):
 
             # reset all the vertexformat in all shaders
             ctx = get_context()
-            for obj in ctx.l_shader:
+            for obj in ctx.lr_shader:
                 shader = obj()
                 if not shader:
                     continue

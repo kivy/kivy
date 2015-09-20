@@ -14,6 +14,58 @@ MacOSX platforms.
 
 .. _mac_osx_requirements:
 
+Official Packaging method
+-------------------------
+
+Due to a lot of problems with including libraries and files on osx with other methods
+we now have a simpler and easier way to package Kivy apps on osx.
+
+Since kivy 1.9 kivy package on osx is a self contained portable distribution.
+It is now possible to package kivy apps using the method described below to make
+it easier to include frameworks like sdl2 and gstreamer::
+
+1: Make sure you have the Kivy.app(unmodified) from the download page.
+2: run the following commands::
+
+    > mkdir  packaging
+    > cd packaging
+    packaging> git clone https://github.com/kivy/kivy-sdk-packager
+    packaging> cd kivy-sdk-packager/osx
+    osx> cp -a /Applications/Kivy.app ./Kivy.App
+
+This step above is important, you have to make sure to preserve the paths and permissions. A command like cp -rf will copy but make the app unusable and lead to error later on.
+
+Now all you need to do is to include your compiled app into the Kivy.app, simply run the following command::
+
+    osx> ./package-app.sh path/to/your/app
+
+This should copy Kivy.app to `yourapp.app` and include a compiled copy of your app into this package.
+
+That's it, your self contained package is ready to be deployed!
+
+when you double click this app you can see your app run.
+
+This is a pretty big sized app right now however you can simply remove the unneeded parts from this package.
+
+For example if you don't use Gstreamer, simply remove it from YourApp.app/Contents/Frameworks.
+Similarly you can remove the examples dir from /Applications/Kivy.app/Contents/Resources/kivy/examples/
+or kivyt/tools,  kivy/docs...
+
+This way the whole app can be made to only include the parts that you use inside your app.
+
+You can edit the icons and other settings of your app by editing the YourApp/Contents/info.plist to suit your needs, simply double click this file and make your changes.
+
+Last step is to make a dmg of your app using the following command::
+
+    osx> create-osx-dmg.sh YourApp.app
+
+This should give you a compressed dmg that will even further minimize the size of your distributed app.
+
+
+
+Unofficial Method using Pyinstaller
+-----------------------------------
+
 Requirements
 ------------
 
@@ -24,17 +76,6 @@ Please ensure that you have installed the Kivy DMG and installed the `make-symli
 The `kivy` command must be accessible from the command line.
 
 Thereafter, download and decompress the PyInstaller 2.0 package.
-
-.. warning::
-
-    It seems that the latest PyInstaller has a bug affecting Mach-O binaries.
-    (http://www.pyinstaller.org/ticket/614). To correct the issue, type::
-
-        cd pyinstaller-2.0/PyInstaller/lib/macholib
-        curl -O https://bitbucket.org/ronaldoussoren/macholib/raw/e32d04b5361950a9343ca453d75602b65787f290/macholib/mach_o.py
-        
-    In version 2.1, the issue has already been corrected.
-
 
 .. _mac_Create-the-spec-file:
 
@@ -66,12 +107,23 @@ file is named `main.py`. Replace both path/filename according to your system.
    Then, you need to change the `COLLECT()` call to add the data of touchtracer
    (`touchtracer.kv`, `particle.png`, ...). Change the line to add a Tree()
    object. This Tree will search and add every file found in the touchtracer
-   directory to your final package::
+   directory to your final package.
+   
+   You will need to specify to pyinstaller where to look for the frameworks
+   included with kivy too, your COLLECT section should look something like this::
 
     coll = COLLECT( exe, Tree('../kivy/examples/demo/touchtracer/'),
+                   Tree("../../../../../../Applications/Kivy.app/Contents/Frameworks/"),
+                   Tree("../../../../../Applications/Kivy.app/Contents/Frameworks/SDL2_ttf.framework/Versions/A/Frameworks/Freetype.Framework"),
                    a.binaries,
                    #...
                    )
+
+The Tree inclusion of frameworks is a work around a pyinstaller bug that is not able to find the exact path of libs including @executable_path.
+
+There is a issue open on pyinstaller issue tracker for this. https://github.com/pyinstaller/pyinstaller/issues/1338
+  
+Make sure the path to the frameworks is relative to the current directory you are on.
 
 #. We are done. Your spec is ready to be executed!
 

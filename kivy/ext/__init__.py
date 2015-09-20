@@ -14,12 +14,12 @@ Kivy.
 Some libraries might even need to be patched so that they can be used (e.g. if
 they open their own OpenGL context to draw in and don't support proper offscreen
 rendering). On those occasions it is often possible to patch the library in
-question and to provide a Python wrapper around it that is compatible with Kivy.
+question and provide a Python wrapper around it that is compatible with Kivy.
 Sticking with this example, you can't just use the wrapper with a 'normal'
 installation of the library because the patch would be missing.
 
 That is where Kivy extensions come in handy. A Kivy extension represents a
-single third-party library that is provided in a way so that it can simply be
+single third-party library that is provided in such a way that it can simply be
 downloaded as a single file, put in a special directory and then offers the
 functionality of the wrapped library to Kivy applications.
 These extensions will not pollute the global Python environment (as they might
@@ -27,9 +27,14 @@ be unusable on their own after potential patches have been applied) because they
 reside in special directories for Kivy that are not accessed by Python by
 default.
 
+Naming and versioning
+---------------------
+
 Kivy extensions are provided as ``*.kex`` files. They are really just zip files,
 but you must not unzip them yourself. Kivy will do that for you as soon as it's
-appropriate to do so.
+appropriate to do so. They follow the following naming convention::
+
+    <NAME>-<MAJOR>.<MINOR>[.*].kex
 
 .. warning::
 
@@ -41,7 +46,7 @@ third-party libraries in a backwards compatible way (by specifying the version
 that you require) even if the actual third-party library does not guarantee
 backwards-compatibility. There will be no breakage if newer versions are
 installed (as a properly suited old version will still be used). For more
-information about that behaviour, consider the documentation of the
+information on such behaviour, please refer to the documentation of the
 :func:`~kivy.ext.load` function.
 
 If you want to provide an extension on your own, there is a helper script that

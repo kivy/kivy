@@ -2,36 +2,39 @@
 Widget class
 ============
 
-The :class:`Widget` class is the base class required to create a Widget.
-This widget class is designed with a couple of principles in mind:
+The :class:`Widget` class is the base class required for creating Widgets.
+This widget class was designed with a couple of principles in mind:
 
-    Event Driven
-        Widget interaction is built on top of events that occur. If a property
-        changes, the widget can respond to the change in the 'on_<propname>'
-        callback. If nothing changes, nothing will be done. That's the main
-        goal of the :class:`~kivy.properties.Property` class.
+* *Event Driven*
 
-    Separate the widget and its graphical representation
-        Widgets don't have a `draw()` method. This is done on purpose: The idea
-        is to allow you to create your own graphical representation outside the
-        widget class.
-        Obviously you can still use all the available properties to do that, so
-        that your representation properly reflects the widget's current state.
-        Every widget has its own :class:`~kivy.graphics.Canvas` that you
-        can use to draw. This separation allows Kivy to run your
-        application in a very efficient manner.
+  Widget interaction is built on top of events that occur. If a property
+  changes, the widget can respond to the change in the 'on_<propname>'
+  callback. If nothing changes, nothing will be done. That's the main
+  goal of the :class:`~kivy.properties.Property` class.
 
-    Bounding Box / Collision
-        Often you want to know if a certain point is within the bounds of your
-        widget. An example would be a button widget where you want to only
-        trigger an action when the button itself is actually touched.
-        For this, you can use the :meth:`Widget.collide_point` method, which
-        will return True if the point you pass to it is inside the axis-aligned
-        bounding box defined by the widget's position and size.
-        If a simple AABB is not sufficient, you can override the method to
-        perform the collision checks with more complex shapes, e.g. a polygon.
-        You can also check if a widget collides with another widget with
-        :meth:`Widget.collide_widget`.
+* *Separation Of Concerns (the widget and its graphical representation)*
+
+  Widgets don't have a `draw()` method. This is done on purpose: The idea
+  is to allow you to create your own graphical representation outside the
+  widget class.
+  Obviously you can still use all the available properties to do that, so
+  that your representation properly reflects the widget's current state.
+  Every widget has its own :class:`~kivy.graphics.Canvas` that you
+  can use to draw. This separation allows Kivy to run your
+  application in a very efficient manner.
+
+* *Bounding Box / Collision*
+
+  Often you want to know if a certain point is within the bounds of your
+  widget. An example would be a button widget where you only want to
+  trigger an action when the button itself is actually touched.
+  For this, you can use the :meth:`~Widget.collide_point` method, which
+  will return True if the point you pass to it is inside the axis-aligned
+  bounding box defined by the widget's position and size.
+  If a simple AABB is not sufficient, you can override the method to
+  perform the collision checks with more complex shapes, e.g. a polygon.
+  You can also check if a widget collides with another widget with
+  :meth:`Widget.collide_widget`.
 
 
 We also have some default values and behaviors that you should be aware of:
@@ -95,7 +98,9 @@ for your widget, you can do the following:
 size=self.size)
     widget.bind(pos=redraw, size=redraw)
 
-To draw a background in kv::
+To draw a background in kv:
+
+.. code-block:: kv
 
     Widget:
         canvas:
@@ -163,18 +168,57 @@ propogated before taking action. You can use the
                 Clock.schedule_once(lambda dt: self.on_touch_down(touch, True))
                 return super(MyLabel, self).on_touch_down(touch)
 
+Usage of :attr:`Widget.center`, :attr:`Widget.right`, and :attr:`Widget.top`
+----------------------------------------------------------------------------
+
+A common mistake when using one of the computed properties such as
+:attr:`Widget.right` is to use it to make a widget follow its parent with a
+KV rule such as `right: self.parent.right`. Consider, for example:
+
+.. code-block:: kv
+
+    FloatLayout:
+        id: layout
+        width: 100
+        Widget:
+            id: wid
+            right: layout.right
+
+The (mistaken) expectation is that this rule ensures that wid's right will
+always be whatever layout's right is - that is wid.right and layout.right will
+always be identical. In actual fact, this rule only says that "whenever
+layout's `right` changes, wid's right will be set to that value". The
+difference being that as long as `layout.right` doesn't change, `wid.right`
+could be anything, even a value that will make them different.
+
+Specifically, for the KV code above, consider the following example::
+
+    >>> print(layout.right, wid.right)
+    (100, 100)
+    >>> wid.x = 200
+    >>> print(layout.right, wid.right)
+    (100, 300)
+
+As can be seen, initially they are in sync, however, when we change `wid.x`
+they go out of sync because `layout.right` is not changed and the rule is not
+triggered.
+
+The proper way to make the widget follow its parent's right is to use
+:attr:`Widget.pos_hint`. If instead of `right: layout.right` we did
+`pos_hint: {'right': 1}`, then the widgets right will always be set to be
+at the parent's right at each layout update.
 '''
-from kivy.graphics.transformation import Matrix
 
 __all__ = ('Widget', 'WidgetException')
 
 from kivy.event import EventDispatcher
 from kivy.factory import Factory
-from kivy.properties import (NumericProperty, StringProperty, AliasProperty,
-                             ReferenceListProperty, ObjectProperty,
-                             ListProperty, DictProperty, BooleanProperty)
-from kivy.graphics import (Canvas, Translate, Fbo, ClearColor, ClearBuffers,
-                            Scale)
+from kivy.properties import (
+    NumericProperty, StringProperty, AliasProperty, ReferenceListProperty,
+    ObjectProperty, ListProperty, DictProperty, BooleanProperty)
+from kivy.graphics import (
+    Canvas, Translate, Fbo, ClearColor, ClearBuffers, Scale)
+from kivy.graphics.transformation import Matrix
 from kivy.base import EventLoop
 from kivy.lang import Builder
 from kivy.context import get_current_context
@@ -258,6 +302,13 @@ class Widget(WidgetBase):
         if not hasattr(self, '_context'):
             self._context = get_current_context()
 
+        no_builder = '__no_builder' in kwargs
+        if no_builder:
+            del kwargs['__no_builder']
+        on_args = {k: v for k, v in kwargs.items() if k[:3] == 'on_'}
+        for key in on_args:
+            del kwargs[key]
+
         super(Widget, self).__init__(**kwargs)
 
         # Create the default canvas if it does not exist.
@@ -265,7 +316,7 @@ class Widget(WidgetBase):
             self.canvas = Canvas(opacity=self.opacity)
 
         # Apply all the styles.
-        if '__no_builder' not in kwargs:
+        if not no_builder:
             #current_root = Builder.idmap.get('root')
             #Builder.idmap['root'] = self
             Builder.apply(self)
@@ -275,9 +326,8 @@ class Widget(WidgetBase):
             #    Builder.idmap.pop('root')
 
         # Bind all the events.
-        for argument in kwargs:
-            if argument[:3] == 'on_':
-                self.bind(**{argument: kwargs[argument]})
+        if on_args:
+            self.bind(**on_args)
 
     @property
     def proxy_ref(self):
@@ -311,45 +361,49 @@ class Widget(WidgetBase):
     # Collision
     #
     def collide_point(self, x, y):
-        '''Check if a point (x, y) is inside the widget's axis aligned bounding
+        '''
+        Check if a point (x, y) is inside the widget's axis aligned bounding
         box.
 
         :Parameters:
             `x`: numeric
-                X position of the point (in window coordinates)
+                x position of the point (in window coordinates)
             `y`: numeric
-                Y position of the point (in window coordinates)
+                y position of the point (in window coordinates)
 
         :Returns:
-            bool, True if the point is inside the bounding box.
+            A bool. True if the point is inside the bounding box, False
+            otherwise.
 
-    .. code-block:: python
+        .. code-block:: python
 
-        >>> Widget(pos=(10, 10), size=(50, 50)).collide_point(40, 40)
-        True
+            >>> Widget(pos=(10, 10), size=(50, 50)).collide_point(40, 40)
+            True
         '''
         return self.x <= x <= self.right and self.y <= y <= self.top
 
     def collide_widget(self, wid):
-        '''Check if the other widget collides with this widget.
-        Performs an axis-aligned bounding box intersection test by default.
+        '''
+        Check if another widget collides with this widget. This function
+        performs an axis-aligned bounding box intersection test by default.
 
         :Parameters:
             `wid`: :class:`Widget` class
                 Widget to collide with.
 
         :Returns:
-            bool, True if the other widget collides with this widget.
+            bool. True if the other widget collides with this widget, False
+            otherwise.
 
-    .. code-block:: python
+        .. code-block:: python
 
-        >>> wid = Widget(size=(50, 50))
-        >>> wid2 = Widget(size=(50, 50), pos=(25, 25))
-        >>> wid.collide_widget(wid2)
-        True
-        >>> wid2.pos = (55, 55)
-        >>> wid.collide_widget(wid2)
-        False
+            >>> wid = Widget(size=(50, 50))
+            >>> wid2 = Widget(size=(50, 50), pos=(25, 25))
+            >>> wid.collide_widget(wid2)
+            True
+            >>> wid2.pos = (55, 55)
+            >>> wid.collide_widget(wid2)
+            False
         '''
         if self.right < wid.x:
             return False
@@ -375,6 +429,8 @@ class Widget(WidgetBase):
 
         :Returns:
             bool. If True, the dispatching of the touch event will stop.
+            If False, the event will continue to be dispatched to the rest
+            of the widget tree.
         '''
         if self.disabled and self.collide_point(*touch.pos):
             return True
@@ -509,12 +565,14 @@ class Widget(WidgetBase):
         widget.parent = None
 
     def clear_widgets(self, children=None):
-        '''Remove all widgets added to this widget.
+        '''
+        Remove all (or the specified) :attr:`~Widget.children` of this widget.
+        If the 'children' argument is specified, it should be a list (or
+        filtered list) of children of the current widget.
 
         .. versionchanged:: 1.8.0
-            `children` argument can be used to select the children we want to
-            remove. It should be a list of children (or filtered list) of the
-            current widget.
+            The `children` argument can be used to specify the children you
+            want to remove.
         '''
 
         if not children:
@@ -534,7 +592,7 @@ class Widget(WidgetBase):
             The image includes only this widget and its children. If you want
             to include widgets elsewhere in the tree, you must call
             :meth:`~Widget.export_to_png` from their common parent, or use
-            :meth:`~kivy.core.window.Window.screenshot` to capture the whole
+            :meth:`~kivy.core.window.WindowBase.screenshot` to capture the whole
             window.
 
         .. note::
@@ -638,7 +696,9 @@ class Widget(WidgetBase):
             A generator that walks the tree, returning widgets in the
             forward layout order.
 
-        For example, given a tree with the following structure::
+        For example, given a tree with the following structure:
+
+        .. code-block:: kv
 
             GridLayout:
                 Button
@@ -725,7 +785,9 @@ class Widget(WidgetBase):
             A generator that walks the tree, returning widgets in the
             reverse layout order.
 
-        For example, given a tree with the following structure::
+        For example, given a tree with the following structure:
+
+        .. code-block:: kv
 
             GridLayout:
                 Button
@@ -807,7 +869,8 @@ class Widget(WidgetBase):
 
     def _apply_transform(self, m, pos=None):
         if self.parent:
-            x, y = self.parent.to_widget(relative=True, *self.to_window(*(pos or self.pos)))
+            x, y = self.parent.to_widget(relative=True,
+                                         *self.to_window(*(pos or self.pos)))
             m.translate(x, y, 0)
             m = self.parent._apply_transform(m) if self.parent else m
         return m
@@ -964,13 +1027,12 @@ class Widget(WidgetBase):
     '''
 
     parent = ObjectProperty(None, allownone=True)
-    '''Parent of this widget.
+    '''Parent of this widget. The parent of a widget is set when the widget
+    is added to another widget and unset when the widget is removed from its
+    parent.
 
     :attr:`parent` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
-
-    The parent of a widget is set when the widget is added to another widget
-    and unset when the widget is removed from its parent.
     '''
 
     size_hint_x = NumericProperty(1, allownone=True)
@@ -1051,7 +1113,9 @@ class Widget(WidgetBase):
     empty dict {}.
 
     The :attr:`ids` are populated for each root level widget definition. For
-    example::
+    example:
+
+    .. code-block:: kv
 
         # in kv
         <MyWidget@Widget>:

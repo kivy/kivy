@@ -126,7 +126,7 @@ class StackLayout(Layout):
     def __init__(self, **kwargs):
         super(StackLayout, self).__init__(**kwargs)
         trigger = self._trigger_layout
-        fbind = self.fast_bind
+        fbind = self.fbind
         fbind('padding', trigger)
         fbind('spacing', trigger)
         fbind('children', trigger)

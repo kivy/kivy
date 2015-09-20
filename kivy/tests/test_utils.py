@@ -14,6 +14,7 @@ from kivy.utils import (boundary, escape_markup, format_bytes_to_human,
         is_color_transparent, SafeList, get_random_color, get_hex_from_color,
         get_color_from_hex, strtotuple, QueryDict, intersection, difference,
         interpolate, Platform, deprecated, reify)
+from kivy import utils
 
 
 class UtilsTest(unittest.TestCase):
@@ -191,7 +192,7 @@ class UtilsTest(unittest.TestCase):
 
     def test_Platform(self):
         # Those calls do not have specific intent, no assertions
-        pf = Platform()
+        pf = Platform
         pf()  # __call__ deprecated
         hash(pf)
         repr(pf)
@@ -209,37 +210,30 @@ class UtilsTest(unittest.TestCase):
         self.assertNotIn('KIVY_BUILD', os.environ)
 
     def test_Platform_win32(self):
-        with patch('kivy.utils._sys_platform') as m:
-            m.__str__.return_value = 'win32'
-            m.__eq__ = lambda x, y: str(x) == y
-            pf = Platform()
-            self.assertTrue(pf == 'win')
+        self._test_platforms('win32', 'win')
 
     def test_Platform_cygwin(self):
-        with patch('kivy.utils._sys_platform') as m:
-            m.__str__.return_value = 'cygwin'
-            m.__eq__ = lambda x, y: str(x) == y
-            pf = Platform()
-            self.assertTrue(pf == 'win')
+        self._test_platforms('cygwin', 'win')
 
     def test_Platform_linux2(self):
-        with patch('kivy.utils._sys_platform') as m:
-            m.__str__.return_value = 'linux2'
-            m.__getitem__.return_value = 'linux'
-            m.__eq__ = lambda x, y: str(x) == y
-            pf = Platform()
-            self.assertTrue(pf == 'linux')
+        self._test_platforms('linux2', 'linux')
 
     def test_Platform_darwin(self):
-        with patch('kivy.utils._sys_platform') as m:
-            m.__str__.return_value = 'darwin'
-            m.__eq__ = lambda x, y: str(x) == y
-            pf = Platform()
-            self.assertTrue(pf == 'macosx')
+        self._test_platforms('darwin', 'macosx')
+
+    def test_Platform_freebsd(self):
+        self._test_platforms('freebsd', 'linux')
 
     def test_Platform_unknown(self):
-        with patch('kivy.utils._sys_platform') as m:
-            m.__str__.return_value = 'unknown'
-            m.__eq__ = lambda x, y: str(x) == y
-            pf = Platform()
-            self.assertTrue(pf == 'unknown')
+        self._test_platforms('randomdata', 'unknown')
+
+    def _test_platforms(self, input, testval):
+        utils._sys_platform = input
+        pf = Platform()
+        self.assertTrue(pf == testval)
+        #with patch('kivy.utils._sys_platform') as m:
+        #    m.__str__.return_value = input
+        #    m.__eq__ = lambda x, y: str(x) == y
+        #    pf = Platform()
+        #    self.assertTrue(str(pf) == testval)
+

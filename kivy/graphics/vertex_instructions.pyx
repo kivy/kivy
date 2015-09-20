@@ -4,54 +4,55 @@ Vertex Instructions
 
 This module includes all the classes for drawing simple vertex objects.
 
-.. note::
+Updating properties
+-------------------
 
-    The list attributes of the graphics instruction classes (e.g.
-    :attr:`Triangle.points`, :attr:`Mesh.indices` etc.) are not Kivy
-    properties but Python properties. As a consequence, the graphics will only
-    be updated when the list object itself is changed and not when list values
-    are modified.
+The list attributes of the graphics instruction classes (e.g.
+:attr:`Triangle.points`, :attr:`Mesh.indices` etc.) are not Kivy
+properties but Python properties. As a consequence, the graphics will only
+be updated when the list object itself is changed and not when list values
+are modified.
 
-    For example in python:
+For example in python:
 
-    .. code-block:: python
+.. code-block:: python
 
-        class MyWidget(Button):
+    class MyWidget(Button):
 
-            triangle = ObjectProperty(None)
-            def __init__(self, **kwargs):
-                super(MyWidget, self).__init__(**kwargs)
-                with self.canvas:
-                    self.triangle = Triangle(points=[0,0, 100,100, 200,0])
+        triangle = ObjectProperty(None)
+        def __init__(self, **kwargs):
+            super(MyWidget, self).__init__(**kwargs)
+            with self.canvas:
+                self.triangle = Triangle(points=[0,0, 100,100, 200,0])
 
-    and in kv:
+and in kv:
 
-    .. code-block:: kv
+.. code-block:: kv
 
-        <MyWidget>:
-            text: 'Update'
-            on_press:
-                self.triangle.points[3] = 400
+    <MyWidget>:
+        text: 'Update'
+        on_press:
+            self.triangle.points[3] = 400
 
-    Although when the button is pressed the triangle coordinates will be
-    changed, the graphics will not be updated because the list itself has not
-    been changed. Similarly, no updates will occur using any syntax that changes
-    only elements of the list e.g. self.triangle.points[0:2] = [10,10] or
-    self.triangle.points.insert(10) etc.
-    To force an update after a change, the list variable itself must be
-    changed, which in this case can be achieved with:
+Although pressing the button will change the triangle coordinates,
+the graphics will not be updated because the list itself has not
+changed. Similarly, no updates will occur using any syntax that changes
+only elements of the list e.g. self.triangle.points[0:2] = [10,10] or
+self.triangle.points.insert(10) etc.
+To force an update after a change, the list variable itself must be
+changed, which in this case can be achieved with:
 
-    .. code-block:: kv
+.. code-block:: kv
 
-        <MyWidget>:
-            text: 'Update'
-            on_press:
-                self.triangle.points[3] = 400
-                self.triangle.points = self.triangle.points
+    <MyWidget>:
+        text: 'Update'
+        on_press:
+            self.triangle.points[3] = 400
+            self.triangle.points = self.triangle.points
 '''
 
-__all__ = ('Triangle', 'Quad', 'Rectangle', 'BorderImage', 'Ellipse', 'Line',
-           'Point', 'Mesh', 'GraphicException', 'Bezier', 'SmoothLine')
+__all__ = ('Triangle', 'Quad', 'Rectangle', 'RoundedRectangle', 'BorderImage', 'Ellipse',
+           'Line', 'Point', 'Mesh', 'GraphicException', 'Bezier', 'SmoothLine')
 
 
 include "config.pxi"
@@ -483,13 +484,16 @@ cdef class Mesh(VertexInstruction):
 
 
 cdef class Point(VertexInstruction):
-    '''A 2d line.
+    '''A list of 2d points. Each point is represented as a square with a
+    width/height of 2 times the :attr:`pointsize`.
 
     :Parameters:
         `points`: list
-            List of points in the format (x1, y1, x2, y2...).
+            List of points in the format (x1, y1, x2, y2...), where each pair
+            of coordinates specifies the center of a new point.
         `pointsize`: float, defaults to 1.
-            Size of the point (1. means the real size will be 2).
+            The size of the point, measured from the center to the edge. A
+            value of 1.0 therefore means the real size will be 2.0 x 2.0.
 
     .. warning::
 
@@ -617,7 +621,8 @@ cdef class Point(VertexInstruction):
             self.parent.flag_update()
 
     property points:
-        '''Property for getting/settings points of the triangle.
+        '''Property for getting/settings the center points in the points list.
+        Each pair of coordinates specifies the center of a new point.
         '''
         def __get__(self):
             return self._points
@@ -632,6 +637,8 @@ cdef class Point(VertexInstruction):
 
     property pointsize:
         '''Property for getting/setting point size.
+        The size is measured from the center to the edge, so a value of 1.0
+        means the real size will be 2.0 x 2.0.
         '''
         def __get__(self):
             return self._pointsize
@@ -844,6 +851,7 @@ cdef class BorderImage(Rectangle):
 
     '''
     cdef list _border
+    cdef list _display_border
     cdef int _auto_scale
 
     def __init__(self, **kwargs):
@@ -851,6 +859,7 @@ cdef class BorderImage(Rectangle):
         v = kwargs.get('border')
         self.border = v if v is not None else (10, 10, 10, 10)
         self.auto_scale = kwargs.get('auto_scale', False)
+        self.display_border = kwargs.get('display_border', [])
 
     cdef void build(self):
         if not self.texture:
@@ -899,6 +908,9 @@ cdef class BorderImage(Rectangle):
         # horizontal and vertical sections
         cdef float hs[4]
         cdef float vs[4]
+        cdef list db = self._display_border
+        if db:
+            sb0, sb1, sb2, sb3 = db
         hs[0] = x;            vs[0] = y
         hs[1] = x + sb3;       vs[1] = y + sb0
         hs[2] = x + w - sb1;   vs[2] = y + h - sb2
@@ -977,6 +989,15 @@ cdef class BorderImage(Rectangle):
 
         def __set__(self, value):
             self._auto_scale = int(bool(value))
+            self.flag_update()
+
+    property display_border:
+        '''Property for getting/setting the border display size.
+        '''
+        def __get__(self):
+            return self._display_border
+        def __set__(self, b):
+            self._display_border = list(b)
             self.flag_update()
 
 cdef class Ellipse(Rectangle):
@@ -1119,4 +1140,313 @@ cdef class Ellipse(Rectangle):
             return self._angle_end
         def __set__(self, value):
             self._angle_end = value
+            self.flag_update()
+
+
+cdef class RoundedRectangle(Rectangle):
+    '''A 2D rounded rectangle.
+
+    .. versionadded:: 1.9.1
+
+    :Parameters:
+        `segments`: int, defaults to 10
+            Define how many segments are needed for drawing the round corner.
+            The drawing will be smoother if you have many segments.
+        `radius`: list, defaults to [(10.0, 10.0), (10.0, 10.0), (10.0, 10.0), (10.0, 10.0)]
+            Specifies the radiuses of the round corners clockwise:
+            top-left, top-right, bottom-right, bottom-left.
+            Elements of the list can be numbers or tuples of two numbers to specify different x,y dimensions.
+            One value will define all corner dimensions to that value.
+            Four values will define dimensions for each corner separately.
+            Higher number of values will be truncated to four.
+            The first value will be used for all corners, if there is fewer than four values.
+    '''
+
+    cdef object _segments  # number of segments for each corner
+    cdef list _radius
+
+    def __init__(self, **kwargs):
+        Rectangle.__init__(self, **kwargs)
+        self.batch.set_mode('triangle_fan')
+
+        # number of segments for each corner
+        segments = kwargs.get('segments', 10)  # allow 0 segments
+        self._segments = self._check_segments(segments)
+
+        radius = kwargs.get('radius') or [10.0]
+        self._radius = self._check_radius(radius)
+
+    cdef object _check_segments(self, object segments):
+        """
+        Check segments argument, return list of four numeric values
+        for each corner.
+        """
+        cdef list result = []
+
+        # can be single numeric value
+        if isinstance(segments, int):  # can't be float number
+            return [segments] * 4
+
+        # can be list of four values for each corner
+        if isinstance(segments, list):
+            result = [value for value in segments if isinstance(value, int)]
+
+            if not result:
+                raise GraphicException("Invalid segments value, must be list of integers")
+
+            # set all values to first if less than four values
+            if len(result) < 4:
+                return result[:1] * 4
+            else:
+                return result[:4]
+
+        else:
+            raise GraphicException("Invalid segments value, must be integer or list of integers")
+
+    cdef object _check_radius(self, object radius):
+        """
+        Check radius argument, return list of four tuples
+        (xradius, yradius) for each corner.
+        """
+        cdef:
+            list result = []
+            object value
+
+        for value in radius:
+            if isinstance(value, tuple):
+                # tuple: (a,) -> (a,a); (a,b)
+                # extend/trim to exactly two coordinates
+                if len(value) < 2:
+                    value = value[:1] * 2
+                result.append(value[:2])
+
+            elif isinstance(value, (int, float)):
+                # int/float: a -> (a,a)
+                result.append((value, value))
+
+            # some strange type came - skip it. next value will be used or radiuses will be set to first
+            else:
+                Logger.trace("GRoundedRectangle: '{}' object can\'t be used to specify radius. "
+                             "Skipping...".format(radius.__class__.__name__))
+
+        if not result:
+            raise GraphicException("Invalid radius value, must be list of tuples/numerics")
+
+        # set all radiuses to first if there aren't four of them
+        if len(result) < 4:
+            return result[:1] * 4
+        else:
+            return result[:4]
+
+    cdef void build(self):
+        cdef:
+            float *tc = self._tex_coords
+            vertex_t *vertices = NULL
+            unsigned short *indices = NULL
+
+            int count, corner, segments, dw, dh, index
+            list xradius, yradius
+            float rx, ry, half_w, half_h, angle
+            float tx, ty, tw, th, px, py, x, y
+
+        # zero size of the figure
+        if self.w == 0 or self.h == 0:
+            return
+
+        # 1 vertex for sharp corner (if segments or radius is zero)
+        # `segments+1` vertices for round corner
+        # plus 1 vertex for middle point
+        count = sum([1 + segments * bool(rx * ry)
+                     for (rx, ry), segments
+                     in zip(self._radius, self._segments)]) + 1
+
+        vertices = <vertex_t *>malloc((count) * sizeof(vertex_t))
+        if vertices == NULL:
+            raise MemoryError('vertices')
+
+        # +1 because the last index must be the index of the first corner to close the fan
+        indices = <unsigned short *>malloc((count + 1) * sizeof(unsigned short))
+        if indices == NULL:
+            free(vertices)
+            raise MemoryError('indices')
+
+        # half sizes
+        half_w = self.w / 2
+        half_h = self.h / 2
+
+        # split radiuses by coordinate and make them <= half_size
+        xradius = [min(r[0], half_w) for r in self._radius]
+        yradius = [min(r[1], half_h) for r in self._radius]
+
+        # texture coordinates
+        tx = tc[0]
+        ty = tc[1]
+        tw = tc[4] - tx
+        th = tc[5] - ty
+
+        # add start vertex in the middle of the figure
+        vertices[0].x = self.x + half_w
+        vertices[0].y = self.y + half_h
+        vertices[0].s0 = tx + tw / 2
+        vertices[0].t0 = ty + th / 2
+        indices[0] = 0
+
+        index = 1  # vertex index from 1 to count
+        for corner in xrange(4):
+            # start angle for the corner. end is 90 degress lesser (clockwise)
+            angle = 180 - 90 * corner
+
+            # coefficients to enable/disable multiplication by width/height
+            dw, dh = [(0,1), (1,1), (1,0), (0,0)][corner]
+
+            # ellipse dimensions
+            rx, ry = xradius[corner], yradius[corner]
+
+            # ellipse center coordinates
+            px, py = [
+                # top left
+                (self.x + rx,
+                 self.y + self.h - ry),
+
+                # top right
+                (self.x + self.w - rx,
+                 self.y + self.h - ry),
+
+                # bottom right
+                (self.x + self.w - rx,
+                 self.y + ry),
+
+                # bottom left
+                (self.x + rx,
+                 self.y + ry)
+            ][corner]
+
+            # number of segments for this corner
+            segments = self._segments[corner]
+
+            # if at least one radius is zero or no segments
+            if not(rx and ry and segments):
+                # sharp corner
+                vertices[index].x = self.x + self.w * dw
+                vertices[index].y = self.y + self.h * dh
+                vertices[index].s0 = tx + tw * dw
+                vertices[index].t0 = ty + th * dh
+            else:
+                # round corner
+                points = self.draw_arc(px, py, rx, ry, angle, angle - 90, segments)
+                for i, point in enumerate(points, index):
+                    x, y = point
+                    vertices[i].x = x
+                    vertices[i].y = y
+                    vertices[i].s0 = (x - self.x) / self.w
+                    vertices[i].t0 = 1 - (y - self.y) / self.h  # flip vertically
+                    indices[i] = i
+                index += segments
+
+                # Add final vertex that closes the arc, explained below
+                x = px * (dw != dh) + self.x * (dw == dh) + self.w * (dw * dh)
+                y = py * (dw == dh) + self.y * (dw != dh) + self.h * (dh > dw)
+                vertices[index].x = x
+                vertices[index].y = y
+                vertices[index].s0 = (x - self.x) / self.w
+                vertices[index].t0 = 1 - (y - self.y) / self.h  # flip vertically
+
+                '''
+                We have defined these coefficients for arcs:
+                   tl tr br bl
+                dw: 0  1  1  0;
+                dh: 1  1  0  0;
+
+                Let's not define multiple arrays of coefficients, but
+                use `dw` and `dh` to calculate coordinates for closing vertices
+
+                Formula looks like this:
+
+                x = px * A + self.x * B + self.w * C
+                y = py * D + self.y * E + self.h * F
+
+                , where A - F are boolean values.
+
+                For correct coordinates, coefficients should have these values:
+
+                  tl tr br bl
+                A: 1  0  1  0; when `dw` != `dh`
+                B: 0  1  0  1; when `dw` == `dh`
+                C: 0  1  0  0; when `dw` and `dh` are both `1`
+
+                  tl tr br bl
+                D: 0  1  0  1; same as B
+                E: 1  0  1  0; same as A
+                F: 1  0  0  0; when `dh` > `dw`
+
+                NOTE: Closing vertex will duplicate next opening vertex,
+                      when corner radius is equal to half_size.
+                      (e.g: a circle will have 4 duplicates)
+                      Without it, however, figure looks ugly with small
+                      segment count.
+                '''
+
+            indices[index] = index
+            index += 1
+
+        # duplicate first corner vertex to close the fan
+        indices[count] = indices[1]
+        # count+1 used to specify how many indices are used
+        self.batch.set_data(vertices, count, indices, count + 1)
+        free(vertices)
+        free(indices)
+
+    cdef object draw_arc(self, float cx, float cy, float rx, float ry,
+                         float angle_start, float angle_end, int segments):
+        cdef:
+            float fx, fy, x, y
+            float tangential_factor, radial_factor, theta
+            list points
+
+        # convert to radians
+        angle_start *= 0.017453292519943295
+        angle_end *= 0.017453292519943295
+
+        # number of vertices for arc, including start & end
+        theta = (angle_end - angle_start) / segments
+        tangential_factor = tan(theta)
+        radial_factor = cos(theta)
+
+        # unit circle, scale later
+        x = cos(angle_start)
+        y = sin(angle_start)
+
+        # array of length `segments`
+        points = []
+
+        for i in xrange(segments):
+            real_x = cx + x * rx
+            real_y = cy + y * ry
+            points.append((real_x, real_y))
+
+            fx = -y
+            fy = x
+            x += fx * tangential_factor
+            y += fy * tangential_factor
+            x *= radial_factor
+            y *= radial_factor
+
+        return points
+
+    property segments:
+        '''Property for getting/setting the number of segments for each corner.
+        '''
+        def __get__(self):
+            return self._segments
+        def __set__(self, value):
+            self._segments = self._check_segments(value)
+            self.flag_update()
+
+    property radius:
+        '''Corner radiuses of the rounded rectangle, defaults to [10,].
+        '''
+        def __get__(self):
+            return self._radius
+        def __set__(self, value):
+            self._radius = self._check_radius(value)
             self.flag_update()

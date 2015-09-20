@@ -21,7 +21,7 @@ Manual installation
 
     gpg --recv-keys 0C667A3E
     gpg -a --export 0C667A3E | sudo apt-key add -
-    
+
 #. Install the dependencies::
 
     sudo apt-get update
@@ -81,6 +81,17 @@ You could start the showcase::
     cd kivy/examples/3Drendering
     python main.py
 
+Change the default screen to use
+--------------------------------
+
+You can set an environment variable named `KIVY_BCM_DISPMANX_ID` in order to
+change the display used to run Kivy. For example, to force the display to be
+HDMI, use::
+
+    KIVY_BCM_DISPMANX_ID=2 python main.py
+
+Check the :doc:`guide/environment` documentation to see all the possible
+value.
 
 Where to go ?
 -------------
@@ -91,4 +102,3 @@ adapt the GPIO pin in the code.
 
 A video to see what we were doing with it:
 http://www.youtube.com/watch?v=NVM09gaX6pQ
-

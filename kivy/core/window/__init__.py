@@ -211,6 +211,10 @@ class WindowBase(EventDispatcher):
             Width of the window.
         `height`: int
             Height of the window.
+        `minimum_width`: int
+            Minimum width of the window (only works for sdl2 window provider).
+        `minimum_height`: int
+            Minimum height of the window (only works for sdl2 window provider).
 
     :Events:
         `on_motion`: etype, motionevent
@@ -264,6 +268,11 @@ class WindowBase(EventDispatcher):
         `on_dropfile`: str
             Fired when a file is dropped on the application.
 
+        `on_memorywarning`:
+            Fired when the platform have memory issue (iOS / Android mostly)
+            You can listen to this one, and clean whatever you can.
+
+            .. versionadded:: 1.9.0
     '''
 
     __instance = None
@@ -328,6 +337,24 @@ class WindowBase(EventDispatcher):
             return True
         else:
             return False
+
+    minimum_width = NumericProperty(0)
+    '''The minimum width to restrict the window to.
+
+    .. versionadded:: 1.9.1
+
+    :attr:`minimum_width` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.
+    '''
+
+    minimum_height = NumericProperty(0)
+    '''The minimum height to restrict the window to.
+
+    .. versionadded:: 1.9.1
+
+    :attr:`minimum_height` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.
+    '''
 
     size = AliasProperty(_get_size, _set_size, bind=('_size', ))
     '''Get the rotated size of the window. If :attr:`rotation` is set, then the
@@ -429,27 +456,35 @@ class WindowBase(EventDispatcher):
 
     softinput_mode = OptionProperty('', options=(
         '', 'below_target', 'pan', 'scale', 'resize'))
-    '''This specifies the behavior of window contents on display of soft
-    keyboard on mobile platform. Can be one of '', 'pan', 'scale', 'resize'.
+    '''This specifies the behavior of window contents on display of the soft
+    keyboard on mobile platforms. It can be one of '', 'pan', 'scale',
+    'resize' or 'below_target'. Their effects are listed below.
 
-    When '' The main window is left as it is allowing the user to use
-    :attr:`keyboard_height` to manage the window contents the way they want.
+    +----------------+-------------------------------------------------------+
+    | Value          | Effect                                                |
+    +================+=======================================================+
+    | ''             | The main window is left as is, allowing you to use    |
+    |                | the :attr:`keyboard_height` to manage the window      |
+    |                | contents manually.                                    |
+    +----------------+-------------------------------------------------------+
+    | 'pan'          | The main window pans, moving the bottom part of the   |
+    |                | window to be always on top of the keyboard.           |
+    +----------------+-------------------------------------------------------+
+    | 'resize'       | The window is resized and the contents scaled to fit  |
+    |                | the remaining space.                                  |
+    +----------------+-------------------------------------------------------+
+    | 'below_target' | The window pans so that the current target TextInput  |
+    |                | widget requesting the keyboard is presented just above|
+    |                | the soft keyboard.                                    |
+    +----------------+-------------------------------------------------------+
 
-    when 'pan' The main window pans moving the bottom part of the window to be
-    always on top of the keyboard.
-
-    when 'resize' The window is resized and the contents scaled to fit the
-    remaining space.
-    
-    When 'below_target', the window pans so that the current target TextInput
-    widget requesting the keyboard is presented just above the soft Keyboard.
-
-    .. versionchanged::1.9.1
+    :attr:`softinput_mode` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to `None`.
 
     .. versionadded:: 1.9.0
 
-    :attr:`softinput_mode` is a :class:`OptionProperty` defaults to None.
-
+    .. versionchanged:: 1.9.1
+        The 'below_target' option was added.
     '''
 
     _keyboard_changed = BooleanProperty(False)
@@ -482,7 +517,8 @@ class WindowBase(EventDispatcher):
 
     .. versionadded:: 1.9.0
 
-    :attr:`keyboard_height` is a read-only :class:`AliasProperty` defaults to 0.
+    :attr:`keyboard_height` is a read-only
+    :class:`~kivy.propertries.AliasProperty` and defaults to 0.
     '''
 
     def _set_system_size(self, size):
@@ -500,18 +536,34 @@ class WindowBase(EventDispatcher):
     '''Real size of the window ignoring rotation.
     '''
 
+    def _get_effective_size(self):
+        '''On density=1 and non-ios displays, return system_size, else
+        return scaled / rotated size.
+
+        Used by MouseMotionEvent.update_graphics() and WindowBase.on_motion().
+        '''
+        w, h = self.system_size
+        if platform == 'ios' or self._density != 1:
+            w, h = self.size
+
+        return w, h
+
     borderless = BooleanProperty(False)
     '''When set to True, this property removes the window border/decoration.
 
     .. versionadded:: 1.9.0
 
-    :attr:`borderless` is a :class:`BooleanProperty`, defaults to False.
+    :attr:`borderless` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
     '''
 
     fullscreen = OptionProperty(False, options=(True, False, 'auto', 'fake'))
     '''This property sets the fullscreen mode of the window. Available options
-    are: True, False, 'auto', 'fake'. Check the :mod:`~kivy.config`
-    documentation for a more detailed explanation on the values.
+    are: True, False, 'auto' and 'fake'. Check the :mod:`~kivy.config`
+    documentation for more detailed explanations on these values.
+
+    fullscreen is an :class:`~kivy.properties.OptionProperty` and defaults to
+    `False`.
 
     .. versionadded:: 1.2.0
 
@@ -543,7 +595,7 @@ class WindowBase(EventDispatcher):
         'on_mouse_down', 'on_mouse_move', 'on_mouse_up', 'on_keyboard',
         'on_key_down', 'on_key_up', 'on_textinput', 'on_dropfile',
         'on_request_close', 'on_joy_axis', 'on_joy_hat', 'on_joy_ball',
-        'on_joy_button_down', "on_joy_button_up")
+        'on_joy_button_down', 'on_joy_button_up', 'on_memorywarning')
 
     def __new__(cls, **kwargs):
         if cls.__instance is None:
@@ -583,6 +635,12 @@ class WindowBase(EventDispatcher):
             kwargs['width'] = Config.getint('graphics', 'width')
         if 'height' not in kwargs:
             kwargs['height'] = Config.getint('graphics', 'height')
+        if 'minimum_width' not in kwargs:
+            kwargs['minimum_width'] = Config.getint('graphics',
+                                                    'minimum_width')
+        if 'minimum_height' not in kwargs:
+            kwargs['minimum_height'] = Config.getint('graphics',
+                                                     'minimum_height')
         if 'rotation' not in kwargs:
             kwargs['rotation'] = Config.getint('graphics', 'rotation')
         if 'position' not in kwargs:
@@ -742,6 +800,23 @@ class WindowBase(EventDispatcher):
             change in a future version.
         '''
         Logger.warning('Window: show() is not implemented in the current '
+                        'window provider.')
+
+    def raise_window(self):
+        '''Raise the window. This method should be used on desktop
+        platforms only.
+
+        .. versionadded:: 1.9.1
+
+        .. note::
+            This feature requires a SDL2 window provider and is currently only
+            supported on desktop platforms.
+
+        .. warning::
+            This code is still experimental, and its API may be subject to
+            change in a future version.
+        '''
+        Logger.warning('Window: raise_window is not implemented in the current '
                         'window provider.')
 
     def close(self):
@@ -908,9 +983,7 @@ class WindowBase(EventDispatcher):
                 The Motion Event currently dispatched.
         '''
         if me.is_touch:
-            w, h = self.system_size
-            if platform == 'ios' or self._density != 1:
-                w, h = self.size
+            w, h = self._get_effective_size()
             me.scale_for_screen(w, h, rotation=self._rotation,
                                 smode=self.softinput_mode,
                                 kheight=self.keyboard_height)
@@ -973,7 +1046,7 @@ class WindowBase(EventDispatcher):
 
         smode = self.softinput_mode
         target = self._system_keyboard.target
-        targettop = target.to_window(0, target.y)[1] if target else 0
+        targettop = max(0, target.to_window(0, target.y)[1]) if target else 0
         kheight = self.keyboard_height
 
         w2, h2 = w / 2., h / 2.
@@ -984,7 +1057,7 @@ class WindowBase(EventDispatcher):
         if smode == 'pan':
             y = kheight
         elif smode == 'below_target':
-            y = 0 if kheight < targettop else (kheight - targettop) + dp(9)
+            y = 0 if kheight < targettop else (kheight - targettop)
         if smode == 'scale':
             _h -= kheight
 
@@ -1192,6 +1265,18 @@ class WindowBase(EventDispatcher):
         '''
         pass
 
+    def on_memorywarning(self):
+        '''Event called when the platform have memory issue.
+        Your goal is to clear the cache in your app as much as you can,
+        release unused widget, etc.
+
+        Currently, this event is fired only from SDL2 provider, for
+        iOS and Android.
+
+        .. versionadded:: 1.9.0
+        '''
+        pass
+
     @reify
     def dpi(self):
         '''Return the DPI of the screen. If the implementation doesn't support
@@ -1268,7 +1353,7 @@ class WindowBase(EventDispatcher):
     def set_vkeyboard_class(self, cls):
         '''.. versionadded:: 1.0.8
 
-        Set the VKeyboard class to use. If set to None, it will use the
+        Set the VKeyboard class to use. If set to `None`, it will use the
         :class:`kivy.uix.vkeyboard.VKeyboard`.
         '''
         self._vkeyboard_cls = cls

@@ -26,7 +26,7 @@ Builder.load_string('''
         size_hint: 1, .05
         Spinner:
             id: fnt_spnr
-            text: 'DroidSansMono'
+            text: 'RobotoMono-Regular'
             font_name: self.text if self.text else self.font_name
             values: app.get_font_list
             option_cls: Factory.FntSpinnerOption
@@ -212,6 +212,7 @@ Yiddish:        דער גיך ברוין פוקס דזשאַמפּס איבער 
         self._popup.open()
 
 from kivy.utils import reify
+
 
 class unicode_app(App):
 

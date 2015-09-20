@@ -165,7 +165,7 @@ class VideoPlayerProgressBar(ProgressBar):
         self.add_widget(self.bubble)
 
         update = self._update_bubble
-        fbind = self.fast_bind
+        fbind = self.fbind
         fbind('pos', update)
         fbind('size', update)
         fbind('seek', update)

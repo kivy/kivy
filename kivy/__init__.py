@@ -3,8 +3,8 @@ Kivy framework
 ==============
 
 Kivy is an open source library for developing multi-touch applications. It is
-completely cross-platform (Linux/OSX/Win) and released under the terms of the
-MIT License.
+cross-platform (Linux/OSX/Windows/Android/iOS) and released under
+the terms of the `MIT License <https://en.wikipedia.org/wiki/MIT_License>`_.
 
 It comes with native support for many multi-touch input devices, a growing
 library of multi-touch aware widgets and hardware accelerated OpenGL drawing.
@@ -14,7 +14,7 @@ applications as quickly and easily as possible.
 With Kivy, you can take full advantage of the dynamic nature of Python. There
 are thousands of high-quality, free libraries that can be integrated in your
 application. At the same time, performance-critical parts are implemented
-in the C language.
+using `Cython <http://cython.org/>`_.
 
 See http://kivy.org for more information.
 '''
@@ -135,6 +135,17 @@ def kivy_configure():
         callback()
 
 
+def get_includes():
+    '''Retrieves the directories containing includes needed to build new Cython
+    modules with Kivy as a dependency. Currently returns the location of the
+    kivy.graphics module.
+
+    .. versionadded:: 1.9.2
+    '''
+    root_dir = dirname(__file__)
+    return [join(root_dir, 'graphics'), join(root_dir, 'tools', 'gles_compat')]
+
+
 def kivy_register_post_configuration(callback):
     '''Register a function to be called when kivy_configure() is called.
 
@@ -190,7 +201,8 @@ kivy_options = {
         'gstplayer', 'pygame', 'gi', 'pygst', 'ffpyplayer', 'sdl2',
         'avplayer'),
     'image': ('tex', 'imageio', 'dds', 'gif', 'sdl2', 'pygame', 'pil', 'ffpy'),
-    'camera': ('opencv', 'gi', 'pygst', 'videocapture', 'avfoundation', 'android'),
+    'camera': ('opencv', 'gi', 'pygst', 'videocapture', 'avfoundation',
+               'android'),
     'spelling': ('enchant', 'osxappkit', ),
     'clipboard': (
         'android', 'winctypes', 'xsel', 'xclip', 'dbusklipper', 'nspaste',
@@ -225,7 +237,7 @@ kivy_data_dir = environ.get('KIVY_DATA_DIR',
                             join(kivy_base_dir, 'data'))
 #: Kivy binary deps directory
 kivy_binary_deps_dir = environ.get('KIVY_BINARY_DEPS',
-                            join(kivy_base_dir, 'binary_deps'))
+                                   join(kivy_base_dir, 'binary_deps'))
 #: Kivy glsl shader directory
 kivy_shader_dir = join(kivy_data_dir, 'glsl')
 #: Kivy icons config path (don't remove the last '')
@@ -288,8 +300,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
     # Can be overrided in command line
     if ('KIVY_UNITTEST' not in environ and
-        'KIVY_PACKAGING' not in environ and
-        'KIVY_NO_ARGS' not in environ):
+            'KIVY_PACKAGING' not in environ and
+            'KIVY_NO_ARGS' not in environ):
         # save sys argv, otherwize, gstreamer use it and display help..
         sys_argv = sys.argv
         sys.argv = sys.argv[:1]
@@ -298,16 +310,24 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             opts, args = getopt(sys_argv[1:], 'hp:fkawFem:sr:dc:', [
                 'help', 'fullscreen', 'windowed', 'fps', 'event',
                 'module=', 'save', 'fake-fullscreen', 'auto-fullscreen',
-                'display=', 'size=', 'rotate=', 'config=', 'debug',
-                'dpi='])
+                'multiprocessing-fork', 'display=', 'size=', 'rotate=',
+                'config=', 'debug', 'dpi='])
 
         except GetoptError as err:
             Logger.error('Core: %s' % str(err))
             kivy_usage()
             sys.exit(2)
 
+        mp_fork = None
+        try:
+            mp_fork = opts['multiprocessing-fork']
+        except:
+            pass
+
         # set argv to the non-read args
         sys.argv = sys_argv[0:1] + args
+        if mp_fork is not None:
+            sys.argv = sys.argv + ['--multiprocessing-fork']
     else:
         opts = []
         args = []
@@ -401,4 +421,3 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
 Logger.info('Kivy: v%s' % (__version__))
 Logger.info('Python: v{}'.format(sys.version))
-

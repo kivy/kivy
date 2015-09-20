@@ -10,17 +10,17 @@ Scissor instructions clip your drawing area into a rectangular region.
 - class:`ScissorPush`: Begins clipping, sets the bounds of the clip space
 - class:`ScissorPop`: Ends clipping
 The area provided to clip is in screenspace pixels and must be provided as
-integer values not floats. 
+integer values not floats.
 
 The following code will draw a circle ontop of our widget while clipping
-the circle so it does not expand beyond the widget borders. 
+the circle so it does not expand beyond the widget borders.
 .. code-block:: python
     with self.canvas.after:
         #If our widget is inside another widget that modified the coordinates
         #spacing (such as ScrollView) we will want to convert to Window coords
         x,y = self.to_window(*self.pos)
         width, height = self.size
-        #We must convert from the possible float values provided by kivy 
+        #We must convert from the possible float values provided by kivy
         #widgets to an integer screenspace, in python3 round returns an int so
         #the int cast will be unnecessary.
         ScissorPush(x=int(round(x)), y=int(round(y)),
@@ -67,7 +67,7 @@ cdef class Rect:
 
 
 cdef class ScissorStack:
-    '''Class used internally to keep track of the current state of 
+    '''Class used internally to keep track of the current state of
     glScissors regions. Do not instantiate, prefer to inspect the module's
     scissor_stack.
     '''
@@ -95,8 +95,8 @@ scissor_stack = ScissorStack()
 
 
 cdef class ScissorPush(Instruction):
-    '''Push the scissor stack. Provide kwargs of 'x', 'y', 'width', 'height' 
-    to control the area and position of the scissoring region. Defaults to 
+    '''Push the scissor stack. Provide kwargs of 'x', 'y', 'width', 'height'
+    to control the area and position of the scissoring region. Defaults to
     0, 0, 100, 100
 
     Scissor works by clipping all drawing outside of a rectangle starting at
@@ -158,20 +158,19 @@ cdef class ScissorPush(Instruction):
             self.flag_update()
 
     def __init__(self, **kwargs):
-        super(ScissorPush, self).__init__(**kwargs)
-        pos = kwargs.get('pos', (kwargs.get('x', 0), kwargs.get('y', 0)))
-        self._x, self._y = kwargs.get(
+        self._x, self._y = kwargs.pop(
             'pos', (
-                kwargs.get('x', 0),
-                kwargs.get('y', 0)
+                kwargs.pop('x', 0),
+                kwargs.pop('y', 0)
                 )
             )
-        self._width, self._height = kwargs.get(
+        self._width, self._height = kwargs.pop(
             'size', (
-                kwargs.get('width', 100),
-                kwargs.get('height', 100)
+                kwargs.pop('width', 100),
+                kwargs.pop('height', 100)
                 )
             )
+        super(ScissorPush, self).__init__(**kwargs)
         self._rect = Rect(self._x, self._y, self._width, self._height)
 
     cdef int apply(self) except -1:
@@ -183,12 +182,12 @@ cdef class ScissorPush(Instruction):
             glEnable(GL_SCISSOR_TEST)
             glScissor(self._x, self._y, self._width, self._height)
         else:
-            new_scissor_rect = Rect(rect._x, rect._y, 
+            new_scissor_rect = Rect(rect._x, rect._y,
                 rect._width, rect._height)
             back = scissor_stack.back
             new_scissor_rect.intersect(back)
             scissor_stack.push(new_scissor_rect)
-            glScissor(new_scissor_rect._x, new_scissor_rect._y, 
+            glScissor(new_scissor_rect._x, new_scissor_rect._y,
                 new_scissor_rect._width, new_scissor_rect._height)
 
 cdef class ScissorPop(Instruction):
@@ -203,5 +202,5 @@ cdef class ScissorPop(Instruction):
             glDisable(GL_SCISSOR_TEST)
         else:
             new_scissor_rect = scissor_stack.back
-            glScissor(new_scissor_rect._x, new_scissor_rect._y, 
+            glScissor(new_scissor_rect._x, new_scissor_rect._y,
                 new_scissor_rect._width, new_scissor_rect._height)

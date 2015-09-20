@@ -29,10 +29,15 @@
 #			include "common_subset.h"
 #		else
 #			include <GLES2/gl2.h>
+#			include <GLES2/gl2ext.h>
+#		endif
+#		ifndef GL_DEPTH24_STENCIL8
+#			define GL_DEPTH24_STENCIL8                      GL_DEPTH24_STENCIL8_OES
 #		endif
 #	else
 #		ifdef __APPLE__
 #			include <OpenGL/gl.h>
+#			include <OpenGL/glext.h>
 #		else
 #			define GL_GLEXT_PROTOTYPES
 #			include <GL/gl.h>

@@ -258,7 +258,7 @@ class AccordionItem(FloatLayout):
         self._anim_collapse = None
         super(AccordionItem, self).__init__(**kwargs)
         trigger_title = self._trigger_title
-        fbind = self.fast_bind
+        fbind = self.fbind
         fbind('title', trigger_title)
         fbind('title_template', trigger_title)
         fbind('title_args', trigger_title)
@@ -361,7 +361,7 @@ class Accordion(Widget):
         super(Accordion, self).__init__(**kwargs)
         update = self._trigger_layout = \
             Clock.create_trigger(self._do_layout, -1)
-        fbind = self.fast_bind
+        fbind = self.fbind
         fbind('orientation', update)
         fbind('children', update)
         fbind('size', update)

@@ -13,14 +13,14 @@ Usage
 -----
 
 The idea behind the Storage module is to be able to load/store any number of
-key/value pairs via an indexed key. The default model is abstract so you
+key-value pairs via an indexed key. The default model is abstract so you
 cannot use it directly. We provide some implementations such as:
 
 - :class:`kivy.storage.dictstore.DictStore`: use a python dict as a store
-- :class:`kivy.storage.jsonstore.JsonStore`: use a JSON file as a store
-- :class:`kivy.storage.redistore.RedisStore`: use a `Redis <http://redis.io>`_
+- :class:`kivy.storage.jsonstore.JsonStore`: use a
+  `JSON <https://en.wikipedia.org/wiki/JSON>`_ file as a store
+- :class:`kivy.storage.redisstore.RedisStore`: use a `Redis <http://redis.io>`_
   database with `redis-py <https://github.com/andymccurdy/redis-py>`_
-
 
 
 Examples
@@ -36,7 +36,7 @@ For example, let's use a JsonStore::
     store.put('tito', name='Mathieu', org='kivy')
     store.put('tshirtman', name='Gabriel', age=27)
 
-    # using the same index key erases all previously added key/value pairs
+    # using the same index key erases all previously added key-value pairs
     store.put('tito', name='Mathieu', age=30)
 
     # get a value using a index key and key
@@ -78,17 +78,19 @@ Without callback (Synchronous API)::
 
 With callback (Asynchronous API)::
 
-    def my_callback(store, key, entry):
-        print('the key', key, 'have', entry)
+    def my_callback(store, key, result):
+        print('the key', key, 'has a value of', result)
     mystore.get('plop', callback=my_callback)
 
 
-The callback signature is (for almost all methods) `callback(store, key,
-result)`::
+The callback signature (for almost all methods) is::
 
-#. `store` is the `Store` instance currently used.
-#. `key` is the key to search for.
-#. `entry` is the result of the lookup for the `key`.
+    def callback(store, key, result):
+        """
+        store: the `Store` instance currently used.
+        key: the key sought for.
+        result: the result of the lookup for the key.
+        """
 
 
 Synchronous container type
@@ -152,7 +154,7 @@ class AbstractStore(EventDispatcher):
                        key=key, callback=callback)
 
     def get(self, key):
-        '''Get the key/value pairs stored at `key`. If the key is not found, a
+        '''Get the key-value pairs stored at `key`. If the key is not found, a
         `KeyError` exception will be thrown.
         '''
         return self.store_get(key)
@@ -171,8 +173,8 @@ class AbstractStore(EventDispatcher):
         self._schedule(self.store_get_async, key=key, callback=callback)
 
     def put(self, key, **values):
-        '''Put new key/value pairs (given in *values*) into the storage. Any
-        existing key/value pairs will be removed.
+        '''Put new key-value pairs (given in *values*) into the storage. Any
+        existing key-value pairs will be removed.
         '''
         need_sync = self.store_put(key, values)
         if need_sync:
@@ -220,7 +222,7 @@ class AbstractStore(EventDispatcher):
     def find(self, **filters):
         '''Return all the entries matching the filters. The entries are
         returned through a generator as a list of (key, entry) pairs
-        where *entry* is a dict of key/value pairs ::
+        where *entry* is a dict of key-value pairs ::
 
             for key, entry in store.find(name='Mathieu'):
                 print('key:', key, ', entry:', entry)

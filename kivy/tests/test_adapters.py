@@ -202,20 +202,20 @@ for fruit_record in fruit_data_list_of_dicts:
 
 
 class CategoryItem(SelectableDataItem):
-    def __init__(self, **kwargs):
-        super(CategoryItem, self).__init__(**kwargs)
-        self.name = kwargs.get('name', '')
-        self.fruits = kwargs.get('fruits', [])
-        self.is_selected = kwargs.get('is_selected', False)
+    def __init__(self, is_selected=False, fruits=None, name='', **kwargs):
+        super(CategoryItem, self).__init__(is_selected=is_selected, **kwargs)
+        self.name = name
+        self.fruits = fruits if fruits is not None else []
+        self.is_selected = is_selected
 
 
 class FruitItem(SelectableDataItem):
-    def __init__(self, **kwargs):
-        super(FruitItem, self).__init__(**kwargs)
-        self.name = kwargs.get('name', '')
-        self.serving_size = kwargs.get('Serving Size', '')
-        self.data = kwargs.get('data', [])
-        self.is_selected = kwargs.get('is_selected', False)
+    def __init__(self, is_selected=False, data=None, name='', **kwargs):
+        self.serving_size = kwargs.pop('Serving Size', '')
+        super(FruitItem, self).__init__(is_selected=is_selected, **kwargs)
+        self.name = name
+        self.data = data if data is not None else data
+        self.is_selected = is_selected
 
 
 def reset_to_defaults(db_dict):
@@ -287,7 +287,7 @@ class AdaptersTestCase(unittest.TestCase):
 
         # The third of the four cls_dict items has no kwargs nor text, so
         # rec['text'] will be set for it. Likewise, the fifth item has kwargs,
-        # but it has no 'text' key/value, so should receive the same treatment.
+        # but it has no 'text' key-value, so should receive the same treatment.
         self.composite_args_converter = \
             lambda row_index, rec: \
                 {'text': rec['text'],
@@ -300,7 +300,7 @@ class AdaptersTestCase(unittest.TestCase):
                                            'is_representing_cls': True}},
                                {'cls': ListItemButton},
                                {'cls': ListItemButton,
-                                'kwargs': {'some key': 'some value'}},
+                                'kwargs': {}},
                                {'cls': ListItemButton,
                                 'kwargs': {'text': rec['text']}}]}
 

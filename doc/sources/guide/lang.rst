@@ -14,7 +14,7 @@ The `KV` language (sometimes called kvlang, or kivy language), allows you to
 create your widget tree in a declarative way and to bind widget properties
 to each other or to callbacks in a natural manner. It allows for very fast
 prototyping and agile changes to your UI. It also facilitates a good
-separation between the logic of your application and it's User Interface.
+separation between the logic of your application and its User Interface.
 
 How to load KV
 --------------

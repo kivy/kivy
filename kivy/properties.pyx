@@ -86,16 +86,15 @@ Error Handling
 ~~~~~~~~~~~~~~
 
 If setting a value would otherwise raise a ValueError, you have two options to
-handle the error gracefully within the property. An errorvalue is a substitute
-for the invalid value. An errorhandler is a callable (single argument function
-or lambda) which can return a valid substitute.
-
-errorvalue parameter::
+handle the error gracefully within the property. The first option is to use an
+errorvalue parameter. An errorvalue is a substitute for the invalid value::
 
     # simply returns 0 if the value exceeds the bounds
     bnp = BoundedNumericProperty(0, min=-500, max=500, errorvalue=0)
 
-errorhandler parameter::
+The second option in to use an errorhandler parameter. An errorhandler is a
+callable (single argument function or lambda) which can return a valid
+substitute::
 
     # returns the boundary value when exceeded
     bnp = BoundedNumericProperty(0, min=-500, max=500,
@@ -109,8 +108,8 @@ Kivy properties are easier to use than the standard ones. See the next chapter
 for examples of how to use them :)
 
 
-Observe Properties changes
---------------------------
+Observe Property changes
+------------------------
 
 As we said in the beginning, Kivy's Properties implement the `Observer pattern
 <http://en.wikipedia.org/wiki/Observer_pattern>`_. That means you can
@@ -151,7 +150,7 @@ class::
 Observe using 'on_<propname>'
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you created the class yourself, you can use the 'on_<propname>' callback::
+If you defined the class yourself, you can use the 'on_<propname>' callback::
 
     class MyClass(EventDispatcher):
         a = NumericProperty(1)
@@ -171,7 +170,9 @@ Binding to properties of properties.
 When binding to a property of a property, for example binding to a numeric
 property of an object saved in a object property, updating the object property
 to point to a new object will not re-bind the numeric property to the
-new object. For example::
+new object. For example:
+
+.. code-block:: kv
 
     <MyWidget>:
         Label:
@@ -209,6 +210,7 @@ from kivy.config import ConfigParser
 from functools import partial
 from kivy.clock import Clock
 from kivy.weakmethod import WeakMethod
+from kivy.logger import Logger
 
 cdef float g_dpi = -1
 cdef float g_density = -1
@@ -282,11 +284,11 @@ cdef class Property:
             If set, it will replace an invalid property value (overrides
             errorhandler).
 
-            If the paramters include `force_dispatch`, it should be a boolean.
-            If True, the property event will be dispatched even if the new
-            value matches the old value (by default identical values are not
-            dispatched to avoid infinite recursion in two-way binds). Be
-            careful, this is for advanced use only.
+            If the parameters include `force_dispatch`, it should be a boolean.
+            If True, no value comparison will be done, so the property event
+            will be dispatched even if the new value matches the old value (by
+            default identical values are not dispatched to avoid infinite
+            recursion in two-way binds). Be careful, this is for advanced use only.
 
     .. versionchanged:: 1.4.2
         Parameters errorhandler and errorvalue added
@@ -321,6 +323,12 @@ cdef class Property:
     property name:
         def __get__(self):
             return self._name
+
+    def __repr__(self):
+        return '<{} name={}>'.format(self.__class__.__name__, self._name)
+
+    def __str__(self):
+        return '<{} name={}>'.format(self.__class__.__name__, self._name)
 
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage):
         storage.value = self.convert(obj, self.defaultvalue)
@@ -361,34 +369,37 @@ cdef class Property:
         '''Add a new observer to be called only when the value is changed.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.observers.bind(WeakMethod(observer), 1)
+        ps.observers.bind(WeakMethod(observer), observer, 1)
 
-    cpdef fast_bind(self, EventDispatcher obj, observer, tuple largs=(), dict kwargs={}):
+    cpdef fbind(self, EventDispatcher obj, observer, int ref, tuple largs=(), dict kwargs={}):
         '''Similar to bind, except it doesn't check if the observer already
         exists. It also expands and forwards largs and kwargs to the callback.
-        fast_unbind or unbind_uid should be called when unbinding.
+        funbind or unbind_uid should be called when unbinding.
         It returns a unique positive uid to be used with unbind_uid.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        return ps.observers.fast_bind(observer, largs, kwargs, 0)
+        if ref:
+            return ps.observers.fbind(WeakMethod(observer), largs, kwargs, 1)
+        else:
+            return ps.observers.fbind(observer, largs, kwargs, 0)
 
     cpdef unbind(self, EventDispatcher obj, observer):
         '''Remove the observer from our widget observer list.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.observers.unbind(observer, 1, 0)
+        ps.observers.unbind(observer, 0)
 
-    cpdef fast_unbind(self, EventDispatcher obj, observer, tuple largs=(), dict kwargs={}):
+    cpdef funbind(self, EventDispatcher obj, observer, tuple largs=(), dict kwargs={}):
         '''Remove the observer from our widget observer list bound with
-        fast_bind. It removes the first match it finds, as opposed to unbind
+        fbind. It removes the first match it finds, as opposed to unbind
         which searches for all matches.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.observers.fast_unbind(observer, largs, kwargs)
+        ps.observers.funbind(observer, largs, kwargs)
 
     cpdef unbind_uid(self, EventDispatcher obj, object uid):
         '''Remove the observer from our widget observer list bound with
-        fast_bind using the uid.
+        fbind using the uid.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
         ps.observers.unbind_uid(uid)
@@ -402,7 +413,13 @@ cdef class Property:
         return self.get(obj)
 
     cdef compare_value(self, a, b):
-        return a == b
+        try:
+            return bool(a == b)
+        except Exception as e:
+            Logger.warn(
+                'Property: Value comparison failed for {} with "{}". Consider setting '
+                'force_dispatch to True to avoid this.'.format(self, e))
+            return False
 
     cpdef set(self, EventDispatcher obj, value):
         '''Set a new value for the property.
@@ -516,6 +533,9 @@ cdef class NumericProperty(Property):
         storage.numeric_fmt = 'px'
         Property.init_storage(self, obj, storage)
 
+    cdef compare_value(self, a, b):
+        return a == b
+
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
@@ -573,6 +593,9 @@ cdef class StringProperty(Property):
     def __init__(self, defaultvalue='', **kw):
         super(StringProperty, self).__init__(defaultvalue, **kw)
 
+    cdef compare_value(self, a, b):
+        return a == b
+
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
@@ -593,58 +616,72 @@ class ObservableList(list):
     def __init__(self, *largs):
         self.prop = largs[0]
         self.obj = ref(largs[1])
+        self.last_op = ''
         super(ObservableList, self).__init__(*largs[2:])
 
     def __setitem__(self, key, value):
+        self.last_op = '__setitem__'
         list.__setitem__(self, key, value)
         observable_list_dispatch(self)
 
     def __delitem__(self, key):
+        self.last_op = '__delitem__'
         list.__delitem__(self, key)
         observable_list_dispatch(self)
 
     def __setslice__(self, *largs):
+        self.last_op = '__setslice__'
         list.__setslice__(self, *largs)
         observable_list_dispatch(self)
 
     def __delslice__(self, *largs):
+        self.last_op = '__delslice__'
         list.__delslice__(self, *largs)
         observable_list_dispatch(self)
 
     def __iadd__(self, *largs):
+        self.last_op = '__iadd__'
         list.__iadd__(self, *largs)
         observable_list_dispatch(self)
 
     def __imul__(self, *largs):
+        self.last_op = '__imul__'
         list.__imul__(self, *largs)
         observable_list_dispatch(self)
 
     def append(self, *largs):
+        self.last_op = 'append'
         list.append(self, *largs)
         observable_list_dispatch(self)
 
     def remove(self, *largs):
+        self.last_op = 'remove'
         list.remove(self, *largs)
         observable_list_dispatch(self)
 
     def insert(self, *largs):
+        self.last_op = 'insert'
         list.insert(self, *largs)
         observable_list_dispatch(self)
 
     def pop(self, *largs):
+        self.last_op = 'pop'
         cdef object result = list.pop(self, *largs)
         observable_list_dispatch(self)
         return result
 
     def extend(self, *largs):
+        self.last_op = 'extend'
         list.extend(self, *largs)
         observable_list_dispatch(self)
 
     def sort(self, *largs):
+        self.last_op = 'sort'
         list.sort(self, *largs)
         observable_list_dispatch(self)
 
     def reverse(self, *largs):
+        self.last_op = 'reverse'
         list.reverse(self, *largs)
         observable_list_dispatch(self)
 
@@ -1015,6 +1052,9 @@ cdef class BoundedNumericProperty(Property):
         if ps.bnum_use_max == 2:
             return ps.bnum_f_max
 
+    cdef compare_value(self, a, b):
+        return a == b
+
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
@@ -1170,7 +1210,7 @@ cdef class ReferenceListProperty(Property):
         cdef Property prop
         Property.link_deps(self, obj, name)
         for prop in self.properties:
-            prop.fast_bind(obj, self.trigger_change)
+            prop.fbind(obj, self.trigger_change, 0)
 
     cpdef trigger_change(self, EventDispatcher obj, value):
         cdef PropertyStorage ps = obj.__storage[self._name]
@@ -1271,7 +1311,7 @@ cdef class AliasProperty(Property):
             return self.x + self.width
         def set_right(self, value):
             self.x = value - self.width
-        right = AliasProperty(get_right, set_right, bind=('x', 'width'))
+        right = AliasProperty(get_right, set_right, bind=['x', 'width'])
 
     :Parameters:
         `getter`: function
@@ -1323,7 +1363,7 @@ cdef class AliasProperty(Property):
         cdef Property oprop
         for prop in self.bind_objects:
             oprop = getattr(obj.__class__, prop)
-            oprop.fast_bind(obj, self.trigger_change)
+            oprop.fbind(obj, self.trigger_change, 0)
 
     cpdef trigger_change(self, EventDispatcher obj, value):
         cdef PropertyStorage ps = obj.__storage[self._name]
@@ -1398,6 +1438,9 @@ cdef class VariableListProperty(Property):
         Property.link(self, obj, name)
         cdef PropertyStorage ps = obj.__storage[self._name]
         ps.value = ObservableList(self, obj, ps.value)
+
+    cdef compare_value(self, a, b):
+        return a == b
 
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
@@ -1510,7 +1553,9 @@ cdef class ConfigParserProperty(Property):
     the `info` section of the ConfigParser named `example`. Initially, this
     ConfigParser doesn't exist. Then, in `__init__`, a ConfigParser is created
     with name `example`, which is then automatically linked with this property.
-    then in kv::
+    then in kv:
+
+    .. code-block:: kv
 
         BoxLayout:
             TextInput:
@@ -1611,11 +1656,11 @@ cdef class ConfigParserProperty(Property):
         self.last_value = None  # the last string value in the config for this
 
     def __init__(self, defaultvalue, section, key, config, **kw):
+        self.val_type = kw.pop('val_type', None)
+        self.verify = kw.pop('verify', None)
         super(ConfigParserProperty, self).__init__(defaultvalue, **kw)
         self.section = section
         self.key = key
-        self.val_type = kw.get('val_type', None)
-        self.verify = kw.get('verify', None)
 
         if isinstance(config, string_types) and config:
             self.config_name = config

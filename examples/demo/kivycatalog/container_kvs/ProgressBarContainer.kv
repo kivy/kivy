@@ -11,7 +11,7 @@ BoxLayout:
         id: slider
         max: 200
         value: 140
-        on_value: bar.value = self.value
+        on_value: slider.value = self.value
     Slider:
         orientation: 'vertical'
         on_value: slider.value = self.value

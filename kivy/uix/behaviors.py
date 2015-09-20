@@ -4,13 +4,55 @@ Behaviors
 
 .. versionadded:: 1.8.0
 
-This module implements behaviors that can be mixed with existing base widgets.
-For example, if you want to add a "button" capability to an `Image`, you could
-do::
+Behavior mixin classes
+----------------------
 
+This module implements behaviors that can be
+`mixed in <https://en.wikipedia.org/wiki/Mixin>`_
+with existing base widgets. The idea behind these classes is to encapsulate
+properties and events associated with certain types of widgets.
+
+Isolating these properties and events in a mixin class allows you to define your
+own implementation for standard kivy widgets that can act as drop-in
+replacements. This means you can re-style and re-define widgets as desired
+without breaking compatibility: as long as they implement the behaviors
+correctly, they can simply replace the standard widgets.
+
+Adding behaviors
+----------------
+
+Say you want to add :class:`~kivy.uix.button.Button` capabilities to an
+:class:`~kivy.uix.image.Image`, you could do::
 
     class IconButton(ButtonBehavior, Image):
         pass
+
+This would give you an :class:`~kivy.uix.image.Image` with the events and
+properties inherited from :class:`ButtonBehavior`. For example, the *on_press*
+and *on_release* events would be fired when appropriate::
+
+    class IconButton(ButtonBehavior, Image):
+        def on_press(self):
+            print("on_press")
+
+Or in kv:
+
+.. code-block:: kv
+
+    IconButton:
+        on_press: print('on_press')
+
+Naturally, you could also bind to any property changes the behavior class
+offers:
+
+.. code-block:: python
+
+        def state_changed(*args):
+            print('state changed')
+
+        button = IconButton()
+        button.bind(state=state_changed)
+
 
 .. note::
 
@@ -20,14 +62,16 @@ do::
 
     Similarly, if you combine a behavior class with a class which
     requires the use of the methods also defined by the behavior class, the
-    resulting class may not function properly. E.g. combining a ButtonBehavior
-    with a Slider, both of which require the on_touch_up methods, the resulting
-    class will not work.
+    resulting class may not function properly. For example, when combining the
+    :class:`ButtonBehavior` with a :class:`~kivy.uix.slider.Slider`, both of
+    which use the :meth:`~kivy.uix.widget.Widget.on_touch_up` method,
+    the resulting class may not work properly.
 
 '''
 
 __all__ = ('ButtonBehavior', 'ToggleButtonBehavior', 'DragBehavior',
-           'FocusBehavior', 'CompoundSelectionBehavior')
+           'FocusBehavior', 'CompoundSelectionBehavior',
+           'CodeNavigationBehavior')
 
 from kivy.clock import Clock
 from kivy.properties import OptionProperty, ObjectProperty, NumericProperty,\
@@ -35,6 +79,7 @@ from kivy.properties import OptionProperty, ObjectProperty, NumericProperty,\
 from kivy.config import Config
 from kivy.metrics import sp
 from kivy.base import EventLoop
+from kivy.event import EventDispatcher
 from kivy.logger import Logger
 from functools import partial
 from weakref import ref
@@ -53,7 +98,9 @@ if Config:
 
 
 class ButtonBehavior(object):
-    '''Button behavior.
+    '''
+    This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides
+    :class:`~kivy.uix.button.Button` behavior.
 
     :Events:
         `on_press`
@@ -64,11 +111,12 @@ class ButtonBehavior(object):
     '''
 
     state = OptionProperty('normal', options=('normal', 'down'))
-    '''State of the button, must be one of 'normal' or 'down'.
+    '''The state of the button, must be one of 'normal' or 'down'.
     The state is 'down' only when the button is currently touched/clicked,
-    otherwise 'normal'.
+    otherwise its 'normal'.
 
-    :attr:`state` is an :class:`~kivy.properties.OptionProperty`.
+    :attr:`state` is an :class:`~kivy.properties.OptionProperty` and defaults
+    to 'normal'.
     '''
 
     last_touch = ObjectProperty(None)
@@ -78,24 +126,24 @@ class ButtonBehavior(object):
 
     .. versionadded:: 1.8.0
 
-    :attr:`last_touch` is a :class:`~kivy.properties.ObjectProperty`,
-    defaults to None.
+    :attr:`last_touch` is a :class:`~kivy.properties.ObjectProperty` and
+    defaults to `None`.
     '''
 
     MIN_STATE_TIME = 0.035
     '''The minimum period of time which the widget must remain in the
     `'down'` state.
 
-    :attr:`MIN_STATE_TIME` is a float.
+    :attr:`MIN_STATE_TIME` is a float and defaults to 0.035.
     '''
 
     always_release = BooleanProperty(True)
-    '''This determines if the widget fires a `on_release` event if
+    '''This determines whether or not the widget fires an `on_release` event if
     the touch_up is outside the widget.
 
     .. versionadded:: 1.9.0
 
-    :attr:`always_release` is a :class:`~kivy.properties.BooleanProperty`,
+    :attr:`always_release` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to `True`.
     '''
 
@@ -105,7 +153,7 @@ class ButtonBehavior(object):
         super(ButtonBehavior, self).__init__(**kwargs)
         self.__state_event = None
         self.__touch_time = None
-        self.fast_bind('state', self.cancel_event)
+        self.fbind('state', self.cancel_event)
 
     def _do_press(self):
         self.state = 'down'
@@ -193,8 +241,9 @@ class ButtonBehavior(object):
 
 
 class ToggleButtonBehavior(ButtonBehavior):
-    '''ToggleButton behavior, see ToggleButton module documentation for more
-    information.
+    '''This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides
+    :class:`~kivy.uix.togglebutton.ToggleButton` behavior. Please see
+    the :mod:`~kivy.uix.togglebutton` module documentation for more information.
 
     .. versionadded:: 1.8.0
     '''
@@ -202,20 +251,21 @@ class ToggleButtonBehavior(ButtonBehavior):
     __groups = {}
 
     group = ObjectProperty(None, allownone=True)
-    '''Group of the button. If None, no group will be used (button is
+    '''Group of the button. If `None`, no group will be used (the button will be
     independent). If specified, :attr:`group` must be a hashable object, like
-    a string. Only one button in a group can be in 'down' state.
+    a string. Only one button in a group can be in a 'down' state.
 
-    :attr:`group` is a :class:`~kivy.properties.ObjectProperty`
+    :attr:`group` is a :class:`~kivy.properties.ObjectProperty` and defaults to
+    `None`.
     '''
 
     allow_no_selection = BooleanProperty(True)
-    '''This specifies whether the checkbox in group allows everything to
-    be deselected.
+    '''This specifies whether the widgets in a group allow no selection i.e.
+    everything to be deselected.
 
     .. versionadded:: 1.9.0
 
-    :attr:`allow_no_selection` is a :class:`BooleanProperty` defaults to
+    :attr:`allow_no_selection` is a :class:`BooleanProperty` and defaults to
     `True`
     '''
 
@@ -270,12 +320,14 @@ class ToggleButtonBehavior(ButtonBehavior):
 
     @staticmethod
     def get_widgets(groupname):
-        '''Return the widgets contained in a specific group. If the group
-        doesn't exist, an empty list will be returned.
+        '''Return a list of the widgets contained in a specific group. If the
+        group doesn't exist, an empty list will be returned.
 
-        .. important::
+        .. note::
 
-            Always release the result of this method! In doubt, do::
+            Always release the result of this method! Holding a reference to
+            any of these widgets can prevent them from being garbage collected.
+            If in doubt, do::
 
                 l = ToggleButtonBehavior.get_widgets('mygroup')
                 # do your job
@@ -284,9 +336,8 @@ class ToggleButtonBehavior(ButtonBehavior):
         .. warning::
 
             It's possible that some widgets that you have previously
-            deleted are still in the list. Garbage collector might need
-            more elements before flushing it. The return of this method
-            is informative, you've been warned!
+            deleted are still in the list. The garbage collector might need
+            to release other objects before flushing them.
         '''
         groups = ToggleButtonBehavior.__groups
         if groupname not in groups:
@@ -295,8 +346,10 @@ class ToggleButtonBehavior(ButtonBehavior):
 
 
 class DragBehavior(object):
-    '''Drag behavior. When combined with a widget, dragging in the rectangle
-    defined by :attr:`drag_rectangle` will drag the widget.
+    '''This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class
+    provides Drag behavior. When combined with a widget,
+    dragging in the rectangle defined by :attr:`drag_rectangle` will drag the
+    widget.
 
     For example, to make a popup which is draggable by its title do::
 
@@ -306,7 +359,10 @@ class DragBehavior(object):
         class DragPopup(DragBehavior, Popup):
             pass
 
-    And in .kv do::
+    And in .kv do:
+
+    .. code-block:: kv
+
         <DragPopup>:
             drag_rectangle: self.x, self.y+self._container.height, self.width,\
             self.height - self._container.height
@@ -319,52 +375,53 @@ class DragBehavior(object):
     drag_distance = NumericProperty(_scroll_distance)
     '''Distance to move before dragging the :class:`DragBehavior`, in pixels.
     As soon as the distance has been traveled, the :class:`DragBehavior` will
-    start to drag, and no touch event will go to children.
+    start to drag, and no touch event will be dispatched to the children.
     It is advisable that you base this value on the dpi of your target device's
     screen.
 
-    :attr:`drag_distance` is a :class:`~kivy.properties.NumericProperty`,
-    defaults to 20 (pixels), according to the default value of scroll_distance
-    in user configuration.
+    :attr:`drag_distance` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to the `scroll_distance` as defined in the user
+    :class:`~kivy.config.Config` (20 pixels by default).
     '''
 
     drag_timeout = NumericProperty(_scroll_timeout)
     '''Timeout allowed to trigger the :attr:`drag_distance`, in milliseconds.
     If the user has not moved :attr:`drag_distance` within the timeout,
-    dragging will be disabled, and the touch event will go to the children.
+    dragging will be disabled, and the touch event will be dispatched to the
+    children.
 
-    :attr:`drag_timeout` is a :class:`~kivy.properties.NumericProperty`,
-    defaults to 55 (milliseconds), according to the default value of
-    scroll_timeout in user configuration.
+    :attr:`drag_timeout` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to the `scroll_timeout` as defined in the user
+    :class:`~kivy.config.Config` (55 milliseconds by defaut).
     '''
 
     drag_rect_x = NumericProperty(0)
     '''X position of the axis aligned bounding rectangle where dragging
-    is allowed. In window coordinates.
+    is allowed (in window coordinates).
 
-    :attr:`drag_rect_x` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`drag_rect_x` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
     drag_rect_y = NumericProperty(0)
     '''Y position of the axis aligned bounding rectangle where dragging
-    is allowed. In window coordinates.
+    is allowed (in window coordinates).
 
-    :attr:`drag_rect_Y` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`drag_rect_Y` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
     drag_rect_width = NumericProperty(100)
     '''Width of the axis aligned bounding rectangle where dragging is allowed.
 
-    :attr:`drag_rect_width` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`drag_rect_width` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 100.
     '''
 
     drag_rect_height = NumericProperty(100)
     '''Height of the axis aligned bounding rectangle where dragging is allowed.
 
-    :attr:`drag_rect_height` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`drag_rect_height` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 100.
     '''
 
@@ -475,12 +532,13 @@ class DragBehavior(object):
 
 
 class FocusBehavior(object):
-    '''Implements keyboard focus behavior. When combined with other
+    '''This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides
+    keyboard focus behavior. When combined with other
     FocusBehavior widgets it allows one to cycle focus among them by pressing
-    tab. In addition, upon gaining focus the instance will automatically
+    tab. In addition, upon gaining focus, the instance will automatically
     receive keyboard input.
 
-    Focus, very different then selection, is intimately tied with the keyboard;
+    Focus, very different from selection, is intimately tied with the keyboard;
     each keyboard can focus on zero or one widgets, and each widget can only
     have the focus of one keyboard. However, multiple keyboards can focus
     simultaneously on different widgets. When escape is hit, the widget having
@@ -489,10 +547,11 @@ class FocusBehavior(object):
     In essence, focus is implemented as a doubly linked list, where each
     node holds a (weak) reference to the instance before it and after it,
     as visualized when cycling through the nodes using tab (forward) or
-    shift+tab (backward). If previous or next widget is not specified,
-    :attr:`focus_next` and :attr:`focus_previous` defaults to `None`,
-    which means that the children list and parents are walked to find
-    the next focusable widget, unless :attr:`focus_next` or
+    shift+tab (backward). If a previous or next widget is not specified,
+    :attr:`focus_next` and :attr:`focus_previous` defaults to `None`. This
+    means that the :attr:`~kivy.uix.widget.Widget.children` list and
+    :attr:`parents <kivy.uix.widget.Widget.parent>` are
+    walked to find the next focusable widget, unless :attr:`focus_next` or
     :attr:`focus_previous` is set to the `StopIteration` class, in which case
     focus stops there.
 
@@ -508,6 +567,11 @@ class FocusBehavior(object):
         # clicking on a widget will activate focus, and tab can now be used
         # to cycle through
 
+    When using a software keyboard, typical on mobile and touch devices, the
+    keyboard display behavior is determined by the
+    :attr:`~kivy.core.window.WindowBase.softinput_mode` property. You can use
+    this property to ensure the focused widget is not covered or obscured by the
+    keyboard.
 
     .. versionadded:: 1.9.0
 
@@ -524,7 +588,7 @@ class FocusBehavior(object):
     ignored_touch = []
     '''A list of touches that should not be used to defocus. After on_touch_up,
     every touch that is not in :attr:`ignored_touch` will defocus all the
-    focused widgets, if, the config keyboard mode is not multi. Touches on
+    focused widgets if the config keyboard mode is not multi. Touches on
     focusable widgets that were used to focus are automatically added here.
 
     Example usage::
@@ -535,7 +599,7 @@ class FocusBehavior(object):
                 if self.collide_point(*touch.pos):
                     FocusBehavior.ignored_touch.append(touch)
 
-    Notice that you need to access this as class, not instance variable.
+    Notice that you need to access this as a class, not an instance variable.
     '''
 
     def _set_keyboard(self, value):
@@ -555,48 +619,53 @@ class FocusBehavior(object):
         return self._keyboard
     keyboard = AliasProperty(_get_keyboard, _set_keyboard,
                              bind=('_keyboard', ))
-    '''The keyboard to bind, or bound to the widget when focused.
+    '''The keyboard to bind to (or bound to the widget) when focused.
 
     When None, a keyboard is requested and released whenever the widget comes
     into and out of focus. If not None, it must be a keyboard, which gets
     bound and unbound from the widget whenever it's in or out of focus. It is
     useful only when more than one keyboard is available, so it is recommended
-    to be set to None when only one keyboard is available
+    to be set to None when only one keyboard is available.
 
-    If more than one keyboard is available, whenever an instance get focused
-    a new keyboard will be requested if None. Unless, the other instances lose
+    If more than one keyboard is available, whenever an instance gets focused
+    a new keyboard will be requested if None. Unless the other instances lose
     focus (e.g. if tab was used), a new keyboard will appear. When this is
     undesired, the keyboard property can be used. For example, if there are
     two users with two keyboards, then each keyboard can be assigned to
     different groups of instances of FocusBehavior, ensuring that within
     each group, only one FocusBehavior will have focus, and will receive input
-    from the correct keyboard. see `keyboard_mode` in :mod:`~kivy.config` for
-    information on the keyboard modes.
+    from the correct keyboard. See `keyboard_mode` in :mod:`~kivy.config` for
+    more information on the keyboard modes.
 
-    :attr:`keyboard` is a :class:`~kivy.properties.AliasProperty`, defaults to
-    None.
+    **Keyboard and focus behavior**
 
-    .. note::
+    When using the keyboard, there are some important default behaviors you
+    should keep in mind.
 
-        When Config's `keyboard_mode` is multi, each new touch is considered
-        a touch by a different user and will focus (if clicked on a
-        focusable) with a new keyboard. Already focused elements will not lose
-        their focus (even if clicked on a unfocusable).
+    * When Config's `keyboard_mode` is multi, each new touch is considered
+      a touch by a different user and will set the focus (if clicked on a
+      focusable) with a new keyboard. Already focused elements will not lose
+      their focus (even if an unfocusable widget is touched).
 
-    .. note:
+    * If the keyboard property is set, that keyboard will be used when the
+      instance gets focused. If widgets with different keyboards are linked
+      through :attr:`focus_next` and :attr:`focus_previous`, then as they are
+      tabbed through, different keyboards will become active. Therefore,
+      typically it's undesirable to link instances which are assigned
+      different keyboards.
 
-        If the keyboard property is set, that keyboard will be used when the
-        instance gets focused. If widgets with different keyboards are linked
-        through :attr:`focus_next` and :attr:`focus_previous`, then as they are
-        tabbed through, different keyboards will become active. Therefore,
-        typically it's undesirable to link instances which are assigned
-        different keyboards.
+    * When a widget has focus, setting its keyboard to None will remove its
+      keyboard, but the widget will then immediately try to get
+      another keyboard. In order to remove its keyboard, rather set its
+      :attr:`focus` to False.
 
-    .. note:
+    * When using a software keyboard, typical on mobile and touch devices, the
+      keyboard display behavior is determined by the
+      :attr:`~kivy.core.window.WindowBase.softinput_mode` property. You can use
+      this property to ensure the focused widget is not covered or obscured.
 
-        When an instance has focus, setting keyboard to None will remove the
-        current keyboard, but will then try to get a keyboard back. It is
-        better to set :attr:`focus` to False.
+    :attr:`keyboard` is an :class:`~kivy.properties.AliasProperty` and defaults
+    to None.
 
     .. warning:
 
@@ -612,29 +681,33 @@ class FocusBehavior(object):
     '''Whether the instance can become focused. If focused, it'll lose focus
     when set to False.
 
-    :attr:`is_focusable` is a :class:`~kivy.properties.BooleanProperty`,
-    defaults to True on a desktop (i.e. desktop is True in
+    :attr:`is_focusable` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True on a desktop (i.e. `desktop` is True in
     :mod:`~kivy.config`), False otherwise.
     '''
 
     focus = BooleanProperty(False)
     '''Whether the instance currently has focus.
 
-    Setting it to True, will bind to and/or request the keyboard, and input
-    will be forwarded to the instance. Setting it to False, will unbind
+    Setting it to True will bind to and/or request the keyboard, and input
+    will be forwarded to the instance. Setting it to False will unbind
     and/or release the keyboard. For a given keyboard, only one widget can
     have its focus, so focusing one will automatically unfocus the other
     instance holding its focus.
 
-    :attr:`focus` is a :class:`~kivy.properties.BooleanProperty`, defaults to
+    When using a software keyboard, please refer to the
+    :attr:`~kivy.core.window.WindowBase.softinput_mode` property to determine
+    how the keyboard display is handled.
+
+    :attr:`focus` is a :class:`~kivy.properties.BooleanProperty` and defaults to
     False.
     '''
 
     focused = focus
     '''An alias of :attr:`focus`.
 
-    :attr:`focused` is a :class:`~kivy.properties.BooleanProperty`, defaults to
-    False.
+    :attr:`focused` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
 
     .. warning::
         :attr:`focused` is an alias of :attr:`focus` and will be removed in
@@ -658,13 +731,13 @@ class FocusBehavior(object):
             return
         if not isinstance(value, FocusBehavior):
             raise ValueError('focus_next accepts only objects based'
-                             ' on FocusBehavior, or the StopIteration class.')
+                             ' on FocusBehavior, or the `StopIteration` class.')
         value.focus_previous = self
 
     focus_next = ObjectProperty(None, allownone=True)
     '''The :class:`FocusBehavior` instance to acquire focus when
-    tab is pressed when this instance has focus, if not `None` or
-    `'StopIteration'`.
+    tab is pressed and this instance has focus, if not `None` or
+    `StopIteration`.
 
     When tab is pressed, focus cycles through all the :class:`FocusBehavior`
     widgets that are linked through :attr:`focus_next` and are focusable. If
@@ -679,12 +752,12 @@ class FocusBehavior(object):
         `StopIteration`. Similarly, if it wasn't None or `StopIteration`, it
         also sets the :attr:`focus_previous` property of the instance
         previously in :attr:`focus_next` to `None`. Therefore, it is only
-        required to set one side of the :attr:`focus_previous`,
-        :attr:`focus_next`, links since the other side will be set
+        required to set one of the :attr:`focus_previous` or
+        :attr:`focus_next` links since the other side will be set
         automatically.
 
-    :attr:`focus_next` is a :class:`~kivy.properties.ObjectProperty`, defaults
-    to `None`.
+    :attr:`focus_next` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to `None`.
     '''
 
     def _set_on_focus_previous(self, instance, value):
@@ -699,7 +772,7 @@ class FocusBehavior(object):
             return
         if not isinstance(value, FocusBehavior):
             raise ValueError('focus_previous accepts only objects based'
-                             ' on FocusBehavior, or the StopIteration class.')
+                             ' on FocusBehavior, or the `StopIteration` class.')
         value.focus_next = self
 
     focus_previous = ObjectProperty(None, allownone=True)
@@ -709,7 +782,7 @@ class FocusBehavior(object):
     When shift+tab is pressed, focus cycles through all the
     :class:`FocusBehavior` widgets that are linked through
     :attr:`focus_previous` and are focusable. If :attr:`focus_previous` is
-    `None', it instead walks the children tree to find the
+    `None`, it instead walks the children tree to find the
     previous focusable widget. Finally, if :attr:`focus_previous` is the
     `StopIteration` class, focus won't move backward, but end here.
 
@@ -720,18 +793,18 @@ class FocusBehavior(object):
         `StopIteration`. Similarly, if it wasn't None or `StopIteration`, it
         also sets the :attr:`focus_next` property of the instance previously in
         :attr:`focus_previous` to `None`. Therefore, it is only required
-        to set one side of the :attr:`focus_previous`, :attr:`focus_next`,
+        to set one of the :attr:`focus_previous` or :attr:`focus_next`
         links since the other side will be set automatically.
 
-    :attr:`focus_previous` is a :class:`~kivy.properties.ObjectProperty`,
-    defaults to  `None`.
+    :attr:`focus_previous` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to `None`.
     '''
 
     keyboard_mode = OptionProperty('auto', options=('auto', 'managed'))
-    '''How the keyboard visibility should be managed (auto will have standard
-    behaviour to show/hide on focus, managed requires setting keyboard_visible
-    manually, or calling the helper functions ``show_keyboard()``
-    and ``hide_keyboard()``.
+    '''Determines how the keyboard visibility should be managed. 'auto' will
+    result in the standard behaviour of showing/hiding on focus. 'managed'
+    requires setting the keyboard visibility manually, or calling the helper
+    functions :meth:`show_keyboard` and :meth:`hide_keyboard`.
 
     :attr:`keyboard_mode` is an :class:`~kivy.properties.OptionsProperty` and
     defaults to 'auto'. Can be one of 'auto' or 'managed'.
@@ -746,7 +819,7 @@ class FocusBehavior(object):
 
     :attr:`input_type` is an :class:`~kivy.properties.OptionsProperty` and
     defaults to 'text'. Can be one of 'text', 'number', 'url', 'mail',
-    'datetime', 'tel', 'address'.
+    'datetime', 'tel' or 'address'.
     '''
 
     unfocus_on_touch = BooleanProperty(_keyboard_mode not in
@@ -754,13 +827,13 @@ class FocusBehavior(object):
     '''Whether a instance should lose focus when clicked outside the instance.
 
     When a user clicks on a widget that is focus aware and shares the same
-    keyboard as the this widget (which in the case of only one keyboard, are
+    keyboard as this widget (which in the case of only one keyboard, are
     all focus aware widgets), then as the other widgets gains focus, this
     widget loses focus. In addition to that, if this property is `True`,
     clicking on any widget other than this widget, will remove focus form this
     widget.
 
-    :attr:`unfocus_on_touch` is a :class:`~kivy.properties.BooleanProperty`,
+    :attr:`unfocus_on_touch` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to `False` if the `keyboard_mode` in :attr:`~kivy.config.Config`
     is `'multi'` or `'systemandmulti'`, otherwise it defaults to `True`.
     '''
@@ -771,7 +844,7 @@ class FocusBehavior(object):
         super(FocusBehavior, self).__init__(**kwargs)
 
         self._keyboard_mode = _keyboard_mode
-        fbind = self.fast_bind
+        fbind = self.fbind
         fbind('focus', self._on_focus)
         fbind('disabled', self._on_focusable)
         fbind('is_focusable', self._on_focusable)
@@ -854,6 +927,9 @@ class FocusBehavior(object):
         if touch in touches:
             touches.remove(touch)
             return
+        if 'button' in touch.profile and touch.button in\
+                ('scrollup', 'scrolldown', 'scrollleft', 'scrollright'):
+            return
         for focusable in list(FocusBehavior._keyboards.values()):
             if focusable is None or not focusable.unfocus_on_touch:
                 continue
@@ -897,8 +973,8 @@ class FocusBehavior(object):
 
         When overwriting the method in the derived widget, super should be
         called to enable tab cycling. If the derived widget wishes to use tab
-        for its own purposes, it can call super at the end after it is done if
-        it didn't consume tab.
+        for its own purposes, it can call super after it has processed the
+        character (if it does not wish to consume the tab).
 
         Similar to other keyboard functions, it should return True if the
         key was consumed.
@@ -925,10 +1001,10 @@ class FocusBehavior(object):
 
         When overwriting the method in the derived widget, super should be
         called to enable de-focusing on escape. If the derived widget wishes
-        to use escape for its own purposes, it can call super at the end after
-        it is done if it didn't consume escape.
+        to use escape for its own purposes, it can call super after it has
+        processed the character (if it does not wish to consume the escape).
 
-        See :meth:`on_key_down`
+        See :meth:`keyboard_on_key_down`
         '''
         if keycode[1] == 'escape':
             self.focus = False
@@ -951,7 +1027,8 @@ class FocusBehavior(object):
 
 
 class CompoundSelectionBehavior(object):
-    '''Selection behavior implements the logic behind keyboard and touch
+    '''The Selection behavior `mixin <https://en.wikipedia.org/wiki/Mixin>`_
+    implements the logic behind keyboard and touch
     selection of selectable widgets managed by the derived widget.
     For example, it could be combined with a
     :class:`~kivy.uix.gridlayout.GridLayout` to add selection to the layout.
@@ -1007,10 +1084,10 @@ class CompoundSelectionBehavior(object):
     selected_nodes = ListProperty([])
     '''The list of selected nodes.
 
-    .. note:
+    .. note::
 
-        Multiple nodes can be selected right after another using e.g. the
-        keyboard, so when listening to :attr:`selected_nodes` one should be
+        Multiple nodes can be selected right after one another e.g. using the
+        keyboard. When listening to :attr:`selected_nodes`, one should be
         aware of this.
 
     :attr:`selected_nodes` is a :class:`~kivy.properties.ListProperty` and
@@ -1019,21 +1096,22 @@ class CompoundSelectionBehavior(object):
 
     touch_multiselect = BooleanProperty(False)
     '''A special touch mode which determines whether touch events, as
-    processed with :meth:`select_with_touch`, will add to the selection the
-    currently touched node, or if it will clear the selection before adding the
+    processed with :meth:`select_with_touch`, will add the currently touched
+    node to the selection, or if it will clear the selection before adding the
     node. This allows the selection of multiple nodes by simply touching them.
-    This is different than :attr:`multiselect`, because when this is True
-    simply touching an unselected node will select it, even if e.g. ctrl is not
-    pressed. If this is False, however, ctrl is required to be held in order to
-    add to selection when :attr:`multiselect` is True.
+
+    This is different from :attr:`multiselect` because when it is True,
+    simply touching an unselected node will select it, even if ctrl is not
+    pressed. If it is False, however, ctrl must be pressed in order to
+    add to the selection when :attr:`multiselect` is True.
 
     .. note::
 
         :attr:`multiselect`, when False, will disable
         :attr:`touch_multiselect`.
 
-    :attr:`touch_multiselect` is a :class:`~kivy.properties.BooleanProperty`,
-    defaults to False.
+    :attr:`touch_multiselect` is a :class:`~kivy.properties.BooleanProperty`
+    and defaults to False.
     '''
 
     multiselect = BooleanProperty(False)
@@ -1042,52 +1120,58 @@ class CompoundSelectionBehavior(object):
     be able to select multiple widgets in the normally expected manner.
     This dominates :attr:`touch_multiselect` when False.
 
-    :attr:`multiselect` is a :class:`~kivy.properties.BooleanProperty`
-    , defaults to False.
+    :attr:`multiselect` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
     '''
 
     keyboard_select = BooleanProperty(True)
-    ''' Whether the keybaord can be used for selection. If False, keyboard
-    inputs will be ignored.
+    '''Determines whether the keyboard can be used for selection. If False,
+    keyboard inputs will be ignored.
 
     :attr:`keyboard_select` is a :class:`~kivy.properties.BooleanProperty`
-    , defaults to True.
+    and defaults to True.
     '''
 
     page_count = NumericProperty(10)
     '''Determines by how much the selected node is moved up or down, relative
-    to position of the last selected node, when pageup (or pagedown) is
+    to the position of the last selected node, when pageup (or pagedown) is
     pressed.
 
-    :attr:`page_count` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`page_count` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 10.
     '''
 
     up_count = NumericProperty(1)
     '''Determines by how much the selected node is moved up or down, relative
-    to position of the last selected node, when the up (or down) arrow on the
-    keyboard is pressed.
+    to the position of the last selected node, when the up (or down) arrow on
+    the keyboard is pressed.
 
-    :attr:`up_count` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`up_count` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1.
     '''
 
     right_count = NumericProperty(1)
     '''Determines by how much the selected node is moved up or down, relative
-    to position of the last selected node, when the right (or left) arrow on
+    to the position of the last selected node, when the right (or left) arrow on
     the keyboard is pressed.
 
-    :attr:`right_count` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`right_count` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1.
     '''
 
     scroll_count = NumericProperty(0)
     '''Determines by how much the selected node is moved up or down, relative
-    to position of the last selected node, when the mouse scroll wheel is
+    to the position of the last selected node, when the mouse scroll wheel is
     scrolled.
 
-    :attr:`right_count` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`right_count` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
+    '''
+
+    nodes_order_reversed = BooleanProperty(True)
+    ''' (Internal) Indicates whether the order of the nodes as displayed top-
+    down is reversed compared to their order in :meth:`get_selectable_nodes`
+    (e.g. how the children property is reversed compared to how it's displayed).
     '''
 
     _anchor = None  # the last anchor node selected (e.g. shift relative node)
@@ -1112,7 +1196,7 @@ class CompoundSelectionBehavior(object):
                 self.clear_selection()
         update_counts = self._update_counts
         update_counts()
-        fbind = self.fast_bind
+        fbind = self.fbind
         fbind('multiselect', ensure_single_select)
         fbind('page_count', update_counts)
         fbind('up_count', update_counts)
@@ -1175,7 +1259,7 @@ class CompoundSelectionBehavior(object):
                              **kwargs):
         '''Processes a key press. This is called when a key press is to be used
         for selection. Depending on the keyboard keys pressed and the
-        configuration, it could select or deslect nodes or node ranges
+        configuration, it could select or deselect nodes or node ranges
         from the selectable nodes list, :meth:`get_selectable_nodes`.
 
         The parameters are such that it could be bound directly to the
@@ -1193,7 +1277,7 @@ class CompoundSelectionBehavior(object):
 
         if scancode[1] == 'shift':
             self._shift_down = True
-        elif scancode[1] == 'ctrl':
+        elif scancode[1] in ('ctrl', 'lctrl', 'rctrl'):
             self._ctrl_down = True
         elif (multi and 'ctrl' in modifiers and scancode[1] in ('a', 'A')
               and scancode[1] not in keys):
@@ -1239,7 +1323,7 @@ class CompoundSelectionBehavior(object):
         '''
         if scancode[1] == 'shift':
             self._shift_down = False
-        elif scancode[1] == 'ctrl':
+        elif scancode[1] in ('ctrl', 'lctrl', 'rctrl'):
             self._ctrl_down = False
         else:
             try:
@@ -1276,18 +1360,19 @@ class CompoundSelectionBehavior(object):
             return sister_nodes[end], end
         if last_idx > end or sister_nodes[last_idx] != last_node:
             try:
-                return last_node, sister_nodes.index(last_node)
+                return last_node, self.get_index_of_node(last_node,
+                                                         sister_nodes)
             except ValueError:
                 return sister_nodes[end], end
         return last_node, last_idx
 
     def _select_range(self, multiselect, keep_anchor, node, idx):
         '''Selects a range between self._anchor and node or idx.
-        If multiselect, it'll add to selection, otherwise it will unselect
-        everything before selecting the range. This is only called if
-        self.multiselect is True.
+        If multiselect is True, it will be added to the selection, otherwise
+        it will unselect everything before selecting the range. This is only
+        called if self.multiselect is True.
         If keep anchor is False, the anchor is moved to node. This should
-        always be True of keyboard selection.
+        always be True for keyboard selection.
         '''
         select = self.select_node
         sister_nodes = self.get_selectable_nodes()
@@ -1301,13 +1386,13 @@ class CompoundSelectionBehavior(object):
         else:
             if last_idx > end or sister_nodes[last_idx] != last_node:
                 try:
-                    last_idx = sister_nodes.index(last_node)
+                    last_idx = self.get_index_of_node(last_node, sister_nodes)
                 except ValueError:
                     # list changed - cannot do select across them
                     return
         if idx > end or sister_nodes[idx] != node:
             try:    # just in case
-                idx = sister_nodes.index(node)
+                idx = self.get_index_of_node(node, sister_nodes)
             except ValueError:
                 return
 
@@ -1334,8 +1419,7 @@ class CompoundSelectionBehavior(object):
         deselect = self.deselect_node
         nodes = self.selected_nodes
         # empty beforehand so lookup in deselect will be fast
-        self.selected_nodes = []
-        for node in nodes:
+        for node in nodes[:]:
             deselect(node)
 
     def get_selectable_nodes(self):
@@ -1362,22 +1446,28 @@ class CompoundSelectionBehavior(object):
             Layouts display their children in the reverse order. That is, the
             contents of :attr:`~kivy.uix.widget.Widget.children` is displayed
             form right to left, bottom to top. Therefore, internally, the
-            indices of the elements returned by this function is reversed to
+            indices of the elements returned by this function are reversed to
             make it work by default for most layouts so that the final result
-            is that e.g. home, although it will select the last element on this
-            list, visually it'll select the first element when counting from
-            top to bottom and left to right. If this behavior is not desired,
-            a reversed list should be returned instead.
+            is consistent e.g. home, although it will select the last element
+            in this list visually, will select the first element when
+            counting from top to bottom and left to right. If this behavior is
+            not desired, a reversed list should be returned instead.
 
         Defaults to returning :attr:`~kivy.uix.widget.Widget.children`.
         '''
         return self.children
 
+    def get_index_of_node(self, node, selectable_nodes):
+        '''(internal) Returns the index of the `node` within the
+        `selectable_nodes` returned by :meth:`get_selectable_nodes`.
+        '''
+        return selectable_nodes.index(node)
+
     def goto_node(self, key, last_node, last_node_idx):
         '''(internal) Used by the controller to get the node at the position
         indicated by key. The key can be keyboard inputs, e.g. pageup,
         or scroll inputs from the mouse scroll wheel, e.g. scrollup.
-        Last node is the last node selected and is used to find the resulting
+        'last_node' is the last node selected and is used to find the resulting
         node. For example, if the key is up, the returned node is one node
         up from the last node.
 
@@ -1411,19 +1501,23 @@ class CompoundSelectionBehavior(object):
             return last_node, last_node_idx
         if last_node_idx > end or sister_nodes[last_node_idx] != last_node:
             try:    # just in case
-                last_node_idx = sister_nodes.index(last_node)
+                last_node_idx = self.get_index_of_node(last_node, sister_nodes)
             except ValueError:
                 return last_node, last_node_idx
 
-        try:
-            idx = max(min(-counts[key] + last_node_idx, end), 0)
+        is_reversed = self.nodes_order_reversed
+        if key in counts:
+            count = -counts[key] if is_reversed else counts[key]
+            idx = max(min(count + last_node_idx, end), 0)
             return sister_nodes[idx], idx
-        except KeyError:
-            pass
-        if key == 'home':
-            return sister_nodes[end], end
-        elif key == 'end':
+        elif key == 'home':
+            if is_reversed:
+                return sister_nodes[end], end
             return sister_nodes[0], 0
+        elif key == 'end':
+            if is_reversed:
+                return sister_nodes[0], 0
+            return sister_nodes[end], end
         else:
             return last_node, last_node_idx
 
@@ -1432,8 +1526,8 @@ class CompoundSelectionBehavior(object):
 
         It is called by the controller when it selects a node and can be
         called from the outside to select a node directly. The derived widget
-        should overwrite this method and change the node to its selected state
-        when this is called
+        should overwrite this method and change the node state to selected
+        when called.
 
         :Parameters:
             `node`
@@ -1475,5 +1569,154 @@ class CompoundSelectionBehavior(object):
         '''
         try:
             self.selected_nodes.remove(node)
+            return True
         except ValueError:
-            pass
+            return False
+
+
+class CodeNavigationBehavior(EventDispatcher):
+    '''Code navigation behavior. Modifies navigation behavior in TextInput
+    work like an IDE instead of a word processor.
+
+    .. versionadded:: 1.9.1
+    '''
+
+    def _move_cursor_word_left(self, index=None):
+        pos = index or self.cursor_index()
+        pos -= 1
+
+        if pos == 0:
+            return 0, 0
+
+        col, row = self.get_cursor_from_index(pos)
+        lines = self._lines
+
+        ucase = string.ascii_uppercase
+        lcase = string.ascii_lowercase
+        ws = string.whitespace
+        punct = string.punctuation
+
+        mode = 'normal'
+
+        rline = lines[row]
+        c = rline[col] if len(rline) > col else '\n'
+        if c in ws:
+            mode = 'ws'
+        elif c == '_':
+            mode = 'us'
+        elif c in punct:
+            mode = 'punct'
+        elif c not in ucase:
+            mode = 'camel'
+
+        while True:
+            if col == -1:
+                if row == 0:
+                    return 0, 0
+                row -= 1
+                rline = lines[row]
+                col = len(rline)
+            lc = c
+            c = rline[col] if len(rline) > col else '\n'
+            if c == '\n':
+                if lc not in ws:
+                    col += 1
+                break
+            if mode in ('normal', 'camel') and c in ws:
+                col += 1
+                break
+            if mode in ('normal', 'camel') and c in punct:
+                col += 1
+                break
+            if mode == 'camel' and c in ucase:
+                break
+            if mode == 'punct' and (c == '_' or c not in punct):
+                col += 1
+                break
+            if mode == 'us' and c != '_' and (c in punct or c in ws):
+                col += 1
+                break
+
+            if mode == 'us' and c != '_':
+                mode = ('normal' if c in ucase
+                        else 'ws' if c in ws
+                else 'camel')
+            elif mode == 'ws' and c not in ws:
+                mode = ('normal' if c in ucase
+                        else 'us' if c == '_'
+                else 'punct' if c in punct
+                else 'camel')
+
+            col -= 1
+
+        if col > len(rline):
+            if row == len(lines) - 1:
+                return row, len(lines[row])
+            row += 1
+            col = 0
+
+        return col, row
+
+    def _move_cursor_word_right(self, index=None):
+        pos = index or self.cursor_index()
+        col, row = self.get_cursor_from_index(pos)
+        lines = self._lines
+        mrow = len(lines) - 1
+
+        if row == mrow and col == len(lines[row]):
+            return col, row
+
+        ucase = string.ascii_uppercase
+        lcase = string.ascii_lowercase
+        ws = string.whitespace
+        punct = string.punctuation
+
+        mode = 'normal'
+
+        rline = lines[row]
+        c = rline[col] if len(rline) > col else '\n'
+        if c in ws:
+            mode = 'ws'
+        elif c == '_':
+            mode = 'us'
+        elif c in punct:
+            mode = 'punct'
+        elif c in lcase:
+            mode = 'camel'
+
+        while True:
+            if mode in ('normal', 'camel', 'punct') and c in ws:
+                mode = 'ws'
+            elif mode in ('normal', 'camel') and c == '_':
+                mode = 'us'
+            elif mode == 'normal' and c not in ucase:
+                mode = 'camel'
+
+            if mode == 'us':
+                if c in ws:
+                    mode = 'ws'
+                elif c != '_':
+                    break
+            if mode == 'ws' and c not in ws:
+                break
+            if mode == 'camel' and c in ucase:
+                break
+            if mode == 'punct' and (c == '_' or c not in punct):
+                break
+            if mode != 'punct' and c != '_' and c in punct:
+                break
+
+            col += 1
+
+            if col > len(rline):
+                if row == mrow:
+                    return len(rline), mrow
+                row += 1
+                rline = lines[row]
+                col = 0
+
+            c = rline[col] if len(rline) > col else '\n'
+            if c == '\n':
+                break
+
+        return col, row

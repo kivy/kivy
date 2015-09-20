@@ -12,7 +12,7 @@ graphical effects to
 its children. It works by rendering to a series of
 :class:`~kivy.graphics.Fbo` instances with custom opengl fragment shaders.
 As such, effects can freely do almost anything, from inverting the
-colors of the widget, to antialiasing, to emulating the appearance of a
+colors of the widget, to anti-aliasing, to emulating the appearance of a
 crt monitor!
 
 The basic usage is as follows::
@@ -20,6 +20,14 @@ The basic usage is as follows::
     w = EffectWidget()
     w.add_widget(Button(text='Hello!')
     w.effects = [InvertEffect(), HorizontalBlurEffect(size=2.0)]
+
+The equivalent in kv would be::
+
+    #: import ew kivy.uix.effectwidget
+    EffectWidget:
+        effects: ew.InvertEffect(), ew.HorizontalBlurEffect(size=2.0)
+        Button:
+            text: 'Hello!'
 
 The effects can be a list of effects of any length, and they will be
 applied sequentially.
@@ -30,36 +38,39 @@ full glsl shader, you provide a single function that takes
 some inputs based on the screen (current pixel color, current widget
 texture etc.). See the sections below for more information.
 
-.. note:: It is not efficient to resize an :class:`EffectWidget`, as
-          each :class:`~kivy.graphics.Fbo` is recreated every time.
-          If you need to resize frequently, consider doing things a
-          different way.
+Usage Guidelines
+----------------
 
-.. note:: Although some effects have adjustable parameters, it is
-          *not* efficient to animate these, as the entire
-          shader is reconstructed every time. You should use glsl
-          uniform variables instead. The :class:`AdvancedEffectBase`
-          may make this easier.
+It is not efficient to resize an :class:`EffectWidget`, as
+the :class:`~kivy.graphics.Fbo` is recreated on each resize event.
+If you need to resize frequently, consider doing things a different
+way.
+
+Although some effects have adjustable parameters, it is
+*not* efficient to animate these, as the entire
+shader is reconstructed every time. You should use glsl
+uniform variables instead. The :class:`AdvancedEffectBase`
+may make this easier.
 
 .. note:: The :class:`EffectWidget` *cannot* draw outside its own
-          widget area (pos -> pos + size), any child widgets
+          widget area (pos -> pos + size). Any child widgets
           overlapping the boundary will be cut off at this point.
 
 Provided Effects
 ----------------
 
 The module comes with several pre-written effects. Some have
-adjustable properties (e.g. blur radius), see the individual
+adjustable properties (e.g. blur radius). Please see the individual
 effect documentation for more details.
 
 - :class:`MonochromeEffect` - makes the widget grayscale.
 - :class:`InvertEffect` - inverts the widget colors.
-- :class:`ChannelMixEffect` - swaps around color channels.
+- :class:`ChannelMixEffect` - swaps color channels.
 - :class:`ScanlinesEffect` - displays flickering scanlines.
 - :class:`PixelateEffect` - pixelates the image.
 - :class:`HorizontalBlurEffect` - Gaussuan blurs horizontally.
 - :class:`VerticalBlurEffect` - Gaussuan blurs vertically.
-- :class:`FXAAEffect` - applies a very basic AA.
+- :class:`FXAAEffect` - applies a very basic anti-aliasing.
 
 Creating Effects
 ----------------
@@ -347,13 +358,13 @@ vec4 effect( vec4 color, sampler2D buf0, vec2 texCoords, vec2 coords)
 class EffectBase(EventDispatcher):
     '''The base class for GLSL effects. It simply returns its input.
 
-    See module documentation for more details.
+    See the module documentation for more details.
 
     '''
 
     glsl = StringProperty(effect_trivial)
-    '''The glsl string defining your effect function, see module
-    documentation for more details.
+    '''The glsl string defining your effect function. See the
+    module documentation for more details.
 
     :attr:`glsl` is a :class:`~kivy.properties.StringProperty` and
     defaults to
@@ -372,13 +383,13 @@ class EffectBase(EventDispatcher):
     '''The fbo currently using this effect. The :class:`EffectBase`
     automatically handles this.
 
-    :attr:`fbo` is a :class:`~kivy.properties.ObjectProperty` and
+    :attr:`fbo` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
     '''
 
     def __init__(self, *args, **kwargs):
         super(EffectBase, self).__init__(*args, **kwargs)
-        fbind = self.fast_bind
+        fbind = self.fbind
         fbo_shader = self.set_fbo_shader
         fbind('fbo', fbo_shader)
         fbind('glsl', fbo_shader)
@@ -413,14 +424,14 @@ class AdvancedEffectBase(EffectBase):
     '''An :class:`EffectBase` with additional behavior to easily
     set and update uniform variables in your shader.
 
-    This class is provided for convenience if implementing your own
-    effects, it is not used by any of those provided with Kivy.
+    This class is provided for convenience when implementing your own
+    effects: it is not used by any of those provided with Kivy.
 
     In addition to your base glsl string that must be provided as
     normal, the :class:`AdvancedEffectBase` has an extra property
     :attr:`uniforms`, a dictionary of name-value pairs. Whenever
-    a value is changed, the new values for the uniform variable with
-    the given name are uploaded to the shader.
+    a value is changed, the new value for the uniform variable is
+    uploaded to the shader.
 
     You must still manually declare your uniform variables at the top
     of your glsl string.
@@ -436,7 +447,7 @@ class AdvancedEffectBase(EffectBase):
 
     def __init__(self, *args, **kwargs):
         super(AdvancedEffectBase, self).__init__(*args, **kwargs)
-        self.fast_bind('uniforms', self._update_uniforms)
+        self.fbind('uniforms', self._update_uniforms)
 
     def _update_uniforms(self, *args):
         if self.fbo is None:
@@ -562,15 +573,15 @@ class VerticalBlurEffect(EffectBase):
 
 
 class FXAAEffect(EffectBase):
-    '''Applies very simple antialiasing via fxaa.'''
+    '''Applies very simple anti-aliasing via fxaa.'''
     def __init__(self, *args, **kwargs):
         super(FXAAEffect, self).__init__(*args, **kwargs)
         self.glsl = effect_fxaa
 
 
 class EffectFbo(Fbo):
-    '''An :class:`~kivy.graphics.Fbo` with extra facility to
-    attempt setting a new shader, see :meth:`set_fs`.
+    '''An :class:`~kivy.graphics.Fbo` with extra functionality that allows
+    attempts to set a new shader. See :meth:`set_fs`.
     '''
     def __init__(self, *args, **kwargs):
         super(EffectFbo, self).__init__(*args, **kwargs)
@@ -578,8 +589,8 @@ class EffectFbo(Fbo):
 
     def set_fs(self, value):
         '''Attempt to set the fragment shader to the given value.
-        If setting the shader fails, resets the old one and raises an
-        exception.
+        If setting the shader fails, the existing one is preserved and an
+        exception is raised.
         '''
         shader = self.shader
         old_value = shader.fs
@@ -592,20 +603,20 @@ class EffectFbo(Fbo):
 class EffectWidget(RelativeLayout):
     '''
     Widget with the ability to apply a series of graphical effects to
-    its children. See module documentation for full information on
+    its children. See the module documentation for more information on
     setting effects and creating your own.
     '''
 
-    background_color = ListProperty((0, 0, 0, 1))
+    background_color = ListProperty((0, 0, 0, 0))
     '''This defines the background color to be used for the fbo in the
     EffectWidget.
 
     :attr:`background_color` is a :class:`ListProperty` defaults to
-    (0, 0, 0, 1)
+    (0, 0, 0, 0)
     '''
 
     texture = ObjectProperty(None)
-    '''The output texture of our final :class:`~kivy.graphics.Fbo` after
+    '''The output texture of the final :class:`~kivy.graphics.Fbo` after
     all effects have been applied.
 
     texture is an :class:`~kivy.properties.ObjectProperty` and defaults
@@ -614,21 +625,21 @@ class EffectWidget(RelativeLayout):
 
     effects = ListProperty([])
     '''List of all the effects to be applied. These should all be
-    instances of :class:`EffectBase`.
+    instances or subclasses of :class:`EffectBase`.
 
     effects is a :class:`ListProperty` and defaults to [].
     '''
 
     fbo_list = ListProperty([])
-    '''(internal) list of all the fbos that are being used to apply
+    '''(internal) List of all the fbos that are being used to apply
     the effects.
 
     fbo_list is a :class:`ListProperty` and defaults to [].
     '''
 
     _bound_effects = ListProperty([])
-    '''(internal) list of effect classes that have been given an fbo to
-    manage. This is necessary so that the fbo can be removed it the
+    '''(internal) List of effect classes that have been given an fbo to
+    manage. This is necessary so that the fbo can be removed if the
     effect is no longer in use.
 
     _bound_effects is a :class:`ListProperty` and defaults to [].
@@ -658,7 +669,7 @@ class EffectWidget(RelativeLayout):
 
         Clock.schedule_interval(self._update_glsl, 0)
 
-        fbind = self.fast_bind
+        fbind = self.fbind
         fbo_setup = self.refresh_fbo_setup
         fbind('size', fbo_setup)
         fbind('effects', fbo_setup)
@@ -731,6 +742,10 @@ class EffectWidget(RelativeLayout):
 
         self.fbo_list[0].texture_rectangle.texture = self.fbo.texture
         self.texture = self.fbo_list[-1].texture
+
+        for fbo in self.fbo_list:
+            fbo.draw()
+        self.fbo.draw()
 
     def add_widget(self, widget):
         # Add the widget to our Fbo instead of the normal canvas

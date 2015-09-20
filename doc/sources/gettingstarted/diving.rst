@@ -6,8 +6,8 @@ To get straight into kivy, take a look at :doc:`/index`.
 Kivy comes with a set of :doc:`examples` in the ``kivy_installation/examples``
 directory. You should try modifying/improving/adapting them to your needs.
 
-Browse the `snippet wiki <https://github.com/kivy/kivy/wiki/Snippets>`_. You can
-even add your own snippet in the user snippets section.
+Browse our `wiki <https://github.com/kivy/kivy/wiki>`_ for info on related
+projects, tutorials and snippets.
 
 Understand the basics about :mod:`kivy graphics <kivy.graphics>`.
 

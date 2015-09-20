@@ -116,7 +116,7 @@ class MarkupLabel(MarkupLabelBase):
         if not real:
             ret = self._pre_render()
         else:
-            ret = self._real_render()
+            ret = self._render_real()
         self.options = options
         return ret
 
@@ -366,37 +366,12 @@ class MarkupLabel(MarkupLabelBase):
             h = 1
         return int(w), int(h)
 
-    def _real_render(self):
-        lines = self._cached_lines
-        options = None
-        for line in lines:
-            if len(line.words):  # get opts from first line, first word
-                options = line.words[0].options
-                break
-        if not options:  # there was no text to render
-            self._render_begin()
-            data = self._render_end()
-            assert(data)
-            if data is not None and data.width > 1:
-                self.texture.blit_data(data)
-            return
-
-        old_opts = self.options
-        render_text = self._render_text
-        xpad, ypad = options['padding_x'], options['padding_y']
-        x, y = xpad, ypad   # pos in the texture
-        iw, ih = self._internal_size  # the real size of text, not texture
-        w, h = self.size
+    def render_lines(self, lines, options, render_text, y, size):
+        xpad = options['padding_x']
+        w = size[0]
         halign = options['halign']
-        valign = options['valign']
         refs = self._refs
         anchors = self._anchors
-        self._render_begin()
-
-        if valign == 'bottom':
-            y = h - ih + ypad
-        elif valign == 'middle':
-            y = int((h - ih) / 2 + ypad)
 
         for layout_line in lines:  # for plain label each line has only one str
             lw, lh = layout_line.w, layout_line.h
@@ -442,16 +417,7 @@ class MarkupLabel(MarkupLabelBase):
                         anchors[anchor] = (x, y)
                 x += word.lw
             y += lh
-
-        self.options = old_opts
-        # get data from provider
-        data = self._render_end()
-        assert(data)
-
-        # If the text is 1px width, usually, the data is black.
-        # Don't blit that kind of data, otherwise, you have a little black bar.
-        if data is not None and data.width > 1:
-            self.texture.blit_data(data)
+        return y
 
     def shorten_post(self, lines, w, h, margin=2):
         ''' Shortens the text to a single line according to the label options.
@@ -768,6 +734,7 @@ class MarkupLabel(MarkupLabelBase):
         s = self.get_extents(last_text)
         if len(last_text):
             line1.append(LayoutWord(last_word.options, s[0], s[1], last_text))
+        elps.options = last_word.options
         line1.append(elps)
 
         # now add back the right half
