@@ -326,6 +326,7 @@ from kivy.resources import resource_find
 from kivy.utils import platform as core_platform
 from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty, StringProperty
+from kivy.setupconfig import USE_SDL2
 
 
 platform = core_platform
@@ -1023,7 +1024,7 @@ class App(EventDispatcher):
         setting_key = 282  # F1
 
         # android hack, if settings key is pygame K_MENU
-        if platform == 'android':
+        if platform == 'android' and not USE_SDL2:
             import pygame
             setting_key = pygame.K_MENU
 

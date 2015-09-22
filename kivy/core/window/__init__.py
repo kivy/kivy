@@ -497,6 +497,8 @@ class WindowBase(EventDispatcher):
         return 0
 
     def _get_android_kheight(self):
+        if USE_SDL2:  # Placeholder until the SDL2 bootstrap supports this
+            return 0
         global android
         if not android:
             import android

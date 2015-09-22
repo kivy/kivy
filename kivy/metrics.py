@@ -104,6 +104,7 @@ __all__ = ('Metrics', 'MetricsBase', 'pt', 'inch', 'cm', 'mm', 'dp', 'sp',
 from os import environ
 from kivy.utils import reify, platform
 from kivy.properties import dpi2px
+from kivy.setupconfig import USE_SDL2
 
 
 def pt(value):
@@ -158,8 +159,13 @@ class MetricsBase(object):
             return float(custom_dpi)
 
         if platform == 'android':
-            import android
-            return android.get_dpi()
+            if USE_SDL2:
+                import jnius
+                Hardware = jnius.autoclass('org.renpy.android.Hardware')
+                return Hardware.getDPI()
+            else:
+                import android
+                return android.get_dpi()
         elif platform == 'ios':
             import ios
             return ios.get_dpi()
@@ -217,8 +223,12 @@ class MetricsBase(object):
 
         if platform == 'android':
             from jnius import autoclass
-            PythonActivity = autoclass('org.renpy.android.PythonActivity')
-            config = PythonActivity.mActivity.getResources().getConfiguration()
+            if USE_SDL2:
+                PythonActivity = autoclass('org.kivy.android.PythonActivity')
+                config = PythonActivity.mActivity.getResources().getConfiguration()
+            else:
+                PythonActivity = autoclass('org.renpy.android.PythonActivity')
+                config = PythonActivity.mActivity.getResources().getConfiguration()
             return config.fontScale
 
         return 1.0
