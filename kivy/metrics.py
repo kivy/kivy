@@ -225,10 +225,9 @@ class MetricsBase(object):
             from jnius import autoclass
             if USE_SDL2:
                 PythonActivity = autoclass('org.kivy.android.PythonActivity')
-                config = PythonActivity.mActivity.getResources().getConfiguration()
             else:
                 PythonActivity = autoclass('org.renpy.android.PythonActivity')
-                config = PythonActivity.mActivity.getResources().getConfiguration()
+            config = PythonActivity.mActivity.getResources().getConfiguration()
             return config.fontScale
 
         return 1.0
