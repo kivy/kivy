@@ -1,14 +1,15 @@
 from os.path import dirname, join
-from functools import partial
 
 curdir = dirname(__file__)
 
 
-def install_hooks(sym, hookspath=None):
+def runtime_hooks():
+    return [join(curdir, 'rt-hook-kivy.py')]
 
-    _hookspath = [curdir]
-    if hookspath is not None:
-        _hookspath += hookspath
 
-    sym['rthooks']['kivy'] = [join(curdir, 'rt-hook-kivy.py')]
-    sym['Analysis'] = partial(sym['Analysis'], hookspath=_hookspath)
+def hookspath():
+    return [curdir]
+
+
+def get_hooks():
+    return {'hookspath': hookspath(), 'runtime_hooks': runtime_hooks()}
