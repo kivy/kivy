@@ -11,19 +11,37 @@ With this hook, everything needed for running kivy is correctly copied.
 Check kivy documentation about how to use these hook for packaging application.
 '''
 
+from os.path import join, basename
+from distutils.version import LooseVersion
+import PyInstaller
+
 import kivy
 from kivy.factory import Factory
+
+try:
+    pyinst_ver = PyInstaller.get_version()  # pyinstaller < 3.0x
+except AttributeError:
+    pyinst_ver = PyInstaller.__version__
 
 
 def get_modules():
     return [x.get('module', None) for x in Factory.classes.values()]
 
 
-datas = [
-    (kivy.kivy_data_dir, 'kivy_install'),
-    (kivy.kivy_modules_dir, 'kivy_install'),
-    (kivy.kivy_exts_dir, 'kivy_install'),
-]
+if LooseVersion(pyinst_ver) >= LooseVersion('3.0'):
+    # in pyinstaller 3, the directory contents rather than the directory itself
+    # is copied. See https://github.com/pyinstaller/pyinstaller/issues/1513.
+    datas = [
+        (kivy.kivy_data_dir,
+         join('kivy_install', basename(kivy.kivy_data_dir))),
+        (kivy.kivy_modules_dir,
+         join('kivy_install', basename(kivy.kivy_modules_dir))),
+    ]
+else:
+    datas = [
+        (kivy.kivy_data_dir, 'kivy_install'),
+        (kivy.kivy_modules_dir, 'kivy_install'),
+    ]
 
 # extensions
 _kivy_modules = [
