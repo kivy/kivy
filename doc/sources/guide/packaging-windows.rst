@@ -21,7 +21,7 @@ Requirements
 
     * Latest Kivy (the whole portable package, not only the github sourcecode)
     * PyInstaller 2.1 (`pip install pyinstaller`) for Python 2.7, and experimental
-      PyInstaller 3.0 (`pip install https://github.com/pyinstaller/pyinstaller/archive/python3.zip`)
+      PyInstaller 3.0 (`pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip`)
       for Python 3.3+.
 
 .. _Create-the-spec-file:
