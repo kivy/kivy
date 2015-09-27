@@ -15,9 +15,6 @@ is an Android application that runs any Kivy examples stored on your SD Card. To
 
     For more details check `Packaging for Kivy Launcher <http://kivy.org/docs/guide/packaging-android.html#packaging-your-application-for-the-kivy-launcher>`_
 
-
-Kivy comes with a tool which automates the entire build process of your app - `Buildozer <http://kivy.org/docs/guilde/packaging-android.html#buildozer>`_, but for now is not useful as a launcher builder. For this we'll use python-for-android(p4a).
-
 .. _Prerequisites:
 
 Prerequisites
