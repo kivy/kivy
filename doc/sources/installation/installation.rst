@@ -32,7 +32,7 @@ Other optional libraries (mutually independent) are:
     * `OpenCV 2.0 <http://sourceforge.net/projects/opencvlibrary/>`_ -- Camera input.
     * `PIL <http://www.pythonware.com/products/pil/index.htm>`_ -- Image and text display.
     * `PyCairo <http://www.cairographics.org/pycairo/>`_ -- Text display.
-    * `PyEnchant <http://www.rfk.id.au/software/pyenchant/>`_ -- Spelling correction.
+    * `PyEnchant <http://pythonhosted.org/pyenchant/>`_ -- Spelling correction.
     * `PyGST <http://gstreamer.freedesktop.org/ + http://pygstdocs.berlios.de/>`_ -- Audio/video playback and camera input.
 
 
