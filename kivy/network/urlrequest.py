@@ -264,11 +264,13 @@ class UrlRequest(Thread):
 
         if ca_file is not None and hasattr(ssl, 'create_default_context'):
             ctx = ssl.create_default_context(cafile=ca_file)
-            if verify:
-                ctx.verify_mode = ssl.CERT_REQUIRED
+            ctx.verify_mode = ssl.CERT_REQUIRED
             args['context'] = ctx
-        elif not verify:
+
+        if not verify:
             ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
             args['context'] = ctx
 
         req = cls(host, port, **args)
