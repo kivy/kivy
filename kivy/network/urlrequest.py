@@ -17,7 +17,8 @@ The syntax to create a request::
     from kivy.network.urlrequest import UrlRequest
     req = UrlRequest(url, on_success, on_redirect, on_failure, on_error,
                      on_progress, req_body, req_headers, chunk_size,
-                     timeout, method, decode, debug, file_path, verify)
+                     timeout, method, decode, debug, file_path, ca_file,
+                     verify)
 
 
 Only the first argument is mandatory: the rest are optional.
@@ -101,6 +102,18 @@ class UrlRequest(Thread):
     .. versionchanged:: 1.0.10
         Add `method` parameter
 
+    .. versionchanged:: 1.8.0
+
+        Parameter `decode` added.
+        Parameter `file_path` added.
+        Parameter `on_redirect` added.
+        Parameter `on_failure` added.
+
+    .. versionchanged:: 1.9.1
+
+        Parameter `ca_file` added.
+        Parameter `verify` added.
+
     :Parameters:
         `url`: str
             Complete url string to call.
@@ -146,14 +159,6 @@ class UrlRequest(Thread):
             certificates against
         `verify`: bool, defaults to True
             If False, disables SSL CA certificate verification
-
-    .. versionchanged:: 1.8.0
-
-        Parameter `decode` added.
-        Parameter `file_path` added.
-        Parameter `on_redirect` added.
-        Parameter `on_failure` added.
-
     '''
 
     def __init__(self, url, on_success=None, on_redirect=None,
