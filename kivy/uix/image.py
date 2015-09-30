@@ -355,7 +355,7 @@ class AsyncImage(Image):
             self._coreimage = image = Loader.image(source,
                 nocache=self.nocache, mipmap=self.mipmap,
                 anim_delay=self.anim_delay)
-                
+
             image.bind(on_load=self._on_source_load)
             image.bind(on_texture=self._on_tex_change)
             self.texture = image.texture
