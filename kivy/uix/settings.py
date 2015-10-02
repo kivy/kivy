@@ -156,6 +156,9 @@ optionally dispatch an on_close event, for instance if a close button
 is clicked. This event is used by :class:`Settings` to trigger its own
 on_close event.
 
+For a complete, working example, please see
+:file:`kivy/examples/settings/main.py`.
+
 '''
 
 __all__ = ('Settings', 'SettingsPanel', 'SettingItem', 'SettingString',

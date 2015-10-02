@@ -118,8 +118,8 @@ Examples
 
 .. |set_dir| replace::  ./examples/settings
 .. |set_file| replace:: main.py
-.. |set_desc| replace:: A example application showing how to use the
-                        :class:`~kivy.uix.settings.Settings` classes.
+.. |set_desc| replace:: How to use the :class:`~kivy.uix.settings.Settings`
+                        classes.
 
 .. |sdr_dir| replace::  ./examples/shader
 .. |sdr_file| replace:: plasma.py

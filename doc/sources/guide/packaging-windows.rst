@@ -8,10 +8,11 @@ package of Kivy.
 The package will be either 32 or 64 bits depending on which version of Python
 you ran it with.
 
-+-----------------------------------------------------------------------------+
-| NOTE: Currently, packages for Windows can be generated with Python 2.7 and  |
-| Python 3.3+. However, Python 3.3+ support is still experimental             |
-+-----------------------------------------------------------------------------+
+
+.. note::
+    Currently, packages for Windows can be generated with Python 2.7 and
+    Python 3.3+. However, Python 3.3+ support is still experimental, so check
+    this page for updates in case of issues.
 
 .. _packaging-windows-requirements:
 
@@ -20,7 +21,7 @@ Requirements
 
     * Latest Kivy (the whole portable package, not only the github sourcecode)
     * PyInstaller 2.1 (`pip install pyinstaller`) for Python 2.7, and experimental
-      PyInstaller 3.0 (`pip install https://github.com/pyinstaller/pyinstaller/archive/python3.zip`)
+      PyInstaller 3.0 (`pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip`)
       for Python 3.3+.
 
 .. _Create-the-spec-file:
@@ -60,12 +61,20 @@ the main file is named `main.py`.
    Open the spec file with your favorite editor and add theses lines at the
    beginning of the spec::
 
-    from kivy.tools.packaging.pyinstaller_hooks import install_hooks
+    from kivy.tools.packaging.pyinstaller_hooks import get_hooks
     import os
-    install_hooks(globals())
 
-   In the `Analysis()` function, remove the `hookspath=None` parameter.
-   If you don't do this, the kivy package hook will not be used at all.
+   In the `Analysis()` function, remove the `hookspath=None` parameter and
+   the `runtime_hooks` parameter if present. `get_hooks` will return the required
+   values for both parameters, so at the end of `Analysis()` add `**get_hooks()`.
+   E.g.::
+
+    a = Analysis(['..\\kivy27\\examples\\demo\\touchtracer\\main.py'],
+                 pathex=['g:\\Python\\dev2\\TouchApp'],
+                 hiddenimports=[],
+                 **get_hooks())
+
+   This will add the required hooks so that pyinstaller gets the required kivy files.
 
    Then you need to change the `COLLECT()` call to add the data for touchtracer
    (`touchtracer.kv`, `particle.png`, ...). Change the line to add a `Tree()`
@@ -125,7 +134,7 @@ If you wish to use Gstreamer, you'll need to further modify the spec file.
    correct gstreamer modules, you have to import core.video in the spec file
    before doing anything::
 
-       from kivy.tools.packaging.pyinstaller_hooks import install_hooks
+       from kivy.tools.packaging.pyinstaller_hooks import get_hooks
        import kivy.core.video
 
 #. You'll need to include the gstreamer directory, found in the kivy distribution,
@@ -151,13 +160,12 @@ From kivy-2.7.bat. Create the VideoPlayer directory alongside kivy-2.7.bat::
 Now edit the spec file. At the top of the file add::
 
     import os
-    from kivy.tools.packaging.pyinstaller_hooks import install_hooks
+    from kivy.tools.packaging.pyinstaller_hooks import get_hooks
     import kivy.core.video
 
-    install_hooks(globals())
     gst_plugin_path = os.environ.get('GST_PLUGIN_PATH').split('lib')[0]
 
-Remove the `hookspath=None` parameter, and change::
+Add `get_hooks` to `Analysis()`, and change::
 
     coll = COLLECT(exe,
                    a.binaries,

@@ -241,6 +241,7 @@ class Image(Widget):
         fbind('mipmap', update)
         if self.source:
             update()
+        self.on_anim_delay(self, kwargs.get('anim_delay', .25))
 
     def texture_update(self, *largs):
         if not self.source:
@@ -339,6 +340,7 @@ class AsyncImage(Image):
         self.fbind('source', self._load_source)
         if self.source:
             self._load_source()
+        self.on_anim_delay(self, kwargs.get('anim_delay', .25))
 
     def _load_source(self, *args):
         source = self.source
@@ -353,6 +355,7 @@ class AsyncImage(Image):
             self._coreimage = image = Loader.image(source,
                 nocache=self.nocache, mipmap=self.mipmap,
                 anim_delay=self.anim_delay)
+
             image.bind(on_load=self._on_source_load)
             image.bind(on_texture=self._on_tex_change)
             self.texture = image.texture
