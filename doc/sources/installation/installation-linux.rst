@@ -198,6 +198,7 @@ Ubuntu example
 In this scenario, use "libav-tools \" in place of "ffmpeg \" (above), or use a PPA (as shown below):
 
 ::
+
 - sudo add-apt-repository ppa:mc3man/trusty-media
 - sudo apt-get update
 - sudo apt-get install ffmpeg 
