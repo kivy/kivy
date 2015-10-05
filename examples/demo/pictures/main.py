@@ -1,4 +1,3 @@
-#!/usr/bin/kivy
 '''
 Basic Picture Viewer
 ====================
@@ -74,4 +73,3 @@ class PicturesApp(App):
 
 if __name__ == '__main__':
     PicturesApp().run()
-

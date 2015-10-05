@@ -1,4 +1,3 @@
-#!/usr/bin/kivy
 '''
 Live Shader Editor
 ==================
