@@ -1,4 +1,3 @@
-#!/usr/bin/kivy
 '''
 Showcase of Kivy Features
 =========================

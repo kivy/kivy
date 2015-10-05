@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from kivy.app import App
 
 from kivy.uix.floatlayout import FloatLayout
@@ -96,4 +94,3 @@ class DemoGesture(App):
 
 if __name__ == '__main__':
     DemoGesture().run()
-

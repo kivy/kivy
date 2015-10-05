@@ -1,4 +1,3 @@
-#!/usr/bin/kivy
 '''
 Touch Tracer Line Drawing Demonstration
 =======================================

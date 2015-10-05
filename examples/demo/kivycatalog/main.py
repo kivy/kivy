@@ -1,4 +1,3 @@
-#!/usr/bin/kivy
 '''
 Kivy Catalog
 ============
