@@ -856,7 +856,7 @@ class FocusBehavior(object):
             self.focus = False
 
     def _on_focus(self, instance, value, *largs):
-        if self.keyboard_mode == 'auto':
+        if self.is_focusable and self.keyboard_mode == 'auto':
             if value:
                 self._bind_keyboard()
             else:
