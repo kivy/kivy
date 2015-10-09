@@ -1,9 +1,9 @@
-.. _troubleshooting-macosx:
+.. _troubleshooting-osx:
 
-Troubleshooting on Mac OS X
+Troubleshooting on OS X
 ===========================
 
-Having trouble installing Kivy on Mac OS X? This page contains issues 
+Having trouble installing Kivy on OS X? This page contains issues 
 
 "Unable to find any valuable Window provider" Error
 ---------------------------------------------------
@@ -89,6 +89,6 @@ The easiest way to resolve these PyGame import errors is:
 1. Delete the ``pygame`` package. (For example, if you get the error above, 
     delete /Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/pygame/ 
     and the accompanying egg.
-2. Try installing a PyGame binary for your version of Mac OS X. Download it 
+2. Try installing a PyGame binary for your version of OS X. Download it 
     from http://www.pygame.org/download.shtml.
-3. Repeat this process and try different PyGame Mac OS X binaries until you find one that works.
+3. Repeat this process and try different PyGame OS X binaries until you find one that works.
