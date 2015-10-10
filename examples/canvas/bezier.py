@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 '''
 Bezier Example
 ==============
@@ -103,4 +102,3 @@ class Main(App):
 
 if __name__ == '__main__':
     Main().run()
-

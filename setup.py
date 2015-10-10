@@ -956,4 +956,4 @@ setup(
         'Topic :: Software Development :: User Interfaces'],
     dependency_links=[
         'https://github.com/kivy-garden/garden/archive/master.zip'],
-    install_requires=['Kivy-Garden==0.1.1'])
+    install_requires=['Kivy-Garden==0.1.4'])

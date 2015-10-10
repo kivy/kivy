@@ -8,21 +8,13 @@ package of Kivy.
 The package will be either 32 or 64 bits depending on which version of Python
 you ran it with.
 
-
-.. note::
-    Currently, packages for Windows can be generated with Python 2.7 and
-    Python 3.3+. However, Python 3.3+ support is still experimental, so check
-    this page for updates in case of issues.
-
 .. _packaging-windows-requirements:
 
 Requirements
 ------------
 
-    * Latest Kivy (the whole portable package, not only the github sourcecode)
-    * PyInstaller 2.1 (`pip install pyinstaller`) for Python 2.7, and experimental
-      PyInstaller 3.0 (`pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip`)
-      for Python 3.3+.
+    * Latest Kivy (the whole portable package, not only the github source code)
+    * PyInstaller 3.0 (pip install pyinstaller)
 
 .. _Create-the-spec-file:
 
