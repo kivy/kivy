@@ -105,6 +105,15 @@ class Spinner(Button):
 
     .. versionadded:: 1.4.0
     '''
+    
+    mimic_size = BooleanProperty(False)
+    '''Each element in the dropdown list uses a default/user-supplied height.
+    Set to True to propagate the Spinner's height value to each dropdown list
+    element.
+    :attr:`mimic_size` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
+    .. versionadded:: No idea
+    '''
 
     def __init__(self, **kwargs):
         self._dropdown = None
@@ -115,6 +124,7 @@ class Spinner(Button):
         fbind('dropdown_cls', build_dropdown)
         fbind('option_cls', build_dropdown)
         fbind('values', self._update_dropdown)
+        fbind('size', self._update_dropdown)
         build_dropdown()
 
     def _build_dropdown(self, *largs):
@@ -139,6 +149,7 @@ class Spinner(Button):
         dp.clear_widgets()
         for value in self.values:
             item = cls(text=value)
+            item.height = self.height if self.mimic_size else item.height
             item.bind(on_release=lambda option: dp.select(option.text))
             dp.add_widget(item)
 
