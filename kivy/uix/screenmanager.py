@@ -830,8 +830,9 @@ class ScreenManager(FloatLayout):
     '''
 
     screens = ListProperty()
-    '''List of all the :class:`Screen` widgets added. You must not change the
-    list manually. Use :meth:`Screen.add_widget` instead.
+    '''List of all the :class:`Screen` widgets added. You should not change
+    this list manually. Use the
+    :meth:`add_widget <kivy.uix.widget.Widget.add_widget>` method instead.
 
     :attr:`screens` is a :class:`~kivy.properties.ListProperty` and defaults to
     [], read-only.
