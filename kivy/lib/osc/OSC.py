@@ -34,9 +34,6 @@ import string
 import pprint
 from kivy.compat import string_types
 
-class binaryString(bytearray):
-    pass
-
 class impulse(object):
     def __nonzero__(self):
         return True
@@ -139,76 +136,60 @@ def readString(data):
 
 
 def readBlob(data):
-    if(len(data)<4):
-        print("Error: too few bytes for blob", data, len(data))
-        rest = data
-        blob = ""
-    else:
+    try:
         length   = struct.unpack(">i", data[0:4])[0]
-        if(len(data)-4 < length):
-            print("Error: too few bytes for blob", data, len(data))
-            rest = data
-            blob = ""
-        else:
-            nextData = int(math.ceil((length) / 4.0) * 4) + 4
-            rest = data[nextData:]
-            blob = data[4:length+4]
-    return (blob, rest)
+        nextData = int(math.ceil((length) / 4.0) * 4) + 4
+        rest = data[nextData:]
+        blob = data[4:length+4]
+        return (blob, rest)
+    except struct.error:
+        print("Error: too few bytes for blob", data, len(data))
+        return ("", data)
 
 
 def readInt(data):
-    if(len(data)<4):
-        print("Error: too few bytes for int", data, len(data))
-        rest = data
-        integer = 0
-    else:
+    try:
         integer = struct.unpack(">i", data[0:4])[0]
         rest    = data[4:]
-
-    return (integer, rest)
+        return (integer, rest)
+    except struct.error:
+        print("Error: too few bytes for int", data, len(data))
+        return (0, data)
 
 
 
 def readLong(data):
     """Tries to interpret the next 8 bytes of the data
     as a 64-bit signed integer."""
-    if(len(data)<8):
-        print("Error: too few bytes for long", data, len(data))
-        rest = data
-        big = 0
-    else:
+    try:
         big = struct.unpack(">q", data[0:8])[0]
         rest = data[8:]
-
-    return (big, rest)
+        return (big, rest)
+    except struct.error:
+        print("Error: too few bytes for long", data, len(data))
+        return (0, data)
 
 
 def readDouble(data):
     """Tries to interpret the next 8 bytes of the data
     as a 64-bit double float."""
-    if(len(data)<8):
-        print("Error: too few bytes for double", data, len(data))
-        rest = data
-        big = 0
-    else:
-        floater = struct.unpack(">d", data[0:8])
-        big = float(floater[0])
+    try:
+        number = struct.unpack(">d", data[0:8])[0]
         rest = data[8:]
-
-    return (big, rest)
-
+        return (number, rest)
+    except struct.error:
+        print("Error: too few bytes for double", data, len(data))
+        return (0, data)
 
 
 def readFloat(data):
-    if(len(data)<4):
-        print("Error: too few bytes for float", data, len(data))
-        rest = data
-        float = 0
-    else:
+    try:
         float = struct.unpack(">f", data[0:4])[0]
         rest  = data[4:]
-
-    return (float, rest)
+        return (float, rest)
+    except struct.error:
+        print("Error: too few bytes for float", data, len(data))
+        return (0, data)
 
 
 def OSCBlob(next):
@@ -232,41 +213,38 @@ def OSCArgument(data):
     OSC binary representations, returning a
     (typetag, data) tuple."""
         
-    try:
-        if isinstance(data, bytearray):
-            length = len(data)
-            padded = math.ceil((len(data)) / 4.0) * 4
-            binary = struct.pack(">i%ds" % (padded), length, str(data))
-            tag = 'b'
-        elif isinstance(data, string_types):
-            OSCstringLength = math.ceil((len(data)+1) / 4.0) * 4
-            binary = struct.pack(">%ds" % (OSCstringLength), data)
-            tag = "s"
-        elif isinstance(data, bool):
-            binary = ""
-            if data:
-                tag = "T"
-            else:
-                tag = "F"
-        elif isinstance(data, float):
-            binary = struct.pack(">f", data)
-            tag = "f"
-        elif isinstance(data, int):
-            binary = struct.pack(">i", data)
-            tag = "i"
-        elif isinstance(data, impulse):
-            binary = ""
-            tag = "I"
-        elif isinstance(data, null):
-            binary = ""
-            tag = "N"
+    if isinstance(data, bytearray):
+        length = len(data)
+        padded = math.ceil((len(data)) / 4.0) * 4
+        binary = struct.pack(">i%ds" % (padded), length, str(data))
+        tag = 'b'
+    elif isinstance(data, string_types):
+        OSCstringLength = math.ceil((len(data)+1) / 4.0) * 4
+        binary = struct.pack(">%ds" % (OSCstringLength), data)
+        tag = "s"
+    elif isinstance(data, bool):
+        binary = ""
+        if data:
+            tag = "T"
         else:
-            binary = ""
-            tag = ""
+            tag = "F"
+    elif isinstance(data, float):
+        binary = struct.pack(">f", data)
+        tag = "f"
+    elif isinstance(data, int):
+        binary = struct.pack(">i", data)
+        tag = "i"
+    elif isinstance(data, impulse):
+        binary = ""
+        tag = "I"
+    elif isinstance(data, null):
+        binary = ""
+        tag = "N"
+    else:
+        binary = ""
+        tag = ""
         
-        return (tag, binary)
-    except Exception as e:
-        print "exception: %s" % (e)
+    return (tag, binary)
 
 
 
@@ -297,7 +275,17 @@ def parseArgs(args):
 def decodeOSC(data):
     try:
         """Converts a typetagged OSC message to a Python list."""
-        table = { "i" : readInt, "f" : readFloat, "s" : readString, "b" : readBlob, "d" : readDouble, "t" : readLong, "T" : readTrue, "F" : readFalse, "I" : readImpulse, "N" : readNull }
+        table = { "i" : readInt,
+                  "f" : readFloat,
+                  "s" : readString,
+                  "b" : readBlob,
+                  "d" : readDouble,
+                  "t" : readLong,
+                  "T" : readTrue,
+                  "F" : readFalse,
+                  "I" : readImpulse,
+                  "N" : readNull
+        }
         decoded = []
         address,  rest = readString(data)
         typetags = ""
@@ -353,37 +341,28 @@ class CallbackManager:
             for msg in message :
                 self.dispatch(msg, source)
         elif type(message[0]) == str :
-            valid = False
             # got a single message
             try:
                 address = message[0]
-                callbackfunction = self.callbacks[address]
-                valid = True
-            except KeyError as e:
-                # address not found
-                try:
-                    address = message[0]
+                if self.callbacks.has_key(address):
+                    callbackfunction = self.callbacks[address]
+                elif self.callbacks.has_key('default'):
                     callbackfunction = self.callbacks['default']
-                    valid = True
-                except KeyError as e:
-                    # address not found
+                else:
                     print('address %s not found ' % address)
-                    #pprint.pprint(message)
-                    valid = False
+                    return
+
+                callbackfunction(message, source)
+                return
             except IndexError as e:
-                print('got malformed OSC message')
-            if valid:
-                try:
-                    callbackfunction(message, source)
-                except Exception as e:
-                    import traceback
-                    print('OSC callback %s caused an error: %s' % (address, e))
-                    traceback.print_exc()
-                    print('---------------------')
-                    raise
+                import traceback
+                print('OSC callback %s caused an error: %s' % (address, e))
+                traceback.print_exc()
+                print('---------------------')
+                raise
         else:
             raise ValueError("OSC message not recognized", message)
-        return
+
 
     def add(self, callback, name):
         """Adds a callback to our set of callbacks,
