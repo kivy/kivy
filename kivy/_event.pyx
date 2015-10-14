@@ -250,7 +250,7 @@ cdef class EventDispatcher(ObjectWithUid):
         properties = self.properties()
         prop_args = [
             (k, kwargs.pop(k)) for k in list(kwargs.keys()) if k in properties]
-        super(EventDispatcher, self).__init__(**kwargs)
+        super(EventDispatcher, self).__init__()
 
         __cls__ = self.__class__
         if __cls__ not in cache_events_handlers:
