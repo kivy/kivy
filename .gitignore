@@ -16,6 +16,8 @@ doc/sources/api-*.rst
 doc/sources/examples/gen__*.rst
 doc/sources/examples/gallery.rst
 doc/sources/examples/index.rst
+examples/*/bin
+examples/*/.buildozer
 kivy/*.c
 kivy/*.pyd
 kivy/core/text/text_layout.c
