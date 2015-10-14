@@ -586,6 +586,8 @@ class SettingTitle(Label):
     '''
 
     title = Label.text
+    
+    panel = ObjectProperty(None)
 
 
 class SettingsPanel(GridLayout):
