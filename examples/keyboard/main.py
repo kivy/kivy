@@ -166,7 +166,7 @@ class KeyboardScreen(Screen):
     def _add_keyboards(self):
         """ Add a buttons for each available keyboard layout. When clicked,
         the buttons will change the keyboard layout to the one selected. """
-        layouts = VKeyboard().available_layouts.keys()
+        layouts = list(VKeyboard().available_layouts.keys())
         layouts.append("numeric.json")  # Add the file in our app directory
                                         # Note the .json extension is required
         for key in layouts:
