@@ -45,7 +45,7 @@ Builder.load_string('''
         Button:
             text: "Back"
             size_hint_y: 0.1
-            on_release: root.parent.current = "mode"
+            on_release: root.manager.current = "mode"
         Widget:
             # Just a space taker to allow for the popup keyboard
             size_hint_y: 0.5
@@ -147,7 +147,7 @@ class ModeScreen(Screen):
 
     def next(self):
         """ Continue to the main screen """
-        self.manager.switch_to(KeyboardScreen())
+        self.manager.current = "keyboard"
 
 
 class KeyboardScreen(Screen):
