@@ -57,7 +57,7 @@ We're sure one of your childhood dreams has always been creating your own
 multitouch paint program. Allow us to help you achieve that. In the
 following sections you will successively learn how to write a program like
 that using Kivy. Make sure that you have read and understood
-:ref:`quickstart`. You have? Great! Let's get started!
+:ref:`quickstart<https://github.com/kivy/kivy/tree/master/examples/guide/quickstart>`_. You have? Great! Let's get started!
 
 
 
@@ -77,9 +77,9 @@ Here is the basic code skeleton that we will need:
 This is actually really simple. Save it as paint.py.
 If you run it, you should only see a black screen.
 As you can see, instead of using a built-in widget such as a Button (see
-:ref:`quickstart`), we are going to write our own widget to do the drawing.
+:ref:`quickstart<https://github.com/kivy/kivy/tree/master/examples/guide/quickstart>)`_, we are going to write our own widget to do the drawing.
 We do that by creating a class that inherits from
-:class:`~kivy.uix.widget.Widget` (line 5-6) and although that class does nothing
+:class:`~kivy.uix.widget.Widget<https://github.com/kivy/kivy/blob/master/examples/guide/firstwidget/1_skeleton.py>`_ (line 5-6) and although that class does nothing
 yet, we can still treat it like a normal Kivy widget (line 11).
 The ``if __name__ ...`` construct (line 14) is a Python mechanism that prevents
 you from executing the code in the if-statement when importing from the file,
@@ -110,7 +110,7 @@ input. Change the code like so:
 
 
 This is just to show how easy it is to react to user input. When a
-:class:`~kivy.input.motionevent.MotionEvent` (i.e. a touch, click, etc.) occurs,
+:class:`~kivy.input.motionevent.MotionEvent<https://github.com/kivy/kivy/blob/master/examples/guide/firstwidget/2_print_touch.py>`_ (i.e. a touch, click, etc.) occurs,
 we simply print the information about the touch object to the console.
 You won't see anything on the screen, but if you observe the command-line from
 which you are running the program, you will see a message for every touch.
@@ -131,17 +131,17 @@ you touch, there will be a small yellow circle drawn where you touched.
 How does it work?
 
     * Line 9: We use Python's ``with`` statement with the widget's
-      :class:`~kivy.graphics.instructions.Canvas` object. This is like an
+      :class:`~kivy.graphics.instructions.Canvas<https://github.com/kivy/kivy/blob/master/examples/guide/firstwidget/3_draw_ellipse.py>`_ object. This is like an
       area in which the widget can draw things to represent itself on the
       screen. By using the ``with`` statement with it, all successive
       drawing commands that are properly indented will modify this canvas.
       The ``with`` statement also makes sure that after our drawing,
       internal state can be cleaned up properly.
     * Line 10: You might have guessed it already: This sets the
-      :class:`~kivy.graphics.context_instructions.Color` for successive
+      :class:`~kivy.graphics.context_instructions.Color<https://github.com/kivy/kivy/blob/master/examples/guide/firstwidget/3_draw_ellipse.py>`_ for successive
       drawing operations to yellow (default color format is RGB, so (1, 1, 0) is
       yellow). This is true until another
-      :class:`~kivy.graphics.context_instructions.Color` is set.
+      :class:`~kivy.graphics.context_instructions.Color<https://github.com/kivy/kivy/blob/master/examples/guide/firstwidget/3_draw_ellipse.py>`_ is set.
       Think of this as dipping your brushes in that color, which you can
       then use to draw on a canvas until you dip the brushes into another color.
     * Line 11: We specify the diameter for the circle that we are about to
@@ -149,7 +149,7 @@ How does it work?
       to that value multiple times and we don't want to have to change it
       in several places if we want the circle bigger or smaller.
     * Line 12: To draw a circle, we simply draw an
-      :class:`~kivy.graphics.vertex_instructions.Ellipse` with equal width
+      :class:`~kivy.graphics.vertex_instructions.Ellipse<https://github.com/kivy/kivy/blob/master/examples/guide/firstwidget/3_draw_ellipse.py>`_ with equal width
       and height. Since we want the circle to be drawn where the user
       touches, we pass the touch's position to the ellipse.
       Note that we need to shift the ellipse by ``-d/2`` in the x and y
@@ -169,10 +169,10 @@ It gets better! Update the code to look like this:
 
 This is what has changed:
     * Line 3: We now not only import the
-      :class:`~kivy.graphics.vertex_instructions.Ellipse` drawing instruction,
-      but also the :class:`~kivy.graphics.vertex_instructions.Line`
+      :class:`~kivy.graphics.vertex_instructions.Ellipse<https://github.com/kivy/kivy/blob/master/examples/guide/firstwidget/4_draw_line.py>`_ drawing instruction,
+      but also the :class:`~kivy.graphics.vertex_instructions.Line<https://github.com/kivy/kivy/blob/master/examples/guide/firstwidget/4_draw_line.py>`_
       drawing instruction. If you look at the documentation for
-      :class:`~kivy.graphics.vertex_instructions.Line`, you will see that
+      :class:`~kivy.graphics.vertex_instructions.Line<https://github.com/kivy/kivy/blob/master/examples/guide/firstwidget/4_draw_line.py>`_, you will see that
       it accepts a ``points`` argument that has to be a list of 2D point
       coordinates, like ``(x1, y1, x2, y2, ..., xN, yN)``.
     * Line 13: This is where it gets interesting. ``touch.ud`` is a Python
@@ -242,7 +242,7 @@ This looks a lot nicer already! With a lot of skill and patience, you
 might even be able to create a nice little drawing!
 
 .. note::
-   Since by default the :class:`~kivy.graphics.context_instructions.Color`
+   Since by default the :class:`~kivy.graphics.context_instructions.Color<https://github.com/kivy/kivy/blob/master/examples/guide/firstwidget/5_random_colors.py>_`
    instructions assume RGB mode and we're feeding a tuple with three
    random float values to it, it might very well happen that we end up
    with a lot of dark or even black colors if we are unlucky. That would
@@ -291,7 +291,7 @@ method. We'll also change to the HSV color space (see preceding note):
 Here's what happens:
 
     * Line 4: We added an import statement to be able to use the
-      :class:`~kivy.uix.button.Button` class.
+      :class:`~kivy.uix.button.Button<https://github.com/kivy/kivy/blob/master/examples/guide/firstwidget/6_button.py>`_ class.
     * Line 25: We create a dummy ``Widget()`` object as a parent for both
       our painting widget and the button we're about to add. This is just
       a poor-man's approach to setting up a widget tree hierarchy. We
