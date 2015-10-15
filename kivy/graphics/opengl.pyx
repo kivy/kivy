@@ -338,6 +338,7 @@ GL_FRAMEBUFFER_BINDING = c_opengl.GL_FRAMEBUFFER_BINDING
 GL_RENDERBUFFER_BINDING = c_opengl.GL_RENDERBUFFER_BINDING
 GL_MAX_RENDERBUFFER_SIZE = c_opengl.GL_MAX_RENDERBUFFER_SIZE
 GL_INVALID_FRAMEBUFFER_OPERATION = c_opengl.GL_INVALID_FRAMEBUFFER_OPERATION
+GL_PIXEL_UNPACK_BUFFER = c_opengl.GL_PIXEL_UNPACK_BUFFER
 
 # not working with GL standard include
 GL_SHADER_BINARY_FORMATS = c_opengl.GL_SHADER_BINARY_FORMATS
@@ -776,6 +777,15 @@ def glGenBuffers(GLsizei n):
     cdef GLuint *d = _genBegin(n)
     c_opengl.glGenBuffers(n, d)
     return _genEnd(n, d)
+
+
+#def glMapBuffer(GLenum target, GLbitfield access):
+#    return c_opengl.glMapBuffer(target, access)
+
+
+#def glUnmapBuffer(GLenum target):
+#    return c_opengl.glUnmapBuffer(target)
+
 
 def glGenerateMipmap(GLenum target):
     '''See: `glGenerateMipmap() on Kronos website
