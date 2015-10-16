@@ -10,7 +10,7 @@ same as the `BBCode <http://en.wikipedia.org/wiki/BBCode>`_.
 A tag is defined as ``[tag]``, and should have a corresponding
 ``[/tag]`` closing tag. For example::
 
-    [b]Hello[color=ff0000]world[/color][/b]
+    [b]Hello [color=ff0000]world[/color][/b]
 
 The following tags are availables:
 
