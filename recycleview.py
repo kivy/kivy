@@ -22,6 +22,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.properties import NumericProperty, AliasProperty, StringProperty, \
     ObjectProperty, ListProperty, OptionProperty, BooleanProperty, \
     ObservableDict
+from kivy.uix.behaviors import CompoundSelectionBehavior
 from kivy.event import EventDispatcher
 from kivy.factory import Factory
 from kivy.clock import Clock
@@ -120,6 +121,9 @@ class RecycleViewMixin(object):
         '''
         self.size = size
         self.pos = pos
+
+    def apply_selection(self, rv, index, is_selected):
+        pass
 
 
 class RecycleAdapter(EventDispatcher):
@@ -325,6 +329,9 @@ class RecycleAdapter(EventDispatcher):
         self.views = visible_views
         return new_views, current_views.values()
 
+    def get_visible_view(self, index):
+        return self.views.get(index)
+
     def on_viewclass(self, instance, value):
         # resolve the real class if it was a string.
         if isinstance(value, string_types):
@@ -368,6 +375,72 @@ class RecycleAdapter(EventDispatcher):
             self.invalidate()
 
 
+class LayoutSelectionMixIn(CompoundSelectionBehavior):
+
+    key_selection = StringProperty('')
+    '''The key used to decide whether a view of a data item can be selected
+    with touch or the keyboard. All data items can be selected directly
+    using `select_node`.
+    '''
+
+    _selectable_nodes = []
+    _nodes_map = {}
+
+    def __init__(self, **kwargs):
+        self.nodes_order_reversed = False
+        super(LayoutSelectionMixIn, self).__init__(**kwargs)
+
+    def compute_positions_and_sizes(self, append):
+        # overwrite this method so that when data changes we update
+        # selectable nodes.
+        key = self.key_selection
+        nodes = self._selectable_nodes = [
+            i for i, d in enumerate(self.recycleview.data) if d.get(key)]
+        self._nodes_map = {v: k for k, v in enumerate((nodes))}
+        return super(
+            LayoutSelectionMixIn, self).compute_positions_and_sizes(append)
+
+    def get_selectable_nodes(self):
+        # the indices of the data is used as the nodes
+        return self._selectable_nodes
+
+    def get_index_of_node(self, node, selectable_nodes):
+        # the indices of the data is used as the nodes, so node
+        return self._nodes_map[node]
+
+    def goto_node(self, key, last_node, last_node_idx):
+        node, idx = super(LayoutSelectionMixIn, self).goto_node(
+            key, last_node, last_node_idx)
+        if node is not last_node:
+            self.show_index_view(node)
+        return node, idx
+
+    def select_node(self, node):
+        if super(LayoutSelectionMixIn, self).select_node(node):
+            view = self.recycleview.adapter.get_visible_view(node)
+            if view is not None:
+                self.apply_selection(node, view, True)
+
+    def deselect_node(self, node):
+        if super(LayoutSelectionMixIn, self).deselect_node(node):
+            view = self.recycleview.adapter.get_visible_view(node)
+            if view is not None:
+                self.apply_selection(node, view, False)
+
+    def apply_selection(self, index, view, is_selected):
+        viewclass = view.__class__
+        if viewclass not in _view_base_cache:
+            _view_base_cache[viewclass] = isinstance(view, RecycleViewMixin)
+
+        if _view_base_cache[viewclass]:
+            view.apply_selection(self.recycleview, index, is_selected)
+
+    def refresh_view_layout(self, index, view, viewport):
+        super(LayoutSelectionMixIn, self).refresh_view_layout(index, view,
+                                                              viewport)
+        self.apply_selection(index, view, index in self.selected_nodes)
+
+
 class RecycleLayoutManager(EventDispatcher):
     """A RecycleLayoutManager is responsible for positioning views into the
     :attr:`RecycleView.data` within a :class:`RecycleView`. It adds new views
@@ -400,7 +473,7 @@ class RecycleLayoutManager(EventDispatcher):
     def recycleview_setup(self):
         pass
 
-    def compute_visible_views(self, container):
+    def compute_visible_views(self):
         pass
 
     def refresh_view_layout(self, index, view):
@@ -424,6 +497,12 @@ class RecycleLayoutManager(EventDispatcher):
     def clear_layout(self):
         if self.container is not None:
             self.container.clear_widgets()
+
+    def show_index_view(self, index):
+        '''Moves the views so that the view corresponding to `index` is
+        visible.
+        '''
+        pass
 
 
 class LinearRecycleLayoutManager(RecycleLayoutManager):
@@ -496,20 +575,26 @@ class LinearRecycleLayoutManager(RecycleLayoutManager):
         container = recycleview.container
         if self.orientation == "vertical":
             h = container.height
-            scroll_y = 1 - (min(1, max(recycleview.scroll_y, 0)))
-            px_start = max(0, (h - recycleview.height) * scroll_y)
-            px_end = px_start + recycleview.height
-            viewport = 0, h - px_end, container.width, h - px_start
+            scroll_y = min(1, max(recycleview.scroll_y, 0))
+            px_end = 0, max(0, (h - recycleview.height) * scroll_y)
+            px_start = 0, px_end[1] + min(recycleview.height, h)
+            viewport = 0, px_end[1], container.width, px_start[1]
         else:
             w = container.width
-            scroll_x = 1 - (min(1, max(recycleview.scroll_x, 0)))
-            px_start = max(0, (w - recycleview.width) * scroll_x)
-            px_end = px_start + recycleview.width
-            viewport = w - px_end, 0, w - px_start, container.height
+            scroll_x = min(1, max(recycleview.scroll_x, 0))
+            px_start = max(0, (w - recycleview.width) * scroll_x), 0
+            px_end = px_start[0] + min(recycleview.width, w), 0
+            viewport = px_end[0], 0, px_start[0], container.height
 
         # now calculate the view indices we must show
         at_idx = self.get_view_index_at
-        new, old = recycleview.get_views(at_idx(px_start), at_idx(px_end))
+        s, e, = at_idx(px_start), at_idx(px_end)
+        data = recycleview.data
+        if s is None:
+            s = len(data) - 1
+        if e is None:
+            e = len(data) - 1
+        new, old = recycleview.get_views(s, e)
 
         rm = container.remove_widget
         for widget in old:
@@ -558,10 +643,55 @@ class LinearRecycleLayoutManager(RecycleLayoutManager):
         return self.computed_sizes[index]
 
     def get_view_index_at(self, pos):
+        if self.orientation == 'vertical':
+            pos = self.recycleview.container.height - pos[1]
+        else:
+            pos = pos[0]
         for index, c_pos in enumerate(self.computed_positions):
             if c_pos > pos:
                 return max(index - 1, 0)
+        if pos >= self.computed_positions[-1] + self.computed_sizes[-1]:
+            return None
         return index
+
+    def show_index_view(self, index):
+        rv = self.recycleview
+        if self.orientation == "vertical":
+            h = rv.container.height
+            if h <= rv.height:  # all views are visible
+                return
+
+            # convert everything to container coordinates
+            top = h - self.computed_positions[index]
+            bottom = top - self.computed_sizes[index]
+            view_h = h - rv.height
+            view_bot = view_h * min(1, max(rv.scroll_y, 0))
+            view_top = view_bot + rv.height
+
+            if top <= view_top:
+                if bottom >= view_bot:  # it's fully in view
+                    return
+                rv.scroll_y = bottom / float(view_h)
+            else:
+                rv.scroll_y = (top - rv.height) / float(view_h)
+        else:
+            w = rv.container.width
+            if w <= rv.width:  # all views are visible
+                return
+
+            # convert everything to container coordinates
+            left = self.computed_positions[index]
+            right = left + self.computed_sizes[index]
+            view_w = w - rv.width
+            view_left = view_w * min(1, max(rv.scroll_x, 0))
+            view_right = view_left + rv.width
+
+            if left >= view_left:
+                if right <= view_right:  # it's fully in view
+                    return
+                rv.scroll_x = (right - rv.width) / float(view_w)
+            else:
+                rv.scroll_x = left / float(view_w)
 
 
 class RecycleView(ScrollView):
