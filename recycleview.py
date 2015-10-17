@@ -443,7 +443,7 @@ class LinearRecycleLayoutManager(RecycleLayoutManager):
         key_size = self.key_size
         default_size = self.default_size
         data = recycleview.adapter.data
-        if append:
+        if append and len(self.computed_positions) > 0:
             sizes = self.computed_sizes
             pos = self.computed_positions
             n = len(sizes)
