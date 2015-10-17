@@ -77,6 +77,7 @@ properties of that class.
     bool           :class:`SettingBoolean`
     numeric        :class:`SettingNumeric`
     options        :class:`SettingOptions`
+    dyn_options    :class:`SettingDynamicOptions`
     string         :class:`SettingString`
     path           :class:`SettingPath` (new from 1.1.0)
     ============== =================================================
@@ -156,9 +157,9 @@ on_close event.
 
 __all__ = ('Settings', 'SettingsPanel', 'SettingItem', 'SettingString',
            'SettingPath', 'SettingBoolean', 'SettingNumeric', 'SettingOptions',
-           'SettingTitle', 'SettingsWithSidebar', 'SettingsWithSpinner',
-           'SettingsWithTabbedPanel', 'SettingsWithNoMenu',
-           'InterfaceWithSidebar', 'ContentPanel')
+           'SettingDynamicOptions', 'SettingTitle', 'SettingsWithSidebar',
+           'SettingsWithSpinner', 'SettingsWithTabbedPanel',
+           'SettingsWithNoMenu', 'InterfaceWithSidebar', 'ContentPanel')
 
 import json
 import os
@@ -574,6 +575,31 @@ class SettingOptions(SettingItem):
         popup.open()
 
 
+class SettingDynamicOptions(SettingOptions):
+    '''Implementation of an option list that creates the items in the
+    possible options list by calling an external function, that is
+    given by a python path (e.g. module.submodule.my_function).
+    '''
+
+    function_path = StringProperty()
+    '''The python path of the functions that should be called each
+    time the list should be updated. It should return a list of
+    strings, to be used for the options.
+    '''
+
+    def _create_popup(self, instance):
+        # Dynamically import the function to be used
+        mod_name, func_name = self.function_path.rsplit('.', 1)
+        mod = importlib.import_module(mod_name)
+        func = getattr(mod, func_name)
+
+        # Update the options
+        self.options = func()
+
+        # Call the parent __init__
+        super(SettingDynamicOptions, self)._create_popup(instance)
+
+
 class SettingTitle(Label):
     '''A simple title label, used to organize the settings in sections.
     '''
@@ -898,6 +924,7 @@ class Settings(BoxLayout):
         self.register_type('bool', SettingBoolean)
         self.register_type('numeric', SettingNumeric)
         self.register_type('options', SettingOptions)
+        self.register_type('dyn_options', SettingDynamicOptions)
         self.register_type('title', SettingTitle)
         self.register_type('path', SettingPath)
 
