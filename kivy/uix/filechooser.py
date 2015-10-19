@@ -603,7 +603,7 @@ class FileChooserController(RelativeLayout):
             if _dir and not self.dirselect:
                 self.open_entry
                 return
-            self.selection = [entry.path, ]
+            self.selection = [abspath(join(self.path, entry.path)), ]
 
     def entry_released(self, entry, touch):
         '''(internal) This method must be called by the template when an entry
@@ -637,7 +637,7 @@ class FileChooserController(RelativeLayout):
             # If entry.path is to jump to previous directory, update path with
             # parent directory
             self.path = abspath(join(self.path, entry.path))
-            self.selection = []
+            self.selection = [self.path, ] if self.dirselect else []
 
     def _apply_filters(self, files):
         if not self.filters:
