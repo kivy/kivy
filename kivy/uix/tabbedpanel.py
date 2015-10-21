@@ -423,9 +423,7 @@ class TabbedPanel(GridLayout):
                 subclassed from `TabbedPanelHeader`')
         if self._default_tab == new_tab:
             return
-        oltab = self._default_tab
         self._default_tab = new_tab
-        self.remove_widget(oltab)
         self._original_tab = None
         self.switch_to(new_tab)
         new_tab.state = 'down'
