@@ -55,11 +55,11 @@ Please refer to the installation instructions for your specific platform:
     :maxdepth: 2
 
     installation-windows
-    installation-macosx
+    installation-osx
     installation-linux
     installation-android
     installation-rpi
-    troubleshooting-macosx
+    troubleshooting-osx
 
 
 .. _installation_devel:
@@ -104,15 +104,12 @@ supported version from pypi:
 
     $ sudo pip install --upgrade |cython_install|
 
-Mac OS X
-++++++++
+OS X
+++++
 
-You will need to install at least the following:
+Install the requirements using `homebrew <http://brew.sh>`_::
 
-* PyGame - we recommend installing from a binary packaged for your version
-  of Mac OS X. Download it from http://www.pygame.org/download.shtml
-
-If you run into problems, please read :ref:`troubleshooting-macosx`.
+     $ brew install sdl2 sdl2_image sdl2_ttf sdl2_mixer gstreamer
 
 .. _dev-install:
 
@@ -122,11 +119,13 @@ Installing Kivy for Development
 Now that you've installed all the required dependencies, it's time to
 download and compile a development version of Kivy::
 
-    $ # Download Kivy from GitHub
+Download Kivy from GitHub::
+
     $ git clone git://github.com/kivy/kivy.git
     $ cd kivy
 
-    $ # Compile:
+Compile::
+
     $ python setup.py build_ext --inplace -f
 
 If you have the ``make`` command available, you can also use the
@@ -167,11 +166,11 @@ in Kivy, perhaps a test will show this? If not, it might be a good time to write
 one .)
 
 Kivy tests are based on nosetest, which you can install from your package
-manager or using pip :
+manager or using pip::
 
   $ pip install nose
 
-To run the test suite, do :
+To run the test suite, do::
 
   $ make test
 
