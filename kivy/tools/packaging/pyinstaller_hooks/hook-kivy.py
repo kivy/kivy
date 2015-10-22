@@ -104,7 +104,7 @@ _kivy_modules = [
     # core
     'kivy.core.audio.audio_gstplayer',
     'kivy.core.audio.audio_pygst',
-    'kivy.core.audio.audio_sdl',
+    'kivy.core.audio.audio_sdl2',
     'kivy.core.audio.audio_pygame',
     'kivy.core.camera.camera_avfoundation',
     'kivy.core.camera.camera_pygst',
