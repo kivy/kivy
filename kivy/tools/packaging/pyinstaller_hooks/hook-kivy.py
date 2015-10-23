@@ -78,7 +78,6 @@ _kivy_modules = [
     'kivy.input.providers.hidinput',
     'kivy.input.providers.linuxwacom',
     'kivy.input.providers.mactouch',
-    'kivy.input.providers.mouse',
     'kivy.input.providers.mtdev',
 
     # compiled modules
