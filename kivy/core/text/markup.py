@@ -7,10 +7,10 @@ Text Markup
 We provide a simple text-markup for inline text styling. The syntax look the
 same as the `BBCode <http://en.wikipedia.org/wiki/BBCode>`_.
 
-A tag is defined as ``[tag]``, and might have a closed tag associated:
-``[/tag]``. Example of a markup text::
+A tag is defined as ``[tag]``, and should have a corresponding
+``[/tag]`` closing tag. For example::
 
-    [b]Hello [color=ff0000]world[/b][/color]
+    [b]Hello [color=ff0000]world[/color][/b]
 
 The following tags are availables:
 

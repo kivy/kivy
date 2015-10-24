@@ -28,9 +28,6 @@ class RootWidget(BoxLayout):
 class EzsApp(App):
 
     '''This is the app itself'''
-    # setting the path of our directory
-    path = os.path.abspath(os.path.dirname("."))
-    error = False
 
     def build(self):
         '''This method loads the root.kv file automatically
@@ -38,9 +35,7 @@ class EzsApp(App):
         :rtype: none
         '''
         # loading the content of root.kv
-        self.root = Builder.load_file(os.path.join(self.path, 'kv', 'root.kv'))
-
-        return self.root
+        self.root = Builder.load_file('kv/root.kv')
 
     def next_screen(self, screen):
         '''Clear container and load the given screen object from file in kv
@@ -53,20 +48,17 @@ class EzsApp(App):
 
         filename = screen + '.kv'
         # unload the content of the .kv file
-        # reason: it could have data form previous calls
-        setattr(self, screen, Builder.unload_file(
-            os.path.join(self.path, 'kv', filename)))
-        # load the content of the .kv file
-        setattr(self, screen, Builder.load_file(
-            os.path.join(self.path, 'kv', filename)))
+        # reason: it could have data from previous calls
+        Builder.unload_file('kv/' + filename)
         # clear the container
         self.root.container.clear_widgets()
+        # load the content of the .kv file
+        screen = Builder.load_file('kv/' + filename)
         # add the content of the .kv file to the container
-        self.root.container.add_widget(getattr(self, screen))
+        self.root.container.add_widget(screen)
 
 
 if __name__ == '__main__':
     '''Start the application'''
 
-    EZS = EzsApp()
-    EZS.run()
+    EzsApp().run()

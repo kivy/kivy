@@ -5,12 +5,12 @@ matrix:
   include:
     - python: 2.7
       env: RUN=unit
-    - python: 3.4
+    - python: 3.5
       env:
         - RUN=unit COVERALLS=true
-    - python: 3.4
+    - python: 3.5
       env: RUN=pep8
-    - python: 3.4
+    - python: 3.5
       env: RUN=docs
 
 install:
