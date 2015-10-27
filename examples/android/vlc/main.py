@@ -18,9 +18,7 @@ from mediastore import query_storage_video
 
 
 DEFAULT_PLAYLIST = [
-		'/storage/sdcard1/DCIM/Camera/20140604_205732.mp4',
 		'rtsp://184.72.239.149/vod/mp4:BigBuckBunny_115k.mov',
-		'rtsp://192.168.1.10:7070',
 ]
 class VlcExampleVideoProgress(ProgressBar):
 	seek = NumericProperty(-1)
