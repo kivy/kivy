@@ -159,7 +159,6 @@ class AndroidWidgetHolder(Widget):
 			self._parent_layout = cast(jLinearLayout, jPythonActivity.mView.getParent())
 			self._parent_layout.addView(native_view, 0, jLayoutParams(w, h))
 		elif bootstrap == 'sdl2':
-			jPythonActivity.setTransparentSurface()
 			self._parent_layout = cast(jAbsoluteLayout, jPythonActivity.getLayout().getParent())
 			self._parent_layout.addView(native_view, 0, jLayoutParams(w, h))
 		else:

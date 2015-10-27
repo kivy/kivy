@@ -17,7 +17,7 @@ VlcVideoView.VlcLibOptions.append('-vvv')
 from mediastore import query_storage_video
 
 
-VIDEO_TEST_URLs = [
+DEFAULT_PLAYLIST = [
 		'/storage/sdcard1/DCIM/Camera/20140604_205732.mp4',
 		'rtsp://184.72.239.149/vod/mp4:BigBuckBunny_115k.mov',
 		'rtsp://192.168.1.10:7070',
@@ -53,7 +53,7 @@ class VlcExampleVideoProgress(ProgressBar):
 
 
 class VlcExampleApp(App):
-	source = StringProperty(VIDEO_TEST_URLs[0])
+	source = StringProperty(DEFAULT_PLAYLIST[0])
 	def build(self):
 		Logger.info('VlcExampleApp: building...')
 		self._playlist_idx = 0
@@ -133,10 +133,10 @@ class VlcExampleApp(App):
 		self._playlist_idx = self._playlist_idx + 1 
 		if self._playlist_cache is not None:
 			playlist = self._playlist_cache
-		elif self._playlist_idx < len(VIDEO_TEST_URLs):
-			playlist = VIDEO_TEST_URLs
+		elif self._playlist_idx < len(DEFAULT_PLAYLIST):
+			playlist = DEFAULT_PLAYLIST
 		else:
-			playlist = VIDEO_TEST_URLs + query_storage_video()
+			playlist = DEFAULT_PLAYLIST + query_storage_video()
 			self._playlist_cache = playlist
 		self._playlist_idx = self._playlist_idx % len(playlist)
 		self._edt.text = playlist[self._playlist_idx]
