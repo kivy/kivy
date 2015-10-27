@@ -7,13 +7,13 @@ The goal of this widget is to integrate VLC MediaPlayer widget
 '''
 __all__ = ('VlcVideoView', 'VlcOptions')
 
-from nativeholder import AndroidSurfaceWidget
+from nativeholder import AndroidSurfaceWidget, run_on_ui_thread
 
 from kivy.clock import Clock
-from android.runnable import run_on_ui_thread
-from jnius import autoclass, cast, PythonJavaClass, java_method
-from kivy.properties import ObjectProperty, BooleanProperty, StringProperty, OptionProperty, NumericProperty, ReferenceListProperty
+from kivy.properties import BooleanProperty, StringProperty, OptionProperty, NumericProperty, DictProperty, ReferenceListProperty
 from kivy.logger import Logger
+
+from jnius import autoclass, cast, PythonJavaClass, java_method
 
 jLibVLC               = autoclass('org.videolan.libvlc.LibVLC')
 jVlcUtil              = autoclass('org.videolan.libvlc.util.VLCUtil')
@@ -74,7 +74,7 @@ class VlcMediaEventsRedirector(PythonJavaClass):
 	@java_method('(Lorg/videolan/libvlc/VLCEvent;)V')
 	def onEvent(self, event):
 		name, redirection = self.eventTypesRedirectionMap.get(event.type, self.defaultRedirection)
-		Logger.info("VLC Media event %d %s"%(event.type, name))
+		Logger.info("VlcVideoView: Media event %d %s"%(event.type, name))
 		mediaEvent = cast('org/videolan/libvlc/Media$Event', event)
 		redirection(mediaEvent)
 
@@ -85,17 +85,27 @@ class VlcMediaPlayerEventsRedirector(PythonJavaClass):
 	def __init__(self, host):
 		self.defaultRedirection = ('other', host.on_vlcplayer_event)
 		self.eventTypesRedirectionMap = {
-			jVlcMediaPlayerEvent.EndReached:       ('end_reached', host.on_vlcplayer_end_reached),
-			jVlcMediaPlayerEvent.EncounteredError: ('error',       host.on_vlcplayer_error),
 			jVlcMediaPlayerEvent.Opening:          ('opening',     host.on_vlcplayer_opening),
+#			jVlcMediaPlayerEvent.Buffering:        ('buffering',   host.on_vlcplayer_buffering),
 			jVlcMediaPlayerEvent.Playing:          ('playing',     host.on_vlcplayer_playing),
 			jVlcMediaPlayerEvent.Paused:           ('paused',      host.on_vlcplayer_paused),
 			jVlcMediaPlayerEvent.Stopped:          ('stopped',     host.on_vlcplayer_stopped),
-			jVlcMediaPlayerEvent.Vout:             ('vout',        host.on_vlcplayer_vout),
-			jVlcMediaPlayerEvent.PositionChanged:  ('position',    host.on_vlcplayer_position),
+# 			jVlcMediaPlayerEvent.Forward:          ('forward',     host.on_vlcplayer_forward),
+# 			jVlcMediaPlayerEvent.Backward:         ('backward',    host.on_vlcplayer_backward),
+			jVlcMediaPlayerEvent.EndReached:       ('end_reached', host.on_vlcplayer_end_reached),
+			jVlcMediaPlayerEvent.EncounteredError: ('error',       host.on_vlcplayer_error),
 			jVlcMediaPlayerEvent.TimeChanged:      ('time',        host.on_vlcplayer_time),
+			jVlcMediaPlayerEvent.PositionChanged:  ('position',    host.on_vlcplayer_position),
+			jVlcMediaPlayerEvent.SeekableChanged:  ('seekable',    host.on_vlcplayer_seekable),
+			jVlcMediaPlayerEvent.PausableChanged:  ('pausable',    host.on_vlcplayer_pausable),
+# 			jVlcMediaPlayerEvent.TitleChanged:     ('title',       host.on_vlcplayer_title),
+# 			jVlcMediaPlayerEvent.SnapshotTaken:    ('snapshot',    host.on_vlcplayer_snapshot),
+# 			jVlcMediaPlayerEvent.LengthChanged:    ('length',      host.on_vlcplayer_length),
+			jVlcMediaPlayerEvent.Vout:             ('vout',        host.on_vlcplayer_vout),
+# 			jVlcMediaPlayerEvent.ScrambleChanged:  ('scramble',    host.on_vlcplayer_scramble),
 			jVlcMediaPlayerEvent.ESAdded:          ('es_added',    host.on_vlcplayer_es_added),
 			jVlcMediaPlayerEvent.ESDeleted:        ('es_deleted',  host.on_vlcplayer_es_deleted),
+# 			jVlcMediaPlayerEvent.ESSelected:       ('es_selected', host.on_vlcplayer_es_selected),
 		}
 		super(VlcMediaPlayerEventsRedirector, self).__init__()
 		
@@ -104,7 +114,7 @@ class VlcMediaPlayerEventsRedirector(PythonJavaClass):
 	@java_method('(Lorg/videolan/libvlc/VLCEvent;)V')
 	def onEvent(self, event):
 		name, redirection = self.eventTypesRedirectionMap.get(event.type, self.defaultRedirection)
-		Logger.info("VLC MediaPlayer event %d %s"%(event.type, name))
+		Logger.info("VlcVideoView: Player event %d %s"%(event.type, name))
 		mediaPlayerEvent = cast('org/videolan/libvlc/MediaPlayer$Event', event)
 		redirection(mediaPlayerEvent)
 
@@ -118,17 +128,17 @@ class VlcVOutEventsRedirector(PythonJavaClass):
 	#void onNewLayout(IVLCVout vlcVout, int width, int height, int visibleWidth, int visibleHeight, int sarNum, int sarDen)
 	@java_method('(Lorg/videolan/libvlc/IVLCVout;IIIIII)V')
 	def onNewLayout(self, vlcVout, width, height, visibleWidth, visibleHeight, sarNum, sarDen):
-		Logger.info("VLC Vout new layout width={}, height={}, visibleWidth={}, visibleHeight={}, sarNum={}, sarDen={}".format(width, height, visibleWidth, visibleHeight, sarNum, sarDen))
+		Logger.info("VlcVideoView: Vout new layout width={}, height={}, visibleWidth={}, visibleHeight={}, sarNum={}, sarDen={}".format(width, height, visibleWidth, visibleHeight, sarNum, sarDen))
 		self._host.on_vlcvout_new_layout(width, height, visibleWidth, visibleHeight, sarNum, sarDen)
 	#void onSurfacesCreated(IVLCVout vlcVout)
 	@java_method('(Lorg/videolan/libvlc/IVLCVout;)V')
 	def onSurfacesCreated(self, vlcVout):
-		Logger.info("VLC Vout surface created")
+		Logger.info("VlcVideoView: Vout surface created")
 		self._host.on_vlcvout_surface_created()
 	#void onSurfacesDestroyed(IVLCVout vlcVout)
 	@java_method('(Lorg/videolan/libvlc/IVLCVout;)V')
 	def onSurfacesDestroyed(self, vlcVout):
-		Logger.info("VLC Vout surface destroyed")
+		Logger.info("VlcVideoView: Vout surface destroyed")
 		self._host.on_vlcvout_surface_destroyed()
 	
 ########################
@@ -152,42 +162,47 @@ class VlcVideoView(AndroidSurfaceWidget):
 		eos      - Boolean, indicates whether the video has finished playing or not
 		           (reached the end of the stream)
 		state    - indicates whether to play, pause, or stop the video
+		player_state - indicates whether to play, pause, or stop the video
+		media_state  - indicates whether to play, pause, or stop the video
 	'''
 	loaded = BooleanProperty(False)
 	source = StringProperty()
-	options = ObjectProperty()
+	options = DictProperty()
+	source_options = ReferenceListProperty(source, options)
 	state = OptionProperty('stop', options=['stop', 'play', 'pause'])
-	actual_state = OptionProperty('stop', options=['stop', 'opening', 'play', 'pause', 'error'])
+	player_state = OptionProperty('stop', options=['stop', 'opening', 'play', 'pause', 'error'])
+	media_state = OptionProperty('nothing', options=['nothing', 'opening', 'buffering', 'playing', 'paused', 'stopped', 'ended', 'error'])
 	duration = NumericProperty(-1)
 	position = NumericProperty(-1)
 	position_normalized = NumericProperty(0.0)
 	eos = BooleanProperty(False)
+	seekable = BooleanProperty(False)
+	pausable = BooleanProperty(False)
 	aspect_ratio = NumericProperty(0)
-	source_options = ReferenceListProperty(source, options)
 	libVLC = None
 	_hardwareAccelerationError = VlcHardwareAccelerationError()
 	VlcLibOptions = ['--noaudio']
 
 	def __init__(self, **kwargs):
 		if VlcVideoView.libVLC is None:
-			# Create global LibVLC instance
+			# Create singleton global LibVLC instance
 			optionsArray = jArrayList()
 			for o in VlcVideoView.VlcLibOptions: optionsArray.add(o)
-# 			dlm = jString(', ')
-# 			msg = jTextUtils.join(dlm, optionsArray)
-# 			Logger.info("libVLC options: {}".format(msg))
 			VlcVideoView.libVLC = jLibVLC(optionsArray)
 			VlcVideoView.libVLC.setOnHardwareAccelerationError(VlcVideoView._hardwareAccelerationError)
+		VlcVideoView._hardwareAccelerationError.add_observer(self)
 		self._mediaObj = None															   
 		self._mediaPlayer = None															   
 		self._vlcMediaEventsRedirector = VlcMediaEventsRedirector(self)
 		self._mediaPlayerEventsRedirector = VlcMediaPlayerEventsRedirector(self)
 		self._vOutCallbacks = VlcVOutEventsRedirector(self)
 
-		self._init_vlclib()
 		self._create_player()
 
 		super(VlcVideoView, self).__init__(**kwargs)
+
+	def __del__(self, **kwargs):
+		VlcVideoView._hardwareAccelerationError.remove_observer(self)
 
 	def populate_surface_view(self, surfaceView, context):
 		Logger.info('VlcVideoView: creating video view %s (%s)'%(self.source, self.state))															
@@ -196,11 +211,6 @@ class VlcVideoView(AndroidSurfaceWidget):
 		Logger.info("VlcVideoView: cpu compatible %s"%str(cpuOk))
 
 		Logger.info('VlcVideoView: populate done %s (%s)'%(self.source, self.state))															
-
-	def _init_vlclib(self):
-		VlcVideoView._hardwareAccelerationError.add_observer(self)
-	def _finit_vlclib(self):
-		VlcVideoView._hardwareAccelerationError.remove_observer(self)
 
 	def _create_player(self):
 # 		// Create a VLC Media Player
@@ -223,12 +233,20 @@ class VlcVideoView(AndroidSurfaceWidget):
 		else:
 			self._mediaObj = jVlcMedia(VlcVideoView.libVLC, self.source)
 			Logger.info('VlcVideoView: path %s (%s)'%(self.source, self.state))
-		self._mediaObj.setHWDecoderEnabled(True, False)
 		if self.options:
+			if self.options.has_key('network-caching'):
+				self._mediaObj.setHWDecoderEnabled(True, False)
+				Logger.info("VlcVideoView: HWDecoder enabled by network-caching")
 			for n,v in self.options.items():
-				s = ':{}={}'.format(n, v) if v else ':{}'.format(n)
-				Logger.info("Media option: {}".format(s))
-				self._mediaObj.addOption(s)
+				if n == 'hw-decoder':
+					hw_enable = (v in ['force', 'enable', '1', 'True'])
+					hw_force = v in ['force'] 
+					self._mediaObj.setHWDecoderEnabled(hw_enable, hw_force)
+					Logger.info("VlcVideoView: HWDecoder enabled {}, forced {}".format(hw_enable, hw_force))
+				else:
+					s = ':{}={}'.format(n, v) if v else ':{}'.format(n)
+					Logger.info("VlcVideoView: Media option {}".format(s))
+					self._mediaObj.addOption(s)
 		self._mediaObj.setEventListener(self._vlcMediaEventsRedirector);
 	def _unload_media(self):
 		if self._mediaObj is not None:
@@ -241,17 +259,20 @@ class VlcVideoView(AndroidSurfaceWidget):
 			self.position = -1
 			self.position_normalized = 0.0
 			self.eos = False
-			self.actual_state = 'stop'
+			self.seekable = False
+			self.pausable = False
+			self.player_state = 'stop'
 			
-	def _create_vout(self, surface, surfaceHolder):
+	def _attach_vout(self, surface, surfaceHolder):
 		vlcVOut = self._mediaPlayer.getVLCVout()
 		vlcVOut.setVideoSurface(surface, surfaceHolder)
 		vlcVOut.addCallback(self._vOutCallbacks)
 		vlcVOut.attachViews()
-	def _unload_vout(self):
+	def _detach_vout(self):
 		vlcVOut = self._mediaPlayer.getVLCVout()
 		vlcVOut.dettachViews()
 		vlcVOut.removeCallback(self._vOutCallbacks)
+# 		self._mediaPlayer.setVideoTrack(-1);
 
 	@run_on_ui_thread																		   
 	def _apply_aspect_ratio(self):
@@ -284,7 +305,9 @@ class VlcVideoView(AndroidSurfaceWidget):
 		elif not self._mediaPlayer.getVLCVout().areViewsAttached():
 			Logger.info('VlcVideoView: waiting for Vout %s (%s)'%(self.source, self.state))
 			self._mediaPlayer.stop()
+# 			self._mediaPlayer.setVideoTrack(-1);
 		elif self.state == 'play':
+			self._select_videotrack()
 			Logger.info('VlcVideoView: starting %s (%s)'%(self.source, self.state))
 			self._mediaPlayer.play()
 		elif self.state == 'pause':
@@ -293,7 +316,13 @@ class VlcVideoView(AndroidSurfaceWidget):
 		else:
 			Logger.info('VlcVideoView: stopping %s (%s)'%(self.source, self.state))
 			self._mediaPlayer.stop()
-		
+
+	def _select_videotrack(self):
+		videoTrack = self.options.get('video-track', '')
+		if videoTrack:
+			Logger.info('VlcVideoView: selecting track %d for %s'%(int(videoTrack), self.source))
+			self._mediaPlayer.setVideoTrack(int(videoTrack))
+			
 	def unload(self):
 		Logger.info('VlcVideoView: unload %s'%self.source)
 		self._unload_media()															
@@ -303,7 +332,7 @@ class VlcVideoView(AndroidSurfaceWidget):
 		self._mediaPlayer.setPosition(position_normalized)
 
 	def on_source_options(self, instance, value):
-		Logger.info('VlcVideoView: on_source_options %s'%self.source)															
+		Logger.info('VlcVideoView: on_source_options {}'.format(value))															
 		self._unload_media()
 		self._create_media()
 		self._mediaPlayer.setMedia(self._mediaObj)
@@ -325,7 +354,7 @@ class VlcVideoView(AndroidSurfaceWidget):
 	#
 	def on_surface_created(self, surfaceHolder):
 		Logger.info('VlcVideoView: on_surface_created %s (%s)'%(self.source, self.state))
-		self._create_vout(surfaceHolder.getSurface(), surfaceHolder)
+		self._attach_vout(surfaceHolder.getSurface(), surfaceHolder)
 		self._apply_video_player_state()
 	def on_surface_changed(self, surfaceHolder, fmt, width, height):
 		# internal, called when the android SurfaceView is ready
@@ -333,7 +362,7 @@ class VlcVideoView(AndroidSurfaceWidget):
 		self._apply_aspect_ratio()
 	def on_surface_destroyed(self, surfaceHolder):
 		Logger.info('VlcVideoView: on_surface_destroyed %s (%s)'%(self.source, self.state))
-		self._unload_vout()
+		self._detach_vout()
 		self._apply_video_player_state()
 
 	#
@@ -342,35 +371,44 @@ class VlcVideoView(AndroidSurfaceWidget):
 	def on_vlc_hw_error(self, mediaPlayerEvent):
 		errorMessage = jVlcUtil.getErrorMsg()
 		Logger.info('VlcVideoView: on_vlc_hw_error {} for {}'.format(errorMessage, self.source))
-		self.actual_state='error'
-	def on_vlcplayer_event(self):
+		self.player_state='error'
+	def on_vlcplayer_event(self, mediaPlayerEvent):
 		pass
+	def on_vlcplayer_opening(self, mediaPlayerEvent):
+		self.player_state = 'opening'
+	def on_vlcplayer_playing(self, mediaPlayerEvent):
+		self.player_state = 'play'
+		self.eos = False
+	def on_vlcplayer_paused(self, mediaPlayerEvent):
+		self.player_state = 'pause'
+	def on_vlcplayer_stopped(self, mediaPlayerEvent):
+		self.player_state = 'stop'
 	def on_vlcplayer_end_reached(self, mediaPlayerEvent):
 		self.eos = True
 		Logger.info('VlcVideoView: on_vlcplayer_end_reached for {}'.format(self.source))
 	def on_vlcplayer_error(self, mediaPlayerEvent):
 		errorMessage = jVlcUtil.getErrorMsg()
 		Logger.info('VlcVideoView: on_vlcplayer_error {} for {}'.format(errorMessage, self.source))
-		self.actual_state = 'error'
-	def on_vlcplayer_opening(self, mediaPlayerEvent):
-		self.actual_state = 'opening'
-	def on_vlcplayer_playing(self, mediaPlayerEvent):
-		self.actual_state = 'play'
-		self.eos = False
-	def on_vlcplayer_paused(self, mediaPlayerEvent):
-		self.actual_state = 'pause'
-	def on_vlcplayer_stopped(self, mediaPlayerEvent):
-		self.actual_state = 'stop'
+		self.player_state = 'error'
+		self.eos = True
 	def on_vlcplayer_vout(self, mediaPlayerEvent):
-		pass
+		c = mediaPlayerEvent.getVoutCount()
+		Logger.info('VlcVideoView: on_vlc_time {} for {}'.format(c, self.source))
+	def on_vlcplayer_time(self, mediaPlayerEvent):
+		self.position = mediaPlayerEvent.getTimeChanged()
+		Logger.info('VlcVideoView: on_vlc_time {}(ms) of {}(ms) for {}'.format(self.position, self.duration, self.source))
 	def on_vlcplayer_position(self, mediaPlayerEvent):
 		self.position_normalized = mediaPlayerEvent.getPositionChanged()
 		Logger.info('VlcVideoView: on_vlc_position {} for {} ({})'.format(self.position_normalized, self.source, self.state))
-	def on_vlcplayer_time(self, mediaPlayerEvent):
-		self.position = mediaPlayerEvent.getTimeChanged()
-		Logger.info('VlcVideoView: on_vlc_time {}(ms) of {}(ms) for {} ({})'.format(self.position, self.duration, self.source, self.state))
+	def on_vlcplayer_seekable(self, mediaPlayerEvent):
+		self.seekable = mediaPlayerEvent.getSeekable()
+		Logger.info('VlcVideoView: on_vlcplayer_seekable {} for {} ({})'.format(self.position_normalized, self.source, self.state))
+	def on_vlcplayer_pausable(self, mediaPlayerEvent):
+		self.pausable = mediaPlayerEvent.getPausable()
+		Logger.info('VlcVideoView: on_vlcplayer_pausable {} for {} ({})'.format(self.position_normalized, self.source, self.state))
 	def on_vlcplayer_es_added(self, mediaPlayerEvent):
-		self._log_media_info()
+		self._select_videotrack()
+		self._log_media_tracks()
 	def on_vlcplayer_es_deleted(self, mediaPlayerEvent):
 		self._log_media_info()
 
@@ -391,8 +429,8 @@ class VlcVideoView(AndroidSurfaceWidget):
 		self._log_media_info()
 	def on_vlcmedia_state_changed(self, mediaEvent):
 		state = self._mediaObj.getState()
-		Logger.info('VlcVideoView: on_vlcmedia_state_changed {} {}'.format(state, self.MediaStateNames.get(state, '?')))
-		self._log_media_info()
+		self.media_state = self.MediaStates.get(state, 'error')
+		Logger.info('VlcVideoView: on_vlcmedia_state_changed {} {}'.format(state, self.media_state))
 	def on_vlcmedia_sub_item_tree_added(self, mediaEvent):
 		Logger.info('VlcVideoView: on_vlc_media_sub_item_tree_added %s'%self.source)
 
@@ -403,15 +441,15 @@ class VlcVideoView(AndroidSurfaceWidget):
 	def on_vlcvout_surface_destroyed(self):
 		pass
 
-	MediaStateNames = {
-		0: 'NothingSpecial',
-		1: 'Opening',
-		2: 'Buffering',
-		3: 'Playing',
-		4: 'Paused',
-		5: 'Stopped',
-		6: 'Ended',
-		7: 'Error',
+	MediaStates = {
+		0: 'nothing',
+		1: 'opening',
+		2: 'buffering',
+		3: 'playing',
+		4: 'paused',
+		5: 'stopped',
+		6: 'ended',
+		7: 'error',
 	}
 	MediaTypeNames = {
 		0: 'Unknown',
@@ -428,19 +466,7 @@ class VlcVideoView(AndroidSurfaceWidget):
 		2: 'Text',
 	}
 
-	def _log_media_info(self):
-		Logger.info('VlcVideoView: MediaInfo for %s'%self.source)
-		Logger.info('VlcVideoView:  State: {} ({})'.format(self.MediaStateNames.get(self._mediaObj.getState(), ''), self._mediaObj.getState()))
-		Logger.info('VlcVideoView:  Type: {} ({})'.format(self.MediaTypeNames.get(self._mediaObj.getType(), ''), self._mediaObj.getType()))
-		Logger.info('VlcVideoView:  Parsed: {}'.format(self._mediaObj.isParsed()))
-		Logger.info('VlcVideoView:  Duration: {}'.format(self._mediaObj.getDuration()))
-		Logger.info('VlcVideoView:  Tracks: {}'.format(self._mediaObj.getTrackCount()))
-		for trackN in xrange(0, self._mediaObj.getTrackCount()):
-			track = self._mediaObj.getTrack(trackN)
-			Logger.info('VlcVideoView:  Track[{}].type: {} ({}), id: {}, codec: {}, bitrate: {}, lang: {}, descr: {}'.format(
-						trackN, self.TrackTypeNames.get(track.type, '?'), track.type,
-						track.id, track.codec, track.bitrate, track.language, track.description
-			))
+	def _log_media_meta(self):
 		for name, meta_id in [
 						('Title',  jVlcMediaMeta.Title),
 						('Artist', jVlcMediaMeta.Artist),
@@ -450,3 +476,17 @@ class VlcVideoView(AndroidSurfaceWidget):
 			meta = self._mediaObj.getMeta(meta_id)
 			if meta is not None:
 				Logger.info('VlcVideoView: Media: Meta.{}: {}'.format(name, meta))
+	def _log_media_tracks(self):
+		for trackN in xrange(0, self._mediaObj.getTrackCount()):
+			track = self._mediaObj.getTrack(trackN)
+			Logger.info('VlcVideoView: Track[{}].type: {} ({}), id: {}, codec: {}, bitrate: {}, lang: {}, descr: {}'.format(
+						trackN, self.TrackTypeNames.get(track.type, '?'), track.type,
+						track.id, track.codec, track.bitrate, track.language, track.description))
+	def _log_media_info(self):
+		Logger.info('VlcVideoView: MediaInfo for {} State: {} ({}) Type: {} ({}) Parsed: {} Duration: {} Tracks: {}'.format(
+				self.source,
+				self.MediaStates.get(self._mediaObj.getState(), ''), self._mediaObj.getState(),
+				self.MediaTypeNames.get(self._mediaObj.getType(), ''), self._mediaObj.getType(),
+				self._mediaObj.isParsed(),
+				self._mediaObj.getDuration(),
+				self._mediaObj.getTrackCount()))

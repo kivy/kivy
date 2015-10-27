@@ -1,15 +1,16 @@
 NDK_PATH=$(HOME)/android-ndk-r10c
 ADK_PATH=$(HOME)/android-sdk-linux_r23.0.2
-API=19
+API=17
 PKG=org.test.NativeVlcPlayer
+LIBVLC_AAR=$(HOME)/libvlc-3.0.0.aar
 
-kivyvlc.apk: dist_vlc
+apk: dist
 	export ANDROIDAPI=$(API) && \
 	export ANDROIDNDK=$(NDK_PATH) && \
 	export ANDROIDSDK=$(ADK_PATH) && \
 	p4a apk \
 			--dir=$(abspath .) \
-			--dist_name=vlc \
+			--dist_name=kivy-vlc-android \
 			--sdk_dir=$(ADK_PATH) \
 			--ndk_dir=$(NDK_PATH) \
 			--android_api=$(API) \
@@ -20,15 +21,15 @@ kivyvlc.apk: dist_vlc
 			--meta-data surface.transparent=1 \
 			--meta-data surface.depth=16 \
 			--meta-data android.background_color=0
-dist_vlc:
-	export LIBVLC_AAR=$(HOME)/libvlc-3.0.0.aar && \
+dist:
+	export LIBVLC_AAR=$(LIBVLC_AAR) && \
 	export ANDROIDAPI=$(API) && \
 	export ANDROIDNDK=$(NDK_PATH) && \
 	export ANDROIDSDK=$(ADK_PATH) && \
 	p4a create \
-			--dist_name=vlc \
+			--dist_name=kivy-vlc-android \
 			--bootstrap=pygame \
-			--requirements=vlc \
+			--requirements=kivy,vlc,android \
 			--sdk_dir=$(ADK_PATH) \
 			--ndk_dir=$(NDK_PATH) \
 			--android_api=$(API)
@@ -64,7 +65,13 @@ install_ubuntu_requirements:
 
 ACTIVITY=org.renpy.android.PythonActivity
 test:
-	adb install -r NativeVlcPlayer-0.1-debug.apk
+	adb install -r NativeVlcPlayer-0.1-debug.pygame.apk
 	adb logcat -c
 	adb shell am start -n $(PKG)/$(ACTIVITY) -a $(ACTIVITY)
-	adb logcat | findstr /B "./python"
+	adb logcat | findstr /B "./python ./VLC"
+ACTIVITY_SDL2=org.kivy.android.PythonActivity
+test_sdl2:
+	adb install -r NativeVlcPlayer-0.1-debug.sdl2.apk
+	adb logcat -c
+	adb shell am start -n $(PKG)/$(ACTIVITY_SDL2) -a $(ACTIVITY_SDL2)
+	adb logcat | findstr /B "./python ./Python ./VLC ./SDL"

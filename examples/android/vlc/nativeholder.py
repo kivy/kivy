@@ -23,38 +23,82 @@ Here is the settings to add in buildozer::
 	
 '''
 
-__all__ = ('AndroidWidgetHolder', 'AndroidSurfaceWidget', 'AndroidTextureWidget')
+__all__ = ('AndroidWidgetHolder', 'AndroidSurfaceWidget', 'AndroidTextureWidget', 'bootstrap', 'run_on_ui_thread', 'jPythonActivity')
 
 from kivy.uix.widget import Widget
 from kivy.clock import Clock
-from android.runnable import run_on_ui_thread
-from jnius import autoclass, cast, PythonJavaClass, java_method
 from kivy.properties import ObjectProperty, BooleanProperty, StringProperty
 from kivy.logger import Logger
 from kivy.core.window import Window
+from jnius import autoclass, cast, PythonJavaClass, java_method
+try:
+	bootstrap = 'pygame'
+	from android.runnable import run_on_ui_thread
+except ImportError:
+	bootstrap = 'sdl2'
+	class Runnable(PythonJavaClass):
+		'''Wrapper around Java Runnable class. This class can be used to schedule a
+		call of a Python function into the PythonActivity thread.
+		'''
 
+		__javainterfaces__ = ['java/lang/Runnable']
+		__runnables__ = []
 
-jPythonActivity = autoclass('org.renpy.android.PythonActivity')
+		def __init__(self, func):
+			super(Runnable, self).__init__()
+			self.func = func
+
+		def __call__(self, *args, **kwargs):
+			self.args = args
+			self.kwargs = kwargs
+			Runnable.__runnables__.append(self)
+			jPythonActivity.mActivity.runOnUiThread(self)
+
+		@java_method('()V')
+		def run(self):
+			try:
+				self.func(*self.args, **self.kwargs)
+			except:
+				import traceback
+				traceback.print_exc()
+
+			Runnable.__runnables__.remove(self)
+
+	def run_on_ui_thread(f):
+		'''Decorator to create automatically a :class:`Runnable` object with the
+		function. The function will be delayed and call into the Activity thread.
+		'''
+		def f2(*args, **kwargs):
+			Runnable(f)(*args, **kwargs)
+		return f2
+
+jPythonActivity = autoclass({'pygame':'org.renpy.android.PythonActivity', 'sdl2':'org.kivy.android.PythonActivity'}[bootstrap])
 jLinearLayout   = autoclass('android.widget.LinearLayout')
+jAbsoluteLayout = autoclass('android.widget.AbsoluteLayout')
 jLayoutParams   = autoclass('android.view.ViewGroup$LayoutParams')
 jSurfaceView    = autoclass("android.view.SurfaceView")
 jSurfaceHolder  = autoclass('android.view.SurfaceHolder')
 jTextureView    = autoclass("android.view.TextureView")
 
-class TouchListener(PythonJavaClass):
-	__javacontext__ = 'app'
-	__javainterfaces__ = [
-		'org/renpy/android/SDLSurfaceView$OnInterceptTouchListener']
+if bootstrap == 'pygame':
+	class TouchListener(PythonJavaClass):
+		__javacontext__ = 'app'
+		__javainterfaces__ = ['org/renpy/android/SDLSurfaceView$OnInterceptTouchListener']
 
-	def __init__(self, listener):
-		super(TouchListener, self).__init__()
-		self.listener = listener
+		def __init__(self, listener):
+			super(TouchListener, self).__init__()
+			self.listener = listener
 
-	@java_method('(Landroid/view/MotionEvent;)Z')
-	def onTouch(self, event):
-		x = event.getX(0)
-		y = event.getY(0)
-		return self.listener(x, y)
+		@java_method('(Landroid/view/MotionEvent;)Z')
+		def onTouch(self, event):
+			x = event.getX(0)
+			y = event.getY(0)
+			return self.listener(x, y)
+else:
+	print 'WARNING. SDL2 build use stub for TouchListener'   
+	class TouchListener():
+		def __init__(self, listener):
+			pass
 
 class AndroidWidgetHolder(Widget):
 	'''Act as a placeholder for an Android widget.
@@ -111,8 +155,16 @@ class AndroidWidgetHolder(Widget):
 
 		# XXX we assume it's the default layout from main.xml
 		# It could break.
- 		self._parent_layout = cast(jLinearLayout, jPythonActivity.mView.getParent())
- 		self._parent_layout.addView(native_view, 0, jLayoutParams(w, h))
+		if bootstrap == 'pygame':
+			self._parent_layout = cast(jLinearLayout, jPythonActivity.mView.getParent())
+			self._parent_layout.addView(native_view, 0, jLayoutParams(w, h))
+		elif bootstrap == 'sdl2':
+			jPythonActivity.setTransparentSurface()
+			self._parent_layout = cast(jAbsoluteLayout, jPythonActivity.getLayout().getParent())
+			self._parent_layout.addView(native_view, 0, jLayoutParams(w, h))
+		else:
+			raise 'unsupported bootstap {}'.format(bootstrap)
+
 
 		native_view.setX(x)
 		native_view.setY(y)
@@ -121,7 +173,8 @@ class AndroidWidgetHolder(Widget):
 
 		# we need to differenciate if there is interaction with our holder or not.
 		# XXX must be activated only if the _native_view is displayed on the screen!
-		jPythonActivity.mView.setInterceptTouchListener(self._touch_listener)
+		if bootstrap == 'pygame':
+			jPythonActivity.mView.setInterceptTouchListener(self._touch_listener)
 		
 		self._native_view = native_view
 		self.ready = True
