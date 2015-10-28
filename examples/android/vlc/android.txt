@@ -3,5 +3,4 @@ author=Ihor Bobalo
 orientation=sensor
 modules=kivy vlc
 permissions=INTERNET
-bootstrap=sdl2
 meta-data=surface.transparent=1 surface.depth=16 android.background_color=0
