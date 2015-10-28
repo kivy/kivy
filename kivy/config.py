@@ -276,9 +276,10 @@ Available configuration tokens
 __all__ = ('Config', 'ConfigParser')
 
 try:
-    from ConfigParser import ConfigParser as PythonConfigParser
+    from configparser import ConfigParser as PythonConfigParser
 except ImportError:
-    from configparser import RawConfigParser as PythonConfigParser
+    from ConfigParser import ConfigParser as PythonConfigParser
+
 from os import environ
 from os.path import exists
 from kivy import kivy_config_fn
@@ -287,6 +288,7 @@ from collections import OrderedDict
 from kivy.utils import platform
 from kivy.compat import PY2, string_types
 from weakref import ref
+import codecs
 
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
@@ -474,7 +476,7 @@ class ConfigParser(PythonConfigParser, object):
             return
         self.add_section(section)
 
-    def write(self):
+    def write(self, as_unicode=False):
         '''Write the configuration to the last file opened using the
         :meth:`read` method.
 
@@ -483,8 +485,12 @@ class ConfigParser(PythonConfigParser, object):
         if self.filename is None:
             return False
         try:
-            with open(self.filename, 'w') as fd:
-                PythonConfigParser.write(self, fd)
+            if as_unicode:
+                with codecs.open(self.filename, 'w', encoding='utf-8') as fd:
+                    PythonConfigParser.write(self, fd)
+            else:
+                with open(self.filename, 'w') as fd:
+                    PythonConfigParser.write(self, fd)
         except IOError:
             Logger.exception('Unable to write the config <%s>' % self.filename)
             return False

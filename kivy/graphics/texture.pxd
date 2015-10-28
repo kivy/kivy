@@ -27,6 +27,7 @@ cdef class Texture:
     cdef list observers
     cdef object _proxyimage
     cdef object _callback
+    cdef object _pbo
 
     cdef void update_tex_coords(self)
     cdef void set_min_filter(self, x)
