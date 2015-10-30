@@ -613,7 +613,6 @@ graphics_dependencies = {
     'fbo.pyx': [
         'config.pxi', 'opcodes.pxi', 'transformation.pxd', 'context.pxd',
         'c_opengl_debug.pxd'],
-    'pbo.pyx': ['c_opengl.pxd'],
     'gl_instructions.pyx': [
         'config.pxi', 'opcodes.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd',
         'instructions.pxd'],
@@ -641,7 +640,7 @@ graphics_dependencies = {
     'texture.pyx': [
         'config.pxi', 'common.pxi', 'opengl_utils_def.pxi', 'context.pxd',
         'c_opengl.pxd', 'c_opengl_debug.pxd', 'opengl_utils.pxd',
-        'img_tools.pxi', 'pbo.pyx'],
+        'img_tools.pxi'],
     'vbo.pxd': ['buffer.pxd', 'c_opengl.pxd', 'vertex.pxd'],
     'vbo.pyx': [
         'config.pxi', 'common.pxi', 'c_opengl_debug.pxd', 'context.pxd',
@@ -675,7 +674,6 @@ sources = {
     'graphics/texture.pyx': merge(base_flags, gl_flags),
     'graphics/transformation.pyx': merge(base_flags, gl_flags),
     'graphics/vbo.pyx': merge(base_flags, gl_flags),
-    'graphics/pbo.pyx': merge(base_flags, gl_flags),
     'graphics/vertex.pyx': merge(base_flags, gl_flags),
     'graphics/vertex_instructions.pyx': merge(base_flags, gl_flags),
     'core/text/text_layout.pyx': base_flags,

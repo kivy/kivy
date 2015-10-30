@@ -367,7 +367,6 @@ cdef extern from "gl_redirect.h":
     int GL_MAX_RENDERBUFFER_SIZE
 
     int GL_INVALID_FRAMEBUFFER_OPERATION
-    int GL_PIXEL_UNPACK_BUFFER
 
     IF USE_OPENGL_ES2:
         int GL_FIXED
@@ -529,5 +528,3 @@ cdef extern from "gl_redirect.h":
     cdef void  glVertexAttrib4fv(GLuint indx,  GLfloat* values) nogil
     cdef void  glVertexAttribPointer(GLuint indx, GLint size, GLenum type, GLboolean normalized, GLsizei stride,  GLvoid* ptr) nogil
     cdef void  glViewport(GLint x, GLint y, GLsizei width, GLsizei height) nogil
-    cdef void *glMapBuffer(GLenum target, GLbitfield access) nogil
-    cdef GLboolean  glUnmapBuffer(GLenum target) nogil

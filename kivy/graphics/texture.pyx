@@ -225,14 +225,11 @@ include "opengl_utils_def.pxi"
 include "img_tools.pxi"
 include "gl_debug_logger.pxi"
 
-#from libc.stdio cimport puts, printf
 cimport cython
 from os import environ
 from kivy.utils import platform
 from kivy.weakmethod import WeakMethod
 from kivy.graphics.context cimport get_context
-
-from kivy.graphics.pbo import PBO
 
 from kivy.graphics.c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
@@ -279,9 +276,6 @@ DEF GL_RGBA8 =  0x8058
 DEF GL_UNPACK_ROW_LENGTH = 0x0CF2
 DEF GL_UNPACK_SKIP_ROWS = 0x0CF3
 DEF GL_UNPACK_SKIP_PIXELS = 0x0CF4
-
-DEF GL_PIXEL_UNPACK_BUFFER = 0x88EC
-DEF GL_WRITE_ONLY = 0x88B9
 
 cdef dict _gl_color_fmt = {
     'rgba': GL_RGBA, 'bgra': GL_BGRA, 'rgb': GL_RGB, 'bgr': GL_BGR,
@@ -644,7 +638,6 @@ cdef class Texture:
         self._source        = source
         self._nofree        = 0
         self._callback      = callback
-        self._pbo           = None
 
         if texid == 0:
             self.flags |= TI_NEED_GEN
@@ -653,14 +646,6 @@ cdef class Texture:
 
         self.update_tex_coords()
         get_context().register_texture(self)
-
-
-        if (
-            gl_has_extension('ARB_pixel_buffer_object') or
-            gl_has_extension('EXT_pixel_buffer_object')
-        ):
-            # gl_has_extension('GL_OES_mapbuffer')
-            self._pbo = pbo = PBO(width, height)
 
     def __dealloc__(self):
         get_context().dealloc_texture(self)
@@ -986,11 +971,6 @@ cdef class Texture:
         cdef int i
         cdef int require_subimage = 0
 
-        cdef GLuint pbo = 0
-        cdef void *ptr
-        if self._pbo:
-            pbo = self._pbo.get_id()
-
         # if the hardware doesn't support native unpack, use alternative method.
         if need_unpack and not gl_has_capability(GLCAP_UNPACK_SUBIMAGE):
             require_subimage = 1
@@ -1026,49 +1006,12 @@ cdef class Texture:
                 glCompressedTexImage2D(target, _mipmap_level, glfmt, w, h, 0,
                         <GLsizei>datasize, cdata)
             elif is_allocated:
-                if pbo:
-                    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo)
-                    ptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY)
-                    if ptr:
-                        memcpy(ptr, cdata, datasize)
-                        glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER)
-                    else:
-                        pass
-                        #raise PBOException('unable to map PBO buffer')
-                    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0)
-                    #pbo_update(pbo, datasize, cdata)  XXX
-
-                else:
-                    glTexSubImage2D(target, _mipmap_level, x, y, w, h, glfmt,
-                        glbufferfmt, cdata)
+                glTexSubImage2D(target, _mipmap_level, x, y, w, h, glfmt,
+                    glbufferfmt, cdata)
             else:
-                if pbo:
-                    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo)
-                    #print glIsBuffer(pbo) == GL_TRUE
-
-                    # XXX STREAM may not be the best choice, for example for videos,
-                    # DYNAMIC may be better, allow to pick the PBO type?
-                    glBufferData(GL_PIXEL_UNPACK_BUFFER, datasize, <GLvoid*> 0, GL_STREAM_DRAW)
-                    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0)
-
-                    #puts("bind buffer")
-                    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo)
-                    #puts("map buffer")
-                    ptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY)
-                    if ptr:
-                        #puts("memcpy")
-                        memcpy(ptr, cdata, datasize)
-                        #puts("unmap")
-                        glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER)
-                    else:
-                        pass
-                        # raise PBOException('unable to map PBO buffer')
-                    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0)
-                    # pbo_update(pbo, datasize, cdata) XXX
-                else:
-                    glTexImage2D(target, _mipmap_level, iglfmt, w, h, 0, glfmt,
-                                glbufferfmt, cdata)
-
+                glTexImage2D(target, _mipmap_level, iglfmt, w, h, 0, glfmt,
+                    glbufferfmt, cdata)
+                
             if _mipmap_generation:
                 glGenerateMipmap(target)
 
