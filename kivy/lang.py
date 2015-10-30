@@ -1638,7 +1638,8 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     idmap = copy(idmap)
     idmap.update(global_idmap)
     idmap['self'] = iself.proxy_ref
-    handler_append = _handlers[iself.uid][key].append
+    bound_list = _handlers[iself.uid][key]
+    handler_append = bound_list.append
 
     # we need a hash for when delayed, so we don't execute duplicate canvas
     # callbacks from the same handler during a sync op
@@ -1698,7 +1699,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                 handler_append(bound)
 
     try:
-        return eval(value, idmap)
+        return eval(value, idmap), bound_list
     except Exception as e:
         tb = sys.exc_info()[2]
         raise BuilderException(rule.ctx, rule.line,
@@ -1912,7 +1913,7 @@ class BuilderBase(object):
         self._apply_rule(widget, rule, rule, template_ctx=proxy_ctx)
         return widget
 
-    def apply(self, widget):
+    def apply(self, widget, ignored_keys=set()):
         '''Search all the rules that match the widget and apply them.
         '''
         rules = self.match(widget)
@@ -1921,12 +1922,13 @@ class BuilderBase(object):
         if not rules:
             return
         for rule in rules:
-            self._apply_rule(widget, rule, rule)
+            self._apply_rule(widget, rule, rule, ignored_keys=ignored_keys)
 
     def _clear_matchcache(self):
         BuilderBase._match_cache = {}
 
-    def _apply_rule(self, widget, rule, rootrule, template_ctx=None):
+    def _apply_rule(self, widget, rule, rootrule, template_ctx=None,
+                    ignored_keys=set()):
         # widget: the current instantiated widget
         # rule: the current rule
         # rootrule: the current root rule (for children of a rule)
@@ -2063,9 +2065,16 @@ class BuilderBase(object):
                     key = rule.name
                     value = rule.co_value
                     if type(value) is CodeType:
-                        value = create_handler(widget_set, widget_set, key,
-                                               value, rule, rctx['ids'])
-                    setattr(widget_set, key, value)
+                        value, bound = create_handler(
+                            widget_set, widget_set, key, value, rule,
+                            rctx['ids'])
+                        # if there's a rule
+                        if bound or key not in ignored_keys:
+                            setattr(widget_set, key, value)
+                    else:
+                        if key not in ignored_keys:
+                            setattr(widget_set, key, value)
+
         except Exception as e:
             if rule is not None:
                 tb = sys.exc_info()[2]
@@ -2261,7 +2270,7 @@ class BuilderBase(object):
                     key = prule.name
                     value = prule.co_value
                     if type(value) is CodeType:
-                        value = create_handler(
+                        value, _ = create_handler(
                             widget, instr.proxy_ref,
                             key, value, prule, idmap, True)
                     setattr(instr, key, value)

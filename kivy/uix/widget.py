@@ -319,7 +319,7 @@ class Widget(WidgetBase):
         if not no_builder:
             #current_root = Builder.idmap.get('root')
             #Builder.idmap['root'] = self
-            Builder.apply(self)
+            Builder.apply(self, ignored_keys=self._kwargs_applied_init)
             #if current_root is not None:
             #    Builder.idmap['root'] = current_root
             #else:
