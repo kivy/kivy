@@ -119,6 +119,10 @@ cdef int event_callback(XEvent *event):
             btn = 'scrolldown'
         elif event.xbutton.button == 5:
             btn = 'scrollup'
+        elif event.xbutton.button == 6:
+            btn = 'scrollleft'
+        elif event.xbutton.button == 7:
+            btn = 'scrollright'
         modifiers = get_modifiers_from_state(event.xbutton.state)
         eventname = 'on_mouse_down'
         if event.type == ButtonRelease:

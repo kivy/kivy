@@ -55,7 +55,6 @@ _kivy_modules = [
     #'pygame.image',
     #'pygame.display',
     #'pygame',
-    'xml.etree.cElementTree',
 
     # external modules
     'kivy.cache',
@@ -78,7 +77,6 @@ _kivy_modules = [
     'kivy.input.providers.hidinput',
     'kivy.input.providers.linuxwacom',
     'kivy.input.providers.mactouch',
-    'kivy.input.providers.mouse',
     'kivy.input.providers.mtdev',
 
     # compiled modules
@@ -99,12 +97,13 @@ _kivy_modules = [
     'kivy.graphics.vertex',
     'kivy.graphics.vertex_instructions',
     'kivy.graphics.tesselator',
+    'kivy.graphics.svg',
     'kivy.properties',
 
     # core
     'kivy.core.audio.audio_gstplayer',
     'kivy.core.audio.audio_pygst',
-    'kivy.core.audio.audio_sdl',
+    'kivy.core.audio.audio_sdl2',
     'kivy.core.audio.audio_pygame',
     'kivy.core.camera.camera_avfoundation',
     'kivy.core.camera.camera_pygst',

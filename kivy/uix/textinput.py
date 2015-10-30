@@ -8,9 +8,7 @@ Text Input
 .. image:: images/textinput-mono.jpg
 .. image:: images/textinput-multi.jpg
 
-The :class:`TextInput` widget provides a box for editable plain text. More
-advanced formatting is available via the
-:attr:`~kivy.core.text.markup` property.
+The :class:`TextInput` widget provides a box for editable plain text.
 
 Unicode, multiline, cursor navigation, selection and clipboard features
 are supported.

@@ -2,24 +2,24 @@
 
 FloatLayout:
 
-	canvas:
-		Color:
-			rgb: .98, .98, .98
-		Rectangle:
-			size: self.size
+    canvas:
+        Color:
+            rgb: .98, .98, .98
+        Rectangle:
+            size: self.size
 
-	Image:
-		source: 'rose.png'
+    Image:
+        source: 'rose.png'
 
-	Image:
-		source: 'needle.png'
+    Image:
+        source: 'needle.png'
 
-		canvas.before:
-			PushMatrix
-			Rotate:
-				angle: app.needle_angle
-				axis: 0, 0, 1
-				origin: self.center
+        canvas.before:
+            PushMatrix
+            Rotate:
+                angle: app.needle_angle
+                axis: 0, 0, 1
+                origin: self.center
 
-		canvas.after:
-			PopMatrix
+        canvas.after:
+            PopMatrix
