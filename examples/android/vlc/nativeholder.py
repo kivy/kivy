@@ -23,8 +23,15 @@ Here is the settings to add in buildozer::
     
 '''
 
-__all__ = ('AndroidWidgetHolder', 'AndroidSurfaceWidget',
-           'AndroidTextureWidget', 'bootstrap', 'run_on_ui_thread', 'jPythonActivity')
+__all__ = (
+	'AndroidWidgetHolder',
+	'AndroidSurfaceWidget',
+	'AndroidTextureWidget',
+	'bootstrap',
+	'ACTIVITY_CLASS_NAME',
+	'run_on_ui_thread',
+	'jPythonActivity',
+)
 
 from kivy.uix.widget import Widget
 from kivy.clock import Clock
@@ -40,8 +47,8 @@ except ImportError:
 
     class Runnable(PythonJavaClass):
 
-        '''Wrapper around Java Runnable class. This class can be used to schedule a
-        call of a Python function into the PythonActivity thread.
+        '''Wrapper around Java Runnable class. This class can be used to
+        schedule a call of a Python function into the PythonActivity thread.
         '''
 
         __javainterfaces__ = ['java/lang/Runnable']
@@ -75,9 +82,12 @@ except ImportError:
             Runnable(f)(*args, **kwargs)
         return f2
 
-jPythonActivity = autoclass(
-    {'pygame': 'org.renpy.android.PythonActivity',
-     'sdl2': 'org.kivy.android.PythonActivity'}[bootstrap])
+ACTIVITY_CLASS_NAME = {
+	'pygame':'org.renpy.android.PythonActivity',
+	'sdl2':'org.kivy.android.PythonActivity'
+	}[bootstrap]
+
+jPythonActivity = autoclass(ACTIVITY_CLASS_NAME)
 jLinearLayout = autoclass('android.widget.LinearLayout')
 jAbsoluteLayout = autoclass('android.widget.AbsoluteLayout')
 jLayoutParams = autoclass('android.view.ViewGroup$LayoutParams')
@@ -112,9 +122,10 @@ else:
 class AndroidWidgetHolder(Widget):
 
     '''Act as a placeholder for an Android widget.
-    It will automatically add / remove the android _native_view depending if the widget
-    _native_view is set or not. The android _native_view will act as an overlay, so any graphics
-    instruction in this area will be covered by the overlay.
+    It will automatically add / remove the android _native_view depending if
+    the widget _native_view is set or not. The android _native_view will act
+    as an overlay, so any graphics instruction in this area will be covered
+    by the overlay.
 
     args:
         native_view_factory    - factory to get native view from
@@ -181,7 +192,7 @@ class AndroidWidgetHolder(Widget):
         native_view.setY(y)
 
         Logger.info(
-            'NativeWidget: native view added (x=%d, y=%d, w=%d, h=%d)' % (x, y, w, h))
+            'NativeWidget: native view added (%d, %d, %d, %d)' % (x, y, w, h))
 
         # we need to differenciate if there is interaction with our holder or not.
         # XXX must be activated only if the _native_view is displayed on the
@@ -279,7 +290,8 @@ class AndroidNativeViewWidget(Widget):
             pos=nativeHolder.setter('pos'))
 
     def native_view_factory(self, context):
-        raise "native_view_factory(self, context)  must be defined in AndroidNativeViewWidget inherited classes"
+        raise "native_view_factory(self, context)  must be defined in " \
+            "AndroidNativeViewWidget inherited classes"
 
     def get_native_pos(self):
         return (self._nativeHolder.x - self.x, self._nativeHolder.y - self.y)
@@ -303,7 +315,8 @@ class AndroidNativeViewWidget(Widget):
 class SurfaceHolderCallbacksRedirector(PythonJavaClass):
 
     '''
-    Interface used to know exactly when the Surface used will be created and changed.
+    Interface used to know exactly when the Surface used will be
+    created and changed.
     '''
     __javainterfaces__ = ['android.view.SurfaceHolder$Callback']
     __javacontext__ = 'app'
@@ -357,8 +370,8 @@ class AndroidSurfaceWidget(AndroidNativeViewWidget):
         Logger.info('AndroidSurfaceWidget: surfaceView populated')
 
         # set callbacks
-        self._surfaceHolderCallbacksRedirector = SurfaceHolderCallbacksRedirector(
-            self)
+        self._surfaceHolderCallbacksRedirector = \
+            SurfaceHolderCallbacksRedirector(self)
         surfaceView.getHolder().addCallback(
             self._surfaceHolderCallbacksRedirector)
         Logger.info('AndroidSurfaceWidget: surfaceView callbacks activated')
@@ -366,7 +379,8 @@ class AndroidSurfaceWidget(AndroidNativeViewWidget):
         return surfaceView
 
     def populate_surface_view(self, surfaceView, context):
-        raise "populate_surface_view(self, surfaceView, context)  must be defined in AndroidSurfaceWidget inherited classes"
+        raise "populate_surface_view(self, surfaceView, context)  must be " \
+            "defined in AndroidSurfaceWidget inherited classes"
 
     def on_surface_created(self, surfaceHolder):
         Logger.info('AndroidSurfaceWidget: _on_surface_created')
@@ -375,7 +389,8 @@ class AndroidSurfaceWidget(AndroidNativeViewWidget):
     def on_surface_changed(self, surfaceHolder, fmt, width, height):
         # internal, called when the android SurfaceView is ready
         Logger.info(
-            'AndroidSurfaceWidget: _on_surface_changed (%d, %d), %x' % (width, height, fmt))
+            'AndroidSurfaceWidget: _on_surface_changed (%d, %d), %x' % \
+            (width, height, fmt))
         pass
 
     def on_surface_destroyed(self, surfaceHolder):
@@ -454,27 +469,31 @@ class AndroidTextureWidget(AndroidNativeViewWidget):
         self.populate_texture_view(textureView, context)
 
         # set callbacks
-        self._surfaceTextureListenerRedirector = SurfaceTextureListenerRedirector(
-            onSurfaceTextureAvailable=self.on_texture_available,
-            onSurfaceTextureSizeChangedCallback=self.on_texture_resize,
-            onSurfaceTextureUpdatedCallback=self.on_texture_update,
-            onSurfaceTextureDestroyedCallback=self.on_texture_destroy,
-        )
+        self._surfaceTextureListenerRedirector = \
+            SurfaceTextureListenerRedirector(
+                onSurfaceTextureAvailable=self.on_texture_available,
+                onSurfaceTextureSizeChangedCallback=self.on_texture_resize,
+                onSurfaceTextureUpdatedCallback=self.on_texture_update,
+                onSurfaceTextureDestroyedCallback=self.on_texture_destroy,
+            )
         textureView.setSurfaceTextureListener(
             self._surfaceTextureListenerRedirector)
         return textureView
 
     def populate_texture_view(self, textureView, context):
-        raise "populate_texture_view(self, textureView, context)  must be defined in AndroidTextureWidget child classes"
+        raise "populate_texture_view(self, textureView, context)  must be " \
+            "defined in AndroidTextureWidget child classes"
 
     def on_texture_available(self, surfaceTexture, width, height):
         Logger.info(
-            'AndroidTextureWidget: on_texture_available (%d, %d)' % (width, height))
+            'AndroidTextureWidget: on_texture_available (%d, %d)' % \
+            (width, height))
         pass
 
     def on_texture_resize(self, surfaceTexture, width, height):
         Logger.info(
-            'AndroidTextureWidget: on_texture_resize (%d, %d)' % (width, height))
+            'AndroidTextureWidget: on_texture_resize (%d, %d)' % \
+            (width, height))
         pass
 
     def on_texture_update(self, surfaceTexture):
