@@ -244,12 +244,13 @@ cdef class EventDispatcher(ObjectWithUid):
     def __init__(self, **kwargs):
         cdef basestring func, name, key
         cdef dict properties
-        cdef list prop_args
+        cdef dict prop_args
 
         # Auto bind on own handler if exist
         properties = self.properties()
-        prop_args = [
-            (k, kwargs.pop(k)) for k in list(kwargs.keys()) if k in properties]
+        prop_args = {
+            k: kwargs.pop(k) for k in list(kwargs.keys()) if k in properties}
+        self._kwargs_applied_init = set(prop_args.keys()) if prop_args else set()
         super(EventDispatcher, self).__init__(**kwargs)
 
         __cls__ = self.__class__
@@ -268,7 +269,7 @@ cdef class EventDispatcher(ObjectWithUid):
             self.fbind(func[3:], getattr(self, func))
 
         # Apply the existing arguments to our widget
-        for key, value in prop_args:
+        for key, value in prop_args.items():
             setattr(self, key, value)
 
     def register_event_type(self, basestring event_type):
