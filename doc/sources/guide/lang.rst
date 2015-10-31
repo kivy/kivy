@@ -156,7 +156,8 @@ To have your display updated when your data change, you can now have just:
 
     GridLayout:
         cols: len(root.data)
-It is very important to remember that widgets names must use CapWords or CapitalizedWords convention in order to work in kivy. For more details see `PEP8<https://www.python.org/dev/peps/pep-0008/#class-names>`_
+It is very important to remember that widgets names must start with a capital letter (and that properties do not)in order to work in kivy. 
+Recommended to see `PEP8<https://www.python.org/dev/peps/pep-0008>`_ for coding guidelines.
 
 Event Bindings
 --------------
