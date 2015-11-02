@@ -217,7 +217,7 @@ for option in kivy_options:
                 kivy_options[option] = environ[key].split(',')
             else:
                 kivy_options[option] = environ[key].lower() in \
-                    ('true', '1', 'yes', 'yup')
+                    ('true', '1', 'yes')
         except Exception:
             Logger.warning('Core: Wrong value for %s environment key' % key)
             Logger.exception('')
