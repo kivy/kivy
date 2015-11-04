@@ -81,35 +81,30 @@ Filtering
 ---------
 
 You can control which text can be added to the :class:`TextInput` by
-overwriting :meth:`TextInput.insert_text`. Every string that is typed, pasted
+using the :meth:`TextInput.input_filter`. Every string that is typed, pasted
 or inserted by any other means into the :class:`TextInput` is passed through
-this function. By overwriting it you can reject or change unwanted characters.
+this function. You can either set it to `int` or `float` or set it to a method.
 
 For example, to write only in capitalized characters::
 
-    class CapitalInput(TextInput):
+    capitalInput = TextInput()
+    
+    def capitalize_input(substring, from_undo, new_text, old_text):
+        return substring.upper()
 
-        def insert_text(self, substring, from_undo=False):
-            s = substring.upper()
-            return super(CapitalInput, self).insert_text(s,\
- from_undo=from_undo)
+    capitalInput.input_filter = capitalise_input
 
-Or to only allow floats (0 - 9 and a single period)::
 
-    class FloatInput(TextInput):
+Or to only allow hex::
 
-        pat = re.compile('[^0-9]')
-        def insert_text(self, substring, from_undo=False):
-            pat = self.pat
-            if '.' in self.text:
-                s = re.sub(pat, '', substring)
-            else:
-                s = '.'.join([re.sub(pat, '', s) for s in\
- substring.split('.', 1)])
-            return super(FloatInput, self).insert_text(s, from_undo=from_undo)
+    hexInput = TextInput()
+    
+    def capitalize_input(substring, from_undo, new_text, old_text):
+        if hex(new_text):
+            return substring
+        return None # fail
 
-Default shortcuts
------------------
+    hexInput.input_filter = capitalise_input
 
 =============== ========================================================
    Shortcuts    Description
@@ -439,7 +434,7 @@ class TextInput(FocusBehavior, Widget):
     '''
 
     __events__ = ('on_text_validate', 'on_double_tap', 'on_triple_tap',
-                  'on_quad_touch')
+                  'on_quad_touch', 'on_input_filtered')
 
     def __init__(self, **kwargs):
         self.is_focusable = kwargs.get('is_focusable', True)
@@ -537,6 +532,9 @@ class TextInput(FocusBehavior, Widget):
             self._ensure_clipboard()
 
     def on_text_validate(self):
+        pass
+
+    def on_input_filtered(self):
         pass
 
     def cursor_index(self, cursor=None):
@@ -668,15 +666,19 @@ class TextInput(FocusBehavior, Widget):
                 try:
                     int(new_text)
                 except ValueError:
+                    self.dispatch('on_input_filtered')
                     return
             elif mode == 'float':
                 try:
                     float(new_text)
                 except ValueError:
+                    self.dispatch('on_input_filtered')
                     return
             else:
-                substring = mode(substring, from_undo)
+                substring = mode(
+                    substring, from_undo, new_text=new_text, old_text=text)
             if not substring:
+                self.dispatch('on_input_filtered')
                 return
 
         self._set_line_text(cr, new_text)
@@ -2971,8 +2973,9 @@ class TextInput(FocusBehavior, Widget):
     defaults to `None`. Can be one of `None`, `'int'` (string), or `'float'`
     (string), or a callable. If it is `'int'`, it will only accept numbers.
     If it is `'float'` it will also accept a single period. Finally, if it is
-    a callable it will be called with two parameter; the string to be added
-    and a bool indicating whether the string is a result of undo (True). The
+    a callable it will be called with two(4 since 1.9.1) parameter; the string
+    to be added and a bool indicating whether the string is a result of undo
+    , since 1.9.1 we also have two named arguments `new_text` & `old_text`. The
     callable should return a new substring that will be used instead.
     '''
 
