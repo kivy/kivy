@@ -13,21 +13,25 @@ if bootstrap == 'sdl2':
     def query_storage_video(maxCount=None):
         return []
 else:
-    jPythonActivity = autoclass('org.renpy.android.PythonActivity')
-    jMediaStoreVideoMedia = autoclass('android.provider.MediaStore$Video$Media')
-    jMediaStoreMediaColumns = autoclass('android.provider.MediaStore$MediaColumns')
+    jPythonActivity = autoclass(
+            'org.renpy.android.PythonActivity')
+    jMediaStoreVideoMedia = autoclass(
+            'android.provider.MediaStore$Video$Media')
+    jMediaStoreMediaColumns = autoclass(
+            'android.provider.MediaStore$MediaColumns')
 
     def query_storage_video(maxCount=None):
-        result = []
         cursor = jPythonActivity.mActivity.getContentResolver().query(
                         jMediaStoreVideoMedia.EXTERNAL_CONTENT_URI,
                         [jMediaStoreMediaColumns.DATA],
                         None, None, None)
-        if cursor:
-            while (maxCount is None or len(res) < maxCount) and cursor.moveToNext():
-                s = cursor.getString(0)
-                result.append(s)
-            cursor.close()
+        if not cursor:
+            return []
+        result = []
+        while (maxCount is None or len(res) < maxCount) and cursor.moveToNext():
+            s = cursor.getString(0)
+            result.append(s)
+        cursor.close()
         return result
 
 def test():

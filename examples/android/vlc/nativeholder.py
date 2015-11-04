@@ -75,8 +75,9 @@ except ImportError:
             Runnable.__runnables__.remove(self)
 
     def run_on_ui_thread(f):
-        '''Decorator to create automatically a :class:`Runnable` object with the
-        function. The function will be delayed and call into the Activity thread.
+        '''Decorator to create automatically a :class:`Runnable` object
+        with the function. The function will be delayed and call into the
+        Activity thread.
         '''
         def f2(*args, **kwargs):
             Runnable(f)(*args, **kwargs)
@@ -194,9 +195,9 @@ class AndroidWidgetHolder(Widget):
         Logger.info(
             'NativeWidget: native view added (%d, %d, %d, %d)' % (x, y, w, h))
 
-        # we need to differenciate if there is interaction with our holder or not.
-        # XXX must be activated only if the _native_view is displayed on the
-        # screen!
+        # we need to differenciate if there is interaction with our holder
+        # or not. XXX must be activated only if the _native_view is displayed
+        # on the screen!
         if bootstrap == 'pygame':
             jPythonActivity.mView.setInterceptTouchListener(
                 self._touch_listener)
