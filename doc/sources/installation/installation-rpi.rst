@@ -6,12 +6,37 @@ Installation on Raspberry Pi
 You can install Kivy manually, or you can download and boot KivyPie on the
 Raspberry Pi. Both options are described below.
 
-Note that Kivy has been tested with the original Raspberry Pi Model A/B. No
-guarantee is made that it will work on a Raspberry Pi 2.
+
+Manual installation (On Raspbian Jessie)
+----------------------------------------
+
+#. Install the dependencies::
+
+    sudo apt-get update
+    sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
+       pkg-config libgl1-mesa-dev libgles2-mesa-dev \
+       python-setuptools libgstreamer1.0-dev git-core \
+       gstreamer1.0-plugins-{bad,base,good,ugly} \
+       gstreamer1.0-{omx,alsa} python-dev cython
 
 
-Manual installation
--------------------
+#. Install Kivy globally on your system::
+
+    sudo pip install git+https://github.com/kivy/kivy.git@master
+
+
+#. Or build and use kivy inplace (best for development)::
+
+    git clone https://github.com/kivy/kivy
+    cd kivy
+    
+    make
+    echo "export PYTHONPATH=$(pwd):\$PYTHONPATH" >> ~/.profile
+    source ~/.profile
+    
+
+Manual installation (On Raspbian Wheezy)
+---------------------------------------
 
 #. Add APT sources for Gstreamer 1.0 in `/etc/apt/sources.list`::
 
@@ -25,8 +50,9 @@ Manual installation
 #. Install the dependencies::
 
     sudo apt-get update
-    sudo apt-get install pkg-config libgl1-mesa-dev libgles2-mesa-dev \
-       python-pygame python-setuptools libgstreamer1.0-dev git-core \
+    sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
+       pkg-config libgl1-mesa-dev libgles2-mesa-dev \
+       python-setuptools libgstreamer1.0-dev git-core \
        gstreamer1.0-plugins-{bad,base,good,ugly} \
        gstreamer1.0-{omx,alsa} python-dev
 
@@ -39,21 +65,18 @@ Manual installation
 
     sudo pip install cython
 
-#. Clone and compile Kivy::
+#. Install Kivy globally on your system::
+
+    sudo pip install git+https://github.com/kivy/kivy.git@master
+
+#. Or build and use kivy inplace (best for development)::
 
     git clone https://github.com/kivy/kivy
     cd kivy
-
-#. Build and use kivy inplace (best for development)::
-
+    
     make
     echo "export PYTHONPATH=$(pwd):\$PYTHONPATH" >> ~/.profile
     source ~/.profile
-
-#. Or install Kivy globally on your system::
-
-    python setup.py build
-    sudo python setup.py install
 
 
 KivyPie distribution

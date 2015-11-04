@@ -816,7 +816,8 @@ ext_modules = get_extensions_from_sources(sources)
 data_file_prefix = 'share/kivy-'
 examples = {}
 examples_allowed_ext = ('readme', 'py', 'wav', 'png', 'jpg', 'svg', 'json',
-                        'avi', 'gif', 'txt', 'ttf', 'obj', 'mtl', 'kv', 'mpg')
+                        'avi', 'gif', 'txt', 'ttf', 'obj', 'mtl', 'kv', 'mpg',
+                        'glsl')
 for root, subFolders, files in walk('examples'):
     for fn in files:
         ext = fn.split('.')[-1].lower()

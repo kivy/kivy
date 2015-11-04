@@ -157,6 +157,11 @@ To have your display updated when your data change, you can now have just:
     GridLayout:
         cols: len(root.data)
 
+.. note::
+    Widget names must start with upper case letters while property names with
+    lower case ones, following the `PEP8 Naming Conventions<https://www.python.org/dev/peps/pep-0008/#naming-conventions>`_
+    is encouraged.
+
 Event Bindings
 --------------
 
@@ -348,7 +353,7 @@ In your python code:
         def hulk_smash(self):
             self.ids.hulk.text = "hulk: puny god!"
             self.ids["loki"].text = "loki: >_<!!!"  # alternative syntax
-            
+
 When your kv file is parsed, kivy collects all the widgets tagged with id's
 and places them in this `self.ids` dictionary type property. That means you
 can also iterate over these widgets and access them dictionary style::
@@ -361,7 +366,7 @@ can also iterate over these widgets and access them dictionary style::
     Although the `self.ids` method is very concise, it is generally regarded as
     'best practise' to use the ObjectProperty. This creates a direct reference,
     provides faster access and is more explicit.
-        
+
 Dynamic Classes
 ---------------
 Consider the code below:
@@ -529,4 +534,3 @@ are 3 things going on here:
 
 And that's that. Now when we run `main.py`, `controller.kv` will be loaded so
 that the ``Button`` and ``Label`` will show up and respond to our touch events.
-

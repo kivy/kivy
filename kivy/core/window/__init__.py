@@ -631,7 +631,7 @@ class WindowBase(EventDispatcher):
         if 'fullscreen' not in kwargs:
             fullscreen = Config.get('graphics', 'fullscreen')
             if fullscreen not in ('auto', 'fake'):
-                fullscreen = fullscreen.lower() in ('true', '1', 'yes', 'yup')
+                fullscreen = fullscreen.lower() in ('true', '1', 'yes')
             kwargs['fullscreen'] = fullscreen
         if 'width' not in kwargs:
             kwargs['width'] = Config.getint('graphics', 'width')
