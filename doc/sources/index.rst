@@ -30,12 +30,12 @@ different modules, classes, functions and variables available in Kivy.
 License
 -------
 
-Kivy 1.7.2 and 1.8 are now under MIT License. Previous version are still under
-LGPL 3 license.
+Kivy is released and distributed under the terms of the MIT license starting
+version 1.7.2. Older versions are still under the LGPLv3.
 
-Kivy is released under the terms of the MIT License.  You should have received
-a copy of the MIT alongside your Kivy distribution. See the file LICENSE in the
-Kivy root folder.  An online version of the license can be found at:
+You should have received a copy of the MIT license alongside your Kivy
+distribution. See the LICENSE file in the Kivy root folder. An online version
+of the license can be found at:
 
     https://github.com/kivy/kivy/blob/master/LICENSE
 
@@ -48,5 +48,5 @@ For a list of authors, please see the file AUTHORS that accompanies the
 Kivy source code distribution (next to LICENSE).
 
 
-Kivy -- Copyright 2010-2014, The Kivy Authors. All rights reserved.
+Kivy -- Copyright 2010-2015, The Kivy Authors.
 
