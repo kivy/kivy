@@ -89,7 +89,7 @@ For example, to write only in capitalized characters::
 
     capitalInput = TextInput()
     
-    def capitalize_input(substring, from_undo, new_text, old_text):
+    def capitalize_input(substring, new_text):
         return substring.upper()
 
     capitalInput.input_filter = capitalise_input
@@ -99,13 +99,15 @@ Or to only allow hex::
 
     hexInput = TextInput()
     
-    def capitalize_input(substring, from_undo, new_text, old_text):
+    def capitalize_input(substring, new_text):
         if hex(new_text):
             return substring
         return None # fail
 
     hexInput.input_filter = capitalise_input
 
+Default Shortcuts
+-----------------
 =============== ========================================================
    Shortcuts    Description
 --------------- --------------------------------------------------------
@@ -519,8 +521,12 @@ class TextInput(FocusBehavior, Widget):
             self._show_handles, .05)
         self._trigger_update_cutbuffer = Clock.create_trigger(
             self._update_cutbuffer)
-        refresh_line_options()
-        self._trigger_refresh_text()
+        t = self.text
+        if self._filter_input(t, t) != None:
+            refresh_line_options()
+            self._trigger_refresh_text()
+        else:
+            self.text = ''
 
         fbind('pos', handles)
         fbind('size', handles)
@@ -531,10 +537,39 @@ class TextInput(FocusBehavior, Widget):
         if platform == 'linux':
             self._ensure_clipboard()
 
+    def _filter_input(self, substring, new_text):
+        # do tests here
+        mode = self.input_filter
+        if mode is not None:
+            if mode == 'int':
+                try:
+                    int(new_text)
+                except ValueError:
+                    self.dispatch('on_input_filtered', substring, new_text)
+                    return
+            elif mode == 'float':
+                try:
+                    float(new_text)
+                except ValueError:
+                    self.dispatch('on_input_filtered', substring, new_text)
+                    return
+            else:
+                substring = mode(substring, new_text)
+            if not substring:
+                self.dispatch('on_input_filtered', substring, new_text)
+                return
+        return substring
+
     def on_text_validate(self):
         pass
 
-    def on_input_filtered(self):
+    def on_input_filtered(self, value, whole_text):
+        '''This event is called when input filtering fails.
+         This accepts two parameters, `value` that is filtered and
+         the whole text including filtered value.
+
+        ..versionadded::1.9.1
+        '''
         pass
 
     def cursor_index(self, cursor=None):
@@ -658,28 +693,9 @@ class TextInput(FocusBehavior, Widget):
         text = self._lines[cr]
         len_str = len(substring)
         new_text = text[:cc] + substring + text[cc:]
-
-        # do tests here 
-        mode = self.input_filter
-        if mode is not None:
-            if mode == 'int':
-                try:
-                    int(new_text)
-                except ValueError:
-                    self.dispatch('on_input_filtered')
-                    return
-            elif mode == 'float':
-                try:
-                    float(new_text)
-                except ValueError:
-                    self.dispatch('on_input_filtered')
-                    return
-            else:
-                substring = mode(
-                    substring, from_undo, new_text=new_text, old_text=text)
-            if not substring:
-                self.dispatch('on_input_filtered')
-                return
+        substring = self._filter_input(substring, new_text)
+        if not substring:
+            return
 
         self._set_line_text(cr, new_text)
 
@@ -3046,10 +3062,9 @@ if __name__ == '__main__':
 
             Builder.load_string('''
 <TextInput>
-    on_text:
-        self.suggestion_text = ''
-        self.suggestion_text = 'ion_text'
-
+    input_filter: 'float'
+    text: 'hello'
+    on_text_validate: self.input_filter = 'int'
 ''')
             root = BoxLayout(orientation='vertical')
             textinput = TextInput(multiline=True, use_bubble=True,
