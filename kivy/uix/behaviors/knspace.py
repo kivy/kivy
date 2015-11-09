@@ -82,7 +82,7 @@ namespace was used since none was specified.
                 on_press: root.dismiss()
 
     <Typist@KNSpaceBehavior+BoxLayout>:
-        knspace: getattr(self, 'knspace').clone()  \
+        knspace: getattr(self, 'knspace').fork()  \
 # So we don't create a rule binding
         Button:
             on_parent:
@@ -101,12 +101,12 @@ root.knspace.keyboard else ''
 In this example, we wanted two typists, rather than a single keyboard.
 But within a typist we wanted to be able to use names, even though typist
 share identical names. To do this, we have
-`knspace: getattr(self, 'knspace').clone()`. This forks the current namespace
+`knspace: getattr(self, 'knspace').fork()`. This forks the current namespace
 (which happens to be the default, :attr:`knspace`) and create a namespace
 shared by widgets that are offspring of that `Typist`.
 
 Now, each `Typist` gets its own namespace, while still sharing the
-default namespaces from which it was cloned for widgets not in its namespace.
+default namespaces from which it was forked for widgets not in its namespace.
 
 `knspace_key: 'knspace_parent'` is required, since a `Popup` is not a child
 the `Typist`, but they do have to share the namspace, so instead of using
@@ -172,12 +172,12 @@ class KNSpace(EventDispatcher):
             If specified, it's a parent namespace, in which case, the current
             namespace will have in its namespace all its named objects
             as well as the named objects of its parent and parent's parent
-            etc. See :meth:`clone` for more details.
+            etc. See :meth:`fork` for more details.
     '''
 
     parent = None
     '''(internal) The parent namespace instance, :class:`KNSpace`, or None. See
-    :meth:`clone`.
+    :meth:`fork`.
     '''
     __has_applied = None
 
@@ -225,7 +225,7 @@ class KNSpace(EventDispatcher):
         self.__has_applied.add(name)
         return prop
 
-    def clone(self):
+    def fork(self):
         '''Creates a new :class:`KNSpace` instance which will have access to
         all the named objects in the current namespace but will also have a
         namespace of its own that is unique to it.
@@ -331,14 +331,6 @@ class KNSpaceBehavior(object):
         name = self.name
         if name and knspace:
             setattr(knspace, name, None)  # reset old namespace
-
-        if value == 'clone':
-            if not knspace:
-                knspace = self.knspace  # get parents in case we haven't before
-            if knspace:
-                value = knspace.clone()
-            else:
-                raise ValueError('Cannot clone with no namesapce')
 
         for obj, prop_name, uid in self.__callbacks or []:
             obj.unbind_uid(prop_name, uid)
