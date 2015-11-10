@@ -142,7 +142,6 @@ __all__ = ('KNSpace', 'KNSpaceBehavior', 'knspace')
 
 from kivy.event import EventDispatcher
 from kivy.properties import StringProperty, ObjectProperty, AliasProperty
-from kivy.lang import Factory
 
 knspace = None
 '''The default :class:`KNSpace` namespace. If a :class:`KNSpace` namespace has
@@ -193,12 +192,13 @@ class KNSpace(EventDispatcher):
             if hasattr(self, name):
                 super(KNSpace, self).__setattr__(name, value)
             else:
-                value = getattr(value, 'proxy_ref', value)
                 self.apply_property(
                     **{name:
-                       ObjectProperty(value, rebind=True, allownone=True)}
+                       ObjectProperty(None, rebind=True, allownone=True)}
                 )
+                value = getattr(value, 'proxy_ref', value)
                 has_applied.add(name)
+                super(KNSpace, self).__setattr__(name, value)
         elif name not in has_applied:
             self.apply_property(**{name: prop})
             has_applied.add(name)
@@ -208,15 +208,29 @@ class KNSpace(EventDispatcher):
             value = getattr(value, 'proxy_ref', value)
             super(KNSpace, self).__setattr__(name, value)
 
-    def __getattr__(self, name):
-        parent = self.parent
+    def __getattribute__(self, name):
+        if name in super(KNSpace, self).__getattribute__('__dict__'):
+            return super(KNSpace, self).__getattribute__(name)
+
+        try:
+            value = super(KNSpace, self).__getattribute__(name)
+        except AttributeError:
+            parent = super(KNSpace, self).__getattribute__('parent')
+            if parent is None:
+                raise AttributeError(name)
+            return getattr(parent, name)
+
+        if value is not None:
+            return value
+
+        parent = super(KNSpace, self).__getattribute__('parent')
         if parent is None:
-            raise AttributeError(name)
+            return None
         return getattr(parent, name)
 
     def property(self, name, quiet=False):
         # needs to overwrite EventDispatcher.property so kv lang will work
-        prop = super(KNSpace, self).property(name, quiet=quiet)
+        prop = super(KNSpace, self).property(name, quiet=True)
         if prop is not None:
             return prop
 
@@ -332,6 +346,14 @@ class KNSpaceBehavior(object):
         if name and knspace:
             setattr(knspace, name, None)  # reset old namespace
 
+        if value == 'fork':
+            if not knspace:
+                knspace = self.knspace  # get parents in case we haven't before
+            if knspace:
+                value = knspace.fork()
+            else:
+                raise ValueError('Cannot fork with no namesapce')
+
         for obj, prop_name, uid in self.__callbacks or []:
             obj.unbind_uid(prop_name, uid)
         self.__last_knspace = self.__callbacks = None
@@ -409,4 +431,3 @@ class KNSpaceBehavior(object):
     '''
 
 knspace = KNSpace()
-Factory.register('KNSpaceBehavior', cls=KNSpaceBehavior)
