@@ -343,7 +343,7 @@ class KNSpaceBehavior(object):
 
         knspace = self._knspace or self.__last_knspace
         name = self.name
-        if name and knspace:
+        if name and knspace and getattr(knspace, name) == self:
             setattr(knspace, name, None)  # reset old namespace
 
         if value == 'fork':
@@ -409,7 +409,7 @@ class KNSpaceBehavior(object):
     def _set_name(self, value):
         old_name = self._name
         knspace = self.knspace
-        if old_name and knspace:
+        if old_name and knspace and getattr(knspace, old_name) == self:
             setattr(knspace, old_name, None)
 
         self._name = value
