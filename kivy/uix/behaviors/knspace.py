@@ -42,7 +42,7 @@ This can be done automatically with:
     class MyWidget(KNSpaceBehavior, Widget):
         pass
 
-    widget = MyWidget(name='my_widget')
+    widget = MyWidget(knsname='my_widget')
 
 Or in kv:
 
@@ -51,7 +51,7 @@ Or in kv:
     <MyWidget@KNSpaceBehavior+Widget>
 
     MyWidget:
-        name: 'my_widget'
+        knsname: 'my_widget'
 
 Now, `knspace.my_widget` will point to that widget.
 
@@ -60,9 +60,9 @@ also change to point to the new widget. E.g.:
 
 .. code-block:: python
 
-    widget = MyWidget(name='my_widget')
+    widget = MyWidget(knsname='my_widget')
     # knspace.my_widget now points to widget
-    widget2 = MyWidget(name='my_widget')
+    widget2 = MyWidget(knsname='my_widget')
     # knspace.my_widget now points to widget2
 
 Setting the namespace
@@ -76,7 +76,7 @@ One can also create their own namespace rather than using the default
     class MyWidget(KNSpaceBehavior, Widget):
         pass
 
-    widget = MyWidget(name='my_widget')
+    widget = MyWidget(knsname='my_widget')
     my_new_namespace = KNSpace()
     widget.knspace = my_new_namespace
 
@@ -94,7 +94,7 @@ Similarly, in kv:
 
     MyWidget:
         knspace: KNSpace()
-        name: 'my_widget'
+        knsname: 'my_widget'
 
 Inheriting the namespace
 ------------------------
@@ -109,11 +109,11 @@ it once:
     <MyLabel@KNSpaceBehavior+Label>
 
     <MyComplexWidget@MyWidget>:
-        name: 'my_complex'
+        knsname: 'my_complex'
         MyLabel:
-            name: 'label1'
+            knsname: 'label1'
         MyLabel:
-            name: 'label2'
+            knsname: 'label2'
 
 Then, we do:
 
@@ -169,7 +169,7 @@ if each root widget instance is assigned a new namespace. For example:
             text: root.knspace.pretty.text if root.knspace.pretty else ''
 
     <MyPrettyWidget@KNSpaceBehavior+TextInput>
-        name: 'pretty'
+        knsname: 'pretty'
         text: 'Hello'
 
     <MyCompositeWidget@KNSpaceBehavior+BoxLayout>:
@@ -232,7 +232,7 @@ A motivating example is the example from above:
             text: root.knspace.pretty.text if root.knspace.pretty else ''
 
     <MyPrettyWidget@KNSpaceBehavior+TextInput>
-        name: 'pretty'
+        knsname: 'pretty'
         text: 'Hello'
 
     <MyCompositeWidget@KNSpaceBehavior+BoxLayout>:
@@ -387,7 +387,7 @@ class KNSpaceBehavior(object):
     '''
 
     _knspace = ObjectProperty(None, allownone=True)
-    _name = StringProperty('')
+    _knsname = StringProperty('')
     __last_knspace = None
     __callbacks = None
 
@@ -409,7 +409,7 @@ class KNSpaceBehavior(object):
             return
         self.property('_knspace').dispatch(self)
 
-        name = self.name
+        name = self.knsname
         if not name:
             return
 
@@ -469,7 +469,7 @@ class KNSpaceBehavior(object):
             return
 
         knspace = self._knspace or self.__last_knspace
-        name = self.name
+        name = self.knsname
         if name and knspace and getattr(knspace, name) == self:
             setattr(knspace, name, None)  # reset old namespace
 
@@ -508,7 +508,7 @@ class KNSpaceBehavior(object):
         rebind=True, allownone=True)
     '''The namespace instance, :class:`KNSpace`, associated with this widget.
     The :attr:`knspace` namespace stores this widget when naming this widget
-    with :attr:`name`.
+    with :attr:`knsname`.
 
     If the namespace has been set with a :class:`KNSpace` instance, e.g. with
     `self.knspace = KNSpace()`, then that instance is returned (setting with
@@ -542,16 +542,16 @@ class KNSpaceBehavior(object):
     `allownone` is `True`.
     '''
 
-    def _get_name(self):
-        return self._name
+    def _get_knsname(self):
+        return self._knsname
 
-    def _set_name(self, value):
-        old_name = self._name
+    def _set_knsname(self, value):
+        old_name = self._knsname
         knspace = self.knspace
         if old_name and knspace and getattr(knspace, old_name) == self:
             setattr(knspace, old_name, None)
 
-        self._name = value
+        self._knsname = value
         if value:
             if knspace:
                 setattr(knspace, value, self)
@@ -559,7 +559,8 @@ class KNSpaceBehavior(object):
                 raise ValueError('Object has name "{}", but no namespace'.
                                  format(value))
 
-    name = AliasProperty(_get_name, _set_name, bind=('_name', ), cache=False)
+    knsname = AliasProperty(
+        _get_knsname, _set_knsname, bind=('_knsname', ), cache=False)
     '''The name given to this instance. If named, the name will be added to the
     associated :attr:`knspace` namespace, which will then point to the
     `proxy_ref` of this instance.

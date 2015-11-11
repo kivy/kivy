@@ -36,8 +36,8 @@ class KNSpaceTestCase(unittest.TestCase):
         class MyWidget(KNSpaceBehavior, Widget):
             pass
         w = MyWidget()
-        w.name = 'label4'
-        w.name = ''
+        w.knsname = 'label4'
+        w.knsname = ''
 
     def test_proxy_ref(self):
         from kivy.uix.behaviors.knspace import knspace
@@ -56,7 +56,7 @@ class KNSpaceTestCase(unittest.TestCase):
         class MyWidget(KNSpaceBehavior, Widget):
             pass
 
-        w = MyWidget(name='construct_name')
+        w = MyWidget(knsname='construct_name')
         self.assertEqual(knspace.construct_name, w)
 
     def test_re_assign(self):
@@ -66,9 +66,9 @@ class KNSpaceTestCase(unittest.TestCase):
         class MyWidget(KNSpaceBehavior, Widget):
             pass
 
-        w = MyWidget(name='construct_name2')
+        w = MyWidget(knsname='construct_name2')
         self.assertEqual(knspace.construct_name2, w)
-        w2 = MyWidget(name='construct_name2')
+        w2 = MyWidget(knsname='construct_name2')
         self.assertEqual(knspace.construct_name2, w2)
 
     def test_simple(self):
@@ -79,7 +79,7 @@ class KNSpaceTestCase(unittest.TestCase):
 <NamedLabel@KNSpaceBehavior+Label>
 
 NamedLabel:
-    name: 'label5'
+    knsname: 'label5'
     text: 'Hello'
 ''')
         self.assertEqual(knspace.label5, w)
@@ -98,10 +98,10 @@ NamedLabel:
 
 BoxLayout:
     NamedLabel:
-        name: 'label61'
+        knsname: 'label61'
         text: 'Hello'
     NamedLabel:
-        name: 'label62'
+        knsname: 'label62'
         text: 'Goodbye'
 ''')
         self.assertEqual('Hello', knspace.label61.text)
@@ -118,7 +118,7 @@ BoxLayout:
 BoxLayout:
     text: knspace.label7.text if knspace.label7 else ''
     NamedLabel:
-        name: 'label7'
+        knsname: 'label7'
         text: 'Hello'
 ''')
         self.assertEqual('Hello', w.text)
@@ -133,11 +133,11 @@ BoxLayout:
 <NamedLabel@KNSpaceBehavior+Label>
 
 NamedLabel:
-    name: 'label8'
+    knsname: 'label8'
     text: 'Hello'
 ''')
         self.assertEqual(w, knspace.label8)
-        w.name = 'named_label8'
+        w.knsname = 'named_label8'
         self.assertIsNone(knspace.label8)
         self.assertEqual(w, knspace.named_label8)
 
@@ -151,11 +151,11 @@ NamedLabel:
 BoxLayout:
     NamedLabel:
         knspace: 'fork'
-        name: 'label9'
+        knsname: 'label9'
         text: 'Hello'
     NamedLabel:
         knspace: 'fork'
-        name: 'label9'
+        knsname: 'label9'
         text: 'Goodbye'
 ''')
         self.assertEqual(w.children[0].knspace.label9.text, 'Goodbye')
@@ -200,11 +200,11 @@ BoxLayout:
 <NamedLabel@KNSpaceBehavior+Label>
 
 <MyComplexWidget@NamedLabel>:
-    name: 'root_label'
+    knsname: 'root_label'
     text: 'Hello'
     NamedLabel:
         id: child
-        name: 'child_label'
+        knsname: 'child_label'
         text: self.knspace.root_label.text if self.knspace.root_label else ''
 
 BoxLayout:
