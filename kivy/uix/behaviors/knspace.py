@@ -1,141 +1,263 @@
-'''Provides namespace functionality for Kivy objects. It allows kivy objects
+'''
+Kivy Namespaces
+===============
+
+.. versionadded:: 1.9.1
+
+.. warning::
+    This code is still experimental, and its API is subject to change in a
+    future version.
+
+Provides namespace functionality for Kivy objects. It allows kivy objects
 to be named and then accessed using the namespace.
 
-:class:`KNSpace` instances are the namespaces that store the named objects.
-Classes need to inherit from :class:`KNSpaceBehavior` so that the class, when
-named, will be stored in the namespace. :attr:`knspace` is the default
-namespace where objects are stored, unless the object is associated with a
-different namespace.
+:class:`KNSpace` instances are the namespaces that store the named objects
+in Kivy :class:`~kivy.properties.ObjectProperty` instances.
+In addition, when inheriting from :class:`KNSpaceBehavior`, if the derived
+object is named, the name will automatically be added to the associated
+namespace and will point to a :attr:`~kivy.uix.widget.proxy_ref` of the
+derived object.
 
-Simple Example
------------------
 
-Here, because no namespace is specified, the default
-:attr:`knspace` is used so we can access its widgets directly, as in
-`knspace.keyboard`, to get the keyboard widget::
+Basic examples
+--------------
 
-    #:import knspace cutils.knspace.knspace
-    #:import Factory kivy.lang.Factory
-    <NamedTextInput@KNSpaceBehavior+TextInput>
+By default, there's only a single namespace; the :attr:`knspace` namespace. The
+simplest example is adding a widget to the namespace:
 
-    <Keyboard@Popup>:
-        BoxLayout:
-            GridLayout:
-                cols: 1
-                NamedTextInput:
-                    name: 'keyboard'
-                    hint_text: 'Type something'
-                Label:
-                    text: 'My Keyboard'
-            Button:
-                text: 'Close Keyboard'
-                on_press: root.dismiss()
+.. code-block:: python
 
-    <RootWidget@BoxLayout>:
-        Button:
-            on_parent: self.popup = Factory.Keyboard()
-            on_release: self.popup.open()
-            text: 'Open keyboard'
-        Label:
-            text: 'Keyboard output:\\n' + knspace.keyboard.text if \
-knspace.keyboard else ''
+    from kivy.uix.behaviors.knspace import knspace
+    widget = Widget()
+    knspace.my_widget = widget
 
-To test, run a app with `RootWidget`.
+This adds an kivy :class:`~kivy.properties.ObjectProperty` with `rebind=True`
+and `allownone=True` to the :attr:`knspace` namespace with property name
+`my_widget`. And the property now also points to this widget.
 
-Multiple Namespaces
--------------------
+This can be done automatically with:
 
-In the previous example, only the default namespace was used. However,
-sometimes we need to split namespaces so we can reuse the name across
-multiple widgets using the same name.
+.. code-block:: python
 
-When a :class:`KNSpaceBehavior` derived widget is given a name, first we find
-the associated namespace using the :attr:`KNSpaceBehavior.knspace` property.
-Then, we create a :class:`~kivy.properties.ObjectProperty` in that namespace,
-whose name is that name and assign the named widget as its value. See
-:attr:`KNSpaceBehavior.knspace` for details on how that namespace is found.
+    class MyWidget(KNSpaceBehavior, Widget):
+        pass
 
-In short, we check if the widget was assigned one, if not, we find the
-namespace by walking up its parent tree using
-:attr:`KNSpaceBehavior.knspace_key` and finding the first one with a namespace.
-Finally, if not found, we use :attr:`knspace`. Therefore, above, the default
-namespace was used since none was specified.
+    widget = MyWidget(name='my_widget')
 
-::
+Or in kv:
 
-    #:import Factory kivy.lang.Factory
-    <NamedTextInput@KNSpaceBehavior+TextInput>
+.. code-block:: kv
 
-    <Keyboard@KNSpaceBehavior+Popup>:
-        knspace_key: 'knspace_parent'
-        knspace_parent: None
-        BoxLayout:
-            GridLayout:
-                cols: 1
-                NamedTextInput:
-                    name: 'keyboard'
-                    hint_text: 'Type something'
-                Label:
-                    text: 'My Keyboard'
-            Button:
-                text: 'Close Keyboard'
-                on_press: root.dismiss()
+    <MyWidget@KNSpaceBehavior+Widget>
 
-    <Typist@KNSpaceBehavior+BoxLayout>:
-        knspace: getattr(self, 'knspace').fork()  \
-# So we don't create a rule binding
-        Button:
-            on_parent:
-                self.popup = Factory.Keyboard()
-                self.popup.knspace_parent = root
-            on_release: self.popup.open()
-            text: 'Open keyboard'
-        Label:
-            text: 'Keyboard output:\\n' + root.knspace.keyboard.text if \
-root.knspace.keyboard else ''
+    MyWidget:
+        name: 'my_widget'
 
-    <RootWidget@BoxLayout>:
-        Typist
-        Typist
+Now, `knspace.my_widget` will point to that widget.
 
-In this example, we wanted two typists, rather than a single keyboard.
-But within a typist we wanted to be able to use names, even though typist
-share identical names. To do this, we have
-`knspace: getattr(self, 'knspace').fork()`. This forks the current namespace
-(which happens to be the default, :attr:`knspace`) and create a namespace
-shared by widgets that are offspring of that `Typist`.
+When one creates a second widget with the same name, the namespace will
+also change to point to the new widget. E.g.:
 
-Now, each `Typist` gets its own namespace, while still sharing the
-default namespaces from which it was forked for widgets not in its namespace.
+.. code-block:: python
 
-`knspace_key: 'knspace_parent'` is required, since a `Popup` is not a child
-the `Typist`, but they do have to share the namspace, so instead of using
-`parent` to find the next namespace up the tree, we use the specified
-`knspace_parent` attribute which points to the Typist and hence its
-namespace.
+    widget = MyWidget(name='my_widget')
+    # knspace.my_widget now points to widget
+    widget2 = MyWidget(name='my_widget')
+    # knspace.my_widget now points to widget2
 
-Traditional namespace
+Setting the namespace
 ---------------------
 
-In the above example, we accessed the namespace using e.g.
-`root.knspace.keyboard`. We can also access it without having access to e.g.
-`root` like in a traditional namespace access.
+One can also create their own namespace rather than using the default
+:attr:`knspace` by directly setting :attr:`KNSpaceBehavior.knspace`:
 
-We can change the above `RootWidget` into::
+.. code-block:: python
 
-    <RootWidget@KNSpaceBehavior+BoxLayout>:
-        name: 'root'
-        Typist
-        Typist
+    class MyWidget(KNSpaceBehavior, Widget):
+        pass
 
-Now, we can do::
+    widget = MyWidget(name='my_widget')
+    my_new_namespace = KNSpace()
+    widget.knspace = my_new_namespace
 
-    knspace.root.children[0].knspace.keyboard.hint_text = 'Type something else'
+Initially, `my_widget` is added to the default namespace, but when the widget's
+namespace is changed to `my_new_namespace`, the reference to `my_widget` is
+moved to that namespace. We could have also of course first set the namespace
+to `my_new_namespace` and then named the widget as `my_widget`, thereby
+avoiding the initial assignment to the default namespace.
 
-And the second Typist's keyboard will have a different hint text. Of course
-we could also have done
-`root.children[0].knspace.keyboard.hint_text = 'Type something else'` if had
-access to the root widget.
+Similarly, in kv:
+
+.. code-block:: kv
+
+    <MyWidget@KNSpaceBehavior+Widget>
+
+    MyWidget:
+        knspace: KNSpace()
+        name: 'my_widget'
+
+Inheriting the namespace
+------------------------
+
+In the previous example, we directly set the namespace we wished to use.
+In the following example we inherit it from our parent, so we only have to set
+it once:
+
+.. code-block:: kv
+
+    <MyWidget@KNSpaceBehavior+Widget>
+    <MyLabel@KNSpaceBehavior+Label>
+
+    <MyComplexWidget@MyWidget>:
+        name: 'my_complex'
+        MyLabel:
+            name: 'label1'
+        MyLabel:
+            name: 'label2'
+
+Then, we do:
+
+.. code-block:: python
+
+    widget = MyComplexWidget()
+    new_knspace = KNSpace()
+    widget.knspace = new_knspace
+
+The rule is that if no knspace has been assigned to a widget, it looks for a
+namespace in it's parent and parent's parent and so on until it find one to
+use. If none are found, it uses the default :attr:`knspace`.
+
+When `MyComplexWidget` is created, it still used the default namespace.
+However, when we assigned the root widget it's new_namespace, all its children
+switched to using that new namespace as well. So `new_knspace` now contains
+`label1` and `label2` as well as `my_complex`.
+
+If we had first done:
+
+.. code-block:: python
+
+    widget = MyComplexWidget()
+    new_knspace = KNSpace()
+    knspace.label1.knspace = knspace
+    widget.knspace = new_knspace
+
+Then `label1` would remain stored in the default :attr:`knspace` since it was
+directly set, but `label2` and `my_complex` would still be added to the new
+namespace.
+
+One can customize the attribute used to search the parent tree by changing
+:attr:`KNSpaceBehavior.knspace_key`. If the desired knspace is not reachable
+through a widgets parent tree, e.g. in a popup that is not a widget's child,
+:attr:`KNSpaceBehavior.knspace_key` can be used to establish a different
+search order.
+
+Accessing the namespace
+-----------------------
+
+As seen in the previous example, if not directly assigned, the namespace is
+found by searching the parent tree. Consequently, if a namespace was assigned
+further up the parent tree, all its children and below could access that
+namespace through their :attr:`KNSpaceBehavior.knspace` property.
+
+This allows the creation of multiple widgets with identically given names
+if each root widget instance is assigned a new namespace. For example:
+
+.. code-block:: kv
+
+    <MyComplexWidget@KNSpaceBehavior+Widget>:
+        Label:
+            text: root.knspace.pretty.text if root.knspace.pretty else ''
+
+    <MyPrettyWidget@KNSpaceBehavior+TextInput>
+        name: 'pretty'
+        text: 'Hello'
+
+    <MyCompositeWidget@KNSpaceBehavior+BoxLayout>:
+        MyComplexWidget
+        MyPrettyWidget
+
+Now, when we do:
+
+.. code-block:: python
+
+    knspace1, knspace2 = KNSpace(), KNSpace()
+    composite1 = MyCompositeWidget()
+    composite1.knspace = knspace1
+
+    composite2 = MyCompositeWidget()
+    composite2.knspace = knspace2
+
+    knspace1.pretty = "Here's the ladder, now fix the roof!"
+    knspace2.pretty = "Get that raccoon off me!"
+
+Because each of the `MyCompositeWidget` instances have a different namespace
+their children also use different namespaces. Consequently, the
+pretty and complex widgets of each instance will have different text.
+
+Further, because both the namespace :class:`~kivy.properties.ObjectProperty`
+references, and :atrr:`KNSpaceBehavior.knspace` have `rebind=True`, the
+text of the `MyComplexWidget` label is rebind to match the text of
+`MyPrettyWidget` when either the root's namespace changes or when the
+`root.knspace.pretty` property changes, as expected.
+
+Forking a namespace
+-------------------
+
+Forking a namespace provides the opportunity to create a new namesapce
+from a parent namespace so that the forked namespace will contain everything
+in the origin namespace, but the origin namespace will not have access to
+anything added to the forked namespace.
+
+For example:
+
+.. code-block:: python
+
+    child = knspace.fork()
+    grandchild = child.fork()
+
+    child.label = Label()
+    grandchild.button = Button()
+
+Now label is accessible by both child and grandchild, but not by knspace. And
+button is only accessible by the grandchild but not by the child or by knspace.
+Finally, doing `grandchild.label = Label()` will leave `grandchild.label`
+and `child.label` pointing to different labels.
+
+A motivating example is the example from above:
+
+.. code-block:: kv
+
+    <MyComplexWidget@KNSpaceBehavior+Widget>:
+        Label:
+            text: root.knspace.pretty.text if root.knspace.pretty else ''
+
+    <MyPrettyWidget@KNSpaceBehavior+TextInput>
+        name: 'pretty'
+        text: 'Hello'
+
+    <MyCompositeWidget@KNSpaceBehavior+BoxLayout>:
+        knspace: 'fork'
+        MyComplexWidget
+        MyPrettyWidget
+
+Notice the addition of `knspace: 'fork'`. This is identical to doing
+`knspace: self.knspace.fork()`. However, doing that would lead to infinite
+recursion as that kv rule would be executed recursively because `self.knspace`
+will keep on changing. However, allowing `knspace: 'fork'` cirumvents that.
+See :attr:`KNSpaceBehavior.knspace`.
+
+Now, having forked, we just need to do:
+
+.. code-block:: python
+
+    composite1 = MyCompositeWidget()
+    composite2 = MyCompositeWidget()
+
+    composite1.knspace.pretty = "Here's the ladder, now fix the roof!"
+    composite2.knspace.pretty = "Get that raccoon off me!"
+
+Since by forking we automatically created a unique namespace for each
+`MyCompositeWidget` instance.
 '''
 
 __all__ = ('KNSpace', 'KNSpaceBehavior', 'knspace')
@@ -144,23 +266,20 @@ from kivy.event import EventDispatcher
 from kivy.properties import StringProperty, ObjectProperty, AliasProperty
 
 knspace = None
-'''The default :class:`KNSpace` namespace. If a :class:`KNSpace` namespace has
-not been assigned to a :class:`KNSpaceBehavior` instance, then this
-:class:`KNSpace` namespace serves as the default namespace.
-
-See the examples and :class:`KNSpaceBehavior` for more details.
+'''The default :class:`KNSpace` namespace. See :attr:`KNSpaceBehavior.knspace`
+for more details.
 '''
 
 
 class KNSpace(EventDispatcher):
     '''Each :class:`KNSpace` instance is a namespace that stores the named Kivy
-    objects when they are associated with this namespace. Each named object is
+    objects associated with this namespace. Each named object is
     stored as the value of a Kivy :class:`~kivy.properties.ObjectProperty` of
     this instance whose property name is the object's given name. Both `rebind`
     and `allownone` are set to `True` for the property.
 
-    See :attr:`KNSpaceBehavior` for details on how a namespace is associated
-    with a named object.
+    See :attr:`KNSpaceBehavior.knspace` for details on how a namespace is
+    associated with a named object.
 
     When storing an object in the namespace, the object's `proxy_ref` is
     stored if the object has such an attribute.
@@ -240,15 +359,21 @@ class KNSpace(EventDispatcher):
         return prop
 
     def fork(self):
-        '''Creates a new :class:`KNSpace` instance which will have access to
+        '''Returns a new :class:`KNSpace` instance which will have access to
         all the named objects in the current namespace but will also have a
         namespace of its own that is unique to it.
 
-        Any new names added to a :class:`KNSpaceBehavior` associated with
-        this instance will be accesible only through this instance
-        and not its parent(s). However, when looking for a named object using
-        this namespace, if the object is not found in this namespace we search
-        it's parent namespace and so on until we (don't) find it.
+        For example:
+
+        .. code-block:: python
+
+            forked_knspace1 = knspace.fork()
+            forked_knspace2 = knspace.fork()
+
+        Now, any names added to `knspace` will be accessible by the
+        `forked_knspace1` and `forked_knspace2` namespaces by the normal means.
+        However, any names added to `forked_knspace1` will not be accessible
+        from `knspace` or `forked_knspace2`. Similar for `forked_knspace2`.
         '''
         return KNSpace(parent=self)
 
@@ -257,6 +382,8 @@ class KNSpaceBehavior(object):
     '''Inheriting from this class allows naming of the inherited object, which
     is then added to the associated namespace :attr:`knspace` and accessible
     through it.
+
+    See :mod:`~kivy.uix.behaviors.knspace` for details.
     '''
 
     _knspace = ObjectProperty(None, allownone=True)
@@ -380,24 +507,36 @@ class KNSpaceBehavior(object):
         _get_knspace, _set_knspace, bind=('_knspace', ), cache=False,
         rebind=True, allownone=True)
     '''The namespace instance, :class:`KNSpace`, associated with this widget.
-    When this widget is named with :attr:`name` the name is added to the
-    :attr:`knspace` namespace pointing to this widget.
+    The :attr:`knspace` namespace stores this widget when naming this widget
+    with :attr:`name`.
 
     If the namespace has been set with a :class:`KNSpace` instance, e.g. with
-    `self.knspace = ...`, then that instance is used. Otherwise, we look at
-    the property named :attr:`knspace_key` of this obj. If that object has a
-    knspace property we use that namespace. Otherwise, we look at its
-    :attr:`knspace_key` object and walk up the parent tree until we find
-    a parent who has a namespace instance. Finally, if there's no parent with
-    a namespace, the default :attr:`~cutils.knspace.knspace` namespace is used.
+    `self.knspace = KNSpace()`, then that instance is returned (setting with
+    `None` doesn't count). Otherwise, if :attr:`knspace_key` is not None, we
+    look for a namespace to use in the object that is stored in the property
+    named :attr:`knspace_key`, of this instance. I.e.
+    `object = getattr(self, self.knspace_key)`.
+
+    If that object has a knspace property, then we return its value. Otherwise,
+    we go further up, e.g. with `getattr(object, self.knspace_key)` and look
+    for it's `knspace` property.
+
+    Finally, if we reach a value of `None`, or :attr:`knspace_key` was `None`,
+    the default :attr:`~kivy.uix.behaviors.knspace.knspace` namespace is
+    returned.
+
+    If :attr:`knspace` is set to the string `'fork'`, the current namespace
+    in :attr:`knspace` will be forked with :meth:`KNSpace.fork` and the
+    resulting namespace will be assigned to this instance's :attr:`knspace`.
+    See the module examples for a motivating example.
 
     Both `rebind` and `allownone` are `True`.
     '''
 
     knspace_key = StringProperty('parent', allownone=True)
-    '''The name of the property of this instance, to use to find the namespace
-    associated with this instance. Defaults to `'parent'` so that we'll look
-    up the parent tree to find the namespace. See :attr:`knspace`.
+    '''The name of the property of this instance, to use to search upwards for
+    a namespace to use by this instance. Defaults to `'parent'` so that we'll
+    search the parent tree. See :attr:`knspace`.
 
     When `None`, we won't search the parent tree for the namespace.
     `allownone` is `True`.
@@ -421,13 +560,13 @@ class KNSpaceBehavior(object):
                                  format(value))
 
     name = AliasProperty(_get_name, _set_name, bind=('_name', ), cache=False)
-    '''The name given to this object. If named, the name will be added to the
-    associated :attr:`knspace` and will point to the `proxy_ref` of this
-    object.
+    '''The name given to this instance. If named, the name will be added to the
+    associated :attr:`knspace` namespace, which will then point to the
+    `proxy_ref` of this instance.
 
-    When named, one can access this object by e.g. knspace.name, where `name`
-    is the given name of this instance. See :attr:`knspace` and the module
-    description for more details.
+    When named, one can access this object by e.g. self.knspace.name, where
+    `name` is the given name of this instance. See :attr:`knspace` and the
+    module description for more details.
     '''
 
 knspace = KNSpace()

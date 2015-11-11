@@ -1,6 +1,8 @@
 
 import unittest
-
+'''ACHTUNG: when testing, never re-use widget names, otherwise the tests
+may fail as the namespace will remember the names between tests.
+'''
 
 class KNSpaceTestCase(unittest.TestCase):
 
@@ -45,6 +47,28 @@ class KNSpaceTestCase(unittest.TestCase):
         self.assertIs(w.proxy_ref, knspace.widget1)
         knspace.widget1 = 55
         self.assertIs(55, knspace.widget1)
+
+    def test_constructor(self):
+        from kivy.uix.behaviors.knspace import knspace, KNSpaceBehavior
+        from kivy.uix.widget import Widget
+
+        class MyWidget(KNSpaceBehavior, Widget):
+            pass
+
+        w = MyWidget(name='construct_name')
+        self.assertEqual(knspace.construct_name, w)
+
+    def test_re_assign(self):
+        from kivy.uix.behaviors.knspace import knspace, KNSpaceBehavior
+        from kivy.uix.widget import Widget
+
+        class MyWidget(KNSpaceBehavior, Widget):
+            pass
+
+        w = MyWidget(name='construct_name2')
+        self.assertEqual(knspace.construct_name2, w)
+        w2 = MyWidget(name='construct_name2')
+        self.assertEqual(knspace.construct_name2, w2)
 
     def test_simple(self):
         from kivy.lang import Builder
