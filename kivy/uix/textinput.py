@@ -88,7 +88,7 @@ this function. You can either set it to `int` or `float` or set it to a method.
 For example, to write only in capitalized characters::
 
     capitalInput = TextInput()
-    
+
     def capitalize_input(substring, new_text):
         return substring.upper()
 
@@ -98,7 +98,7 @@ For example, to write only in capitalized characters::
 Or to only allow hex::
 
     hexInput = TextInput()
-    
+
     def capitalize_input(substring, new_text):
         if hex(new_text):
             return substring
@@ -537,7 +537,7 @@ class TextInput(FocusBehavior, Widget):
         if platform == 'linux':
             self._ensure_clipboard()
 
-    def _filter_input(self, substring, new_text):
+    def _filter_input(self, substring, new_text, from_del=False):
         # do tests here
         mode = self.input_filter
         if mode is not None:
@@ -545,18 +545,23 @@ class TextInput(FocusBehavior, Widget):
                 try:
                     int(new_text)
                 except ValueError:
-                    self.dispatch('on_input_filtered', substring, new_text)
+                    if not from_del:
+                        self.dispatch('on_input_filtered', substring, new_text)
                     return
             elif mode == 'float':
                 try:
                     float(new_text)
                 except ValueError:
-                    self.dispatch('on_input_filtered', substring, new_text)
+                    if not from_del:
+                        self.dispatch('on_input_filtered', substring, new_text)
                     return
             else:
-                substring = mode(substring, new_text)
+                nsubstring = mode(substring, new_text)
+                if nsubstring != substring:
+                    substring = None
             if not substring:
-                self.dispatch('on_input_filtered', substring, new_text)
+                if not from_del:
+                    self.dispatch('on_input_filtered', substring, new_text)
                 return
         return substring
 
@@ -860,6 +865,9 @@ class TextInput(FocusBehavior, Widget):
             new_text = text[:cc - 1] + text[cc:]
             self._set_line_text(cr, new_text)
 
+
+            # trigger filter_input, just don't stop backspace/deletion.
+        self._filter_input(text, new_text, True)
         # refresh just the current line instead of the whole text
         start, finish, lines, lineflags, len_lines =\
             self._get_line_from_cursor(start, new_text)
@@ -1211,6 +1219,8 @@ class TextInput(FocusBehavior, Widget):
         else:
             self._refresh_text_from_property('del', start[1], finish[1], lines,
                                              lineflags, len_lines)
+        # call filter input when selection is deleted, just don't stop deletion.
+        self._filter_input(''.join(lines), self.text, True)
         self.scroll_x = scrl_x
         self.scroll_y = scrl_y
         # handle undo and redo for delete selecttion
@@ -3062,9 +3072,10 @@ if __name__ == '__main__':
 
             Builder.load_string('''
 <TextInput>
+    text: '1121.1'
     input_filter: 'float'
-    text: 'hello'
     on_text_validate: self.input_filter = 'int'
+    on_input_filtered: print args
 ''')
             root = BoxLayout(orientation='vertical')
             textinput = TextInput(multiline=True, use_bubble=True,
