@@ -885,7 +885,8 @@ setup(
         'kivy.tools.highlight',
         'kivy.extras',
         'kivy.tools.extensions',
-        'kivy.uix', ],
+        'kivy.uix',
+        'kivy.uix.behaviors', ],
     package_dir={'kivy': 'kivy'},
     package_data={'kivy': [
         '*.pxd',
