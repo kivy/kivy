@@ -10,8 +10,8 @@ __all__ = ('VlcVideoView', 'VlcOptions')
 from nativeholder import AndroidSurfaceWidget, run_on_ui_thread
 
 from kivy.clock import Clock
-from kivy.properties import BooleanProperty, StringProperty,
-        OptionProperty, NumericProperty, DictProperty, ReferenceListProperty
+from kivy.properties import (BooleanProperty, StringProperty,
+        OptionProperty, NumericProperty, DictProperty, ReferenceListProperty)
 from kivy.logger import Logger
 
 from jnius import autoclass, cast, PythonJavaClass, java_method
