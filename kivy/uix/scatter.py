@@ -93,16 +93,27 @@ Behavior
 
 __all__ = ('Scatter', 'ScatterPlane')
 
+from functools import partial
 from math import radians
+from kivy.config import Config
+from kivy.clock import Clock
+from kivy.graphics.transformation import Matrix
+from kivy.metrics import sp, dp
 from kivy.properties import BooleanProperty, AliasProperty, \
     NumericProperty, ObjectProperty, BoundedNumericProperty
-from kivy.vector import Vector
 from kivy.uix.widget import Widget
-from kivy.graphics.transformation import Matrix
+from kivy.vector import Vector
 
 
-class Scatter(Widget):
-    '''Scatter class. See module documentation for more information.
+# When we are generating documentation, Config doesn't exist
+_scroll_timeout = _scroll_distance = 0
+if Config:
+    _scroll_timeout = Config.getint('widgets', 'scroll_timeout')
+    _scroll_distance = sp(Config.getint('widgets', 'scroll_distance'))
+
+
+class ScatterBehavior(object):
+    '''ScatterBehavior class. See module documentation for more information.
 
     :Events:
         `on_transform_with_touch`:
@@ -110,6 +121,15 @@ class Scatter(Widget):
             or multitouch, such as panning or zooming.
         `on_bring_to_front`:
             Fired when the scatter is brought to the front.
+        `on_pan`:
+            Fired when the scatter is panned.
+        `on_rotate`:
+            Fired when the scatter is rotated.
+        `on_zoom`:
+            Fired when the scatter is zoomed.
+
+    .. versionchanged:: 1.9.1
+        Events `on_pan`, `on_rotate`, `on_zoom` added.
 
     .. versionchanged:: 1.9.0
         Event `on_bring_to_front` added.
@@ -118,7 +138,10 @@ class Scatter(Widget):
         Event `on_transform_with_touch` added.
     '''
 
-    __events__ = ('on_transform_with_touch', 'on_bring_to_front')
+    __events__ = (
+        'on_transform_with_touch', 'on_bring_to_front',
+        'on_pan', 'on_rotate', 'on_zoom'
+    )
 
     auto_bring_to_front = BooleanProperty(True)
     '''If True, the widget will be automatically pushed on the top of parent
@@ -195,20 +218,401 @@ class Scatter(Widget):
     .. versionadded:: 1.3.0
     '''
 
-    scale_min = NumericProperty(0.01)
-    '''Minimum scaling factor allowed.
+    do_dispatch_after_children = BooleanProperty(False)
+    '''If True, handling touch events will be done after dispatching them to
+    the children. In this case, pan_distance and pan_timeout will be used to
+    determine which touches belong to the Scatter and which belong to its
+    children.
 
-    :attr:`scale_min` is a :class:`~kivy.properties.NumericProperty` and
-    defaults to 0.01.
+    .. versionadded:: 1.9.1
     '''
 
-    scale_max = NumericProperty(1e20)
-    '''Maximum scaling factor allowed.
+    pan_distance = NumericProperty(_scroll_distance)
+    '''Distance to move before panning the :class:`ScatterBehavior`, in pixels.
+    As soon as the distance has been traveled, the :class:`ScatterBehavior` will
+    start to pan, and no touch event will be dispatched to the children.
+    It is advisable that you base this value on the dpi of your target device's
+    screen.
 
-    :attr:`scale_max` is a :class:`~kivy.properties.NumericProperty` and
-    defaults to 1e20.
+    :attr:`pan_distance` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to the `scroll_distance` as defined in the user
+    :class:`~kivy.config.Config` (20 pixels by default).
     '''
 
+    pan_timeout = NumericProperty(_scroll_timeout)
+    '''Timeout allowed to trigger the :attr:`pan_distance`, in milliseconds.
+    If the user has not moved :attr:`pan_distance` within the timeout,
+    panging will be disabled, and the touch event will be dispatched to the
+    children.
+
+    :attr:`pan_timeout` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to the `scroll_timeout` as defined in the user
+    :class:`~kivy.config.Config` (55 milliseconds by defaut).
+    '''
+
+    def __init__(self, **kwargs):
+        self._touches = []
+        self._last_touch_pos = {}
+        self._pan_touch = None
+        super(ScatterBehavior, self).__init__(**kwargs)
+
+    def _get_scatter_behavior_uid(self, prefix='scatter_behavior'):
+        return '{0}.{1}'.format(prefix, self.uid)
+
+    def transform_with_touch(self, touch):
+        # just do a simple one finger drag
+        changed = False
+        if len(self._touches) == self.translation_touches:
+            # _last_touch_pos has last pos in correct parent space,
+            # just like incoming touch
+            dx = (touch.x - self._last_touch_pos[touch][0]) \
+                * self.do_translation_x
+            dy = (touch.y - self._last_touch_pos[touch][1]) \
+                * self.do_translation_y
+            dx = dx / self.translation_touches
+            dy = dy / self.translation_touches
+            self.dispatch('on_pan', dx, dy)
+            changed = True
+
+        if len(self._touches) == 1:
+            return changed
+
+        # we have more than one touch... list of last known pos
+        points = [Vector(self._last_touch_pos[t]) for t in self._touches
+                  if t is not touch]
+        # add current touch last
+        points.append(Vector(touch.pos))
+
+        # we only want to transform if the touch is part of the two touches
+        # farthest apart! So first we find anchor, the point to transform
+        # around as another touch farthest away from current touch's pos
+        anchor = max(points[:-1], key=lambda p: p.distance(touch.pos))
+
+        # now we find the touch farthest away from anchor, if its not the
+        # same as touch. Touch is not one of the two touches used to transform
+        farthest = max(points, key=anchor.distance)
+        if farthest is not points[-1]:
+            return changed
+
+        # ok, so we have touch, and anchor, so we can actually compute the
+        # transformation
+        old_line = Vector(*touch.ppos) - anchor
+        new_line = Vector(*touch.pos) - anchor
+        if not old_line.length():   # div by zero
+            return changed
+
+        angle = radians(new_line.angle(old_line)) * self.do_rotation
+        self.dispatch('on_rotate', angle, anchor)
+
+        if self.do_scale:
+            scale = new_line.length() / old_line.length()
+            self.dispatch('on_zoom', float(scale), anchor)
+            changed = True
+        return changed
+
+    def _bring_to_front(self, touch):
+        # auto bring to front
+        if self.auto_bring_to_front and self.parent:
+            parent = self.parent
+            if parent.children[0] is self:
+                return
+            parent.remove_widget(self)
+            parent.add_widget(self)
+            self.dispatch('on_bring_to_front', touch)
+
+    def on_touch_down(self, touch):
+        x, y = touch.pos
+
+        if self.do_dispatch_after_children:
+            if not self.collide_point(x, y):
+                touch.ud[self._get_scatter_behavior_uid('scatter_avoid')] = True
+                return False
+
+            uid = self._get_scatter_behavior_uid()
+
+            self._pan_touch = touch
+            touch.grab(self)
+            self._touches.append(touch)
+            self._last_touch_pos[touch] = touch.pos
+            touch.ud[uid] = {
+                '_mode': 'unknown',
+                'dx': 0,
+                'dy': 0}
+            Clock.schedule_once(self._change_touch_mode,
+                                self.pan_timeout / 1000.)
+
+            return False
+        else:
+            if self._do_dispatch(touch):
+                return True
+
+        # if the touch isnt on the widget we do nothing
+        if not self.do_collide_after_children:
+            if not self.collide_point(x, y):
+                return False
+
+        # if our child didn't do anything, and if we don't have any active
+        # interaction control, then don't accept the touch.
+        if not self.do_translation_x and \
+                not self.do_translation_y and \
+                not self.do_rotation and \
+                not self.do_scale:
+            return False
+
+        if self.do_collide_after_children:
+            if not self.collide_point(x, y):
+                return False
+
+        if self.do_dispatch_after_children:
+            if self._do_dispatch(touch):
+                return True
+
+        if 'multitouch_sim' in touch.profile:
+            touch.multitouch_sim = True
+        # grab the touch so we get all it later move events for sure
+        self._bring_to_front(touch)
+        touch.grab(self)
+        self._touches.append(touch)
+        self._last_touch_pos[touch] = touch.pos
+
+        return True
+
+    def _do_dispatch(self, touch):
+        touch.push()
+        touch.apply_transform_2d(self.to_local)
+        if super(ScatterBehavior, self).on_touch_down(touch):
+            # ensure children don't have to do it themselves
+            if 'multitouch_sim' in touch.profile:
+                touch.multitouch_sim = True
+            touch.pop()
+            self._bring_to_front(touch)
+            return True
+        touch.pop()
+
+    def on_touch_move(self, touch):
+        if self.do_dispatch_after_children:
+            uid = self._get_scatter_behavior_uid()
+
+            if self._get_scatter_behavior_uid('scatter_avoid') in touch.ud:
+                return False
+            elif(
+                self._pan_touch is not touch and
+                uid in touch.ud and
+                touch.ud[uid]['_mode'] == 'unknown'
+            ):
+                touch.push()
+                touch.apply_transform_2d(self.to_local)
+                if super(ScatterBehavior, self).on_touch_move(touch):
+                    touch.pop()
+                    return True
+                touch.pop()
+
+            ud = touch.ud.get(uid, {})
+            mode = ud.get('_mode', '')
+
+            if touch.grab_current is self:
+                if mode == 'unknown':
+                    dx = abs(touch.ox - touch.x)
+                    dy = abs(touch.oy - touch.y)
+                    if dx > sp(self.pan_distance):
+                        mode = 'pan'
+                    if dy > sp(self.pan_distance):
+                        mode = 'pan'
+                    if mode == 'pan':
+                        self._bring_to_front(touch)
+                        ud['_mode'] = mode
+
+        x, y = touch.pos
+        # let the child widgets handle the event if they want
+        if(
+            self.collide_point(x, y) and
+            not touch.grab_current == self and
+            (
+                not self.do_dispatch_after_children or
+                touch not in self._touches
+            )
+        ):
+            touch.push()
+            touch.apply_transform_2d(self.to_local)
+            if super(ScatterBehavior, self).on_touch_move(touch):
+                touch.pop()
+                return True
+            touch.pop()
+
+        # rotate/scale/translate
+        if(
+            touch in self._touches and
+            touch.grab_current == self and
+            (
+                not self.do_dispatch_after_children or
+                mode == 'pan'
+            )
+        ):
+            if self.transform_with_touch(touch):
+                self.dispatch('on_transform_with_touch', touch)
+            self._last_touch_pos[touch] = touch.pos
+
+        # stop propagating if its within our bounds
+        if self.collide_point(x, y):
+            return True
+
+    def on_transform_with_touch(self, touch):
+        '''
+        Called when a touch event has transformed the scatter widget.
+        By default this does nothing, but can be overriden by derived
+        classes that need to react to transformations caused by user
+        input.
+
+        :Parameters:
+            `touch`: the touch object which triggered the transformation.
+
+        .. versionadded:: 1.8.0
+        '''
+        pass
+
+    def on_bring_to_front(self, touch):
+        '''
+        Called when a touch event causes the scatter to be brought to the
+        front of the parent (only if :attr:`auto_bring_to_front` is True)
+
+        :Parameters:
+            `touch`: the touch object which brought the scatter to front.
+
+        .. versionadded:: 1.9.0
+        '''
+        pass
+
+    def on_pan(self, dx, dy):
+        '''
+        Called when a touch event would cause the scatter to be panned.
+
+        :Parameters:
+            `dx`: the amount of pixels the scatter should be panned on
+            the x axis.
+            `dy`: the amount of pixels the scatter should be panned on
+            the y axis.
+
+        .. versionadded:: 1.9.1
+        '''
+        pass
+
+    def on_rotate(self, angle, center):
+        '''
+        Called when a touch event would cause the scatter to be rotated.
+
+        :Parameters:
+            `angle`: the angle the scatter should be rotated.
+            `center`: the point the scatter should be rotated around.
+
+        .. versionadded:: 1.9.1
+        '''
+        pass
+
+    def on_zoom(self, scale, center):
+        '''
+        Called when a touch event would cause the scatter to be zoomed.
+
+        :Parameters:
+            `scale`: the factor the scatter should be scaled.
+            `center`: the point the scatter should be scaled around.
+
+        .. versionadded:: 1.9.1
+        '''
+        pass
+
+    def on_touch_up(self, touch):
+        if self.do_dispatch_after_children:
+            uid = self._get_scatter_behavior_uid()
+            if self._get_scatter_behavior_uid('scatter_avoid') in touch.ud:
+                return False
+            elif(
+                touch is not self._pan_touch and
+                uid in touch.ud and
+                touch.ud[uid]['_mode'] == 'unknown'
+            ):
+                touch.push()
+                touch.apply_transform_2d(self.to_local)
+                ret = super(ScatterBehavior, self).on_touch_up(touch)
+                touch.pop()
+                return ret
+
+            if self._pan_touch and self in [x() for x in touch.grab_list]:
+                self._pan_touch = None
+                ud = touch.ud[uid]
+                if '_mode' in ud:
+                    if ud['_mode'] == 'unknown':
+                        self._do_dispatch(touch)
+                        Clock.schedule_once(partial(self._do_touch_up, touch), .1)
+
+        x, y = touch.pos
+        # if the touch isnt on the widget we do nothing, just try children
+        if(
+            not touch.grab_current == self and
+            (
+                not self.do_dispatch_after_children or
+                touch not in self._touches
+            )
+        ):
+            touch.push()
+            touch.apply_transform_2d(self.to_local)
+            if super(ScatterBehavior, self).on_touch_up(touch):
+                touch.pop()
+                return True
+            touch.pop()
+
+        # remove it from our saved touches
+        if touch in self._touches:
+            touch.ungrab(self)
+            del self._last_touch_pos[touch]
+            self._touches.remove(touch)
+
+        if self.do_dispatch_after_children:
+            return self._get_scatter_behavior_uid() in touch.ud
+
+        # stop propagating if its within our bounds
+        if self.collide_point(x, y):
+            return True
+
+    def _do_touch_up(self, touch, *largs):
+        touch.push()
+        touch.apply_transform_2d(self.to_local)
+        super(ScatterBehavior, self).on_touch_up(touch)
+        touch.pop()
+        # don't forget about grab event!
+        for x in touch.grab_list[:]:
+            touch.grab_list.remove(x)
+            x = x()
+            if not x or x is self or x in self.children:
+                continue
+            touch.grab_current = x
+            touch.push()
+            touch.apply_transform_2d(self.to_local)
+            super(ScatterBehavior, self).on_touch_up(touch)
+            touch.pop()
+        touch.grab_current = None
+
+    def _change_touch_mode(self, *largs):
+        if not self._pan_touch:
+            return
+        uid = self._get_scatter_behavior_uid()
+        touch = self._pan_touch
+        ud = touch.ud[uid]
+        if(
+            '_mode' not in ud or
+            ud['_mode'] != 'unknown'
+        ):
+            return
+
+        touch.ungrab(self)
+        self._pan_touch = None
+        self._do_dispatch(touch)
+
+        if touch in self._touches:
+            del self._last_touch_pos[touch]
+            self._touches.remove(touch)
+
+
+class Scatter(ScatterBehavior, Widget):
     transform = ObjectProperty(Matrix())
     '''Transformation matrix.
 
@@ -229,6 +633,20 @@ class Scatter(Widget):
 
     :attr:`transform_inv` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to the identity matrix.
+    '''
+
+    scale_min = NumericProperty(0.01)
+    '''Minimum scaling factor allowed.
+
+    :attr:`scale_min` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.01.
+    '''
+
+    scale_max = NumericProperty(1e20)
+    '''Maximum scaling factor allowed.
+
+    :attr:`scale_max` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 1e20.
     '''
 
     def _get_bbox(self):
@@ -377,11 +795,6 @@ class Scatter(Widget):
         self.y = value - self.bbox[1][1] / 2.
     center_y = AliasProperty(get_center_y, set_center_y, bind=('y', 'height'))
 
-    def __init__(self, **kwargs):
-        self._touches = []
-        self._last_touch_pos = {}
-        super(Scatter, self).__init__(**kwargs)
-
     def on_transform(self, instance, value):
         self.transform_inv = value.inverse()
 
@@ -396,10 +809,6 @@ class Scatter(Widget):
     def to_local(self, x, y, **k):
         p = self.transform_inv.transform_point(x, y, 0)
         return (p[0], p[1])
-
-    def _apply_transform(self, m, pos=None):
-        m = self.transform.multiply(m)
-        return super(Scatter, self)._apply_transform(m, (0, 0))
 
     def apply_transform(self, trans, post_multiply=False, anchor=(0, 0)):
         '''
@@ -607,9 +1016,29 @@ class Scatter(Widget):
             del self._last_touch_pos[touch]
             self._touches.remove(touch)
 
-        # stop propagating if its within our bounds
-        if self.collide_point(x, y):
-            return True
+    def _apply_transform(self, m, pos=None):
+        m = self.transform.multiply(m)
+        return super(Scatter, self)._apply_transform(m, (0, 0))
+
+    def on_pan(self, dx, dy):
+        self.apply_transform(Matrix().translate(dx, dy, 0))
+
+    def on_rotate(self, angle, anchor):
+        self.apply_transform(
+            Matrix().rotate(angle, 0, 0, 1),
+            anchor=anchor
+        )
+
+    def on_zoom(self, scale, anchor):
+        new_scale = scale * self.scale
+        if new_scale < self.scale_min:
+            scale = self.scale_min / self.scale
+        elif new_scale > self.scale_max:
+            scale = self.scale_max / self.scale
+        self.apply_transform(
+            Matrix().scale(scale, scale, scale),
+            anchor=anchor
+        )
 
 
 class ScatterPlane(Scatter):
