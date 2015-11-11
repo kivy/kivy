@@ -4,6 +4,7 @@ import unittest
 may fail as the namespace will remember the names between tests.
 '''
 
+
 class KNSpaceTestCase(unittest.TestCase):
 
     def test_not_exists(self):
@@ -244,4 +245,3 @@ BoxLayout:
         self.assertEqual(w.ids.second.ids.child.text, 'Hello')
         self.assertEqual(w.ids.first.knspace.child_label.text, 'Goodbye3')
         self.assertEqual(w.ids.second.knspace.child_label.text, 'Hello')
-
