@@ -1913,7 +1913,7 @@ class BuilderBase(object):
         self._apply_rule(widget, rule, rule, template_ctx=proxy_ctx)
         return widget
 
-    def apply(self, widget, ignored_keys=set()):
+    def apply(self, widget, ignored_consts=set()):
         '''Search all the rules that match the widget and apply them.
         '''
         rules = self.match(widget)
@@ -1922,13 +1922,13 @@ class BuilderBase(object):
         if not rules:
             return
         for rule in rules:
-            self._apply_rule(widget, rule, rule, ignored_keys=ignored_keys)
+            self._apply_rule(widget, rule, rule, ignored_consts=ignored_consts)
 
     def _clear_matchcache(self):
         BuilderBase._match_cache = {}
 
     def _apply_rule(self, widget, rule, rootrule, template_ctx=None,
-                    ignored_keys=set()):
+                    ignored_consts=set()):
         # widget: the current instantiated widget
         # rule: the current rule
         # rootrule: the current root rule (for children of a rule)
@@ -2069,10 +2069,10 @@ class BuilderBase(object):
                             widget_set, widget_set, key, value, rule,
                             rctx['ids'])
                         # if there's a rule
-                        if bound or key not in ignored_keys:
+                        if bound or key not in ignored_consts:
                             setattr(widget_set, key, value)
                     else:
-                        if key not in ignored_keys:
+                        if key not in ignored_consts:
                             setattr(widget_set, key, value)
 
         except Exception as e:
