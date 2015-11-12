@@ -124,13 +124,13 @@ Then, we do:
     widget.knspace = new_knspace
 
 The rule is that if no knspace has been assigned to a widget, it looks for a
-namespace in it's parent and parent's parent and so on until it find one to
+namespace in its parent and parent's parent and so on until it find one to
 use. If none are found, it uses the default :attr:`knspace`.
 
 When `MyComplexWidget` is created, it still used the default namespace.
-However, when we assigned the root widget it's new_namespace, all its children
-switched to using that new namespace as well. So `new_knspace` now contains
-`label1` and `label2` as well as `my_complex`.
+However, when we assigned to the root widget its new_namespace, all its
+children switched to using that new namespace as well. So `new_knspace` now
+contains `label1` and `label2` as well as `my_complex`.
 
 If we had first done:
 
@@ -168,7 +168,7 @@ if each root widget instance is assigned a new namespace. For example:
         Label:
             text: root.knspace.pretty.text if root.knspace.pretty else ''
 
-    <MyPrettyWidget@KNSpaceBehavior+TextInput>
+    <MyPrettyWidget@KNSpaceBehavior+TextInput>:
         knsname: 'pretty'
         text: 'Hello'
 
@@ -231,7 +231,7 @@ A motivating example is the example from above:
         Label:
             text: root.knspace.pretty.text if root.knspace.pretty else ''
 
-    <MyPrettyWidget@KNSpaceBehavior+TextInput>
+    <MyPrettyWidget@KNSpaceBehavior+TextInput>:
         knsname: 'pretty'
         text: 'Hello'
 
