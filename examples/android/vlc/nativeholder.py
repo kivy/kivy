@@ -149,8 +149,9 @@ class AndroidWidgetHolder(Widget):
         self._parent_layout = None
         self._touch_listener = TouchListener(self._on_touch_listener)
         self._create_native_view_trigger = Clock.create_trigger(
-            self._create_native_view)
-        self._reposition_trigger = Clock.create_trigger(self._reposition_view)
+                    self._create_native_view)
+        self._trigger_reposition_view = Clock.create_trigger(
+                    self._reposition_view)
 
         # from kivy.app import App
         # App.get_running_app().bind(on_resume=self._reorder)
@@ -165,13 +166,13 @@ class AndroidWidgetHolder(Widget):
 
     @run_on_ui_thread
     def _create_native_view(self, *args):
-        Logger.info('NativeWidget: creating native view')
+        Logger.info('AndroidWidgetHolder: creating native view')
 
         context = jPythonActivity.mActivity
         native_view = self._native_view_factory(context)
 
         if native_view is None:
-            Logger.info('NativeWidget: none from factory')
+            Logger.info('AndroidWidgetHolder: none from factory')
             return
 
         x, y, w, h = self._get_view_bbox()
@@ -193,7 +194,8 @@ class AndroidWidgetHolder(Widget):
         native_view.setY(y)
 
         Logger.info(
-            'NativeWidget: native view added (%d, %d, %d, %d)' % (x, y, w, h))
+            'AndroidWidgetHolder: native view added (%d, %d, %d, %d)' %
+            (x, y, w, h))
 
         # we need to differenciate if there is interaction with our holder
         # or not. XXX must be activated only if the _native_view is displayed
@@ -206,15 +208,26 @@ class AndroidWidgetHolder(Widget):
         self.ready = True
 
     @run_on_ui_thread
+    def remove_native_view(self):
+        if self._native_view is not None:
+            # XXX probably broken
+            layout = cast(jLinearLayout, self._native_view.getParent())
+            layout.removeView(self._native_view)
+            self._native_view = None
+            jPythonActivity.mView.setInterceptTouchListener(None)
+            Logger.info('AndroidWidgetHolder: view removed')
+
+    @run_on_ui_thread
     def _reposition_view(self, *args):
         native_view = self._native_view
         if native_view:
             x, y, w, h = self._get_view_bbox()
-            Logger.info('NativeWidget: {} {} repositioning to {}'.format(
-                self.pos, self.size, (x, y, w, h)))
+            Logger.info(
+                    'AndroidWidgetHolder: {} {} repositioning to {}'.format(
+                    self.pos, self.size, (x, y, w, h)))
             params = native_view.getLayoutParams()
             if not params:
-                Logger.info('NativeWidget: repositioning failed')
+                Logger.info('AndroidWidgetHolder: repositioning failed')
                 return
             params.width = w
             params.height = h
@@ -222,25 +235,17 @@ class AndroidWidgetHolder(Widget):
             native_view.setX(x)
             native_view.setY(y)
 
-    def _remove_view(self, instance, view):
-        if self._native_view is not None:
-            # XXX probably broken
-            layout = cast(jLinearLayout, self._native_view.getParent())
-            layout.removeView(self._native_view)
-            self._native_view = None
-            Logger.info('NativeView: view removed')
-
     def on_ready(self, instance, ready):
-        Logger.info('NativeView: on_ready()')
+        Logger.info('AndroidWidgetHolder: on_ready()')
         pass
 
     def on_size(self, instance, value):
-        Logger.info('NativeWidget: on_size {}'.format(value))
-        self._reposition_trigger()
+        Logger.info('AndroidWidgetHolder: on_size {}'.format(value))
+        self._trigger_reposition_view()
 
     def on_pos(self, instance, value):
-        Logger.info('NativeWidget: on_pos {}'.format(value))
-        self._reposition_trigger()
+        Logger.info('AndroidWidgetHolder: on_pos {}'.format(value))
+        self._trigger_reposition_view()
 
     #
     # Determine if the touch is going to be for us, or for the android widget.
@@ -282,6 +287,7 @@ class AndroidNativeViewWidget(Widget):
     def __init__(self, **kwargs):
         self._nativeHolder = None
         super(AndroidNativeViewWidget, self).__init__(**kwargs)
+        self.bind(parent=self._on_parent)
 
         self._nativeHolder = nativeHolder = AndroidWidgetHolder(
             self.native_view_factory, **kwargs)
@@ -289,6 +295,11 @@ class AndroidNativeViewWidget(Widget):
         self.bind(
             size=nativeHolder.setter('size'),
             pos=nativeHolder.setter('pos'))
+
+    def _on_parent(self, instance, value):
+        Logger.info("AndroidNativeViewWidget: _on_parent {}".format(value))
+        if not value:
+            self._nativeHolder.remove_native_view()
 
     def native_view_factory(self, context):
         raise "native_view_factory(self, context)  must be defined in " \
@@ -323,8 +334,8 @@ class SurfaceHolderCallbacksRedirector(PythonJavaClass):
     __javacontext__ = 'app'
 
     def __init__(self, host):
-        super(SurfaceHolderCallbacksRedirector, self).__init__()
         self._host = host
+        super(SurfaceHolderCallbacksRedirector, self).__init__()
 
     # abstract void surfaceChanged (SurfaceHolder holder, int format, int
     # width, int height)
@@ -360,6 +371,7 @@ class AndroidSurfaceWidget(AndroidNativeViewWidget):
     def __init__(self, **kwargs):
         self.surfaceView = None
         super(AndroidSurfaceWidget, self).__init__(**kwargs)
+        self.bind(parent=self._on_parent)
 
     def native_view_factory(self, context):
         # create a fake surfaceview
@@ -397,6 +409,16 @@ class AndroidSurfaceWidget(AndroidNativeViewWidget):
     def on_surface_destroyed(self, surfaceHolder):
         Logger.info('AndroidSurfaceWidget: _on_surface_destroyed')
         pass
+
+    def _on_parent(self, instance, value):
+        Logger.info("AndroidSurfaceWidget: _on_parent {}".format(value))
+        if not value:
+            if self._surfaceHolderCallbacksRedirector:
+                self.surfaceView.getHolder().removeCallback(
+                    self._surfaceHolderCallbacksRedirector)
+                self._surfaceHolderCallbacksRedirector = None
+            self._nativeHolder.remove_native_view()
+
 
 ##########################################################################
 #
@@ -462,6 +484,7 @@ class AndroidTextureWidget(AndroidNativeViewWidget):
     def __init__(self, **kwargs):
         self.textureView = None
         super(AndroidTextureWidget, self).__init__(**kwargs)
+        self.bind(parent=self._on_parent)
 
     def native_view_factory(self, context):
         # Create a fake TextureView
@@ -505,3 +528,9 @@ class AndroidTextureWidget(AndroidNativeViewWidget):
         Logger.info('AndroidTextureWidget: on_texture_destroy')
         self.destroy_video_player(surfaceTexture)
         pass
+
+    def _on_parent(self, instance, value):
+        Logger.info("AndroidTextureWidget: _on_parent {}".format(value))
+        if not value:
+            self.textureView.setSurfaceTextureListener(None)
+            self._nativeHolder.remove_native_view()

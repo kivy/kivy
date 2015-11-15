@@ -248,7 +248,6 @@ class VlcVideoView(AndroidSurfaceWidget):
             VlcVideoView.libVLC = jLibVLC(optionsArray)
             VlcVideoView.libVLC.setOnHardwareAccelerationError(
                 VlcVideoView._hardwareAccelerationError)
-        VlcVideoView._hardwareAccelerationError.add_observer(self)
         self._mediaObj = None
         self._mediaPlayer = None
         self._vlcMediaEventsRedirector = VlcMediaEventsRedirector(self)
@@ -259,9 +258,9 @@ class VlcVideoView(AndroidSurfaceWidget):
         self._create_player()
 
         super(VlcVideoView, self).__init__(**kwargs)
-
-    def __del__(self, **kwargs):
-        VlcVideoView._hardwareAccelerationError.remove_observer(self)
+        self.bind(parent=lambda s,v:
+                  VlcVideoView._hardwareAccelerationError.add_observer(self) if v
+                  else VlcVideoView._hardwareAccelerationError.remove_observer(self))
 
     def populate_surface_view(self, surfaceView, context):
         Logger.info('VlcVideoView: creating video view %s (%s)' %
@@ -406,9 +405,9 @@ class VlcVideoView(AndroidSurfaceWidget):
     def _select_videotrack(self):
         videoTrack = self.options.get('video-track', '')
         if videoTrack:
-            Logger.info('VlcVideoView: selecting track %d for %s' %
-                        (int(videoTrack), self.source))
-            self._mediaPlayer.setVideoTrack(int(videoTrack))
+            res = self._mediaPlayer.setVideoTrack(int(videoTrack))
+            Logger.info('VlcVideoView: selecting track %d for %s - %s' %
+                        (int(videoTrack), self.source, str(res)))
 
     def unload(self):
         Logger.info('VlcVideoView: unload %s' % self.source)
@@ -505,16 +504,16 @@ class VlcVideoView(AndroidSurfaceWidget):
     def on_vlcplayer_vout(self, mediaPlayerEvent):
         c = mediaPlayerEvent.getVoutCount()
         Logger.info(
-            'VlcVideoView: on_vlc_time {} for {}'.format(c, self.source))
+            'VlcVideoView: on_vlcplayer_vout {} for {}'.format(c, self.source))
 
     def on_vlcplayer_time(self, mediaPlayerEvent):
         self.position = mediaPlayerEvent.getTimeChanged()
-        Logger.info('VlcVideoView: on_vlc_time {}(ms) of {}(ms) for {}'.format(
+        Logger.info('VlcVideoView: on_vlcplayer_time {}(ms) of {}(ms) for {}'.format(
             self.position, self.duration, self.source))
 
     def on_vlcplayer_position(self, mediaPlayerEvent):
         self.position_normalized = mediaPlayerEvent.getPositionChanged()
-        Logger.info('VlcVideoView: on_vlc_position {} for {}'.format(
+        Logger.info('VlcVideoView: on_vlcplayer_position {} for {}'.format(
             self.position_normalized, self.source))
 
     def on_vlcplayer_seekable(self, mediaPlayerEvent):
