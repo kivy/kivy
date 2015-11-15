@@ -89,7 +89,14 @@ For example, to write only in capitalized characters::
 
     capitalInput = TextInput()
 
-    def capitalize_input(substring, new_text):
+    def capitalize_input(substring, old_text, new_text):
+        # if old_text is invalid, do not allow insertion/deletion.
+        # by returning `None`
+        if old_text != old_text.upper():
+            return None
+        # if old_text was valid then, just make sure new substring is
+        # in right format. Returning a substring replaces older substring with
+        # new one. If new_text is valid just return substring as is.
         return substring.upper()
 
     capitalInput.input_filter = capitalise_input
@@ -522,7 +529,7 @@ class TextInput(FocusBehavior, Widget):
         self._trigger_update_cutbuffer = Clock.create_trigger(
             self._update_cutbuffer)
         t = self.text
-        if self._filter_input(t, t) != None:
+        if self._filter_input(t, t, t) != None:
             refresh_line_options()
             self._trigger_refresh_text()
         else:
@@ -537,32 +544,41 @@ class TextInput(FocusBehavior, Widget):
         if platform == 'linux':
             self._ensure_clipboard()
 
-    def _filter_input(self, substring, new_text, from_del=False):
+    def _filter_input(self, substring, old_text, new_text):
         # do tests here
+        # check special case `''` blank text.
+        if not new_text:
+            return substring
         mode = self.input_filter
-        if mode is not None:
-            if mode == 'int':
-                try:
-                    int(new_text)
-                except ValueError:
-                    if not from_del:
-                        self.dispatch('on_input_filtered', substring, new_text)
-                    return
-            elif mode == 'float':
-                try:
-                    float(new_text)
-                except ValueError:
-                    if not from_del:
-                        self.dispatch('on_input_filtered', substring, new_text)
-                    return
-            else:
-                nsubstring = mode(substring, new_text)
-                if nsubstring != substring:
-                    substring = None
-            if not substring:
-                if not from_del:
-                    self.dispatch('on_input_filtered', substring, new_text)
-                return
+
+        if mode is None:
+            return substring
+
+        if mode == 'int':
+            if new_text in ('-', '.', '+'):
+                return substring
+            try:
+                int(new_text)
+            except ValueError:
+                self.dispatch('on_input_filtered', substring, new_text)
+                return None
+        elif mode == 'float':
+            if new_text in ('-', '.', '+'):
+                return substring
+            try:
+                float(new_text)
+            except ValueError:
+                self.dispatch('on_input_filtered', substring, new_text)
+                return None
+        else:
+            nsubstring = mode(substring, old_text, new_text)
+            if nsubstring != substring:
+                substring = None
+
+        if not substring:
+            self.dispatch('on_input_filtered', substring, new_text)
+            return
+
         return substring
 
     def on_text_validate(self):
@@ -570,7 +586,7 @@ class TextInput(FocusBehavior, Widget):
 
     def on_input_filtered(self, value, whole_text):
         '''This event is called when input filtering fails.
-         This accepts two parameters, `value` that is filtered and
+         This accepts two parameters, `value` that causes filtering &
          the whole text including filtered value.
 
         ..versionadded::1.9.1
@@ -698,7 +714,7 @@ class TextInput(FocusBehavior, Widget):
         text = self._lines[cr]
         len_str = len(substring)
         new_text = text[:cc] + substring + text[cc:]
-        substring = self._filter_input(substring, new_text)
+        substring = self._filter_input(substring, text, new_text)
         if not substring:
             return
 
@@ -856,6 +872,8 @@ class TextInput(FocusBehavior, Widget):
         if cc == 0:
             substring = u'\n' if _lines_flags[cr] else u' '
             new_text = text_last_line + text
+            if not self._filter_input(substring, text, new_text):
+                return
             self._set_line_text(cr - 1, new_text)
             self._delete_line(cr)
             start = cr - 1
@@ -863,11 +881,11 @@ class TextInput(FocusBehavior, Widget):
             #ch = text[cc-1]
             substring = text[cc - 1]
             new_text = text[:cc - 1] + text[cc:]
+            substring = self._filter_input(substring, text, new_text)
+            if not substring:
+                return
             self._set_line_text(cr, new_text)
 
-
-            # trigger filter_input, just don't stop backspace/deletion.
-        self._filter_input(text, new_text, True)
         # refresh just the current line instead of the whole text
         start, finish, lines, lineflags, len_lines =\
             self._get_line_from_cursor(start, new_text)
@@ -1220,7 +1238,7 @@ class TextInput(FocusBehavior, Widget):
             self._refresh_text_from_property('del', start[1], finish[1], lines,
                                              lineflags, len_lines)
         # call filter input when selection is deleted, just don't stop deletion.
-        self._filter_input(''.join(lines), self.text, True)
+        self._filter_input(cur_line, cur_line, self.text)
         self.scroll_x = scrl_x
         self.scroll_y = scrl_y
         # handle undo and redo for delete selecttion
@@ -3072,15 +3090,20 @@ if __name__ == '__main__':
 
             Builder.load_string('''
 <TextInput>
-    text: '1121.1'
-    input_filter: 'float'
-    on_text_validate: self.input_filter = 'int'
-    on_input_filtered: print args
+    on_input_filtered: print 'input_filtered', args
 ''')
             root = BoxLayout(orientation='vertical')
             textinput = TextInput(multiline=True, use_bubble=True,
                                   use_handles=True)
-            #textinput.text = __doc__
+            textinput.text = "9Hello"
+            def capitalize_input(substring, old_text, new_text):
+                # if old_text is invalid, do not allow insertion/deletion.
+                if old_text != old_text.upper():
+                    return None
+                # if old_text was valid then, just make sure new substring is
+                # in right format.
+                return substring.upper()
+            textinput.input_filter = capitalize_input
             root.add_widget(textinput)
             textinput2 = TextInput(multiline=False, text='monoline textinput',
                                    size_hint=(1, None), height=30)
