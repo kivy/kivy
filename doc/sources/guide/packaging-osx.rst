@@ -1,26 +1,25 @@
-Creating packages for MacOSX
-============================
+Creating packages for OS X
+==========================
 
-Packaging your application for the MacOSX 10.6 platform can only be done inside
-MacOSX. The following method has only been tested inside VirtualBox and
-MacOSX 10.6, using the portable package of Kivy.
+Packaging your application for the OS X 10.6 platform can only be done inside
+OS X. The following method has only been tested inside VirtualBox and
+OS X 10.6, using the portable package of Kivy.
 
-The package will only work for the 64 bit MacOSX. We no longer support 32 bit
-MacOSX platforms.
+The package will only work for the 64 bit OS X. We no longer support 32 bit OS X platforms.
 
 +---------------------------------------------------------------------------------------------------------------+
-| NOTE: Currently, packages for OSX can only be generated with Python 2.7. Python 3.3+ support is on the way... |
+| NOTE: Currently, packages for OS X can only be generated with Python 2.7. Python 3.3+ support is on the way... |
 +---------------------------------------------------------------------------------------------------------------+
 
-.. _mac_osx_requirements:
+.. _osx_requirements:
 
 Official Packaging method
 -------------------------
 
-Due to a lot of problems with including libraries and files on osx with other methods
-we now have a simpler and easier way to package Kivy apps on osx.
+Due to a lot of problems with including libraries and files on OS X with other methods
+we now have a simpler and easier way to package Kivy apps on OS X.
 
-Since kivy 1.9 kivy package on osx is a self contained portable distribution.
+Since kivy 1.9 kivy package on OS X is a self contained portable distribution.
 It is now possible to package kivy apps using the method described below to make
 it easier to include frameworks like sdl2 and gstreamer::
 
