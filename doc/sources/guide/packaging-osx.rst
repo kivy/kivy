@@ -1,9 +1,7 @@
 Creating packages for OS X
 ==========================
 
-Packaging your application for the OS X 10.6 platform can only be done inside
-OS X. The following method has only been tested inside VirtualBox and
-OS X 10.6, using the portable package of Kivy.
+Packaging your application for the OS X 10.6 platform can only be done inside OS X.
 
 The package will only work for the 64 bit OS X. We no longer support 32 bit OS X platforms.
 
@@ -162,11 +160,3 @@ adding one more arguments to the `COLLECT()` method::
                    a.binaries,
                    #...
                    )
-
-For Kivy.app < 1.4.1, you also need to update one script included in our
-Kivy.app. Go to
-`/Applications/Kivy.app/Contents/Resources/kivy/kivy/tools/packaging/pyinstaller_hooks/`,
-and edit the file named `rt-hook-kivy.py`, and add this line at the end::
-
-    environ['GST_PLUGIN_PATH'] = join(root, '..', 'gst-plugins')
-
