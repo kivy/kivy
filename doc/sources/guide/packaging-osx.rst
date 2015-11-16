@@ -5,9 +5,8 @@ Packaging your application for the OS X 10.6 platform can only be done inside OS
 
 The package will only work for the 64 bit OS X. We no longer support 32 bit OS X platforms.
 
-+---------------------------------------------------------------------------------------------------------------+
-| NOTE: Currently, packages for OS X can only be generated with Python 2.7. Python 3.3+ support is on the way... |
-+---------------------------------------------------------------------------------------------------------------+
+.. note::
+    Currently, packages for OS X can only be generated with Python 2.7. Python 3.3+ support is on the way...
 
 .. _osx_requirements:
 
@@ -105,7 +104,7 @@ file is named `main.py`. Replace both path/filename according to your system.
    (`touchtracer.kv`, `particle.png`, ...). Change the line to add a Tree()
    object. This Tree will search and add every file found in the touchtracer
    directory to your final package.
-   
+
    You will need to specify to pyinstaller where to look for the frameworks
    included with kivy too, your COLLECT section should look something like this::
 
@@ -119,7 +118,7 @@ file is named `main.py`. Replace both path/filename according to your system.
 The Tree inclusion of frameworks is a work around a pyinstaller bug that is not able to find the exact path of libs including @executable_path.
 
 There is a issue open on pyinstaller issue tracker for this. https://github.com/pyinstaller/pyinstaller/issues/1338
-  
+
 Make sure the path to the frameworks is relative to the current directory you are on.
 
 #. We are done. Your spec is ready to be executed!
