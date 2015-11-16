@@ -222,21 +222,14 @@ from kivy.graphics.transformation import Matrix
 from kivy.base import EventLoop
 from kivy.lang import Builder
 from kivy.context import get_current_context
-from kivy.weakproxy import WeakProxy
 from functools import partial
 from itertools import islice
-
-
-# References to all the widget destructors (partial method with widget uid as
-# key).
-_widget_destructors = {}
 
 
 def _widget_destructor(uid, r):
     # Internal method called when a widget is deleted from memory. the only
     # thing we remember about it is its uid. Clear all the associated callbacks
     # created in kv language.
-    del _widget_destructors[uid]
     Builder.unbind_widget(uid)
 
 
@@ -288,11 +281,14 @@ class Widget(WidgetBase):
     .. versionchanged:: 1.5.0
         The constructor now accepts on_* arguments to automatically bind
         callbacks to properties or events, as in the Kv language.
+
+    ..versionchanged:: 1.9.1
+        `proxy_ref` is now defined in :class:`~kivy.event.EventDispatcher`.
     '''
 
     __metaclass__ = WidgetMetaclass
-    __events__ = ('on_touch_down', 'on_touch_move', 'on_touch_up')
-    _proxy_ref = None
+    __events__ = (
+        'on_touch_down', 'on_touch_move', 'on_touch_up', 'on_kv_apply')
 
     def __init__(self, **kwargs):
         # Before doing anything, ensure the windows exist.
@@ -302,12 +298,17 @@ class Widget(WidgetBase):
         if not hasattr(self, '_context'):
             self._context = get_current_context()
 
+        builder_created = kwargs.pop('__builder_created', None)
         no_builder = '__no_builder' in kwargs
         if no_builder:
             del kwargs['__no_builder']
+
         on_args = {k: v for k, v in kwargs.items() if k[:3] == 'on_'}
         for key in on_args:
             del kwargs[key]
+
+        parent = kwargs.pop('parent', None)
+        self.proxy_callback = _widget_destructor
 
         super(Widget, self).__init__(**kwargs)
 
@@ -315,47 +316,17 @@ class Widget(WidgetBase):
         if self.canvas is None:
             self.canvas = Canvas(opacity=self.opacity)
 
+        if parent is not None:
+            parent.add_widget(self)
+
         # Apply all the styles.
         if not no_builder:
-            #current_root = Builder.idmap.get('root')
-            #Builder.idmap['root'] = self
-            Builder.apply(self)
-            #if current_root is not None:
-            #    Builder.idmap['root'] = current_root
-            #else:
-            #    Builder.idmap.pop('root')
+            Builder.apply(self, builder_created)
+            if builder_created is None:
+                self.dispatch('on_kv_apply', self)
 
         # Bind all the events.
-        if on_args:
-            self.bind(**on_args)
-
-    @property
-    def proxy_ref(self):
-        '''Return a proxy reference to the widget, i.e. without creating a
-        reference to the widget. See `weakref.proxy
-        <http://docs.python.org/2/library/weakref.html?highlight\
-        =proxy#weakref.proxy>`_ for more information.
-
-        .. versionadded:: 1.7.2
-        '''
-        _proxy_ref = self._proxy_ref
-        if _proxy_ref is not None:
-            return _proxy_ref
-
-        f = partial(_widget_destructor, self.uid)
-        self._proxy_ref = _proxy_ref = WeakProxy(self, f)
-        # Only f should be enough here, but it appears that is a very
-        # specific case, the proxy destructor is not called if both f and
-        # _proxy_ref are not together in a tuple.
-        _widget_destructors[self.uid] = (f, _proxy_ref)
-        return _proxy_ref
-
-    def __hash__(self):
-        return id(self)
-
-    @property
-    def __self__(self):
-        return self
+        self.bind(**on_args)
 
     #
     # Collision
@@ -459,6 +430,9 @@ class Widget(WidgetBase):
         for child in self.children[:]:
             if child.dispatch('on_touch_up', touch):
                 return True
+
+    def on_kv_apply(self, root):
+        pass
 
     def on_disabled(self, instance, value):
         for child in self.children:

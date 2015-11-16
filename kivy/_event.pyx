@@ -30,6 +30,7 @@ from libc.string cimport memset
 from functools import partial
 from collections import defaultdict
 from kivy.weakmethod import WeakMethod
+from kivy.weakproxy import WeakProxy
 from kivy.compat import string_types
 from kivy.properties cimport (Property, PropertyStorage, ObjectProperty,
     NumericProperty, StringProperty, ListProperty, DictProperty,
@@ -39,6 +40,16 @@ cdef int widget_uid = 0
 cdef dict cache_properties = {}
 cdef dict cache_events = {}
 cdef dict cache_events_handlers = {}
+
+
+# References to all the eventdispatcher destructors (partial method with  uid as key).
+cdef dict _eventdispatcher_destructors = {}
+
+def _destructor_callback(callback, uid, r):
+    del _eventdispatcher_destructors[uid]
+    if callback is not None:
+        callback(uid, r)
+
 
 def _get_bases(cls):
     for base in cls.__bases__:
@@ -156,7 +167,23 @@ cdef class Observable(ObjectWithUid):
             except KeyError:
                 pass
 
+    def property(self, name, quiet=False):
+        pass
+
+    def dispatch_count(self, basestring event_type):
+        return 0
+
+    def dispatch(self, basestring event_type, *largs, **kwargs):
+        pass
+
+    def rebind_property(self, name):
+        return False
+
     property proxy_ref:
+        def __get__(self):
+            return self
+
+    property __self__:
         def __get__(self):
             return self
 
@@ -175,6 +202,7 @@ cdef class EventDispatcher(ObjectWithUid):
         cdef Property attr
         cdef basestring k
 
+        self.proxy_callback = self._proxy_ref = None
         self.__event_stack = {}
         self.__storage = {}
 
@@ -716,6 +744,10 @@ cdef class EventDispatcher(ObjectWithUid):
         handler = getattr(self, event_type)
         return handler(*largs, **kwargs)
 
+    cpdef dispatch_count(self, basestring event_type):
+        cdef EventObservers observers = self.__event_stack[event_type]
+        return observers.count
+
     def dispatch_generic(self, basestring event_type, *largs, **kwargs):
         if event_type in self.__event_stack:
             return self.dispatch(event_type, *largs, **kwargs)
@@ -791,6 +823,12 @@ cdef class EventDispatcher(ObjectWithUid):
             return self.__properties.get(name, None)
         else:
             return self.__properties[name]
+
+    cpdef rebind_property(self, name):
+        cdef Property prop = self.__properties.get(name, None)
+        if prop is None:
+            return None
+        return prop.rebind
 
     cpdef dict properties(EventDispatcher self):
         '''Return all the properties in the class in a dictionary of
@@ -898,11 +936,31 @@ cdef class EventDispatcher(ObjectWithUid):
             setattr(self.__class__, name, prop)
 
     property proxy_ref:
-        '''Default implementation of proxy_ref, returns self.
-        .. versionadded:: 1.9.0
+        '''Return a proxy reference to the object, i.e. without creating a
+        reference to the EventDispatcher. See `weakref.proxy
+        <http://docs.python.org/2/library/weakref.html?highlight\
+        =proxy#weakref.proxy>`_ for more information.
+
+        .. versionchanged:: 1.9.1
         '''
         def __get__(self):
+            if self._proxy_ref is not None:
+                return self._proxy_ref
+
+            f = partial(_destructor_callback, self.proxy_callback, self.uid)
+            self._proxy_ref = WeakProxy(self, f)
+            # Only f should be enough here, but it appears that is a very
+            # specific case, the proxy destructor is not called if both f and
+            # _proxy_ref are not together in a tuple.
+            _eventdispatcher_destructors[self.uid] = (f, self._proxy_ref)
+            return self._proxy_ref
+
+    property __self__:
+        def __get__(self):
             return self
+
+    def __hash__(self):
+        return id(self)
 
 
 cdef class BoundCallback:
@@ -931,6 +989,7 @@ cdef class EventObservers:
         self.dispatch_value = dispatch_value
         self.last_callback = self.first_callback = None
         self.uid = 1  # start with 1 so uid is always evaluated to True
+        self.count = 0
 
     cdef inline void bind(self, object observer, object src_observer, int is_ref) except *:
         '''Bind the observer to the event. If this observer has already been
@@ -1184,6 +1243,7 @@ cdef class EventObservers:
         cdef object f, result
         cdef BoundLock current_lock, last_lock
         cdef int done = 0, res = 0, reverse = self.dispatch_reverse
+        self.count += 1
 
         if reverse:  # dispatch starting from last until first
             callback = self.last_callback  # start callback

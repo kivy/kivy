@@ -810,7 +810,6 @@ will first be unloaded and then reloaded again. For example:
                 size: (self.size[0]/4, self.size[1]/4)
 
 '''
-import os
 
 __all__ = ('Observable', 'Builder', 'BuilderBase', 'BuilderException', 'Parser',
            'ParserException')
@@ -818,15 +817,25 @@ __all__ = ('Observable', 'Builder', 'BuilderBase', 'BuilderException', 'Parser',
 import codecs
 import re
 import sys
+import __builtin__
 import traceback
+import imp
 import types
+import hashlib
 from re import sub, findall
 from os import environ
-from os.path import join
+from os.path import join, exists, basename, splitext, isfile
 from copy import copy
 from types import CodeType
 from functools import partial
 from collections import OrderedDict, defaultdict
+
+try:
+    from io import StringIO, BytesIO
+    buffer_types = (StringIO, BytesIO)
+except ImportError:
+    from io import StringIO
+    buffer_types = StringIO
 
 from kivy.factory import Factory
 from kivy.logger import Logger
@@ -853,17 +862,15 @@ Cache.register('kv.lang')
 __KV_INCLUDES__ = []
 
 # precompile regexp expression
-lang_str = re.compile('([\'"][^\'"]*[\'"])')
+lang_str = re.compile(
+    "((?:'''.*?''')|"
+    "(?:(?:(?<!')|''')'(?:[^']|\\\\')+?'(?:(?!')|'''))|"
+    '(?:""".*?""")|'
+    '(?:(?:(?<!")|""")"(?:[^"]|\\\\")+?"(?:(?!")|""")))', re.DOTALL)
 lang_key = re.compile('([a-zA-Z_]+)')
 lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
 lang_tr = re.compile('(_\()')
 lang_cls_split_pat = re.compile(', *')
-
-# class types to check with isinstance
-if PY2:
-    _cls_type = (type, types.ClassType)
-else:
-    _cls_type = (type, )
 
 # all the widget handlers, used to correctly unbind all the callbacks then the
 # widget is deleted
@@ -1016,12 +1023,12 @@ class ParserRuleProperty(object):
         self.co_value = compile(value, self.ctx.filename or '<string>', mode)
 
         # for exec mode, we don't need to watch any keys.
-        if mode == 'exec':
-            return
+        #if mode == 'exec':
+        #    return
 
         # now, detect obj.prop
         # first, remove all the string from the value
-        tmp = sub(lang_str, '', value)
+        tmp = sub(lang_str, '""', value)
         idx = tmp.find('#')
         if idx != -1:
             tmp = tmp[:idx]
@@ -1269,8 +1276,7 @@ class Parser(object):
                     else:
                         Logger.debug('Reloading {0} because include was forced.'
                                     .format(ref))
-                        Builder.unload_file(ref)
-                        Builder.load_file(ref)
+                        Builder.load_file(ref, reload=True)
                         continue
                 Logger.debug('Including file: {0}'.format(0))
                 __KV_INCLUDES__.append(ref)
@@ -1518,7 +1524,7 @@ def custom_callback(__kvlang__, idmap, *largs, **kwargs):
 
 
 def call_fn(args, instance, v):
-    element, key, value, rule, idmap = args
+    _, element, key, value, rule, idmap = args
     if __debug__:
         trace('Builder: call_fn %s, key=%s, value=%r, %r' % (
             element, key, value, rule.value))
@@ -1581,8 +1587,8 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
             The function to be called args, `args` on bound callback.
     '''
     # first remove all the old bound functions from `s` and down.
-    for f, k, fun, uid in bound[s:]:
-        if fun is None:
+    for f, k, uid in bound[s:]:
+        if uid is None:
             continue
         try:
             f.unbind_uid(k, uid)
@@ -1602,19 +1608,16 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
     for val in keys[s:-1]:
         # if we need to dynamically rebind, bindm otherwise just
         # add the attr to the list
-        if isinstance(f, (EventDispatcher, Observable)):
-            prop = f.property(val, True)
-            if prop is not None and getattr(prop, 'rebind', False):
-                # fbind should not dispatch, otherwise
-                # update_intermediates might be called in the middle
-                # here messing things up
-                uid = f.fbind(
-                    val, update_intermediates, base, keys, bound, s, fn, args)
-                append([f.proxy_ref, val, update_intermediates, uid])
-            else:
-                append([f.proxy_ref, val, None, None])
+        if (isinstance(f, (EventDispatcher, Observable)) and
+            f.rebind_property(val)):
+            # fbind should not dispatch, otherwise
+            # update_intermediates might be called in the middle
+            # here messing things up
+            uid = f.fbind(
+                val, update_intermediates, base, keys, bound, s, fn, args)
+            append([f.proxy_ref, val, uid])
         else:
-            append([getattr(f, 'proxy_ref', f), val, None, None])
+            append([None, None, None])
 
         f = getattr(f, val, None)
         if f is None:
@@ -1626,7 +1629,7 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
     if isinstance(f, (EventDispatcher, Observable)):
         uid = f.fbind(keys[-1], fn, args)
         if uid:
-            append([f.proxy_ref, keys[-1], fn, uid])
+            append([f.proxy_ref, keys[-1], uid])
     # when we rebind we have to update the
     # rule with the most recent value, otherwise, the value might be wrong
     # and wouldn't be updated since we might not have tracked it before.
@@ -1643,11 +1646,11 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     # we need a hash for when delayed, so we don't execute duplicate canvas
     # callbacks from the same handler during a sync op
     if delayed:
-        fn = delayed_call_fn
-        args = [element, key, value, rule, idmap, None]  # see _delayed_start
+        fn = delayed_call_fn  # see _delayed_start
+        args = [call_fn, element, key, value, rule, idmap, None]
     else:
         fn = call_fn
-        args = (element, key, value, rule, idmap)
+        args = (call_fn, element, key, value, rule, idmap)
 
     # bind every key.value
     if rule.watched_keys is not None:
@@ -1655,7 +1658,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
             base = idmap.get(keys[0])
             if base is None:
                 continue
-            f = base = getattr(base, 'proxy_ref', base)
+            f = base
             bound = []
             was_bound = False
             append = bound.append
@@ -1663,25 +1666,20 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
             # bind all attrs, except last to update_intermediates
             k = 1
             for val in keys[1:-1]:
-                # if we need to dynamically rebind, bindm otherwise
+                # if we need to dynamically rebind, bind otherwise
                 # just add the attr to the list
-                if isinstance(f, (EventDispatcher, Observable)):
-                    prop = f.property(val, True)
-                    if prop is not None and getattr(prop, 'rebind', False):
-                        # fbind should not dispatch, otherwise
-                        # update_intermediates might be called in the middle
-                        # here messing things up
-                        uid = f.fbind(
-                            val, update_intermediates, base, keys, bound, k,
-                            fn, args)
-                        append([f.proxy_ref, val, update_intermediates, uid])
-                        was_bound = True
-                    else:
-                        append([f.proxy_ref, val, None, None])
-                elif not isinstance(f, _cls_type):
-                    append([getattr(f, 'proxy_ref', f), val, None, None])
+                if (isinstance(f, (EventDispatcher, Observable)) and
+                    f.rebind_property(val)):
+                    # fbind should not dispatch, otherwise
+                    # update_intermediates might be called in the middle
+                    # here messing things up
+                    uid = f.fbind(
+                        val, update_intermediates, base, keys, bound, k,
+                        fn, args)
+                    append([f.proxy_ref, val, uid])
+                    was_bound = True
                 else:
-                    append([f, val, None, None])
+                    append([None, None, None])
                 f = getattr(f, val, None)
                 if f is None:
                     break
@@ -1692,7 +1690,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
             if isinstance(f, (EventDispatcher, Observable)):
                 uid = f.fbind(keys[-1], fn, args)  # f is not None
                 if uid:
-                    append([f.proxy_ref, keys[-1], fn, uid])
+                    append([f.proxy_ref, keys[-1], uid])
                     was_bound = True
             if was_bound:
                 handler_append(bound)
@@ -1765,6 +1763,8 @@ class BuilderBase(object):
 
     _match_cache = {}
 
+    kv_ext = ('.kv', '.kvc', '.pyd')
+
     def __init__(self):
         super(BuilderBase, self).__init__()
         self.files = []
@@ -1772,16 +1772,243 @@ class BuilderBase(object):
         self.templates = {}
         self.rules = []
         self.rulectx = {}
+        # 4-tuple, selector, rule, avoid_previous_rules, filename
+        self.compiled_rules = []
 
-    def load_file(self, filename, **kwargs):
-        '''Insert a file into the language builder and return the root widget
-        (if defined) of the kv file.
+    def compile_kv(
+            self, filename, dest=None, overwrite=True, rule_opts={}, **kwargs):
+        '''
+        .. warning::
+
+            This function is highly experimental and its usage and code output
+            may change at any time in the future without notice, as long as
+            this warning is here.
+
+        Compiled a KV source file into compiled pure-python code. To load the
+        compiled code, call :attr:`load_file` with either `filename` or
+        the returned filename containing the compiled code.
+
+        :Parameters:
+
+            `filename`: string type
+                The path to the KV source file to be compiled.
+            `dest`: None, a filename, or a buffer object. Defaults to None.
+                - If it's a filename string, it's the name of the file to which
+                  the compiled code will be written. Its extension should be
+                  either `.kvc`, or `.pyx`.
+                - If it's `None`, `filename`'s extension will be replaced with
+                  `.kvc`, or `.pyx` and used as the output file.
+                - If it's a BytesIO or StringIO object, the compiled code will
+                  be written to that buffer object.
+            `overwrite`: bool, defaults to True.
+                If `dest` is None or a filename, and that file already exists,
+                whether to overwrite it. If False, an exception will be raised
+                if the file already exists.
+            `rule_opts`: dict, defaults to the empty dict.
+                The keys are rule names, e.g. `'MyRule'` for a
+                `<MyRule@Widget>` KV type rule. The values are dicts for those
+                rules and whose keys/values overwrite the default compiler
+                options for that rule. See `**kwargs` for the possible compiler
+                options.
+            `**kwargs`:
+                Keys and values that specifcy the default options for the
+                compiler options. The possible keywords are the possbible
+                compiler options, which are
+                :attr:`~kivy.tools.kvcompiler.KVCompiler.tab`,
+                :attr:`~kivy.tools.kvcompiler.KVCompiler.rebind`,
+                :attr:`~kivy.tools.kvcompiler.KVCompiler.base_types`,
+                :attr:`~kivy.tools.kvcompiler.KVCompiler.include_doc`, and
+                :attr:`~kivy.tools.kvcompiler.KVCompiler.batch_bind`.
+                If any of these options are not specificed the default
+                values are taken from
+                :attr:`~kivy.tools.kvcompiler.KVCompiler`.
+
+        :returns:
+            The filename of the file into which the compiled code was written
+            if `dest` is not a buffer object, otherwise, the buffer object.
+
+        For example::
+
+            >>> Builder.compile_kv(r'style.kv', tab='  ')
+            'style.kvc'
+
+        .. note::
+            It is safe to mix compiled code with uncompiled code, however,
+            other than the inherent differences between the resulting rules,
+            `avoid_previous_rules` takes affect per type. That is marking a
+            rule e.g. `<-MyRule@Button>` to clear previous rules, will only
+            clear previous compiled rules if the current rule is compiled,
+            otherwise it'll only clear previous uncompiled rules.
+
+        .. versionadded:: 1.9.2
+        '''
+        from kivy.tools.kvcompiler import KVCompiler
+        with codecs.open(filename) as fd:
+            content = fd.read()
+        h = hashlib.sha256(content).hexdigest()
+
+        # remove bom ?
+        if PY2:
+            if content.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
+                raise ValueError('Unsupported UTF16 for kv files.')
+            if content.startswith((codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE)):
+                raise ValueError('Unsupported UTF32 for kv files.')
+            if content.startswith(codecs.BOM_UTF8):
+                content = content[len(codecs.BOM_UTF8):]
+        parser = Parser(content=content, filename=filename)
+        compiler = KVCompiler()
+        lines, pure_py = compiler.compile(parser, h, rule_opts, **kwargs)
+
+        lines.insert(0, '# -*- coding: utf-8 -*-\n')
+        if dest is None:
+            dest = splitext(filename)[0] + ('.kvc' if pure_py else '.pyx')
+        elif isinstance(dest, buffer_types):
+            dest.writelines([l + '\n' for l in lines])
+            return dest
+        if not overwrite and exists(dest):
+            raise IOError('{} already exists'.format(dest))
+        with codecs.open(dest, "w") as fd:
+            fd.writelines([l + '\n' for l in lines])
+        return dest
+
+    def compile_load_string(
+            self, string, rulesonly=False, rule_opts={}, **kwargs):
+        '''
+        .. warning::
+
+            This function is highly experimental and its usage and code output
+            may change at any time in the future without notice, as long as
+            this warning is here.
+
+        Similar to :attr:`load_string`, but it dynamically compiles the
+        rules using :class:`~kivy.tools.kvcompiler.KVCompiler` and adds it
+        to the rules. See :attr:`compile_kv`
+
+        :Parameters:
+
+            `string`:
+                String containing KV rules.
+            `rulesonly`: bool, defaults to False
+                If True, the Builder will raise an exception if you have a root
+                widget inside the definition.
+            `rule_opts`:
+                Similar to `rule_opts` in :meth:`compile_kv`.
+            `**kwargs`:
+                Similar to `**kwargs` in :meth:`compile_kv`.
+
+        :returns:
+            A widget, if there's a widget instantiation rule in the `string`,
+            otherwise None.
+
+        For example::
+
+            w = Builder.compile_load_string(\'''
+            BoxLayout:
+                Label:
+                    text: 'a'
+                Label:
+                    text: 'b'
+
+            \''', tab='  ')
+
+        .. versionadded:: 1.9.2
+        '''
+        from kivy.tools.kvcompiler import KVCompiler
+        parser = Parser(content=string, filename='<string>')
+        compiler = KVCompiler()
+        lines, pure_py = compiler.compile(parser, '<string>', rule_opts, **kwargs)
+        if not pure_py:
+            raise Exception(
+                'Cannot dynamically compile and load cython code from string.')
+
+        code = '\n'.join(lines)
+        glbls = {'__file__': '<string>'}
+        exec(code, glbls)
+
+        self.compiled_rules.extend(
+            [(s, r, prev, '<string>') for (s, r, prev) in glbls['rules']])
+        self._clear_matchcache()
+        root = glbls['get_root']()
+        if rulesonly and root is not None:
+            raise Exception('The string also contains non-rules directives')
+        return root
+
+    def load_file(self, filename, reload=False, **kwargs):
+        '''Insert a file into the language builder and returns the root widget
+        (if defined) of the kv file. If the `filename` is a compiled KV file
+        or a compiled file exists for `filename`, the compiled file is
+        imported instead.
 
         :parameters:
             `rulesonly`: bool, defaults to False
                 If True, the Builder will raise an exception if you have a root
                 widget inside the definition.
+            `reload`: bool, defaults to False
+                If True, Builder will first unload and then reload the
+                file if it was already loaded.
+
+        .. versionchanged:: 1.9.2
+            `reload` has been added.
         '''
+        if reload:
+            self.unload_file(filename)
+        # try to see if there is a compiled version of the kv first
+        base_name = splitext(filename)[0]
+        is_source = filename.endswith('.kv')
+        pyfn = base_name + ".kvc"  # python compiled
+        cyfn = base_name + ".pyd"  # cython compiled
+        fn = resource_find(cyfn) or cyfn
+        if not exists(fn):
+            fn = resource_find(pyfn) or pyfn
+
+        if exists(fn):  # cython or python exists
+            if fn in self.files:
+                Logger.warning(
+                    'Lang: The file {} is already loaded; '
+                    'you might get unwanted behavior.'.format(fn))
+
+            Logger.info('Builder: load file {} (compiled, py)'.format(fn))
+            # get the file params required to import it
+            for desc in imp.get_suffixes():
+                if (fn[-3:] == 'kvc' and desc[0] == '.py' or
+                    fn[-3:] == 'pyd' and desc[0] == '.pyd'):
+                    break
+
+            try:
+                # does the source file exist, or did we get a compiled file?
+                if is_source:
+                    with codecs.open(filename) as fd:  # get the source hash
+                        h = hashlib.sha256(fd.read()).hexdigest()
+
+                with codecs.open(fn, desc[1]) as fh:
+                    mod_name = 'kivy.lang._compiled_mod_{}'.format(
+                        filename.replace('.', '_'))
+                    mod = imp.load_module(mod_name, fh, fn, desc)
+                    if reload and mod_name in sys.modules:
+                        mod = __builtin__.reload(sys.modules[mod_name])
+
+                if is_source:  # does the source hash match the file's?
+                    if mod.__source_hash__ != h:
+                        raise Exception(
+                            'Compiled file "{}" is out of date with the '
+                            'source file "{}"'.format(fn, filename))
+
+                self.compiled_rules.extend(
+                    [(s, r, prev, filename) for (s, r, prev) in mod.rules])
+                self.files.append(filename)
+                self._clear_matchcache()
+                root = mod.get_root()
+
+                if kwargs.get('rulesonly', False) and root is not None:
+                    raise Exception(
+                        'The file <{}> contain also non-rules directives'.
+                        format(filename))
+                return root
+            except Exception as e:
+                Logger.exception(
+                    'Failed to import {}, falling back to parser'.format(fn))
+                Logger.exception(str(e))
+
         filename = resource_find(filename) or filename
         if __debug__:
             trace('Builder: load file %s' % filename)
@@ -1810,9 +2037,17 @@ class BuilderBase(object):
             This will not remove rules or templates already applied/used on
             current widgets. It will only effect the next widgets creation or
             template invocation.
+
+        .. warning::
+
+            When unloading a compiled file, the rules are removed, but the code
+            is not entirely unloaded, consequently, to load the compiled file
+            again, `reload` will have to be set to `True` in :meth:`load_file`.
         '''
         # remove rules and templates
         self.rules = [x for x in self.rules if x[1].ctx.filename != filename]
+        self.compiled_rules = [
+            x for x in self.compiled_rules if x[3] != filename]
         self._clear_matchcache()
         templates = {}
         for x, y in self.templates.items():
@@ -1912,14 +2147,16 @@ class BuilderBase(object):
         self._apply_rule(widget, rule, rule, template_ctx=proxy_ctx)
         return widget
 
-    def apply(self, widget):
+    def apply(self, widget, builder_created=None):
         '''Search all the rules that match the widget and apply them.
         '''
-        rules = self.match(widget)
+        rules, compiled_rules = self.match(widget)
         if __debug__:
             trace('Builder: Found %d rules for %s' % (len(rules), widget))
-        if not rules:
+        if not rules and not compiled_rules:
             return
+        for rule in compiled_rules:
+            rule(widget, builder_created)
         for rule in rules:
             self._apply_rule(widget, rule, rule)
 
@@ -2028,13 +2265,9 @@ class BuilderBase(object):
                     rctx['ids'][crule.id] = child
 
             else:
-                # we got a "normal" rule, construct it manually
-                # we can't construct it without __no_builder=True, because the
-                # previous implementation was doing the add_widget() before
-                # apply(), and so, we could use "self.parent".
-                child = cls(__no_builder=True)
-                widget.add_widget(child)
-                self.apply(child)
+                # previous implementations were doing the add_widget() before
+                # apply() so we could use "self.parent".
+                child = cls(parent=widget)
                 self._apply_rule(child, crule, rootrule)
 
         # append the properties and handlers to our final resolution task
@@ -2078,6 +2311,7 @@ class BuilderBase(object):
         try:
             crule = None
             for widget_set, rules in rctx['hdl']:
+                dispatch_parent = False
                 for crule in rules:
                     assert(isinstance(crule, ParserRuleProperty))
                     assert(crule.name.startswith('on_'))
@@ -2092,7 +2326,9 @@ class BuilderBase(object):
                         raise AttributeError(key)
                     #hack for on_parent
                     if crule.name == 'on_parent':
-                        Factory.Widget.parent.dispatch(widget_set.__self__)
+                        dispatch_parent = True
+                if dispatch_parent:
+                    Factory.Widget.parent.dispatch(widget_set.__self__)
         except Exception as e:
             if crule is not None:
                 tb = sys.exc_info()[2]
@@ -2111,14 +2347,22 @@ class BuilderBase(object):
         k = (widget.__class__, widget.id, tuple(widget.cls))
         if k in cache:
             return cache[k]
+
         rules = []
         for selector, rule in self.rules:
             if selector.match(widget):
                 if rule.avoid_previous_rules:
                     del rules[:]
                 rules.append(rule)
-        cache[k] = rules
-        return rules
+
+        compiled_rules = []
+        for selector, rule, avoid_previous_rules, _ in self.compiled_rules:
+            if selector.match(widget):
+                if avoid_previous_rules:
+                    del compiled_rules[:]
+                compiled_rules.append(rule)
+        cache[k] = rules, compiled_rules
+        return rules, compiled_rules
 
     def sync(self):
         '''Execute all the waiting operations, such as the execution of all the
@@ -2135,7 +2379,11 @@ class BuilderBase(object):
             # is this try/except still needed? yes, in case widget died in this
             # frame after the call was scheduled
             try:
-                call_fn(next_args[:-1], None, None)
+                f = next_args[0]
+                if f is call_fn:
+                    call_fn(next_args[:-1], None, None)
+                else:
+                    f(*next_args[1:-1])
             except ReferenceError:
                 pass
             args = next_args
@@ -2176,16 +2424,71 @@ class BuilderBase(object):
         '''
         if uid not in _handlers:
             return
-        for prop_callbacks in _handlers[uid].values():
-            for callbacks in prop_callbacks:
-                for f, k, fn, bound_uid in callbacks:
-                    if fn is None:  # it's not a kivy prop.
+
+#         for prop_callbacks in _handlers[uid].values():
+#             for callbacks in prop_callbacks:
+#                 for f, k, fn, bound_uid in callbacks:
+#                     if fn is None:  # it's not a kivy prop.
+#                         continue
+#                     try:
+#                         f.unbind_uid(k, bound_uid)
+#                     except ReferenceError:
+#                         # proxy widget is already gone, that's cool :)
+#                         pass
+#         del _handlers[uid]
+
+        return
+
+        for callbacks in _handlers[uid]:
+            if callbacks.__class__ is not tuple:
+                for callback in callbacks:
+                    if len(callback) == 3:  # unbind
+                        f, k, bound_uid = callback
+                        if not bound_uid:  # it's not a kivy prop.
+                            continue
+                        try:
+                            f.unbind_uid(k, bound_uid)
+                        except ReferenceError:
+                            # proxy widget is already gone, that's cool :)
+                            pass
+            else:
+                l, idxs = callbacks  # list of bound and leaf idxs in it
+                pidx = None
+                # unbind the leaves setting the dead widget's prop
+                for i in idxs:
+                    item = l[i]
+                    if item is None:
+                        continue
+
+                    pidx, p, key, bid = item[2:6]
+                    # if it doesn't have a parent, we're good
+                    if p is None:
                         continue
                     try:
-                        f.unbind_uid(k, bound_uid)
+                        p.unbind_uid(key, bid)
                     except ReferenceError:
-                        # proxy widget is already gone, that's cool :)
                         pass
+                    l[i] = None
+
+                # go up parent levels and unbind all the rebinds if all the
+                # leaves below that parent are dead
+                while True:
+                    if pidx is None or l[pidx] is None:  # no parent
+                        break
+                    pidx_old = pidx
+                    s, e, pidx, p, key, bid = l[pidx][:6]  # next parent
+                    # if there are stil unbound leaves don't unbind parent
+                    # node in case we need to rebind the bound leaves
+                    if any(l[s:e]):
+                        break
+
+                    if bid:  # unbind parent's rebind
+                        try:
+                            p.unbind_uid(key, bid)
+                        except ReferenceError:
+                            pass
+                    l[pidx_old] = None
+
         del _handlers[uid]
 
     def unbind_property(self, widget, name):
@@ -2223,6 +2526,7 @@ class BuilderBase(object):
         uid = widget.uid
         if uid not in _handlers:
             return
+        return
 
         prop_handlers = _handlers[uid]
         if name not in prop_handlers:
@@ -2334,3 +2638,4 @@ if 'KIVY_PROFILE_LANG' in environ:
         print('Profiling written at builder_stats.html')
 
     atexit.register(dump_builder_stats)
+9

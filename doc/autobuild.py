@@ -12,7 +12,8 @@ ignore_list = (
     'kivy.graphics.buffer',
     'kivy.graphics.vbo',
     'kivy.graphics.vertex',
-    'kivy.lib.osc'
+    'kivy.lib.osc',
+    'kivy.lang._compiled_mod'
 )
 
 import os
@@ -59,6 +60,7 @@ import kivy.support
 import kivy.input.recorder
 import kivy.interactive
 import kivy.garden
+import kivy.tools.kvcompiler
 from kivy.factory import Factory
 
 # check for silenced build
@@ -113,8 +115,9 @@ api_modules = []
 for name, module, filename in l:
     if name in ignore_list:
         continue
-    if not any([name.startswith(x) for x in ignore_list]):
-        api_modules.append(name)
+    if any([name.startswith(x) for x in ignore_list]):
+        continue
+    api_modules.append(name)
     if filename == '__init__':
         packages.append(name)
     else:

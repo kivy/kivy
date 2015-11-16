@@ -305,6 +305,7 @@ cdef class Property:
         self.errorvalue = None
         self.errorhandler = None
         self.errorvalue_set = 0
+        self.rebind = 0
 
 
     def __init__(self, defaultvalue, **kw):
@@ -411,6 +412,10 @@ cdef class Property:
         if obj is None:
             return self
         return self.get(obj)
+
+    cpdef dispatch_count(self, EventDispatcher obj):
+        cdef PropertyStorage ps = obj.__storage[self._name]
+        return ps.observers.count
 
     cdef compare_value(self, a, b):
         try:
