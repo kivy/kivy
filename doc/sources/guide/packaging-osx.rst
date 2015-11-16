@@ -66,7 +66,7 @@ Requirements
 ------------
 
     * Latest Kivy (the whole portable package, not only the github sourcecode)
-    * `PyInstaller 2.0 <http://www.pyinstaller.org/#Downloads>`_
+    * `PyInstaller 3.0 <http://www.pyinstaller.org/#Downloads>`_
 
 Please ensure that you have installed the Kivy DMG and installed the `make-symlink` script.
 The `kivy` command must be accessible from the command line.
@@ -85,7 +85,7 @@ file is named `main.py`. Replace both path/filename according to your system.
 #. Open a console.
 #. Go to the pyinstaller directory, and create the initial specs::
 
-    cd pyinstaller-2.0
+    cd pyinstaller-3.0
     kivy pyinstaller.py --windowed --name touchtracer ../kivy/examples/demo/touchtracer/main.py
 
 #. The specs file is named `touchtracer/touchtracer.spec` and located inside the
@@ -94,11 +94,25 @@ file is named `main.py`. Replace both path/filename according to your system.
    Open the spec file with your favorite editor and put theses lines at the
    start of the spec::
 
-    from kivy.tools.packaging.pyinstaller_hooks import install_hooks
-    install_hooks(globals())
+    from kivy.tools.packaging.pyinstaller_hooks import get_hooks
 
-   In the `Analysis()` method, remove the `hookspath=None` parameter.
-   If you don't do this, the kivy package hook will not be used at all.
+   In the `Analysis()` function, remove the `hookspath=None` parameter and
+   the `runtime_hooks` parameter if present. `get_hooks` will return the required
+   values for both parameters, so at the end of `Analysis()` add `**get_hooks()`.
+   E.g.::
+
+    a = Analysis(['/usr/local/share/kivy-examples/demo/touchtracer/main.py'],
+                 pathex=['/Users/kivy-dev/Projects/kivy-packaging'],
+                 binaries=None,
+                 datas=None,
+                 hiddenimports=[],
+                 excludes=None,
+                 win_no_prefer_redirects=None,
+                 win_private_assemblies=None,
+                 cipher=block_cipher,
+                 **get_hooks())
+
+   This will add the required hooks so that pyinstaller gets the required kivy files.
 
    Then, you need to change the `COLLECT()` call to add the data of touchtracer
    (`touchtracer.kv`, `particle.png`, ...). Change the line to add a Tree()
@@ -131,7 +145,7 @@ Build the spec and create a DMG
 #. Open a console.
 #. Go to the pyinstaller directory, and build the spec::
 
-    cd pyinstaller-2.0
+    cd pyinstaller-3.0
     kivy pyinstaller.py touchtracer/touchtracer.spec
 
 #. The package will be the `touchtracer/dist/touchtracer` directory. Rename it to .app::
