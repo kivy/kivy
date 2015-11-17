@@ -219,9 +219,9 @@ class ScatterBehavior(object):
     '''
 
     do_dispatch_after_children = BooleanProperty(False)
-    '''If True, handling touch events will be done after dispatching them to
-    the children. In this case, pan_distance and pan_timeout will be used to
-    determine which touches belong to the Scatter and which belong to its
+    '''If True, touch events will be dispatched to the children after handling
+    them. In this case, pan_distance and pan_timeout will be used to determine
+    which touches belong to the Scatter and which belong to its
     children.
 
     .. versionadded:: 1.9.1
@@ -253,7 +253,6 @@ class ScatterBehavior(object):
     def __init__(self, **kwargs):
         self._touches = []
         self._last_touch_pos = {}
-        self._pan_touch = None
         super(ScatterBehavior, self).__init__(**kwargs)
 
     def _get_scatter_behavior_uid(self, prefix='scatter_behavior'):
@@ -328,17 +327,15 @@ class ScatterBehavior(object):
                 touch.ud[self._get_scatter_behavior_uid('scatter_avoid')] = True
                 return False
 
-            uid = self._get_scatter_behavior_uid()
-
-            self._pan_touch = touch
             touch.grab(self)
             self._touches.append(touch)
             self._last_touch_pos[touch] = touch.pos
+            uid = self._get_scatter_behavior_uid()
             touch.ud[uid] = {
                 '_mode': 'unknown',
                 'dx': 0,
                 'dy': 0}
-            Clock.schedule_once(self._change_touch_mode,
+            Clock.schedule_once(lambda dt: self._change_touch_mode(touch),
                                 self.pan_timeout / 1000.)
 
             return False
@@ -392,14 +389,11 @@ class ScatterBehavior(object):
     def on_touch_move(self, touch):
         if self.do_dispatch_after_children:
             uid = self._get_scatter_behavior_uid()
+            ud = touch.ud.get(uid, {})
 
             if self._get_scatter_behavior_uid('scatter_avoid') in touch.ud:
                 return False
-            elif(
-                self._pan_touch is not touch and
-                uid in touch.ud and
-                touch.ud[uid]['_mode'] == 'unknown'
-            ):
+            elif ud.get('_mode') == 'dispatch':
                 touch.push()
                 touch.apply_transform_2d(self.to_local)
                 if super(ScatterBehavior, self).on_touch_move(touch):
@@ -407,20 +401,24 @@ class ScatterBehavior(object):
                     return True
                 touch.pop()
 
-            ud = touch.ud.get(uid, {})
-            mode = ud.get('_mode', '')
+            mode = ud.get('_mode')
 
             if touch.grab_current is self:
                 if mode == 'unknown':
                     dx = abs(touch.ox - touch.x)
                     dy = abs(touch.oy - touch.y)
                     if dx > sp(self.pan_distance):
-                        mode = 'pan'
+                        mode = 'scatter'
                     if dy > sp(self.pan_distance):
-                        mode = 'pan'
-                    if mode == 'pan':
+                        mode = 'scatter'
+                    if mode == 'scatter':
                         self._bring_to_front(touch)
                         ud['_mode'] = mode
+                        for sibling in self._touches:
+                            if uid in sibling.ud:
+                                sud = sibling.ud[uid]
+                                if sud['_mode'] == 'unknown':
+                                    sud['_mode'] = 'scatter'
 
         x, y = touch.pos
         # let the child widgets handle the event if they want
@@ -445,7 +443,7 @@ class ScatterBehavior(object):
             touch.grab_current == self and
             (
                 not self.do_dispatch_after_children or
-                mode == 'pan'
+                mode == 'scatter'
             )
         ):
             if self.transform_with_touch(touch):
@@ -523,26 +521,20 @@ class ScatterBehavior(object):
     def on_touch_up(self, touch):
         if self.do_dispatch_after_children:
             uid = self._get_scatter_behavior_uid()
+            ud = touch.ud.get(uid)
+
             if self._get_scatter_behavior_uid('scatter_avoid') in touch.ud:
                 return False
-            elif(
-                touch is not self._pan_touch and
-                uid in touch.ud and
-                touch.ud[uid]['_mode'] == 'unknown'
-            ):
+            elif ud.get('_mode') == 'dispatch':
                 touch.push()
                 touch.apply_transform_2d(self.to_local)
                 ret = super(ScatterBehavior, self).on_touch_up(touch)
                 touch.pop()
                 return ret
 
-            if self._pan_touch and self in [x() for x in touch.grab_list]:
-                self._pan_touch = None
-                ud = touch.ud[uid]
-                if '_mode' in ud:
-                    if ud['_mode'] == 'unknown':
-                        self._do_dispatch(touch)
-                        Clock.schedule_once(partial(self._do_touch_up, touch), .1)
+            if ud.get('_mode') == 'unknown' and self in [x() for x in touch.grab_list]:
+                self._do_dispatch(touch)
+                Clock.schedule_once(partial(self._do_touch_up, touch), .1)
 
         x, y = touch.pos
         # if the touch isnt on the widget we do nothing, just try children
@@ -591,20 +583,17 @@ class ScatterBehavior(object):
             touch.pop()
         touch.grab_current = None
 
-    def _change_touch_mode(self, *largs):
-        if not self._pan_touch:
-            return
+    def _change_touch_mode(self, touch):
         uid = self._get_scatter_behavior_uid()
-        touch = self._pan_touch
-        ud = touch.ud[uid]
+        ud = touch.ud.get(uid, {})
         if(
-            '_mode' not in ud or
-            ud['_mode'] != 'unknown'
+            ud.get('_mode') != 'unknown' or
+            self not in [x() for x in touch.grab_list]
         ):
             return
 
         touch.ungrab(self)
-        self._pan_touch = None
+        ud['_mode'] = 'dispatch'
         self._do_dispatch(touch)
 
         if touch in self._touches:
