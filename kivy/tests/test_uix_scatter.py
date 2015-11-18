@@ -75,7 +75,7 @@ def scatter(request, child):
 
 
 class TestScatterBehaviorTranslation:
-    @pytest.fixture(autouse=True, params=[True, False], ids=['do_dispatch_after_children=True', 'do_dispatch_after_children=False'])
+    @pytest.fixture(autouse=True, params=[True, False], ids=lambda value: 'do_dispatch_after_children={}'.format(value))
     def setup(self, request, scatter):
         scatter.do_dispatch_after_children = request.param
 
@@ -101,7 +101,7 @@ class TestScatterBehaviorTranslation:
 
 
 class TestScatterBehaviorRotation:
-    @pytest.fixture(autouse=True, params=[True, False], ids=['do_dispatch_after_children=True', 'do_dispatch_after_children=False'])
+    @pytest.fixture(autouse=True, params=[True, False], ids=lambda value: 'do_dispatch_after_children={}'.format(value))
     def setup(self, request, scatter):
         scatter.do_dispatch_after_children = request.param
 
@@ -123,7 +123,7 @@ class TestScatterBehaviorRotation:
 
 
 class TestScatterBehaviorScale:
-    @pytest.fixture(autouse=True, params=[True, False], ids=['do_dispatch_after_children=True', 'do_dispatch_after_children=False'])
+    @pytest.fixture(autouse=True, params=[True, False], ids=lambda value: 'do_dispatch_after_children={}'.format(value))
     def setup(self, request, scatter):
         scatter.do_dispatch_after_children = request.param
 
