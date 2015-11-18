@@ -119,13 +119,21 @@ class TestScatterBehaviorScale:
     def setup(self, request, scatter):
         scatter.do_dispatch_after_children = request.param
 
-    def test_scatterbehavior_scale(self, multitouch, scatter, child):
+    def test_scatterbehavior_scale_up(self, multitouch, scatter, child):
         for touch in multitouch:
             EventLoop.post_dispatch_input('begin', touch)
         touch.sy = 0
         EventLoop.post_dispatch_input('update', touch)
         assert child.touched_move != scatter.do_dispatch_after_children
         assert abs(scatter.scale - 2) < 0.0001
+
+    def test_scatterbehavior_scale_down(self, multitouch, scatter, child):
+        for touch in multitouch:
+            EventLoop.post_dispatch_input('begin', touch)
+        touch.sy *= 1.5
+        EventLoop.post_dispatch_input('update', touch)
+        assert child.touched_move != scatter.do_dispatch_after_children
+        assert abs(scatter.scale - .5) < 0.0001
 
 
 class TestScatterBehaviorDispatchAfterChildren:

@@ -335,7 +335,7 @@ class ScatterBehavior(object):
                 '_mode': 'unknown',
                 'dx': 0,
                 'dy': 0}
-            Clock.schedule_once(lambda dt: self._change_touch_mode(touch),
+            Clock.schedule_once(lambda dt: self._change_scatter_touch_mode(touch),
                                 self.pan_timeout / 1000.)
 
             return False
@@ -525,16 +525,18 @@ class ScatterBehavior(object):
 
             if self._get_scatter_behavior_uid('scatter_avoid') in touch.ud:
                 return False
-            elif ud.get('_mode') == 'dispatch':
-                touch.push()
-                touch.apply_transform_2d(self.to_local)
-                ret = super(ScatterBehavior, self).on_touch_up(touch)
-                touch.pop()
-                return ret
 
-            if ud.get('_mode') == 'unknown' and self in [x() for x in touch.grab_list]:
-                self._do_dispatch(touch)
-                Clock.schedule_once(partial(self._do_touch_up, touch), .1)
+            if ud:
+                if ud.get('_mode') == 'dispatch':
+                    touch.push()
+                    touch.apply_transform_2d(self.to_local)
+                    ret = super(ScatterBehavior, self).on_touch_up(touch)
+                    touch.pop()
+                    return ret
+
+                if ud.get('_mode') == 'unknown' and self in [x() for x in touch.grab_list]:
+                    self._do_dispatch(touch)
+                    Clock.schedule_once(partial(self._do_touch_up, touch), .1)
 
         x, y = touch.pos
         # if the touch isnt on the widget we do nothing, just try children
@@ -583,7 +585,7 @@ class ScatterBehavior(object):
             touch.pop()
         touch.grab_current = None
 
-    def _change_touch_mode(self, touch):
+    def _change_scatter_touch_mode(self, touch):
         uid = self._get_scatter_behavior_uid()
         ud = touch.ud.get(uid, {})
         if(
