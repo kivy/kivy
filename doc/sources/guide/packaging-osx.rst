@@ -1,26 +1,22 @@
-Creating packages for MacOSX
-============================
+Creating packages for OS X
+==========================
 
-Packaging your application for the MacOSX 10.6 platform can only be done inside
-MacOSX. The following method has only been tested inside VirtualBox and
-MacOSX 10.6, using the portable package of Kivy.
+Packaging your application for the OS X 10.6 platform can only be done inside OS X.
 
-The package will only work for the 64 bit MacOSX. We no longer support 32 bit
-MacOSX platforms.
+The package will only work for the 64 bit OS X. We no longer support 32 bit OS X platforms.
 
-+---------------------------------------------------------------------------------------------------------------+
-| NOTE: Currently, packages for OSX can only be generated with Python 2.7. Python 3.3+ support is on the way... |
-+---------------------------------------------------------------------------------------------------------------+
+.. note::
+    Currently, packages for OS X can only be generated with Python 2.7. Python 3.3+ support is on the way...
 
-.. _mac_osx_requirements:
+.. _osx_requirements:
 
 Official Packaging method
 -------------------------
 
-Due to a lot of problems with including libraries and files on osx with other methods
-we now have a simpler and easier way to package Kivy apps on osx.
+Due to a lot of problems with including libraries and files on OS X with other methods
+we now have a simpler and easier way to package Kivy apps on OS X.
 
-Since kivy 1.9 kivy package on osx is a self contained portable distribution.
+Since kivy 1.9 kivy package on OS X is a self contained portable distribution.
 It is now possible to package kivy apps using the method described below to make
 it easier to include frameworks like sdl2 and gstreamer::
 
@@ -70,7 +66,7 @@ Requirements
 ------------
 
     * Latest Kivy (the whole portable package, not only the github sourcecode)
-    * `PyInstaller 2.0 <http://www.pyinstaller.org/#Downloads>`_
+    * `PyInstaller 3.0 <http://www.pyinstaller.org/#Downloads>`_
 
 Please ensure that you have installed the Kivy DMG and installed the `make-symlink` script.
 The `kivy` command must be accessible from the command line.
@@ -89,7 +85,7 @@ file is named `main.py`. Replace both path/filename according to your system.
 #. Open a console.
 #. Go to the pyinstaller directory, and create the initial specs::
 
-    cd pyinstaller-2.0
+    cd pyinstaller-3.0
     kivy pyinstaller.py --windowed --name touchtracer ../kivy/examples/demo/touchtracer/main.py
 
 #. The specs file is named `touchtracer/touchtracer.spec` and located inside the
@@ -98,17 +94,31 @@ file is named `main.py`. Replace both path/filename according to your system.
    Open the spec file with your favorite editor and put theses lines at the
    start of the spec::
 
-    from kivy.tools.packaging.pyinstaller_hooks import install_hooks
-    install_hooks(globals())
+    from kivy.tools.packaging.pyinstaller_hooks import get_hooks
 
-   In the `Analysis()` method, remove the `hookspath=None` parameter.
-   If you don't do this, the kivy package hook will not be used at all.
+   In the `Analysis()` function, remove the `hookspath=None` parameter and
+   the `runtime_hooks` parameter if present. `get_hooks` will return the required
+   values for both parameters, so at the end of `Analysis()` add `**get_hooks()`.
+   E.g.::
+
+    a = Analysis(['/usr/local/share/kivy-examples/demo/touchtracer/main.py'],
+                 pathex=['/Users/kivy-dev/Projects/kivy-packaging'],
+                 binaries=None,
+                 datas=None,
+                 hiddenimports=[],
+                 excludes=None,
+                 win_no_prefer_redirects=None,
+                 win_private_assemblies=None,
+                 cipher=block_cipher,
+                 **get_hooks())
+
+   This will add the required hooks so that pyinstaller gets the required kivy files.
 
    Then, you need to change the `COLLECT()` call to add the data of touchtracer
    (`touchtracer.kv`, `particle.png`, ...). Change the line to add a Tree()
    object. This Tree will search and add every file found in the touchtracer
    directory to your final package.
-   
+
    You will need to specify to pyinstaller where to look for the frameworks
    included with kivy too, your COLLECT section should look something like this::
 
@@ -122,7 +132,7 @@ file is named `main.py`. Replace both path/filename according to your system.
 The Tree inclusion of frameworks is a work around a pyinstaller bug that is not able to find the exact path of libs including @executable_path.
 
 There is a issue open on pyinstaller issue tracker for this. https://github.com/pyinstaller/pyinstaller/issues/1338
-  
+
 Make sure the path to the frameworks is relative to the current directory you are on.
 
 #. We are done. Your spec is ready to be executed!
@@ -135,7 +145,7 @@ Build the spec and create a DMG
 #. Open a console.
 #. Go to the pyinstaller directory, and build the spec::
 
-    cd pyinstaller-2.0
+    cd pyinstaller-3.0
     kivy pyinstaller.py touchtracer/touchtracer.spec
 
 #. The package will be the `touchtracer/dist/touchtracer` directory. Rename it to .app::
@@ -163,11 +173,3 @@ adding one more arguments to the `COLLECT()` method::
                    a.binaries,
                    #...
                    )
-
-For Kivy.app < 1.4.1, you also need to update one script included in our
-Kivy.app. Go to
-`/Applications/Kivy.app/Contents/Resources/kivy/kivy/tools/packaging/pyinstaller_hooks/`,
-and edit the file named `rt-hook-kivy.py`, and add this line at the end::
-
-    environ['GST_PLUGIN_PATH'] = join(root, '..', 'gst-plugins')
-
