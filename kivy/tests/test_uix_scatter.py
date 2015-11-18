@@ -102,7 +102,7 @@ class TestScatterBehaviorTranslation:
 
 class TestScatterBehaviorRotation:
     @pytest.fixture(autouse=True, params=[True, False])
-    def setup(self, request, scatter, child):
+    def setup(self, request, scatter):
         scatter.do_dispatch_after_children = request.param
 
     def test_scatterbehavior_rotation(self, multitouch, scatter, child):
@@ -112,6 +112,20 @@ class TestScatterBehaviorRotation:
         EventLoop.post_dispatch_input('update', touch)
         assert child.touched_move != scatter.do_dispatch_after_children
         assert abs(scatter.rotation + 90) % 360 < 0.0001
+
+
+class TestScatterBehaviorScale:
+    @pytest.fixture(autouse=True, params=[True, False])
+    def setup(self, request, scatter):
+        scatter.do_dispatch_after_children = request.param
+
+    def test_scatterbehavior_scale(self, multitouch, scatter, child):
+        for touch in multitouch:
+            EventLoop.post_dispatch_input('begin', touch)
+        touch.sy = 0
+        EventLoop.post_dispatch_input('update', touch)
+        assert child.touched_move != scatter.do_dispatch_after_children
+        assert abs(scatter.scale - 2) < 0.0001
 
 
 class TestScatterBehaviorDispatchAfterChildren:
