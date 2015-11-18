@@ -515,6 +515,7 @@ class LinearRecycleLayoutManager(RecycleLayoutManager):
     # internal
     computed_sizes = []
     computed_positions = []
+    computed_size = 0
 
     def compute_positions_and_sizes(self, append):
         recycleview = self.recycleview
