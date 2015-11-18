@@ -270,7 +270,8 @@ class ScatterBehavior(object):
                 * self.do_translation_y
             dx = dx / self.translation_touches
             dy = dy / self.translation_touches
-            self.dispatch('on_pan', dx, dy)
+            if self.do_translation:
+                self.dispatch('on_pan', dx, dy)
             changed = True
 
         if len(self._touches) == 1:
@@ -300,8 +301,9 @@ class ScatterBehavior(object):
         if not old_line.length():   # div by zero
             return changed
 
-        angle = radians(new_line.angle(old_line)) * self.do_rotation
-        self.dispatch('on_rotate', angle, anchor)
+        if self.do_rotation:
+            angle = radians(new_line.angle(old_line))
+            self.dispatch('on_rotate', angle, anchor)
 
         if self.do_scale:
             scale = new_line.length() / old_line.length()
