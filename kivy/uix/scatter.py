@@ -242,7 +242,7 @@ class ScatterBehavior(object):
     pan_timeout = NumericProperty(_scroll_timeout)
     '''Timeout allowed to trigger the :attr:`pan_distance`, in milliseconds.
     If the user has not moved :attr:`pan_distance` within the timeout,
-    panging will be disabled, and the touch event will be dispatched to the
+    panning will be disabled, and the touch event will be dispatched to the
     children.
 
     :attr:`pan_timeout` is a :class:`~kivy.properties.NumericProperty` and
@@ -335,7 +335,7 @@ class ScatterBehavior(object):
                 '_mode': 'unknown',
                 'dx': 0,
                 'dy': 0}
-            Clock.schedule_once(lambda dt: self._change_scatter_touch_mode(touch),
+            Clock.schedule_once(lambda dt: self.on_pan_timeout(touch),
                                 self.pan_timeout / 1000.)
 
             return False
@@ -518,6 +518,34 @@ class ScatterBehavior(object):
         '''
         pass
 
+    def on_pan_timeout(self, touch):
+        '''
+        Called when a touch event hits the :attr:`pan_timeout`.
+        By default, it checks if the touch hasn't moved more than
+        :attr:`pan_distance` and if it still belongs to the Scatter ; in which
+        case it will ungrab the touch and start dispatching it to the children.
+
+        :Parameters:
+            `touch`: the touch which hit the timeout.
+
+        .. versionadded:: 1.9.1
+        '''
+        uid = self._get_scatter_behavior_uid()
+        ud = touch.ud.get(uid, {})
+        if(
+            ud.get('_mode') != 'unknown' or
+            self not in [x() for x in touch.grab_list]
+        ):
+            return
+
+        touch.ungrab(self)
+        ud['_mode'] = 'dispatch'
+        self._do_dispatch(touch)
+
+        if touch in self._touches:
+            del self._last_touch_pos[touch]
+            self._touches.remove(touch)
+
     def on_touch_up(self, touch):
         if self.do_dispatch_after_children:
             uid = self._get_scatter_behavior_uid()
@@ -584,23 +612,6 @@ class ScatterBehavior(object):
             super(ScatterBehavior, self).on_touch_up(touch)
             touch.pop()
         touch.grab_current = None
-
-    def _change_scatter_touch_mode(self, touch):
-        uid = self._get_scatter_behavior_uid()
-        ud = touch.ud.get(uid, {})
-        if(
-            ud.get('_mode') != 'unknown' or
-            self not in [x() for x in touch.grab_list]
-        ):
-            return
-
-        touch.ungrab(self)
-        ud['_mode'] = 'dispatch'
-        self._do_dispatch(touch)
-
-        if touch in self._touches:
-            del self._last_touch_pos[touch]
-            self._touches.remove(touch)
 
 
 class Scatter(ScatterBehavior, Widget):
