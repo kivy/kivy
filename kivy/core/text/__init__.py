@@ -646,8 +646,8 @@ class LabelBase(object):
                                      mipmap=self.options['mipmap'],
                                      callback=self._texture_fill)
             #switching off linear interpolation
-            texture.mag_filter="nearest"
-            texture.min_filter="nearest"
+            texture.mag_filter = "nearest"
+            texture.min_filter = "nearest"
             texture.flip_vertical()
             texture.add_reload_observer(self._texture_refresh)
             self.texture = texture
