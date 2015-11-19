@@ -924,7 +924,8 @@ class ScrollView(StencilView):
         # widget position behind. We set it here, but it will be a no-op most of
         # the time.
         vp.pos = 0, 0
-        self.g_translate.xy = x, y
+        #translating to integer values to avoid texture blur
+        self.g_translate.xy = int(x), int(y)
 
         # New in 1.2.0, show bar when scrolling happens and (changed in 1.9.0)
         # fade to bar_inactive_color when no scroll is happening.
