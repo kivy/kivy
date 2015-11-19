@@ -2952,8 +2952,17 @@ class TextInput(FocusBehavior, Widget):
 
     .. versionadded:: 1.8.0
 
-    :attr:`minimum_height` is a readonly
-    :class:`~kivy.properties.AliasProperty`.
+    :attr:`minimum_height` is a readonly :class:`~kivy.properties.AliasProperty`.
+    
+    .. warning::
+        :attr:`minumum_width` is calculated based on textinput width therefore
+        code like this::
+        
+            <FuncyTextInput>
+                height: self.minimum_height
+                width: self.height
+        
+        Will lead to a unending loop.
     '''
 
     line_spacing = NumericProperty(0)
