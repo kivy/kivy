@@ -2957,7 +2957,7 @@ class TextInput(FocusBehavior, Widget):
 
     .. warning::
         :attr:`minimum_width` is calculated based on TextInput width therefore
-        code like this will lead to a infinite loop::
+        code like this will lead to an infinite loop::
 
             <FancyTextInput>:
                 height: self.minimum_height
