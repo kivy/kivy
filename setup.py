@@ -944,6 +944,7 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
         'Topic :: Artistic Software',
         'Topic :: Games/Entertainment',
         'Topic :: Multimedia :: Graphics :: 3D Rendering',
@@ -958,4 +959,4 @@ setup(
         'Topic :: Software Development :: User Interfaces'],
     dependency_links=[
         'https://github.com/kivy-garden/garden/archive/master.zip'],
-    install_requires=['cython>=' + MIN_CYTHON_STRING, 'Kivy-Garden==0.1.4'])
+    install_requires=['cython>=' + MIN_CYTHON_STRING, 'Kivy-Garden>=0.1.4'])
