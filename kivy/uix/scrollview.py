@@ -824,7 +824,7 @@ class ScrollView(StencilView):
             return True
 
         return self._get_uid() in touch.ud
-
+    
     def scroll_to(self, widget, padding=10, animate=True):
         '''Scrolls the viewport to ensure that the given widget is visible,
         optionally with padding and animation. If animate is True (the
@@ -865,13 +865,13 @@ class ScrollView(StencilView):
                 animate = {'d': 0.2, 't': 'out_quad'}
             Animation.stop_all(self, 'scroll_x', 'scroll_y')
             Animation(scroll_x=sxp, scroll_y=syp, **animate).start(self)
-            tx, ty=self.g_translate.xy
-            self.g_translate.xy=int(tx), int(ty)
         else:
             self.scroll_x = sxp
             self.scroll_y = syp
-            tx, ty=self.g_translate.xy
-            self.g_translate.xy=int(tx), int(ty)
+            
+        #rounding last translation
+        tx, ty = self.g_translate.xy
+        self.g_translate.xy = int(tx), int(ty)
 
     def convert_distance_to_scroll(self, dx, dy):
         '''Convert a distance in pixels to a scroll distance, depending on the
