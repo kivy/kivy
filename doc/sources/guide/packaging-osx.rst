@@ -66,8 +66,111 @@ To make a DMG of your app use the following command::
 This should give you a compressed dmg that will even further minimize the size of your distributed app.
 
 
-Using PyInstaller 3
--------------------
+Using PyInstaller and Homebrew
+------------------------------
+.. note::
+    - Only use this method if you are an advanced user and know that you need more
+      or newer libraries than Provided by the Kivy.app or Python 3 support.
+    - Package your app on the oldest OS X version you want to support.
+
+Complete guide
+^^^^^^^^^^^^^^
+#. Install `Homebrew <http://brew.sh>`_
+#. Install Python::
+
+    $ brew install python
+
+  .. note::
+    - To use Python 3, ``brew install python3`` and replace ``pip`` with ``pip3``
+      in the guide below.
+
+#. Install Cython and Kivy::
+
+    $ pip install -I Cython==0.21.2
+    $ USE_OSX_FRAMEWORKS=0 pip install git+https://github.com/kivy/kivy.git@1.9.0
+
+#. (Re)install your dependencies with ``--build-bottle`` to make sure they can be
+   used on other machines::
+
+    $ brew reinstall --build-bottle bsdl2 sdl2_image sdl2_ttf sdl2_mixer
+
+  .. note::
+    - If your projects depends on GStreamer or additional libraries (re)install them with
+      ``--build-bottle`` at this point as described below.
+
+#. Install Kivy via pip::
+
+    $ pip install -I Cython==0.21.2
+    $ USE_OSX_FRAMEWORKS=0 pip install git+https://github.com/kivy/kivy.git@1.9.0
+
+#. Install the PyInstaller develop version which already includes the new Kivy hooks and
+   fixes to older GStreamer hooks::
+
+    $ pip install git+https://github.com/pyinstaller/pyinstaller.git@develop
+
+#. Package your app using::
+
+    $ pyinstaller -y --clean --windowed --name touchtracer /usr/local/share/kivy-examples/demo/touchtracer/main.py
+
+  .. note::
+    - Depending on your system you might want to add "``--exclude-module _tkinter``"
+      to the PyInstaller command.
+    - This will not yet copy additional image or sound files. You would need to adapt the
+      created ``.spec`` file for that.
+
+
+
+Additional Libraries
+^^^^^^^^^^^^^^^^^^^^
+GStreamer
+"""""""""
+If your project depends on GStreamer::
+
+    $ brew reinstall --build-bottle gstreamer gst-plugins-{base,good,bad,ugly}
+
+.. note::
+    - If your Project needs Ogg Vorbis support be sure to add the ``--with-libvorbis``
+      option to the command above.
+
+If you are using Python from Homebrew you currently also need the following step::
+
+    $ brew reinstall --build-bottle https://github.com/cbenhagen/homebrew/raw/patch-3/Library/Formula/gst-python.rb
+
+
+SDL 2 HEAD for ``Window.on_dropfile`` support
+"""""""""""""""""""""""""""""""""""""""""""""
+
+You can install the newest SDL 2 library which supports ``on_dropfile`` with::
+
+    $ brew reinstall --build-bottle --HEAD sdl2
+
+Or you build 2.0.3 with the following patches (untested):
+
+- https://hg.libsdl.org/SDL/rev/2cc90bb31777
+- https://hg.libsdl.org/SDL/rev/63c4d6f1f85f
+
+
+Data
+^^^^
+.. note::
+    - TBD
+
+
+Code Signing
+^^^^^^^^^^^^
+.. note::
+    - TBD
+
+
+Troubleshooting
+^^^^^^^^^^^^^^^
+.. note::
+    - TBD
+
+Using PyInstaller and the Kivy.app
+------------------------------------
+.. note::
+    - This information is outdated and will be updated or removed in the near future.
 
 Requirements
 ^^^^^^^^^^^^
