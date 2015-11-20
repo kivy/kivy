@@ -2956,7 +2956,7 @@ class TextInput(FocusBehavior, Widget):
     :class:`~kivy.properties.AliasProperty`.
 
     .. warning::
-        :attr:`minimum_width` is calculated based on TextInput width therefore
+        :attr:`minimum_width` is calculated based on :attr:`width` therefore
         code like this will lead to an infinite loop::
 
             <FancyTextInput>:
