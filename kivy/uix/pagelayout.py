@@ -104,13 +104,16 @@ class PageLayout(Layout):
             else:
                 x = right
 
-            c.height = h
-            c.width = width
+            c.height = int(h)
+            c.width = int(width)
 
             Animation(
                 x=x,
                 y=y_parent,
                 d=.5, t='in_quad').start(c)
+                
+            c.x=int(c.x)
+            c.y=int(c.y)
 
     def on_touch_down(self, touch):
         if (self.disabled or not self.collide_point(*touch.pos) or

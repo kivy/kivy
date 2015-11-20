@@ -865,9 +865,13 @@ class ScrollView(StencilView):
                 animate = {'d': 0.2, 't': 'out_quad'}
             Animation.stop_all(self, 'scroll_x', 'scroll_y')
             Animation(scroll_x=sxp, scroll_y=syp, **animate).start(self)
+            tx, ty=self.g_translate.xy
+            self.g_translate.xy=int(tx), int(ty)
         else:
             self.scroll_x = sxp
             self.scroll_y = syp
+            tx, ty=self.g_translate.xy
+            self.g_translate.xy=int(tx), int(ty)
 
     def convert_distance_to_scroll(self, dx, dy):
         '''Convert a distance in pixels to a scroll distance, depending on the
@@ -924,8 +928,7 @@ class ScrollView(StencilView):
         # widget position behind. We set it here, but it will be a no-op most of
         # the time.
         vp.pos = 0, 0
-        #translating to integer values to avoid texture blur
-        self.g_translate.xy = int(x), int(y)
+        self.g_translate.xy = x, y
 
         # New in 1.2.0, show bar when scrolling happens and (changed in 1.9.0)
         # fade to bar_inactive_color when no scroll is happening.

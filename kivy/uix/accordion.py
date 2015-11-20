@@ -419,8 +419,8 @@ class Accordion(Widget):
             child_space = min_space
             child_space += display_space * (1 - child.collapse_alpha)
             child._min_space = min_space
-            child.x = x
-            child.y = y
+            child.x = int(x)
+            child.y = int(y)
             child.orientation = self.orientation
             if orientation == 'horizontal':
                 child.content_size = display_space, h

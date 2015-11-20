@@ -431,10 +431,10 @@ class GridLayout(Layout):
                 if i < 0:
                     break
                 c = children[i]
-                c.x = x
-                c.y = y - row_height
-                c.width = col_width
-                c.height = row_height
+                c.x = int(x)
+                c.y = int(y - row_height)
+                c.width = int(col_width)
+                c.height = int(row_height)
                 i = i - 1
                 x = x + col_width + spacing_x
             y -= row_height + spacing_y

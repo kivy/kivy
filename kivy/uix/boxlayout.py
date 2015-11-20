@@ -170,10 +170,10 @@ class BoxLayout(Layout):
                     elif key == 'center_y':
                         cy += posy - (h / 2.)
 
-                c.x = cx
-                c.y = cy
-                c.width = w
-                c.height = h
+                c.x = int(cx)
+                c.y = int(cy)
+                c.width = int(w)
+                c.height = int(h)
                 x += w + spacing
 
         if orientation == 'vertical':
@@ -201,10 +201,10 @@ class BoxLayout(Layout):
                     elif key == 'center_x':
                         cx += posx - (w / 2.)
 
-                c.x = cx
-                c.y = cy
-                c.width = w
-                c.height = h
+                c.x = int(cx)
+                c.y = int(cy)
+                c.width = int(w)
+                c.height = int(h)
                 y += h + spacing
 
     def add_widget(self, widget, index=0):

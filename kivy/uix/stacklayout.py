@@ -211,8 +211,8 @@ class StackLayout(Layout):
         sizes = []
         for c in reversed(self.children):
             if c.size_hint[outerattr]:
-                c.size[outerattr] = max(1,
-                    c.size_hint[outerattr] * (selfsize[outerattr] - padding_v))
+                c.size[outerattr] = int(max(1,
+                    c.size_hint[outerattr] * (selfsize[outerattr] - padding_v)))
 
             # does the widget fit in the row/column?
             ccount = len(lc)
@@ -254,21 +254,21 @@ class StackLayout(Layout):
             # apply the sizes
             for i, child in enumerate(lc):
                 if child.size_hint[innerattr]:
-                    child.size[innerattr] = sizes[i]
+                    child.size[innerattr] = int(sizes[i])
 
             # push the line
             sv += lv + spacing_v
             for c2 in lc:
                 if urev:
                     u -= c2.size[innerattr]
-                c2.pos[innerattr] = u
+                c2.pos[innerattr] = int(u)
                 pos_outer = v
                 if vrev:
                     # v position is actually the top/right side of the widget
                     # when going from high to low coordinate values,
                     # we need to subtract the height/width from the position.
                     pos_outer -= c2.size[outerattr]
-                c2.pos[outerattr] = pos_outer
+                c2.pos[outerattr] = int(pos_outer)
                 if urev:
                     u -= spacing_u
                 else:
@@ -289,18 +289,18 @@ class StackLayout(Layout):
             # apply the sizes
             for i, child in enumerate(lc):
                 if child.size_hint[innerattr]:
-                    child.size[innerattr] = sizes[i]
+                    child.size[innerattr] = int(sizes[i])
 
             # push the last (incomplete) line
             sv += lv + spacing_v
             for c2 in lc:
                 if urev:
                     u -= c2.size[innerattr]
-                c2.pos[innerattr] = u
+                c2.pos[innerattr] = int(u)
                 pos_outer = v
                 if vrev:
                     pos_outer -= c2.size[outerattr]
-                c2.pos[outerattr] = pos_outer
+                c2.pos[outerattr] = int(pos_outer)
                 if urev:
                     u -= spacing_u
                 else:

@@ -83,30 +83,30 @@ class FloatLayout(Layout):
             # size
             shw, shh = c.size_hint
             if shw and shh:
-                c.size = w * shw, h * shh
+                c.size = int(w * shw), int(h * shh)
             elif shw:
-                c.width = w * shw
+                c.width = int(w * shw)
             elif shh:
-                c.height = h * shh
+                c.height = int(h * shh)
 
             # pos
             for key, value in c.pos_hint.items():
                 if key == 'x':
-                    c.x = x + value * w
+                    c.x = int(x + value * w)
                 elif key == 'right':
-                    c.right = x + value * w
+                    c.right = int(x + value * w)
                 elif key == 'pos':
-                    c.pos = x + value[0] * w, y + value[1] * h
+                    c.pos = int(x + value[0] * w), int(y + value[1] * h)
                 elif key == 'y':
-                    c.y = y + value * h
+                    c.y = int(y + value * h)
                 elif key == 'top':
-                    c.top = y + value * h
+                    c.top = int(y + value * h)
                 elif key == 'center':
-                    c.center = x + value[0] * w, y + value[1] * h
+                    c.center = int(x + value[0] * w), int(y + value[1] * h)
                 elif key == 'center_x':
-                    c.center_x = x + value * w
+                    c.center_x = int(x + value * w)
                 elif key == 'center_y':
-                    c.center_y = y + value * h
+                    c.center_y = int(y + value * h)
 
     def add_widget(self, widget, index=0):
         widget.bind(

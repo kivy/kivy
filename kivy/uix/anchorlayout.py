@@ -105,7 +105,7 @@ class AnchorLayout(Layout):
             if anchor_y == 'center':
                 y = y + (height / 2) - (h / 2)
 
-            c.x = x
-            c.y = y
-            c.width = w
-            c.height = h
+            c.x = int(x)
+            c.y = int(y)
+            c.width = int(w)
+            c.height = int(h)
