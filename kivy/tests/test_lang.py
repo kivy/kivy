@@ -226,3 +226,27 @@ class LangTestCase(unittest.TestCase):
         self.assertTrue('on_press' in wid.binded_func)
         wid.binded_func['on_press']()
         self.assertEquals(wid.a, 1)
+
+    def test_kv_python_init(self):
+        from kivy.lang import Builder
+        from kivy.uix.widget import Widget
+
+        class MyObject(object):
+            value = 55
+
+        class MyWidget(Widget):
+            cheese = MyObject()
+
+        Builder.load_string('''
+<MyWidget>:
+    x: 55
+    y: self.width + 10
+    height: self.cheese.value
+    width: 44
+''')
+
+        w = MyWidget(x=22, height=12, y=999)
+        self.assertEqual(w.x, 22)
+        self.assertEqual(w.width, 44)
+        self.assertEqual(w.y, 44 + 10)
+        self.assertEqual(w.height, 12)
