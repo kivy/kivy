@@ -3,7 +3,7 @@
 KViewer
 -------
 
-KViwer, for KV-Viewer, is a simple tool allowing to dynamically display
+KViewer, for KV-Viewer, is a simple tool allowing to dynamically display
 a KV file, taking its changes into account (thanks to watchdog). The
 idea is to facilitate design with KVlang. It's somewhat related to the
 KivyCatalog demo, except it uses an on-disc file, allowing user to use
