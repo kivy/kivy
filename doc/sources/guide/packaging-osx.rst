@@ -4,15 +4,13 @@ Creating packages for OS X
 .. note::
     - Packaging your application for the OS X platform can only be done inside OS X.
 
+.. _osx_requirements:
 
 Using kivy-sdk-packager
 -----------------------
 .. note::
-    - This is currently the preferred way to package an app if you are new to Kivy
-      and/or you know that you do not need newer or more libraries than provided by the Kivy.app
-    - The package will only work for the 64 bit OS X. We no longer support 32 bit OS X platforms.
-    - Currently, packages built using this method can only be generated with Python 2.7.
-      Python 3.3+ support is on the way...
+    - This is currently the preferred way to package an app.
+    - The package will only work for the 64 bit OS X.
 
 Since Kivy 1.9 Kivy package on OS X is a self contained portable distribution.
 It is now possible to package Kivy apps using the method described below to make
@@ -34,9 +32,11 @@ it easier to include frameworks like SDL 2 and GStreamer.
 
 3. Now all you need to do is to include your compiled app into the Kivy.app. Simply run the following command::
 
-    osx> ./package-app.sh /Applications/Kivy.app/Contents/Resources/kivy/examples/demo/touchtracer/
+    osx> ./package-app.sh /path/to/your/<app_folder_name>/
+    
+  Where <app_folder_name> is the name of your app.
 
-  This copies Kivy.app to `touchtracer.app` and includes a compiled copy of the demo app into this package.
+  This copies Kivy.app to `<app_folder_name>.app` and includes a compiled copy of the demo app into this package.
 
 4. That's it, your first self contained package is ready to be deployed!
    You can now further customize your app as described bellow.
@@ -69,8 +69,6 @@ This should give you a compressed dmg that will even further minimize the size o
 Using PyInstaller and Homebrew
 ------------------------------
 .. note::
-    - Only use this method if you are an advanced user and know that you need more
-      or newer libraries than Provided by the Kivy.app or Python 3 support.
     - Package your app on the oldest OS X version you want to support.
 
 Complete guide
@@ -103,12 +101,11 @@ Complete guide
     $ pip install -I Cython==0.21.2
     $ USE_OSX_FRAMEWORKS=0 pip install git+https://github.com/kivy/kivy.git@1.9.0
 
-#. Install the PyInstaller develop version which already includes the new Kivy hooks and
-   fixes to older GStreamer hooks::
+#. Install the PyInstaller develop version which includes fixes to GStreamer hooks::
 
     $ pip install git+https://github.com/pyinstaller/pyinstaller.git@develop
 
-#. Package your app using::
+#. Package your app using the path to your main.py::
 
     $ pyinstaller -y --clean --windowed --name touchtracer /usr/local/share/kivy-examples/demo/touchtracer/main.py
 
@@ -118,6 +115,44 @@ Complete guide
     - This will not yet copy additional image or sound files. You would need to adapt the
       created ``.spec`` file for that.
 
+
+The specs file is named `touchtracer/touchtracer.spec` and located inside the
+pyinstaller directory. Now we need to edit the spec file to add kivy hooks
+to correctly build the executable.
+Open the spec file with your favorite editor and put theses lines at the
+start of the spec::
+
+from kivy.tools.packaging.pyinstaller_hooks import get_hooks
+
+In the `Analysis()` function, remove the `hookspath=None` parameter and
+the `runtime_hooks` parameter if present. `get_hooks` will return the required
+values for both parameters, so at the end of `Analysis()` add `**get_hooks()`.
+E.g.::
+
+    a = Analysis(['/usr/local/share/kivy-examples/demo/touchtracer/main.py'],
+             pathex=['/Users/kivy-dev/Projects/kivy-packaging'],
+             binaries=None,
+             datas=None,
+             hiddenimports=[],
+             excludes=None,
+             win_no_prefer_redirects=None,
+             win_private_assemblies=None,
+             cipher=block_cipher,
+             **get_hooks())
+
+This will add the required hooks so that pyinstaller gets the required kivy files.
+
+Then, you need to change the `COLLECT()` call to add the data of touchtracer
+(`touchtracer.kv`, `particle.png`, ...). Change the line to add a Tree()
+object. This Tree will search and add every file found in the touchtracer
+directory to your final package.
+
+You will need to specify to PyInstaller where to look for the frameworks
+included with Kivy too, your COLLECT section should look something like this::
+
+    coll = COLLECT( exe, Tree('../kivy/examples/demo/touchtracer/'),
+
+We are done. Your spec is ready to be executed!
 
 
 Additional Libraries
@@ -150,102 +185,7 @@ Or you build 2.0.3 with the following patches (untested):
 - https://hg.libsdl.org/SDL/rev/63c4d6f1f85f
 
 
-Data
-^^^^
-.. note::
-    - TBD
 
-
-Code Signing
-^^^^^^^^^^^^
-.. note::
-    - TBD
-
-
-Troubleshooting
-^^^^^^^^^^^^^^^
-.. note::
-    - TBD
-
-Using PyInstaller and the Kivy.app
-------------------------------------
-.. note::
-    - This information is outdated and will be updated or removed in the near future.
-
-Requirements
-^^^^^^^^^^^^
-
-* Latest Kivy (the whole portable package, not only the github sourcecode)
-* `PyInstaller 3.0 <http://www.pyinstaller.org/#Downloads>`_
-
-Please ensure that you have installed the Kivy DMG and installed the ``make-symlink`` script.
-The ``kivy`` command must be accessible from the command line.
-
-Thereafter, download and decompress the PyInstaller 3.0 package.
-
-.. _mac_Create-the-spec-file:
-
-Create the spec file
-^^^^^^^^^^^^^^^^^^^^
-
-As an example, we'll package the touchtracer demo, using a custom icon. The
-touchtracer code is in the `../kivy/examples/demo/touchtracer/` directory, and the main
-file is named `main.py`. Replace both path/filename according to your system.
-
-#. Open a console.
-#. Go to the pyinstaller directory, and create the initial specs::
-
-    cd pyinstaller-3.0
-    kivy pyinstaller.py --windowed --name touchtracer ../kivy/examples/demo/touchtracer/main.py
-
-#. The specs file is named `touchtracer/touchtracer.spec` and located inside the
-   pyinstaller directory. Now we need to edit the spec file to add kivy hooks
-   to correctly build the executable.
-   Open the spec file with your favorite editor and put theses lines at the
-   start of the spec::
-
-    from kivy.tools.packaging.pyinstaller_hooks import get_hooks
-
-   In the `Analysis()` function, remove the `hookspath=None` parameter and
-   the `runtime_hooks` parameter if present. `get_hooks` will return the required
-   values for both parameters, so at the end of `Analysis()` add `**get_hooks()`.
-   E.g.::
-
-    a = Analysis(['/usr/local/share/kivy-examples/demo/touchtracer/main.py'],
-                 pathex=['/Users/kivy-dev/Projects/kivy-packaging'],
-                 binaries=None,
-                 datas=None,
-                 hiddenimports=[],
-                 excludes=None,
-                 win_no_prefer_redirects=None,
-                 win_private_assemblies=None,
-                 cipher=block_cipher,
-                 **get_hooks())
-
-   This will add the required hooks so that pyinstaller gets the required kivy files.
-
-   Then, you need to change the `COLLECT()` call to add the data of touchtracer
-   (`touchtracer.kv`, `particle.png`, ...). Change the line to add a Tree()
-   object. This Tree will search and add every file found in the touchtracer
-   directory to your final package.
-
-   You will need to specify to PyInstaller where to look for the frameworks
-   included with Kivy too, your COLLECT section should look something like this::
-
-    coll = COLLECT( exe, Tree('../kivy/examples/demo/touchtracer/'),
-                   Tree("../../../../../../Applications/Kivy.app/Contents/Frameworks/"),
-                   Tree("../../../../../Applications/Kivy.app/Contents/Frameworks/SDL2_ttf.framework/Versions/A/Frameworks/Freetype.Framework"),
-                   a.binaries,
-                   #...
-                   )
-
-The Tree inclusion of frameworks is a work around a pyinstaller bug that is not able to find the exact path of libs including @executable_path.
-
-There is a issue open on pyinstaller issue tracker for this. https://github.com/pyinstaller/pyinstaller/issues/1338
-
-Make sure the path to the frameworks is relative to the current directory you are on.
-
-We are done. Your spec is ready to be executed!
 
 .. _Build the spec and create DMG:
 
@@ -267,19 +207,4 @@ Build the spec and create a DMG
 
 #. You will now have a Touchtracer.dmg available in the `touchtracer/dist` directory.
 
-Including GStreamer
-^^^^^^^^^^^^^^^^^^^
 
-If you want to read video files, audio, or camera, you will need to include
-GStreamer. By default, only pygst/gst files are discovered, but all the gst plugins
-and libraries are missing. You need to include them in your .spec file too, by
-adding one more arguments to the `COLLECT()` method::
-
-    import os
-    gst_plugin_path = os.environ.get('GST_PLUGIN_PATH').split(':')[0]
-
-    coll = COLLECT( exe, Tree('../kivy/examples/demo/touchtracer/'),
-                   Tree(os.path.join(gst_plugin_path, '..')),
-                   a.binaries,
-                   #...
-                   )
