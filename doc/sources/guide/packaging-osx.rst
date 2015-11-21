@@ -105,6 +105,8 @@ Complete guide
 
     $ pip install git+https://github.com/pyinstaller/pyinstaller.git@develop
 
+.. `mac_Create-the-spec-file`
+
 #. Package your app using the path to your main.py::
 
     $ pyinstaller -y --clean --windowed --name touchtracer /usr/local/share/kivy-examples/demo/touchtracer/main.py
