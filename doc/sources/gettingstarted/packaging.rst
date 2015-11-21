@@ -6,9 +6,8 @@ Packaging
     - :ref:`Create-the-spec-file`
     - :ref:`Build-the-spec`
 - :doc:`/guide/packaging-osx`
-    - :ref:`mac_osx_requirements`
-    - :ref:`mac_Create-the-spec-file`
-    - :ref:`Build the spec and create DMG`
+    - :ref:`osx_kivy-sdk-packager`
+    - :ref:`osx_pyinstaller`
 - :doc:`/guide/packaging-android`
     - :ref:`Packaging your application into APK`
     - :ref:`Packaging your application for Kivy Launcher`

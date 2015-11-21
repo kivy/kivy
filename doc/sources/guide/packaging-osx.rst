@@ -4,7 +4,7 @@ Creating packages for OS X
 .. note::
     - Packaging your application for the OS X platform can only be done inside OS X.
 
-.. _osx_requirements:
+.. `osx_kivy-sdk-packager`:
 
 Using kivy-sdk-packager
 -----------------------
@@ -33,7 +33,7 @@ it easier to include frameworks like SDL 2 and GStreamer.
 3. Now all you need to do is to include your compiled app into the Kivy.app. Simply run the following command::
 
     osx> ./package-app.sh /path/to/your/<app_folder_name>/
-    
+
   Where <app_folder_name> is the name of your app.
 
   This copies Kivy.app to `<app_folder_name>.app` and includes a compiled copy of the demo app into this package.
@@ -66,6 +66,8 @@ To make a DMG of your app use the following command::
 This should give you a compressed dmg that will even further minimize the size of your distributed app.
 
 
+.. `osx_pyinstaller`:
+
 Using PyInstaller and Homebrew
 ------------------------------
 .. note::
@@ -78,9 +80,9 @@ Complete guide
 
     $ brew install python
 
-  .. note::
-    - To use Python 3, ``brew install python3`` and replace ``pip`` with ``pip3``
-      in the guide below.
+   .. note::
+     - To use Python 3, ``brew install python3`` and replace ``pip`` with ``pip3``
+       in the guide below.
 
 #. Install Cython and Kivy::
 
@@ -92,9 +94,9 @@ Complete guide
 
     $ brew reinstall --build-bottle bsdl2 sdl2_image sdl2_ttf sdl2_mixer
 
-  .. note::
-    - If your projects depends on GStreamer or additional libraries (re)install them with
-      ``--build-bottle`` at this point as described below.
+   .. note::
+     - If your projects depends on GStreamer or additional libraries (re)install them with
+       ``--build-bottle`` at this point as described below.
 
 #. Install Kivy via pip::
 
@@ -105,17 +107,16 @@ Complete guide
 
     $ pip install git+https://github.com/pyinstaller/pyinstaller.git@develop
 
-.. `mac_Create-the-spec-file`:
 
 #. Package your app using the path to your main.py::
 
     $ pyinstaller -y --clean --windowed --name touchtracer /usr/local/share/kivy-examples/demo/touchtracer/main.py
 
-  .. note::
-    - Depending on your system you might want to add "``--exclude-module _tkinter``"
-      to the PyInstaller command.
-    - This will not yet copy additional image or sound files. You would need to adapt the
-      created ``.spec`` file for that.
+   .. note::
+     - Depending on your system you might want to add "``--exclude-module _tkinter``"
+       to the PyInstaller command.
+     - This will not yet copy additional image or sound files. You would need to adapt the
+       created ``.spec`` file for that.
 
 
 The specs file is named `touchtracer/touchtracer.spec` and located inside the
@@ -124,7 +125,7 @@ to correctly build the executable.
 Open the spec file with your favorite editor and put theses lines at the
 start of the spec::
 
-from kivy.tools.packaging.pyinstaller_hooks import get_hooks
+  from kivy.tools.packaging.pyinstaller_hooks import get_hooks
 
 In the `Analysis()` function, remove the `hookspath=None` parameter and
 the `runtime_hooks` parameter if present. `get_hooks` will return the required
@@ -186,10 +187,6 @@ Or you build 2.0.3 with the following patches (untested):
 - https://hg.libsdl.org/SDL/rev/2cc90bb31777
 - https://hg.libsdl.org/SDL/rev/63c4d6f1f85f
 
-
-
-
-.. _Build the spec and create DMG:
 
 Build the spec and create a DMG
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
