@@ -49,7 +49,7 @@ Start any Kivy Application
 You can run any Kivy application by simply dragging the application's main file
 onto the Kivy.app icon. Just try this with any python file in the examples folder.
 
-.. _macosx-run-app:
+.. _osx-run-app:
 
 
 Start from the Command Line

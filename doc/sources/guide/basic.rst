@@ -146,7 +146,7 @@ To run the application, follow the instructions for your operating system:
 
     Mac OS X
         Follow the instructions for
-        :ref:`running a Kivy application on OS X <macosx-run-app>`::
+        :ref:`running a Kivy application on OS X <osx-run-app>`::
 
             $ kivy main.py
 
