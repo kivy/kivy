@@ -65,6 +65,8 @@ kivy/core/window/_window_sdl2.c
 # Virtualenv
 venv
 
+# Emacs
+.projectile
 
 kivy/setupconfig.py
 
