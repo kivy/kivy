@@ -103,7 +103,7 @@ class FBOInstructionTestCase(GraphicUnitTest):
         fbo.texture.save('results.png')
 
 
-class TransformationsTestCase(unittest.TestCase):
+class TransformationsTestCase(GraphicUnitTest):
 
     def test_identity_creation(self):
         from kivy.graphics import LoadIdentity
