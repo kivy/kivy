@@ -96,7 +96,7 @@ cdef extern from "CoreGraphics/CGAffineTransform.h" nogil:
     ctypedef void *CGAffineTransform
     CGAffineTransform CGAffineTransformMake(float a, float b, float c, float d, float tx, float ty)
 
-cdef extern from "CoreGraphics/CGContext.h" nogil: 
+cdef extern from "CoreGraphics/CGContext.h" nogil:
     ctypedef void *CGContextRef
     void CGContextRelease(CGContextRef c)
     void CGContextDrawImage(CGContextRef, CGRect, CGImageRef)
@@ -118,7 +118,7 @@ cdef extern from "ImageIO/CGImageSource.h" nogil:
     CGImageRef CGImageSourceCreateImageAtIndex(
             CGImageSourceRef, size_t, CFDictionaryRef)
     CGImageRef CGImageSourceCreateWithData(
-            CFDataRef data, CFDictionaryRef options) 
+            CFDataRef data, CFDictionaryRef options)
 
 cdef extern from "ImageIO/CGImageDestination.h" nogil:
     ctypedef void *CGImageDestinationRef
@@ -286,12 +286,12 @@ def save_image(filenm, width, height, fmt, data, flipped):
                                     colorSpace,
                                     kCGImageAlphaNoneSkipLast)
 
-        CGContextConcatCTM(flippedContext, CGAffineTransformMake(1.0, 0.0, 
-                                                                0.0, -1.0, 
+        CGContextConcatCTM(flippedContext, CGAffineTransformMake(1.0, 0.0,
+                                                                0.0, -1.0,
                                                                 0.0, height))
 
-        CGContextDrawImage(flippedContext, 
-                            CGRectMake(0, 0, width, height), 
+        CGContextDrawImage(flippedContext,
+                            CGRectMake(0, 0, width, height),
                             cgImage)
 
         newImageRef = CGBitmapContextCreateImage(flippedContext)
@@ -302,7 +302,7 @@ def save_image(filenm, width, height, fmt, data, flipped):
     else:
         CGImageDestinationAddImage(dest, cgImage, NULL)
         CGImageDestinationFinalize(dest)
-            
+
     #Release everything
     CFRelease(cgImage)
     CFRelease(bitmapContext)
@@ -310,7 +310,7 @@ def save_image(filenm, width, height, fmt, data, flipped):
     free(pixels)
 
 class ImageLoaderImageIO(ImageLoaderBase):
-    '''Image loader based on ImageIO MacOSX Framework
+    '''Image loader based on ImageIO OS X Framework
     '''
 
     @staticmethod
@@ -351,4 +351,3 @@ class ImageLoaderImageIO(ImageLoaderBase):
 
 # register
 ImageLoader.register(ImageLoaderImageIO)
-

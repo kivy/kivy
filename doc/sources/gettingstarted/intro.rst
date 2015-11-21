@@ -22,9 +22,9 @@ these tutorials:
 
 Using Kivy on your computer, you can create apps that run on:
 
-- Desktop computers: MacOSX, Linux, Windows.
-- iOs Devices: iPad, iPhone.
-- Android devices: Tablets, phones.
+- Desktop computers: OS X, Linux, Windows.
+- iOS devices: iPad, iPhone.
+- Android devices: tablets, phones.
 - Any other touch-enabled professional/homebrew devices supporting TUIO
   (Tangible User Interface Objects).
 

@@ -5,7 +5,7 @@ Packaging
     - :ref:`packaging-windows-requirements`
     - :ref:`Create-the-spec-file`
     - :ref:`Build-the-spec`
-- :doc:`/guide/packaging-macosx`
+- :doc:`/guide/packaging-osx`
     - :ref:`mac_osx_requirements`
     - :ref:`mac_Create-the-spec-file`
     - :ref:`Build the spec and create DMG`
@@ -18,4 +18,3 @@ Packaging
     - :ref:`Customize`
     - :ref:`Known issues`
     - :ref:`ios_packaging_faq`
-
