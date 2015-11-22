@@ -456,7 +456,7 @@ class SettingPath(SettingItem):
     dirselect = BooleanProperty(True)
     '''Whether to allow selection of directories.
 
-    :attr:`dirselect` is an :class:`~kivy.properties.BooleanProperty` and
+    :attr:`dirselect` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
 
     .. versionadded:: 1.9.1
