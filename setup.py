@@ -41,10 +41,10 @@ MAX_CYTHON_VERSION = LooseVersion(MAX_CYTHON_STRING)
 CYTHON_UNSUPPORTED = ()
 
 
-def getoutput(cmd):
+def getoutput(cmd, env=None):
     import subprocess
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
+                         stderr=subprocess.PIPE, env=env)
     p.wait()
     if p.returncode:  # if not returncode == 0
         print('WARNING: A problem occured while running {0} (code {1})\n'
@@ -58,8 +58,15 @@ def getoutput(cmd):
 
 def pkgconfig(*packages, **kw):
     flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
+    lenviron = None
+    pconfig = join(dirname(sys.executable), 'libs', 'pkgconfig')
+
+    if isdir(pconfig):
+        lenviron = environ.copy()
+        lenviron['PKG_CONFIG_PATH'] = '{};{}'.format(
+            environ.get('PKG_CONFIG_PATH', ''), pconfig)
     cmd = 'pkg-config --libs --cflags {}'.format(' '.join(packages))
-    results = getoutput(cmd).split()
+    results = getoutput(cmd, lenviron).split()
     for token in results:
         ext = token[:2].decode('utf-8')
         flag = flag_map.get(ext)
@@ -548,18 +555,21 @@ def determine_sdl2():
 
     sdl2_path = environ.get('KIVY_SDL2_PATH', None)
 
-    if sdl2_flags and not sdl2_path:
-        return sdl2_flags
-
     # no pkgconfig info, or we want to use a specific sdl2 path, so perform
     # manual configuration
     flags['libraries'] = ['SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer']
     split_chr = ';' if platform == 'win32' else ':'
     sdl2_paths = sdl2_path.split(split_chr) if sdl2_path else []
 
+    inc_paths = sdl2_paths
+    if not sdl2_paths:
+        sdl_inc = join(dirname(sys.executable), 'include', 'SDL2')
+        if isdir(sdl_inc):
+            sdl2_paths = [sdl_inc]
+        sdl2_paths.extend(['/usr/local/include/SDL2', '/usr/include/SDL2'])
+
     flags['include_dirs'] = (
-        sdl2_paths if sdl2_paths else
-        ['/usr/local/include/SDL2', '/usr/include/SDL2'])
+        sdl2_paths if sdl2_paths else sdl2_paths)
 
     flags['extra_link_args'] = []
     flags['extra_compile_args'] = []
@@ -864,6 +874,7 @@ setup(
         'kivy.core.text',
         'kivy.core.video',
         'kivy.core.window',
+        'kivy.deps',
         'kivy.effects',
         'kivy.ext',
         'kivy.graphics',
