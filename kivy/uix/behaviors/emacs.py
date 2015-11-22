@@ -1,12 +1,45 @@
-'''See :class:`EmacsBehavior` for more details.
+# -*- encoding: utf-8 -*-
+'''
+Emacs Behavior
+==============
+
+.. versionadded:: 1.9.2
+
+The :class:`~kivy.uix.behaviors.emacs.EmacsBehavior`
+`mixin <https://en.wikipedia.org/wiki/Mixin>`_
+allows you to add Emacs keyboard shortcuts for basic movement and editing to
+the :class:`~kivy.uix.textinput.TextInput` widget. The shortcuts currently
+available are listed below::
+
+Emacs shortcuts
+---------------
+=============== ========================================================
+   Shortcut     Description
+--------------- --------------------------------------------------------
+Control + a     Move cursor to the beginning of the line
+Control + e     Move cursor to the end of the line
+Control + f     Move cursor one character to the right
+Control + b     Move cursor one character to the left
+Alt + f         Move cursor to the end of the word to the right
+Alt + b         Move cursor to the start of the word to the left
+Alt + Backspace Delete text left of the cursor to the beginning of word
+Alt + d         Delete text right of the cursor to the end of the word
+Alt + w         Copy selection
+Control + w     Cut selection
+Control + y     Paste selection
+=============== ========================================================
+
+.. warning::
+    If you have the :class:`~kivy.modules.inspector` module enabled, the
+    shortcut for opening the inspector (Control + e) conflicts with the
+    Emacs shortcut to move to the end of the line (it will still move the
+    cursor to the end of the line, but the inspector will open as well).
 '''
 
 __all__ = ('EmacsBehavior', )
 
-from kivy.event import EventDispatcher
 
-
-class EmacsBehavior(EventDispatcher):
+class EmacsBehavior(object):
 
     def __init__(self, **kwargs):
         super(EmacsBehavior, self).__init__(**kwargs)

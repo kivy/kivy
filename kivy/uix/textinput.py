@@ -134,6 +134,9 @@ Control + z     undo
 Control + r     redo
 =============== ========================================================
 
+.. note::
+    To enable Emacs-style keyboard shortcuts, you can use
+    :class:`~kivy.uix.behaviors.emacs.EmacsBehavior`.
 '''
 
 
