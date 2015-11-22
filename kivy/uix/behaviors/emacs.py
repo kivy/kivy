@@ -92,6 +92,8 @@ class EmacsBehavior(object):
         self.do_cursor_movement('cursor_right', control=True)
         end_index = self.cursor_index()
         if start_index != end_index:
+            ss = self.text[start_index:end_index]
+            self._set_unredo_delsel(start_index, end_index, ss, from_undo=False)
             self.text = self.text[:start_index] + self.text[end_index:]
             self._set_cursor(pos=start_cursor)
 
@@ -102,5 +104,7 @@ class EmacsBehavior(object):
         end_cursor = self.cursor
         end_index = self.cursor_index()
         if start_index != end_index:
+            ss = self.text[end_index:start_index]
+            self._set_unredo_delsel(end_index, start_index, ss, from_undo=False)
             self.text = self.text[:end_index] + self.text[start_index:]
             self._set_cursor(pos=end_cursor)
