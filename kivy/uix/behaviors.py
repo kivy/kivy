@@ -549,7 +549,8 @@ class FocusBehavior(object):
     as visualized when cycling through the nodes using tab (forward) or
     shift+tab (backward). If a previous or next widget is not specified,
     :attr:`focus_next` and :attr:`focus_previous` defaults to `None`. This
-    means that the :attr:`~kivy.uix.widget.Widget.children` list and parents are
+    means that the :attr:`~kivy.uix.widget.Widget.children` list and
+    :attr:`parents <kivy.uix.widget.Widget.parent>` are
     walked to find the next focusable widget, unless :attr:`focus_next` or
     :attr:`focus_previous` is set to the `StopIteration` class, in which case
     focus stops there.
@@ -566,6 +567,11 @@ class FocusBehavior(object):
         # clicking on a widget will activate focus, and tab can now be used
         # to cycle through
 
+    When using a software keyboard, typical on mobile and touch devices, the
+    keyboard display behavior is determined by the
+    :attr:`~kivy.core.window.WindowBase.softinput_mode` property. You can use
+    this property to ensure the focused widget is not covered or obscured by the
+    keyboard.
 
     .. versionadded:: 1.9.0
 
@@ -653,6 +659,11 @@ class FocusBehavior(object):
       another keyboard. In order to remove its keyboard, rather set its
       :attr:`focus` to False.
 
+    * When using a software keyboard, typical on mobile and touch devices, the
+      keyboard display behavior is determined by the
+      :attr:`~kivy.core.window.WindowBase.softinput_mode` property. You can use
+      this property to ensure the focused widget is not covered or obscured.
+
     :attr:`keyboard` is an :class:`~kivy.properties.AliasProperty` and defaults
     to None.
 
@@ -683,6 +694,10 @@ class FocusBehavior(object):
     and/or release the keyboard. For a given keyboard, only one widget can
     have its focus, so focusing one will automatically unfocus the other
     instance holding its focus.
+
+    When using a software keyboard, please refer to the
+    :attr:`~kivy.core.window.WindowBase.softinput_mode` property to determine
+    how the keyboard display is handled.
 
     :attr:`focus` is a :class:`~kivy.properties.BooleanProperty` and defaults to
     False.
@@ -716,7 +731,7 @@ class FocusBehavior(object):
             return
         if not isinstance(value, FocusBehavior):
             raise ValueError('focus_next accepts only objects based'
-                             ' on FocusBehavior, or the StopIteration class.')
+                             ' on FocusBehavior, or the `StopIteration` class.')
         value.focus_previous = self
 
     focus_next = ObjectProperty(None, allownone=True)
@@ -757,7 +772,7 @@ class FocusBehavior(object):
             return
         if not isinstance(value, FocusBehavior):
             raise ValueError('focus_previous accepts only objects based'
-                             ' on FocusBehavior, or the StopIteration class.')
+                             ' on FocusBehavior, or the `StopIteration` class.')
         value.focus_next = self
 
     focus_previous = ObjectProperty(None, allownone=True)
@@ -767,7 +782,7 @@ class FocusBehavior(object):
     When shift+tab is pressed, focus cycles through all the
     :class:`FocusBehavior` widgets that are linked through
     :attr:`focus_previous` and are focusable. If :attr:`focus_previous` is
-    `None', it instead walks the children tree to find the
+    `None`, it instead walks the children tree to find the
     previous focusable widget. Finally, if :attr:`focus_previous` is the
     `StopIteration` class, focus won't move backward, but end here.
 

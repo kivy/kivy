@@ -857,6 +857,7 @@ lang_str = re.compile('([\'"][^\'"]*[\'"])')
 lang_key = re.compile('([a-zA-Z_]+)')
 lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
 lang_tr = re.compile('(_\()')
+lang_cls_split_pat = re.compile(', *')
 
 # class types to check with isinstance
 if PY2:
@@ -1145,8 +1146,7 @@ class ParserRule(object):
             self.avoid_previous_rules = True
             name = name[1:]
 
-        rules = name.split(',')
-        for rule in rules:
+        for rule in re.split(lang_cls_split_pat, name):
             crule = None
 
             if not len(rule):

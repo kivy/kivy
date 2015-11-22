@@ -129,7 +129,7 @@ __all__ = ("start", "stop", "create_console", "Console", "ConsoleAddon",
            "ConsoleButton", "ConsoleToggleButton", "ConsoleLabel")
 
 import kivy
-kivy.require('1.0.9')
+kivy.require('1.9.0')
 
 import weakref
 from functools import partial
@@ -235,7 +235,7 @@ Builder.load_string("""
 <ConsoleAddonWidgetTreeView>:
     ScrollView:
         scroll_type: ['bars', 'content']
-        bar_width: 10
+        bar_width: '10dp'
 
         ConsoleAddonWidgetTreeImpl:
             id: widgettree
@@ -470,7 +470,8 @@ class ConsoleAddonWidgetPanel(ConsoleAddon):
 
         from kivy.uix.scrollview import ScrollView
         self.root = root = BoxLayout()
-        self.sv = sv = ScrollView(scroll_type=["bars", "content"])
+        self.sv = sv = ScrollView(scroll_type=["bars", "content"],
+                                  bar_width='10dp')
         treeview = TreeView(hide_root=True, size_hint_y=None)
         treeview.bind(minimum_height=treeview.setter("height"))
         keys = list(widget.properties().keys())
@@ -478,8 +479,7 @@ class ConsoleAddonWidgetPanel(ConsoleAddon):
         node = None
         wk_widget = weakref.ref(widget)
         for key in keys:
-            text = '%s' % key
-            node = TreeViewProperty(text=text, key=key, widget_ref=wk_widget)
+            node = TreeViewProperty(key=key, widget_ref=wk_widget)
             node.bind(is_selected=self.show_property)
             try:
                 widget.bind(**{

@@ -71,20 +71,23 @@ created and used for the setting - other keys are assigned to corresponding
 properties of that class.
 
     ============== =================================================
-     Type           Associated class
+    Type           Associated class
     -------------- -------------------------------------------------
     title          :class:`SettingTitle`
     bool           :class:`SettingBoolean`
     numeric        :class:`SettingNumeric`
     options        :class:`SettingOptions`
     string         :class:`SettingString`
-    path           :class:`SettingPath` (new from 1.1.0)
+    path           :class:`SettingPath`
     ============== =================================================
+
+    .. versionadded:: 1.1.0
+        Added :attr:`SettingPath` type
 
 In the JSON example above, the first element is of type "title". It will create
 a new instance of :class:`SettingTitle` and apply the rest of the key-value
 pairs to the properties of that class, i.e. "title": "Windows" sets the
-:attr:`SettingTitle.title` property to "Windows".
+:attr:`~SettingsPanel.title` property of the panel to "Windows".
 
 To load the JSON example to a :class:`Settings` instance, use the
 :meth:`Settings.add_json_panel` method. It will automatically instantiate a
@@ -441,7 +444,7 @@ class SettingPath(SettingItem):
     '''
 
     show_hidden = BooleanProperty(False)
-    '''Whether to show 'hidden' filenames.  What that means is 
+    '''Whether to show 'hidden' filenames. What that means is
     operating-system-dependent.
 
     :attr:`show_hidden` is an :class:`~kivy.properties.BooleanProperty` and

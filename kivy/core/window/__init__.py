@@ -456,27 +456,34 @@ class WindowBase(EventDispatcher):
 
     softinput_mode = OptionProperty('', options=(
         '', 'below_target', 'pan', 'scale', 'resize'))
-    '''This specifies the behavior of window contents on display of soft
-    keyboard on mobile platform. Can be one of '', 'pan', 'scale', 'resize'.
+    '''This specifies the behavior of window contents on display of the soft
+    keyboard on mobile platform. It can be one of '', 'pan', 'scale', 'resize'
+    or 'below_target'. Their effects are listed below.
 
-    When '' The main window is left as it is allowing the user to use
-    :attr:`keyboard_height` to manage the window contents the way they want.
-
-    when 'pan' The main window pans moving the bottom part of the window to be
-    always on top of the keyboard.
-
-    when 'resize' The window is resized and the contents scaled to fit the
-    remaining space.
-
-    When 'below_target', the window pans so that the current target TextInput
-    widget requesting the keyboard is presented just above the soft Keyboard.
-
-    .. versionchanged::1.9.1
-
-    .. versionadded:: 1.9.0
+    +----------------+-------------------------------------------------------+
+    | Value          | Effect                                                |
+    +================+=======================================================+
+    | ''             | The main window is left as is, allowing you to use    |
+    |                | the :attr:`keyboard_height` to manage the window      |
+    |                | contents manually.                                    |
+    +----------------+-------------------------------------------------------+
+    | 'pan'          | The main window pans, moving the bottom part of the   |
+    |                | window to be always on top of the keyboard.           |
+    +----------------+-------------------------------------------------------+
+    | 'resize'       | The window is resized and the contents scaled to fit  |
+    |                | the remaining space.                                  |
+    +----------------+-------------------------------------------------------+
+    | 'below_target' | The window pans so that the current target TextInput  |
+    |                | widget requesting the keyboard is presented just above|
+    |                | the soft keyboard.                                    |
+    +----------------+-------------------------------------------------------+
 
     :attr:`softinput_mode` is a :class:`OptionProperty` defaults to None.
 
+    .. versionadded:: 1.9.0
+
+    .. versionchanged:: 1.9.1
+        The 'below_target' option was added.
     '''
 
     _keyboard_changed = BooleanProperty(False)
@@ -1034,7 +1041,7 @@ class WindowBase(EventDispatcher):
 
         smode = self.softinput_mode
         target = self._system_keyboard.target
-        targettop = target.to_window(0, target.y)[1] if target else 0
+        targettop = max(0, target.to_window(0, target.y)[1]) if target else 0
         kheight = self.keyboard_height
 
         w2, h2 = w / 2., h / 2.

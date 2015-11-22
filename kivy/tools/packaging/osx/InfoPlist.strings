@@ -1,4 +1,0 @@
-CFBundleName = "Kivy";
-CFBundleShortVersionString = "{{__VERSION__}}";
-CFBundleGetInfoString = "Kivy version {{__VERSION__}} Copyright {{__YEAR__}} Kivy Maintainers";
-NSHumanReadableCopyright = "Copyright {{__YEAR__}} Kivy Maintainers.";
