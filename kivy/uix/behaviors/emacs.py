@@ -5,11 +5,10 @@ Emacs Behavior
 
 .. versionadded:: 1.9.2
 
-The :class:`~kivy.uix.behaviors.emacs.EmacsBehavior`
-`mixin <https://en.wikipedia.org/wiki/Mixin>`_
-allows you to add Emacs keyboard shortcuts for basic movement and editing to
-the :class:`~kivy.uix.textinput.TextInput` widget. The shortcuts currently
-available are listed below::
+This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ allows you to add
+`Emacs <https://www.gnu.org/software/emacs/>`_ keyboard shortcuts for basic
+movement and editing to the :class:`~kivy.uix.textinput.TextInput` widget.
+The shortcuts currently available are listed below::
 
 Emacs shortcuts
 ---------------
@@ -30,7 +29,7 @@ Control + y     Paste selection
 =============== ========================================================
 
 .. warning::
-    If you have the :class:`~kivy.modules.inspector` module enabled, the
+    If you have the :mod:`~kivy.modules.inspector` module enabled, the
     shortcut for opening the inspector (Control + e) conflicts with the
     Emacs shortcut to move to the end of the line (it will still move the
     cursor to the end of the line, but the inspector will open as well).
@@ -40,6 +39,10 @@ __all__ = ('EmacsBehavior', )
 
 
 class EmacsBehavior(object):
+    '''
+    A `mixin <https://en.wikipedia.org/wiki/Mixin>`_ that enables Emacs-style
+    keyboard shortcuts for the :class:`~kivy.uix.textinput.TextInput` widget.
+    '''
 
     def __init__(self, **kwargs):
         super(EmacsBehavior, self).__init__(**kwargs)
