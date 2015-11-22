@@ -69,10 +69,10 @@ offers:
 
 .. versionchanged:: 1.9.1
 
-    The individual behavior classes, previously in one big `behvaiors.py`
+    The individual behavior classes, previously in one big `behaviors.py`
     file, has been split into a single file for each class under the
     :mod:`~kivy.uix.behaviors` module. All the behaviors are still imported
-    in the :mod:`~kivy.uix.behaviors` module so they accessible as before
+    in the :mod:`~kivy.uix.behaviors` module so they are accessible as before
     (e.g. both `from kivy.uix.behaviors import ButtonBehavior` and
     `from kivy.uix.behaviors.button import ButtonBehavior` work).
 
@@ -80,7 +80,7 @@ offers:
 
 __all__ = ('ButtonBehavior', 'ToggleButtonBehavior', 'DragBehavior',
            'FocusBehavior', 'CompoundSelectionBehavior',
-           'CodeNavigationBehavior')
+           'CodeNavigationBehavior', 'EmacsBehavior')
 
 from kivy.uix.behaviors.button import ButtonBehavior
 from kivy.uix.behaviors.togglebutton import ToggleButtonBehavior
@@ -88,3 +88,4 @@ from kivy.uix.behaviors.drag import DragBehavior
 from kivy.uix.behaviors.focus import FocusBehavior
 from kivy.uix.behaviors.compoundselection import CompoundSelectionBehavior
 from kivy.uix.behaviors.codenavigation import CodeNavigationBehavior
+from kivy.uix.behaviors.emacs import EmacsBehavior
