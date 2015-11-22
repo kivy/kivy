@@ -483,7 +483,7 @@ def determine_base_flags():
             import platform as _platform
             xcode_dev = getoutput('xcode-select -p').splitlines()[0]
             sdk_mac_ver = '.'.join(_platform.mac_ver()[0].split('.')[:2])
-            print('Xcode detected at {}, and using MacOSX{} sdk'.format(
+            print('Xcode detected at {}, and using OS X{} sdk'.format(
                     xcode_dev, sdk_mac_ver))
             sysroot = join(
                     xcode_dev.decode('utf-8'),
