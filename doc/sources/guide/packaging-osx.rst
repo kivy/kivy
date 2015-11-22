@@ -4,7 +4,7 @@ Creating packages for OS X
 .. note::
     - Packaging your application for the OS X platform can only be done inside OS X.
 
-.. `osx_kivy-sdk-packager`:
+.. _osx_kivy-sdk-packager:
 
 Using kivy-sdk-packager
 -----------------------
@@ -66,7 +66,7 @@ To make a DMG of your app use the following command::
 This should give you a compressed dmg that will even further minimize the size of your distributed app.
 
 
-.. `osx_pyinstaller`:
+.. _osx_pyinstaller:
 
 Using PyInstaller and Homebrew
 ------------------------------
