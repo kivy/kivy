@@ -87,20 +87,28 @@ class EmacsBehavior(object):
 
     def delete_word_right(self):
         '''Delete text right of the cursor to the end of the word'''
+        if self._selection:
+            return
         start_index = self.cursor_index()
         start_cursor = self.cursor
         self.do_cursor_movement('cursor_right', control=True)
         end_index = self.cursor_index()
         if start_index != end_index:
+            ss = self.text[start_index:end_index]
+            self._set_unredo_delsel(start_index, end_index, ss, from_undo=False)
             self.text = self.text[:start_index] + self.text[end_index:]
             self._set_cursor(pos=start_cursor)
 
     def delete_word_left(self):
         '''Delete text left of the cursor to the beginning of word'''
+        if self._selection:
+            return
         start_index = self.cursor_index()
         self.do_cursor_movement('cursor_left', control=True)
         end_cursor = self.cursor
         end_index = self.cursor_index()
         if start_index != end_index:
+            ss = self.text[end_index:start_index]
+            self._set_unredo_delsel(end_index, start_index, ss, from_undo=False)
             self.text = self.text[:end_index] + self.text[start_index:]
             self._set_cursor(pos=end_cursor)
