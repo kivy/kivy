@@ -55,6 +55,7 @@ _kivy_modules = [
     #'pygame.image',
     #'pygame.display',
     #'pygame',
+    'xml.etree.cElementTree',
 
     # external modules
     'kivy.cache',
