@@ -304,10 +304,12 @@ class ScatterBehavior(object):
         if self.do_rotation:
             angle = radians(new_line.angle(old_line))
             self.dispatch('on_rotate', angle, anchor)
+            if angle:
+                changed = True
 
         if self.do_scale:
-            scale = new_line.length() / old_line.length()
-            self.dispatch('on_zoom', float(scale), anchor)
+            scale = new_line.length() / float(old_line.length())
+            self.dispatch('on_zoom', scale, anchor)
             changed = True
         return changed
 
@@ -337,8 +339,11 @@ class ScatterBehavior(object):
                 '_mode': 'unknown',
                 'dx': 0,
                 'dy': 0}
-            Clock.schedule_once(lambda dt: self.on_pan_timeout(touch),
-                                self.pan_timeout / 1000.)
+
+            self.pan_timeout_event = Clock.schedule_once(
+                lambda dt: self.on_pan_timeout(touch),
+                self.pan_timeout / 1000.
+            )
 
             return False
         else:
@@ -567,6 +572,8 @@ class ScatterBehavior(object):
                 if ud.get('_mode') == 'unknown' and self in [x() for x in touch.grab_list]:
                     self._do_dispatch(touch)
                     Clock.schedule_once(partial(self._do_touch_up, touch), .1)
+
+                Clock.unschedule(self.pan_timeout_event)
 
         x, y = touch.pos
         # if the touch isnt on the widget we do nothing, just try children
