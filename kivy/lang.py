@@ -692,10 +692,10 @@ Properties can be initialized in KV as well as in python. For example, in KV:
 
 .. code-block:: kv
 
-<MyRule@Widget>:
-    text: 'Hello'
-    ramp: 45.
-    order: self.x + 10
+    <MyRule@Widget>:
+        text: 'Hello'
+        ramp: 45.
+        order: self.x + 10
 
 Then `MyRule()` would initialize all three kivy properties to
 the given KV values. Separately in python, if the properties already exist as
