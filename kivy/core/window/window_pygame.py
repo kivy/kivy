@@ -200,21 +200,17 @@ class WindowPygame(WindowBase):
             pygame.display.set_caption(self.title)
 
     def set_icon(self, filename):
-        if not exists(filename):
-            return False
+        im = None
         try:
-            if platform == 'win':
-                try:
-                    if self._set_icon_win(filename):
-                        return True
-                except:
-                    # fallback on standard loading then.
-                    pass
-
-            # for all others platform, or if the ico is not available, use the
-            # default way to set it.
-            self._set_icon_standard(filename)
-            super(WindowPygame, self).set_icon(filename)
+            if not exists(filename):
+                return False
+            try:
+                im = pygame.image.load(filename)
+            except:
+                pass
+            if im:
+                pygame.display.set_icon(im)
+                super(WindowPygame, self).set_icon(filename)
         except:
             Logger.exception('WinPygame: unable to set icon')
 
