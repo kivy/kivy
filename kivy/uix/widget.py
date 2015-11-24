@@ -317,13 +317,7 @@ class Widget(WidgetBase):
 
         # Apply all the styles.
         if not no_builder:
-            #current_root = Builder.idmap.get('root')
-            #Builder.idmap['root'] = self
-            Builder.apply(self)
-            #if current_root is not None:
-            #    Builder.idmap['root'] = current_root
-            #else:
-            #    Builder.idmap.pop('root')
+            Builder.apply(self, ignored_consts=self._kwargs_applied_init)
 
         # Bind all the events.
         if on_args:

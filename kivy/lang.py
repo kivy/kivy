@@ -685,6 +685,46 @@ and not by any previous styles that may have set `state_image`.
     is reached. This means that initially, previous rules could be used to set
     the property.
 
+Order of kwargs and KV rule application
+---------------------------------------
+
+Properties can be initialized in KV as well as in python. For example, in KV:
+
+.. code-block:: kv
+
+    <MyRule@Widget>:
+        text: 'Hello'
+        ramp: 45.
+        order: self.x + 10
+
+Then `MyRule()` would initialize all three kivy properties to
+the given KV values. Separately in python, if the properties already exist as
+kivy properties one can do for example `MyRule(line='Bye', side=55)`.
+
+However, what will be the final values of the properties when
+`MyRule(text='Bye', order=55)` is executed? The quick rule is that python
+initialization is stronger than KV initialization only for constant rules.
+
+Specifically, the `kwargs` provided to the python initializer are always
+applied first. So in the above example, `text` is set to
+`'Bye'` and `order` is set to `55`. Then, all the KV rules are applied, except
+those constant rules that overwrite a python initializer provided value.
+
+That is, the KV rules that do not creates bindings such as `text: 'Hello'`
+and `ramp: 45.`, if a value for that property has been provided in python, then
+that rule will not be applied.
+
+So in the `MyRule(text='Bye', order=55)` example, `text` will be `'Bye'`,
+`ramp` will be `45.`, and `order`, which creates a binding, will first be set
+to `55`, but then when KV rules are applied will end up being whatever
+`self.x + 10` is.
+
+.. versionchanged:: 1.9.1
+
+    Before, KV rules always overwrote the python values, now, python values
+    are not overwritten by constant rules.
+
+
 Lang Directives
 ---------------
 
@@ -1638,7 +1678,8 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     idmap = copy(idmap)
     idmap.update(global_idmap)
     idmap['self'] = iself.proxy_ref
-    handler_append = _handlers[iself.uid][key].append
+    bound_list = _handlers[iself.uid][key]
+    handler_append = bound_list.append
 
     # we need a hash for when delayed, so we don't execute duplicate canvas
     # callbacks from the same handler during a sync op
@@ -1698,7 +1739,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                 handler_append(bound)
 
     try:
-        return eval(value, idmap)
+        return eval(value, idmap), bound_list
     except Exception as e:
         tb = sys.exc_info()[2]
         raise BuilderException(rule.ctx, rule.line,
@@ -1912,8 +1953,13 @@ class BuilderBase(object):
         self._apply_rule(widget, rule, rule, template_ctx=proxy_ctx)
         return widget
 
-    def apply(self, widget):
+    def apply(self, widget, ignored_consts=set()):
         '''Search all the rules that match the widget and apply them.
+
+        `ignored_consts` is a set or list type whose elements are property
+        names for which constant KV rules (i.e. those that don't create
+        bindings) of that widget will not be applied. This allows e.g. skipping
+        constant rules that overwrite a value initialized in python.
         '''
         rules = self.match(widget)
         if __debug__:
@@ -1921,12 +1967,13 @@ class BuilderBase(object):
         if not rules:
             return
         for rule in rules:
-            self._apply_rule(widget, rule, rule)
+            self._apply_rule(widget, rule, rule, ignored_consts=ignored_consts)
 
     def _clear_matchcache(self):
         BuilderBase._match_cache = {}
 
-    def _apply_rule(self, widget, rule, rootrule, template_ctx=None):
+    def _apply_rule(self, widget, rule, rootrule, template_ctx=None,
+                    ignored_consts=set()):
         # widget: the current instantiated widget
         # rule: the current rule
         # rootrule: the current root rule (for children of a rule)
@@ -2063,9 +2110,18 @@ class BuilderBase(object):
                     key = rule.name
                     value = rule.co_value
                     if type(value) is CodeType:
-                        value = create_handler(widget_set, widget_set, key,
-                                               value, rule, rctx['ids'])
-                    setattr(widget_set, key, value)
+                        value, bound = create_handler(
+                            widget_set, widget_set, key, value, rule,
+                            rctx['ids'])
+                        # if there's a rule
+                        if (widget_set != widget or bound or
+                            key not in ignored_consts):
+                            setattr(widget_set, key, value)
+                    else:
+                        if (widget_set != widget or
+                            key not in ignored_consts):
+                            setattr(widget_set, key, value)
+
         except Exception as e:
             if rule is not None:
                 tb = sys.exc_info()[2]
@@ -2261,7 +2317,7 @@ class BuilderBase(object):
                     key = prule.name
                     value = prule.co_value
                     if type(value) is CodeType:
-                        value = create_handler(
+                        value, _ = create_handler(
                             widget, instr.proxy_ref,
                             key, value, prule, idmap, True)
                     setattr(instr, key, value)

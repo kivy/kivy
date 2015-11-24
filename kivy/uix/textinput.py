@@ -134,6 +134,10 @@ Control + z     undo
 Control + r     redo
 =============== ========================================================
 
+.. note::
+    To enable Emacs-style keyboard shortcuts, you can use
+    :class:`~kivy.uix.behaviors.emacs.EmacsBehavior`.
+
 '''
 
 
@@ -2954,6 +2958,14 @@ class TextInput(FocusBehavior, Widget):
 
     :attr:`minimum_height` is a readonly
     :class:`~kivy.properties.AliasProperty`.
+
+    .. warning::
+        :attr:`minimum_width` is calculated based on :attr:`width` therefore
+        code like this will lead to an infinite loop::
+
+            <FancyTextInput>:
+                height: self.minimum_height
+                width: self.height
     '''
 
     line_spacing = NumericProperty(0)

@@ -6,7 +6,7 @@ IOS Prerequisites
 The following guide assumes:
 
     * XCode 5.1 or above
-    * MacOSX 10.9 or above
+    * OS X 10.9 or above
 
 Your experience may vary with different versions.
 

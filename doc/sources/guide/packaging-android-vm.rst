@@ -9,8 +9,8 @@ Introduction
 Currently, Kivy Android applications can only be built in a Linux
 enironment configured with python-for-android, the Android SDK and the
 Android NDK. As this enviroment in not only tricky to setup but also
-impossible on Windows or MacOSX operating systems, we provide a fully configured
-`VirtualBox <http://www.virtualbox.org>`_ disk image to ease your building 
+impossible on Windows or OS X operating systems, we provide a fully configured
+`VirtualBox <http://www.virtualbox.org>`_ disk image to ease your building
 woes.
 
 If you are not familiar with virtualization, we encourage you to read the
@@ -77,14 +77,13 @@ Hints and tips
     guard against this by taking a snapshot before pulling. This allows you
     to easily restore your machine to its previous state should you have the
     need.
- 
+
 #. Insufficient memory
 
     Assigning the Virtual Machine insufficient memory may result in the
     compile failing with cryptic errors, such as:
-    
+
         arm-linux-androideabi-gcc: Internal error: Killed (program cc1)
 
     If this occurs, please check the amount of free memory in the Kivy VM and
     increase the amount of RAM allocated to it if required.
- 

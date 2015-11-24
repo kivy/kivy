@@ -149,6 +149,8 @@ Available configuration tokens
         Left position of the :class:`~kivy.core.window.Window`.
     `maxfps`: int, defaults to 60
         Maximum FPS allowed.
+        ..warning::
+            Setting maxfps to 0 will lead to max CPU usage.
     'multisamples': int, defaults to 2
         Sets the `MultiSample Anti-Aliasing (MSAA)
         <http://en.wikipedia.org/wiki/Multisample_anti-aliasing>`_ level.
@@ -802,4 +804,3 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.write()
         except Exception as e:
             Logger.exception('Core: Error while saving default config file')
-

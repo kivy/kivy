@@ -3,7 +3,7 @@
 Configure Kivy
 ==============
 
-The configuration file for kivy is named `config.ini`, and adheres 
+The configuration file for kivy is named `config.ini`, and adheres
 to the `standard INI <http://en.wikipedia.org/wiki/INI_file>`_ format.
 
 Locating the configuration file
@@ -21,7 +21,7 @@ On desktop, this defaults to::
 Therefore, if your user is named "tito", the file will be here:
 
 - Windows: ``C:\Users\tito\.kivy\config.ini``
-- MacOSX: ``/Users/tito/.kivy/config.ini``
+- OS X: ``/Users/tito/.kivy/config.ini``
 - Linux: ``/home/tito/.kivy/config.ini``
 
 On Android, this defaults to::
@@ -42,4 +42,3 @@ Understanding config tokens
 
 All the configuration tokens are explained in the :mod:`kivy.config`
 module.
-
