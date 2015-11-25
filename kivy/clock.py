@@ -284,7 +284,7 @@ try:
             def usleep(self, microseconds):
                 _libc_usleep(int(microseconds))
 
-except (OSError, ImportError):
+except (OSError, ImportError, AttributeError):
     # ImportError: ctypes is not available on python-for-android.
     # OSError: if the libc cannot be readed (like with buildbot: invalid ELF
     # header)
