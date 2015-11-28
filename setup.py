@@ -17,9 +17,11 @@ from time import sleep
 
 if environ.get('KIVY_USE_SETUPTOOLS'):
     from setuptools import setup, Extension
+    print('Using setuptools')
 else:
     from distutils.core import setup
     from distutils.extension import Extension
+    print('Using distutils')
 
 
 if sys.version > '3':
