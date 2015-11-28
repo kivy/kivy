@@ -366,7 +366,8 @@ if platform not in ('ios', 'android') and (c_options['use_gstreamer']
                     '-framework', 'GStreamer'],
                 'include_dirs': [join(f_path, 'Headers')]}
 
-    else:
+    # use pkgconfig if gstreamer not already configured using frameworks
+    if c_options['use_gstreamer'] is not True:
         # use pkg-config approach instead
         gst_flags = pkgconfig('gstreamer-1.0')
         if 'libraries' in gst_flags:
@@ -378,6 +379,8 @@ if platform not in ('ios', 'android') and (c_options['use_gstreamer']
 sdl2_flags = {}
 if c_options['use_sdl2'] or (
         platform not in ('android',) and c_options['use_sdl2'] is None):
+
+    sdl2_valid = False
 
     if c_options['use_osx_frameworks'] and platform == 'darwin':
         # check the existence of frameworks
@@ -396,22 +399,20 @@ if c_options['use_sdl2'] or (
                 continue
             sdl2_flags['extra_link_args'] += ['-framework', name]
             sdl2_flags['include_dirs'] += [join(f_path, 'Headers')]
-            print('Found sdl2 frameworks: {}'.format(f_path))
+            print('Found SDL2 frameworks: {}'.format(f_path))
 
-        if not sdl2_valid:
-            c_options['use_sdl2'] = False
-            print('Deactivate SDL2 compilation due to missing frameworks')
-        else:
-            c_options['use_sdl2'] = True
-            print('Activate SDL2 compilation')
-
-    elif platform != "ios":
+    # use pkgconfig if sdl2 not already configured using frameworks
+    if platform != "ios" and c_options['use_sdl2'] is not True:
         # use pkg-config approach instead
         sdl2_flags = pkgconfig('sdl2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer')
         if 'libraries' in sdl2_flags:
-            c_options['use_sdl2'] = True
+            sdl2_valid = True
+            print('Found SDL2 libraries: {}'.format(
+                  ', '.join(sdl2_flags['libraries'])))
 
-
+    if sdl2_valid:
+        c_options['use_sdl2'] = True
+        print('Activate SDL2 compilation')
 # -----------------------------------------------------------------------------
 # declare flags
 
