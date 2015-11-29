@@ -35,6 +35,7 @@ import shutil
 from getopt import getopt, GetoptError
 from os import environ, mkdir, pathsep
 from os.path import dirname, join, basename, exists, expanduser, isdir
+import pkgutil
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.utils import platform
 
@@ -250,6 +251,16 @@ kivy_config_fn = ''
 kivy_usermodules_dir = ''
 #: Kivy user extensions directory
 kivy_userexts_dir = ''
+
+# if there are deps, import them so they can do their magic.
+try:
+    import kivy.deps
+    for importer, modname, ispkg in pkgutil.iter_modules(kivy.deps.__path__):
+        if not ispkg:
+            continue
+        importer.find_module(modname).load_module(modname)
+except ImportError:
+    pass
 
 
 # Don't go further if we generate documentation
