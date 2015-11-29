@@ -53,7 +53,7 @@ script:
     fi;
   - if [ "${RUN}" == "docs" ]; then
       make html;
-      make pdf || true;  # first attempt may fail
+      make pdf || true;
       make pdf;
     fi;
 
