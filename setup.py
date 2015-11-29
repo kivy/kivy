@@ -12,7 +12,6 @@ from os.path import join, dirname, sep, exists, basename, isdir, abspath
 from os import walk, environ, makedirs, listdir
 from distutils.version import LooseVersion
 from collections import OrderedDict
-from subprocess import check_output
 from time import sleep
 
 if environ.get('KIVY_USE_SETUPTOOLS'):
@@ -278,6 +277,33 @@ class KivyBuildExt(build_ext):
         return need_update
 
 
+def _check_and_fix_sdl2_mixer(f_path):
+    print("Check if SDL2_mixer smpeg2 have an @executable_path")
+    rpath_from = "@executable_path/../Frameworks/SDL2.framework/Versions/A/SDL2"
+    rpath_to = "@rpath/../../../../SDL2.framework/Versions/A/SDL2"
+    smpeg2_path = ("{}/Versions/A/Frameworks/smpeg2.framework"
+                   "/Versions/A/smpeg2").format(f_path)
+    output = getoutput(("otool -L '{}'").format(smpeg2_path))
+    if "@executable_path" not in output:
+        return
+
+    print("WARNING: Your SDL2_mixer version is invalid")
+    print("WARNING: The smpeg2 framework embedded in SDL2_mixer contains a")
+    print("WARNING: reference to @executable_path that will fail the")
+    print("WARNING: execution of your application.")
+    print("WARNING: We are going to change:")
+    print("WARNING: from: {}".format(rpath_from))
+    print("WARNING: to: {}".format(rpath_to))
+    getoutput("install_name_tool -change {} {} {}".format(
+        rpath_from, rpath_to, smpeg2_path))
+
+    output = getoutput(("otool -L '{}'").format(smpeg2_path))
+    if "@executable_path" not in output:
+        print("WARNING: Change successfully applied!")
+        print("WARNING: You'll never see this message again.")
+    else:
+        print("WARNING: Unable to apply the changes, sorry.")
+
 # -----------------------------------------------------------------------------
 # extract version (simulate doc generation, kivy will be not imported)
 environ['KIVY_DOC_INCLUDE'] = '1'
@@ -347,6 +373,15 @@ if platform == 'ios':
     c_options['use_ios'] = True
     c_options['use_sdl2'] = True
 
+elif platform == 'darwin':
+    if c_options['use_osx_frameworks']:
+        if osx_arch == "i386":
+            print("Warning: building with frameworks fail on i386")
+        else:
+            print("OSX framework used, force to x86_64 only")
+            environ["ARCHFLAGS"] = environ.get("ARCHFLAGS", "-arch x86_64")
+            print("OSX ARCHFLAGS are: {}".format(environ["ARCHFLAGS"]))
+
 # detect gstreamer, only on desktop
 # works if we forced the options or in autodetection
 if platform not in ('ios', 'android') and (c_options['use_gstreamer']
@@ -361,6 +396,9 @@ if platform not in ('ios', 'android') and (c_options['use_gstreamer']
             c_options['use_gstreamer'] = True
             gst_flags = {
                 'extra_link_args': [
+                    '-F/Library/Frameworks',
+                    '-Xlinker', '-rpath',
+                    '-Xlinker', '/Library/Frameworks',
                     '-Xlinker', '-headerpad',
                     '-Xlinker', '190',
                     '-framework', 'GStreamer'],
@@ -384,9 +422,13 @@ if c_options['use_sdl2'] or (
         sdl2_valid = True
         sdl2_flags = {
             'extra_link_args': [
+                '-F/Library/Frameworks',
+                '-Xlinker', '-rpath',
+                '-Xlinker', '/Library/Frameworks',
                 '-Xlinker', '-headerpad',
                 '-Xlinker', '190'],
-            'include_dirs': []
+            'include_dirs': [],
+            'extra_compile_args': ['-F/Library/Frameworks']
         }
         for name in ('SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer'):
             f_path = '/Library/Frameworks/{}.framework'.format(name)
@@ -397,6 +439,8 @@ if c_options['use_sdl2'] or (
             sdl2_flags['extra_link_args'] += ['-framework', name]
             sdl2_flags['include_dirs'] += [join(f_path, 'Headers')]
             print('Found sdl2 frameworks: {}'.format(f_path))
+            if name == 'SDL2_mixer':
+                _check_and_fix_sdl2_mixer(f_path)
 
         if not sdl2_valid:
             c_options['use_sdl2'] = False
