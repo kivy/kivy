@@ -64,7 +64,7 @@ after_success:
       echo -e "Host kivy.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
       rsync --delete --force -r -e ssh ./doc/build/html/ kivy@kivy.org:~/kivy.org/docs/api-trunk/;
       mv ./doc/build/latex/Kivy.pdf ./doc/build/latex/Kivy-latest.pdf;
-      rsync --delete --force -e ssh ./doc/build/latex/Kivy-latest.pdf kivy@kivy.org:~/kivy.org/docs/pdf/Kivy-latest.pdf;
+      rsync -e ssh ./doc/build/latex/Kivy-latest.pdf kivy@kivy.org:~/kivy.org/docs/pdf/Kivy-latest.pdf;
     fi;
 
 notifications:
