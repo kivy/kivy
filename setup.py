@@ -886,9 +886,9 @@ if isdir(binary_deps_path):
 setup(
     name='Kivy',
     version=kivy.__version__,
-    author='Kivy Crew',
+    author='Kivy Team and other contributors',
     author_email='kivy-dev@googlegroups.com',
-    url='http://kivy.org/',
+    url='http://kivy.org',
     license='MIT',
     description=(
         'A software library for rapid development of '
