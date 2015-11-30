@@ -103,20 +103,20 @@ Complete guide
     $ brew reinstall --build-bottle sdl2 sdl2_image sdl2_ttf sdl2_mixer
 
    .. note::
-     If your project depends on GStreamer or additional libraries (re)install
-     them with ``--build-bottle`` as described below.
+       If your project depends on GStreamer or additional libraries (re)install
+       them with ``--build-bottle`` as described below.
 
 #. Install additional libraries::
 
     $ brew reinstall --build-bottle gstreamer gst-plugins-{base,good,bad,ugly}
 
-    .. note::
-        If your Project needs Ogg Vorbis support be sure to add the
-        ``--with-libvorbis`` option to the command above.
+   .. note::
+       If your Project needs Ogg Vorbis support be sure to add the
+       ``--with-libvorbis`` option to the command above.
 
-Python from Homebrew currently also needs the following patch for GStreamer::
+    Python from Homebrew currently also needs the following patch for GStreamer::
 
-    $ brew reinstall --build-bottle https://github.com/cbenhagen/homebrew/raw/patch-3/Library/Formula/gst-python.rb
+     $ brew reinstall --build-bottle https://github.com/cbenhagen/homebrew/raw/patch-3/Library/Formula/gst-python.rb
 
 #. Install the development version of PyInstaller which includes fixes for the
    GStreamer hooks::
