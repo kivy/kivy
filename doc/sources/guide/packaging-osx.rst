@@ -60,8 +60,8 @@ kivy/docs etc.
 This way the package can be made to only include the parts that are needed for
 your app.
 
-Adjusting settings
-^^^^^^^^^^^^^^^^^^
+Adjust settings
+^^^^^^^^^^^^^^^
 Icons and other settings of your app can be changed by editing
 YourApp/Contents/info.plist to suit your needs.
 
@@ -108,7 +108,7 @@ Complete guide
 
 #. Install additional libraries::
 
-    $ brew reinstall --build-bottle gstreamergst-plugins-{base,good,bad,ugly}
+    $ brew reinstall --build-bottle gstreamer gst-plugins-{base,good,bad,ugly}
 
 #. Install the development version of PyInstaller which includes fixes for the
    GStreamer hooks::
@@ -130,7 +130,7 @@ Complete guide
 The specs file is named `touchtracer/touchtracer.spec` and located inside the
 pyinstaller directory. Now we need to edit the spec file to add kivy hooks
 to correctly build the executable.
-Open the spec file with your favorite editor and put thes lines at the
+Open the spec file with your favorite editor and put these lines at the
 start of the spec::
 
   from kivy.tools.packaging.pyinstaller_hooks import get_hooks
