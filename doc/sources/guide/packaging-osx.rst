@@ -110,6 +110,14 @@ Complete guide
 
     $ brew reinstall --build-bottle gstreamer gst-plugins-{base,good,bad,ugly}
 
+    .. note::
+        If your Project needs Ogg Vorbis support be sure to add the
+        ``--with-libvorbis`` option to the command above.
+
+Python from Homebrew currently also needs the following patch for GStreamer::
+
+    $ brew reinstall --build-bottle https://github.com/cbenhagen/homebrew/raw/patch-3/Library/Formula/gst-python.rb
+
 #. Install the development version of PyInstaller which includes fixes for the
    GStreamer hooks::
 
@@ -164,23 +172,6 @@ included with Kivy too, your COLLECT section should look something like this::
     coll = COLLECT( exe, Tree('../kivy/examples/demo/touchtracer/'),
 
 We are done. Your spec is ready to be executed!
-
-
-Additional Libraries
-^^^^^^^^^^^^^^^^^^^^
-GStreamer
-"""""""""
-If your project depends on GStreamer::
-
-    $ brew reinstall --build-bottle gstreamer gst-plugins-{base,good,bad,ugly}
-
-.. note::
-    If your Project needs Ogg Vorbis support be sure to add the ``--with-libvorbis``
-      option to the command above.
-
-If you are using Python from Homebrew you currently also need the following step::
-
-    $ brew reinstall --build-bottle https://github.com/cbenhagen/homebrew/raw/patch-3/Library/Formula/gst-python.rb
 
 
 Build the spec and create a DMG
