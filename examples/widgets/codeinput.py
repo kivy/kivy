@@ -57,6 +57,26 @@ public static byte toUnsignedByte(int intVal) {
     s.parentNode.insertBefore(po, s);
   })();
 </script>
+----------------------Emacs key bindings---------------------
+This CodeInput inherits from EmacsBehavior, so you can use Emacs key bindings
+if you want! To try out Emacs key bindings, set the "Key bindings" option to
+"Emacs". Experiment with the shortcuts below on some of the text in this window
+(just be careful not to delete the cheat sheet before you have made note of the
+commands!)
+
+Shortcut           Description
+--------           -----------
+Control + a        Move cursor to the beginning of the line
+Control + e        Move cursor to the end of the line
+Control + f        Move cursor one character to the right
+Control + b        Move cursor one character to the left
+Alt + f            Move cursor to the end of the word to the right
+Alt + b            Move cursor to the start of the word to the left
+Alt + Backspace    Delete text left of the cursor to the beginning of word
+Alt + d            Delete text right of the cursor to the end of the word
+Alt + w            Copy selection
+Control + w        Cut selection
+Control + y        Paste selection
 '''
 
 
@@ -122,11 +142,16 @@ class CodeInputTest(App):
             text='File',
             values=('Open', 'SaveAs', 'Save', 'Close'))
         mnu_file.bind(text=self._file_menu_selected)
+        key_bindings = Spinner(
+            text='Key bindings',
+            values=('Default key bindings', 'Emacs key bindings'))
+        key_bindings.bind(text=self._bindings_selected)
 
         menu.add_widget(mnu_file)
         menu.add_widget(fnt_size)
         menu.add_widget(fnt_name)
         menu.add_widget(languages)
+        menu.add_widget(key_bindings)
         b.add_widget(menu)
 
         self.codeinput = CodeInput(
@@ -168,6 +193,10 @@ class CodeInputTest(App):
             if self.files[0]:
                 self.codeinput.text = ''
                 Window.title = 'untitled'
+
+    def _bindings_selected(self, instance, value):
+        value = value.split(' ')[0]
+        self.codeinput.active_key_bindings = value.lower()
 
     def on_files(self, instance, values):
         if not values[0]:

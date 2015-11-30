@@ -35,6 +35,9 @@ Control + y     Paste selection
     cursor to the end of the line, but the inspector will open as well).
 '''
 
+from kivy.properties import StringProperty
+
+
 __all__ = ('EmacsBehavior', )
 
 
@@ -42,6 +45,17 @@ class EmacsBehavior(object):
     '''
     A `mixin <https://en.wikipedia.org/wiki/Mixin>`_ that enables Emacs-style
     keyboard shortcuts for the :class:`~kivy.uix.textinput.TextInput` widget.
+    '''
+
+    active_key_bindings = StringProperty('emacs')
+    '''String name which determines the type of key bindings to use with the
+    :class:`~kivy.uix.textinput.TextInput`. This allows Emacs key bindings to
+    be enabled/disabled programmatically for widgets that inherit from
+    :class:`EmacsBehavior`. If the value is not ``'emacs'`` Emacs bindings will
+    be disabled.
+
+    :attr:`active_key_bindings` is a :class:`~kivy.properties.StringProperty`
+    and defaults to ``'emacs'``
     '''
 
     def __init__(self, **kwargs):
@@ -73,7 +87,7 @@ class EmacsBehavior(object):
         mod = modifiers[0] if modifiers else None
         is_emacs_shortcut = False
 
-        if key in range(256):
+        if key in range(256) and self.active_key_bindings == 'emacs':
             is_emacs_shortcut = ((mod == 'ctrl' and
                                   chr(key) in self.bindings['ctrl'].keys()) or
                                  (mod == 'alt' and
