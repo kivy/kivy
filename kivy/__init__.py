@@ -253,14 +253,14 @@ kivy_usermodules_dir = ''
 kivy_userexts_dir = ''
 
 # if there are deps, import them so they can do their magic.
-try:
-    import kivy.deps
-    for importer, modname, ispkg in pkgutil.iter_modules(kivy.deps.__path__):
-        if not ispkg:
-            continue
+import kivy.deps
+for importer, modname, ispkg in pkgutil.iter_modules(kivy.deps.__path__):
+    if not ispkg:
+        continue
+    try:
         importer.find_module(modname).load_module(modname)
-except ImportError:
-    pass
+    except ImportError as e:
+        Logger.warning("deps: Error importing dependency: {}".format(str(e)))
 
 
 # Don't go further if we generate documentation
@@ -412,9 +412,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         Logger.info('Core: Kivy configuration saved.')
         sys.exit(0)
 
-    # add kivy_binary_deps_dir if it exists
-    if exists(kivy_binary_deps_dir):
-        environ["PATH"] = kivy_binary_deps_dir + pathsep + environ["PATH"]
 
     # configure all activated modules
     from kivy.modules import Modules
