@@ -88,7 +88,7 @@ that will install all necessary packages::
 
     $ sudo apt-get install python-setuptools python-pygame python-opengl \
       python-gst0.10 python-enchant gstreamer0.10-plugins-good python-dev \
-      build-essential libgl1-mesa-dev-lts-quantal libgles2-mesa-dev-lts-quantal\ 
+      build-essential libgl1-mesa-dev-lts-quantal libgles2-mesa-dev-lts-quantal\
       python-pip
 
 For Ubuntu 15.04 and versions older than 12.04, this one should work::
@@ -110,6 +110,11 @@ OS X
 Install the requirements using `homebrew <http://brew.sh>`_::
 
      $ brew install sdl2 sdl2_image sdl2_ttf sdl2_mixer gstreamer
+
+Windows
++++++++
+
+See :ref:`dev-install-win`.
 
 .. _dev-install:
 
@@ -140,7 +145,7 @@ following shortcut to compile (does the same as the last command)::
   is shipped with XCode by default. This means that if you build using XCode
   4.2 or above, you need to ensure you have at least Python 2.7.3 installed,
   but prefferably the latest version (2.7.5 at the time of writing).
-    
+
 If you want to modify the Kivy code itself, set up the `PYTHONPATH environment
 variable
 <http://docs.python.org/tutorial/modules.html#the-module-search-path>`_ to
