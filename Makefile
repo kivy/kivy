@@ -14,9 +14,9 @@ BUILD_OPTS_FORCE = $(BUILD_OPTS) -f
 BUILD_OPTS_DEBUG = $(BUILD_OPTS_FORCE)-g
 
 INSTALL_OPTIONS  = install
-INSTALL_ROOT     = 
-INSTALL_PREFIX   = 
-INSTALL_LAYOUT   = 
+INSTALL_ROOT     =
+INSTALL_PREFIX   =
+INSTALL_LAYOUT   =
 
 ifneq ($(INSTALL_ROOT),)
 	INSTALL_OPTIONS += --root=$(INSTALL_ROOT)
@@ -64,6 +64,7 @@ ios:
 	cp -R "iosbuild/usr/local/lib/python2.7/site-packages/kivy" "$(BUILDROOT)/python/lib/python2.7/site-packages"
 
 pdf: build
+	cd doc && $(MAKE) pdf
 	cd doc && $(MAKE) pdf
 
 html: build
