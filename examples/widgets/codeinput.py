@@ -114,7 +114,7 @@ class CodeInputTest(App):
             if file.endswith('.ttf')]
 
         fnt_name = Spinner(
-            text='RiobotoMono',
+            text='RobotoMono',
             option_cls=Fnt_SpinnerOption,
             values=fonts)
         fnt_name.bind(text=self._update_font)
