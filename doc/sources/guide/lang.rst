@@ -158,8 +158,8 @@ To have your display updated when your data change, you can now have just:
         cols: len(root.data)
 
 .. note::
-    Widget names must start with upper case letters while property names with
-    lower case ones, following the `PEP8 Naming Conventions
+    Widget names should start with upper case letters while property names
+    should start with lower case ones. Following the `PEP8 Naming Conventions
     <https://www.python.org/dev/peps/pep-0008/#naming-conventions>`_
     is encouraged.
 
