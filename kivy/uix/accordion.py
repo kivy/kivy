@@ -276,7 +276,7 @@ class AccordionItem(FloatLayout):
 
     def on_collapse(self, instance, value):
         accordion = self.accordion
-        self.collapsing = True;
+        self.collapsing = True
         if accordion is None:
             return
         if not value:
@@ -323,8 +323,6 @@ class AccordionItem(FloatLayout):
             return True
         else:
             return super(AccordionItem, self).on_touch_up(touch)
-
-   
 
     def _update_title(self, dt):
         if not self.container_title:
