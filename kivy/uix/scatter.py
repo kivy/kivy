@@ -346,14 +346,14 @@ class ScatterBehavior(object):
             )
 
             return False
-        else:
-            if self._do_dispatch(touch):
-                return True
 
         # if the touch isnt on the widget we do nothing
         if not self.do_collide_after_children:
             if not self.collide_point(x, y):
                 return False
+
+        if self._do_dispatch(touch):
+            return True
 
         # if our child didn't do anything, and if we don't have any active
         # interaction control, then don't accept the touch.
@@ -559,7 +559,10 @@ class ScatterBehavior(object):
             ud = touch.ud.get(uid)
 
             if self._get_scatter_behavior_uid('scatter_avoid') in touch.ud:
-                return False
+                if not self.do_collide_after_children:
+                    return False
+                self._do_dispatch(touch)
+                Clock.schedule_once(partial(self._do_touch_up, touch), .1)
 
             if ud:
                 if ud.get('_mode') == 'dispatch':
