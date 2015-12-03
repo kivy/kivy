@@ -159,7 +159,8 @@ To have your display updated when your data change, you can now have just:
 
 .. note::
     Widget names must start with upper case letters while property names with
-    lower case ones, following the `PEP8 Naming Conventions<https://www.python.org/dev/peps/pep-0008/#naming-conventions>`_
+    lower case ones, following the `PEP8 Naming Conventions
+    <https://www.python.org/dev/peps/pep-0008/#naming-conventions>`_
     is encouraged.
 
 Event Bindings
