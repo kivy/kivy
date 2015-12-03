@@ -109,7 +109,9 @@ class CodeInputTest(App):
             values=list(map(str, list(range(5, 40)))))
         fnt_size.bind(text=self._update_size)
 
-        fonts = [file for file in LabelBase._font_dirs_files if file.endswith('.ttf')]
+        fonts = [
+            file for file in LabelBase._font_dirs_files
+            if file.endswith('.ttf')]
 
         fnt_name = Spinner(
             text='RiobotoMono',

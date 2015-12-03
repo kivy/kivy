@@ -293,9 +293,8 @@ class LabelBase(object):
             for fdir in fdirs:
                 for _dir, dirs, files in os.walk(fdir):
                     _font_dir_files.extend(files)
-                    if os.path.exists(_dir):
-                        resource_add_path(_dir)
-                        rdirs.append(_dir)
+                    resource_add_path(_dir)
+                    rdirs.append(_dir)
             LabelBase._fonts_dirs = rdirs
             LabelBase._font_dirs_files = _font_dir_files
 
