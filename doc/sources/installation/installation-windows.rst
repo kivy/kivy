@@ -99,7 +99,7 @@ these wheels as follows.
 #. Rename the wheel to remove the version tag, e.g.
    ``Kivy-1.9.1.dev0_30112015_gitc68b630-cp27-none-win32.whl``
    should be renamed to ``Kivy-1.9.1.dev0-cp27-none-win32.whl``.
-#. Install it with ``python -m wheel install wheel-name`` where ``wheel-name``
+#. Install it with ``python -m pip install wheel-name`` where ``wheel-name``
    is the name of the renamed file.
 
 .. _dev-install-win:
