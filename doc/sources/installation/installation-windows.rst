@@ -22,9 +22,11 @@ distributions of a package that has already been compiled and do not require
 additional steps to install.
 
 When hosted on `pypi <https://pypi.python.org/pypi>`_ one installs a wheel
-using ``pip``, e.g. ``python -m pip install kivy``. To install a downloaded wheel
-file ``wheel`` must be used, e.g.
-``python -m wheel install Kivy-1.9.1.dev0-cp27-none-win32.whl``.
+using ``pip``, e.g. ``python -m pip install kivy``. When downloading and installing
+a wheel directly, ``python -m pip install wheel_file_name`` is used, such as:
+
+``python -m pip install C:\Kivy-1.9.1.dev-cp27-none-win_amd64.whl``
+
 
 Kivy's dependencies
 -------------------
@@ -37,7 +39,7 @@ packages of Kivy.deps, e.g. ``kivy.deps.sdl2``.
 Currently on Windows, we provide the following dependency
 wheels: ``gstreamer`` for audio and video and `glew` and ``sdl2`` for graphics
 and control. ``gstreamer`` is an optional dependency which doesn't need to be
-installed if no video/audio will be used.
+installed if no videos need to be displayed.
 
 Command line
 ------------
@@ -92,6 +94,7 @@ Snapshot wheels of current Kivy master are created every night. They can be foun
 To use them, instead of doing `python -m pip install kivy` we'll install one of
 these wheels as follows.
 
+#. Perform steps 1 and 2 of the above Installation section.
 #. Download the appropriate wheel for your system.
 #. Rename the wheel to remove the version tag, e.g.
    ``Kivy-1.9.1.dev0_30112015_gitc68b630-cp27-none-win32.whl``
