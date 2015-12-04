@@ -184,7 +184,7 @@ If your project depends on GStreamer::
     If your Project needs Ogg Vorbis support be sure to add the ``--with-libvorbis``
     option to the command above.
 
-If you are using Python from Homebrew you currently also need the following step::
+If you are using Python from Homebrew you currently also need the following step until `this pull request <https://github.com/Homebrew/homebrew/pull/46097>`_ gets merged::
 
     $ brew reinstall --with-python --build-bottle https://github.com/cbenhagen/homebrew/raw/patch-3/Library/Formula/gst-python.rb
 
