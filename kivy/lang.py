@@ -2206,7 +2206,9 @@ class BuilderBase(object):
         widget destructor.
 
         This effectively clearls all the KV rules associated with this widget.
-        For example::
+        For example:
+
+    .. code-block:: python
 
             >>> w = Builder.load_string(\'''
             ... Widget:
@@ -2252,7 +2254,9 @@ class BuilderBase(object):
 
             name: rule
 
-        For examples::
+        For example:
+
+        .. code-block:: python
 
             >>> w = Builder.load_string(\'''
             ... Widget:
