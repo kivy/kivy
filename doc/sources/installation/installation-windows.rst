@@ -38,8 +38,8 @@ packages of Kivy.deps, e.g. ``kivy.deps.sdl2``.
 
 Currently on Windows, we provide the following dependency
 wheels: ``gstreamer`` for audio and video and `glew` and ``sdl2`` for graphics
-and control. ``gstreamer`` is an optional dependency which doesn't need to be
-installed if no videos need to be displayed.
+and control. ``gstreamer`` is an optional dependency which only needs to be
+installed if video display is desired.
 
 Command line
 ------------
