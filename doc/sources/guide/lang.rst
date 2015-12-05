@@ -74,13 +74,13 @@ Special syntaxes
 
 There are two special syntaxes to define values for the whole Kv context:
 
-To import something from python::
+To access python modules and classes from kv,::
 
     #:import name x.y.z
     #:import isdir os.path.isdir
     #:import np numpy
 
-Is equivalent to::
+is equivalent to::
 
     from x.y import z as name
     from os.path import isdir
@@ -88,11 +88,11 @@ Is equivalent to::
 
 in python.
 
-To set a global value::
+To set a global value,::
 
     #:set name value
 
-Is equivalent to::
+is equivalent to::
 
     name = value
 
