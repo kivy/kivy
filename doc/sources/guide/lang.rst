@@ -72,7 +72,7 @@ There are three keywords specific to Kv language:
 Special syntaxes
 ----------------
 
-There are two special syntax to define values for the whole Kv context:
+There are two special syntaxes to define values for the whole Kv context:
 
 To import something from python::
 
