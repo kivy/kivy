@@ -581,13 +581,16 @@ class WindowBase(EventDispatcher):
     '''
 
     show_cursor = BooleanProperty(True)
-    '''Set whether or not the cursor is shown on the screen.
+    '''Set whether or not the cursor is shown on the window.
 
     .. versionadded:: 1.9.1
 
     :attr:`show_cursor` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
     '''
+
+    def _set_cursor_state(self, value):
+        pass
 
     @property
     def __self__(self):

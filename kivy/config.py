@@ -167,7 +167,7 @@ Available configuration tokens
         Position of the window on your display. If `auto` is used, you have no
         control of the initial position: `top` and `left` are ignored.
     `show_cursor`: int, one of 0 or 1
-        Set whether or not the cursor is shown on the screen.
+        Set whether or not the cursor is shown on the window.
     `top`: int
         Top position of the :class:`~kivy.core.window.Window`.
     `resizable`: int, one of 0 or 1
