@@ -89,13 +89,8 @@ Complete guide
     $ brew install python
 
    .. note::
-     - To use Python 3, ``brew install python3`` and replace ``pip`` with ``pip3``
-       in the guide below.
-
-#. Install Cython and Kivy::
-
-    $ pip install -I Cython==0.21.2
-    $ USE_OSX_FRAMEWORKS=0 pip install git+https://github.com/kivy/kivy.git@1.9.0
+     To use Python 3, ``brew install python3`` and replace ``pip`` with ``pip3``
+     in the guide below.
 
 #. (Re)install your dependencies with ``--build-bottle`` to make sure they can be
    used on other machines::
@@ -103,76 +98,62 @@ Complete guide
     $ brew reinstall --build-bottle sdl2 sdl2_image sdl2_ttf sdl2_mixer
 
    .. note::
-       If your project depends on GStreamer or additional libraries (re)install
-       them with ``--build-bottle`` as described below.
+       If your project depends on GStreamer or other additional libraries (re)install
+       them with ``--build-bottle`` as described `below <additional libraries_>`_.
 
-#. Install additional libraries::
+#. Install Cython and Kivy::
 
-    $ brew reinstall --build-bottle gstreamer gst-plugins-{base,good,bad,ugly}
-
-   .. note::
-       If your Project needs Ogg Vorbis support be sure to add the
-       ``--with-libvorbis`` option to the command above.
-
-    Python from Homebrew currently also needs the following patch for GStreamer::
-
-     $ brew reinstall --build-bottle https://github.com/cbenhagen/homebrew/raw/patch-3/Library/Formula/gst-python.rb
+    $ pip install -I Cython==0.21.2
+    $ USE_OSX_FRAMEWORKS=0 pip install git+https://github.com/kivy/kivy.git@1.9.0
 
 #. Install the development version of PyInstaller which includes fixes for the
    GStreamer hooks::
 
     $ pip install git+https://github.com/pyinstaller/pyinstaller.git@develop
 
+#. Export the ``HOOKSPATH`` environment variable::
+
+    $ export HOOKSPATH=`python -c "
+    import imp, os
+    print(os.path.join(imp.find_module('kivy')[1], 'tools/packaging/pyinstaller_hooks'))"`
 
 #. Package your app using the path to your main.py::
 
-    $ pyinstaller -y --clean --windowed --name touchtracer /usr/local/share/kivy-examples/demo/touchtracer/main.py
+    $ pyinstaller -y --clean --windowed --name touchtracer \
+      --additional-hooks-dir $HOOKSPATH \
+      --runtime-hook $HOOKSPATH/rt-hook-kivy.py \
+      --exclude-module _tkinter \
+      --exclude-module Tkinter \
+      --exclude-module enchant \
+      --exclude-module twisted \
+      /usr/local/share/kivy-examples/demo/touchtracer/main.py
 
    .. note::
-     - Depending on your system you might want to add
-       "``--exclude-module _tkinter``" to the PyInstaller command.
-     - This will not yet copy additional image or sound files. You would need
-       to adapt the created ``.spec`` file for that.
+     This will not yet copy additional image or sound files. You would need to adapt the
+     created ``.spec`` file for that.
 
 
-The specs file is named `touchtracer/touchtracer.spec` and located inside the
-pyinstaller directory. Now we need to edit the spec file to add kivy hooks
-to correctly build the executable.
-Open the spec file with your favorite editor and put these lines at the
-start of the spec::
+Editing the spec file
+^^^^^^^^^^^^^^^^^^^^^
+The specs file is named `touchtracer.spec` and is located in the directory where you ran
+the pyinstaller command.
 
-  from kivy.tools.packaging.pyinstaller_hooks import get_hooks
-
-In the `Analysis()` function, remove the `hookspath=None` parameter and
-the `runtime_hooks` parameter if present. `get_hooks` will return the required
-values for both parameters, so at the end of `Analysis()` add `**get_hooks()`.
-E.g.::
-
-    a = Analysis(['/usr/local/share/kivy-examples/demo/touchtracer/main.py'],
-             pathex=['/Users/kivy-dev/Projects/kivy-packaging'],
-             binaries=None,
-             datas=None,
-             hiddenimports=[],
-             excludes=None,
-             win_no_prefer_redirects=None,
-             win_private_assemblies=None,
-             cipher=block_cipher,
-             **get_hooks())
-
-This will add the required hooks so that PyInstaller gets the required Kivy files.
-
-Then, you need to change the `COLLECT()` call to add the data of touchtracer
+You need to change the `COLLECT()` call to add the data of touchtracer
 (`touchtracer.kv`, `particle.png`, ...). Change the line to add a Tree()
 object. This Tree will search and add every file found in the touchtracer
-directory to your final package.
+directory to your final package. Your COLLECT section should look something like this::
 
-You will need to tell PyInstaller where to look for the frameworks
-included with Kivy too, your COLLECT section should look something like this::
 
-    coll = COLLECT( exe, Tree('../kivy/examples/demo/touchtracer/'),
+    coll = COLLECT(exe, Tree('/usr/local/share/kivy-examples/demo/touchtracer/'),
+                   a.binaries,
+                   a.zipfiles,
+                   a.datas,
+                   strip=None,
+                   upx=True,
+                   name='touchtracer')
 
-We are done. Your spec is ready to be executed!
-
+This will add the required hooks so that PyInstaller gets the required Kivy files.
+We are done. Your spec is ready to be executed.
 
 Build the spec and create a DMG
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -180,14 +161,42 @@ Build the spec and create a DMG
 #. Open a console.
 #. Go to the PyInstaller directory, and build the spec::
 
-    cd pyinstaller-3.0
-    kivy pyinstaller.py touchtracer/touchtracer.spec
+    $ pyinstaller -y --clean windowed touchtracer.spec
 
-#. The package will be the `touchtracer/dist/touchtracer` directory. Rename it to .app::
+#. Run::
 
-    pushd touchtracer/dist
-    mv touchtracer touchtracer.app
-    hdiutil create ./Touchtracer.dmg -srcfolder touchtracer.app -ov
-    popd
+    $ pushd dist
+    $ hdiutil create ./Touchtracer.dmg -srcfolder touchtracer.app -ov
+    $ popd
 
-#. You will now have a Touchtracer.dmg available in the `touchtracer/dist` directory.
+#. You will now have a Touchtracer.dmg available in the `dist` directory.
+
+
+Additional Libraries
+^^^^^^^^^^^^^^^^^^^^
+GStreamer
+"""""""""
+If your project depends on GStreamer::
+
+    $ brew reinstall --build-bottle gstreamer gst-plugins-{base,good,bad,ugly}
+
+.. note::
+    If your Project needs Ogg Vorbis support be sure to add the ``--with-libvorbis``
+    option to the command above.
+
+If you are using Python from Homebrew you currently also need the following step until `this pull request <https://github.com/Homebrew/homebrew/pull/46097>`_ gets merged::
+
+    $ brew reinstall --with-python --build-bottle https://github.com/cbenhagen/homebrew/raw/patch-3/Library/Formula/gst-python.rb
+
+
+SDL 2 HEAD for ``Window.on_dropfile`` support
+"""""""""""""""""""""""""""""""""""""""""""""
+
+You can install the newest SDL 2 library which supports ``on_dropfile`` with::
+
+    $ brew reinstall --build-bottle --HEAD sdl2
+
+Or you build 2.0.3 with the following patches (untested):
+
+- https://hg.libsdl.org/SDL/rev/2cc90bb31777
+- https://hg.libsdl.org/SDL/rev/63c4d6f1f85f
