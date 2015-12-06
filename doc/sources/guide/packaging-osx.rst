@@ -161,7 +161,7 @@ Build the spec and create a DMG
 #. Open a console.
 #. Go to the PyInstaller directory, and build the spec::
 
-    $ pyinstaller -y --clean windowed touchtracer.spec
+    $ pyinstaller -y --clean --windowed touchtracer.spec
 
 #. Run::
 
