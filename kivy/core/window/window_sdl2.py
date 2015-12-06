@@ -211,7 +211,6 @@ class WindowSDL(WindowBase):
                 self.fullscreen = self._fake_fullscreen = False
             elif not self.fullscreen or self.fullscreen == 'auto':
                 self.borderless = self._fake_fullscreen = False
-
         if self.fullscreen == 'fake':
             self.borderless = self._fake_fullscreen = True
             Logger.warning("The 'fake' fullscreen option has been "
@@ -228,7 +227,7 @@ class WindowSDL(WindowBase):
             # ensure we have an event filter
             self._win.set_event_filter(self._event_filter)
 
-            # setup !
+            # setup window
             w, h = self.system_size
             resizable = Config.getboolean('graphics', 'resizable')
             state = (Config.get('graphics', 'window_state')
@@ -255,8 +254,7 @@ class WindowSDL(WindowBase):
 
         super(WindowSDL, self).create_window()
         # set mouse visibility
-        self._win.show_cursor(
-            Config.getboolean('graphics', 'show_cursor'))
+        self._set_cursor_state(self.show_cursor)
 
         if self.initialized:
             return
@@ -351,6 +349,9 @@ class WindowSDL(WindowBase):
     def flip(self):
         self._win.flip()
         super(WindowSDL, self).flip()
+
+    def _set_cursor_state(self, value):
+        self._win._set_cursor_state(value)
 
     def _fix_mouse_pos(self, x, y):
         y -= 1

@@ -183,8 +183,7 @@ class WindowPygame(WindowBase):
         super(WindowPygame, self).create_window()
 
         # set mouse visibility
-        pygame.mouse.set_visible(
-            Config.getboolean('graphics', 'show_cursor'))
+        self._set_cursor_state(self.show_cursor)
 
         # if we are on android platform, automaticly create hooks
         if android:
@@ -252,6 +251,9 @@ class WindowPygame(WindowBase):
         win32api.SendMessage(
             hwnd, win32con.WM_SETICON, win32con.ICON_BIG, icon_big)
         return True
+
+    def _set_cursor_state(self, value):
+        pygame.mouse.set_visible(value)
 
     def screenshot(self, *largs, **kwargs):
         global glReadPixels, GL_RGBA, GL_UNSIGNED_BYTE

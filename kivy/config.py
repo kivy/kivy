@@ -149,8 +149,10 @@ Available configuration tokens
         Left position of the :class:`~kivy.core.window.Window`.
     `maxfps`: int, defaults to 60
         Maximum FPS allowed.
+
         ..warning::
             Setting maxfps to 0 will lead to max CPU usage.
+
     'multisamples': int, defaults to 2
         Sets the `MultiSample Anti-Aliasing (MSAA)
         <http://en.wikipedia.org/wiki/Multisample_anti-aliasing>`_ level.
@@ -158,7 +160,6 @@ Available configuration tokens
         processing time.
 
         .. note::
-
            This feature is limited by device hardware support and will have no
            effect on devices which do not support the level of MSAA requested.
 
@@ -166,7 +167,7 @@ Available configuration tokens
         Position of the window on your display. If `auto` is used, you have no
         control of the initial position: `top` and `left` are ignored.
     `show_cursor`: int, one of 0 or 1
-        Show the cursor on the screen.
+        Set whether or not the cursor is shown on the window.
     `top`: int
         Top position of the :class:`~kivy.core.window.Window`.
     `resizable`: int, one of 0 or 1
