@@ -147,7 +147,7 @@ cdef class _WindowSDL2Storage:
         SDL_GetWindowSize(self.win, &w, &h)
         return w, h
 
-    def show_cursor(self, value):
+    def _set_cursor_state(self, value):
         SDL_ShowCursor(value)
 
     def raise_window(self):

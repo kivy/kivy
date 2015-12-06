@@ -580,6 +580,15 @@ class WindowBase(EventDispatcher):
     .. versionadded:: 1.2.0
     '''
 
+    show_cursor = BooleanProperty(True)
+    '''Set whether or not the cursor is shown on the screen.
+
+    .. versionadded:: 1.9.1
+
+    :attr:`show_cursor` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
+    '''
+
     @property
     def __self__(self):
         return self
@@ -659,6 +668,9 @@ class WindowBase(EventDispatcher):
         else:
             kwargs['left'] = Config.getint('graphics', 'left')
         kwargs['_size'] = (kwargs.pop('width'), kwargs.pop('height'))
+        if 'show_cursor' not in kwargs:
+            kwargs['show_cursor'] = Config.getboolean('graphics',
+                                                      'show_cursor')
 
         super(WindowBase, self).__init__(**kwargs)
 
@@ -669,6 +681,8 @@ class WindowBase(EventDispatcher):
 
         self.bind(softinput_mode=lambda *dt: self.update_viewport(),
                   keyboard_height=lambda *dt: self.update_viewport())
+
+        self.bind(show_cursor=lambda *dt: self._set_cursor_state(dt[1]))
 
         # init privates
         self._system_keyboard = Keyboard(window=self)
