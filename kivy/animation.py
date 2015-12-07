@@ -204,7 +204,11 @@ class Animation(EventDispatcher):
     def stop(self, widget):
         '''Stop the animation previously applied to a widget, triggering the
         `on_complete` event.'''
-        props = self._widgets.pop(widget.uid, None)
+        try:
+            uid = widget.uid
+        except:
+            return
+        props = self._widgets.pop(uid, None)
         if props:
             self.dispatch('on_complete', widget)
         self.cancel(widget)
