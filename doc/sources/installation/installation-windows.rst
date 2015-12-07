@@ -8,6 +8,17 @@ for Kivy and all its dependencies to be used with an existing Python installatio
 We also provide nightly wheels from Kivy `master <https://github.com/kivy/kivy>`_.
 See also :ref:`upgrade-win-dist`.
 
+.. note::
+
+    This page represents instructions for wheels starting with 1.9.1. Until
+    1.9.1 is released the nightly wheels have to be used because stable kivy wheels
+    have not been uploaded to pypi yet.
+
+.. warning::
+
+    Python 3.5 is currently not supported on Windows due to issues with MinGW and
+    Python 3.5.
+
 What are wheels, pip and wheel
 ------------------------------
 
