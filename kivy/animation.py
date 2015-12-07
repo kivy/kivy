@@ -279,10 +279,16 @@ class Animation(EventDispatcher):
             Animation._instances.remove(self)
 
     def _initialize(self, widget):
-        d = self._widgets[widget.uid] = {
+        try:
+            uid = widget.uid
+        except:
+            return
+
+        d = self._widgets[uid] = {
             'widget': widget,
             'properties': {},
-            'time': None}
+            'time': None
+        }
 
         # get current values
         p = d['properties']
