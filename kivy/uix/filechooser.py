@@ -584,7 +584,11 @@ class FileChooserController(RelativeLayout):
                 'scrollup', 'scrolldown', 'scrollleft', 'scrollright')):
             return False
 
-        _dir = self.file_system.is_dir(entry.path)
+        try:
+            path = entry.path
+        except:
+            return
+        _dir = self.file_system.is_dir(path)
         dirselect = self.dirselect
 
         if _dir and dirselect and touch.is_double_tap:
