@@ -327,9 +327,10 @@ class ScatterBehavior(object):
         x, y = touch.pos
 
         if self.do_dispatch_after_children:
-            if not self.collide_point(x, y):
-                touch.ud[self._get_scatter_behavior_uid('scatter_avoid')] = True
-                return False
+            if not self.do_collide_after_children:
+                if not self.collide_point(x, y):
+                    touch.ud[self._get_scatter_behavior_uid('scatter_avoid')] = True
+                    return False
 
             touch.grab(self)
             self._touches.append(touch)
@@ -399,7 +400,8 @@ class ScatterBehavior(object):
             ud = touch.ud.get(uid, {})
 
             if self._get_scatter_behavior_uid('scatter_avoid') in touch.ud:
-                return False
+                if not self.do_collide_after_children:
+                    return False
             elif ud.get('_mode') == 'dispatch':
                 touch.push()
                 touch.apply_transform_2d(self.to_local)
