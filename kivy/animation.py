@@ -220,7 +220,11 @@ class Animation(EventDispatcher):
 
         .. versionadded:: 1.4.0
         '''
-        self._widgets.pop(widget.uid, None)
+        try:
+            uid = widget.uid
+        except:
+            return
+        self._widgets.pop(uid, None)
         self._clock_uninstall()
         if not self._widgets:
             self._unregister()
@@ -413,7 +417,11 @@ class Sequence(Animation):
     def stop(self, widget):
         self.anim1.stop(widget)
         self.anim2.stop(widget)
-        props = self._widgets.pop(widget.uid, None)
+        try:
+            uid = widget.uid
+        except:
+            return
+        props = self._widgets.pop(uid, None)
         if props:
             self.dispatch('on_complete', widget)
         super(Sequence, self).cancel(widget)
@@ -480,7 +488,11 @@ class Parallel(Animation):
     def stop(self, widget):
         self.anim1.stop(widget)
         self.anim2.stop(widget)
-        props = self._widgets.pop(widget.uid, None)
+        try:
+            uid = widget.uid
+        except:
+            return
+        props = self._widgets.pop(uid, None)
         if props:
             self.dispatch('on_complete', widget)
         super(Parallel, self).cancel(widget)
