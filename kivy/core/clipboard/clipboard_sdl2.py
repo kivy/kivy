@@ -30,4 +30,4 @@ class ClipboardSDL2(ClipboardBase):
         _set_text(data)
 
     def get_types(self):
-        return ['text/plain']
+        return ['text/plain', ]
