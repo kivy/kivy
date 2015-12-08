@@ -472,6 +472,12 @@ class WindowSDL(WindowBase):
                 if Config.getboolean('kivy', 'pause_on_minimize'):
                     self.do_pause()
 
+            elif action == 'windowenter':
+                self.dispatch('on_cursor_enter')
+
+            elif action == 'windowleave':
+                self.dispatch('on_cursor_leave')
+
             elif action == 'joyaxismotion':
                 stickid, axisid, value = args
                 self.dispatch('on_joy_axis', stickid, axisid, value)

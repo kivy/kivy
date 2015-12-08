@@ -244,6 +244,16 @@ class WindowBase(EventDispatcher):
 
             .. versionadded:: 1.9.0
 
+        `on_cursor_enter`:
+            Fired when when the cursor enters the window.
+
+            .. versionadded:: 1.9.1
+
+        `on_cursor_leave`:
+            Fired when when the cursor leaves the window.
+
+            .. versionadded:: 1.9.1
+
         `on_keyboard`: key, scancode, codepoint, modifier
             Fired when the keyboard is used for input.
 
@@ -608,7 +618,8 @@ class WindowBase(EventDispatcher):
         'on_motion', 'on_touch_down', 'on_touch_move', 'on_touch_up',
         'on_mouse_down', 'on_mouse_move', 'on_mouse_up', 'on_keyboard',
         'on_key_down', 'on_key_up', 'on_textinput', 'on_dropfile',
-        'on_request_close', 'on_joy_axis', 'on_joy_hat', 'on_joy_ball',
+        'on_request_close', 'on_cursor_enter', 'on_cursor_leave',
+        'on_joy_axis', 'on_joy_hat', 'on_joy_ball',
         'on_joy_button_down', 'on_joy_button_up', 'on_memorywarning')
 
     def __new__(cls, **kwargs):
@@ -1164,6 +1175,26 @@ class WindowBase(EventDispatcher):
             When the bound function returns True the window will not be closed,
             so use with care because the user would not be able to close the
             program, even if the red X is clicked.
+        '''
+        pass
+
+    def on_cursor_enter(self, *largs):
+        '''Event called when the cursor enters the window.
+
+        .. versionadded:: 1.9.1
+
+        .. note::
+            This feature requires a SDL2 window provider.
+        '''
+        pass
+
+    def on_cursor_leave(self, *largs):
+        '''Event called when the cursor leaves the window.
+
+        .. versionadded:: 1.9.1
+
+        .. note::
+            This feature requires a SDL2 window provider.
         '''
         pass
 
