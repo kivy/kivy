@@ -45,7 +45,7 @@ script:
       make;
       make test;
     fi;
-  - if [ "${COVERALLS}" == "true" ]; then
+  - if [ "${COVERALLS}" == "true" ] && [ "${TRAVIS_BRANCH}" == "master" ]; then
       coveralls;
     fi;
   - if [ "${RUN}" == "pep8" ]; then
