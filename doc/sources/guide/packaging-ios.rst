@@ -30,7 +30,7 @@ Prerequisites
 
 You need to install some dependencies, like cython, autotools, etc. We
 encourage you to use `Homebrew <http://mxcl.github.com/homebrew/>`_ to install
-thoses dependencies::
+those dependencies::
 
     brew install autoconf automake libtool pkg-config
     brew link libtool

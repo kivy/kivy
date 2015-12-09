@@ -11,9 +11,9 @@ really good way to get familiar with Kivy while doing something useful.
 
 Unit tests are seperated into two cases:
 
-* Non graphical unit tests: theses are standard unit tests that can run in a
+* Non graphical unit tests: these are standard unit tests that can run in a
   console
-* Graphical unit tests: theses need a GL context, and work via image comparison
+* Graphical unit tests: these need a GL context, and work via image comparison
 
 To be able to run unit tests, you need to install nose
 (http://code.google.com/p/python-nose/), and coverage

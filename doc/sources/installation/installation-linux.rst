@@ -203,7 +203,7 @@ In this scenario, use "libav-tools \" in place of "ffmpeg \" (above), or use a P
 
 - sudo add-apt-repository ppa:mc3man/trusty-media
 - sudo apt-get update
-- sudo apt-get install ffmpeg 
+- sudo apt-get install ffmpeg
 
 
 Installation
@@ -331,8 +331,8 @@ Installation
     # export USE_SDL2=0. If kivy's setup can't find sdl2 libs it will
     # automatically set this value to 0 then try to build using pygame.
     pip install hg+http://bitbucket.org/pygame/pygame
-    
-    
+
+
 
     # Install stable version of Kivy into the virtualenv
     pip install kivy
@@ -361,7 +361,7 @@ Install additional Virtualenv packages
 *Start from the Command Line*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We ship some examples that are ready-to-run. However, theses examples are packaged inside the package.
+We ship some examples that are ready-to-run. However, these examples are packaged inside the package.
 This means you must first know where easy_install has installed your current kivy package,
 and then go to the examples directory::
 

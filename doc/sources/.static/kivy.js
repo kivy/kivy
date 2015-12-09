@@ -27,7 +27,7 @@ $(document).ready(function () {
 	// insert breaker only for the first data/class/function found.
 	var apibreaker = false;
 	$('div.body dl[class]').each(function (i1, elem) {
-		// theses are first level class: attribute and method are inside class.
+		// these are first level class: attribute and method are inside class.
 		if (!$(elem).hasClass('data') &&
 			!$(elem).hasClass('class') &&
 			!$(elem).hasClass('exception') &&
@@ -247,7 +247,7 @@ $(document).ready(function () {
 			var class_version = read_version(
 				rel_class.find('> dd > div.versionadded'), module_version);
 
-			var html_version = '<span class="versionadded">Added in <span>' + class_version + '</span></span>';	
+			var html_version = '<span class="versionadded">Added in <span>' + class_version + '</span></span>';
 			rel_class.find('> dt').append(html_version);
 
 			// resolve method / attr version
@@ -255,7 +255,7 @@ $(document).ready(function () {
 				var rel_methattr = $(el_methattr);
 				var methattr_version = read_version(
 					rel_methattr.find('> dd > div.versionadded'), class_version);
-				var html_version = '<span class="versionadded">Added in <span>' + methattr_version + '</span></span>';	
+				var html_version = '<span class="versionadded">Added in <span>' + methattr_version + '</span></span>';
 				rel_methattr.find('> dt').append(html_version);
 			});
 		});

@@ -50,7 +50,7 @@ the main file is named `main.py`.
 
 #. The spec file will be `touchtracer.spec` located in TouchApp. Now we need to
    edit the spec file to add kivy hooks to correctly build the exe.
-   Open the spec file with your favorite editor and add theses lines at the
+   Open the spec file with your favorite editor and add these lines at the
    beginning of the spec::
 
     from kivy.tools.packaging.pyinstaller_hooks import get_hooks
