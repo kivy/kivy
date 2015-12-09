@@ -19,7 +19,9 @@ Ubuntu / Kubuntu / Xubuntu / Lubuntu (Saucy and above)
     :nightly builds:
         $ sudo add-apt-repository ppa:kivy-team/kivy-daily
 
-#. Update your packagelist using your package manager
+#. Update your package list using your package manager
+    $ sudo apt-get update
+
 #. Install Kivy
 
     :Python2 - **python-kivy**:
