@@ -67,24 +67,24 @@ IRC channel:
 Sister projects
 ---------------
 
-- [Buildozer](http://github.com/kivy/buildozer): A robot that will do
-  everything needed to package your application for iOS and Android. Ask him,
-  wait, it's done.
-- [Plyer](http://github.com/kivy/plyer): Library for accessing features of your
-  hardware such as the Accelerometer, Camera etc.
-- [Pyjnius](http://github.com/kivy/pyjnius): Dynamic access to the Java/Android
-  API from Python? Easy!
-- [Pyobjus](http://github.com/kivy/pyobjus): Dynamic access to the
-  Objective-C/iOS API from Python (wip).
-- [Python for Android](http://github.com/kivy/python-for-android): Toolchain
-  for building and packaging Kivy applications into Android APK's.
-- [Kivy iOS](http://github.com/kivy/kivy-ios): Toolchain for building and
-  packaging Kivy applications into iOS IPA's.
-- [Audiostream](http://github.com/kivy/audiostream): Library for direct access
-  to the Microphone and Speaker (for iOS and Android).
-- [Garden](http://github.com/kivy-garden): Explore User's widgets and libraries
-
-
+- [Buildozer](http://github.com/kivy/buildozer): generic Python packager
+  for Android and iOS.
+- [Plyer](http://github.com/kivy/plyer): platform-independent Python wrapper
+  for platform-dependent APIs.
+- [Pyjnius](http://github.com/kivy/pyjnius): dynamic access to the Java/Android
+  API from Python.
+- [Pyobjus](http://github.com/kivy/pyobjus): dynamic access to the
+  Objective-C/iOS API from Python.
+- [Python for Android](http://github.com/kivy/python-for-android): toolchain
+  for building and packaging Python applications for Android.
+- [Kivy iOS](http://github.com/kivy/kivy-ios): toolchain for building and
+  packaging Kivy applications for iOS.
+- [Audiostream](http://github.com/kivy/audiostream): library for direct access
+  to the microphone and speaker.
+- [Kivy Designer](http://github.com/kivy-designer): UI designer for Kivy.
+- [KivEnt](http://github.com/kivent): entity-based game engine for Kivy.
+- [Garden](http://github.com/kivy-garden): widgets and libraries created and 
+  maintained by users.
 
 Licenses
 --------
