@@ -28,8 +28,8 @@ Ubuntu / Kubuntu / Xubuntu / Lubuntu (Saucy and above)
         $ sudo apt-get install python-kivy
     :Python3 - **python3-kivy**:
         $ sudo apt-get install python3-kivy
-    :optionally the examples - **kivy-examples**:
-        $ sudo apt-get install kivy-examples
+    :optionally the examples - **python-kivy-examples**:
+        $ sudo apt-get install python-kivy-examples
 
 
 Debian  (Jessie or newer)
