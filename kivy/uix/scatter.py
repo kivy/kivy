@@ -563,10 +563,12 @@ class ScatterBehavior(object):
             ud = touch.ud.get(uid)
 
             if self._get_scatter_behavior_uid('scatter_avoid') in touch.ud:
-                if not self.do_collide_after_children:
-                    return False
+                # We yet need to define how dispatch/collide options interact :-/
+                # if not self.do_collide_after_children:
+                #     return False
                 self._do_dispatch(touch)
                 Clock.schedule_once(partial(self._do_touch_up, touch), .1)
+                return False
 
             if ud:
                 if ud.get('_mode') == 'dispatch':
