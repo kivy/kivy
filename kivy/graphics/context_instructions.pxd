@@ -26,6 +26,7 @@ cdef class BindTexture(ContextInstruction):
     cdef object _source
     cdef Texture _texture
     cdef int apply(self) except -1
+    cdef int _mipmap
 
 
 cdef class LoadIdentity(ContextInstruction):

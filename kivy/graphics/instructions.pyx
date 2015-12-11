@@ -406,6 +406,17 @@ cdef class VertexInstruction(Instruction):
             self._tex_coords[index] = tc[index]
         self.flag_update()
 
+    @property
+    def mipmap(self):
+        '''This property sets the texture mipmap generation status.
+        '''
+        return self.texture_binding.mipmap
+
+    @mipmap.setter
+    def mipmap(self, mipmap):
+        self.texture_binding.mipmap = mipmap
+        self.texture = self.texture_binding._texture
+
     cdef void build(self):
         pass
 

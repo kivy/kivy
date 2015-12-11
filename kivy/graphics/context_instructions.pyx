@@ -380,11 +380,12 @@ cdef class BindTexture(ContextInstruction):
                         'in kwargs! Settings source will overwrite'
                         'texture property')
 
-        self.source = kwargs.get('source', None)
+        self.source = kwargs.get('source')
         if self.source is None and 'texture' in kwargs:
             self.texture = kwargs['texture']
 
         self.index = kwargs.get('index', 0)
+        self.mipmap = kwargs.get('mipmap', False)
 
     cdef int apply(self) except -1:
         cdef RenderContext context = self.get_context()
@@ -426,11 +427,24 @@ cdef class BindTexture(ContextInstruction):
         if self._source:
             tex = Cache.get('kv.texture', filename)
             if not tex:
-                tex = Image(self._source).texture
+                tex = Image(self._source, mipmap=self.mipmap).texture
                 Cache.append('kv.texture', filename, tex)
             self.texture = tex
         else:
             self.texture = None
+
+    @property
+    def mipmap(self):
+        '''Set/get the texture mipmap status.
+        '''
+        return self._mipmap
+
+    @mipmap.setter
+    def mipmap(self, int mipmap):
+        if self._mipmap == mipmap:
+            return
+        self._mipmap = mipmap
+        self.flag_update()
 
 
 cdef double radians(double degrees):
