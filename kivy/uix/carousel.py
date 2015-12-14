@@ -524,10 +524,21 @@ class Carousel(StencilView):
         direction = self.direction
         if ud['mode'] == 'unknown':
             if direction[0] in ('r', 'l'):
-                distance = abs(touch.ox - touch.x)
+                distance = touch.ox - touch.x
             else:
-                distance = abs(touch.oy - touch.y)
-            if distance > self.scroll_distance:
+                distance = touch.oy - touch.y
+            if not self.loop:
+                if direction[0] in ('r', 't'):
+                    if self.index == 0 and distance < 0:
+                        return False
+                    if self.index == len(self.slides)-1 and distance > 0:
+                        return False
+                else:
+                    if self.index == 0 and distance > 0:
+                        return False
+                    if self.index == len(self.slides)-1 and distance < 0:
+                        return False
+            if abs(distance) > self.scroll_distance:
                 Clock.unschedule(self._change_touch_mode)
                 ud['mode'] = 'scroll'
         else:
