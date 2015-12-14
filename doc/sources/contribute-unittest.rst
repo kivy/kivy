@@ -9,7 +9,7 @@ as a `unittest <http://docs.python.org/2/library/unittest.html>`_
 and will make Kivy a better, stronger project. Writing a unittest may be a
 really good way to get familiar with Kivy while doing something useful.
 
-Unit tests are seperated into two cases:
+Unit tests are separated into two cases:
 
 * Non graphical unit tests: these are standard unit tests that can run in a
   console

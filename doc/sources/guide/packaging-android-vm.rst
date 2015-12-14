@@ -7,8 +7,8 @@ Introduction
 ------------
 
 Currently, Kivy Android applications can only be built in a Linux
-enironment configured with python-for-android, the Android SDK and the
-Android NDK. As this enviroment in not only tricky to setup but also
+environment configured with python-for-android, the Android SDK and the
+Android NDK. As this environment in not only tricky to setup but also
 impossible on Windows or OS X operating systems, we provide a fully configured
 `VirtualBox <http://www.virtualbox.org>`_ disk image to ease your building
 woes.

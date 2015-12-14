@@ -18,7 +18,7 @@ Using Twisted inside Kivy
 
 .. warning::
     Unlike the default twisted reactor, the installed reactor will not handle
-    any signals unnless you set the 'installSignalHandlers' keyword argument
+    any signals unless you set the 'installSignalHandlers' keyword argument
     to 1 explicitly.  This is done to allow kivy to handle the signals as
     usual, unless you specifically want the twisted reactor to handle the
     signals (e.g. SIGINT).
@@ -28,7 +28,7 @@ Using Twisted inside Kivy
 The kivy examples include a small example of a twisted server and client.
 The server app has a simple twisted server running and logs any messages.
 The client app can send messages to the server and will print its message
-and the repsonse it got. The examples are based mostly on the simple Echo
+and the response it got. The examples are based mostly on the simple Echo
 example from the twisted docs, which you can find here:
 
 - http://twistedmatrix.com/documents/current/_downloads/simpleserv.py

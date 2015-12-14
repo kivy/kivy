@@ -134,7 +134,7 @@ you and implemented the portions of our code, where efficiency really
 is critical, on the C level.
 
 For graphics drawing, we also leverage today's GPUs which are, for
-some tasks such as graphics rasterization, much more efficent than a
+some tasks such as graphics rasterization, much more efficient than a
 CPU. Kivy does as much as is reasonable on the GPU to maximize
 performance. If you use our Canvas API to do the drawing, there is
 even a compiler that we invented which optimizes your drawing code

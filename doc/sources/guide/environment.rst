@@ -156,7 +156,7 @@ Graphics
 
 KIVY_GLES_LIMITS
     Whether the GLES2 restrictions are enforced (the default, or if set to
-    1). If set to false, Kivy will not be trully GLES2 compatible.
+    1). If set to false, Kivy will not be truly GLES2 compatible.
 
     Following is a list of the potential incompatibilities that result
     when set to true.

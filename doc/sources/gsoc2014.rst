@@ -93,7 +93,7 @@ Enhancements to Kivy
       - http://kivy.org/docs/api-kivy.graphics.html
       - http://www.khronos.org/opengles/
   Expected Outcome:
-    Significant improvement in the graphics pipeline that can be quantfied by tests.
+    Significant improvement in the graphics pipeline that can be quantified by tests.
 
   - **Mentors**: Jacob Kovac, Mathieu Virbel
   - **Task level**: Intermediate/Advanced
@@ -138,7 +138,7 @@ Enhancements to Mobile Platforms
 **Plyer:**
 
   Description:
-    Plyer is a platform-independant api to use features
+    Plyer is a platform-independent api to use features
     commonly found on various platforms, especially mobile ones, in Python.
     The idea is to provide a stable API to the user for accessing features
     of their desktop or mobile device.

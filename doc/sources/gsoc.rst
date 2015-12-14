@@ -165,7 +165,7 @@ working with communicating between Python and an API in a different language.
 **Plyer:**
 
   Description:
-    Plyer is a platform-independant Python API to use features 
+    Plyer is a platform-independent Python API to use features 
     commonly found on the desktop and mobile platforms supported by 
     Kivy. The idea is to provide a stable API to the user for 
     accessing features of their desktop or mobile device.
@@ -325,7 +325,7 @@ Here's a checklist:
 * Do some research **yourself**. GSoC is about give and take, not just one 
   sided interaction. It is about you trying to achieve agreed upon goals with 
   our support. The main driving force in this should be, obviously, yourself. 
-  Many students pop up and ask what they should do. You shoud base that 
+  Many students pop up and ask what they should do. You should base that 
   decision on your interests and your skills. Show us you're serious about it 
   and take the initiative.
 * Write a draft 
