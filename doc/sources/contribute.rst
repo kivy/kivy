@@ -264,7 +264,7 @@ Will result in:
         """
 
 
-When refering to other parts of the api use:
+When referring to other parts of the api use:
 
 - ``:mod:`~kivy.module``` to refer to a module
 - ``:class:`~kivy.module.Class``` to refer to a class
@@ -273,7 +273,7 @@ When refering to other parts of the api use:
   for a class and a method)
 
 Obviously replacing `module` `Class` and `method` with their real name, and
-using using '.' to separate modules refering to imbricated modules, e.g::
+using using '.' to separate modules referring to imbricated modules, e.g::
 
     :mod:`~kivy.uix.floatlayout`
     :class:`~kivy.uix.floatlayout.FloatLayout`

@@ -98,7 +98,7 @@ OpenSuSE
 
 #. To install kivy go to http://software.opensuse.org/package/python-Kivy and use the "1 Click Install" for your openSuse version. You might need to make the latest kivy version appear in the list by clicking on "Show unstable packages". We prefer to use packages by " devel:languages:python".
 
-#. If you would like access to the examples, please select **python-Kivy-examples** in the upcomming installation wizard.
+#. If you would like access to the examples, please select **python-Kivy-examples** in the upcoming installation wizard.
 
 
 Fedora

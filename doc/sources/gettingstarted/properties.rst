@@ -41,4 +41,4 @@ Kivy provides the following properties:
     :mod:`~kivy.properties.AliasProperty`,
     :mod:`~kivy.properties.DictProperty`,
 
-For an in-depth explaination, take a look at :doc:`/api-kivy.properties`.
+For an in-depth explanation, take a look at :doc:`/api-kivy.properties`.

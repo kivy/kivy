@@ -121,9 +121,9 @@ You can customize the build in many ways:
 
 Launch Images are supported. By default, XCode want you to build an `Image Sets
 <https://developer.apple.com/library/ios/recipes/xcode_help-image_catalog-1.0/Recipe.html>`_.
-This is your responsability to fill all the images needed for the Sets,
+This is your responsibility to fill all the images needed for the Sets,
 depending of your target. However, Kivy use SDL, and as soon as the application
-starts the SDL main, the launch image will disapear. To prevent that, you need
+starts the SDL main, the launch image will disappear. To prevent that, you need
 to have 2 files named `Default.png` and `Default-Landscape.png`, and put them
 in the `Resources` folder in Xcode (not in your application folder)
 
