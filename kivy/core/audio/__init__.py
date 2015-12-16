@@ -210,4 +210,4 @@ if USE_SDL2:
 else:
     audio_libs += [('pygame', 'audio_pygame')]
 
-core_register_libs('audio', audio_libs)
+libs_loaded = core_register_libs('audio', audio_libs)
