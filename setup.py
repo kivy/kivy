@@ -601,6 +601,9 @@ def determine_sdl2():
 
     sdl2_path = environ.get('KIVY_SDL2_PATH', None)
 
+    if sdl2_flags and not sdl2_path:
+        return sdl2_flags
+
     # no pkgconfig info, or we want to use a specific sdl2 path, so perform
     # manual configuration
     flags['libraries'] = ['SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer']
@@ -614,8 +617,7 @@ def determine_sdl2():
             sdl2_paths = [sdl_inc]
         sdl2_paths.extend(['/usr/local/include/SDL2', '/usr/include/SDL2'])
 
-    flags['include_dirs'] = (
-        sdl2_paths if sdl2_paths else sdl2_paths)
+    flags['include_dirs'] = sdl2_paths
 
     flags['extra_link_args'] = []
     flags['extra_compile_args'] = []
