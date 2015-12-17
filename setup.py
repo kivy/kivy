@@ -292,7 +292,7 @@ def _check_and_fix_sdl2_mixer(f_path):
     rpath_to = "@rpath/../../../../SDL2.framework/Versions/A/SDL2"
     smpeg2_path = ("{}/Versions/A/Frameworks/smpeg2.framework"
                    "/Versions/A/smpeg2").format(f_path)
-    output = getoutput(("otool -L '{}'").format(smpeg2_path))
+    output = getoutput(("otool -L '{}'").format(smpeg2_path)).decode('utf-8')
     if "@executable_path" not in output:
         return
 
