@@ -30,6 +30,7 @@ install:
   - if [ "${RUN}" == "docs" ]; then
       sudo apt-get -y install texlive-full;
       pip install --upgrade sphinxcontrib-blockdiag sphinxcontrib-seqdiag sphinxcontrib-actdiag sphinxcontrib-nwdiag;
+      pip install --upgrade https://github.com/pyinstaller/pyinstaller/archive/develop.zip;
     fi;
 
 before_script:
