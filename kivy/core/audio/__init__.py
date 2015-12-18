@@ -16,6 +16,19 @@ You should not use the Sound class directly. The class returned by
 **SoundLoader.load** will be the best sound provider for that particular file
 type, so it might return different Sound classes depending the file type.
 
+Event dispatching and state changes
+-----------------------------------
+
+Audio is often processed in parallel to your code. This means you often need to
+enter the Kivy :func:`eventloop <kivy.base.EventLoopBase>` in order to allow
+events and state changes to be dispatched correctly.
+
+You seldom need to worry about this as Kivy apps typically always
+require this event loop for the GUI to remain responsive, but it is good to
+keep this in mind when debugging or running in a
+`REPL <https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop>`_
+(Read-eval-print loop).
+
 .. versionchanged:: 1.8.0
     There are now 2 distinct Gstreamer implementations: one using Gi/Gst working
     for both Python 2+3 with Gstreamer 1.0, and one using PyGST working
