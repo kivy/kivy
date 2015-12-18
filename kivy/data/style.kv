@@ -327,7 +327,7 @@
         pos: root.pos
         Label:
             id: filename
-            text_size: self.width, None
+            width: (self.texture_size[0] + dp(4)) if self.texture_size else dp(10)
             halign: 'left'
             shorten: True
             text: ctx.name
