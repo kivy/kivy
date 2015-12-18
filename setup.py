@@ -23,10 +23,7 @@ else:
     print('Using distutils')
 
 
-if sys.version > '3':
-    PY3 = True
-else:
-    PY3 = False
+PY3 = sys.version > '3'
 
 if PY3:  # fix error with py3's LooseVersion comparisons
     def ver_equal(self, other):
