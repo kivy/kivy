@@ -13,8 +13,8 @@ Load an audio sound and play it with::
         sound.play()
 
 You should not use the Sound class directly. The class returned by
-**SoundLoader.load** will be the best sound provider for that particular file
-type, so it might return different Sound classes depending the file type.
+:func:`SoundLoader.load` will be the best sound provider for that particular
+file type, so it might return different Sound classes depending the file type.
 
 Event dispatching and state changes
 -----------------------------------
