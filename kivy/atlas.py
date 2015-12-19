@@ -11,7 +11,7 @@ processing for creating an atlas from a set of individual PNG files. The
 command line section requires the Pillow library, or the defunct Python Imaging
 Library (PIL), to be installed.
 
-An Atlas is composed of files:
+An Atlas is composed of 2 or more files:
     - a json file (.atlas) that contains the image file names and texture
       locations of the atlas.
     - one or multiple image files containing textures referenced by the .atlas
@@ -100,7 +100,7 @@ As you can see, we get 2 new files: ``myatlas.atlas`` and ``myatlas-0.png``.
 How to use an Atlas
 -------------------
 
-Usually, you would use the atlas as follows::
+Usually, you would specify the images by supplying the path::
 
     a = Button(background_normal='images/button.png',
                background_down='images/button_down.png')
@@ -109,12 +109,13 @@ In our previous example, we have created the atlas containing both images and
 put them in ``images/myatlas.atlas``. You can use url notation to reference
 them::
 
+    a = Button(background_normal='atlas://images/myatlas/button',
+               background_down='atlas://images/myatlas/button_down')
+
+In other words, the path to the images is replaced by::
+
     atlas://path/to/myatlas/id
     # will search for the ``path/to/myatlas.atlas`` and get the image ``id``
-
-In our case, it would be::
-
-    atlas://images/myatlas/button
 
 .. note::
 
