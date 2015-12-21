@@ -26,11 +26,8 @@ By default, the image is centered and fits inside the widget bounding box.
 If you don't want that, you can set `allow_stretch` to True and `keep_ratio`
 to False.
 
-You can also inherit from Image and create your own style.
-
-
-For example, if you want your image to be greater than,the size of your widget,
-you could do::
+You can also inherit from Image and create your own style. For example, if you
+want your image to be greater than the size of your widget, you could do::
 
     class FullImage(Image):
         pass
@@ -81,7 +78,7 @@ class Image(Widget):
     :class:`~kivy.graphics.texture.Texture` or a
     :class:`~kivy.graphics.texture.TextureRegion` object.
 
-    :attr:`texture` is a :class:`~kivy.properties.ObjectProperty` and defaults
+    :attr:`texture` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
     '''
 
@@ -114,7 +111,7 @@ class Image(Widget):
     image_ratio = AliasProperty(get_image_ratio, None, bind=('texture', ))
     '''Ratio of the image (width / float(height).
 
-    :attr:`image_ratio` is a :class:`~kivy.properties.AliasProperty` and is
+    :attr:`image_ratio` is an :class:`~kivy.properties.AliasProperty` and is
     read-only.
     '''
 
@@ -178,8 +175,8 @@ class Image(Widget):
 
     .. versionadded:: 1.9.0
 
-    :attr:`anim_loop` is a :class:`~kivy.properties.NumericProperty` defaults
-    to 0.
+    :attr:`anim_loop` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.
     '''
 
     nocache = BooleanProperty(False)
@@ -227,8 +224,8 @@ class Image(Widget):
     This size will always fit the widget size and will preserve the image
     ratio.
 
-    :attr:`norm_image_size` is a :class:`~kivy.properties.AliasProperty` and is
-    read-only.
+    :attr:`norm_image_size` is an :class:`~kivy.properties.AliasProperty` and
+    is read-only.
     '''
 
     def __init__(self, **kwargs):
