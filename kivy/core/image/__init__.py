@@ -12,24 +12,25 @@ In-memory image loading
 .. versionadded:: 1.9.0
 
     Official support for in-memory loading. Not all the providers support it,
-    but at the moment SDL2, pygame, pil and imageio works.
+    but currently SDL2, pygame, pil and imageio work.
 
-To load an image with a filename, you usually do::
+To load an image with a filename, you would usually do::
 
     from kivy.core.image import Image as CoreImage
     im = CoreImage("image.png")
 
-Now you can load from memory block. Instead of passing the filename, you'll need
-to pass the data as a BytesIO object + an "ext" parameters. Both are mandatory::
+You can also load the image data directly from a memory block. Instead of
+passing the filename, you'll need to pass the data as a BytesIO object
+together with an "ext" parameter. Both are mandatory::
 
     import io
     from kivy.core.image import Image as CoreImage
     data = io.BytesIO(open("image.png", "rb").read())
     im = CoreImage(data, ext="png")
 
-By default, the image will not be cached, as our internal cache require a
-filename. If you want caching, add a filename that represent your file (it will
-be used only for caching)::
+By default, the image will not be cached as our internal cache requires a
+filename. If you want caching, add a filename that represents your file (it
+will be used only for caching)::
 
     import io
     from kivy.core.image import Image as CoreImage
