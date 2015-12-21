@@ -526,6 +526,8 @@ class VideoPlayer(GridLayout):
         if not thumbnail:
             filename = self.source.rsplit('.', 1)
             thumbnail = filename[0] + '.png'
+            if not exists(thumbnail):
+                thumbnail = ''
         self._image = VideoPlayerPreview(source=thumbnail, video=self)
         self.container.add_widget(self._image)
 
