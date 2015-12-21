@@ -4,8 +4,10 @@
 __all__ = ('ButtonBehavior', )
 
 from kivy.clock import Clock
-from kivy.properties import OptionProperty, ObjectProperty, BooleanProperty
+from kivy.properties import OptionProperty, ObjectProperty, \
+    BooleanProperty, NumericProperty, AliasProperty
 from time import time
+from kivy.logger import Logger
 
 
 class ButtonBehavior(object):
@@ -41,12 +43,25 @@ class ButtonBehavior(object):
     defaults to `None`.
     '''
 
-    MIN_STATE_TIME = 0.035
+    min_state_time = NumericProperty(0.035)
     '''The minimum period of time which the widget must remain in the
     `'down'` state.
 
-    :attr:`MIN_STATE_TIME` is a float and defaults to 0.035.
+    :attr:`min_state_time` is a float and defaults to 0.035.
     '''
+
+    def _set_min_state_time(self, value):
+        Logger.warning(
+            'MIN_STATE_TIME is deprecated, use min_state_time instead')
+        self.min_state_time = value
+
+    def _get_min_state_time(self):
+        Logger.warning(
+            'MIN_STATE_TIME is deprecated, use min_state_time instead')
+        return self.min_state_time
+
+    MIN_STATE_TIME = AliasProperty(
+        _get_min_state_time, _set_min_state_time, bind=('min_state_time', ))
 
     always_release = BooleanProperty(True)
     '''This determines whether or not the widget fires an `on_release` event if
