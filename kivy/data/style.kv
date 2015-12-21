@@ -1009,7 +1009,7 @@
     image_loading: 'data/images/image-loading.gif'
     Image:
         source: root.source
-        color: (.5, .5, .5, 1)
+        color: (.5, .5, .5, 1) if root.source else (0, 0, 0, 0)
         pos_hint: {'x': 0, 'y': 0}
     Image:
         source: root.image_overlay_play if not root.click_done else root.image_loading
