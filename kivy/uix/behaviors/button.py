@@ -43,6 +43,16 @@ class ButtonBehavior(object):
     defaults to `None`.
     '''
 
+    MIN_STATE_TIME = 0.035
+    '''The minimum period of time which the widget must remain in the
+    `'down'` state.
+
+    ..warning::
+        This is deprecated, and will be removed in the next major release.
+        Use :attr:`min_state_time` instead.
+
+    :attr:`MIN_STATE_TIME` is a float and defaults to 0.035.'''
+
     min_state_time = NumericProperty(0.035)
     '''The minimum period of time which the widget must remain in the
     `'down'` state.
