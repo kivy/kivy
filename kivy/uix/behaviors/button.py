@@ -47,6 +47,8 @@ class ButtonBehavior(object):
     '''The minimum period of time which the widget must remain in the
     `'down'` state.
 
+    .. versionadded:: 1.9.1
+
     :attr:`min_state_time` is a float and defaults to 0.035.
     '''
 
