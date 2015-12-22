@@ -53,7 +53,7 @@ class ButtonBehavior(object):
 
     :attr:`MIN_STATE_TIME` is a float and defaults to 0.035.'''
 
-    min_state_time = NumericProperty(0.035)
+    min_state_time = NumericProperty(MIN_STATE_TIME)
     '''The minimum period of time which the widget must remain in the
     `'down'` state.
 
@@ -128,9 +128,9 @@ class ButtonBehavior(object):
             return
 
         touchtime = time() - self.__touch_time
-        if touchtime < self.MIN_STATE_TIME:
+        if touchtime < self.min_state_time:
             self.__state_event = Clock.schedule_once(
-                self._do_release, self.MIN_STATE_TIME - touchtime)
+                self._do_release, self.min_state_time - touchtime)
         else:
             self._do_release()
         self.dispatch('on_release')
