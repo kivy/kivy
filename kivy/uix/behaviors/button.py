@@ -75,6 +75,8 @@ class ButtonBehavior(object):
     def __init__(self, **kwargs):
         self.register_event_type('on_press')
         self.register_event_type('on_release')
+        # remove this when MIN_STATE_TIME is removed
+        self.min_state_time = self.MIN_STATE_TIME
         super(ButtonBehavior, self).__init__(**kwargs)
         self.__state_event = None
         self.__touch_time = None
