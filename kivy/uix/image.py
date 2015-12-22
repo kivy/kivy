@@ -43,8 +43,6 @@ And in your kivy language file::
                 size: self.width + 20, self.height + 20
                 pos: self.x - 10, self.y - 10
 
-'''
-
 __all__ = ('Image', 'AsyncImage')
 
 from kivy.uix.widget import Widget
