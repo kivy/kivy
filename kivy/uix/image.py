@@ -1,4 +1,4 @@
-'''
+ '''
 Image
 =====
 
@@ -36,6 +36,8 @@ And in your kivy language file::
 
     <-FullImage>:
         canvas:
+            Color:
+                rgb: (1, 1, 1)
             Rectangle:
                 texture: self.texture
                 size: self.width + 20, self.height + 20
