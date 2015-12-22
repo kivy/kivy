@@ -62,19 +62,6 @@ class ButtonBehavior(object):
     :attr:`min_state_time` is a float and defaults to 0.035.
     '''
 
-    def _set_min_state_time(self, value):
-        Logger.warning(
-            'MIN_STATE_TIME is deprecated, use min_state_time instead')
-        self.min_state_time = value
-
-    def _get_min_state_time(self):
-        Logger.warning(
-            'MIN_STATE_TIME is deprecated, use min_state_time instead')
-        return self.min_state_time
-
-    MIN_STATE_TIME = AliasProperty(
-        _get_min_state_time, _set_min_state_time, bind=('min_state_time', ))
-
     always_release = BooleanProperty(True)
     '''This determines whether or not the widget fires an `on_release` event if
     the touch_up is outside the widget.
