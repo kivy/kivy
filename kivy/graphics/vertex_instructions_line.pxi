@@ -673,7 +673,14 @@ cdef class Line(VertexInstruction):
         def __get__(self):
             return self._points
         def __set__(self, points):
-            self._points = list(points)
+            import itertools
+            tmp=[]
+            for p in points:
+                if isinstance(p,(list,tuple)):
+                    tmp=tmp+list(p)
+                else:
+                    tmp.append(p)
+            self._points=tmp
             self.flag_update()
 
     property dash_length:
