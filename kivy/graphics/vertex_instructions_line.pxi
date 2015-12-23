@@ -673,7 +673,6 @@ cdef class Line(VertexInstruction):
         def __get__(self):
             return self._points
         def __set__(self, points):
-            import itertools
             tmp=[]
             for p in points:
                 if isinstance(p,(list,tuple)):
@@ -682,6 +681,7 @@ cdef class Line(VertexInstruction):
                     tmp.append(p)
             self._points=tmp
             self.flag_update()
+            
 
     property dash_length:
         '''Property for getting/setting the length of the dashes in the curve
