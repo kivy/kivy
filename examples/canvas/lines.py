@@ -139,7 +139,9 @@ class LinePlayground(FloatLayout):
     alpha_controlline = NumericProperty(1.0)
     alpha = NumericProperty(0.5)
     close = BooleanProperty(False)
-    points = ListProperty([(500, 500), 300, 300, 500, 300, [500, 400, 600, 400]])
+    points = ListProperty([(500, 500),
+                          300, 300, 500, 300,
+                          [500, 400, 600, 400]])
     points2 = ListProperty([])
     joint = OptionProperty('none', options=('round', 'miter', 'bevel', 'none'))
     cap = OptionProperty('none', options=('round', 'square', 'none'))

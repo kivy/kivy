@@ -660,8 +660,6 @@ cdef class Line(VertexInstruction):
         free(vertices)
         free(indices)
 
-
-
     property points:
         '''Property for getting/settings points of the line
 
@@ -672,16 +670,16 @@ cdef class Line(VertexInstruction):
         '''
         def __get__(self):
             return self._points
+
         def __set__(self, points):
-            tmp=[]
+            tmp = []
             for p in points:
-                if isinstance(p,(list,tuple)):
-                    tmp=tmp+list(p)
+                if isinstance(p, (list, tuple)):
+                    tmp = tmp + list(p)
                 else:
                     tmp.append(p)
-            self._points=tmp
+            self._points = tmp
             self.flag_update()
-            
 
     property dash_length:
         '''Property for getting/setting the length of the dashes in the curve
