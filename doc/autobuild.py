@@ -56,6 +56,7 @@ import kivy.storage.redisstore
 import kivy.network.urlrequest
 import kivy.modules.webdebugger
 import kivy.support
+import kivy.tools.packaging.pyinstaller_hooks
 import kivy.input.recorder
 import kivy.interactive
 import kivy.garden

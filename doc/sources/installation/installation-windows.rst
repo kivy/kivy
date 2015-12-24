@@ -186,8 +186,9 @@ favorite location, do the following:
    ``your-path\kivy\deps`` where ``your-path`` is the path where your kivy is
    located.
 #. Remove the ``python\Lib\site-packages\kivy`` directory altogether.
-#. From ``python\Lib\site-packages`` delete or move all the kivy.deps.*.pth
-   files.
+#. From ``python\Lib\site-packages`` move **all** the ``kivy.deps.*.pth``
+   files and **all** ``kivy.deps.*.dist-info` directories to ``your-path``
+   right next to ``kivy``.
 
 Now you can safely compile kivy in its current location with ``make`` or
 ``python -m pip install -e location`` or just ``python setup.py build_ext --inplace``.
