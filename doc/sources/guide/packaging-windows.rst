@@ -7,7 +7,7 @@ Create a package for Windows
 
 Packaging your application for the Windows platform can only be done inside the
 Windows OS. The following process has been tested on Windows with the Kivy
-**wheels**.
+**wheels** installation, see at the end for alternate installations.
 
 The package will be either 32 or 64 bits depending on which version of Python
 you ran it with.
@@ -22,6 +22,20 @@ Requirements
 
 .. _Create-the-spec-file:
 
+PyInstaller default hook
+========================
+
+.. warning::
+
+    The latest PyInstaller release does not include the Kivy hooks. This
+    note will be removed when a PyInstaller version with the hooks is released
+    to PyPi.
+
+This section applies to PyInstaller (>= 3.?) that includes the kivy hooks.
+For previous versions of PyInstaller or to overwrite the default hook the
+following examples need to be slightly modified. See :ref:`overwrite-win-hook`
+for those changes.
+
 Packaging a simple app
 ----------------------
 
@@ -33,7 +47,7 @@ path leading to the examples as ``examples-path``. The touchtracer example is in
 
 #. Open your command line shell and ensure that python is on the path (i.e. ``python`` works).
 #. Create a folder into which the packaged app will be created. For example create a ``TouchApp``
-   folder and _`change to that directory <http://www.computerhope.com/cdhlp.htm>`_ with e.g.
+   folder and `change to that directory <http://www.computerhope.com/cdhlp.htm>`_ with e.g.
    ``cd TouchApp``. Then type::
 
     python -m PyInstaller --name touchtracer examples-path\demo\touchtracer\main.py
@@ -79,8 +93,8 @@ path leading to the examples as ``examples-path``. The touchtracer example is in
 
 #. The compiled package will be in the `TouchApp\\dist\\touchtracer` directory.
 
-Packaging a video app
----------------------
+Packaging a video app with gstreamer
+------------------------------------
 
 Following we'll slightly modify the example above to package a app that uses gstreamer
 for video. We'll use the ``videoplayer`` example found at ``examples-path\widgets\videoplayer.py``.
@@ -128,37 +142,83 @@ which when run will play a video.
         _original_getResource = pygame.pkgdata.getResource
         pygame.pkgdata.getResource = getResource
 
+.. _overwrite-win-hook:
+
+Overwriting the default hook
+============================
+
 Including/excluding video and audio and reducing app size
 -------------------------------------------------------
 
-PyInstaller includes a hook for kivy that by default adds the core modules
+PyInstaller includes a hook for kivy that by default adds **all** the core modules
 used by kivy, e.g. audio, video, spelling etc (you still need to package
-the gstreamer dlls manually with ``Tree()`` - see the example above). To reduce
-app size, some of these modules may be excluded, e.g. if no audio/video is used.
+the gstreamer dlls manually with ``Tree()`` - see the example above) and their
+dependencies. If the hook is not installed or to reduce app size some of these
+modules may be excluded, e.g. if no audio/video is used, with a alternative hook.
 
-To manually exclude some core providers, one can use
-:func:`~kivy.tools.packaging.pyinstaller_hooks.get_kivy_providers` or
-:func:`~kivy.tools.packaging.pyinstaller_hooks.list_hiddenimports`. See
-:mod:`~kivy.tools.packaging.pyinstaller_hooks` for details. Following is
-the touchtracer example modified to exclude all video and audio making
-a much smaller app.
+Kivy provides the alternate hook at
+:func:`~kivy.tools.packaging.pyinstaller_hooks.hookspath`. In addition, if and only
+if PyInstaller doesn't have the default hooks
+:func:`~kivy.tools.packaging.pyinstaller_hooks.runtime_hooks` must also be provided.
+When overwriting the hook, the latter one typically is not required to be overwritten.
 
-Add the import statement
-``from kivy.tools.packaging.pyinstaller_hooks import  get_kivy_providers, hookspath``
-and modify ``Analysis`` as follows::
+The alternate :func:`~kivy.tools.packaging.pyinstaller_hooks.hookspath` hook
+does not include any of the kivy providers. To add them, they have to be added with
+:func:`~kivy.tools.packaging.pyinstaller_hooks.get_deps_minimal` or
+:func:`~kivy.tools.packaging.pyinstaller_hooks.get_deps_all`. See
+their documentation and :mod:`~kivy.tools.packaging.pyinstaller_hooks` for more
+details. But essentially, :func:`~kivy.tools.packaging.pyinstaller_hooks.get_deps_all`
+add all the providers like in the default hook while
+:func:`~kivy.tools.packaging.pyinstaller_hooks.get_deps_minimal` only adds those
+that are loaded when the app is run. Each method provides a list of hidden kivy imports
+and excluded imports that can be passed on to ``Analysis``.
+
+One can also generate a alternate hook which literally lists every kivy provider
+module and those not required can be commented out. See
+:mod:`~kivy.tools.packaging.pyinstaller_hooks`.
+
+To use the the alternate hooks with the examples above modify as following to
+add the hooks with ``hookspath()`` and ``runtime_hooks`` (if required)
+and ``**get_deps_minimal()`` or ``**get_deps_all()`` to specify the providers.
+
+For example, add the import statement
+``from kivy.tools.packaging.pyinstaller_hooks import  get_deps_minimal,
+get_deps_all, hookspath, runtime_hooks``
+and then modify ``Analysis`` as follows::
 
     a = Analysis(['examples-path\\demo\\touchtracer\\main.py'],
                  ...
                  hookspath=hookspath(),
-                 runtime_hooks=[],
-                 win_no_prefer_redirects=False,
-                 win_private_assemblies=False,
-                 cipher=block_cipher,
-                 **get_kivy_providers(video=None, audio=None))
+                 runtime_hooks=runtime_hooks(),
+                 ...
+                 **get_deps_all())
+
+to include everything like the default hook. Or::
+
+    a = Analysis(['examples-path\\demo\\touchtracer\\main.py'],
+                 ...
+                 hookspath=hookspath(),
+                 runtime_hooks=runtime_hooks(),
+                 ...
+                 **get_deps_minimal(video=None, audio=None))
+
+e.g. to exclude the audio and video providers and for the other core modules
+only use those loaded.
 
 The key points is to provide the alternate
 :func:`~kivy.tools.packaging.pyinstaller_hooks.hookspath` which does not list
 by default all the kivy providers and instead manually to hiddenimports
 add the required providers while removing the undesired ones (audio and
 video in this example) with
-:func:`~kivy.tools.packaging.pyinstaller_hooks.get_kivy_providers`.
+:func:`~kivy.tools.packaging.pyinstaller_hooks.get_deps_minimal`.
+
+Alternate installations
+----------------------
+
+The previous examples used e.g.
+``*[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins + gstreamer.dep_bins)],``
+to make PyInstaller add all the dlls used by these dependencies. If kivy
+was not installed using the wheels method these commands will not work and e.g.
+``kivy.deps.sdl2`` will fail to import. Instead, one must find the location
+of these dlls and manually pass them to the ``Tree`` class in a similar fashion
+as the example.

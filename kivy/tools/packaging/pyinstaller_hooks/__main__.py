@@ -1,4 +1,4 @@
-from kivy.tools.packaging.pyinstaller_hooks import list_hiddenimports
+from kivy.tools.packaging.pyinstaller_hooks import get_deps_all
 import sys
 from os.path import dirname, join
 
@@ -8,7 +8,7 @@ if args and args[0] == 'hook':
         src = fh.read()
 
     formatted_lines = []
-    lines = list_hiddenimports()
+    lines = get_deps_all()['hiddenimports']
 
     for i, line in enumerate(lines):
         if (i and
