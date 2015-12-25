@@ -62,7 +62,6 @@ class FloatLayout(Layout):
     '''
 
     def __init__(self, **kwargs):
-        kwargs.setdefault('size', (1, 1))
         super(FloatLayout, self).__init__(**kwargs)
         fbind = self.fbind
         update = self._trigger_layout
@@ -73,9 +72,6 @@ class FloatLayout(Layout):
         fbind('size', update)
 
     def do_layout(self, *largs, **kwargs):
-        # optimization, until the size is 1, 1, don't do layout
-        if self.size == [1, 1]:
-            return
         # optimize layout by preventing looking at the same attribute in a loop
         w, h = kwargs.get('size', self.size)
         x, y = kwargs.get('pos', self.pos)

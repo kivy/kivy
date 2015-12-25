@@ -327,11 +327,23 @@ class VKeyboard(Scatter):
 
     def __init__(self, **kwargs):
         # XXX move to style.kv
-        kwargs.setdefault('size_hint', (None, None))
-        kwargs.setdefault('scale_min', .4)
-        kwargs.setdefault('scale_max', 1.6)
-        kwargs.setdefault('size', (700, 200))
-        kwargs.setdefault('docked', False)
+        if 'size_hint' not in kwargs:
+            if 'size_hint_x' not in kwargs:
+                self.size_hint_x = None
+            if 'size_hint_y' not in kwargs:
+                self.size_hint_y = None
+        if 'size' not in kwargs:
+            if 'width' not in kwargs:
+                self.width = 700
+            if 'height' not in kwargs:
+                self.height = 200
+        if 'scale_min' not in kwargs:
+            self.scale_min = .4
+        if 'scale_max' not in kwargs:
+            self.scale_max = 1.6
+        if 'docked' not in kwargs:
+            self.docked = False
+
         layout_mode = self._trigger_update_layout_mode = Clock.create_trigger(
             self._update_layout_mode)
         layouts = self._trigger_load_layouts = Clock.create_trigger(

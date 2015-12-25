@@ -89,9 +89,5 @@ class ScatterPlaneLayout(ScatterPlane):
     .. versionadded:: 1.9.0
     '''
 
-    def __init__(self, **kwargs):
-        kwargs.setdefault('auto_bring_to_front', False)
-        super(ScatterPlaneLayout, self).__init__(**kwargs)
-
     def collide_point(self, x, y):
         return True

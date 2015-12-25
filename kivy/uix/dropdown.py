@@ -177,10 +177,13 @@ class DropDown(ScrollView):
             c = self.container = Builder.load_string(_grid_kv)
         else:
             c = None
-        kwargs.setdefault('do_scroll_x', False)
+        if 'do_scroll_x' not in kwargs:
+            self.do_scroll_x = False
         if 'size_hint' not in kwargs:
-            kwargs.setdefault('size_hint_x', None)
-            kwargs.setdefault('size_hint_y', None)
+            if 'size_hint_x' not in kwargs:
+                self.size_hint_x = None
+            if 'size_hint_y' not in kwargs:
+                self.size_hint_y = None
         super(DropDown, self).__init__(**kwargs)
         if c is not None:
             super(DropDown, self).add_widget(c)
