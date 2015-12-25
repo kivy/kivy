@@ -8,11 +8,11 @@ Hooks
 -----
 
 PyInstaller comes with a default hook for kivy that lists the indirectly
-imported modules that pyinstaller would not find on its own. This default
-hook gets this list by calling :func:`get_kivy_providers` with no parameters.
-:func:`hookspath` returns the path to an alternate kivy hook,
-``kivy/tools/packaging/pyinstaller_hooks/kivy-hook.py`` that does not
-add :func:`get_kivy_providers` to its list of hidden imports.
+imported modules that pyinstaller would not find on its own using
+:func:`get_deps_all`. :func:`hookspath` returns the path to an alternate kivy
+hook, ``kivy/tools/packaging/pyinstaller_hooks/kivy-hook.py`` that does not
+add these dependencies to its list of hidden imports and they have to be
+explicitly included instead.
 
 One can overwrite the default hook by providing on the command line the
 ``--additional-hooks-dir=HOOKSPATH`` option. Because although the default
@@ -38,16 +38,15 @@ described above. Also, these variable can be passed to ``Analysis`` and their
 values are then appended to the hook's values for these variables.
 
 Most of kivy's core modules, e.g. video are imported indirectly and therefore
-need to be added in hiddenimports. The default hook adds all the providers that
-are used when kivy is imported on that system. To overwrite, a modified
-kivy-hook based on the default hook, such as :func:`hookspath` that only
-imports the desired modules can be added. One can use
-:func:`get_kivy_providers` or :func:`list_hiddenimports` to get the list of
-modules and add them in the modified hook. Or  one can use the alternate hook
-and pass the desired list of modules to ``Analysis``.
+need to be added in hiddenimports. The default PyInstaller hook adds all the
+providers. To overwrite, a modified kivy-hook similar to the default hook, such
+as :func:`hookspath` that only imports the desired modules can be added. One
+then uses :func:`get_deps_minimal` or :func:`get_deps_all` to get the list of
+modules and adds them manually in a modified hook or passes them to
+``Analysis`` in the spec file.
 
-Hook gnenerator
----------------
+Hook generator
+--------------
 
 :mod:`pyinstaller_hooks` includes a tool to generate a hook which lists
 all the provider modules in a list so that one can manually comment out
@@ -114,10 +113,10 @@ def hookspath():
     file.
 
     The default pyinstaller hook returns all the core providers used using
-    :func:`get_kivy_providers` to add to its list of hidden imports. This
+    :func:`get_deps_minimal` to add to its list of hidden imports. This
     alternate hook only included the essential modules and leaves the core
-    providers to be included additionally with :func:`get_kivy_providers`
-    or :func:`list_hiddenimports`.
+    providers to be included additionally with :func:`get_deps_minimal`
+    or :func:`get_deps_all`.
     '''
     return [curdir]
 
@@ -129,24 +128,27 @@ def get_hooks():
     return {'hookspath': hookspath(), 'runtime_hooks': runtime_hooks()}
 
 
-def get_kivy_providers(exclude_ignored=True, **kwargs):
-    '''Returns kivy hidden modules as well as exxcluded modules.
+def get_deps_minimal(exclude_ignored=True, **kwargs):
+    '''Returns Kivy hidden modules as well as excluded modules to be used
+    with ``Analysis``.
 
     The function takes core modules as keyword arguments and their value
-    indicates which of the providers to include/exclude if any.
+    indicates which of the providers to include/exclude from the compiled app.
 
     The possible keyword names are ``audio, camera, clipboard, image, spelling,
     text, video, and window``. Their values can be:
 
-        ``True``, in which case the providers imported when the core module is
+        ``True``: Include current provider
+            The providers imported when the core module is
             loaded on this system are added to hidden imports. This is the
             default if the keyword name is not specified.
-        ``None``, in which case that core module is not returned as a hidden
-            import.
-        ``A string or list of strings``, each string is the name of a provider
-            for this module.
+        ``None``: Exclude
+            Don't return this core module at all.
+        ``A string or list of strings``: Providers to include
+            Each string is the name of a provider for this module to be
+            included.
 
-    For example, ``get_kivy_providers(video=None, window=True,
+    For example, ``get_deps_minimal(video=None, window=True,
     audio=['gstplayer', 'ffpyplayer'], spelling='enchant')`` will exclude all
     the video providers, will include the gstreamer and ffpyplayer providers
     for audio, will include the enchant provider for spelling, and will use the
@@ -155,7 +157,7 @@ def get_kivy_providers(exclude_ignored=True, **kwargs):
     ``exclude_ignored``, if ``True`` (the default), if the value for a core
     library is ``None``, then if ``exclude_ignored`` is True, not only will the
     library not be included in the hiddenimports but it'll also added to the
-    excluded imports to prevent it being included accideentally by pyinstaller.
+    excluded imports to prevent it being included accidentally by pyinstaller.
 
     :returns:
 
@@ -170,7 +172,7 @@ def get_kivy_providers(exclude_ignored=True, **kwargs):
                          win_no_prefer_redirects=False,
                          win_private_assemblies=False,
                          cipher=block_cipher,
-                         **get_kivy_providers(video=None, audio=None))
+                         **get_deps_minimal(video=None, audio=None))
     '''
     core_mods = ['audio', 'camera', 'clipboard', 'image', 'spelling', 'text',
                  'video', 'window']
@@ -221,16 +223,29 @@ def get_kivy_providers(exclude_ignored=True, **kwargs):
     return {'hiddenimports': mods, 'excludes': excludes}
 
 
-def list_hiddenimports():
-    '''Similar to :func:`get_kivy_providers`, but this returns all the
+def get_deps_all():
+    '''Similar to :func:`get_deps_minimal`, but this returns all the
     kivy modules that can indirectly imported. Which includes all
-    the kivy providers possible.
+    the possible kivy providers.
 
-    This is typically used to get a list of all the possible providers
-    which is then manually inecluded/excluded by commenting out elements
-    in the list. See module description.
+    This can be used to get a list of all the possible providers
+    which can then manually be included/excluded by commenting out elements
+    in the list instead of passing on all the items. See module description.
+
+    :returns:
+
+        A dict with two keys, ``hiddenimports`` and ``excludes``. Their values
+        are a list of the corresponding modules to include/exclude. This can
+        be passed directly to `Analysis`` with e.g.::
+
+            a = Analysis(['..\\kivy\\examples\\demo\\touchtracer\\main.py'],
+                        ...
+                         **get_deps_all())
     '''
-    return sorted(set(kivy_modules + collect_submodules('kivy.core')))
+    return {
+        'hiddenimports': sorted(set(kivy_modules +
+                                    collect_submodules('kivy.core'))),
+        'excludes': []}
 
 
 def get_factory_modules():
