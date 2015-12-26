@@ -839,9 +839,9 @@ cdef class Texture:
                      rowlength=rowlength)
 
     @cython.cdivision(True)
-    def blit_buffer(self, pbuffer, size=None, colorfmt=None,
-                    pos=None, bufferfmt=None, mipmap_level=0,
-                    mipmap_generation=True, int rowlength=0):
+    def blit_buffer(
+        self, pbuffer, size=None, colorfmt=None, pos=None, bufferfmt=None,
+        mipmap_level=0, mipmap_generation=True, int rowlength=0, int use_pbo=0):
         '''Blit a buffer into the texture.
 
         .. note::
@@ -913,10 +913,6 @@ cdef class Texture:
                     "Consider setting KIVY_GLES_LIMITS"
                     ).format(self.bufferfmt, bufferfmt))
 
-        # bind the texture, and create anything that should be created at this
-        # time.
-        self.bind()
-
         # need conversion, do check here because it seems to be faster ?
         if not gl_has_texture_native_format(colorfmt):
             pbuffer, colorfmt = convert_to_gl_format(pbuffer, colorfmt)
@@ -958,6 +954,8 @@ cdef class Texture:
         cdef int is_compressed = _is_compressed_fmt(colorfmt)
         cdef int _mipmap_generation = mipmap_generation and self._mipmap
         cdef int _mipmap_level = mipmap_level
+        cdef unsigned int _pboid
+        cdef unsigned int GL_PIXEL_UNPACK_BUFFER = 0x88EC
 
         # if there is a pitch/rowlength passed for the texture,
         # determine the alignment needed, and see if GL can handle it on the
@@ -1001,6 +999,17 @@ cdef class Texture:
             else:
                 _gl_prepare_pixels_upload(w)
 
+            if use_pbo and not require_subimage:
+                glGenBuffers(1, &_pboid)
+                glBindBuffer(GL_PIXEL_UNPACK_BUFFER, _pboid)
+                glBufferData(GL_PIXEL_UNPACK_BUFFER, datasize, cdata, GL_DYNAMIC_DRAW)
+                cdata = NULL
+
+            # bind the texture, and create anything that should be created at this
+            # time.
+            with gil:
+                self.bind()
+
             if is_compressed:
                 glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
                 glCompressedTexImage2D(target, _mipmap_level, glfmt, w, h, 0,
@@ -1011,7 +1020,7 @@ cdef class Texture:
             else:
                 glTexImage2D(target, _mipmap_level, iglfmt, w, h, 0, glfmt,
                     glbufferfmt, cdata)
-                
+
             if _mipmap_generation:
                 glGenerateMipmap(target)
 
@@ -1024,6 +1033,9 @@ cdef class Texture:
             elif require_subimage:
                 if cpdata != NULL:
                     free(cpdata)
+            if use_pbo and not require_subimage:
+                glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0)
+                glDeleteBuffers(1, &_pboid)
 
     def _on_proxyimage_loaded(self, image):
         if image is not self._proxyimage:
