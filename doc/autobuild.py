@@ -84,7 +84,8 @@ def writefile(filename, data):
     global dest_dir
     # avoid to rewrite the file if the content didn't change
     f = os.path.join(dest_dir, filename)
-    if not BE_QUIET: print('write', filename)
+    if not BE_QUIET:
+        print('write', filename)
     if os.path.exists(f):
         with open(f) as fd:
             if fd.read() == data:
@@ -176,8 +177,8 @@ template_examples_ref = ('# :ref:`Jump directly to Examples'
 
 def extract_summary_line(doc):
     """
-    :param doc:  the __doc__ field of a module
-    :return:  a doc string suitable for a header or empty string
+    :param doc: the __doc__ field of a module
+    :return: a doc string suitable for a header or empty string
     """
     if doc is None:
         return ''
