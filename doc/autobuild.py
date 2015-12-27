@@ -156,6 +156,7 @@ $EXAMPLES_REF
 .. automodule:: $PACKAGE
     :members:
     :show-inheritance:
+    :inherited-members:
 
 .. toctree::
 
