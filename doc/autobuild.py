@@ -146,6 +146,11 @@ writefile('api-index.rst', api_index)
 
 
 # Create index for all packages
+# Note on displaying inherited members;
+#     Adding the directive ':inherited-members:' to automodule achieves this
+#     but is not always desired. Please see
+#         https://github.com/kivy/kivy/pull/3870
+
 template = '\n'.join((
     '=' * 100,
     '$SUMMARY',
@@ -156,7 +161,6 @@ $EXAMPLES_REF
 .. automodule:: $PACKAGE
     :members:
     :show-inheritance:
-    :inherited-members:
 
 .. toctree::
 
