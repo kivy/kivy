@@ -83,8 +83,9 @@ Now that python is available on the command line, which can checked by typing
 
 #. Install the dependencies (skip gstreamer (~90MB) if not needed)::
 
-     python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew
-kivy.deps.gstreamer --extra-index-url http://kivy.org/downloads/packages/simple/ --trusted-host kivy.org
+     python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew \
+     kivy.deps.gstreamer --extra-index-url http://kivy.org/downloads/packages/simple/ \
+     --trusted-host kivy.org
 
 #. Install kivy::
 
@@ -157,9 +158,9 @@ with git rather than a wheel there are some additional steps:
 #. Install the other dependencies as well as their dev versions (you can skip
    gstreamer and gstreamer_dev if you aren't going to use video/audio)::
 
-     python -m pip install cython docutils pygments pypiwin32 kivy.deps.sdl2
-kivy.deps.glew kivy.deps.gstreamer kivy.deps.glew_dev kivy.deps.sdl2_dev
-kivy.deps.gstreamer_dev --extra-index-url http://kivy.org/downloads/packages/simple/ --trusted-host kivy.org
+     python -m pip install cython docutils pygments pypiwin32 kivy.deps.sdl2 \
+     kivy.deps.glew kivy.deps.gstreamer kivy.deps.glew_dev kivy.deps.sdl2_dev \
+     kivy.deps.gstreamer_dev --extra-index-url http://kivy.org/downloads/packages/simple/ --trusted-host kivy.org
 
 #. If you downloaded or cloned kivy to an alternate location and don't want to
    install it to site-packages read the next section.
