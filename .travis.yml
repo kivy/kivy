@@ -135,11 +135,11 @@ after_success:
       if [ "${PY}" == "3" ]; then
          ./create-osx-bundle.sh python3 master > output.txt;
          mv Kivy.app Kivy3.app;
-         rsync--delete --force -r -e ssh ./Kivy3.app/ kivy@kivy.org:~/kivy.org/downloads/tests/Kivy3.app/;
+         rsync --delete --force -r -e ssh ./Kivy3.app/ kivy@kivy.org:~/kivy.org/downloads/tests/Kivy3.app/;
       else
          ./create-osx-bundle.sh python2 master > output.txt;
          mv Kivy.app Kivy2.app;
-         rsync--delete --force -r -e ssh ./Kivy2.app/ kivy@kivy.org:~/kivy.org/downloads/tests/Kivy2.app/;
+         rsync --delete --force -r -e ssh ./Kivy2.app/ kivy@kivy.org:~/kivy.org/downloads/tests/Kivy2.app/;
       fi;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" == "docs" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ] && [ "${TRAVIS_BRANCH}" == "master" ]; then
