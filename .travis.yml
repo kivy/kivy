@@ -25,9 +25,9 @@ matrix:
     - language: generic
       env: RUN=build PY=2
       os: osx
-    # - language: generic
-    #   env: RUN=build PY=3
-    #   os: osx
+    - language: generic
+      env: RUN=build PY=3
+      os: osx
 
 install:
   - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
@@ -121,8 +121,10 @@ script:
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
       if [ "${PY}" == "3" ]; then
          echo -e "python3 setup.py build_ext --inplace";
+         echo -e "python3 -m nose.core kivy/tests";
       else
          echo -e "make";
+         echo -e "make test;"
       fi;
     fi;
 
@@ -135,7 +137,7 @@ after_success:
       git clone https://github.com/kivy/kivy-sdk-packager;
       cd kivy-sdk-packager/osx;
       if [ "${PY}" == "3" ]; then
-         ./create-osx-bundle.sh python3 master > output.txt;
+         yes | ./create-osx-bundle.sh python3 master > output.txt;
          mv Kivy.app Kivy3.app;
          /Volumes/Keka/Keka.app/Contents/Resources/keka7z a Kivy3.7z Kivy3.app;
          rsync --delete --force -r -e ssh ./Kivy3.7z kivy@kivy.org:~/kivy.org/downloads/tests/Kivy3.7z;
