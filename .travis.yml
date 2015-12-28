@@ -132,14 +132,18 @@ after_success:
       echo -e "Host kivy.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
       git clone https://github.com/kivy/kivy-sdk-packager;
       cd kivy-sdk-packager/osx;
+      curl -O -L http://www.kekaosx.com/release/Keka-1.0.4-intel.dmg
+      hdiutil attach Keka-1.0.4-intel.dmg;
       if [ "${PY}" == "3" ]; then
          ./create-osx-bundle.sh python3 master > output.txt;
          mv Kivy.app Kivy3.app;
-         rsync --delete --force -r -e ssh ./Kivy3.app/ kivy@kivy.org:~/kivy.org/downloads/tests/Kivy3.app/;
+         /Volumes/Keka/Keka.app/Contents/Resources/keka7z a Kivy3.7z Kivy3.app
+         rsync --delete --force -r -e ssh ./Kivy3.7z kivy@kivy.org:~/kivy.org/downloads/tests/Kivy3.7z;
       else
          ./create-osx-bundle.sh python2 master > output.txt;
          mv Kivy.app Kivy2.app;
-         rsync --delete --force -r -e ssh ./Kivy2.app/ kivy@kivy.org:~/kivy.org/downloads/tests/Kivy2.app/;
+         /Volumes/Keka/Keka.app/Contents/Resources/keka7z a Kivy2.7z Kivy2.app
+         rsync --delete --force -r -e ssh ./Kivy2.7z kivy@kivy.org:~/kivy.org/downloads/tests/Kivy2.7z;
       fi;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" == "docs" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ] && [ "${TRAVIS_BRANCH}" == "master" ]; then
