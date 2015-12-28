@@ -56,6 +56,8 @@ install:
       curl -O -L http://gstreamer.freedesktop.org/data/pkg/osx/1.6.2/gstreamer-1.0-1.6.2-x86_64.pkg;
       curl -O -L http://gstreamer.freedesktop.org/data/pkg/osx/1.6.2/gstreamer-1.0-devel-1.6.2-x86_64.pkg;
       curl -O -L http://www.sveinbjorn.org/files/software/platypus.zip;
+      curl -O -L http://www.kekaosx.com/release/Keka-1.0.4-intel.dmg
+      hdiutil attach Keka-1.0.4-intel.dmg;
       hdiutil attach SDL2-2.0.4.dmg;
       sudo cp -a /Volumes/SDL2/SDL2.framework /Library/Frameworks/;
       hdiutil attach SDL2_image-2.0.0.dmg;
@@ -112,15 +114,15 @@ script:
         fi;
         if [ "${RUN}" == "docs" ]; then
           make html;
-          make pdf || true;
+          make pdf || true;X
           make pdf;
         fi;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
       if [ "${PY}" == "3" ]; then
-         python3 setup.py build_ext --inplace;
+         echo -e "python3 setup.py build_ext --inplace";
       else
-         make;
+         echo -e "make";
       fi;
     fi;
 
@@ -132,8 +134,6 @@ after_success:
       echo -e "Host kivy.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
       git clone https://github.com/kivy/kivy-sdk-packager;
       cd kivy-sdk-packager/osx;
-      curl -O -L http://www.kekaosx.com/release/Keka-1.0.4-intel.dmg
-      hdiutil attach Keka-1.0.4-intel.dmg;
       if [ "${PY}" == "3" ]; then
          ./create-osx-bundle.sh python3 master > output.txt;
          mv Kivy.app Kivy3.app;
