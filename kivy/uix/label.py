@@ -134,7 +134,7 @@ Then you can write::
 
     "[size=24]Hello &bl;World&bt;[/size]"
 
-Interactive Zone in Text
+Interactive zone in text
 ------------------------
 
 .. versionadded:: 1.1.0
