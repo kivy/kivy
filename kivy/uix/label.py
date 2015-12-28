@@ -172,6 +172,9 @@ and deploy it universally via kv:
     <Label>:
         -font_name: '/<path>/<to>/<font>'
 
+Note that this needs to be done before your widgets are loaded as kv rules are
+only applied at load time.
+
 Usage example
 -------------
 
