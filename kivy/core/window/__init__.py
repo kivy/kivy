@@ -599,6 +599,15 @@ class WindowBase(EventDispatcher):
     defaults to True.
     '''
 
+    focus = BooleanProperty(True)
+    '''Set whether or not the window currently has focus.
+
+    .. versionadded::1.9.1
+
+    :attr:`focus` is a :class:`~kivy.properties.BooleanProperty and
+    defaults to True.
+    '''
+
     def _set_cursor_state(self, value):
         pass
 
