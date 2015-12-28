@@ -124,7 +124,7 @@ script:
          echo -e "python3 -m nose.core kivy/tests";
       else
          echo -e "make";
-         echo -e "make test;"
+         echo -e "make test";
       fi;
     fi;
 
