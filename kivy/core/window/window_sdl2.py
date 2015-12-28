@@ -559,6 +559,12 @@ class WindowSDL(WindowBase):
                 text = args[0]
                 self.dispatch('on_textinput', text)
 
+            elif action == 'windowfocusgained':
+                self.focus = True
+
+            elif action == 'windowfocuslost':
+                self.focus = False
+
             # unhandled event !
             else:
                 Logger.trace('WindowSDL: Unhandled event %s' % str(event))
