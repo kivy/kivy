@@ -170,7 +170,7 @@ and deploy it universally via kv:
 .. code-block:: kv
 
     <Label>:
-        -font_name: '/usr/share/fonts/truetype/fonts-japanese-gothic.ttf'
+        -font_name: '/<path>/<to>/<font>'
 
 Usage example
 -------------
