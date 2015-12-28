@@ -25,9 +25,9 @@ matrix:
     - language: generic
       env: RUN=build PY=2
       os: osx
-    - language: generic
-      env: RUN=build PY=3
-      os: osx
+    # - language: generic
+    #   env: RUN=build PY=3
+    #   os: osx
 
 install:
   - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
@@ -114,7 +114,7 @@ script:
         fi;
         if [ "${RUN}" == "docs" ]; then
           make html;
-          make pdf || true;X
+          make pdf || true;
           make pdf;
         fi;
     fi;
