@@ -157,6 +157,21 @@ For prettier rendering, you could add a color for the reference. Replace the
 
     'Hello [ref=world][color=0000ff]World[/color][/ref]'
 
+Catering for Unicode languages
+------------------------------
+
+The font kivy uses does not contain all the characters required for displaying
+all languages. When you use the built-in widgets, this results in a block being
+drawn where you expect a character.
+
+If you want to display such characters, you can chose a font that supports them
+and deploy it universally via kv:
+
+.. code-block:: kv
+
+    <Label>:
+        -font_name: '/usr/share/fonts/truetype/fonts-japanese-gothic.ttf'
+
 Usage example
 -------------
 
