@@ -22,7 +22,7 @@ It comes as a .7z file that contains:
 To install Kivy, you must:
 
     1. Download the latest version from http://kivy.org/#download
-       Kivy2.7z is using using python2(SystemPython), Kivy3.7z 
+       Kivy2.7z is using using python2(System Python), Kivy3.7z(Python3)
     2. Extract it using a Unarchiver programme like http://www.kekaosx.com/en/.
     3. Copy the Kivy2.app or Kivy3.app as Kivy.app to /Applications.
        Paste the following line onto the terminal::
