@@ -7,12 +7,26 @@ Creating packages for OS X
 
 .. _osx_kivy-sdk-packager:
 
+Using Buildozer
+---------------
+
+    pip install buildozer
+    cd /to/where/I/Want/to/package
+    buildozer init
+
+Edit the buildozer.spec and add the details for your app.
+Then run.
+
+    buildozer osx debug
+
+That's it. Enjoy!
 
 Using the Kivy SDK
 ------------------
 
 Since version 1.9.0, Kivy is released for the OS X platform in a
 self-contained, portable distribution.
+
 Apps can be packaged and distributed with the Kivy SDK using the method
 described below, making it easier to include frameworks like SDL2 and
 GStreamer.
@@ -45,10 +59,56 @@ GStreamer.
 4. That's it, your self-contained package is ready to be deployed!
    You can now further customize your app as described bellow.
 
+Installing modules
+~~~~~~~~~~~~~~~~~~
+
+Kivy package on osx uses its own virtual env that is activated when you run your app using `kivy` command.
+To install any module you need to install the module like so::
+
+    $ kivy -m pip install <modulename>
+
+Where are the modules/files installed?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Inside the relocatable venv within the app at::
+
+    Kivy.app/Contents/Resources/venv/
+
+If you install a module that install's a binary for example like kivy-garden
+That binary will be only available from the venv above, as in after you do::
+
+    kivy -m pip install kivy-garden
+
+The garden lib will be only available when you activate this env.
+
+    source /Applications/Kivy.app/Contents/Resources/venv/bin/activate
+    garden install mapview
+    deactivate
+
+To install binary files
+~~~~~~~~~~~~~~~~~~~~~~
+
+Just copy the binary to the Kivy.app/Contents/Resources/venv/bin/ directory.
+
+To Include other frameworks
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Kivy.app comes with SDL2 and Gstreamer frameworks provided.
+To Include frameworks other than the ones provided do the following::
+
+    git clone http://github.com/tito/osxrelocator
+    export PYTHONPATH=~/path/to/osxrelocator
+    cd Kivy.app
+    python -m osxrelocator -r . /Library/Frameworks/<Framework_name>.framework/ \
+    @executable_path/../Frameworks/<Framework_name>.framework/
+
+Do not forget to replace <Framework_name> with your framework.
+This tool `osxrelocator` essentially changes the path for the
+libs in the framework such that they are relative to the executable
+within the .app. Making the Framework relocatable with the .app.
+
 
 Shrinking the app size
 ^^^^^^^^^^^^^^^^^^^^^^
-The app has a considerable size right now, however the unneeded parts can be
+The app has of considerable size right now, however the unneeded parts can be
 removed from the package.
 
 For example if you don't use GStreamer, simply remove it from
