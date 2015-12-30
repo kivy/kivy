@@ -468,7 +468,11 @@ class Widget(WidgetBase):
             `widget`: :class:`Widget`
                 Widget to add to our list of children.
             `index`: int, defaults to 0
-                Index to insert the widget in the list.
+                Index to insert the widget in the list. Notice that the default
+                of 0 means the widget is inserted at the beginning of the list
+                and will thus appear under the other widgets. For a full
+                discussion on the index and widget hierarchy, please see the
+                :doc:`Widgets Programming Guide <guide/widgets>`.
 
                 .. versionadded:: 1.0.5
             `canvas`: str, defaults to None
