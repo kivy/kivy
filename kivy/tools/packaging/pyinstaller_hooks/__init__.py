@@ -104,7 +104,7 @@ def runtime_hooks():
     ``runtime_hooks=runtime_hooks()`` in the spec file. Pyinstaller comes
     preinstalled with this hook.
     '''
-    return [join(curdir, 'rt-hook-kivy.py')]
+    return [join(curdir, 'pyi_rth_kivy.py')]
 
 
 def hookspath():
