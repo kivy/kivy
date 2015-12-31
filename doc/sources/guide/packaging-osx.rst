@@ -163,6 +163,75 @@ This should give you a compressed dmg that will further shrink the size of your 
 
 .. _osx_pyinstaller:
 
+
+Using Pyinstaller without brew
+------------------------------
+First install Kivy and it's dependencies without using homebrew as mentioned here
+http://kivy.org/docs/installation/installation.html#development-version
+
+Once you have kivy and it's deps installed then you need to install pyinstaller
+
+let's assume we use a folder like `testpackaging`::
+
+    cd testpackaging
+    git clone http://github.com/pyinstaller/pyinstaller
+    
+create a file named as touchtracer.spec in this directory and paste the following
+into it editing ::
+
+    # -*- mode: python -*-
+    
+    block_cipher = None
+    from kivy.tools.packaging.pyinstaller_hooks import get_deps_all, hookspath, runtime_hooks
+    
+    a = Analysis(['/path/to/yout/folder/containing/examples/demo/touchtracer/main.py'],
+                 pathex=['/path/to/yout/folder/containing/testpackaging'],
+                 binaries=None,
+                 win_no_prefer_redirects=False,
+                 win_private_assemblies=False,
+                 cipher=block_cipher,
+                 hookspath=hookspath(),
+                 runtime_hooks=runtime_hooks(),
+                 **get_deps_all())
+    pyz = PYZ(a.pure, a.zipped_data,
+                 cipher=block_cipher)
+    exe = EXE(pyz,
+              a.scripts,
+              exclude_binaries=True,
+              name='touchtracer',
+              debug=False,
+              strip=False,
+              upx=True,
+              console=False )
+    coll = COLLECT(exe, Tree('../kivy/examples/demo/touchtracer/'),
+                   Tree('/Library/Frameworks/SDL2_ttf.framework/Versions/A/Frameworks/FreeType.framework'),
+                   a.binaries,
+                   a.zipfiles,
+                   a.datas,
+                   strip=False,
+                   upx=True,
+                   name='touchtracer')
+    app = BUNDLE(coll,
+                 name='touchtracer.app',
+                 icon=None,
+             bundle_identifier=None)
+
+Change the paths ::
+
+    a = Analysis(['/path/to/yout/folder/containing/examples/demo/touchtracer/main.py'],
+                pathex=['/path/to/yout/folder/containing/testpackaging'],
+    ...
+    ...
+    coll = COLLECT(exe, Tree('../kivy/examples/demo/touchtracer/'),
+
+By your relevant paths, then run the following command::
+
+    pyinstaller/pyinstaller.py touchtracer.spec
+
+Replace `touchtracer` with your app where appropriate.
+This will give you a <yourapp>.app in dist/ folder.
+    
+    
 Using PyInstaller and Homebrew
 ------------------------------
 .. note::
