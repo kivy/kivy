@@ -119,10 +119,10 @@ script:
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
       if [ "${PY}" == "3" ]; then
-         echo -e "python3 setup.py build_ext --inplace";
+         python3 setup.py build_ext --inplace;
          echo -e "python3 -m nose.core kivy/tests";
       else
-         echo -e "make";
+         make;
          echo -e "make test";
       fi;
     fi;
