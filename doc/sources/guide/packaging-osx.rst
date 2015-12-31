@@ -10,14 +10,35 @@ Creating packages for OS X
 Using Buildozer
 ---------------
 
-    pip install buildozer
+    pip install git+http://github.com/kivy/buildozer
     cd /to/where/I/Want/to/package
     buildozer init
 
 Edit the buildozer.spec and add the details for your app.
+Dependencies can be added to the `requirements=` section.
+
+By default the kivy version specified in the requirements is ignored.
+
+If you have a Kivy.app at /Applications/Kivy.app then that is used,
+for packaging. Otherwise the latest build from kivy.org using Kivy
+master will be downloaded and used.
+
+If you want to package for python 3.x.x simply download the package
+named Kivy3.7z from the download sectoin of Kivy.org.
+
 Then run.
 
     buildozer osx debug
+
+Once the app is packaged, you might want to remove extra unneeded
+packages like gstreamer framework etc if you don't use video.
+Same logic implies for other things you do not use, just reduce
+the package to it's minimal state that is needed for the app to run.
+
+As a example we are including the showcase example packaged using
+this method for both python 2(10MB) and 3(16mb), you can find the
+packages here 
+https://drive.google.com/drive/folders/0B1WO07-OL50_alFzSXJUajBFdnc .
 
 That's it. Enjoy!
 
