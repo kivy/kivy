@@ -32,12 +32,12 @@ Then run.
     buildozer osx debug
 
 Once the app is packaged, you might want to remove extra un needed
-packages like gstreamer framework etc  from if you don't use video.
+packages like gstreamer framework etc from it if you don't use video.
 Same logic implies for other things you do not use, just reduce
 the package to it's minimal state that is needed for the app to run.
 
 As a example we are including the showcase example packaged using
-this method for both python 2(10MB) and 3(16mb), you can find the
+this method for both python 2(9.xMB) and 3(15.xMB), you can find the
 packages here 
 https://drive.google.com/drive/folders/0B1WO07-OL50_alFzSXJUajBFdnc .
 
@@ -158,6 +158,7 @@ To make a DMG of your app use the following command::
 
     osx> ./create-osx-dmg.sh YourApp.app
 
+Note the lack of `/` at the end.
 This should give you a compressed dmg that will further shrink the size of your distributed app.
 
 
