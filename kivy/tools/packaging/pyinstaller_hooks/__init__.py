@@ -70,7 +70,7 @@ import kivy.deps
 from kivy.factory import Factory
 
 from os import environ
-if not 'KIVY_DOC' in environ:
+if 'KIVY_DOC' not in environ:
     from PyInstaller.compat import modname_tkinter
     from PyInstaller.utils.hooks import collect_submodules
 
