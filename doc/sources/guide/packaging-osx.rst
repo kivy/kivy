@@ -43,8 +43,13 @@ https://drive.google.com/drive/folders/0B1WO07-OL50_alFzSXJUajBFdnc .
 
 That's it. Enjoy!
 
-Using the Kivy SDK
-------------------
+buildozer right now uses the Kivy sdk method to package your app.
+If you want to control more details about your app than buildozer
+currently offers then you can use the following method `using Kivy SDK`
+mentioned below.
+
+Using Kivy SDK
+--------------
 
 Since version 1.9.0, Kivy is released for the OS X platform in a
 self-contained, portable distribution.
