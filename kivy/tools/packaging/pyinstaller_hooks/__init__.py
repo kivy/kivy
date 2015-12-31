@@ -69,30 +69,32 @@ import kivy
 import kivy.deps
 from kivy.factory import Factory
 
-from PyInstaller.compat import modname_tkinter
-from PyInstaller.utils.hooks import collect_submodules
+from os import environ
+if not 'KIVY_DOC' in environ:
+    from PyInstaller.compat import modname_tkinter
+    from PyInstaller.utils.hooks import collect_submodules
 
-curdir = dirname(__file__)
+    curdir = dirname(__file__)
 
-kivy_modules = [
-    'xml.etree.cElementTree',
-    'kivy.core.gl'
-] + collect_submodules('kivy.graphics')
-'''List of kivy modules that are always needed as hiddenimports of
-pyinstaller.
-'''
+    kivy_modules = [
+        'xml.etree.cElementTree',
+        'kivy.core.gl'
+    ] + collect_submodules('kivy.graphics')
+    '''List of kivy modules that are always needed as hiddenimports of
+    pyinstaller.
+    '''
 
-excludedimports = [modname_tkinter, '_tkinter', 'twisted']
-'''List of excludedimports that should alwayys be excluded from
-pyinstaller.
-'''
+    excludedimports = [modname_tkinter, '_tkinter', 'twisted']
+    '''List of excludedimports that should alwayys be excluded from
+    pyinstaller.
+    '''
 
-datas = [
-    (kivy.kivy_data_dir,
-     os.path.join('kivy_install', os.path.basename(kivy.kivy_data_dir))),
-    (kivy.kivy_modules_dir,
-     os.path.join('kivy_install', os.path.basename(kivy.kivy_modules_dir))),
-]
+    datas = [
+        (kivy.kivy_data_dir,
+         os.path.join('kivy_install', os.path.basename(kivy.kivy_data_dir))),
+        (kivy.kivy_modules_dir,
+         os.path.join('kivy_install', os.path.basename(kivy.kivy_modules_dir))),
+    ]
 '''List of datas to be included by pyinstaller.
 '''
 
