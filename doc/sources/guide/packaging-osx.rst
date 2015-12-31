@@ -24,14 +24,15 @@ for packaging. Otherwise the latest build from kivy.org using Kivy
 master will be downloaded and used.
 
 If you want to package for python 3.x.x simply download the package
-named Kivy3.7z from the download sectoin of Kivy.org.
+named Kivy3.7z from the download sectoin of Kivy.org and extract it
+to Kivy.app in /Applications.
 
 Then run.
 
     buildozer osx debug
 
-Once the app is packaged, you might want to remove extra unneeded
-packages like gstreamer framework etc if you don't use video.
+Once the app is packaged, you might want to remove extra un needed
+packages like gstreamer framework etc  from if you don't use video.
 Same logic implies for other things you do not use, just reduce
 the package to it's minimal state that is needed for the app to run.
 
