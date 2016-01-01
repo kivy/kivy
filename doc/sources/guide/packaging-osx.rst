@@ -260,8 +260,8 @@ Complete guide
 
 #. Install Cython and Kivy::
 
-    $ pip install -I Cython==0.21.2
-    $ USE_OSX_FRAMEWORKS=0 pip install git+https://github.com/kivy/kivy.git@1.9.0
+    $ pip install -I Cython==0.23
+    $ USE_OSX_FRAMEWORKS=0 pip install kivy
 
 #. Install the development version of PyInstaller which includes fixes for the
    GStreamer hooks::
