@@ -5,10 +5,10 @@ Installation on Windows
 
 Beginning with 1.9.1 we provide binary `wheels <https://wheel.readthedocs.org/en/latest/>`_
 for Kivy and all its dependencies to be used with an existing Python installation. See
-:ref:`install-win-dist`_.
+:ref:`install-win-dist`.
 
 We also provide nightly wheels generated using Kivy `master <https://github.com/kivy/kivy>`_.
-See :ref:`install-nightly-win-dist`_. See also :ref:`upgrade-win-dist`_.
+See :ref:`install-nightly-win-dist`. See also :ref:`upgrade-win-dist`.
 
 .. warning::
 
