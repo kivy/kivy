@@ -3,16 +3,12 @@
 Installation on Windows
 =======================
 
-Beginning with 1.9.1 we provide `wheels <https://wheel.readthedocs.org/en/latest/>`_
-for Kivy and all its dependencies to be used with an existing Python installation.
-We also provide nightly wheels from Kivy `master <https://github.com/kivy/kivy>`_.
-See also :ref:`upgrade-win-dist`.
+Beginning with 1.9.1 we provide binary `wheels <https://wheel.readthedocs.org/en/latest/>`_
+for Kivy and all its dependencies to be used with an existing Python installation. See
+:ref:`install-win-dist`_.
 
-.. note::
-
-    This page represents instructions for wheels starting with 1.9.1. Until
-    1.9.1 is released the nightly wheels have to be used because stable kivy wheels
-    have not been uploaded to pypi yet.
+We also provide nightly wheels generated using Kivy `master <https://github.com/kivy/kivy>`_.
+See :ref:`install-nightly-win-dist`_. See also :ref:`upgrade-win-dist`_.
 
 .. warning::
 
@@ -71,6 +67,8 @@ version installed, permanently add the python directory to the path for
 `CMD <http://www.computerhope.com/issues/ch000549.htm>`_ for
 `bash <http://stackoverflow.com/questions/14637979/how-to-permanently-set-path-on-linux>`_.
 
+.. _install-win-dist
+
 Installation
 ------------
 
@@ -91,7 +89,9 @@ Now that python is available on the command line, which can checked by typing
 
      python -m pip install kivy
 
-That's it. You should now be able to ``import kivy`` in your python.
+That's it. You should now be able to ``import kivy`` in python.
+
+.. _install-nightly-win-dist
 
 Nightly wheel installation
 --------------------------
