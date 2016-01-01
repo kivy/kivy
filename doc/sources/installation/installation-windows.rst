@@ -67,7 +67,7 @@ version installed, permanently add the python directory to the path for
 `CMD <http://www.computerhope.com/issues/ch000549.htm>`_ for
 `bash <http://stackoverflow.com/questions/14637979/how-to-permanently-set-path-on-linux>`_.
 
-.. _install-win-dist
+.. _install-win-dist:
 
 Installation
 ------------
@@ -91,7 +91,7 @@ Now that python is available on the command line, which can checked by typing
 
 That's it. You should now be able to ``import kivy`` in python.
 
-.. _install-nightly-win-dist
+.. _install-nightly-win-dist:
 
 Nightly wheel installation
 --------------------------
@@ -227,7 +227,7 @@ You can launch a .py file with our Python using the Send-to menu:
 You can now execute your application by right clicking on the .py file ->
 "Send To" -> "python <python-version>".
 
-.. _upgrade-win-dist
+.. _upgrade-win-dist:
 
 Upgrading from a previous Kivy dist
 -----------------------------------
