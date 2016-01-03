@@ -101,7 +101,7 @@ class FocusBehavior(object):
     '''Provides keyboard focus behavior. When combined with other
     FocusBehavior widgets it allows one to cycle focus among them by pressing
     tab. Please see the
-    :mod:`Focus behavior module documentation <kivy.uix.behaviors.focus>`
+    :mod:`focus behavior module documentation <kivy.uix.behaviors.focus>`
     for more information.
 
     .. versionadded:: 1.9.0
