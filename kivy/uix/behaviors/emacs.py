@@ -3,7 +3,7 @@
 Emacs Behavior
 ==============
 
-.. versionadded:: 1.9.2
+.. versionadded:: 1.9.1
 
 This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ allows you to add
 `Emacs <https://www.gnu.org/software/emacs/>`_ keyboard shortcuts for basic
