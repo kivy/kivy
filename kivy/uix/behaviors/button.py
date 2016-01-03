@@ -54,7 +54,9 @@ from kivy.logger import Logger
 
 class ButtonBehavior(object):
     '''
-    Provides :class:`~kivy.uix.button.Button` behavior.
+    Provides :class:`~kivy.uix.button.Button` behavior. Please see the
+    :mod:`button behaviors module <kivy.uix.behaviors.button>` documentation
+    for more information.
 
     :Events:
         `on_press`
@@ -62,6 +64,7 @@ class ButtonBehavior(object):
         `on_release`
             Fired when the button is released (i.e. the touch/click that
             pressed the button goes away).
+
     '''
 
     state = OptionProperty('normal', options=('normal', 'down'))
