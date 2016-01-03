@@ -15,6 +15,9 @@ have the focus of one keyboard. However, multiple keyboards can focus
 simultaneously on different widgets. When escape is hit, the widget having
 the focus of that keyboard will de-focus.
 
+Managing focus
+--------------
+
 In essence, focus is implemented as a doubly linked list, where each
 node holds a (weak) reference to the instance before it and after it,
 as visualized when cycling through the nodes using tab (forward) or
@@ -43,6 +46,30 @@ keyboard display behavior is determined by the
 :attr:`~kivy.core.window.WindowBase.softinput_mode` property. You can use
 this property to ensure the focused widget is not covered or obscured by the
 keyboard.
+
+Initializing focus
+------------------
+
+Widgets needs to be visible before they can receive the focus. This means that
+setting their *focus* property to True before they are visible will have no
+effect. To initialize focus, you can use the 'on_parent' event::
+
+    from kivy.app import App
+    from kivy.uix.textinput import TextInput
+
+
+    class MyTextInput(TextInput):
+        def on_parent(self, widget, parent):
+            self.focus = True
+
+
+    class SampleApp(App):
+        def build(self):
+            return MyTextInput()
+
+    SampleApp().run()
+
+If you are using a :class:`~kivy.uix.popup`, you can use the 'on_enter' event.
 
 For an overview of behaviors, please refer to the :mod:`~kivy.uix.behaviors`
 documentation.
