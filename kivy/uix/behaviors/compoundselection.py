@@ -1,4 +1,62 @@
-'''See :class:`CompoundSelectionBehavior` for more details.
+'''
+Compound Selection Behavior
+===========================
+
+The :class:`~kivy.uix.behaviors.compoundselection.CompoundSelectionBehavior`
+`mixin <https://en.wikipedia.org/wiki/Mixin>`_ class implements the logic
+behind keyboard and touch selection of selectable widgets managed by the
+derived widget. For example, it can be combined with a
+:class:`~kivy.uix.gridlayout.GridLayout` to add selection to the layout.
+
+At its core, it keeps a dynamic list of widgets that can be selected.
+Then, as the touches and keyboard input are passed in, it selects one or
+more of the widgets based on these inputs. For example, it uses the mouse
+scroll and keyboard up/down buttons to scroll through the list of widgets.
+Multiselection can also be achieved using the keyboard shift and ctrl keys.
+Finally, in addition to the up/down type keyboard inputs, it can also
+accepts letters from the keyboard to be used to select nodes with
+associated strings that start with those letters, similar to how files
+are selected by a file browser.
+
+When the controller needs to select a node, it calls :meth:`select_node` and
+:meth:`deselect_node`. Therefore, they must be overwritten in order alter
+node selection. By default, the class doesn't listen for keyboard or
+touch events, so the derived widget must call
+:meth:`select_with_touch`, :meth:`select_with_key_down`, and
+:meth:`select_with_key_up` on events that it wants to pass on for selection
+purposes.
+
+Example
+-------
+
+To add selection to a grid layout which will contain
+:class:`~kivy.uix.Button` widgets::
+
+    class SelectableGrid(CompoundSelectionBehavior, GridLayout):
+
+        def __init__(self, **kwargs):
+            super(CompoundSelectionBehavior, self).__init__(**kwargs)
+            keyboard = Window.request_keyboard(None, self)
+            keyboard.bind(on_key_down=self.select_with_key_down,
+            on_key_up=self.select_with_key_up)
+
+        def select_node(self, node):
+            node.background_color = (1, 0, 0, 1)
+            return super(CompoundSelectionBehavior, self).select_node(node)
+
+        def deselect_node(self, node):
+            node.background_color = (1, 1, 1, 1)
+            super(CompoundSelectionBehavior, self).deselect_node(node)
+
+Then, for each button added to the layout, bind the
+:attr:`~kivy.uix.widget.Widget.on_touch_down` of the button
+to :meth:`select_with_touch` to pass on the touch events.
+
+.. warning::
+
+    This code is still experimental, and its API is subject to change in a
+    future version.
+
 '''
 
 __all__ = ('CompoundSelectionBehavior', )
@@ -11,56 +69,12 @@ import string
 class CompoundSelectionBehavior(object):
     '''The Selection behavior `mixin <https://en.wikipedia.org/wiki/Mixin>`_
     implements the logic behind keyboard and touch
-    selection of selectable widgets managed by the derived widget.
-    For example, it could be combined with a
-    :class:`~kivy.uix.gridlayout.GridLayout` to add selection to the layout.
-
-    At its core, it keeps a dynamic list of widgets that can be selected.
-    Then, as the touches and keyboard input are passed in, it selects one or
-    more of the widgets based on these inputs. For example, it uses the mouse
-    scroll and keyboard up/down buttons to scroll through the list of widgets.
-    Multiselection can also be achieved using the keyboard shift and ctrl keys.
-    Finally, in addition to the up/down type keyboard inputs, it can also
-    accepts letters from the kayboard to be used to select nodes with
-    associated strings that start with those letters, similar to how files
-    are selected by a file browser.
-
-    When the controller needs to select a node it calls :meth:`select_node` and
-    :meth:`deselect_node`. Therefore, they must be overwritten in order affect
-    the selected nodes. By default, the class doesn't listen to keyboard and
-    touch events, therefore, the derived widget must call
-    :meth:`select_with_touch`, :meth:`select_with_key_down`, and
-    :meth:`select_with_key_up` on events that it wants to pass on for selection
-    purposes.
-
-    For example, to add selection to a grid layout which will contain
-    :class:`~kivy.uix.Button` widgets::
-
-        class SelectableGrid(CompoundSelectionBehavior, GridLayout):
-
-            def __init__(self, **kwargs):
-                super(CompoundSelectionBehavior, self).__init__(**kwargs)
-                keyboard = Window.request_keyboard(None, self)
-                keyboard.bind(on_key_down=self.select_with_key_down,
-                on_key_up=self.select_with_key_up)
-
-            def select_node(self, node):
-                node.background_color = (1, 0, 0, 1)
-                return super(CompoundSelectionBehavior, self).select_node(node)
-
-            def deselect_node(self, node):
-                node.background_color = (1, 1, 1, 1)
-                super(CompoundSelectionBehavior, self).deselect_node(node)
-
-    Then, for each button added to the layout, bind on_touch_down of the button
-    to :meth:`select_with_touch` to pass on the touch events.
+    selection of selectable widgets managed by the derived widget. Please see
+    the :mod:`compound selection behaviors module
+    <kivy.uix.behaviors.compoundselection>` documentation
+    for more information.
 
     .. versionadded:: 1.9.0
-
-    .. warning::
-
-        This code is still experimental, and its API is subject to change in a
-        future version.
     '''
 
     selected_nodes = ListProperty([])
