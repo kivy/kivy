@@ -129,15 +129,10 @@ class VideoFFPy(VideoBase):
     def _set_position(self, pos):
         self.seek(pos)
 
-    def _get_volume(self):
-        if self._ffplayer is not None:
-            self._volume = self._ffplayer.get_volume()
-        return self._volume
-
     def _set_volume(self, volume):
         self._volume = volume
-        if self._ffplayer is not None:
-            self._ffplayer.set_volume(volume)
+        if self._ffplayer:
+            self._ffplayer.set_volume(self._volume)
 
     def _get_duration(self):
         if self._ffplayer is None:
@@ -303,6 +298,7 @@ class VideoFFPy(VideoBase):
                 self._filename, callback=self._callback_ref,
                 thread_lib='SDL',
                 loglevel='info', ff_opts=ff_opts)
+        self._ffplayer.set_volume(self._volume)
 
         self._thread = Thread(target=self._next_frame_run, name='Next frame')
         self._thread.daemon = True

@@ -27,7 +27,7 @@ pass an instance to the :class:`InteractiveLauncher` constructor.::
 
     class MyApp(App):
         def build(self):
-            return Button(test='Hello Shell')
+            return Button(text='Hello Shell')
 
     launcher = InteractiveLauncher(MyApp())
     launcher.run()

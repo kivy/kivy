@@ -97,9 +97,6 @@ class VideoGstplayer(VideoBase):
     def _get_duration(self):
         return self.player.get_duration()
 
-    def _get_volume(self):
-        return self._volume
-
     def _set_volume(self, value):
         self._volume = value
         if self.player:

@@ -40,9 +40,13 @@ class StorageTestCase(unittest.TestCase):
             return
         try:
             from kivy.storage.redisstore import RedisStore
-            params = dict(db=15)
-            self._do_store_test_empty(RedisStore(params))
-            self._do_store_test_filled(RedisStore(params))
+            from redis.exceptions import ConnectionError
+            try:
+                params = dict(db=15)
+                self._do_store_test_empty(RedisStore(params))
+                self._do_store_test_filled(RedisStore(params))
+            except ConnectionError:
+                pass
         except ImportError:
             pass
 

@@ -4,7 +4,7 @@ Settings
 
 .. versionadded:: 1.0.7
 
-This module is a complete and extensible framework for adding a
+This module provides a complete and extensible framework for adding a
 Settings interface to your application. By default, the interface uses
 a :class:`SettingsWithSpinner`, which consists of a
 :class:`~kivy.uix.spinner.Spinner` (top) to switch between individual
@@ -16,14 +16,14 @@ alternatives.
 
 A :class:`SettingsPanel` represents a group of configurable options. The
 :attr:`SettingsPanel.title` property is used by :class:`Settings` when a panel
-is added - it determines the name of the sidebar button. SettingsPanel controls
+is added: it determines the name of the sidebar button. SettingsPanel controls
 a :class:`~kivy.config.ConfigParser` instance.
 
 The panel can be automatically constructed from a JSON definition file: you
 describe the settings you want and corresponding sections/keys in the
 ConfigParser instance... and you're done!
 
-Settings are also integrated with the :class:`~kivy.app.App` class. Use
+Settings are also integrated into the :class:`~kivy.app.App` class. Use
 :meth:`Settings.add_kivy_panel` to configure the Kivy core settings in a panel.
 
 
@@ -44,7 +44,8 @@ To create a panel from a JSON-file, you need two things:
 
 You must create and handle the :class:`~kivy.config.ConfigParser`
 object. SettingsPanel will read the values from the associated
-ConfigParser instance. Make sure you have default values for all sections/keys
+ConfigParser instance. Make sure you have set default values (using
+:attr:`~kivy.config.ConfigParser.setdefaults`) for all the sections/keys
 in your JSON file!
 
 The JSON file contains structured information to describe the available
@@ -154,6 +155,9 @@ interface to display. See the documentation for
 optionally dispatch an on_close event, for instance if a close button
 is clicked. This event is used by :class:`Settings` to trigger its own
 on_close event.
+
+For a complete, working example, please see
+:file:`kivy/examples/settings/main.py`.
 
 '''
 
@@ -583,6 +587,8 @@ class SettingTitle(Label):
 
     title = Label.text
 
+    panel = ObjectProperty(None)
+
 
 class SettingsPanel(GridLayout):
     '''This class is used to contruct panel settings, for use with a
@@ -605,7 +611,8 @@ class SettingsPanel(GridLayout):
     '''
 
     def __init__(self, **kwargs):
-        kwargs.setdefault('cols', 1)
+        if 'cols' not in kwargs:
+            self.cols = 1
         super(SettingsPanel, self).__init__(**kwargs)
 
     def on_config(self, instance, value):
@@ -883,7 +890,7 @@ class Settings(BoxLayout):
 
     :attr:`interface_cls` is an
     :class:`~kivy.properties.ObjectProperty` and defaults to
-    :class`InterfaceWithSidebar`.
+    :class:`InterfaceWithSidebar`.
 
     .. versionchanged:: 1.8.0
         If you set a string, the :class:`~kivy.factory.Factory` will be used to

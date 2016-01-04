@@ -610,7 +610,8 @@ class ScatterPlane(Scatter):
     '''
 
     def __init__(self, **kwargs):
-        kwargs.setdefault('auto_bring_to_front', False)
+        if 'auto_bring_to_front' not in kwargs:
+            self.auto_bring_to_front = False
         super(ScatterPlane, self).__init__(**kwargs)
 
     def collide_point(self, x, y):

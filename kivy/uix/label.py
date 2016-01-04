@@ -134,7 +134,7 @@ Then you can write::
 
     "[size=24]Hello &bl;World&bt;[/size]"
 
-Interactive Zone in Text
+Interactive zone in text
 ------------------------
 
 .. versionadded:: 1.1.0
@@ -156,6 +156,24 @@ For prettier rendering, you could add a color for the reference. Replace the
 ``text=`` in the previous example with::
 
     'Hello [ref=world][color=0000ff]World[/color][/ref]'
+
+Catering for Unicode languages
+------------------------------
+
+The font kivy uses does not contain all the characters required for displaying
+all languages. When you use the built-in widgets, this results in a block being
+drawn where you expect a character.
+
+If you want to display such characters, you can chose a font that supports them
+and deploy it universally via kv:
+
+.. code-block:: kv
+
+    <Label>:
+        -font_name: '/<path>/<to>/<font>'
+
+Note that this needs to be done before your widgets are loaded as kv rules are
+only applied at load time.
 
 Usage example
 -------------

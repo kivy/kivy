@@ -24,6 +24,7 @@ Don't use it unless you know what you are doing.
 
 __all__ = ('Sandbox', )
 
+from functools import wraps
 from kivy.context import Context
 from kivy.base import ExceptionManagerBase
 from kivy.clock import Clock
@@ -34,6 +35,7 @@ from kivy.lang import Builder
 
 
 def sandbox(f):
+    @wraps(f)
     def _f2(self, *args, **kwargs):
         ret = None
         with self:

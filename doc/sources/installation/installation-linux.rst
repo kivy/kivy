@@ -19,7 +19,9 @@ Ubuntu / Kubuntu / Xubuntu / Lubuntu (Saucy and above)
     :nightly builds:
         $ sudo add-apt-repository ppa:kivy-team/kivy-daily
 
-#. Update your packagelist using your package manager
+#. Update your package list using your package manager
+    $ sudo apt-get update
+
 #. Install Kivy
 
     :Python2 - **python-kivy**:
@@ -96,7 +98,7 @@ OpenSuSE
 
 #. To install kivy go to http://software.opensuse.org/package/python-Kivy and use the "1 Click Install" for your openSuse version. You might need to make the latest kivy version appear in the list by clicking on "Show unstable packages". We prefer to use packages by " devel:languages:python".
 
-#. If you would like access to the examples, please select **python-Kivy-examples** in the upcomming installation wizard.
+#. If you would like access to the examples, please select **python-Kivy-examples** in the upcoming installation wizard.
 
 
 Fedora
@@ -143,7 +145,7 @@ Gentoo
 
 
 *Installation in a Virtual Environment*
-=================================================================
+=======================================
 
 
 Common dependencies
@@ -151,7 +153,7 @@ Common dependencies
 
 
 Cython
--------
+------
 
 
 Different versions of Kivy have only been tested up to a certain Cython version.
@@ -166,12 +168,12 @@ Kivy       Cython
 ========   =============
 
 
-*System dependencies with modern SDL2*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*Dependencies with SDL2*
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Ubuntu example
-------------------------------
+--------------
 
 
 ::
@@ -180,22 +182,28 @@ Ubuntu example
     sudo apt-get install -y \
         python-pip \
         build-essential \
-        mercurial \
         git \
         python \
         python-dev \
         ffmpeg \
         libsdl2-dev \
-        libsdl2-gfx-dev \
         libsdl2-image-dev \
         libsdl2-mixer-dev \
-        libsdl2-net-dev \
         libsdl2-ttf-dev \
         libportmidi-dev \
         libswscale-dev \
         libavformat-dev \
         libavcodec-dev \
         zlib1g-dev
+
+**Note:**  Depending on your Linux version, you may receive error messages related to the "ffmpeg" package.
+In this scenario, use "libav-tools \" in place of "ffmpeg \" (above), or use a PPA (as shown below):
+
+::
+
+- sudo add-apt-repository ppa:mc3man/trusty-media
+- sudo apt-get update
+- sudo apt-get install ffmpeg
 
 
 Installation
@@ -234,7 +242,7 @@ If you want to use Python 3 you install "python3" and "python3-dev" and then pas
 
 
 Ubuntu example
-------------------------------
+--------------
 
 
 ::
@@ -323,8 +331,8 @@ Installation
     # export USE_SDL2=0. If kivy's setup can't find sdl2 libs it will
     # automatically set this value to 0 then try to build using pygame.
     pip install hg+http://bitbucket.org/pygame/pygame
-    
-    
+
+
 
     # Install stable version of Kivy into the virtualenv
     pip install kivy
@@ -353,7 +361,7 @@ Install additional Virtualenv packages
 *Start from the Command Line*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We ship some examples that are ready-to-run. However, theses examples are packaged inside the package.
+We ship some examples that are ready-to-run. However, these examples are packaged inside the package.
 This means you must first know where easy_install has installed your current kivy package,
 and then go to the examples directory::
 

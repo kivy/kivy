@@ -157,7 +157,7 @@ class Picture(Scatter):
         with self.ids.img.canvas.after:
             ud['color'] = Color(*_app.color_selector.color, group=g)
             ud['lines'] = Point(points=(_pos),
-                            source='../examples/demo/touchtracer/particle.png',
+                            source='../demo/touchtracer/particle.png',
                             pointsize=5, group=g)
         touch.grab(self)
         return True

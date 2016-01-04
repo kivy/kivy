@@ -148,6 +148,8 @@ class LabelBase(object):
 
     _fonts_dirs = []
 
+    _font_dirs_files = []
+
     _texture_1px = None
 
     def __init__(
@@ -287,11 +289,15 @@ class LabelBase(object):
             fdirs.append(kivy_data_dir + os.sep + 'fonts')
             # let's register the font dirs
             rdirs = []
-            for _dir in fdirs:
-                if os.path.exists(_dir):
+            _font_dir_files = []
+            for fdir in fdirs:
+                for _dir, dirs, files in os.walk(fdir):
+                    _font_dir_files.extend(files)
                     resource_add_path(_dir)
                     rdirs.append(_dir)
             LabelBase._fonts_dirs = rdirs
+            LabelBase._font_dirs_files = _font_dir_files
+
             return rdirs
         raise Exception("Unknown Platform {}".format(platform))
 
@@ -742,7 +748,7 @@ else:
     label_libs += [('pygame', 'text_pygame', 'LabelPygame')]
 label_libs += [
     ('pil', 'text_pil', 'LabelPIL')]
-Label = core_select_lib('text', label_libs)
+Text = Label = core_select_lib('text', label_libs)
 
 if 'KIVY_DOC' not in os.environ:
     if not Label:

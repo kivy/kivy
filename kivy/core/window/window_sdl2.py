@@ -211,7 +211,6 @@ class WindowSDL(WindowBase):
                 self.fullscreen = self._fake_fullscreen = False
             elif not self.fullscreen or self.fullscreen == 'auto':
                 self.borderless = self._fake_fullscreen = False
-
         if self.fullscreen == 'fake':
             self.borderless = self._fake_fullscreen = True
             Logger.warning("The 'fake' fullscreen option has been "
@@ -228,7 +227,7 @@ class WindowSDL(WindowBase):
             # ensure we have an event filter
             self._win.set_event_filter(self._event_filter)
 
-            # setup !
+            # setup window
             w, h = self.system_size
             resizable = Config.getboolean('graphics', 'resizable')
             state = (Config.get('graphics', 'window_state')
@@ -255,8 +254,7 @@ class WindowSDL(WindowBase):
 
         super(WindowSDL, self).create_window()
         # set mouse visibility
-        self._win.show_cursor(
-            Config.getboolean('graphics', 'show_cursor'))
+        self._set_cursor_state(self.show_cursor)
 
         if self.initialized:
             return
@@ -352,6 +350,9 @@ class WindowSDL(WindowBase):
         self._win.flip()
         super(WindowSDL, self).flip()
 
+    def _set_cursor_state(self, value):
+        self._win._set_cursor_state(value)
+
     def _fix_mouse_pos(self, x, y):
         y -= 1
         self.mouse_pos = x, self.system_size[1] - y
@@ -393,7 +394,7 @@ class WindowSDL(WindowBase):
                 # We have a conflict of using either the mouse or the finger.
                 # Right now, we have no mechanism that we could use to know
                 # which is the preferred one for the application.
-                if platform == "ios":
+                if platform in ('ios', 'android'):
                     SDL2MotionEventProvider.q.appendleft(event)
                 pass
 
@@ -470,6 +471,12 @@ class WindowSDL(WindowBase):
             elif action == 'windowminimized':
                 if Config.getboolean('kivy', 'pause_on_minimize'):
                     self.do_pause()
+
+            elif action == 'windowenter':
+                self.dispatch('on_cursor_enter')
+
+            elif action == 'windowleave':
+                self.dispatch('on_cursor_leave')
 
             elif action == 'joyaxismotion':
                 stickid, axisid, value = args
@@ -551,6 +558,12 @@ class WindowSDL(WindowBase):
             elif action == 'textinput':
                 text = args[0]
                 self.dispatch('on_textinput', text)
+
+            elif action == 'windowfocusgained':
+                self.focus = True
+
+            elif action == 'windowfocuslost':
+                self.focus = False
 
             # unhandled event !
             else:

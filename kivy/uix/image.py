@@ -26,11 +26,8 @@ By default, the image is centered and fits inside the widget bounding box.
 If you don't want that, you can set `allow_stretch` to True and `keep_ratio`
 to False.
 
-You can also inherit from Image and create your own style.
-
-
-For example, if you want your image to be greater than,the size of your widget,
-you could do::
+You can also inherit from Image and create your own style. For example, if you
+want your image to be greater than the size of your widget, you could do::
 
     class FullImage(Image):
         pass
@@ -47,7 +44,6 @@ And in your kivy language file::
                 pos: self.x - 10, self.y - 10
 
 '''
-
 __all__ = ('Image', 'AsyncImage')
 
 from kivy.uix.widget import Widget
@@ -81,7 +77,7 @@ class Image(Widget):
     :class:`~kivy.graphics.texture.Texture` or a
     :class:`~kivy.graphics.texture.TextureRegion` object.
 
-    :attr:`texture` is a :class:`~kivy.properties.ObjectProperty` and defaults
+    :attr:`texture` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
     '''
 
@@ -114,7 +110,7 @@ class Image(Widget):
     image_ratio = AliasProperty(get_image_ratio, None, bind=('texture', ))
     '''Ratio of the image (width / float(height).
 
-    :attr:`image_ratio` is a :class:`~kivy.properties.AliasProperty` and is
+    :attr:`image_ratio` is an :class:`~kivy.properties.AliasProperty` and is
     read-only.
     '''
 
@@ -178,8 +174,8 @@ class Image(Widget):
 
     .. versionadded:: 1.9.0
 
-    :attr:`anim_loop` is a :class:`~kivy.properties.NumericProperty` defaults
-    to 0.
+    :attr:`anim_loop` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.
     '''
 
     nocache = BooleanProperty(False)
@@ -227,8 +223,8 @@ class Image(Widget):
     This size will always fit the widget size and will preserve the image
     ratio.
 
-    :attr:`norm_image_size` is a :class:`~kivy.properties.AliasProperty` and is
-    read-only.
+    :attr:`norm_image_size` is an :class:`~kivy.properties.AliasProperty` and
+    is read-only.
     '''
 
     def __init__(self, **kwargs):
@@ -241,6 +237,7 @@ class Image(Widget):
         fbind('mipmap', update)
         if self.source:
             update()
+        self.on_anim_delay(self, kwargs.get('anim_delay', .25))
 
     def texture_update(self, *largs):
         if not self.source:
@@ -339,6 +336,7 @@ class AsyncImage(Image):
         self.fbind('source', self._load_source)
         if self.source:
             self._load_source()
+        self.on_anim_delay(self, kwargs.get('anim_delay', .25))
 
     def _load_source(self, *args):
         source = self.source
@@ -353,6 +351,7 @@ class AsyncImage(Image):
             self._coreimage = image = Loader.image(source,
                 nocache=self.nocache, mipmap=self.mipmap,
                 anim_delay=self.anim_delay)
+
             image.bind(on_load=self._on_source_load)
             image.bind(on_texture=self._on_tex_change)
             self.texture = image.texture

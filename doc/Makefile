@@ -138,6 +138,7 @@ endif
 pdf: latex
 	rm -f build$(P)latex$(P)Kivy.pdf
 	-$(MAKE) -C build$(P)latex all-pdf LATEXOPTS=$(LATEXOPTS$(_TESTS))
+
 ifneq ("$(wildcard build$(P)latex$(P)Kivy.pdf)","")
 	@echo
 	@echo "Build finished; the PDF file(s) are in build/latex."

@@ -47,7 +47,7 @@ GL Reloading mechanism
 During the lifetime of the application, the OpenGL context might be lost. This
 happens:
 
-- when the window is resized on MacOSX or the Windows platform and you're
+- when the window is resized on OS X or the Windows platform and you're
   using pygame as a window provider. This is due to SDL 1.2. In the SDL 1.2
   design, it needs to recreate a GL context everytime the window is
   resized. This was fixed in SDL 1.3 but pygame is not yet available on it

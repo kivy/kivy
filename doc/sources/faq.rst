@@ -49,65 +49,6 @@ using it. In the kivy directory, do::
 
     make force
 
-Pip installation failed
-~~~~~~~~~~~~~~~~~~~~~~~
-
-Installing Kivy using Pip is not currently supported. Because Pip forces the
-usage of setuptools, setuptools hacks build_ext to use pyrex for generating .c,
-meaning there is no clean solution to hack against both weird behaviors to use
-Cython. (Reference: http://mail.scipy.org/pipermail/nipy-devel/2011-March/005709.html)
-
-Solution: use `easy_install`, as our documentation said.
-
-.. _gstreamer-compatibility:
-
-GStreamer compatibility
-~~~~~~~~~~~~~~~~~~~~~~~
-
-Starting from 1.8.0 version, Kivy now use by default the Gi bindings, on the
-platforms that have Gi. We are still in a transition, as Gstreamer 0.10 is now
-unmaintained by the Gstreamer team. But 1.0 is not accessible with Python
-everywhere. Here is the compatibility table you can use.
-
-    ================= ======== ====== =========================================
-    Gstreamer version Bindings Status Remarks
-    ----------------- -------- ------ -----------------------------------------
-    0.10              pygst    Works  Lot of issues remain with 0.10
-    0.10              gi       Buggy  Internal issues with pygobject, and video
-                                      doesn't play.
-    1.0               pygst    -      No pygst bindings exists for 1.0
-    1.0               gi       Works* Linux: works
-                                      OSX: works with brew
-                                      Windows: No python bindings available
-    ================= ======== ====== =========================================
-
-Also, we have no reliable way to check if you have 1.0 installed on your
-system. Trying to import gi, and then pygst, will fail.
-
-So currently:
-
-- if you are on Windows: stay on Gstreamer 0.10 with pygst.
-- if you are on OSX/Linux: install Gstreamer 1.0.x
-- if you are on OSX/Linux and doesn't want to install 1.0:
-  `export KIVY_VIDEO=pygst`
-
-If you are on OSX, Brew now have `pygobject3`. You must install it, and
-re-install gstreamer with introspection options::
-
-    $ brew install pygobject3
-    $ brew install gstreamer --with-gobject-introspection
-    $ brew install gst-plugins-base --with-gobject-introspection
-    $ brew install gst-plugins-good --with-gobject-introspection
-    $ brew install gst-plugins-bad --with-gobject-introspection
-    $ brew install gst-plugins-ugly --with-gobject-introspection
-
-    # then add the gi into your PYTHONPATH (as they don't do it for you)
-    $ export PYTHONPATH=$PYTHONPATH:/usr/local/opt/pygobject3/lib/python2.7/site-packages
-
-    # test it
-    $ python -c 'import gi; from gi.repository import Gst; print Gst.version()'
-    (1L, 2L, 1L, 0L)
-
 
 Android FAQ
 -----------
@@ -146,11 +87,11 @@ lines to the xml configuration, and you're done.
 What's the difference between python-for-android from Kivy and SL4A?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Despite having the same name, Kivy's python-for-android is not related to the 
-python-for-android project from SL4A, Py4A, or android-python27. They are 
-distinctly different projects with different goals. You may be able to use 
-Py4A with Kivy, but no code or effort has been made to do so. The Kivy team 
-feels that our python-for-android is the best solution for us going forward, 
+Despite having the same name, Kivy's python-for-android is not related to the
+python-for-android project from SL4A, Py4A, or android-python27. They are
+distinctly different projects with different goals. You may be able to use
+Py4A with Kivy, but no code or effort has been made to do so. The Kivy team
+feels that our python-for-android is the best solution for us going forward,
 and attempts to integrate with and support Py4A is not a good use of our time.
 
 
@@ -193,7 +134,7 @@ you and implemented the portions of our code, where efficiency really
 is critical, on the C level.
 
 For graphics drawing, we also leverage today's GPUs which are, for
-some tasks such as graphics rasterization, much more efficent than a
+some tasks such as graphics rasterization, much more efficient than a
 CPU. Kivy does as much as is reasonable on the GPU to maximize
 performance. If you use our Canvas API to do the drawing, there is
 even a compiler that we invented which optimizes your drawing code
@@ -210,7 +151,7 @@ But even if this is not sufficient, you still have the option of using
 Cython for your own code to *greatly* speed it up.
 
 Trust us when we say that we have given this very careful thought.
-We have performed many different benchmarks and come up with some 
+We have performed many different benchmarks and come up with some
 clever optimizations to make your application run smoothly.
 
 
@@ -246,7 +187,7 @@ still is) a project named PyMT that was led by our core developers.
 We learned a great deal from that project during the time that we
 developed it. In the more than two years of research and development
 we found many interesting ways to improve the design of our
-framework. We have performed numerous benchmarks and as it turns out, 
+framework. We have performed numerous benchmarks and as it turns out,
 to achieve the great speed and flexibility that Kivy has, we had to
 rewrite quite a big portion of the codebase, making this a
 backwards-incompatible but future-proof decision.
@@ -320,4 +261,3 @@ Here's a checklist:
   asking, it might not be well received.
 
 Good luck! :-)
-

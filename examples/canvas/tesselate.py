@@ -114,7 +114,7 @@ class ShapeBuilder(FloatLayout):
                     Color(c, 1, 1, mode="hsv")
                     c += 0.3
                     indices = [0]
-                    for i in range(1, len(vertices) / 4):
+                    for i in range(1, len(vertices) // 4):
                         if i > 0:
                             indices.append(i)
                         indices.append(i)

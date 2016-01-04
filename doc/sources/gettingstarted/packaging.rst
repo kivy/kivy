@@ -5,10 +5,9 @@ Packaging
     - :ref:`packaging-windows-requirements`
     - :ref:`Create-the-spec-file`
     - :ref:`Build-the-spec`
-- :doc:`/guide/packaging-macosx`
-    - :ref:`mac_osx_requirements`
-    - :ref:`mac_Create-the-spec-file`
-    - :ref:`Build the spec and create DMG`
+- :doc:`/guide/packaging-osx`
+    - :ref:`osx_kivy-sdk-packager`
+    - :ref:`osx_pyinstaller`
 - :doc:`/guide/packaging-android`
     - :ref:`Packaging your application into APK`
     - :ref:`Packaging your application for Kivy Launcher`
@@ -18,4 +17,3 @@ Packaging
     - :ref:`Customize`
     - :ref:`Known issues`
     - :ref:`ios_packaging_faq`
-

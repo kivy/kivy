@@ -8,30 +8,29 @@ Text Input
 .. image:: images/textinput-mono.jpg
 .. image:: images/textinput-multi.jpg
 
-The :class:`TextInput` widget provides a box of editable plain text.
+The :class:`TextInput` widget provides a box for editable plain text.
 
 Unicode, multiline, cursor navigation, selection and clipboard features
 are supported.
 
-.. note::
+The :class:`TextInput` uses two different coordinate systems:
 
-    Two different coordinate systems are used with TextInput:
-
-        - (x, y) - coordinates in pixels, mostly used for rendering on screen.
-        - (row, col) - cursor index in characters / lines, used for selection
-          and cursor movement.
+* (x, y) - coordinates in pixels, mostly used for rendering on screen.
+* (row, col) - cursor index in characters / lines, used for selection
+  and cursor movement.
 
 
 Usage example
 -------------
 
-To create a multiline textinput ('enter' key adds a new line)::
+To create a multiline :class:`TextInput` (the 'enter' key adds a new line)::
 
     from kivy.uix.textinput import TextInput
     textinput = TextInput(text='Hello world')
 
-To create a singleline textinput, set the multiline property to False ('enter'
-key will defocus the textinput and emit on_text_validate event)::
+To create a singleline :class:`TextInput`, set the :class:`TextInput.multiline`
+property to False (the 'enter' key will defocus the TextInput and emit an
+'on_text_validate' event)::
 
     def on_enter(instance, value):
         print('User pressed enter in', instance)
@@ -39,7 +38,7 @@ key will defocus the textinput and emit on_text_validate event)::
     textinput = TextInput(text='Hello world', multiline=False)
     textinput.bind(on_text_validate=on_enter)
 
-The textinput's text is stored on its :attr:`TextInput.text` property. To run a
+The textinput's text is stored in its :attr:`TextInput.text` property. To run a
 callback when the text changes::
 
     def on_text(instance, value):
@@ -48,8 +47,9 @@ callback when the text changes::
     textinput = TextInput()
     textinput.bind(text=on_text)
 
-You can 'focus' a textinput, meaning that the input box will be highlighted
-and keyboard focus will be requested::
+You can set the :class:`focus <kivy.uix.behaviors.FocusBehavior>` to a
+Textinput, meaning that the input box will be highlighted and keyboard focus
+will be requested::
 
     textinput = TextInput(focus=True)
 
@@ -66,8 +66,8 @@ get notified of focus changes::
     textinput = TextInput()
     textinput.bind(focus=on_focus)
 
-See :class:`~kivy.uix.behaviors.FocusBehavior` from which :class:`TextInput`
-inherits for more details.
+See :class:`~kivy.uix.behaviors.FocusBehavior`, from which the
+:class:`TextInput` inherits, for more details.
 
 
 Selection
@@ -133,6 +133,10 @@ Control + a     Select all the content
 Control + z     undo
 Control + r     redo
 =============== ========================================================
+
+.. note::
+    To enable Emacs-style keyboard shortcuts, you can use
+    :class:`~kivy.uix.behaviors.emacs.EmacsBehavior`.
 
 '''
 
@@ -2954,6 +2958,14 @@ class TextInput(FocusBehavior, Widget):
 
     :attr:`minimum_height` is a readonly
     :class:`~kivy.properties.AliasProperty`.
+
+    .. warning::
+        :attr:`minimum_width` is calculated based on :attr:`width` therefore
+        code like this will lead to an infinite loop::
+
+            <FancyTextInput>:
+                height: self.minimum_height
+                width: self.height
     '''
 
     line_spacing = NumericProperty(0)

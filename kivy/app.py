@@ -53,6 +53,7 @@ See :file:`kivy/examples/application/app_with_kv.py`.
 The relationship between main.py and test.kv is explained in
 :meth:`App.load_kv`.
 
+.. _Application configuration:
 
 Application configuration
 -------------------------
@@ -73,8 +74,9 @@ the section key-value pair to the :meth:`App.build_config` method using the
             })
 
 As soon as you add one section to the config, a file is created on the
-disk and named based your class name. "TestApp" will give
-a config file named "test.ini" with the content::
+disk (see :attr:`~App.get_application_config` for its location) and
+named based your class name. "TestApp" will give a config file named
+"test.ini" with the content::
 
     [section1]
     key1 = value1
@@ -324,6 +326,7 @@ from kivy.resources import resource_find
 from kivy.utils import platform as core_platform
 from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty, StringProperty
+from kivy.setupconfig import USE_SDL2
 
 
 platform = core_platform
@@ -1021,7 +1024,7 @@ class App(EventDispatcher):
         setting_key = 282  # F1
 
         # android hack, if settings key is pygame K_MENU
-        if platform == 'android':
+        if platform == 'android' and not USE_SDL2:
             import pygame
             setting_key = pygame.K_MENU
 

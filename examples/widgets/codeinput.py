@@ -6,9 +6,11 @@ from kivy.uix.codeinput import CodeInput
 from kivy.uix.popup import Popup
 from kivy.properties import ListProperty
 from kivy.core.window import Window
+from kivy.core.text import LabelBase
 from pygments import lexers
-from pygame import font as fonts
+
 import codecs
+import glob
 import os
 
 example_text = '''
@@ -106,10 +108,15 @@ class CodeInputTest(App):
             text='12',
             values=list(map(str, list(range(5, 40)))))
         fnt_size.bind(text=self._update_size)
+
+        fonts = [
+            file for file in LabelBase._font_dirs_files
+            if file.endswith('.ttf')]
+
         fnt_name = Spinner(
             text='RobotoMono',
             option_cls=Fnt_SpinnerOption,
-            values=sorted(map(str, fonts.get_fonts())))
+            values=fonts)
         fnt_name.bind(text=self._update_font)
         mnu_file = Spinner(
             text='File',
@@ -123,6 +130,7 @@ class CodeInputTest(App):
         b.add_widget(menu)
 
         self.codeinput = CodeInput(
+
             lexer=KivyLexer(),
             font_size=12,
             text=example_text)
@@ -135,9 +143,7 @@ class CodeInputTest(App):
         self.codeinput.font_size = float(size)
 
     def _update_font(self, instance, fnt_name):
-        font_name = fonts.match_font(fnt_name)
-        if os.path.exists(font_name):
-            instance.font_name = self.codeinput.font_name = font_name
+        instance.font_name = self.codeinput.font_name = fnt_name
 
     def _file_menu_selected(self, instance, value):
         if value == 'File':

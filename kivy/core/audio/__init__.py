@@ -13,8 +13,21 @@ Load an audio sound and play it with::
         sound.play()
 
 You should not use the Sound class directly. The class returned by
-**SoundLoader.load** will be the best sound provider for that particular file
-type, so it might return different Sound classes depending the file type.
+:func:`SoundLoader.load` will be the best sound provider for that particular
+file type, so it might return different Sound classes depending the file type.
+
+Event dispatching and state changes
+-----------------------------------
+
+Audio is often processed in parallel to your code. This means you often need to
+enter the Kivy :func:`eventloop <kivy.base.EventLoopBase>` in order to allow
+events and state changes to be dispatched correctly.
+
+You seldom need to worry about this as Kivy apps typically always
+require this event loop for the GUI to remain responsive, but it is good to
+keep this in mind when debugging or running in a
+`REPL <https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop>`_
+(Read-eval-print loop).
 
 .. versionchanged:: 1.8.0
     There are now 2 distinct Gstreamer implementations: one using Gi/Gst working
@@ -210,4 +223,4 @@ if USE_SDL2:
 else:
     audio_libs += [('pygame', 'audio_pygame')]
 
-core_register_libs('audio', audio_libs)
+libs_loaded = core_register_libs('audio', audio_libs)

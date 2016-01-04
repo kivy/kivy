@@ -45,7 +45,7 @@ Builder.load_string('''
         Button:
             text: "Back"
             size_hint_y: 0.1
-            on_release: root.parent.current = "mode"
+            on_release: root.manager.current = "mode"
         Widget:
             # Just a space taker to allow for the popup keyboard
             size_hint_y: 0.5
@@ -147,7 +147,7 @@ class ModeScreen(Screen):
 
     def next(self):
         """ Continue to the main screen """
-        self.manager.switch_to(KeyboardScreen())
+        self.manager.current = "keyboard"
 
 
 class KeyboardScreen(Screen):
@@ -166,7 +166,7 @@ class KeyboardScreen(Screen):
     def _add_keyboards(self):
         """ Add a buttons for each available keyboard layout. When clicked,
         the buttons will change the keyboard layout to the one selected. """
-        layouts = VKeyboard().available_layouts.keys()
+        layouts = list(VKeyboard().available_layouts.keys())
         layouts.append("numeric.json")  # Add the file in our app directory
                                         # Note the .json extension is required
         for key in layouts:
@@ -199,11 +199,11 @@ class KeyboardScreen(Screen):
 
     def key_down(self, keyboard, keycode, text, modifiers):
         """ The callback function that catches keyboard events. """
-        self.displayLabel.text = "Key pressed - {0}".format(text)
+        self.displayLabel.text = u"Key pressed - {0}".format(text)
 
-    def key_up(self, keyboard, keycode, text, modifiers):
+    def key_up(self, keyboard, keycode):
         """ The callback function that catches keyboard events. """
-        self.displayLabel.text += " (up {0})".format(text)
+        self.displayLabel.text += u" (up {0[1]})".format(keycode)
 
 
 class KeyboardDemo(App):

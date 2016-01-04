@@ -115,7 +115,7 @@ Touch event basics
 ~~~~~~~~~~~~~~~~~~
 
 By default, touch events are dispatched to all currently displayed widgets.
-This means widgets recieve the touch event whether it occurs within their
+This means widgets receive the touch event whether it occurs within their
 physical area or not.
 
 This can be counter intuitive if you have experience with other GUI toolkits.
@@ -274,6 +274,6 @@ Here is an example of how to use grabbing::
 Touch Event Management
 ~~~~~~~~~~~~~~~~~~~~~~
 
-In order to see how touch events are controlled and propogated between 
+In order to see how touch events are controlled and propagated between 
 widgets, please refer to the
 :ref:`Widget touch event bubbling <widget-event-bubbling>` section.

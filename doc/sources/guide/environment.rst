@@ -95,12 +95,12 @@ selector to a specific implementation.
 KIVY_WINDOW
     Implementation to use for creating the Window
 
-    Values: pygame, x11, sdl2, egl_rpi
+    Values: sdl2, pygame, x11, egl_rpi
 
 KIVY_TEXT
     Implementation to use for rendering text
 
-    Values: pil, pygame, sdlttf
+    Values: sdl2, pil, pygame, sdlttf
 
 KIVY_VIDEO
     Implementation to use for rendering video
@@ -110,12 +110,12 @@ KIVY_VIDEO
 KIVY_AUDIO
     Implementation to use for playing audio
 
-    Values: gstplayer, pygst, ffpyplayer, sdl2, pygame
+    Values: sdl2, gstplayer, pygst, ffpyplayer, pygame
 
 KIVY_IMAGE
     Implementation to use for reading image
 
-    Values: pil, pygame, imageio, tex, dds, gif
+    Values: sdl2, pil, pygame, imageio, tex, dds, gif
 
 KIVY_CAMERA
     Implementation to use for reading camera
@@ -130,7 +130,7 @@ KIVY_SPELLING
 KIVY_CLIPBOARD
     Implementation to use for clipboard management
 
-    Values: pygame, dummy, android
+    Values: sdl2, pygame, dummy, android
 
 Metrics
 -------
@@ -156,7 +156,7 @@ Graphics
 
 KIVY_GLES_LIMITS
     Whether the GLES2 restrictions are enforced (the default, or if set to
-    1). If set to false, Kivy will not be trully GLES2 compatible.
+    1). If set to false, Kivy will not be truly GLES2 compatible.
 
     Following is a list of the potential incompatibilities that result
     when set to true.
@@ -175,3 +175,14 @@ Texture blit    When blitting to a texture, the data (color and
 
     .. versionadded:: 1.8.1
 
+KIVY_BCM_DISPMANX_ID
+    Change the default Raspberry Pi display to use. The list of available value
+    is accessible in `vc_dispmanx_types.h`. Default value is 0:
+
+    - 0: DISPMANX_ID_MAIN_LCD
+    - 1: DISPMANX_ID_AUX_LCD
+    - 2: DISPMANX_ID_HDMI
+    - 3: DISPMANX_ID_SDTV
+    - 4: DISPMANX_ID_FORCE_LCD
+    - 5: DISPMANX_ID_FORCE_TV
+    - 6: DISPMANX_ID_FORCE_OTHER

@@ -261,11 +261,11 @@
         orientation: 'vertical'
         BoxLayout:
             size_hint_y: None
-            height: 30
+            height: '30dp'
             orientation: 'horizontal'
             Widget:
                 # Just for spacing
-                width: 10
+                width: '10dp'
                 size_hint_x: None
             Label:
                 text: 'Name'
@@ -280,7 +280,7 @@
                 bold: True
             Widget:
                 # Just for spacing
-                width: 10
+                width: '10dp'
                 size_hint_x: None
         ScrollView:
             id: scrollview
@@ -327,7 +327,7 @@
         pos: root.pos
         Label:
             id: filename
-            text_size: self.width, None
+            width: (self.texture_size[0] + dp(4)) if self.texture_size else dp(10)
             halign: 'left'
             shorten: True
             text: ctx.name
@@ -982,7 +982,7 @@
 <VideoPlayerPreview>:
     pos_hint: {'x': 0, 'y': 0}
     image_overlay_play: 'atlas://data/images/defaulttheme/player-play-overlay'
-    image_loading: 'atlas://data/images/image-loading.gif'
+    image_loading: 'data/images/image-loading.gif'
     Image:
         source: root.source
         color: (.5, .5, .5, 1)

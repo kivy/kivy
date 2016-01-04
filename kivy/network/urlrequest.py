@@ -17,7 +17,8 @@ The syntax to create a request::
     from kivy.network.urlrequest import UrlRequest
     req = UrlRequest(url, on_success, on_redirect, on_failure, on_error,
                      on_progress, req_body, req_headers, chunk_size,
-                     timeout, method, decode, debug, file_path)
+                     timeout, method, decode, debug, file_path, ca_file,
+                     verify)
 
 
 Only the first argument is mandatory: the rest are optional.
@@ -101,6 +102,18 @@ class UrlRequest(Thread):
     .. versionchanged:: 1.0.10
         Add `method` parameter
 
+    .. versionchanged:: 1.8.0
+
+        Parameter `decode` added.
+        Parameter `file_path` added.
+        Parameter `on_redirect` added.
+        Parameter `on_failure` added.
+
+    .. versionchanged:: 1.9.1
+
+        Parameter `ca_file` added.
+        Parameter `verify` added.
+
     :Parameters:
         `url`: str
             Complete url string to call.
@@ -144,21 +157,15 @@ class UrlRequest(Thread):
         `ca_file`: str, defaults to None
             Indicates a SSL CA certificate file path to validate HTTPS
             certificates against
-
-    .. versionchanged:: 1.8.0
-
-        Parameter `decode` added.
-        Parameter `file_path` added.
-        Parameter `on_redirect` added.
-        Parameter `on_failure` added.
-
+        `verify`: bool, defaults to True
+            If False, disables SSL CA certificate verification
     '''
 
     def __init__(self, url, on_success=None, on_redirect=None,
                  on_failure=None, on_error=None, on_progress=None,
                  req_body=None, req_headers=None, chunk_size=8192,
                  timeout=None, method=None, decode=True, debug=False,
-                 file_path=None, ca_file=None):
+                 file_path=None, ca_file=None, verify=True):
         super(UrlRequest, self).__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
@@ -181,6 +188,7 @@ class UrlRequest(Thread):
         self._timeout = timeout
         self._method = method
         self.ca_file = ca_file
+        self.verify = verify
 
         #: Url of the request
         self.url = url
@@ -231,6 +239,7 @@ class UrlRequest(Thread):
         timeout = self._timeout
         file_path = self.file_path
         ca_file = self.ca_file
+        verify = self.verify
 
         if self._debug:
             Logger.debug('UrlRequest: {0} Fetch url <{1}>'.format(
@@ -261,6 +270,13 @@ class UrlRequest(Thread):
         if ca_file is not None and hasattr(ssl, 'create_default_context'):
             ctx = ssl.create_default_context(cafile=ca_file)
             ctx.verify_mode = ssl.CERT_REQUIRED
+            args['context'] = ctx
+
+        if not verify and parse.scheme == 'https' and (
+            hasattr(ssl, 'create_default_context')):
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
             args['context'] = ctx
 
         req = cls(host, port, **args)

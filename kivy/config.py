@@ -41,6 +41,9 @@ Change the configuration and save it::
     >>> Config.set('postproc', 'retain_time', '50')
     >>> Config.write()
 
+For information on configuring your :class:`~kivy.app.App`, please see the
+:ref:`Application configuration` section.
+
 .. versionchanged:: 1.7.1
     The ConfigParser should work correctly with utf-8 now. The values are
     converted from ascii to unicode only when needed. The method get() returns
@@ -146,6 +149,10 @@ Available configuration tokens
         Left position of the :class:`~kivy.core.window.Window`.
     `maxfps`: int, defaults to 60
         Maximum FPS allowed.
+
+        ..warning::
+            Setting maxfps to 0 will lead to max CPU usage.
+
     'multisamples': int, defaults to 2
         Sets the `MultiSample Anti-Aliasing (MSAA)
         <http://en.wikipedia.org/wiki/Multisample_anti-aliasing>`_ level.
@@ -153,7 +160,6 @@ Available configuration tokens
         processing time.
 
         .. note::
-
            This feature is limited by device hardware support and will have no
            effect on devices which do not support the level of MSAA requested.
 
@@ -161,7 +167,7 @@ Available configuration tokens
         Position of the window on your display. If `auto` is used, you have no
         control of the initial position: `top` and `left` are ignored.
     `show_cursor`: int, one of 0 or 1
-        Show the cursor on the screen.
+        Set whether or not the cursor is shown on the window.
     `top`: int
         Top position of the :class:`~kivy.core.window.Window`.
     `resizable`: int, one of 0 or 1
@@ -799,4 +805,3 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.write()
         except Exception as e:
             Logger.exception('Core: Error while saving default config file')
-

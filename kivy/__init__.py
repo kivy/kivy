@@ -28,13 +28,14 @@ __all__ = (
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
-__version__ = '1.9.1-dev'
+__version__ = '1.9.2-dev0'
 
 import sys
 import shutil
 from getopt import getopt, GetoptError
 from os import environ, mkdir, pathsep
 from os.path import dirname, join, basename, exists, expanduser, isdir
+import pkgutil
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.utils import platform
 
@@ -217,7 +218,7 @@ for option in kivy_options:
                 kivy_options[option] = environ[key].split(',')
             else:
                 kivy_options[option] = environ[key].lower() in \
-                    ('true', '1', 'yes', 'yup')
+                    ('true', '1', 'yes')
         except Exception:
             Logger.warning('Core: Wrong value for %s environment key' % key)
             Logger.exception('')
@@ -251,6 +252,16 @@ kivy_usermodules_dir = ''
 #: Kivy user extensions directory
 kivy_userexts_dir = ''
 
+# if there are deps, import them so they can do their magic.
+import kivy.deps
+for importer, modname, ispkg in pkgutil.iter_modules(kivy.deps.__path__):
+    if not ispkg:
+        continue
+    try:
+        importer.find_module(modname).load_module(modname)
+    except ImportError as e:
+        Logger.warning("deps: Error importing dependency: {}".format(str(e)))
+
 
 # Don't go further if we generate documentation
 if any(name in sys.argv[0] for name in ('sphinx-build', 'autobuild.py')):
@@ -259,7 +270,7 @@ if 'sphinx-build' in sys.argv[0]:
     environ['KIVY_DOC_INCLUDE'] = '1'
 if any('nosetests' in arg for arg in sys.argv):
     environ['KIVY_UNITTEST'] = '1'
-if any('pyinstaller' in arg for arg in sys.argv):
+if any('pyinstaller' in arg.lower() for arg in sys.argv):
     environ['KIVY_PACKAGING'] = '1'
 
 if not environ.get('KIVY_DOC_INCLUDE'):
@@ -400,10 +411,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
                              'configuration file:', str(e))
         Logger.info('Core: Kivy configuration saved.')
         sys.exit(0)
-
-    # add kivy_binary_deps_dir if it exists
-    if exists(kivy_binary_deps_dir):
-        environ["PATH"] = kivy_binary_deps_dir + pathsep + environ["PATH"]
 
     # configure all activated modules
     from kivy.modules import Modules

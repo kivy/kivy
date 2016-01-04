@@ -82,6 +82,10 @@ class InputPostprocCalibration(object):
         self.frame += 1
         frame = self.frame
         for etype, event in events:
+            # frame-based logic below doesn't account for
+            # end events having been already processed
+            if etype == 'end':
+                continue
             if event.device not in self.devices:
                 continue
             # some providers use the same event to update and end
