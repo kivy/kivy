@@ -472,6 +472,12 @@ class WindowSDL(WindowBase):
                 if Config.getboolean('kivy', 'pause_on_minimize'):
                     self.do_pause()
 
+            elif action == 'windowfocusgained':
+                self._focus = True
+
+            elif action == 'windowfocuslost':
+                self._focus = False
+
             elif action == 'windowenter':
                 self.dispatch('on_cursor_enter')
 
@@ -558,12 +564,6 @@ class WindowSDL(WindowBase):
             elif action == 'textinput':
                 text = args[0]
                 self.dispatch('on_textinput', text)
-
-            elif action == 'windowfocusgained':
-                self.focus = True
-
-            elif action == 'windowfocuslost':
-                self.focus = False
 
             # unhandled event !
             else:
