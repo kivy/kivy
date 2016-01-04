@@ -295,6 +295,7 @@ class WindowBase(EventDispatcher):
     _modifiers = ListProperty([])
     _rotation = NumericProperty(0)
     _clearcolor = ObjectProperty([0, 0, 0, 1])
+    _focus = BooleanProperty(True)
 
     children = ListProperty([])
     '''List of the children of this window.
@@ -599,12 +600,15 @@ class WindowBase(EventDispatcher):
     defaults to True.
     '''
 
-    focus = BooleanProperty(True)
-    '''Set whether or not the window currently has focus.
+    def _get_focus(self):
+        return self._focus
 
-    .. versionadded::1.9.1
+    focus = AliasProperty(_get_focus, None, bind=('_focus',))
+    '''Check whether or not the window currently has focus.
 
-    :attr:`focus` is a :class:`~kivy.properties.BooleanProperty and
+    .. versionadded:: 1.9.1
+
+    :attr:`focus` is a read-only :class:`~kivy.properties.AliasProperty and
     defaults to True.
     '''
 
