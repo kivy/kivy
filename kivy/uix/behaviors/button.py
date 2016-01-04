@@ -2,7 +2,8 @@
 Button Behavior
 ===============
 
-This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides
+The :class:`~kivy.uix.behaviors.button.ButtonBehavior`
+`mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides
 :class:`~kivy.uix.button.Button` behavior. You can combine this class with
 other widgets, such as an :class:`~kivy.uix.image.Image`, to provide
 alternative buttons that preserve Kivy button behavior.
@@ -54,7 +55,8 @@ from kivy.logger import Logger
 
 class ButtonBehavior(object):
     '''
-    Provides :class:`~kivy.uix.button.Button` behavior. Please see the
+    This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides
+    :class:`~kivy.uix.button.Button` behavior. Please see the
     :mod:`button behaviors module <kivy.uix.behaviors.button>` documentation
     for more information.
 
