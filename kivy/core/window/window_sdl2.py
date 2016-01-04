@@ -246,6 +246,9 @@ class WindowSDL(WindowBase):
             # will be fired.
             self._pos = (0, 0)
             self._set_minimum_size()
+
+            if state == 'hidden':
+                self._focus = False
         else:
             w, h = self.system_size
             self._win.resize_window(w, h)
