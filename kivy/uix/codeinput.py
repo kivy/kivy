@@ -44,7 +44,7 @@ from kivy.core.text.markup import MarkupLabel as Label
 from kivy.cache import Cache
 from kivy.properties import ObjectProperty, OptionProperty, StringProperty
 from kivy.utils import get_hex_from_color, get_color_from_hex
-from kivy.uix.behaviors import CodeNavigationBehavior, EmacsBehavior
+from kivy.uix.behaviors import CodeNavigationBehavior
 
 Cache_get = Cache.get
 Cache_append = Cache.append
@@ -52,7 +52,7 @@ Cache_append = Cache.append
 # TODO: color chooser for keywords/strings/...
 
 
-class CodeInput(CodeNavigationBehavior, EmacsBehavior, TextInput):
+class CodeInput(CodeNavigationBehavior, TextInput):
     '''CodeInput class, used for displaying highlighted code.
     '''
 

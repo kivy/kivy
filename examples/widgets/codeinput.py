@@ -3,12 +3,13 @@ from kivy.extras.highlight import KivyLexer
 from kivy.uix.spinner import Spinner, SpinnerOption
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.codeinput import CodeInput
+from kivy.uix.behaviors import EmacsBehavior
 from kivy.uix.popup import Popup
 from kivy.properties import ListProperty
 from kivy.core.window import Window
 from kivy.core.text import LabelBase
 from pygments import lexers
-
+from pygame import font as fonts
 import codecs
 import glob
 import os
@@ -109,6 +110,13 @@ class SaveDialog(Popup):
         self.dismiss()
 
 
+class CodeInputWithBindings(EmacsBehavior, CodeInput):
+    '''CodeInput with keybindings.
+    To add more bindings, add behavior before CodeInput in class definition
+    '''
+    pass
+
+
 class CodeInputTest(App):
 
     files = ListProperty([None, ])
@@ -154,11 +162,12 @@ class CodeInputTest(App):
         menu.add_widget(key_bindings)
         b.add_widget(menu)
 
-        self.codeinput = CodeInput(
-
+        self.codeinput = CodeInputWithBindings(
             lexer=KivyLexer(),
             font_size=12,
-            text=example_text)
+            text=example_text,
+            active_key_bindings='default',
+        )
 
         b.add_widget(self.codeinput)
 
