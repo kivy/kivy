@@ -246,6 +246,9 @@ class WindowSDL(WindowBase):
             # will be fired.
             self._pos = (0, 0)
             self._set_minimum_size()
+
+            if state == 'hidden':
+                self._focus = False
         else:
             w, h = self.system_size
             self._win.resize_window(w, h)
@@ -471,6 +474,12 @@ class WindowSDL(WindowBase):
             elif action == 'windowminimized':
                 if Config.getboolean('kivy', 'pause_on_minimize'):
                     self.do_pause()
+
+            elif action == 'windowfocusgained':
+                self._focus = True
+
+            elif action == 'windowfocuslost':
+                self._focus = False
 
             elif action == 'windowenter':
                 self.dispatch('on_cursor_enter')

@@ -1,4 +1,47 @@
-'''See :class:`ButtonBehavior` for details.
+'''
+Button Behavior
+===============
+
+The :class:`~kivy.uix.behaviors.button.ButtonBehavior`
+`mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides
+:class:`~kivy.uix.button.Button` behavior. You can combine this class with
+other widgets, such as an :class:`~kivy.uix.image.Image`, to provide
+alternative buttons that preserve Kivy button behavior.
+
+For an overview of behaviors, please refer to the :mod:`~kivy.uix.behaviors`
+documentation.
+
+Example
+-------
+
+The following example adds button behavior to an image to make a checkbox that
+behaves like a button::
+
+    from kivy.app import App
+    from kivy.uix.image import Image
+    from kivy.uix.behaviors import ButtonBehavior
+
+
+    class MyButton(ButtonBehavior, Image):
+        def __init__(self, **kwargs):
+            super(MyButton, self).__init__(**kwargs)
+            self.source = 'atlas://data/images/defaulttheme/checkbox_off'
+
+        def on_press(self):
+            self.source = 'atlas://data/images/defaulttheme/checkbox_on'
+
+        def on_release(self):
+            self.source = 'atlas://data/images/defaulttheme/checkbox_off'
+
+
+    class SampleApp(App):
+        def build(self):
+            return MyButton()
+
+
+    SampleApp().run()
+
+See :class:`~kivy.uix.behaviors.ButtonBehavior` for details.
 '''
 
 __all__ = ('ButtonBehavior', )
@@ -13,7 +56,9 @@ from kivy.logger import Logger
 class ButtonBehavior(object):
     '''
     This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides
-    :class:`~kivy.uix.button.Button` behavior.
+    :class:`~kivy.uix.button.Button` behavior. Please see the
+    :mod:`button behaviors module <kivy.uix.behaviors.button>` documentation
+    for more information.
 
     :Events:
         `on_press`
@@ -21,6 +66,7 @@ class ButtonBehavior(object):
         `on_release`
             Fired when the button is released (i.e. the touch/click that
             pressed the button goes away).
+
     '''
 
     state = OptionProperty('normal', options=('normal', 'down'))
@@ -76,7 +122,7 @@ class ButtonBehavior(object):
         self.register_event_type('on_press')
         self.register_event_type('on_release')
         # remove this when MIN_STATE_TIME is removed
-        self.min_state_time = self.MIN_STATE_TIME
+        self.min_state_time = kwargs.get('min_state_time', self.MIN_STATE_TIME)
         super(ButtonBehavior, self).__init__(**kwargs)
         self.__state_event = None
         self.__touch_time = None

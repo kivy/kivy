@@ -201,9 +201,9 @@ class KeyboardScreen(Screen):
         """ The callback function that catches keyboard events. """
         self.displayLabel.text = u"Key pressed - {0}".format(text)
 
-    def key_up(self, keyboard, keycode, text, modifiers):
+    def key_up(self, keyboard, keycode):
         """ The callback function that catches keyboard events. """
-        self.displayLabel.text += u" (up {0})".format(text)
+        self.displayLabel.text += u" (up {0[1]})".format(keycode)
 
 
 class KeyboardDemo(App):

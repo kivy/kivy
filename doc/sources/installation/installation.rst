@@ -18,22 +18,16 @@ In addition, you need a `Python <http://python.org/>`_ 2.x (2.7 <= x < 3.0)
 or 3.x (3.3 <= x)
 interpreter. If you want to enable features like windowing (i.e. open a Window),
 audio/video playback or spelling correction, additional dependencies must
-be available. For these, we recommend `Pygame <http://pygame.org>`_, `Gst-Python
-<http://www.gstreamer.net/modules/gst-python.html>`_ and `PyEnchant
+be available. For these, we recommend `SDL2 <https://www.libsdl.org/download-2.0.php>`_, `Gstreamer 1.x
+<http://www.gstreamer.net/>`_ and `PyEnchant
 <https://pythonhosted.org/pyenchant/>`_, respectively.
 
-+--------------------------------------------------------------------------------------------------------------------------+
-| NOTE: Currently, packaging only works with Python 2.7. We are working on Python 3.3+ support, but for now if you plan to |
-| distribute your package on any platform you should use Python 2.7.                                                       |
-+--------------------------------------------------------------------------------------------------------------------------+
 
 Other optional libraries (mutually independent) are:
 
     * `OpenCV 2.0 <http://sourceforge.net/projects/opencvlibrary/>`_ -- Camera input.
     * `PIL <http://www.pythonware.com/products/pil/index.htm>`_ -- Image and text display.
-    * `PyCairo <http://www.cairographics.org/pycairo/>`_ -- Text display.
     * `PyEnchant <https://pythonhosted.org/pyenchant/>`_ -- Spelling correction.
-    * `PyGST <http://gstreamer.freedesktop.org/ + http://pygstdocs.berlios.de/>`_ -- Audio/video playback and camera input.
 
 
 That said, **DON'T PANIC**!
@@ -107,7 +101,69 @@ supported version from pypi:
 OS X
 ++++
 
-Install the requirements using `homebrew <http://brew.sh>`_::
+Without using brew you can install the dependencies for kivy
+manually copy pasting the following commands onto a terminal::
+
+    curl -O -L https://www.libsdl.org/tmp/release/SDL2-2.0.4.dmg
+    curl -O -L https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.0.dmg
+    curl -O -L https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-2.0.0.dmg
+    curl -O -L https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.12.dmg
+    curl -O -L http://gstreamer.freedesktop.org/data/pkg/osx/1.6.2/gstreamer-1.0-1.6.2-x86_64.pkg
+    curl -O -L http://gstreamer.freedesktop.org/data/pkg/osx/1.6.2/gstreamer-1.0-devel-1.6.2-x86_64.pkg
+    hdiutil attach SDL2-2.0.4.dmg
+    sudo cp -a /Volumes/SDL2/SDL2.framework /Library/Frameworks/
+
+This should ask you for you for your root password,  provide it and then copy paste
+the following lines onto your terminal::
+
+    hdiutil attach SDL2_image-2.0.0.dmg
+    sudo cp -a /Volumes/SDL2_image/SDL2_image.framework /Library/Frameworks/
+    hdiutil attach SDL2_ttf-2.0.12.dmg
+    sudo cp -a /Volumes/SDL2_ttf/SDL2_ttf.framework /Library/Frameworks/
+    hdiutil attach SDL2_mixer-2.0.0.dmg
+    sudo cp -a /Volumes/SDL2_mixer/SDL2_mixer.framework /Library/Frameworks/
+    sudo installer -package gstreamer-1.0-1.6.2-x86_64.pkg -target /
+    sudo installer -package gstreamer-1.0-devel-1.6.2-x86_64.pkg -target /
+    pip install --upgrade --user cython pillow
+
+Now that you have all the dependencies for kivy, you need to make sure
+you have command line tools installed::
+
+    xcode-select --install
+
+Goto a apropriate dir like::
+
+    mkdir ~/code
+    cd ~/code
+    
+You can now install kivy itself::
+
+    git clone http://github.com/kivy/kivy
+    cd kivy
+    make
+
+This should compile kivy, to make it accessible in your python env
+just point your PYTHONPATH to this dir.
+
+    export PYTHONPATH=~/code/kivy:$PYTHONPATH
+
+To check if kivy is installed type the following command in your 
+terminal::
+
+    python -c "import kivy"
+
+It should give you the a output something like the following::
+
+    $ python -c "import kivy"
+    [INFO   ] [Logger      ] Record log in /Users/quanon/.kivy/logs/kivy_15-12-31_21.txt
+    [INFO   ] [Screen      ] Apply screen settings for Motolora Droid 2
+    [INFO   ] [Screen      ] size=480x854 dpi=240 density=1.5 orientation=portrait
+    [INFO   ] [Kivy        ] v1.9.1-stable
+    [INFO   ] [Python      ] v2.7.10 (default, Oct 23 2015, 18:05:06) 
+    [GCC 4.2.1 Compatible Apple LLVM 7.0.0 (clang-700.0.59.5)]
+
+If using brew method to install kivy then
+install the requirements using `homebrew <http://brew.sh>`_::
 
      $ brew install sdl2 sdl2_image sdl2_ttf sdl2_mixer gstreamer
 

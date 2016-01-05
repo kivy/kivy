@@ -3,16 +3,12 @@
 Installation on Windows
 =======================
 
-Beginning with 1.9.1 we provide `wheels <https://wheel.readthedocs.org/en/latest/>`_
-for Kivy and all its dependencies to be used with an existing Python installation.
-We also provide nightly wheels from Kivy `master <https://github.com/kivy/kivy>`_.
-See also :ref:`upgrade-win-dist`.
+Beginning with 1.9.1 we provide binary `wheels <https://wheel.readthedocs.org/en/latest/>`_
+for Kivy and all its dependencies to be used with an existing Python installation. See
+:ref:`install-win-dist`.
 
-.. note::
-
-    This page represents instructions for wheels starting with 1.9.1. Until
-    1.9.1 is released the nightly wheels have to be used because stable kivy wheels
-    have not been uploaded to pypi yet.
+We also provide nightly wheels generated using Kivy `master <https://github.com/kivy/kivy>`_.
+See :ref:`install-nightly-win-dist`. See also :ref:`upgrade-win-dist`.
 
 .. warning::
 
@@ -71,6 +67,8 @@ version installed, permanently add the python directory to the path for
 `CMD <http://www.computerhope.com/issues/ch000549.htm>`_ for
 `bash <http://stackoverflow.com/questions/14637979/how-to-permanently-set-path-on-linux>`_.
 
+.. _install-win-dist:
+
 Installation
 ------------
 
@@ -83,14 +81,16 @@ Now that python is available on the command line, which can checked by typing
 
 #. Install the dependencies (skip gstreamer (~90MB) if not needed)::
 
-     python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew
-     kivy.deps.gstreamer --allow-external kivy.deps.gstreamer
+     python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew \
+     kivy.deps.gstreamer --extra-index-url https://kivy.org/downloads/packages/simple/
 
 #. Install kivy::
 
      python -m pip install kivy
 
-That's it. You should now be able to ``import kivy`` in your python.
+That's it. You should now be able to ``import kivy`` in python.
+
+.. _install-nightly-win-dist:
 
 Nightly wheel installation
 --------------------------
@@ -157,9 +157,9 @@ with git rather than a wheel there are some additional steps:
 #. Install the other dependencies as well as their dev versions (you can skip
    gstreamer and gstreamer_dev if you aren't going to use video/audio)::
 
-     python -m pip install cython docutils pygments pypiwin32 kivy.deps.sdl2
-     kivy.deps.glew kivy.deps.gstreamer kivy.deps.glew_dev kivy.deps.sdl2_dev
-     kivy.deps.gstreamer_dev --allow-external kivy.deps.gstreamer
+     python -m pip install cython docutils pygments pypiwin32 kivy.deps.sdl2 \
+     kivy.deps.glew kivy.deps.gstreamer kivy.deps.glew_dev kivy.deps.sdl2_dev \
+     kivy.deps.gstreamer_dev --extra-index-url https://kivy.org/downloads/packages/simple/
 
 #. If you downloaded or cloned kivy to an alternate location and don't want to
    install it to site-packages read the next section.
@@ -186,8 +186,9 @@ favorite location, do the following:
    ``your-path\kivy\deps`` where ``your-path`` is the path where your kivy is
    located.
 #. Remove the ``python\Lib\site-packages\kivy`` directory altogether.
-#. From ``python\Lib\site-packages`` delete or move all the kivy.deps.*.pth
-   files.
+#. From ``python\Lib\site-packages`` move **all** the ``kivy.deps.*.pth``
+   files and **all** ``kivy.deps.*.dist-info` directories to ``your-path``
+   right next to ``kivy``.
 
 Now you can safely compile kivy in its current location with ``make`` or
 ``python -m pip install -e location`` or just ``python setup.py build_ext --inplace``.
@@ -225,7 +226,7 @@ You can launch a .py file with our Python using the Send-to menu:
 You can now execute your application by right clicking on the .py file ->
 "Send To" -> "python <python-version>".
 
-.. _upgrade-win-dist
+.. _upgrade-win-dist:
 
 Upgrading from a previous Kivy dist
 -----------------------------------

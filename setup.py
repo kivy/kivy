@@ -304,7 +304,7 @@ def _check_and_fix_sdl2_mixer(f_path):
         rpath_from, rpath_to, smpeg2_path))
 
     output = getoutput(("otool -L '{}'").format(smpeg2_path))
-    if "@executable_path" not in output:
+    if b"@executable_path" not in output:
         print("WARNING: Change successfully applied!")
         print("WARNING: You'll never see this message again.")
     else:
