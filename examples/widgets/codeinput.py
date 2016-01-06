@@ -9,7 +9,6 @@ from kivy.properties import ListProperty
 from kivy.core.window import Window
 from kivy.core.text import LabelBase
 from pygments import lexers
-from pygame import font as fonts
 import codecs
 import glob
 import os
