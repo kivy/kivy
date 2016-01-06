@@ -85,11 +85,11 @@ class CodeInput(CodeNavigationBehavior, TextInput):
 
     '''
 
-    active_key_bindings = StringProperty('default')
-    '''String name which determines the type of key bindings to use.
+    key_bindings = StringProperty('default')
+    '''Determines the type of key bindings to use.
 
-    :attr:`active_key_bindings` is a :class:`~kivy.properties.StringProperty`
-    and defaults to ``'default'``
+    :attr:`key_bindings` is a :class:`~kivy.properties.StringProperty`
+    and defaults to ``'default'``.
 
     .. versionadded:: 1.9.2
     '''

@@ -2252,7 +2252,7 @@ class TextInput(FocusBehavior, Widget):
             self._alt_r = False
 
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
-        # Keycodes on OSX:
+        # Keycodes on OS X:
         ctrl, cmd = 64, 1024
         key, key_str = keycode
         win = EventLoop.window
