@@ -42,7 +42,7 @@ from pygments.formatters import BBCodeFormatter
 from kivy.uix.textinput import TextInput
 from kivy.core.text.markup import MarkupLabel as Label
 from kivy.cache import Cache
-from kivy.properties import ObjectProperty, OptionProperty
+from kivy.properties import ObjectProperty, OptionProperty, StringProperty
 from kivy.utils import get_hex_from_color, get_color_from_hex
 from kivy.uix.behaviors import CodeNavigationBehavior
 
@@ -83,6 +83,15 @@ class CodeInput(CodeNavigationBehavior, TextInput):
     :attr:`style` is a :class:`~kivy.properties.ObjectProperty` and
     defaults to ``None``
 
+    '''
+
+    active_key_bindings = StringProperty('default')
+    '''String name which determines the type of key bindings to use.
+
+    :attr:`active_key_bindings` is a :class:`~kivy.properties.StringProperty`
+    and defaults to ``'default'``
+
+    .. versionadded:: 1.9.2
     '''
 
     def __init__(self, **kwargs):
