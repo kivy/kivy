@@ -15,6 +15,7 @@ DEF LINE_MODE_ROUNDED_RECTANGLE = 4
 DEF LINE_MODE_BEZIER = 5
 
 from kivy.graphics.stencil_instructions cimport StencilUse, StencilUnUse, StencilPush, StencilPop
+import itertools
 
 cdef float PI = 3.1415926535
 
@@ -672,9 +673,10 @@ cdef class Line(VertexInstruction):
             return self._points
 
         def __set__(self, points):
-            import itertools
             if points and isinstance(points[0], (list, tuple)):
                 self._points = list(itertools.chain(*points))
+            else:
+                self._points = list(points)
 
             self.flag_update()
 
