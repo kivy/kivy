@@ -9,9 +9,7 @@ from kivy.properties import ListProperty
 from kivy.core.window import Window
 from kivy.core.text import LabelBase
 from pygments import lexers
-from pygame import font as fonts
 import codecs
-import glob
 import os
 
 example_text = '''
@@ -112,7 +110,8 @@ class SaveDialog(Popup):
 
 class CodeInputWithBindings(EmacsBehavior, CodeInput):
     '''CodeInput with keybindings.
-    To add more bindings, add behavior before CodeInput in class definition
+    To add more bindings, add the behavior before CodeInput in the class
+    definition.
     '''
     pass
 
@@ -166,7 +165,7 @@ class CodeInputTest(App):
             lexer=KivyLexer(),
             font_size=12,
             text=example_text,
-            active_key_bindings='default',
+            key_bindings='default',
         )
 
         b.add_widget(self.codeinput)
@@ -205,7 +204,7 @@ class CodeInputTest(App):
 
     def _bindings_selected(self, instance, value):
         value = value.split(' ')[0]
-        self.codeinput.active_key_bindings = value.lower()
+        self.codeinput.key_bindings = value.lower()
 
     def on_files(self, instance, values):
         if not values[0]:
