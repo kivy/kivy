@@ -49,9 +49,9 @@ install:
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
       curl -O -L https://www.libsdl.org/release/SDL2-2.0.4.dmg;
-      curl -O -L https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.0.dmg;
-      curl -O -L https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-2.0.0.dmg;
-      curl -O -L https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.12.dmg;
+      curl -O -L https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.1.dmg;
+      curl -O -L https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-2.0.1.dmg;
+      curl -O -L https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.13.dmg;
       curl -O -L http://gstreamer.freedesktop.org/data/pkg/osx/1.6.2/gstreamer-1.0-1.6.2-x86_64.pkg;
       curl -O -L http://gstreamer.freedesktop.org/data/pkg/osx/1.6.2/gstreamer-1.0-devel-1.6.2-x86_64.pkg;
       curl -O -L http://www.sveinbjorn.org/files/software/platypus.zip;
