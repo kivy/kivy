@@ -89,7 +89,7 @@ class EmacsBehavior(object):
         mod = modifiers[0] if modifiers else None
         is_emacs_shortcut = False
 
-        if key in range(256) and self.active_key_bindings == 'emacs':
+        if key in range(256) and self.key_bindings == 'emacs':
             is_emacs_shortcut = ((mod == 'ctrl' and
                                   chr(key) in self.bindings['ctrl'].keys()) or
                                  (mod == 'alt' and
