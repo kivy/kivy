@@ -3,9 +3,8 @@
 Emacs Behavior
 ==============
 
-.. versionadded:: 1.9.1
-
-This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ allows you to add
+The :class:`~kivy.uix.behaviors.emacs.EmacsBehavior`
+`mixin <https://en.wikipedia.org/wiki/Mixin>`_ allows you to add
 `Emacs <https://www.gnu.org/software/emacs/>`_ keyboard shortcuts for basic
 movement and editing to the :class:`~kivy.uix.codeinput.CodeInput` widget.
 The shortcuts currently available are listed below::
@@ -45,6 +44,10 @@ class EmacsBehavior(object):
     '''
     A `mixin <https://en.wikipedia.org/wiki/Mixin>`_ that enables Emacs-style
     keyboard shortcuts for the :class:`~kivy.uix.codeinput.CodeInput` widget.
+    Please see the :mod:`Emacs behaviors module <kivy.uix.behaviors.emacs>`
+    documentation for more information.
+
+    .. versionadded:: 1.9.1
     '''
 
     key_bindings = StringProperty('emacs')
