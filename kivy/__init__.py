@@ -141,7 +141,7 @@ def get_includes():
     modules with Kivy as a dependency. Currently returns the location of the
     kivy.graphics module.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.9.1
     '''
     root_dir = dirname(__file__)
     return [join(root_dir, 'graphics'), join(root_dir, 'tools', 'gles_compat')]
