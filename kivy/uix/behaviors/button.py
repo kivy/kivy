@@ -108,14 +108,17 @@ class ButtonBehavior(object):
     :attr:`min_state_time` is a float and defaults to 0.035.
     '''
 
-    always_release = BooleanProperty(True)
+    always_release = BooleanProperty(False)
     '''This determines whether or not the widget fires an `on_release` event if
     the touch_up is outside the widget.
 
     .. versionadded:: 1.9.0
 
+    .. versionchanged:: 1.9.2
+        The default value is now False.
+
     :attr:`always_release` is a :class:`~kivy.properties.BooleanProperty` and
-    defaults to `True`.
+    defaults to `False`.
     '''
 
     def __init__(self, **kwargs):
