@@ -259,7 +259,7 @@ class Label(Widget):
                         'halign', 'valign', 'padding_x', 'padding_y',
                         'text_size', 'shorten', 'mipmap', 'markup',
                         'line_height', 'max_lines', 'strip', 'shorten_from',
-                        'split_str', 'unicode_errors')
+                        'split_str', 'unicode_errors', 'hinting', 'blended')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -783,3 +783,6 @@ class Label(Widget):
     :attr:`strip` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
+
+    hinting = NumericProperty(2)
+    blended = BooleanProperty(False)

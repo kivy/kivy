@@ -59,7 +59,24 @@ cdef class _SurfaceContainer:
         c.g = <int>(color[1] * 255)
         c.b = <int>(color[2] * 255)
         bytes_text = <bytes>text.encode('utf-8')
-        st = TTF_RenderUTF8_Blended(font, <char *>bytes_text, c)
+        hinting = (
+            container.options['hinting']
+            if 'hinting' in container.options
+            else None
+            )
+        if hinting is not None:
+            if TTF_GetFontHinting(font) != hinting:
+                TTF_SetFontHinting(font, hinting)
+        blended = (
+            container.options['blended']
+            if 'blended' in container.options
+            else None
+            )
+        st = (
+            TTF_RenderUTF8_Blended(font, <char *>bytes_text, c)
+            if blended
+            else TTF_RenderUTF8_Solid(font, <char *>bytes_text, c)
+            )
         if st == NULL:
             return
         r.x = x

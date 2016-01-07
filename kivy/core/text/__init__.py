@@ -157,7 +157,7 @@ class LabelBase(object):
         italic=False, halign='left', valign='bottom', shorten=False,
         text_size=None, mipmap=False, color=None, line_height=1.0, strip=False,
         strip_reflow=True, shorten_from='center', split_str=' ',
-        unicode_errors='replace', **kwargs):
+        unicode_errors='replace', hinting=None, blended=None, **kwargs):
 
         # Include system fonts_dir in resource paths.
         # This allows us to specify a font from those dirs.
@@ -169,7 +169,8 @@ class LabelBase(object):
                    'mipmap': mipmap, 'line_height': line_height,
                    'strip': strip, 'strip_reflow': strip_reflow,
                    'shorten_from': shorten_from, 'split_str': split_str,
-                   'unicode_errors': unicode_errors}
+                   'unicode_errors': unicode_errors,
+                   'hinting': hinting, 'blended': blended}
 
         options['color'] = color or (1, 1, 1, 1)
         options['padding'] = kwargs.get('padding', (0, 0))
