@@ -85,15 +85,6 @@ class CodeInput(CodeNavigationBehavior, TextInput):
 
     '''
 
-    key_bindings = StringProperty('default')
-    '''Determines the type of key bindings to use.
-
-    :attr:`key_bindings` is a :class:`~kivy.properties.StringProperty`
-    and defaults to ``'default'``.
-
-    .. versionadded:: 1.9.2
-    '''
-
     def __init__(self, **kwargs):
         stylename = kwargs.get('style_name', 'default')
         style = kwargs['style'] if 'style' in kwargs \
