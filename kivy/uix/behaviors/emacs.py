@@ -6,7 +6,7 @@ Emacs Behavior
 The :class:`~kivy.uix.behaviors.emacs.EmacsBehavior`
 `mixin <https://en.wikipedia.org/wiki/Mixin>`_ allows you to add
 `Emacs <https://www.gnu.org/software/emacs/>`_ keyboard shortcuts for basic
-movement and editing to the :class:`~kivy.uix.codeinput.CodeInput` widget.
+movement and editing to the :class:`~kivy.uix.textinput.TextInput` widget.
 The shortcuts currently available are listed below::
 
 Emacs shortcuts
@@ -43,7 +43,7 @@ __all__ = ('EmacsBehavior', )
 class EmacsBehavior(object):
     '''
     A `mixin <https://en.wikipedia.org/wiki/Mixin>`_ that enables Emacs-style
-    keyboard shortcuts for the :class:`~kivy.uix.codeinput.CodeInput` widget.
+    keyboard shortcuts for the :class:`~kivy.uix.textinput.TextInput` widget.
     Please see the :mod:`Emacs behaviors module <kivy.uix.behaviors.emacs>`
     documentation for more information.
 
@@ -52,15 +52,16 @@ class EmacsBehavior(object):
 
     key_bindings = StringProperty('emacs')
     '''String name which determines the type of key bindings to use with the
-    :class:`~kivy.uix.codeinput.CodeInput`. This allows Emacs key bindings to
+    :class:`~kivy.uix.textinput.TextInput`. This allows Emacs key bindings to
     be enabled/disabled programmatically for widgets that inherit from
     :class:`EmacsBehavior`. If the value is not ``'emacs'``, Emacs bindings
-    will be disabled.
+    will be disabled. Use ``'default'`` for switching to the default key
+    bindings of TextInput.
 
     :attr:`key_bindings` is a :class:`~kivy.properties.StringProperty`
     and defaults to ``'emacs'``.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 2.0.0
     '''
 
     def __init__(self, **kwargs):
