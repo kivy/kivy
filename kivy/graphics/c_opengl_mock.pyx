@@ -1,4 +1,6 @@
-# XXX: remember to update c_opengl_debug with any functions that are added here.
+# XXX: remember to update c_opengl_debug.pyx and opengl.pyx with any functions
+# that are added here.
+
 include "common.pxi"
 cimport kivy.graphics.c_opengl as cgl
 

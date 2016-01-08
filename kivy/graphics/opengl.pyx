@@ -19,8 +19,14 @@ include "common.pxi"
 cimport c_opengl
 IF USE_OPENGL_DEBUG:
     cimport c_opengl_debug as f_cgl
+    cimport c_opengl_debug as mock_cgl
 ELSE:
     cimport c_opengl as f_cgl
+    IF USE_OPENGL_MOCK:
+        cimport c_opengl_debug as mock_cgl
+    ELSE:
+        cimport c_opengl as mock_cgl
+
 from kivy.logger import Logger
 
 ctypedef  void              GLvoid
@@ -545,7 +551,7 @@ def glCheckFramebufferStatus(GLenum target):
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glCheckFramebufferStatus.xml>`_
     '''
     cdef GLenum result
-    result = f_cgl.CheckFramebufferStatus(target)
+    result = mock_cgl.glCheckFramebufferStatus(target)
     return result
 
 def glClear(GLbitfield mask):
@@ -621,7 +627,7 @@ def glCreateProgram():
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glCreateProgram.xml>`_
     '''
     cdef GLuint id
-    id = f_cgl.glCreateProgram()
+    id = mock_cgl.glCreateProgram()
     return id
 
 def glCreateShader(GLenum type):
@@ -629,7 +635,7 @@ def glCreateShader(GLenum type):
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glCreateShader.xml>`_
     '''
     cdef GLuint id
-    id = f_cgl.glCreateShader(type)
+    id = mock_cgl.glCreateShader(type)
     return id
 
 def glCullFace(GLenum mode):
@@ -906,7 +912,7 @@ def glGetError():
 
     Unlike the C specification, the value will be the result of call.
     '''
-    return f_cgl.glGetError()
+    return mock_cgl.glGetError()
 
 def glGetFloatv(GLenum pname):
     '''See: `glGetFloatv() on Kronos website
@@ -1047,7 +1053,7 @@ def glGetString(GLenum name):
     Unlike the C specification, the value will be returned as a string.
     '''
     cdef bytes p_string
-    p_string = <char *>f_cgl.glGetString(name)
+    p_string = <char *>mock_cgl.glGetString(name)
     return p_string
 
 def glGetTexParameterfv(GLenum target, GLenum pname):
@@ -1129,7 +1135,7 @@ def glIsEnabled(GLenum cap):
     '''See: `glIsEnabled() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glIsEnabled.xml>`_
     '''
-    return f_cgl.glIsEnabled(cap)
+    return mock_cgl.glIsEnabled(cap)
 
 def glIsFramebuffer(GLuint framebuffer):
     '''See: `glIsFramebuffer() on Kronos website

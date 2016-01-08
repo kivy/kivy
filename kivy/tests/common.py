@@ -20,6 +20,7 @@ _base = object
 if not bool(int(os.environ.get('USE_OPENGL_MOCK', 0))):
     _base = unittest.TestCase
 
+
 class GraphicUnitTest(_base):
 
     def render(self, root, framecount=1):
