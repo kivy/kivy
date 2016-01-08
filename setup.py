@@ -107,7 +107,7 @@ c_options['use_mali'] = platform == 'mali'
 c_options['use_egl'] = False
 c_options['use_opengl_es2'] = None
 c_options['use_opengl_debug'] = False
-c_options['use_opengl_mock'] = False
+c_options['use_opengl_mock'] = environ.get('READTHEDOCS', None) == 'True'
 c_options['use_glew'] = False
 c_options['use_sdl2'] = None
 c_options['use_ios'] = False
