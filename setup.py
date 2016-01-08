@@ -551,6 +551,8 @@ def determine_base_flags():
 
 def determine_gl_flags():
     flags = {'libraries': []}
+    if c_options['use_opengl_mock']:
+        return flags
     if platform == 'win32':
         flags['libraries'] = ['opengl32']
     elif platform == 'ios':
@@ -653,7 +655,7 @@ gl_flags = determine_gl_flags()
 # all the dependencies have been found manually with:
 # grep -inr -E '(cimport|include)' kivy/graphics/context_instructions.{pxd,pyx}
 graphics_dependencies = {
-    'gl_redirect.h': ['common_subset.h'],
+    'gl_redirect.h': ['common_subset.h', 'gl_mock.h'],
     'c_opengl.pxd': ['config.pxi', 'gl_redirect.h'],
     'buffer.pyx': ['common.pxi'],
     'context.pxd': [

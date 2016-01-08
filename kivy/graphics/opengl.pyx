@@ -18,11 +18,11 @@ include "config.pxi"
 include "common.pxi"
 cimport c_opengl
 IF USE_OPENGL_DEBUG:
-    cimport c_opengl_debug as cgl
+    cimport kivy.graphics.c_opengl_debug as cgl
 ELIF USE_OPENGL_MOCK:
-    cimport c_opengl_mock as cgl
+    cimport kivy.graphics.c_opengl_mock as cgl
 ELSE:
-    cimport c_opengl as cgl
+    cimport kivy.graphics.c_opengl as cgl
 
 from kivy.logger import Logger
 

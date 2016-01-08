@@ -1,0 +1,388 @@
+
+#ifndef __gl_mock_h_
+#define __gl_mock_h_
+
+#include <stdint.h>
+
+typedef void               GLvoid;
+typedef char               GLchar;
+typedef unsigned int       GLenum;
+typedef unsigned char      GLboolean;
+typedef unsigned int       GLbitfield;
+typedef short              GLshort;
+typedef int                GLint;
+typedef int                GLsizei;
+typedef unsigned short     GLushort;
+typedef unsigned int       GLuint;
+
+// #FIXME: figure out correct cross platform tydefs
+// #typedef khronos_float_t  GLfloat;
+// #typedef khronos_float_t  GLclampf;
+// #typedef khronos_int32_t  GLfixed;
+// #typedef khronos_intptr_t GLintptr;
+// #typedef khronos_ssize_t  GLsizeiptr;
+typedef signed char        GLbyte;
+typedef unsigned char      GLubyte;
+typedef float              GLfloat;
+typedef float              GLclampf;
+typedef int                GLfixed;
+typedef ptrdiff_t    GLintptr;
+typedef ptrdiff_t    GLsizeiptr;
+
+
+// #int GL_ES_VERSION_2_0
+
+#define GL_DEPTH_BUFFER_BIT 0
+#define GL_STENCIL_BUFFER_BIT 0
+#define GL_COLOR_BUFFER_BIT 0
+
+#define GL_FALSE 0
+#define GL_TRUE 0
+
+#define GL_POINTS 0
+#define GL_LINES 0
+#define GL_LINE_LOOP 0
+#define GL_LINE_STRIP 0
+#define GL_TRIANGLES 0
+#define GL_TRIANGLE_STRIP 0
+#define GL_TRIANGLE_FAN 0
+
+#define GL_ZERO 0
+#define GL_ONE 0
+#define GL_SRC_COLOR 0
+#define GL_ONE_MINUS_SRC_COLOR 0
+#define GL_SRC_ALPHA 0
+#define GL_ONE_MINUS_SRC_ALPHA 0
+#define GL_DST_ALPHA 0
+#define GL_ONE_MINUS_DST_ALPHA 0
+
+#define GL_DST_COLOR 0
+#define GL_ONE_MINUS_DST_COLOR 0
+#define GL_SRC_ALPHA_SATURATE 0
+
+#define GL_FUNC_ADD 0
+#define GL_BLEND_EQUATION 0
+#define GL_BLEND_EQUATION_RGB 0
+#define GL_BLEND_EQUATION_ALPHA 0
+
+#define GL_FUNC_SUBTRACT 0
+#define GL_FUNC_REVERSE_SUBTRACT 0
+
+#define GL_BLEND_DST_RGB 0
+#define GL_BLEND_SRC_RGB 0
+#define GL_BLEND_DST_ALPHA 0
+#define GL_BLEND_SRC_ALPHA 0
+#define GL_ANT_COLOR 0
+#define GL_ONE_MINUS_ANT_COLOR 0
+#define GL_ANT_ALPHA 0
+#define GL_ONE_MINUS_ANT_ALPHA 0
+#define GL_BLEND_COLOR 0
+
+#define GL_ARRAY_BUFFER 0
+#define GL_ELEMENT_ARRAY_BUFFER 0
+#define GL_ARRAY_BUFFER_BINDING 0
+#define GL_ELEMENT_ARRAY_BUFFER_BINDING 0
+
+#define GL_STREAM_DRAW 0
+#define GL_STATIC_DRAW 0
+#define GL_DYNAMIC_DRAW 0
+
+#define GL_BUFFER_SIZE 0
+#define GL_BUFFER_USAGE 0
+
+#define GL_CURRENT_VERTEX_ATTRIB 0
+
+#define GL_FRONT 0
+#define GL_BACK 0
+#define GL_FRONT_AND_BACK 0
+
+#define GL_TEXTURE_2D 0
+#define GL_CULL_FACE 0
+#define GL_BLEND 0
+#define GL_DITHER 0
+#define GL_STENCIL_TEST 0
+#define GL_DEPTH_TEST 0
+#define GL_SCISSOR_TEST 0
+#define GL_POLYGON_OFFSET_FILL 0
+#define GL_SAMPLE_ALPHA_TO_COVERAGE 0
+#define GL_SAMPLE_COVERAGE 0
+
+#define GL_NO_ERROR 0
+#define GL_INVALID_ENUM 0
+#define GL_INVALID_VALUE 0
+#define GL_INVALID_OPERATION 0
+#define GL_OUT_OF_MEMORY 0
+
+#define GL_CW 0
+#define GL_CCW 0
+
+#define GL_LINE_WIDTH 0
+#define GL_ALIASED_POINT_SIZE_RANGE 0
+#define GL_ALIASED_LINE_WIDTH_RANGE 0
+#define GL_CULL_FACE_MODE 0
+#define GL_FRONT_FACE 0
+#define GL_DEPTH_RANGE 0
+#define GL_DEPTH_WRITEMASK 0
+#define GL_DEPTH_CLEAR_VALUE 0
+#define GL_DEPTH_FUNC 0
+#define GL_STENCIL_CLEAR_VALUE 0
+#define GL_STENCIL_FUNC 0
+#define GL_STENCIL_FAIL 0
+#define GL_STENCIL_PASS_DEPTH_FAIL 0
+#define GL_STENCIL_PASS_DEPTH_PASS 0
+#define GL_STENCIL_REF 0
+#define GL_STENCIL_VALUE_MASK 0
+#define GL_STENCIL_WRITEMASK 0
+#define GL_STENCIL_BACK_FUNC 0
+#define GL_STENCIL_BACK_FAIL 0
+#define GL_STENCIL_BACK_PASS_DEPTH_FAIL 0
+#define GL_STENCIL_BACK_PASS_DEPTH_PASS 0
+#define GL_STENCIL_BACK_REF 0
+#define GL_STENCIL_BACK_VALUE_MASK 0
+#define GL_STENCIL_BACK_WRITEMASK 0
+#define GL_VIEWPORT 0
+#define GL_SCISSOR_BOX 0
+
+#define GL_COLOR_CLEAR_VALUE 0
+#define GL_COLOR_WRITEMASK 0
+#define GL_UNPACK_ALIGNMENT 0
+#define GL_PACK_ALIGNMENT 0
+#define GL_MAX_TEXTURE_SIZE 0
+#define GL_MAX_VIEWPORT_DIMS 0
+#define GL_SUBPIXEL_BITS 0
+#define GL_RED_BITS 0
+#define GL_GREEN_BITS 0
+#define GL_BLUE_BITS 0
+#define GL_ALPHA_BITS 0
+#define GL_DEPTH_BITS 0
+#define GL_STENCIL_BITS 0
+#define GL_POLYGON_OFFSET_UNITS 0
+
+#define GL_POLYGON_OFFSET_FACTOR 0
+#define GL_TEXTURE_BINDING_2D 0
+#define GL_SAMPLE_BUFFERS 0
+#define GL_SAMPLES 0
+#define GL_SAMPLE_COVERAGE_VALUE 0
+#define GL_SAMPLE_COVERAGE_INVERT 0
+
+#define GL_NUM_COMPRESSED_TEXTURE_FORMATS 0
+#define GL_COMPRESSED_TEXTURE_FORMATS 0
+
+#define GL_DONT_CARE 0
+#define GL_FASTEST 0
+#define GL_NICEST 0
+
+#define GL_GENERATE_MIPMAP_HINT 0
+
+#define GL_BYTE 0
+#define GL_UNSIGNED_BYTE 0
+#define GL_SHORT 0
+#define GL_UNSIGNED_SHORT 0
+#define GL_INT 0
+#define GL_UNSIGNED_INT 0
+#define GL_FLOAT 0
+
+#define GL_DEPTH_COMPONENT 0
+#define GL_ALPHA 0
+#define GL_RGB 0
+#define GL_RGBA 0
+#define GL_LUMINANCE 0
+#define GL_LUMINANCE_ALPHA 0
+
+#define GL_UNSIGNED_SHORT_4_4_4_4 0
+#define GL_UNSIGNED_SHORT_5_5_5_1 0
+#define GL_UNSIGNED_SHORT_5_6_5 0
+
+#define GL_FRAGMENT_SHADER 0
+#define GL_VERTEX_SHADER 0
+#define GL_MAX_VERTEX_ATTRIBS 0
+#define GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS 0
+#define GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS 0
+#define GL_MAX_TEXTURE_IMAGE_UNITS 0
+#define GL_SHADER_TYPE 0
+#define GL_DELETE_STATUS 0
+#define GL_LINK_STATUS 0
+#define GL_VALIDATE_STATUS 0
+#define GL_ATTACHED_SHADERS 0
+#define GL_ACTIVE_UNIFORMS 0
+#define GL_ACTIVE_UNIFORM_MAX_LENGTH 0
+#define GL_ACTIVE_ATTRIBUTES 0
+#define GL_ACTIVE_ATTRIBUTE_MAX_LENGTH 0
+#define GL_SHADING_LANGUAGE_VERSION 0
+#define GL_CURRENT_PROGRAM 0
+
+#define GL_NEVER 0
+#define GL_LESS 0
+#define GL_EQUAL 0
+#define GL_LEQUAL 0
+#define GL_GREATER 0
+#define GL_NOTEQUAL 0
+#define GL_GEQUAL 0
+#define GL_ALWAYS 0
+
+#define GL_KEEP 0
+#define GL_REPLACE 0
+#define GL_INCR 0
+#define GL_DECR 0
+#define GL_INVERT 0
+#define GL_INCR_WRAP 0
+#define GL_DECR_WRAP 0
+
+#define GL_VENDOR 0
+#define GL_RENDERER 0
+#define GL_VERSION 0
+#define GL_EXTENSIONS 0
+
+#define GL_NEAREST 0
+#define GL_LINEAR 0
+
+#define GL_NEAREST_MIPMAP_NEAREST 0
+#define GL_LINEAR_MIPMAP_NEAREST 0
+#define GL_NEAREST_MIPMAP_LINEAR 0
+#define GL_LINEAR_MIPMAP_LINEAR 0
+
+#define GL_TEXTURE_MAG_FILTER 0
+#define GL_TEXTURE_MIN_FILTER 0
+#define GL_TEXTURE_WRAP_S 0
+#define GL_TEXTURE_WRAP_T 0
+
+#define GL_TEXTURE 0
+
+#define GL_TEXTURE_CUBE_MAP 0
+#define GL_TEXTURE_BINDING_CUBE_MAP 0
+#define GL_TEXTURE_CUBE_MAP_POSITIVE_X 0
+#define GL_TEXTURE_CUBE_MAP_NEGATIVE_X 0
+#define GL_TEXTURE_CUBE_MAP_POSITIVE_Y 0
+#define GL_TEXTURE_CUBE_MAP_NEGATIVE_Y 0
+#define GL_TEXTURE_CUBE_MAP_POSITIVE_Z 0
+#define GL_TEXTURE_CUBE_MAP_NEGATIVE_Z 0
+#define GL_MAX_CUBE_MAP_TEXTURE_SIZE 0
+
+#define GL_TEXTURE0 0
+#define GL_TEXTURE1 0
+#define GL_TEXTURE2 0
+#define GL_TEXTURE3 0
+#define GL_TEXTURE4 0
+#define GL_TEXTURE5 0
+#define GL_TEXTURE6 0
+#define GL_TEXTURE7 0
+#define GL_TEXTURE8 0
+#define GL_TEXTURE9 0
+#define GL_TEXTURE10 0
+#define GL_TEXTURE11 0
+#define GL_TEXTURE12 0
+#define GL_TEXTURE13 0
+#define GL_TEXTURE14 0
+#define GL_TEXTURE15 0
+#define GL_TEXTURE16 0
+#define GL_TEXTURE17 0
+#define GL_TEXTURE18 0
+#define GL_TEXTURE19 0
+#define GL_TEXTURE20 0
+#define GL_TEXTURE21 0
+#define GL_TEXTURE22 0
+#define GL_TEXTURE23 0
+#define GL_TEXTURE24 0
+#define GL_TEXTURE25 0
+#define GL_TEXTURE26 0
+#define GL_TEXTURE27 0
+#define GL_TEXTURE28 0
+#define GL_TEXTURE29 0
+#define GL_TEXTURE30 0
+#define GL_TEXTURE31 0
+#define GL_ACTIVE_TEXTURE 0
+
+
+#define GL_REPEAT 0
+#define GL_CLAMP_TO_EDGE 0
+#define GL_MIRRORED_REPEAT 0
+
+#define GL_FLOAT_VEC2 0
+#define GL_FLOAT_VEC3 0
+#define GL_FLOAT_VEC4 0
+#define GL_INT_VEC2 0
+#define GL_INT_VEC3 0
+#define GL_INT_VEC4 0
+#define GL_BOOL 0
+#define GL_BOOL_VEC2 0
+#define GL_BOOL_VEC3 0
+#define GL_BOOL_VEC4 0
+#define GL_FLOAT_MAT2 0
+#define GL_FLOAT_MAT3 0
+#define GL_FLOAT_MAT4 0
+#define GL_SAMPLER_2D 0
+#define GL_SAMPLER_CUBE 0
+
+#define GL_VERTEX_ATTRIB_ARRAY_ENABLED 0
+#define GL_VERTEX_ATTRIB_ARRAY_SIZE 0
+#define GL_VERTEX_ATTRIB_ARRAY_STRIDE 0
+#define GL_VERTEX_ATTRIB_ARRAY_TYPE 0
+#define GL_VERTEX_ATTRIB_ARRAY_NORMALIZED 0
+#define GL_VERTEX_ATTRIB_ARRAY_POINTER 0
+#define GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING 0
+
+#define GL_COMPILE_STATUS 0
+#define GL_INFO_LOG_LENGTH 0
+#define GL_SHADER_SOURCE_LENGTH 0
+
+#define GL_SHADER_BINARY_FORMATS 0
+
+#define GL_FRAMEBUFFER 0
+#define GL_RENDERBUFFER 0
+
+#define GL_RGBA4 0
+#define GL_RGB5_A1 0
+#define GL_RGB565 0
+#define GL_DEPTH_COMPONENT16 0
+#define GL_STENCIL_INDEX8 0
+#define GL_DEPTH24_STENCIL8 0
+
+#define GL_RENDERBUFFER_WIDTH 0
+#define GL_RENDERBUFFER_HEIGHT 0
+#define GL_RENDERBUFFER_INTERNAL_FORMAT 0
+#define GL_RENDERBUFFER_RED_SIZE 0
+#define GL_RENDERBUFFER_GREEN_SIZE 0
+#define GL_RENDERBUFFER_BLUE_SIZE 0
+#define GL_RENDERBUFFER_ALPHA_SIZE 0
+#define GL_RENDERBUFFER_DEPTH_SIZE 0
+#define GL_RENDERBUFFER_STENCIL_SIZE 0
+
+#define GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE 0
+#define GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME 0
+#define GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL 0
+#define GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE 0
+
+#define GL_COLOR_ATTACHMENT0 0
+#define GL_DEPTH_ATTACHMENT 0
+#define GL_STENCIL_ATTACHMENT 0
+
+#define GL_NONE 0
+
+#define GL_FRAMEBUFFER_COMPLETE 0
+#define GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT 0
+#define GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT 0
+#define GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS 0
+#define GL_FRAMEBUFFER_UNSUPPORTED 0
+
+#define GL_FRAMEBUFFER_BINDING 0
+#define GL_RENDERBUFFER_BINDING 0
+#define GL_MAX_RENDERBUFFER_SIZE 0
+
+#define GL_INVALID_FRAMEBUFFER_OPERATION 0
+
+#define GL_FIXED 0
+#define GL_MAX_VERTEX_UNIFORM_VECTORS 0
+#define GL_MAX_VARYING_VECTORS 0
+#define GL_MAX_FRAGMENT_UNIFORM_VECTORS 0
+#define GL_IMPLEMENTATION_COLOR_READ_TYPE 0
+#define GL_IMPLEMENTATION_COLOR_READ_FORMAT 0
+#define GL_SHADER_COMPILER 0
+#define GL_NUM_SHADER_BINARY_FORMATS 0
+#define GL_LOW_FLOAT 0
+#define GL_MEDIUM_FLOAT 0
+#define GL_HIGH_FLOAT 0
+#define GL_LOW_INT 0
+#define GL_MEDIUM_INT 0
+#define GL_HIGH_INT 0
+
+#endif
