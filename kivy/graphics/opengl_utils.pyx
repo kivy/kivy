@@ -13,6 +13,7 @@ __all__ = ('gl_get_extensions', 'gl_has_extension',
         'gl_get_version', 'gl_get_version_minor', 'gl_get_version_major',
         'GLCAP_BGRA', 'GLCAP_NPOT', 'GLCAP_S3TC', 'GLCAP_DXT1', 'GLCAP_ETC1')
 
+include "config.pxi"
 include "opengl_utils_def.pxi"
 cimport c_opengl
 from kivy.logger import Logger
@@ -59,6 +60,8 @@ cpdef int gl_has_extension(name):
         True
 
     '''
+    IF USE_OPENGL_MOCK:
+        return True
     name = name.lower()
     if name.startswith('GL_'):
         name = name[3:]
@@ -289,5 +292,3 @@ cpdef int gl_get_version_minor():
     if _gl_version_major == -1:
         gl_get_version()
     return _gl_version_minor
-
-

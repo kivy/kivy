@@ -49,7 +49,8 @@ if 'KIVY_DOC' not in environ:
         # Let the user know if his graphics hardware/drivers are too old
         major, minor = gl_get_version()
         Logger.info('GL: OpenGL parsed version: %d, %d' % (major, minor))
-        if (major, minor) < MIN_REQUIRED_GL_VERSION:
+        if (major, minor) < MIN_REQUIRED_GL_VERSION and not \
+                bool(int(environ.get('USE_OPENGL_MOCK', 0))):
             msg = (
                 'GL: Minimum required OpenGL version (2.0) NOT found!\n\n'
                 'OpenGL version detected: {0}.{1}\n\n'

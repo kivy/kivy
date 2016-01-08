@@ -2,6 +2,7 @@
 # This file was automatically generated with kivy/tools/stub-gl-debug.py
 include "common.pxi"
 cimport kivy.graphics.c_opengl as cgl
+cimport kivy.graphics.c_opengl_mock as m_cgl
 
 
 cdef void   glActiveTexture (GLenum texture) with gil:

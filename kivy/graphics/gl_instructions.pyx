@@ -24,6 +24,8 @@ include "config.pxi"
 include "opcodes.pxi"
 
 from kivy.graphics.c_opengl cimport *
+IF USE_OPENGL_MOCK == 1:
+    from kivy.graphics.c_opengl_mock cimport *
 IF USE_OPENGL_DEBUG == 1:
     from c_opengl_debug cimport *
 from kivy.graphics.instructions cimport Instruction

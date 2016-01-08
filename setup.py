@@ -107,6 +107,7 @@ c_options['use_mali'] = platform == 'mali'
 c_options['use_egl'] = False
 c_options['use_opengl_es2'] = None
 c_options['use_opengl_debug'] = False
+c_options['use_opengl_mock'] = False
 c_options['use_glew'] = False
 c_options['use_sdl2'] = None
 c_options['use_ios'] = False
@@ -657,8 +658,9 @@ graphics_dependencies = {
     'buffer.pyx': ['common.pxi'],
     'context.pxd': [
         'instructions.pxd', 'texture.pxd', 'vbo.pxd',
-        'c_opengl.pxd', 'c_opengl_debug.pxd'],
+        'c_opengl.pxd', 'c_opengl_debug.pxd', 'c_opengl_mock.pxd'],
     'c_opengl_debug.pyx': ['common.pxi', 'c_opengl.pxd'],
+    'c_opengl_mock.pyx': ['common.pxi', 'c_opengl.pxd'],
     'compiler.pxd': ['instructions.pxd'],
     'compiler.pyx': ['context_instructions.pxd'],
     'context_instructions.pxd': [
@@ -666,46 +668,52 @@ graphics_dependencies = {
     'fbo.pxd': ['c_opengl.pxd', 'instructions.pxd', 'texture.pxd'],
     'fbo.pyx': [
         'config.pxi', 'opcodes.pxi', 'transformation.pxd', 'context.pxd',
-        'c_opengl_debug.pxd'],
+        'c_opengl_debug.pxd', 'c_opengl_mock.pxd'],
     'gl_instructions.pyx': [
         'config.pxi', 'opcodes.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd',
-        'instructions.pxd'],
+        'instructions.pxd', 'c_opengl_mock.pxd'],
     'instructions.pxd': [
         'vbo.pxd', 'context_instructions.pxd', 'compiler.pxd', 'shader.pxd',
         'texture.pxd', '../_event.pxd'],
     'instructions.pyx': [
         'config.pxi', 'opcodes.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd',
-        'context.pxd', 'common.pxi', 'vertex.pxd', 'transformation.pxd'],
+        'context.pxd', 'common.pxi', 'vertex.pxd', 'transformation.pxd',
+        'c_opengl_mock.pxd'],
     'opengl.pyx': [
         'config.pxi', 'common.pxi', 'c_opengl.pxd', 'gl_redirect.h'],
-    'opengl_utils.pyx': ['opengl_utils_def.pxi', 'c_opengl.pxd'],
+    'opengl_utils.pyx': [
+        'opengl_utils_def.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd'],
     'shader.pxd': ['c_opengl.pxd', 'transformation.pxd', 'vertex.pxd'],
     'shader.pyx': [
         'config.pxi', 'common.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd',
-        'vertex.pxd', 'transformation.pxd', 'context.pxd'],
+        'vertex.pxd', 'transformation.pxd', 'context.pxd',
+        'gl_debug_logger.pxi', 'c_opengl_mock.pxd'],
     'stencil_instructions.pxd': ['instructions.pxd'],
     'stencil_instructions.pyx': [
-        'config.pxi', 'opcodes.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd'],
+        'config.pxi', 'opcodes.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd',
+        'gl_debug_logger.pxi', 'c_opengl_mock.pxd'],
     'scissor_instructions.pyx': [
-        'config.pxi', 'opcodes.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd'],
+        'config.pxi', 'opcodes.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd',
+        'c_opengl_mock.pxd'],
     'svg.pyx': ['config.pxi', 'common.pxi', 'texture.pxd', 'instructions.pxd',
                 'vertex_instructions.pxd', 'tesselator.pxd'],
     'texture.pxd': ['c_opengl.pxd'],
     'texture.pyx': [
         'config.pxi', 'common.pxi', 'opengl_utils_def.pxi', 'context.pxd',
         'c_opengl.pxd', 'c_opengl_debug.pxd', 'opengl_utils.pxd',
-        'img_tools.pxi'],
+        'img_tools.pxi', 'gl_debug_logger.pxi', 'c_opengl_mock.pxd'],
     'vbo.pxd': ['buffer.pxd', 'c_opengl.pxd', 'vertex.pxd'],
     'vbo.pyx': [
         'config.pxi', 'common.pxi', 'c_opengl_debug.pxd', 'context.pxd',
-        'instructions.pxd', 'shader.pxd'],
+        'instructions.pxd', 'shader.pxd', 'gl_debug_logger.pxi',
+        'c_opengl_mock.pxd'],
     'vertex.pxd': ['c_opengl.pxd'],
     'vertex.pyx': ['config.pxi', 'common.pxi'],
     'vertex_instructions.pyx': [
         'config.pxi', 'common.pxi', 'vbo.pxd', 'vertex.pxd',
         'instructions.pxd', 'vertex_instructions.pxd',
         'c_opengl.pxd', 'c_opengl_debug.pxd', 'texture.pxd',
-        'vertex_instructions_line.pxi'],
+        'vertex_instructions_line.pxi', 'c_opengl_mock.pxd'],
     'vertex_instructions_line.pxi': ['stencil_instructions.pxd']}
 
 sources = {
@@ -715,6 +723,7 @@ sources = {
     'graphics/buffer.pyx': base_flags,
     'graphics/context.pyx': merge(base_flags, gl_flags),
     'graphics/c_opengl_debug.pyx': merge(base_flags, gl_flags),
+    'graphics/c_opengl_mock.pyx': merge(base_flags, gl_flags),
     'graphics/compiler.pyx': merge(base_flags, gl_flags),
     'graphics/context_instructions.pyx': merge(base_flags, gl_flags),
     'graphics/fbo.pyx': merge(base_flags, gl_flags),
