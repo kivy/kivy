@@ -18,14 +18,11 @@ include "config.pxi"
 include "common.pxi"
 cimport c_opengl
 IF USE_OPENGL_DEBUG:
-    cimport c_opengl_debug as f_cgl
-    cimport c_opengl_debug as mock_cgl
+    cimport c_opengl_debug as cgl
+ELIF USE_OPENGL_MOCK:
+    cimport c_opengl_mock as cgl
 ELSE:
-    cimport c_opengl as f_cgl
-    IF USE_OPENGL_MOCK:
-        cimport c_opengl_debug as mock_cgl
-    ELSE:
-        cimport c_opengl as mock_cgl
+    cimport c_opengl as cgl
 
 from kivy.logger import Logger
 
@@ -466,105 +463,105 @@ def glActiveTexture(GLenum texture):
     '''See: `glActiveTexture() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glActiveTexture.xml>`_
     '''
-    f_cgl.glActiveTexture(texture)
+    cgl.glActiveTexture(texture)
 
 def glAttachShader(GLuint program, GLuint shader):
     '''See: `glAttachShader() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glAttachShader.xml>`_
     '''
-    f_cgl.glAttachShader(program, shader)
+    cgl.glAttachShader(program, shader)
 
 def glBindAttribLocation(GLuint program, GLuint index, bytes name):
     '''See: `glBindAttribLocation() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glBindAttribLocation.xml>`_
     '''
-    f_cgl.glBindAttribLocation(program, index, <char *>name)
+    cgl.glBindAttribLocation(program, index, <char *>name)
 
 def glBindBuffer(GLenum target, GLuint buffer):
     '''See: `glBindBuffer() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glBindBuffer.xml>`_
     '''
-    f_cgl.glBindBuffer(target, buffer)
+    cgl.glBindBuffer(target, buffer)
 
 def glBindFramebuffer(GLenum target, GLuint framebuffer):
     '''See: `glBindFramebuffer() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glBindFramebuffer.xml>`_
     '''
-    f_cgl.glBindFramebuffer(target, framebuffer)
+    cgl.glBindFramebuffer(target, framebuffer)
 
 def glBindRenderbuffer(GLenum target, GLuint renderbuffer):
     '''See: `glBindRenderbuffer() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glBindRenderbuffer.xml>`_
     '''
-    f_cgl.glBindRenderbuffer(target, renderbuffer)
+    cgl.glBindRenderbuffer(target, renderbuffer)
 
 def glBindTexture(GLenum target, GLuint texture):
     '''See: `glBindTexture() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glBindTexture.xml>`_
     '''
-    f_cgl.glBindTexture(target, texture)
+    cgl.glBindTexture(target, texture)
 
 def glBlendColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha):
     '''See: `glBlendColor() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glBlendColor.xml>`_
     '''
-    f_cgl.glBlendColor(red, green, blue, alpha)
+    cgl.glBlendColor(red, green, blue, alpha)
 
 def glBlendEquation(GLenum mode):
     '''See: `glBlendEquation() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glBlendEquation.xml>`_
     '''
-    f_cgl.glBlendEquation(mode)
+    cgl.glBlendEquation(mode)
 
 def glBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha):
     '''See: `glBlendEquationSeparate() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glBlendEquationSeparate.xml>`_
     '''
-    f_cgl.glBlendEquationSeparate(modeRGB, modeAlpha)
+    cgl.glBlendEquationSeparate(modeRGB, modeAlpha)
 
 def glBlendFunc(GLenum sfactor, GLenum dfactor):
     '''See: `glBlendFunc() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glBlendFunc.xml>`_
     '''
-    f_cgl.glBlendFunc(sfactor, dfactor)
+    cgl.glBlendFunc(sfactor, dfactor)
 
 def glBlendFuncSeparate(GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha):
     '''See: `glBlendFuncSeparate() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glBlendFuncSeparate.xml>`_
     '''
-    f_cgl.glBlendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha)
+    cgl.glBlendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha)
 
 def glBufferData(GLenum target, GLsizeiptr size, bytes data, GLenum usage):
     '''See: `glBufferData() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glBufferData.xml>`_
     '''
-    f_cgl.glBufferData(target, size, <char *>data, usage)
+    cgl.glBufferData(target, size, <char *>data, usage)
 
 def glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, bytes data):
     '''See: `glBufferSubData() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glBufferSubData.xml>`_
     '''
-    f_cgl.glBufferSubData(target, offset, size, <char *>data)
+    cgl.glBufferSubData(target, offset, size, <char *>data)
 
 def glCheckFramebufferStatus(GLenum target):
     '''See: `glCheckFramebufferStatus() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glCheckFramebufferStatus.xml>`_
     '''
     cdef GLenum result
-    result = mock_cgl.glCheckFramebufferStatus(target)
+    result = cgl.glCheckFramebufferStatus(target)
     return result
 
 def glClear(GLbitfield mask):
     '''See: `glClear() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glClear.xml>`_
     '''
-    f_cgl.glClear(mask)
+    cgl.glClear(mask)
 
 def glClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha):
     '''See: `glClearColor() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glClearColor.xml>`_
     '''
-    f_cgl.glClearColor(red, green, blue, alpha)
+    cgl.glClearColor(red, green, blue, alpha)
 
 # We don't use this syumbol yet, but if we activate it, android platform crash
 # >_<
@@ -572,25 +569,25 @@ def glClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha):
 #    '''See: `glClearDepthf() on Kronos website
 #    <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glClearDepthf.xml>`_
 #    '''
-#    f_cgl.glClearDepthf(depth)
+#    cgl.glClearDepthf(depth)
 
 def glClearStencil(GLint s):
     '''See: `glClearStencil() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glClearStencil.xml>`_
     '''
-    f_cgl.glClearStencil(s)
+    cgl.glClearStencil(s)
 
 def glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha):
     '''See: `glColorMask() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glColorMask.xml>`_
     '''
-    f_cgl.glColorMask(red, green, blue, alpha)
+    cgl.glColorMask(red, green, blue, alpha)
 
 def glCompileShader(GLuint shader):
     '''See: `glCompileShader() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glCompileShader.xml>`_
     '''
-    f_cgl.glCompileShader(shader)
+    cgl.glCompileShader(shader)
 
 def glCompressedTexImage2D(GLenum target, GLint level, GLenum internalformat,
                            GLsizei width, GLsizei height, GLint border, GLsizei
@@ -598,7 +595,7 @@ def glCompressedTexImage2D(GLenum target, GLint level, GLenum internalformat,
     '''See: `glCompressedTexImage2D() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glCompressedTexImage2D.xml>`_
     '''
-    f_cgl.glCompressedTexImage2D(target, level, internalformat, width,
+    cgl.glCompressedTexImage2D(target, level, internalformat, width,
                                     height, border, imageSize, <char *>data)
 
 def glCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint
@@ -607,27 +604,27 @@ def glCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint
     '''See: `glCompressedTexSubImage2D() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glCompressedTexSubImage2D.xml>`_
     '''
-    f_cgl.glCompressedTexSubImage2D(target, level, xoffset, yoffset, width,
+    cgl.glCompressedTexSubImage2D(target, level, xoffset, yoffset, width,
                                        height, format, imageSize, <char *>data)
 
 def glCopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border):
     '''See: `glCopyTexImage2D() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glCopyTexImage2D.xml>`_
     '''
-    f_cgl.glCopyTexImage2D(target, level, internalformat, x, y, width, height, border)
+    cgl.glCopyTexImage2D(target, level, internalformat, x, y, width, height, border)
 
 def glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height):
     '''See: `glCopyTexSubImage2D() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glCopyTexSubImage2D.xml>`_
     '''
-    f_cgl.glCopyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height)
+    cgl.glCopyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height)
 
 def glCreateProgram():
     '''See: `glCreateProgram() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glCreateProgram.xml>`_
     '''
     cdef GLuint id
-    id = mock_cgl.glCreateProgram()
+    id = cgl.glCreateProgram()
     return id
 
 def glCreateShader(GLenum type):
@@ -635,92 +632,92 @@ def glCreateShader(GLenum type):
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glCreateShader.xml>`_
     '''
     cdef GLuint id
-    id = mock_cgl.glCreateShader(type)
+    id = cgl.glCreateShader(type)
     return id
 
 def glCullFace(GLenum mode):
     '''See: `glCullFace() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glCullFace.xml>`_
     '''
-    f_cgl.glCullFace(mode)
+    cgl.glCullFace(mode)
 
 def glDeleteBuffers(GLsizei n, bytes buffers):
     '''See: `glDeleteBuffers() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glDeleteBuffers.xml>`_
     '''
-    f_cgl.glDeleteBuffers(n, <GLuint *><char *>buffers)
+    cgl.glDeleteBuffers(n, <GLuint *><char *>buffers)
 
 def glDeleteFramebuffers(GLsizei n, bytes framebuffers):
     '''See: `glDeleteFramebuffers() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glDeleteFramebuffers.xml>`_
     '''
-    f_cgl.glDeleteFramebuffers(n, <GLuint *><char *>framebuffers)
+    cgl.glDeleteFramebuffers(n, <GLuint *><char *>framebuffers)
 
 def glDeleteProgram(GLuint program):
     '''See: `glDeleteProgram() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glDeleteProgram.xml>`_
     '''
-    f_cgl.glDeleteProgram(program)
+    cgl.glDeleteProgram(program)
 
 def glDeleteRenderbuffers(GLsizei n, bytes renderbuffers):
     '''See: `glDeleteRenderbuffers() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glDeleteRenderbuffers.xml>`_
     '''
-    f_cgl.glDeleteRenderbuffers(n, <GLuint *><char *>renderbuffers)
+    cgl.glDeleteRenderbuffers(n, <GLuint *><char *>renderbuffers)
 
 def glDeleteShader(GLuint shader):
     '''See: `glDeleteShader() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glDeleteShader.xml>`_
     '''
-    f_cgl.glDeleteShader(shader)
+    cgl.glDeleteShader(shader)
 
 def glDeleteTextures(GLsizei n, bytes textures):
     '''See: `glDeleteTextures() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glDeleteTextures.xml>`_
     '''
-    f_cgl.glDeleteTextures(n, <GLuint *><char *>textures)
+    cgl.glDeleteTextures(n, <GLuint *><char *>textures)
 
 def glDepthFunc(GLenum func):
     '''See: `glDepthFunc() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glDepthFunc.xml>`_
     '''
-    f_cgl.glDepthFunc(func)
+    cgl.glDepthFunc(func)
 
 def glDepthMask(GLboolean flag):
     '''See: `glDepthMask() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glDepthMask.xml>`_
     '''
-    f_cgl.glDepthMask(flag)
+    cgl.glDepthMask(flag)
 
 #def glDepthRangef(GLclampf zNear, GLclampf zFar):
 #    '''See: `glDepthRangef() on Kronos website
 #    <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glDepthRangef.xml>`_
 #    '''
-#    f_cgl.glDepthRangef(zNear, zFar)
+#    cgl.glDepthRangef(zNear, zFar)
 
 def glDetachShader(GLuint program, GLuint shader):
     '''See: `glDetachShader() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glDetachShader.xml>`_
     '''
-    f_cgl.glDetachShader(program, shader)
+    cgl.glDetachShader(program, shader)
 
 def glDisable(GLenum cap):
     '''See: `glDisable() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glDisable.xml>`_
     '''
-    f_cgl.glDisable(cap)
+    cgl.glDisable(cap)
 
 def glDisableVertexAttribArray(GLuint index):
     '''See: `glDisableVertexAttribArray() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glDisableVertexAttribArray.xml>`_
     '''
-    f_cgl.glDisableVertexAttribArray(index)
+    cgl.glDisableVertexAttribArray(index)
 
 def glDrawArrays(GLenum mode, GLint first, GLsizei count):
     '''See: `glDrawArrays() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glDrawArrays.xml>`_
     '''
-    f_cgl.glDrawArrays(mode, first, count)
+    cgl.glDrawArrays(mode, first, count)
 
 def glDrawElements(GLenum mode, GLsizei count, GLenum type, indices):
     '''See: `glDrawElements() on Kronos website
@@ -733,49 +730,49 @@ def glDrawElements(GLenum mode, GLsizei count, GLenum type, indices):
         ptr = <void *>(<long>indices)
     else:
         raise TypeError("Argument 'indices' has incorrect type (expected bytes or int).")
-    f_cgl.glDrawElements(mode, count, type, ptr)
+    cgl.glDrawElements(mode, count, type, ptr)
 
 def glEnable(GLenum cap):
     '''See: `glEnable() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glEnable.xml>`_
     '''
-    f_cgl.glEnable(cap)
+    cgl.glEnable(cap)
 
 def glEnableVertexAttribArray(GLuint index):
     '''See: `glEnableVertexAttribArray() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glEnableVertexAttribArray.xml>`_
     '''
-    f_cgl.glEnableVertexAttribArray(index)
+    cgl.glEnableVertexAttribArray(index)
 
 def glFinish():
     '''See: `glFinish() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glFinish.xml>`_
     '''
-    f_cgl.glFinish()
+    cgl.glFinish()
 
 def glFlush():
     '''See: `glFlush() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glFlush.xml>`_
     '''
-    f_cgl.glFlush()
+    cgl.glFlush()
 
 def glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer):
     '''See: `glFramebufferRenderbuffer() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glFramebufferRenderbuffer.xml>`_
     '''
-    f_cgl.glFramebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer)
+    cgl.glFramebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer)
 
 def glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level):
     '''See: `glFramebufferTexture2D() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glFramebufferTexture2D.xml>`_
     '''
-    f_cgl.glFramebufferTexture2D(target, attachment, textarget, texture, level)
+    cgl.glFramebufferTexture2D(target, attachment, textarget, texture, level)
 
 def glFrontFace(GLenum mode):
     '''See: `glFrontFace() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glFrontFace.xml>`_
     '''
-    f_cgl.glFrontFace(mode)
+    cgl.glFrontFace(mode)
 
 def glGenBuffers(GLsizei n):
     '''See: `glGenBuffers() on Kronos website
@@ -784,14 +781,14 @@ def glGenBuffers(GLsizei n):
     Unlike the C specification, the value will be the result of call.
     '''
     cdef GLuint *d = _genBegin(n)
-    f_cgl.glGenBuffers(n, d)
+    cgl.glGenBuffers(n, d)
     return _genEnd(n, d)
 
 def glGenerateMipmap(GLenum target):
     '''See: `glGenerateMipmap() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glGenerateMipmap.xml>`_
     '''
-    f_cgl.glGenerateMipmap(target)
+    cgl.glGenerateMipmap(target)
 
 def glGenFramebuffers(GLsizei n):
     '''See: `glGenFramebuffers() on Kronos website
@@ -800,7 +797,7 @@ def glGenFramebuffers(GLsizei n):
     Unlike the C specification, the value will be the result of call.
     '''
     cdef GLuint *d = _genBegin(n)
-    f_cgl.glGenFramebuffers(n, d)
+    cgl.glGenFramebuffers(n, d)
     return _genEnd(n, d)
 
 def glGenRenderbuffers(GLsizei n):
@@ -810,7 +807,7 @@ def glGenRenderbuffers(GLsizei n):
     Unlike the C specification, the value will be the result of call.
     '''
     cdef GLuint *d = _genBegin(n)
-    f_cgl.glGenRenderbuffers(n, d)
+    cgl.glGenRenderbuffers(n, d)
     return _genEnd(n, d)
 
 def glGenTextures(GLsizei n):
@@ -820,7 +817,7 @@ def glGenTextures(GLsizei n):
     Unlike the C specification, the value will be the result of call.
     '''
     cdef GLuint *d = _genBegin(n)
-    f_cgl.glGenTextures(n, d)
+    cgl.glGenTextures(n, d)
     return _genEnd(n, d)
 
 def glGetActiveAttrib(GLuint program, GLuint index):
@@ -836,7 +833,7 @@ def glGetActiveAttrib(GLuint program, GLuint index):
     name = <GLchar *>malloc(sizeof(GLchar) * 255)
     if name == NULL:
         raise MemoryError('glGetActiveAttrib()')
-    f_cgl.glGetActiveAttrib(program, index, 255, NULL, &size, &gl_type, name)
+    cgl.glGetActiveAttrib(program, index, 255, NULL, &size, &gl_type, name)
     p_name = <char *>name
     free(name)
     return p_name, size, gl_type
@@ -854,7 +851,7 @@ def glGetActiveUniform(GLuint program, GLuint index):
     name = <GLchar *>malloc(sizeof(GLchar) * 255)
     if name == NULL:
         raise MemoryError('glGetActiveUniform()')
-    f_cgl.glGetActiveUniform(program, index, 255, NULL, &size, &gl_type, name)
+    cgl.glGetActiveUniform(program, index, 255, NULL, &size, &gl_type, name)
     p_name = <char *>name
     free(name)
     return p_name, size, gl_type
@@ -867,7 +864,7 @@ def glGetAttachedShaders(GLuint program, GLsizei maxcount):
     '''
     cdef GLsizei count = 1024
     cdef GLuint *shaders = _genBegin(count)
-    f_cgl.glGetAttachedShaders(program, count, &count, shaders)
+    cgl.glGetAttachedShaders(program, count, &count, shaders)
     return _genEnd(count, shaders)
 
 def glGetAttribLocation(GLuint program,  bytes name):
@@ -876,7 +873,7 @@ def glGetAttribLocation(GLuint program,  bytes name):
 
     Unlike the C specification, the value will be the result of call.
     '''
-    return f_cgl.glGetAttribLocation(program, <char *>name)
+    return cgl.glGetAttribLocation(program, <char *>name)
 
 def glGetBooleanv(GLenum pname):
     '''See: `glGetBooleanv() on Kronos website
@@ -887,7 +884,7 @@ def glGetBooleanv(GLenum pname):
     cdef GLboolean *params = <GLboolean *>malloc(_GL_GET_SIZE[pname] * sizeof(GLboolean))
     if params == NULL:
         raise MemoryError('glGetBooleanv()')
-    f_cgl.glGetBooleanv(pname, params)
+    cgl.glGetBooleanv(pname, params)
     cdef out = [params[i] for i in xrange(_GL_GET_SIZE[pname])]
     free(params)
     return out
@@ -901,7 +898,7 @@ def glGetBufferParameteriv(GLenum target, GLenum pname):
     cdef GLint *params = <GLint *>malloc(_GL_GET_SIZE[pname] * sizeof(GLint))
     if params == NULL:
         raise MemoryError('glGetBufferParameteriv()')
-    f_cgl.glGetBufferParameteriv(target, pname, params)
+    cgl.glGetBufferParameteriv(target, pname, params)
     cdef out = [params[i] for i in xrange(_GL_GET_SIZE[pname])]
     free(params)
     return out
@@ -912,7 +909,7 @@ def glGetError():
 
     Unlike the C specification, the value will be the result of call.
     '''
-    return mock_cgl.glGetError()
+    return cgl.glGetError()
 
 def glGetFloatv(GLenum pname):
     '''See: `glGetFloatv() on Kronos website
@@ -923,7 +920,7 @@ def glGetFloatv(GLenum pname):
     cdef GLfloat *params = <GLfloat *>malloc(_GL_GET_SIZE[pname] * sizeof(GLfloat))
     if params == NULL:
         raise MemoryError('glGetFloatv()')
-    f_cgl.glGetFloatv(pname, params)
+    cgl.glGetFloatv(pname, params)
     cdef out = [params[i] for i in xrange(_GL_GET_SIZE[pname])]
     free(params)
     return out
@@ -937,7 +934,7 @@ def glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLen
     cdef GLint *params = <GLint *>malloc(_GL_GET_SIZE[pname] * sizeof(GLint))
     if params == NULL:
         raise MemoryError('glGetFramebufferAttachmentParameteriv()')
-    f_cgl.glGetFramebufferAttachmentParameteriv(target, attachment, pname, params)
+    cgl.glGetFramebufferAttachmentParameteriv(target, attachment, pname, params)
     cdef out = [params[i] for i in xrange(_GL_GET_SIZE[pname])]
     free(params)
     return out
@@ -951,7 +948,7 @@ def glGetIntegerv(GLenum pname):
     cdef GLint *params = <GLint *>malloc(_GL_GET_SIZE[pname] * sizeof(GLint))
     if params == NULL:
         raise MemoryError('glGetIntegerv()')
-    f_cgl.glGetIntegerv(pname, params)
+    cgl.glGetIntegerv(pname, params)
     cdef out = [params[i] for i in xrange(_GL_GET_SIZE[pname])]
     free(params)
     return out
@@ -963,7 +960,7 @@ def glGetProgramiv(GLuint program, GLenum pname):
     Unlike the C specification, the value(s) will be the result of the call
     '''
     cdef GLint params = 0
-    f_cgl.glGetProgramiv(program, pname, &params)
+    cgl.glGetProgramiv(program, pname, &params)
     return params
 
 def glGetProgramInfoLog(GLuint program, GLsizei bufsize):
@@ -978,7 +975,7 @@ def glGetProgramInfoLog(GLuint program, GLsizei bufsize):
     infolog = <GLchar *>malloc(sizeof(GLchar) * 2048)
     if infolog == NULL:
         raise MemoryError('glGetProgramInfoLog()')
-    f_cgl.glGetProgramInfoLog(program, 2048, &size, infolog)
+    cgl.glGetProgramInfoLog(program, 2048, &size, infolog)
     p_infolog = <char *>infolog
     free(infolog)
     return p_infolog
@@ -990,7 +987,7 @@ def glGetRenderbufferParameteriv(GLenum target, GLenum pname):
     Unlike the C specification, the value will be the result of call.
     '''
     cdef GLint params = 0
-    f_cgl.glGetRenderbufferParameteriv(target, pname, &params)
+    cgl.glGetRenderbufferParameteriv(target, pname, &params)
     return params
 
 def glGetShaderiv(GLuint shader, GLenum pname):
@@ -1000,7 +997,7 @@ def glGetShaderiv(GLuint shader, GLenum pname):
     Unlike the C specification, the value will be the result of call.
     '''
     cdef GLint params = 0
-    f_cgl.glGetShaderiv(shader, pname, &params)
+    cgl.glGetShaderiv(shader, pname, &params)
     return params
 
 def glGetShaderInfoLog(GLuint shader, GLsizei bufsize):
@@ -1015,7 +1012,7 @@ def glGetShaderInfoLog(GLuint shader, GLsizei bufsize):
     infolog = <GLchar *>malloc(sizeof(GLchar) * 2048)
     if infolog == NULL:
         raise MemoryError('glGetShaderInfoLog()')
-    f_cgl.glGetShaderInfoLog(shader, 2048, &size, infolog)
+    cgl.glGetShaderInfoLog(shader, 2048, &size, infolog)
     p_infolog = <char *>infolog
     free(infolog)
     return p_infolog
@@ -1027,7 +1024,7 @@ def glGetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype): #, GLin
     .. warning:: Not implemented yet.
     '''
     raise NotImplemented()
-    #f_cgl.glGetShaderPrecisionFormat(shadertype, precisiontype, range, precision)
+    #cgl.glGetShaderPrecisionFormat(shadertype, precisiontype, range, precision)
 
 def glGetShaderSource(GLuint shader):
     '''See: `glGetShaderSource() on Kronos website
@@ -1041,7 +1038,7 @@ def glGetShaderSource(GLuint shader):
     source = <GLchar *>malloc(sizeof(GLchar) * 65535)
     if source == NULL:
         raise MemoryError('glGetShaderInfoLog()')
-    f_cgl.glGetShaderSource(shader, 65535, &size, source)
+    cgl.glGetShaderSource(shader, 65535, &size, source)
     p_source = <char *>source
     free(source)
     return p_source
@@ -1053,7 +1050,7 @@ def glGetString(GLenum name):
     Unlike the C specification, the value will be returned as a string.
     '''
     cdef bytes p_string
-    p_string = <char *>mock_cgl.glGetString(name)
+    p_string = <char *>cgl.glGetString(name)
     return p_string
 
 def glGetTexParameterfv(GLenum target, GLenum pname):
@@ -1061,7 +1058,7 @@ def glGetTexParameterfv(GLenum target, GLenum pname):
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glGetTexParameterfv.xml>`_
     '''
     cdef GLfloat params = 0
-    f_cgl.glGetTexParameterfv(target, pname, &params)
+    cgl.glGetTexParameterfv(target, pname, &params)
     return params
 
 def glGetTexParameteriv(GLenum target, GLenum pname):
@@ -1069,7 +1066,7 @@ def glGetTexParameteriv(GLenum target, GLenum pname):
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glGetTexParameteriv.xml>`_
     '''
     cdef GLint params = 0
-    f_cgl.glGetTexParameteriv(target, pname, &params)
+    cgl.glGetTexParameteriv(target, pname, &params)
     return params
 
 def glGetUniformfv(GLuint program, GLint location):
@@ -1077,7 +1074,7 @@ def glGetUniformfv(GLuint program, GLint location):
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glGetUniformfv.xml>`_
     '''
     cdef GLfloat params = 0
-    f_cgl.glGetUniformfv(program, location, &params)
+    cgl.glGetUniformfv(program, location, &params)
     return params
 
 def glGetUniformiv(GLuint program, GLint location):
@@ -1085,21 +1082,21 @@ def glGetUniformiv(GLuint program, GLint location):
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glGetUniformiv.xml>`_
     '''
     cdef GLint params = 0
-    f_cgl.glGetUniformiv(program, location, &params)
+    cgl.glGetUniformiv(program, location, &params)
     return params
 
 def glGetUniformLocation(GLuint program, bytes name):
     '''See: `glGetUniformLocation() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glGetUniformLocation.xml>`_
     '''
-    return f_cgl.glGetUniformLocation(program, <char *>name)
+    return cgl.glGetUniformLocation(program, <char *>name)
 
 def glGetVertexAttribfv(GLuint index, GLenum pname):
     '''See: `glGetVertexAttribfv() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glGetVertexAttribfv.xml>`_
     '''
     cdef GLfloat params = 0
-    f_cgl.glGetVertexAttribfv(index, pname, &params)
+    cgl.glGetVertexAttribfv(index, pname, &params)
     return params
 
 def glGetVertexAttribiv(GLuint index, GLenum pname):
@@ -1107,7 +1104,7 @@ def glGetVertexAttribiv(GLuint index, GLenum pname):
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glGetVertexAttribiv.xml>`_
     '''
     cdef GLint params = 0
-    f_cgl.glGetVertexAttribiv(index, pname, &params)
+    cgl.glGetVertexAttribiv(index, pname, &params)
     return params
 
 def glGetVertexAttribPointerv(GLuint index, GLenum pname):#, GLvoid** pointer):
@@ -1117,79 +1114,79 @@ def glGetVertexAttribPointerv(GLuint index, GLenum pname):#, GLvoid** pointer):
     .. warning:: Not implemented yet.
     '''
     raise NotImplemented()
-    #f_cgl.glGetVertexAttribPointerv(index, pname, pointer)
+    #cgl.glGetVertexAttribPointerv(index, pname, pointer)
 
 def glHint(GLenum target, GLenum mode):
     '''See: `glHint() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glHint.xml>`_
     '''
-    f_cgl.glHint(target, mode)
+    cgl.glHint(target, mode)
 
 def glIsBuffer(GLuint buffer):
     '''See: `glIsBuffer() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glIsBuffer.xml>`_
     '''
-    return f_cgl.glIsBuffer(buffer)
+    return cgl.glIsBuffer(buffer)
 
 def glIsEnabled(GLenum cap):
     '''See: `glIsEnabled() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glIsEnabled.xml>`_
     '''
-    return mock_cgl.glIsEnabled(cap)
+    return cgl.glIsEnabled(cap)
 
 def glIsFramebuffer(GLuint framebuffer):
     '''See: `glIsFramebuffer() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glIsFramebuffer.xml>`_
     '''
-    return f_cgl.glIsFramebuffer(framebuffer)
+    return cgl.glIsFramebuffer(framebuffer)
 
 def glIsProgram(GLuint program):
     '''See: `glIsProgram() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glIsProgram.xml>`_
     '''
-    return f_cgl.glIsProgram(program)
+    return cgl.glIsProgram(program)
 
 def glIsRenderbuffer(GLuint renderbuffer):
     '''See: `glIsRenderbuffer() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glIsRenderbuffer.xml>`_
     '''
-    return f_cgl.glIsRenderbuffer(renderbuffer)
+    return cgl.glIsRenderbuffer(renderbuffer)
 
 def glIsShader(GLuint shader):
     '''See: `glIsShader() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glIsShader.xml>`_
     '''
-    return f_cgl.glIsShader(shader)
+    return cgl.glIsShader(shader)
 
 def glIsTexture(GLuint texture):
     '''See: `glIsTexture() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glIsTexture.xml>`_
     '''
-    return f_cgl.glIsTexture(texture)
+    return cgl.glIsTexture(texture)
 
 def glLineWidth(GLfloat width):
     '''See: `glLineWidth() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glLineWidth.xml>`_
     '''
-    f_cgl.glLineWidth(width)
+    cgl.glLineWidth(width)
 
 def glLinkProgram(GLuint program):
     '''See: `glLinkProgram() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glLinkProgram.xml>`_
     '''
-    f_cgl.glLinkProgram(program)
+    cgl.glLinkProgram(program)
 
 def glPixelStorei(GLenum pname, GLint param):
     '''See: `glPixelStorei() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glPixelStorei.xml>`_
     '''
-    f_cgl.glPixelStorei(pname, param)
+    cgl.glPixelStorei(pname, param)
 
 def glPolygonOffset(GLfloat factor, GLfloat units):
     '''See: `glPolygonOffset() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glPolygonOffset.xml>`_
     '''
-    f_cgl.glPolygonOffset(factor, units)
+    cgl.glPolygonOffset(factor, units)
 
 def glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
                  GLenum type): #, GLvoid* pixels):
@@ -1215,8 +1212,8 @@ def glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
     if data == NULL:
         raise MemoryError('glReadPixels()')
 
-    f_cgl.glPixelStorei(GL_PACK_ALIGNMENT, 1)
-    f_cgl.glReadPixels(x, y, width, height, format, type, data)
+    cgl.glPixelStorei(GL_PACK_ALIGNMENT, 1)
+    cgl.glReadPixels(x, y, width, height, format, type, data)
     try:
         py_pixels = data[:size]
     finally:
@@ -1233,25 +1230,25 @@ def glReleaseShaderCompiler():
     .. warning:: Not implemented yet.
     '''
     raise NotImplemented()
-#    f_cgl.glReleaseShaderCompiler()
+#    cgl.glReleaseShaderCompiler()
 
 def glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height):
     '''See: `glRenderbufferStorage() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glRenderbufferStorage.xml>`_
     '''
-    f_cgl.glRenderbufferStorage(target, internalformat, width, height)
+    cgl.glRenderbufferStorage(target, internalformat, width, height)
 
 def glSampleCoverage(GLclampf value, GLboolean invert):
     '''See: `glSampleCoverage() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glSampleCoverage.xml>`_
     '''
-    f_cgl.glSampleCoverage(value, invert)
+    cgl.glSampleCoverage(value, invert)
 
 def glScissor(GLint x, GLint y, GLsizei width, GLsizei height):
     '''See: `glScissor() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glScissor.xml>`_
     '''
-    f_cgl.glScissor(x, y, width, height)
+    cgl.glScissor(x, y, width, height)
 
 def glShaderBinary():#GLsizei n,  GLuint* shaders, GLenum binaryformat,  bytes GLvoid* binary, GLsizei length):
     '''See: `glShaderBinary() on Kronos website
@@ -1259,7 +1256,7 @@ def glShaderBinary():#GLsizei n,  GLuint* shaders, GLenum binaryformat,  bytes G
 
     .. warning:: Not implemented yet.
     '''
-    #f_cgl.glShaderBinary(n, shaders, binaryformat, binary, length)
+    #cgl.glShaderBinary(n, shaders, binaryformat, binary, length)
     raise NotImplemented()
 
 def glShaderSource(GLuint shader, bytes source):
@@ -1267,43 +1264,43 @@ def glShaderSource(GLuint shader, bytes source):
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glShaderSource.xml>`_
     '''
     cdef const_char_ptr c_source = <const_char_ptr>source
-    f_cgl.glShaderSource(shader, 1, &c_source, NULL)
+    cgl.glShaderSource(shader, 1, &c_source, NULL)
 
 def glStencilFunc(GLenum func, GLint ref, GLuint mask):
     '''See: `glStencilFunc() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glStencilFunc.xml>`_
     '''
-    f_cgl.glStencilFunc(func, ref, mask)
+    cgl.glStencilFunc(func, ref, mask)
 
 def glStencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask):
     '''See: `glStencilFuncSeparate() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glStencilFuncSeparate.xml>`_
     '''
-    f_cgl.glStencilFuncSeparate(face, func, ref, mask)
+    cgl.glStencilFuncSeparate(face, func, ref, mask)
 
 def glStencilMask(GLuint mask):
     '''See: `glStencilMask() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glStencilMask.xml>`_
     '''
-    f_cgl.glStencilMask(mask)
+    cgl.glStencilMask(mask)
 
 def glStencilMaskSeparate(GLenum face, GLuint mask):
     '''See: `glStencilMaskSeparate() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glStencilMaskSeparate.xml>`_
     '''
-    f_cgl.glStencilMaskSeparate(face, mask)
+    cgl.glStencilMaskSeparate(face, mask)
 
 def glStencilOp(GLenum fail, GLenum zfail, GLenum zpass):
     '''See: `glStencilOp() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glStencilOp.xml>`_
     '''
-    f_cgl.glStencilOp(fail, zfail, zpass)
+    cgl.glStencilOp(fail, zfail, zpass)
 
 def glStencilOpSeparate(GLenum face, GLenum fail, GLenum zfail, GLenum zpass):
     '''See: `glStencilOpSeparate() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glStencilOpSeparate.xml>`_
     '''
-    f_cgl.glStencilOpSeparate(face, fail, zfail, zpass)
+    cgl.glStencilOpSeparate(face, fail, zfail, zpass)
 
 def glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei
                  width, GLsizei height, GLint border, GLenum format, GLenum
@@ -1311,14 +1308,14 @@ def glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei
     '''See: `glTexImage2D() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glTexImage2D.xml>`_
     '''
-    f_cgl.glTexImage2D(target, level, internalformat, width, height, border,
+    cgl.glTexImage2D(target, level, internalformat, width, height, border,
                           format, type, <GLvoid *><char *>pixels)
 
 def glTexParameterf(GLenum target, GLenum pname, GLfloat param):
     '''See: `glTexParameterf() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glTexParameterf.xml>`_
     '''
-    f_cgl.glTexParameterf(target, pname, param)
+    cgl.glTexParameterf(target, pname, param)
 
 def glTexParameterfv(GLenum target, GLenum pname):#,  GLfloat* params):
     '''See: `glTexParameterfv() on Kronos website
@@ -1326,14 +1323,14 @@ def glTexParameterfv(GLenum target, GLenum pname):#,  GLfloat* params):
 
     .. warning:: Not implemented yet.
     '''
-    #f_cgl.glTexParameterfv(target, pname, params)
+    #cgl.glTexParameterfv(target, pname, params)
     raise NotImplemented()
 
 def glTexParameteri(GLenum target, GLenum pname, GLint param):
     '''See: `glTexParameteri() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glTexParameteri.xml>`_
     '''
-    f_cgl.glTexParameteri(target, pname, param)
+    cgl.glTexParameteri(target, pname, param)
 
 def glTexParameteriv(GLenum target, GLenum pname):#,  GLint* params):
     '''See: `glTexParameteriv() on Kronos website
@@ -1341,7 +1338,7 @@ def glTexParameteriv(GLenum target, GLenum pname):#,  GLint* params):
 
     .. warning:: Not implemented yet.
     '''
-    #f_cgl.glTexParameteriv(target, pname, params)
+    #cgl.glTexParameteriv(target, pname, params)
     raise NotImplemented()
 
 def glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
@@ -1350,14 +1347,14 @@ def glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
     '''See: `glTexSubImage2D() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glTexSubImage2D.xml>`_
     '''
-    f_cgl.glTexSubImage2D(target, level, xoffset, yoffset, width, height,
+    cgl.glTexSubImage2D(target, level, xoffset, yoffset, width, height,
                              format, type, <GLvoid *><char *>pixels)
 
 def glUniform1f(GLint location, GLfloat x):
     '''See: `glUniform1f() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glUniform1f.xml>`_
     '''
-    f_cgl.glUniform1f(location, x)
+    cgl.glUniform1f(location, x)
 
 def glUniform1fv(GLint location, GLsizei count):#,  GLfloat* v):
     '''See: `glUniform1fv() on Kronos website
@@ -1365,14 +1362,14 @@ def glUniform1fv(GLint location, GLsizei count):#,  GLfloat* v):
 
     .. warning:: Not implemented yet.
     '''
-    #f_cgl.glUniform1fv(location, count, v)
+    #cgl.glUniform1fv(location, count, v)
     raise NotImplemented()
 
 def glUniform1i(GLint location, GLint x):
     '''See: `glUniform1i() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glUniform1i.xml>`_
     '''
-    f_cgl.glUniform1i(location, x)
+    cgl.glUniform1i(location, x)
 
 def glUniform1iv(GLint location, GLsizei count):#,  GLint* v):
     '''See: `glUniform1iv() on Kronos website
@@ -1380,14 +1377,14 @@ def glUniform1iv(GLint location, GLsizei count):#,  GLint* v):
 
     .. warning:: Not implemented yet.
     '''
-    #f_cgl.glUniform1iv(location, count, v)
+    #cgl.glUniform1iv(location, count, v)
     raise NotImplemented()
 
 def glUniform2f(GLint location, GLfloat x, GLfloat y):
     '''See: `glUniform2f() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glUniform2f.xml>`_
     '''
-    f_cgl.glUniform2f(location, x, y)
+    cgl.glUniform2f(location, x, y)
 
 def glUniform2fv(GLint location, GLsizei count):#,  GLfloat* v):
     '''See: `glUniform2fv() on Kronos website
@@ -1395,14 +1392,14 @@ def glUniform2fv(GLint location, GLsizei count):#,  GLfloat* v):
 
     .. warning:: Not implemented yet.
     '''
-    #f_cgl.glUniform2fv(location, count, v)
+    #cgl.glUniform2fv(location, count, v)
     raise NotImplemented()
 
 def glUniform2i(GLint location, GLint x, GLint y):
     '''See: `glUniform2i() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glUniform2i.xml>`_
     '''
-    f_cgl.glUniform2i(location, x, y)
+    cgl.glUniform2i(location, x, y)
 
 def glUniform2iv(GLint location, GLsizei count):#,  GLint* v):
     '''See: `glUniform2iv() on Kronos website
@@ -1410,14 +1407,14 @@ def glUniform2iv(GLint location, GLsizei count):#,  GLint* v):
 
     .. warning:: Not implemented yet.
     '''
-    #f_cgl.glUniform2iv(location, count, v)
+    #cgl.glUniform2iv(location, count, v)
     raise NotImplemented()
 
 def glUniform3f(GLint location, GLfloat x, GLfloat y, GLfloat z):
     '''See: `glUniform3f() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glUniform3f.xml>`_
     '''
-    f_cgl.glUniform3f(location, x, y, z)
+    cgl.glUniform3f(location, x, y, z)
 
 def glUniform3fv(GLint location, GLsizei count):#,  GLfloat* v):
     '''See: `glUniform3fv() on Kronos website
@@ -1425,14 +1422,14 @@ def glUniform3fv(GLint location, GLsizei count):#,  GLfloat* v):
 
     .. warning:: Not implemented yet.
     '''
-    #f_cgl.glUniform3fv(location, count, v)
+    #cgl.glUniform3fv(location, count, v)
     raise NotImplemented()
 
 def glUniform3i(GLint location, GLint x, GLint y, GLint z):
     '''See: `glUniform3i() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glUniform3i.xml>`_
     '''
-    f_cgl.glUniform3i(location, x, y, z)
+    cgl.glUniform3i(location, x, y, z)
 
 def glUniform3iv(GLint location, GLsizei count):#,  GLint* v):
     '''See: `glUniform3iv() on Kronos website
@@ -1440,7 +1437,7 @@ def glUniform3iv(GLint location, GLsizei count):#,  GLint* v):
 
     .. warning:: Not implemented yet.
     '''
-    #f_cgl.glUniform3iv(location, count, v)
+    #cgl.glUniform3iv(location, count, v)
     raise NotImplemented()
 
 def glUniform4f(GLint location, GLfloat x, GLfloat y, GLfloat z, GLfloat w):
@@ -1449,7 +1446,7 @@ def glUniform4f(GLint location, GLfloat x, GLfloat y, GLfloat z, GLfloat w):
 
     .. warning:: Not implemented yet.
     '''
-    f_cgl.glUniform4f(location, x, y, z, w)
+    cgl.glUniform4f(location, x, y, z, w)
 
 def glUniform4fv(GLint location, GLsizei count):#,  GLfloat* v):
     '''See: `glUniform4fv() on Kronos website
@@ -1457,14 +1454,14 @@ def glUniform4fv(GLint location, GLsizei count):#,  GLfloat* v):
 
     .. warning:: Not implemented yet.
     '''
-    #f_cgl.glUniform4fv(location, count, v)
+    #cgl.glUniform4fv(location, count, v)
     raise NotImplemented()
 
 def glUniform4i(GLint location, GLint x, GLint y, GLint z, GLint w):
     '''See: `glUniform4i() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glUniform4i.xml>`_
     '''
-    f_cgl.glUniform4i(location, x, y, z, w)
+    cgl.glUniform4i(location, x, y, z, w)
 
 def glUniform4iv(GLint location, GLsizei count):#,  GLint* v):
     '''See: `glUniform4iv() on Kronos website
@@ -1472,7 +1469,7 @@ def glUniform4iv(GLint location, GLsizei count):#,  GLint* v):
 
     .. warning:: Not implemented yet.
     '''
-    #f_cgl.glUniform4iv(location, count, v)
+    #cgl.glUniform4iv(location, count, v)
     raise NotImplemented()
 
 def glUniformMatrix2fv(GLint location, GLsizei count):#, GLboolean transpose, bytes values):
@@ -1481,7 +1478,7 @@ def glUniformMatrix2fv(GLint location, GLsizei count):#, GLboolean transpose, by
 
     .. warning:: Not implemented yet.
     '''
-    #f_cgl.glUniformMatrix2fv(location, count, transpose, <GLfloat*>ptr_value)
+    #cgl.glUniformMatrix2fv(location, count, transpose, <GLfloat*>ptr_value)
     raise NotImplemented()
 
 def glUniformMatrix3fv(GLint location, GLsizei count):#, GLboolean transpose,  bytes values):
@@ -1490,32 +1487,32 @@ def glUniformMatrix3fv(GLint location, GLsizei count):#, GLboolean transpose,  b
 
     .. warning:: Not implemented yet.
     '''
-    # f_cgl.glUniformMatrix3fv(location, count, transpose, <GLfloat*>ptr_value)
+    # cgl.glUniformMatrix3fv(location, count, transpose, <GLfloat*>ptr_value)
     raise NotImplemented()
 
 def glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose,  bytes value):
     '''See: `glUniformMatrix4fv() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glUniformMatrix4fv.xml>`_
     '''
-    f_cgl.glUniformMatrix4fv(location, count, transpose, <GLfloat*>(<char *>value))
+    cgl.glUniformMatrix4fv(location, count, transpose, <GLfloat*>(<char *>value))
 
 def glUseProgram(GLuint program):
     '''See: `glUseProgram() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glUseProgram.xml>`_
     '''
-    f_cgl.glUseProgram(program)
+    cgl.glUseProgram(program)
 
 def glValidateProgram(GLuint program):
     '''See: `glValidateProgram() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glValidateProgram.xml>`_
     '''
-    f_cgl.glValidateProgram(program)
+    cgl.glValidateProgram(program)
 
 def glVertexAttrib1f(GLuint indx, GLfloat x):
     '''See: `glVertexAttrib1f() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glVertexAttrib1f.xml>`_
     '''
-    f_cgl.glVertexAttrib1f(indx, x)
+    cgl.glVertexAttrib1f(indx, x)
 
 def glVertexAttrib1fv(GLuint indx, list values):
     '''See: `glVertexAttrib1fv() on Kronos website
@@ -1523,14 +1520,14 @@ def glVertexAttrib1fv(GLuint indx, list values):
 
     .. warning:: Not implemented yet.
     '''
-    #f_cgl.glVertexAttrib1fv(indx, values)
+    #cgl.glVertexAttrib1fv(indx, values)
     raise NotImplemented()
 
 def glVertexAttrib2f(GLuint indx, GLfloat x, GLfloat y):
     '''See: `glVertexAttrib2f() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glVertexAttrib2f.xml>`_
     '''
-    f_cgl.glVertexAttrib2f(indx, x, y)
+    cgl.glVertexAttrib2f(indx, x, y)
 
 def glVertexAttrib2fv(GLuint indx, list values):
     '''See: `glVertexAttrib2fv() on Kronos website
@@ -1538,14 +1535,14 @@ def glVertexAttrib2fv(GLuint indx, list values):
 
     .. warning:: Not implemented yet.
     '''
-    #f_cgl.glVertexAttrib2fv(indx, values)
+    #cgl.glVertexAttrib2fv(indx, values)
     raise NotImplemented()
 
 def glVertexAttrib3f(GLuint indx, GLfloat x, GLfloat y, GLfloat z):
     '''See: `glVertexAttrib3f() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glVertexAttrib3f.xml>`_
     '''
-    f_cgl.glVertexAttrib3f(indx, x, y, z)
+    cgl.glVertexAttrib3f(indx, x, y, z)
 
 def glVertexAttrib3fv(GLuint indx, list values):
     '''See: `glVertexAttrib3fv() on Kronos website
@@ -1553,14 +1550,14 @@ def glVertexAttrib3fv(GLuint indx, list values):
 
     .. warning:: Not implemented yet.
     '''
-    #f_cgl.glVertexAttrib3fv(indx, values)
+    #cgl.glVertexAttrib3fv(indx, values)
     raise NotImplemented()
 
 def glVertexAttrib4f(GLuint indx, GLfloat x, GLfloat y, GLfloat z, GLfloat w):
     '''See: `glVertexAttrib4f() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glVertexAttrib4f.xml>`_
     '''
-    f_cgl.glVertexAttrib4f(indx, x, y, z, w)
+    cgl.glVertexAttrib4f(indx, x, y, z, w)
 
 def glVertexAttrib4fv(GLuint indx, list values):
     '''See: `glVertexAttrib4fv() on Kronos website
@@ -1568,7 +1565,7 @@ def glVertexAttrib4fv(GLuint indx, list values):
 
     .. warning:: Not implemented yet.
     '''
-    #f_cgl.glVertexAttrib4fv(indx, values)
+    #cgl.glVertexAttrib4fv(indx, values)
     raise NotImplemented()
 
 def glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, data):
@@ -1583,15 +1580,15 @@ def glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean norma
         ptr = <void *>(<long>data)
     else:
         raise TypeError("Argument 'data' has incorrect type (expected bytes or int).")
-    f_cgl.glVertexAttribPointer(index, size, type, normalized, stride, ptr)
+    cgl.glVertexAttribPointer(index, size, type, normalized, stride, ptr)
 
 def glViewport(GLint x, GLint y, GLsizei width, GLsizei height):
     '''See: `glViewport() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glViewport.xml>`_
     '''
-    f_cgl.glViewport(x, y, width, height)
+    cgl.glViewport(x, y, width, height)
 
-IF USE_GLEW:
+IF USE_GLEW and not USE_OPENGL_MOCK:
     cdef extern from "gl_redirect.h":
         int glewInit()
         int GLEW_OK
