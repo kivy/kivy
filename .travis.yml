@@ -59,11 +59,11 @@ install:
       hdiutil attach Keka-1.0.4-intel.dmg;
       hdiutil attach SDL2-2.0.4.dmg;
       sudo cp -a /Volumes/SDL2/SDL2.framework /Library/Frameworks/;
-      hdiutil attach SDL2_image-2.0.0.dmg;
+      hdiutil attach SDL2_image-2.0.1.dmg;
       sudo cp -a /Volumes/SDL2_image/SDL2_image.framework /Library/Frameworks/;
-      hdiutil attach SDL2_ttf-2.0.12.dmg;
+      hdiutil attach SDL2_ttf-2.0.13.dmg;
       sudo cp -a /Volumes/SDL2_ttf/SDL2_ttf.framework /Library/Frameworks/;
-      hdiutil attach SDL2_mixer-2.0.0.dmg;
+      hdiutil attach SDL2_mixer-2.0.1.dmg;
       sudo cp -a /Volumes/SDL2_mixer/SDL2_mixer.framework /Library/Frameworks/;
       sudo installer -package gstreamer-1.0-1.6.2-x86_64.pkg -target /;
       sudo installer -package gstreamer-1.0-devel-1.6.2-x86_64.pkg -target /;
