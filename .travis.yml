@@ -1,33 +1,33 @@
 matrix:
   fast_finish: true
   include:
-    - language: python
-      python: 2.7
-      env: RUN=unit
-      os: linux
-      dist: trusty
-    - language: python
-      python: 3.5
-      env:
-        - RUN=unit COVERALLS=true
-      os: linux
-      dist: trusty
-    - language: python
-      python: 3.5
-      env: RUN=pep8
-      os: linux
-      dist: trusty
-    - language: python
-      python: 3.5
-      env: RUN=docs
-      os: linux
-      dist: trusty
+    # - language: python
+    #   python: 2.7
+    #   env: RUN=unit
+    #   os: linux
+    #   dist: trusty
+    # - language: python
+    #   python: 3.5
+    #   env:
+    #     - RUN=unit COVERALLS=true
+    #   os: linux
+    #   dist: trusty
+    # - language: python
+    #   python: 3.5
+    #   env: RUN=pep8
+    #   os: linux
+    #   dist: trusty
+    # - language: python
+    #   python: 3.5
+    #   env: RUN=docs
+    #   os: linux
+    #   dist: trusty
     - language: generic
       env: RUN=build PY=2
       os: osx
-    - language: generic
-      env: RUN=build PY=3
-      os: osx
+    # - language: generic
+    #   env: RUN=build PY=3
+    #   os: osx
 
 install:
   - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
@@ -123,7 +123,7 @@ script:
          python3 -m nose.core kivy/tests;
       else
          make;
-         make test;
+         python -c 'import kivy.core.window' -c 'kivy:log_level:trace';
       fi;
     fi;
 
