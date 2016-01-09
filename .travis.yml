@@ -91,6 +91,7 @@ before_script:
       export PYTHONPATH=$PYTHONPATH:$(pwd);
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
+      export USE_SDL2=1;
       export CC=clang;
       export CXX=clang;
       export FFLAGS=-ff2c;
