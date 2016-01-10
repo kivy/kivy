@@ -125,13 +125,13 @@ script:
          python3 -m nose.core kivy/tests;
       else
          make;
-         python -c 'import kivy.core.window' -c 'kivy:log_level:trace';
+         make test;
       fi;
     fi;
 
 
 after_success:
-  - if [ "${TRAVIS_OS_NAME}" == "osx" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
+  - if [ "${TRAVIS_OS_NAME}" == "ox" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
       openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
       chmod 600 ~/.ssh/id_rsa;
       echo -e "Host kivy.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
