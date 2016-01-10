@@ -78,9 +78,9 @@ install:
       if [ "${PY}" == "3" ]; then
          curl -O -L https://www.python.org/ftp/python/3.5.1/python-3.5.1-macosx10.6.pkg;
          sudo installer -package python-3.5.1-macosx10.6.pkg -target /;
-         pip3 install --upgrade --user cython pillow nose;
+         pip3 install --upgrade --user cython pillow nose mock;
       else
-         pip install --upgrade --user cython pillow nose;
+         pip install --upgrade --user cython pillow nose mock;
       fi;
     fi;
 
@@ -95,8 +95,6 @@ before_script:
       export CC=clang;
       export CXX=clang;
       export FFLAGS=-ff2c;
-      export DISPLAY=:99.0;
-      (sudo Xvfb :99 -screen 0 1280x720x24 -ac &);
     fi;
 
 script:
