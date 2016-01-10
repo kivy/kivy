@@ -1,4 +1,4 @@
-from c_opengl cimport *
+from c_opengl cimport GLuint, GLint
 from instructions cimport RenderContext, Canvas
 from texture cimport Texture
 
