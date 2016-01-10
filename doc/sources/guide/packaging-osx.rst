@@ -259,11 +259,11 @@ Complete guide
 #. Install Cython and Kivy::
 
     $ pip install -I Cython==0.23
-    $ USE_OSX_FRAMEWORKS=0 pip install kivy
+    $ USE_OSX_FRAMEWORKS=0 pip install -U kivy
 
 #. Install PyInstaller::
 
-    $ pip install pyinstaller
+    $ pip install -U pyinstaller
 
 #. Package your app using the path to your main.py::
 
