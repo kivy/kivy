@@ -261,22 +261,13 @@ Complete guide
     $ pip install -I Cython==0.23
     $ USE_OSX_FRAMEWORKS=0 pip install kivy
 
-#. Install the development version of PyInstaller which includes fixes for the
-   GStreamer hooks::
+#. Install PyInstaller::
 
-    $ pip install git+https://github.com/pyinstaller/pyinstaller.git@develop
-
-#. Export the ``HOOKSPATH`` environment variable::
-
-    $ export HOOKSPATH=`python -c "
-    import imp, os
-    print(os.path.join(imp.find_module('kivy')[1], 'tools/packaging/pyinstaller_hooks'))"`
+    $ pip install pyinstaller
 
 #. Package your app using the path to your main.py::
 
     $ pyinstaller -y --clean --windowed --name touchtracer \
-      --additional-hooks-dir $HOOKSPATH \
-      --runtime-hook $HOOKSPATH/rt-hook-kivy.py \
       --exclude-module _tkinter \
       --exclude-module Tkinter \
       --exclude-module enchant \
