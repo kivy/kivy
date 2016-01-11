@@ -7,10 +7,11 @@ system clipboard, a fake one will be used.
 
 Usage example::
 
-    >>> from kivy.core.clipboard import Clipboard
-    >>> Clipboard.copy('data')
-    >>> Clipboard.paste()
-    'data'
+    Button
+	    on_release:
+	        from kivy.core.clipboard import Clipboard
+	        self.text = Clipboard.paste()
+	        Clipboard.copy('Data')
 
 '''
 
