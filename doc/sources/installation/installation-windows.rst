@@ -13,73 +13,28 @@ See :ref:`install-nightly-win-dist`. See also :ref:`upgrade-win-dist`.
 .. warning::
 
     Python 3.5 is currently not supported on Windows due to issues with MinGW and
-    Python 3.5.
+    Python 3.5. Support is not expected for some time. See
+    `here <http://bugs.python.org/issue4709>`_ for details. If required,
+    3.5 MSVC builds should be posssible, but have not been attempted.
 
-What are wheels, pip and wheel
-------------------------------
-
-To install Kivy wheels, `Python <https://www.python.org/downloads/windows/>`_ first
-needs to be installed. Multiple versions of Python can be installed side by side.
-
-In Python, packages such as Kivy can be installed with the python package
-manager, `pip <https://pip.pypa.io/en/stable/>`_. Some packages such as Kivy
-require additional steps, such as compilation, when installing using the Kivy
-source code with pip. Wheels (with a ``.whl`` extension) are pre-built
-distributions of a package that has already been compiled and do not require
-additional steps to install.
-
-When hosted on `pypi <https://pypi.python.org/pypi>`_ one installs a wheel
-using ``pip``, e.g. ``python -m pip install kivy``. When downloading and installing
-a wheel directly, ``python -m pip install wheel_file_name`` is used, such as:
-
-``python -m pip install C:\Kivy-1.9.1.dev-cp27-none-win_amd64.whl``
-
-
-Kivy's dependencies
--------------------
-
-We offer wheels for Kivy and its dependencies separately so only desired
-dependencies need be installed. The dependencies are offered as
-`namespace <https://www.python.org/dev/peps/pep-0420/>`_
-packages of Kivy.deps, e.g. ``kivy.deps.sdl2``.
-
-Currently on Windows, we provide the following dependency
-wheels: ``gstreamer`` for audio and video and `glew` and ``sdl2`` for graphics
-and control. ``gstreamer`` is an optional dependency which only needs to be
-installed if video display is desired.
-
-Command line
-------------
-
-Know your command line. To execute any of the ``pip``
-or ``wheel`` commands, one needs a command line tool with python on the path.
-The default command line on Windows is
-`CMD <http://www.computerhope.com/issues/chusedos.htm>`_, but we recommend
-`Git for Windows <https://git-for-windows.github.io/>`_ which offers a bash
-command line as `well <http://rogerdudler.github.io/git-guide/>`_ as
-`git <https://try.github.io>`_. Note, CMD can still be used even if bash is
-installed.
-
-Walking the path! To add your python to the path, simply open your command line
-and then us the ``cd`` command to change the current directory to where python is
-installed, e.g. ``cd C:\Python27``. Alternatively if you only have one python
-version installed, permanently add the python directory to the path for
-`CMD <http://www.computerhope.com/issues/ch000549.htm>`_ for
-`bash <http://stackoverflow.com/questions/14637979/how-to-permanently-set-path-on-linux>`_.
+To use Kivy you need `Python <https://www.python.org/downloads/windows/>`_.
+Multiple versions of Python can be installed side by side, but Kivy needs to
+be installed for each Python version that you want to use Kivy.
 
 .. _install-win-dist:
 
 Installation
 ------------
 
-Now that python is available on the command line, which can checked by typing
-``python --version``, do the following to install.
+Now that python is installed, open the :ref:`Command line` and make sure python
+is available by typing ``python --version``. Then, do the following to install.
 
 #. Ensure you have the latest pip and wheel::
 
      python -m pip install --upgrade pip wheel setuptools
 
-#. Install the dependencies (skip gstreamer (~90MB) if not needed)::
+#. Install the dependencies (skip gstreamer (~90MB) if not needed, see
+:ref:`Kivy's dependencies`)::
 
      python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew \
      kivy.deps.gstreamer --extra-index-url https://kivy.org/downloads/packages/simple/
@@ -101,7 +56,7 @@ Nightly wheel installation
     issues during development. If you encounter any bugs, please report them.
 
 Snapshot wheels of current Kivy master are created every night. They can be found
-`here <https://drive.google.com/drive/folders/0B1_HB9J8mZepOV81UHpDbmg5SWM>`_.
+`here <https://drive.google.com/folderview?id=0B1_HB9J8mZepOV81UHpDbmg5SWM&usp=sharing>`_.
 To use them, instead of doing `python -m pip install kivy` we'll install one of
 these wheels as follows.
 
@@ -112,6 +67,59 @@ these wheels as follows.
    should be renamed to ``Kivy-1.9.1.dev0-cp27-none-win32.whl``.
 #. Install it with ``python -m pip install wheel-name`` where ``wheel-name``
    is the name of the renamed file.
+
+
+Kivy's dependencies
+-------------------
+
+We offer wheels for Kivy and its dependencies separately so only desired
+dependencies need be installed. The dependencies are offered as
+`namespace <https://www.python.org/dev/peps/pep-0420/>`_
+packages of Kivy.deps, e.g. ``kivy.deps.sdl2``.
+
+Currently on Windows, we provide the following dependency
+wheels: ``gstreamer`` for audio and video and `glew` and ``sdl2`` for graphics
+and control. ``gstreamer`` is an optional dependency which only needs to be
+installed if video display or audio is desired.
+
+What are wheels, pip and wheel
+------------------------------
+
+In Python, packages such as Kivy can be installed with the python package
+manager, `pip <https://pip.pypa.io/en/stable/>`_. Some packages such as Kivy
+require additional steps, such as compilation, when installing using the Kivy
+source code with pip. Wheels (with a ``.whl`` extension) are pre-built
+distributions of a package that has already been compiled and do not require
+additional steps to install.
+
+When hosted on `pypi <https://pypi.python.org/pypi>`_ one installs a wheel
+using ``pip``, e.g. ``python -m pip install kivy``. When downloading and installing
+a wheel directly, ``python -m pip install wheel_file_name`` is used, such as::
+
+    python -m pip install C:\Kivy-1.9.1.dev-cp27-none-win_amd64.whl
+
+Command line
+------------
+
+Know your command line. To execute any of the ``pip``
+or ``wheel`` commands, one needs a command line tool with python on the path.
+The default command line on Windows is
+`CMD <http://www.computerhope.com/issues/chusedos.htm>`_, and the quickest way
+to open it is to press `Win+R` on your keyboard, type ``cmd``
+in the window that opens, and then press enter.
+
+Alternate linux style command shells that we reccomend is
+`Git for Windows <https://git-for-windows.github.io/>`_ which offers a bash
+command line as `well <http://rogerdudler.github.io/git-guide/>`_ as
+`git <https://try.github.io>`_. Note, CMD can still be used even if bash is
+installed.
+
+Walking the path! To add your python to the path, simply open your command line
+and then us the ``cd`` command to change the current directory to where python is
+installed, e.g. ``cd C:\Python27``. Alternatively if you only have one python
+version installed, permanently add the python directory to the path for
+`CMD <http://www.computerhope.com/issues/ch000549.htm>`_ for
+`bash <http://stackoverflow.com/questions/14637979/how-to-permanently-set-path-on-linux>`_.
 
 .. _dev-install-win:
 
