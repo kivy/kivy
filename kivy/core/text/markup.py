@@ -160,6 +160,20 @@ class MarkupLabel(MarkupLabelBase):
             elif item == '[/i]':
                 spop('italic')
                 self.resolve_font_name()
+            elif item == '[u]':
+                spush('underline')
+                options['underline'] = True
+                self.resolve_font_name()
+            elif item == '[/u]':
+                spop('underline')
+                self.resolve_font_name()
+            elif item == '[s]':
+                spush('strikethrough')
+                options['strikethrough'] = True
+                self.resolve_font_name()
+            elif item == '[/s]':
+                spop('strikethrough')
+                self.resolve_font_name()
             elif item[:6] == '[size=':
                 item = item[6:-1]
                 try:
