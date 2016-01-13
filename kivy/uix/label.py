@@ -256,6 +256,7 @@ class Label(Widget):
     __events__ = ['on_ref_press']
 
     _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
+                        'underline', 'strikethrough',
                         'halign', 'valign', 'padding_x', 'padding_y',
                         'text_size', 'shorten', 'mipmap', 'markup',
                         'line_height', 'max_lines', 'strip', 'shorten_from',
@@ -496,6 +497,11 @@ class Label(Widget):
     :attr:`italic` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
     '''
+
+    underline = BooleanProperty(False)
+
+    strikethrough = BooleanProperty(False)
+
 
     padding_x = NumericProperty(0)
     '''Horizontal padding of the text inside the widget box.
