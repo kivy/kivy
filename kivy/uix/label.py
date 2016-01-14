@@ -499,9 +499,28 @@ class Label(Widget):
     '''
 
     underline = BooleanProperty(False)
+    '''Adds an underline to the text.
+
+    .. note::
+        This feature requires a SDL2 window provider.
+
+    .. versionadded:: 2.0.0
+
+    :attr:`underline` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
+    '''
 
     strikethrough = BooleanProperty(False)
+    '''Adds a strikethrough line to the text.
 
+    .. note::
+        This feature requires a SDL2 window provider.
+
+    .. versionadded:: 2.0.0
+
+    :attr:`strikethrough` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
+    '''
 
     padding_x = NumericProperty(0)
     '''Horizontal padding of the text inside the widget box.
