@@ -8,11 +8,6 @@ from kivy.logger import Logger
 
 
 cdef int _event_filter(void *userdata, SDL_Event *event) with gil:
-    # XXX we don't know if the gil is taken before the call of this function
-    # But we can't acquire the gil if the function is not marked with nogil
-    # The thing is, marking the function with nogil make SDL_SetEventFilter
-    # not accepting this function as argument, even with a cast:
-    # _window_sdl2.pyx:143:27: Cannot assign type '<error>' to 'SDL_EventFilter'
     return (<_WindowSDL2Storage>userdata).cb_event_filter(event)
 
 
