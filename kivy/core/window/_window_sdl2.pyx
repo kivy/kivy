@@ -25,6 +25,7 @@ cdef class _WindowSDL2Storage:
     cdef SDL_Surface *icon
     cdef int win_flags
     cdef object event_filter
+    cdef str event_filter_name
 
     def __cinit__(self):
         self.win = NULL
@@ -32,6 +33,7 @@ cdef class _WindowSDL2Storage:
         self.surface = NULL
         self.win_flags = 0
         self.event_filter = None
+        self.event_filter_name = None
 
     def set_event_filter(self, event_filter):
         self.event_filter = event_filter
@@ -55,7 +57,8 @@ cdef class _WindowSDL2Storage:
             name = 'app_didenterforeground'
         if not name:
             return 1
-        return self.event_filter(name)
+        self.event_filter_name = name
+        return 0
 
     def die(self):
         raise RuntimeError(<bytes> SDL_GetError())
@@ -244,6 +247,10 @@ cdef class _WindowSDL2Storage:
 
     def poll(self):
         cdef SDL_Event event
+
+        if self.event_filter_name:
+            self.event_filter(self.event_filter_name)
+            self.event_filter_name = None
 
         if SDL_PollEvent(&event) == 0:
             return False
