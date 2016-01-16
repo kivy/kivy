@@ -7,15 +7,13 @@ from kivy.config import Config
 from kivy.logger import Logger
 
 
-cdef int _event_filter(void *userdata, SDL_Event *event):
+cdef int _event_filter(void *userdata, SDL_Event *event) with gil:
     # XXX we don't know if the gil is taken before the call of this function
     # But we can't acquire the gil if the function is not marked with nogil
     # The thing is, marking the function with nogil make SDL_SetEventFilter
     # not accepting this function as argument, even with a cast:
     # _window_sdl2.pyx:143:27: Cannot assign type '<error>' to 'SDL_EventFilter'
-    with nogil:
-        with gil:
-            return (<_WindowSDL2Storage>userdata).cb_event_filter(event)
+    return (<_WindowSDL2Storage>userdata).cb_event_filter(event)
 
 
 cdef class _WindowSDL2Storage:
@@ -240,7 +238,8 @@ cdef class _WindowSDL2Storage:
         return SDL_IsTextInputActive()
 
     def wait_event(self):
-        SDL_WaitEvent(NULL)
+        with nogil:
+            SDL_WaitEvent(NULL)
 
     def poll(self):
         cdef SDL_Event event
