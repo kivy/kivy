@@ -56,8 +56,8 @@ install:
       curl -O -L https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.1.dmg;
       curl -O -L https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-2.0.1.dmg;
       curl -O -L https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.13.dmg;
-      aria2c -x 4 http://gstreamer.freedesktop.org/data/pkg/osx/1.7.1/gstreamer-1.0-1.7.1-x86_64.pkg;
-      aria2c -x 4 http://gstreamer.freedesktop.org/data/pkg/osx/1.7.1/gstreamer-1.0-devel-1.7.1-x86_64.pkg;
+      /usr/local/aria2/bin/aria2c -x 4 http://gstreamer.freedesktop.org/data/pkg/osx/1.7.1/gstreamer-1.0-1.7.1-x86_64.pkg;
+      /usr/local/aria2/bin/aria2c -x 4 http://gstreamer.freedesktop.org/data/pkg/osx/1.7.1/gstreamer-1.0-devel-1.7.1-x86_64.pkg;
       curl -O -L http://www.sveinbjorn.org/files/software/platypus.zip;
       curl -O -L http://www.kekaosx.com/release/Keka-1.0.4-intel.dmg;
       hdiutil attach Keka-1.0.4-intel.dmg;
