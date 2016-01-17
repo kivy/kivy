@@ -504,7 +504,7 @@ class Label(Widget):
     .. note::
         This feature requires a SDL2 window provider.
 
-    .. versionadded:: 2.0.0
+    .. versionadded:: 1.9.2
 
     :attr:`underline` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
@@ -516,7 +516,7 @@ class Label(Widget):
     .. note::
         This feature requires a SDL2 window provider.
 
-    .. versionadded:: 2.0.0
+    .. versionadded:: 1.9.2
 
     :attr:`strikethrough` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
