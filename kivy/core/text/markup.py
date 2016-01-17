@@ -18,6 +18,10 @@ The following tags are availables:
     Activate bold text
 ``[i][/i]``
     Activate italic text
+``[u][/u]``
+    Underlined text
+``[s][/s]``
+    Strikethrough text
 ``[font=<str>][/font]``
     Change the font
 ``[size=<integer>][/size]``
