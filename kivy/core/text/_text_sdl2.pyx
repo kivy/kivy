@@ -102,12 +102,19 @@ cdef TTF_Font *_get_font(self):
         # try to open the fount if it has an extension
         fontobject = TTF_OpenFont(bytes_fontname,
                                   int(self.options['font_size']))
-
     # fallback to search a system font
     if fontobject == NULL:
         s_error = (<bytes>SDL_GetError()).encode('utf-8')
         print(s_error)
         assert(0)
+
+    # set underline and strikethrough style    
+    style = TTF_STYLE_NORMAL
+    if self.options['underline']:
+        style = style | TTF_STYLE_UNDERLINE
+    if self.options['strikethrough']:
+        style = style | TTF_STYLE_STRIKETHROUGH
+    TTF_SetFontStyle(fontobject, style)
 
     sdl2_cache[fontid] = ttfc = _TTFContainer()
     ttfc.font = fontobject

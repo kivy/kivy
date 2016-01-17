@@ -631,6 +631,11 @@ cdef extern from "SDL_ttf.h":
     ##define TTF_STYLE_ITALIC    0x02
     ##define TTF_STYLE_UNDERLINE 0x04
     ##define TTF_STYLE_STRIKETHROUGH 0x08
+    cdef int TTF_STYLE_NORMAL
+    cdef int TTF_STYLE_BOLD
+    cdef int TTF_STYLE_ITALIC
+    cdef int TTF_STYLE_UNDERLINE
+    cdef int TTF_STYLE_STRIKETHROUGH
     cdef int  TTF_GetFontStyle( TTF_Font *font)
     cdef void  TTF_SetFontStyle(TTF_Font *font, int style)
     cdef int  TTF_GetFontOutline( TTF_Font *font)
