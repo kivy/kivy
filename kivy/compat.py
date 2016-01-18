@@ -7,6 +7,7 @@ __all__ = ('PY2', 'string_types', 'queue', 'iterkeys',
            'itervalues', 'iteritems')
 
 import sys
+import time
 try:
     import queue
 except ImportError:
@@ -14,6 +15,10 @@ except ImportError:
 
 #: True if Python 2 intepreter is used
 PY2 = sys.version_info[0] == 2
+'''True, if the version of python running is 2.x. '''
+
+clock = None
+'''A clock with the highest available resolution. '''
 
 #: String types that can be used for checking if a object is a string
 string_types = None
@@ -38,3 +43,12 @@ else:
     iterkeys = lambda d: iter(d.keys())
     itervalues = lambda d: iter(d.values())
     iteritems = lambda d: iter(d.items())
+
+
+if PY2:
+    if sys.platform in ('win32', 'cygwin'):
+        clock = time.clock
+    else:
+        clock = time.time
+else:
+    clock = time.perf_counter
