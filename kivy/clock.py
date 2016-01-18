@@ -216,6 +216,7 @@ from kivy.context import register_context
 from kivy.weakmethod import WeakMethod
 from kivy.config import Config
 from kivy.logger import Logger
+from kivy.compat import clock as _default_time
 import time
 
 try:
@@ -238,12 +239,9 @@ try:
                     self._timer, ctypes.byref(delay), 0,
                     ctypes.c_void_p(), ctypes.c_void_p(), False)
                 _kernel32.WaitForSingleObject(self._timer, 0xffffffff)
-
-        _default_time = time.clock
     else:
         if platform == 'darwin':
             _libc = ctypes.CDLL('libc.dylib')
-            _default_time = time.time
         else:
             from ctypes.util import find_library
             _libc = ctypes.CDLL(find_library('c'), use_errno=True)
@@ -291,7 +289,6 @@ except (OSError, ImportError, AttributeError):
     # OSError: if the libc cannot be readed (like with buildbot: invalid ELF
     # header)
 
-    _default_time = time.time
     _default_sleep = time.sleep
 
     class _ClockBase(object):
@@ -673,8 +670,7 @@ class ClockBase(_ClockBase):
 
     time = staticmethod(partial(_default_time))
 
-ClockBase.time.__doc__ = '''Proxy method for time.time() or time.clock(),
-whichever is more suitable for the running OS'''
+ClockBase.time.__doc__ = '''Proxy method for :func:`~kivy.compat.clock`. '''
 
 
 def mainthread(func):
