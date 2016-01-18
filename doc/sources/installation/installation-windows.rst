@@ -8,14 +8,16 @@ for Kivy and all its dependencies to be used with an existing Python installatio
 :ref:`install-win-dist`.
 
 We also provide nightly wheels generated using Kivy `master <https://github.com/kivy/kivy>`_.
-See :ref:`install-nightly-win-dist`. See also :ref:`upgrade-win-dist`.
+See :ref:`install-nightly-win-dist`. See also :ref:`upgrade-win-dist`. If installing kivy
+to an **alternate location** and not to site-packages, please see :ref:`alternate-win`.
 
 .. warning::
 
     Python 3.5 is currently not supported on Windows due to issues with MinGW and
     Python 3.5. Support is not expected for some time. See
     `here <http://bugs.python.org/issue4709>`_ for details. If required,
-    3.5 MSVC builds should be posssible, but have not been attempted.
+    3.5 MSVC builds should be posssible, but have not been attempted, please enquire
+    or let us know if you've compiled with MSVC.
 
 To use Kivy you need `Python <https://www.python.org/downloads/windows/>`_.
 Multiple versions of Python can be installed side by side, but Kivy needs to
@@ -175,6 +177,7 @@ with git rather than a wheel there are some additional steps:
    can be a url such as ``https://github.com/kivy/kivy/archive/deps.zip`` for
    kivy master, or the full path to a local copy of a kivy zip.
 
+.. _alternate-win:
 
 Installing Kivy to an alternate location
 ----------------------------------------
@@ -185,7 +188,7 @@ in its original location while being available to python.
 In that case extra tweaking is required. Due to a
 `issue <https://github.com/pypa/pip/issues/2677>`_ ``wheel`` and
 ``pip`` install the dependency wheels to ``python\Lib\site-packages\kivy``. So they
-need to be moved to your actual kivy installation.
+need to be moved to your actual kivy installation from site-packages.
 
 After installing the kivy dependencies and downloading or cloning kivy to your
 favorite location, do the following:
@@ -200,6 +203,9 @@ favorite location, do the following:
 
 Now you can safely compile kivy in its current location with ``make`` or
 ``python -m pip install -e location`` or just ``python setup.py build_ext --inplace``.
+
+**If kivy fails to be imported,** you probably didn't delete all the *.pth files
+and and the kivy or kivy.deps* folders from site-packages.
 
 Making Python available anywhere
 --------------------------------
