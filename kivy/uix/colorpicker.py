@@ -28,6 +28,9 @@ Usage::
 
     clr_picker.bind(color=on_color)
 
+.. image:: images/colorpicker.png
+    :align: left
+
 '''
 
 __all__ = ('ColorPicker', 'ColorWheel')
