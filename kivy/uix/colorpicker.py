@@ -9,6 +9,8 @@ Color Picker
     This widget is experimental. Its use and API can change at any time until
     this warning is removed.
 
+.. image:: images/colorpicker.png
+    :align: right
 
 The ColorPicker widget allows a user to select a color from a chromatic
 wheel where pinch and zoom can be used to change the wheel's saturation.
@@ -28,8 +30,6 @@ Usage::
 
     clr_picker.bind(color=on_color)
 
-.. image:: images/colorpicker.png
-    :align: left
 
 '''
 
