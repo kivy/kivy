@@ -104,7 +104,7 @@ OS X
 Without using brew you can install the dependencies for kivy by
 manually pasting the following commands in a terminal::
 
-    curl -O -L https://www.libsdl.org/tmp/release/SDL2-2.0.4.dmg
+    curl -O -L https://www.libsdl.org/release/SDL2-2.0.4.dmg
     curl -O -L https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.0.dmg
     curl -O -L https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-2.0.0.dmg
     curl -O -L https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.12.dmg
