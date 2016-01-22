@@ -264,7 +264,8 @@ class Label(Widget):
                         'halign', 'valign', 'padding_x', 'padding_y',
                         'text_size', 'shorten', 'mipmap', 'markup',
                         'line_height', 'max_lines', 'strip', 'shorten_from',
-                        'split_str', 'unicode_errors', 'hinting', 'blended')
+                        'split_str', 'unicode_errors',
+                        'font_hinting', 'font_kerning', 'font_blended')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -813,8 +814,8 @@ class Label(Widget):
     defaults to False.
     '''
 
-    hinting = OptionProperty(
-        'none', options=('normal', 'light', 'mono', 'none'))
+    font_hinting = OptionProperty(
+        'none', options=['normal', 'light', 'mono', 'none'])
     '''What hinting option to use for font rendering.
     Can be `'normal'`, `'light'`, `'mono'`, `'none'`
 
@@ -822,28 +823,28 @@ class Label(Widget):
         This feature requires a SDL2 window provider and is currently only
         supported on desktop platforms.
 
-    :attr:`hinting` is an :class:`~kivy.properties.OptionProperty` and
+    :attr:`font_hinting` is an :class:`~kivy.properties.OptionProperty` and
     defaults to `'none'`.
     '''
 
-    kerning = BooleanProperty(False)
+    font_kerning = BooleanProperty(False)
     '''Whether kerning is enable for font rendering
 
     .. note::
         This feature requires a SDL2 window provider and is currently only
         supported on desktop platforms.
 
-    :attr:`kerning` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`font_kerning` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
 
-    blended = BooleanProperty(False)
+    font_blended = BooleanProperty(False)
     '''Whether blended or solid font rendering should be used
 
     .. note::
         This feature requires a SDL2 window provider and is currently only
         supported on desktop platforms.
 
-    :attr:`blended` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`font_blended` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''

@@ -60,8 +60,8 @@ cdef class _SurfaceContainer:
         c.b = <int>(color[2] * 255)
         bytes_text = <bytes>text.encode('utf-8')
         hinting = (
-            container.options['hinting']
-            if 'hinting' in container.options
+            container.options['font_hinting']
+            if 'font_hinting' in container.options
             else None
             )
         if hinting == 'normal':
@@ -77,8 +77,8 @@ cdef class _SurfaceContainer:
             if TTF_GetFontHinting(font) != TTF_HINTING_NONE:
                 TTF_SetFontHinting(font, TTF_HINTING_NONE)
         kerning = (
-            container.options['kerning']
-            if 'kerning' in container.options
+            container.options['font_kerning']
+            if 'font_kerning' in container.options
             else None
             )
         if kerning is True:
@@ -88,8 +88,8 @@ cdef class _SurfaceContainer:
             if TTF_GetFontKerning(font) != 0:
                 TTF_SetFontKerning(font, 0)
         blended = (
-            container.options['blended']
-            if 'blended' in container.options
+            container.options['font_blended']
+            if 'font_blended' in container.options
             else None
             )
         st = (
