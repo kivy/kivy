@@ -105,25 +105,25 @@ Without using brew you can install the dependencies for kivy by
 manually pasting the following commands in a terminal::
 
     curl -O -L https://www.libsdl.org/release/SDL2-2.0.4.dmg
-    curl -O -L https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.0.dmg
-    curl -O -L https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-2.0.0.dmg
-    curl -O -L https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.12.dmg
-    curl -O -L http://gstreamer.freedesktop.org/data/pkg/osx/1.6.2/gstreamer-1.0-1.6.2-x86_64.pkg
-    curl -O -L http://gstreamer.freedesktop.org/data/pkg/osx/1.6.2/gstreamer-1.0-devel-1.6.2-x86_64.pkg
+    curl -O -L https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.1.dmg
+    curl -O -L https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-2.0.1.dmg
+    curl -O -L https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.13.dmg
+    curl -O -L http://gstreamer.freedesktop.org/data/pkg/osx/1.7.1/gstreamer-1.0-1.7.1-x86_64.pkg
+    curl -O -L http://gstreamer.freedesktop.org/data/pkg/osx/1.7.1/gstreamer-1.0-devel-1.7.1-x86_64.pkg
     hdiutil attach SDL2-2.0.4.dmg
     sudo cp -a /Volumes/SDL2/SDL2.framework /Library/Frameworks/
 
 This should ask you for your root password, provide it and then paste
 the following lines in your terminal::
 
-    hdiutil attach SDL2_image-2.0.0.dmg
+    hdiutil attach SDL2_image-2.0.1.dmg
     sudo cp -a /Volumes/SDL2_image/SDL2_image.framework /Library/Frameworks/
-    hdiutil attach SDL2_ttf-2.0.12.dmg
+    hdiutil attach SDL2_ttf-2.0.13.dmg
     sudo cp -a /Volumes/SDL2_ttf/SDL2_ttf.framework /Library/Frameworks/
-    hdiutil attach SDL2_mixer-2.0.0.dmg
+    hdiutil attach SDL2_mixer-2.0.1.dmg
     sudo cp -a /Volumes/SDL2_mixer/SDL2_mixer.framework /Library/Frameworks/
-    sudo installer -package gstreamer-1.0-1.6.2-x86_64.pkg -target /
-    sudo installer -package gstreamer-1.0-devel-1.6.2-x86_64.pkg -target /
+    sudo installer -package gstreamer-1.0-1.7.1-x86_64.pkg -target /
+    sudo installer -package gstreamer-1.0-devel-1.7.1-x86_64.pkg -target /
     pip install --upgrade --user cython pillow
 
 Now that you have all the dependencies for kivy, you need to make sure
