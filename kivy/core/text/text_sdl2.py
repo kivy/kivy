@@ -19,11 +19,11 @@ class LabelSDL2(LabelBase):
         if PY2:
             try:
                 return '|'.join([unicode(self.options[x]) for x
-                    in ('font_size', 'font_name_r', 'bold', 'italic')])
+                    in ('font_size', 'font_name_r', 'bold', 'italic', 'underline', 'strikethrough')])
             except UnicodeDecodeError:
                 pass
         return '|'.join([str(self.options[x]) for x
-            in ('font_size', 'font_name_r', 'bold', 'italic')])
+            in ('font_size', 'font_name_r', 'bold', 'italic', 'underline', 'strikethrough')])
 
     def get_extents(self, text):
         try:

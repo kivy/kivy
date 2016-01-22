@@ -106,6 +106,10 @@ The following tags are available:
     Activate bold text
 ``[i][/i]``
     Activate italic text
+``[u][/u]``
+    Underlined text
+``[s][/s]``
+    Strikethrough text
 ``[font=<str>][/font]``
     Change the font
 ``[size=<integer>][/size]``
@@ -256,6 +260,7 @@ class Label(Widget):
     __events__ = ['on_ref_press']
 
     _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
+                        'underline', 'strikethrough',
                         'halign', 'valign', 'padding_x', 'padding_y',
                         'text_size', 'shorten', 'mipmap', 'markup',
                         'line_height', 'max_lines', 'strip', 'shorten_from',
@@ -494,6 +499,30 @@ class Label(Widget):
         text rendering.
 
     :attr:`italic` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
+    '''
+
+    underline = BooleanProperty(False)
+    '''Adds an underline to the text.
+
+    .. note::
+        This feature requires a SDL2 window provider.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`underline` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
+    '''
+
+    strikethrough = BooleanProperty(False)
+    '''Adds a strikethrough line to the text.
+
+    .. note::
+        This feature requires a SDL2 window provider.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`strikethrough` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
     '''
 

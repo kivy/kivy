@@ -22,20 +22,20 @@ It comes as a .7z file that contains:
 To install Kivy, you must:
 
     1. Download the latest version from http://kivy.org/#download
-       Kivy2.7z is using using python2(System Python), Kivy3.7z(Python3)
-    2. Extract it using a Unarchiver programme like http://www.kekaosx.com/en/.
+       Kivy2.7z is using using Python 2 (System Python), Kivy3.7z (Python 3)
+    2. Extract it using an archive program like http://www.kekaosx.com/en/.
     3. Copy the Kivy2.app or Kivy3.app as Kivy.app to /Applications.
-       Paste the following line onto the terminal::
-       
-        $ sudo mv Kivy2.app /Applications/Kivy.app
-           
-    4. Create a symlink named `kivy` to easily launch apps with kivy venv::
-    
-        $ ln -s /Applications/Kivy.app/Contents/Resources/script /usr/local/bin/kivy
-    
-    5. Examples and all the normal kivy tools are present in the Kivy.app/Contents/Resources/kivy dir                   
+       Paste the following line in the terminal::
 
-You should now have a `kivy` script that you can use to launch your kivy app from terminal.
+        $ sudo mv Kivy2.app /Applications/Kivy.app
+
+    4. Create a symlink named `kivy` to easily launch apps with kivy venv::
+
+        $ ln -s /Applications/Kivy.app/Contents/Resources/script /usr/local/bin/kivy
+
+    5. Examples and all the normal kivy tools are present in the Kivy.app/Contents/Resources/kivy directory.
+
+You should now have a `kivy` script that you can use to launch your kivy app from the terminal.
 
 You can just drag and drop your main.py to run your app too.
 
@@ -43,18 +43,18 @@ You can just drag and drop your main.py to run your app too.
 Installing modules
 ~~~~~~~~~~~~~~~~~~
 
-Kivy package on osx uses its own virtual env that is activated when you run your app using `kivy` command.
+The Kivy SDK on OS X uses its own virtual env that is activated when you run your app using the `kivy` command.
 To install any module you need to install the module like so::
 
     $ kivy -m pip install <modulename>
 
 Where are the modules/files installed?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Inside the relocatable venv within the app at::
+Inside the portable venv within the app at::
 
     Kivy.app/Contents/Resources/venv/
 
-If you install a module that install's a binary for example like kivy-garden
+If you install a module that installs a binary for example like kivy-garden.
 That binary will be only available from the venv above, as in after you do::
 
     kivy -m pip install kivy-garden
@@ -70,10 +70,10 @@ To install binary files
 
 Just copy the binary to the /Applications/Kivy.app/Contents/Resources/venv/bin/ directory.
 
-To Include other frameworks
+To include other frameworks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kivy.app comes with SDL2 and Gstreamer frameworks provided.
-To Include frameworks other than the ones provided do the following::
+To include frameworks other than the ones provided do the following::
 
     git clone http://github.com/tito/osxrelocator
     export PYTHONPATH=~/path/to/osxrelocator
@@ -84,7 +84,7 @@ To Include frameworks other than the ones provided do the following::
 Do not forget to replace <Framework_name> with your framework.
 This tool `osxrelocator` essentially changes the path for the
 libs in the framework such that they are relative to the executable
-within the .app. Making the Framework relocatable with the .app.
+within the .app, making the Framework portable with the .app.
 
 Start any Kivy Application
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

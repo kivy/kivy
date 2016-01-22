@@ -468,7 +468,7 @@ cdef extern from "SDL.h":
     cdef void SDL_Delay(Uint32 ms) nogil
     cdef Uint8 SDL_EventState(Uint32 type, int state)
     cdef int SDL_PollEvent(SDL_Event * event)
-    cdef void SDL_SetEventFilter(SDL_EventFilter filter, void* userdata)
+    cdef void SDL_SetEventFilter(SDL_EventFilter *filter, void* userdata)
     cdef SDL_RWops * SDL_RWFromFile(char *file, char *mode)
     cdef SDL_RWops * SDL_RWFromMem(void *mem, int size)
     cdef SDL_RWops * SDL_RWFromConstMem(void *mem, int size)
@@ -631,6 +631,11 @@ cdef extern from "SDL_ttf.h":
     ##define TTF_STYLE_ITALIC    0x02
     ##define TTF_STYLE_UNDERLINE 0x04
     ##define TTF_STYLE_STRIKETHROUGH 0x08
+    cdef int TTF_STYLE_NORMAL
+    cdef int TTF_STYLE_BOLD
+    cdef int TTF_STYLE_ITALIC
+    cdef int TTF_STYLE_UNDERLINE
+    cdef int TTF_STYLE_STRIKETHROUGH
     cdef int  TTF_GetFontStyle( TTF_Font *font)
     cdef void  TTF_SetFontStyle(TTF_Font *font, int style)
     cdef int  TTF_GetFontOutline( TTF_Font *font)

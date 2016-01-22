@@ -25,16 +25,9 @@ Requirements
 PyInstaller default hook
 ========================
 
-.. warning::
-
-    The latest PyInstaller release does not include the Kivy hooks. This
-    note will be removed when a PyInstaller version with the hooks is released
-    to PyPi.
-
-This section applies to PyInstaller (>= 3.?) that includes the kivy hooks.
-For previous versions of PyInstaller or to overwrite the default hook the
-following examples need to be slightly modified. See :ref:`overwrite-win-hook`
-for those changes.
+This section applies to PyInstaller (>= 3.1) that includes the kivy hooks.
+To overwrite the default hook the
+following examples need to be slightly modified. See :ref:`overwrite-win-hook`.
 
 Packaging a simple app
 ----------------------

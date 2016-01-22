@@ -4,12 +4,11 @@ include "../../../kivy/graphics/config.pxi"
 from libc.string cimport memcpy
 from os import environ
 from kivy.config import Config
+from kivy.logger import Logger
 
 
-cdef int _event_filter(void *userdata, SDL_Event *event):
-    cdef _WindowSDL2Storage win
-    win = <_WindowSDL2Storage>userdata
-    return win.cb_event_filter(event)
+cdef int _event_filter(void *userdata, SDL_Event *event) with gil:
+    return (<_WindowSDL2Storage>userdata).cb_event_filter(event)
 
 
 cdef class _WindowSDL2Storage:
@@ -234,7 +233,8 @@ cdef class _WindowSDL2Storage:
         return SDL_IsTextInputActive()
 
     def wait_event(self):
-        SDL_WaitEvent(NULL)
+        with nogil:
+            SDL_WaitEvent(NULL)
 
     def poll(self):
         cdef SDL_Event event
