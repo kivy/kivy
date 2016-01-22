@@ -64,9 +64,18 @@ cdef class _SurfaceContainer:
             if 'hinting' in container.options
             else None
             )
-        if hinting is not None:
-            if TTF_GetFontHinting(font) != hinting:
-                TTF_SetFontHinting(font, hinting)
+        if hinting == 'normal':
+            if TTF_GetFontHinting(font) != TTF_HINTING_NORMAL:
+                TTF_SetFontHinting(font, TTF_HINTING_NORMAL)
+        if hinting == 'light':
+            if TTF_GetFontHinting(font) != TTF_HINTING_LIGHT:
+                TTF_SetFontHinting(font, TTF_HINTING_LIGHT)
+        if hinting == 'mono':
+            if TTF_GetFontHinting(font) != TTF_HINTING_MONO:
+                TTF_SetFontHinting(font, TTF_HINTING_MONO)
+        if hinting == 'none':
+            if TTF_GetFontHinting(font) != TTF_HINTING_NONE:
+                TTF_SetFontHinting(font, TTF_HINTING_NONE)
         blended = (
             container.options['blended']
             if 'blended' in container.options
@@ -125,7 +134,7 @@ cdef TTF_Font *_get_font(self):
         print(s_error)
         assert(0)
 
-    # set underline and strikethrough style    
+    # set underline and strikethrough style
     style = TTF_STYLE_NORMAL
     if self.options['underline']:
         style = style | TTF_STYLE_UNDERLINE

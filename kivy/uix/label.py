@@ -813,5 +813,18 @@ class Label(Widget):
     defaults to False.
     '''
 
-    hinting = NumericProperty(2)
+    hinting = OptionProperty(
+        'none', options=('normal', 'light', 'mono', 'none'))
+    '''How to handle hinting option during rendering.
+    Can be `'normal'`, `'light'`, `'mono'`, `'none'`
+
+    :attr:`hinting` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to `'none'`.
+    '''
+
     blended = BooleanProperty(False)
+    '''Whether blended or solid font rendering should be used
+
+    :attr:`blended` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
+    '''
