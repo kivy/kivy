@@ -815,15 +815,34 @@ class Label(Widget):
 
     hinting = OptionProperty(
         'none', options=('normal', 'light', 'mono', 'none'))
-    '''How to handle hinting option during rendering.
+    '''What hinting option to use for font rendering.
     Can be `'normal'`, `'light'`, `'mono'`, `'none'`
+
+    .. note::
+        This feature requires a SDL2 window provider and is currently only
+        supported on desktop platforms.
 
     :attr:`hinting` is an :class:`~kivy.properties.OptionProperty` and
     defaults to `'none'`.
     '''
 
+    kerning = BooleanProperty(False)
+    '''Whether kerning is enable for font rendering
+
+    .. note::
+        This feature requires a SDL2 window provider and is currently only
+        supported on desktop platforms.
+
+    :attr:`kerning` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
+    '''
+
     blended = BooleanProperty(False)
     '''Whether blended or solid font rendering should be used
+
+    .. note::
+        This feature requires a SDL2 window provider and is currently only
+        supported on desktop platforms.
 
     :attr:`blended` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.

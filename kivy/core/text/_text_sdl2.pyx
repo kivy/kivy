@@ -76,6 +76,17 @@ cdef class _SurfaceContainer:
         if hinting == 'none':
             if TTF_GetFontHinting(font) != TTF_HINTING_NONE:
                 TTF_SetFontHinting(font, TTF_HINTING_NONE)
+        kerning = (
+            container.options['kerning']
+            if 'kerning' in container.options
+            else None
+            )
+        if kerning is True:
+            if TTF_GetFontKerning(font) == 0:
+                TTF_SetFontKerning(font, 1)
+        if kerning is False:
+            if TTF_GetFontKerning(font) != 0:
+                TTF_SetFontKerning(font, 0)
         blended = (
             container.options['blended']
             if 'blended' in container.options
