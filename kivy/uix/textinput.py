@@ -1147,17 +1147,15 @@ class TextInput(FocusBehavior, Widget):
         scrl_y = scrl_y / dy if scrl_y > 0 else 0
         cy = (self.top - padding_top + scrl_y * dy) - y
         cy = int(boundary(round(cy / dy - 0.5), 0, len(l) - 1))
-        dcx = 0
         _get_text_width = self._get_text_width
         _tab_width = self.tab_width
         _label_cached = self._label_cached
-        for i in range(1, len(l[cy]) + 1):
-            if _get_text_width(l[cy][:i],
-                               _tab_width,
-                               _label_cached) + padding_left >= cx + scrl_x:
+        for i in range(0, len(l[cy])):
+            if _get_text_width(l[cy][:i], _tab_width, _label_cached) + \
+                  _get_text_width(l[cy][i], _tab_width, _label_cached)/2 + \
+                  padding_left > cx + scrl_x:
+                cx = i
                 break
-            dcx = i
-        cx = dcx
         return cx, cy
 
     #
