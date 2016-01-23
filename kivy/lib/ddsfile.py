@@ -44,7 +44,13 @@ DDS Format
             Caps2
             Reserved1 * 2
         Reserverd2
-        
+
+.. warning::
+
+    This is an external library and Kivy does not provide any support for it.
+    It might change in the future and we advise you don't rely on it in your
+    code.
+
 '''
 
 from struct import pack, unpack, calcsize

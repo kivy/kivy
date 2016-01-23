@@ -12,6 +12,11 @@ device, specifically type A without contact tracking, type A with
 contact tracking, or type B with contact tracking. See the kernel
 documentation for further details.
 
+.. warning::
+
+    This is an external library and Kivy does not provide any support for it.
+    It might change in the future and we advise you don't rely on it in your
+    code.
 '''
 
 import os
