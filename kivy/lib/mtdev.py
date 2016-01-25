@@ -1,5 +1,10 @@
 '''
-python-mtdev - Python binding to the mtdev library (MIT license)
+Python mtdev
+============
+
+The mtdev module provides Python bindings to the `Kernel multi-touch
+transformation library <https://launchpad.net/mtdev>`_, also known as mtdev
+(MIT license).
 
 The mtdev library transforms all variants of kernel MT events to the
 slotted type B protocol. The events put into mtdev may be from any MT
@@ -7,6 +12,11 @@ device, specifically type A without contact tracking, type A with
 contact tracking, or type B with contact tracking. See the kernel
 documentation for further details.
 
+.. warning::
+
+    This is an external library and Kivy does not provide any support for it.
+    It might change in the future and we advise you don't rely on it in your
+    code.
 '''
 
 import os
