@@ -820,8 +820,9 @@ class Label(Widget):
     Can be `'normal'`, `'light'`, `'mono'`, `'none'`
 
     .. note::
-        This feature requires a SDL2 window provider and is currently only
-        supported on desktop platforms.
+        This feature requires a SDL2 window provider.
+
+    .. versionadded:: 1.9.2
 
     :attr:`font_hinting` is an :class:`~kivy.properties.OptionProperty` and
     defaults to `'none'`.
@@ -831,8 +832,9 @@ class Label(Widget):
     '''Whether kerning is enable for font rendering
 
     .. note::
-        This feature requires a SDL2 window provider and is currently only
-        supported on desktop platforms.
+        This feature requires a SDL2 window provider.
+
+    .. versionadded:: 1.9.2
 
     :attr:`font_kerning` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
@@ -842,8 +844,9 @@ class Label(Widget):
     '''Whether blended or solid font rendering should be used
 
     .. note::
-        This feature requires a SDL2 window provider and is currently only
-        supported on desktop platforms.
+        This feature requires a SDL2 window provider.
+
+    .. versionadded:: 1.9.2
 
     :attr:`font_blended` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
