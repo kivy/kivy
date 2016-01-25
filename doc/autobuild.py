@@ -12,7 +12,6 @@ ignore_list = (
     'kivy.graphics.buffer',
     'kivy.graphics.vbo',
     'kivy.graphics.vertex',
-    'kivy.lib.osc'
 )
 
 import os
@@ -61,6 +60,7 @@ import kivy.input.recorder
 import kivy.interactive
 import kivy.garden
 from kivy.factory import Factory
+from kivy.lib import osc, ddsfile, mtdev
 
 # check for silenced build
 BE_QUIET = False
