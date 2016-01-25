@@ -59,7 +59,44 @@ cdef class _SurfaceContainer:
         c.g = <int>(color[1] * 255)
         c.b = <int>(color[2] * 255)
         bytes_text = <bytes>text.encode('utf-8')
-        st = TTF_RenderUTF8_Blended(font, <char *>bytes_text, c)
+        hinting = (
+            container.options['font_hinting']
+            if 'font_hinting' in container.options
+            else None
+            )
+        if hinting == 'normal':
+            if TTF_GetFontHinting(font) != TTF_HINTING_NORMAL:
+                TTF_SetFontHinting(font, TTF_HINTING_NORMAL)
+        if hinting == 'light':
+            if TTF_GetFontHinting(font) != TTF_HINTING_LIGHT:
+                TTF_SetFontHinting(font, TTF_HINTING_LIGHT)
+        if hinting == 'mono':
+            if TTF_GetFontHinting(font) != TTF_HINTING_MONO:
+                TTF_SetFontHinting(font, TTF_HINTING_MONO)
+        if hinting == 'none':
+            if TTF_GetFontHinting(font) != TTF_HINTING_NONE:
+                TTF_SetFontHinting(font, TTF_HINTING_NONE)
+        kerning = (
+            container.options['font_kerning']
+            if 'font_kerning' in container.options
+            else None
+            )
+        if kerning is True:
+            if TTF_GetFontKerning(font) == 0:
+                TTF_SetFontKerning(font, 1)
+        if kerning is False:
+            if TTF_GetFontKerning(font) != 0:
+                TTF_SetFontKerning(font, 0)
+        blended = (
+            container.options['font_blended']
+            if 'font_blended' in container.options
+            else None
+            )
+        st = (
+            TTF_RenderUTF8_Blended(font, <char *>bytes_text, c)
+            if blended
+            else TTF_RenderUTF8_Solid(font, <char *>bytes_text, c)
+            )
         if st == NULL:
             return
         r.x = x
@@ -108,7 +145,7 @@ cdef TTF_Font *_get_font(self):
         print(s_error)
         assert(0)
 
-    # set underline and strikethrough style    
+    # set underline and strikethrough style
     style = TTF_STYLE_NORMAL
     if self.options['underline']:
         style = style | TTF_STYLE_UNDERLINE
