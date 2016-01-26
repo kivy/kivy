@@ -1,0 +1,46 @@
+digraph cluster{
+
+    MyWidgetAW -> Button;
+    Button -> MyWidgetC;
+    Button -> Color;
+    Button -> Rectangle;
+    MyWidgetAW -> MyWidgetB;
+
+    MyWidgetAW [shape=diamond, label=MyWidgetA, color="orange", style=filled];
+    MyWidgetC [color="salmon1", style=filled];
+    MyWidgetB [color="palegreen1", style=filled];
+
+    MyWidgetAW [xlabel="0"];
+    Button [xlabel="1"];
+    MyWidgetC [xlabel="2"];
+    Color [xlabel="3"];
+    Rectangle [xlabel="4"];
+    MyWidgetB [xlabel="5"];
+
+
+    MyWidgetBW -> BoxLayout;
+    BoxLayout -> MyWidgetC2;
+    MyWidgetBW -> Line;
+
+    MyWidgetBW [xlabel="0"];
+    BoxLayout [xlabel="1"];
+    MyWidgetC2 [xlabel="2"];
+    Line [xlabel="3"];
+
+    MyWidgetBW [shape=diamond, label=MyWidgetB, color="palegreen3", style=filled];
+    MyWidgetC2 [color="salmon1", style=filled];
+    MyWidgetC2 [ label=MyWidgetC];
+
+
+    MyWidgetCW -> Label;
+    MyWidgetCW -> FloatLayout;
+    FloatLayout -> GridLayout;
+
+
+    MyWidgetCW [xlabel="0"];
+    Label [xlabel="1"];
+    FloatLayout [xlabel="2"];
+    GridLayout [xlabel="3"];
+
+    MyWidgetCW [shape=diamond, label=MyWidgetC, color="salmon3", style=filled];
+}

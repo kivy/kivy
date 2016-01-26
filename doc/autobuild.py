@@ -12,6 +12,7 @@ ignore_list = (
     'kivy.graphics.buffer',
     'kivy.graphics.vbo',
     'kivy.graphics.vertex',
+    'kivy.lang._compiled_mod'
 )
 
 import os
@@ -59,6 +60,7 @@ import kivy.tools.packaging.pyinstaller_hooks
 import kivy.input.recorder
 import kivy.interactive
 import kivy.garden
+import kivy.tools.kvcompiler
 from kivy.factory import Factory
 from kivy.lib import osc, ddsfile, mtdev
 
@@ -115,8 +117,9 @@ api_modules = []
 for name, module, filename in l:
     if name in ignore_list:
         continue
-    if not any([name.startswith(x) for x in ignore_list]):
-        api_modules.append(name)
+    if any([name.startswith(x) for x in ignore_list]):
+        continue
+    api_modules.append(name)
     if filename == '__init__':
         packages.append(name)
     else:

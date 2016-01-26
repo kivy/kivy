@@ -15,6 +15,14 @@ cdef class EventDispatcher(ObjectWithUid):
     cdef dict __storage
     cdef object __weakref__
     cdef public set _kwargs_applied_init
+    cdef object _proxy_ref
+    cdef public object proxy_callback
+    '''A callback, which if set will be called by the proxy when the event
+    dispatcher dies, if a proxy_ref has been created. The callback takes two
+    parameters, the event dispatcher uid, and the r.
+    '''
+    cpdef rebind_property(self, name)
+    cpdef dispatch_count(self, basestring event_type)
     cpdef dict properties(self)
 
 
@@ -46,6 +54,8 @@ cdef class EventObservers:
     cdef BoundCallback last_callback
     # The uid to assign to the next bound callback.
     cdef object uid
+    # the number of time it has been dispatched
+    cdef int count
 
     cdef inline void bind(self, object observer, object src_observer, int is_ref) except *
     cdef inline object fbind(self, object observer, tuple largs, dict kwargs, int is_ref)
