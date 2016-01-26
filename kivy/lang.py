@@ -1795,6 +1795,9 @@ class ParserSelectorName(ParserSelector):
             parents[cls] = classes
         return self.key in parents[cls]
 
+    def match_rule_name(self, rule_name):
+        return self.key == rule_name.lower()
+
 
 class BuilderBase(object):
     '''The Builder is responsible for creating a :class:`Parser` for parsing a
@@ -1805,6 +1808,7 @@ class BuilderBase(object):
     '''
 
     _match_cache = {}
+    _match_name_cache = {}
 
     def __init__(self):
         super(BuilderBase, self).__init__()
@@ -1953,6 +1957,25 @@ class BuilderBase(object):
         self._apply_rule(widget, rule, rule, template_ctx=proxy_ctx)
         return widget
 
+    def apply_rules(self, widget, rule_name, ignored_consts=set()):
+        '''Search all the rules that match `rule_name` widget
+        and apply them to `widget`.
+
+        .. versionadded:: 1.9.2
+
+        `ignored_consts` is a set or list type whose elements are property
+        names for which constant KV rules (i.e. those that don't create
+        bindings) of that widget will not be applied. This allows e.g. skipping
+        constant rules that overwrite a value initialized in python.
+        '''
+        rules = self.match_rule_name(rule_name)
+        if __debug__:
+            trace('Builder: Found %d rules for %s' % (len(rules), rule_name))
+        if not rules:
+            return
+        for rule in rules:
+            self._apply_rule(widget, rule, rule, ignored_consts=ignored_consts)
+
     def apply(self, widget, ignored_consts=set()):
         '''Search all the rules that match the widget and apply them.
 
@@ -1971,6 +1994,7 @@ class BuilderBase(object):
 
     def _clear_matchcache(self):
         BuilderBase._match_cache = {}
+        BuilderBase._match_name_cache = {}
 
     def _apply_rule(self, widget, rule, rootrule, template_ctx=None,
                     ignored_consts=set()):
@@ -2170,6 +2194,23 @@ class BuilderBase(object):
         rules = []
         for selector, rule in self.rules:
             if selector.match(widget):
+                if rule.avoid_previous_rules:
+                    del rules[:]
+                rules.append(rule)
+        cache[k] = rules
+        return rules
+
+    def match_rule_name(self, rule_name):
+        '''Return a list of :class:`ParserRule` objects matching the widget.
+        '''
+        cache = BuilderBase._match_name_cache
+        rule_name = str(rule_name)
+        k = rule_name.lower()
+        if k in cache:
+            return cache[k]
+        rules = []
+        for selector, rule in self.rules:
+            if selector.match_rule_name(rule_name):
                 if rule.avoid_previous_rules:
                     del rules[:]
                 rules.append(rule)

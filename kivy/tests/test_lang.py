@@ -259,3 +259,12 @@ class LangTestCase(unittest.TestCase):
         w2 = Factory.MySecondWidget(x=999)
         self.assertEqual(w2.x, 999)
         self.assertEqual(w2.children[0].x, 23)
+
+    def test_apply_rules(self):
+        Builder = self.import_builder()
+        Builder.load_string('<TestClassCustom>:\n\tobj: 42')
+        wid = TestClass()
+        Builder.apply(wid)
+        self.assertIsNone(wid.obj)
+        Builder.apply_rules(wid, 'TestClassCustom')
+        self.assertEqual(wid.obj, 42)
