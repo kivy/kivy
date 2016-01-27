@@ -238,8 +238,11 @@ cdef class _WindowSDL2Storage:
 
     def poll(self):
         cdef SDL_Event event
+        cdef int rv
 
-        if SDL_PollEvent(&event) == 0:
+        with nogil:
+            rv = SDL_PollEvent(&event)
+        if rv == 0:
             return False
 
         action = None
