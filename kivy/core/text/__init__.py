@@ -159,7 +159,7 @@ class LabelBase(object):
         text_size=None, mipmap=False, color=None, line_height=1.0, strip=False,
         strip_reflow=True, shorten_from='center', split_str=' ',
         unicode_errors='replace',
-        font_hinting=None, font_kerning=None, font_blended=None,
+        font_hinting='normal', font_kerning=True, font_blended=True,
         **kwargs):
 
         # Include system fonts_dir in resource paths.

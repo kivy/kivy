@@ -815,9 +815,9 @@ class Label(Widget):
     '''
 
     font_hinting = OptionProperty(
-        'normal', options=['normal', 'light', 'mono', 'none'])
+        'normal', options=[None, 'normal', 'light', 'mono'], allownone=True)
     '''What hinting option to use for font rendering.
-    Can be `'normal'`, `'light'`, `'mono'`, `'none'`
+    Can be one of `'normal'`, `'light'`, `'mono'` or None.
 
     .. note::
         This feature requires a SDL2 window provider.
@@ -829,7 +829,7 @@ class Label(Widget):
     '''
 
     font_kerning = BooleanProperty(True)
-    '''Whether kerning is enable for font rendering
+    '''Whether kerning is enabled for font rendering.
 
     .. note::
         This feature requires a SDL2 window provider.
@@ -841,7 +841,7 @@ class Label(Widget):
     '''
 
     font_blended = BooleanProperty(True)
-    '''Whether blended or solid font rendering should be used
+    '''Whether blended or solid font rendering should be used.
 
     .. note::
         This feature requires a SDL2 window provider.

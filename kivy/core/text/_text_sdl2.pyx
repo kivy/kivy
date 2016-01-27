@@ -59,42 +59,32 @@ cdef class _SurfaceContainer:
         c.g = <int>(color[1] * 255)
         c.b = <int>(color[2] * 255)
         bytes_text = <bytes>text.encode('utf-8')
-        hinting = (
-            container.options['font_hinting']
-            if 'font_hinting' in container.options
-            else None
-            )
+
+        hinting = container.options['font_hinting']
         if hinting == 'normal':
             if TTF_GetFontHinting(font) != TTF_HINTING_NORMAL:
                 TTF_SetFontHinting(font, TTF_HINTING_NORMAL)
-        if hinting == 'light':
+        elif hinting == 'light':
             if TTF_GetFontHinting(font) != TTF_HINTING_LIGHT:
                 TTF_SetFontHinting(font, TTF_HINTING_LIGHT)
-        if hinting == 'mono':
+        elif hinting == 'mono':
             if TTF_GetFontHinting(font) != TTF_HINTING_MONO:
                 TTF_SetFontHinting(font, TTF_HINTING_MONO)
-        if hinting == 'none':
+        elif hinting is None:
             if TTF_GetFontHinting(font) != TTF_HINTING_NONE:
                 TTF_SetFontHinting(font, TTF_HINTING_NONE)
-        kerning = (
-            container.options['font_kerning']
-            if 'font_kerning' in container.options
-            else None
-            )
+
+        kerning = container.options['font_kerning']
         if kerning is True:
             if TTF_GetFontKerning(font) == 0:
                 TTF_SetFontKerning(font, 1)
-        if kerning is False:
+        elif kerning is False:
             if TTF_GetFontKerning(font) != 0:
                 TTF_SetFontKerning(font, 0)
-        blended = (
-            container.options['font_blended']
-            if 'font_blended' in container.options
-            else None
-            )
+
         st = (
             TTF_RenderUTF8_Blended(font, <char *>bytes_text, c)
-            if blended
+            if container.options['font_blended']
             else TTF_RenderUTF8_Solid(font, <char *>bytes_text, c)
             )
         if st == NULL:
