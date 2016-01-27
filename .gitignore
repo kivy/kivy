@@ -47,9 +47,7 @@ dist
 htmlcov
 kivy/deps/*
 !kivy/deps/__init__.py
-kivy.deps.sdl2*
-kivy.deps.glew*
-kivy.deps.gstreamer*
+kivy.deps*
 
 MANIFEST
 
