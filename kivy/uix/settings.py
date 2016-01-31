@@ -169,7 +169,6 @@ __all__ = ('Settings', 'SettingsPanel', 'SettingItem', 'SettingString',
 
 import json
 import os
-from kivy.compat import string_types
 from kivy.factory import Factory
 from kivy.metrics import dp
 from kivy.config import ConfigParser
