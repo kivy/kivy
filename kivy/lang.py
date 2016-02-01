@@ -1935,7 +1935,7 @@ class BuilderBase(object):
         if rule in self.rulectx:
             raise ParserException(
                 rule.ctx, rule.line,
-                'Class cannot be a child of itself'.format(rule.name))
+                'Class {} cannot be a child of itself'.format(rule.name))
         self.rulectx[rule] = rctx = {
             'ids': {'root': widget.proxy_ref},
             'set': [], 'hdl': []}
@@ -1945,7 +1945,6 @@ class BuilderBase(object):
             raise ParserException(
                 rootrule.ctx, rootrule.line,
                 'Class cannot be a child of itself'.format(rootrule.name))
-        print rootrule
         rctx = self.rulectx[rootrule]
 
         # if a template context is passed, put it as "ctx"
