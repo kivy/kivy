@@ -516,6 +516,7 @@ class TextInput(FocusBehavior, Widget):
         fbind('font_name', update_text_options)
         fbind('size', update_text_options)
         fbind('password', update_text_options)
+        fbind('password_mask', update_text_options)
 
         fbind('pos', self._trigger_update_graphics)
         fbind('readonly', handle_readonly)
@@ -1226,8 +1227,8 @@ class TextInput(FocusBehavior, Widget):
         self._selection_finished = finished
         _selection_text = self._get_text(encode=False)[a:b]
         self.selection_text = ("" if not self.allow_copy else
-                               (('*' * (b - a)) if self.password else
-                                _selection_text))
+                               ((self.password_mask * (b - a)) if
+                                self.password else _selection_text))
         if not finished:
             self._selection = True
         else:
@@ -1709,7 +1710,8 @@ class TextInput(FocusBehavior, Widget):
         if not self.password:
             width = _label_cached.get_extents(text)[0]
         else:
-            width = _label_cached.get_extents('*' * len(text))[0]
+            width = _label_cached.get_extents(
+                self.password_mask * len(text))[0]
         Cache_append('textinput.width', cid, width)
         return width
 
@@ -2078,7 +2080,7 @@ class TextInput(FocusBehavior, Widget):
         # Create a label from a text, using line options
         ntext = text.replace(u'\n', u'').replace(u'\t', u' ' * self.tab_width)
         if self.password and not hint:  # Don't replace hint_text with *
-            ntext = u'*' * len(ntext)
+            ntext = self.password_mask * len(ntext)
         kw = self._get_line_options()
         cid = '%s\0%s' % (ntext, str(kw))
         texture = Cache_get('textinput.label', cid)
@@ -2430,12 +2432,22 @@ class TextInput(FocusBehavior, Widget):
     '''
 
     password = BooleanProperty(False)
-    '''If True, the widget will display its characters as the character '*'.
+    '''If True, the widget will display its characters as the character
+    set in :attr:`password_mask`.
 
     .. versionadded:: 1.2.0
 
     :attr:`password` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
+    '''
+
+    password_mask = StringProperty('*')
+    '''Sets the character used to mask the text when :attr:`password` is True.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`password_mask` is a :class:`~kivy.properties.StringProperty` and
+    defaults to `'*'`.
     '''
 
     keyboard_suggestions = BooleanProperty(True)
