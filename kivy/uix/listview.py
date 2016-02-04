@@ -528,7 +528,7 @@ demonstrate the use of kv templates and composite list views.
 '''
 
 __all__ = ('SelectableView', 'ListItemButton', 'ListItemLabel',
-           'CompositeListItem', 'ListView', )
+           'CompositeListItem', 'ListView', 'ListItemReprMixin')
 
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
@@ -587,6 +587,11 @@ class SelectableView(object):
 
 
 class ListItemReprMixin(Label):
+    '''
+    The :class:`~kivy.uix.listview.ListItemReprMixin` provides a
+    :class:`~kivy.uix.label.Label` with a Python 2/3 compatible string
+    representation (*__repr__*). It is intended for internal usage.
+    '''
     if PY2:
         def __repr__(self):
             text = self.text.encode('utf-8') if isinstance(self.text, unicode) \
