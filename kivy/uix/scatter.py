@@ -343,7 +343,7 @@ class ScatterBehavior(object):
                 'dy': 0}
 
             self.pan_timeout_event = Clock.schedule_once(
-                lambda dt: self.on_pan_timeout(touch),
+                lambda dt: self.on_touch_timeout(touch),
                 self.pan_timeout / 1000.
             )
 
@@ -529,7 +529,7 @@ class ScatterBehavior(object):
         '''
         pass
 
-    def on_pan_timeout(self, touch):
+    def on_touch_timeout(self, touch):
         '''
         Called when a touch event hits the :attr:`pan_timeout`.
         By default, it checks if the touch hasn't moved more than
