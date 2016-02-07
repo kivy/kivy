@@ -52,6 +52,8 @@ kivy/kivy/tree/master/examples/widgets/lists/list_two_up.py>`_
 kivy/kivy/tree/master/examples/widgets/lists/list_kv.py>`_
     * `kivy/examples/widgets/lists/list_composite.py <https://github.com/\
 kivy/kivy/tree/master/examples/widgets/lists/list_composite.py>`_
+    * `kivy/examples/widgets/lists/list_reset_data.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_reset_data.py>`_
     * `kivy/examples/widgets/lists/list_cascade.py <https://github.com/\
 kivy/kivy/tree/master/examples/widgets/lists/list_cascade.py>`_
     * `kivy/examples/widgets/lists/list_cascade_dict.py <https://github.com/\
