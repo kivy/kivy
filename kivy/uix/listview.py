@@ -989,11 +989,11 @@ class ListView(AbstractView, EventDispatcher):
             index = istart
             while index <= iend:
                 item_view = self.adapter.get_view(index)
-                index += 1
                 if item_view is None:
                     continue
                 sizes[index] = item_view.height
                 container.add_widget(item_view)
+                index += 1
         else:
             available_height = self.height
             real_height = 0
