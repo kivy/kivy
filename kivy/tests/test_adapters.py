@@ -520,6 +520,45 @@ class AdaptersTestCase(unittest.TestCase):
         view = list_adapter.create_view(100)
         self.assertIsNone(view)
 
+    def test_list_adapter_selection_by_index(self):
+        str_args_converter = lambda row_index, rec: {'text': rec,
+                                                     'size_hint_y': None,
+                                                     'height': 25}
+
+        list_adapter = ListAdapter(data=['cat', 'dog', 'mouse', 'rat', 'goat'],
+                                         args_converter=str_args_converter,
+                                         cls=ListItemButton,
+                                         selection_mode='multiple',
+                                         allow_empty_selection=False)
+
+        c_view = list_adapter.get_view(0)
+        d_view = list_adapter.get_view(1)
+        m_view = list_adapter.get_view(2)
+        r_view = list_adapter.get_view(3)
+        g_view = list_adapter.get_view(4)
+
+        list_adapter.select_list([cat_view], False)
+        self.assertTrue([c_view] == list_adapter.selection)
+
+        list_adapter.select_index_list([2, 4])
+        self.assertTrue([c_view, m_view, g_view] == list_adapter.selection)
+
+        list_adapter.select_index_list([1, 2])
+        self.assertTrue([c_view, g_view, d_view] == list_adapter.selection)
+
+        list_adapter.select_index_list([3, 4], False)
+        self.assertTrue([r_view, g_view] == list_adapter.selection)
+
+        list_adapter.selection_mode = 'single'
+        list_adapter.select_list([d_view], False)
+        list_adapter.select_index_list([0, 2])
+        self.assertTrue([m_view] == list_adapter.selection)
+
+        list_adapter.data.append('aardvark')
+        list_adapter.select_index_list([5], False)
+        self.assertTrue(['aardvark'] == [sv.text
+                for sv in list_adapter.selection])
+
     def test_list_adapter_selection_mode_single(self):
         fruit_data_items[0].is_selected = True
 
@@ -1188,6 +1227,44 @@ class AdaptersTestCase(unittest.TestCase):
         # Bad index:
         self.assertIsNone(dict_adapter.get_data_item(-1))
         self.assertIsNone(dict_adapter.get_data_item(2))
+
+    def test_dict_adapter_selection_by_key(self):
+        str_args_converter = lambda row_index, rec: {'text': rec,
+                                                     'size_hint_y': None,
+                                                     'height': 25}
+
+        dict_adapter = DictAdapter(data={'cat': 'Cat', 'dog': 'Dog',
+                                         'mouse': 'Mouse', 'rat': 'Rat',
+                                         'goat': 'Goat'},
+                                         args_converter=str_args_converter,
+                                         cls=ListItemButton,
+                                         selection_mode='multiple',
+                                         allow_empty_selection=False)
+
+        dict_adapter.select_list([dict_adapter.get_view(0)], False)
+        self.assertTrue(['Cat'] == [sv.text for sv in dict_adapter.selection])
+
+        dict_adapter.select_key_list(['mouse', 'goat'])
+        self.assertTrue(['Cat', 'Mouse', 'Goat'] ==
+                [sv.text for sv in dict_adapter.selection])
+
+        dict_adapter.select_key_list(['dog', 'mouse'])
+        self.assertTrue(['Cat', 'Goat', 'Dog'] ==
+                [sv.text for sv in dict_adapter.selection])
+
+        dict_adapter.select_key_list(['rat', 'goat'], False)
+        self.assertTrue(['Rat', 'Goat'] ==
+                [sv.text for sv in dict_adapter.selection])
+
+        dict_adapter.selection_mode = 'single'
+        dict_adapter.select_list([dict_adapter.get_view(1)], False)
+        dict_adapter.select_key_list(['cat', 'mouse'])
+        self.assertTrue(['Mouse'] == [sv.text for sv in dict_adapter.selection])
+
+        dict_adapter.data['aardvark'] = 'Aardvark'
+        dict_adapter.select_key_list(['aardvark'], False)
+        self.assertTrue(['Aardvark'] ==
+                [sv.text for sv in dict_adapter.selection])
 
     def test_dict_adapter_selection_mode_single_without_propagation(self):
 

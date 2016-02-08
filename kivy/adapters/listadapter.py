@@ -390,6 +390,20 @@ class ListAdapter(Adapter, EventDispatcher):
 
         self.dispatch('on_selection_change')
 
+    def select_index_list(self, index_list, extend=True):
+        '''The select call is made for the items at indices provided in index_list.
+
+        Arguments:
+
+            index_list: list of indices, views at these indices are to become
+            the new selection, or to add to the existing selection
+
+            extend: boolean for whether or not to extend the existing list
+        '''
+        view_list = [self.get_view(index) for index in index_list]
+        self.select_list(view_list, extend)
+
+
     # [TODO] Could easily add select_all() and deselect_all().
 
     def update_for_new_data(self, *args):
