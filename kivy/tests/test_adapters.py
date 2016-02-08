@@ -537,7 +537,7 @@ class AdaptersTestCase(unittest.TestCase):
         r_view = list_adapter.get_view(3)
         g_view = list_adapter.get_view(4)
 
-        list_adapter.select_list([cat_view], False)
+        list_adapter.select_list([c_view], False)
         self.assertTrue([c_view] == list_adapter.selection)
 
         list_adapter.select_index_list([2, 4])
