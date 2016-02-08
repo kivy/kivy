@@ -1313,7 +1313,8 @@ class AdaptersTestCase(unittest.TestCase):
         alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
         letters_dict = \
-           {l: {'text': l, 'is_selected': False} for l in alphabet}
+           {l: {'text': "Letter %s" % l,
+                'is_selected': False} for l in alphabet}
 
         list_item_args_converter = \
                 lambda row_index, rec: {'text': rec['text'],
@@ -1342,7 +1343,7 @@ class AdaptersTestCase(unittest.TestCase):
                         cls=ListItemButton)
 
         a_view = letters_dict_adapter.get_view(0)
-        self.assertEqual(a_view.text, 'A')
+        self.assertEqual(a_view.text, 'Letter A')
 
         letters_dict_adapter.handle_selection(a_view)
         self.assertEqual(len(letters_dict_adapter.selection), 1)
@@ -1365,7 +1366,7 @@ class AdaptersTestCase(unittest.TestCase):
                         cls=ListItemButton)
 
         z_view = letters_dict_adapter.get_view(25)
-        self.assertEqual(z_view.text, 'Z')
+        self.assertEqual(z_view.text, 'Letter Z')
 
         letters_dict_adapter.handle_selection(z_view)
         self.assertEqual(len(letters_dict_adapter.selection), 1)
@@ -1388,11 +1389,11 @@ class AdaptersTestCase(unittest.TestCase):
                         cls=ListItemButton)
 
         g_view = letters_dict_adapter.get_view(6)
-        self.assertEqual(g_view.text, 'G')
+        self.assertEqual(g_view.text, 'Letter G')
         letters_dict_adapter.handle_selection(g_view)
 
         m_view = letters_dict_adapter.get_view(12)
-        self.assertEqual(m_view.text, 'M')
+        self.assertEqual(m_view.text, 'Letter M')
         letters_dict_adapter.handle_selection(m_view)
 
         letters_dict_adapter.trim_to_sel()
@@ -1412,11 +1413,11 @@ class AdaptersTestCase(unittest.TestCase):
                         cls=ListItemButton)
 
         g_view = letters_dict_adapter.get_view(6)
-        self.assertEqual(g_view.text, 'G')
+        self.assertEqual(g_view.text, 'Letter G')
         letters_dict_adapter.handle_selection(g_view)
 
         m_view = letters_dict_adapter.get_view(12)
-        self.assertEqual(m_view.text, 'M')
+        self.assertEqual(m_view.text, 'Letter M')
         letters_dict_adapter.handle_selection(m_view)
 
         letters_dict_adapter.cut_to_sel()

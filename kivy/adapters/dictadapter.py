@@ -109,8 +109,8 @@ class DictAdapter(ListAdapter):
         sorted_keys will be updated by update_for_new_data().
         '''
         if len(self.selection) > 0:
-            selected_keys = [sel.text for sel in self.selection]
-            first_sel_index = self.sorted_keys.index(selected_keys[0])
+            selected_indices = [sel.index for sel in self.selection]
+            first_sel_index = selected_indices[0]
             desired_keys = self.sorted_keys[first_sel_index:]
             self.data = dict([(key, self.data[key]) for key in desired_keys])
 
@@ -121,8 +121,8 @@ class DictAdapter(ListAdapter):
         sorted_keys will be updated by update_for_new_data().
         '''
         if len(self.selection) > 0:
-            selected_keys = [sel.text for sel in self.selection]
-            last_sel_index = self.sorted_keys.index(selected_keys[-1])
+            selected_indices = [sel.index for sel in self.selection]
+            last_sel_index = selected_indices[-1]
             desired_keys = self.sorted_keys[:last_sel_index + 1]
             self.data = dict([(key, self.data[key]) for key in desired_keys])
 
@@ -135,9 +135,9 @@ class DictAdapter(ListAdapter):
         sorted_keys will be updated by update_for_new_data().
         '''
         if len(self.selection) > 0:
-            selected_keys = [sel.text for sel in self.selection]
-            first_sel_index = self.sorted_keys.index(selected_keys[0])
-            last_sel_index = self.sorted_keys.index(selected_keys[-1])
+            selected_indices = [sel.index for sel in self.selection]
+            first_sel_index = selected_indices[0]
+            last_sel_index = selected_indices[-1]
             desired_keys = self.sorted_keys[first_sel_index:last_sel_index + 1]
             self.data = dict([(key, self.data[key]) for key in desired_keys])
 
@@ -148,5 +148,5 @@ class DictAdapter(ListAdapter):
         sorted_keys will be updated by update_for_new_data().
         '''
         if len(self.selection) > 0:
-            selected_keys = [sel.text for sel in self.selection]
+            selected_keys = [self.sorted_keys[sel.index] for sel in self.selection]
             self.data = dict([(key, self.data[key]) for key in selected_keys])
