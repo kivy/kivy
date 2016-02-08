@@ -93,26 +93,26 @@ cdef class _SurfaceContainer:
             oc.r = <int>(outline_color[0] * 255)
             oc.g = <int>(outline_color[1] * 255)
             oc.b = <int>(outline_color[2] * 255)
-	        st = (
-	            TTF_RenderUTF8_Blended(font, <char *>bytes_text, oc)
-	            if container.options['font_blended']
-	            else TTF_RenderUTF8_Solid(font, <char *>bytes_text, oc)
-	            )
+            st = (
+                TTF_RenderUTF8_Blended(font, <char *>bytes_text, oc)
+                if container.options['font_blended']
+                else TTF_RenderUTF8_Solid(font, <char *>bytes_text, oc)
+                )
             TTF_SetFontOutline(font, 0)
         else:
-	        st = (
-	            TTF_RenderUTF8_Blended(font, <char *>bytes_text, c)
-	            if container.options['font_blended']
-	            else TTF_RenderUTF8_Solid(font, <char *>bytes_text, c)
-	            )
+            st = (
+                TTF_RenderUTF8_Blended(font, <char *>bytes_text, c)
+                if container.options['font_blended']
+                else TTF_RenderUTF8_Solid(font, <char *>bytes_text, c)
+                )
         if st == NULL:
             return
         if outline:
             fgst = (
-	            TTF_RenderUTF8_Blended(font, <char *>bytes_text, c)
-	            if container.options['font_blended']
-	            else TTF_RenderUTF8_Solid(font, <char *>bytes_text, c)
-	            )
+                TTF_RenderUTF8_Blended(font, <char *>bytes_text, c)
+                if container.options['font_blended']
+                else TTF_RenderUTF8_Solid(font, <char *>bytes_text, c)
+                )
             if fgst == NULL:
                 return
             fgr.x = outline_width
