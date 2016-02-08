@@ -4,6 +4,11 @@ List View
 
 .. versionadded:: 1.5
 
+.. note::
+
+    ListView is planned to be deprecated once `RecycleView \
+    <https://github.com/kivy-garden/garden.recycleview>`_ becomes stable.
+
 .. warning::
 
     This code is still experimental, and its API is subject to change in a
