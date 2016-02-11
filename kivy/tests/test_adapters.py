@@ -555,6 +555,14 @@ class AdaptersTestCase(unittest.TestCase):
         self.assertTrue(isinstance(view, ListItemButton))
         self.assertTrue(view.is_selected)
 
+        view2 = list_adapter.get_view(2)
+        list_adapter.select_list([view2], False)
+        self.assertFalse(view.is_selected)
+
+
+        list_adapter.select_list([], False)
+        self.assertFalse(len(list_adapter.selection)==0)
+
     def test_list_adapter_with_dict_data(self):
         alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
