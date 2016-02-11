@@ -2003,13 +2003,19 @@ class BuilderBase(object):
         # rootrule: the current root rule (for children of a rule)
 
         # will collect reference to all the id in children
-        assert(rule not in self.rulectx)
+        if rule in self.rulectx:
+            raise ParserException(
+                rule.ctx, rule.line,
+                'Class {} cannot be a child of itself'.format(rule.name))
         self.rulectx[rule] = rctx = {
             'ids': {'root': widget.proxy_ref},
             'set': [], 'hdl': []}
 
         # extract the context of the rootrule (not rule!)
-        assert(rootrule in self.rulectx)
+        if rootrule in self.rulectx:
+            raise ParserException(
+                rootrule.ctx, rootrule.line,
+                'Class cannot be a child of itself'.format(rootrule.name))
         rctx = self.rulectx[rootrule]
 
         # if a template context is passed, put it as "ctx"
