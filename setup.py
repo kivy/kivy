@@ -926,6 +926,7 @@ setup(
         'kivy.input',
         'kivy.input.postproc',
         'kivy.input.providers',
+        'kivy.lang',
         'kivy.lib',
         'kivy.lib.osc',
         'kivy.lib.gstplayer',
