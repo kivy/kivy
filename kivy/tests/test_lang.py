@@ -228,7 +228,8 @@ class LangTestCase(unittest.TestCase):
         self.assertEquals(wid.a, 1)
 
     def test_kv_python_init(self):
-        from kivy.lang import Builder, Factory
+        from kivy.factory import Factory
+        from kivy.lang import Builder
         from kivy.uix.widget import Widget
 
         class MyObject(object):
