@@ -150,7 +150,7 @@ Available configuration tokens
     `maxfps`: int, defaults to 60
         Maximum FPS allowed.
 
-        ..warning::
+        .. warning::
             Setting maxfps to 0 will lead to max CPU usage.
 
     'multisamples': int, defaults to 2
