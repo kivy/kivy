@@ -270,7 +270,7 @@ class LangTestCase(unittest.TestCase):
         Builder.apply_rules(wid, 'TestClassCustom')
         self.assertEqual(wid.obj, 42)
 
-    def test_parse_delimeter(self):
+    def test_parse_delimiter(self):
         Builder = self.import_builder()
         Builder.load_string('''
 <TestClass>:
@@ -282,7 +282,7 @@ class LangTestCase(unittest.TestCase):
         watched_keys = rule.properties['text'].watched_keys[0]
         self.assertTrue('year' in watched_keys)
 
-    def test_parse_delimeter_with_slash(self):
+    def test_parse_delimiter_with_slash(self):
         Builder = self.import_builder()
         # Note: When we really load string from file, the parser will
         # treat the backslash as character.
