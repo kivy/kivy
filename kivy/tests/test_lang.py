@@ -269,3 +269,40 @@ class LangTestCase(unittest.TestCase):
         self.assertIsNone(wid.obj)
         Builder.apply_rules(wid, 'TestClassCustom')
         self.assertEqual(wid.obj, 42)
+
+    def test_parse_delimeter(self):
+        Builder = self.import_builder()
+        Builder.load_string('''
+<TestClass>:
+    Label:
+        text: "I'm " + str(root.year) + "years old."
+''')
+
+        rule = Builder.rules[0][1].children[0]
+        watched_keys = rule.properties['text'].watched_keys[0]
+        self.assertTrue('year' in watched_keys)
+
+    def test_parse_delimeter_with_slash(self):
+        Builder = self.import_builder()
+        # Note: When we really load string from file, the parser will
+        # treat the backslash as character.
+        # But in the test because we input the python string,
+        # it will regard the backslash "\" as escape character,
+        # So we have to use "\\" to input backslash Correctly.
+        #
+        # Ex. in the .kv file we will write:
+        # text: "I said \" " + str(root.what_i_said) + "\"!"
+        # to escape double quote.
+        # And in the parser it will be treated as raw string,
+        # So the backslash will be a character.
+        # But in the Test it's python str,
+        # so we have to add one more slash to represent that slash.
+        Builder.load_string('''
+<TestClass>:
+    Label:
+        text: "I said \\" " + str(root.what_i_said) + " \\"!"
+''')
+
+        rule = Builder.rules[0][1].children[0]
+        watched_keys = rule.properties['text'].watched_keys[0]
+        self.assertTrue('what_i_said' in watched_keys)
