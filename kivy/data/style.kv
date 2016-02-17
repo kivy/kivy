@@ -176,7 +176,7 @@
             pos: [int(x) for x in self.cursor_pos]
             size: 1, -self.line_height
         Color:
-            rgba: self.disabled_foreground_color if self.disabled else (self.hint_text_color if not self.text and not self.focus else self.foreground_color)
+            rgba: self.disabled_foreground_color if self.disabled else (self.hint_text_color if not self.text else self.foreground_color)
 
 <TextInputCutCopyPaste>:
     but_cut: cut.__self__

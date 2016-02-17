@@ -1884,8 +1884,8 @@ class TextInput(FocusBehavior, Widget):
         sy = self.scroll_y
 
         # draw labels
-        if not self.focus and (not self._lines or (
-                not self._lines[0] and len(self._lines) == 1)):
+        if not self._lines or (
+                not self._lines[0] and len(self._lines) == 1):
             rects = self._hint_text_rects
             labels = self._hint_text_labels
             lines = self._hint_text_lines
