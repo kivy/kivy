@@ -198,7 +198,7 @@ but here is a synopses of its arguments:
   a Kivy view that is to be instantiated for each list item. There
   are several built-in types available, including ListItemLabel and
   ListItemButton, or you can make your own class that mixes in the
-  required :class:`~kivy.uix.listview.SelectableView`.
+  required :class:`~kivy.uix.selectableview.SelectableView`.
 
 * :attr:`~kivy.adapters.adapter.Adapter.template`:
   the name of a Kivy language (kv) template that defines the
@@ -390,7 +390,7 @@ has an is_selected property.
 Using an Item View Template
 ---------------------------
 
-:class:`~kivy.uix.listview.SelectableView` is another simple mixin class that
+:class:`~kivy.uix.selectableview.SelectableView` is another simple mixin class that
 has required properties for a list item: text, and is_selected. To make your
 own template, mix it in as follows::
 
@@ -546,51 +546,11 @@ from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from kivy.adapters.simplelistadapter import SimpleListAdapter
 from kivy.uix.abstractview import AbstractView
+from kivy.uix.selectableview import SelectableView
 from kivy.properties import ObjectProperty, DictProperty, \
         NumericProperty, ListProperty, BooleanProperty
 from kivy.lang import Builder
 from math import ceil, floor
-
-
-class SelectableView(object):
-    '''The :class:`~kivy.uix.listview.SelectableView` mixin is used to design
-    list items and other classes that are to be instantiated by an adapter for
-    use in a listview. The :class:`~kivy.adapters.listadapter.ListAdapter`
-    and :class:`~kivy.adapters.dictadapter.DictAdapter` adapters are
-    selection-enabled. select() and deselect() are to be overridden with
-    display code to mark items as selected or not, if desired.
-    '''
-
-    index = NumericProperty(-1)
-    '''The index into the underlying data list or the data item this view
-    represents.
-
-    :attr:`index` is a :class:`~kivy.properties.NumericProperty`, default
-    to -1.
-    '''
-
-    is_selected = BooleanProperty(False)
-    '''A SelectableView instance carries this property, which should be kept
-    in sync with the equivalent property in the data item it represents.
-
-    :attr:`is_selected` is a :class:`~kivy.properties.BooleanProperty`, default
-    to False.
-    '''
-
-    def __init__(self, **kwargs):
-        super(SelectableView, self).__init__(**kwargs)
-
-    def select(self, *args):
-        '''The list item is responsible for updating the display for
-        being selected, if desired.
-        '''
-        self.is_selected = True
-
-    def deselect(self, *args):
-        '''The list item is responsible for updating the display for
-        being unselected, if desired.
-        '''
-        self.is_selected = False
 
 
 class ListItemReprMixin(Label):
@@ -611,7 +571,7 @@ class ListItemReprMixin(Label):
 
 class ListItemButton(ListItemReprMixin, SelectableView, Button):
     ''':class:`~kivy.uix.listview.ListItemButton` mixes
-    :class:`~kivy.uix.listview.SelectableView` with
+    :class:`~kivy.uix.selectableview.SelectableView` with
     :class:`~kivy.uix.button.Button` to produce a button suitable for use in
     :class:`~kivy.uix.listview.ListView`.
     '''
@@ -656,7 +616,7 @@ class ListItemButton(ListItemReprMixin, SelectableView, Button):
 
 class ListItemLabel(ListItemReprMixin, SelectableView, Label):
     ''':class:`~kivy.uix.listview.ListItemLabel` mixes
-    :class:`~kivy.uix.listview.SelectableView` with
+    :class:`~kivy.uix.selectableview.SelectableView` with
     :class:`~kivy.uix.label.Label` to produce a label suitable for use in
     :class:`~kivy.uix.listview.ListView`.
     '''
@@ -683,7 +643,7 @@ class ListItemLabel(ListItemReprMixin, SelectableView, Label):
 
 class CompositeListItem(SelectableView, BoxLayout):
     ''':class:`~kivy.uix.listview.CompositeListItem` mixes
-    :class:`~kivy.uix.listview.SelectableView` with :class:`BoxLayout` for a
+    :class:`~kivy.uix.selectableview.SelectableView` with :class:`BoxLayout` for a
     generic container-style list item, to be used in
     :class:`~kivy.uix.listview.ListView`.
     '''
