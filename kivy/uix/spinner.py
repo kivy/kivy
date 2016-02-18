@@ -63,6 +63,16 @@ class Spinner(Button):
     :attr:`values` is a :class:`~kivy.properties.ListProperty` and defaults to
     [].
     '''
+    
+    text_autoupdate = BooleanProperty(False)
+    '''Indicates if the spinner's :attr:`text` should be automatically updated with the
+    first value of the :attr:`values` property. Setting it to True will cause
+    the spinner to update its :attr:`text` property every time
+    attr:`values` are changed.
+    
+    :attr:`text_autoupdate` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
+    '''
 
     option_cls = ObjectProperty(SpinnerOption)
     '''Class used to display the options within the dropdown list displayed
@@ -134,13 +144,20 @@ class Spinner(Button):
     def _update_dropdown(self, *largs):
         dp = self._dropdown
         cls = self.option_cls
+        values = self.values
+        text_autoupdate = self.text_autoupdate
         if isinstance(cls, string_types):
             cls = Factory.get(cls)
         dp.clear_widgets()
-        for value in self.values:
+        for value in values:
             item = cls(text=value)
             item.bind(on_release=lambda option: dp.select(option.text))
             dp.add_widget(item)
+        if text_autoupdate:
+            if values:
+                self.text = values[0]
+            else:
+                self.text = ''
 
     def _toggle_dropdown(self, *largs):
         self.is_open = not self.is_open
