@@ -63,13 +63,15 @@ class Spinner(Button):
     :attr:`values` is a :class:`~kivy.properties.ListProperty` and defaults to
     [].
     '''
-    
+
     text_autoupdate = BooleanProperty(False)
-    '''Indicates if the spinner's :attr:`text` should be automatically updated with the
-    first value of the :attr:`values` property. Setting it to True will cause
-    the spinner to update its :attr:`text` property every time
-    attr:`values` are changed.
-    
+    '''Indicates if the spinner's :attr:`text` should be automatically
+    updated with the first value of the :attr:`values` property.
+    Setting it to True will cause the spinner to update its :attr:`text`
+    property every time attr:`values` are changed.
+
+    .. versionadded:: 1.9.2
+
     :attr:`text_autoupdate` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
@@ -125,6 +127,7 @@ class Spinner(Button):
         fbind('dropdown_cls', build_dropdown)
         fbind('option_cls', build_dropdown)
         fbind('values', self._update_dropdown)
+        fbind('text_autoupdate', self._update_dropdown)
         build_dropdown()
 
     def _build_dropdown(self, *largs):
