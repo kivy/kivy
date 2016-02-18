@@ -407,18 +407,17 @@ class ListAdapterTestCase(unittest.TestCase):
 
         # Now unselect it with handle_selection().
         list_adapter.handle_selection(banana)
-        self.assertFalse(banana.is_selected)
 
-        # But, since we have allow_empty_selection=False, Apple will be
-        # reselected.
-        self.assertEqual(selection_observer.fruit_name, 'Apple')
+        # But, since we have allow_empty_selection=False, Banana will stay
+        # selected, behavior changed in #3672.
+        self.assertEqual(selection_observer.fruit_name, 'Banana')
 
         # Call count:
         #
         # Apple got selected initally (0), then unselected when Banana was
-        # selected (1). Then banana was unselected, causing reselection of
-        # Apple (3). len should be 1.
-        self.assertEqual(selection_observer.call_count, 3)
+        # selected (1). Then banana was unselected (2), and stayed selected.
+        # len should be 1.
+        self.assertEqual(selection_observer.call_count, 2)
         self.assertEqual(len(list_adapter.selection), 1)
 
 
