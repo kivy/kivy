@@ -509,7 +509,7 @@ class Label(Widget):
     '''Adds an underline to the text.
 
     .. note::
-        This feature requires a SDL2 text provider.
+        This feature requires the SDL2 text provider.
 
     .. versionadded:: 1.9.2
 
@@ -521,7 +521,7 @@ class Label(Widget):
     '''Adds a strikethrough line to the text.
 
     .. note::
-        This feature requires a SDL2 text provider.
+        This feature requires the SDL2 text provider.
 
     .. versionadded:: 1.9.2
 
@@ -822,7 +822,7 @@ class Label(Widget):
     Can be one of `'normal'`, `'light'`, `'mono'` or None.
 
     .. note::
-        This feature requires a SDL2 text provider.
+        This feature requires the SDL2 text provider.
 
     .. versionadded:: 1.9.2
 
@@ -834,7 +834,7 @@ class Label(Widget):
     '''Whether kerning is enabled for font rendering.
 
     .. note::
-        This feature requires a SDL2 text provider.
+        This feature requires the SDL2 text provider.
 
     .. versionadded:: 1.9.2
 
@@ -846,7 +846,7 @@ class Label(Widget):
     '''Whether blended or solid font rendering should be used.
 
     .. note::
-        This feature requires a SDL2 text provider.
+        This feature requires the SDL2 text provider.
 
     .. versionadded:: 1.9.2
 
