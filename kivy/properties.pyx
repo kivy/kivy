@@ -211,6 +211,8 @@ from functools import partial
 from kivy.clock import Clock
 from kivy.weakmethod import WeakMethod
 from kivy.logger import Logger
+from kivy.utils import get_color_from_hex
+
 
 cdef float g_dpi = -1
 cdef float g_density = -1
@@ -1834,3 +1836,40 @@ cdef class ConfigParserProperty(Property):
             self.last_value = None
             self._edit_setting(self.section, self.key,
                                self.config.get(self.section, self.key))
+
+
+cdef class ColorProperty(Property):
+    '''Property that represents a color. The assignment can take either:
+
+    - a list of 3 to 4 float value between 0-1 (kivy default)
+    - a string in the format #rrggbb or #rrggbbaa
+
+    :Parameters:
+        `defaultvalue`: list or string, defaults to [1, 1, 1, 1]
+            Specifies the default value of the property.
+
+    .. versionadded:: 1.9.2
+    '''
+    def __init__(self, defaultvalue=None, **kw):
+        defaultvalue = defaultvalue or [1, 1, 1, 1]
+        super(ColorProperty, self).__init__(defaultvalue, **kw)
+
+    cdef convert(self, EventDispatcher obj, x):
+        if x is None:
+            return x
+        tp = type(x)
+        if tp is tuple or tp is list:
+            if len(x) != 3 and len(x) != 4:
+                raise ValueError('{}.{} must have 3 or 4 components (got {!r})'.format(
+                    obj.__class__.__name__, self.name, x))
+            if len(x) == 3:
+                return list(x) + [1]
+            return list(x)
+        elif isinstance(x, string_types):
+            return self.parse_str(obj, x)
+        else:
+            raise ValueError('{}.{} have an invalid format (got {!r})'.format(
+                obj.__class__.__name__, self.name, x))
+
+    cdef list parse_str(self, EventDispatcher obj, value):
+        return get_color_from_hex(value)

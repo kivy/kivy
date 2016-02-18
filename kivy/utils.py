@@ -23,6 +23,7 @@ __all__ = ('intersection', 'difference', 'strtotuple',
 from os import environ
 from sys import platform as _sys_platform
 from re import match, split
+from kivy.compat import string_types
 
 
 def boundary(value, minvalue, maxvalue):
@@ -85,6 +86,25 @@ def strtotuple(s):
     if type(r) not in (list, tuple):
         raise Exception('Conversion failed')
     return r
+
+
+def rgba(s, *args):
+    '''Return a kivy color (4 value from 0-1 range) from either a hex string or
+       a list of 0-255 values
+    '''
+    if isinstance(s, string_types):
+        return get_color_from_hex(s)
+    elif isinstance(s, (list, tuple)):
+        s = map(lambda x: x / 255., s)
+        if len(s) == 3:
+            return list(s) + [1]
+        return s
+    elif isinstance(s, (int, float)):
+        s = map(lambda x: x / 255., [s] + list(args))
+        if len(s) == 3:
+            return list(s) + [1]
+        return s
+    raise Exception('Invalid value (not a string / list / tuple)')
 
 
 def get_color_from_hex(s):

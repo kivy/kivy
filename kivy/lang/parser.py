@@ -18,6 +18,7 @@ import kivy.lang.builder  # imported as absolute to avoid circular import
 from kivy.logger import Logger
 from kivy.cache import Cache
 from kivy import require
+from kivy.utils import rgba
 import kivy.metrics as Metrics
 
 __all__ = ('Parser', 'ParserException')
@@ -97,6 +98,7 @@ global_idmap['cm'] = Metrics.cm
 global_idmap['mm'] = Metrics.mm
 global_idmap['dp'] = Metrics.dp
 global_idmap['sp'] = Metrics.sp
+global_idmap['rgba'] = rgba
 
 
 class ParserException(Exception):
