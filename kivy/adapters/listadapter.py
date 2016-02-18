@@ -299,7 +299,14 @@ class ListAdapter(Adapter, EventDispatcher):
                 else:
                     self.select_item_view(view)
         else:
-            self.deselect_item_view(view)
+            if len(self.selection) == 1 and not self.allow_empty_selection:
+                # Maintain selection rather than always defaulting to first
+                # item. This probably invalidates the next if section, but I
+                # am unable to test all corner cases out, and leaving it in
+                # does not hurt anything.
+                pass
+            else:
+                self.deselect_item_view(view)
             if self.selection_mode != 'none':
                 # If the deselection makes selection empty, the following call
                 # will check allows_empty_selection, and if False, will
