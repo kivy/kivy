@@ -158,7 +158,8 @@ class Spinner(Button):
             dp.add_widget(item)
         if text_autoupdate:
             if values:
-                self.text = values[0]
+                if self.text not in values:
+                    self.text = values[0]
             else:
                 self.text = ''
 
