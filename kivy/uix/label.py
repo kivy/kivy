@@ -350,7 +350,9 @@ class Label(Widget):
                 if self.halign[-1] == 'y' or self.strip:
                     text = text.strip()
                 self._label.text = ''.join(('[color=',
-                                            get_hex_from_color(self.color),
+                                            get_hex_from_color(
+                                                self.disabled_color if self.disabled
+                                                else self.color),
                                             ']', text, '[/color]'))
                 self._label.refresh()
                 # force the rendering to get the references
