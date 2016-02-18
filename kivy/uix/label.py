@@ -313,6 +313,8 @@ class Label(Widget):
                 self._label.usersize = value
             elif name == 'font_size':
                 self._label.options[name] = value
+            elif name == 'disabled_color' and self.disabled:
+                self._label.options['color'] = value
             elif name == 'disabled':
                 self._label.options['color'] = self.disabled_color if value \
                     else self.color
