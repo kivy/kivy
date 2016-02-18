@@ -601,7 +601,6 @@ class FileChooserController(RelativeLayout):
                 self.selection.append(entry.path)
         else:
             if _dir and not self.dirselect:
-                self.open_entry
                 return
             self.selection = [abspath(join(self.path, entry.path)), ]
 
@@ -620,7 +619,7 @@ class FileChooserController(RelativeLayout):
                 self.open_entry(entry)
             elif touch.is_double_tap:
                 if self.dirselect and self.file_system.is_dir(entry.path):
-                    self.open_entry(entry)
+                    return
                 else:
                     self.dispatch('on_submit', self.selection, touch)
 
