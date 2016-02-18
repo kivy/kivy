@@ -36,7 +36,7 @@ is available by typing ``python --version``. Then, do the following to install.
      python -m pip install --upgrade pip wheel setuptools
 
 #. Install the dependencies (skip gstreamer (~90MB) if not needed, see
-:ref:`Kivy's dependencies`)::
+   :ref:`Kivy's dependencies`)::
 
      python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew \
      kivy.deps.gstreamer --extra-index-url https://kivy.org/downloads/packages/simple/
