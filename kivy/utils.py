@@ -18,7 +18,7 @@ __all__ = ('intersection', 'difference', 'strtotuple',
            'is_color_transparent', 'hex_colormap', 'colormap', 'boundary',
            'deprecated', 'SafeList',
            'interpolate', 'QueryDict',
-           'platform', 'escape_markup', 'reify')
+           'platform', 'escape_markup', 'reify', 'rgba')
 
 from os import environ
 from sys import platform as _sys_platform
@@ -91,6 +91,8 @@ def strtotuple(s):
 def rgba(s, *args):
     '''Return a kivy color (4 value from 0-1 range) from either a hex string or
        a list of 0-255 values
+
+    .. versionadded:: 1.9.2
     '''
     if isinstance(s, string_types):
         return get_color_from_hex(s)
