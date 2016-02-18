@@ -260,7 +260,7 @@ class Label(Widget):
     __events__ = ['on_ref_press']
 
     _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
-                        'underline', 'strikethrough',
+                        'underline', 'strikethrough', 'color', 'disabled_color',
                         'halign', 'valign', 'padding_x', 'padding_y',
                         'text_size', 'shorten', 'mipmap', 'markup',
                         'line_height', 'max_lines', 'strip', 'shorten_from',
@@ -275,24 +275,15 @@ class Label(Widget):
         d = Label._font_properties
         fbind = self.fbind
         update = self._trigger_texture_update
+        fbind('disabled', update, 'disabled')
         for x in d:
             fbind(x, update, x)
 
         self._label = None
         self._create_label()
 
-        fbind('markup', self._bind_for_markup)
-        if self.markup:
-            self._bind_for_markup(self, self.markup)
-
         # force the texture creation
         self._trigger_texture()
-
-    def _bind_for_markup(self, inst, markup):
-        if markup:
-            self.fbind('color', self._trigger_texture_update, 'color')
-        else:
-            self.funbind('color', self._trigger_texture_update, 'color')
 
     def _create_label(self):
         # create the core label class according to markup value
@@ -322,6 +313,9 @@ class Label(Widget):
                 self._label.usersize = value
             elif name == 'font_size':
                 self._label.options[name] = value
+            elif name == 'disabled':
+                self._label.options['color'] = self.disabled_color if value \
+                    else self.color
             else:
                 self._label.options[name] = value
         self._trigger_texture()
@@ -351,8 +345,8 @@ class Label(Widget):
                     text = text.strip()
                 self._label.text = ''.join(('[color=',
                                             get_hex_from_color(
-                                                self.disabled_color if self.disabled
-                                                else self.color),
+                                                self.disabled_color if
+                                                self.disabled else self.color),
                                             ']', text, '[/color]'))
                 self._label.refresh()
                 # force the rendering to get the references
