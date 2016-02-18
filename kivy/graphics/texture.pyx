@@ -232,6 +232,8 @@ from kivy.weakmethod import WeakMethod
 from kivy.graphics.context cimport get_context
 
 from kivy.graphics.c_opengl cimport *
+IF USE_OPENGL_MOCK == 1:
+    from kivy.graphics.c_opengl_mock cimport *
 IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
 from kivy.graphics.opengl_utils cimport *

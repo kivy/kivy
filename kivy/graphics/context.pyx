@@ -26,10 +26,12 @@ from kivy.graphics.vbo cimport VBO, VertexBatch
 from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.graphics.c_opengl cimport *
-from kivy.weakmethod import WeakMethod
-from time import time
+IF USE_OPENGL_MOCK == 1:
+    from kivy.graphics.c_opengl_mock cimport *
 IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
+from kivy.weakmethod import WeakMethod
+from time import time
 from kivy.cache import Cache
 
 cdef Context context = None

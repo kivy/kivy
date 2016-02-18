@@ -134,9 +134,10 @@ cdef class _WindowSDL2Storage:
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2)
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0)
 
-        self.ctx = SDL_GL_CreateContext(self.win)
-        if not self.ctx:
-            self.die()
+        IF not USE_OPENGL_MOCK:
+            self.ctx = SDL_GL_CreateContext(self.win)
+            if not self.ctx:
+                self.die()
         SDL_JoystickOpen(0)
 
         SDL_SetEventFilter(_event_filter, <void *>self)
@@ -161,7 +162,7 @@ cdef class _WindowSDL2Storage:
         cdef SDL_DisplayMode mode
         cdef int draw_w, draw_h
         SDL_GetWindowDisplayMode(self.win, &mode)
-        if USE_IOS:
+        if USE_IOS and not USE_OPENGL_MOCK:
             SDL_GL_GetDrawableSize(self.win, &draw_w, &draw_h)
             mode.w = draw_w
             mode.h = draw_h
@@ -217,7 +218,8 @@ cdef class _WindowSDL2Storage:
         SDL_SetWindowIcon(self.win, icon)
 
     def teardown_window(self):
-        SDL_GL_DeleteContext(self.ctx)
+        IF not USE_OPENGL_MOCK:
+            SDL_GL_DeleteContext(self.ctx)
         SDL_DestroyWindow(self.win)
         SDL_Quit()
 
