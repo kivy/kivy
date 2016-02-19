@@ -1152,7 +1152,7 @@ class TextInput(FocusBehavior, Widget):
         _label_cached = self._label_cached
         for i in range(0, len(l[cy])):
             if _get_text_width(l[cy][:i], _tab_width, _label_cached) + \
-                  _get_text_width(l[cy][i], _tab_width, _label_cached)*3/5 + \
+                  _get_text_width(l[cy][i], _tab_width, _label_cached)*0.6 + \
                   padding_left > cx + scrl_x:
                 cx = i
                 break
