@@ -34,7 +34,7 @@ Cache.register('kv.lang')
 __KV_INCLUDES__ = []
 
 # precompile regexp expression
-lang_str = re.compile('([\'"][^\'"]*[\'"])')
+lang_str = re.compile(r'((((?<!\\)").*?((?<!\\)"))|(((?<!\\)\').*?((?<!\\)\')))')
 lang_key = re.compile('([a-zA-Z_]+)')
 lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
 lang_tr = re.compile('(_\()')
@@ -162,7 +162,6 @@ class ParserRuleProperty(object):
 
         # first, remove all the string from the value
         tmp = sub(lang_str, '', self.value)
-
         # detecting how to handle the value according to the key name
         mode = self.mode
         if self.mode is None:
