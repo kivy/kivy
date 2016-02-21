@@ -12,6 +12,7 @@ ignore_list = (
     'kivy.graphics.buffer',
     'kivy.graphics.vbo',
     'kivy.graphics.vertex',
+    'kivy.setupconfig'
 )
 
 import os
