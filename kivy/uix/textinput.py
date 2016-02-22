@@ -447,7 +447,6 @@ class TextInput(FocusBehavior, Widget):
 
     def __init__(self, **kwargs):
         self.is_focusable = kwargs.get('is_focusable', True)
-        self._cursor_blink_time = Clock.get_time()
         self._cursor = [0, 0]
         self._selection = False
         self._selection_finished = True
@@ -1721,13 +1720,11 @@ class TextInput(FocusBehavior, Widget):
     def _do_blink_cursor(self, dt):
         # Callback called by the timer to blink the cursor, according to the
         # last activity in the widget
-        b = (Clock.get_time() - self._cursor_blink_time)
-        self.cursor_blink = int(b * 2) % 2
+        self.cursor_blink = not self.cursor_blink
 
     def on_cursor(self, instance, value):
         # When the cursor is moved, reset the activity timer, and update all
         # the graphics.
-        self._cursor_blink_time = Clock.get_time()
         self._trigger_update_graphics()
 
     def _delete_line(self, idx):
