@@ -1296,7 +1296,6 @@ class TextInput(FocusBehavior, Widget):
         if self.focused:
             Clock.unschedule(self._do_blink_cursor)
             self.cursor_blink=0
-            self._cursor_blink_time=Clock.get_time()
             Clock.schedule_interval(self._do_blink_cursor, .5)
 
         # Check for scroll wheel
