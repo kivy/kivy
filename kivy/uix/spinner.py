@@ -122,9 +122,11 @@ class Spinner(Button):
     '''Each element in a dropdown list uses a default/user-supplied height.
     Set to True to propagate the Spinner's height value to each dropdown
     list element.
+
+    .. versionadded:: 1.9.2
+
     :attr:`sync_height` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
-    .. versionadded:: 1.9.2
     '''
 
     def __init__(self, **kwargs):
