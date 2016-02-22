@@ -87,7 +87,7 @@ def parse_color(text):
                      for i in range(0, len(res), 2)]
         except ValueError:
             return color_error('ColorParser: Invalid color for %r' % text)
-        if lres == 6:
+        if lres == 6 or lres == 3:
             value.append(1.)
     return value
 
