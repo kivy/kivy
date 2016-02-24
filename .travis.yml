@@ -116,7 +116,6 @@ script:
         fi;
         if [ "${RUN}" == "docs" ]; then
           make html;
-          make pdf || true;
           make pdf;
         fi;
     fi;
