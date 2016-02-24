@@ -64,7 +64,7 @@ ios:
 	cp -R "iosbuild/usr/local/lib/python2.7/site-packages/kivy" "$(BUILDROOT)/python/lib/python2.7/site-packages"
 
 pdf: build
-	cd doc && $(MAKE) pdf || True
+	-cd doc && $(MAKE) pdf
 	cd doc && $(MAKE) pdf
 
 html: build
