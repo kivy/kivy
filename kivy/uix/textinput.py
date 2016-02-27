@@ -1293,9 +1293,7 @@ class TextInput(FocusBehavior, Widget):
             return True
 
         if self.focused:
-            Clock.unschedule(self._do_blink_cursor)
-            self.cursor_blink=0
-            Clock.schedule_interval(self._do_blink_cursor, .5)
+            self._reset_cursor_blink()
 
         # Check for scroll wheel
         if 'button' in touch.profile and touch.button.startswith('scroll'):
@@ -1638,7 +1636,7 @@ class TextInput(FocusBehavior, Widget):
         if value:
             if (not (self.readonly or self.disabled) or _is_desktop and
                 self._keyboard_mode == 'system'):
-                Clock.schedule_interval(self._do_blink_cursor, 1 / 2.)
+                self._reset_cursor_blink()
                 self._editable = True
             else:
                 self._editable = False
@@ -1722,9 +1720,15 @@ class TextInput(FocusBehavior, Widget):
         # last activity in the widget
         self.cursor_blink = not self.cursor_blink
 
+    def _reset_cursor_blink(self):
+        Clock.unschedule(self._do_blink_cursor)
+        self.cursor_blink=0
+        Clock.schedule_interval(self._do_blink_cursor, .5)
+
     def on_cursor(self, instance, value):
-        # When the cursor is moved, reset the activity timer, and update all
-        # the graphics.
+        # When the cursor is moved, reset cursor blinking to keep it showing,
+        # and update all the graphics.
+        self._reset_cursor_blink()
         self._trigger_update_graphics()
 
     def _delete_line(self, idx):
