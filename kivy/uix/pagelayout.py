@@ -198,8 +198,12 @@ class PageLayout(Layout):
                 self._trigger_layout()
 
             touch.ungrab(self)
-        return self.children[-self.page + 1].on_touch_up(touch)
-
+        try:
+            r =  self.children[-self.page + 1].on_touch_up(touch)
+        except:
+            r = None
+        if r is not None:
+            return r
 
 if __name__ == '__main__':
     from kivy.base import runTouchApp
