@@ -1716,13 +1716,12 @@ class TextInput(FocusBehavior, Widget):
         return width
 
     def _do_blink_cursor(self, dt):
-        # Callback called by the timer to blink the cursor, according to the
-        # last activity in the widget
+        # Callback for blinking the cursor.
         self.cursor_blink = not self.cursor_blink
 
     def _reset_cursor_blink(self):
         Clock.unschedule(self._do_blink_cursor)
-        self.cursor_blink=0
+        self.cursor_blink = 0
         Clock.schedule_interval(self._do_blink_cursor, .5)
 
     def on_cursor(self, instance, value):
