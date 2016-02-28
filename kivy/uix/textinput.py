@@ -2762,15 +2762,15 @@ class TextInput(FocusBehavior, Widget):
     '''
 
     suggestion_text = StringProperty('')
-    '''Shows a suggestion text/word from currentcursor position onwards,
-    that can be used as a possible completion. Usefull for suggesting completion
-    text. This can also be used by the IME to setup the current word being
-    edited
+    '''Shows a suggestion text at the end of the current line.
+    The feature is useful for text autocompletion, and it does not implement
+    validation (accepting the suggested text on enter etc.).
+    This can also be used by the IME to setup the current word being edited.
 
     .. versionadded:: 1.9.0
 
-    :attr:`suggestion_text` is a :class:`~kivy.properties.StringProperty`
-    defaults to `''`
+    :attr:`suggestion_text` is a :class:`~kivy.properties.StringProperty` and
+    defaults to `''`.
     '''
 
     def on_suggestion_text(self, instance, value):
