@@ -14,7 +14,8 @@ from kivy.input.providers.wm_common import (
     TOUCHEVENTF_MOVE, SM_CYCAPTION)
 from kivy.input.motionevent import MotionEvent
 from kivy.input.shape import ShapeRect
-from kivy.core.window import Window
+
+Window = None
 
 
 class WM_MotionEvent(MotionEvent):
@@ -134,6 +135,10 @@ else:
     class WM_MotionEventProvider(MotionEventProvider):
 
         def start(self):
+            global Window
+            if not Window:
+                from kivy.core.window import Window
+
             self.touch_events = deque()
             self.touches = {}
             self.uid = 0
