@@ -117,13 +117,14 @@ class Slider(Widget):
 
     def set_norm_value(self, value):
         vmin = self.min
+        vmax = self.max
         step = self.step
-        val = value * (self.max - vmin) + vmin
+        val = min(value * (vmax - vmin) + vmin, vmax)
         if step == 0:
             self.value = val
         else:
             self.value = min(round((val - vmin) / step) * step + vmin,
-                             self.max)
+                             vmax)
     value_normalized = AliasProperty(get_norm_value, set_norm_value,
                                      bind=('value', 'min', 'max', 'step'))
     '''Normalized value inside the :attr:`range` (min/max) to 0-1 range::

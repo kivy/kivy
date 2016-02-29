@@ -198,7 +198,8 @@ class GridLayout(Layout):
     '''
 
     cols_minimum = DictProperty({})
-    '''List of minimum sizes for each column.
+    '''Dict of minimum width for each column. The dictionary keys are the
+    column numbers, e.g. 0, 1, 2...
 
     .. versionadded:: 1.0.7
 
@@ -207,7 +208,8 @@ class GridLayout(Layout):
     '''
 
     rows_minimum = DictProperty({})
-    '''List of minimum sizes for each row.
+    '''Dict of minimum height for each row. The dictionary keys are the
+    row numbers, e.g. 0, 1, 2...
 
     .. versionadded:: 1.0.7
 
@@ -216,31 +218,32 @@ class GridLayout(Layout):
     '''
 
     minimum_width = NumericProperty(0)
-    '''Minimum width needed to contain all children.
+    '''Automatically computed minimum width needed to contain all children.
 
     .. versionadded:: 1.0.8
 
     :attr:`minimum_width` is a :class:`~kivy.properties.NumericProperty` and
-    defaults to 0.
+    defaults to 0. It is read only.
     '''
 
     minimum_height = NumericProperty(0)
-    '''Minimum height needed to contain all children.
+    '''Automatically computed minimum height needed to contain all children.
 
     .. versionadded:: 1.0.8
 
     :attr:`minimum_height` is a :class:`~kivy.properties.NumericProperty` and
-    defaults to 0.
+    defaults to 0. It is read only.
     '''
 
     minimum_size = ReferenceListProperty(minimum_width, minimum_height)
-    '''Minimum size needed to contain all children.
+    '''Automatically computed minimum size needed to contain all children.
 
     .. versionadded:: 1.0.8
 
     :attr:`minimum_size` is a
     :class:`~kivy.properties.ReferenceListProperty` of
-    (:attr:`minimum_width`, :attr:`minimum_height`) properties.
+    (:attr:`minimum_width`, :attr:`minimum_height`) properties. It is read
+    only.
     '''
 
     def __init__(self, **kwargs):
@@ -391,14 +394,10 @@ class GridLayout(Layout):
             for index in range(len(cols)):
                 # if the col don't have strech information, nothing to do
                 col_stretch = cols_sh[index]
-                if col_stretch is None:
+                if not col_stretch:
                     continue
-                # calculate the column stretch, and take the maximum from
-                # minimum size and the calculated stretch
-                col_width = cols[index]
-                col_width = max(col_width,
-                                strech_w * col_stretch / cols_weigth)
-                cols[index] = col_width
+                # add to the min width whatever remains from size_hint
+                cols[index] += strech_w * col_stretch / cols_weigth
 
         # same algo for rows
         if self.row_force_default:
@@ -413,14 +412,10 @@ class GridLayout(Layout):
             for index in range(len(rows)):
                 # if the row don't have strech information, nothing to do
                 row_stretch = rows_sh[index]
-                if row_stretch is None:
+                if not row_stretch:
                     continue
-                # calculate the row stretch, and take the maximum from minimum
-                # size and the calculated stretch
-                row_height = rows[index]
-                row_height = max(row_height,
-                                 strech_h * row_stretch / rows_weigth)
-                rows[index] = row_height
+                # add to the min height whatever remains from size_hint
+                rows[index] += strech_h * row_stretch / rows_weigth
 
         # reposition every child
         i = len_children - 1
@@ -433,8 +428,11 @@ class GridLayout(Layout):
                 c = children[i]
                 c.x = x
                 c.y = y - row_height
-                c.width = col_width
-                c.height = row_height
+                shx, shy = c.size_hint
+                if shx is not None:
+                    c.width = col_width
+                if shy is not None:
+                    c.height = row_height
                 i = i - 1
                 x = x + col_width + spacing_x
             y -= row_height + spacing_y

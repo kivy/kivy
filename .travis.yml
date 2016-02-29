@@ -8,8 +8,7 @@ matrix:
       dist: trusty
     - language: python
       python: 3.5
-      env:
-        - RUN=unit COVERALLS=true
+      env: RUN=unit COVERALLS=true
       os: linux
       dist: trusty
     - language: python
@@ -23,10 +22,10 @@ matrix:
       os: linux
       dist: trusty
     - language: generic
-      env: RUN=build PY=2
+      env: RUN=unit PY=2
       os: osx
     - language: generic
-      env: RUN=build PY=3
+      env: RUN=unit PY=3
       os: osx
 
 install:
@@ -95,10 +94,10 @@ before_script:
       export PYTHONPATH=$PYTHONPATH:$(pwd);
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
-      export USE_SDL2=1;
       export CC=clang;
       export CXX=clang;
       export FFLAGS=-ff2c;
+      export USE_OPENGL_MOCK=1;
     fi;
 
 script:
@@ -116,12 +115,10 @@ script:
         fi;
         if [ "${RUN}" == "docs" ]; then
           make html;
-          make pdf || true;
           make pdf;
         fi;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
-      export USE_OPENGL_MOCK=1;
       if [ "${PY}" == "3" ]; then
          python3 setup.py build_ext --inplace;
          python3 -m nose.core kivy/tests;
@@ -133,24 +130,24 @@ script:
 
 
 after_success:
-  - if [ "${TRAVIS_OS_NAME}" == "os" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
-      openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
-      chmod 600 ~/.ssh/id_rsa;
-      echo -e "Host kivy.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
-      git clone https://github.com/kivy/kivy-sdk-packager;
-      cd kivy-sdk-packager/osx;
-      if [ "${PY}" == "3" ]; then
-         yes | ./create-osx-bundle.sh python3 master > output.txt;
-         mv Kivy.app Kivy3.app;
-         /Volumes/Keka/Keka.app/Contents/Resources/keka7z a Kivy3.7z Kivy3.app;
-         rsync --delete --force -r -e ssh ./Kivy3.7z kivy@kivy.org:~/kivy.org/downloads/tests/Kivy3.7z;
-      else
-         ./create-osx-bundle.sh python2 master > output.txt;
-         mv Kivy.app Kivy2.app;
-         /Volumes/Keka/Keka.app/Contents/Resources/keka7z a Kivy2.7z Kivy2.app;
-         rsync --delete --force -r -e ssh ./Kivy2.7z kivy@kivy.org:~/kivy.org/downloads/tests/Kivy2.7z;
-      fi;
-    fi;
+  # - if [ "${TRAVIS_OS_NAME}" == "osx" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
+  #     openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
+  #     chmod 600 ~/.ssh/id_rsa;
+  #     echo -e "Host kivy.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
+  #     git clone https://github.com/kivy/kivy-sdk-packager;
+  #     cd kivy-sdk-packager/osx;
+  #     if [ "${PY}" == "3" ]; then
+  #       yes | ./create-osx-bundle.sh python3 master > output.txt;
+  #       mv Kivy.app Kivy3.app;
+  #       /Volumes/Keka/Keka.app/Contents/Resources/keka7z a Kivy3.7z Kivy3.app;
+  #       rsync --delete --force -r -e ssh ./Kivy3.7z kivy@kivy.org:~/kivy.org/downloads/tests/Kivy3.7z;
+  #     else
+  #       ./create-osx-bundle.sh python2 master > output.txt;
+  #       mv Kivy.app Kivy2.app;
+  #       /Volumes/Keka/Keka.app/Contents/Resources/keka7z a Kivy2.7z Kivy2.app;
+  #       rsync --delete --force -r -e ssh ./Kivy2.7z kivy@kivy.org:~/kivy.org/downloads/tests/Kivy2.7z;
+  #     fi;
+  #   fi;
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" == "docs" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ] && [ "${TRAVIS_BRANCH}" == "master" ]; then
       openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
       chmod 600 ~/.ssh/id_rsa;

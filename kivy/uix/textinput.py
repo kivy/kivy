@@ -447,7 +447,6 @@ class TextInput(FocusBehavior, Widget):
 
     def __init__(self, **kwargs):
         self.is_focusable = kwargs.get('is_focusable', True)
-        self._cursor_blink_time = Clock.get_time()
         self._cursor = [0, 0]
         self._selection = False
         self._selection_finished = True
@@ -527,6 +526,8 @@ class TextInput(FocusBehavior, Widget):
             self._position_handles)
         self._trigger_show_handles = Clock.create_trigger(
             self._show_handles, .05)
+        self._trigger_cursor_reset = Clock.create_trigger(
+            self._reset_cursor_blink)
         self._trigger_update_cutbuffer = Clock.create_trigger(
             self._update_cutbuffer)
         refresh_line_options()
@@ -1293,6 +1294,9 @@ class TextInput(FocusBehavior, Widget):
         if super(TextInput, self).on_touch_down(touch):
             return True
 
+        if self.focus:
+            self._trigger_cursor_reset()
+
         # Check for scroll wheel
         if 'button' in touch.profile and touch.button.startswith('scroll'):
             scroll_type = touch.button[6:]
@@ -1634,7 +1638,7 @@ class TextInput(FocusBehavior, Widget):
         if value:
             if (not (self.readonly or self.disabled) or _is_desktop and
                 self._keyboard_mode == 'system'):
-                Clock.schedule_interval(self._do_blink_cursor, 1 / 2.)
+                self._trigger_cursor_reset()
                 self._editable = True
             else:
                 self._editable = False
@@ -1714,15 +1718,19 @@ class TextInput(FocusBehavior, Widget):
         return width
 
     def _do_blink_cursor(self, dt):
-        # Callback called by the timer to blink the cursor, according to the
-        # last activity in the widget
-        b = (Clock.get_time() - self._cursor_blink_time)
-        self.cursor_blink = int(b * 2) % 2
+        # Callback for blinking the cursor.
+        self.cursor_blink = not self.cursor_blink
+
+    def _reset_cursor_blink(self, *args):
+        Clock.unschedule(self._do_blink_cursor)
+        self.cursor_blink = 0
+        Clock.schedule_interval(self._do_blink_cursor, .5)
 
     def on_cursor(self, instance, value):
-        # When the cursor is moved, reset the activity timer, and update all
-        # the graphics.
-        self._cursor_blink_time = Clock.get_time()
+        # When the cursor is moved, reset cursor blinking to keep it showing,
+        # and update all the graphics.
+        if self.focus:
+            self._trigger_cursor_reset()
         self._trigger_update_graphics()
 
     def _delete_line(self, idx):
@@ -2762,15 +2770,15 @@ class TextInput(FocusBehavior, Widget):
     '''
 
     suggestion_text = StringProperty('')
-    '''Shows a suggestion text/word from currentcursor position onwards,
-    that can be used as a possible completion. Usefull for suggesting completion
-    text. This can also be used by the IME to setup the current word being
-    edited
+    '''Shows a suggestion text at the end of the current line.
+    The feature is useful for text autocompletion, and it does not implement
+    validation (accepting the suggested text on enter etc.).
+    This can also be used by the IME to setup the current word being edited.
 
     .. versionadded:: 1.9.0
 
-    :attr:`suggestion_text` is a :class:`~kivy.properties.StringProperty`
-    defaults to `''`
+    :attr:`suggestion_text` is a :class:`~kivy.properties.StringProperty` and
+    defaults to `''`.
     '''
 
     def on_suggestion_text(self, instance, value):
