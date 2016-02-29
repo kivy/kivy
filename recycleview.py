@@ -296,6 +296,7 @@ class RecycleAdapter(EventDispatcher):
         if _cache_count >= _max_cache_size:
             _clean_cache()
         self.views = {}
+        self.dirty_views.clear()
 
     def get_views(self, i_start, i_end):
         '''Gets a 2-tuple of the new and old views for the current viewport.
