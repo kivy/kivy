@@ -127,6 +127,8 @@ class ScatterBehavior(object):
             Fired when the scatter is rotated.
         `on_zoom`:
             Fired when the scatter is zoomed.
+        `on_touch_timeout`:
+            Fired when a touch event hits the :attr:`pan_timeout`.
 
     .. versionchanged:: 1.9.1
         Events `on_pan`, `on_rotate`, `on_zoom` added.
@@ -140,7 +142,8 @@ class ScatterBehavior(object):
 
     __events__ = (
         'on_transform_with_touch', 'on_bring_to_front',
-        'on_pan', 'on_rotate', 'on_zoom'
+        'on_pan', 'on_rotate', 'on_zoom',
+        'on_touch_timeout',
     )
 
     auto_bring_to_front = BooleanProperty(True)
@@ -343,11 +346,11 @@ class ScatterBehavior(object):
                 'dy': 0}
 
             self.pan_timeout_event = Clock.schedule_once(
-                lambda dt: self.on_touch_timeout(touch),
+                lambda dt: self.dispatch('on_touch_timeout', touch),
                 self.pan_timeout / 1000.
             )
 
-            return False
+            return True
 
         # if the touch isnt on the widget we do nothing
         if not self.do_collide_after_children:
