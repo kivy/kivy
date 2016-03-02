@@ -3,7 +3,7 @@
 <Label>:
     canvas:
         Color:
-            rgba: self.disabled_color if self.disabled else (self.color if not self.markup else (1, 1, 1, 1))
+            rgba: 1, 1, 1, 1
         Rectangle:
             texture: self.texture
             size: self.texture_size
@@ -21,7 +21,7 @@
             size: self.size
             source: self.disabled_image if self.disabled else self.state_image
         Color:
-            rgba: self.disabled_color if self.disabled else self.color
+            rgba: 1, 1, 1, 1
         Rectangle:
             texture: self.texture
             size: self.texture_size
@@ -176,7 +176,7 @@
             pos: [int(x) for x in self.cursor_pos]
             size: 1, -self.line_height
         Color:
-            rgba: self.disabled_foreground_color if self.disabled else (self.hint_text_color if not self.text and not self.focus else self.foreground_color)
+            rgba: self.disabled_foreground_color if self.disabled else (self.hint_text_color if not self.text else self.foreground_color)
 
 <TextInputCutCopyPaste>:
     but_cut: cut.__self__
@@ -327,6 +327,7 @@
         pos: root.pos
         Label:
             id: filename
+            size_hint_x: None
             width: (self.texture_size[0] + dp(4)) if self.texture_size else dp(10)
             halign: 'left'
             shorten: True

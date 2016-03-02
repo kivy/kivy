@@ -222,7 +222,7 @@ Installation
     . kivyinstall/bin/activate
 
     # Use correct Cython version here
-    pip install Cython==0.21.2
+    pip install Cython==0.23
 
     # Install stable version of Kivy into the virtualenv
     pip install kivy
@@ -324,7 +324,7 @@ Installation
 
     pip install numpy
 
-    pip install Cython==0.21.2
+    pip install Cython==0.23
 
     # If you want to install pygame backend instead of sdl2
     # you can install pygame using command below and enforce using

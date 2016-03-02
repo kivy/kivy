@@ -23,7 +23,7 @@ To install Kivy, you must:
 
     1. Download the latest version from http://kivy.org/#download
        Kivy2.7z is using using Python 2 (System Python), Kivy3.7z (Python 3)
-    2. Extract it using an archive program like http://www.kekaosx.com/en/.
+    2. Extract it using an archive program like `Keka <http://www.kekaosx.com/>`_.
     3. Copy the Kivy2.app or Kivy3.app as Kivy.app to /Applications.
        Paste the following line in the terminal::
 
@@ -59,7 +59,7 @@ That binary will be only available from the venv above, as in after you do::
 
     kivy -m pip install kivy-garden
 
-The garden lib will be only available when you activate this env.
+The garden lib will be only available when you activate this env::
 
     source /Applications/Kivy.app/Contents/Resources/venv/bin/activate
     garden install mapview

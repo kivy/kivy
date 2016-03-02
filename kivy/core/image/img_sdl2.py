@@ -20,8 +20,8 @@ class ImageLoaderSDL2(ImageLoaderBase):
     @staticmethod
     def extensions():
         '''Return accepted extensions for this loader'''
-        return ('bmp', 'jpg', 'jpeg', 'lbm', 'pcx', 'png', 'pnm', 'tga', 'tiff',
-                'webp', 'xcf', 'xpm', 'xv')
+        return ('bmp', 'jpg', 'jpeg', 'jpe', 'lbm', 'pcx', 'png', 'pnm',
+                'tga', 'tiff', 'webp', 'xcf', 'xpm', 'xv')
 
     @staticmethod
     def can_save():

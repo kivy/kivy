@@ -790,9 +790,10 @@ class ScreenManager(FloatLayout):
     '''
 
     current = StringProperty(None)
-    '''Name of the screen currently shown, or the screen to show.
+    '''
+    Name of the screen currently shown, or the screen to show.
 
-  ::
+    ::
 
         from kivy.uix.screenmanager import ScreenManager, Screen
 
@@ -803,14 +804,17 @@ class ScreenManager(FloatLayout):
         # By default, the first added screen will be shown. If you want to
         # show another one, just set the 'current' property.
         sm.current = 'second'
+
+    :attr:`current` is a :class:`~kivy.properties.StringProperty` and defaults
+    to None.
     '''
 
     transition = ObjectProperty(SlideTransition(), baseclass=TransitionBase)
-    '''Transition object to use for animating the screen that will be hidden
-    and the screen that will be shown. By default, an instance of
-    :class:`SlideTransition` will be given.
+    '''Transition object to use for animating the transition from the current
+    screen to the next one being shown.
 
-    For example, if you want to change to a :class:`WipeTransition`::
+    For example, if you want to use a :class:`WipeTransition` between
+    slides::
 
         from kivy.uix.screenmanager import ScreenManager, Screen,
         WipeTransition
@@ -822,6 +826,9 @@ class ScreenManager(FloatLayout):
         # by default, the first added screen will be shown. If you want to
         # show another one, just set the 'current' property.
         sm.current = 'second'
+
+    :attr:`transition` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to a :class:`SlideTransition`.
 
     .. versionchanged:: 1.8.0
 

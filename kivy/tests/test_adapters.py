@@ -5,7 +5,7 @@ Adapter tests
 
 import unittest
 
-from kivy.uix.listview import SelectableView
+from kivy.uix.selectableview import SelectableView
 from kivy.uix.listview import ListItemButton
 from kivy.uix.listview import ListItemLabel
 from kivy.uix.listview import CompositeListItem

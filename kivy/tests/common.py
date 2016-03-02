@@ -13,10 +13,15 @@ __all__ = ('GraphicUnitTest', )
 
 import unittest
 import logging
+import os
 log = logging.getLogger('unittest')
 
+_base = object
+if not bool(int(os.environ.get('USE_OPENGL_MOCK', 0))):
+    _base = unittest.TestCase
 
-class GraphicUnitTest(unittest.TestCase):
+
+class GraphicUnitTest(_base):
 
     def render(self, root, framecount=1):
         '''Call rendering process using the `root` widget.

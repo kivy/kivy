@@ -2,17 +2,18 @@
 DDS File library
 ================
 
-This library can be used to parse and save DDS files.
+This library can be used to parse and save DDS
+(`DirectDraw Surface <https://en.wikipedia.org/wiki/DirectDraw_Surface>`)
+files.
 
-The initial version have been done by::
+The initial version was written by::
 
     Alexey Borzenkov (snaury@gmail.com)
 
-All the initial work credits is going to him ! Thanks you :)
+All the initial work credits go to him! Thank you :)
 
-
-This version is written without using ctypes, cause Kivy doesn't have ctypes
-support on android. We are using struct instead.
+This version is written without using ctypes because Kivy doesn't have ctypes
+support on android. We use structs instead.
 
 
 DDS Format
@@ -43,7 +44,13 @@ DDS Format
             Caps2
             Reserved1 * 2
         Reserverd2
-        
+
+.. warning::
+
+    This is an external library and Kivy does not provide any support for it.
+    It might change in the future and we advise you don't rely on it in your
+    code.
+
 '''
 
 from struct import pack, unpack, calcsize

@@ -574,7 +574,7 @@ class Image(EventDispatcher):
         '''
         # stop animation
         Clock.unschedule(self._anim)
-        if allow_anim and self._anim_available:
+        if allow_anim and self._anim_available and self._anim_delay >= 0:
             Clock.schedule_interval(self._anim, self.anim_delay)
             self._anim()
 

@@ -10,10 +10,11 @@ __all__ = ('ClipboardAndroid', )
 from kivy import Logger
 from kivy.core.clipboard import ClipboardBase
 from jnius import autoclass
+from android.config import JAVA_NAMESPACE
 from android.runnable import run_on_ui_thread
 
 AndroidString = autoclass('java.lang.String')
-PythonActivity = autoclass('org.renpy.android.PythonActivity')
+PythonActivity = autoclass(JAVA_NAMESPACE + '.PythonActivity').mActivity
 Context = autoclass('android.content.Context')
 VER = autoclass('android.os.Build$VERSION')
 sdk = VER.SDK_INT

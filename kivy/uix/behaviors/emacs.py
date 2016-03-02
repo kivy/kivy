@@ -61,7 +61,7 @@ class EmacsBehavior(object):
     :attr:`key_bindings` is a :class:`~kivy.properties.StringProperty`
     and defaults to ``'emacs'``.
 
-    .. versionadded:: 2.0.0
+    .. versionadded:: 1.9.2
     '''
 
     def __init__(self, **kwargs):

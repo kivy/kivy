@@ -60,7 +60,10 @@ from kivy.core.audio import Sound, SoundLoader
 from kivy.weakmethod import WeakMethod
 import time
 
-Logger.info('SoundFFPy: Using ffpyplayer {}'.format(ffpyplayer.version))
+try:
+    Logger.info('SoundFFPy: Using ffpyplayer {}'.format(ffpyplayer.__version__))
+except:
+    Logger.info('SoundFFPy: Using ffpyplayer {}'.format(ffpyplayer.version))
 
 
 logger_func = {'quiet': Logger.critical, 'panic': Logger.critical,

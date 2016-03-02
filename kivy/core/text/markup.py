@@ -18,6 +18,10 @@ The following tags are availables:
     Activate bold text
 ``[i][/i]``
     Activate italic text
+``[u][/u]``
+    Underlined text
+``[s][/s]``
+    Strikethrough text
 ``[font=<str>][/font]``
     Change the font
 ``[size=<integer>][/size]``
@@ -159,6 +163,20 @@ class MarkupLabel(MarkupLabelBase):
                 self.resolve_font_name()
             elif item == '[/i]':
                 spop('italic')
+                self.resolve_font_name()
+            elif item == '[u]':
+                spush('underline')
+                options['underline'] = True
+                self.resolve_font_name()
+            elif item == '[/u]':
+                spop('underline')
+                self.resolve_font_name()
+            elif item == '[s]':
+                spush('strikethrough')
+                options['strikethrough'] = True
+                self.resolve_font_name()
+            elif item == '[/s]':
+                spop('strikethrough')
                 self.resolve_font_name()
             elif item[:6] == '[size=':
                 item = item[6:-1]

@@ -4,6 +4,11 @@ List View
 
 .. versionadded:: 1.5
 
+.. note::
+
+    ListView is planned to be deprecated once `RecycleView \
+    <https://github.com/kivy-garden/garden.recycleview>`_ becomes stable.
+
 .. warning::
 
     This code is still experimental, and its API is subject to change in a
@@ -52,6 +57,8 @@ kivy/kivy/tree/master/examples/widgets/lists/list_two_up.py>`_
 kivy/kivy/tree/master/examples/widgets/lists/list_kv.py>`_
     * `kivy/examples/widgets/lists/list_composite.py <https://github.com/\
 kivy/kivy/tree/master/examples/widgets/lists/list_composite.py>`_
+    * `kivy/examples/widgets/lists/list_reset_data.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_reset_data.py>`_
     * `kivy/examples/widgets/lists/list_cascade.py <https://github.com/\
 kivy/kivy/tree/master/examples/widgets/lists/list_cascade.py>`_
     * `kivy/examples/widgets/lists/list_cascade_dict.py <https://github.com/\
@@ -191,7 +198,7 @@ but here is a synopses of its arguments:
   a Kivy view that is to be instantiated for each list item. There
   are several built-in types available, including ListItemLabel and
   ListItemButton, or you can make your own class that mixes in the
-  required :class:`~kivy.uix.listview.SelectableView`.
+  required :class:`~kivy.uix.selectableview.SelectableView`.
 
 * :attr:`~kivy.adapters.adapter.Adapter.template`:
   the name of a Kivy language (kv) template that defines the
@@ -383,7 +390,7 @@ has an is_selected property.
 Using an Item View Template
 ---------------------------
 
-:class:`~kivy.uix.listview.SelectableView` is another simple mixin class that
+:class:`~kivy.uix.selectableview.SelectableView` is another simple mixin class that
 has required properties for a list item: text, and is_selected. To make your
 own template, mix it in as follows::
 
@@ -528,7 +535,7 @@ demonstrate the use of kv templates and composite list views.
 '''
 
 __all__ = ('SelectableView', 'ListItemButton', 'ListItemLabel',
-           'CompositeListItem', 'ListView', )
+           'CompositeListItem', 'ListView', 'ListItemReprMixin')
 
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
@@ -539,54 +546,19 @@ from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from kivy.adapters.simplelistadapter import SimpleListAdapter
 from kivy.uix.abstractview import AbstractView
+from kivy.uix.selectableview import SelectableView
 from kivy.properties import ObjectProperty, DictProperty, \
         NumericProperty, ListProperty, BooleanProperty
 from kivy.lang import Builder
 from math import ceil, floor
 
 
-class SelectableView(object):
-    '''The :class:`~kivy.uix.listview.SelectableView` mixin is used to design
-    list items and other classes that are to be instantiated by an adapter for
-    use in a listview. The :class:`~kivy.adapters.listadapter.ListAdapter`
-    and :class:`~kivy.adapters.dictadapter.DictAdapter` adapters are
-    selection-enabled. select() and deselect() are to be overridden with
-    display code to mark items as selected or not, if desired.
-    '''
-
-    index = NumericProperty(-1)
-    '''The index into the underlying data list or the data item this view
-    represents.
-
-    :attr:`index` is a :class:`~kivy.properties.NumericProperty`, default
-    to -1.
-    '''
-
-    is_selected = BooleanProperty(False)
-    '''A SelectableView instance carries this property, which should be kept
-    in sync with the equivalent property in the data item it represents.
-
-    :attr:`is_selected` is a :class:`~kivy.properties.BooleanProperty`, default
-    to False.
-    '''
-
-    def __init__(self, **kwargs):
-        super(SelectableView, self).__init__(**kwargs)
-
-    def select(self, *args):
-        '''The list item is responsible for updating the display for
-        being selected, if desired.
-        '''
-        self.is_selected = True
-
-    def deselect(self, *args):
-        '''The list item is responsible for updating the display for
-        being unselected, if desired.
-        '''
-        self.is_selected = False
-
-
 class ListItemReprMixin(Label):
+    '''
+    The :class:`~kivy.uix.listview.ListItemReprMixin` provides a
+    :class:`~kivy.uix.label.Label` with a Python 2/3 compatible string
+    representation (*__repr__*). It is intended for internal usage.
+    '''
     if PY2:
         def __repr__(self):
             text = self.text.encode('utf-8') if isinstance(self.text, unicode) \
@@ -599,7 +571,7 @@ class ListItemReprMixin(Label):
 
 class ListItemButton(ListItemReprMixin, SelectableView, Button):
     ''':class:`~kivy.uix.listview.ListItemButton` mixes
-    :class:`~kivy.uix.listview.SelectableView` with
+    :class:`~kivy.uix.selectableview.SelectableView` with
     :class:`~kivy.uix.button.Button` to produce a button suitable for use in
     :class:`~kivy.uix.listview.ListView`.
     '''
@@ -644,7 +616,7 @@ class ListItemButton(ListItemReprMixin, SelectableView, Button):
 
 class ListItemLabel(ListItemReprMixin, SelectableView, Label):
     ''':class:`~kivy.uix.listview.ListItemLabel` mixes
-    :class:`~kivy.uix.listview.SelectableView` with
+    :class:`~kivy.uix.selectableview.SelectableView` with
     :class:`~kivy.uix.label.Label` to produce a label suitable for use in
     :class:`~kivy.uix.listview.ListView`.
     '''
@@ -671,7 +643,7 @@ class ListItemLabel(ListItemReprMixin, SelectableView, Label):
 
 class CompositeListItem(SelectableView, BoxLayout):
     ''':class:`~kivy.uix.listview.CompositeListItem` mixes
-    :class:`~kivy.uix.listview.SelectableView` with :class:`BoxLayout` for a
+    :class:`~kivy.uix.selectableview.SelectableView` with :class:`BoxLayout` for a
     generic container-style list item, to be used in
     :class:`~kivy.uix.listview.ListView`.
     '''
@@ -731,7 +703,7 @@ class CompositeListItem(SelectableView, BoxLayout):
             if cls_kwargs:
                 cls_kwargs['index'] = index
 
-                if 'text' not in cls_kwargs:
+                if 'text' not in cls_kwargs and text:
                     cls_kwargs['text'] = text
 
                 if 'is_representing_cls' in cls_kwargs:

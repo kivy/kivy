@@ -4,6 +4,9 @@ Interactive launcher
 
 .. versionadded:: 1.3.0
 
+.. versionchanged:: 1.9.2
+    The interactive launcher has been deprecated.
+
 The :class:`InteractiveLauncher` provides a user-friendly python shell
 interface to an :class:`App` so that it can be prototyped and debugged
 interactively.
@@ -157,11 +160,12 @@ Any use cases besides compacting code?
 __all__ = ('SafeMembrane', 'InteractiveLauncher')
 
 import inspect
+from threading import Thread, Event
 
 from kivy.app import App
 from kivy.base import EventLoop
 from kivy.clock import Clock
-from threading import Thread, Event
+from kivy.utils import deprecated
 
 
 def safeWait(dt):
@@ -300,6 +304,7 @@ class InteractiveLauncher(SafeMembrane):
 
     __slots__ = ('_ref', 'safe', 'confirmed', 'thread', 'app')
 
+    @deprecated
     def __init__(self, app=None, *args, **kwargs):
         if app is None:
             app = App()
