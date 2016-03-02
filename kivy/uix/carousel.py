@@ -88,8 +88,8 @@ class Carousel(StencilView):
     min_move = NumericProperty(0.2)
     '''Defines the minimum distance to be covered before the touch is
     considered a swipe gesture and the Carousel content changed.
-    This is a percentage of the Carousel width.
-    If the movement doesn't reach this minimum value, then the movement is
+    This is a expressed as a fraction of the Carousel's width.
+    If the movement doesn't reach this minimum value, the movement is
     cancelled and the content is restored to its original position.
 
     :attr:`min_move` is a :class:`~kivy.properties.NumericProperty` and
