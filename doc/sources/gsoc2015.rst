@@ -1,4 +1,4 @@
-Google Summer of Code - 2016
+Google Summer of Code - 2015
 ============================
 
 Introduction
@@ -21,10 +21,6 @@ The Kivy Organization oversees several major projects:
   wrapper for platform dependent APIs.
 * `Buildozer <https://github.com/kivy/buildozer>`_ - A generic Python packager 
   for Android, iOS, and desktop.
-* `KivEnt <https://github.com/kivy/kivent>`_ - A 2d Game Engine that provides
-  optimized methods of handling large amounts of dynamic visual data.
-* `Kivy Designer <https://github.com/kivy/kivy-designer>`_ - A graphical GUI
-  designer for Kivy built in Kivy.
 
 Altogether, these projects allow the user to create applications for every 
 major operating system that make use of any native APIs present. Our goal is to 
@@ -92,7 +88,7 @@ project idea of your own.
 Beginner Projects
 ~~~~~~~~~~~~~~~~~
 These projects should be suitable for anyone with a college level familiarity
-with Python and require little knowledge of platform specifics.
+with Python and require little knowedge of platform specifics.
 
 **Kivy Designer**
 
@@ -135,12 +131,36 @@ with Python and require little knowledge of platform specifics.
   - **Desired Skills**: Experience with other GUI creation tools. Familiar 
     with Kivy approach to EventLoop and UIX Widgets.
 
+**Matplotlib Integration**
+
+  Description:
+    More advanced graphing and plotting tools are a frequently requested 
+    addition to Kivy, and it would be ideal to provide them via integration 
+    with matplotlib's extensive feature set. The primary goal of the project 
+    would be to write a Kivy backend to matplotlib that displays plots using 
+    Kivy's own graphics API, but it would also potentially involve ensuring 
+    that matplotlib is deployable on every platform Kivy supports.
+
+  References:
+    - http://matplotlib.org/
+    - https://github.com/kivy/kivy
+
+  Expected outcome:
+    The matplotlib widgets will be included in the Kivy garden and ready to 
+    use on all of Kivy's supported OS.
+
+  - **Mentors**: Alexander Taylor, Matthew Einhorn, Jacob Kovac
+  - **Requirements:** Access to Desktop OS and ideally at least one mobile 
+    platform
+  - **Task level**: Easy
+  - **Desired Skills**: Familiarity with Kivy widget construction and 
+    matplotlib. 
 
 Intermediate Projects
 ~~~~~~~~~~~~~~~~~~~~~
-These projects may involve cursory level knowledge of several OS level details,
-some OpenGL interaction, or other topics that may be a bit out of the
-wheelhouse of the average Pythonista. 
+These projects will involve more than just pure Python coding. You may find 
+yourself either dealing with the details of cross platform compilation or 
+working with communicating between Python and an API in a different language.
 
 **Plyer:**
 
@@ -180,34 +200,35 @@ wheelhouse of the average Pythonista.
   - **Task level**: Intermediate
   - **Desired Skills**: Familiarity with Pyjnius, PyOBJus.
 
-
-**Kivent: Tiled Integration**
+**Font Reshaping and Font Fallback Support**
 
   Description:
-    KivEnt is a modular entity-component based game engine built on top of
-    Kivy. KivEnt provides a highly performant approach to building games in
-    Python that avoids some of the worst overhead of Python using specialized
-    Cython constructs.
-
-    The student would work to finish creating a fully functional Tiled module
-    that supports the full range of maptypes Tiled supports: hex, square, and
-    isometric square tiles. This task will likely involve writing both logic
-    and rendering gamesystems. In addition, the student will be responsible
-    for completing an MIT licensed tmx (the tiled file format) loader for use
-    in KivEnt. 
+    Currently Kivy does not support reshaping for alphabets such as Arabic, 
+    Persian, Thai, or Devanagari. The solution is to integrate a text shaping
+    engine- Harfbuzz. You would need to ensure that we can compile Harfbuzz
+    on every platform and properly integrate it as a core text provider.
+    
+    The second part of the same project would involve font fallback support.
+    If a particular character/glyph is missing; currently we show a [] box.
+    The solution for this would involve either using an OS API if available
+    or maintaining a hashtable for the default fonts on each OS which can be
+    used for glyph fallback.
 
   References:
-    - http://www.mapeditor.org/
-    - https://github.com/kivy/kivent
-  Expected Outcome:
-    A successful outcome involves a new kivent_tiled module being released for
-    the KivEnt game engine.
+    - http://www.freedesktop.org/wiki/Software/HarfBuzz/
+    - https://github.com/kivy/kivy/tree/master/kivy/core/text
 
-  - **Mentors**: Jacob Kovac
-  - **Requirements**: Access to at least one Kivy platform.
+  Expected outcome:
+    Font fallback and text reshaping support Kivy and correct compilation 
+    recipes for the libs used (harfbuzz) for platforms that need it, 
+    such as Python-For-Android.
+
+  - **Mentors**: Akshay Arora, Jacob Kovac
+  - **Requirements:** Access to Desktop OS and ideally at least one mobile 
+    platform
   - **Task level**: Intermediate
-  - **Desired Skills**: Familiarity with Cython, Python, and game dev related
-    math concepts.
+  - **Desired Skills**: Familiarity with text rendering, HarfBuzz, and Kivy's 
+    provider abstraction.
 
 
 Hard Projects
@@ -218,6 +239,46 @@ advanced topics. If you are comfortable with the internals of Python, working
 with C code, and using Cython to build your own C extensions these projects 
 may appeal to you. 
 
+**Python-For-Android Revamp:**
+  
+  Description:
+    Currently Python-For-Android is not very flexible and have a very specific 
+    bootstrap crafted for use with Kivy's old SDL1.2/1.3 backend used through 
+    Pygame and functions only with Python2. Your job would be to make the 
+    necessary changes to expose swappable bootstraps, python interpreters,
+    and the appropriate compilation options for ARM and x86 Android. This
+    project will involve a significant amount of refactoring the current tool,
+    as much hardcoded functionality needs to be made optional. A student 
+    looking to take on this task should be familiar with compiling Python,
+    the compilation process for Cython modules, and the Android SDK and NDK.
+
+  The Student will:
+
+  - Introduce bootstrap argument for the distribute script
+  - Introduce a new SDL2 bootstrap
+  - Refactor old bootstrap to use new approach
+  - Refactor pyjnius to find the appropriate Activity from the provided 
+    bootstrap
+  - Introduce option for compilation with Python3 instead of Python2, this will
+    involve properly configuring the blacklist of ommitted modules, the 
+    collection of libs into one large one to avoid shared library limit on 
+    older devices, and performing any Python3 code conversions necessary.
+  - Ensure all recipes work with Python3 version of their modules
+  - Introduce option for compiling for different architectures (ARM and x86)
+
+  References:
+    - https://github.com/kivy/python-for-android
+
+  Expected outcome:
+    Python-for-Android with more options for compilation including Python2 
+    and Python3, legacy Pygame bootstrap, SDL2 bootstrap, and ARM and x86 
+    compilation options.
+
+  - **Mentors**: Mathieu Virbel, Jacob Kovac
+  - **Requirements:** Access to Linux, Android.
+  - **Task level**: Hard
+  - **Desired Skills**: Understanding of cross-compilation for Android, 
+    familiarity with PyJNIus
 
 
 How to Contact devs
@@ -268,7 +329,7 @@ Here's a checklist:
   decision on your interests and your skills. Show us you're serious about it 
   and take the initiative.
 * Write a draft 
-  `proposal <https://wiki.python.org/moin/SummerOfCode/ApplicationTemplate2016>`_
+  `proposal <https://wiki.python.org/moin/SummerOfCode/ApplicationTemplate2014>`_
   about what you want to do. Include what you understand the current state of
   the project to be, what you would like to improve, how, etc. 
 * Discuss that proposal with us in a timely manner. Get feedback.
