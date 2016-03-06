@@ -498,15 +498,15 @@ class LabelBase(object):
                 last_word = layout_line.words[0]
                 line = last_word.text
             x = xpad
-            if halign[0] == 'c':  # center
+            if halign == 'center':
                 x = int((w - lw) / 2.)
-            elif halign[0] == 'r':  # right
+            elif halign == 'right':
                 x = max(0, int(w - lw - xpad))
 
             # right left justify
             # divide left over space between `spaces`
             # TODO implement a better method of stretching glyphs?
-            if (uw is not None and halign[-1] == 'y' and line and not
+            if (uw is not None and halign == 'justify' and line and not
                 layout_line.is_last_line):
                 # number spaces needed to fill, and remainder
                 n, rem = divmod(max(uww - lw, 0), sw)
@@ -582,7 +582,7 @@ class LabelBase(object):
         options = copy(self.options)
         options['space_width'] = self.get_extents(' ')[0]
         options['strip'] = strip = (options['strip'] or
-                                    options['halign'][-1] == 'y')
+                                    options['halign'] == 'justify')
         uw, uh = options['text_size'] = self._text_size
         text = self.text
         if strip:
@@ -593,7 +593,7 @@ class LabelBase(object):
         if not text:
             return 0, 0
 
-        if uh is not None and options['valign'][-1] == 'e':  # middle
+        if uh is not None and options['valign'] == 'middle':
             center = -1  # pos of newline
             if len(text) > 1:
                 middle = int(len(text) // 2)
@@ -617,7 +617,7 @@ class LabelBase(object):
                 options, self.get_cached_extents(), True, True)
         else:  # top or bottom
             w, h, clipped = layout_text(text, lines, (0, 0), (uw, uh), options,
-                self.get_cached_extents(), options['valign'][-1] == 'p', True)
+                self.get_cached_extents(), options['valign'] == 'top', True)
         self._internal_size = w, h
         if uw:
             w = uw
