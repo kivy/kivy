@@ -276,7 +276,7 @@ class MarkupLabel(MarkupLabelBase):
         # now justify the text
         if options['halign'] == 'justify' and uw is not None:
             # XXX: update refs to justified pos
-            # when justify, each line shouldv'e been stripped already
+            # when justify, each line should've been stripped already
             split = partial(re.split, re.compile('( +)'))
             uww = uw - 2 * xpad
             chr = type(self.text)

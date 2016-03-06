@@ -573,11 +573,16 @@ class Label(Widget):
         A new option was added to :attr:`halign`, namely `justify`.
     '''
 
-    valign = OptionProperty('bottom', options=['bottom', 'middle', 'top'])
+    valign = OptionProperty('bottom',
+                            options=['bottom', 'middle', 'center', 'top'])
     '''Vertical alignment of the text.
 
     :attr:`valign` is an :class:`~kivy.properties.OptionProperty` and defaults
-    to 'bottom'. Available options are : bottom, middle and top.
+    to 'bottom'. Available options are : `'bottom'`,
+    `'middle'` (or `'center'`) and `'top'`.
+
+    .. versionchanged:: 1.9.2
+        The `'center'` option has been added as an alias of `'middle'`.
 
     .. warning::
 

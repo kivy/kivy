@@ -556,7 +556,7 @@ class LabelBase(object):
         y = ypad = options['padding_y']  # pos in the texture
         if valign == 'bottom':
             y = size[1] - ih + ypad
-        elif valign == 'middle':
+        elif valign == 'middle' or valign == 'center':
             y = int((size[1] - ih) / 2 + ypad)
 
         self._render_begin()
@@ -593,7 +593,8 @@ class LabelBase(object):
         if not text:
             return 0, 0
 
-        if uh is not None and options['valign'] == 'middle':
+        if uh is not None and (options['valign'] == 'middle' or
+                               options['valign'] == 'center'):
             center = -1  # pos of newline
             if len(text) > 1:
                 middle = int(len(text) // 2)
