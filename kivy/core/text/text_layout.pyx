@@ -389,7 +389,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
     cdef int xpad = options['padding_x'], ypad = options['padding_y']
     cdef int max_lines = int(options.get('max_lines', 0))
     cdef float line_height = options['line_height']
-    cdef int strip = options['strip'] or options['halign'][-1] == 'y'
+    cdef int strip = options['strip'] or options['halign'] == 'justify'
     cdef int ref_strip = options['strip_reflow']
     cdef int w = size[0], h = size[1]  # width and height of the texture so far
     cdef list new_lines

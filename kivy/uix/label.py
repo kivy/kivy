@@ -331,8 +331,8 @@ class Label(Widget):
         mrkup = self._label.__class__ is CoreMarkupLabel
         self.texture = None
 
-        if (not self._label.text or (self.halign[-1] == 'y' or self.strip) and
-            not self._label.text.strip()):
+        if (not self._label.text or (self.halign == 'justify' or self.strip)
+                and not self._label.text.strip()):
             self.texture_size = (0, 0)
             if mrkup:
                 self.refs, self._label._refs = {}, {}
@@ -343,7 +343,7 @@ class Label(Widget):
                 # we must strip here, otherwise, if the last line is empty,
                 # markup will retain the last empty line since it only strips
                 # line by line within markup
-                if self.halign[-1] == 'y' or self.strip:
+                if self.halign == 'justify' or self.strip:
                     text = text.strip()
                 self._label.text = ''.join(('[color=',
                                             get_hex_from_color(

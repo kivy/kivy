@@ -146,9 +146,9 @@ class MarkupLabel(MarkupLabelBase):
         # mid-word will have space mid-word when lines are joined
         uw_temp = None if shorten else uw
         xpad = options['padding_x']
-        uhh = (None if uh is not None and options['valign'][-1] != 'p' or
+        uhh = (None if uh is not None and options['valign'] != 'top' or
                options['shorten'] else uh)
-        options['strip'] = options['strip'] or options['halign'][-1] == 'y'
+        options['strip'] = options['strip'] or options['halign'] == 'justify'
         for item in self.markup:
             if item == '[b]':
                 spush('bold')
@@ -254,7 +254,7 @@ class MarkupLabel(MarkupLabelBase):
         # when valign is not top, for markup we layout everything (text_size[1]
         # is temporarily set to None) and after layout cut to size if too tall
         elif uh != uhh and h > uh and len(lines) > 1:
-            if options['valign'][-1] == 'm':  # bottom
+            if options['valign'] == 'bottom':
                 i = 0
                 while i < len(lines) - 1 and h > uh:
                     h -= lines[i].h
@@ -274,7 +274,7 @@ class MarkupLabel(MarkupLabelBase):
                 del lines[i + 1:]
 
         # now justify the text
-        if options['halign'][-1] == 'y' and uw is not None:
+        if options['halign'] == 'justify' and uw is not None:
             # XXX: update refs to justified pos
             # when justify, each line shouldv'e been stripped already
             split = partial(re.split, re.compile('( +)'))
@@ -394,9 +394,9 @@ class MarkupLabel(MarkupLabelBase):
         for layout_line in lines:  # for plain label each line has only one str
             lw, lh = layout_line.w, layout_line.h
             x = xpad
-            if halign[0] == 'c':  # center
+            if halign == 'center':
                 x = int((w - lw) / 2.)
-            elif halign[0] == 'r':  # right
+            elif halign == 'right':
                 x = max(0, int(w - lw - xpad))
             layout_line.x = x
             layout_line.y = y
