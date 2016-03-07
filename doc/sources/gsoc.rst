@@ -216,7 +216,8 @@ may appeal to you.
   References:
     - https://github.com/kivy/python-for-android#known-missing-stuff-from-p4a
   Expected Outcome:
-    -
+    A successful outcome involves a py4a new toolchain being at feature parity
+    with the old toolchain inclding extra functionality as outlined above.
 
   - **Mentors**: Alexander Taylor, Ryan Pessa
   - **Requirements**: Access to Linux and Android.
