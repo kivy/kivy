@@ -194,7 +194,7 @@ may appeal to you.
 
   - **Mentors**: Jacob Kovac, Gabriel Pettier
   - **Requirements**: Access to at least one Kivy platform.
-  - **Task level**: Intermediate
+  - **Task level**: Hard
   - **Desired Skills**: Familiarity with Cython, Python, and game dev related
     math concepts.
 
