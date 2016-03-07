@@ -3,7 +3,7 @@ Google Summer of Code - 2016
 
 Introduction
 ------------
-Kivy is a cross-platform, business friendly, GPU Accelerated open source 
+Kivy is a cross-platform, business friendly, GPU accelerated open source 
 Python library for rapid development of applications that make use of 
 innovative user interfaces, such as multi-touch apps.
 
@@ -33,11 +33,11 @@ codebase and make use of platform dependent APIs and features that users of
 specific operating systems have come to expect. 
 
 Depending on which project you choose you may need to know Cython, OpenGL ES2, 
-Java, Objective-C, or C in addition to python. We make heavy use of Cython and 
+Java, Objective-C, or C in addition to Python. We make heavy use of Cython and 
 OpenGL for computational and graphics performance where it matters, and the 
-other languages are typically involved in accesses OS or provider level APIs.
+other languages are typically involved in accessing OS or provider level APIs.
 
-We are hoping to participate in Google Summer of Code 2015. This page showcases 
+We are hoping to participate in Google Summer of Code 2016. This page showcases 
 some ideas for GSoC projects and corresponding guidelines for students 
 contributing to the Kivy Framework.
 
@@ -52,9 +52,9 @@ highlighted here:
   on github) If you have never used github before you may be interested in this 
   `tutorial <https://guides.github.com/activities/hello-world/>`_.
 * Comfortable with event driven programming.
-* Has suitable tools/environment for kivy or the sister project you are going 
+* Has suitable tools/environment for Kivy or the sister project you are going 
   to work on. For example to be able to work on PyOBJus you would need access 
-  to an iOS device, mac with xcode and a developer license, to work on PyJNIus 
+  to an iOS device, OS X with Xcode and a developer license, to work on PyJNIus 
   you would need an Android device, and to work on plyer you would need access 
   to hardware for both platforms.
 
@@ -62,12 +62,12 @@ highlighted here:
 Additional desired skills may be listed with specific projects.
 
 Familiarize yourself with the 
-`contributing guide <http://kivy.org/docs/contribute.html>`_ 
+`contribution guide <http://kivy.org/docs/contribute.html>`_ 
 We can help you get up to speed, however students demonstrating ability in 
 advance will be given preference.
 
-How to get setup
-----------------
+How to get started
+------------------
 
 For Kivy, the easiest way is to follow the installation instructions for the 
 development version for your specific platform:
@@ -96,8 +96,8 @@ with Python and require little knowledge of platform specifics.
 
 **RecycleView:**
 
-Take existing garden project RecycleView and make it api, feature
-compatible with ListView
+Take the existing garden project RecycleView, and make its API feature
+complete with ListView.
 
   References:
     - https://github.com/kivy-garden/garden.recycleview
@@ -106,10 +106,10 @@ compatible with ListView
     A successful outcome would include users being able to simply
     replace ListView with RecycleView.
     
-  - **Mentors**: Mathew Einhorn, Akshay Arora
+  - **Mentors**: Matthew Einhorn, Akshay Arora
   - **Requirements**: Access to Kivy development env.
   - **Task level**: Beginner
-  - **Desired Skills**: Familiarity with kivy and kivy garden.
+  - **Desired Skills**: Familiarity with Kivy and Kivy Garden.
 
 Intermediate Projects
 ~~~~~~~~~~~~~~~~~~~~~
@@ -125,21 +125,21 @@ wheelhouse of the average Pythonista.
     Kivy. The idea is to provide a stable API to the user for 
     accessing features of their desktop or mobile device.
     
-    The student would replace some `.java` code currently in the py4a
+    The student would replace some `.java` code currently in the p4a
     project to a more appropriate place in Plyer. In addition, the 
     student would work on improving access to platform specific 
     features through Plyer, including accessibility, Bluetooth Low Energy,
-    accessing contacts, sharing, NFC, contacts, in app browser,
-    wifi (enable, disable, access to wifi services (wifi direct,
-    network accessibility, current ip info on network etc.),
-    Camera Capture (video), camera display, googleplay integration, toast,
-    launch phone call interface, sms interface, geo location, 
-    interaction with notification, globalisation (languages),
+    accessing and editing contacts, sharing, NFC, in-app browser,
+    Wi-Fi (enable, disable, access to Wi-Fi services (Wi-Fi direct,
+    network accessibility, current IP info on network etc.),
+    Camera capture (video), camera display, Google Play integration, toast,
+    launch phone call interface, sms interface, geolocation, 
+    interaction with notifications, internationalization (I18N),
     and all the missing platform implementations from existing features.
     
     Under the hood you'll use PyJNIus on Android, PyOBJus on OS X and 
     iOS, ctypes on Windows, and native APIs on Linux. This probably 
-    would also include improving PyObjus and PyJNIus to handle 
+    would also include improving PyOBJus and PyJNIus to handle 
     interfaces that they can't right now.
     
   References:
@@ -149,20 +149,19 @@ wheelhouse of the average Pythonista.
     - https://github.com/kivy/python-for-android
     - https://github.com/kivy/kivy-ios
   Expected outcome:
-    A successful outcome would include moving the Java/pyobjys code
-    from py4a/kivy-ios to plyer and implementation of some or all
+    A successful outcome would include moving the Java/PyOBJus code
+    from p4a/kivy-ios to plyer and implementing some or all
     of the new facades to be decided with the student.
     
-  - **Mentors**: Akshay Arora, Ryan Pesa
+  - **Mentors**: Akshay Arora, Ryan Pessa
   - **Requirements**: Access to Linux, Windows, OS X, iOS device,  
     Android device.
   - **Task level**: Intermediate
-  - **Desired Skills**: Familiarity with Pyjnius, PyOBJus.
+  - **Desired Skills**: Familiarity with PyJNIus, PyOBJus.
 
 
-
-Hard Projects
-~~~~~~~~~~~~~
+Advanced Projects
+~~~~~~~~~~~~~~~~~
 These projects may involve very in-depth knowledge of Kivy's existing 
 internals, the hairy details of cross-platform compilation, or other fairly 
 advanced topics. If you are comfortable with the internals of Python, working 
@@ -179,9 +178,9 @@ may appeal to you.
     Cython constructs.
 
     The student would work to finish creating a fully functional Tiled module
-    that supports the full range of maptypes Tiled supports: hex, square, and
+    that supports the full range of map types Tiled supports: hex, square, and
     isometric square tiles. This task will likely involve writing both logic
-    and rendering gamesystems. In addition, the student will be responsible
+    and rendering game systems. In addition, the student will be responsible
     for completing an MIT licensed tmx (the tiled file format) loader for use
     in KivEnt. 
 
@@ -194,53 +193,51 @@ may appeal to you.
 
   - **Mentors**: Jacob Kovac, Gabriel Pettier
   - **Requirements**: Access to at least one Kivy platform.
-  - **Task level**: Hard
+  - **Task level**: Advanced
   - **Desired Skills**: Familiarity with Cython, Python, and game dev related
     math concepts.
 
-**Python-for-android: New features**
+**Python for Android: New features**
 
   Description:
     Python for Android is a project to create your own Python distribution 
-    including the modules you want, and create an apk including python, libs,
+    including the modules you want, and create an APK including Python, libs,
     and your application.
 
     This tool was recently rewritten to provide a new, easier to use and
-    extend interface.
+    extended interface.
 
     The student would work to help bring this new toolchain to
-    feature parity with old toolchain and improve it with new features
-    like:: Custom Splash screen support including animation, ability to
-    fully customi AndroiManifest.xml, and work on known missing stuff
+    feature parity with the old toolchain and improve it with new features
+    like:: custom splash screen support including animation, ability to
+    fully customize AndroiManifest.xml, and work on known missing stuff
     (linked below). 
 
   References:
     - https://github.com/kivy/python-for-android#known-missing-stuff-from-p4a
   Expected Outcome:
-    A successful outcome involves a new kivent_tiled module being released for
-    the KivEnt game engine.
+    -
 
-  - **Mentors**: Alexander Taylor, Ryan Pesa
-  - **Requirements**: Access linux, android.
-  - **Task level**: Intermediate
-  - **Desired Skills**: Familiarity with Cython, Python and PyJnius
+  - **Mentors**: Alexander Taylor, Ryan Pessa
+  - **Requirements**: Access to Linux and Android.
+  - **Task level**: Advanced
+  - **Desired Skills**: Familiarity with Cython, Python and PyJNIus
 
 
 
 How to Contact devs
 -------------------
-Ask your questions on the Kivy users forums http://kivy.org/#forum
+Ask your questions on the Kivy Users forum https://kivy.org/#forum
+or send a mail at kivy-users@googlegroups.com
 
-Or send a mail at kivy-users@googlegroups.com
+Make sure to join the kivy-dev user group too: 
+https://groups.google.com/forum/#!forum/kivy-dev.
 
-Make sure to Join kivy-dev user group too @ 
-https://groups.google.com/forum/#!forum/kivy-dev
-
-You can also try to contact us on IRC (online chat), to get the irc handles of 
-the devs mentioned above visit http://kivy.org/#aboutus
+You can also try to contact us on IRC (online chat), to get the IRC handles of 
+the devs mentioned above visit http://kivy.org/#aboutus.
 
 Make sure to read the `IRC rules <http://kivy.org/docs/contact.html>`_ before 
-connecting. `Connect to webchat <http://webchat.freenode.net/?nick=kvuser_GSOC_.&channels=kivy&uio=d4>`_
+connecting. `Connect to webchat <http://webchat.freenode.net/?nick=kvuser_GSOC_.&channels=kivy&uio=d4>`_.
 
 
 Most of our developers are located in Europe, India, and North America so keep 
@@ -262,7 +259,7 @@ Here's a checklist:
 * Read our contribution guidelines.
 * Make a contribution! Kivy would like to see how you engage with the 
   development process. Take a look at the issue tracker for a Kivy project 
-  that interest you and submit a Pull Request. It can be a simple bug or a 
+  that interests you and submit a Pull Request. It can be a simple bug or a 
   documentation change. We are looking to get a feel for how you work, not 
   evaluating your capabilities. Don't worry about trying to pick something 
   to impress us.
@@ -304,4 +301,4 @@ What to expect if you are chosen
   your mentors as soon as possible. If a milestone seems out of reach we will 
   work with you to reevaluate the goals.
 * Your changes will be merged into master once the project has been completed 
-  and we have thoroughly tested on every platform that is relevant!
+  and we have thoroughly tested on every platform that is relevant.
