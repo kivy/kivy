@@ -125,16 +125,16 @@ wheelhouse of the average Pythonista.
     Kivy. The idea is to provide a stable API to the user for 
     accessing features of their desktop or mobile device.
     
-    The student would replace some `.java` code currently in the Kivy 
+    The student would replace some `.java` code currently in the py4a
     project to a more appropriate place in Plyer. In addition, the 
     student would work on improving access to platform specific 
     features through Plyer, including accessibility, Bluetooth Low Energy,
     accessing contacts, sharing, NFC, contacts, in app browser,
-    wifi(enable, disable, access to wifi services(wifi direct,
-    network acessibility, current ip info on network etc.),
-    Camera Capture(video), camera display, googleplay integration, toast,
+    wifi (enable, disable, access to wifi services (wifi direct,
+    network accessibility, current ip info on network etc.),
+    Camera Capture (video), camera display, googleplay integration, toast,
     launch phone call interface, sms interface, geo location, 
-    interaction with notification, globalisation(languages),
+    interaction with notification, globalisation (languages),
     and all the missing platform implementations from existing features.
     
     Under the hood you'll use PyJNIus on Android, PyOBJus on OS X and 
