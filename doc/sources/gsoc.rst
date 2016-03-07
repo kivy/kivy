@@ -94,47 +94,22 @@ Beginner Projects
 These projects should be suitable for anyone with a college level familiarity
 with Python and require little knowledge of platform specifics.
 
-**Kivy Designer**
+**RecycleView:**
 
-  Description:
-    Kivy Designer is a GUI tool for creating Kivy GUI layouts written in Kivy. 
-    You can compose, customize, and test widgets using the tool. This project 
-    has been the subject of 2 previous GSoC and is experimental, alpha level 
-    software at the moment. However, it is a very popular request for more 
-    updates among our users; if you are interested in GUI tool development 
-    this could be a great fit for you!
-
-  The Student will:
-  
-  - Integrate Buildozer, which is our build tool for deploying to different 
-    target OS, within the kivy-designer.
-  - Interface for using hanga.io (Remote Buildozer server) as a deployment 
-    target.
-  - Better File management for project files. Browser Pane.
-  - Interface to test using different screen modules, for emulating interface 
-    on different screen sizes.
-  - Interface to Select different targets, simulator or actual device if 
-    connected to deploy to.
-  - Add mobile specific UI fixes(mostly making sure UI looks and feels the 
-    same on tablets as on desktops)
-  - Work on stability fixes.
+Take existing garden project RecycleView and make it api, feature
+compatible with ListView
 
   References:
-    - https://github.com/kivy/kivy-designer
-    - http://github.com/kivy/buildozer
-    - http://hanga.io
-
+    - https://github.com/kivy-garden/garden.recycleview
+    - https://kivy.org/docs/api-kivy.uix.listview.html
   Expected outcome:
-    It is expected that the student completes all the features mentioned above,  
-    except stability fixes which is dependent on however much time is left 
-    after completing the rest of the features. 
-
-  - **Mentors**: Akshay Arora, Ryan Pessa
-  - **Requirements:** Access to Linux, Windows, or OS X
-  - **Task level**: Easy
-  - **Desired Skills**: Experience with other GUI creation tools. Familiar 
-    with Kivy approach to EventLoop and UIX Widgets.
-
+    A successful outcome would include users being able to simply
+    replace ListView with RecycleView.
+    
+  - **Mentors**: Mathew Einhorn, Akshay Arora
+  - **Requirements**: Access to Kivy development env.
+  - **Task level**: Beginner
+  - **Desired Skills**: Familiarity with kivy and kivy garden.
 
 Intermediate Projects
 ~~~~~~~~~~~~~~~~~~~~~
@@ -153,10 +128,14 @@ wheelhouse of the average Pythonista.
     The student would replace some `.java` code currently in the Kivy 
     project to a more appropriate place in Plyer. In addition, the 
     student would work on improving access to platform specific 
-    features through Plyer, including accessibility, Bluetooth, 
-    Bluetooth Low Energy, recording and previewing the video camera, 
-    accessing contacts, recording audio, and utilizing speech 
-    recognition. 
+    features through Plyer, including accessibility, Bluetooth Low Energy,
+    accessing contacts, sharing, NFC, contacts, in app browser,
+    wifi(enable, disable, access to wifi services(wifi direct,
+    network acessibility, current ip info on network etc.),
+    Camera Capture(video), camera display, googleplay integration, toast,
+    launch phone call interface, sms interface, geo location, 
+    interaction with notification, globalisation(languages),
+    and all the missing platform implementations from existing features.
     
     Under the hood you'll use PyJNIus on Android, PyOBJus on OS X and 
     iOS, ctypes on Windows, and native APIs on Linux. This probably 
@@ -170,15 +149,25 @@ wheelhouse of the average Pythonista.
     - https://github.com/kivy/python-for-android
     - https://github.com/kivy/kivy-ios
   Expected outcome:
-    A successful outcome would include moving the Kivy Java code to 
-    plyer and implementation of some or all of the new facades to be 
-    decided with the student.
+    A successful outcome would include moving the Java/pyobjys code
+    from py4a/kivy-ios to plyer and implementation of some or all
+    of the new facades to be decided with the student.
     
-  - **Mentors**: Gabriel Pettier, Sebastian Popute
+  - **Mentors**: Akshay Arora, Ryan Pesa
   - **Requirements**: Access to Linux, Windows, OS X, iOS device,  
     Android device.
   - **Task level**: Intermediate
   - **Desired Skills**: Familiarity with Pyjnius, PyOBJus.
+
+
+
+Hard Projects
+~~~~~~~~~~~~~
+These projects may involve very in-depth knowledge of Kivy's existing 
+internals, the hairy details of cross-platform compilation, or other fairly 
+advanced topics. If you are comfortable with the internals of Python, working 
+with C code, and using Cython to build your own C extensions these projects 
+may appeal to you.
 
 
 **Kivent: Tiled Integration**
@@ -203,20 +192,38 @@ wheelhouse of the average Pythonista.
     A successful outcome involves a new kivent_tiled module being released for
     the KivEnt game engine.
 
-  - **Mentors**: Jacob Kovac
+  - **Mentors**: Jacob Kovac, Gabriel Pettier
   - **Requirements**: Access to at least one Kivy platform.
   - **Task level**: Intermediate
   - **Desired Skills**: Familiarity with Cython, Python, and game dev related
     math concepts.
 
+**Python-for-android: New features**
 
-Hard Projects
-~~~~~~~~~~~~~
-These projects may involve very in-depth knowledge of Kivy's existing 
-internals, the hairy details of cross-platform compilation, or other fairly 
-advanced topics. If you are comfortable with the internals of Python, working 
-with C code, and using Cython to build your own C extensions these projects 
-may appeal to you. 
+  Description:
+    Python for Android is a project to create your own Python distribution 
+    including the modules you want, and create an apk including python, libs,
+    and your application.
+
+    This tool was recently rewritten to provide a new, easier to use and
+    extend interface.
+
+    The student would work to help bring this new toolchain to
+    feature parity with old toolchain and improve it with new features
+    like:: Custom Splash screen support including animation, ability to
+    fully customi AndroiManifest.xml, and work on known missing stuff
+    (linked below). 
+
+  References:
+    - https://github.com/kivy/python-for-android#known-missing-stuff-from-p4a
+  Expected Outcome:
+    A successful outcome involves a new kivent_tiled module being released for
+    the KivEnt game engine.
+
+  - **Mentors**: Alexander Taylor, Ryan Pesa
+  - **Requirements**: Access linux, android.
+  - **Task level**: Intermediate
+  - **Desired Skills**: Familiarity with Cython, Python and PyJnius
 
 
 
