@@ -132,7 +132,7 @@ wheelhouse of the average Pythonista.
     accessing and editing contacts, sharing, NFC, in-app browser,
     Wi-Fi (enable, disable, access to Wi-Fi services (Wi-Fi direct,
     network accessibility, current IP info on network etc.),
-    Camera capture (video), camera display, Google Play integration, toast,
+    Camera capture (video), camera display, Google Play integration,
     launch phone call interface, sms interface, geolocation, 
     interaction with notifications, internationalization (I18N),
     and all the missing platform implementations from existing features.
