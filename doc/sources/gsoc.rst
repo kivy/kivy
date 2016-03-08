@@ -228,16 +228,19 @@ may appeal to you.
 
 How to Contact devs
 -------------------
-Ask your questions on the Kivy Users forum https://kivy.org/#forum
+All communication must happen via public channels, private emails
+and IRC messages are discouraged.
+
+Ask your questions on the Kivy Users forum https://groups.google.com/group/kivy-users
 or send a mail at kivy-users@googlegroups.com
 
 Make sure to join the kivy-dev user group too: 
 https://groups.google.com/forum/#!forum/kivy-dev.
 
 You can also try to contact us on IRC (online chat), to get the IRC handles of 
-the devs mentioned above visit http://kivy.org/#aboutus.
+the devs mentioned above visit https://kivy.org/#aboutus.
 
-Make sure to read the `IRC rules <http://kivy.org/docs/contact.html>`_ before 
+Make sure to read the `IRC rules <https://kivy.org/docs/contact.html>`_ before 
 connecting. `Connect to webchat <http://webchat.freenode.net/?nick=kvuser_GSOC_.&channels=kivy&uio=d4>`_.
 
 
