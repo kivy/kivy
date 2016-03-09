@@ -44,8 +44,15 @@ is available by typing ``python --version``. Then, do the following to install.
 #. Install kivy::
 
      python -m pip install kivy
-
+     
 That's it. You should now be able to ``import kivy`` in python.
+
+.. note::
+
+    If you encounter any **permission denied** errors, try opening the
+    `Command prompt as administrator
+    <https://technet.microsoft.com/en-us/library/cc947813%28v=ws.10%29.aspx>`_
+    and trying again.
 
 .. _install-nightly-win-dist:
 
