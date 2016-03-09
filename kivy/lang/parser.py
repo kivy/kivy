@@ -444,7 +444,7 @@ class Parser(object):
                 kivy.lang.builder.Builder.load_file(ref)
             elif cmd[:7] == 'import ':
                 package = cmd[7:].strip()
-                l = package.split(' ')
+                l = package.split()
                 if len(l) != 2:
                     raise ParserException(self, ln, 'Invalid import syntax')
                 alias, package = l
