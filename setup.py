@@ -8,8 +8,8 @@ import sys
 
 from copy import deepcopy
 import os
-from os.path import join, dirname, sep, exists, basename, isdir, abspath
-from os import walk, environ, makedirs, listdir
+from os.path import join, dirname, sep, exists, basename, isdir
+from os import walk, environ
 from distutils.version import LooseVersion
 from collections import OrderedDict
 from time import sleep
