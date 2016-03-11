@@ -77,13 +77,13 @@ Sister projects
   API from Python.
 - [Pyobjus](https://github.com/kivy/pyobjus): dynamic access to the
   Objective-C/iOS API from Python.
-- [Python for Android](http://github.com/kivy/python-for-android): toolchain
+- [Python for Android](https://github.com/kivy/python-for-android): toolchain
   for building and packaging Python applications for Android.
 - [Kivy iOS](https://github.com/kivy/kivy-ios): toolchain for building and
   packaging Kivy applications for iOS.
 - [Audiostream](https://github.com/kivy/audiostream): library for direct access
   to the microphone and speaker.
-- [Kivy Designer](http://github.com/kivy/kivy-designer): UI designer for Kivy.
+- [Kivy Designer](https://github.com/kivy/kivy-designer): UI designer for Kivy.
 - [KivEnt](https://github.com/kivy/kivent): entity-based game engine for Kivy.
 - [Garden](https://github.com/kivy-garden): widgets and libraries created and
   maintained by users.
