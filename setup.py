@@ -1,5 +1,5 @@
 #
-# Kivy - Cross-platform NUI framework
+# Kivy - Cross-platform UI framework
 # https://kivy.org/
 #
 from __future__ import print_function
