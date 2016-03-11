@@ -1,6 +1,6 @@
 #
-# Kivy - Crossplatform NUI toolkit
-# http://kivy.org/
+# Kivy - Cross-platform NUI framework
+# https://kivy.org/
 #
 from __future__ import print_function
 
