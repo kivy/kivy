@@ -34,6 +34,7 @@ class ClipboardDbusKlipper(ClipboardBase):
 
     def put(self, data, mimetype='text/plain'):
         self.init()
+        data = data.decode('utf8') if sys.version_info[0] >= 3 else data
         self.iface.setClipboardContents(data.replace('\x00', ''))
 
     def get_types(self):
