@@ -94,23 +94,6 @@ Beginner Projects
 These projects should be suitable for anyone with a college level familiarity
 with Python and require little knowledge of platform specifics.
 
-**RecycleView:**
-
-Take the existing garden project RecycleView, and make its API feature
-complete with ListView.
-
-  References:
-    - https://github.com/kivy-garden/garden.recycleview
-    - https://kivy.org/docs/api-kivy.uix.listview.html
-  Expected outcome:
-    A successful outcome would include users being able to simply
-    replace ListView with RecycleView.
-    
-  - **Mentors**: Matthew Einhorn, Akshay Arora
-  - **Requirements**: Access to Kivy development env.
-  - **Task level**: Beginner
-  - **Desired Skills**: Familiarity with Kivy and Kivy Garden.
-
 Intermediate Projects
 ~~~~~~~~~~~~~~~~~~~~~
 These projects may involve cursory level knowledge of several OS level details,
