@@ -90,7 +90,7 @@ cdef class _WindowSDL2Storage:
         else:
             orientations = <bytes>environ.get('KIVY_ORIENTATION',
                 'LandscapeLeft LandscapeRight')
-        SDL_SetHint(SDL_HINT_ORIENTATIONS, orientations)
+        SDL_SetHint(SDL_HINT_ORIENTATIONS, <bytes>orientations)
 
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16)
