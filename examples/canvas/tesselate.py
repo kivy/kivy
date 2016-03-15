@@ -13,7 +13,6 @@ different colors.
 from kivy.app import App
 from kivy.graphics import Mesh, Color
 from kivy.graphics.tesselator import Tesselator, WINDING_ODD, TYPE_POLYGONS
-from kivy.uix.widget import Widget
 from kivy.uix.floatlayout import FloatLayout
 from kivy.lang import Builder
 from kivy.logger import Logger
@@ -107,7 +106,6 @@ class ShapeBuilder(FloatLayout):
 
         debug = self.ids.debug.state == "down"
         if debug:
-            from random import random
             with self.canvas.after:
                 c = 0
                 for vertices, indices in tess.meshes:
