@@ -237,7 +237,6 @@ The following example marks the anchors and references contained in a label::
 
 __all__ = ('Label', )
 
-from functools import partial
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.core.text import Label as CoreLabel

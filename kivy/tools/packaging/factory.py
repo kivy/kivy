@@ -6,7 +6,6 @@ from distutils.cmd import Command
 import fnmatch
 import os
 import kivy
-import types
 
 ignore_list = (
     'kivy.lib',

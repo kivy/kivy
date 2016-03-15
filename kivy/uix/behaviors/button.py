@@ -48,9 +48,8 @@ __all__ = ('ButtonBehavior', )
 
 from kivy.clock import Clock
 from kivy.properties import OptionProperty, ObjectProperty, \
-    BooleanProperty, NumericProperty, AliasProperty
+    BooleanProperty, NumericProperty
 from time import time
-from kivy.logger import Logger
 
 
 class ButtonBehavior(object):
