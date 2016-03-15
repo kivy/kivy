@@ -800,7 +800,14 @@ sources = {
             'lib/libtess2/Source/tess.c'
         ]
     }),
-    'graphics/svg.pyx': merge(base_flags, gl_flags_base)
+    'graphics/svg.pyx': merge(base_flags, gl_flags_base),
+    'lang/builder.py': {},
+    'lang/parser.py': {},
+    'uix/videoplayer.py': {},
+    'uix/relativelayout.py': {},
+    'uix/floatlayout.py': {},
+    'uix/layout.py': {},
+    'uix/carousel.py': {},
 }
 
 if c_options["use_sdl2"]:
