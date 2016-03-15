@@ -7,9 +7,6 @@ from kivy.adapters.models import SelectableDataItem
 
 from kivy.uix.listview import ListItemButton
 
-from random import choice
-from string import ascii_uppercase, digits
-
 import random
 
 

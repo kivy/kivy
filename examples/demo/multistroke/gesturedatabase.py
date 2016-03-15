@@ -7,7 +7,6 @@ from kivy.properties import ListProperty, ObjectProperty
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.popup import Popup
-from kivy.uix.filechooser import FileChooserListView
 from kivy.graphics import Rectangle, Color
 from kivy.multistroke import Recognizer
 
