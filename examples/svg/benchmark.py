@@ -1,4 +1,3 @@
-from kivy.core.window import Window
 from kivy.graphics.svg import Svg
 from time import time
 import sys

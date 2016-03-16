@@ -34,9 +34,6 @@ from kivy.clock import Clock
 
 CATALOG_ROOT = os.path.dirname(__file__)
 
-#Config.set('graphics', 'width', '1024')
-#Config.set('graphics', 'height', '768')
-
 '''List of classes that need to be instantiated in the factory from .kv files.
 '''
 CONTAINER_KVS = os.path.join(CATALOG_ROOT, 'container_kvs')
