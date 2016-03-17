@@ -9,12 +9,12 @@ __all__ = ('ClipboardAndroid', )
 
 from kivy import Logger
 from kivy.core.clipboard import ClipboardBase
-from jnius import autoclass
-from android.config import JAVA_NAMESPACE
+from jnius import autoclass, cast
 from android.runnable import run_on_ui_thread
+from android import python_act
 
 AndroidString = autoclass('java.lang.String')
-PythonActivity = autoclass(JAVA_NAMESPACE + '.PythonActivity').mActivity
+PythonActivity = python_act
 Context = autoclass('android.content.Context')
 VER = autoclass('android.os.Build$VERSION')
 sdk = VER.SDK_INT
@@ -41,7 +41,7 @@ class ClipboardAndroid(ClipboardBase):
 
     @run_on_ui_thread
     def _initialize_clipboard(self):
-        PythonActivity._clipboard = PythonActivity.getSystemService(
+        PythonActivity._clipboard = PythonActivity.mActivity.getSystemService(
             Context.CLIPBOARD_SERVICE)
 
     def _get_clipboard(f):
@@ -58,6 +58,7 @@ class ClipboardAndroid(ClipboardBase):
     @_get_clipboard
     def _get(self, mimetype='text/plain'):
         clippy = PythonActivity._clipboard
+        data = ''
         if sdk < 11:
             data = clippy.getText()
         else:
@@ -65,13 +66,12 @@ class ClipboardAndroid(ClipboardBase):
             primary_clip = clippy.getPrimaryClip()
             if primary_clip:
                 try:
-                    data = primary_clip.getItemAt(0).coerceToText(
-                        PythonActivity.mActivity)
+                    data = primary_clip.getItemAt(0)
+                    if data:
+                        data = data.coerceToText(
+                            PythonActivity.mActivity.getApplicationContext())
                 except Exception:
                     Logger.exception('Clipboard: failed to paste')
-                    data = ''
-            else:
-                data = ''
         return data
 
     @_get_clipboard
@@ -87,3 +87,4 @@ class ClipboardAndroid(ClipboardBase):
                                          AndroidString(data))
             # put text data onto clipboard
             clippy.setPrimaryClip(new_clip)
+
