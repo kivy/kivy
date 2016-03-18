@@ -78,8 +78,8 @@ Builder.load_string('''
         halign: 'center'
         height: self.texture.size[1] if self.texture else 10
         text:
-            ("Selected Image:\\n' + app.current_image.source.split(os.sep)[2] "
-            "if app.current_image else 'None'")
+            ("Selected Image:\\n" + app.current_image.source.split(os.sep)[-1]
+            if app.current_image else 'None')
     Button:
         text: 'Brush'
         size_hint_y: None
