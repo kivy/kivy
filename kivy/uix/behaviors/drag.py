@@ -49,8 +49,7 @@ The following example creates a draggable label::
 __all__ = ('DragBehavior', )
 
 from kivy.clock import Clock
-from kivy.properties import NumericProperty, ReferenceListProperty, \
-    ListProperty
+from kivy.properties import NumericProperty, ReferenceListProperty
 from kivy.config import Config
 from kivy.metrics import sp
 from functools import partial

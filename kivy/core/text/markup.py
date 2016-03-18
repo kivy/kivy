@@ -52,7 +52,6 @@ from kivy.logger import Logger
 from kivy.core.text import Label, LabelBase
 from kivy.core.text.text_layout import layout_text, LayoutWord, LayoutLine
 from copy import copy
-from math import ceil
 from functools import partial
 
 # We need to do this trick when documentation is generated

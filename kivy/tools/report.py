@@ -9,7 +9,6 @@ for help during the debugging process.
 
 import os
 import sys
-import time
 from time import ctime
 from configparser import ConfigParser
 from io import StringIO

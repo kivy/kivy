@@ -123,7 +123,6 @@ The storage API emulates the container type for the synchronous API::
 
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
-from functools import partial
 
 
 class AbstractStore(EventDispatcher):

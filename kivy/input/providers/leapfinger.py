@@ -5,7 +5,6 @@ Leap Motion - finger only
 
 __all__ = ('LeapFingerEventProvider', 'LeapFingerEvent')
 
-import os
 from collections import deque
 from kivy.logger import Logger
 from kivy.input.provider import MotionEventProvider

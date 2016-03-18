@@ -33,8 +33,8 @@ __version__ = '1.9.2-dev0'
 import sys
 import shutil
 from getopt import getopt, GetoptError
-from os import environ, mkdir, pathsep
-from os.path import dirname, join, basename, exists, expanduser, isdir
+from os import environ, mkdir
+from os.path import dirname, join, basename, exists, expanduser
 import pkgutil
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.utils import platform

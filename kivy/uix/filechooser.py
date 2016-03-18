@@ -98,11 +98,11 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import (
     StringProperty, ListProperty, BooleanProperty, ObjectProperty,
-    NumericProperty, OptionProperty, AliasProperty)
+    NumericProperty, AliasProperty)
 from os import listdir
 from os.path import (
     basename, join, sep, normpath, expanduser, altsep,
-    splitdrive, realpath, getsize, isdir, abspath, pardir)
+    splitdrive, realpath, getsize, isdir, abspath)
 from fnmatch import fnmatch
 import collections
 

@@ -146,8 +146,6 @@ __all__ = ('TextInput', )
 
 import re
 import sys
-import string
-from functools import partial
 from os import environ
 from weakref import ref
 
@@ -156,8 +154,6 @@ from kivy.base import EventLoop
 from kivy.cache import Cache
 from kivy.clock import Clock
 from kivy.config import Config
-from kivy.compat import PY2
-from kivy.logger import Logger
 from kivy.metrics import inch
 from kivy.utils import boundary, platform
 from kivy.uix.behaviors import FocusBehavior
@@ -174,7 +170,7 @@ from kivy.uix.image import Image
 
 from kivy.properties import StringProperty, NumericProperty, \
     BooleanProperty, AliasProperty, \
-    ListProperty, ObjectProperty, VariableListProperty, OptionProperty
+    ListProperty, ObjectProperty, VariableListProperty
 
 Cache_register = Cache.register
 Cache_append = Cache.append
