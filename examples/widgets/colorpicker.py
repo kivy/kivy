@@ -99,7 +99,7 @@ Builder.load_string('''
     Button:
         text: 'clear'
         on_release:
-            app.current_image.canvas.after.clear()
+            app.handle_clear()
 
 <MainRootWidget>
     current_image: None
@@ -225,6 +225,9 @@ class MainApp(App):
         self.main_root_widget = MainRootWidget()
         return self.main_root_widget
 
+    def handle_clear(self):
+        if self.current_image:
+            self.current_image.canvas.after.clear()
 
 if __name__ == '__main__':
     MainApp().run()
