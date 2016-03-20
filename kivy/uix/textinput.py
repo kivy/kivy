@@ -179,7 +179,9 @@ Cache_remove = Cache.remove
 Cache_register('textinput.label', timeout=60.)
 Cache_register('textinput.width', timeout=60.)
 
-FL_IS_NEWLINE = 0x01
+FL_IS_LINEBREAK = 0x01
+FL_IS_WORDBREAK = 0x02
+FL_IS_NEWLINE = FL_IS_LINEBREAK | FL_IS_WORDBREAK
 
 # late binding
 Clipboard = None
@@ -561,9 +563,9 @@ class TextInput(FocusBehavior, Widget):
                 if row >= len(l):
                     continue
                 index += len(l[row])
-                if lf[row] & FL_IS_NEWLINE:
+                if lf[row] & FL_IS_LINEBREAK:
                     index += 1
-            if lf[cr] & FL_IS_NEWLINE:
+            if lf[cr] & FL_IS_LINEBREAK:
                 index += 1
             return index
         except IndexError:
@@ -593,7 +595,7 @@ class TextInput(FocusBehavior, Widget):
         i = 0
         for row in range(len(l)):
             ni = i + len(l[row])
-            if lf[row] & FL_IS_NEWLINE:
+            if lf[row] & FL_IS_LINEBREAK:
                 ni += 1
                 i += 1
             if ni >= index:
@@ -2146,6 +2148,17 @@ class TextInput(FocusBehavior, Widget):
             oldindex = index + 1
         yield text[oldindex:]
 
+    def _split_word(self, text, width):
+        x = 0
+        split_pos = 0
+        for c in text:
+            cw = self._get_text_width(c, self.tab_width, self._label_cached)
+            if x + cw > width:
+                break
+            x += cw
+            split_pos += 1
+        return split_pos, x
+
     def _split_smart(self, text):
         # Do a "smart" split. If autowidth or autosize is set,
         # we are not doing smart split, just a split on line break.
@@ -2155,7 +2168,7 @@ class TextInput(FocusBehavior, Widget):
         # depend of the options, split the text on line, or word
         if not self.multiline:
             lines = text.split(u'\n')
-            lines_flags = [0] + [FL_IS_NEWLINE] * (len(lines) - 1)
+            lines_flags = [0] + [FL_IS_LINEBREAK] * (len(lines) - 1)
             return lines, lines_flags
 
         # no autosize, do wordwrap.
@@ -2184,11 +2197,21 @@ class TextInput(FocusBehavior, Widget):
                 line = []
                 x = 0
             if is_newline:
-                flags |= FL_IS_NEWLINE
+                flags |= FL_IS_LINEBREAK
+            elif w > width:
+                while w > width:
+                    split_pos, split_width = self._split_word(word, width)
+                    lines_append(word[:split_pos])
+                    lines_flags_append(FL_IS_WORDBREAK)
+                    flags = 0
+                    word = word[split_pos:]
+                    w -= split_width
+                x = w
+                line.append(word)
             else:
                 x += w
                 line.append(word)
-        if line or flags & FL_IS_NEWLINE:
+        if line or flags & FL_IS_LINEBREAK:
             lines_append(_join(line))
             lines_flags_append(flags)
 
@@ -2853,7 +2876,7 @@ class TextInput(FocusBehavior, Widget):
         if len(lf) < len_l:
             lf.append(1)
 
-        text = u''.join([(u'\n' if (lf[i] & FL_IS_NEWLINE) else u'') + l[i]
+        text = u''.join([(u'\n' if (lf[i] & FL_IS_LINEBREAK) else u'') + l[i]
                         for i in range(len_l)])
 
         if encode and not isinstance(text, bytes):
