@@ -618,73 +618,73 @@ class ObservableList(list):
     def __init__(self, *largs):
         self.prop = largs[0]
         self.obj = ref(largs[1])
-        self.last_op = ''
+        self.last_op = '', None
         super(ObservableList, self).__init__(*largs[2:])
 
     def __setitem__(self, key, value):
-        self.last_op = '__setitem__'
         list.__setitem__(self, key, value)
+        self.last_op = '__setitem__', key
         observable_list_dispatch(self)
 
     def __delitem__(self, key):
-        self.last_op = '__delitem__'
         list.__delitem__(self, key)
+        self.last_op = '__delitem__', key
         observable_list_dispatch(self)
 
-    def __setslice__(self, *largs):
-        self.last_op = '__setslice__'
-        list.__setslice__(self, *largs)
+    def __setslice__(self, b, c, v):
+        list.__setslice__(self, b, c, v)
+        self.last_op = '__setslice__', (b, c)
         observable_list_dispatch(self)
 
-    def __delslice__(self, *largs):
-        self.last_op = '__delslice__'
-        list.__delslice__(self, *largs)
+    def __delslice__(self, b, c):
+        list.__delslice__(self, b, c)
+        self.last_op = '__delslice__', (b, c)
         observable_list_dispatch(self)
 
     def __iadd__(self, *largs):
-        self.last_op = '__iadd__'
         list.__iadd__(self, *largs)
+        self.last_op = '__iadd__', None
         observable_list_dispatch(self)
 
-    def __imul__(self, *largs):
-        self.last_op = '__imul__'
-        list.__imul__(self, *largs)
+    def __imul__(self, b):
+        list.__imul__(self, b)
+        self.last_op = '__imul__'. b
         observable_list_dispatch(self)
 
     def append(self, *largs):
-        self.last_op = 'append'
         list.append(self, *largs)
+        self.last_op = 'append', None
         observable_list_dispatch(self)
 
     def remove(self, *largs):
-        self.last_op = 'remove'
         list.remove(self, *largs)
+        self.last_op = 'remove', None
         observable_list_dispatch(self)
 
-    def insert(self, *largs):
-        self.last_op = 'insert'
-        list.insert(self, *largs)
+    def insert(self, i, x):
+        list.insert(self, i, x)
+        self.last_op = 'insert', i
         observable_list_dispatch(self)
 
     def pop(self, *largs):
-        self.last_op = 'pop'
         cdef object result = list.pop(self, *largs)
+        self.last_op = 'pop', largs
         observable_list_dispatch(self)
         return result
 
     def extend(self, *largs):
-        self.last_op = 'extend'
         list.extend(self, *largs)
+        self.last_op = 'extend', None
         observable_list_dispatch(self)
 
     def sort(self, *largs):
-        self.last_op = 'sort'
         list.sort(self, *largs)
+        self.last_op = 'sort', None
         observable_list_dispatch(self)
 
     def reverse(self, *largs):
-        self.last_op = 'reverse'
         list.reverse(self, *largs)
+        self.last_op = 'reverse', None
         observable_list_dispatch(self)
 
 
