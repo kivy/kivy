@@ -97,6 +97,7 @@ class LabelPygame(LabelBase):
         color[0], color[2] = color[2], color[0]
         try:
             text = font.render(text, True, color)
+            text.set_colorkey(color)
             self._pygame_surface.blit(text, (x, y), None,
                                       pygame.BLEND_RGBA_ADD)
         except pygame.error:
