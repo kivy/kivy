@@ -25,6 +25,7 @@ from kivy.factory import Factory
 from kivy.graphics import RenderContext
 from kivy.properties import StringProperty, ObjectProperty
 from kivy.clock import Clock
+from kivy.compat import PY2
 
 fs_header = '''
 #ifdef GL_ES
@@ -118,8 +119,15 @@ void main (void) {
         print('try compile')
         if not self.viewer:
             return
-        fs = fs_header + self.fs
-        vs = vs_header + self.vs
+
+        # we don't use str() here because it will crash with non-ascii char
+        if PY2:
+            fs = fs_header + self.fs.encode('utf-8')
+            vs = vs_header + self.vs.encode('utf-8')
+        else:
+            fs = fs_header + self.fs
+            vs = vs_header + self.vs
+
         print('-->', fs)
         self.viewer.fs = fs
         print('-->', vs)
