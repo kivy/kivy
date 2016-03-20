@@ -504,6 +504,11 @@ class TextInput(FocusBehavior, Widget):
         def handle_readonly(instance, value):
             if value and (not _is_desktop or not self.allow_copy):
                 self.is_focusable = False
+            if (not (value or self.disabled) or _is_desktop and
+                self._keyboard_mode == 'system'):
+                self._editable = True
+            else:
+                self._editable = False
 
         fbind('padding', update_text_options)
         fbind('tab_width', update_text_options)
@@ -1150,7 +1155,7 @@ class TextInput(FocusBehavior, Widget):
         _label_cached = self._label_cached
         for i in range(0, len(l[cy])):
             if _get_text_width(l[cy][:i], _tab_width, _label_cached) + \
-                  _get_text_width(l[cy][i], _tab_width, _label_cached)*0.6 + \
+                  _get_text_width(l[cy][i], _tab_width, _label_cached) * 0.6 + \
                   padding_left > cx + scrl_x:
                 cx = i
                 break
