@@ -789,7 +789,7 @@ class ScreenManager(FloatLayout):
     By default, the manager will show only one screen at a time.
     '''
 
-    current = StringProperty(None)
+    current = StringProperty(None, allownone=True)
     '''
     Name of the screen currently shown, or the screen to show.
 
@@ -845,7 +845,7 @@ class ScreenManager(FloatLayout):
     [], read-only.
     '''
 
-    current_screen = ObjectProperty(None)
+    current_screen = ObjectProperty(None, allownone=True)
     '''Contains the currently displayed screen. You must not change this
     property manually, use :attr:`current` instead.
 
@@ -897,34 +897,50 @@ class ScreenManager(FloatLayout):
         screen = l[0]
         if not isinstance(screen, Screen):
             raise ScreenManagerException(
-                'ScreenManager uses remove_widget only to remove' +
-                'screens added via add_widget! use real_remove_widget.')
+                'ScreenManager uses remove_widget only for removing Screens.')
 
-        if not screen in self.screens:
+        if screen not in self.screens:
             return
+
         if self.current_screen == screen:
             other = next(self)
-            if other:
+            if screen.name == other:
+                self.current = None
+                screen.parent.real_remove_widget(screen)
+            else:
                 self.current = other
-
-        # ensure screen is removed from it's previous parent
-        if screen.parent:
-            screen.parent.real_remove_widget(screen)
 
         screen.manager = None
         screen.unbind(name=self._screen_name_changed)
         self.screens.remove(screen)
 
-    def real_add_widget(self, *l):
-        super(ScreenManager, self).add_widget(*l)
+    def clear_widgets(self, screens=None):
+        if not screens:
+            screens = self.screens
+        remove_widget = self.remove_widget
+        for screen in screens:
+            remove_widget(screen)
 
-    def real_remove_widget(self, *l):
-        super(ScreenManager, self).remove_widget(*l)
+    def real_add_widget(self, screen, *args):
+        # ensure screen is removed from its previous parent
+        parent = screen.parent
+        if parent:
+            if isinstance(parent, ScreenManager):
+                parent.real_remove_widget(screen)
+            else:
+                parent.remove_widget(screen)
+        super(ScreenManager, self).add_widget(screen)
+
+    def real_remove_widget(self, screen, *args):
+        super(ScreenManager, self).remove_widget(screen)
 
     def on_current(self, instance, value):
-        screen = self.get_screen(value)
-        if not screen:
+        if value is None:
+            self.transition.stop()
+            self.current_screen = None
             return
+
+        screen = self.get_screen(value)
         if screen == self.current_screen:
             return
 
