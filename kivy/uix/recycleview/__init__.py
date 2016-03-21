@@ -4,6 +4,10 @@ RecycleView
 
 A flexible view for providing a limited window into a large data set.
 
+.. warning::
+    This module is highly experimental and its API may change in the future.
+
+
 Data accepted: list of dict.
 
 TODO:
