@@ -415,6 +415,7 @@ class GridLayout(Layout):
         if not children or not self._init_rows_cols_sizes(len(children)):
             l, t, r, b = self.padding
             self.minimum_size = l + r, t + b
+            return
         self._fill_rows_cols_sizes()
         self._update_minimum_size()
         self._finalize_rows_cols_sizes()
