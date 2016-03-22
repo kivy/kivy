@@ -324,7 +324,7 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
         self.view_indices = {}
 
     def remove_view(self, view, index):
-        super(RecycleLayout, self).remove_views(view, index)
+        super(RecycleLayout, self).remove_view(view, index)
         self.remove_widget(view)
         del self.view_indices[view]
 

@@ -281,6 +281,7 @@ class RecycleBoxLayout(RecycleLayout, BoxLayout):
         cx = self.x + padding_left
         cy = self.y + padding_bottom
         view_opts = self.view_opts
+        remove_view = self.remove_view
 
         for (index, widget, (w, h), (wn, hn), (shw, shh), (shnw, shnh),
              ph, phn) in changed:
