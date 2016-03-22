@@ -925,10 +925,7 @@ class ScreenManager(FloatLayout):
         # ensure screen is removed from its previous parent
         parent = screen.parent
         if parent:
-            if isinstance(parent, ScreenManager):
-                parent.real_remove_widget(screen)
-            else:
-                parent.remove_widget(screen)
+            parent.real_remove_widget(screen)
         super(ScreenManager, self).add_widget(screen)
 
     def real_remove_widget(self, screen, *args):
