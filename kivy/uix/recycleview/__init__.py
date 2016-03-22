@@ -66,9 +66,9 @@ class RecycleViewBehavior(object):
     _refresh_trigger = None
 
     def __init__(self, **kwargs):
-        super(RecycleViewBehavior, self).__init__(**kwargs)
-        self._refresh_flags = deepcopy(self._refresh_flags)
         self._refresh_trigger = Clock.create_trigger(self.refresh_views, -1)
+        self._refresh_flags = deepcopy(self._refresh_flags)
+        super(RecycleViewBehavior, self).__init__(**kwargs)
 
     def get_viewport(self):
         pass
@@ -257,11 +257,11 @@ class RecycleViewBehavior(object):
 class RecycleView(RecycleViewBehavior, ScrollView):
 
     def __init__(self, **kwargs):
-        super(RecycleView, self).__init__(**kwargs)
         if self.data_model is None:
-            self.data_model = RecycleDataModel()
+            kwargs.setdefault('data_model', RecycleDataModel())
         if self.view_adapter is None:
-            self.view_adapter = RecycleDataAdapter()
+            kwargs.setdefault('view_adapter', RecycleDataAdapter())
+        super(RecycleView, self).__init__(**kwargs)
 
         fbind = self.fbind
         fbind('scroll_x', self.refresh_from_viewport)
