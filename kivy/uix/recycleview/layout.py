@@ -129,9 +129,10 @@ apply_selection` method will be called everything the view needs to refresh
         if _view_base_cache[viewclass]:
             view.apply_selection(self.recycleview, index, is_selected)
 
-    def refresh_view_layout(self, index, pos, size, size_hint, view, viewport):
+    def refresh_view_layout(self, index, pos, pos_hint, size, size_hint, view,
+                            viewport):
         super(LayoutSelectionBehavior, self).refresh_view_layout(
-            index, pos, size, size_hint, view, viewport)
+            index, pos, pos_hint, size, size_hint, view, viewport)
         self.apply_selection(index, view, index in self.selected_nodes)
 
 
@@ -193,12 +194,13 @@ class RecycleLayoutManagerBehavior(object):
         '''
         pass
 
-    def refresh_view_layout(self, index, pos, size, size_hint, view, viewport):
+    def refresh_view_layout(self, index, pos, pos_hint, size, size_hint, view,
+                            viewport):
         '''`See :meth:`~kivy.uix.recycleview.views.RecycleDataAdapter.\
 refresh_view_layout`.
         '''
         self.recycleview.view_adapter.refresh_view_layout(
-            index, pos, size, size_hint, view, viewport)
+            index, pos, pos_hint, size, size_hint, view, viewport)
 
     def get_view_index_at(self, pos):
         """Return the view `index` on which position, `pos`, falls.
@@ -213,6 +215,13 @@ refresh_view_layout`.
             adapter = rv.view_adapter
             if adapter:
                 adapter.make_views_dirty()
+
+    def remove_view(self, view, index):
+        rv = self.recycleview
+        if rv:
+            adapter = rv.view_adapter
+            if adapter:
+                adapter.make_view_dirty(view, index)
 
     def clear_layout(self):
         rv = self.recycleview

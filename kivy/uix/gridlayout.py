@@ -337,12 +337,11 @@ class GridLayout(Layout):
     def _update_minimum_size(self):
         # calculate minimum width/height needed, starting from padding +
         # spacing
-        padding_x = self.padding[0] + self.padding[2]
-        padding_y = self.padding[1] + self.padding[3]
+        l, t, r, b = self.padding
         spacing_x, spacing_y = self.spacing
         cols, rows = self._cols, self._rows
-        width = padding_x + spacing_x * (len(cols) - 1)
-        height = padding_y + spacing_y * (len(rows) - 1)
+        width = l + r + spacing_x * (len(cols) - 1)
+        height = t + b + spacing_y * (len(rows) - 1)
         # then add the cell size
         width += sum(cols)
         height += sum(rows)
@@ -414,7 +413,8 @@ class GridLayout(Layout):
     def do_layout(self, *largs):
         children = self.children
         if not children or not self._init_rows_cols_sizes(len(children)):
-            return
+            l, t, r, b = self.padding
+            self.minimum_size = l + r, t + b
         self._fill_rows_cols_sizes()
         self._update_minimum_size()
         self._finalize_rows_cols_sizes()
@@ -440,9 +440,7 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
 
     def __init__(self, **kwargs):
         super(RecycleGridLayout, self).__init__(**kwargs)
-        update = self._trigger_layout
-        fbind = self.fbind
-        self.funbind('children', update)
+        self.funbind('children', self._trigger_layout)
 
     def on_children(self, instance, value):
         pass
@@ -477,18 +475,16 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
     def _update_rows_cols_sizes(self, changed):
         cols_count, rows_count = self._cols_count, self._rows_count
         cols, rows = self._cols, self._rows
-        make_view_dirty = self.recycleview.view_adapter.make_view_dirty
+        remove_view = self.remove_view
         n_cols = len(cols_count)
 
         # this can be further improved to reduce re-comp, but whatever...
-        relayout = False
-        for index, widget, (w, h), (wn, hn), sh, shn in changed:
+        for index, widget, (w, h), (wn, hn), sh, shn, _, _ in changed:
             if sh != shn:
-                relayout = True
-                make_view_dirty(widget, index)
+                return True
             elif (sh[0] is not None and w != wn or
                   sh[1] is not None and h != hn):
-                make_view_dirty(widget, index)
+                remove_view(widget, index)
             else:
                 row, col = divmod(index, n_cols)
 
@@ -498,7 +494,7 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
                     cols_count[col][wn] += 1
                     was_last_w = cols_count[col][w] <= 0
                     if was_last_w and col_w == w or wn > col_w:
-                        relayout = True
+                        return True
                     if was_last_w:
                         del cols_count[col][w]
 
@@ -508,13 +504,11 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
                     rows_count[row][hn] += 1
                     was_last_h = rows_count[row][h] <= 0
                     if was_last_h and row_h == h or hn > row_h:
-                        relayout = True
+                        return True
                     if was_last_h:
                         del rows_count[row][h]
 
-        if relayout:
-            self.clear_layout()
-        return relayout
+        return False
 
     def compute_layout(self, data, flags):
         super(RecycleGridLayout, self).compute_layout(data, flags)
@@ -527,19 +521,19 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
                 format(n))
 
         changed = self._changed_views
-        if changed is None:
+        if (changed is None or
+                changed and not self._update_rows_cols_sizes(changed)):
             return
 
-        if not changed or self._update_rows_cols_sizes(changed):
-            self.clear_layout()
-            if not self._init_rows_cols_sizes(n):
-                self._cols = None
-                return
-            self._fill_rows_cols_sizes()
-            self._update_minimum_size()
-            self._finalize_rows_cols_sizes()
-        else:
+        self.clear_layout()
+        if not self._init_rows_cols_sizes(n):
+            self._cols = None
+            l, t, r, b = self.padding
+            self.minimum_size = l + r, t + b
             return
+        self._fill_rows_cols_sizes()
+        self._update_minimum_size()
+        self._finalize_rows_cols_sizes()
 
         view_opts = self.view_opts
         for widget, p, (w, h) in self._iterate_layout(n):

@@ -11,12 +11,9 @@ A flexible view for providing a limited window into a large data set.
 Data accepted: list of dict.
 
 TODO:
-    - add custom function to get view height
-    - add custom function to get view class
-    - update view size when created
-    - move all internals to adapter
-    - selection
     - Method to clear cached class instances.
+    - Test when views cannot be found (e.g. viewclass is None).
+    - Fix selection goto.
 
 
 It is made with the MVC pattern. M for model is implemented by ....

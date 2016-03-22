@@ -102,9 +102,11 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
     default_size = ObjectProperty((100, 100))
     '''size as in w, h. They each can be None.
     '''
-    default_size_hint = ObjectProperty((None, None))
     key_size = StringProperty(None, allownone=True)
+    default_size_hint = ObjectProperty((None, None))
     key_size_hint = StringProperty(None, allownone=True)
+    default_pos_hint = ObjectProperty({})
+    key_pos_hint = StringProperty(None, allownone=True)
     initial_size = ObjectProperty((100, 100))
 
     view_opts = []
@@ -125,18 +127,22 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
         if rv:
             fbind = self.fbind
             fbind('default_size', rv.refresh_from_data)
-            fbind('default_size_hint', rv.refresh_from_data)
             fbind('key_size', rv.refresh_from_data)
+            fbind('default_size_hint', rv.refresh_from_data)
             fbind('key_size_hint', rv.refresh_from_data)
+            fbind('default_pos_hint', rv.refresh_from_data)
+            fbind('key_pos_hint', rv.refresh_from_data)
 
     def detach_recycleview(self):
         rv = self.recycleview
         if rv:
             funbind = self.funbind
             funbind('default_size', rv.refresh_from_data)
-            funbind('default_size_hint', rv.refresh_from_data)
             funbind('key_size', rv.refresh_from_data)
+            funbind('default_size_hint', rv.refresh_from_data)
             funbind('key_size_hint', rv.refresh_from_data)
+            funbind('default_pos_hint', rv.refresh_from_data)
+            funbind('key_pos_hint', rv.refresh_from_data)
         super(RecycleLayout, self).detach_recycleview()
 
     def _catch_layout_trigger(self, instance=None, value=None):
@@ -150,7 +156,8 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
         if idx is not None:
             opt = self.view_opts[idx]
             if (instance.size == opt['size'] and
-                instance.size_hint == opt['size_hint']):
+                instance.size_hint == opt['size_hint'] and
+                instance.pos_hint == opt['pos_hint']):
                 return
             self._size_needs_update = True
             rv.refresh_from_layout(view_size=True)
@@ -187,6 +194,8 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
                 self.clear_layout()
 
         assert len(data) == len(opts)
+        ph_key = self.key_pos_hint
+        ph_def = self.default_pos_hint
         sh_key = self.key_size_hint
         sh_def = self.default_size_hint
         s_key = self.key_size
@@ -199,6 +208,9 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
         for i, item in enumerate(data):
             if opts[i] is not None:
                 continue
+
+            ph = ph_def if ph_key is None else item.get(ph_key, ph_def)
+            ph = item.get('pos_hint', ph)
 
             sh = sh_def if sh_key is None else item.get(sh_key, sh_def)
             sh = item.get('size_hint', sh)
@@ -219,8 +231,9 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
 
             opts[i] = {
                 'size': [(iw if w is None else w), (ih if h is None else h)],
-                'size_hint': sh, 'pos': None, 'viewclass': viewcls,
-                'width_none': w is None, 'height_none': h is None}
+                'size_hint': sh, 'pos': None, 'pos_hint': ph,
+                'viewclass': viewcls, 'width_none': w is None,
+                'height_none': h is None}
 
     def compute_layout(self, data, flags):
         self._size_needs_update = False
@@ -235,10 +248,13 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
                 sn = widget.size
                 sh = opt['size_hint']
                 shn = widget.size_hint
-                if s != sn or sh != shn:
-                    changed.append((index, widget, s, sn, sh, shn))
+                ph = opt['pos_hint']
+                phn = widget.pos_hint
+                if s != sn or sh != shn or ph != phn:
+                    changed.append((index, widget, s, sn, sh, shn, ph, phn))
                     opt['size'] = sn
                     opt['size_hint'] = shn
+                    opt['pos_hint'] = phn
 
             self._changed_views = changed if changed else None
 
@@ -264,8 +280,8 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
             # will be recorded
             opt = view_opts[index]
             refresh_view_layout(
-                index, opt['pos'], opt['size'], opt['size_hint'], widget,
-                viewport)
+                index, opt['pos'], opt['pos_hint'], opt['size'],
+                opt['size_hint'], widget, viewport)
 
         # then add all the visible widgets, which binds size/size_hint
         add = self.add_widget
@@ -280,7 +296,8 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
         for index, widget in new:
             opt = view_opts[index]
             if (changed or widget.size == opt['size'] and
-                widget.size_hint == opt['size_hint']):
+                widget.size_hint == opt['size_hint'] and
+                widget.pos_hint == opt['pos_hint']):
                 continue
             changed = True
 
@@ -290,7 +307,8 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
             self._size_needs_update = True
             self.recycleview.refresh_from_layout(view_size=True)
 
-    def refresh_view_layout(self, index, pos, size, size_hint, view, viewport):
+    def refresh_view_layout(self, index, pos, pos_hint, size, size_hint, view,
+                            viewport):
         opt = self.view_opts[index]
         w, h = size
         if opt['width_none']:
@@ -298,12 +316,17 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
         if opt['height_none']:
             h = None
         super(RecycleLayout, self).refresh_view_layout(
-            index, pos, (w, h), size_hint, view, viewport)
+            index, pos, pos_hint, (w, h), size_hint, view, viewport)
 
     def remove_views(self):
         super(RecycleLayout, self).remove_views()
         self.clear_widgets()
         self.view_indices = {}
+
+    def remove_view(self, view, index):
+        super(RecycleLayout, self).remove_views(view, index)
+        self.remove_widget(view)
+        del self.view_indices[view]
 
     def clear_layout(self):
         super(RecycleLayout, self).clear_layout()

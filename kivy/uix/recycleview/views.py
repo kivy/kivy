@@ -66,7 +66,8 @@ class RecycleDataViewBehavior(object):
             if key not in sizing_attrs:
                 setattr(self, key, value)
 
-    def refresh_view_layout(self, rv, index, pos, size, size_hint, viewport):
+    def refresh_view_layout(self, rv, index, pos, pos_hint, size, size_hint,
+                            viewport):
         '''Called when the view's size is updated by the layout manager,
         :class:`RecycleLayoutManagerBehavior`.
 
@@ -85,6 +86,7 @@ class RecycleDataViewBehavior(object):
             to layout further since it'll be overwritten again soon.
         '''
         self.size_hint = size_hint
+        self.pos_hint = pos_hint
         w, h = size
         if w is None:
             if h is not None:
@@ -138,7 +140,7 @@ class RecycleDataAdapter(EventDispatcher):
 
     _sizing_attrs = {'size', 'width', 'height', 'size_hint', 'size_hint_x',
                      'size_hint_y', 'pos', 'x', 'y', 'center', 'center_x',
-                     'center_y'}
+                     'center_y', 'pos_hint'}
 
     def attach_recycleview(self, rv):
         '''Associates a :class:`~kivy.uix.recycleview.RecycleViewBehavior`
@@ -229,7 +231,8 @@ class RecycleDataAdapter(EventDispatcher):
                 if key not in sizing_attrs:
                     setattr(view, key, value)
 
-    def refresh_view_layout(self, index, pos, size, size_hint, view, viewport):
+    def refresh_view_layout(self, index, pos, pos_hint, size, size_hint, view,
+                            viewport):
         '''Updates the sizing information of the view.
 
         viewport` is in coordinates of the layout manager.
@@ -247,9 +250,11 @@ class RecycleDataAdapter(EventDispatcher):
 
         if _view_base_cache[view.__class__]:
             view.refresh_view_layout(
-                self.recycleview, index, pos, size, size_hint, viewport)
+                self.recycleview, index, pos, pos_hint, size, size_hint,
+                viewport)
         else:
             view.size_hint = size_hint
+            view.pos_hint = pos_hint
             w, h = size
             if w is None:
                 if h is not None:
