@@ -290,34 +290,41 @@ class RecycleBoxLayout(RecycleLayout, BoxLayout):
                 return True
 
             remove_view(widget, index)
+            opt = view_opts[index]
             if horizontal:
+                wo, ho = opt['size']
                 if shnh is not None:
-                    h = view_opts[index]['size'][1] = shnh * layout_h
+                    _, h = opt['size'] = [wo, shnh * layout_h]
                 else:
-                    h = view_opts[index]['size'][1]
+                    h = ho
 
+                xo, yo = opt['pos']
                 for key, value in phn.items():
                     posy = value * layout_h
                     if key == 'y':
-                        view_opts[index]['pos'][1] = posy + cy
+                        yo = posy + cy
                     elif key == 'top':
-                        view_opts[index]['pos'][1] = posy - h
+                        yo = posy - h
                     elif key == 'center_y':
-                        view_opts[index]['pos'][1] = posy - (h / 2.)
+                        yo = posy - (h / 2.)
+                opt['pos'] = [xo, yo]
             else:
+                wo, ho = opt['size']
                 if shnw is not None:
-                    w = view_opts[index]['size'][0] = shnw * layout_w
+                    w, _ = opt['size'] = [shnw * layout_w, ho]
                 else:
-                    w = view_opts[index]['size'][0]
+                    w = wo
 
+                xo, yo = opt['pos']
                 for key, value in phn.items():
                     posx = value * layout_w
                     if key == 'x':
-                        view_opts[index]['pos'][0] = posx + cx
+                        xo = posx + cx
                     elif key == 'right':
-                        view_opts[index]['pos'][0] = posx - w
+                        xo = posx - w
                     elif key == 'center_x':
-                        view_opts[index]['pos'][0] = posx - (w / 2.)
+                        xo = posx - (w / 2.)
+                opt['pos'] = [xo, yo]
 
         return relayout
 

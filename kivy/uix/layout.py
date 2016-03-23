@@ -150,10 +150,10 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
         if rv is None:
             return
 
-        if self._size_needs_update:
-            return
         idx = self.view_indices.get(instance)
         if idx is not None:
+            if self._size_needs_update:
+                return
             opt = self.view_opts[idx]
             if (instance.size == opt['size'] and
                 instance.size_hint == opt['size_hint'] and
@@ -237,25 +237,32 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
 
     def compute_layout(self, data, flags):
         self._size_needs_update = False
+
+        opts = self.view_opts
+        changed = []
+        for widget, index in self.view_indices.items():
+            opt = opts[index]
+            s = opt['size']
+            w, h = sn = widget.size
+            sh = opt['size_hint']
+            shnw, shnh = shn = widget.size_hint
+            ph = opt['pos_hint']
+            phn = widget.pos_hint
+            if s != sn or sh != shn or ph != phn:
+                changed.append((index, widget, s, sn, sh, shn, ph, phn))
+                if shnw is None:
+                    if shnh is None:
+                        opt['size'] = sn
+                    else:
+                        opt['size'] = [w, s[1]]
+                elif shnh is None:
+                    opt['size'] = [s[0], h]
+                opt['size_hint'] = shn
+                opt['pos_hint'] = phn
+
         if [f for f in flags if not f]:  # need to redo everything
             self._changed_views = []
         else:
-            opts = self.view_opts
-            changed = []
-            for widget, index in self.view_indices.items():
-                opt = opts[index]
-                s = opt['size']
-                sn = widget.size
-                sh = opt['size_hint']
-                shn = widget.size_hint
-                ph = opt['pos_hint']
-                phn = widget.pos_hint
-                if s != sn or sh != shn or ph != phn:
-                    changed.append((index, widget, s, sn, sh, shn, ph, phn))
-                    opt['size'] = sn
-                    opt['size_hint'] = shn
-                    opt['pos_hint'] = phn
-
             self._changed_views = changed if changed else None
 
     def do_layout(self, *largs):
@@ -311,9 +318,10 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
                             viewport):
         opt = self.view_opts[index]
         w, h = size
-        if opt['width_none']:
+        shw, shh = size_hint
+        if shw is None and opt['width_none']:
             w = None
-        if opt['height_none']:
+        if shh is None and opt['height_none']:
             h = None
         super(RecycleLayout, self).refresh_view_layout(
             index, pos, pos_hint, (w, h), size_hint, view, viewport)

@@ -270,6 +270,7 @@ class RecycleDataAdapter(EventDispatcher):
         '''(internal) Used to flag this view as dirty, ready to be used for
         others. See :meth:`make_views_dirty`.
         '''
+        del self.views[index]
         self.dirty_views[view.__class__][index] = view
 
     def make_views_dirty(self):
