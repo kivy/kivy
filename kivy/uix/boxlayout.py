@@ -339,6 +339,8 @@ class RecycleBoxLayout(RecycleLayout, BoxLayout):
         self.clear_layout()
         self._rv_positions = None
         if not data:
+            l, t, r, b = self.padding
+            self.minimum_size = l + r, t + b
             return
 
         view_opts = self.view_opts

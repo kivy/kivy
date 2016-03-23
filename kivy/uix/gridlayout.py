@@ -528,7 +528,7 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
 
         self.clear_layout()
         if not self._init_rows_cols_sizes(n):
-            self._cols = None
+            self._cols_pos = None
             l, t, r, b = self.padding
             self.minimum_size = l + r, t + b
             return

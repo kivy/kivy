@@ -86,13 +86,6 @@ class RecycleViewBehavior(object):
             return
 
         data = self.data
-        if not data:
-            lm.clear_layout()
-            flags['data'] = []
-            flags['layout'] = []
-            flags['viewport'] = False
-            return
-
         f = flags['data']
         if f:
             self.save_viewport()
