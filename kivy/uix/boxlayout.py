@@ -209,8 +209,8 @@ class BoxLayout(Layout):
         if orientation == 'vertical':
             y = padding_bottom
             stretch_space = max(0.0, selfh - minimum_size_y)
-            for i, ((w, h), (shw, shh), pos_hint) in enumerate(
-                    reversed(sizes)):
+            for i, ((w, h), (shw, shh), pos_hint) in enumerate(sizes):
+
                 cx = selfx + padding_left
                 cy = selfy + y
 
@@ -228,7 +228,7 @@ class BoxLayout(Layout):
                     elif key == 'center_x':
                         cx += posx - (w / 2.)
 
-                yield len_children - i - 1, (cx, cy), (w, h)
+                yield i, (cx, cy), (w, h)
                 y += h + spacing
 
     def do_layout(self, *largs):
