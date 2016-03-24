@@ -203,7 +203,7 @@ class BoxLayout(Layout):
                     elif key == 'center_y':
                         cy += posy - (h / 2.)
 
-                yield len_children - i - 1, (cx, cy), (w, h)
+                yield len_children - i - 1, cx, cy, w, h
                 x += w + spacing
 
         if orientation == 'vertical':
@@ -228,7 +228,7 @@ class BoxLayout(Layout):
                     elif key == 'center_x':
                         cx += posx - (w / 2.)
 
-                yield i, (cx, cy), (w, h)
+                yield i, cx, cy, w, h
                 y += h + spacing
 
     def do_layout(self, *largs):
@@ -238,10 +238,10 @@ class BoxLayout(Layout):
             self.minimum_size = l + r, t + b
             return
 
-        for i, pos, (w, h) in self._iterate_layout(
+        for i, x, y, w, h in self._iterate_layout(
                 [(c.size, c.size_hint, c.pos_hint) for c in children]):
             c = children[i]
-            c.pos = pos
+            c.pos = x, y
             shw, shh = c.size_hint
             if shw is None:
                 if shh is not None:
@@ -345,12 +345,12 @@ class RecycleBoxLayout(RecycleLayout, BoxLayout):
 
         view_opts = self.view_opts
         n = len(view_opts)
-        for i, p, (w, h) in self._iterate_layout(
+        for i, x, y, w, h in self._iterate_layout(
                 [(opt['size'], opt['size_hint'], opt['pos_hint']) for
                  opt in reversed(view_opts)]):
             opt = view_opts[n - i - 1]
             shw, shh = opt['size_hint']
-            opt['pos'] = p
+            opt['pos'] = x, y
             wo, ho = opt['size']
             # layout won't/shouldn't change previous size if size_hint is None
             # which is what w/h being None means.

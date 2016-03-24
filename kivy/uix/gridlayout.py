@@ -405,7 +405,7 @@ class GridLayout(Layout):
                 if i < 0:
                     break
 
-                yield i, (x, y - row_height), (col_width, row_height)
+                yield i, x, y - row_height, col_width, row_height
                 i = i - 1
                 x = x + col_width + spacing_x
             y -= row_height + spacing_y
@@ -420,9 +420,9 @@ class GridLayout(Layout):
         self._update_minimum_size()
         self._finalize_rows_cols_sizes()
 
-        for i, pos, (w, h) in self._iterate_layout(len(children)):
+        for i, x, y, w, h in self._iterate_layout(len(children)):
             c = children[i]
-            c.pos = pos
+            c.pos = x, y
             shw, shh = c.size_hint
             if shw is None:
                 if shh is not None:
@@ -537,10 +537,10 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
         self._finalize_rows_cols_sizes()
 
         view_opts = self.view_opts
-        for widget, p, (w, h) in self._iterate_layout(n):
+        for widget, x, y, w, h in self._iterate_layout(n):
             opt = view_opts[n - widget - 1]
             shw, shh = opt['size_hint']
-            opt['pos'] = p
+            opt['pos'] = x, y
             wo, ho = opt['size']
             # layout won't/shouldn't change previous size if size_hint is None
             # which is what w/h being None means.
