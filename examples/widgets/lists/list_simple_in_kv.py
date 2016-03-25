@@ -1,5 +1,4 @@
 from kivy.uix.modalview import ModalView
-from kivy.uix.listview import ListView
 from kivy.uix.gridlayout import GridLayout
 from kivy.lang import Builder
 

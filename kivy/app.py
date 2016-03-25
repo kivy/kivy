@@ -752,14 +752,14 @@ class App(EventDispatcher):
         This function implements these conventions. The <app_name> directory
         is created when the property is called, unless it already exists.
 
-        On iOS, `~/Documents<app_name>` is returned (which is inside the
+        On iOS, `~/Documents/<app_name>` is returned (which is inside the
         app's sandbox).
 
         On Android, `/sdcard/<app_name>` is returned.
 
         On Windows, `%APPDATA%/<app_name>` is returned.
 
-        On Mac OSX, `~/Library/Application Support/<app_name>` is returned.
+        On OS X, `~/Library/Application Support/<app_name>` is returned.
 
         On Linux, `$XDG_CONFIG_HOME/<app_name>` is returned.
         '''

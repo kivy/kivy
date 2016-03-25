@@ -617,6 +617,9 @@ When you are creating a context:
                     # root.prop1 is a property, if it changes value, ctxkey
                     # will not be updated
 
+Template definitions also replace any similarly named definitions in their
+entirety and thus do not support inheritance.
+
 Redefining a widget's style
 ---------------------------
 

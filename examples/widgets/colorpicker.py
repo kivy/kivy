@@ -3,7 +3,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scatter import Scatter
 from kivy.uix.popup import Popup
 from kivy.properties import ObjectProperty, StringProperty
-from kivy.graphics import Line, Color, Point
+from kivy.graphics import Color, Point
 
 from math import sqrt
 from os import walk
@@ -78,8 +78,8 @@ Builder.load_string('''
         halign: 'center'
         height: self.texture.size[1] if self.texture else 10
         text:
-            ("Selected Image:\\n' + app.current_image.source.split(os.sep)[2] "
-            "if app.current_image else 'None'")
+            ("Selected Image:\\n" + app.current_image.source.split(os.sep)[-1]
+            if app.current_image else 'None')
     Button:
         text: 'Brush'
         size_hint_y: None
@@ -99,7 +99,7 @@ Builder.load_string('''
     Button:
         text: 'clear'
         on_release:
-            app.current_image.canvas.after.clear()
+            app.handle_clear()
 
 <MainRootWidget>
     current_image: None
@@ -225,6 +225,9 @@ class MainApp(App):
         self.main_root_widget = MainRootWidget()
         return self.main_root_widget
 
+    def handle_clear(self):
+        if self.current_image:
+            self.current_image.canvas.after.clear()
 
 if __name__ == '__main__':
     MainApp().run()

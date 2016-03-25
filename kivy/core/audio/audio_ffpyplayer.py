@@ -48,8 +48,7 @@ __all__ = ('SoundFFPy', )
 try:
     import ffpyplayer
     from ffpyplayer.player import MediaPlayer
-    from ffpyplayer.tools import set_log_callback, loglevels,\
-        get_log_callback, formats_in
+    from ffpyplayer.tools import set_log_callback, get_log_callback, formats_in
 except:
     raise
 

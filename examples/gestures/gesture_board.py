@@ -1,8 +1,6 @@
 from kivy.app import App
 
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.widget import Widget
-from kivy.uix.button import Button
 from kivy.graphics import Color, Ellipse, Line
 from kivy.gesture import Gesture, GestureDatabase
 

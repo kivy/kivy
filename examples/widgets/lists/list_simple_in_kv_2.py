@@ -1,8 +1,6 @@
 from kivy.uix.modalview import ModalView
-from kivy.uix.listview import ListView
 from kivy.uix.gridlayout import GridLayout
 from kivy.lang import Builder
-from kivy.factory import Factory
 
 # Note the special nature of indentation in the adapter declaration, where
 # the adapter: is on one line, then the value side must be given at one level

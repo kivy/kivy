@@ -1,6 +1,5 @@
 from kivy.adapters.dictadapter import DictAdapter
-from kivy.properties import NumericProperty, ListProperty, \
-        BooleanProperty, AliasProperty, ObjectProperty
+from kivy.properties import NumericProperty, AliasProperty, ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.listview import ListView, ListItemButton

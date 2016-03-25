@@ -648,6 +648,10 @@ class ScrollView(StencilView):
                 e.trigger_velocity_update()
             return True
 
+        in_bar = ud['in_bar_x'] or ud['in_bar_y']
+        if scroll_type == ['bars'] and not in_bar:
+            return self.simulate_touch_down(touch)
+
         # no mouse scrolling, so the user is going to drag the scrollview with
         # this touch.
         self._touch = touch
@@ -669,15 +673,10 @@ class ScrollView(StencilView):
             self.effect_y.start(touch.y)
             self._scroll_y_mouse = self.scroll_y
 
-        if (ud.get('in_bar_x', False) or ud.get('in_bar_y', False)):
-            return True
-
-        Clock.schedule_once(self._change_touch_mode,
-                                self.scroll_timeout / 1000.)
-        if scroll_type == ['bars']:
-            return False
-        else:
-            return True
+        if not in_bar:
+            Clock.schedule_once(self._change_touch_mode,
+                                    self.scroll_timeout / 1000.)
+        return True
 
     def on_touch_move(self, touch):
         if self._touch is not touch:
@@ -690,7 +689,7 @@ class ScrollView(StencilView):
         if touch.grab_current is not self:
             return True
 
-        if not (self.do_scroll_y or self.do_scroll_x):
+        if touch.ud.get(self._get_uid()) is None:
             return super(ScrollView, self).on_touch_move(touch)
 
         touch.ud['sv.handled'] = {'x': False, 'y': False}

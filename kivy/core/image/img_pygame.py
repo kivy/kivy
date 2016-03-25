@@ -4,7 +4,6 @@ Pygame: Pygame image loader
 
 __all__ = ('ImageLoaderPygame', )
 
-from kivy.compat import PY2
 from kivy.logger import Logger
 from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 from os.path import isfile

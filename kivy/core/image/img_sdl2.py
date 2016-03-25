@@ -5,7 +5,6 @@ SDL2 image loader
 
 __all__ = ('ImageLoaderSDL2', )
 
-from kivy.compat import PY2
 from kivy.logger import Logger
 from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 from kivy.core.image import _img_sdl2

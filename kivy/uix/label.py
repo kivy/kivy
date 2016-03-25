@@ -237,7 +237,6 @@ The following example marks the anchors and references contained in a label::
 
 __all__ = ('Label', )
 
-from functools import partial
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.core.text import Label as CoreLabel
@@ -331,8 +330,8 @@ class Label(Widget):
         mrkup = self._label.__class__ is CoreMarkupLabel
         self.texture = None
 
-        if (not self._label.text or (self.halign[-1] == 'y' or self.strip) and
-            not self._label.text.strip()):
+        if (not self._label.text or (self.halign == 'justify' or self.strip)
+                and not self._label.text.strip()):
             self.texture_size = (0, 0)
             if mrkup:
                 self.refs, self._label._refs = {}, {}
@@ -343,7 +342,7 @@ class Label(Widget):
                 # we must strip here, otherwise, if the last line is empty,
                 # markup will retain the last empty line since it only strips
                 # line by line within markup
-                if self.halign[-1] == 'y' or self.strip:
+                if self.halign == 'justify' or self.strip:
                     text = text.strip()
                 self._label.text = ''.join(('[color=',
                                             get_hex_from_color(
@@ -573,11 +572,16 @@ class Label(Widget):
         A new option was added to :attr:`halign`, namely `justify`.
     '''
 
-    valign = OptionProperty('bottom', options=['bottom', 'middle', 'top'])
+    valign = OptionProperty('bottom',
+                            options=['bottom', 'middle', 'center', 'top'])
     '''Vertical alignment of the text.
 
     :attr:`valign` is an :class:`~kivy.properties.OptionProperty` and defaults
-    to 'bottom'. Available options are : bottom, middle and top.
+    to 'bottom'. Available options are : `'bottom'`,
+    `'middle'` (or `'center'`) and `'top'`.
+
+    .. versionchanged:: 1.9.2
+        The `'center'` option has been added as an alias of `'middle'`.
 
     .. warning::
 

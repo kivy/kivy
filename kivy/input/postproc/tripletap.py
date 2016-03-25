@@ -12,7 +12,6 @@ __all__ = ('InputPostprocTripleTap', )
 from time import time
 from kivy.config import Config
 from kivy.vector import Vector
-from kivy.clock import Clock
 
 
 class InputPostprocTripleTap(object):

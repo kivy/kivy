@@ -48,7 +48,7 @@ __all__ = ('VideoFFPy', )
 try:
     import ffpyplayer
     from ffpyplayer.player import MediaPlayer
-    from ffpyplayer.tools import set_log_callback, loglevels, get_log_callback
+    from ffpyplayer.tools import set_log_callback, get_log_callback
 except:
     raise
 

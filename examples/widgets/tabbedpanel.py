@@ -7,7 +7,6 @@ Test of the widget TabbedPanel.
 
 from kivy.app import App
 from kivy.uix.tabbedpanel import TabbedPanel
-from kivy.uix.floatlayout import FloatLayout
 from kivy.lang import Builder
 
 Builder.load_string("""

@@ -18,7 +18,6 @@ __all__ = ('WindowSDL2', )
 from os.path import join
 from kivy import kivy_data_dir
 from kivy.logger import Logger
-from kivy import metrics
 from kivy.base import EventLoop, ExceptionManager, stopTouchApp
 from kivy.clock import Clock
 from kivy.config import Config
