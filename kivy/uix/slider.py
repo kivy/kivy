@@ -24,6 +24,7 @@ from kivy.uix.widget import Widget
 from kivy.properties import (NumericProperty, AliasProperty, OptionProperty,
                              ReferenceListProperty, BoundedNumericProperty)
 from kivy.metrics import sp
+from kivy.graphics.vertex_instructions import Rectangle
 
 
 class Slider(Widget):
@@ -97,6 +98,12 @@ class Slider(Widget):
 
     :attr:`step` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 1.'''
+
+    sensitive = OptionProperty('all', options=(
+        'all', 'cursor'))
+    '''
+    Slider touch sensitive part.
+    '''
 
     # The following two methods constrain the slider's value
     # to range(min,max). Otherwise it may happen that self.value < self.min
@@ -207,6 +214,17 @@ class Slider(Widget):
                     self.value = max(
                         self.min,
                         self.value - (self.max - self.min) / 20)
+        if self.sensitive == 'cursor':
+            for child in self.canvas.children:
+                if isinstance(child, Rectangle):
+                    cursor_size = child.size
+            if self.orientation == 'horizontal':
+                axis = 0  # x
+            else:
+                axis = 1  # y
+            if self.value_pos[axis] - cursor_size[axis] / 2 < touch.pos[axis] < self.value_pos[axis] + cursor_size[axis] / 2:
+                touch.grab(self)
+                return True
         else:
             touch.grab(self)
             self.value_pos = touch.pos
