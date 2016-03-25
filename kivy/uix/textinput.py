@@ -2198,7 +2198,7 @@ class TextInput(FocusBehavior, Widget):
                 x = 0
             if is_newline:
                 flags |= FL_IS_LINEBREAK
-            elif w > width:
+            elif width > 0 and w > width:
                 while w > width:
                     split_pos, split_width = self._split_word(word, width)
                     lines_append(word[:split_pos])
