@@ -1,3 +1,24 @@
+'''
+Touch Ripple
+============
+
+.. versionadded:: 1.9.2
+
+This module contains `mixin <https://en.wikipedia.org/wiki/Mixin>`_ classes
+to add a touch ripple visual effect known from `Google Material Design
+<https://en.wikipedia.org/wiki/Material_Design>_` to widgets.
+
+For an overview of behaviors, please refer to the :mod:`~kivy.uix.behaviors`
+documentation.
+
+The class :class:`~kivy.uix.behaviors.touchripple.TouchRippleBehavior` provides
+rendering the ripple animation.
+
+The class :class:`~kivy.uix.behaviors.touchripple.TouchRippleButtonBehavior`
+basically provides the same functionality as
+:class:`~kivy.uix.behaviors.button.ButtonBehavior` but rendering the ripple
+animation instead of default press/release visualization.
+'''
 from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.graphics import CanvasBase
@@ -7,49 +28,108 @@ from kivy.graphics import ScissorPush
 from kivy.graphics import ScissorPop
 from kivy.properties import ListProperty
 from kivy.properties import NumericProperty
+from kivy.properties import StringProperty
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.relativelayout import RelativeLayout
 
 
+__all__ = (
+    'TouchRippleBehavior',
+    'TouchRippleButtonBehavior'
+)
+
+
 class TouchRippleBehavior(object):
-    """Touch ripple behavior.
+    '''Touch ripple behavior.
 
     Supposed to be used as mixin on widget classes.
 
     Ripple behavior does not trigger automatically, concrete implementation
-    needs to call ``ripple_show`` respective ``ripple_fade`` manually.
+    needs to call :func:`ripple_show` respective :func:`ripple_fade` manually.
 
-    Example::
+    Example
+    -------
 
-        class RippleButton(TouchRippleBehavior, ButtonBehavior, Label):
+    Here we create a Label which renders the touch ripple animation on
+    interaction::
+
+        class RippleLabel(TouchRippleBehavior, Label):
 
             def __init__(self, **kwargs):
-                super(RippleButton, self).__init__(**kwargs)
+                super(RippleLabel, self).__init__(**kwargs)
 
             def on_touch_down(self, touch):
                 collide_point = self.collide_point(touch.x, touch.y)
-                if collide_point and self.disabled:
-                    return True
-                elif collide_point:
+                if collide_point:
+                    touch.grab(self)
                     self.ripple_show(touch)
-                return super(RippleButton, self).on_touch_down(touch)
+                    return True
+                return False
 
             def on_touch_up(self, touch):
                 if touch.grab_current is self:
                     touch.ungrab(self)
                     self.ripple_fade()
-                    if self.disabled:
-                        return True
-                return super(RippleButton, self).on_touch_up(touch)
-    """
-    ripple_rad_default = 10
-    ripple_duration_in = .5
-    ripple_duration_out = .2
-    ripple_fade_from_alpha = .5
-    ripple_fade_to_alpha = .8
-    ripple_scale = 2.
-    ripple_func_in = 'in_cubic'
-    ripple_func_out = 'out_quad'
+                    return True
+                return False
+    '''
+
+    ripple_rad_default = NumericProperty(10)
+    '''Default radius the animation starts from.
+
+    :attr:`ripple_rad_default` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to `10`.
+    '''
+
+    ripple_duration_in = NumericProperty(.5)
+    '''Animation duration taken to show the overlay.
+
+    :attr:`ripple_duration_in` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to `0.5`.
+    '''
+
+    ripple_duration_out = NumericProperty(.2)
+    '''Animation duration taken to fade the overlay.
+
+    :attr:`ripple_duration_out` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to `0.2`.
+    '''
+
+    ripple_fade_from_alpha = NumericProperty(.5)
+    '''Alpha channel for ripple color the animation starts with.
+
+    :attr:`ripple_fade_from_alpha` is a
+    :class:`~kivy.properties.NumericProperty` and defaults to `0.5`.
+    '''
+
+    ripple_fade_to_alpha = NumericProperty(.8)
+    '''Alpha channel for ripple color the animation targets to.
+
+    :attr:`ripple_fade_to_alpha` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to `0.8`.
+    '''
+
+    ripple_scale = NumericProperty(2.)
+    '''Max scale of the animation overlay calculated from max(width/height) of
+    the decorated widget.
+
+    :attr:`ripple_scale` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to `2.0`.
+    '''
+
+    ripple_func_in = StringProperty('in_cubic')
+    '''Animation callback for showing the overlay.
+
+    :attr:`ripple_func_in` is a :class:`~kivy.properties.StringProperty`
+    and defaults to `in_cubic`.
+    '''
+
+    ripple_func_out = StringProperty('out_quad')
+    '''Animation callback for hiding the overlay.
+
+    :attr:`ripple_func_out` is a :class:`~kivy.properties.StringProperty`
+    and defaults to `out_quad`.
+    '''
 
     ripple_rad = NumericProperty(ripple_rad_default)
     ripple_pos = ListProperty([0, 0])
@@ -68,10 +148,10 @@ class TouchRippleBehavior(object):
         self.ripple_col_instruction = None
 
     def ripple_show(self, touch):
-        """Begin ripple animation on current widget.
+        '''Begin ripple animation on current widget.
 
         Expects touch event as argument.
-        """
+        '''
         Animation.cancel_all(self, 'ripple_rad', 'ripple_color')
         self._ripple_anim_complete(self, self)
         x, y = self.to_window(*self.pos)
@@ -84,7 +164,6 @@ class TouchRippleBehavior(object):
         ripple_rad = self.ripple_rad
         self.ripple_color = [rc[0], rc[1], rc[2], self.ripple_fade_from_alpha]
         with self.ripple_pane:
-            # In python 3 the int cast will be unnecessary
             ScissorPush(
                 x=int(round(x)),
                 y=int(round(y)),
@@ -109,8 +188,8 @@ class TouchRippleBehavior(object):
         anim.start(self)
 
     def ripple_fade(self):
-        """Finish ripple animation on current widget.
-        """
+        '''Finish ripple animation on current widget.
+        '''
         Animation.cancel_all(self, 'ripple_rad', 'ripple_color')
         width, height = self.size
         rc = self.ripple_color
@@ -147,28 +226,37 @@ class TouchRippleBehavior(object):
 
 
 class TouchRippleButtonBehavior(TouchRippleBehavior, ButtonBehavior):
+    '''Derives from
+    :class:`~kivy.uix.behaviors.touchripple.TouchRippleBehavior`
+    and :class:`~kivy.uix.behaviors.button.ButtonBehavior` and hooks up the
+    ripple animation to touch down and touch up events.
+    '''
 
     def __init__(self, **kwargs):
         super(TouchRippleButtonBehavior, self).__init__(**kwargs)
 
     def on_touch_down(self, touch):
-        collide_point = self.collide_point(touch.x, touch.y)
+        collide_point = self.collide_point(*touch.pos)
         if collide_point and self.disabled:
             return True
         elif collide_point:
+            touch.grab(self)
             self.ripple_show(touch)
         return super(TouchRippleButtonBehavior, self).on_touch_down(touch)
 
     def on_touch_up(self, touch):
-        if touch.grab_current is self:
-            touch.ungrab(self)
-            self.ripple_fade()
-            if self.disabled:
-                return True
-            self.last_touch = touch
-
-            def defer_release(dt):
-                self.dispatch('on_release')
-            Clock.schedule_once(defer_release, self.ripple_duration_out)
+        if touch.grab_current is not self:
+            return super(TouchRippleButtonBehavior, self).on_touch_up(touch)
+        touch.ungrab(self)
+        self.last_touch = touch
+        self.ripple_fade()
+        if self.disabled:
             return True
-        return super(TouchRippleButtonBehavior, self).on_touch_up(touch)
+        if not self.always_release and not self.collide_point(*touch.pos):
+            return
+
+        # defer on_release until ripple_fade has completed
+        def defer_release(dt):
+            self.dispatch('on_release')
+        Clock.schedule_once(defer_release, self.ripple_duration_out)
+        return True
