@@ -113,8 +113,11 @@ class PageLayout(Layout):
                 d=.5, t='in_quad').start(c)
 
     def on_touch_down(self, touch):
-        if (self.disabled or not self.collide_point(*touch.pos) or
-            not self.children):
+        if (
+            self.disabled or
+            not self.collide_point(*touch.pos) or
+            not self.children
+        ):
             return
 
         page = self.children[-self.page - 1]
