@@ -408,7 +408,7 @@ class Parser(object):
                     Logger.exception('')
                     raise ParserException(self, ln, 'Invalid directive syntax')
                 try:
-                    value = eval(value)
+                    value = eval(value, global_idmap)
                 except:
                     Logger.exception('')
                     raise ParserException(self, ln, 'Invalid value')
