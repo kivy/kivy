@@ -259,6 +259,15 @@ try:
 
                 if 'linux' in platform:
                     _clockid = 4  # CLOCK_MONOTONIC_RAW (Linux specific)
+                elif 'freebsd' in platform:
+                    # clockid constants from sys/time.h
+                    # _clockid = 4 # CLOCK_MONOTONIC (FreeBSD specific)
+                    # 11: CLOCK_MONOTONIC_PRECISE (FreeBSD known OK for 10.2)
+                    _clockid = 11
+                    # _clockid = 12
+                    # 12: CLOCK_MONOTONIC_FAST (FreeBSD specific)
+                    Logger.debug('clock.py: {{{:s}}} clock ID {:d}'.format(
+                        platform, _clockid))
                 else:
                     _clockid = 1  # CLOCK_MONOTONIC
 
