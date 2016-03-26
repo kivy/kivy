@@ -93,6 +93,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty
 from kivy.core.window import Window
 from kivy.lang import Builder
+from kivy.clock import Clock
 
 _grid_kv = '''
 GridLayout:
@@ -230,6 +231,9 @@ class DropDown(ScrollView):
         '''Remove the dropdown widget from the window and detach it from
         the attached widget.
         '''
+        Clock.schedule_once(lambda dt: self._real_dismiss(), .1)
+
+    def _real_dismiss(self):
         if self.parent:
             self.parent.remove_widget(self)
         if self.attach_to:
