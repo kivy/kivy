@@ -107,6 +107,12 @@ cdef class _WindowSDL2Storage:
         if y is None:
             y = SDL_WINDOWPOS_UNDEFINED
 
+        # vsync
+        if Config.getboolean('graphics', 'vsync'):
+            SDL_GL_SetSwapInterval(1)
+        else:
+            SDL_GL_SetSwapInterval(0)
+
         # Multisampling:
         # (The number of samples is limited to 4, because greater values
         # aren't supported with some video drivers.)
