@@ -794,6 +794,9 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         elif version == 14:
             Config.setdefault('graphics', 'min_state_time', '.035')
 
+        elif version == 15:
+            Config.setdefault('graphics', 'vsync', 0)
+
         # elif version == 1:
         #    # add here the command for upgrading from configuration 0 to 1
 
