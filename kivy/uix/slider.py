@@ -23,7 +23,6 @@ __all__ = ('Slider', )
 from kivy.uix.widget import Widget
 from kivy.properties import (NumericProperty, AliasProperty, OptionProperty,
                              ReferenceListProperty, BoundedNumericProperty)
-from kivy.metrics import sp
 
 
 class Slider(Widget):
@@ -50,7 +49,7 @@ class Slider(Widget):
     :attr:`max` is a :class:`~kivy.properties.NumericProperty` and defaults to
     100.'''
 
-    padding = NumericProperty(sp(16))
+    padding = NumericProperty()
     '''Padding of the slider. The padding is used for graphical representation
     and interaction. It prevents the cursor from going out of the bounds of the
     slider bounding box.
