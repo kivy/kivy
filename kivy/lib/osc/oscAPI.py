@@ -157,11 +157,8 @@ def appendToBundle(bundle, oscAddress, dataArray):
 def sendBundle(bundle, ipAddr='127.0.0.1', port=9000) :
     '''convert bundle to a binary and send it
     '''
-    oscLock.acquire()
-    try:
+    with oscLock:
         outSocket.sendto(bundle.message, (ipAddr, port))
-    finally:
-        oscLock.release()
 
 
 def createBinaryMsg(oscAddress, dataArray, typehint=None):
