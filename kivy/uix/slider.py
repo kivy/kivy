@@ -50,7 +50,7 @@ class Slider(Widget):
     :attr:`max` is a :class:`~kivy.properties.NumericProperty` and defaults to
     100.'''
 
-    padding = NumericProperty(sp(16))
+    padding = NumericProperty(16)
     '''Padding of the slider. The padding is used for graphical representation
     and interaction. It prevents the cursor from going out of the bounds of the
     slider bounding box.
@@ -188,6 +188,14 @@ class Slider(Widget):
 
     :attr:`value_pos` is an :class:`~kivy.properties.AliasProperty`.
     '''
+
+    # setting self.padding at instantiation is necessary on Mac OS X, when an app
+    # runs in a forked process, but kivy.uix.slider is imported before the forking.
+    # This is an issue with pygame, cf. http://stackoverflow.com/questions/8106002/
+    def __init__(self, *args, **kwargs):
+        super(Slider, self).__init__(*args, **kwargs)
+        self.padding = sp(16)
+
 
     def on_touch_down(self, touch):
         if self.disabled or not self.collide_point(*touch.pos):
