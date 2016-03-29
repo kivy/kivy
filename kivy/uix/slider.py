@@ -23,7 +23,6 @@ __all__ = ('Slider', )
 from kivy.uix.widget import Widget
 from kivy.properties import (NumericProperty, AliasProperty, OptionProperty,
                              ReferenceListProperty, BoundedNumericProperty)
-from kivy.metrics import sp
 
 
 class Slider(Widget):
