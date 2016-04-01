@@ -182,19 +182,11 @@ class ModalView(AnchorLayout):
             on_resize=self._align_center,
             on_keyboard=self._handle_keyboard)
         self.center = self._window.center
-        self.fbind('size', self._update_center)
+        self.fbind('center', self._align_center)
         a = Animation(_anim_alpha=1., d=self._anim_duration)
         a.bind(on_complete=lambda *x: self.dispatch('on_open'))
         a.start(self)
         return self
-
-    def _update_center(self, *args):
-        if not self._window:
-            return
-        # XXX HACK DONT REMOVE OR FOUND AND FIX THE ISSUE
-        # It seems that if we don't access to the center before assigning a new
-        # value, no dispatch will be done >_>
-        self.center = self._window.center
 
     def dismiss(self, *largs, **kwargs):
         '''Close the view if it is open. If you really want to close the
@@ -223,16 +215,9 @@ class ModalView(AnchorLayout):
             self._real_remove_widget()
         return self
 
-    def on_size(self, instance, value):
-        self._align_center()
-
     def _align_center(self, *l):
         if self._window:
             self.center = self._window.center
-            # hack to resize dark background on window resize
-            _window = self._window
-            self._window = None
-            self._window = _window
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
