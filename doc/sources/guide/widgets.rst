@@ -693,7 +693,7 @@ To try to understand what is happening here, start from line 13::
     texture: self.background_image.texture
 
 This specifies that the `texture` property of `BorderImage` will be updated
-whenever the `texture` property of `background_inage` updates. We define the
+whenever the `texture` property of `background_image` updates. We define the
 background_image property at line 40::
 
     background_image = ObjectProperty(...
