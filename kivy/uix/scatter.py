@@ -623,6 +623,8 @@ class ScatterBehavior(object):
         touch.pop()
         # don't forget about grab event!
         for x in touch.grab_list[:]:
+            if x not in touch.grab_list:
+                continue
             touch.grab_list.remove(x)
             x = x()
             if not x or x is self or x in self.children:
