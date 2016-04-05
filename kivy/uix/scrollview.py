@@ -420,6 +420,8 @@ class ScrollView(StencilView):
 
     _viewport = ObjectProperty(None, allownone=True)
     _bar_color = ListProperty([0, 0, 0, 0])
+    _effect_x_start_width = None
+    _effect_y_start_height = None
 
     def _set_viewport_size(self, instance, value):
         self.viewport_size = value
@@ -530,7 +532,11 @@ class ScrollView(StencilView):
         vp = self._viewport
         if not vp or not self.effect_x:
             return
-        sw = vp.width - self.width
+
+        if self.effect_x.is_manual:
+            sw = vp.width - self._effect_x_start_width
+        else:
+            sw = vp.width - self.width
         if sw < 1:
             return
         sx = self.effect_x.scroll / float(sw)
@@ -541,7 +547,10 @@ class ScrollView(StencilView):
         vp = self._viewport
         if not vp or not self.effect_y:
             return
-        sh = vp.height - self.height
+        if self.effect_y.is_manual:
+            sh = vp.height - self._effect_y_start_height
+        else:
+            sh = vp.height - self.height
         if sh < 1:
             return
         sy = self.effect_y.scroll / float(sh)
@@ -669,9 +678,11 @@ class ScrollView(StencilView):
             'time': touch.time_start}
 
         if self.do_scroll_x and self.effect_x and not ud['in_bar_x']:
+            self._effect_x_start_width = self.width
             self.effect_x.start(touch.x)
             self._scroll_x_mouse = self.scroll_x
         if self.do_scroll_y and self.effect_y and not ud['in_bar_y']:
+            self._effect_y_start_height = self.height
             self.effect_y.start(touch.y)
             self._scroll_y_mouse = self.scroll_y
 
