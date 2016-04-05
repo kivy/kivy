@@ -662,6 +662,8 @@ class ScrollView(StencilView):
             'mode': 'unknown',
             'dx': 0,
             'dy': 0,
+            'y_start': touch.y,
+            'x_start': touch.x,
             'user_stopped': False,
             'frames': Clock.frames,
             'time': touch.time_start}
@@ -798,7 +800,6 @@ class ScrollView(StencilView):
         if self._get_uid() not in touch.ud:
             return False
 
-        self._touch = None
         uid = self._get_uid()
         ud = touch.ud[uid]
         if self.do_scroll_x and self.effect_x:
@@ -816,6 +817,17 @@ class ScrollView(StencilView):
             if not ud['user_stopped']:
                 self.simulate_touch_down(touch)
             Clock.schedule_once(partial(self._do_touch_up, touch), .2)
+
+        #check if we're touch selecting imprecisely
+        #but within range of scroll_distance
+        y_start = ud.get('y_start')
+        x_start = ud.get('x_start')
+        y_select = self.do_scroll_y and y_start and abs(y_start - touch.y) < self.scroll_distance
+        x_select = self.do_scroll_x and x_start and abs(x_start - touch.x) < self.scroll_distance
+        if ud['mode'] == 'scroll' and (x_select or y_select):
+            self.simulate_touch_down(touch)
+            Clock.schedule_once(partial(self._do_touch_up, touch), .1)
+
         Clock.unschedule(self._update_effect_bounds)
         Clock.schedule_once(self._update_effect_bounds)
 
