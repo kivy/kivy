@@ -1149,6 +1149,10 @@
         on_value:
             root.mroot._trigger_update_clr(root.mode, root.clr_idx, args[1])
 
+<ColorWheel>:
+    _origin: self.center
+    _radius: 0.45 * min(self.size)
+
 <ColorPicker>:
     foreground_color: (1, 1, 1, 1) if self.hsv[2] * wheel.a < .5 else (0, 0, 0, 1)
     wheel: wheel
@@ -1260,7 +1264,5 @@
 
         ColorWheel:
             id: wheel
-            _origin: (self.center_x, self.center_y)
-            _radius: 0.45 * min(self.size)
             color: root.color
             on_color: root.color[:3] = args[1][:3]
