@@ -157,6 +157,19 @@ class DropDown(ScrollView):
     .. versionadded:: 1.8.0
     '''
 
+    dismiss_delay = NumericProperty(.1)
+    '''Delay to apply when the DropDown is closed, before dismissing it
+    for real, this can be usefulso the state of the selected button is
+    visible in a fast touch, (assuming the option is a
+    :class:`~kivy.uix.button.Button`), before the
+    :class:`~kivy.uix.DropDown` is closed.
+
+    :attr:`dismiss_delay` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to .1.
+
+    .. versionadded:: 1.9.2
+    '''
+
     attach_to = ObjectProperty(allownone=True)
     '''(internal) Property that will be set to the widget to which the
     drop down list is attached.
@@ -231,7 +244,8 @@ class DropDown(ScrollView):
         '''Remove the dropdown widget from the window and detach it from
         the attached widget.
         '''
-        Clock.schedule_once(lambda dt: self._real_dismiss(), .1)
+        Clock.schedule_once(lambda dt: self._real_dismiss(),
+                            self.dismiss_delay)
 
     def _real_dismiss(self):
         if self.parent:
