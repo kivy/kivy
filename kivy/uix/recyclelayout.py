@@ -1,3 +1,11 @@
+"""
+RecycleLayout
+=============
+
+.. warning::
+    This module is highly experimental, its API may change in the future and
+    the documentation is not complete at this time.
+"""
 
 from kivy.uix.recycleview.layout import RecycleLayoutManagerBehavior
 from kivy.uix.layout import Layout

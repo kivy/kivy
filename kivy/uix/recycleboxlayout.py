@@ -1,3 +1,12 @@
+"""
+RecycleBoxLayout
+================
+
+.. warning::
+    This module is highly experimental, its API may change in the future and
+    the documentation is not complete at this time.
+"""
+
 from kivy.uix.recyclelayout import RecycleLayout
 from kivy.uix.boxlayout import BoxLayout
 

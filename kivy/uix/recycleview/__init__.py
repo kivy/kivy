@@ -5,7 +5,8 @@ RecycleView
 A flexible view for providing a limited window into a large data set.
 
 .. warning::
-    This module is highly experimental and its API may change in the future.
+    This module is highly experimental, its API may change in the future and
+    the documentation is not complete at this time.
 
 
 Data accepted: list of dict.
