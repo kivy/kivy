@@ -143,7 +143,7 @@ class ModalView(AnchorLayout):
 
     _anim_duration = NumericProperty(.1)
 
-    _window = ObjectProperty(None, allownone=True)
+    _window = ObjectProperty(None, allownone=True, rebind=True)
 
     __events__ = ('on_open', 'on_dismiss')
 
