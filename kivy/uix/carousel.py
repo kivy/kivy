@@ -325,9 +325,9 @@ class Carousel(StencilView):
         for container in self.slides_container:
             super_remove(container)
 
-        if self._prev:
+        if self._prev and self._prev.parent != self:
             super(Carousel, self).add_widget(self._prev)
-        if self._next:
+        if self._next and self._next.parent != self:
             super(Carousel, self).add_widget(self._next)
         if self._current:
             super(Carousel, self).add_widget(self._current)
