@@ -183,6 +183,7 @@ class ModalView(AnchorLayout):
             on_keyboard=self._handle_keyboard)
         self.center = self._window.center
         self.fbind('center', self._align_center)
+        self.fbind('size', self._align_center)
         a = Animation(_anim_alpha=1., d=self._anim_duration)
         a.bind(on_complete=lambda *x: self.dispatch('on_open'))
         a.start(self)
