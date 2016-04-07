@@ -1025,7 +1025,7 @@ class Widget(WidgetBase):
     what you are doing.
     '''
 
-    parent = ObjectProperty(None, allownone=True)
+    parent = ObjectProperty(None, allownone=True, rebind=True)
     '''Parent of this widget. The parent of a widget is set when the widget
     is added to another widget and unset when the widget is removed from its
     parent.
