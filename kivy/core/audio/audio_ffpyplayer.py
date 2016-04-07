@@ -2,7 +2,7 @@
 FFmpeg based audio player
 =========================
 
-To use, you need to install ffpyplyaer and have a compiled ffmpeg shared
+To use, you need to install ffpyplayer and have a compiled ffmpeg shared
 library.
 
     https://github.com/matham/ffpyplayer
