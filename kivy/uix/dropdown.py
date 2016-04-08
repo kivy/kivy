@@ -159,7 +159,7 @@ class DropDown(ScrollView):
     '''
 
     min_state_time = NumericProperty(
-        Config.get('graphics', 'min_state_time'))
+        float(Config.get('graphics', 'min_state_time')))
     '''Minimum time before the :class:`~kivy.uix.DropDown` is dismissed.
     This is used to allow for the widget inside the dropdown to display
     a down state or for the :class:`~kivy.uix.DropDown` itself to
@@ -246,7 +246,7 @@ class DropDown(ScrollView):
         the attached widget.
         '''
         Clock.schedule_once(lambda dt: self._real_dismiss(),
-                            self.dismiss_delay)
+                            self.min_state_time)
 
     def _real_dismiss(self):
         if self.parent:

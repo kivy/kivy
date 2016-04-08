@@ -182,7 +182,7 @@ Available configuration tokens
         Minimum width to restrict the window to. (sdl2 only)
     `minimun_height`: int
         Minimum height to restrict the window to. (sdl2 only)
-    `min_state_time`: float, defaults to .1
+    `min_state_time`: float, defaults to .035
         Minumim time for widgets to display a given visual state.
         This attrib is currently used by widgets like
         :class:`~kivy.uix.dropdown.DropDown` &
@@ -792,7 +792,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault('graphics', 'minimum_height', '0')
 
         elif version == 14:
-            Config.setdefault('graphics', 'min_state_time', '.1')
+            Config.setdefault('graphics', 'min_state_time', '.035')
 
         # elif version == 1:
         #    # add here the command for upgrading from configuration 0 to 1

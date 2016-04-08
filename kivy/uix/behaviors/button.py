@@ -90,13 +90,14 @@ class ButtonBehavior(object):
     '''
 
     
-    min_state_time = NumericProperty(Config.get('graphics', 'min_state_time'))
+    min_state_time = NumericProperty(
+        float(Config.get('graphics', 'min_state_time')))
     '''The minimum period of time which the widget must remain in the
     `'down'` state.
 
     .. versionadded:: 1.9.1
 
-    :attr:`min_state_time` is a float and defaults to 0.1. This value is
+    :attr:`min_state_time` is a float and defaults to 0.035. This value is
     taken from :class:`~kivy.config.Config`.
     '''
 
@@ -116,8 +117,6 @@ class ButtonBehavior(object):
     def __init__(self, **kwargs):
         self.register_event_type('on_press')
         self.register_event_type('on_release')
-        # remove this when MIN_STATE_TIME is removed
-        self.min_state_time = kwargs.get('min_state_time', self.MIN_STATE_TIME)
         super(ButtonBehavior, self).__init__(**kwargs)
         self.__state_event = None
         self.__touch_time = None
