@@ -93,6 +93,8 @@ from kivy.uix.scrollview import ScrollView
 from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty
 from kivy.core.window import Window
 from kivy.lang import Builder
+from kivy.clock import Clock
+from kivy.config import Config
 
 _grid_kv = '''
 GridLayout:
@@ -154,6 +156,19 @@ class DropDown(ScrollView):
     and defaults to True.
 
     .. versionadded:: 1.8.0
+    '''
+
+    min_state_time = NumericProperty(
+        float(Config.get('graphics', 'min_state_time')))
+    '''Minimum time before the :class:`~kivy.uix.DropDown` is dismissed.
+    This is used to allow for the widget inside the dropdown to display
+    a down state or for the :class:`~kivy.uix.DropDown` itself to
+    display a animation for closing.
+
+    :attr:`min_state_time` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to the `Config` value `min_state_time`.
+
+    .. versionadded:: 1.9.2
     '''
 
     attach_to = ObjectProperty(allownone=True)
@@ -230,6 +245,10 @@ class DropDown(ScrollView):
         '''Remove the dropdown widget from the window and detach it from
         the attached widget.
         '''
+        Clock.schedule_once(lambda dt: self._real_dismiss(),
+                            self.min_state_time)
+
+    def _real_dismiss(self):
         if self.parent:
             self.parent.remove_widget(self)
         if self.attach_to:
