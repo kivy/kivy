@@ -94,6 +94,7 @@ from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty
 from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.clock import Clock
+from kivy.config import Config
 
 _grid_kv = '''
 GridLayout:
@@ -157,15 +158,15 @@ class DropDown(ScrollView):
     .. versionadded:: 1.8.0
     '''
 
-    dismiss_delay = NumericProperty(.1)
-    '''Delay to apply when the DropDown is closed, before dismissing it
-    for real, this can be usefulso the state of the selected button is
-    visible in a fast touch, (assuming the option is a
-    :class:`~kivy.uix.button.Button`), before the
-    :class:`~kivy.uix.DropDown` is closed.
+    min_state_time = NumericProperty(
+        Config.get('graphics', 'min_state_time'))
+    '''Minimum time before the :class:`~kivy.uix.DropDown` is dismissed.
+    This is used to allow for the widget inside the dropdown to display
+    a down state or for the :class:`~kivy.uix.DropDown` itself to
+    display a animation for closing.
 
-    :attr:`dismiss_delay` is a :class:`~kivy.properties.NumericProperty`
-    and defaults to .1.
+    :attr:`min_state_time` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to the `Config` value `min_state_time`.
 
     .. versionadded:: 1.9.2
     '''
