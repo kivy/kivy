@@ -814,7 +814,7 @@ class App(EventDispatcher):
         window = EventLoop.window
         if window:
             self._app_window = window
-            window.set_title(self.get_application_name())
+            window.set_title(self.get_application_name().encode('utf-8'))
             icon = self.get_application_icon()
             if icon:
                 window.set_icon(icon)
