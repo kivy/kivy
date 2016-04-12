@@ -90,8 +90,7 @@ class ButtonBehavior(object):
     '''
 
     
-    min_state_time = NumericProperty(
-        float(Config.get('graphics', 'min_state_time')))
+    min_state_time = NumericProperty(0)
     '''The minimum period of time which the widget must remain in the
     `'down'` state.
 
@@ -117,6 +116,8 @@ class ButtonBehavior(object):
     def __init__(self, **kwargs):
         self.register_event_type('on_press')
         self.register_event_type('on_release')
+        if 'min_state_time' not in kwargs:
+            self.min_state_time = float(Config.get('graphics', 'min_state_time'))
         super(ButtonBehavior, self).__init__(**kwargs)
         self.__state_event = None
         self.__touch_time = None

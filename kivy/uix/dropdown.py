@@ -158,8 +158,7 @@ class DropDown(ScrollView):
     .. versionadded:: 1.8.0
     '''
 
-    min_state_time = NumericProperty(
-        float(Config.get('graphics', 'min_state_time')))
+    min_state_time = NumericProperty(0)
     '''Minimum time before the :class:`~kivy.uix.DropDown` is dismissed.
     This is used to allow for the widget inside the dropdown to display
     a down state or for the :class:`~kivy.uix.DropDown` itself to
@@ -188,6 +187,9 @@ class DropDown(ScrollView):
 
     def __init__(self, **kwargs):
         self._win = None
+        if 'min_state_time' not in kwargs:
+            self.min_state_time = float(
+                Config.get('graphics', 'min_state_time'))
         if 'container' not in kwargs:
             c = self.container = Builder.load_string(_grid_kv)
         else:
@@ -298,7 +300,8 @@ class DropDown(ScrollView):
             return True
         if self.collide_point(*touch.pos):
             return True
-        if self.attach_to and self.attach_to.collide_point(*self.attach_to.to_widget(*touch.pos)):
+        if (self.attach_to and self.attach_to.collide_point(
+                *self.attach_to.to_widget(*touch.pos))):
             return True
         if self.auto_dismiss:
             self.dismiss()
@@ -376,3 +379,4 @@ if __name__ == '__main__':
     btn.bind(on_release=show_dropdown, on_touch_move=touch_move)
 
     runTouchApp(btn)
+
