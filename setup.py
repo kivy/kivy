@@ -822,6 +822,11 @@ if c_options['use_x11']:
             #    'core/window/window_x11_core.c'],
             'libraries': libs})
 
+    # Xinput2 input provider
+    sources['input/providers/xinput2.pyx'] = merge(
+        base_flags, gl_flags, {'libraries': ["X11", "Xi"]}
+    )
+
 if c_options['use_gstreamer']:
     sources['lib/gstplayer/_gstplayer.pyx'] = merge(
         base_flags, gst_flags, {

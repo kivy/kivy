@@ -51,6 +51,11 @@ if platform == 'linux' or 'KIVY_DOC' in os.environ:
     except:
         err = 'Input: LinuxWacom is not supported by your version of linux'
         Logger.exception(err)
+    try:
+        import kivy.input.providers.xinput2
+    except:
+        err = 'Input: Xinput2 is not supported by your version of linux'
+        Logger.exception(err)
 
 if platform == 'android' or 'KIVY_DOC' in os.environ:
     try:
