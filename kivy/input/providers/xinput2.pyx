@@ -44,6 +44,7 @@ __all__ = ('Xinput2EventProvider', 'Xinput2Event')
 
 from kivy.logger import Logger
 from collections import deque
+from kivy.base import EventLoop
 from kivy.input.provider import MotionEventProvider
 from kivy.input.factory import MotionEventFactory
 from kivy.input.motionevent import MotionEvent
@@ -56,8 +57,11 @@ class Xinput2Event(MotionEvent):
         if args[0] is None:
             return
         self.profile = ('pos',)
-        self.sx = args[0]
-        self.sy = args[1]
+        width, height = EventLoop.window.system_size
+        rx = args[0] / float(width)
+        ry = 1. - args[1] / float(height)
+        self.sx = rx
+        self.sy = ry
         self.is_touch = True
 
 

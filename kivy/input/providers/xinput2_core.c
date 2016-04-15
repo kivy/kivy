@@ -32,7 +32,7 @@
 
 #define TOUCH_DOWN 0
 #define TOUCH_MOVE 1
-#define TOUCH_UP 3
+#define TOUCH_UP 2
 
 static Display *dpy;
 static int xi_opcode;
