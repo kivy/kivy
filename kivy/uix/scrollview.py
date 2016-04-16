@@ -584,6 +584,11 @@ class ScrollView(StencilView):
             touch.grab(self)
             return True
 
+    def _touch_in_handle(self, pos, size, touch):
+        x, y = pos
+        width, height = size
+        return x <= touch.x <= x + width and y <= touch.y <= y + height
+
     def on_scroll_start(self, touch, check_children=True):
         if check_children:
             touch.push()
@@ -660,6 +665,18 @@ class ScrollView(StencilView):
         in_bar = ud['in_bar_x'] or ud['in_bar_y']
         if scroll_type == ['bars'] and not in_bar:
             return self.simulate_touch_down(touch)
+
+        if in_bar:
+            if (touch.ud['in_bar_y'] and not
+                    self._touch_in_handle(
+                        self._handle_y_pos, self._handle_y_size, touch)):
+                self.scroll_y = (touch.y - self.y) / self.height
+                return True
+            elif (touch.ud['in_bar_x'] and not
+                    self._touch_in_handle(
+                        self._handle_x_pos, self._handle_x_size, touch)):
+                self.scroll_x = (touch.x - self.x) / self.width
+                return True
 
         # no mouse scrolling, so the user is going to drag the scrollview with
         # this touch.
