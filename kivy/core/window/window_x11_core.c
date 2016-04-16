@@ -111,7 +111,7 @@ static Bool WaitForMapNotify(Display *d, XEvent *e, char *arg)
 	}
 #endif
 
-static void createTheWindow(int width, int height, int x, int y, int resizable, int fullscreen, int border, int above, int CWOR, char *title)
+static int createTheWindow(int width, int height, int x, int y, int resizable, int fullscreen, int border, int above, int CWOR, char *title)
 {
 	XEvent event;
 	int attr_mask;
@@ -354,6 +354,8 @@ static void createTheWindow(int width, int height, int x, int y, int resizable, 
 		printf("WinX11 EGL vendor: %s\n", eglQueryString(eglDisplay, EGL_VENDOR));
 		printf("WinX11 EGL version: %s\n", eglQueryString(eglDisplay, EGL_VERSION));
 	#endif
+
+	return window_handle;
 }
 
 #if __USE_EGL == 0
@@ -423,11 +425,12 @@ void x11_set_event_callback(event_cb_t callback) {
 int x11_create_window(int width, int height, int x, int y,
 		int resizable, int fullscreen, int border, int above, int CWOR,
 		char *title) {
-	createTheWindow(width, height, x, y, resizable, fullscreen, border, above, CWOR, title);
+	int window;
+	window = createTheWindow(width, height, x, y, resizable, fullscreen, border, above, CWOR, title);
 	#if __USE_EGL == 0
 		createTheRenderContext();
 	#endif
-	return 1;
+	return window;
 }
 
 void x11_gl_swap(void) {

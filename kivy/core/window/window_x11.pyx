@@ -192,11 +192,11 @@ class WindowX11(WindowBase):
         if 'KIVY_WINDOW_X11_CWOR' in environ:
             CWOR = True
 
-        if x11_create_window(size[0], size[1], pos[0], pos[1],
-                resizable, fullscreen, border, above, CWOR,
-                <char *><bytes>self.title) < 0:
+        window_id = x11_create_window(size[0], size[1], pos[0], pos[1], resizable, fullscreen, border, above, CWOR, <char *><bytes>self.title)
+        if window_id < 0:
             Logger.critical('WinX11: Unable to create the window')
             return
+        self.window_id = window_id
 
         size[0] = x11_get_width()
         size[1] = x11_get_height()

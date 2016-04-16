@@ -36,12 +36,12 @@ void x11_set_touch_callback(touch_cb_type callback) {
 }
 
 
-int init (void){
+int init (int windowID){
 	dpy = XOpenDisplay(NULL);
 	int scr = DefaultScreen(dpy);
 
 	int devid = 0;
-	Window win;
+	Window win = windowID;
 
 	/* check XInput extension */
 	{
@@ -75,13 +75,13 @@ int init (void){
 			.event_mask = KeyPressMask
 		};
 
-		win = XCreateWindow(dpy, RootWindow(dpy, scr),
+		/*win = XCreateWindow(dpy, RootWindow(dpy, scr),
 				0, 0, 500, 500, 0,
 				DefaultDepth(dpy, scr),
 				InputOutput,
 				DefaultVisual(dpy, scr),
 				CWEventMask | CWBackPixel,
-				&attr);
+				&attr);*/
 
 		XMapWindow(dpy, win);
 		XSync(dpy, False);
@@ -184,7 +184,7 @@ int idle(void){
 
 // A main loop just for testing when compiling it directly
 int main (void){
-    init();
+    init(0);
     while(1){
     	idle();
     }

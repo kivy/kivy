@@ -8,7 +8,7 @@ cdef extern from "xinput2_core.c":
         int t_id, state
         float x, y
 
-cdef extern int init()
+cdef extern int init(int window_id)
 cdef extern int idle()
 
 # Dummy class to bridge between the MotionEventProvider class and C
@@ -17,9 +17,10 @@ class InputX11():
     def __init__(self):
         self.on_touch = None
 
-    def start(self, on_touch):
+    def start(self, window_id, on_touch):
         self.on_touch = on_touch
-        init()
+        print "forward window id", window_id
+        init(window_id)
 
     def x11_idle(self):
         idle()
@@ -70,7 +71,8 @@ class Xinput2EventProvider(MotionEventProvider):
     __handlers__ = {}
 
     def start(self):
-        xinput.start(on_touch=self.on_touch)
+        from kivy.core.window import Window
+        xinput.start(window_id=Window.window_id, on_touch=self.on_touch)
         self.touch_queue = deque()
         self.touches = {}
 
