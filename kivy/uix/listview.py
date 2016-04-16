@@ -6,8 +6,8 @@ List View
 
 .. note::
 
-    ListView is planned to be deprecated once `RecycleView \
-    <https://github.com/kivy-garden/garden.recycleview>`_ becomes stable.
+    ListView is planned to be deprecated once
+    :class:`~kivy.uix.recycleview.RecycleView` becomes stable.
 
 .. warning::
 
