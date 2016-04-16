@@ -10,6 +10,7 @@ RecycleLayout
 from kivy.uix.recycleview.layout import RecycleLayoutManagerBehavior
 from kivy.uix.layout import Layout
 from kivy.properties import ObjectProperty, StringProperty
+from kivy.factory import Factory
 
 __all__ = ('RecycleLayout', )
 
