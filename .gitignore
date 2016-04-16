@@ -40,6 +40,7 @@ Kivy.dmg
 iosbuild
 kivy/core/image/osxcoreimage.c
 kivy/core/window/sdl.c
+kivy/input/providers/xinput2.c
 python
 python.exe
 .idea

@@ -1,14 +1,14 @@
-"""
+﻿"""
 Xinput2 input provider
 =========================
 """
 
 cdef extern from "xinput2_core.c":
     ctypedef struct TouchStruct:
-        int id, state
+        int t_id, state
         float x, y
 
-cdef extern int start()
+cdef extern int init()
 cdef extern int idle()
 
 # Dummy class to bridge between the MotionEventProvider class and C
@@ -19,7 +19,7 @@ class InputX11():
 
     def start(self, on_touch):
         self.on_touch = on_touch
-        start()
+        init()
 
     def x11_idle(self):
         idle()
@@ -30,7 +30,7 @@ xinput = InputX11()
 ctypedef int (*touch_cb_type)(TouchStruct *touch)
 cdef extern void x11_set_touch_callback(touch_cb_type callback)
 cdef int event_callback(TouchStruct *touch):
-    py_touch = {"id": touch.id,
+    py_touch = {"id": touch.t_id,
                 "state": touch.state,
                 "x": touch.x,
                 "y": touch.y}
@@ -90,16 +90,17 @@ class Xinput2EventProvider(MotionEventProvider):
         if raw_touch["id"] not in self.touches:
             touch = Xinput2Event(self.device, raw_touch["id"], args)
             touches[raw_touch["id"]] = touch
+            event = ('begin', touch)
         else:
             touch = touches[raw_touch["id"]]
             touch.move(args)
-
-        if raw_touch["state"] == 0:
-            event = ('begin', touch)
-        elif raw_touch["state"] == 1:
-            event = ('update', touch)
-        elif raw_touch["state"] == 2:
-            event = ('end', touch)
+            if raw_touch["state"] == 1:
+                event = ('update', touch)
+            elif raw_touch["state"] == 2:
+                event = ('end', touch)
+                del touches[raw_touch["id"]]
+            else:
+                return
         self.touch_queue.append(event)
 
 

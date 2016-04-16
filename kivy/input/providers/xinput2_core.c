@@ -1,25 +1,8 @@
 /*
- * event.c - show touch events
+ * xinput2_core.c - Connect to x and fetch touch events
  *
- * Copyright © 2013 Eon S. Jeon <esjeon@live.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the “Software”), to
- * deal in the Software without restriction, including without limitation the
- * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
+ * Heavily inspired from https://github.com/esjeon/xinput2-touch
+ * => 2013 Eon S. Jeon <esjeon@live.com>
  *
  */
 
@@ -39,7 +22,7 @@ static int xi_opcode;
 
 // Cython API
 typedef struct TouchStruct{
-    int id;
+    int t_id;
     int state;
 	float  x;
 	float  y;
@@ -53,12 +36,11 @@ void x11_set_touch_callback(touch_cb_type callback) {
 }
 
 
-int start (){
+int init (void){
 	dpy = XOpenDisplay(NULL);
 	int scr = DefaultScreen(dpy);
 
-	//int xi_opcode;
-	int devid;
+	int devid = 0;
 	Window win;
 
 	/* check XInput extension */
@@ -147,16 +129,11 @@ STOP_SEARCH_DEVICE:
 
 		free(mask.mask);
 	}
-
-
 	XFlush(dpy);
-
-    printf("INIT finished.\n");
-
 	return 0;
 }
 
-int idle(){
+int idle(void){
     TouchStruct touch;
 	XEvent ev;
 	XGenericEventCookie *cookie = &ev.xcookie; // hacks!
@@ -169,37 +146,28 @@ int idle(){
 			// check if this belongs to XInput
 			if(cookie->type == GenericEvent && cookie->extension == xi_opcode)
 			{
-				static int last = -1;
-
 				devev = cookie->data;
 				switch(devev->evtype) {
 				case XI_TouchBegin:
-                        touch.id = devev->detail;
-                        touch.state = TOUCH_DOWN;
-                        touch.x = devev->event_x;
-                        touch.y = devev->event_y;
-                        touch_cb(&touch);
+                    touch.t_id = devev->detail;
+                    touch.state = TOUCH_DOWN;
+                    touch.x = devev->event_x;
+                    touch.y = devev->event_y;
+                    touch_cb(&touch);
 					break;
 				case XI_TouchUpdate:
-                        touch.id = devev->detail;
-                        touch.state = TOUCH_MOVE;
-                        touch.x = devev->event_x;
-                        touch.y = devev->event_y;
-                        touch_cb(&touch);
+                    touch.t_id = devev->detail;
+                    touch.state = TOUCH_MOVE;
+                    touch.x = devev->event_x;
+                    touch.y = devev->event_y;
+                    touch_cb(&touch);
 					break;
 				case XI_TouchEnd:
-                        touch.id = devev->detail;
-                        touch.state = TOUCH_UP;
-                        touch.x = devev->event_x;
-                        touch.y = devev->event_y;
-                        touch_cb(&touch);
-					break;
-				case XI_Motion: // Just for testing
-                        touch.id = devev->detail;
-                        touch.state = TOUCH_DOWN;
-                        touch.x = devev->event_x;
-                        touch.y = devev->event_y;
-                        touch_cb(&touch);
+                    touch.t_id = devev->detail;
+                    touch.state = TOUCH_UP;
+                    touch.x = devev->event_x;
+                    touch.y = devev->event_y;
+                    touch_cb(&touch);
 					break;
 				}
 			}
@@ -213,8 +181,10 @@ int idle(){
 	return 0;
 }
 
-int main (){
-    start();
+
+// A main loop just for testing when compiling it directly
+int main (void){
+    init();
     while(1){
     	idle();
     }
