@@ -953,7 +953,8 @@ setup(
         'kivy.extras',
         'kivy.tools.extensions',
         'kivy.uix',
-        'kivy.uix.behaviors', ],
+        'kivy.uix.behaviors',
+        'kivy.uix.recycleview',],
     package_dir={'kivy': 'kivy'},
     package_data={'kivy': [
         '*.pxd',
