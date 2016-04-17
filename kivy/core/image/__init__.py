@@ -38,6 +38,8 @@ will be used only for caching)::
     im = CoreImage(data, ext="png", filename="image.png")
 
 '''
+import re
+from base64 import b64decode
 
 __all__ = ('Image', 'ImageLoader', 'ImageData')
 
@@ -468,6 +470,8 @@ class Image(EventDispatcher):
     copy_attributes = ('_size', '_filename', '_texture', '_image',
                        '_mipmap', '_nocache')
 
+    data_uri_re = re.compile(r'^data:image/([^;,]*)(;[^,]*)?,(.*)$')
+
     def __init__(self, arg, **kwargs):
         # this event should be fired on animation of sequenced img's
         self.register_event_type('on_texture')
@@ -509,7 +513,19 @@ class Image(EventDispatcher):
                 filename = '__inline__'
             self.load_memory(arg, ext, filename)
         elif isinstance(arg, string_types):
-            self.filename = arg
+            groups = self.data_uri_re.findall(arg)
+            if groups:
+                self._nocache = True
+                imtype, optstr, data = groups[0]
+                options = [o for o in optstr.split(';') if o]
+                ext = imtype
+                isb64 = 'base64' in options
+                if data:
+                    if isb64:
+                        data = b64decode(data)
+                    self.load_memory(BytesIO(data), ext)
+            else:
+                self.filename = arg
         else:
             raise Exception('Unable to load image type {0!r}'.format(arg))
 

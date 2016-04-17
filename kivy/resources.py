@@ -57,6 +57,8 @@ def resource_find(filename):
         output = join(path, filename)
         if exists(output):
             return output
+    if filename[:5] == 'data:':
+        return filename
     return None
 
 
