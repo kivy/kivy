@@ -1632,7 +1632,6 @@ class TextInput(FocusBehavior, Widget):
             _textinput_list.remove(wr)
 
     def _on_textinput_focused(self, instance, value, *largs):
-        self.focus = value
 
         win = EventLoop.window
         self.cancel_selection()
