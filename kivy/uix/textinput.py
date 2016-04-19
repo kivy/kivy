@@ -1636,6 +1636,7 @@ class TextInput(FocusBehavior, Widget):
 
         win = EventLoop.window
         self.cancel_selection()
+        self.cancel_suggestion_text()
         self._hide_cut_copy_paste(win)
 
         if value:
@@ -2827,8 +2828,24 @@ class TextInput(FocusBehavior, Widget):
         lbl.refresh()
 
         self._lines_labels[cr] = lbl.texture
+        self.suggestion_row = cr
         rct.size = lbl.size
         self._update_graphics()
+
+    def cancel_suggestion_text(self):
+        '''Cancel current suggestion text(if any)
+        '''
+        if self.suggestion_text != "" and self.suggestion_row >= 0:
+            print(self.suggestion_row)
+            txt = self._lines[self.suggestion_row]
+            kw = self._get_line_options()
+            rct = self._lines_rects[self.suggestion_row]
+            lbl = MarkupLabel(text=txt, **kw)
+            lbl.refresh()
+            self._lines_labels[self.suggestion_row] = lbl.texture
+            rct.size = lbl.size
+            self._update_graphics()
+        self.suggestion_row = -1
 
     def get_sel_from(self):
         return self._selection_from
