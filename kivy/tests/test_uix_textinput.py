@@ -8,7 +8,7 @@ import unittest
 from kivy.uix.textinput import TextInput
 
 
-class UixGridLayoutTest(unittest.TestCase):
+class TextInputTest(unittest.TestCase):
 
     def test_focusable_when_disabled(self):
         ti = TextInput()
