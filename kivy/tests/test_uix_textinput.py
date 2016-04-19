@@ -17,5 +17,4 @@ class TextInputTest(unittest.TestCase):
         ti.bind(focus=self.on_focused)
 
     def on_focused(self, instance, value):
-        print instance.focused
         self.assertTrue(instance.focused, value)
