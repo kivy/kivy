@@ -18,6 +18,7 @@ import kivy.lang.builder  # imported as absolute to avoid circular import
 from kivy.logger import Logger
 from kivy.cache import Cache
 from kivy import require
+from kivy.resources import resource_find
 from kivy.utils import rgba
 import kivy.metrics as Metrics
 
@@ -426,7 +427,7 @@ class Parser(object):
                                 'Language extension (.kv)'.format(ref))
                     break
                 if ref in __KV_INCLUDES__:
-                    if not os.path.isfile(ref):
+                    if not os.path.isfile(resource_find(ref) or ref):
                         raise ParserException(self, ln,
                             'Invalid or unknown file: {0}'.format(ref))
                     if not force_load:
