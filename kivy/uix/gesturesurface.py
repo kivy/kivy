@@ -414,8 +414,7 @@ class GestureSurface(FloatLayout):
         if self.use_random_color is True:
             col = hsv_to_rgb(random(), 1., 1.)
 
-        g = GestureContainer(touch, max_strokes=self.max_strokes,
-                             line_width=self.line_width, color=col)
+        g = GestureContainer(touch, max_strokes=self.max_strokes, color=col)
 
         # Create the bounding box Rectangle for the gesture
         if self.draw_bbox:

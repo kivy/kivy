@@ -59,15 +59,42 @@ cdef class _SurfaceContainer:
         c.g = <int>(color[1] * 255)
         c.b = <int>(color[2] * 255)
         bytes_text = <bytes>text.encode('utf-8')
-        st = TTF_RenderUTF8_Blended(font, <char *>bytes_text, c)
+
+        hinting = container.options['font_hinting']
+        if hinting == 'normal':
+            if TTF_GetFontHinting(font) != TTF_HINTING_NORMAL:
+                TTF_SetFontHinting(font, TTF_HINTING_NORMAL)
+        elif hinting == 'light':
+            if TTF_GetFontHinting(font) != TTF_HINTING_LIGHT:
+                TTF_SetFontHinting(font, TTF_HINTING_LIGHT)
+        elif hinting == 'mono':
+            if TTF_GetFontHinting(font) != TTF_HINTING_MONO:
+                TTF_SetFontHinting(font, TTF_HINTING_MONO)
+        elif hinting is None:
+            if TTF_GetFontHinting(font) != TTF_HINTING_NONE:
+                TTF_SetFontHinting(font, TTF_HINTING_NONE)
+
+        kerning = container.options['font_kerning']
+        if kerning is True:
+            if TTF_GetFontKerning(font) == 0:
+                TTF_SetFontKerning(font, 1)
+        elif kerning is False:
+            if TTF_GetFontKerning(font) != 0:
+                TTF_SetFontKerning(font, 0)
+
+        st = (
+            TTF_RenderUTF8_Blended(font, <char *>bytes_text, c)
+            if container.options['font_blended']
+            else TTF_RenderUTF8_Solid(font, <char *>bytes_text, c)
+            )
         if st == NULL:
             return
         r.x = x
         r.y = y
         r.w = st.w
         r.h = st.h
-        SDL_SetSurfaceAlphaMod(st, 0xff);
-        SDL_SetSurfaceBlendMode(st, SDL_BLENDMODE_NONE);
+        SDL_SetSurfaceAlphaMod(st, <int>(color[3] * 255))
+        SDL_SetSurfaceBlendMode(st, SDL_BLENDMODE_NONE)
         SDL_BlitSurface(st, NULL, self.surface, &r)
         SDL_FreeSurface(st)
 
@@ -102,12 +129,19 @@ cdef TTF_Font *_get_font(self):
         # try to open the fount if it has an extension
         fontobject = TTF_OpenFont(bytes_fontname,
                                   int(self.options['font_size']))
-
     # fallback to search a system font
     if fontobject == NULL:
         s_error = (<bytes>SDL_GetError()).encode('utf-8')
         print(s_error)
         assert(0)
+
+    # set underline and strikethrough style
+    style = TTF_STYLE_NORMAL
+    if self.options['underline']:
+        style = style | TTF_STYLE_UNDERLINE
+    if self.options['strikethrough']:
+        style = style | TTF_STYLE_STRIKETHROUGH
+    TTF_SetFontStyle(fontobject, style)
 
     sdl2_cache[fontid] = ttfc = _TTFContainer()
     ttfc.font = fontobject

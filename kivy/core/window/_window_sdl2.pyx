@@ -4,12 +4,11 @@ include "../../../kivy/graphics/config.pxi"
 from libc.string cimport memcpy
 from os import environ
 from kivy.config import Config
+from kivy.logger import Logger
 
 
-cdef int _event_filter(void *userdata, SDL_Event *event):
-    cdef _WindowSDL2Storage win
-    win = <_WindowSDL2Storage>userdata
-    return win.cb_event_filter(event)
+cdef int _event_filter(void *userdata, SDL_Event *event) with gil:
+    return (<_WindowSDL2Storage>userdata).cb_event_filter(event)
 
 
 cdef class _WindowSDL2Storage:
@@ -91,7 +90,7 @@ cdef class _WindowSDL2Storage:
         else:
             orientations = <bytes>environ.get('KIVY_ORIENTATION',
                 'LandscapeLeft LandscapeRight')
-        SDL_SetHint(SDL_HINT_ORIENTATIONS, orientations)
+        SDL_SetHint(SDL_HINT_ORIENTATIONS, <bytes>orientations)
 
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16)
@@ -135,9 +134,10 @@ cdef class _WindowSDL2Storage:
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2)
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0)
 
-        self.ctx = SDL_GL_CreateContext(self.win)
-        if not self.ctx:
-            self.die()
+        IF not USE_OPENGL_MOCK:
+            self.ctx = SDL_GL_CreateContext(self.win)
+            if not self.ctx:
+                self.die()
         SDL_JoystickOpen(0)
 
         SDL_SetEventFilter(_event_filter, <void *>self)
@@ -162,7 +162,7 @@ cdef class _WindowSDL2Storage:
         cdef SDL_DisplayMode mode
         cdef int draw_w, draw_h
         SDL_GetWindowDisplayMode(self.win, &mode)
-        if USE_IOS:
+        if USE_IOS and not USE_OPENGL_MOCK:
             SDL_GL_GetDrawableSize(self.win, &draw_w, &draw_h)
             mode.w = draw_w
             mode.h = draw_h
@@ -210,15 +210,16 @@ cdef class _WindowSDL2Storage:
         IF not USE_IOS:
             SDL_SetWindowFullscreen(self.win, mode)
 
-    def set_window_title(self, str title):
+    def set_window_title(self,  title):
         SDL_SetWindowTitle(self.win, <bytes>title.encode('utf-8'))
 
-    def set_window_icon(self, str filename):
+    def set_window_icon(self, filename):
         icon = IMG_Load(<bytes>filename.encode('utf-8'))
         SDL_SetWindowIcon(self.win, icon)
 
     def teardown_window(self):
-        SDL_GL_DeleteContext(self.ctx)
+        IF not USE_OPENGL_MOCK:
+            SDL_GL_DeleteContext(self.ctx)
         SDL_DestroyWindow(self.win)
         SDL_Quit()
 
@@ -234,12 +235,16 @@ cdef class _WindowSDL2Storage:
         return SDL_IsTextInputActive()
 
     def wait_event(self):
-        SDL_WaitEvent(NULL)
+        with nogil:
+            SDL_WaitEvent(NULL)
 
     def poll(self):
         cdef SDL_Event event
+        cdef int rv
 
-        if SDL_PollEvent(&event) == 0:
+        with nogil:
+            rv = SDL_PollEvent(&event)
+        if rv == 0:
             return False
 
         action = None

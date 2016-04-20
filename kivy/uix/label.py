@@ -106,6 +106,10 @@ The following tags are available:
     Activate bold text
 ``[i][/i]``
     Activate italic text
+``[u][/u]``
+    Underlined text
+``[s][/s]``
+    Strikethrough text
 ``[font=<str>][/font]``
     Change the font
 ``[size=<integer>][/size]``
@@ -233,7 +237,6 @@ The following example marks the anchors and references contained in a label::
 
 __all__ = ('Label', )
 
-from functools import partial
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.core.text import Label as CoreLabel
@@ -256,10 +259,12 @@ class Label(Widget):
     __events__ = ['on_ref_press']
 
     _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
+                        'underline', 'strikethrough', 'color', 'disabled_color',
                         'halign', 'valign', 'padding_x', 'padding_y',
                         'text_size', 'shorten', 'mipmap', 'markup',
                         'line_height', 'max_lines', 'strip', 'shorten_from',
-                        'split_str', 'unicode_errors')
+                        'split_str', 'unicode_errors',
+                        'font_hinting', 'font_kerning', 'font_blended')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -269,24 +274,15 @@ class Label(Widget):
         d = Label._font_properties
         fbind = self.fbind
         update = self._trigger_texture_update
+        fbind('disabled', update, 'disabled')
         for x in d:
             fbind(x, update, x)
 
         self._label = None
         self._create_label()
 
-        fbind('markup', self._bind_for_markup)
-        if self.markup:
-            self._bind_for_markup(self, self.markup)
-
         # force the texture creation
         self._trigger_texture()
-
-    def _bind_for_markup(self, inst, markup):
-        if markup:
-            self.fbind('color', self._trigger_texture_update, 'color')
-        else:
-            self.funbind('color', self._trigger_texture_update, 'color')
 
     def _create_label(self):
         # create the core label class according to markup value
@@ -316,6 +312,11 @@ class Label(Widget):
                 self._label.usersize = value
             elif name == 'font_size':
                 self._label.options[name] = value
+            elif name == 'disabled_color' and self.disabled:
+                self._label.options['color'] = value
+            elif name == 'disabled':
+                self._label.options['color'] = self.disabled_color if value \
+                    else self.color
             else:
                 self._label.options[name] = value
         self._trigger_texture()
@@ -329,8 +330,8 @@ class Label(Widget):
         mrkup = self._label.__class__ is CoreMarkupLabel
         self.texture = None
 
-        if (not self._label.text or (self.halign[-1] == 'y' or self.strip) and
-            not self._label.text.strip()):
+        if (not self._label.text or (self.halign == 'justify' or self.strip)
+                and not self._label.text.strip()):
             self.texture_size = (0, 0)
             if mrkup:
                 self.refs, self._label._refs = {}, {}
@@ -341,10 +342,12 @@ class Label(Widget):
                 # we must strip here, otherwise, if the last line is empty,
                 # markup will retain the last empty line since it only strips
                 # line by line within markup
-                if self.halign[-1] == 'y' or self.strip:
+                if self.halign == 'justify' or self.strip:
                     text = text.strip()
                 self._label.text = ''.join(('[color=',
-                                            get_hex_from_color(self.color),
+                                            get_hex_from_color(
+                                                self.disabled_color if
+                                                self.disabled else self.color),
                                             ']', text, '[/color]'))
                 self._label.refresh()
                 # force the rendering to get the references
@@ -497,6 +500,30 @@ class Label(Widget):
     to False.
     '''
 
+    underline = BooleanProperty(False)
+    '''Adds an underline to the text.
+
+    .. note::
+        This feature requires the SDL2 text provider.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`underline` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
+    '''
+
+    strikethrough = BooleanProperty(False)
+    '''Adds a strikethrough line to the text.
+
+    .. note::
+        This feature requires the SDL2 text provider.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`strikethrough` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
+    '''
+
     padding_x = NumericProperty(0)
     '''Horizontal padding of the text inside the widget box.
 
@@ -545,11 +572,16 @@ class Label(Widget):
         A new option was added to :attr:`halign`, namely `justify`.
     '''
 
-    valign = OptionProperty('bottom', options=['bottom', 'middle', 'top'])
+    valign = OptionProperty('bottom',
+                            options=['bottom', 'middle', 'center', 'top'])
     '''Vertical alignment of the text.
 
     :attr:`valign` is an :class:`~kivy.properties.OptionProperty` and defaults
-    to 'bottom'. Available options are : bottom, middle and top.
+    to 'bottom'. Available options are : `'bottom'`,
+    `'middle'` (or `'center'`) and `'top'`.
+
+    .. versionchanged:: 1.9.2
+        The `'center'` option has been added as an alias of `'middle'`.
 
     .. warning::
 
@@ -782,4 +814,42 @@ class Label(Widget):
 
     :attr:`strip` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
+    '''
+
+    font_hinting = OptionProperty(
+        'normal', options=[None, 'normal', 'light', 'mono'], allownone=True)
+    '''What hinting option to use for font rendering.
+    Can be one of `'normal'`, `'light'`, `'mono'` or None.
+
+    .. note::
+        This feature requires the SDL2 text provider.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`font_hinting` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to `'normal'`.
+    '''
+
+    font_kerning = BooleanProperty(True)
+    '''Whether kerning is enabled for font rendering.
+
+    .. note::
+        This feature requires the SDL2 text provider.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`font_kerning` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
+    '''
+
+    font_blended = BooleanProperty(True)
+    '''Whether blended or solid font rendering should be used.
+
+    .. note::
+        This feature requires the SDL2 text provider.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`font_blended` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
     '''

@@ -2,7 +2,7 @@
 FFmpeg based audio player
 =========================
 
-To use, you need to install ffpyplyaer and have a compiled ffmpeg shared
+To use, you need to install ffpyplayer and have a compiled ffmpeg shared
 library.
 
     https://github.com/matham/ffpyplayer
@@ -48,8 +48,7 @@ __all__ = ('SoundFFPy', )
 try:
     import ffpyplayer
     from ffpyplayer.player import MediaPlayer
-    from ffpyplayer.tools import set_log_callback, loglevels,\
-        get_log_callback, formats_in
+    from ffpyplayer.tools import set_log_callback, get_log_callback, formats_in
 except:
     raise
 
@@ -60,7 +59,10 @@ from kivy.core.audio import Sound, SoundLoader
 from kivy.weakmethod import WeakMethod
 import time
 
-Logger.info('SoundFFPy: Using ffpyplayer {}'.format(ffpyplayer.version))
+try:
+    Logger.info('SoundFFPy: Using ffpyplayer {}'.format(ffpyplayer.__version__))
+except:
+    Logger.info('SoundFFPy: Using ffpyplayer {}'.format(ffpyplayer.version))
 
 
 logger_func = {'quiet': Logger.critical, 'panic': Logger.critical,

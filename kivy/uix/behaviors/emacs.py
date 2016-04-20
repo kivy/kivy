@@ -3,9 +3,8 @@
 Emacs Behavior
 ==============
 
-.. versionadded:: 1.9.1
-
-This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ allows you to add
+The :class:`~kivy.uix.behaviors.emacs.EmacsBehavior`
+`mixin <https://en.wikipedia.org/wiki/Mixin>`_ allows you to add
 `Emacs <https://www.gnu.org/software/emacs/>`_ keyboard shortcuts for basic
 movement and editing to the :class:`~kivy.uix.textinput.TextInput` widget.
 The shortcuts currently available are listed below::
@@ -35,6 +34,9 @@ Control + y     Paste selection
     cursor to the end of the line, but the inspector will open as well).
 '''
 
+from kivy.properties import StringProperty
+
+
 __all__ = ('EmacsBehavior', )
 
 
@@ -42,6 +44,24 @@ class EmacsBehavior(object):
     '''
     A `mixin <https://en.wikipedia.org/wiki/Mixin>`_ that enables Emacs-style
     keyboard shortcuts for the :class:`~kivy.uix.textinput.TextInput` widget.
+    Please see the :mod:`Emacs behaviors module <kivy.uix.behaviors.emacs>`
+    documentation for more information.
+
+    .. versionadded:: 1.9.1
+    '''
+
+    key_bindings = StringProperty('emacs')
+    '''String name which determines the type of key bindings to use with the
+    :class:`~kivy.uix.textinput.TextInput`. This allows Emacs key bindings to
+    be enabled/disabled programmatically for widgets that inherit from
+    :class:`EmacsBehavior`. If the value is not ``'emacs'``, Emacs bindings
+    will be disabled. Use ``'default'`` for switching to the default key
+    bindings of TextInput.
+
+    :attr:`key_bindings` is a :class:`~kivy.properties.StringProperty`
+    and defaults to ``'emacs'``.
+
+    .. versionadded:: 1.9.2
     '''
 
     def __init__(self, **kwargs):
@@ -73,7 +93,7 @@ class EmacsBehavior(object):
         mod = modifiers[0] if modifiers else None
         is_emacs_shortcut = False
 
-        if key in range(256):
+        if key in range(256) and self.key_bindings == 'emacs':
             is_emacs_shortcut = ((mod == 'ctrl' and
                                   chr(key) in self.bindings['ctrl'].keys()) or
                                  (mod == 'alt' and

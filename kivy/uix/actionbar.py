@@ -73,11 +73,11 @@ class ActionItem(object):
     '''
 
     def get_pack_width(self):
-        return min(self.minimum_width, self.width)
+        return max(self.minimum_width, self.width)
 
     pack_width = AliasProperty(get_pack_width, bind=('minimum_width', 'width'))
     '''(read-only) The actual width to use when packing the item. Equal to the
-       lesser of minimum_width and width.
+       greater of minimum_width and width.
 
        :attr:`pack_width` is an :class:`~kivy.properties.AliasProperty`.
     '''

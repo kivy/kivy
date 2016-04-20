@@ -5,10 +5,8 @@ from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from uix.custom_button import AnimatedButton
-from kivy.uix.image import Image
 from kivy.uix.scatter import Scatter
 from kivy.properties import ObjectProperty
-from kivy.core import window
 
 
 class gifScatter(Scatter):

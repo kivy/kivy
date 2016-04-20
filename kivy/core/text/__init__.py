@@ -154,10 +154,13 @@ class LabelBase(object):
 
     def __init__(
         self, text='', font_size=12, font_name=DEFAULT_FONT, bold=False,
-        italic=False, halign='left', valign='bottom', shorten=False,
+        italic=False, underline=False, strikethrough=False,
+        halign='left', valign='bottom', shorten=False,
         text_size=None, mipmap=False, color=None, line_height=1.0, strip=False,
         strip_reflow=True, shorten_from='center', split_str=' ',
-        unicode_errors='replace', **kwargs):
+        unicode_errors='replace',
+        font_hinting='normal', font_kerning=True, font_blended=True,
+        **kwargs):
 
         # Include system fonts_dir in resource paths.
         # This allows us to specify a font from those dirs.
@@ -165,11 +168,15 @@ class LabelBase(object):
 
         options = {'text': text, 'font_size': font_size,
                    'font_name': font_name, 'bold': bold, 'italic': italic,
+                   'underline': underline, 'strikethrough': strikethrough,
                    'halign': halign, 'valign': valign, 'shorten': shorten,
                    'mipmap': mipmap, 'line_height': line_height,
                    'strip': strip, 'strip_reflow': strip_reflow,
                    'shorten_from': shorten_from, 'split_str': split_str,
-                   'unicode_errors': unicode_errors}
+                   'unicode_errors': unicode_errors,
+                   'font_hinting': font_hinting,
+                   'font_kerning': font_kerning,
+                   'font_blended': font_blended}
 
         options['color'] = color or (1, 1, 1, 1)
         options['padding'] = kwargs.get('padding', (0, 0))
@@ -491,15 +498,15 @@ class LabelBase(object):
                 last_word = layout_line.words[0]
                 line = last_word.text
             x = xpad
-            if halign[0] == 'c':  # center
+            if halign == 'center':
                 x = int((w - lw) / 2.)
-            elif halign[0] == 'r':  # right
+            elif halign == 'right':
                 x = max(0, int(w - lw - xpad))
 
             # right left justify
             # divide left over space between `spaces`
             # TODO implement a better method of stretching glyphs?
-            if (uw is not None and halign[-1] == 'y' and line and not
+            if (uw is not None and halign == 'justify' and line and not
                 layout_line.is_last_line):
                 # number spaces needed to fill, and remainder
                 n, rem = divmod(max(uww - lw, 0), sw)
@@ -549,7 +556,7 @@ class LabelBase(object):
         y = ypad = options['padding_y']  # pos in the texture
         if valign == 'bottom':
             y = size[1] - ih + ypad
-        elif valign == 'middle':
+        elif valign == 'middle' or valign == 'center':
             y = int((size[1] - ih) / 2 + ypad)
 
         self._render_begin()
@@ -575,7 +582,7 @@ class LabelBase(object):
         options = copy(self.options)
         options['space_width'] = self.get_extents(' ')[0]
         options['strip'] = strip = (options['strip'] or
-                                    options['halign'][-1] == 'y')
+                                    options['halign'] == 'justify')
         uw, uh = options['text_size'] = self._text_size
         text = self.text
         if strip:
@@ -586,7 +593,8 @@ class LabelBase(object):
         if not text:
             return 0, 0
 
-        if uh is not None and options['valign'][-1] == 'e':  # middle
+        if uh is not None and (options['valign'] == 'middle' or
+                               options['valign'] == 'center'):
             center = -1  # pos of newline
             if len(text) > 1:
                 middle = int(len(text) // 2)
@@ -610,7 +618,7 @@ class LabelBase(object):
                 options, self.get_cached_extents(), True, True)
         else:  # top or bottom
             w, h, clipped = layout_text(text, lines, (0, 0), (uw, uh), options,
-                self.get_cached_extents(), options['valign'][-1] == 'p', True)
+                self.get_cached_extents(), options['valign'] == 'top', True)
         self._internal_size = w, h
         if uw:
             w = uw
@@ -725,7 +733,7 @@ class LabelBase(object):
     def fontid(self):
         '''Return a unique id for all font parameters'''
         return str([self.options[x] for x in (
-            'font_size', 'font_name_r', 'bold', 'italic')])
+            'font_size', 'font_name_r', 'bold', 'italic', 'underline', 'strikethrough')])
 
     def _get_text_size(self):
         return self._text_size

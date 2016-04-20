@@ -23,7 +23,6 @@ __all__ = ('Slider', )
 from kivy.uix.widget import Widget
 from kivy.properties import (NumericProperty, AliasProperty, OptionProperty,
                              ReferenceListProperty, BoundedNumericProperty)
-from kivy.metrics import sp
 
 
 class Slider(Widget):
@@ -50,17 +49,17 @@ class Slider(Widget):
     :attr:`max` is a :class:`~kivy.properties.NumericProperty` and defaults to
     100.'''
 
-    padding = NumericProperty(sp(16))
+    padding = NumericProperty('16sp')
     '''Padding of the slider. The padding is used for graphical representation
     and interaction. It prevents the cursor from going out of the bounds of the
     slider bounding box.
 
-    By default, padding is sp(16). The range of the slider is reduced from
-    padding \*2 on the screen. It allows drawing the default cursor of sp(32)
+    By default, padding is 16sp. The range of the slider is reduced from
+    padding \*2 on the screen. It allows drawing the default cursor of 32sp
     width without having the cursor go out of the widget.
 
     :attr:`padding` is a :class:`~kivy.properties.NumericProperty` and defaults
-    to sp(16).'''
+    to 16sp.'''
 
     orientation = OptionProperty('horizontal', options=(
         'vertical', 'horizontal'))
@@ -117,13 +116,14 @@ class Slider(Widget):
 
     def set_norm_value(self, value):
         vmin = self.min
+        vmax = self.max
         step = self.step
-        val = value * (self.max - vmin) + vmin
+        val = min(value * (vmax - vmin) + vmin, vmax)
         if step == 0:
             self.value = val
         else:
             self.value = min(round((val - vmin) / step) * step + vmin,
-                             self.max)
+                             vmax)
     value_normalized = AliasProperty(get_norm_value, set_norm_value,
                                      bind=('value', 'min', 'max', 'step'))
     '''Normalized value inside the :attr:`range` (min/max) to 0-1 range::

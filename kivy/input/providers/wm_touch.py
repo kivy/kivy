@@ -15,6 +15,8 @@ from kivy.input.providers.wm_common import (
 from kivy.input.motionevent import MotionEvent
 from kivy.input.shape import ShapeRect
 
+Window = None
+
 
 class WM_MotionEvent(MotionEvent):
     '''MotionEvent representing the WM_MotionEvent event.
@@ -133,6 +135,10 @@ else:
     class WM_MotionEventProvider(MotionEventProvider):
 
         def start(self):
+            global Window
+            if not Window:
+                from kivy.core.window import Window
+
             self.touch_events = deque()
             self.touches = {}
             self.uid = 0
@@ -147,7 +153,10 @@ else:
             self.old_windProc = SetWindowLong_wrapper(
                 self.hwnd, GWL_WNDPROC, self.new_windProc)
 
-            self.caption_size = windll.user32.GetSystemMetrics(SM_CYCAPTION)
+            if Window.borderless or Window.fullscreen:
+                self.caption_size = 0
+            else:
+                self.caption_size = windll.user32.GetSystemMetrics(SM_CYCAPTION)
 
         def update(self, dispatch_fn):
             win_rect = RECT()

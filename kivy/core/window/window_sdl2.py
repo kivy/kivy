@@ -18,7 +18,6 @@ __all__ = ('WindowSDL2', )
 from os.path import join
 from kivy import kivy_data_dir
 from kivy.logger import Logger
-from kivy import metrics
 from kivy.base import EventLoop, ExceptionManager, stopTouchApp
 from kivy.clock import Clock
 from kivy.config import Config
@@ -246,6 +245,9 @@ class WindowSDL(WindowBase):
             # will be fired.
             self._pos = (0, 0)
             self._set_minimum_size()
+
+            if state == 'hidden':
+                self._focus = False
         else:
             w, h = self.system_size
             self._win.resize_window(w, h)
@@ -472,6 +474,12 @@ class WindowSDL(WindowBase):
                 if Config.getboolean('kivy', 'pause_on_minimize'):
                     self.do_pause()
 
+            elif action == 'windowfocusgained':
+                self._focus = True
+
+            elif action == 'windowfocuslost':
+                self._focus = False
+
             elif action == 'windowenter':
                 self.dispatch('on_cursor_enter')
 
@@ -558,12 +566,6 @@ class WindowSDL(WindowBase):
             elif action == 'textinput':
                 text = args[0]
                 self.dispatch('on_textinput', text)
-
-            elif action == 'windowfocusgained':
-                self.focus = True
-
-            elif action == 'windowfocuslost':
-                self.focus = False
 
             # unhandled event !
             else:

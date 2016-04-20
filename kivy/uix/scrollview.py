@@ -420,6 +420,8 @@ class ScrollView(StencilView):
 
     _viewport = ObjectProperty(None, allownone=True)
     _bar_color = ListProperty([0, 0, 0, 0])
+    _effect_x_start_width = None
+    _effect_y_start_height = None
 
     def _set_viewport_size(self, instance, value):
         self.viewport_size = value
@@ -530,7 +532,11 @@ class ScrollView(StencilView):
         vp = self._viewport
         if not vp or not self.effect_x:
             return
-        sw = vp.width - self.width
+
+        if self.effect_x.is_manual:
+            sw = vp.width - self._effect_x_start_width
+        else:
+            sw = vp.width - self.width
         if sw < 1:
             return
         sx = self.effect_x.scroll / float(sw)
@@ -541,7 +547,10 @@ class ScrollView(StencilView):
         vp = self._viewport
         if not vp or not self.effect_y:
             return
-        sh = vp.height - self.height
+        if self.effect_y.is_manual:
+            sh = vp.height - self._effect_y_start_height
+        else:
+            sh = vp.height - self.height
         if sh < 1:
             return
         sy = self.effect_y.scroll / float(sh)
@@ -574,6 +583,11 @@ class ScrollView(StencilView):
             self._touch = touch
             touch.grab(self)
             return True
+
+    def _touch_in_handle(self, pos, size, touch):
+        x, y = pos
+        width, height = size
+        return x <= touch.x <= x + width and y <= touch.y <= y + height
 
     def on_scroll_start(self, touch, check_children=True):
         if check_children:
@@ -648,6 +662,20 @@ class ScrollView(StencilView):
                 e.trigger_velocity_update()
             return True
 
+        in_bar = ud['in_bar_x'] or ud['in_bar_y']
+        if scroll_type == ['bars'] and not in_bar:
+            return self.simulate_touch_down(touch)
+
+        if in_bar:
+            if (ud['in_bar_y'] and not
+                    self._touch_in_handle(
+                        self._handle_y_pos, self._handle_y_size, touch)):
+                self.scroll_y = (touch.y - self.y) / self.height
+            elif (ud['in_bar_x'] and not
+                    self._touch_in_handle(
+                        self._handle_x_pos, self._handle_x_size, touch)):
+                self.scroll_x = (touch.x - self.x) / self.width
+
         # no mouse scrolling, so the user is going to drag the scrollview with
         # this touch.
         self._touch = touch
@@ -658,26 +686,23 @@ class ScrollView(StencilView):
             'mode': 'unknown',
             'dx': 0,
             'dy': 0,
-            'user_stopped': False,
+            'user_stopped': in_bar,
             'frames': Clock.frames,
             'time': touch.time_start}
 
         if self.do_scroll_x and self.effect_x and not ud['in_bar_x']:
+            self._effect_x_start_width = self.width
             self.effect_x.start(touch.x)
             self._scroll_x_mouse = self.scroll_x
         if self.do_scroll_y and self.effect_y and not ud['in_bar_y']:
+            self._effect_y_start_height = self.height
             self.effect_y.start(touch.y)
             self._scroll_y_mouse = self.scroll_y
 
-        if (ud.get('in_bar_x', False) or ud.get('in_bar_y', False)):
-            return True
-
-        Clock.schedule_once(self._change_touch_mode,
+        if not in_bar:
+            Clock.schedule_once(self._change_touch_mode,
                                 self.scroll_timeout / 1000.)
-        if scroll_type == ['bars']:
-            return False
-        else:
-            return True
+        return True
 
     def on_touch_move(self, touch):
         if self._touch is not touch:
@@ -690,7 +715,7 @@ class ScrollView(StencilView):
         if touch.grab_current is not self:
             return True
 
-        if not (self.do_scroll_y or self.do_scroll_x):
+        if touch.ud.get(self._get_uid()) is None:
             return super(ScrollView, self).on_touch_move(touch)
 
         touch.ud['sv.handled'] = {'x': False, 'y': False}
@@ -750,7 +775,8 @@ class ScrollView(StencilView):
         if mode == 'unknown':
             ud['dx'] += abs(touch.dx)
             ud['dy'] += abs(touch.dy)
-            if ud['dx'] or ud['dy'] > self.scroll_distance:
+            if ((ud['dx'] > self.scroll_distance) or
+                    (ud['dy'] > self.scroll_distance)):
                 if not self.do_scroll_x and not self.do_scroll_y:
                     # touch is in parent, but _change expects window coords
                     touch.push()

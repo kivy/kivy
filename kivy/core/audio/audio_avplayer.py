@@ -8,7 +8,6 @@ __all__ = ('SoundAvplayer', )
 from kivy.core.audio import Sound, SoundLoader
 from pyobjus import autoclass
 from pyobjus.dylib_manager import load_framework, INCLUDE
-import sys
 
 load_framework(INCLUDE.AVFoundation)
 AVAudioPlayer = autoclass("AVAudioPlayer")

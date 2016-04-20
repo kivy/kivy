@@ -139,7 +139,9 @@ class LinePlayground(FloatLayout):
     alpha_controlline = NumericProperty(1.0)
     alpha = NumericProperty(0.5)
     close = BooleanProperty(False)
-    points = ListProperty([500, 500, 300, 300, 500, 300, 500, 400, 600, 400])
+    points = ListProperty([(500, 500),
+                          [300, 300, 500, 300],
+                          [500, 400, 600, 400]])
     points2 = ListProperty([])
     joint = OptionProperty('none', options=('round', 'miter', 'bevel', 'none'))
     cap = OptionProperty('none', options=('round', 'square', 'none'))
@@ -150,12 +152,12 @@ class LinePlayground(FloatLayout):
         if super(LinePlayground, self).on_touch_down(touch):
             return True
         touch.grab(self)
-        self.points = self.points + list(touch.pos)
+        self.points.append(touch.pos)
         return True
 
     def on_touch_move(self, touch):
         if touch.grab_current is self:
-            self.points[-2:] = list(touch.pos)
+            self.points[-1] = touch.pos
             return True
         return super(LinePlayground, self).on_touch_move(touch)
 

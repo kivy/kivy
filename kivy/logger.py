@@ -180,14 +180,26 @@ class FileHandler(logging.Handler):
         if FileHandler.fd in (None, False):
             return
 
-        FileHandler.fd.write('[%-18s] ' % record.levelname)
-        try:
-            FileHandler.fd.write(record.msg)
-        except UnicodeEncodeError:
-            if PY2:
-                FileHandler.fd.write(record.msg.encode('utf8'))
-        FileHandler.fd.write('\n')
-        FileHandler.fd.flush()
+        msg = self.format(record)
+        stream = FileHandler.fd
+        fs = "%s\n"
+        stream.write('[%-18s] ' % record.levelname)
+        if PY2:
+            try:
+                if (isinstance(msg, unicode) and
+                    getattr(stream, 'encoding', None)):
+                    ufs = u'%s\n'
+                    try:
+                        stream.write(ufs % msg)
+                    except UnicodeEncodeError:
+                        stream.write((ufs % msg).encode(stream.encoding))
+                else:
+                    stream.write(fs % msg)
+            except UnicodeError:
+                stream.write(fs % msg.encode("UTF-8"))
+        else:
+            stream.write(fs % msg)
+        stream.flush()
 
     def emit(self, message):
         # during the startup, store the message in the history

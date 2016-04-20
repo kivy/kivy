@@ -603,7 +603,8 @@ class Widget(WidgetBase):
 
         if self.parent is not None:
             canvas_parent_index = self.parent.canvas.indexof(self.canvas)
-            self.parent.canvas.remove(self.canvas)
+            if canvas_parent_index > -1:
+                self.parent.canvas.remove(self.canvas)
 
         fbo = Fbo(size=self.size, with_stencilbuffer=True)
 
@@ -618,7 +619,7 @@ class Widget(WidgetBase):
         fbo.texture.save(filename, flipped=False)
         fbo.remove(self.canvas)
 
-        if self.parent is not None:
+        if self.parent is not None and canvas_parent_index > -1:
             self.parent.canvas.insert(canvas_parent_index, self.canvas)
 
         return True
@@ -1024,7 +1025,7 @@ class Widget(WidgetBase):
     what you are doing.
     '''
 
-    parent = ObjectProperty(None, allownone=True)
+    parent = ObjectProperty(None, allownone=True, rebind=True)
     '''Parent of this widget. The parent of a widget is set when the widget
     is added to another widget and unset when the widget is removed from its
     parent.

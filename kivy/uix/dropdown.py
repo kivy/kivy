@@ -93,6 +93,8 @@ from kivy.uix.scrollview import ScrollView
 from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty
 from kivy.core.window import Window
 from kivy.lang import Builder
+from kivy.clock import Clock
+from kivy.config import Config
 
 _grid_kv = '''
 GridLayout:
@@ -156,6 +158,18 @@ class DropDown(ScrollView):
     .. versionadded:: 1.8.0
     '''
 
+    min_state_time = NumericProperty(0)
+    '''Minimum time before the :class:`~kivy.uix.DropDown` is dismissed.
+    This is used to allow for the widget inside the dropdown to display
+    a down state or for the :class:`~kivy.uix.DropDown` itself to
+    display a animation for closing.
+
+    :attr:`min_state_time` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to the `Config` value `min_state_time`.
+
+    .. versionadded:: 1.9.2
+    '''
+
     attach_to = ObjectProperty(allownone=True)
     '''(internal) Property that will be set to the widget to which the
     drop down list is attached.
@@ -173,6 +187,9 @@ class DropDown(ScrollView):
 
     def __init__(self, **kwargs):
         self._win = None
+        if 'min_state_time' not in kwargs:
+            self.min_state_time = float(
+                Config.get('graphics', 'min_state_time'))
         if 'container' not in kwargs:
             c = self.container = Builder.load_string(_grid_kv)
         else:
@@ -230,6 +247,10 @@ class DropDown(ScrollView):
         '''Remove the dropdown widget from the window and detach it from
         the attached widget.
         '''
+        Clock.schedule_once(lambda dt: self._real_dismiss(),
+                            self.min_state_time)
+
+    def _real_dismiss(self):
         if self.parent:
             self.parent.remove_widget(self)
         if self.attach_to:
@@ -279,7 +300,8 @@ class DropDown(ScrollView):
             return True
         if self.collide_point(*touch.pos):
             return True
-        if self.attach_to and self.attach_to.collide_point(*touch.pos):
+        if (self.attach_to and self.attach_to.collide_point(
+                *self.attach_to.to_widget(*touch.pos))):
             return True
         if self.auto_dismiss:
             self.dismiss()
@@ -357,3 +379,4 @@ if __name__ == '__main__':
     btn.bind(on_release=show_dropdown, on_touch_move=touch_move)
 
     runTouchApp(btn)
+

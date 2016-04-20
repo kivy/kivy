@@ -40,13 +40,17 @@ def parse_color(text):
 
         * rgb(r, g, b)
         * rgba(r, g, b, a)
-        * aaa
+        * rgb
+        * rgba
         * rrggbb
+        * rrggbbaa
 
     For hexadecimal values, you case also use:
 
-        * #aaa
+        * #rgb
+        * #rgba
         * #rrggbb
+        * #rrggbbaa
     '''
     value = [1, 1, 1, 1]
     if text.startswith('rgb'):
@@ -57,7 +61,7 @@ def parse_color(text):
                 value = [1 if int(x) > 255. else (int(x) / 255.)
                          for x in re.split(',\ ?', res.groups()[0])]
                 if len(value) < 3:
-                    #in case of invalid input like rgb()/rgb(r)/rgb(r, g)
+                    # in case of invalid input like rgb()/rgb(r)/rgb(r, g)
                     raise ValueError
             except ValueError:
                 return color_error('ColorParser: Invalid color for %r' % text)
@@ -75,7 +79,7 @@ def parse_color(text):
         if lres == 3 or lres == 4:
             res = ''.join([x + x for x in res])
         elif lres != 6 and lres != 8:
-            #raise ColorException('Invalid color format for %r' % text)
+            # raise ColorException('Invalid color format for %r' % text)
             return color_error(
                 'ColorParser: Invalid color format for %r' % text)
         try:
@@ -83,7 +87,7 @@ def parse_color(text):
                      for i in range(0, len(res), 2)]
         except ValueError:
             return color_error('ColorParser: Invalid color for %r' % text)
-        if lres == 6:
+        if lres == 6 or lres == 3:
             value.append(1.)
     return value
 

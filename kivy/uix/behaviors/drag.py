@@ -1,11 +1,55 @@
-'''See :class:`DragBehavior` for details.
-'''
+"""
+Drag Behavior
+=============
+
+The :class:`~kivy.uix.behaviors.drag.DragBehavior`
+`mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides Drag behavior.
+When combined with a widget, dragging in the rectangle defined by the
+:attr:`~kivy.uix.behaviors.drag.DragBehavior.drag_rectangle` will drag the
+widget.
+
+Example
+-------
+
+The following example creates a draggable label::
+
+    from kivy.uix.label import Label
+    from kivy.app import App
+    from kivy.uix.behaviors import DragBehavior
+    from kivy.lang import Builder
+
+    # You could also put the following in your kv file...
+    kv = '''
+    <DragLabel>:
+        # Define the properties for the DragLabel
+        drag_rectangle: self.x, self.y, self.width, self.height
+        drag_timeout: 10000000
+        drag_distance: 0
+
+    FloatLayout:
+        # Define the root widget
+        DragLabel:
+            size_hint: 0.25, 0.2
+            text: 'Drag me'
+    '''
+
+
+    class DragLabel(DragBehavior, Label):
+        pass
+
+
+    class TestApp(App):
+        def build(self):
+            return Builder.load_string(kv)
+
+    TestApp().run()
+
+"""
 
 __all__ = ('DragBehavior', )
 
 from kivy.clock import Clock
-from kivy.properties import NumericProperty, ReferenceListProperty, \
-    ListProperty
+from kivy.properties import NumericProperty, ReferenceListProperty
 from kivy.config import Config
 from kivy.metrics import sp
 from functools import partial
@@ -18,28 +62,12 @@ if Config:
 
 
 class DragBehavior(object):
-    '''This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class
-    provides Drag behavior. When combined with a widget,
-    dragging in the rectangle defined by :attr:`drag_rectangle` will drag the
-    widget.
-
-    For example, to make a popup which is draggable by its title do::
-
-        from kivy.uix.behaviors import DragBehavior
-        from kivy.uix.popup import Popup
-
-        class DragPopup(DragBehavior, Popup):
-            pass
-
-    And in .kv do:
-
-    .. code-block:: kv
-
-        <DragPopup>:
-            drag_rectangle: self.x, self.y+self._container.height, self.width,\
-            self.height - self._container.height
-            drag_timeout: 10000000
-            drag_distance: 0
+    '''
+    The DragBehavior `mixin <https://en.wikipedia.org/wiki/Mixin>`_ provides
+    Drag behavior. When combined with a widget, dragging in the rectangle
+    defined by :attr:`drag_rectangle` will drag the widget. Please see
+    the :mod:`drag behaviors module <kivy.uix.behaviors.drag>` documentation
+    for more information.
 
     .. versionadded:: 1.8.0
     '''

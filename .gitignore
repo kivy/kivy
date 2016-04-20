@@ -1,7 +1,9 @@
 .coverage
 .noseids
 Kivy.egg-info
+Kivy-*.dist-info
 *.so
+*.pyd
 *.pyc
 *.pyo
 *.py#
@@ -43,6 +45,9 @@ python.exe
 .idea
 dist
 htmlcov
+kivy/deps/*
+!kivy/deps/__init__.py
+kivy.deps*
 
 MANIFEST
 

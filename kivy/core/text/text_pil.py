@@ -4,10 +4,8 @@ Text PIL: Draw text with PIL
 
 __all__ = ('LabelPIL', )
 
-try:
-    from PIL import Image, ImageFont, ImageDraw
-except:
-    raise
+from PIL import Image, ImageFont, ImageDraw
+
 
 from kivy.compat import text_type
 from kivy.core.text import LabelBase

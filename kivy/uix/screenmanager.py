@@ -789,10 +789,11 @@ class ScreenManager(FloatLayout):
     By default, the manager will show only one screen at a time.
     '''
 
-    current = StringProperty(None)
-    '''Name of the screen currently shown, or the screen to show.
+    current = StringProperty(None, allownone=True)
+    '''
+    Name of the screen currently shown, or the screen to show.
 
-  ::
+    ::
 
         from kivy.uix.screenmanager import ScreenManager, Screen
 
@@ -803,14 +804,17 @@ class ScreenManager(FloatLayout):
         # By default, the first added screen will be shown. If you want to
         # show another one, just set the 'current' property.
         sm.current = 'second'
+
+    :attr:`current` is a :class:`~kivy.properties.StringProperty` and defaults
+    to None.
     '''
 
     transition = ObjectProperty(SlideTransition(), baseclass=TransitionBase)
-    '''Transition object to use for animating the screen that will be hidden
-    and the screen that will be shown. By default, an instance of
-    :class:`SlideTransition` will be given.
+    '''Transition object to use for animating the transition from the current
+    screen to the next one being shown.
 
-    For example, if you want to change to a :class:`WipeTransition`::
+    For example, if you want to use a :class:`WipeTransition` between
+    slides::
 
         from kivy.uix.screenmanager import ScreenManager, Screen,
         WipeTransition
@@ -822,6 +826,9 @@ class ScreenManager(FloatLayout):
         # by default, the first added screen will be shown. If you want to
         # show another one, just set the 'current' property.
         sm.current = 'second'
+
+    :attr:`transition` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to a :class:`SlideTransition`.
 
     .. versionchanged:: 1.8.0
 
@@ -838,7 +845,7 @@ class ScreenManager(FloatLayout):
     [], read-only.
     '''
 
-    current_screen = ObjectProperty(None)
+    current_screen = ObjectProperty(None, allownone=True)
     '''Contains the currently displayed screen. You must not change this
     property manually, use :attr:`current` instead.
 
@@ -890,32 +897,47 @@ class ScreenManager(FloatLayout):
         screen = l[0]
         if not isinstance(screen, Screen):
             raise ScreenManagerException(
-                'ScreenManager uses remove_widget only to remove' +
-                'screens added via add_widget! use real_remove_widget.')
+                'ScreenManager uses remove_widget only for removing Screens.')
 
-        if not screen in self.screens:
+        if screen not in self.screens:
             return
+
         if self.current_screen == screen:
             other = next(self)
-            if other:
+            if screen.name == other:
+                self.current = None
+                screen.parent.real_remove_widget(screen)
+            else:
                 self.current = other
+
         screen.manager = None
         screen.unbind(name=self._screen_name_changed)
         self.screens.remove(screen)
 
-    def real_add_widget(self, *l):
-        # ensure screen is removed from it's previous parent before adding'
-        if l[0].parent:
-            l[0].parent.remove_widget(l[0])
-        super(ScreenManager, self).add_widget(*l)
+    def clear_widgets(self, screens=None):
+        if not screens:
+            screens = self.screens
+        remove_widget = self.remove_widget
+        for screen in screens:
+            remove_widget(screen)
 
-    def real_remove_widget(self, *l):
-        super(ScreenManager, self).remove_widget(*l)
+    def real_add_widget(self, screen, *args):
+        # ensure screen is removed from its previous parent
+        parent = screen.parent
+        if parent:
+            parent.real_remove_widget(screen)
+        super(ScreenManager, self).add_widget(screen)
+
+    def real_remove_widget(self, screen, *args):
+        super(ScreenManager, self).remove_widget(screen)
 
     def on_current(self, instance, value):
-        screen = self.get_screen(value)
-        if not screen:
+        if value is None:
+            self.transition.stop()
+            self.current_screen = None
             return
+
+        screen = self.get_screen(value)
         if screen == self.current_screen:
             return
 
@@ -1018,7 +1040,7 @@ class ScreenManager(FloatLayout):
         self.transition.stop()
 
         # ensure the screen name will be unique
-        if screen not in self.children:
+        if screen not in self.screens:
             if self.has_screen(screen.name):
                 screen.name = self._generate_screen_name()
 

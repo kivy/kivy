@@ -520,3 +520,25 @@ class PropertiesTestCase(unittest.TestCase):
         self.assertEqual(dict_rebind.text, 'Unset')
         self.assertEqual(dict_false.text, 'Unset')
         self.assertEqual(alias_rebind.text, 'Unset')
+
+    def test_color_property(self):
+        from kivy.properties import ColorProperty
+
+        color = ColorProperty()
+        color.link(wid, 'color')
+        color.link_deps(wid, 'color')
+        self.assertEqual(color.get(wid), [1, 1, 1, 1])
+
+        color.set(wid, "#00ff00")
+        self.assertEqual(color.get(wid), [0, 1, 0, 1])
+
+        color.set(wid, "#7f7fff7f")
+        self.assertEqual(color.get(wid)[0], 127 / 255.)
+        self.assertEqual(color.get(wid)[1], 127 / 255.)
+        self.assertEqual(color.get(wid)[2], 1)
+        self.assertEqual(color.get(wid)[3], 127 / 255.)
+
+        color.set(wid, (1, 1, 0))
+        self.assertEqual(color.get(wid), [1, 1, 0, 1])
+        color.set(wid, (1, 1, 0, 0))
+        self.assertEqual(color.get(wid), [1, 1, 0, 0])

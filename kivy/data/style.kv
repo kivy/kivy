@@ -3,7 +3,7 @@
 <Label>:
     canvas:
         Color:
-            rgba: self.disabled_color if self.disabled else (self.color if not self.markup else (1, 1, 1, 1))
+            rgba: 1, 1, 1, 1
         Rectangle:
             texture: self.texture
             size: self.texture_size
@@ -21,7 +21,7 @@
             size: self.size
             source: self.disabled_image if self.disabled else self.state_image
         Color:
-            rgba: self.disabled_color if self.disabled else self.color
+            rgba: 1, 1, 1, 1
         Rectangle:
             texture: self.texture
             size: self.texture_size
@@ -159,6 +159,7 @@
     font_size: '15sp'
 
 <Selector>
+    color: 148. / 255, 208 / 255., 230 / 255., 1
     allow_stretch: True
 
 <TextInput>:
@@ -176,7 +177,7 @@
             pos: [int(x) for x in self.cursor_pos]
             size: 1, -self.line_height
         Color:
-            rgba: self.disabled_foreground_color if self.disabled else (self.hint_text_color if not self.text and not self.focus else self.foreground_color)
+            rgba: self.disabled_foreground_color if self.disabled else (self.hint_text_color if not self.text else self.foreground_color)
 
 <TextInputCutCopyPaste>:
     but_cut: cut.__self__
@@ -327,6 +328,7 @@
         pos: root.pos
         Label:
             id: filename
+            size_hint_x: None
             width: (self.texture_size[0] + dp(4)) if self.texture_size else dp(10)
             halign: 'left'
             shorten: True
@@ -960,20 +962,22 @@
         x: root.x + root.width - self.width
         y: root.y + root.height - self.height
 
-
 <ScrollView>:
+    _handle_y_pos: (self.right - self.bar_width - self.bar_margin) if self.bar_pos_y == 'right' else (self.x + self.bar_margin), self.y + self.height * self.vbar[0]
+    _handle_y_size: min(self.bar_width, self.width), self.height * self.vbar[1]
+    _handle_x_pos: self.x + self.width * self.hbar[0], (self.y + self.bar_margin) if self.bar_pos_x == 'bottom' else (self.top - self.bar_margin - self.bar_width)
+    _handle_x_size: self.width * self.hbar[1], min(self.bar_width, self.height)
     canvas.after:
         Color:
             rgba: self._bar_color if (self.do_scroll_y and self.viewport_size[1] > self.height) else [0, 0, 0, 0]
         Rectangle:
-            pos: (self.right - self.bar_width - self.bar_margin) if self.bar_pos_y == 'right' else (self.x + self.bar_margin), self.y + self.height * self.vbar[0]
-            size: min(self.bar_width, self.width), self.height * self.vbar[1]
+            pos: root._handle_y_pos or (0, 0)
+            size: root._handle_y_size or (0, 0)
         Color:
             rgba: self._bar_color if (self.do_scroll_x and self.viewport_size[0] > self.width) else [0, 0, 0, 0]
         Rectangle:
-            pos: self.x + self.width * self.hbar[0], (self.y + self.bar_margin) if self.bar_pos_x == 'bottom' else (self.top - self.bar_margin - self.bar_width)
-            size: self.width * self.hbar[1], min(self.bar_width, self.height)
-
+            pos: root._handle_x_pos or (0, 0)
+            size: root._handle_x_size or (0, 0)
 
 # =============================================================================
 # Video player
@@ -1148,6 +1152,10 @@
         on_value:
             root.mroot._trigger_update_clr(root.mode, root.clr_idx, args[1])
 
+<ColorWheel>:
+    _origin: self.center
+    _radius: 0.45 * min(self.size)
+
 <ColorPicker>:
     foreground_color: (1, 1, 1, 1) if self.hsv[2] * wheel.a < .5 else (0, 0, 0, 1)
     wheel: wheel
@@ -1259,7 +1267,5 @@
 
         ColorWheel:
             id: wheel
-            _origin: (self.center_x, self.center_y)
-            _radius: 0.45 * min(self.size)
             color: root.color
             on_color: root.color[:3] = args[1][:3]
