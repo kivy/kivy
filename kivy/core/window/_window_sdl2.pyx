@@ -110,9 +110,12 @@ cdef class _WindowSDL2Storage:
         # vsync
         vsync = Config.getboolean('graphics', 'vsync')
         if vsync == 1:
+            Logger.debug('WindowSDL: force enabling vsync')
             if SDL_GL_SetSwapInterval(-1) == -1:
+                Logger.debug('WindowSDL: late swap tearing not supported, using standard vsync')
                 SDL_GL_SetSwapInterval(1)
         elif vsync == 0:
+            Logger.debug('WindowSDL: force disabling vsync')
             SDL_GL_SetSwapInterval(0)
 
         # Multisampling:
