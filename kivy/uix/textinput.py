@@ -2411,7 +2411,7 @@ class TextInput(FocusBehavior, Widget):
             self.delete_selection()
         self.insert_text(text, False)
 
-    def on_hint_text(self, instance, value):
+    def on__hint_text(self, instance, value):
         self._refresh_hint_text()
 
     def _refresh_hint_text(self):
@@ -2937,15 +2937,26 @@ class TextInput(FocusBehavior, Widget):
     :attr:`font_size` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 10.
     '''
+    _hint_text = StringProperty('')
 
-    hint_text = StringProperty('')
+    def _set_hint_text(self, value):
+        if isinstance(value, bytes):
+            value = value.decode('utf8')
+        self._hint_text = value
+
+    def _get_hint_text(self):
+        return self._hint_text
+
+    hint_text = AliasProperty(
+        _get_hint_text, _set_hint_text, bind=('_hint_text', ))
     '''Hint text of the widget.
 
     Shown if text is '' and focus is False.
 
     .. versionadded:: 1.6.0
+    .. versionchanged:: 1.9.2
 
-    :attr:`hint_text` a :class:`~kivy.properties.StringProperty` and defaults
+    :attr:`hint_text` a :class:`~kivy.properties.AliasProperty` and defaults
     to ''.
     '''
 
