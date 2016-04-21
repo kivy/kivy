@@ -165,7 +165,7 @@ class Catalog(BoxLayout):
             self.show_error(e)
 
     def show_error(self, e):
-        self.info_label.text = unicode(e)
+        self.info_label.text = str(e).encode('utf-8')
         self.anim = Animation(top=190.0, opacity=1, d=2, t='in_back') +\
             Animation(top=190.0, d=3) +\
             Animation(top=0, opacity=0, d=2)
