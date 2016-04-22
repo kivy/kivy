@@ -244,14 +244,39 @@ class WindowBase(EventDispatcher):
             .. versionadded:: 1.9.0
 
         `on_cursor_enter`:
-            Fired when when the cursor enters the window.
+            Fired when the cursor enters the window.
 
             .. versionadded:: 1.9.1
 
         `on_cursor_leave`:
-            Fired when when the cursor leaves the window.
+            Fired when the cursor leaves the window.
 
             .. versionadded:: 1.9.1
+
+        `on_minimize`:
+            Fired when the window is minimized.
+
+            .. versionadded:: 1.9.2
+
+        `on_maximize`:
+            Fired when the window is maximized.
+
+            .. versionadded:: 1.9.2
+
+        `on_restore`:
+            Fired when the window is restored.
+
+            .. versionadded:: 1.9.2
+
+        `on_hide`:
+            Fired when the window is hidden.
+
+            .. versionadded:: 1.9.2
+
+        `on_show`:
+            Fired when when the window is shown.
+
+            .. versionadded:: 1.9.2
 
         `on_keyboard`: key, scancode, codepoint, modifier
             Fired when the keyboard is used for input.

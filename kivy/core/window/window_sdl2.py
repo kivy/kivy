@@ -581,7 +581,7 @@ class WindowSDL(WindowBase):
 
             # unhandled event !
             else:
-                Logger.debug('WindowSDL: Unhandled event %s' % str(event))
+                Logger.trace('WindowSDL: Unhandled event %s' % str(event))
 
     def _do_resize(self, dt):
         Logger.debug('Window: Resize window to %s' % str(self.size))
