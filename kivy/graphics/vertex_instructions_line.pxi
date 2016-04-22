@@ -989,8 +989,7 @@ cdef class Line(VertexInstruction):
         '''Use this property to build a rectangle, without calculating the
         :attr:`points`. You can only set this property, not get it.
 
-        The argument must be a tuple of (x, y, width, height)
-        angle_end, segments):
+        The argument must be a tuple of (x, y, width, height):
 
         * x and y represent the bottom-left position of the rectangle
         * width and height represent the size
