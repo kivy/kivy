@@ -768,10 +768,6 @@ class WindowBase(EventDispatcher):
         .. note::
             This feature requires the SDL2 window provider and is currently only
             supported on desktop platforms.
-
-        .. warning::
-            This code is still experimental, and its API may be subject to
-            change in a future version.
         '''
         Logger.warning('Window: maximize() is not implemented in the current '
                         'window provider.')
@@ -785,10 +781,6 @@ class WindowBase(EventDispatcher):
         .. note::
             This feature requires the SDL2 window provider and is currently only
             supported on desktop platforms.
-
-        .. warning::
-            This code is still experimental, and its API may be subject to
-            change in a future version.
         '''
         Logger.warning('Window: minimize() is not implemented in the current '
                         'window provider.')
@@ -802,10 +794,6 @@ class WindowBase(EventDispatcher):
         .. note::
             This feature requires the SDL2 window provider and is currently only
             supported on desktop platforms.
-
-        .. warning::
-            This code is still experimental, and its API may be subject to
-            change in a future version.
         '''
         Logger.warning('Window: restore() is not implemented in the current '
                         'window provider.')
@@ -819,10 +807,6 @@ class WindowBase(EventDispatcher):
         .. note::
             This feature requires the SDL2 window provider and is currently only
             supported on desktop platforms.
-
-        .. warning::
-            This code is still experimental, and its API may be subject to
-            change in a future version.
         '''
         Logger.warning('Window: hide() is not implemented in the current '
                         'window provider.')
@@ -836,10 +820,6 @@ class WindowBase(EventDispatcher):
         .. note::
             This feature requires the SDL2 window provider and is currently only
             supported on desktop platforms.
-
-        .. warning::
-            This code is still experimental, and its API may be subject to
-            change in a future version.
         '''
         Logger.warning('Window: show() is not implemented in the current '
                         'window provider.')
@@ -853,10 +833,6 @@ class WindowBase(EventDispatcher):
         .. note::
             This feature requires the SDL2 window provider and is currently only
             supported on desktop platforms.
-
-        .. warning::
-            This code is still experimental, and its API may be subject to
-            change in a future version.
         '''
         Logger.warning('Window: raise_window is not implemented in the current '
                         'window provider.')
