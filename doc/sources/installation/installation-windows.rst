@@ -38,8 +38,8 @@ is available by typing ``python --version``. Then, do the following to install.
 #. Install the dependencies (skip gstreamer (~90MB) if not needed, see
    :ref:`Kivy's dependencies`)::
 
-     python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew \
-     kivy.deps.gstreamer --extra-index-url https://kivy.org/downloads/packages/simple/
+     python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew
+     python -m pip install kivy.deps.gstreamer --extra-index-url https://kivy.org/downloads/packages/simple/
 
 #. Install kivy::
 
