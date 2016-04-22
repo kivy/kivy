@@ -22,7 +22,7 @@ from kivy.modules import Modules
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
     NumericProperty, OptionProperty, StringProperty, BooleanProperty
-from kivy.utils import platform, reify
+from kivy.utils import platform, reify, deprecated
 from kivy.context import get_current_context
 from kivy.uix.behaviors import FocusBehavior
 from kivy.setupconfig import USE_SDL2
@@ -751,6 +751,7 @@ class WindowBase(EventDispatcher):
                 'left', '_size', 'system_size'):
             self.unbind(**{prop: self.trigger_create_window})
 
+    @deprecated
     def toggle_fullscreen(self):
         '''Toggle between fullscreen and windowed mode.
 
