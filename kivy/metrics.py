@@ -97,8 +97,7 @@ You can also simulate an alternative user preference for fontscale as follows::
 '''
 
 
-__all__ = ('Metrics', 'MetricsBase', 'pt', 'inch', 'cm', 'mm', 'dp', 'sp',
-           'metrics')
+__all__ = ('Metrics', 'MetricsBase', 'pt', 'inch', 'cm', 'mm', 'dp', 'sp')
 
 
 from os import environ
@@ -236,7 +235,3 @@ class MetricsBase(object):
 #: Default instance of :class:`MetricsBase`, used everywhere in the code
 #: .. versionadded:: 1.7.0
 Metrics = MetricsBase()
-
-#: default instance of :class:`MetricsBase`, used everywhere in the code
-#: (deprecated, use `Metrics` instead.)
-metrics = Metrics
