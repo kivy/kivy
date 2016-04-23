@@ -424,6 +424,9 @@ class TextInput(FocusBehavior, Widget):
         (use Clock.schedule) the call to the functions for selecting
         text (select_all, select_text).
 
+    .. versionchanged:: 1.9.2
+        `background_disabled_active` has been removed.
+
     .. versionchanged:: 1.9.0
 
         :class:`TextInput` now inherits from
@@ -2733,17 +2736,6 @@ class TextInput(FocusBehavior, Widget):
     :attr:`background_active` is a
     :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/textinput_active'.
-    '''
-
-    background_disabled_active = StringProperty(
-        'atlas://data/images/defaulttheme/textinput_disabled_active')
-    '''Background image of the TextInput when it's in focus and disabled.
-
-    .. versionadded:: 1.8.0
-
-    :attr:`background_disabled_active` is a
-    :class:`~kivy.properties.StringProperty` and
-    defaults to 'atlas://data/images/defaulttheme/textinput_disabled_active'.
     '''
 
     background_color = ListProperty([1, 1, 1, 1])

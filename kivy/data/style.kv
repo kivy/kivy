@@ -170,7 +170,7 @@
             border: self.border
             pos: self.pos
             size: self.size
-            source: (self.background_disabled_active if self.disabled else self.background_active) if self.focus else (self.background_disabled_normal if self.disabled else self.background_normal)
+            source: self.background_active if self.focus else (self.background_disabled_normal if self.disabled else self.background_normal)
         Color:
             rgba: (self.cursor_color if self.focus and not self.cursor_blink else (0, 0, 0, 0))
         Rectangle:
