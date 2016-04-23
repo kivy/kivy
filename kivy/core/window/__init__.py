@@ -244,14 +244,39 @@ class WindowBase(EventDispatcher):
             .. versionadded:: 1.9.0
 
         `on_cursor_enter`:
-            Fired when when the cursor enters the window.
+            Fired when the cursor enters the window.
 
             .. versionadded:: 1.9.1
 
         `on_cursor_leave`:
-            Fired when when the cursor leaves the window.
+            Fired when the cursor leaves the window.
 
             .. versionadded:: 1.9.1
+
+        `on_minimize`:
+            Fired when the window is minimized.
+
+            .. versionadded:: 1.9.2
+
+        `on_maximize`:
+            Fired when the window is maximized.
+
+            .. versionadded:: 1.9.2
+
+        `on_restore`:
+            Fired when the window is restored.
+
+            .. versionadded:: 1.9.2
+
+        `on_hide`:
+            Fired when the window is hidden.
+
+            .. versionadded:: 1.9.2
+
+        `on_show`:
+            Fired when when the window is shown.
+
+            .. versionadded:: 1.9.2
 
         `on_keyboard`: key, scancode, codepoint, modifier
             Fired when the keyboard is used for input.
@@ -627,6 +652,7 @@ class WindowBase(EventDispatcher):
 
     __events__ = (
         'on_draw', 'on_flip', 'on_rotate', 'on_resize', 'on_close',
+        'on_minimize', 'on_maximize', 'on_restore', 'on_hide', 'on_show',
         'on_motion', 'on_touch_down', 'on_touch_move', 'on_touch_up',
         'on_mouse_down', 'on_mouse_move', 'on_mouse_up', 'on_keyboard',
         'on_key_down', 'on_key_up', 'on_textinput', 'on_dropfile',
@@ -1153,6 +1179,56 @@ class WindowBase(EventDispatcher):
         '''Event called when the window is closed'''
         Modules.unregister_window(self)
         EventLoop.remove_event_listener(self)
+
+    def on_minimize(self, *largs):
+        '''Event called when the window is minimized.
+
+        .. versionadded:: 1.9.2
+
+        .. note::
+            This feature requires the SDL2 window provider.
+        '''
+        pass
+
+    def on_maximize(self, *largs):
+        '''Event called when the window is maximized.
+
+        .. versionadded:: 1.9.2
+
+        .. note::
+            This feature requires the SDL2 window provider.
+        '''
+        pass
+
+    def on_restore(self, *largs):
+        '''Event called when the window is restored.
+
+        .. versionadded:: 1.9.2
+
+        .. note::
+            This feature requires the SDL2 window provider.
+        '''
+        pass
+
+    def on_hide(self, *largs):
+        '''Event called when the window is hidden.
+
+        .. versionadded:: 1.9.2
+
+        .. note::
+            This feature requires the SDL2 window provider.
+        '''
+        pass
+
+    def on_show(self, *largs):
+        '''Event called when the window is shown.
+
+        .. versionadded:: 1.9.2
+
+        .. note::
+            This feature requires the SDL2 window provider.
+        '''
+        pass
 
     def on_request_close(self, *largs, **kwargs):
         '''Event called before we close the window. If a bound function returns
