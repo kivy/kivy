@@ -11,6 +11,7 @@ import os
 from os.path import join, dirname, sep, exists, basename, isdir
 from os import walk, environ
 from distutils.version import LooseVersion
+from distutils.sysconfig import get_python_inc
 from collections import OrderedDict
 from time import sleep
 
@@ -57,7 +58,7 @@ def getoutput(cmd, env=None):
 def pkgconfig(*packages, **kw):
     flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
     lenviron = None
-    pconfig = join(dirname(sys.executable), 'libs', 'pkgconfig')
+    pconfig = join(sys.prefix, 'libs', 'pkgconfig')
 
     if isdir(pconfig):
         lenviron = environ.copy()
@@ -523,6 +524,9 @@ def determine_base_flags():
                        'ApplicationServices.framework/Frameworks')
         flags['extra_compile_args'] += ['-F%s' % sysroot]
         flags['extra_link_args'] += ['-F%s' % sysroot]
+    elif platform == 'win32':
+        flags['include_dirs'] += [get_python_inc(prefix=sys.prefix)]
+        flags['extra_link_args'] += ['-L', join(sys.prefix, "libs")]
     return flags
 
 
@@ -585,7 +589,7 @@ def determine_sdl2():
     sdl2_paths = sdl2_path.split(split_chr) if sdl2_path else []
 
     if not sdl2_paths:
-        sdl_inc = join(dirname(sys.executable), 'include', 'SDL2')
+        sdl_inc = join(sys.prefix, 'include', 'SDL2')
         if isdir(sdl_inc):
             sdl2_paths = [sdl_inc]
         sdl2_paths.extend(['/usr/local/include/SDL2', '/usr/include/SDL2'])
