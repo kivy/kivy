@@ -563,7 +563,7 @@ cdef extern from "SDL.h":
     cdef SDL_GLContext SDL_GL_GetCurrentContext()
     cdef int SDL_GL_SetSwapInterval(int interval)
     cdef int SDL_GL_GetSwapInterval()
-    cdef void SDL_GL_SwapWindow(SDL_Window * window)
+    cdef void SDL_GL_SwapWindow(SDL_Window * window) nogil
     cdef void SDL_GL_DeleteContext(SDL_GLContext context)
 
     cdef SDL_Joystick * SDL_JoystickOpen(int index)
