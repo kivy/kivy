@@ -90,6 +90,16 @@ class SequentialAnimationTestCase(unittest.TestCase):
         self.a += Animation(x=0, d=1, t='out_bounce')
         self.w = Widget()
 
+    def test_cancel_all(self):
+        self.a.start(self.w)
+        self.sleep(.5)
+        Animation.cancel_all(self.w)
+
+    def test_cancel_all_2(self):
+        self.a.start(self.w)
+        self.sleep(.5)
+        Animation.cancel_all(self.w, 'x')
+
     def test_stop_all(self):
         self.a.start(self.w)
         self.sleep(.5)
