@@ -426,6 +426,13 @@ class Sequence(Animation):
         self.anim2.cancel(widget)
         super(Sequence, self).cancel(widget)
 
+    def cancel_property(self, widget, prop):
+        self.anim1.cancel_property(widget, prop)
+        self.anim2.cancel_property(widget, prop)
+        if (not self.anim1.have_properties_to_animate(widget) and
+                not self.anim2.have_properties_to_animate(widget)):
+            self.cancel(widget)
+
     def on_anim1_start(self, instance, widget):
         self.dispatch('on_start', widget)
 
