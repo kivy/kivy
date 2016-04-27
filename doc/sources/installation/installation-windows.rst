@@ -38,8 +38,8 @@ is available by typing ``python --version``. Then, do the following to install.
 #. Install the dependencies (skip gstreamer (~90MB) if not needed, see
    :ref:`Kivy's dependencies`)::
 
-     python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew \
-     kivy.deps.gstreamer --extra-index-url https://kivy.org/downloads/packages/simple/
+     python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew
+     python -m pip install kivy.deps.gstreamer --extra-index-url https://kivy.org/downloads/packages/simple/
 
 #. Install kivy::
 
@@ -68,6 +68,11 @@ Snapshot wheels of current Kivy master are created every night. They can be foun
 `here <https://drive.google.com/folderview?id=0B1_HB9J8mZepOV81UHpDbmg5SWM&usp=sharing>`_.
 To use them, instead of doing `python -m pip install kivy` we'll install one of
 these wheels as follows.
+
+- `Python 2.7, 32bit <javascript:getNightly('cp27','win32');>`_
+- `Python 3.4, 32bit <javascript:getNightly('cp34','win32');>`_
+- `Python 2.7, 64bit <javascript:getNightly('cp27','win_amd64');>`_
+- `Python 3.4, 64bit <javascript:getNightly('cp34','win_amd64');>`_
 
 #. Perform steps 1 and 2 of the above Installation section.
 #. Download the appropriate wheel for your system.

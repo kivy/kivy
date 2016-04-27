@@ -424,6 +424,9 @@ class TextInput(FocusBehavior, Widget):
         (use Clock.schedule) the call to the functions for selecting
         text (select_all, select_text).
 
+    .. versionchanged:: 1.9.2
+        `background_disabled_active` has been removed.
+
     .. versionchanged:: 1.9.0
 
         :class:`TextInput` now inherits from
@@ -2411,7 +2414,7 @@ class TextInput(FocusBehavior, Widget):
             self.delete_selection()
         self.insert_text(text, False)
 
-    def on_hint_text(self, instance, value):
+    def on__hint_text(self, instance, value):
         self._refresh_hint_text()
 
     def _refresh_hint_text(self):
@@ -2735,17 +2738,6 @@ class TextInput(FocusBehavior, Widget):
     defaults to 'atlas://data/images/defaulttheme/textinput_active'.
     '''
 
-    background_disabled_active = StringProperty(
-        'atlas://data/images/defaulttheme/textinput_disabled_active')
-    '''Background image of the TextInput when it's in focus and disabled.
-
-    .. versionadded:: 1.8.0
-
-    :attr:`background_disabled_active` is a
-    :class:`~kivy.properties.StringProperty` and
-    defaults to 'atlas://data/images/defaulttheme/textinput_disabled_active'.
-    '''
-
     background_color = ListProperty([1, 1, 1, 1])
     '''Current color of the background, in (r, g, b, a) format.
 
@@ -2937,15 +2929,26 @@ class TextInput(FocusBehavior, Widget):
     :attr:`font_size` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 10.
     '''
+    _hint_text = StringProperty('')
 
-    hint_text = StringProperty('')
+    def _set_hint_text(self, value):
+        if isinstance(value, bytes):
+            value = value.decode('utf8')
+        self._hint_text = value
+
+    def _get_hint_text(self):
+        return self._hint_text
+
+    hint_text = AliasProperty(
+        _get_hint_text, _set_hint_text, bind=('_hint_text', ))
     '''Hint text of the widget.
 
     Shown if text is '' and focus is False.
 
     .. versionadded:: 1.6.0
+    .. versionchanged:: 1.9.2
 
-    :attr:`hint_text` a :class:`~kivy.properties.StringProperty` and defaults
+    :attr:`hint_text` a :class:`~kivy.properties.AliasProperty` and defaults
     to ''.
     '''
 

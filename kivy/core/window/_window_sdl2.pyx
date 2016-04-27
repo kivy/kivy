@@ -308,6 +308,8 @@ cdef class _WindowSDL2Storage:
                 action = ('windowresized', event.window.data1, event.window.data2)
             elif event.window.event == SDL_WINDOWEVENT_MINIMIZED:
                 action = ('windowminimized', )
+            elif event.window.event == SDL_WINDOWEVENT_MAXIMIZED:
+                action = ('windowmaximized', )
             elif event.window.event == SDL_WINDOWEVENT_RESTORED:
                 action = ('windowrestored', )
             elif event.window.event == SDL_WINDOWEVENT_SHOWN:
