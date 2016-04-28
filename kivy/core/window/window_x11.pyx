@@ -149,6 +149,7 @@ class WindowX11(WindowBase):
 
         resizable = Config.getint('graphics', 'resizable')
         multisamples = Config.getint('graphics', 'multisamples')
+        border = not Config.getint('graphics', 'borderless')
         pos = (0, 0)
 
         if self.position == 'auto':
@@ -160,7 +161,6 @@ class WindowX11(WindowBase):
                              '"auto" or "custom"')
 
         fullscreen = False
-        border = True
         above = False
         CWOR = False
         size = list(self.system_size)
