@@ -2,6 +2,9 @@
 Drop-Down List
 ==============
 
+.. image:: images/dropdown.gif
+    :align: right
+
 .. versionadded:: 1.4.0
 
 A versatile drop-down list that can be used with custom widgets. It allows you

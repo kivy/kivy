@@ -2,6 +2,9 @@
 Carousel
 ========
 
+.. image:: images/carousel.gif
+    :align: right
+
 .. versionadded:: 1.4.0
 
 The :class:`Carousel` widget provides the classic mobile-friendly carousel view

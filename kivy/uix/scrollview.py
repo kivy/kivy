@@ -130,7 +130,7 @@ from kivy.uix.behaviors import FocusBehavior
 _scroll_timeout = _scroll_distance = 0
 if Config:
     _scroll_timeout = Config.getint('widgets', 'scroll_timeout')
-    _scroll_distance = sp(Config.getint('widgets', 'scroll_distance'))
+    _scroll_distance = '{}sp'.format(Config.getint('widgets', 'scroll_distance'))
 
 
 class ScrollView(StencilView):
@@ -165,7 +165,7 @@ class ScrollView(StencilView):
     configuration.
     '''
 
-    scroll_wheel_distance = NumericProperty(20)
+    scroll_wheel_distance = NumericProperty('20sp')
     '''Distance to move when scrolling with a mouse wheel.
     It is advisable that you base this value on the dpi of your target device's
     screen.
@@ -634,7 +634,7 @@ class ScrollView(StencilView):
         if vp and 'button' in touch.profile and \
                 touch.button.startswith('scroll'):
             btn = touch.button
-            m = sp(self.scroll_wheel_distance)
+            m = self.scroll_wheel_distance
             e = None
 
             if ((btn == 'scrolldown' and self.scroll_y >= 1) or
