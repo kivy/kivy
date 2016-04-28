@@ -2836,7 +2836,6 @@ class TextInput(FocusBehavior, Widget):
         '''Cancel current suggestion text(if any)
         '''
         if self.suggestion_text != "" and self.suggestion_row >= 0:
-            print(self.suggestion_row)
             txt = self._lines[self.suggestion_row]
             kw = self._get_line_options()
             rct = self._lines_rects[self.suggestion_row]
