@@ -1,6 +1,9 @@
 '''Screen Manager
 ==============
 
+.. image:: images/screenmanager.gif
+    :align: right
+
 .. versionadded:: 1.4.0
 
 The screen manager is a widget dedicated to managing multiple screens for your

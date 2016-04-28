@@ -2,6 +2,9 @@
 Tree View
 =========
 
+.. image:: images/treeview.png
+    :align: right
+
 .. versionadded:: 1.0.4
 
 

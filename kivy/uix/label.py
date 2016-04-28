@@ -1,6 +1,9 @@
 '''Label
 =====
 
+.. image:: images/label.png
+    :align: right
+
 The :class:`Label` widget is for rendering text. It supports ascii and unicode
 strings::
 

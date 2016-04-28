@@ -2,6 +2,9 @@
 PageLayout
 ==========
 
+.. image:: images/pagelayout.gif
+    :align: right
+
 The :class:`PageLayout` class is used to create a simple multi-page
 layout, in a way that allows easy flipping from one page to another using
 borders.
