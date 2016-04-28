@@ -2,6 +2,9 @@
 Scatter
 =======
 
+.. image:: images/scatter.gif
+    :align: right
+
 :class:`Scatter` is used to build interactive widgets that can be translated,
 rotated and scaled with two or more fingers on a multitouch system.
 
