@@ -38,7 +38,6 @@ void x11_set_touch_callback(touch_cb_type callback) {
 
 int init (int windowID){
 	dpy = XOpenDisplay(NULL);
-	int scr = DefaultScreen(dpy);
 
 	int devid = 0;
 	Window win = windowID;
@@ -70,19 +69,6 @@ int init (int windowID){
 
 	/* create window */
 	{
-		XSetWindowAttributes attr = {
-			.background_pixel = 0,
-			.event_mask = KeyPressMask
-		};
-
-		/*win = XCreateWindow(dpy, RootWindow(dpy, scr),
-				0, 0, 500, 500, 0,
-				DefaultDepth(dpy, scr),
-				InputOutput,
-				DefaultVisual(dpy, scr),
-				CWEventMask | CWBackPixel,
-				&attr);*/
-
 		XMapWindow(dpy, win);
 		XSync(dpy, False);
 	}
@@ -179,14 +165,4 @@ int idle(void){
 		}
 	}
 	return 0;
-}
-
-
-// A main loop just for testing when compiling it directly
-int main (void){
-    init(0);
-    while(1){
-    	idle();
-    }
-    return 0;
 }

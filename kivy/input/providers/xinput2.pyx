@@ -19,7 +19,6 @@ class InputX11():
 
     def start(self, window_id, on_touch):
         self.on_touch = on_touch
-        print "forward window id", window_id
         init(window_id)
 
     def x11_idle(self):
@@ -68,15 +67,30 @@ class Xinput2Event(MotionEvent):
 
 class Xinput2EventProvider(MotionEventProvider):
 
-    __handlers__ = {}
+    started = False
 
     def start(self):
-        from kivy.core.window import Window
-        xinput.start(window_id=Window.window_id, on_touch=self.on_touch)
+        try:
+            from kivy.core.window import Window
+            window_id = Window.window_id
+        except AttributeError:
+            Logger.error("xinput2: This input provider only works in "
+                         "combination with a x11 window")
+            return
+        except Exception as e:
+            Logger.error("xinput2: Was not able to get window-id: %s" % e)
+            return
+        xinput.start(window_id=window_id, on_touch=self.on_touch)
         self.touch_queue = deque()
         self.touches = {}
+        self.started = True
+
+    def stop(self):
+        self.started = False
 
     def update(self, dispatch_fn):
+        if not self.started:
+            return
         xinput.x11_idle()
         try:
             while True:
