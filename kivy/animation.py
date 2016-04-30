@@ -426,6 +426,22 @@ class Sequence(Animation):
         self.anim2.cancel(widget)
         super(Sequence, self).cancel(widget)
 
+    def cancel_property(self, widget, prop):
+        '''Even if an animation is running, remove a property. It will not be
+        animated further. If it was the only/last property being animated,
+        the animation will be canceled (see :attr:`cancel`)
+
+        This method overrides `:class:kivy.animation.Animation`'s
+        version, to cancel it on all animations of the Sequence.
+
+        .. versionadded:: 1.9.2
+        '''
+        self.anim1.cancel_property(widget, prop)
+        self.anim2.cancel_property(widget, prop)
+        if (not self.anim1.have_properties_to_animate(widget) and
+                not self.anim2.have_properties_to_animate(widget)):
+            self.cancel(widget)
+
     def on_anim1_start(self, instance, widget):
         self.dispatch('on_start', widget)
 
