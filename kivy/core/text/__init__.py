@@ -279,7 +279,7 @@ class LabelBase(object):
         fdirs = []
         if platform == 'linux':
             fdirs = [
-                '/usr/share/fonts/truetype', '/usr/local/share/fonts',
+                '/usr/share/fonts', '/usr/local/share/fonts',
                 os.path.expanduser('~/.fonts'),
                 os.path.expanduser('~/.local/share/fonts')]
         elif platform == 'macosx':
