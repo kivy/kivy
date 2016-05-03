@@ -241,9 +241,9 @@ class LabelBase(object):
         fonts = self._fonts
         fontscache = self._fonts_cache
 
-        # is the font is registered ?
+        # is the font registered?
         if fontname in fonts:
-            # return the prefered font for the current bold/italic combinaison
+            # return the preferred font for the current bold/italic combination
             italic = int(options['italic'])
             if options['bold']:
                 bold = FONT_BOLD
@@ -256,9 +256,8 @@ class LabelBase(object):
             options['font_name_r'] = fontscache[fontname]
         else:
             filename = resource_find(fontname)
-            if not filename:
-                fontname = fontname + \
-                    ('' if fontname.endswith('.ttf') else '.ttf')
+            if not filename and not fontname.endswith('.ttf'):
+                fontname = '{}.ttf'.format(fontname)
                 filename = resource_find(fontname)
 
             if filename is None:
@@ -271,7 +270,7 @@ class LabelBase(object):
 
     @staticmethod
     def get_system_fonts_dir():
-        '''Return the Directory used by the system for fonts.
+        '''Return the directories used by the system for fonts.
         '''
         if LabelBase._fonts_dirs:
             return LabelBase._fonts_dirs
@@ -284,29 +283,29 @@ class LabelBase(object):
                 os.path.expanduser('~/.local/share/fonts')]
         elif platform == 'macosx':
             fdirs = ['/Library/Fonts', '/System/Library/Fonts',
-                os.path.expanduser('~/Library/Fonts')]
+                     os.path.expanduser('~/Library/Fonts')]
         elif platform == 'win':
-            fdirs = [os.environ['SYSTEMROOT'] + os.sep + 'Fonts']
+            fdirs = [os.path.join(os.environ['SYSTEMROOT'], 'Fonts')]
         elif platform == 'ios':
             fdirs = ['/System/Library/Fonts']
         elif platform == 'android':
             fdirs = ['/system/fonts']
+        else:
+            raise Exception("Unknown platform: {}".format(platform))
 
-        if fdirs:
-            fdirs.append(kivy_data_dir + os.sep + 'fonts')
-            # let's register the font dirs
-            rdirs = []
-            _font_dir_files = []
-            for fdir in fdirs:
-                for _dir, dirs, files in os.walk(fdir):
-                    _font_dir_files.extend(files)
-                    resource_add_path(_dir)
-                    rdirs.append(_dir)
-            LabelBase._fonts_dirs = rdirs
-            LabelBase._font_dirs_files = _font_dir_files
+        fdirs.append(os.path.join(kivy_data_dir, 'fonts'))
+        # register the font dirs
+        rdirs = []
+        _font_dir_files = []
+        for fdir in fdirs:
+            for _dir, dirs, files in os.walk(fdir):
+                _font_dir_files.extend(files)
+                resource_add_path(_dir)
+                rdirs.append(_dir)
+        LabelBase._fonts_dirs = rdirs
+        LabelBase._font_dirs_files = _font_dir_files
 
-            return rdirs
-        raise Exception("Unknown Platform {}".format(platform))
+        return rdirs
 
     def get_extents(self, text):
         '''Return a tuple (width, height) indicating the size of the specified
