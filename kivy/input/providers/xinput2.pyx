@@ -53,7 +53,6 @@ from kivy.input.motionevent import MotionEvent
 class Xinput2Event(MotionEvent):
 
     def depack(self, args):
-        super(Xinput2Event, self).depack(args)
         if args[0] is None:
             return
         self.profile = ('pos',)
@@ -63,6 +62,7 @@ class Xinput2Event(MotionEvent):
         self.sx = rx
         self.sy = ry
         self.is_touch = True
+        super(Xinput2Event, self).depack(args)
 
 
 class Xinput2EventProvider(MotionEventProvider):
