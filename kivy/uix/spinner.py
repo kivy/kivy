@@ -44,6 +44,7 @@ from kivy.properties import ListProperty, ObjectProperty, BooleanProperty, \
     ReferenceListProperty, NumericProperty, DictProperty
 from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
+from kivy.clock import Clock
 
 
 class SpinnerOption(Button):
@@ -102,7 +103,7 @@ class Spinner(Button):
     '''A dictionary of attribute/values that will be passed to each
     :attr:`option_cls` as it's created.
 
-    :attr:`dropdown_cls` is an :class:`~kivy.properties.DictProperty` and
+    :attr:`option_defaults` is an :class:`~kivy.properties.DictProperty` and
     defaults to the empty dictionary.
 
     .. versionadded:: 1.9.2
@@ -174,6 +175,8 @@ class Spinner(Button):
     def __init__(self, **kwargs):
         self._dropdown = None
         super(Spinner, self).__init__(**kwargs)
+        self._update_max_size_trigger = Clock.create_trigger(
+            self._update_max_size, -1)
         fbind = self.fbind
         build_dropdown = self._build_dropdown
         fbind('on_release', self._toggle_dropdown)
@@ -214,9 +217,9 @@ class Spinner(Button):
             item = cls(text=value, **option_defaults)
             item.height = self.height if self.sync_height else item.height
             item.bind(on_release=lambda option: dp.select(option.text),
-                      size=self._update_max_size)
+                      size=self._update_max_size_trigger)
             dp.add_widget(item)
-        self._update_max_size()
+        self._update_max_size_trigger()
 
         if text_autoupdate:
             if values:
