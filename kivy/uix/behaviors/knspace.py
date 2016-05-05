@@ -357,7 +357,11 @@ class KNSpace(EventDispatcher):
         parent = super(KNSpace, self).__getattribute__('parent')
         if parent is None:
             return None
-        return getattr(parent, name)
+
+        try:
+            return getattr(parent, name)  # if parent doesn't have it
+        except AttributeError:
+            return None
 
     def property(self, name, quiet=False):
         # needs to overwrite EventDispatcher.property so kv lang will work
