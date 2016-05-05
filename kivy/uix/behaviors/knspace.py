@@ -299,7 +299,16 @@ class KNSpace(EventDispatcher):
     '''
     __has_applied = None
 
-    def __init__(self, parent=None, **kwargs):
+    keep_ref = False
+    '''Whether a direct reference should be kept to the stored objects.
+    If ``True``, we use the direct object, otherwise we use
+    :attr:`~kivy.uix.widget.proxy_ref` when present.
+
+    Defaults to False.
+    '''
+
+    def __init__(self, parent=None, keep_ref=False, **kwargs):
+        self.keep_ref = keep_ref
         super(KNSpace, self).__init__(**kwargs)
         self.parent = parent
         self.__has_applied = set(self.properties().keys())
@@ -315,16 +324,19 @@ class KNSpace(EventDispatcher):
                     **{name:
                        ObjectProperty(None, rebind=True, allownone=True)}
                 )
-                value = getattr(value, 'proxy_ref', value)
+                if not self.keep_ref:
+                    value = getattr(value, 'proxy_ref', value)
                 has_applied.add(name)
                 super(KNSpace, self).__setattr__(name, value)
         elif name not in has_applied:
             self.apply_property(**{name: prop})
             has_applied.add(name)
-            value = getattr(value, 'proxy_ref', value)
+            if not self.keep_ref:
+                value = getattr(value, 'proxy_ref', value)
             super(KNSpace, self).__setattr__(name, value)
         else:
-            value = getattr(value, 'proxy_ref', value)
+            if not self.keep_ref:
+                value = getattr(value, 'proxy_ref', value)
             super(KNSpace, self).__setattr__(name, value)
 
     def __getattribute__(self, name):
@@ -345,7 +357,11 @@ class KNSpace(EventDispatcher):
         parent = super(KNSpace, self).__getattribute__('parent')
         if parent is None:
             return None
-        return getattr(parent, name)
+
+        try:
+            return getattr(parent, name)  # if parent doesn't have it
+        except AttributeError:
+            return None
 
     def property(self, name, quiet=False):
         # needs to overwrite EventDispatcher.property so kv lang will work
