@@ -171,12 +171,12 @@ class ModalView(AnchorLayout):
         '''
         if self._window is not None:
             Logger.warning('ModalView: you can only open once.')
-            return self
+            return
         # search window
         self._window = self._search_window()
         if not self._window:
             Logger.warning('ModalView: cannot open view, no window found.')
-            return self
+            return
         self._window.add_widget(self)
         self._window.bind(
             on_resize=self._align_center,
@@ -187,7 +187,7 @@ class ModalView(AnchorLayout):
         a = Animation(_anim_alpha=1., d=self._anim_duration)
         a.bind(on_complete=lambda *x: self.dispatch('on_open'))
         a.start(self)
-        return self
+        return
 
     def dismiss(self, *largs, **kwargs):
         '''Close the view if it is open. If you really want to close the
@@ -195,7 +195,7 @@ class ModalView(AnchorLayout):
         argument:
         ::
 
-            view = ModalView(...)
+            view = ModalView()
             view.dismiss(force=True)
 
         When the view is dismissed, it will be faded out before being
@@ -205,16 +205,16 @@ class ModalView(AnchorLayout):
 
         '''
         if self._window is None:
-            return self
+            return
         if self.dispatch('on_dismiss') is True:
             if kwargs.get('force', False) is not True:
-                return self
+                return
         if kwargs.get('animation', True):
             Animation(_anim_alpha=0., d=self._anim_duration).start(self)
         else:
             self._anim_alpha = 0
             self._real_remove_widget()
-        return self
+        return
 
     def _align_center(self, *l):
         if self._window:
