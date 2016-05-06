@@ -116,6 +116,13 @@ class LabelBase(object):
         `unicode_errors` : str, defaults to `'replace'`
             How to handle unicode decode errors. Can be `'strict'`, `'replace'`
             or `'ignore'`.
+        `outline_width`: int, defaults to None
+            Width in pixels for the outline.
+        `outline_color`: tuple, defaults to (0, 0, 0)
+            Color of the outline.
+
+    .. versionchanged:: 1.9.2
+        `outline_width` and `outline_color` were added.
 
     .. versionchanged:: 1.9.0
         `strip`, `strip_reflow`, `shorten_from`, `split_str`, and
@@ -160,6 +167,7 @@ class LabelBase(object):
         strip_reflow=True, shorten_from='center', split_str=' ',
         unicode_errors='replace',
         font_hinting='normal', font_kerning=True, font_blended=True,
+        outline_width=None, outline_color=None,
         **kwargs):
 
         # Include system fonts_dir in resource paths.
@@ -176,9 +184,11 @@ class LabelBase(object):
                    'unicode_errors': unicode_errors,
                    'font_hinting': font_hinting,
                    'font_kerning': font_kerning,
-                   'font_blended': font_blended}
+                   'font_blended': font_blended,
+                   'outline_width': outline_width}
 
         options['color'] = color or (1, 1, 1, 1)
+        options['outline_color'] = outline_color or (0, 0, 0)
         options['padding'] = kwargs.get('padding', (0, 0))
         if not isinstance(options['padding'], (list, tuple)):
             options['padding'] = (options['padding'], options['padding'])
