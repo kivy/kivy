@@ -264,6 +264,7 @@ class Label(Widget):
     _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
                         'underline', 'strikethrough', 'color', 'disabled_color',
                         'halign', 'valign', 'padding_x', 'padding_y',
+                        'outline', 'outline_color', 'outline_width',
                         'text_size', 'shorten', 'mipmap', 'markup',
                         'line_height', 'max_lines', 'strip', 'shorten_from',
                         'split_str', 'unicode_errors',
@@ -599,6 +600,38 @@ class Label(Widget):
 
     :attr:`color` is a :class:`~kivy.properties.ListProperty` and defaults to
     [1, 1, 1, 1].
+    '''
+
+    outline = BooleanProperty(False)
+    '''Indicates addition of an outline around the font.
+
+    .. note::
+
+        SDL2 only
+
+    :attr:`outline` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
+
+    .. versionadded:: 1.9.2
+    '''
+
+    outline_width = NumericProperty('1dp')
+    '''Width in pixels for the outline. e.g. line_height = 2dp will cause
+    a two pixel outline to be rendered around the font.
+
+    :attr:`outline_width` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 1dp.
+
+    .. versionadded:: 1.9.2
+    '''
+
+    outline_color = ListProperty([0, 0, 0, 1])
+    '''SDL2 outline color, in the format (r, g, b, a)
+
+    :attr:`outline_color` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [0, 0, 0, 1].
+
+    .. versionadded:: 1.9.2
     '''
 
     texture = ObjectProperty(None, allownone=True)
