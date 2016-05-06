@@ -46,7 +46,6 @@ from kivy.core.text.text_layout import layout_text, LayoutWord
 from kivy.resources import resource_find, resource_add_path
 from kivy.compat import PY2
 from kivy.setupconfig import USE_SDL2
-from kivy.metrics import dp
 
 DEFAULT_FONT = 'Roboto'
 
@@ -117,16 +116,13 @@ class LabelBase(object):
         `unicode_errors` : str, defaults to `'replace'`
             How to handle unicode decode errors. Can be `'strict'`, `'replace'`
             or `'ignore'`.
-        `outline` : bool, defaults to False
-            Whether text should have an outline applied to it.
-        `outline_color`: tuple, defaults to (0, 0, 0, 1)
-            Color of the outline (black, opaque, to outline the default
-            white, opaque font color)
-        `outline_width`: int, defaults to dp(1)
+        `outline_width`: int, defaults to None
             Width in pixels for the outline.
+        `outline_color`: tuple, defaults to (0, 0, 0)
+            Color of the outline.
 
     .. versionchanged:: 1.9.2
-        `outline`, `outline_color`, `outline_width` were added.
+        `outline_width` and `outline_color` were added.
 
     .. versionchanged:: 1.9.0
         `strip`, `strip_reflow`, `shorten_from`, `split_str`, and
@@ -167,11 +163,11 @@ class LabelBase(object):
         self, text='', font_size=12, font_name=DEFAULT_FONT, bold=False,
         italic=False, underline=False, strikethrough=False,
         halign='left', valign='bottom', shorten=False,
-        outline=False, outline_color=None, outline_width=None,
         text_size=None, mipmap=False, color=None, line_height=1.0, strip=False,
         strip_reflow=True, shorten_from='center', split_str=' ',
         unicode_errors='replace',
         font_hinting='normal', font_kerning=True, font_blended=True,
+        outline_width=None, outline_color=None,
         **kwargs):
 
         # Include system fonts_dir in resource paths.
@@ -188,12 +184,11 @@ class LabelBase(object):
                    'unicode_errors': unicode_errors,
                    'font_hinting': font_hinting,
                    'font_kerning': font_kerning,
-                   'font_blended': font_blended}
+                   'font_blended': font_blended,
+                   'outline_width': outline_width}
 
         options['color'] = color or (1, 1, 1, 1)
-        options['outline'] = outline or False
-        options['outline_color'] = outline_color or (0, 0, 0, 1)
-        options['outline_width'] = outline_width or dp(1)
+        options['outline_color'] = outline_color or (0, 0, 0)
         options['padding'] = kwargs.get('padding', (0, 0))
         if not isinstance(options['padding'], (list, tuple)):
             options['padding'] = (options['padding'], options['padding'])

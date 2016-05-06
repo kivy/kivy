@@ -264,10 +264,10 @@ class Label(Widget):
     _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
                         'underline', 'strikethrough', 'color', 'disabled_color',
                         'halign', 'valign', 'padding_x', 'padding_y',
-                        'outline', 'outline_color', 'outline_width',
-                        'text_size', 'shorten', 'mipmap', 'markup',
+                        'outline_width', 'disabled_outline_color',
+                        'outline_color', 'text_size', 'shorten', 'mipmap',
                         'line_height', 'max_lines', 'strip', 'shorten_from',
-                        'split_str', 'unicode_errors',
+                        'split_str', 'unicode_errors', 'markup',
                         'font_hinting', 'font_kerning', 'font_blended')
 
     def __init__(self, **kwargs):
@@ -318,9 +318,14 @@ class Label(Widget):
                 self._label.options[name] = value
             elif name == 'disabled_color' and self.disabled:
                 self._label.options['color'] = value
+            elif name == 'disabled_outline_color' and self.disabled:
+                self._label.options['outline_color'] = value
             elif name == 'disabled':
                 self._label.options['color'] = self.disabled_color if value \
                     else self.color
+                self._label.options['outline_color'] = (
+                    self.disabled_outline_color if value else
+                    self.outline_color)
             else:
                 self._label.options[name] = value
         self._trigger_texture()
@@ -391,12 +396,13 @@ class Label(Widget):
     #
 
     disabled_color = ListProperty([1, 1, 1, .3])
-    '''Text color, in the format (r, g, b, a)
+    '''The color of the text when the widget is disabled, in the (r, g, b, a)
+    format.
 
     .. versionadded:: 1.8.0
 
     :attr:`disabled_color` is a :class:`~kivy.properties.ListProperty` and
-    defaults to [1, 1, 1, .5].
+    defaults to [1, 1, 1, .3].
     '''
 
     text = StringProperty('')
@@ -596,42 +602,48 @@ class Label(Widget):
     '''
 
     color = ListProperty([1, 1, 1, 1])
-    '''Text color, in the format (r, g, b, a)
+    '''Text color, in the format (r, g, b, a).
 
     :attr:`color` is a :class:`~kivy.properties.ListProperty` and defaults to
     [1, 1, 1, 1].
     '''
 
-    outline = BooleanProperty(False)
-    '''Indicates addition of an outline around the font.
+    outline_width = NumericProperty(None, allownone=True)
+    '''Width in pixels for the outline around the text. No outline will be
+    rendered if the value is None.
 
     .. note::
-
-        SDL2 only
-
-    :attr:`outline` is a :class:`~kivy.properties.BooleanProperty` and
-    defaults to False.
+        This feature requires the SDL2 text provider.
 
     .. versionadded:: 1.9.2
-    '''
-
-    outline_width = NumericProperty('1dp')
-    '''Width in pixels for the outline. e.g. line_height = 2dp will cause
-    a two pixel outline to be rendered around the font.
 
     :attr:`outline_width` is a :class:`~kivy.properties.NumericProperty` and
-    defaults to 1dp.
-
-    .. versionadded:: 1.9.2
+    defaults to None.
     '''
 
-    outline_color = ListProperty([0, 0, 0, 1])
-    '''SDL2 outline color, in the format (r, g, b, a)
+    outline_color = ListProperty([0, 0, 0])
+    '''The color of the text outline, in the (r, g, b) format.
 
-    :attr:`outline_color` is a :class:`~kivy.properties.ListProperty` and
-    defaults to [0, 0, 0, 1].
+    .. note::
+        This feature requires the SDL2 text provider.
 
     .. versionadded:: 1.9.2
+
+    :attr:`outline_color` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [0, 0, 0].
+    '''
+
+    disabled_outline_color = ListProperty([0, 0, 0])
+    '''The color of the text outline when the widget is disabled, in the
+    (r, g, b) format.
+
+    .. note::
+        This feature requires the SDL2 text provider.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`disabled_outline_color` is a :class:`~kivy.properties.ListProperty`
+    and defaults to [0, 0, 0].
     '''
 
     texture = ObjectProperty(None, allownone=True)

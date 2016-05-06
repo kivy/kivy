@@ -57,8 +57,7 @@ cdef class _SurfaceContainer:
         cdef SDL_Rect fgr
         cdef list color = list(container.options['color'])
         cdef list outline_color = list(container.options['outline_color'])
-        cdef int outline = <int>container.options['outline']
-        cdef int outline_width = container.options['outline_width']
+        outline_width = container.options['outline_width']
         if font == NULL:
             return
         c.r = <int>(color[0] * 255)
@@ -88,7 +87,7 @@ cdef class _SurfaceContainer:
             if TTF_GetFontKerning(font) != 0:
                 TTF_SetFontKerning(font, 0)
 
-        if outline:
+        if outline_width:
             TTF_SetFontOutline(font, outline_width)
             oc.r = <int>(outline_color[0] * 255)
             oc.g = <int>(outline_color[1] * 255)
@@ -107,7 +106,7 @@ cdef class _SurfaceContainer:
                 )
         if st == NULL:
             return
-        if outline:
+        if outline_width:
             fgst = (
                 TTF_RenderUTF8_Blended(font, <char *>bytes_text, c)
                 if container.options['font_blended']
@@ -119,9 +118,10 @@ cdef class _SurfaceContainer:
             fgr.y = outline_width
             fgr.w = fgst.w
             fgr.h = fgst.h
-            SDL_SetSurfaceBlendMode(fgst, SDL_BLENDMODE_BLEND);
+            SDL_SetSurfaceBlendMode(fgst, SDL_BLENDMODE_BLEND)
             SDL_BlitSurface(fgst, NULL, st, &fgr)
             SDL_FreeSurface(fgst)
+
         r.x = x
         r.y = y
         r.w = st.w
@@ -194,17 +194,16 @@ cdef TTF_Font *_get_font(self):
 def _get_extents(container, text):
     cdef TTF_Font *font = _get_font(container)
     cdef int w, h
-    cdef int outline = <int>container.options['outline']
-    cdef int outline_width = container.options['outline_width']
+    outline_width = container.options['outline_width']
     if font == NULL:
         return 0, 0
     if not PY2:
         text = text.encode('utf-8')
     bytes_text = <bytes>text
-    if outline:
+    if outline_width:
         TTF_SetFontOutline(font, outline_width)
     TTF_SizeUTF8(font, <char *>bytes_text, &w, &h)
-    if outline:
+    if outline_width:
         TTF_SetFontOutline(font, 0)
     return w, h
 
