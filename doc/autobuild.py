@@ -216,7 +216,7 @@ for package in packages:
 
     # search modules
     m = list(modules.keys())
-    m.sort(key=lambda x: extract_summary_line(sys.modules[x].__doc__))
+    m.sort(key=lambda x: extract_summary_line(sys.modules[x].__doc__).upper())
     for module in m:
         packagemodule = module.rsplit('.', 1)[0]
         if packagemodule != package:
