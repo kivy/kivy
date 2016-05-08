@@ -70,7 +70,7 @@ class VideoFFMpeg(VideoBase):
         player = self._player
         if player is None:
             return
-        if player.is_open is False:
+        if not player.is_open:
             self._do_eos()
             return
 

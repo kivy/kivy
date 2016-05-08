@@ -79,11 +79,10 @@ cdef class _SurfaceContainer:
             if TTF_GetFontHinting(font) != TTF_HINTING_NONE:
                 TTF_SetFontHinting(font, TTF_HINTING_NONE)
 
-        kerning = container.options['font_kerning']
-        if kerning is True:
+        if container.options['font_kerning']:
             if TTF_GetFontKerning(font) == 0:
                 TTF_SetFontKerning(font, 1)
-        elif kerning is False:
+        else:
             if TTF_GetFontKerning(font) != 0:
                 TTF_SetFontKerning(font, 0)
 

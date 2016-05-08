@@ -54,7 +54,7 @@ class FactoryBuild(Command):
                     if module.startswith(ignore):
                         ignore = True
                         break
-                if ignore is True:
+                if ignore:
                     #print('<<< ignored (ignore list)')
                     continue
 
