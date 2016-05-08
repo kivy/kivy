@@ -411,7 +411,7 @@ class GestureSurface(FloatLayout):
         '''Create a new gesture from touch, ie it's the first on
         surface, or was not close enough to any existing gesture (yet)'''
         col = self.color
-        if self.use_random_color is True:
+        if self.use_random_color:
             col = hsv_to_rgb(random(), 1., 1.)
 
         g = GestureContainer(touch, max_strokes=self.max_strokes, color=col)

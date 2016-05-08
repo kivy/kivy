@@ -341,7 +341,7 @@ class ClockEvent(object):
         If the callback is already scheduled, it will not be scheduled again.
         '''
         # if the event is not yet triggered, do it !
-        if self._is_triggered is False:
+        if not self._is_triggered:
             self._is_triggered = True
             # update starttime
             self._last_dt = self.clock._last_tick

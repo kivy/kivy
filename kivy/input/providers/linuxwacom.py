@@ -334,7 +334,7 @@ else:
                             p = dict()
                             l_points[touch_id] = p
                         p['id'] = touch_id
-                        if reset_touch is False:
+                        if not reset_touch:
                             p['x'] = touch_x
                             p['y'] = touch_y
                             p['pressure'] = touch_pressure
