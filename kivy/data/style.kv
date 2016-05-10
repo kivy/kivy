@@ -1081,7 +1081,7 @@
         if self.disabled else self._radio_state_image
     canvas:
         Color:
-            rgb: 1, 1, 1
+            rgba: self.color
         Rectangle:
             source: self._radio_image if self.group else self._checkbox_image
             size: sp(32), sp(32)
