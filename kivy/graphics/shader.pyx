@@ -237,6 +237,12 @@ cdef class Shader:
     cdef int set_uniform(self, str name, value) except -1:
         if name in self.uniform_values and self.uniform_values[name] == value:
             return 0
+        cdef GLint data
+        glGetIntegerv(GL_CURRENT_PROGRAM, &data)
+        log_gl_error('Shader.set_uniform-glGetIntegerv')
+        if data != self.program:
+            glUseProgram(self.program)
+            log_gl_error('Shader.set_uniform-glUseProgram')
         self.uniform_values[name] = value
         self.upload_uniform(name, value)
         return 0
