@@ -312,7 +312,7 @@ def decodeOSC(data):
     
         return decoded
     except Exception as e:
-        print "exception: %s" % (e)
+        print("exception: %s" % (e))
 
 
 class CallbackManager:
