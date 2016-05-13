@@ -1,6 +1,6 @@
 '''
-Url Request
-===========
+UrlRequest
+==========
 
 .. versionadded:: 1.0.8
 
