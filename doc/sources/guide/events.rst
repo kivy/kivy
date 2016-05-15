@@ -367,7 +367,7 @@ function is defined. You can use an in-line function as follows:
     cb = CustomBtn()
     
     def _local_func(instance, pos):
-        print ('pos: printed from root widget: {pos}'.format(pos=.pos))
+        print ('pos: printed from root widget: {pos}'.format(pos=pos))
     
     cb.bind(pressed=_local_func)
     self.add_widget(cb)
