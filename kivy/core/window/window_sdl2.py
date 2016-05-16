@@ -700,3 +700,6 @@ class WindowSDL(WindowBase):
     def unmap_key(self, key):
         if key in self.key_map:
             del self.key_map[key]
+
+    def get_current_display_mode(self):
+        return self._win.get_currentdisplaymode()
