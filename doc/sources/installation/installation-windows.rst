@@ -186,7 +186,7 @@ with git rather than a wheel there are some additional steps:
 #. If you downloaded or cloned kivy to an alternate location and don't want to
    install it to site-packages read the next section.
 #. Finally compile and install kivy with ``pip install filename``, where ``filename``
-   can be a url such as ``https://github.com/kivy/kivy/archive/deps.zip`` for
+   can be a url such as ``https://github.com/kivy/kivy/archive/master.zip`` for
    kivy master, or the full path to a local copy of a kivy zip.
 
 .. _alternate-win:
