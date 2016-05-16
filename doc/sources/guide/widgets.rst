@@ -118,13 +118,12 @@ use the |RelativeLayout|. More on that later) and |size|, is an absolute size.
 Widgets Z Index
 ---------------
 
-The order of drawing widgets is based on position in
+The order of widget drawing is based on the widget's position in
 the widget tree. The last widget's canvas is drawn last (on top of everything
-else inside its parent). add_widget takes a `index` parameter::
+else inside its parent). The `add_widget` method takes an `index` parameter
+which can be used to specify it's position in the widget tree::
 
     root.add_widget(widget, index)
-
-for setting the z-index.
 
 Organize with Layouts
 ---------------------
