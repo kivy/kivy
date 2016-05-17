@@ -119,14 +119,15 @@ Widgets Z Index
 ---------------
 
 The order of widget drawing is based on the widget's position in
-the widget tree. The last widget's canvas is drawn last (on top of everything
-else inside its parent). The :attr:`~kivy.uix.widget.Widget.add_widget`
+the widget tree. The :attr:`~kivy.uix.widget.Widget.add_widget`
 method takes an `index` parameter which can be used to specify it's position in
 the widget tree::
 
     root.add_widget(widget, index)
 
-Using this property, you can specify the order in which your widgets are drawn.
+The lower indexed widgets will be drawn above those with a higher index. Keep
+in mind that the default for `index` is 0, so widgets added later
+are drawn on top of the others unless specified otherwise.
 
 Organize with Layouts
 ---------------------
