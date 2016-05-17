@@ -677,7 +677,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault('kivy', 'log_dir', 'logs')
             Config.setdefault('kivy', 'log_enable', '1')
             Config.setdefault('kivy', 'log_level', 'info')
-            Config.setdefault('kivy', 'log_name', 'kivy_%y-%m-%d_%_.txt')
+            Config.setdefault('kivy', 'log_name', 'kivy_%%y-%%m-%%d_%%_.txt')
             Config.setdefault('kivy', 'window_icon', '')
 
             # default graphics parameters
