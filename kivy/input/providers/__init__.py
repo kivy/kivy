@@ -56,8 +56,8 @@ if platform == 'linux' or 'KIVY_DOC' in os.environ:
     except ImportError:
         Logger.debug('Input: Did not import xinput2 '
                      'If you want it you have to compile kivy with USE_X11=1')
-    except:
-        Logger.exception('Input: ')
+    except Exception as e:
+        Logger.exception('Input: xinput2 error: %s' % e)
 
 if platform == 'android' or 'KIVY_DOC' in os.environ:
     try:
