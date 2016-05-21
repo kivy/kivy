@@ -205,7 +205,7 @@ you can download and install the APK manually from  http://kivy.org/#download.
 Once the Kivy launcher is installed, you can put your Kivy
 applications in the Kivy directory in your external storage directory
 (often available at :code:`/sdcard` even in devices where this memory
-is internal), e.g.::
+is internal), e.g. ::
 
     /sdcard/kivy/<yourapplication>
 

@@ -437,7 +437,8 @@ Both of the Apps should look something like this:
 
 .. image:: images/layout_background.png
 
-**To add a color to the background of a **custom layouts rule/class** **
+Add a color to the background of a **custom layouts rule/class**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The way we add background to the layout's instance can quickly become
 cumbersome if we need to use multiple layouts. To help with this, you can

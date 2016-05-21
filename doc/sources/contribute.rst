@@ -137,7 +137,7 @@ Now, whenever you want to create a patch, you follow the following steps:
 
         git checkout -b new_feature
 
-    #. Modify the code to do what you want (e.g., fix it).
+    #. Modify the code to do what you want (e.g. fix it).
     #. Test the code. Try to do this even for small fixes. You never know
        whether you have introduced some weird bug without testing.
     #. Do one or more minimal, atomic commits per fix or per feature.

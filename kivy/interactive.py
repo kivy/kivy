@@ -22,7 +22,7 @@ Creating an InteractiveLauncher
 -------------------------------
 
 Take your existing subclass of :class:`App` (this can be production code) and
-pass an instance to the :class:`InteractiveLauncher` constructor.::
+pass an instance to the :class:`InteractiveLauncher` constructor. ::
 
     from kivy.interactive import InteractiveLauncher
     from kivy.app import App
@@ -52,7 +52,7 @@ Interactive Development
 IPython provides a fast way to learn the Kivy API. The :class:`App` instance
 and all of it's attributes, including methods and the entire widget tree,
 can be quickly listed by using the '.' operator and pressing 'tab'. Try this
-code in an Ipython shell.::
+code in an Ipython shell. ::
 
     from kivy.interactive import InteractiveLauncher
     from kivy.app import App
@@ -148,7 +148,7 @@ TODO
 Unit tests, examples, and a better explanation of which methods are safe in a
 running application would be nice. All three would be excellent.
 
-Could be re-written with a context-manager style i.e.::
+Could be re-written with a context-manager style i.e. ::
 
     with safe:
         foo()

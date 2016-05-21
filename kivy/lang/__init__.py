@@ -163,14 +163,14 @@ the value can use the values of other properties using reserved keywords.
 
     app
         This keyword always refers to your app instance. It's equivalent
-        to a call to :meth:`kivy.app.App.get_running_app` in Python.::
+        to a call to :meth:`kivy.app.App.get_running_app` in Python. ::
 
             Label:
                 text: app.name
 
     args
         This keyword is available in on_<action> callbacks. It refers to the
-        arguments passed to the callback.::
+        arguments passed to the callback. ::
 
             TextInput:
                 on_focus: self.insert_text("Focus" if args[1] else "No focus")
@@ -527,7 +527,7 @@ Template example
 Most of time, when you are creating a screen in the kv lang, you use a lot of
 redefinitions. In our example, we'll create a Toolbar, based on a
 BoxLayout, and put in a few :class:`~kivy.uix.image.Image` widgets that
-will react to the *on_touch_down* event.:
+will react to the *on_touch_down* event.
 
 .. code-block:: kv
 

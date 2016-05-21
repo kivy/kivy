@@ -165,7 +165,7 @@ def get_deps_minimal(exclude_ignored=True, **kwargs):
 
         A dict with two keys, ``hiddenimports`` and ``excludes``. Their values
         are a list of the corresponding modules to include/exclude. This can
-        be passed directly to `Analysis`` with e.g.::
+        be passed directly to `Analysis`` with e.g. ::
 
             a = Analysis(['..\\kivy\\examples\\demo\\touchtracer\\main.py'],
                         ...
@@ -238,7 +238,7 @@ def get_deps_all():
 
         A dict with two keys, ``hiddenimports`` and ``excludes``. Their values
         are a list of the corresponding modules to include/exclude. This can
-        be passed directly to `Analysis`` with e.g.::
+        be passed directly to `Analysis`` with e.g. ::
 
             a = Analysis(['..\\kivy\\examples\\demo\\touchtracer\\main.py'],
                         ...
