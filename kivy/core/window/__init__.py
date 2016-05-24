@@ -529,7 +529,8 @@ class WindowBase(EventDispatcher):
         self.update_viewport()
 
     def _get_ios_kheight(self):
-        return 0
+        from ios import get_kheight
+        return get_kheight()
 
     def _get_android_kheight(self):
         if USE_SDL2:  # Placeholder until the SDL2 bootstrap supports this
@@ -547,8 +548,7 @@ class WindowBase(EventDispatcher):
         return 0
 
     keyboard_height = AliasProperty(_get_kheight, None,
-                                    bind=('_keyboard_changed',),
-                                    cache=True)
+                                    bind=('_keyboard_changed',))
     '''Rerturns the height of the softkeyboard/IME on mobile platforms.
     Will return 0 if not on mobile platform or if IME is not active.
 
