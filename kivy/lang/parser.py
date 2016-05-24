@@ -433,7 +433,7 @@ class Parser(object):
                     if not force_load:
                         Logger.warn('WARNING: {0} has already been included!'
                                     .format(ref))
-                        break
+                        continue
                     else:
                         Logger.debug('Reloading {0} because include was forced.'
                                     .format(ref))
