@@ -1382,8 +1382,7 @@ cdef class AliasProperty(Property):
         cdef PropertyStorage ps = obj.__storage[self._name]
         if self.use_cache:
             if ps.alias_initial:
-                ps.value = ps.getter(obj)
-                ps.alias_initial = 0
+                return ps.getter(obj)
             return ps.value
         return ps.getter(obj)
 
