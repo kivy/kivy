@@ -438,6 +438,10 @@ void x11_gl_swap(void) {
 	#endif
 }
 
+void x11_set_title(char *title){
+	XStoreName(Xdisplay, window_handle, title);
+}
+
 int x11_get_width(void) {
 	return g_width;
 }
