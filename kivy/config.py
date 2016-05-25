@@ -180,10 +180,10 @@ Available configuration tokens
         `fullscreen` is set to `auto`.
     `minimum_width`: int
         Minimum width to restrict the window to. (sdl2 only)
-    `minimun_height`: int
+    `minimum_height`: int
         Minimum height to restrict the window to. (sdl2 only)
     `min_state_time`: float, defaults to .035
-        Minumim time for widgets to display a given visual state.
+        Minimum time for widgets to display a given visual state.
         This attrib is currently used by widgets like
         :class:`~kivy.uix.dropdown.DropDown` &
         :class:`~kivy.uix.behaviors.buttonbehavior.ButtonBehavior` to
