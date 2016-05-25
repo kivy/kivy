@@ -119,29 +119,54 @@ Widget touch event bubbling
 
 When you catch touch events between multiple widgets, you often
 need to be aware of the order in which these events are propogated. In Kivy,
-events bubble up from the most recently added widget and then backwards through
-its children (from the most recently added back to the first child). This order
-is the same for the :meth:`~kivy.uix.widget.Widget.on_touch_move` and
-:meth:`~kivy.uix.widget.Widget.on_touch_up` events.
+events bubble up from the first child upwards through the other children.
+If a widget has children, the event is passed through it's children before
+being passed on to the widget after it.
 
-If you want to reverse this order, you can raise events in the children before
-the parent by using the `super` command. For example:
+As the :meth:`~kivy.uix.widget.Widget.on_touch_up` method inserts widgets at
+index 0 by default, this means the event goes from the most recently added
+widget back to the first one added. Consider the following:
 
 .. code-block:: python
 
-    class MyWidget(Widget):
-        def on_touch_down(self, touch):
-            super(MyWidget, self).on_touch_down(touch)
-            # Do stuff here
+    box = BoxLayout()
+    box.add_widget(Label(text="a"))
+    box.add_widget(Label(text="b"))
+    box.add_widget(Label(text="c"))
 
-In general, this would seldom be the best approach as every event bubbles all
-the way through event time and there is no way of determining if it has been
-handled. In order to stop this event bubbling, one of these methods must
-return `True`. At this point, Kivy assumes the event has been handled and the
-propogation stops.
+The label with text "c" gets the event first, "b" second and "a" last. You can
+reverse this order by manually specifying the index:
 
-This means that the recommended approach is to let the event bubble naturally
-but swallow the event if it has been handled. For example:
+.. code-block:: python
+
+    box = BoxLayout()
+    box.add_widget(Label(text="a"), index=0)
+    box.add_widget(Label(text="b"), index=1)
+    box.add_widget(Label(text="c"), index=2)
+
+Now the order would be "a", "b" then "c". One thing to keep in mind when using
+kv is that declaring a widget uses the
+:meth:`~kivy.uix.widget.Widget.add_widget` method for insertion. Hence, using
+
+.. code-block:: kv
+
+    BoxLayout:
+        MyLabel:
+            text: "a"
+        MyLabel:
+            text: "b"
+        MyLabel:
+            text: "c"
+
+would result in the event order "c", "b" then "a" as "c" was actually the last
+added widget. It thus has index 0, "b" index 1 and "c" index 2. Effectively,
+the child order is the reverse of it's listed order.
+
+This ordering is the same for the :meth:`~kivy.uix.widget.Widget.on_touch_move`
+and :meth:`~kivy.uix.widget.Widget.on_touch_up` events.
+
+In order to stop this event bubbling, a method can return `True`. This tells
+Kivy the event has been handled and the event propogation stops. For example:
 
 .. code-block:: python
 
@@ -151,7 +176,6 @@ but swallow the event if it has been handled. For example:
                 # Do stuff here and kill the event
                 return True
             else:
-                # Continue normal event bubbling
                 return super(MyWidget, self).on_touch_down(touch)
 
 This approach gives you good control over exactly how events are dispatched
@@ -161,13 +185,13 @@ propogated before taking action. You can use the
 
 .. code-block:: python
 
-    class MyLabel(Label):
+    class MyWidget(Label):
         def on_touch_down(self, touch, after=False):
             if after:
                 print "Fired after the event has been dispatched!"
             else:
                 Clock.schedule_once(lambda dt: self.on_touch_down(touch, True))
-                return super(MyLabel, self).on_touch_down(touch)
+                return super(MyWidget, self).on_touch_down(touch)
 
 Usage of :attr:`Widget.center`, :attr:`Widget.right`, and :attr:`Widget.top`
 ----------------------------------------------------------------------------
