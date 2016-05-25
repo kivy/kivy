@@ -1369,8 +1369,8 @@ cdef class AliasProperty(Property):
 
     cpdef trigger_change(self, EventDispatcher obj, value):
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.alias_initial = 1
-        dvalue = self.get(obj)
+        ps.alias_initial = 0
+        dvalue = ps.getter(obj)
         if ps.value != dvalue:
             ps.value = dvalue
             self.dispatch(obj)
