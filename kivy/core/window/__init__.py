@@ -31,7 +31,7 @@ from kivy.graphics.transformation import Matrix
 # late import
 VKeyboard = None
 android = None
-
+Animation = None
 
 class Keyboard(EventDispatcher):
     '''Keyboard interface that is returned by
@@ -523,13 +523,27 @@ class WindowBase(EventDispatcher):
     '''
 
     _keyboard_changed = BooleanProperty(False)
+    _kheight = NumericProperty(0)
+
+    def _animate_content(self):
+        '''Animate content to IME height.
+        '''
+        kargs = self.keyboard_anim_args
+        global Animation
+        if not Animation:
+            from kivy.animation import Animation
+        Animation.cancel_all(self)
+        Animation(
+            _kheight = self.keyboard_height + self.keyboard_padding,
+            d=kargs['d'], t=kargs['t']).start(self)
 
     def _upd_kbd_height(self, *kargs):
         self._keyboard_changed = not self._keyboard_changed
-        self.update_viewport()
+        self._animate_content()
 
     def _get_ios_kheight(self):
-        return 0
+        import ios
+        return ios.get_kheight()
 
     def _get_android_kheight(self):
         if USE_SDL2:  # Placeholder until the SDL2 bootstrap supports this
@@ -547,8 +561,7 @@ class WindowBase(EventDispatcher):
         return 0
 
     keyboard_height = AliasProperty(_get_kheight, None,
-                                    bind=('_keyboard_changed',),
-                                    cache=True)
+                                    bind=('_keyboard_changed',), cached=True)
     '''Rerturns the height of the softkeyboard/IME on mobile platforms.
     Will return 0 if not on mobile platform or if IME is not active.
 
@@ -556,6 +569,26 @@ class WindowBase(EventDispatcher):
 
     :attr:`keyboard_height` is a read-only
     :class:`~kivy.propertries.AliasProperty` and defaults to 0.
+    '''
+
+    keyboard_anim_args = {'t': 'in_out_quart', 'd': .5}
+    '''The attributes for animating softkeyboard/IME.
+    `t` = `transition`, `d` = `duration`. Will have no effect on desktops.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`keyboard_anim_args` is a dict with values
+    't': 'in_out_quart', 'd': `.5`.
+    '''
+
+    keyboard_padding = NumericProperty(0)
+    '''The padding to have between the softkeyboard/IME & target
+    or bottom of window. Will have no effect on desktops.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`keyboard_padding` is a
+    :class:`~kivy.propertries.NumericProperty` and defaults to 0.
     '''
 
     def _set_system_size(self, size):
@@ -685,6 +718,7 @@ class WindowBase(EventDispatcher):
         # Create a trigger for updating the keyboard height
         self.trigger_keyboard_height = Clock.create_trigger(
             self._upd_kbd_height, .5)
+        self.bind(_kheight=lambda *args: self.update_viewport())
 
         # set the default window parameter according to the configuration
         if 'borderless' not in kwargs:
@@ -1092,7 +1126,7 @@ class WindowBase(EventDispatcher):
         smode = self.softinput_mode
         target = self._system_keyboard.target
         targettop = max(0, target.to_window(0, target.y)[1]) if target else 0
-        kheight = self.keyboard_height
+        kheight = self._kheight
 
         w2, h2 = w / 2., h / 2.
         r = radians(self.rotation)
