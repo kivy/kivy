@@ -11,9 +11,11 @@ from kivy.input.providers.wm_common import (
     GWL_WNDPROC, QUERYSYSTEMGESTURE_WNDPROC, WM_TOUCH, WM_MOUSEMOVE,
     WM_MOUSELAST, PEN_OR_TOUCH_MASK, PEN_OR_TOUCH_SIGNATURE,
     PEN_EVENT_TOUCH_MASK, TOUCHEVENTF_UP, TOUCHEVENTF_DOWN,
-    TOUCHEVENTF_MOVE, SM_CYCAPTION)
+    TOUCHEVENTF_MOVE, SM_CYCAPTION, SM_CXPADDEDBORDER, SM_CXSIZEFRAME,
+    SM_CYSIZEFRAME, SM_CXFIXEDFRAME, SM_CYFIXEDFRAME, SM_CXBORDER, SM_CYBORDER)
 from kivy.input.motionevent import MotionEvent
 from kivy.input.shape import ShapeRect
+from kivy.config import Config
 
 Window = None
 
@@ -113,8 +115,6 @@ else:
 
     windll.user32.GetMessageExtraInfo.restype = LPARAM
     windll.user32.GetMessageExtraInfo.argtypes = []
-    windll.user32.GetClientRect.restype = BOOL
-    windll.user32.GetClientRect.argtypes = [HANDLE, POINTER(RECT)]
     windll.user32.GetWindowRect.restype = BOOL
     windll.user32.GetWindowRect.argtypes = [HANDLE, POINTER(RECT)]
     windll.user32.CallWindowProcW.restype = LRESULT
@@ -153,15 +153,36 @@ else:
             self.old_windProc = SetWindowLong_wrapper(
                 self.hwnd, GWL_WNDPROC, self.new_windProc)
 
-            if Window.borderless or Window.fullscreen:
-                self.caption_size = 0
+            resizable = Config.getboolean('graphics', 'resizable')
+            has_caption = not Window.borderless
+            self.caption_size = self.border_h = self.border_w = 0
+
+            if Window.fullscreen or (not resizable and not has_caption):
+                return  # it has no border or anything
+
+            GetSystemMetrics = windll.user32.GetSystemMetrics
+            # Not fullscreen and is either resizable or has caption, so it'll
+            # have at least a border
+            p = GetSystemMetrics(SM_CXPADDEDBORDER)  # not available on XP:
+
+
+            if resizable:
+                self.border_w = GetSystemMetrics(SM_CXSIZEFRAME) + p
+                self.border_h = GetSystemMetrics(SM_CYSIZEFRAME) + p
             else:
-                self.caption_size = windll.user32.GetSystemMetrics(SM_CYCAPTION)
+                self.border_w = GetSystemMetrics(SM_CXFIXEDFRAME) + p
+                self.border_h = GetSystemMetrics(SM_CYFIXEDFRAME) + p
+
+            if has_caption:
+                # if it has a caption it'll be added to the border
+                self.caption_size = windll.user32.GetSystemMetrics(
+                    SM_CYCAPTION)
 
         def update(self, dispatch_fn):
             win_rect = RECT()
             windll.user32.GetWindowRect(self.hwnd, byref(win_rect))
             caption = self.caption_size
+            border_w, border_h = self.border_w, self.border_h
 
             while True:
                 try:
@@ -170,9 +191,13 @@ else:
                     break
 
                 # adjust x,y to window coordinates (0.0 to 1.0)
-                x = (t.screen_x() - win_rect.x) / float(win_rect.w)
-                y = 1.0 - (t.screen_y() - win_rect.y - caption
-                           ) / float(win_rect.h)
+                usable_w = win_rect.w - 2 * border_w
+                raw_x = t.screen_x() - (win_rect.x + border_w)
+                x = raw_x / float(usable_w)
+
+                usable_h = win_rect.h - (2 * border_h + caption)
+                raw_y = t.screen_y() - (win_rect.y + caption + border_h)
+                y = 1.0 - raw_y / float(usable_h)
 
                 # actually dispatch input
                 if t.event_type == 'begin':
