@@ -66,15 +66,13 @@ else:
             self.old_windProc = SetWindowLong_wrapper(
                 self.hwnd, GWL_WNDPROC, self.new_windProc)
 
-            if Window.borderless or Window.fullscreen:
-                self.caption_size = 0
-            else:
-                self.caption_size = windll.user32.GetSystemMetrics(SM_CYCAPTION)
-
         def update(self, dispatch_fn):
-            win_rect = RECT()
-            windll.user32.GetWindowRect(self.hwnd, byref(win_rect))
-            caption = self.caption_size
+            c_rect = RECT()
+            windll.user32.GetClientRect(self.hwnd, byref(c_rect))
+            pt = POINT(x=0, y=0)
+            windll.user32.ClientToScreen(self.hwnd, byref(pt))
+            x_offset, y_offset = pt.x, pt.y
+            usable_w, usable_h = float(c_rect.w), float(c_rect.h)
 
             while True:
                 try:
@@ -83,9 +81,8 @@ else:
                     break
 
                 # adjust x,y to window coordinates (0.0 to 1.0)
-                x = (t.screen_x() - win_rect.x) / float(win_rect.w)
-                y = 1.0 - (t.screen_y() - win_rect.y - caption
-                           ) / float(win_rect.h)
+                x = (t.screen_x() - x_offset) / usable_w
+                y = 1.0 - (t.screen_y() - y_offset) / usable_h
 
                 # actually dispatch input
                 if t.event_type == 'begin':
