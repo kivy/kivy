@@ -159,7 +159,7 @@ kv is that declaring a widget uses the
             text: "c"
 
 would result in the event order "c", "b" then "a" as "c" was actually the last
-added widget. It thus has index 0, "b" index 1 and "c" index 2. Effectively,
+added widget. It thus has index 0, "b" index 1 and "a" index 2. Effectively,
 the child order is the reverse of its listed order.
 
 This ordering is the same for the :meth:`~kivy.uix.widget.Widget.on_touch_move`
