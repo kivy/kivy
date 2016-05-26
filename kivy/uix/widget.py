@@ -118,9 +118,9 @@ Widget touch event bubbling
 ---------------------------
 
 When you catch touch events between multiple widgets, you often
-need to be aware of the order in which these events are propogated. In Kivy,
+need to be aware of the order in which these events are propagated. In Kivy,
 events bubble up from the first child upwards through the other children.
-If a widget has children, the event is passed through it's children before
+If a widget has children, the event is passed through its children before
 being passed on to the widget after it.
 
 As the :meth:`~kivy.uix.widget.Widget.on_touch_up` method inserts widgets at
@@ -160,13 +160,13 @@ kv is that declaring a widget uses the
 
 would result in the event order "c", "b" then "a" as "c" was actually the last
 added widget. It thus has index 0, "b" index 1 and "c" index 2. Effectively,
-the child order is the reverse of it's listed order.
+the child order is the reverse of its listed order.
 
 This ordering is the same for the :meth:`~kivy.uix.widget.Widget.on_touch_move`
 and :meth:`~kivy.uix.widget.Widget.on_touch_up` events.
 
 In order to stop this event bubbling, a method can return `True`. This tells
-Kivy the event has been handled and the event propogation stops. For example:
+Kivy the event has been handled and the event propagation stops. For example:
 
 .. code-block:: python
 
@@ -180,7 +180,7 @@ Kivy the event has been handled and the event propogation stops. For example:
 
 This approach gives you good control over exactly how events are dispatched
 and managed. Sometimes, however, you may wish to let the event be completely
-propogated before taking action. You can use the
+propagated before taking action. You can use the
 :class:`~kivy.clock.Clock` to help you here:
 
 .. code-block:: python
