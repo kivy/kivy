@@ -639,7 +639,7 @@ class App(EventDispatcher):
         system-wide, the user might not have write-access to the
         application directory. If you want to store user settings, you
         should overload this method and change the default behavior to
-        save the configuration file in the user directory.::
+        save the configuration file in the user directory. ::
 
             class TestApp(App):
                 def get_application_config(self):

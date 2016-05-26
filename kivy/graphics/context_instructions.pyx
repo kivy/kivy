@@ -582,7 +582,7 @@ cdef class Transform(MatrixInstruction):
 cdef class Rotate(Transform):
     '''Rotate the coordinate space by applying a rotation transformation
     on the modelview matrix. You can set the properties of the instructions
-    afterwards with e.g.::
+    afterwards with e.g. ::
 
         rot.angle = 90
         rot.axis = (0, 0, 1)

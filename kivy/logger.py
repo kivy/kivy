@@ -19,7 +19,7 @@ Examples of usage::
 
 The message passed to the logger is split into two parts, separated by a colon
 (:). The first part is used as a title, and the second part is used as the
-message. This way, you can "categorize" your message easily.::
+message. This way, you can "categorize" your message easily. ::
 
     Logger.info('Application: This is a test')
 

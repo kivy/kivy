@@ -516,7 +516,7 @@ The question could have several correct answers. A color swatch view could be
 bound to selection change, as above, so that it turns green as soon as the
 correct choices are made, unless the number of touches exeeds a limit, then the
 answer session could be terminated. See the examples that feature thumbnail
-images to get some ideas, e.g., list_cascade_dict.py.
+images to get some ideas, e.g. list_cascade_dict.py.
 
 In a more involved example, we could chain together three listviews, where
 selection in the first controls the items shown in the second, and selection in

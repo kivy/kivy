@@ -370,7 +370,7 @@ cdef class VertexInstruction(Instruction):
         can be negative, and would represent the 'flipped' texture. By default,
         the tex_coords are::
 
-            [u, v, u + w, v, u + w, y + h, u, y + h]
+            [u, v, u + w, v, u + w, v + h, u, v + h]
 
         You can pass your own texture coordinates if you want to achieve fancy
         effects.

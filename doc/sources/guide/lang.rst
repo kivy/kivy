@@ -74,7 +74,7 @@ Special syntaxes
 
 There are two special syntaxes to define values for the whole Kv context:
 
-To access python modules and classes from kv,::
+To access python modules and classes from kv, ::
 
     #:import name x.y.z
     #:import isdir os.path.isdir
@@ -88,7 +88,7 @@ is equivalent to::
 
 in python.
 
-To set a global value,::
+To set a global value, ::
 
     #:set name value
 
@@ -315,7 +315,7 @@ In myapp.py:
     ...
 
 `txt_inpt` is defined as a :class:`~kivy.properties.ObjectProperty` initialized
-to `None` inside the Class.::
+to `None` inside the Class. ::
 
     txt_inpt = ObjectProperty(None)
 

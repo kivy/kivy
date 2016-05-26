@@ -35,7 +35,7 @@ def iter_filename_info(dir_name):
     """
     Yield info (dict) of each matching screenshot found walking the
     directory dir_name.  A matching screenshot uses double underscores to
-    separate fields, i.e., path__to__filename__py.png as the screenshot for
+    separate fields, i.e. path__to__filename__py.png as the screenshot for
     examples/path/to/filename.py.
 
     Files not ending with .png are ignored, others are either parsed or
@@ -112,7 +112,7 @@ def enhance_info_description(info, line_length=50):
     ''' Using the info['description'], add fields to info.
 
     info['files'] is the source filename and any filenames referenced by the
-    magic words in the description, e.g., 'the file xxx.py' or
+    magic words in the description, e.g. 'the file xxx.py' or
     'The image this.png'.  These are as written in the description, do
     not allow ../dir notation, and are relative to the source directory.
 

@@ -143,7 +143,7 @@ You can now install kivy itself::
     make
 
 This should compile kivy, to make it accessible in your python env
-just point your PYTHONPATH to this dir.
+just point your PYTHONPATH to this dir::
 
     export PYTHONPATH=~/code/kivy:$PYTHONPATH
 
