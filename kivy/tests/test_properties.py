@@ -310,28 +310,20 @@ class PropertiesTestCase(unittest.TestCase):
         self.assertEqual(wid.basevalue, 1)
         self.assertEqual(observe_called, 0)
 
-        # first call, goes in cache
-        self.assertEqual(wid.prop, 2)
-        self.assertEqual(observe_called, 1)
-
-        # second call, cache used
-        self.assertEqual(wid.prop, 2)
-        self.assertEqual(observe_called, 1)
-
         # change the base value, should trigger an update for the cache
         wid.basevalue = 4
-        self.assertEqual(observe_called, 2)
+        self.assertEqual(observe_called, 1)
 
-        # now read the value again, should use the cache too
+        # now read the value again, should use the cache
         self.assertEqual(wid.prop, 8)
-        self.assertEqual(observe_called, 2)
+        self.assertEqual(observe_called, 1)
 
         # change the prop itself, should trigger an update for the cache
         wid.prop = 4
-        self.assertEqual(observe_called, 3)
+        self.assertEqual(observe_called, 2)
         self.assertEqual(wid.basevalue, 2)
         self.assertEqual(wid.prop, 4)
-        self.assertEqual(observe_called, 3)
+        self.assertEqual(observe_called, 2)
 
     def test_bounded_numeric_property(self):
         from kivy.properties import BoundedNumericProperty
