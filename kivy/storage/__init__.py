@@ -343,6 +343,7 @@ class AbstractStore(EventDispatcher):
     def store_clear(self):
         for key in self.store_keys():
             self.store_delete(key)
+        self.store_sync()
 
     def store_get_async(self, key, callback):
         try:
