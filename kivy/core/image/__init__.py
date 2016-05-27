@@ -790,7 +790,7 @@ class Image(EventDispatcher):
         Any other extensions are not officially supported.
 
         The flipped parameter flips the saved image vertically, and
-        defaults to True.
+        defaults to False.
 
         Example::
 
