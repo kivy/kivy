@@ -406,6 +406,8 @@ class UrlRequest(Thread):
         if content_type is not None:
             ct = content_type.split(';')[0]
             if ct == 'application/json':
+                if isinstance(result, bytes):
+                    result = result.decode('utf-8')
                 try:
                     return loads(result)
                 except:
