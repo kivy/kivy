@@ -101,3 +101,5 @@ class CameraOpenCV(CameraBase):
     def stop(self):
         super(CameraOpenCV, self).stop()
         Clock.unschedule(self._update)
+        # Release the device
+        del self._device
