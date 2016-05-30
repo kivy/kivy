@@ -58,7 +58,7 @@ def iter_filename_info(dir_name):
                            'file': m.group(3),
                            'ext': m.group(4),
                            'source': slash(d, m.group(3) + '.' + m.group(4))
-                    }
+                           }
 
 
 def parse_docstring_info(text):
@@ -171,7 +171,7 @@ def make_gallery_page(infos):
         r = right.format(**info)
         if len(l) > width1 or len(r) > width2:
             Logger.error('items to wide for generated table: "%s" and "%s"',
-                         l,r)
+                         l, r)
             return
         output.append('| {0:{w1}} | {1:{w2}} |'
                       .format(l, r, w1=width1, w2=width2))
@@ -273,6 +273,11 @@ def make_detail_page(info):
                 a('\n.. highlight:: ' + ext[1:])
                 a('    :linenothreshold: 3')
                 last_lang = ext
+            # prevent highlight errors with 'none'
+            elif ext == '.txt':
+                a('\n.. highlight:: none')
+                a('    :linenothreshold: 3')
+                last_lang = ext
             a('\n.. include:: ../../../examples/' + full_name)
             a('    :code:')
     return '\n'.join(output) + '\n'
@@ -301,7 +306,9 @@ Gallery of Examples
 
 
 def write_all_rst_pages():
-    ''' Do the main task of writing the gallery, detail, and index rst pages '''
+    ''' Do the main task of writing the gallery,
+    detail, and index rst pages.
+    '''
     infos = get_infos(screenshots_dir)
     s = make_gallery_page(infos)
     write_file(gallery_filename, s)
