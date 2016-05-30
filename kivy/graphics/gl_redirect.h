@@ -3,7 +3,7 @@
  */
 #ifndef __gl_redirect_h_
 #define __gl_redirect_h_
- 
+
 #include "config.h"
 
 #if __USE_OPENGL_MOCK
@@ -29,6 +29,17 @@
 #	define GL_SHADER_BINARY_FORMATS					0x8DF8
 #	define GL_RGB565								0x8D62
 #	define GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS 	0x8CD9
+#elif __USE_ANGLE
+// #       ifndef _MSC_VER
+// #       define _MSC_VER
+// #       endif
+#       include "SDL_opengles2.h"
+// #       ifdef _MSC_VER
+// #       undef _MSC_VER
+// #       endif
+#		ifndef GL_DEPTH24_STENCIL8
+#			define GL_DEPTH24_STENCIL8                      GL_DEPTH24_STENCIL8_OES
+#		endif
 #else
 #	if __USE_OPENGL_ES2
 #		if __APPLE__
@@ -73,12 +84,18 @@ GL_APICALL void GL_APIENTRY glClearDepth( GLclampf depth );
 
 // support for dynamic binding on glew
 #if __USE_GLEW
-#ifndef __GLEW_DYNAMIC_BINDING
-#define __GLEW_DYNAMIC_BINDING
+#ifndef __GL_DYNAMIC_BINDING
+#define __GL_DYNAMIC_BINDING
+
+#if __USE_GLEW
+#define getProcAddress(x) (wglGetProcAddress(x))
+#else
+#define getProcAddress(x) (SDL_GL_GetProcAddress(x))
+#endif
 
 #include <windows.h>
 #include <string.h>
-void glew_dynamic_binding() {
+void gl_dynamic_binding() {
     const char *gl_extensions = glGetString(GL_EXTENSIONS);
 
     /* If the current opengl driver don't have framebuffers methods,
@@ -90,42 +107,42 @@ void glew_dynamic_binding() {
         if (strstr(gl_extensions, "ARB_framebuffer_object")) {
             printf("GL: ARB_framebuffer_object is supported\n");
 
-            glIsRenderbuffer = (PFNGLISRENDERBUFFERPROC) wglGetProcAddress("glIsRenderbuffer");
-            glBindRenderbuffer = (PFNGLBINDRENDERBUFFERPROC) wglGetProcAddress("glBindRenderbuffer");
-            glDeleteRenderbuffers = (PFNGLDELETERENDERBUFFERSPROC) wglGetProcAddress("glDeleteRenderbuffers");
-            glGenRenderbuffers = (PFNGLGENRENDERBUFFERSPROC) wglGetProcAddress("glGenRenderbuffers");
-            glRenderbufferStorage = (PFNGLRENDERBUFFERSTORAGEPROC) wglGetProcAddress("glRenderbufferStorage");
-            glGetRenderbufferParameteriv = (PFNGLGETRENDERBUFFERPARAMETERIVPROC) wglGetProcAddress("glGetRenderbufferParameteriv");
-            glIsFramebuffer = (PFNGLISFRAMEBUFFERPROC) wglGetProcAddress("glIsFramebuffer");
-            glBindFramebuffer = (PFNGLBINDFRAMEBUFFERPROC) wglGetProcAddress("glBindFramebuffer");
-            glDeleteFramebuffers = (PFNGLDELETEFRAMEBUFFERSPROC) wglGetProcAddress("glDeleteFramebuffers");
-            glGenFramebuffers = (PFNGLGENFRAMEBUFFERSPROC) wglGetProcAddress("glGenFramebuffers");
-            glCheckFramebufferStatus = (PFNGLCHECKFRAMEBUFFERSTATUSPROC) wglGetProcAddress("glCheckFramebufferStatus");
-            glFramebufferTexture1D = (PFNGLFRAMEBUFFERTEXTURE1DPROC) wglGetProcAddress("glFramebufferTexture1D");
-            glFramebufferTexture2D = (PFNGLFRAMEBUFFERTEXTURE2DPROC) wglGetProcAddress("glFramebufferTexture2D");
-            glFramebufferTexture3D = (PFNGLFRAMEBUFFERTEXTURE3DPROC) wglGetProcAddress("glFramebufferTexture3D");
-            glFramebufferRenderbuffer = (PFNGLFRAMEBUFFERRENDERBUFFERPROC) wglGetProcAddress("glFramebufferRenderbuffer");
-            glGetFramebufferAttachmentParameteriv = (PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVPROC) wglGetProcAddress("glGetFramebufferAttachmentParameteriv");
-            glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC) wglGetProcAddress("glGenerateMipmap");
+            glIsRenderbuffer = (PFNGLISRENDERBUFFERPROC) getProcAddress("glIsRenderbuffer");
+            glBindRenderbuffer = (PFNGLBINDRENDERBUFFERPROC) getProcAddress("glBindRenderbuffer");
+            glDeleteRenderbuffers = (PFNGLDELETERENDERBUFFERSPROC) getProcAddress("glDeleteRenderbuffers");
+            glGenRenderbuffers = (PFNGLGENRENDERBUFFERSPROC) getProcAddress("glGenRenderbuffers");
+            glRenderbufferStorage = (PFNGLRENDERBUFFERSTORAGEPROC) getProcAddress("glRenderbufferStorage");
+            glGetRenderbufferParameteriv = (PFNGLGETRENDERBUFFERPARAMETERIVPROC) getProcAddress("glGetRenderbufferParameteriv");
+            glIsFramebuffer = (PFNGLISFRAMEBUFFERPROC) getProcAddress("glIsFramebuffer");
+            glBindFramebuffer = (PFNGLBINDFRAMEBUFFERPROC) getProcAddress("glBindFramebuffer");
+            glDeleteFramebuffers = (PFNGLDELETEFRAMEBUFFERSPROC) getProcAddress("glDeleteFramebuffers");
+            glGenFramebuffers = (PFNGLGENFRAMEBUFFERSPROC) getProcAddress("glGenFramebuffers");
+            glCheckFramebufferStatus = (PFNGLCHECKFRAMEBUFFERSTATUSPROC) getProcAddress("glCheckFramebufferStatus");
+            glFramebufferTexture1D = (PFNGLFRAMEBUFFERTEXTURE1DPROC) getProcAddress("glFramebufferTexture1D");
+            glFramebufferTexture2D = (PFNGLFRAMEBUFFERTEXTURE2DPROC) getProcAddress("glFramebufferTexture2D");
+            glFramebufferTexture3D = (PFNGLFRAMEBUFFERTEXTURE3DPROC) getProcAddress("glFramebufferTexture3D");
+            glFramebufferRenderbuffer = (PFNGLFRAMEBUFFERRENDERBUFFERPROC) getProcAddress("glFramebufferRenderbuffer");
+            glGetFramebufferAttachmentParameteriv = (PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVPROC) getProcAddress("glGetFramebufferAttachmentParameteriv");
+            glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC) getProcAddress("glGenerateMipmap");
         } else if (strstr(gl_extensions, "EXT_framebuffer_object")) {
             printf("GL: EXT_framebuffer_object is supported\n");
-            glIsRenderbuffer = (PFNGLISRENDERBUFFERPROC) wglGetProcAddress("glIsRenderbufferEXT");
-            glBindRenderbuffer = (PFNGLBINDRENDERBUFFERPROC) wglGetProcAddress("glBindRenderbufferEXT");
-            glDeleteRenderbuffers = (PFNGLDELETERENDERBUFFERSPROC) wglGetProcAddress("glDeleteRenderbuffersEXT");
-            glGenRenderbuffers = (PFNGLGENRENDERBUFFERSPROC) wglGetProcAddress("glGenRenderbuffersEXT");
-            glRenderbufferStorage = (PFNGLRENDERBUFFERSTORAGEPROC) wglGetProcAddress("glRenderbufferStorageEXT");
-            glGetRenderbufferParameteriv = (PFNGLGETRENDERBUFFERPARAMETERIVPROC) wglGetProcAddress("glGetRenderbufferParameterivEXT");
-            glIsFramebuffer = (PFNGLISFRAMEBUFFERPROC) wglGetProcAddress("glIsFramebufferEXT");
-            glBindFramebuffer = (PFNGLBINDFRAMEBUFFERPROC) wglGetProcAddress("glBindFramebufferEXT");
-            glDeleteFramebuffers = (PFNGLDELETEFRAMEBUFFERSPROC) wglGetProcAddress("glDeleteFramebuffersEXT");
-            glGenFramebuffers = (PFNGLGENFRAMEBUFFERSPROC) wglGetProcAddress("glGenFramebuffersEXT");
-            glCheckFramebufferStatus = (PFNGLCHECKFRAMEBUFFERSTATUSPROC) wglGetProcAddress("glCheckFramebufferStatusEXT");
-            glFramebufferTexture1D = (PFNGLFRAMEBUFFERTEXTURE1DPROC) wglGetProcAddress("glFramebufferTexture1DEXT");
-            glFramebufferTexture2D = (PFNGLFRAMEBUFFERTEXTURE2DPROC) wglGetProcAddress("glFramebufferTexture2DEXT");
-            glFramebufferTexture3D = (PFNGLFRAMEBUFFERTEXTURE3DPROC) wglGetProcAddress("glFramebufferTexture3DEXT");
-            glFramebufferRenderbuffer = (PFNGLFRAMEBUFFERRENDERBUFFERPROC) wglGetProcAddress("glFramebufferRenderbufferEXT");
-            glGetFramebufferAttachmentParameteriv = (PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVPROC) wglGetProcAddress("glGetFramebufferAttachmentParameterivEXT");
-            glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC) wglGetProcAddress("glGenerateMipmapEXT");
+            glIsRenderbuffer = (PFNGLISRENDERBUFFERPROC) getProcAddress("glIsRenderbufferEXT");
+            glBindRenderbuffer = (PFNGLBINDRENDERBUFFERPROC) getProcAddress("glBindRenderbufferEXT");
+            glDeleteRenderbuffers = (PFNGLDELETERENDERBUFFERSPROC) getProcAddress("glDeleteRenderbuffersEXT");
+            glGenRenderbuffers = (PFNGLGENRENDERBUFFERSPROC) getProcAddress("glGenRenderbuffersEXT");
+            glRenderbufferStorage = (PFNGLRENDERBUFFERSTORAGEPROC) getProcAddress("glRenderbufferStorageEXT");
+            glGetRenderbufferParameteriv = (PFNGLGETRENDERBUFFERPARAMETERIVPROC) getProcAddress("glGetRenderbufferParameterivEXT");
+            glIsFramebuffer = (PFNGLISFRAMEBUFFERPROC) getProcAddress("glIsFramebufferEXT");
+            glBindFramebuffer = (PFNGLBINDFRAMEBUFFERPROC) getProcAddress("glBindFramebufferEXT");
+            glDeleteFramebuffers = (PFNGLDELETEFRAMEBUFFERSPROC) getProcAddress("glDeleteFramebuffersEXT");
+            glGenFramebuffers = (PFNGLGENFRAMEBUFFERSPROC) getProcAddress("glGenFramebuffersEXT");
+            glCheckFramebufferStatus = (PFNGLCHECKFRAMEBUFFERSTATUSPROC) getProcAddress("glCheckFramebufferStatusEXT");
+            glFramebufferTexture1D = (PFNGLFRAMEBUFFERTEXTURE1DPROC) getProcAddress("glFramebufferTexture1DEXT");
+            glFramebufferTexture2D = (PFNGLFRAMEBUFFERTEXTURE2DPROC) getProcAddress("glFramebufferTexture2DEXT");
+            glFramebufferTexture3D = (PFNGLFRAMEBUFFERTEXTURE3DPROC) getProcAddress("glFramebufferTexture3DEXT");
+            glFramebufferRenderbuffer = (PFNGLFRAMEBUFFERRENDERBUFFERPROC) getProcAddress("glFramebufferRenderbufferEXT");
+            glGetFramebufferAttachmentParameteriv = (PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVPROC) getProcAddress("glGetFramebufferAttachmentParameterivEXT");
+            glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC) getProcAddress("glGenerateMipmapEXT");
         } else {
             printf("GL: No framebuffers extension is supported\n");
             printf("GL: Any call to Fbo will crash !\n");
@@ -133,7 +150,7 @@ void glew_dynamic_binding() {
     }
 }
 
-#endif /* __GLEW_DYNAMIC_BINDING */
+#endif /* __GL_DYNAMIC_BINDING */
 #endif /* __USE_GLEW */
 #endif /* __USE_OPENGL_MOCK */
 

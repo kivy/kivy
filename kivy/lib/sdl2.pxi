@@ -416,6 +416,7 @@ cdef extern from "SDL.h":
     ctypedef int SDL_EventFilter(void* userdata, SDL_Event* event)
 
     cdef char *SDL_HINT_ORIENTATIONS
+    cdef char *SDL_HINT_VIDEO_WIN_D3DCOMPILER
 
     cdef int SDL_QUERY               = -1
     cdef int SDL_IGNORE              =  0

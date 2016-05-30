@@ -23,11 +23,15 @@ __all__ = ('ClearColor', 'ClearBuffers')
 include "config.pxi"
 include "opcodes.pxi"
 
-from kivy.graphics.c_opengl cimport *
-IF USE_OPENGL_MOCK == 1:
-    from kivy.graphics.c_opengl_mock cimport *
-IF USE_OPENGL_DEBUG == 1:
-    from c_opengl_debug cimport *
+from kivy.graphics.c_opengl_def cimport *
+IF USE_OPENGL_DEBUG:
+    cimport kivy.graphics.c_opengl_debug as cgl
+ELIF USE_OPENGL_DYNAMIC:
+    from kivy.graphics.c_opengl_dynamic cimport cgl
+ELIF USE_OPENGL_MOCK:
+    cimport kivy.graphics.c_opengl_mock as cgl
+ELSE:
+    cimport kivy.graphics.c_opengl as cgl
 from kivy.graphics.instructions cimport Instruction
 
 
@@ -53,7 +57,7 @@ cdef class ClearColor(Instruction):
         self.a = a
 
     cdef int apply(self) except -1:
-        glClearColor(self.r, self.g, self.b, self.a)
+        cgl.glClearColor(self.r, self.g, self.b, self.a)
         return 0
 
     property rgba:
@@ -147,9 +151,9 @@ cdef class ClearBuffers(Instruction):
             mask |= GL_STENCIL_BUFFER_BIT
         if self.clear_depth:
             mask |= GL_DEPTH_BUFFER_BIT
-        glClear(mask)
+        cgl.glClear(mask)
         return 0
-        
+
     property clear_color:
         '''If True, the color buffer will be cleared.
         '''

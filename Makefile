@@ -11,7 +11,7 @@ IOSPATH := $(PATH):/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin
 
 BUILD_OPTS       = build_ext --inplace
 BUILD_OPTS_FORCE = $(BUILD_OPTS) -f
-BUILD_OPTS_DEBUG = $(BUILD_OPTS_FORCE)-g
+BUILD_OPTS_DEBUG = $(BUILD_OPTS_FORCE) -g
 
 INSTALL_OPTIONS  = install
 INSTALL_ROOT     =
