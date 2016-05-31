@@ -104,6 +104,7 @@ class VideoFFPy(VideoBase):
         self._ffplayer = None
         self._thread = None
         self._next_frame = None
+        self._seek_queue = []
         self._ffplayer_need_quit = False
         self._trigger = Clock.create_trigger(self._redraw)
 
@@ -210,6 +211,7 @@ class VideoFFPy(VideoBase):
         sleep = time.sleep
         trigger = self._trigger
         did_dispatch_eof = False
+        seek_queue = self._seek_queue
 
         # fast path, if the source video is yuv420p, we'll use a glsl shader for
         # buffer conversion to rgba
@@ -246,6 +248,14 @@ class VideoFFPy(VideoBase):
         self._change_state('playing')
 
         while not self._ffplayer_need_quit:
+            if seek_queue:
+                vals = seek_queue[:]
+                del seek_queue[:len(vals)]
+                ffplayer.seek(
+                    vals[-1] * ffplayer.get_metadata()['duration'],
+                    relative=False)
+                self._next_frame = None
+
             t1 = time.time()
             frame, val = ffplayer.get_frame()
             t2 = time.time()
@@ -269,9 +279,7 @@ class VideoFFPy(VideoBase):
     def seek(self, percent):
         if self._ffplayer is None:
             return
-        self._ffplayer.seek(percent * self._ffplayer.get_metadata()
-                            ['duration'], relative=False)
-        self._next_frame = None
+        self._seek_queue.append(percent)
 
     def stop(self):
         self.unload()
