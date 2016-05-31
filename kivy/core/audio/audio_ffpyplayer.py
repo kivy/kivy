@@ -89,7 +89,6 @@ class SoundFFPy(Sound):
         self._log_callback_set = False
         self._state = ''
         self.state = 'stop'
-        self._callback_ref = WeakMethod(self._player_callback)
 
         if not get_log_callback():
             set_log_callback(_log_callback)
@@ -117,7 +116,7 @@ class SoundFFPy(Sound):
         self.unload()
         ff_opts = {'vn': True, 'sn': True}  # only audio
         self._ffplayer = MediaPlayer(self.source,
-                                     callback=self._callback_ref,
+                                     callback=self._player_callback,
                                      loglevel='info', ff_opts=ff_opts)
         player = self._ffplayer
         player.set_volume(self.volume)

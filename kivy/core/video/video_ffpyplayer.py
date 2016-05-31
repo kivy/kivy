@@ -105,7 +105,6 @@ class VideoFFPy(VideoBase):
         self._thread = None
         self._next_frame = None
         self._ffplayer_need_quit = False
-        self._callback_ref = WeakMethod(self._player_callback)
         self._trigger = Clock.create_trigger(self._redraw)
 
         super(VideoFFPy, self).__init__(**kwargs)
@@ -295,7 +294,7 @@ class VideoFFPy(VideoBase):
             'out_fmt': self._out_fmt
         }
         self._ffplayer = MediaPlayer(
-                self._filename, callback=self._callback_ref,
+                self._filename, callback=self._player_callback,
                 thread_lib='SDL',
                 loglevel='info', ff_opts=ff_opts)
         self._ffplayer.set_volume(self._volume)
