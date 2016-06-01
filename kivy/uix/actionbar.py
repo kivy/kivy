@@ -531,7 +531,7 @@ class ActionView(BoxLayout):
         super_add(self.action_previous)
 
         width = (self.width - self.overflow_group.pack_width -
-                 self.action_previous.pack_width)
+                 self.action_previous.minimum_width)
 
         if len(self._list_action_items):
             for child in self._list_action_items[1:]:
