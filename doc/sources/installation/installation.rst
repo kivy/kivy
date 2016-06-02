@@ -162,7 +162,9 @@ It should give you an output similar to the following::
     [INFO   ] [Python      ] v2.7.10 (default, Oct 23 2015, 18:05:06)
     [GCC 4.2.1 Compatible Apple LLVM 7.0.0 (clang-700.0.59.5)]
 
-If using brew method to install kivy then
+OSX HomeBrew
+++++++++++++
+If you prefer to use homebrew:
 install the requirements using `homebrew <http://brew.sh>`_::
 
      $ brew install sdl2 sdl2_image sdl2_ttf sdl2_mixer gstreamer
