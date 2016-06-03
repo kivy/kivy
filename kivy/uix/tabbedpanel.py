@@ -102,7 +102,9 @@ To change the background of a individual tab, use these two properties::
 
 A TabbedPanelStrip contains the individual tab headers. To change the
 appearance of this tab strip, override the canvas of TabbedPanelStrip.
-For example, in the kv language::
+For example, in the kv language:
+
+.. code-block:: kv
 
     <TabbedPanelStrip>
         canvas:
@@ -182,10 +184,12 @@ class TabbedPanelHeader(ToggleButton):
 class TabbedPanelItem(TabbedPanelHeader):
     '''This is a convenience class that provides a header of type
     TabbedPanelHeader and links it with the content automatically. Thus
-    facilitating you to simply do the following in kv language::
+    facilitating you to simply do the following in kv language:
+
+    .. code-block:: kv
 
         <TabbedPanel>:
-            ...other settings
+            # ...other settings
             TabbedPanelItem:
                 BoxLayout:
                     Label:
