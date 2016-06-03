@@ -585,7 +585,7 @@ class Parser(object):
 
                 # It's a class, add to the current object as a children
                 current_property = None
-                name = x[0]
+                name = x[0].rstrip()
                 ignore_prev = name[0] == '-'
                 if ignore_prev:
                     name = name[1:]
