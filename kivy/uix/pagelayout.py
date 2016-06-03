@@ -15,7 +15,9 @@ borders.
 
 .. versionadded:: 1.8.0
 
-Example::
+Example:
+
+.. code-block:: kv
 
     PageLayout:
         Button:

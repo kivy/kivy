@@ -28,7 +28,9 @@ To change its appearance::
     splitter.strip_cls = your_custom_class
 
 You can also change the appearance of the `strip_cls`, which defaults to
-:class:`SplitterStrip`, by overriding the `kv` rule in your app::
+:class:`SplitterStrip`, by overriding the `kv` rule in your app:
+
+.. code-block:: kv
 
     <SplitterStrip>:
         horizontal: True if self.parent and self.parent.sizable_from[0] \
