@@ -341,7 +341,9 @@ cdef class VertexInstruction(Instruction):
             with self.canvas:
                 Rectangle(source='mylogo.png', pos=self.pos, size=self.size)
 
-        Here's the equivalent in Kivy language::
+        Here's the equivalent in Kivy language:
+
+        .. code-block:: kv
 
             <MyWidget>:
                 canvas:

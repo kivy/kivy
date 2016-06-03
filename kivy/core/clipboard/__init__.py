@@ -5,7 +5,9 @@ Clipboard
 Core class for accessing the Clipboard. If we are not able to access the
 system clipboard, a fake one will be used.
 
-Usage example::
+Usage example:
+
+.. code-block:: kv
 
     Button:
         on_release:
