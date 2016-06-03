@@ -202,7 +202,9 @@ cdef class Color(ContextInstruction):
 
         c = Color(b=0.5)  # sets the blue component only
 
-    In kv lang you can set the color properties directly::
+    In kv lang you can set the color properties directly:
+
+    .. code-block:: kv
 
         <Rule>:
             canvas:
