@@ -12,7 +12,7 @@ A tag is defined as ``[tag]``, and should have a corresponding
 
     [b]Hello [color=ff0000]world[/color][/b]
 
-The following tags are availables:
+The following tags are available:
 
 ``[b][/b]``
     Activate bold text
@@ -24,8 +24,8 @@ The following tags are availables:
     Strikethrough text
 ``[font=<str>][/font]``
     Change the font
-``[size=<integer>][/size]``
-    Change the font size
+``[size=<size>][/size]``
+    Change the font size. <size> should be an integer, optionally with a unit (i.e. ``16sp``)
 ``[color=#<color>][/color]``
     Change the text color
 ``[ref=<str>][/ref]``
