@@ -25,7 +25,8 @@ The following tags are available:
 ``[font=<str>][/font]``
     Change the font
 ``[size=<size>][/size]``
-    Change the font size. <size> should be an integer, optionally with a unit (i.e. ``16sp``)
+    Change the font size. <size> should be an integer, optionally with a
+    unit (i.e. ``16sp``)
 ``[color=#<color>][/color]``
     Change the text color
 ``[ref=<str>][/ref]``
