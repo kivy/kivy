@@ -36,7 +36,6 @@ class MutableTextInput(FloatLayout):
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos) and touch.is_double_tap:
             self.edit()
-            return True
         return super(MutableTextInput, self).on_touch_down(touch)
 
     def edit(self):
@@ -93,7 +92,10 @@ class NoteApp(App):
         if not exists(self.notes_fn):
             return
         with open(self.notes_fn, 'rb') as fd:
-            data = json.load(fd)
+            # ensure it's str not bytes for json.load()
+            from codecs import getreader
+            reader = getreader('utf-8')
+            data = json.load(reader(fd))
         self.notes.data = data
 
     def save_notes(self):
