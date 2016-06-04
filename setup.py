@@ -177,8 +177,10 @@ cython_unsupported = '''\
            cython_unsupported_append)
 
 have_cython = False
+skip_cython = False
 if platform in ('ios', 'android'):
     print('\nCython check avoided.')
+    skip_cython = True
 else:
     try:
         # check for cython
@@ -1028,4 +1030,4 @@ setup(
     dependency_links=[
         'https://github.com/kivy-garden/garden/archive/master.zip'],
     install_requires=['Kivy-Garden>=0.1.4', 'docutils', 'pygments'],
-    setup_requires=['cython>=' + MIN_CYTHON_STRING])
+    setup_requires=['cython>=' + MIN_CYTHON_STRING] if not skip_cython else [])
