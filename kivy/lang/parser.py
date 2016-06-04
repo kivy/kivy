@@ -566,14 +566,14 @@ class Parser(object):
                     not x[1].lstrip().startswith('#')):
                     raise ParserException(self, ln,
                                           'Invalid data after declaration')
-                name = x[0]
+                name = x[0].rstrip()
                 # if it's not a root rule, then we got some restriction
                 # aka, a valid name, without point or everything else
                 if count != 0:
                     if False in [ord(z) in Parser.PROP_RANGE for z in name]:
                         raise ParserException(self, ln, 'Invalid class name')
 
-                current_object = ParserRule(self, ln, x[0], rlevel)
+                current_object = ParserRule(self, ln, name, rlevel)
                 current_property = None
                 objects.append(current_object)
 
