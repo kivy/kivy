@@ -174,7 +174,7 @@ class SoundSDL2(Sound):
         cvt.len = cc.original_chunk.alen
         memcpy(cvt.buf, cc.original_chunk.abuf, cc.original_chunk.alen)
         SDL_ConvertAudio(&cvt)
-        cc.chunk = Mix_QuickLoad_RAW(cvt.buf, <Uint32>(cvt.len * cvt.len_mult * cvt.len_ratio))
+        cc.chunk = Mix_QuickLoad_RAW(cvt.buf, <Uint32>(cvt.len * cvt.len_ratio))
 
     def play(self):
         cdef ChunkContainer cc = self.cc
