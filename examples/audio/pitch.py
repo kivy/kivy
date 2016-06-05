@@ -26,9 +26,8 @@ class Test(App):
             '/usr/lib64/python{}.{}/test/audiodata/pluck-pcm32.wav'
             .format(*version_info[0:2])
         )
-        print(self.sound.source)
         root = BoxLayout()
-        for octave in range(3):
+        for octave in range(-2, 3):
             for note, pitch in NOTES:
                 button = Button(text=note)
                 button.pitch = pitch * 2 ** octave
@@ -37,7 +36,6 @@ class Test(App):
         return root
 
     def play_note(self, button):
-        print(button.text, button.pitch)
         self.sound.pitch = button.pitch
         self.sound.play()
 
