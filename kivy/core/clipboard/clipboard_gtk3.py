@@ -11,6 +11,8 @@ from kivy.core.clipboard import ClipboardBase
 if platform != 'linux':
     raise SystemError('unsupported platform for gtk3 clipboard')
 
+import gi
+gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
 clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
 
