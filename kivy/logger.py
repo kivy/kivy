@@ -134,9 +134,12 @@ class FileHandler(logging.Handler):
             l = l[:-maxfiles]
             print('Purge %d log files' % len(l))
 
-            # now, unlink every files in the list
+            # now, unlink every file in the list
             for filename in l:
-                unlink(filename['fn'])
+                try:
+                    unlink(filename['fn'])
+                except PermissionError as e:
+                    print('Skipped file {0}, {1}'.format(filename['fn'], e))
 
         print('Purge finished!')
 
