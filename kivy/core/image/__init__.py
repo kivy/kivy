@@ -451,12 +451,13 @@ class Image(EventDispatcher):
         added.
 
     :Parameters:
-        `arg` : can be a string (str), Texture or Image object.
-            A string is interpreted as a path to the image to be loaded.
-            You can also provide a texture object or an already existing
-            image object. In the latter case, a real copy of the given
-            image object will be returned.
-        `keep_data` : bool, defaults to False.
+        `arg` : can be a string (str), Texture, BytesIO or Image object
+            A string path to the image file or data URI to be loaded; or a
+            Texture object, which will be wrapped in an Image object; or a
+            BytesIO object containing raw image data; or an already existing
+            image object, in which case, a real copy of the given image object
+            will be returned.
+        `keep_data` : bool, defaults to False
             Keep the image data when the texture is created.
         `scale` : float, defaults to 1.0
             Scale of the image.
@@ -465,6 +466,10 @@ class Image(EventDispatcher):
         `anim_delay`: float, defaults to .25
             Delay in seconds between each animation frame. Lower values means
             faster animation.
+        `ext`: str, only with BytesIO `arg`
+            File extension to use in determining how to load raw image data.
+        `filename`: str, only with BytesIO `arg`
+            Filename to use in the image cache for raw image data.
     '''
 
     copy_attributes = ('_size', '_filename', '_texture', '_image',
