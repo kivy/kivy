@@ -620,6 +620,8 @@ class WindowBase(EventDispatcher):
 
     borderless = BooleanProperty(False)
     '''When set to True, this property removes the window border/decoration.
+    Check the :mod:`~kivy.config` documentation for a more detailed
+    explanation on the values.
 
     .. versionadded:: 1.9.0
 
