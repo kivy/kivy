@@ -2941,12 +2941,13 @@ class TextInput(FocusBehavior, Widget):
 
     hint_text = AliasProperty(
         _get_hint_text, _set_hint_text, bind=('_hint_text', ))
-    '''Hint text of the widget.
-
-    Shown if text is '' and focus is False.
+    '''Hint text of the widget, shown if text is ''.
 
     .. versionadded:: 1.6.0
+
     .. versionchanged:: 1.9.2
+        The property is now an AliasProperty and byte values are decoded to
+        strings. The hint text will stay visible when the widget is focused.
 
     :attr:`hint_text` a :class:`~kivy.properties.AliasProperty` and defaults
     to ''.
