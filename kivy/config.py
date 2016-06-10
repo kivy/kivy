@@ -126,7 +126,8 @@ Available configuration tokens
 
 :graphics:
     `borderless`: int , one of 0 or 1
-        If set to `1`, removes the window border/decoration.
+        If set to `1`, removes the window border/decoration. Window resizing
+        must also be disabled to hide the resizing border.
     `window_state`: string , one of 'visible', 'hidden', 'maximized' \
                     or 'minimized'
         Sets the window state, defaults to 'visible'. This option is available
