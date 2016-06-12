@@ -31,6 +31,7 @@ if 'KIVY_DOC' not in environ:
         GL_MAX_TEXTURE_IMAGE_UNITS, GL_MAX_TEXTURE_SIZE, \
         GL_SHADING_LANGUAGE_VERSION,\
         glGetString, glGetIntegerv, gl_init_symbols
+    from kivy.graphics.cgl import cgl_get_backend_name
     from kivy.utils import platform
 
     def init_gl():
@@ -39,6 +40,8 @@ if 'KIVY_DOC' not in environ:
         gl_init_resources()
 
     def print_gl_version():
+        backend = cgl_get_backend_name()
+        Logger.info('GL: Backend used <{}>'.format(backend))
         version = glGetString(GL_VERSION)
         vendor = glGetString(GL_VENDOR)
         renderer = glGetString(GL_RENDERER)
@@ -49,8 +52,7 @@ if 'KIVY_DOC' not in environ:
         # Let the user know if his graphics hardware/drivers are too old
         major, minor = gl_get_version()
         Logger.info('GL: OpenGL parsed version: %d, %d' % (major, minor))
-        if (major, minor) < MIN_REQUIRED_GL_VERSION and not \
-                bool(int(environ.get('USE_OPENGL_MOCK', 0))):
+        if ((major, minor) < MIN_REQUIRED_GL_VERSION and backend != "mock"):
             if hasattr(sys, "_kivy_opengl_required_func"):
                 sys._kivy_opengl_required_func(major, minor, version, vendor,
                                                renderer)

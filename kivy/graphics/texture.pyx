@@ -231,15 +231,7 @@ from kivy.utils import platform
 from kivy.weakmethod import WeakMethod
 from kivy.graphics.context cimport get_context
 
-from kivy.graphics.c_opengl_def cimport *
-IF USE_OPENGL_DEBUG:
-    cimport kivy.graphics.c_opengl_debug as cgl
-ELIF USE_OPENGL_DYNAMIC:
-    from kivy.graphics.c_opengl_dynamic cimport cgl
-ELIF USE_OPENGL_MOCK:
-    cimport kivy.graphics.c_opengl_mock as cgl
-ELSE:
-    cimport kivy.graphics.c_opengl as cgl
+from kivy.graphics.cgl cimport *
 from kivy.graphics.opengl_utils cimport gl_has_capability, gl_get_version_major
 
 cdef int gles_limts = int(environ.get(

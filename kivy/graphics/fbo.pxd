@@ -1,4 +1,4 @@
-from kivy.graphics.c_opengl_def cimport GLuint, GLint
+from kivy.graphics.cgl cimport GLuint, GLint
 from kivy.graphics.instructions cimport RenderContext, Canvas
 from kivy.graphics.texture cimport Texture
 

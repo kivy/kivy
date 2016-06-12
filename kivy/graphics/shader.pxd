@@ -1,4 +1,4 @@
-from kivy.graphics.c_opengl_def cimport GLuint
+from kivy.graphics.cgl cimport GLuint
 from kivy.graphics.transformation cimport Matrix
 from kivy.graphics.vertex cimport VertexFormat
 

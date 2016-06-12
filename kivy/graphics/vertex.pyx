@@ -4,7 +4,8 @@ __all__ = ('VertexFormat', 'VertexFormatException')
 include "config.pxi"
 include "common.pxi"
 
-from kivy.graphics.c_opengl_def cimport GL_FLOAT, GLfloat
+from kivy.graphics.cgl cimport GL_FLOAT, GLfloat
+
 
 class VertexFormatException(Exception):
     pass

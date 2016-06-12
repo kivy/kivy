@@ -26,15 +26,7 @@ from kivy.graphics.vbo cimport VBO, VertexBatch
 from kivy.logger import Logger
 from kivy.clock import Clock
 
-from kivy.graphics.c_opengl_def cimport *
-IF USE_OPENGL_DEBUG:
-    cimport kivy.graphics.c_opengl_debug as cgl
-ELIF USE_OPENGL_DYNAMIC:
-    from kivy.graphics.c_opengl_dynamic cimport cgl
-ELIF USE_OPENGL_MOCK:
-    cimport kivy.graphics.c_opengl_mock as cgl
-ELSE:
-    cimport kivy.graphics.c_opengl as cgl
+from kivy.graphics.cgl cimport *
 
 from kivy.weakmethod import WeakMethod
 from time import time

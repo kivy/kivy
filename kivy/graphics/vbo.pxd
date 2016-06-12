@@ -1,6 +1,6 @@
 from kivy.graphics.buffer cimport Buffer
 from kivy.graphics.vertex cimport vertex_t, vertex_attr_t, VertexFormat
-from kivy.graphics.c_opengl_def cimport GLuint
+from kivy.graphics.cgl cimport GLuint
 
 cdef VertexFormat default_vertex
 

@@ -36,15 +36,7 @@ the circle so it does not expand beyond the widget borders.
 include "config.pxi"
 include "opcodes.pxi"
 
-from kivy.graphics.c_opengl_def cimport *
-IF USE_OPENGL_DEBUG:
-    cimport kivy.graphics.c_opengl_debug as cgl
-ELIF USE_OPENGL_DYNAMIC:
-    from kivy.graphics.c_opengl_dynamic cimport cgl
-ELIF USE_OPENGL_MOCK:
-    cimport kivy.graphics.c_opengl_mock as cgl
-ELSE:
-    cimport kivy.graphics.c_opengl as cgl
+from kivy.graphics.cgl cimport *
 from kivy.graphics.instructions cimport Instruction
 
 cdef class Rect:

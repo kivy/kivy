@@ -106,9 +106,7 @@ c_options['use_rpi'] = platform == 'rpi'
 c_options['use_mali'] = platform == 'mali'
 c_options['use_egl'] = False
 c_options['use_opengl_es2'] = None
-c_options['use_opengl_debug'] = False
 c_options['use_opengl_mock'] = environ.get('READTHEDOCS', None) == 'True'
-c_options['use_opengl_dynamic'] = False
 c_options['use_glew'] = False
 c_options['use_sdl2'] = None
 c_options['use_ios'] = False
@@ -354,7 +352,6 @@ elif platform == 'win32':
         print('Windows platform detected, ANGLE selected.')
         c_options["usd_sdl2"] = True
         c_options["usd_glew"] = False
-        c_options['use_opengl_dynamic'] = True
         c_options["use_opengl_es2"] = True
     else:
         print('Windows platform detected, GLEW selected (default).')
@@ -569,7 +566,8 @@ def determine_base_flags():
 
 
 def determine_gl_flags():
-    flags = {'libraries': []}
+    kivy_graphics_include = join(src_path, 'kivy', 'include')
+    flags = {'include_dirs': [kivy_graphics_include], 'libraries': []}
     if c_options['use_opengl_mock']:
         return flags
     if platform == 'win32':
@@ -681,66 +679,60 @@ gl_flags = determine_gl_flags()
 # grep -inr -E '(cimport|include)' kivy/graphics/context_instructions.{pxd,pyx}
 graphics_dependencies = {
     'gl_redirect.h': ['common_subset.h', 'gl_mock.h'],
-    'c_opengl.pxd': ['config.pxi', 'gl_redirect.h'],
     'buffer.pyx': ['common.pxi'],
-    'context.pxd': [
-        'instructions.pxd', 'texture.pxd', 'vbo.pxd',
-        'c_opengl.pxd', 'c_opengl_debug.pxd', 'c_opengl_mock.pxd'],
-    'c_opengl_debug.pyx': ['common.pxi', 'c_opengl.pxd'],
-    'c_opengl_mock.pyx': ['common.pxi', 'c_opengl.pxd'],
+    'context.pxd': ['instructions.pxd', 'texture.pxd', 'vbo.pxd', 'cgl.pxd'],
+    'cgl.pxd': ['common.pxi', 'config.pxi', 'gl_redirect.h'],
     'compiler.pxd': ['instructions.pxd'],
     'compiler.pyx': ['context_instructions.pxd'],
+    'cgl.pyx': ['cgl.pxd'],
+    'cgl_mock.pyx': ['cgl.pxd'],
+    'cgl_sdl2.pyx': ['cgl.pxd'],
+    'cgl_static.pyx': ['cgl.pxd'],
     'context_instructions.pxd': [
         'transformation.pxd', 'instructions.pxd', 'texture.pxd'],
-    'fbo.pxd': ['c_opengl.pxd', 'instructions.pxd', 'texture.pxd'],
+    'fbo.pxd': ['cgl.pxd', 'instructions.pxd', 'texture.pxd'],
     'fbo.pyx': [
-        'config.pxi', 'opcodes.pxi', 'transformation.pxd', 'context.pxd',
-        'c_opengl_debug.pxd', 'c_opengl_mock.pxd'],
+        'config.pxi', 'opcodes.pxi', 'transformation.pxd', 'context.pxd'],
     'gl_instructions.pyx': [
-        'config.pxi', 'opcodes.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd',
-        'instructions.pxd', 'c_opengl_mock.pxd'],
+        'config.pxi', 'opcodes.pxi', 'cgl.pxd', 'instructions.pxd'],
     'instructions.pxd': [
         'vbo.pxd', 'context_instructions.pxd', 'compiler.pxd', 'shader.pxd',
         'texture.pxd', '../_event.pxd'],
     'instructions.pyx': [
-        'config.pxi', 'opcodes.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd',
-        'context.pxd', 'common.pxi', 'vertex.pxd', 'transformation.pxd',
-        'c_opengl_mock.pxd'],
+        'config.pxi', 'opcodes.pxi', 'cgl.pxd',
+        'context.pxd', 'common.pxi', 'vertex.pxd', 'transformation.pxd'],
     'opengl.pyx': [
-        'config.pxi', 'common.pxi', 'c_opengl.pxd', 'gl_redirect.h'],
+        'config.pxi', 'common.pxi', 'cgl.pxd', 'gl_redirect.h'],
     'opengl_utils.pyx': [
-        'opengl_utils_def.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd'],
-    'shader.pxd': ['c_opengl.pxd', 'transformation.pxd', 'vertex.pxd'],
+        'opengl_utils_def.pxi', 'cgl.pxd', ],
+    'shader.pxd': ['cgl.pxd', 'transformation.pxd', 'vertex.pxd'],
     'shader.pyx': [
-        'config.pxi', 'common.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd',
+        'config.pxi', 'common.pxi', 'cgl.pxd',
         'vertex.pxd', 'transformation.pxd', 'context.pxd',
-        'gl_debug_logger.pxi', 'c_opengl_mock.pxd'],
+        'gl_debug_logger.pxi'],
     'stencil_instructions.pxd': ['instructions.pxd'],
     'stencil_instructions.pyx': [
-        'config.pxi', 'opcodes.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd',
-        'gl_debug_logger.pxi', 'c_opengl_mock.pxd'],
+        'config.pxi', 'opcodes.pxi', 'cgl.pxd',
+        'gl_debug_logger.pxi'],
     'scissor_instructions.pyx': [
-        'config.pxi', 'opcodes.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd',
-        'c_opengl_mock.pxd'],
+        'config.pxi', 'opcodes.pxi', 'cgl.pxd'],
     'svg.pyx': ['config.pxi', 'common.pxi', 'texture.pxd', 'instructions.pxd',
                 'vertex_instructions.pxd', 'tesselator.pxd'],
-    'texture.pxd': ['c_opengl.pxd'],
+    'texture.pxd': ['cgl.pxd'],
     'texture.pyx': [
         'config.pxi', 'common.pxi', 'opengl_utils_def.pxi', 'context.pxd',
-        'c_opengl.pxd', 'c_opengl_debug.pxd', 'opengl_utils.pxd',
-        'img_tools.pxi', 'gl_debug_logger.pxi', 'c_opengl_mock.pxd'],
-    'vbo.pxd': ['buffer.pxd', 'c_opengl.pxd', 'vertex.pxd'],
+        'cgl.pxd', 'opengl_utils.pxd',
+        'img_tools.pxi', 'gl_debug_logger.pxi'],
+    'vbo.pxd': ['buffer.pxd', 'cgl.pxd', 'vertex.pxd'],
     'vbo.pyx': [
-        'config.pxi', 'common.pxi', 'c_opengl_debug.pxd', 'context.pxd',
-        'instructions.pxd', 'shader.pxd', 'gl_debug_logger.pxi',
-        'c_opengl_mock.pxd'],
-    'vertex.pxd': ['c_opengl.pxd'],
+        'config.pxi', 'common.pxi', 'context.pxd',
+        'instructions.pxd', 'shader.pxd', 'gl_debug_logger.pxi'],
+    'vertex.pxd': ['cgl.pxd'],
     'vertex.pyx': ['config.pxi', 'common.pxi'],
     'vertex_instructions.pyx': [
         'config.pxi', 'common.pxi', 'vbo.pxd', 'vertex.pxd',
         'instructions.pxd', 'vertex_instructions.pxd',
-        'c_opengl.pxd', 'c_opengl_debug.pxd', 'texture.pxd',
-        'vertex_instructions_line.pxi', 'c_opengl_mock.pxd'],
+        'cgl.pxd', 'texture.pxd', 'vertex_instructions_line.pxi'],
     'vertex_instructions_line.pxi': ['stencil_instructions.pxd']}
 
 sources = {
@@ -749,22 +741,26 @@ sources = {
     'weakproxy.pyx': {},
     'properties.pyx': merge(base_flags, {'depends': ['_event.pxd']}),
     'graphics/buffer.pyx': base_flags,
-    'graphics/context.pyx': merge(base_flags, gl_flags),
-    'graphics/compiler.pyx': merge(base_flags, gl_flags),
-    'graphics/context_instructions.pyx': merge(base_flags, gl_flags),
-    'graphics/fbo.pyx': merge(base_flags, gl_flags),
-    'graphics/gl_instructions.pyx': merge(base_flags, gl_flags),
-    'graphics/instructions.pyx': merge(base_flags, gl_flags),
-    'graphics/opengl.pyx': merge(base_flags, gl_flags),
-    'graphics/opengl_utils.pyx': merge(base_flags, gl_flags),
-    'graphics/shader.pyx': merge(base_flags, gl_flags),
-    'graphics/stencil_instructions.pyx': merge(base_flags, gl_flags),
-    'graphics/scissor_instructions.pyx': merge(base_flags, gl_flags),
-    'graphics/texture.pyx': merge(base_flags, gl_flags),
-    'graphics/transformation.pyx': merge(base_flags, gl_flags),
-    'graphics/vbo.pyx': merge(base_flags, gl_flags),
-    'graphics/vertex.pyx': merge(base_flags, gl_flags),
-    'graphics/vertex_instructions.pyx': merge(base_flags, gl_flags),
+    'graphics/context.pyx': base_flags,
+    'graphics/compiler.pyx': base_flags,
+    'graphics/context_instructions.pyx': base_flags,
+    'graphics/fbo.pyx': base_flags,
+    'graphics/gl_instructions.pyx': base_flags,
+    'graphics/instructions.pyx': base_flags,
+    'graphics/opengl.pyx': base_flags,
+    'graphics/opengl_utils.pyx': base_flags,
+    'graphics/shader.pyx': base_flags,
+    'graphics/stencil_instructions.pyx': base_flags,
+    'graphics/scissor_instructions.pyx': base_flags,
+    'graphics/texture.pyx': base_flags,
+    'graphics/transformation.pyx': base_flags,
+    'graphics/vbo.pyx': base_flags,
+    'graphics/vertex.pyx': base_flags,
+    'graphics/vertex_instructions.pyx': base_flags,
+    'graphics/cgl.pyx': merge(base_flags, gl_flags),
+    'graphics/cgl_mock.pyx': merge(base_flags, gl_flags),
+    'graphics/cgl_static.pyx': merge(base_flags, gl_flags),
+    'graphics/cgl_debug.pyx': base_flags,
     'core/text/text_layout.pyx': base_flags,
     'graphics/tesselator.pyx': merge(base_flags, {
         'include_dirs': ['kivy/lib/libtess2/Include'],
@@ -781,18 +777,8 @@ sources = {
     'graphics/svg.pyx': merge(base_flags, gl_flags)
 }
 
-if c_options["use_opengl_mock"]:
-    sources['graphics/c_opengl_mock.pyx'] = merge(base_flags, gl_flags)
-
-if c_options["use_opengl_debug"]:
-    sources['graphics/c_opengl_debug.pyx'] = merge(base_flags, gl_flags)
-
 if c_options["use_sdl2"]:
     sdl2_flags = determine_sdl2()
-
-if c_options["use_opengl_dynamic"]:
-    sources['graphics/c_opengl_dynamic.pyx'] = merge(
-        base_flags, gl_flags, sdl2_flags)
 
 if c_options['use_angle']:
     for key in sources:
@@ -800,6 +786,7 @@ if c_options['use_angle']:
 
 if c_options['use_sdl2']:
     if sdl2_flags:
+        sources['graphics/cgl_sdl2.pyx'] = merge(base_flags, sdl2_flags)
         sdl2_depends = {'depends': ['lib/sdl2.pxi']}
         for source_file in ('core/window/_window_sdl2.pyx',
                             'core/image/_img_sdl2.pyx',
@@ -807,7 +794,7 @@ if c_options['use_sdl2']:
                             'core/audio/audio_sdl2.pyx',
                             'core/clipboard/_clipboard_sdl2.pyx'):
             sources[source_file] = merge(
-                base_flags, gl_flags, sdl2_flags, sdl2_depends)
+                base_flags, sdl2_flags, sdl2_depends)
 
 if platform in ('darwin', 'ios'):
     # activate ImageIO provider for our core image
