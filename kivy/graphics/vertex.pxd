@@ -1,4 +1,4 @@
-from kivy.graphics.c_opengl_def cimport GLuint
+from kivy.graphics.cgl cimport GLuint
 
 cdef struct vertex_t:
     float x, y

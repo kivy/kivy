@@ -16,16 +16,7 @@ __all__ = ('gl_get_extensions', 'gl_has_extension',
 include "config.pxi"
 include "opengl_utils_def.pxi"
 
-from kivy.graphics.c_opengl_def cimport *
-IF USE_OPENGL_DEBUG:
-    cimport kivy.graphics.c_opengl_debug as cgl
-ELIF USE_OPENGL_DYNAMIC:
-    from kivy.graphics.c_opengl_dynamic cimport cgl
-ELIF USE_OPENGL_MOCK:
-    cimport kivy.graphics.c_opengl_mock as cgl
-ELSE:
-    cimport kivy.graphics.c_opengl as cgl
-
+from kivy.graphics.cgl cimport *
 from kivy.logger import Logger
 from kivy.utils import platform
 from kivy.graphics.opengl import _GL_GET_SIZE
@@ -70,7 +61,7 @@ cpdef int gl_has_extension(name):
         True
 
     '''
-    IF USE_OPENGL_MOCK:
+    if cgl_get_backend_name() == "mock":
         return True
     name = name.lower()
     if name.startswith('GL_'):

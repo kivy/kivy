@@ -77,15 +77,7 @@ from kivy.graphics.texture cimport Texture
 from kivy.graphics.transformation cimport Matrix
 from kivy.graphics.context cimport get_context
 
-from kivy.graphics.c_opengl_def cimport *
-IF USE_OPENGL_DEBUG:
-    cimport kivy.graphics.c_opengl_debug as cgl
-ELIF USE_OPENGL_DYNAMIC:
-    from kivy.graphics.c_opengl_dynamic cimport cgl
-ELIF USE_OPENGL_MOCK:
-    cimport kivy.graphics.c_opengl_mock as cgl
-ELSE:
-    cimport kivy.graphics.c_opengl as cgl
+from kivy.graphics.cgl cimport *
 
 from kivy.graphics.instructions cimport RenderContext, Canvas
 from kivy.graphics.opengl import glReadPixels as py_glReadPixels
@@ -129,19 +121,21 @@ cdef class Fbo(RenderContext):
             return 'Incomplete missing attachment'
         elif status == GL_FRAMEBUFFER_UNSUPPORTED:
             return 'Unsupported'
-        IF USE_OPENGL_ES2 == 0:
-            if status == 0x8219: #GL_FRAMEBUFFER_UNDEFINED
-                return 'Undefined framebuffer'
-            elif status == 0x8cdb: #GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER
-                return 'Incomplete draw buffer'
-            elif status == 0x8cdc: #GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER
-                return 'Incomplete read buffer'
-            elif status == 0x8d56: #GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE
-                return 'Incomplete multisample'
-            elif status == 0x8da8: #GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS
-                return 'Incomplete layer targets'
-            elif status == 0x8da9: #GL_FRAMEBUFFER_INCOMPLETE_LAYER_COUNT
-                return 'Incomplete layer count'
+        elif status == GL_FRAMEBUFFER_UNDEFINED_OES:
+            return 'Undefined framebuffer'
+        elif status == 0x8219: #GL_FRAMEBUFFER_UNDEFINED
+            return 'Undefined framebuffer'
+        elif status == 0x8cdb: #GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER
+            return 'Incomplete draw buffer'
+        elif status == 0x8cdc: #GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER
+            return 'Incomplete read buffer'
+        elif status == 0x8d56: #GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE
+            return 'Incomplete multisample'
+        elif status == 0x8da8: #GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS
+            return 'Incomplete layer targets'
+        elif status == 0x8da9: #GL_FRAMEBUFFER_INCOMPLETE_LAYER_COUNT
+            return 'Incomplete layer count'
+
         return 'Unknown (status=%x)' % status
 
     cdef void raise_exception(self, str message, int status=0):
@@ -218,7 +212,7 @@ cdef class Fbo(RenderContext):
             cgl.glGenRenderbuffers(1, &f_id)
             self.depthbuffer_id = self.stencilbuffer_id = f_id
             cgl.glBindRenderbuffer(GL_RENDERBUFFER, f_id)
-            cgl.glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8,
+            cgl.glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_OES,
                                   self._width, self._height)
             cgl.glBindRenderbuffer(GL_RENDERBUFFER, 0)
             cgl.glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,

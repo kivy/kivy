@@ -62,7 +62,7 @@ from os import environ
 from kivy.graphics.vbo cimport *
 from kivy.graphics.vertex cimport *
 from kivy.graphics.instructions cimport *
-from kivy.graphics.c_opengl_def cimport *
+from kivy.graphics.cgl cimport *
 from kivy.logger import Logger
 from kivy.graphics.texture cimport Texture
 from kivy.utils import platform

@@ -1,4 +1,4 @@
-from kivy.graphics.c_opengl_def cimport GLuint
+from kivy.graphics.cgl cimport GLuint
 
 cdef class Texture:
     cdef object __weakref__

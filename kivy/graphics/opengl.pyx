@@ -17,37 +17,9 @@ This module is a Python wrapper for OpenGL commands.
 include "config.pxi"
 include "common.pxi"
 
-cimport kivy.graphics.c_opengl_def as cgldef
-IF USE_OPENGL_DEBUG:
-    cimport kivy.graphics.c_opengl_debug as cgl
-    IF USE_OPENGL_DYNAMIC:
-        from kivy.graphics.c_opengl_dynamic cimport gl_dyn_load_context
-ELIF USE_OPENGL_DYNAMIC:
-    from kivy.graphics.c_opengl_dynamic cimport cgl, gl_dyn_load_context
-ELIF USE_OPENGL_MOCK:
-    cimport kivy.graphics.c_opengl_mock as cgl
-ELSE:
-    cimport kivy.graphics.c_opengl as cgl
-
+cimport kivy.graphics.cgl as cgldef
+from kivy.graphics.cgl cimport (cgl, GLvoid, GLfloat, GLuint, GLint, GLchar, GLubyte, cgl_init, GLboolean, GLenum, GLsizei, GLclampf, GLbitfield, GLintptr, GLsizeiptr)
 from kivy.logger import Logger
-
-ctypedef  void              GLvoid
-ctypedef  char              GLchar
-ctypedef  unsigned int      GLenum
-ctypedef  unsigned char     GLboolean
-ctypedef  unsigned int      GLbitfield
-ctypedef  short             GLshort
-ctypedef  int               GLint
-ctypedef  int               GLsizei
-ctypedef  unsigned short    GLushort
-ctypedef  unsigned int      GLuint
-ctypedef  signed char       GLbyte
-ctypedef  unsigned char     GLubyte
-ctypedef  float             GLfloat
-ctypedef  float             GLclampf
-ctypedef  int               GLfixed
-ctypedef  signed long int   GLintptr
-ctypedef  signed long int   GLsizeiptr
 
 # Utilities
 
@@ -1593,28 +1565,32 @@ def glViewport(GLint x, GLint y, GLsizei width, GLsizei height):
     '''
     cgl.glViewport(x, y, width, height)
 
-IF USE_GLEW and not USE_OPENGL_MOCK:
-    cdef extern from "gl_redirect.h":
-        int glewInit()
-        int GLEW_OK
-        char *glewGetErrorString(int)
-        void gl_dynamic_binding()
-    def gl_init_symbols():
-        cdef int result
-        cdef bytes error
-        result = glewInit()
-        if result != GLEW_OK:
-            error = glewGetErrorString(result)
-            Logger.error('GL: GLEW initialization error {}'.format(error))
-        else:
-            Logger.info('GL: GLEW initialization succeeded')
-        gl_dynamic_binding()
 
-ELIF USE_OPENGL_DYNAMIC and not USE_OPENGL_MOCK:
-    def gl_init_symbols():
-        print "dynamically load context started"
-        gl_dyn_load_context()
-        print "dynamically load context done"
-ELSE:
-    def gl_init_symbols():
-        pass
+def gl_init_symbols():
+    cgl_init()
+
+# IF USE_GLEW and not USE_OPENGL_MOCK:
+#     cdef extern from "gl_redirect.h":
+#         int glewInit()
+#         int GLEW_OK
+#         char *glewGetErrorString(int)
+#         void gl_dynamic_binding()
+#     def gl_init_symbols():
+#         cdef int result
+#         cdef bytes error
+#         result = glewInit()
+#         if result != GLEW_OK:
+#             error = glewGetErrorString(result)
+#             Logger.error('GL: GLEW initialization error {}'.format(error))
+#         else:
+#             Logger.info('GL: GLEW initialization succeeded')
+#         gl_dynamic_binding()
+#
+# ELIF USE_OPENGL_DYNAMIC and not USE_OPENGL_MOCK:
+#     def gl_init_symbols():
+#         print "dynamically load context started"
+#         gl_dyn_load_context()
+#         print "dynamically load context done"
+# ELSE:
+#     def gl_init_symbols():
+#         pass
