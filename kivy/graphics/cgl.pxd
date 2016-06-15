@@ -640,7 +640,8 @@ ctypedef struct GLES2_Context:
     void (__stdcall *glViewport)(GLint, GLint, GLsizei, GLsizei) nogil
 
 cdef GLES2_Context *cgl
-cdef void cgl_init()
+cdef void cgl_init() except *
 cdef GLES2_Context *cgl_get_context()
 cdef void cgl_set_context(GLES2_Context* ctx)
 cpdef object cgl_get_backend_name()
+cdef void gl_dynamic_binding(void *(*f)(const char *)) except *

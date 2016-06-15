@@ -5,6 +5,7 @@ from libc.string cimport memcpy
 from os import environ
 from kivy.config import Config
 from kivy.logger import Logger
+from kivy.graphics.cgl import cgl_get_backend_name
 
 
 cdef int _event_filter(void *userdata, SDL_Event *event) with gil:
@@ -102,7 +103,7 @@ cdef class _WindowSDL2Storage:
         SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 0)
         SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1)
 
-        if environ.get("KIVY_GL_BACKEND") == "angle":
+        if cgl_get_backend_name() == "angle":
             Logger.info("Window: Activate GLES2/ANGLE context")
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, 4)
             SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "none")
@@ -139,7 +140,7 @@ cdef class _WindowSDL2Storage:
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2)
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0)
 
-        if environ.get("KIVY_GL_BACKEND") != "mock":
+        if cgl_get_backend_name() != "mock":
             self.ctx = SDL_GL_CreateContext(self.win)
             if not self.ctx:
                 self.die()
