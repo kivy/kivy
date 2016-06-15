@@ -1199,7 +1199,7 @@ def glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
     return py_pixels
 
 # XXX This one is commented out because a) it's not necessary and
-#	    				b) it's breaking on OSX for some reason
+#                       b) it's breaking on OSX for some reason
 def glReleaseShaderCompiler():
     '''See: `glReleaseShaderCompiler() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glReleaseShaderCompiler.xml>`_
@@ -1568,29 +1568,3 @@ def glViewport(GLint x, GLint y, GLsizei width, GLsizei height):
 
 def gl_init_symbols():
     cgl_init()
-
-# IF USE_GLEW and not USE_OPENGL_MOCK:
-#     cdef extern from "gl_redirect.h":
-#         int glewInit()
-#         int GLEW_OK
-#         char *glewGetErrorString(int)
-#         void gl_dynamic_binding()
-#     def gl_init_symbols():
-#         cdef int result
-#         cdef bytes error
-#         result = glewInit()
-#         if result != GLEW_OK:
-#             error = glewGetErrorString(result)
-#             Logger.error('GL: GLEW initialization error {}'.format(error))
-#         else:
-#             Logger.info('GL: GLEW initialization succeeded')
-#         gl_dynamic_binding()
-#
-# ELIF USE_OPENGL_DYNAMIC and not USE_OPENGL_MOCK:
-#     def gl_init_symbols():
-#         print "dynamically load context started"
-#         gl_dyn_load_context()
-#         print "dynamically load context done"
-# ELSE:
-#     def gl_init_symbols():
-#         pass
