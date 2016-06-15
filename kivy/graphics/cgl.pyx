@@ -102,9 +102,9 @@ cdef void gl_dynamic_binding(void *(*f)(const char *)) except *:
     if cgl.glGenFramebuffers != NULL:
         return
 
-    Logger.info("GL: glGenFramebuffers is NULL, try to detect an extension")
+    Logger.debug("GL: glGenFramebuffers is NULL, try to detect an extension")
     if b"ARB_framebuffer_object" in gl_extensions:
-        Logger.info("GL: ARB_framebuffer_object is supported")
+        Logger.debug("GL: ARB_framebuffer_object is supported")
 
         cgl.glIsRenderbuffer = <PFNGLISRENDERBUFFERPROC> f("glIsRenderbuffer")
         cgl.glBindRenderbuffer = <PFNGLBINDRENDERBUFFERPROC> f("glBindRenderbuffer")
@@ -124,7 +124,7 @@ cdef void gl_dynamic_binding(void *(*f)(const char *)) except *:
         cgl.glGetFramebufferAttachmentParameteriv = <PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVPROC> f("glGetFramebufferAttachmentParameteriv")
         cgl.glGenerateMipmap = <PFNGLGENERATEMIPMAPPROC> f("glGenerateMipmap")
     elif b"EXT_framebuffer_object" in gl_extensions:
-        Logger.info("GL: EXT_framebuffer_object is supported\n")
+        Logger.debug("GL: EXT_framebuffer_object is supported\n")
 
         cgl.glIsRenderbuffer = <PFNGLISRENDERBUFFERPROC> f("glIsRenderbufferEXT")
         cgl.glBindRenderbuffer = <PFNGLBINDRENDERBUFFERPROC> f("glBindRenderbufferEXT")
@@ -142,7 +142,6 @@ cdef void gl_dynamic_binding(void *(*f)(const char *)) except *:
         #cgl.glFramebufferTexture3D = <PFNGLFRAMEBUFFERTEXTURE3DPROC> f("glFramebufferTexture3DEXT")
         cgl.glFramebufferRenderbuffer = <PFNGLFRAMEBUFFERRENDERBUFFERPROC> f("glFramebufferRenderbufferEXT")
         cgl.glGetFramebufferAttachmentParameteriv = <PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVPROC> f("glGetFramebufferAttachmentParameterivEXT")
-        cgl.glGenerateMipmap = <PFNGLGENERATEMIPMAPPROC> f("glGenerateMipmapEXT")
     else:
         Logger.info("GL: No framebuffers extension is supported")
-        Logger.info("GL: Any call to Fbo will crash!")
+        Logger.debug("GL: Any call to Fbo will crash!")

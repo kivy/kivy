@@ -152,6 +152,15 @@ def init_backend():
     IF not USE_GLEW:
         raise TypeError('Glew is not available. Recompile with USE_GLEW=1')
     ELSE:
+        cdef int result
+        cdef bytes error
+        result = glewInit()
+        if result != GLEW_OK:
+            error = glewGetErrorString(result)
+            Logger.error('GL: GLEW initialization error {}'.format(error))
+        else:
+            Logger.info('GL: GLEW initialization succeeded')
+
         cgl.glActiveTexture = glActiveTexture
         cgl.glAttachShader = glAttachShader
         cgl.glBindAttribLocation = glBindAttribLocation
@@ -281,15 +290,5 @@ def init_backend():
         cgl.glVertexAttrib4f = glVertexAttrib4f
         cgl.glVertexAttribPointer = glVertexAttribPointer
         cgl.glViewport = glViewport
-
-        cgl.glGenFramebuffers = NULL
-        cdef int result
-        cdef bytes error
-        result = glewInit()
-        if result != GLEW_OK:
-            error = glewGetErrorString(result)
-            Logger.error('GL: GLEW initialization error {}'.format(error))
-        else:
-            Logger.info('GL: GLEW initialization succeeded')
 
         gl_dynamic_binding(wglGetProcAddress)
