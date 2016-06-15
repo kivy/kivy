@@ -107,7 +107,7 @@ c_options['use_mali'] = platform == 'mali'
 c_options['use_egl'] = False
 c_options['use_opengl_es2'] = None
 c_options['use_opengl_mock'] = environ.get('READTHEDOCS', None) == 'True'
-c_options['use_glew'] = False
+c_options['use_glew'] = True
 c_options['use_sdl2'] = None
 c_options['use_ios'] = False
 c_options['use_mesagl'] = False
@@ -251,8 +251,6 @@ class KivyBuildExt(build_ext):
             config_py += '{0} = {1}\n'.format(opt, value)
         debug = bool(self.debug)
         print(' * debug = {0}'.format(debug))
-        config_h += \
-            '#if __USE_GLEW && defined(_WIN32)\n#   define GLEW_BUILD\n#endif'
 
         config_pxi += 'DEF DEBUG = {0}\n'.format(debug)
         config_py += 'DEBUG = {0}\n'.format(debug)
@@ -345,14 +343,19 @@ if platform in ('android', 'darwin', 'ios', 'rpi', 'mali'):
 elif platform == 'win32':
     if c_options["use_angle"]:
         # angle require SDL2 right now, and is incompatible with glew
-        print('Windows platform detected, ANGLE selected.')
-        c_options["usd_sdl2"] = True
-        c_options["usd_glew"] = False
+        print('Windows platform detected, ANGLE (SDL2) selected.')
+        c_options["use_sdl2"] = True
+        c_options["use_glew"] = False
         c_options["use_opengl_es2"] = True
-    else:
+    elif c_options["use_glew"] or not c_options["use_sdl2"]:
         print('Windows platform detected, GLEW selected (default).')
         c_options['use_glew'] = True
         c_options['use_opengl_es2'] = False
+    else:
+        # it's incompatible with glew
+        print('Windows platform detected, GL (SDL2) selected.')
+        c_options["use_glew"] = False
+        c_options["use_opengl_es2"] = True
 
 else:
     if c_options['use_opengl_es2'] is None:
@@ -567,9 +570,11 @@ def determine_gl_flags():
     if c_options['use_opengl_mock']:
         return flags
     if platform == 'win32':
-        # flags['libraries'] = ['opengl32']
-        flags["extra_link_args"] = ["-ggdb", "-O0"]
-        flags["extra_compile_args"] = ["-ggdb", "-O0"]
+        if c_options['use_glew']:
+            flags['libraries'] = ['opengl32']
+        if c_options['debug_gl']:
+            flags["extra_link_args"] = ["-ggdb", "-O0"]
+            flags["extra_compile_args"] = ["-ggdb", "-O0"]
         pass
     elif platform == 'ios':
         flags['libraries'] = ['GLESv2']
@@ -581,11 +586,11 @@ def determine_gl_flags():
         flags['libraries'] = ['GL']
     elif platform.startswith('openbsd'):
         flags['include_dirs'] = ['/usr/X11R6/include']
-        flags['library_dir'] = ['/usr/X11R6/lib']
+        flags['library_dirs'] = ['/usr/X11R6/lib']
         flags['libraries'] = ['GL']
     elif platform == 'android':
         flags['include_dirs'] = [join(ndkplatform, 'usr', 'include')]
-        flags['library_dir'] = [join(ndkplatform, 'usr', 'lib')]
+        flags['library_dirs'] = [join(ndkplatform, 'usr', 'lib')]
         flags['libraries'] = ['GLESv2']
     elif platform == 'rpi':
         flags['include_dirs'] = [
@@ -636,7 +641,7 @@ def determine_sdl2():
     flags['include_dirs'] = sdl2_paths
     flags['extra_link_args'] = []
     flags['extra_compile_args'] = []
-    flags['library_dir'] = (
+    flags['library_dirs'] = (
         sdl2_paths if sdl2_paths else
         ['/usr/local/lib/'])
 
@@ -732,27 +737,27 @@ sources = {
     '_event.pyx': merge(base_flags, {'depends': ['properties.pxd']}),
     'weakproxy.pyx': {},
     'properties.pyx': merge(base_flags, {'depends': ['_event.pxd']}),
-    'graphics/buffer.pyx': base_flags,
-    'graphics/context.pyx': base_flags,
-    'graphics/compiler.pyx': base_flags,
-    'graphics/context_instructions.pyx': base_flags,
-    'graphics/fbo.pyx': base_flags,
-    'graphics/gl_instructions.pyx': base_flags,
-    'graphics/instructions.pyx': base_flags,
-    'graphics/opengl.pyx': base_flags,
-    'graphics/opengl_utils.pyx': base_flags,
-    'graphics/shader.pyx': base_flags,
-    'graphics/stencil_instructions.pyx': base_flags,
-    'graphics/scissor_instructions.pyx': base_flags,
-    'graphics/texture.pyx': base_flags,
-    'graphics/transformation.pyx': base_flags,
-    'graphics/vbo.pyx': base_flags,
-    'graphics/vertex.pyx': base_flags,
-    'graphics/vertex_instructions.pyx': base_flags,
+    'graphics/buffer.pyx': merge(base_flags, gl_flags),
+    'graphics/context.pyx': merge(base_flags, gl_flags),
+    'graphics/compiler.pyx': merge(base_flags, gl_flags),
+    'graphics/context_instructions.pyx': merge(base_flags, gl_flags),
+    'graphics/fbo.pyx': merge(base_flags, gl_flags),
+    'graphics/gl_instructions.pyx': merge(base_flags, gl_flags),
+    'graphics/instructions.pyx': merge(base_flags, gl_flags),
+    'graphics/opengl.pyx': merge(base_flags, gl_flags),
+    'graphics/opengl_utils.pyx': merge(base_flags, gl_flags),
+    'graphics/shader.pyx': merge(base_flags, gl_flags),
+    'graphics/stencil_instructions.pyx': merge(base_flags, gl_flags),
+    'graphics/scissor_instructions.pyx': merge(base_flags, gl_flags),
+    'graphics/texture.pyx': merge(base_flags, gl_flags),
+    'graphics/transformation.pyx': merge(base_flags, gl_flags),
+    'graphics/vbo.pyx': merge(base_flags, gl_flags),
+    'graphics/vertex.pyx': merge(base_flags, gl_flags),
+    'graphics/vertex_instructions.pyx': merge(base_flags, gl_flags),
     'graphics/cgl.pyx': merge(base_flags, gl_flags),
     'graphics/cgl_mock.pyx': merge(base_flags, gl_flags),
     'graphics/cgl_static.pyx': merge(base_flags, gl_flags),
-    'graphics/cgl_debug.pyx': base_flags,
+    'graphics/cgl_debug.pyx': merge(base_flags, gl_flags),
     'core/text/text_layout.pyx': base_flags,
     'graphics/tesselator.pyx': merge(base_flags, {
         'include_dirs': ['kivy/lib/libtess2/Include'],
@@ -778,7 +783,8 @@ if c_options['use_angle']:
 
 if c_options['use_sdl2']:
     if sdl2_flags:
-        sources['graphics/cgl_sdl2.pyx'] = merge(base_flags, sdl2_flags)
+        sources['graphics/cgl_sdl2.pyx'] = merge(
+            base_flags, sdl2_flags, gl_flags)
         sdl2_depends = {'depends': ['lib/sdl2.pxi']}
         for source_file in ('core/window/_window_sdl2.pyx',
                             'core/image/_img_sdl2.pyx',

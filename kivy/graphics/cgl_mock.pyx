@@ -1,5 +1,5 @@
 """
-CGL/SDL: GL backend implementation using SDL2
+CGL/Mock: GL backend implementation by mocking functions to NOOP
 """
 
 include "common.pxi"
