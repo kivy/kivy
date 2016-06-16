@@ -381,7 +381,7 @@ class WindowSDL(WindowBase):
 
     def _fix_mouse_pos(self, x, y):
         y -= 1
-        self.mouse_pos = x, self.system_size[1] - y
+        self.mouse_pos = x * self._density, (self.system_size[1] - y) * self._density
         return x, y
 
     def _mainloop(self):
