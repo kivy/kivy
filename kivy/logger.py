@@ -328,7 +328,13 @@ if 'KIVY_NO_CONSOLELOG' not in os.environ:
             os.name != 'nt' and
             os.environ.get('KIVY_BUILD') not in ('android', 'ios') and
             os.environ.get('TERM') in (
-                'xterm', 'rxvt', 'rxvt-unicode', 'xterm-256color'))
+                'rxvt',
+                'rxvt-256color',
+                'rxvt-unicode',
+                'rxvt-unicode-256color',
+                'xterm',
+                'xterm-256color',
+                ))
         color_fmt = formatter_message(
             '[%(levelname)-18s] %(message)s', use_color)
         formatter = ColoredFormatter(color_fmt, use_color=use_color)
