@@ -183,7 +183,7 @@ class FileHandler(logging.Handler):
         msg = self.format(record)
         stream = FileHandler.fd
         fs = "%s\n"
-        stream.write('[%-18s] ' % record.levelname)
+        stream.write('[%-7s] ' % record.levelname)
         if PY2:
             try:
                 if (isinstance(msg, unicode) and
