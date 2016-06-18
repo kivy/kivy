@@ -79,109 +79,13 @@ the Buildozer README at `<https://github.com/kivy/buildozer>`_.
 Packaging with python-for-android
 ---------------------------------
 
-This section describes how to download and use python-for-android directly.
+You can also package directly with python-for-android, which can give
+you more control but requires you to manually download parts of the
+Android toolchain.
 
-You'll need:
-
-- A linux computer or a :ref:`virtual machine <kivy_android_vm>`
-- Java
-- Python 2.7 (not 2.6.)
-- Jinja2 (python module)
-- Apache ant
-- Android SDK
-
-Setup Python for Android
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-First, install the prerequisites needed for the project:
-
-    http://python-for-android.readthedocs.org/en/latest/prerequisites/
-
-Then open a console and type::
-
-    git clone git://github.com/kivy/python-for-android
-
-Build your distribution
-~~~~~~~~~~~~~~~~~~~~~~~
-
-The distribution is a "directory" containing a specialized python compiled for
-Android, including only the modules you asked for. You can, from the same
-python-for-android, compile multiple distributions. For example:
-
-- One containing a minimal support without audio / video
-- Another containing audio, openssl etc.
-
-To do that, you must use the script named `distribute.sh`::
-
-    ./distribute.sh -m "kivy"
-    
-The result of the compilation will be saved into `dist/default`. Here are other
-examples of building distributions::
-
-    ./distribute.sh -m "openssl kivy"
-    ./distribute.sh -m "pil ffmpeg kivy"
-
-.. note::
-
-    The order of modules provided are important, as a general rule put
-    dependencies first and then the dependent modules, C libs come first
-    then python modules.
-
-To see the available options for distribute.sh, type::
-
-    ./distribute.sh -h
-
-.. note::
-
-    To use the latest Kivy development version to build your distribution, link
-    "P4A_kivy_DIR" to the kivy folder environment variable to the kivy folder
-    location. On linux you would use the export command, like this::
-
-        export P4A_kivy_DIR=/path/to/cloned/kivy/
-
-Package your application
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-Inside the distribution (`dist/default` by default), you have a tool named
-`build.py`. This is the script that will create the APK for you::
-
-    ./build.py --dir <path to your app>
-               --name "<title>"
-               --package <org.of.your.app>
-               --version <human version>
-               --icon <path to an icon to use>
-               --orientation <landscape|portrait>
-               --permission <android permission like VIBRATE> (multiple allowed)
-               <debug|release> <installd|installr|...>
-               
-An example of using multiple permissions::
-
-    --permission INTERNET --permission WRITE_EXTERNAL_STORAGE
-    
-Full list of available permissions are documented here:
-http://developer.android.com/reference/android/Manifest.permission.html
-
-
-For example, if we imagine that the touchtracer demo of Kivy is in the directory
-~/kivy/examples/demo/touchtracer, you can do::
-
-    ./build.py --dir ~/kivy/examples/demo/touchtracer \
-        --package org.demo.touchtracer \
-        --name "Kivy Touchtracer" --version 1.1.0 debug installd
-
-You need to be aware that the default target Android SDK version for the build 
-will be SDK v.8, which is the minimum required SDK version for kivy. You should 
-either install this API version, or change the AndroidManifest.xml file (under 
-dist/.../) to match your own target SDK requirements.
-
-The debug binary will be generated in bin/KivyTouchtracer-1.1.0-debug.apk.  The
-`debug` and `installd` parameters are commands from the Android project itself.
-They instruct `build.py` to compile the APK in debug mode and install on the
-first connected device.
-
-You can then install the APK directly to your Android device as follows::
-
-    adb install -r bin/KivyTouchtracer-1.1.0-debug.apk
+See the `python-for-android documentation
+<https://python-for-android.readthedocs.io/en/latest/quickstart/>`__
+for full details.
 
 
 .. _Packaging your application for Kivy Launcher:
