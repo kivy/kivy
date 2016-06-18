@@ -12,6 +12,10 @@ IF USE_SDL2:
         void *SDL_GL_GetProcAddress(const char*)
 
 
+cpdef is_backend_supported():
+    return USE_SDL2
+
+
 def init_backend():
     IF not USE_SDL2:
         raise TypeError('SDL2 is not available. Recompile with USE_SDL2=1')
@@ -146,5 +150,3 @@ def init_backend():
         cgl.glVertexAttrib4f = <GLVERTEXATTRIB4FPTR>SDL_GL_GetProcAddress("glVertexAttrib4f")
         cgl.glVertexAttribPointer = <GLVERTEXATTRIBPOINTERPTR>SDL_GL_GetProcAddress("glVertexAttribPointer")
         cgl.glViewport = <GLVIEWPORTPTR>SDL_GL_GetProcAddress("glViewport")
-
-        gl_dynamic_binding(SDL_GL_GetProcAddress)

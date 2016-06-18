@@ -231,6 +231,7 @@ from kivy.utils import platform
 from kivy.weakmethod import WeakMethod
 from kivy.graphics.context cimport get_context
 
+cimport kivy.graphics.cgl as cgldef
 from kivy.graphics.cgl cimport *
 from kivy.graphics.opengl_utils cimport gl_has_capability, gl_get_version_major
 
@@ -478,7 +479,7 @@ cdef Texture _texture_create(int width, int height, colorfmt, bufferfmt,
     if not _is_pow2(width) or not _is_pow2(height):
         make_npot = 1
 
-    IF not USE_OPENGL_ES2:
+    if not cgldef.kivy_opengl_es2:
         if gl_get_version_major() < 3:
             mipmap = 0
 
@@ -583,7 +584,7 @@ def texture_create_from_data(im, mipmap=False):
     if im.have_mipmap:
         mipmap = True
 
-    IF not USE_OPENGL_ES2:
+    if not cgldef.kivy_opengl_es2:
         if gl_get_version_major() < 3:
             mipmap = False
 
