@@ -8,6 +8,8 @@ cdef GLES2_Context *cgl_debug = &g_cgl_debug
 cdef GLES2_Context *cgl_native
 
 
+cpdef is_backend_supported():
+    return True
 
 cdef void __stdcall dbgActiveTexture (GLenum texture) nogil:
     with gil:

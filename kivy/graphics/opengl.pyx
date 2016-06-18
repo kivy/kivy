@@ -18,7 +18,9 @@ include "config.pxi"
 include "common.pxi"
 
 cimport kivy.graphics.cgl as cgldef
-from kivy.graphics.cgl cimport (cgl, GLvoid, GLfloat, GLuint, GLint, GLchar, GLubyte, cgl_init, GLboolean, GLenum, GLsizei, GLclampf, GLbitfield, GLintptr, GLsizeiptr)
+from kivy.graphics.cgl cimport (cgl, GLvoid, GLfloat, GLuint, GLint, GLchar,
+    GLubyte, cgl_init, GLboolean, GLenum, GLsizei, GLclampf, GLbitfield,
+    GLintptr, GLsizeiptr)
 from kivy.logger import Logger
 
 # Utilities
@@ -410,7 +412,7 @@ _GL_GET_SIZE = {
 }
 
 # Available only with ES2
-IF USE_OPENGL_ES2:
+if cgldef.kivy_opengl_es2:
     GL_FIXED = cgldef.GL_FIXED
     GL_MAX_VERTEX_UNIFORM_VECTORS = cgldef.GL_MAX_VERTEX_UNIFORM_VECTORS
     GL_MAX_VARYING_VECTORS = cgldef.GL_MAX_VARYING_VECTORS

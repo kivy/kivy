@@ -8,6 +8,9 @@ from kivy.graphics.cgl cimport *
 
 cdef GLubyte *empty_str = ''
 
+cpdef is_backend_supported():
+    return True
+
 cdef GLenum __stdcall mockCheckFramebufferStatus(GLenum target) nogil:
     return GL_FRAMEBUFFER_COMPLETE
 cdef GLuint __stdcall mockCreateProgram() nogil:
