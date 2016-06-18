@@ -27,9 +27,7 @@ accomplish vibration, sensor access, texting etc. These, along with
 information on debugging on the device, are documented at the
 :doc:`main Android page </guide/android>`.
 
-+-------------------------------------------------------------------------------------------------------------------+
-| NOTE: Currently, packages for Android can only be generated with Python 2.7. Python 3.3+ support is on the way... |
-+-------------------------------------------------------------------------------------------------------------------+
+.. note:: Python 3 support on Android is now available experimentally.
 
 
 .. _Buildozer:
