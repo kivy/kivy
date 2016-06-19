@@ -366,6 +366,7 @@ class ClockEvent(object):
                 else:  # we are in middle
                     prev.next = next
                     next.prev = prev
+            self.prev = self.next = None
 
         clock._lock_release()
 
