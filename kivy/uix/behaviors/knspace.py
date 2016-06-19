@@ -195,7 +195,7 @@ their children also use different namespaces. Consequently, the
 pretty and complex widgets of each instance will have different text.
 
 Further, because both the namespace :class:`~kivy.properties.ObjectProperty`
-references, and :atrr:`KNSpaceBehavior.knspace` have `rebind=True`, the
+references, and :attr:`KNSpaceBehavior.knspace` have `rebind=True`, the
 text of the `MyComplexWidget` label is rebound to match the text of
 `MyPrettyWidget` when either the root's namespace changes or when the
 `root.knspace.pretty` property changes, as expected.

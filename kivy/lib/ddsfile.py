@@ -19,6 +19,8 @@ support on android. We use structs instead.
 DDS Format
 ----------
 
+::
+
     [DDS ][SurfaceDesc][Data]
 
     [SurfaceDesc]:: (everything is uint32)

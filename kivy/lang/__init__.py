@@ -620,6 +620,8 @@ When you are creating a context:
 Template definitions also replace any similarly named definitions in their
 entirety and thus do not support inheritance.
 
+.. _redefining-style:
+
 Redefining a widget's style
 ---------------------------
 
@@ -654,9 +656,9 @@ without any of the instructions inherited from the Label.
 Redefining a widget's property style
 ------------------------------------
 
-Similar to :ref:`Redefining a widget's style`, sometimes we would like to
-inherit from a widget, keep all its KV defined styles, except for the style
-applied to a specific property. For example, we would
+Similar to :ref:`redefining style <redefining-style>`, sometimes we
+would like to inherit from a widget, keep all its KV defined styles, except for
+the style applied to a specific property. For example, we would
 like to inherit from a :class:`~kivy.uix.button.Button`, but we would also
 like to set our own `state_image`, rather then relying on the
 `background_normal` and `background_down` values. We can achieve this by

@@ -14,20 +14,17 @@ class, and bind some keys to record / play sequences:
 Configuration
 -------------
 
+.. |attrs| replace:: :attr:`~kivy.input.recorder.Recorder.record_attrs`
+.. |profile_mask| replace::
+    :attr:`~kivy.input.recorder.Recorder.record_profile_mask`
+
 :Parameters:
-    `attrs`: str, defaults to
-    :attr:`~kivy.input.recorder.Recorder.record_attrs` value.
-
+    `attrs`: str, defaults to |attrs| value.
         Attributes to record from the motion event
-
-    `profile_mask`: str, defaults to
-    :attr:`~kivy.input.recorder.Recorder.record_profile_mask` value.
-
+    `profile_mask`: str, defaults to |profile_mask| value.
         Mask for motion event profile. Used to filter which profile will appear
         in the fake motion event when replayed.
-
     `filename`: str, defaults to 'recorder.kvi'
-
         Name of the file to record / play with
 
 Usage

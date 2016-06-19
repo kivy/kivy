@@ -4,9 +4,6 @@ EffectWidget
 
 .. versionadded:: 1.9.0
 
-    This code is still experimental, and its API is subject to change in a
-    future version.
-
 The :class:`EffectWidget` is able to apply a variety of fancy
 graphical effects to
 its children. It works by rendering to a series of
@@ -14,6 +11,10 @@ its children. It works by rendering to a series of
 As such, effects can freely do almost anything, from inverting the
 colors of the widget, to anti-aliasing, to emulating the appearance of a
 crt monitor!
+
+.. warning::
+    This code is still experimental, and its API is subject to change in a
+    future version.
 
 The basic usage is as follows::
 
