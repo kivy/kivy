@@ -160,51 +160,9 @@ Even if x and y changes within one frame, the callback is only run once.
 Threading
 ----------
 
-.. versionadded:: 1.9.0
+.. versionchanged:: 1.9.2
 
-Often, other threads are used to schedule callbacks with kivy's main thread
-using :class:`ClockBase`. Therefore, it's important to know what is thread safe
-and what isn't.
-
-All the :class:`ClockBase` and :class:`ClockEvent` methods are safe with
-respect to kivy's thread. That is, it's always safe to call these methods
-from a single thread that is not the kivy thread. However, there are no
-guarantees as to the order in which these callbacks will be executed.
-
-Calling a previously created trigger from two different threads (even if one
-of them is the kivy thread), or calling the trigger and its
-:meth:`ClockEvent.cancel` method from two different threads at the same time is
-not safe. That is, although no exception will be raised, there no guarantees
-that calling the trigger from two different threads will not result in the
-callback being executed twice, or not executed at all. Similarly, such issues
-might arise when calling the trigger and canceling it with
-:meth:`ClockBase.unschedule` or :meth:`ClockEvent.cancel` from two threads
-simultaneously.
-
-Therefore, it is safe to call :meth:`ClockBase.create_trigger`,
-:meth:`ClockBase.schedule_once`, :meth:`ClockBase.schedule_interval`, or
-call or cancel a previously created trigger from an external thread.
-The following code, though, is not safe because it calls or cancels
-from two threads simultaneously without any locking mechanism::
-
-    event = Clock.create_trigger(func)
-
-    # in thread 1
-    event()
-    # in thread 2
-    event()
-    # now, the event may be scheduled twice or once
-
-    # the following is also unsafe
-    # in thread 1
-    event()
-    # in thread 2
-    event.cancel()
-    # now, the event may or may not be scheduled and a subsequent call
-    # may schedule it twice
-
-Note, in the code above, thread 1 or thread 2 could be the kivy thread, not
-just an external thread.
+The kivy clock is now fully thread safe.
 '''
 
 __all__ = ('Clock', 'ClockBase', 'ClockEvent', 'mainthread')
@@ -218,6 +176,7 @@ from kivy.config import Config
 from kivy.logger import Logger
 from kivy.compat import clock as _default_time
 import time
+from threading import Lock
 
 try:
     import ctypes
@@ -305,12 +264,6 @@ except (OSError, ImportError, AttributeError):
             _default_sleep(microseconds / 1000000.)
 
 
-def _hash(cb):
-    if hasattr(cb, '__self__') and cb.__self__ is not None:
-        return (id(cb.__self__) & 0xFF00) >> 8
-    return (id(cb) & 0xFF00) >> 8
-
-
 class ClockEvent(object):
     ''' A class that describes a callback scheduled with kivy's :attr:`Clock`.
     This class is never created by the user; instead, kivy creates and returns
@@ -322,31 +275,57 @@ class ClockEvent(object):
         :meth:`__call__` methods.
     '''
 
-    def __init__(self, clock, loop, callback, timeout, starttime, cid,
+    _is_triggered = False
+    next = None
+    prev = None
+    cid = None
+
+    def __init__(self, clock, loop, callback, timeout, starttime, cid=None,
                  trigger=False):
         self.clock = clock
-        self.cid = cid
         self.loop = loop
         self.weak_callback = None
         self.callback = callback
         self.timeout = timeout
-        self._is_triggered = trigger
         self._last_dt = starttime
         self._dt = 0.
+
         if trigger:
-            clock._events[cid].append(self)
+            self._is_triggered = True
+            clock._lock_acquire()
+
+            if clock._root_event is None:
+                clock._last_event = clock._root_event = self
+            else:
+                last = clock._last_event
+                last.next = self
+                self.prev = last
+                clock._last_event = self
+            clock._lock_release()
 
     def __call__(self, *largs):
         ''' Schedules the callback associated with this instance.
         If the callback is already scheduled, it will not be scheduled again.
         '''
-        # if the event is not yet triggered, do it !
+        clock = self.clock
+        clock._lock_acquire()
+
         if not self._is_triggered:
             self._is_triggered = True
-            # update starttime
             self._last_dt = self.clock._last_tick
-            self.clock._events[self.cid].append(self)
+            self.next = None
+
+            if clock._root_event is None:
+                clock._last_event = clock._root_event = self
+                self.prev = self.next = None
+            else:
+                last = clock._last_event
+                last.next = self
+                self.prev = last
+                clock._last_event = self
+            clock._lock_release()
             return True
+        clock._lock_release()
 
     def get_callback(self):
         callback = self.callback
@@ -364,18 +343,37 @@ class ClockEvent(object):
     def cancel(self):
         ''' Cancels the callback if it was scheduled to be called.
         '''
+        clock = self.clock
+        clock._lock_acquire()
         if self._is_triggered:
             self._is_triggered = False
-            try:
-                self.clock._events[self.cid].remove(self)
-            except ValueError:
-                pass
+            next, prev = self.next, self.prev
+
+            # update the next event pointer
+            if clock._next_event is self:
+                clock._next_event = next
+
+            if prev is None:  # we're first
+                if next is None:  # we're also last
+                    clock._last_event = clock._root_event = None
+                else:  # there are more past us
+                    clock._root_event = next
+                    next.prev = None
+            else:  # there are some behind us
+                if next is None:  # we are last
+                    clock._last_event = prev
+                    prev.next = None
+                else:  # we are in middle
+                    prev.next = next
+                    next.prev = prev
+
+        clock._lock_release()
 
     def release(self):
         self.weak_callback = WeakMethod(self.callback)
         self.callback = None
 
-    def tick(self, curtime, remove):
+    def tick(self, curtime, remove=None):
         # timeout happened ? (check also if we would miss from 5ms) this
         # 5ms increase the accuracy if the timing of animation for
         # example.
@@ -390,34 +388,22 @@ class ClockEvent(object):
         # get the callback
         callback = self.get_callback()
         if callback is None:
-            self._is_triggered = False
-            try:
-                remove(self)
-            except ValueError:
-                pass
-            return False
+            self.cancel()
+            return loop
 
         # if it's a trigger, allow to retrigger inside the callback
         # we have to remove event here, otherwise, if we remove later, the user
         # might have canceled in the callback and then re-triggered. That'd
         # result in the removal of the re-trigger
         if not loop:
-            self._is_triggered = False
-            try:
-                remove(self)
-            except ValueError:
-                pass
+            self.cancel()
 
         # call the callback
         ret = callback(self._dt)
 
         # if the user returns False explicitly, remove the event
         if loop and ret is False:
-            self._is_triggered = False
-            try:
-                remove(self)
-            except ValueError:
-                pass
+            self.cancel()
             return False
         return loop
 
@@ -428,10 +414,12 @@ class ClockEvent(object):
 class ClockBase(_ClockBase):
     '''A clock object with event support.
     '''
-    __slots__ = ('_dt', '_last_fps_tick', '_last_tick', '_fps', '_rfps',
-                 '_start_tick', '_fps_counter', '_rfps_counter', '_events',
-                 '_frames', '_frames_displayed',
-                 '_max_fps', 'max_iteration')
+    __slots__ = (
+        '_dt', '_last_fps_tick', '_last_tick', '_fps', '_rfps', '_start_tick',
+        '_fps_counter', '_rfps_counter', '_frames',
+        '_frames_displayed', '_max_fps', 'max_iteration', '_root_event',
+        '_next_event', '_last_event', '_lock', '_lock_acquire',
+        '_lock_release')
 
     MIN_SLEEP = 0.005
     SLEEP_UNDERSHOOT = MIN_SLEEP - 0.001
@@ -447,8 +435,13 @@ class ClockBase(_ClockBase):
         self._last_fps_tick = None
         self._frames = 0
         self._frames_displayed = 0
-        self._events = [[] for i in range(256)]
         self._max_fps = float(Config.getint('graphics', 'maxfps'))
+        self._root_event = None
+        self._last_event = None
+        self._next_event = None
+        lock = self._lock = Lock()
+        self._lock_acquire = lock.acquire
+        self._lock_release = lock.release
 
         #: .. versionadded:: 1.0.5
         #:     When a schedule_once is used with -1, you can add a limit on
@@ -562,7 +555,7 @@ class ClockBase(_ClockBase):
 
         .. versionadded:: 1.0.5
         '''
-        ev = ClockEvent(self, False, callback, timeout, 0, _hash(callback))
+        ev = ClockEvent(self, False, callback, timeout, 0)
         ev.release()
         return ev
 
@@ -583,8 +576,7 @@ class ClockBase(_ClockBase):
         if not callable(callback):
             raise ValueError('callback must be a callable, got %s' % callback)
         event = ClockEvent(
-            self, False, callback, timeout, self._last_tick, _hash(callback),
-            True)
+            self, False, callback, timeout, self._last_tick, None, True)
         return event
 
     def schedule_interval(self, callback, timeout):
@@ -599,8 +591,7 @@ class ClockBase(_ClockBase):
         if not callable(callback):
             raise ValueError('callback must be a callable, got %s' % callback)
         event = ClockEvent(
-            self, True, callback, timeout, self._last_tick, _hash(callback),
-            True)
+            self, True, callback, timeout, self._last_tick, None, True)
         return event
 
     def unschedule(self, callback, all=True):
@@ -626,36 +617,71 @@ class ClockBase(_ClockBase):
             callback.cancel()
         else:
             if all:
-                for ev in self._events[_hash(callback)][:]:
+                events = []
+                self._lock_acquire()
+
+                ev = self._root_event
+                while ev is not None:
                     if ev.get_callback() == callback:
-                        ev.cancel()
+                        events.append(ev)
+                    ev = ev.next
+
+                self._lock_release()
+                for ev in events:
+                    ev.cancel()
             else:
-                for ev in self._events[_hash(callback)][:]:
+                cancel = None
+                self._lock_acquire()
+
+                ev = self._root_event
+                while ev is not None:
                     if ev.get_callback() == callback:
-                        ev.cancel()
+                        cancel = ev
                         break
+                    ev = ev.next
+                self._lock_release()
+                if cancel is not None:
+                    cancel.cancel()
 
     def _release_references(self):
         # call that function to release all the direct reference to any
         # callback and replace it with a weakref
-        events = self._events
-        for events in self._events:
-            for event in events[:]:
-                if event.callback is not None:
-                    event.release()
+        events = []
+        self._lock_acquire()
+
+        ev = self._root_event
+        while ev is not None:
+            if ev.callback is not None:
+                events.append(ev)
+            ev = ev.next
+
+        self._lock_release()
+        for ev in events:
+            ev.release()
 
     def _process_events(self):
-        for events in self._events:
-            remove = events.remove
-            for event in events[:]:
-                # event may be already removed from original list
-                if event in events:
-                    event.tick(self._last_tick, remove)
+        acquire, release = self._lock_acquire, self._lock_release
+
+        acquire()
+        event = self._root_event
+        while event is not None:
+            self._next_event = event.next
+            release()
+
+            try:
+                event.tick(self._last_tick)
+            except:
+                raise
+            else:
+                acquire()
+            event = self._next_event
+        release()
 
     def _process_events_before_frame(self):
-        found = True
+        acquire, release = self._lock_acquire, self._lock_release
         count = self.max_iteration
-        events = self._events
+        found = True
+
         while found:
             count -= 1
             if count == -1:
@@ -667,15 +693,25 @@ class ClockBase(_ClockBase):
 
             # search event that have timeout = -1
             found = False
-            for events in self._events:
-                remove = events.remove
-                for event in events[:]:
-                    if event.timeout != -1:
-                        continue
-                    found = True
-                    # event may be already removed from original list
-                    if event in events:
-                        event.tick(self._last_tick, remove)
+            acquire()
+            event = self._root_event
+            while event is not None:
+                if event.timeout != -1:
+                    event = event.next
+                    continue
+
+                self._next_event = event.next
+                release()
+                found = True
+
+                try:
+                    event.tick(self._last_tick)
+                except:
+                    raise
+                else:
+                    acquire()
+                event = self._next_event
+            release()
 
     time = staticmethod(partial(_default_time))
 
