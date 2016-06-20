@@ -2927,7 +2927,7 @@ class TextInput(FocusBehavior, Widget):
     '''Font size of the text in pixels.
 
     :attr:`font_size` is a :class:`~kivy.properties.NumericProperty` and
-    defaults to 10.
+    defaults to 15\ :attr:`~kivy.metrics.sp`.
     '''
     _hint_text = StringProperty('')
 
