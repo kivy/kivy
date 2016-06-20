@@ -332,7 +332,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         mp_fork = None
         try:
             for opt, arg in opts:
-                if opt in '--multiprocessing-fork':
+                if opt == '--multiprocessing-fork':
                     mp_fork = True
                     break
         except ValueError:
