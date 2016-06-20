@@ -30,8 +30,9 @@ dropdown. ::
     # create a dropdown with 10 buttons
     dropdown = DropDown()
     for index in range(10):
-        # when adding widgets, we need to specify the height manually (disabling
-        # the size_hint_y) so the dropdown can calculate the area it needs.
+        # when adding widgets, we need to specify the height manually
+        # (disabling the size_hint_y) so the dropdown can calculate the area
+        # it needs.
         btn = Button(text='Value %d' % index, size_hint_y=None, height=44)
 
         # for each button, attach a callback that will call the select() method
@@ -173,6 +174,20 @@ class DropDown(ScrollView):
     .. versionadded:: 1.9.2
     '''
 
+    allow_sides = BooleanProperty(False)
+    '''Property that will allow placement of a :class:`~kivy.uix.DropDown`
+    on the sides of a widget set in :attr:`attach_to`.
+
+    The default side is the right side of a widget. When there is no space
+    on the right side, it'll automatically switch to the left side of the
+    widget.
+
+    :attr:`allow_sides` is a :class:`~kivy.properties.BooleanProperty`
+    and defaults to False.
+
+    .. versionadded:: 1.9.2
+    '''
+
     attach_to = ObjectProperty(allownone=True)
     '''(internal) Property that will be set to the widget to which the
     drop down list is attached.
@@ -197,6 +212,8 @@ class DropDown(ScrollView):
             c = self.container = Builder.load_string(_grid_kv)
         else:
             c = None
+        if 'allow_sides' not in kwargs:
+            self.allow_sides = False
         if 'do_scroll_x' not in kwargs:
             self.do_scroll_x = False
         if 'size_hint' not in kwargs:
@@ -333,9 +350,17 @@ class DropDown(ScrollView):
 
         # ensure the dropdown list doesn't get out on the X axis, with a
         # preference to 0 in case the list is too wide.
-        x = wx
-        if x + self.width > win.width:
-            x = win.width - self.width
+        if self.allow_sides:
+            if not self.auto_width:
+                x = wx + widget.right
+            else:
+                x = wx + self.width
+            if x + self.width > win.width:
+                x = wx - self.width
+        else:
+            x = wx
+            if x + self.width > win.width:
+                x = win.width - self.width
         if x < 0:
             x = 0
         self.x = x
@@ -344,10 +369,16 @@ class DropDown(ScrollView):
         h_bottom = wy - self.height
         h_top = win.height - (wtop + self.height)
         if h_bottom > 0:
-            self.top = wy
+            if self.allow_sides:
+                self.top = wy + widget.height
+            else:
+                self.top = wy
             self.height = self.container.minimum_height
         elif h_top > 0:
-            self.y = wtop
+            if self.allow_sides:
+                self.y = wtop - widget.height
+            else:
+                self.y = wtop
             self.height = self.container.minimum_height
         else:
             # none of both top/bottom have enough place to display the
@@ -355,10 +386,16 @@ class DropDown(ScrollView):
             # it.
             height = max(h_bottom, h_top)
             if height == h_bottom:
-                self.top = wy
+                if self.allow_sides:
+                    self.top = wy + widget.height
+                else:
+                    self.top = wy
                 self.height = wy
             else:
-                self.y = wtop
+                if self.allow_sides:
+                    self.y = wtop - widget.height
+                else:
+                    self.y = wtop
                 self.height = win.height - wtop
 
 
@@ -367,7 +404,7 @@ if __name__ == '__main__':
     from kivy.base import runTouchApp
 
     def show_dropdown(button, *largs):
-        dp = DropDown()
+        dp = DropDown(allow_sides=True)
         dp.bind(on_select=lambda instance, x: setattr(button, 'text', x))
         for i in range(10):
             item = Button(text='hello %d' % i, size_hint_y=None, height=44)
@@ -382,4 +419,3 @@ if __name__ == '__main__':
     btn.bind(on_release=show_dropdown, on_touch_move=touch_move)
 
     runTouchApp(btn)
-
