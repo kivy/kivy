@@ -86,6 +86,15 @@ cdef class ClockEvent(object):
         if self._is_triggered:
             self._is_triggered = False
 
+            # update the cap of the list
+            if self.clock._cap_event is self:
+                # cap is next, so we have reached the end of the list
+                # because current one being processed is going to be the last event now
+                if self.clock._cap_event is self.clock._next_event:
+                   self.clock._cap_event = None
+                else:
+                    self.clock._cap_event = self.prev  # new cap
+
             # update the next event pointer
             if self.clock._next_event is self:
                 self.clock._next_event = self.next
@@ -158,6 +167,7 @@ cdef class CyClockBase(object):
         self._root_event = None
         self._last_event = None
         self._next_event = None
+        self._cap_event = None
         self._lock = Lock()
         self._lock_acquire = self._lock.acquire
         self._lock_release = self._lock.release
@@ -289,10 +299,29 @@ cdef class CyClockBase(object):
 
     cpdef _process_events(self):
         cdef ClockEvent event
+        cdef int done = False
+
         self._lock_acquire()
+        if self._root_event is None:
+            self._lock_release()
+            return
+
+        self._cap_event = self._last_event
         event = self._root_event
-        while event is not None:
+        while not done:
             self._next_event = event.next
+            done = self._cap_event is event or self._cap_event is None
+            '''We have to worry about this case:
+
+            If in this iteration the cap event is canceled then at end of this
+            iteration _cap_event will have shifted to current event (or to the
+            event before that if current_event is done) which will not be checked
+            again for being the cap event and done will never be True
+            since we are passed the current event. So, when canceling,
+            if _next_event is the canceled event and it's also the _cap_event
+            _cap_event is set to None.
+            '''
+
             self._lock_release()
 
             try:
@@ -302,12 +331,15 @@ cdef class CyClockBase(object):
             else:
                 self._lock_acquire()
             event = self._next_event
+
+        self._cap_event = None
         self._lock_release()
 
     cpdef _process_events_before_frame(self):
         cdef ClockEvent event
         cdef int count = self.max_iteration
         cdef int found = True
+        cdef int done = False
 
         while found:
             count -= 1
@@ -320,14 +352,23 @@ cdef class CyClockBase(object):
 
             # search event that have timeout = -1
             found = False
+            done = False
+
             self._lock_acquire()
+            if self._root_event is None:
+                self._lock_release()
+                return
+
+            self._cap_event = self._last_event
             event = self._root_event
-            while event is not None:
+            while not done:
                 if event.timeout != -1:
+                    done = self._cap_event is event or self._cap_event is None
                     event = event.next
                     continue
 
                 self._next_event = event.next
+                done = self._cap_event is event or self._cap_event is None
                 self._lock_release()
                 found = True
 
@@ -338,4 +379,17 @@ cdef class CyClockBase(object):
                 else:
                     self._lock_acquire()
                 event = self._next_event
+            self._cap_event = None
             self._lock_release()
+
+    def get_events(self):
+        cdef list events = []
+        cdef ClockEvent ev
+
+        self._lock_acquire()
+        ev = self._root_event
+        while ev is not None:
+            events.append(ev)
+            ev = ev.next
+        self._lock_release()
+        return events
