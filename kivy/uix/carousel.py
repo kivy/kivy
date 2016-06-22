@@ -251,6 +251,8 @@ class Carousel(StencilView):
     _offset = NumericProperty(0)
     _touch = ObjectProperty(None, allownone=True)
 
+    _change_touch_mode_ev = None
+
     def __init__(self, **kwargs):
         self._trigger_position_visible_slides = Clock.create_trigger(
             self._position_visible_slides, -1)
@@ -511,8 +513,8 @@ class Carousel(StencilView):
         touch.ud[uid] = {
             'mode': 'unknown',
             'time': touch.time_start}
-        Clock.schedule_once(self._change_touch_mode,
-                            self.scroll_timeout / 1000.)
+        self._change_touch_mode_ev = Clock.schedule_once(
+            self._change_touch_mode, self.scroll_timeout / 1000.)
         return True
 
     def on_touch_move(self, touch):
@@ -531,7 +533,9 @@ class Carousel(StencilView):
             else:
                 distance = abs(touch.oy - touch.y)
             if distance > self.scroll_distance:
-                Clock.unschedule(self._change_touch_mode)
+                ev = self._change_touch_mode_ev
+                if ev is not None:
+                    ev.cancel()
                 ud['mode'] = 'scroll'
         else:
             if direction[0] in ('r', 'l'):
@@ -548,7 +552,9 @@ class Carousel(StencilView):
             self._touch = None
             ud = touch.ud[self._get_uid()]
             if ud['mode'] == 'unknown':
-                Clock.unschedule(self._change_touch_mode)
+                ev = self._change_touch_mode_ev
+                if ev is not None:
+                    ev.cancel()
                 super(Carousel, self).on_touch_down(touch)
                 Clock.schedule_once(partial(self._do_touch_up, touch), .1)
             else:

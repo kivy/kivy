@@ -460,6 +460,8 @@ class TabbedPanel(GridLayout):
     :attr:`default_tab_content` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
+    _update_top_ev = _update_tab_ev = _update_tabs_ev = None
+
     def __init__(self, **kwargs):
         # these variables need to be initialized before the kv lang is
         # processed setup the base layout for the tabbed panel
@@ -586,8 +588,11 @@ class TabbedPanel(GridLayout):
         self._default_tab.text = self.default_tab_text
 
     def on_tab_width(self, *l):
-        Clock.unschedule(self._update_tab_width)
-        Clock.schedule_once(self._update_tab_width, 0)
+        ev = self._update_tab_ev
+        if ev is None:
+            ev = self._update_tab_ev = Clock.create_trigger(
+                self._update_tab_width, 0)
+        ev()
 
     def on_tab_height(self, *l):
         self._tab_layout.height = self._tab_strip.height = self.tab_height
@@ -648,8 +653,11 @@ class TabbedPanel(GridLayout):
             self.switch_to(self.default_tab)
 
     def _reposition_tabs(self, *l):
-        Clock.unschedule(self._update_tabs)
-        Clock.schedule_once(self._update_tabs, 0)
+        ev = self._update_tabs_ev
+        if ev is None:
+            ev = self._update_tabs_ev = Clock.create_trigger(
+                self._update_tabs, 0)
+        ev()
 
     def _update_tabs(self, *l):
         self_content = self.content
@@ -802,8 +810,11 @@ class TabbedPanel(GridLayout):
 
     def _update_top(self, *args):
         sctr, top, scrl_v_width, x, y = args
-        Clock.unschedule(partial(self._updt_top, sctr, top, scrl_v_width))
-        Clock.schedule_once(
+        ev = self._update_top_ev
+        if ev is not None:
+            ev.cancel()
+
+        ev = self._update_top_ev = Clock.schedule_once(
             partial(self._updt_top, sctr, top, scrl_v_width), 0)
 
     def _updt_top(self, sctr, top, scrl_v_width, *args):

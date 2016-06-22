@@ -164,7 +164,7 @@ cdef class CyClockBase(object):
 
         self.max_iteration = 10
 
-    cpdef create_trigger(self, callback, timeout=0):
+    cpdef create_trigger(self, callback, timeout=0, interval=False):
         '''Create a Trigger event. Check module documentation for more
         information.
 
@@ -175,7 +175,7 @@ cdef class CyClockBase(object):
 
         .. versionadded:: 1.0.5
         '''
-        cdef ClockEvent ev = ClockEvent(self, False, callback, timeout, 0)
+        cdef ClockEvent ev = ClockEvent(self, interval, callback, timeout, 0)
         ev.release()
         return ev
 

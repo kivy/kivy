@@ -422,6 +422,8 @@ class ScrollView(StencilView):
     _bar_color = ListProperty([0, 0, 0, 0])
     _effect_x_start_width = None
     _effect_y_start_height = None
+    _update_effect_bounds_ev = None
+    _bind_inactive_bar_color_ev = None
 
     def _set_viewport_size(self, instance, value):
         self.viewport_size = value
@@ -842,8 +844,12 @@ class ScrollView(StencilView):
             if not ud['user_stopped']:
                 self.simulate_touch_down(touch)
             Clock.schedule_once(partial(self._do_touch_up, touch), .2)
-        Clock.unschedule(self._update_effect_bounds)
-        Clock.schedule_once(self._update_effect_bounds)
+
+        ev = self._update_effect_bounds_ev
+        if ev is None:
+            ev = self._update_effect_bounds_ev = Clock.create_trigger(
+                self._update_effect_bounds)
+        ev()
 
         # if we do mouse scrolling, always accept it
         if 'button' in touch.profile and touch.button.startswith('scroll'):
@@ -954,12 +960,15 @@ class ScrollView(StencilView):
 
         # New in 1.2.0, show bar when scrolling happens and (changed in 1.9.0)
         # fade to bar_inactive_color when no scroll is happening.
-        Clock.unschedule(self._bind_inactive_bar_color)
+        ev = self._bind_inactive_bar_color_ev
+        if ev is None:
+            ev = self._bind_inactive_bar_color_ev = Clock.create_trigger(
+                self._bind_inactive_bar_color, .5)
         self.funbind('bar_inactive_color', self._change_bar_color)
         Animation.stop_all(self, '_bar_color')
         self.fbind('bar_color', self._change_bar_color)
         self._bar_color = self.bar_color
-        Clock.schedule_once(self._bind_inactive_bar_color, .5)
+        ev()
 
     def _bind_inactive_bar_color(self, *l):
         self.funbind('bar_color', self._change_bar_color)

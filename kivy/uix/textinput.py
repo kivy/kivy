@@ -280,10 +280,12 @@ class TextInputCutCopyPaste(Bubble):
 
     matrix = ObjectProperty(None)
 
+    _check_parent_ev = None
+
     def __init__(self, **kwargs):
         self.mode = 'normal'
         super(TextInputCutCopyPaste, self).__init__(**kwargs)
-        Clock.schedule_interval(self._check_parent, .5)
+        self._check_parent_ev = Clock.schedule_interval(self._check_parent, .5)
         self.matrix = self.textinput.get_window_matrix()
 
         with self.canvas.before:
@@ -330,7 +332,7 @@ class TextInputCutCopyPaste(Bubble):
                 break
             parent = parent.parent
         if parent is None:
-            Clock.unschedule(self._check_parent)
+            self._check_parent_ev.cancel()
             if self.textinput:
                 self.textinput._hide_cut_copy_paste()
 
@@ -477,6 +479,11 @@ class TextInput(FocusBehavior, Widget):
         self._ctrl_r = False
         self._alt_l = False
         self._alt_r = False
+        self._refresh_text_from_property_ev = None
+        self._long_touch_ev = None
+        self._do_blink_cursor_ev = Clock.create_trigger(
+            self._do_blink_cursor, .5, interval=True)
+        self._refresh_line_options_ev = None
         self.interesting_keys = {
             8: 'backspace',
             13: 'enter',
@@ -502,6 +509,8 @@ class TextInput(FocusBehavior, Widget):
         fbind = self.fbind
         refresh_line_options = self._trigger_refresh_line_options
         update_text_options = self._update_text_options
+        self._update_graphics_ev = Clock.create_trigger(
+            self._update_graphics, -1)
 
         fbind('font_size', refresh_line_options)
         fbind('font_name', refresh_line_options)
@@ -1250,6 +1259,7 @@ class TextInput(FocusBehavior, Widget):
     # Touch control
     #
     def long_touch(self, dt):
+        self._long_touch_ev = None
         if self._selection_to == self._selection_from:
             pos = self.to_local(*self._long_touch_pos, relative=True)
             self._show_cut_copy_paste(
@@ -1339,7 +1349,7 @@ class TextInput(FocusBehavior, Widget):
         self._hide_cut_copy_paste(EventLoop.window)
         # schedule long touch for paste
         self._long_touch_pos = touch.pos
-        Clock.schedule_once(self.long_touch, .5)
+        self._long_touch_ev = Clock.schedule_once(self.long_touch, .5)
 
         self.cursor = self.get_cursor_from_xy(*touch_pos)
         if not self._selection_touch:
@@ -1375,7 +1385,9 @@ class TextInput(FocusBehavior, Widget):
         self._touch_count -= 1
 
         # schedule long touch for paste
-        Clock.unschedule(self.long_touch)
+        if self._long_touch_ev is not None:
+            self._long_touch_ev.cancel()
+            self._long_touch_ev = None
 
         if not self.focus:
             return False
@@ -1648,7 +1660,7 @@ class TextInput(FocusBehavior, Widget):
             else:
                 self._editable = False
         else:
-            Clock.unschedule(self._do_blink_cursor)
+            self._do_blink_cursor_ev.cancel()
             self._hide_handles(win)
 
     def _ensure_clipboard(self):
@@ -1727,9 +1739,9 @@ class TextInput(FocusBehavior, Widget):
         self.cursor_blink = not self.cursor_blink
 
     def _reset_cursor_blink(self, *args):
-        Clock.unschedule(self._do_blink_cursor)
+        self._do_blink_cursor_ev.cancel()
         self.cursor_blink = 0
-        Clock.schedule_interval(self._do_blink_cursor, .5)
+        self._do_blink_cursor_ev()
 
     def on_cursor(self, instance, value):
         # When the cursor is moved, reset cursor blinking to keep it showing,
@@ -1752,8 +1764,12 @@ class TextInput(FocusBehavior, Widget):
         self._lines[line_num] = text
 
     def _trigger_refresh_line_options(self, *largs):
-        Clock.unschedule(self._refresh_line_options)
-        Clock.schedule_once(self._refresh_line_options, 0)
+        if self._refresh_line_options_ev is not None:
+            self._refresh_line_options_ev.cancel()
+        else:
+            self._refresh_line_options_ev = Clock.create_trigger(
+                self._refresh_line_options, 0)
+        self._refresh_line_options_ev()
 
     def _refresh_line_options(self, *largs):
         self._line_options = None
@@ -1765,9 +1781,10 @@ class TextInput(FocusBehavior, Widget):
     def _trigger_refresh_text(self, *largs):
         if len(largs) and largs[0] == self:
             largs = ()
-        Clock.unschedule(lambda dt: self._refresh_text_from_property(*largs))
-        Clock.schedule_once(lambda dt:
-                            self._refresh_text_from_property(*largs))
+        if self._refresh_text_from_property_ev is not None:
+            self._refresh_text_from_property_ev.cancel()
+        self._refresh_text_from_property_ev = Clock.schedule_once(
+            lambda dt: self._refresh_text_from_property(*largs))
 
     def _update_text_options(self, *largs):
         Cache_remove('textinput.width')
@@ -1870,8 +1887,8 @@ class TextInput(FocusBehavior, Widget):
             self._lines = _lins
 
     def _trigger_update_graphics(self, *largs):
-        Clock.unschedule(self._update_graphics)
-        Clock.schedule_once(self._update_graphics, -1)
+        self._update_graphics_ev.cancel()
+        self._update_graphics_ev()
 
     def _update_graphics(self, *largs):
         # Update all the graphics according to the current internal values.

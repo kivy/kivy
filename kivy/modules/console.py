@@ -79,10 +79,10 @@ of the Console::
             self.console.add_toolbar_widget(self.lbl, right=True)
 
         def activate(self):
-            Clock.schedule_interval(self.update_fps, 1 / 2.)
+            self.event = Clock.schedule_interval(self.update_fps, 1 / 2.)
 
         def deactivated(self):
-            Clock.unschedule(self.update_fps)
+            self.event.cancel()
 
         def update_fps(self, *args):
             fps = Clock.get_fps()
@@ -377,15 +377,23 @@ class ConsoleAddonSelect(ConsoleAddon):
 
 
 class ConsoleAddonFps(ConsoleAddon):
+
+    _update_ev = None
+
     def init(self):
         self.lbl = ConsoleLabel(text="0 Fps")
         self.console.add_toolbar_widget(self.lbl, right=True)
 
     def activate(self):
-        Clock.schedule_interval(self.update_fps, 1 / 2.)
+        ev = self._update_ev
+        if ev is None:
+            self._update_ev = Clock.schedule_interval(self.update_fps, 1 / 2.)
+        else:
+            ev()
 
     def deactivated(self):
-        Clock.unschedule(self.update_fps)
+        if self._update_ev is not None:
+            self._update_ev.cancel()
 
     def update_fps(self, *args):
         fps = Clock.get_fps()

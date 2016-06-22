@@ -57,6 +57,13 @@ class ClockTestCase(unittest.TestCase):
         Clock.tick()
         self.assertEqual(counter, 0)
 
+    def test_unschedule_event(self):
+        from kivy.clock import Clock
+        ev = Clock.schedule_once(callback)
+        Clock.unschedule(ev)
+        Clock.tick()
+        self.assertEqual(counter, 0)
+
     def test_unschedule_after_tick(self):
         from kivy.clock import Clock
         Clock.schedule_once(callback, 5.)
