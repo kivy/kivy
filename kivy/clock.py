@@ -22,7 +22,8 @@ elapsed between the scheduling and the calling of the callback via the
 
 .. note::
 
-    If the callback returns False, the schedule will be removed.
+    If the callback returns False, the schedule will be canceled and won't
+    repeat.
 
 If you want to schedule a function to call with default arguments, you can use
 the `functools.partial
@@ -114,9 +115,11 @@ Triggered Events
 
 .. versionadded:: 1.0.5
 
-A triggered event is a way to defer a callback exactly like schedule_once(),
-but with some added convenience. The callback will only be scheduled once per
-frame even if you call the trigger twice (or more). This is not the case
+A triggered event is a way to defer a callback. It functions exactly like
+schedule_once() and schedule_interval() except that it doesn't immediately
+schedule the callback. Instead, one schedules the callback using the
+:class:`ClockEvent` returned by it. This ensures that you can call the event
+multiple times but it won't be scheduled more than once. This is not the case
 with :meth:`Clock.schedule_once`::
 
     # will run the callback twice before the next frame
@@ -124,18 +127,16 @@ with :meth:`Clock.schedule_once`::
     Clock.schedule_once(my_callback)
 
     # will run the callback once before the next frame
-    t = Clock.create_trigger(my_callback)
-    t()
-    t()
+    event = Clock.create_trigger(my_callback)
+    event()
+    event()
 
-Before triggered events, you may have used this approach in a widget::
+    # will also run the callback only once before the next frame
+    event = Clock.schedule_once(my_callback)  # now it's already scheduled
+    event()  # won't be scheduled again
+    event()
 
-    def trigger_callback(self, *largs):
-        Clock.unschedule(self.callback)
-        Clock.schedule_once(self.callback)
-
-As soon as you call `trigger_callback()`, it will correctly schedule the
-callback once in the next frame. It is more convenient to create and bind to
+In addition, it is more convenient to create and bind to
 the triggered event than using :meth:`Clock.schedule_once` in a function::
 
     from kivy.clock import Clock
@@ -152,17 +153,70 @@ the triggered event than using :meth:`Clock.schedule_once` in a function::
 
 Even if x and y changes within one frame, the callback is only run once.
 
-.. note::
+:meth:`CyClockBase.create_trigger` has a timeout parameter that
+behaves exactly like :meth:`CyClockBase.schedule_once`.
 
-    :meth:`ClockBase.create_trigger` also has a timeout parameter that
-    behaves exactly like :meth:`ClockBase.schedule_once`.
+..versionchanged:: 1.9.2
 
-Threading
-----------
+    :meth:`CyClockBase.create_trigger` now has a ``interval`` parameter.
+    If False, the default, it'll create an event similar to
+    :meth:`CyClockBase.schedule_once`. Otherwise it'll create an event
+    similar to :meth:`CyClockBase.schedule_interval`.
 
-.. versionchanged:: 1.9.2
+Unscheduling
+-------------
 
-The kivy clock is now fully thread safe.
+An event scheduled with :meth:`CyClockBase.schedule_once`,
+:meth:`CyClockBase.schedule_interval`, or with
+:meth:`CyClockBase.create_trigger`and then triggered can be unscheduled in
+multiple ways. E.g::
+
+    def my_callback(dt):
+        pass
+
+    # call my_callback every 0.5 seconds
+    event = Clock.schedule_interval(my_callback, 0.5)
+
+    # call my_callback in 5 seconds
+    event2 = Clock.schedule_once(my_callback, 5)
+
+    event_trig = Clock.create_trigger(my_callback, 5)
+    event_trig()
+
+    # unschedule using cancel
+    event.cancel()
+
+    # unschedule using Clock.unschedule
+    Clock.unschedule(event2)
+
+    # unschedule using Clock.unschedule with the callback
+    # NOT RECCOMENDED
+    Clock.unschedule(my_callback)
+
+The best way to unschedule a callback is with :meth:`ClockEvent.cancel`.
+:meth:`CyClockBase.unschedule` is mainly an alias for that for that function.
+However, if the original callback itself is passed to
+:meth:`CyClockBase.unschedule`, it'll unschedule all instances of that
+callback (provided ``all`` is True, the default, other just the first match is
+removed).
+
+Calling :meth:`CyClockBase.unschedule` on the original callback is highly
+discouraged because it's significantly slower than when using the event.
+
+Threading and Callback Order
+-----------------------------
+
+Beginning with 1.9.2, all the events scheduled for the same frame, e.g.
+all the events scheduled in the same frame with a ``timeout`` of ``0``,
+well be executed in the order they were scheduled.
+
+Also, all the scheduling and canceling methods are fully thread safe and
+can be safely used from external threads.
+
+As a a consequence, calling :meth:`CyClockBase.unschedule` with the original
+callback is now significantly slower and highly discouraged. Instead, the
+returned events should be used to cancel. As a tradeoff, all the other methods
+are now significantly faster than before.
 '''
 
 __all__ = ('Clock', 'CyClockBase', 'ClockBase', 'ClockEvent', 'mainthread')

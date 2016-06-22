@@ -12,10 +12,13 @@ cdef class ClockEvent(object):
     This class is never created by the user; instead, kivy creates and returns
     an instance of this class when scheduling a callback.
 
-    .. warning::
-        Most of the methods of this class are internal and can change without
-        notice. The only exception are the :meth:`cancel` and
-        :meth:`__call__` methods.
+    An event can be triggered (scheduled) by calling it. If it's already
+    scheduled, nothing will happen, otherwise it'll be scheduled. E.g.::
+
+        event = Clock.schedule_once(my_callback, .5)
+        event()  # nothing will happen since it's already scheduled.
+        event.cancel()  # cancel it
+        event()  # now it's scheduled again.
     '''
 
     def __init__(
@@ -67,6 +70,10 @@ cdef class ClockEvent(object):
         self.clock._lock_release()
 
     cpdef get_callback(self):
+        '''Returns the callback associated with the event. Callbacks get stored
+        with a indirect ref so that it doesn't keep objects alive. If the callback
+        is dead, None is returned.
+        '''
         cdef object callback = self.callback
         if callback is not None:
             return callback
@@ -77,10 +84,14 @@ cdef class ClockEvent(object):
 
     @property
     def is_triggered(self):
+        '''Returns whether the event is scheduled to have its callback executed by
+        the kivy thread.
+        '''
         return self._is_triggered
 
     cpdef cancel(self):
-        ''' Cancels the callback if it was scheduled to be called.
+        ''' Cancels the callback if it was scheduled to be called. If not
+        scheduled, nothing happens.
         '''
         self.clock._lock_acquire()
         if self._is_triggered:
@@ -117,10 +128,14 @@ cdef class ClockEvent(object):
         self.clock._lock_release()
 
     cpdef release(self):
+        '''(internal method) Converts the callback into a indirect ref.
+        '''
         self.weak_callback = WeakMethod(self.callback)
         self.callback = None
 
     cpdef tick(self, double curtime):
+        '''(internal method) Processes the event for the kivy thread.
+        '''
         cdef object callback, ret
         # timeout happened ? (check also if we would miss from 5ms) this
         # 5ms increase the accuracy if the timing of animation for
@@ -159,7 +174,7 @@ cdef class ClockEvent(object):
 
 
 cdef class CyClockBase(object):
-    '''A clock object with event support.
+    '''The base clock object with event support.
     '''
 
     def __init__(self, **kwargs):
@@ -184,6 +199,12 @@ cdef class CyClockBase(object):
             instance, you can call it.
 
         .. versionadded:: 1.0.5
+
+        ..versionchanged:: 1.9.2
+
+            ``interval`` has been added. If True, it create a event that is called
+            every <timeout> seconds similar to :meth:`schedule_interval`. Defaults to
+            False.
         '''
         cdef ClockEvent ev = ClockEvent(self, interval, callback, timeout, 0)
         ev.release()
@@ -236,8 +257,16 @@ cdef class CyClockBase(object):
             `callback`: :class:`ClockEvent` or a callable.
                 If it's a :class:`ClockEvent` instance, then the callback
                 associated with this event will be canceled if it is
-                scheduled. If it's a callable, then the callable will be
-                unscheduled if it is scheduled.
+                scheduled.
+
+                If it's a callable, then the callable will be unscheduled if it
+                was scheduled.
+
+                ..warning::
+
+                    Passing the callback function rather than the returned
+                    :class:`ClockEvent` will result in a significantly slower
+                    unscheduling.
             `all`: bool
                 If True and if `callback` is a callable, all instances of this
                 callable will be unscheduled (i.e. if this callable was
@@ -383,6 +412,8 @@ cdef class CyClockBase(object):
             self._lock_release()
 
     def get_events(self):
+        '''Returns the list of :class:`ClockEvent` currently scheduled.
+        '''
         cdef list events = []
         cdef ClockEvent ev
 
