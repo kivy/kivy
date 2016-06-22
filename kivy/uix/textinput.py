@@ -449,6 +449,8 @@ class TextInput(FocusBehavior, Widget):
                   'on_quad_touch')
 
     def __init__(self, **kwargs):
+        self._update_graphics_ev = Clock.create_trigger(
+            self._update_graphics, -1)
         self.is_focusable = kwargs.get('is_focusable', True)
         self._cursor = [0, 0]
         self._selection = False
@@ -509,8 +511,6 @@ class TextInput(FocusBehavior, Widget):
         fbind = self.fbind
         refresh_line_options = self._trigger_refresh_line_options
         update_text_options = self._update_text_options
-        self._update_graphics_ev = Clock.create_trigger(
-            self._update_graphics, -1)
 
         fbind('font_size', refresh_line_options)
         fbind('font_name', refresh_line_options)
