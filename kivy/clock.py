@@ -270,7 +270,6 @@ class ClockBase(CyClockBase):
     _dt = 0.0001
     _last_fps_tick = None
     _start_tick = 0
-    _last_tick = 0
     _fps = 0
     _rfps = 0
     _fps_counter = 0

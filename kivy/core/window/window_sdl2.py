@@ -485,7 +485,7 @@ class WindowSDL(WindowBase):
                 # don't use trigger here, we want to delay the resize event
                 ev = self._do_resize_ev
                 if ev is None:
-                    ev = self._do_resize_ev = Clock.schedule_once(cb, .1)
+                    ev = self._do_resize_ev = Clock.schedule_once(self._do_resize, .1)
                 else:
                     ev()
 

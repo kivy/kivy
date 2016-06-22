@@ -173,11 +173,9 @@ class LabelTextureSizeExample(App):
         self.add_word()
 
     def add_word(self, dt=None):
-        print dt
         try:
             word = next(self.words)
         except StopIteration:
-            print 'done'
             return
 
         for content_widget in self.text_content_widgets:
