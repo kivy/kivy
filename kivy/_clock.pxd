@@ -37,6 +37,21 @@ cdef class CyClockBase(object):
     frame. If more iterations occur, a warning is issued.
     '''
 
+    cdef public double callback_resolution
+    '''If the remaining time until the event timeout is less than :attr:`callback_resolution`,
+    the clock will execute the callback even if it hasn't exactly timed out.
+
+    If -1, the default, the resolution will be the measured
+    :attr:`events_duration`. Otherwise, the provided value is used.
+    '''
+
+    cdef public double events_duration
+    '''The measured time that it takes to process all the events etc, excepting any
+    sleep or waiting time. It is the average and is updated every 5 seconds.
+    '''
+
+    cdef public double _max_fps
+
     cdef public ClockEvent _root_event
     '''The first event in the chain. Can be None.
     '''

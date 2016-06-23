@@ -137,10 +137,16 @@ cdef class ClockEvent(object):
         '''(internal method) Processes the event for the kivy thread.
         '''
         cdef object callback, ret
+        cdef double resolution = self.clock.callback_resolution
         # timeout happened ? (check also if we would miss from 5ms) this
         # 5ms increase the accuracy if the timing of animation for
         # example.
-        if curtime - self._last_dt < self.timeout - 0.005:
+        if resolution < 0:
+            resolution = 3 * self.clock.events_duration
+            if self.clock._max_fps:
+                resolution = max(resolution, 1 / (3. * self.clock._max_fps))
+            resolution = min(resolution, 0.005)
+        if curtime - self._last_dt < self.timeout - resolution:
             return True
 
         # calculate current timediff for this event
@@ -170,12 +176,18 @@ cdef class ClockEvent(object):
         return self.loop
 
     def __repr__(self):
-        return '<ClockEvent callback=%r>' % self.get_callback()
+        return '<ClockEvent ({}) callback={}>'.format(self.timeout, self.get_callback())
 
 
 cdef class CyClockBase(object):
     '''The base clock object with event support.
     '''
+
+    def __cinit__(self, **kwargs):
+        self.callback_resolution = -1
+        self.events_duration = 0
+        self._max_fps = 60
+        self.max_iteration = 10
 
     def __init__(self, **kwargs):
         super(CyClockBase, self).__init__(**kwargs)
@@ -186,8 +198,6 @@ cdef class CyClockBase(object):
         self._lock = Lock()
         self._lock_acquire = self._lock.acquire
         self._lock_release = self._lock.release
-
-        self.max_iteration = 10
 
     cpdef create_trigger(self, callback, timeout=0, interval=False):
         '''Create a Trigger event. Check module documentation for more

@@ -330,17 +330,25 @@ class ClockBase(CyClockBase):
     _rfps_counter = 0
     _frames = 0
     _frames_displayed = 0
-    _max_fps = 30.
     _sleep_obj = None
 
+    _duration_count = 0
+    _sleep_time = 0
+    _duration_ts0 = 0
+
     MIN_SLEEP = 0.005
+    '''The minimum time to sleep. If the remaining time is less than this,
+    the event loop will continuo
+    '''
     SLEEP_UNDERSHOOT = MIN_SLEEP - 0.001
 
     def __init__(self):
         super(ClockBase, self).__init__()
         self._sleep_obj = _get_sleep_obj()
-        self._start_tick = self._last_tick = self.time()
-        self._max_fps = float(Config.getint('graphics', 'maxfps'))
+        self._duration_ts0 = self._start_tick = self._last_tick = self.time()
+        fps = self._max_fps = float(Config.getint('graphics', 'maxfps'))
+        if fps:
+            self.events_duration = 1 / 9. * 1 / fps
 
     @property
     def frametime(self):
@@ -371,6 +379,23 @@ class ClockBase(CyClockBase):
         '''
         _usleep(microseconds, self._sleep_obj)
 
+    def idle(self):
+        events_duration = min(self.events_duration, 0.005)
+        maxfps = self._max_fps
+        if maxfps:
+            min_sleep = max(3 * events_duration,  1 / (3. * maxfps))
+        else:
+            min_sleep = 3 * events_duration
+
+        sleep_undershoot = 4 / 5. * min_sleep
+        fps = self._max_fps
+        usleep = self.usleep
+
+        sleeptime = 1 / fps - (self.time() - self._last_tick)
+        while sleeptime - sleep_undershoot > min_sleep:
+            usleep(1000000 * (sleeptime - sleep_undershoot))
+            sleeptime = 1 / fps - (self.time() - self._last_tick)
+
     def tick(self):
         '''Advance the clock to the next step. Must be called every frame.
         The default clock has a tick() function called by the core Kivy
@@ -378,24 +403,27 @@ class ClockBase(CyClockBase):
 
         self._release_references()
 
+        ts = self.time()
         # do we need to sleep ?
         if self._max_fps > 0:
-            min_sleep = self.MIN_SLEEP
-            sleep_undershoot = self.SLEEP_UNDERSHOOT
-            fps = self._max_fps
-            usleep = self.usleep
-
-            sleeptime = 1 / fps - (self.time() - self._last_tick)
-            while sleeptime - sleep_undershoot > min_sleep:
-                usleep(1000000 * (sleeptime - sleep_undershoot))
-                sleeptime = 1 / fps - (self.time() - self._last_tick)
-
+            self.idle()
         # tick the current time
         current = self.time()
+
         self._dt = current - self._last_tick
         self._frames += 1
         self._fps_counter += 1
         self._last_tick = current
+
+        # compute how long the event processing takes
+        self._duration_count += 1
+        self._sleep_time += current - ts
+        t_tot = current - self._duration_ts0
+        if t_tot >= 1.:
+            self.events_duration = \
+                (t_tot - self._sleep_time) / float(self._duration_count)
+            self._duration_ts0 = current
+            self._sleep_time = self._duration_count = 0
 
         # calculate fps things
         if self._last_fps_tick is None:
