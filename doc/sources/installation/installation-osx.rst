@@ -154,12 +154,12 @@ You can install Kivy with Macports and pip using the following steps:
     2. Install and set Python 3.4 as the default::
 
         $ port install python34
-	$ port select --set python python34
+        $ port select --set python python34
 
     3. Install and set pip as the default::
 
         $ port install pip-34
-	$ port select --set pip pip-34
+        $ port select --set pip pip-34
 
     4. Install the requirements using `Macports <https://www.macports.org>`_::
 
