@@ -66,7 +66,7 @@ The garden lib will be only available when you activate this env::
     deactivate
 
 To install binary files
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Just copy the binary to the /Applications/Kivy.app/Contents/Resources/venv/bin/ directory.
 

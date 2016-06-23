@@ -87,7 +87,8 @@ GStreamer.
 Installing modules
 ~~~~~~~~~~~~~~~~~~
 
-Kivy package on osx uses its own virtual env that is activated when you run your app using `kivy` command.
+Kivy package on osx uses its own virtual env that is activated when you run
+your app using `kivy` command.
 To install any module you need to install the module like so::
 
     $ kivy -m pip install <modulename>
@@ -157,7 +158,8 @@ To make a DMG of your app use the following command::
     osx> ./create-osx-dmg.sh YourApp.app
 
 Note the lack of `/` at the end.
-This should give you a compressed dmg that will further shrink the size of your distributed app.
+This should give you a compressed dmg that will further shrink the size of your
+distributed app.
 
 
 .. _osx_pyinstaller:
@@ -237,24 +239,25 @@ Using PyInstaller and Homebrew
     Package your app on the oldest OS X version you want to support.
 
 Complete guide
-^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~
 #. Install `Homebrew <http://brew.sh>`_
 #. Install Python::
 
     $ brew install python
 
    .. note::
-     To use Python 3, ``brew install python3`` and replace ``pip`` with ``pip3``
-     in the guide below.
+     To use Python 3, ``brew install python3`` and replace ``pip`` with
+     ``pip3`` in the guide below.
 
-#. (Re)install your dependencies with ``--build-bottle`` to make sure they can be
-   used on other machines::
+#. (Re)install your dependencies with ``--build-bottle`` to make sure they can
+   be used on other machines::
 
     $ brew reinstall --build-bottle sdl2 sdl2_image sdl2_ttf sdl2_mixer
 
    .. note::
-       If your project depends on GStreamer or other additional libraries (re)install
-       them with ``--build-bottle`` as described `below <additional libraries_>`_.
+       If your project depends on GStreamer or other additional libraries
+       (re)install them with ``--build-bottle`` as described
+       `below <additional libraries_>`_.
 
 #. Install Cython and Kivy::
 
@@ -275,19 +278,20 @@ Complete guide
       /usr/local/share/kivy-examples/demo/touchtracer/main.py
 
    .. note::
-     This will not yet copy additional image or sound files. You would need to adapt the
-     created ``.spec`` file for that.
+     This will not yet copy additional image or sound files. You would need to
+     adapt the created ``.spec`` file for that.
 
 
 Editing the spec file
-^^^^^^^^^^^^^^^^^^^^^
-The specs file is named `touchtracer.spec` and is located in the directory where you ran
-the pyinstaller command.
+~~~~~~~~~~~~~~~~~~~~~
+The specs file is named `touchtracer.spec` and is located in the directory
+where you ran the pyinstaller command.
 
 You need to change the `COLLECT()` call to add the data of touchtracer
 (`touchtracer.kv`, `particle.png`, ...). Change the line to add a Tree()
 object. This Tree will search and add every file found in the touchtracer
-directory to your final package. Your COLLECT section should look something like this::
+directory to your final package. Your COLLECT section should look something
+like this::
 
 
     coll = COLLECT(exe, Tree('/usr/local/share/kivy-examples/demo/touchtracer/'),
@@ -298,11 +302,11 @@ directory to your final package. Your COLLECT section should look something like
                    upx=True,
                    name='touchtracer')
 
-This will add the required hooks so that PyInstaller gets the required Kivy files.
-We are done. Your spec is ready to be executed.
+This will add the required hooks so that PyInstaller gets the required Kivy
+files. We are done. Your spec is ready to be executed.
 
 Build the spec and create a DMG
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #. Open a console.
 #. Go to the PyInstaller directory, and build the spec::
@@ -319,17 +323,19 @@ Build the spec and create a DMG
 
 
 Additional Libraries
-^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~
 GStreamer
-"""""""""
+^^^^^^^^^
 If your project depends on GStreamer::
 
     $ brew reinstall --build-bottle gstreamer gst-plugins-{base,good,bad,ugly}
 
 .. note::
-    If your Project needs Ogg Vorbis support be sure to add the ``--with-libvorbis``
-    option to the command above.
+    If your Project needs Ogg Vorbis support be sure to add the
+    ``--with-libvorbis`` option to the command above.
 
-If you are using Python from Homebrew you currently also need the following step until `this pull request <https://github.com/Homebrew/homebrew/pull/46097>`_ gets merged::
+If you are using Python from Homebrew you will also need the following step
+until `this pull request <https://github.com/Homebrew/homebrew/pull/46097>`_
+gets merged::
 
     $ brew reinstall --with-python --build-bottle https://github.com/cbenhagen/homebrew/raw/patch-3/Library/Formula/gst-python.rb

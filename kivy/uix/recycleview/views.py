@@ -30,6 +30,7 @@ _cache_count = 0
 # maximum number of items in the class cache
 _max_cache_size = 1000
 
+
 def _clean_cache():
     '''Trims _cached_views cache to half the size of `_max_cache_size`.
     '''
@@ -115,8 +116,8 @@ class RecycleDataAdapter(EventDispatcher):
           This occurs when the view is not currently displayed but the data has
           not changed. These views are stored in :attr:`dirty_views`.
         * Finally the view can be dead which occurs when the data changes and
-        the view was not updated or when a view is just created. Such views are
-        typically added to the internal cache.
+          the view was not updated or when a view is just created. Such views
+          are typically added to the internal cache.
 
     Typically what happens is that the layout manager lays out the data
     and then asks for views, using :meth:`set_visible_views,` for some specific

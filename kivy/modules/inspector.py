@@ -723,7 +723,7 @@ class Inspector(FloatLayout):
 
 def create_inspector(win, ctx, *l):
     '''Create an Inspector instance attached to the *ctx* and bound to the
-    Windows :meth:`~kivy.core.window.WindowBase.on_keyboard` event for
+    Window's :meth:`~kivy.core.window.WindowBase.on_keyboard` event for
     capturing the keyboard shortcut.
 
         :Parameters:

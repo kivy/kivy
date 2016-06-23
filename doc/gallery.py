@@ -10,6 +10,7 @@ in the examples/ directory to create rst files in the generation_dir
 
 import os
 import re
+from os.path import sep
 from os.path import join as slash  # just like that name better
 from kivy.logger import Logger
 import textwrap
@@ -52,7 +53,7 @@ def iter_filename_info(dir_name):
                     yield {'error': 'png filename not following screenshot'
                                     ' pattern: {}'.format(filename)}
                 else:
-                    d = m.group(2).replace('__', os.path.sep)
+                    d = m.group(2).replace('__', sep)
                     yield {'dunder': m.group(1),
                            'dir': d,
                            'file': m.group(3),
@@ -134,7 +135,10 @@ def enhance_info_description(info, line_length=50):
             info['files'].append(name)
 
     # add links where the files are referenced
-    text = re.sub(r'([tT]he (?:file|image) )([\w\/]+\.\w+)', r'\1`\2`_', text)
+    folder = '_'.join(info['source'].split(sep)[:-1]) + '_'
+    text = re.sub(r'([tT]he (?:file|image) )([\w\/]+\.\w+)',
+                  r'\1:ref:`\2 <$folder$\2>`', text)
+    text = text.replace('$folder$', folder)
 
     # now break up text into array of paragraphs, each an array of lines.
     lines = text.split('\n')
@@ -257,7 +261,10 @@ def make_detail_page(info):
     for fname in info['files']:
         full_name = slash(info['dir'], fname)
         ext = re.search(r'\.\w+$', fname).group(0)
-        a('\n.. _`' + fname + '`:')
+        a('\n.. _`' + full_name.replace(sep, '_') + '`:')
+        # double separator if building on windows (sphinx skips backslash)
+        if '\\' in full_name:
+            full_name = full_name.replace(sep, sep*2)
 
         if ext in ['.png', '.jpg', '.jpeg']:
             title = 'Image **' + full_name + '**'
@@ -290,7 +297,7 @@ def write_file(name, s):
 
 
 def make_index(infos):
-    ''' return string of the rst for the gallary's index.rst file. '''
+    ''' return string of the rst for the gallery's index.rst file. '''
     start_string = '''
 Gallery of Examples
 ===================

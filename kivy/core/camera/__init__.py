@@ -9,9 +9,6 @@ Core class for acquiring the camera and converting its input into a
     There is now 2 distinct Gstreamer implementation: one using Gi/Gst
     working for both Python 2+3 with Gstreamer 1.0, and one using PyGST
     working only for Python 2 + Gstreamer 0.10.
-    If you have issue with GStreamer, have a look at
-    :ref:`gstreamer-compatibility`
-
 '''
 
 __all__ = ('CameraBase', 'Camera')

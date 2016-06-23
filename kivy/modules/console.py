@@ -5,9 +5,9 @@ Console
 
 .. versionadded:: 1.9.1
 
-Reboot of the old inspector, designed to be modular and keep concerns separated.
-It also have a addons architecture that allow you to add a button, panel, or
-more in the Console itself.
+Reboot of the old inspector, designed to be modular and keep concerns
+separated. It also have a addons architecture that allow you to add a button,
+panel, or more in the Console itself.
 
 .. warning::
 
@@ -837,13 +837,13 @@ class Console(RelativeLayout):
         """Add a new panel in the Console.
 
         - `cb_activate` is a callable that will be called when the panel is
-        activated by the user.
+          activated by the user.
 
         - `cb_deactivate` is a callable that will be called when the panel is
-        deactivated or when the console will hide.
+          deactivated or when the console will hide.
 
         - `cb_refresh` is an optionnal callable that is called if the user
-        click again on the button for display the panel
+          click again on the button for display the panel
 
         When activated, it's up to the panel to display a content in the
         Console by using :meth:`set_content`.
@@ -980,7 +980,7 @@ class Console(RelativeLayout):
         self.y = -self.height
         self.widget = None
         self.inspect_enabled = False
-        #self.win.remove_widget(self)
+        # self.win.remove_widget(self)
         self._window_node = None
         Logger.info('Console: console deactivated')
 
@@ -1037,8 +1037,8 @@ def create_console(win, ctx, *l):
 
 def start(win, ctx):
     """Create an Console instance attached to the *ctx* and bound to the
-    Windows :meth:`~kivy.core.window.WindowBase.on_keyboard` event for capturing
-    the keyboard shortcut.
+    Window's :meth:`~kivy.core.window.WindowBase.on_keyboard` event for
+    capturing the keyboard shortcut.
 
         :Parameters:
             `win`: A :class:`Window <kivy.core.window.WindowBase>`

@@ -667,7 +667,7 @@ class WindowBase(EventDispatcher):
 
     .. versionadded:: 1.9.1
 
-    :attr:`focus` is a read-only :class:`~kivy.properties.AliasProperty and
+    :attr:`focus` is a read-only :class:`~kivy.properties.AliasProperty` and
     defaults to True.
     '''
 
