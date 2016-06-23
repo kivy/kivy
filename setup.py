@@ -722,6 +722,7 @@ graphics_dependencies = {
 
 sources = {
     '_event.pyx': merge(base_flags, {'depends': ['properties.pxd']}),
+    '_clock.pyx': {},
     'weakproxy.pyx': {},
     'properties.pyx': merge(base_flags, {'depends': ['_event.pxd']}),
     'graphics/buffer.pyx': base_flags,

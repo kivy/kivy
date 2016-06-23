@@ -126,6 +126,7 @@ class SoundSDL2(Sound):
         return extensions
 
     def __init__(self, **kwargs):
+        self._check_play_ev = None
         self.cc = ChunkContainer()
         mix_init()
         super(SoundSDL2, self).__init__(**kwargs)
@@ -169,7 +170,7 @@ class SoundSDL2(Sound):
                            self.filename, Mix_GetError()))
             return
         # schedule event to check if the sound is still playing or not
-        Clock.schedule_interval(self._check_play, 0.1)
+        self._check_play_ev = Clock.schedule_interval(self._check_play, 0.1)
         super(SoundSDL2, self).play()
 
     def stop(self):
@@ -179,7 +180,9 @@ class SoundSDL2(Sound):
         if Mix_GetChunk(cc.channel) == cc.chunk:
             Mix_HaltChannel(cc.channel)
         cc.channel = -1
-        Clock.unschedule(self._check_play)
+        if self._check_play_ev is not None:
+            self._check_play_ev.cancel()
+            self._check_play_ev = None
         super(SoundSDL2, self).stop()
 
     def load(self):
@@ -243,6 +246,7 @@ class MusicSDL2(Sound):
 
     def __init__(self, **kwargs):
         self.mc = MusicContainer()
+        self._check_play_ev = None
         mix_init()
         super(MusicSDL2, self).__init__(**kwargs)
 
@@ -279,7 +283,7 @@ class MusicSDL2(Sound):
             return
         mc.playing = 1
         # schedule event to check if the sound is still playing or not
-        Clock.schedule_interval(self._check_play, 0.1)
+        self._check_play_ev = Clock.schedule_interval(self._check_play, 0.1)
         super(MusicSDL2, self).play()
 
     def stop(self):
@@ -288,7 +292,9 @@ class MusicSDL2(Sound):
             return
         Mix_HaltMusic()
         mc.playing = 0
-        Clock.unschedule(self._check_play)
+        if self._check_play_ev is not None:
+            self._check_play_ev.cancel()
+            self._check_play_ev = None
         super(MusicSDL2, self).stop()
 
     def load(self):

@@ -685,6 +685,8 @@ class WindowBase(EventDispatcher):
     canvas = ObjectProperty(None)
     title = StringProperty('Kivy')
 
+    trigger_create_window = None
+
     __events__ = (
         'on_draw', 'on_flip', 'on_rotate', 'on_resize', 'on_close',
         'on_minimize', 'on_maximize', 'on_restore', 'on_hide', 'on_show',
@@ -924,7 +926,7 @@ class WindowBase(EventDispatcher):
         '''
         # just to be sure, if the trigger is set, and if this method is
         # manually called, unset the trigger
-        Clock.unschedule(self.create_window)
+        self.trigger_create_window.cancel()
 
         # ensure the window creation will not be called twice
         if platform in ('android', 'ios'):

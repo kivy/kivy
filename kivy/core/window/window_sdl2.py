@@ -131,6 +131,8 @@ class SDL2MotionEventProvider(MotionEventProvider):
 
 class WindowSDL(WindowBase):
 
+    _do_resize_ev = None
+
     def __init__(self, **kwargs):
         self._pause_loop = False
         self._win = _WindowSDL2Storage()
@@ -481,9 +483,11 @@ class WindowSDL(WindowBase):
             elif action == 'windowresized':
                 self._size = self._win.window_size
                 # don't use trigger here, we want to delay the resize event
-                cb = self._do_resize
-                Clock.unschedule(cb)
-                Clock.schedule_once(cb, .1)
+                ev = self._do_resize_ev
+                if ev is None:
+                    ev = self._do_resize_ev = Clock.schedule_once(self._do_resize, .1)
+                else:
+                    ev()
 
             elif action == 'windowresized':
                 self.canvas.ask_update()

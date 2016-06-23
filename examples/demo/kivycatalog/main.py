@@ -114,6 +114,7 @@ class Catalog(BoxLayout):
     '''
     language_box = ObjectProperty()
     screen_manager = ObjectProperty()
+    _change_kv_ev = None
 
     def __init__(self, **kwargs):
         self._previously_parsed_text = ''
@@ -130,7 +131,8 @@ class Catalog(BoxLayout):
         child = self.screen_manager.current_screen.children[0]
         with open(child.kv_file, 'rb') as file:
             self.language_box.text = file.read().decode('utf8')
-        Clock.unschedule(self.change_kv)
+        if self._change_kv_ev is not None:
+            self._change_kv_ev.cancel()
         self.change_kv()
         # reset undo/redo history
         self.language_box.reset_undo()
@@ -142,8 +144,11 @@ class Catalog(BoxLayout):
             if txt == child.previous_text:
                 return
             child.previous_text = txt
-            Clock.unschedule(self.change_kv)
-            Clock.schedule_once(self.change_kv, 2)
+            if self._change_kv_ev is not None:
+                self._change_kv_ev.cancel()
+            if self._change_kv_ev is None:
+                self._change_kv_ev = Clock.create_trigger(self.change_kv, 2)
+            self._change_kv_ev()
 
     def change_kv(self, *largs):
         '''Called when the update button is clicked. Needs to update the

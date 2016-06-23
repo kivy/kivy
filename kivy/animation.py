@@ -115,6 +115,8 @@ class Animation(EventDispatcher):
 
     '''
 
+    _update_ev = None
+
     _instances = set()
 
     __events__ = ('on_start', 'on_progress', 'on_complete')
@@ -292,14 +294,16 @@ class Animation(EventDispatcher):
     def _clock_install(self):
         if self._clock_installed:
             return
-        Clock.schedule_interval(self._update, self._step)
+        self._update_ev = Clock.schedule_interval(self._update, self._step)
         self._clock_installed = True
 
     def _clock_uninstall(self):
         if self._widgets or not self._clock_installed:
             return
         self._clock_installed = False
-        Clock.unschedule(self._update)
+        if self._update_ev is not None:
+            self._update_ev.cancel()
+            self._update_ev = None
 
     def _update(self, dt):
         widgets = self._widgets

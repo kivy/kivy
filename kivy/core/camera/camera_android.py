@@ -33,6 +33,8 @@ class CameraAndroid(CameraBase):
     Implementation of CameraBase using Android API
     """
 
+    _update_ev = None
+
     def __init__(self, **kwargs):
         self._android_camera = None
         self._preview_cb = PreviewCallback(self._on_preview_frame)
@@ -124,12 +126,15 @@ class CameraAndroid(CameraBase):
         self._android_camera.setPreviewCallbackWithBuffer(self._preview_cb)
 
         self._android_camera.startPreview()
-        Clock.unschedule(self._update)
-        Clock.schedule_interval(self._update, 1. / self.fps)
+        if self._update_ev is not None:
+            self._update_ev.cancel()
+        self._update_ev = Clock.schedule_interval(self._update, 1 / self.fps)
 
     def stop(self):
         super(CameraAndroid, self).stop()
-        Clock.unschedule(self._update)
+        if self._update_ev is not None:
+            self._update_ev.cancel()
+            self._update_ev = None
         self._android_camera.stopPreview()
 
         self._android_camera.setPreviewCallbackWithBuffer(None)

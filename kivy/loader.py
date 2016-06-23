@@ -83,6 +83,7 @@ class LoaderBase(object):
     The _update() function is called every 1 / 25.s or each frame if we have
     less than 25 FPS.
     '''
+    _trigger_update = None
 
     def __init__(self):
         self._loading_image = None
@@ -100,10 +101,8 @@ class LoaderBase(object):
         self._trigger_update = Clock.create_trigger(self._update)
 
     def __del__(self):
-        try:
-            Clock.unschedule(self._update)
-        except Exception:
-            pass
+        if self._trigger_update is not None:
+            self._trigger_update.cancel()
 
     def _set_num_workers(self, num):
         if num < 2:

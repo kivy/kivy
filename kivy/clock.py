@@ -22,7 +22,8 @@ elapsed between the scheduling and the calling of the callback via the
 
 .. note::
 
-    If the callback returns False, the schedule will be removed.
+    If the callback returns False, the schedule will be canceled and won't
+    repeat.
 
 If you want to schedule a function to call with default arguments, you can use
 the `functools.partial
@@ -114,9 +115,11 @@ Triggered Events
 
 .. versionadded:: 1.0.5
 
-A triggered event is a way to defer a callback exactly like schedule_once(),
-but with some added convenience. The callback will only be scheduled once per
-frame even if you call the trigger twice (or more). This is not the case
+A triggered event is a way to defer a callback. It functions exactly like
+schedule_once() and schedule_interval() except that it doesn't immediately
+schedule the callback. Instead, one schedules the callback using the
+:class:`ClockEvent` returned by it. This ensures that you can call the event
+multiple times but it won't be scheduled more than once. This is not the case
 with :meth:`Clock.schedule_once`::
 
     # will run the callback twice before the next frame
@@ -124,18 +127,16 @@ with :meth:`Clock.schedule_once`::
     Clock.schedule_once(my_callback)
 
     # will run the callback once before the next frame
-    t = Clock.create_trigger(my_callback)
-    t()
-    t()
+    event = Clock.create_trigger(my_callback)
+    event()
+    event()
 
-Before triggered events, you may have used this approach in a widget::
+    # will also run the callback only once before the next frame
+    event = Clock.schedule_once(my_callback)  # now it's already scheduled
+    event()  # won't be scheduled again
+    event()
 
-    def trigger_callback(self, *largs):
-        Clock.unschedule(self.callback)
-        Clock.schedule_once(self.callback)
-
-As soon as you call `trigger_callback()`, it will correctly schedule the
-callback once in the next frame. It is more convenient to create and bind to
+In addition, it is more convenient to create and bind to
 the triggered event than using :meth:`Clock.schedule_once` in a function::
 
     from kivy.clock import Clock
@@ -152,62 +153,73 @@ the triggered event than using :meth:`Clock.schedule_once` in a function::
 
 Even if x and y changes within one frame, the callback is only run once.
 
-.. note::
+:meth:`CyClockBase.create_trigger` has a timeout parameter that
+behaves exactly like :meth:`CyClockBase.schedule_once`.
 
-    :meth:`ClockBase.create_trigger` also has a timeout parameter that
-    behaves exactly like :meth:`ClockBase.schedule_once`.
+..versionchanged:: 1.9.2
 
-Threading
-----------
+    :meth:`CyClockBase.create_trigger` now has a ``interval`` parameter.
+    If False, the default, it'll create an event similar to
+    :meth:`CyClockBase.schedule_once`. Otherwise it'll create an event
+    similar to :meth:`CyClockBase.schedule_interval`.
 
-.. versionadded:: 1.9.0
+Unscheduling
+-------------
 
-Often, other threads are used to schedule callbacks with kivy's main thread
-using :class:`ClockBase`. Therefore, it's important to know what is thread safe
-and what isn't.
+An event scheduled with :meth:`CyClockBase.schedule_once`,
+:meth:`CyClockBase.schedule_interval`, or with
+:meth:`CyClockBase.create_trigger`and then triggered can be unscheduled in
+multiple ways. E.g::
 
-All the :class:`ClockBase` and :class:`ClockEvent` methods are safe with
-respect to kivy's thread. That is, it's always safe to call these methods
-from a single thread that is not the kivy thread. However, there are no
-guarantees as to the order in which these callbacks will be executed.
+    def my_callback(dt):
+        pass
 
-Calling a previously created trigger from two different threads (even if one
-of them is the kivy thread), or calling the trigger and its
-:meth:`ClockEvent.cancel` method from two different threads at the same time is
-not safe. That is, although no exception will be raised, there no guarantees
-that calling the trigger from two different threads will not result in the
-callback being executed twice, or not executed at all. Similarly, such issues
-might arise when calling the trigger and canceling it with
-:meth:`ClockBase.unschedule` or :meth:`ClockEvent.cancel` from two threads
-simultaneously.
+    # call my_callback every 0.5 seconds
+    event = Clock.schedule_interval(my_callback, 0.5)
 
-Therefore, it is safe to call :meth:`ClockBase.create_trigger`,
-:meth:`ClockBase.schedule_once`, :meth:`ClockBase.schedule_interval`, or
-call or cancel a previously created trigger from an external thread.
-The following code, though, is not safe because it calls or cancels
-from two threads simultaneously without any locking mechanism::
+    # call my_callback in 5 seconds
+    event2 = Clock.schedule_once(my_callback, 5)
 
-    event = Clock.create_trigger(func)
+    event_trig = Clock.create_trigger(my_callback, 5)
+    event_trig()
 
-    # in thread 1
-    event()
-    # in thread 2
-    event()
-    # now, the event may be scheduled twice or once
-
-    # the following is also unsafe
-    # in thread 1
-    event()
-    # in thread 2
+    # unschedule using cancel
     event.cancel()
-    # now, the event may or may not be scheduled and a subsequent call
-    # may schedule it twice
 
-Note, in the code above, thread 1 or thread 2 could be the kivy thread, not
-just an external thread.
+    # unschedule using Clock.unschedule
+    Clock.unschedule(event2)
+
+    # unschedule using Clock.unschedule with the callback
+    # NOT RECCOMENDED
+    Clock.unschedule(my_callback)
+
+The best way to unschedule a callback is with :meth:`ClockEvent.cancel`.
+:meth:`CyClockBase.unschedule` is mainly an alias for that for that function.
+However, if the original callback itself is passed to
+:meth:`CyClockBase.unschedule`, it'll unschedule all instances of that
+callback (provided ``all`` is True, the default, other just the first match is
+removed).
+
+Calling :meth:`CyClockBase.unschedule` on the original callback is highly
+discouraged because it's significantly slower than when using the event.
+
+Threading and Callback Order
+-----------------------------
+
+Beginning with 1.9.2, all the events scheduled for the same frame, e.g.
+all the events scheduled in the same frame with a ``timeout`` of ``0``,
+well be executed in the order they were scheduled.
+
+Also, all the scheduling and canceling methods are fully thread safe and
+can be safely used from external threads.
+
+As a a consequence, calling :meth:`CyClockBase.unschedule` with the original
+callback is now significantly slower and highly discouraged. Instead, the
+returned events should be used to cancel. As a tradeoff, all the other methods
+are now significantly faster than before.
 '''
 
-__all__ = ('Clock', 'ClockBase', 'ClockEvent', 'mainthread')
+__all__ = ('Clock', 'CyClockBase', 'ClockBase', 'ClockEvent', 'mainthread')
 
 from sys import platform
 from os import environ
@@ -218,7 +230,12 @@ from kivy.config import Config
 from kivy.logger import Logger
 from kivy.compat import clock as _default_time
 import time
+from threading import Lock
+from kivy._clock import CyClockBase, ClockEvent
 
+
+def _get_sleep_obj():
+    pass
 try:
     import ctypes
     if platform in ('win32', 'cygwin'):
@@ -229,16 +246,15 @@ try:
 
         _kernel32 = ctypes.windll.kernel32
 
-        class _ClockBase(object):
-            def __init__(self):
-                self._timer = _kernel32.CreateWaitableTimerA(None, True, None)
+        def _get_sleep_obj():
+            return _kernel32.CreateWaitableTimerA(None, True, None)
 
-            def usleep(self, microseconds):
-                delay = ctypes.c_longlong(int(-microseconds * 10))
-                _kernel32.SetWaitableTimer(
-                    self._timer, ctypes.byref(delay), 0,
-                    ctypes.c_void_p(), ctypes.c_void_p(), False)
-                _kernel32.WaitForSingleObject(self._timer, 0xffffffff)
+        def _usleep(microseconds, obj=None):
+            delay = ctypes.c_longlong(int(-microseconds * 10))
+            _kernel32.SetWaitableTimer(
+                obj, ctypes.byref(delay), 0,
+                ctypes.c_void_p(), ctypes.c_void_p(), False)
+            _kernel32.WaitForSingleObject(obj, 0xffffffff)
     else:
         if platform == 'darwin':
             _libc = ctypes.CDLL('libc.dylib')
@@ -287,9 +303,8 @@ try:
         _libc.usleep.argtypes = [ctypes.c_ulong]
         _libc_usleep = _libc.usleep
 
-        class _ClockBase(object):
-            def usleep(self, microseconds):
-                _libc_usleep(int(microseconds))
+        def _usleep(microseconds, obj=None):
+            _libc_usleep(int(microseconds))
 
 except (OSError, ImportError, AttributeError):
     # ImportError: ctypes is not available on python-for-android.
@@ -298,163 +313,34 @@ except (OSError, ImportError, AttributeError):
     # OSError: if the libc cannot be readed (like with buildbot: invalid ELF
     # header)
 
-    _default_sleep = time.sleep
-
-    class _ClockBase(object):
-        def usleep(self, microseconds):
-            _default_sleep(microseconds / 1000000.)
+    def _usleep(microseconds, obj=None):
+        time.sleep(microseconds / 1000000.)
 
 
-def _hash(cb):
-    if hasattr(cb, '__self__') and cb.__self__ is not None:
-        return (id(cb.__self__) & 0xFF00) >> 8
-    return (id(cb) & 0xFF00) >> 8
-
-
-class ClockEvent(object):
-    ''' A class that describes a callback scheduled with kivy's :attr:`Clock`.
-    This class is never created by the user; instead, kivy creates and returns
-    an instance of this class when scheduling a callback.
-
-    .. warning::
-        Most of the methods of this class are internal and can change without
-        notice. The only exception are the :meth:`cancel` and
-        :meth:`__call__` methods.
-    '''
-
-    def __init__(self, clock, loop, callback, timeout, starttime, cid,
-                 trigger=False):
-        self.clock = clock
-        self.cid = cid
-        self.loop = loop
-        self.weak_callback = None
-        self.callback = callback
-        self.timeout = timeout
-        self._is_triggered = trigger
-        self._last_dt = starttime
-        self._dt = 0.
-        if trigger:
-            clock._events[cid].append(self)
-
-    def __call__(self, *largs):
-        ''' Schedules the callback associated with this instance.
-        If the callback is already scheduled, it will not be scheduled again.
-        '''
-        # if the event is not yet triggered, do it !
-        if not self._is_triggered:
-            self._is_triggered = True
-            # update starttime
-            self._last_dt = self.clock._last_tick
-            self.clock._events[self.cid].append(self)
-            return True
-
-    def get_callback(self):
-        callback = self.callback
-        if callback is not None:
-            return callback
-        callback = self.weak_callback
-        if callback.is_dead():
-            return None
-        return callback()
-
-    @property
-    def is_triggered(self):
-        return self._is_triggered
-
-    def cancel(self):
-        ''' Cancels the callback if it was scheduled to be called.
-        '''
-        if self._is_triggered:
-            self._is_triggered = False
-            try:
-                self.clock._events[self.cid].remove(self)
-            except ValueError:
-                pass
-
-    def release(self):
-        self.weak_callback = WeakMethod(self.callback)
-        self.callback = None
-
-    def tick(self, curtime, remove):
-        # timeout happened ? (check also if we would miss from 5ms) this
-        # 5ms increase the accuracy if the timing of animation for
-        # example.
-        if curtime - self._last_dt < self.timeout - 0.005:
-            return True
-
-        # calculate current timediff for this event
-        self._dt = curtime - self._last_dt
-        self._last_dt = curtime
-        loop = self.loop
-
-        # get the callback
-        callback = self.get_callback()
-        if callback is None:
-            self._is_triggered = False
-            try:
-                remove(self)
-            except ValueError:
-                pass
-            return False
-
-        # if it's a trigger, allow to retrigger inside the callback
-        # we have to remove event here, otherwise, if we remove later, the user
-        # might have canceled in the callback and then re-triggered. That'd
-        # result in the removal of the re-trigger
-        if not loop:
-            self._is_triggered = False
-            try:
-                remove(self)
-            except ValueError:
-                pass
-
-        # call the callback
-        ret = callback(self._dt)
-
-        # if the user returns False explicitly, remove the event
-        if loop and ret is False:
-            self._is_triggered = False
-            try:
-                remove(self)
-            except ValueError:
-                pass
-            return False
-        return loop
-
-    def __repr__(self):
-        return '<ClockEvent callback=%r>' % self.get_callback()
-
-
-class ClockBase(_ClockBase):
+class ClockBase(CyClockBase):
     '''A clock object with event support.
     '''
-    __slots__ = ('_dt', '_last_fps_tick', '_last_tick', '_fps', '_rfps',
-                 '_start_tick', '_fps_counter', '_rfps_counter', '_events',
-                 '_frames', '_frames_displayed',
-                 '_max_fps', 'max_iteration')
+
+    _dt = 0.0001
+    _last_fps_tick = None
+    _start_tick = 0
+    _fps = 0
+    _rfps = 0
+    _fps_counter = 0
+    _rfps_counter = 0
+    _frames = 0
+    _frames_displayed = 0
+    _max_fps = 30.
+    _sleep_obj = None
 
     MIN_SLEEP = 0.005
     SLEEP_UNDERSHOOT = MIN_SLEEP - 0.001
 
     def __init__(self):
         super(ClockBase, self).__init__()
-        self._dt = 0.0001
+        self._sleep_obj = _get_sleep_obj()
         self._start_tick = self._last_tick = self.time()
-        self._fps = 0
-        self._rfps = 0
-        self._fps_counter = 0
-        self._rfps_counter = 0
-        self._last_fps_tick = None
-        self._frames = 0
-        self._frames_displayed = 0
-        self._events = [[] for i in range(256)]
         self._max_fps = float(Config.getint('graphics', 'maxfps'))
-
-        #: .. versionadded:: 1.0.5
-        #:     When a schedule_once is used with -1, you can add a limit on
-        #:     how iteration will be allowed. That is here to prevent too much
-        #:     relayout.
-        self.max_iteration = 10
 
     @property
     def frametime(self):
@@ -479,6 +365,11 @@ class ClockBase(_ClockBase):
         '''Number of displayed frames from the start of the clock.
         '''
         return self._frames_displayed
+
+    def usleep(self, microseconds):
+        '''Sleeps for the number of microseconds.
+        '''
+        _usleep(microseconds, self._sleep_obj)
 
     def tick(self):
         '''Advance the clock to the next step. Must be called every frame.
@@ -550,132 +441,6 @@ class ClockBase(_ClockBase):
     def get_boottime(self):
         '''Get the time in seconds from the application start.'''
         return self._last_tick - self._start_tick
-
-    def create_trigger(self, callback, timeout=0):
-        '''Create a Trigger event. Check module documentation for more
-        information.
-
-        :returns:
-
-            A :class:`ClockEvent` instance. To schedule the callback of this
-            instance, you can call it.
-
-        .. versionadded:: 1.0.5
-        '''
-        ev = ClockEvent(self, False, callback, timeout, 0, _hash(callback))
-        ev.release()
-        return ev
-
-    def schedule_once(self, callback, timeout=0):
-        '''Schedule an event in <timeout> seconds. If <timeout> is unspecified
-        or 0, the callback will be called after the next frame is rendered.
-
-        :returns:
-
-            A :class:`ClockEvent` instance. As opposed to
-            :meth:`create_trigger` which only creates the trigger event, this
-            method also schedules it.
-
-        .. versionchanged:: 1.0.5
-            If the timeout is -1, the callback will be called before the next
-            frame (at :meth:`tick_draw`).
-        '''
-        if not callable(callback):
-            raise ValueError('callback must be a callable, got %s' % callback)
-        event = ClockEvent(
-            self, False, callback, timeout, self._last_tick, _hash(callback),
-            True)
-        return event
-
-    def schedule_interval(self, callback, timeout):
-        '''Schedule an event to be called every <timeout> seconds.
-
-        :returns:
-
-            A :class:`ClockEvent` instance. As opposed to
-            :meth:`create_trigger` which only creates the trigger event, this
-            method also schedules it.
-        '''
-        if not callable(callback):
-            raise ValueError('callback must be a callable, got %s' % callback)
-        event = ClockEvent(
-            self, True, callback, timeout, self._last_tick, _hash(callback),
-            True)
-        return event
-
-    def unschedule(self, callback, all=True):
-        '''Remove a previously scheduled event.
-
-        :parameters:
-
-            `callback`: :class:`ClockEvent` or a callable.
-                If it's a :class:`ClockEvent` instance, then the callback
-                associated with this event will be canceled if it is
-                scheduled. If it's a callable, then the callable will be
-                unscheduled if it is scheduled.
-            `all`: bool
-                If True and if `callback` is a callable, all instances of this
-                callable will be unscheduled (i.e. if this callable was
-                scheduled multiple times). Defaults to `True`.
-
-        .. versionchanged:: 1.9.0
-            The all parameter was added. Before, it behaved as if `all` was
-            `True`.
-        '''
-        if isinstance(callback, ClockEvent):
-            callback.cancel()
-        else:
-            if all:
-                for ev in self._events[_hash(callback)][:]:
-                    if ev.get_callback() == callback:
-                        ev.cancel()
-            else:
-                for ev in self._events[_hash(callback)][:]:
-                    if ev.get_callback() == callback:
-                        ev.cancel()
-                        break
-
-    def _release_references(self):
-        # call that function to release all the direct reference to any
-        # callback and replace it with a weakref
-        events = self._events
-        for events in self._events:
-            for event in events[:]:
-                if event.callback is not None:
-                    event.release()
-
-    def _process_events(self):
-        for events in self._events:
-            remove = events.remove
-            for event in events[:]:
-                # event may be already removed from original list
-                if event in events:
-                    event.tick(self._last_tick, remove)
-
-    def _process_events_before_frame(self):
-        found = True
-        count = self.max_iteration
-        events = self._events
-        while found:
-            count -= 1
-            if count == -1:
-                Logger.critical(
-                    'Clock: Warning, too much iteration done before'
-                    ' the next frame. Check your code, or increase'
-                    ' the Clock.max_iteration attribute')
-                break
-
-            # search event that have timeout = -1
-            found = False
-            for events in self._events:
-                remove = events.remove
-                for event in events[:]:
-                    if event.timeout != -1:
-                        continue
-                    found = True
-                    # event may be already removed from original list
-                    if event in events:
-                        event.tick(self._last_tick, remove)
 
     time = staticmethod(partial(_default_time))
 

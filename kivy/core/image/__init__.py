@@ -477,6 +477,8 @@ class Image(EventDispatcher):
 
     data_uri_re = re.compile(r'^data:image/([^;,]*)(;[^,]*)?,(.*)$')
 
+    _anim_ev = None
+
     def __init__(self, arg, **kwargs):
         # this event should be fired on animation of sequenced img's
         self.register_event_type('on_texture')
@@ -594,9 +596,13 @@ class Image(EventDispatcher):
 
         '''
         # stop animation
-        Clock.unschedule(self._anim)
+        if self._anim_ev is not None:
+            self._anim_ev.cancel()
+            self._anim_ev = None
+
         if allow_anim and self._anim_available and self._anim_delay >= 0:
-            Clock.schedule_interval(self._anim, self.anim_delay)
+            self._anim_ev = Clock.schedule_interval(self._anim,
+                                                    self.anim_delay)
             self._anim()
 
     def _get_anim_delay(self):
@@ -607,9 +613,13 @@ class Image(EventDispatcher):
             return
         self._anim_delay = x
         if self._anim_available:
-            Clock.unschedule(self._anim)
+            if self._anim_ev is not None:
+                self._anim_ev.cancel()
+                self._anim_ev = None
+
             if self._anim_delay >= 0:
-                Clock.schedule_interval(self._anim, self._anim_delay)
+                self._anim_ev = Clock.schedule_interval(self._anim,
+                                                        self._anim_delay)
 
     anim_delay = property(_get_anim_delay, _set_anim_delay)
     '''Delay between each animation frame. A lower value means faster

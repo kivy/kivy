@@ -100,6 +100,8 @@ class VideoFFPy(VideoBase):
     }
     """
 
+    _trigger = None
+
     def __init__(self, **kwargs):
         self._ffplayer = None
         self._thread = None
@@ -315,7 +317,8 @@ class VideoFFPy(VideoBase):
         self.unload()
 
     def unload(self):
-        Clock.unschedule(self._redraw)
+        if self._trigger is not None:
+            self._trigger.cancel()
         self._ffplayer_need_quit = True
         if self._thread:
             self._thread.join()
