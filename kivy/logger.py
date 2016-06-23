@@ -186,7 +186,7 @@ class FileHandler(logging.Handler):
         msg = self.format(record)
         stream = FileHandler.fd
         fs = "%s\n"
-        stream.write('[%-18s] ' % record.levelname)
+        stream.write('[%-7s] ' % record.levelname)
         if PY2:
             try:
                 if (isinstance(msg, unicode) and
@@ -335,8 +335,16 @@ if 'KIVY_NO_CONSOLELOG' not in os.environ:
                 'xterm',
                 'xterm-256color',
                 ))
-        color_fmt = formatter_message(
-            '[%(levelname)-18s] %(message)s', use_color)
+        if not use_color:
+            # No additional control characters will be inserted inside the
+            # levelname field, 7 chars will fit "WARNING"
+            color_fmt = formatter_message(
+                '[%(levelname)-7s] %(message)s', use_color)
+        else:
+            # levelname field width need to take into account the length of the
+            # color control codes (7+4 chars for bold+color, and reset)
+            color_fmt = formatter_message(
+                '[%(levelname)-18s] %(message)s', use_color)
         formatter = ColoredFormatter(color_fmt, use_color=use_color)
         console = ConsoleHandler()
         console.setFormatter(formatter)
