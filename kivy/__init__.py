@@ -331,14 +331,19 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         mp_fork = None
         try:
-            mp_fork = opts['multiprocessing-fork']
+            for opt, arg in opts:
+                if opt == '--multiprocessing-fork':
+                    mp_fork = True
+                    break
         except:
             pass
 
         # set argv to the non-read args
         sys.argv = sys_argv[0:1] + args
         if mp_fork is not None:
-            sys.argv = sys.argv + ['--multiprocessing-fork']
+            # Needs to be first opt for support_freeze to work
+            sys.argv.insert(1, '--multiprocessing-fork')
+
     else:
         opts = []
         args = []
