@@ -102,6 +102,9 @@ class CameraBase(EventDispatcher):
         '''Initialise the camera (internal)'''
         pass
 
+    def release(self):
+        '''Release the camera'''
+
     def start(self):
         '''Start the camera acquire'''
         self.stopped = False
@@ -145,6 +148,5 @@ else:
     providers += (('pygst', 'camera_pygst', 'CameraPyGst'), )
 
 providers += (('opencv', 'camera_opencv', 'CameraOpenCV'), )
-
 
 Camera = core_select_lib('camera', (providers))

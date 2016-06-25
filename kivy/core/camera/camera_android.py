@@ -42,10 +42,10 @@ class CameraAndroid(CameraBase):
         super(CameraAndroid, self).__init__(**kwargs)
 
     def __del__(self):
-        self._release_camera()
+        self.release()
 
     def init_camera(self):
-        self._release_camera()
+        self.release()
         self._android_camera = Camera.open(self._index)
         params = self._android_camera.getParameters()
         width, height = self._resolution
@@ -90,7 +90,7 @@ class CameraAndroid(CameraBase):
                                         self._camera_texture.bind)
             Rectangle(size=self._resolution)
 
-    def _release_camera(self):
+    def release(self):
         if self._android_camera is None:
             return
 

@@ -47,9 +47,8 @@ class CameraPyGst(CameraBase):
 
     def init_camera(self):
         # TODO: This doesn't work when camera resolution is resized at runtime.
-        # There must be some other way to release the camera?
         if self._pipeline:
-            self._pipeline = None
+            self.release()
 
         video_src = self._video_src
         if video_src == 'v4l2src':
@@ -68,6 +67,13 @@ class CameraPyGst(CameraBase):
 
         if self._camerasink and not self.stopped:
             self.start()
+
+    def release(self):
+        if self._pipeline is None:
+            return
+        self.stop()
+        self._pipeline.set_state(gst.STATE_NULL)
+        self._pipeline = None
 
     def _gst_new_buffer(self, *largs):
         self._format = 'rgb'
