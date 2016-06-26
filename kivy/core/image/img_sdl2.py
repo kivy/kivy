@@ -11,7 +11,7 @@ from kivy.core.image import _img_sdl2
 
 
 class ImageLoaderSDL2(ImageLoaderBase):
-    '''Image loader based on the PIL library'''
+    '''Image loader based on SDL2_image'''
 
     def _ensure_ext(self):
         _img_sdl2.init()
