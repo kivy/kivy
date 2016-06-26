@@ -107,6 +107,7 @@ cdef int event_callback(XEvent *event):
                 
     elif event.type == ConfigureNotify:
         if (event.xconfigure.width != _window_object.system_size[0]) or (event.xconfigure.height != _window_object.system_size[1]):
+            _window_object._size = event.xconfigure.width, event.xconfigure.height
             _window_object.dispatch('on_resize', event.xconfigure.width, event.xconfigure.height)
 
     # mouse motion
@@ -205,6 +206,7 @@ class WindowX11(WindowBase):
         self._pos = (0, 0)
         self.system_size = size
         super(WindowX11, self).create_window()
+        self._unbind_create_window()
 
     def mainloop(self):
         while not EventLoop.quit and EventLoop.status == 'started':
