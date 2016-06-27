@@ -217,6 +217,132 @@ As a a consequence, calling :meth:`CyClockBase.unschedule` with the original
 callback is now significantly slower and highly discouraged. Instead, the
 returned events should be used to cancel. As a tradeoff, all the other methods
 are now significantly faster than before.
+
+Advanced Clock Details
+-----------------------
+
+The following section goes into the internal kivy clock details as well
+as the various clock options. It is meant only for advanced users.
+
+Fundamentally, the Kivy clock attempts to execute any scheduled callback
+rhythmically as determined by the specified fps (frame per second, see
+``maxfps`` in :mod:`~kivy.config`). That is, ideally, given e.g. a desired fps
+of 30, the clock will execute the callbacks at intervals of 1 / 30 seconds, or
+every 33.33 ms. All the callbacks in a frame are given the same timestamp,
+i.e. the ``dt`` passed to the callback are all the same and it's the difference
+in time between the start of this and the previous frame.
+
+Because of inherent indeterminism, the frames do not actually occur exactly
+at intervals of the fps and ``dt`` may be under or over the desired fps.
+Also, once the timeout is "close enough" to the desired timeout, as determined
+internally, Kivy will execute the callback in the current frame even when the
+"actual time" has not elapsed the ``timeout`` amount.
+
+Kivy offers now, since ``1.9.2``, multiple clocks with different behaviors.
+
+Default Clock
+^^^^^^^^^^^^^^
+
+The default clock (``default``) behaves as described above. When a callback
+with a timeout of zero or non-zero is scheduled, they are executed at the frame
+that is near the timeout, which is a function of the fps. So a timeout of zero
+would still result in a delay of one frame or about 1 / fps, typically a bit
+less but sometimes more depending on the CPU usage of the other events
+scheduled for that frame.
+
+In a test using a fps of 30, a callback with a timeout of 0, 0.001, and 0.05,
+resulted in a mean callback delay of 0.02487, 0.02488, and 0.05011 seconds,
+respectively. When tested with a fps of 600 the delay for 0.05 was similar,
+except the standard deviation was reduced resulting in overall better accuracy.
+
+Interruptible Clock
+^^^^^^^^^^^^^^^^^^^^
+
+The default clock suffers from the quantization problem, as frames occur only
+on intervals and any scheduled timeouts will not be able to occur during an
+interval. For example, with the timeout of 0.05, while the mean was 0.05011,
+its values ranged between 0.02548 - 0.07348 and a standard deviation of 0.002.
+Also, there's the minimum timeout of about 0.02487.
+
+The interruptible clock (``interrupt``) will execute timeouts even during a
+frame. So a timeout of zero will execute as quickly as possible and similarly
+a non-zero timeout will be executed even during the interval.
+
+This clock, and all the clocks described after this have an option,
+:attr:`ClockBaseInterruptBehavior.interupt_next_only`. When True, any of the
+behavior new behavior will only apply to the callbacks with a timeout of
+zero. Non-zero timeouts will behave like in the default clock. E.g. for this
+clock when True, only zero timeouts will execute during the the interval.
+
+In a test using a fps of 30, a callback with a timeout of 0, 0.001, and 0.05,
+resulted in a mean callback delay of 0.00013, 0.00013, and 0.04120 seconds,
+respectively when :attr:`ClockBaseInterruptBehavior.interupt_next_only` was
+False. Also, compared to the default clock the standard deviation was reduced.
+When :attr:`ClockBaseInterruptBehavior.interupt_next_only` was True, the values
+were 0.00010, 0.02414, and 0.05034, respectively.
+
+Free Clock
+^^^^^^^^^^^
+
+The interruptible clock may not be ideal for all cases because all the events
+are executed during the intervals and events are not executed anymore
+rhythmically as multiples of the fps. For example, there may not be any benefit
+for the graphics to update in a sub-interval, so the additional accuracy
+wastes CPU.
+
+The Free clock (``free_all``) solves this by having ``Clock.xxx_free`` versions
+of all the Clock scheduling methods. By free, we mean the event is free from
+the fps because it's not fps limited. E.g.
+:meth:`CyClockBaseFree.create_trigger_free` corresponds to
+:meth:`CyClockBase.create_trigger`. Only when an event scheduled using the
+``Clock.xxx_free`` methods is present will the clock interrupt and execute
+the events during the interval. So, if no ``free`` event is present the clock
+behaves like the ``default`` clock, otherwise it behaves like the ``interrupt``
+clock.
+
+In a test using a fps of 30, a callback with a timeout of 0s, 0.001s, and
+0.05s, resulted in a mean callback delay of 0.00012s, 0.00017s, and 0.04121s
+seconds, respectively when it was a free event and 0.02403s, 0.02405s, and
+0.04829s, respectively when it wasn't.
+
+Free Only Clock
+^^^^^^^^^^^^^^^^^
+
+The Free clock executes all events when a free event was scheduled. This
+results in normal events also being execute in the middle of the interval
+when a free event is scheduled. For example, above, when a free event was
+absent, a normal event with a 0.001s timeout was delayed for 0.02405s. However,
+if a free event happened to be also scheduled, the normal event was only
+delayed 0.00014s, which may be undesirable.
+
+The Free only clock (``free_only``) solves it by only executing free events
+during the interval and normal events are always executed like with the
+default clock. For example, in the presence of a free event, a normal event
+with a timeout of 0.001s still had a delay of 0.02406. So this clock,
+treats free and normal events independently, with normal events always being
+fps limited, but never the free events.
+
+Summary
+^^^^^^^^
+
+The kivy clock type to use can be set with the ``kivy_clock`` option the
+:mod:`~kivy.config`. If ``KIVY_CLOCK`` is present in the environment it
+overwrites the config selection. Its possible values are as follows:
+
+* When ``kivy_clock`` is ``default``, the normal clock, :class:`ClockBase`,
+  which limits callbacks to the maxfps quantization - is used.
+* When ``kivy_clock`` is ``interrupt``, a interruptible clock,
+  :class:`ClockBaseInterrupt`, which doesn't limit any callbacks to the
+  maxfps - is used. Callbacks will be executed at any time.
+* When ``kivy_clock`` is ``free_all``, a interruptible clock,
+  :class:`ClockBaseFreeInterruptAll`, which doesn't limit any callbacks to the
+  maxfps in the presence of free events, but in their absence it limits events
+  to the fps quantization interval - is used.
+* When ``kivy_clock`` is ``free_only``, a interruptible clock,
+  :class:`ClockBaseFreeInterruptAll`, which treats free and normal events
+  independently; normal events are fps limited while free events are not - is
+  used.
+
 '''
 
 __all__ = (
@@ -330,7 +456,7 @@ except (OSError, ImportError, AttributeError):
 
 
 class ClockBaseBehavior(object):
-    '''A clock object with event support.
+    '''The base of the kivy clock.
     '''
 
     _dt = 0.0001
@@ -393,6 +519,8 @@ class ClockBaseBehavior(object):
         pass
 
     def idle(self):
+        '''(internal) waits here until the next frame.
+        '''
         fps = self._max_fps
         if fps > 0:
             min_sleep = self.get_resolution()
@@ -489,6 +617,8 @@ ClockBaseBehavior.time.__doc__ = '''Proxy method for :func:`~kivy.compat.clock`.
 
 
 class ClockBaseInterruptBehavior(ClockBaseBehavior):
+    '''A kivy clock which can be interrupted during a frame to execute events.
+    '''
 
     interupt_next_only = False
     _event = None
@@ -554,6 +684,9 @@ class ClockBaseInterruptBehavior(ClockBaseBehavior):
 
 
 class ClockBaseInterruptFreeBehavior(ClockBaseInterruptBehavior):
+    '''A base class for the clock that interrupts the sleep interval for
+    free events.
+    '''
 
     def __init__(self, **kwargs):
         super(ClockBaseInterruptFreeBehavior, self).__init__(**kwargs)
@@ -569,6 +702,8 @@ class ClockBaseInterruptFreeBehavior(ClockBaseInterruptBehavior):
 
 
 class ClockBase(ClockBaseBehavior, CyClockBase):
+    '''The ``default`` kivy clock. See module for details.
+    '''
 
     _sleep_obj = None
 
@@ -581,18 +716,24 @@ class ClockBase(ClockBaseBehavior, CyClockBase):
 
 
 class ClockBaseInterrupt(ClockBaseInterruptBehavior, CyClockBase):
+    '''The ``interrupt`` kivy clock. See module for details.
+    '''
 
     pass
 
 
 class ClockBaseFreeInterruptAll(
         ClockBaseInterruptFreeBehavior, CyClockBaseFree):
+    '''The ``free_all`` kivy clock. See module for details.
+    '''
 
     pass
 
 
 class ClockBaseFreeInterruptOnly(
         ClockBaseInterruptFreeBehavior, CyClockBaseFree):
+    '''The ``free_only`` kivy clock. See module for details.
+    '''
 
     def idle(self):
         fps = self._max_fps
@@ -666,10 +807,12 @@ else:
     _classes = {'default': ClockBase, 'interrupt': ClockBaseInterrupt,
                 'free_all': ClockBaseFreeInterruptAll,
                 'free_only': ClockBaseFreeInterruptOnly}
-    _clk = environ.get('KIVY_CLOCK', 'default')
+    _clk = environ.get('KIVY_CLOCK', Config.get('kivy', 'kivy_clock'))
     if _clk not in _classes:
         raise Exception(
             '{} is not a valid kivy clock. Valid clocks are {}'.format(
                 _clk, sorted(_classes.keys())))
 
     Clock = register_context('Clock', _classes[_clk])
+    '''The kivy Clock instance. See module documentation for details.
+    '''

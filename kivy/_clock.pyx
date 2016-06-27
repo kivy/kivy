@@ -178,6 +178,10 @@ cdef class ClockEvent(object):
 
 
 cdef class FreeClockEvent(ClockEvent):
+    '''The event returned by the ``Clock.XXX_free`` methods of
+    :class:`CyClockBaseFree`. It stores whether the event was scheduled as a
+    free event.
+    '''
 
     def __init__(self, free, *largs, **kwargs):
         self.free = free
@@ -204,6 +208,9 @@ cdef class CyClockBase(object):
         self._lock_release = self._lock.release
 
     cpdef get_resolution(self):
+        '''Returns the minimum resolution the clock has. It's a function of
+        :attr:`clock_resolution` and ``maxfps`` provided at the config.
+        '''
         cdef double resolution = self.clock_resolution
         # timeout happened ? (check also if we would miss from 5ms) this
         # 5ms increase the accuracy if the timing of animation for
@@ -216,6 +223,9 @@ cdef class CyClockBase(object):
         return resolution
 
     def on_schedule(self, event):
+        '''Function that is called internally every time an event is triggered
+        for this clock. It takes the event as a parameter.
+        '''
         pass
 
     cpdef create_trigger(self, callback, timeout=0, interval=False):
@@ -369,7 +379,7 @@ cdef class CyClockBase(object):
         while not done:
             self._next_event = event.next
             done = self._cap_event is event or self._cap_event is None
-            '''We have to worry about this case:
+            '''Usage of _cap_event: We have to worry about this case:
 
             If in this iteration the cap event is canceled then at end of this
             iteration _cap_event will have shifted to current event (or to the
@@ -441,6 +451,9 @@ cdef class CyClockBase(object):
             self._lock_release()
 
     cpdef get_min_timeout(self):
+        '''Returns the remaining time since the start of the current frame
+        for the event with the smallest timeout.
+        '''
         cdef ClockEvent ev
         cdef double val = DBL_MAX
         self._lock_acquire()
@@ -456,7 +469,7 @@ cdef class CyClockBase(object):
         return val
 
     cpdef get_events(self):
-        '''Returns the list of :class:`ClockEvent` currently scheduled.
+        '''Returns the list of :class:`ClockEvent` instances currently scheduled.
         '''
         cdef list events = []
         cdef ClockEvent ev
@@ -471,6 +484,14 @@ cdef class CyClockBase(object):
 
 
 cdef class CyClockBaseFree(CyClockBase):
+    '''A clock class that supports scheduling free events in addition to normal
+    events.
+
+    Each of the :meth:`~CyClockBase.create_trigger`,
+    :meth:`~CyClockBase.schedule_once`, and :meth:`~CyClockBase.schedule_interval`
+    methods, which create a normal event, have a corresponding method
+    for creating a free event.
+    '''
 
     cpdef create_trigger(self, callback, timeout=0, interval=False):
         cdef FreeClockEvent event
@@ -499,6 +520,9 @@ cdef class CyClockBaseFree(CyClockBase):
         return event
 
     cpdef create_trigger_free(self, callback, timeout=0, interval=False):
+        '''Similar to :meth:`~CyClockBase.create_trigger`, but instead creates
+        a free event.
+        '''
         cdef FreeClockEvent event
         if not callable(callback):
             raise ValueError('callback must be a callable, got %s' % callback)
@@ -507,6 +531,9 @@ cdef class CyClockBaseFree(CyClockBase):
         return event
 
     cpdef schedule_once_free(self, callback, timeout=0):
+        '''Similar to :meth:`~CyClockBase.schedule_once`, but instead creates
+        a free event.
+        '''
         cdef FreeClockEvent event
         if not callable(callback):
             raise ValueError('callback must be a callable, got %s' % callback)
@@ -516,6 +543,9 @@ cdef class CyClockBaseFree(CyClockBase):
         return event
 
     cpdef schedule_interval_free(self, callback, timeout):
+        '''Similar to :meth:`~CyClockBase.schedule_interval`, but instead creates
+        a free event.
+        '''
         cdef FreeClockEvent event
         if not callable(callback):
             raise ValueError('callback must be a callable, got %s' % callback)
@@ -558,6 +588,9 @@ cdef class CyClockBaseFree(CyClockBase):
         self._lock_release()
 
     cpdef get_min_free_timeout(self):
+        '''Returns the remaining time since the start of the current frame
+        for the *free* event with the smallest timeout.
+        '''
         cdef FreeClockEvent ev
         cdef double val = DBL_MAX
 

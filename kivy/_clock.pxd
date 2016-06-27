@@ -32,6 +32,8 @@ cdef class ClockEvent(object):
 cdef class FreeClockEvent(ClockEvent):
 
     cdef public int free
+    '''Whether this event was scheduled as a free event.
+    '''
 
 
 cdef class CyClockBase(object):
@@ -46,8 +48,8 @@ cdef class CyClockBase(object):
     '''If the remaining time until the event timeout is less than :attr:`clock_resolution`,
     the clock will execute the callback even if it hasn't exactly timed out.
 
-    If -1, the default, the resolution will be computed from the :attr:`_max_fps`.
-    Otherwise, the provided value is used.
+    If -1, the default, the resolution will be computed from config's ``maxfps``.
+    Otherwise, the provided value is used. Defaults to -1.
     '''
 
     cdef public double _max_fps
