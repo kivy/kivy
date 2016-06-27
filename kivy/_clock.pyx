@@ -536,18 +536,13 @@ cdef class CyClockBaseFree(CyClockBase):
         self._cap_event = self._last_event
         event = self._root_event
         while not done:
+            if not event.free:
+                done = self._cap_event is event or self._cap_event is None
+                event = event.next
+                continue
+
             self._next_event = event.next
             done = self._cap_event is event or self._cap_event is None
-            '''We have to worry about this case:
-
-            If in this iteration the cap event is canceled then at end of this
-            iteration _cap_event will have shifted to current event (or to the
-            event before that if current_event is done) which will not be checked
-            again for being the cap event and done will never be True
-            since we are passed the current event. So, when canceling,
-            if _next_event is the canceled event and it's also the _cap_event
-            _cap_event is set to None.
-            '''
 
             self._lock_release()
 
