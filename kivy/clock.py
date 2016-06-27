@@ -219,7 +219,11 @@ returned events should be used to cancel. As a tradeoff, all the other methods
 are now significantly faster than before.
 '''
 
-__all__ = ('Clock', 'CyClockBase', 'ClockBase', 'ClockEvent', 'mainthread')
+__all__ = (
+    'Clock', 'ClockEvent', 'FreeClockEvent', 'CyClockBase', 'CyClockBaseFree',
+    'ClockBaseBehavior', 'ClockBaseInterruptBehavior',
+    'ClockBaseInterruptFreeBehavior', 'ClockBase', 'ClockBaseInterrupt',
+    'ClockBaseFreeInterruptAll', 'ClockBaseFreeInterruptOnly', 'mainthread')
 
 from sys import platform
 from os import environ
@@ -228,10 +232,18 @@ from kivy.context import register_context
 from kivy.weakmethod import WeakMethod
 from kivy.config import Config
 from kivy.logger import Logger
-from kivy.compat import clock as _default_time
+from kivy.compat import clock as _default_time, PY2
 import time
 from threading import Lock
-from kivy._clock import CyClockBase, ClockEvent
+from kivy._clock import CyClockBase, ClockEvent, FreeClockEvent, \
+    CyClockBaseFree
+try:
+    from multiprocessing import Event as MultiprocessingEvent
+except ImportError:  # https://bugs.python.org/issue3770
+    from threading import Event as MultiprocessingEvent
+from threading import Event as ThreadingEvent
+
+# some reading: http://gameprogrammingpatterns.com/game-loop.html
 
 
 def _get_sleep_obj():
@@ -317,7 +329,7 @@ except (OSError, ImportError, AttributeError):
         time.sleep(microseconds / 1000000.)
 
 
-class ClockBase(CyClockBase):
+class ClockBaseBehavior(object):
     '''A clock object with event support.
     '''
 
@@ -330,7 +342,11 @@ class ClockBase(CyClockBase):
     _rfps_counter = 0
     _frames = 0
     _frames_displayed = 0
-    _sleep_obj = None
+    _events_duration = 0
+    '''The measured time that it takes to process all the events etc, excepting
+    any sleep or waiting time. It is the average and is updated every 5
+    seconds.
+    '''
 
     _duration_count = 0
     _sleep_time = 0
@@ -342,13 +358,10 @@ class ClockBase(CyClockBase):
     '''
     SLEEP_UNDERSHOOT = MIN_SLEEP - 0.001
 
-    def __init__(self):
-        super(ClockBase, self).__init__()
-        self._sleep_obj = _get_sleep_obj()
+    def __init__(self, **kwargs):
+        super(ClockBaseBehavior, self).__init__(**kwargs)
         self._duration_ts0 = self._start_tick = self._last_tick = self.time()
-        fps = self._max_fps = float(Config.getint('graphics', 'maxfps'))
-        if fps:
-            self.events_duration = 1 / 9. * 1 / fps
+        self._max_fps = float(Config.getint('graphics', 'maxfps'))
 
     @property
     def frametime(self):
@@ -377,24 +390,29 @@ class ClockBase(CyClockBase):
     def usleep(self, microseconds):
         '''Sleeps for the number of microseconds.
         '''
-        _usleep(microseconds, self._sleep_obj)
+        pass
 
     def idle(self):
-        events_duration = min(self.events_duration, 0.005)
-        maxfps = self._max_fps
-        if maxfps:
-            min_sleep = max(3 * events_duration,  1 / (3. * maxfps))
-        else:
-            min_sleep = 3 * events_duration
-
-        sleep_undershoot = 4 / 5. * min_sleep
         fps = self._max_fps
-        usleep = self.usleep
+        if fps > 0:
+            min_sleep = self.get_resolution()
+            undershoot = 4 / 5. * min_sleep
+            usleep = self.usleep
+            ready = self._check_ready
 
+            done, sleeptime = ready(fps, min_sleep, undershoot)
+            while not done:
+                usleep(1000000 * sleeptime)
+                done, sleeptime = ready(fps, min_sleep, undershoot)
+
+        current = self.time()
+        self._dt = current - self._last_tick
+        self._last_tick = current
+        return current
+
+    def _check_ready(self, fps, min_sleep, undershoot):
         sleeptime = 1 / fps - (self.time() - self._last_tick)
-        while sleeptime - sleep_undershoot > min_sleep:
-            usleep(1000000 * (sleeptime - sleep_undershoot))
-            sleeptime = 1 / fps - (self.time() - self._last_tick)
+        return sleeptime - undershoot <= min_sleep, sleeptime - undershoot
 
     def tick(self):
         '''Advance the clock to the next step. Must be called every frame.
@@ -404,23 +422,18 @@ class ClockBase(CyClockBase):
         self._release_references()
 
         ts = self.time()
-        # do we need to sleep ?
-        if self._max_fps > 0:
-            self.idle()
-        # tick the current time
-        current = self.time()
+        current = self.idle()
 
-        self._dt = current - self._last_tick
+        # tick the current time
         self._frames += 1
         self._fps_counter += 1
-        self._last_tick = current
 
         # compute how long the event processing takes
         self._duration_count += 1
         self._sleep_time += current - ts
         t_tot = current - self._duration_ts0
         if t_tot >= 1.:
-            self.events_duration = \
+            self._events_duration = \
                 (t_tot - self._sleep_time) / float(self._duration_count)
             self._duration_ts0 = current
             self._sleep_time = self._duration_count = 0
@@ -472,7 +485,152 @@ class ClockBase(CyClockBase):
 
     time = staticmethod(partial(_default_time))
 
-ClockBase.time.__doc__ = '''Proxy method for :func:`~kivy.compat.clock`. '''
+ClockBaseBehavior.time.__doc__ = '''Proxy method for :func:`~kivy.compat.clock`. '''
+
+
+class ClockBaseInterruptBehavior(ClockBaseBehavior):
+
+    interupt_next_only = False
+    _event = None
+    _get_min_timeout_func = None
+
+    def __init__(self, interupt_next_only=False, **kwargs):
+        super(ClockBaseInterruptBehavior, self).__init__(**kwargs)
+        self._event = MultiprocessingEvent() if PY2 else ThreadingEvent()
+        self.interupt_next_only = interupt_next_only
+        self._get_min_timeout_func = self.get_min_timeout
+
+    def usleep(self, microseconds):
+        self._event.clear()
+        self._event.wait(microseconds / 1000000.)
+
+    def on_schedule(self, event):
+        fps = self._max_fps
+        if not fps:
+            return
+
+        if not event.timeout or (
+                not self.interupt_next_only and event.timeout
+                <= 1 / fps  # remaining time
+                - (self.time() - self._last_tick)  # elapsed time
+                + 4 / 5. * self.get_resolution()):  # resolution fudge factor
+            self._event.set()
+
+    def idle(self):
+        fps = self._max_fps
+        event = self._event
+        resolution = self.get_resolution()
+        if fps > 0:
+            done, sleeptime = self._check_ready(
+                fps, resolution, 4 / 5. * resolution)
+            if not done:
+                event.wait(sleeptime)
+
+        current = self.time()
+        self._dt = current - self._last_tick
+        self._last_tick = current
+        event.clear()
+        # anything scheduled from now on, if scheduled for the upcoming frame
+        # will cause a timeout of the event on the next idle due to on_schedule
+        # `self._last_tick = current` must happen before clear, otherwise the
+        # on_schedule computation is wrong when exec between the clear and
+        # the `self._last_tick = current` bytecode.
+        return current
+
+    def _check_ready(self, fps, min_sleep, undershoot):
+        if self._event.is_set():
+            return True, 0
+
+        t = self._get_min_timeout_func()
+        if not t:
+            return True, 0
+
+        if not self.interupt_next_only:
+            curr_t = self.time()
+            sleeptime = min(1 / fps - (curr_t - self._last_tick), t - curr_t)
+        else:
+            sleeptime = 1 / fps - (self.time() - self._last_tick)
+        return sleeptime - undershoot <= min_sleep, sleeptime - undershoot
+
+
+class ClockBaseInterruptFreeBehavior(ClockBaseInterruptBehavior):
+
+    def __init__(self, **kwargs):
+        super(ClockBaseInterruptFreeBehavior, self).__init__(**kwargs)
+        self._get_min_timeout_func = self.get_min_free_timeout
+
+    def on_schedule(self, event):
+        if not event.free:  # only wake up for free events
+            return
+        # free events should use real time not frame time
+        event._last_dt = self.time()
+        return super(ClockBaseInterruptFreeBehavior,
+                     self).on_schedule(event)
+
+
+class ClockBase(ClockBaseBehavior, CyClockBase):
+
+    _sleep_obj = None
+
+    def __init__(self, **kwargs):
+        super(ClockBase, self).__init__(**kwargs)
+        self._sleep_obj = _get_sleep_obj()
+
+    def usleep(self, microseconds):
+        _usleep(microseconds, self._sleep_obj)
+
+
+class ClockBaseInterrupt(ClockBaseInterruptBehavior, CyClockBase):
+
+    pass
+
+
+class ClockBaseFreeInterruptAll(
+        ClockBaseInterruptFreeBehavior, CyClockBaseFree):
+
+    pass
+
+
+class ClockBaseFreeInterruptOnly(
+        ClockBaseInterruptFreeBehavior, CyClockBaseFree):
+
+    def idle(self):
+        fps = self._max_fps
+        if fps > 0:
+            event = self._event
+            min_sleep = self.get_resolution()
+            usleep = self.usleep
+            undershoot = 4 / 5. * min_sleep
+            min_t = self.get_min_free_timeout
+            interupt_next_only = self.interupt_next_only
+
+            current = self.time()
+            sleeptime = 1 / fps - (current - self._last_tick)
+            while sleeptime - undershoot > min_sleep:
+                if event.is_set():
+                    do_free = True
+                else:
+                    t = min_t()
+                    if not t:
+                        do_free = True
+                    elif interupt_next_only:
+                        do_free = False
+                    else:
+                        sleeptime = min(sleeptime, t - current)
+                        do_free = sleeptime - undershoot <= min_sleep
+
+                if do_free:
+                    event.clear()
+                    self._process_free_events(current)
+                else:
+                    event.wait(sleeptime - undershoot)
+                current = self.time()
+                sleeptime = 1 / fps - (current - self._last_tick)
+
+        self._dt = current - self._last_tick
+        self._last_tick = current
+        event.clear()  # this needs to stay after _last_tick
+        return current
 
 
 def mainthread(func):
@@ -489,6 +647,7 @@ def mainthread(func):
             print('The request succedded!',
                   'This callback is called in the main thread.')
 
+
         self.req = UrlRequest(url='http://...', on_success=callback)
 
     .. versionadded:: 1.8.0
@@ -501,7 +660,16 @@ def mainthread(func):
     return delayed_func
 
 if 'KIVY_DOC_INCLUDE' in environ:
-    #: Instance of :class:`ClockBase`.
+    #: Instance of :class:`ClockBaseBehavior`.
     Clock = None
 else:
-    Clock = register_context('Clock', ClockBase)
+    _classes = {'default': ClockBase, 'interrupt': ClockBaseInterrupt,
+                'free_all': ClockBaseFreeInterruptAll,
+                'free_only': ClockBaseFreeInterruptOnly}
+    _clk = environ.get('KIVY_CLOCK', 'default')
+    if _clk not in _classes:
+        raise Exception(
+            '{} is not a valid kivy clock. Valid clocks are {}'.format(
+                _clk, sorted(_classes.keys())))
+
+    Clock = register_context('Clock', _classes[_clk])

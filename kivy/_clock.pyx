@@ -1,6 +1,10 @@
 
 
-__all__ = ('CyClockBase', 'ClockEvent')
+__all__ = ('ClockEvent', 'CyClockBase', 'FreeClockEvent', 'CyClockBaseFree')
+
+
+cdef extern from "float.h":
+    double DBL_MAX
 
 from kivy.weakmethod import WeakMethod
 from kivy.logger import Logger
@@ -47,6 +51,7 @@ cdef class ClockEvent(object):
                 clock._last_event.next = self
                 self.prev = clock._last_event
                 clock._last_event = self
+            self.clock.on_schedule(self)
             clock._lock_release()
 
     def __call__(self, *largs):
@@ -65,6 +70,7 @@ cdef class ClockEvent(object):
                 self.clock._last_event.next = self
                 self.prev = self.clock._last_event
                 self.clock._last_event = self
+            self.clock.on_schedule(self)
             self.clock._lock_release()
             return True
         self.clock._lock_release()
@@ -137,16 +143,8 @@ cdef class ClockEvent(object):
         '''(internal method) Processes the event for the kivy thread.
         '''
         cdef object callback, ret
-        cdef double resolution = self.clock.callback_resolution
-        # timeout happened ? (check also if we would miss from 5ms) this
-        # 5ms increase the accuracy if the timing of animation for
-        # example.
-        if resolution < 0:
-            resolution = 3 * self.clock.events_duration
-            if self.clock._max_fps:
-                resolution = max(resolution, 1 / (3. * self.clock._max_fps))
-            resolution = min(resolution, 0.005)
-        if curtime - self._last_dt < self.timeout - resolution:
+        # timeout happened ? if less than resolution process it
+        if curtime - self._last_dt < self.timeout - self.clock.get_resolution():
             return True
 
         # calculate current timediff for this event
@@ -179,13 +177,19 @@ cdef class ClockEvent(object):
         return '<ClockEvent ({}) callback={}>'.format(self.timeout, self.get_callback())
 
 
+cdef class FreeClockEvent(ClockEvent):
+
+    def __init__(self, free, *largs, **kwargs):
+        self.free = free
+        ClockEvent.__init__(self, *largs, **kwargs)
+
+
 cdef class CyClockBase(object):
     '''The base clock object with event support.
     '''
 
     def __cinit__(self, **kwargs):
-        self.callback_resolution = -1
-        self.events_duration = 0
+        self.clock_resolution = -1
         self._max_fps = 60
         self.max_iteration = 10
 
@@ -198,6 +202,21 @@ cdef class CyClockBase(object):
         self._lock = Lock()
         self._lock_acquire = self._lock.acquire
         self._lock_release = self._lock.release
+
+    cpdef get_resolution(self):
+        cdef double resolution = self.clock_resolution
+        # timeout happened ? (check also if we would miss from 5ms) this
+        # 5ms increase the accuracy if the timing of animation for
+        # example.
+        if resolution < 0:
+            if self._max_fps:
+                resolution = 1 / (3. * self._max_fps)
+            else:
+                resolution = 0.0001
+        return resolution
+
+    def on_schedule(self, event):
+        pass
 
     cpdef create_trigger(self, callback, timeout=0, interval=False):
         '''Create a Trigger event. Check module documentation for more
@@ -421,7 +440,22 @@ cdef class CyClockBase(object):
             self._cap_event = None
             self._lock_release()
 
-    def get_events(self):
+    cpdef get_min_timeout(self):
+        cdef ClockEvent ev
+        cdef double val = DBL_MAX
+        self._lock_acquire()
+        ev = self._root_event
+        while ev is not None:
+            if ev.timeout <= 0:
+                val = 0
+                break
+            val = min(val, ev.timeout + ev._last_dt)
+            ev = ev.next
+        self._lock_release()
+
+        return val
+
+    cpdef get_events(self):
         '''Returns the list of :class:`ClockEvent` currently scheduled.
         '''
         cdef list events = []
@@ -434,3 +468,113 @@ cdef class CyClockBase(object):
             ev = ev.next
         self._lock_release()
         return events
+
+
+cdef class CyClockBaseFree(CyClockBase):
+
+    cpdef create_trigger(self, callback, timeout=0, interval=False):
+        cdef FreeClockEvent event
+        if not callable(callback):
+            raise ValueError('callback must be a callable, got %s' % callback)
+        event = FreeClockEvent(False, self, interval, callback, timeout, 0)
+        event.release()
+        return event
+
+    cpdef schedule_once(self, callback, timeout=0):
+        cdef FreeClockEvent event
+        if not callable(callback):
+            raise ValueError('callback must be a callable, got %s' % callback)
+
+        event = FreeClockEvent(
+            False, self, False, callback, timeout, self._last_tick, None, True)
+        return event
+
+    cpdef schedule_interval(self, callback, timeout):
+        cdef FreeClockEvent event
+        if not callable(callback):
+            raise ValueError('callback must be a callable, got %s' % callback)
+
+        event = FreeClockEvent(
+            False, self, True, callback, timeout, self._last_tick, None, True)
+        return event
+
+    cpdef create_trigger_free(self, callback, timeout=0, interval=False):
+        cdef FreeClockEvent event
+        if not callable(callback):
+            raise ValueError('callback must be a callable, got %s' % callback)
+        event = FreeClockEvent(True, self, interval, callback, timeout, 0)
+        event.release()
+        return event
+
+    cpdef schedule_once_free(self, callback, timeout=0):
+        cdef FreeClockEvent event
+        if not callable(callback):
+            raise ValueError('callback must be a callable, got %s' % callback)
+
+        event = FreeClockEvent(
+            True, self, False, callback, timeout, self._last_tick, None, True)
+        return event
+
+    cpdef schedule_interval_free(self, callback, timeout):
+        cdef FreeClockEvent event
+        if not callable(callback):
+            raise ValueError('callback must be a callable, got %s' % callback)
+
+        event = FreeClockEvent(
+            True, self, True, callback, timeout, self._last_tick, None, True)
+        return event
+
+    cpdef _process_free_events(self, double last_tick):
+        cdef FreeClockEvent event
+        cdef int done = False
+
+        self._lock_acquire()
+        if self._root_event is None:
+            self._lock_release()
+            return
+
+        self._cap_event = self._last_event
+        event = self._root_event
+        while not done:
+            self._next_event = event.next
+            done = self._cap_event is event or self._cap_event is None
+            '''We have to worry about this case:
+
+            If in this iteration the cap event is canceled then at end of this
+            iteration _cap_event will have shifted to current event (or to the
+            event before that if current_event is done) which will not be checked
+            again for being the cap event and done will never be True
+            since we are passed the current event. So, when canceling,
+            if _next_event is the canceled event and it's also the _cap_event
+            _cap_event is set to None.
+            '''
+
+            self._lock_release()
+
+            try:
+                event.tick(last_tick)
+            except:
+                raise
+            else:
+                self._lock_acquire()
+            event = self._next_event
+
+        self._cap_event = None
+        self._lock_release()
+
+    cpdef get_min_free_timeout(self):
+        cdef FreeClockEvent ev
+        cdef double val = DBL_MAX
+
+        self._lock_acquire()
+        ev = self._root_event
+        while ev is not None:
+            if ev.free:
+                if ev.timeout <= 0:
+                    val = 0
+                    break
+                val = min(val, ev.timeout + ev._last_dt)
+            ev = ev.next
+        self._lock_release()
+
+        return val

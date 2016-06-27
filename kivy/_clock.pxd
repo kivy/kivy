@@ -29,6 +29,11 @@ cdef class ClockEvent(object):
     cpdef tick(self, double curtime)
 
 
+cdef class FreeClockEvent(ClockEvent):
+
+    cdef public int free
+
+
 cdef class CyClockBase(object):
 
     cdef public double _last_tick
@@ -37,17 +42,12 @@ cdef class CyClockBase(object):
     frame. If more iterations occur, a warning is issued.
     '''
 
-    cdef public double callback_resolution
-    '''If the remaining time until the event timeout is less than :attr:`callback_resolution`,
+    cdef public double clock_resolution
+    '''If the remaining time until the event timeout is less than :attr:`clock_resolution`,
     the clock will execute the callback even if it hasn't exactly timed out.
 
-    If -1, the default, the resolution will be the measured
-    :attr:`events_duration`. Otherwise, the provided value is used.
-    '''
-
-    cdef public double events_duration
-    '''The measured time that it takes to process all the events etc, excepting any
-    sleep or waiting time. It is the average and is updated every 5 seconds.
+    If -1, the default, the resolution will be computed from the :attr:`_max_fps`.
+    Otherwise, the provided value is used.
     '''
 
     cdef public double _max_fps
@@ -80,6 +80,7 @@ cdef class CyClockBase(object):
     cdef public object _lock_acquire
     cdef public object _lock_release
 
+    cpdef get_resolution(self)
     cpdef create_trigger(self, callback, timeout=*, interval=*)
     cpdef schedule_once(self, callback, timeout=*)
     cpdef schedule_interval(self, callback, timeout)
@@ -87,3 +88,14 @@ cdef class CyClockBase(object):
     cpdef _release_references(self)
     cpdef _process_events(self)
     cpdef _process_events_before_frame(self)
+    cpdef get_min_timeout(self)
+    cpdef get_events(self)
+
+
+cdef class CyClockBaseFree(CyClockBase):
+
+    cpdef create_trigger_free(self, callback, timeout=*, interval=*)
+    cpdef schedule_once_free(self, callback, timeout=*)
+    cpdef schedule_interval_free(self, callback, timeout)
+    cpdef _process_free_events(self, double last_tick)
+    cpdef get_min_free_timeout(self)
