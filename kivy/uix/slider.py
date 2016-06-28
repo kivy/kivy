@@ -22,7 +22,8 @@ __all__ = ('Slider', )
 
 from kivy.uix.widget import Widget
 from kivy.properties import (NumericProperty, AliasProperty, OptionProperty,
-                             ReferenceListProperty, BoundedNumericProperty)
+                             ReferenceListProperty, BoundedNumericProperty,
+                             StringProperty, ListProperty)
 
 
 class Slider(Widget):
@@ -96,6 +97,36 @@ class Slider(Widget):
 
     :attr:`step` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 1.'''
+
+    background_horizontal = StringProperty(
+        'atlas://data/images/defaulttheme/sliderh_background')
+
+    background_disabled_horizontal = StringProperty(
+        'atlas://data/images/defaulttheme/sliderh_background_disabled')
+
+    background_vertical = StringProperty(
+        'atlas://data/images/defaulttheme/sliderv_background')
+
+    background_disabled_vertical = StringProperty(
+        'atlas://data/images/defaulttheme/sliderv_background_disabled')
+
+    background_width = NumericProperty('36sp')
+
+    cursor_image = StringProperty(
+        'atlas://data/images/defaulttheme/slider_cursor')
+
+    cursor_disabled_image = StringProperty(
+        'atlas://data/images/defaulttheme/slider_cursor_disabled')
+
+    cursor_width = NumericProperty('32sp')
+
+    cursor_height = NumericProperty('32sp')
+
+    cursor_size = ReferenceListProperty(cursor_width, cursor_height)
+
+    border_horizontal = ListProperty([0, 18, 0, 18])
+
+    border_vertical = ListProperty([18, 0, 18, 0])
 
     # The following two methods constrain the slider's value
     # to range(min,max). Otherwise it may happen that self.value < self.min
