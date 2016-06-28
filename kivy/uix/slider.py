@@ -100,33 +100,120 @@ class Slider(Widget):
 
     background_horizontal = StringProperty(
         'atlas://data/images/defaulttheme/sliderh_background')
+    """Background of the slider used in the horizontal orientation.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`background_horizontal` is a :class:`~kivy.properties.StringProperty`
+    and defaults to `atlas://data/images/defaulttheme/sliderh_background`.
+    """
 
     background_disabled_horizontal = StringProperty(
         'atlas://data/images/defaulttheme/sliderh_background_disabled')
+    """Background of the disabled slider used in the horizontal orientation.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`background_disabled_horizontal` is a
+    :class:`~kivy.properties.StringProperty` and defaults to
+    `atlas://data/images/defaulttheme/sliderh_background_disabled`.
+    """
 
     background_vertical = StringProperty(
         'atlas://data/images/defaulttheme/sliderv_background')
+    """Background of the slider used in the vertical orientation.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`background_vertical` is a :class:`~kivy.properties.StringProperty`
+    and defaults to `atlas://data/images/defaulttheme/sliderv_background`.
+    """
 
     background_disabled_vertical = StringProperty(
         'atlas://data/images/defaulttheme/sliderv_background_disabled')
+    """Background of the disabled slider used in the vertical orientation.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`background_disabled_vertical` is a
+    :class:`~kivy.properties.StringProperty` and defaults to
+    `atlas://data/images/defaulttheme/sliderv_background_disabled`.
+    """
 
     background_width = NumericProperty('36sp')
+    """Slider's background's width (thickness), used in both horizontal
+    and vertical orientations.
+
+    .. versionadded 1.9.2
+
+    :attr:`background_width` is a
+    :class:`~kivy.properties.NumericProperty` and defaults to 36sp.
+    """
 
     cursor_image = StringProperty(
         'atlas://data/images/defaulttheme/slider_cursor')
+    """Path of the image used to draw the slider cursor.
+
+    .. versionadded 1.9.2
+
+    :attr:`cursor_image` is a :class:`~kivy.properties.StringProperty`
+    and defaults to `atlas://data/images/defaulttheme/slider_cursor`.
+    """
 
     cursor_disabled_image = StringProperty(
         'atlas://data/images/defaulttheme/slider_cursor_disabled')
+    """Path of the image used to draw the disabled slider cursor.
+
+    .. versionadded 1.9.2
+
+    :attr:`cursor_image` is a :class:`~kivy.properties.StringProperty`
+    and defaults to `atlas://data/images/defaulttheme/slider_cursor_disabled`.
+    """
 
     cursor_width = NumericProperty('32sp')
+    """Width of the cursor image.
+
+    .. versionadded 1.9.2
+
+    :attr:`cursor_width` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to 32sp.
+    """
 
     cursor_height = NumericProperty('32sp')
+    """Height of the cursor image.
+
+    .. versionadded 1.9.2
+
+    :attr:`cursor_height` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to 32sp.
+    """
 
     cursor_size = ReferenceListProperty(cursor_width, cursor_height)
+    """Size of the cursor image.
+
+    .. versionadded 1.9.2
+
+    :attr:`cursor_size` is a :class:`~kivy.properties.ReferenceListProperty`
+    of (:attr:`cursor_width`, :attr:`cursor_height`) properties.
+    """
 
     border_horizontal = ListProperty([0, 18, 0, 18])
+    """Border used to draw the slider background in horizontal orientation.
+
+    .. versionadded 1.9.2
+
+    :attr:`border_horizontal` is a :class:`~kivy.properties.ListProperty`
+    and defaults to [0, 18, 0, 18].
+    """
 
     border_vertical = ListProperty([18, 0, 18, 0])
+    """Border used to draw the slider background in vertical orientation.
+
+    .. versionadded 1.9.2
+
+    :attr:`border_horizontal` is a :class:`~kivy.properties.ListProperty`
+    and defaults to [18, 0, 18, 0].
+    """
 
     # The following two methods constrain the slider's value
     # to range(min,max). Otherwise it may happen that self.value < self.min
