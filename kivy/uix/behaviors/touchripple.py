@@ -131,9 +131,9 @@ class TouchRippleBehavior(object):
     and defaults to `out_quad`.
     '''
 
-    ripple_rad = NumericProperty(ripple_rad_default)
+    ripple_rad = NumericProperty(10)
     ripple_pos = ListProperty([0, 0])
-    ripple_color = ListProperty((1., 1., 1., ripple_fade_from_alpha))
+    ripple_color = ListProperty((1., 1., 1., .5))
 
     def __init__(self, **kwargs):
         super(TouchRippleBehavior, self).__init__(**kwargs)
