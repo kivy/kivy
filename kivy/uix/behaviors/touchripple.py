@@ -26,8 +26,10 @@ from kivy.graphics import Color
 from kivy.graphics import Ellipse
 from kivy.graphics import ScissorPush
 from kivy.graphics import ScissorPop
+from kivy.properties import BooleanProperty
 from kivy.properties import ListProperty
 from kivy.properties import NumericProperty
+from kivy.properties import ObjectProperty
 from kivy.properties import StringProperty
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.relativelayout import RelativeLayout
@@ -225,33 +227,75 @@ class TouchRippleBehavior(object):
         self.ripple_pane.clear()
 
 
-class TouchRippleButtonBehavior(TouchRippleBehavior, ButtonBehavior):
-    '''Derives from
-    :class:`~kivy.uix.behaviors.touchripple.TouchRippleBehavior`
-    and :class:`~kivy.uix.behaviors.button.ButtonBehavior` and hooks up the
-    ripple animation to touch down and touch up events.
+class TouchRippleButtonBehavior(TouchRippleBehavior):
+    '''
+    This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides
+    a similar behavior to :class:`~kivy.uix.behaviors.button.ButtonBehavior`
+    but provides touch ripple animation instead of button pressed/released as
+    visual effect.
+
+    :Events:
+        `on_press`
+            Fired when the button is pressed.
+        `on_release`
+            Fired when the button is released (i.e. the touch/click that
+            pressed the button goes away).
+    '''
+
+    last_touch = ObjectProperty(None)
+    '''Contains the last relevant touch received by the Button. This can
+    be used in `on_press` or `on_release` in order to know which touch
+    dispatched the event.
+
+    :attr:`last_touch` is a :class:`~kivy.properties.ObjectProperty` and
+    defaults to `None`.
+    '''
+
+    always_release = BooleanProperty(False)
+    '''This determines whether or not the widget fires an `on_release` event if
+    the touch_up is outside the widget.
+
+    :attr:`always_release` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to `False`.
     '''
 
     def __init__(self, **kwargs):
+        self.register_event_type('on_press')
+        self.register_event_type('on_release')
         super(TouchRippleButtonBehavior, self).__init__(**kwargs)
 
     def on_touch_down(self, touch):
-        collide_point = self.collide_point(*touch.pos)
-        if collide_point and self.disabled:
+        if super(TouchRippleButtonBehavior, self).on_touch_down(touch):
             return True
-        elif collide_point:
-            touch.grab(self)
-            self.ripple_show(touch)
-        return super(TouchRippleButtonBehavior, self).on_touch_down(touch)
+        if touch.is_mouse_scrolling:
+            return False
+        if not self.collide_point(touch.x, touch.y):
+            return False
+        if self in touch.ud:
+            return False
+        touch.grab(self)
+        touch.ud[self] = True
+        self.last_touch = touch
+        self.ripple_show(touch)
+        self.dispatch('on_press')
+        return True
+
+    def on_touch_move(self, touch):
+        if touch.grab_current is self:
+            return True
+        if super(TouchRippleButtonBehavior, self).on_touch_move(touch):
+            return True
+        return self in touch.ud
 
     def on_touch_up(self, touch):
         if touch.grab_current is not self:
             return super(TouchRippleButtonBehavior, self).on_touch_up(touch)
+        assert(self in touch.ud)
         touch.ungrab(self)
         self.last_touch = touch
-        self.ripple_fade()
         if self.disabled:
-            return True
+            return
+        self.ripple_fade()
         if not self.always_release and not self.collide_point(*touch.pos):
             return
 
@@ -260,3 +304,9 @@ class TouchRippleButtonBehavior(TouchRippleBehavior, ButtonBehavior):
             self.dispatch('on_release')
         Clock.schedule_once(defer_release, self.ripple_duration_out)
         return True
+
+    def on_press(self):
+        pass
+
+    def on_release(self):
+        pass
