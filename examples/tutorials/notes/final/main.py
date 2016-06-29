@@ -36,7 +36,6 @@ class MutableTextInput(FloatLayout):
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos) and touch.is_double_tap:
             self.edit()
-            return True
         return super(MutableTextInput, self).on_touch_down(touch)
 
     def edit(self):
@@ -63,6 +62,11 @@ class NoteView(Screen):
 
 class NoteListItem(BoxLayout):
 
+    def __init__(self, **kwargs):
+        print(kwargs)
+        del kwargs['index']
+        super(NoteListItem, self).__init__(**kwargs)
+    note_content = StringProperty()
     note_title = StringProperty()
     note_index = NumericProperty()
 
@@ -92,12 +96,12 @@ class NoteApp(App):
     def load_notes(self):
         if not exists(self.notes_fn):
             return
-        with open(self.notes_fn, 'rb') as fd:
+        with open(self.notes_fn) as fd:
             data = json.load(fd)
         self.notes.data = data
 
     def save_notes(self):
-        with open(self.notes_fn, 'wb') as fd:
+        with open(self.notes_fn, 'w') as fd:
             json.dump(self.notes.data, fd)
 
     def del_note(self, note_index):
