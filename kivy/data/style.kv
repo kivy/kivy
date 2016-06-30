@@ -55,8 +55,20 @@
             pos: (self.x + self.padding, self.center_y - self.background_width / 2) if self.orientation == 'horizontal' else (self.center_x - self.background_width / 2, self.y + self.padding)
             size: (self.width - self.padding * 2, self.background_width) if self.orientation == 'horizontal' else (self.background_width, self.height - self.padding * 2)
             source: (self.background_disabled_horizontal if self.orientation == 'horizontal' else self.background_disabled_vertical) if self.disabled else (self.background_horizontal if self.orientation == 'horizontal' else self.background_vertical)
+        Color:
+            rgba: root.value_track_color if self.value_track and self.orientation == 'horizontal' else [1, 1, 1, 0]
+        Line:
+            width: self.value_track_width
+            points: self.x + self.padding, self.center_y - self.value_track_width / 2, self.value_pos[0], self.center_y - self.value_track_width / 2
+        Color:
+            rgba: root.value_track_color if self.value_track and self.orientation == 'vertical' else [1, 1, 1, 0]
+        Line:
+            width: self.value_track_width
+            points: self.center_x, self.y + self.padding, self.center_x, self.value_pos[1]
+        Color:
+            rgb: 1, 1, 1
         Rectangle:
-            pos: (self.value_pos[0] - self.cursor_width / 2, self.center_y - self.cursor_height / 2 + 1) if self.orientation == 'horizontal' else (self.center_x - self.cursor_width / 2, self.value_pos[1] - self.cursor_height / 2)
+            pos: (self.value_pos[0] - self.cursor_width / 2, self.center_y - self.cursor_height / 2) if self.orientation == 'horizontal' else (self.center_x - self.cursor_width / 2, self.value_pos[1] - self.cursor_height / 2)
             size: self.cursor_size
             source: self.cursor_disabled_image if self.disabled else self.cursor_image
 
