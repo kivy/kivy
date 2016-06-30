@@ -23,7 +23,7 @@ __all__ = ('Slider', )
 from kivy.uix.widget import Widget
 from kivy.properties import (NumericProperty, AliasProperty, OptionProperty,
                              ReferenceListProperty, BoundedNumericProperty,
-                             StringProperty, ListProperty)
+                             StringProperty, ListProperty, BooleanProperty)
 
 
 class Slider(Widget):
@@ -213,6 +213,34 @@ class Slider(Widget):
 
     :attr:`border_horizontal` is a :class:`~kivy.properties.ListProperty`
     and defaults to [18, 0, 18, 0].
+    """
+
+    value_track = BooleanProperty(False)
+    """Decides if slider should draw the line indicating the
+    space between :attr:`min` and :attr:`value` properties values.
+
+    .. versionadded 1.9.2
+
+    :attr:`value_line` is a :class:`~kivy.properties.BooleanProperty`
+    and defaults to False.
+    """
+
+    value_track_color = ListProperty([1, 1, 1, 1])
+    """Color of the :attr:`value_line`.
+
+    .. versionadded 1.9.2
+
+    :attr:`value_line_color` is a :class:`~kivy.properties.ListProperty`
+    and defaults to [1, 1, 1, 1].
+    """
+
+    value_track_width = NumericProperty('3dp')
+    """Width of the track line.
+
+    .. versionadded 1.9.2
+
+    :attr:`value_track_width` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to 3dp.
     """
 
     # The following two methods constrain the slider's value
