@@ -17,6 +17,11 @@ To create a vertical slider::
     from kivy.uix.slider import Slider
     s = Slider(orientation='vertical')
 
+To create a slider with a red line tracking the value:
+
+    from kivy.uix.slider import Slider
+    s = Slider(value_track=True, value_track_color=[1, 0, 0, 0])
+
 """
 __all__ = ('Slider', )
 
@@ -226,7 +231,7 @@ class Slider(Widget):
     """
 
     value_track_color = ListProperty([1, 1, 1, 1])
-    """Color of the :attr:`value_line`.
+    """Color of the :attr:`value_line` in rgba format.
 
     .. versionadded 1.9.2
 
