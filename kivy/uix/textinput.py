@@ -2167,17 +2167,6 @@ class TextInput(FocusBehavior, Widget):
             oldindex = index + 1
         yield text[oldindex:]
 
-    def _split_word(self, text, width):
-        x = 0
-        split_pos = 0
-        for c in text:
-            cw = self._get_text_width(c, self.tab_width, self._label_cached)
-            if x + cw > width:
-                break
-            x += cw
-            split_pos += 1
-        return split_pos, x
-
     def _split_smart(self, text):
         # Do a "smart" split. If autowidth or autosize is set,
         # we are not doing smart split, just a split on line break.
@@ -2219,8 +2208,18 @@ class TextInput(FocusBehavior, Widget):
                 flags |= FL_IS_LINEBREAK
             elif width >= 1 and w > width:
                 while w > width:
-                    split_pos, split_width = self._split_word(word, width)
-                    if (split_pos, split_width) == (0, 0):
+                    x = split_pos = 0
+                    # split the word
+                    for c in word:
+                        cw = self._get_text_width(
+                            c, self._tab_width, self._label_cached
+                        )
+                        if x + cw > width:
+                            break
+                        x += cw
+                        split_pos += 1
+                    if x == split_pos == 0:
+                        # can't fit the word in, give up
                         break
                     lines_append(word[:split_pos])
                     lines_flags_append(flags)
