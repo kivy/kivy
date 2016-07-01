@@ -843,6 +843,7 @@ cdef class EventDispatcher(ObjectWithUid):
 
 
         ::
+
             >>> mywidget = Widget()
             >>> mywidget.create_property('custom')
             >>> mywidget.custom = True

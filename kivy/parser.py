@@ -103,7 +103,7 @@ def parse_bool(text):
 
 
 def parse_string(text):
-    '''Parse a string to a string (removing single and double quotes)'''
+    '''Parse a string to a string (removing single and double quotes).'''
     if len(text) >= 2 and text[0] in ('"', "'") and text[-1] in ('"', "'"):
         text = text[1:-1]
     return text.strip()
@@ -150,5 +150,13 @@ def parse_float4(text):
     return value
 
 
-parse_int = int
-parse_float = float
+def parse_int(text):
+    '''An alias of `int()`.
+    '''
+    return int(text)
+
+
+def parse_float(text):
+    '''An alias of `float()`.
+    '''
+    return float(text)
