@@ -2212,7 +2212,7 @@ class TextInput(FocusBehavior, Widget):
                     # split the word
                     for c in word:
                         cw = self._get_text_width(
-                            c, self._tab_width, self._label_cached
+                            c, self.tab_width, self._label_cached
                         )
                         if split_width + cw > width:
                             break
