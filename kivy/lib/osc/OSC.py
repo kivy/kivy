@@ -83,7 +83,7 @@ class OSCMessage:
         self.clearData()
 
     def clearData(self):
-        self.typetags = ","
+        self.typetags = b","
         self.message = bytes()
 
     def append(self, argument, typehint=None):
@@ -200,10 +200,10 @@ def OSCBlob(next):
         length = len(next)
         padded = math.ceil((len(next)) / 4.0) * 4
         binary = struct.pack(">i%ds" % (padded), length, next)
-        tag    = 'b'
+        tag    = b'b'
     else:
-        tag    = ''
-        binary = ''
+        tag    = b''
+        binary = b''
 
     return (tag, binary)
 
@@ -212,42 +212,39 @@ def OSCArgument(data):
     """Convert some Python types to their
     OSC binary representations, returning a
     (typetag, data) tuple."""
-        
+
     if isinstance(data, bytearray):
         length = len(data)
         padded = math.ceil((len(data)) / 4.0) * 4
-        binary = struct.pack(">i%ds" % (padded), length, str(data))
-        tag = 'b'
+        binary = struct.pack(b">i%ds" % (padded), length, str(data))
+        tag = b'b'
     elif isinstance(data, string_types):
         OSCstringLength = math.ceil((len(data)+1) / 4.0) * 4
-        binary = struct.pack(">%ds" % (OSCstringLength), data)
-        tag = "s"
+        binary = struct.pack(b">%ds" % (OSCstringLength), data)
+        tag = b"s"
     elif isinstance(data, bool):
-        binary = ""
+        binary = b""
         if data:
-            tag = "T"
+            tag = b"T"
         else:
-            tag = "F"
+            tag = b"F"
     elif isinstance(data, float):
-        binary = struct.pack(">f", data)
-        tag = "f"
+        binary = struct.pack(b">f", data)
+        tag = b"f"
     elif isinstance(data, int):
-        binary = struct.pack(">i", data)
-        tag = "i"
+        binary = struct.pack(b">i", data)
+        tag = b"i"
     elif isinstance(data, impulse):
-        binary = ""
-        tag = "I"
+        binary = b""
+        tag = b"I"
     elif isinstance(data, null):
-        binary = ""
-        tag = "N"
+        binary = b""
+        tag = b"N"
     else:
-        binary = ""
-        tag = ""
-        
+        binary = b""
+        tag = b""
+
     return (tag, binary)
-
-
-
 
 
 def parseArgs(args):
@@ -288,7 +285,7 @@ def decodeOSC(data):
         }
         decoded = []
         address,  rest = readString(data)
-        typetags = ""
+        typetags = b""
     
         if address == "#bundle":
             time, rest = readLong(rest)
@@ -303,7 +300,7 @@ def decodeOSC(data):
             typetags, rest = readString(rest)
             decoded.append(address)
             decoded.append(typetags)
-            if typetags[0] == ",":
+            if typetags[0] == b",":
                 for tag in typetags[1:]:
                     value, rest = table[tag](rest)
                     decoded.append(value)
