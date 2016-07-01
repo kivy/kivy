@@ -2208,17 +2208,17 @@ class TextInput(FocusBehavior, Widget):
                 flags |= FL_IS_LINEBREAK
             elif width >= 1 and w > width:
                 while w > width:
-                    x = split_pos = 0
+                    split_width = split_pos = 0
                     # split the word
                     for c in word:
                         cw = self._get_text_width(
                             c, self._tab_width, self._label_cached
                         )
-                        if x + cw > width:
+                        if split_width + cw > width:
                             break
-                        x += cw
+                        split_width += cw
                         split_pos += 1
-                    if x == split_pos == 0:
+                    if split_width == split_pos == 0:
                         # can't fit the word in, give up
                         break
                     lines_append(word[:split_pos])
