@@ -2220,6 +2220,8 @@ class TextInput(FocusBehavior, Widget):
             elif width >= 1 and w > width:
                 while w > width:
                     split_pos, split_width = self._split_word(word, width)
+                    if (split_pos, split_width) == (0, 0):
+                        break
                     lines_append(word[:split_pos])
                     lines_flags_append(flags)
                     flags = FL_IS_WORDBREAK
