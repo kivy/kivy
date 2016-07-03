@@ -90,8 +90,8 @@ Then click on `Play`, and enjoy.
 Updating an Xcode project
 -------------------------
 
-Let's say you want to add numpy to your project, but you didn't have it compiled
-prior the XCode project creation. First, ensure to build it::
+Let's say you want to add numpy to your project but you did not compile it
+prior to creating your XCode project. First, ensure it is built::
 
     $ ./toolchain.py build numpy
 
