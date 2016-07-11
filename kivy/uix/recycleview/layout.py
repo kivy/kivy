@@ -1,4 +1,14 @@
+'''
+RecycleView Layouts
+===================
 
+The Layouts handle the presentaiton of views for the
+:class:`~kivy.uix.recycleview.RecycleView`.
+
+.. warning::
+    This module is highly experimental, its API may change in the future and
+    the documentation is not complete at this time.
+'''
 from kivy.compat import string_types
 from kivy.factory import Factory
 from kivy.properties import StringProperty, ObjectProperty
@@ -124,7 +134,8 @@ apply_selection` method will be called everything the view needs to refresh
         '''
         viewclass = view.__class__
         if viewclass not in _view_base_cache:
-            _view_base_cache[viewclass] = isinstance(view, RecycleDataViewBehavior)
+            _view_base_cache[viewclass] = isinstance(view,
+                                                     RecycleDataViewBehavior)
 
         if _view_base_cache[viewclass]:
             view.apply_selection(self.recycleview, index, is_selected)
@@ -137,10 +148,10 @@ apply_selection` method will be called everything the view needs to refresh
 
 
 class RecycleLayoutManagerBehavior(object):
-    """A RecycleLayoutManagerBehavior is responsible for positioning views into the
-    :attr:`RecycleView.data` within a :class:`RecycleView`. It adds new views
-    into the data when it becomes visible to the user, and removes them when
-    they leave the visible area.
+    """A RecycleLayoutManagerBehavior is responsible for positioning views into
+    the :attr:`RecycleView.data` within a :class:`RecycleView`. It adds new
+    views into the data when it becomes visible to the user, and removes them
+    when they leave the visible area.
     """
 
     viewclass = ObjectProperty(None)
