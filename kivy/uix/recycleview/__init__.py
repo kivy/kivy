@@ -9,7 +9,7 @@ A flexible view for providing a limited window into a large data set.
     the documentation is not complete at this time.
 
 
-Data accepted: list of dict.
+Data accepted: list of dicts.
 
 TODO:
     - Method to clear cached class instances.
@@ -38,6 +38,8 @@ found.
     When views are re-used they may not trigger if the data remains the same.
 """
 
+__all__ = ('RecycleViewBehavior', 'RecycleView')
+
 from copy import deepcopy
 
 from kivy.uix.scrollview import ScrollView
@@ -52,8 +54,9 @@ from kivy.uix.recycleview.datamodel import RecycleDataModelBehavior, \
 
 
 class RecycleViewBehavior(object):
-    """RecycleViewBehavior is a flexible view for providing a limited window into
-    a large data set.
+    """RecycleViewBehavior provides a behavioral model upon which the
+    :class:`RecycleView` is built. Together, they offer an extensible and
+    flexible way to produce views with limited windows over large data sets.
 
     See module documentation for more informations.
     """
@@ -157,8 +160,8 @@ class RecycleViewBehavior(object):
         self._refresh_trigger()
 
     def _dispatch_prop_on_source(self, prop_name, *largs):
-        '''Dispatches the prop of this class when the view_adapter/layout_manager
-        property changes.
+        '''Dispatches the prop of this class when the
+        view_adapter/layout_manager property changes.
         '''
         getattr(self.__class__, prop_name).dispatch(self)
 
@@ -234,8 +237,8 @@ class RecycleViewBehavior(object):
 
         if not isinstance(value, RecycleLayoutManagerBehavior):
             raise ValueError(
-                'Expected object based on RecycleLayoutManagerBehavior, got {}'.
-                format(value.__class__))
+                'Expected object based on RecycleLayoutManagerBehavior, '
+                'got {}'.format(value.__class__))
 
         self._layout_manager = value
         value.attach_recycleview(self)
@@ -249,7 +252,11 @@ class RecycleViewBehavior(object):
 
 
 class RecycleView(RecycleViewBehavior, ScrollView):
+    """RecycleView is a flexible view for providing a limited window
+    into a large data set.
 
+    See module documentation for more informations.
+    """
     def __init__(self, **kwargs):
         if self.data_model is None:
             kwargs.setdefault('data_model', RecycleDataModel())
@@ -326,10 +333,12 @@ class RecycleView(RecycleViewBehavior, ScrollView):
     def _get_data(self):
         d = self.data_model
         return d and d.data
+
     def _set_data(self, value):
         d = self.data_model
         if d is not None:
             d.data = value
+
     data = AliasProperty(_get_data, _set_data, bind=["data_model"])
     """Set the data on the current view adapter
     """
@@ -337,10 +346,12 @@ class RecycleView(RecycleViewBehavior, ScrollView):
     def _get_viewclass(self):
         a = self.layout_manager
         return a and a.viewclass
+
     def _set_viewclass(self, value):
         a = self.layout_manager
         if a:
             a.viewclass = value
+
     viewclass = AliasProperty(_get_viewclass, _set_viewclass,
         bind=["layout_manager"])
     """Set the viewclass on the current layout_manager
@@ -349,11 +360,14 @@ class RecycleView(RecycleViewBehavior, ScrollView):
     def _get_key_viewclass(self):
         a = self.layout_manager
         return a and a.key_viewclass
+
     def _set_key_viewclass(self, value):
         a = self.layout_manager
         if a:
             a.key_viewclass = value
+
     key_viewclass = AliasProperty(_get_key_viewclass, _set_key_viewclass,
         bind=["layout_manager"])
     """Set the key viewclass on the current layout_manager
     """
+
