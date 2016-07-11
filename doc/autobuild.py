@@ -7,6 +7,7 @@ Be careful if you change anything in !
 '''
 
 ignore_list = (
+    'kivy._clock',
     'kivy._event',
     'kivy.factory_registers',
     'kivy.graphics.buffer',
