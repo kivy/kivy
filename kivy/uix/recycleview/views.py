@@ -1,4 +1,8 @@
-'''The adapter part of the RecycleView which together with the layout is the
+'''
+RecycleView Views
+=================
+
+The adapter part of the RecycleView which together with the layout is the
 view part of the model-view-controller pattern.
 
 The view module handles converting the data to a view using the adapter class
