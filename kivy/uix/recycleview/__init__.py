@@ -2,12 +2,13 @@
 RecycleView
 ===========
 
-A flexible view for providing a limited window into a large data set.
+A flexible view for providing a limited window into a large data set. This
+approach prevents the performance degradation that can occur when trying to
+generate large numbers of widgets to display many data items.
 
 .. warning::
     This module is highly experimental, its API may change in the future and
     the documentation is not complete at this time.
-
 
 Data accepted: list of dicts.
 
@@ -17,16 +18,20 @@ TODO:
     - Fix selection goto.
 
 
-It is made with the MVC pattern. M for model is implemented by ....
-V for views is split across layout and views and implemented by...
-C for controller is implemented by RecycleViewBehavior.
+Its design is based on the MVC (`Model-view-controller
+<https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller>`_)
+pattern.
+
+* Model: The model is implemented by ....
+* View: The View is split across layout and views and implemented by...
+* Controller: The controller is implemented by :class:`RecycleViewBehavior`.
 
 These are abstract classes and cannot be used directly. The default concrete
 implementation is RecycleDataModel for M, RecycleLayout and ... for views,
 and RecycleView for C.
 
 When a RecycleView is instantiated it automatically creates the views and data
-classes. However, one must manually create the layout classes and add it to
+classes. However, one must manually create the layout classes and add them to
 the RecycleView.
 
 A layout manager is automatically added as a layout manager when added as the
@@ -136,7 +141,7 @@ class RecycleViewBehavior(object):
 
         It is automatically bound to `'on_data_changed'` in
         :class:`~kivy.uix.recycleview.datamodel.RecycleDataModelBehavior` and
-        therefore responds to and accept the keyword arguments of that event.
+        therefore responds to and accepts the keyword arguments of that event.
 
         It can be called manually to trigger an update.
         '''
@@ -145,7 +150,7 @@ class RecycleViewBehavior(object):
 
     def refresh_from_layout(self, *largs, **kwargs):
         '''Should be called when the layout changes or needs to change.
-        Typically called when the data has not been changed, but e.g. a layout
+        Typically called when the data has not been changed but a layout
         parameter has and therefore the layout needs to be recomputed.
         '''
         self._refresh_flags['layout'].append(kwargs)
@@ -247,7 +252,8 @@ class RecycleViewBehavior(object):
 
     layout_manager = AliasProperty(
         _get_layout_manager, _set_layout_manager)
-    """Layout manager responsible to position views within the recycleview
+    """Layout manager responsible to position views within the
+    :class:`RecycleView`.
     """
 
 
@@ -370,4 +376,3 @@ class RecycleView(RecycleViewBehavior, ScrollView):
         bind=["layout_manager"])
     """Set the key viewclass on the current layout_manager
     """
-
