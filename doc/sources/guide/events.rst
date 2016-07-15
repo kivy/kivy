@@ -134,14 +134,16 @@ every second.
 Trigger events
 ~~~~~~~~~~~~~~
 
-If you want to schedule a function to be called only once for the next frame,
-like a trigger, you might be tempted to achieve that like so::
+Sometimes you may want to schedule a function to be called only once for the next 
+frame, preventing duplicate calls. You might be tempted to achieve that like so::
 
-    # before
+    # First, shedule once.
     event = Clock.schedule_once(my_callback, 0)
-    # and then later
+    
+    # Then, in another place you will have to unschedule first
+    # to avoid duplicate call. Then you can shedule again.
     Clock.unschedule(event)
-    Clock.schedule_once(my_callback, 0)
+    event = Clock.schedule_once(my_callback, 0)
 
 This way of programming a trigger is expensive, since you'll always call
 unschedule, even if the event has already completed. In addition, a new event is
