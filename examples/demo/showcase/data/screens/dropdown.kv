@@ -18,7 +18,9 @@ ShowcaseScreen:
     DropDown:
 
         id: dropdown
-        on_parent: self.dismiss()
+        first: True
+        on_parent:
+            if self.first: self.dismiss(); self.first = False
         on_select: btn.text = 'Selected value: {}'.format(args[1])
 
         Button:
