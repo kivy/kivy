@@ -86,7 +86,6 @@ class WindowEglRpi(WindowBase):
 
     def mainloop(self):
         while not EventLoop.quit and EventLoop.status == 'started':
-            print 'quit?', EventLoop.quit
             try:
                 self._mainloop()
             except BaseException as inst:
