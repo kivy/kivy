@@ -8,7 +8,7 @@ __all__ = ('WindowEglRpi', )
 
 from kivy.logger import Logger
 from kivy.core.window import WindowBase
-from kivy.base import EventLoop
+from kivy.base import EventLoop, ExceptionManager, stopTouchApp
 from kivy.lib.vidcore_lite import bcm, egl
 from os import environ
 
@@ -78,23 +78,22 @@ class WindowEglRpi(WindowBase):
         egl.Terminate(self.egl_info[0])
 
     def flip(self):
-        egl.SwapBuffers(self.egl_info[0], self.egl_info[1])
+        if not EventLoop.quit:
+            egl.SwapBuffers(self.egl_info[0], self.egl_info[1])
 
     def _mainloop(self):
         EventLoop.idle()
 
     def mainloop(self):
         while not EventLoop.quit and EventLoop.status == 'started':
+            print 'quit?', EventLoop.quit
             try:
                 self._mainloop()
             except BaseException as inst:
-                raise
-                '''
                 # use exception manager first
                 r = ExceptionManager.handle_exception(inst)
                 if r == ExceptionManager.RAISE:
-                    #stopTouchApp()
+                    stopTouchApp()
                     raise
                 else:
                     pass
-                '''
