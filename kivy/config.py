@@ -221,6 +221,10 @@ Available configuration tokens
         property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
 
+        .. deprecated:: 1.7.0
+            Please use
+            :class:`~kivy.uix.scrollview.ScrollView.effect_cls` instead.
+
     `scroll_timeout`: int
         Default value of the
         :attr:`~kivy.uix.scrollview.ScrollView.scroll_timeout`
