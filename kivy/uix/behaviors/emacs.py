@@ -7,7 +7,7 @@ The :class:`~kivy.uix.behaviors.emacs.EmacsBehavior`
 `mixin <https://en.wikipedia.org/wiki/Mixin>`_ allows you to add
 `Emacs <https://www.gnu.org/software/emacs/>`_ keyboard shortcuts for basic
 movement and editing to the :class:`~kivy.uix.textinput.TextInput` widget.
-The shortcuts currently available are listed below::
+The shortcuts currently available are listed below:
 
 Emacs shortcuts
 ---------------

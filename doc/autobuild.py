@@ -7,11 +7,13 @@ Be careful if you change anything in !
 '''
 
 ignore_list = (
+    'kivy._clock',
     'kivy._event',
     'kivy.factory_registers',
     'kivy.graphics.buffer',
     'kivy.graphics.vbo',
     'kivy.graphics.vertex',
+    'kivy.uix.recycleview.__init__',
     'kivy.setupconfig'
 )
 

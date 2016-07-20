@@ -326,10 +326,11 @@
     on_touch_up: self.collide_point(*args[1].pos) and ctx.controller().entry_released(self, args[1])
     BoxLayout:
         pos: root.pos
+        size_hint_x: None
+        width: root.width - dp(10)
         Label:
             id: filename
-            size_hint_x: None
-            width: (self.texture_size[0] + dp(4)) if self.texture_size else dp(10)
+            text_size: self.width, None
             halign: 'left'
             shorten: True
             text: ctx.name

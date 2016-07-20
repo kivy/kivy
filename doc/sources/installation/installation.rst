@@ -180,7 +180,7 @@ Installing Kivy for Development
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now that you've installed all the required dependencies, it's time to
-download and compile a development version of Kivy::
+download and compile a development version of Kivy:
 
 Download Kivy from GitHub::
 

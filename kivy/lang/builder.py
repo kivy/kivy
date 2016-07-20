@@ -253,6 +253,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                                '{}: {}'.format(e.__class__.__name__, e),
                                cause=tb)
 
+
 class BuilderBase(object):
     '''The Builder is responsible for creating a :class:`Parser` for parsing a
     kv file, merging the results into its internal rules, templates, etc.
@@ -383,6 +384,7 @@ class BuilderBase(object):
 
     def template(self, *args, **ctx):
         '''Create a specialized template using a specific context.
+
         .. versionadded:: 1.0.5
 
         With templates, you can construct custom widgets from a kv lang
@@ -622,9 +624,9 @@ class BuilderBase(object):
                     idmap.update(rctx['ids'])
                     idmap['self'] = widget_set.proxy_ref
                     if not widget_set.fbind(key, custom_callback, crule,
-                                                idmap):
+                                            idmap):
                         raise AttributeError(key)
-                    #hack for on_parent
+                    # hack for on_parent
                     if crule.name == 'on_parent':
                         Factory.Widget.parent.dispatch(widget_set.__self__)
         except Exception as e:
@@ -703,27 +705,27 @@ class BuilderBase(object):
         This effectively clearls all the KV rules associated with this widget.
         For example:
 
-    .. code-block:: python
+        .. code-block:: python
 
-            >>> w = Builder.load_string(\'''
-            ... Widget:
-            ...     height: self.width / 2. if self.disabled else self.width
-            ...     x: self.y + 50
-            ... \''')
-            >>> w.size
-            [100, 100]
-            >>> w.pos
-            [50, 0]
-            >>> w.width = 500
-            >>> w.size
-            [500, 500]
-            >>> Builder.unbind_widget(w.uid)
-            >>> w.width = 222
-            >>> w.y = 500
-            >>> w.size
-            [222, 500]
-            >>> w.pos
-            [50, 500]
+                >>> w = Builder.load_string(\'''
+                ... Widget:
+                ...     height: self.width / 2. if self.disabled else self.width
+                ...     x: self.y + 50
+                ... \''')
+                >>> w.size
+                [100, 100]
+                >>> w.pos
+                [50, 0]
+                >>> w.width = 500
+                >>> w.size
+                [500, 500]
+                >>> Builder.unbind_widget(w.uid)
+                >>> w.width = 222
+                >>> w.y = 500
+                >>> w.size
+                [222, 500]
+                >>> w.pos
+                [50, 500]
 
         .. versionadded:: 1.7.2
         '''

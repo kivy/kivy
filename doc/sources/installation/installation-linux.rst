@@ -29,7 +29,7 @@ Ubuntu / Kubuntu / Xubuntu / Lubuntu (Saucy and above)
     :Python3 - **python3-kivy**:
         $ sudo apt-get install python3-kivy
     :optionally the examples - **kivy-examples**:
-        $ sudo apt-get install kivy-examples
+        $ sudo apt-get install python-kivy-examples
 
 
 Debian  (Jessie or newer)
@@ -316,8 +316,14 @@ Installation
     # Make sure Pip, Virtualenv and Setuptools are updated
     sudo pip install --upgrade pip virtualenv setuptools
 
-    # Create a virtualenv
+    # Then create a virtualenv by either:
+    
+    # 1. using the default interpreter
     virtualenv --no-site-packages kivyinstall
+    
+    # or 2. using a specific interpreter 
+    # (this will use the interpreter in /usr/bin/python2.7)
+    virtualenv --no-site-packages -p /usr/bin/python2.7 kivyinstall
 
     # Enter the virtualenv
     . kivyinstall/bin/activate
@@ -337,7 +343,7 @@ Installation
     # Install stable version of Kivy into the virtualenv
     pip install kivy
     # For the development version of Kivy, use the following command instead
-    # pip install git+https://github.com/kivy/kivy.git@master
+    pip install git+https://github.com/kivy/kivy.git@master
 
 
 Install additional Virtualenv packages

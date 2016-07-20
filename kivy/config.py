@@ -206,8 +206,8 @@ Available configuration tokens
 
     .. seealso::
 
-        Check the providers in kivy.input.providers for the syntax to use
-        inside the configuration file.
+        Check the providers in :mod:`kivy.input.providers` for the syntax to
+        use inside the configuration file.
 
 :widgets:
 
@@ -222,6 +222,10 @@ Available configuration tokens
         :attr:`~kivy.uix.scrollview.ScrollView.scroll_friction`
         property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
+
+        .. deprecated:: 1.7.0
+            Please use
+            :class:`~kivy.uix.scrollview.ScrollView.effect_cls` instead.
 
     `scroll_timeout`: int
         Default value of the

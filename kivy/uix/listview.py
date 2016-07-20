@@ -6,8 +6,8 @@ List View
 
 .. note::
 
-    ListView is planned to be deprecated once
-    :class:`~kivy.uix.recycleview.RecycleView` becomes stable.
+    ListView has been deprecated, use
+    :class:`~kivy.uix.recycleview.RecycleView` instead.
 
 .. warning::
 
@@ -550,6 +550,7 @@ from kivy.uix.selectableview import SelectableView
 from kivy.properties import ObjectProperty, DictProperty, \
         NumericProperty, ListProperty, BooleanProperty
 from kivy.lang import Builder
+from kivy.utils import deprecated
 from math import ceil, floor
 
 
@@ -840,6 +841,7 @@ class ListView(AbstractView, EventDispatcher):
 
     __events__ = ('on_scroll_complete', )
 
+    @deprecated
     def __init__(self, **kwargs):
         # Check for an adapter argument. If it doesn't exist, we
         # check for item_strings in use with SimpleListAdapter

@@ -449,6 +449,8 @@ class TextInput(FocusBehavior, Widget):
                   'on_quad_touch')
 
     def __init__(self, **kwargs):
+        self._update_graphics_ev = Clock.create_trigger(
+            self._update_graphics, -1)
         self.is_focusable = kwargs.get('is_focusable', True)
         self._cursor = [0, 0]
         self._selection = False
@@ -509,8 +511,6 @@ class TextInput(FocusBehavior, Widget):
         fbind = self.fbind
         refresh_line_options = self._trigger_refresh_line_options
         update_text_options = self._update_text_options
-        self._update_graphics_ev = Clock.create_trigger(
-            self._update_graphics, -1)
 
         fbind('font_size', refresh_line_options)
         fbind('font_name', refresh_line_options)
@@ -2167,17 +2167,6 @@ class TextInput(FocusBehavior, Widget):
             oldindex = index + 1
         yield text[oldindex:]
 
-    def _split_word(self, text, width):
-        x = 0
-        split_pos = 0
-        for c in text:
-            cw = self._get_text_width(c, self.tab_width, self._label_cached)
-            if x + cw > width:
-                break
-            x += cw
-            split_pos += 1
-        return split_pos, x
-
     def _split_smart(self, text):
         # Do a "smart" split. If autowidth or autosize is set,
         # we are not doing smart split, just a split on line break.
@@ -2219,7 +2208,19 @@ class TextInput(FocusBehavior, Widget):
                 flags |= FL_IS_LINEBREAK
             elif width >= 1 and w > width:
                 while w > width:
-                    split_pos, split_width = self._split_word(word, width)
+                    split_width = split_pos = 0
+                    # split the word
+                    for c in word:
+                        cw = self._get_text_width(
+                            c, self.tab_width, self._label_cached
+                        )
+                        if split_width + cw > width:
+                            break
+                        split_width += cw
+                        split_pos += 1
+                    if split_width == split_pos == 0:
+                        # can't fit the word in, give up
+                        break
                     lines_append(word[:split_pos])
                     lines_flags_append(flags)
                     flags = FL_IS_WORDBREAK
@@ -2944,7 +2945,7 @@ class TextInput(FocusBehavior, Widget):
     '''Font size of the text in pixels.
 
     :attr:`font_size` is a :class:`~kivy.properties.NumericProperty` and
-    defaults to 10.
+    defaults to 15\ :attr:`~kivy.metrics.sp`.
     '''
     _hint_text = StringProperty('')
 

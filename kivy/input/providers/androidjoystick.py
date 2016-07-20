@@ -24,7 +24,8 @@ from kivy.input.provider import MotionEventProvider
 from kivy.input.factory import MotionEventFactory
 from kivy.input.shape import ShapeRect
 from kivy.input.motionevent import MotionEvent
-import pygame.joystick
+if 'KIVY_DOC' not in os.environ:
+    import pygame.joystick
 
 
 class AndroidMotionEvent(MotionEvent):

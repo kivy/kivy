@@ -2,14 +2,15 @@
 RecycleView
 ===========
 
-A flexible view for providing a limited window into a large data set.
+A flexible view for providing a limited window into a large data set. This
+approach prevents the performance degradation that can occur when trying to
+generate large numbers of widgets to display many data items.
 
 .. warning::
     This module is highly experimental, its API may change in the future and
     the documentation is not complete at this time.
 
-
-Data accepted: list of dict.
+Data accepted: list of dicts.
 
 TODO:
     - Method to clear cached class instances.
@@ -17,16 +18,20 @@ TODO:
     - Fix selection goto.
 
 
-It is made with the MVC pattern. M for model is implemented by ....
-V for views is split across layout and views and implemented by...
-C for controller is implemented by RecycleViewBehavior.
+Its design is based on the MVC (`Model-view-controller
+<https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller>`_)
+pattern.
+
+* Model: The model is implemented by ....
+* View: The View is split across layout and views and implemented by...
+* Controller: The controller is implemented by :class:`RecycleViewBehavior`.
 
 These are abstract classes and cannot be used directly. The default concrete
 implementation is RecycleDataModel for M, RecycleLayout and ... for views,
 and RecycleView for C.
 
 When a RecycleView is instantiated it automatically creates the views and data
-classes. However, one must manually create the layout classes and add it to
+classes. However, one must manually create the layout classes and add them to
 the RecycleView.
 
 A layout manager is automatically added as a layout manager when added as the
@@ -37,6 +42,8 @@ found.
 .. warning::
     When views are re-used they may not trigger if the data remains the same.
 """
+
+__all__ = ('RecycleViewBehavior', 'RecycleView')
 
 from copy import deepcopy
 
@@ -52,8 +59,9 @@ from kivy.uix.recycleview.datamodel import RecycleDataModelBehavior, \
 
 
 class RecycleViewBehavior(object):
-    """RecycleViewBehavior is a flexible view for providing a limited window into
-    a large data set.
+    """RecycleViewBehavior provides a behavioral model upon which the
+    :class:`RecycleView` is built. Together, they offer an extensible and
+    flexible way to produce views with limited windows over large data sets.
 
     See module documentation for more informations.
     """
@@ -133,7 +141,7 @@ class RecycleViewBehavior(object):
 
         It is automatically bound to `'on_data_changed'` in
         :class:`~kivy.uix.recycleview.datamodel.RecycleDataModelBehavior` and
-        therefore responds to and accept the keyword arguments of that event.
+        therefore responds to and accepts the keyword arguments of that event.
 
         It can be called manually to trigger an update.
         '''
@@ -142,7 +150,7 @@ class RecycleViewBehavior(object):
 
     def refresh_from_layout(self, *largs, **kwargs):
         '''Should be called when the layout changes or needs to change.
-        Typically called when the data has not been changed, but e.g. a layout
+        Typically called when the data has not been changed but a layout
         parameter has and therefore the layout needs to be recomputed.
         '''
         self._refresh_flags['layout'].append(kwargs)
@@ -157,8 +165,8 @@ class RecycleViewBehavior(object):
         self._refresh_trigger()
 
     def _dispatch_prop_on_source(self, prop_name, *largs):
-        '''Dispatches the prop of this class when the view_adapter/layout_manager
-        property changes.
+        '''Dispatches the prop of this class when the
+        view_adapter/layout_manager property changes.
         '''
         getattr(self.__class__, prop_name).dispatch(self)
 
@@ -234,8 +242,8 @@ class RecycleViewBehavior(object):
 
         if not isinstance(value, RecycleLayoutManagerBehavior):
             raise ValueError(
-                'Expected object based on RecycleLayoutManagerBehavior, got {}'.
-                format(value.__class__))
+                'Expected object based on RecycleLayoutManagerBehavior, '
+                'got {}'.format(value.__class__))
 
         self._layout_manager = value
         value.attach_recycleview(self)
@@ -244,12 +252,17 @@ class RecycleViewBehavior(object):
 
     layout_manager = AliasProperty(
         _get_layout_manager, _set_layout_manager)
-    """Layout manager responsible to position views within the recycleview
+    """Layout manager responsible to position views within the
+    :class:`RecycleView`.
     """
 
 
 class RecycleView(RecycleViewBehavior, ScrollView):
+    """RecycleView is a flexible view for providing a limited window
+    into a large data set.
 
+    See module documentation for more informations.
+    """
     def __init__(self, **kwargs):
         if self.data_model is None:
             kwargs.setdefault('data_model', RecycleDataModel())
@@ -326,10 +339,12 @@ class RecycleView(RecycleViewBehavior, ScrollView):
     def _get_data(self):
         d = self.data_model
         return d and d.data
+
     def _set_data(self, value):
         d = self.data_model
         if d is not None:
             d.data = value
+
     data = AliasProperty(_get_data, _set_data, bind=["data_model"])
     """Set the data on the current view adapter
     """
@@ -337,10 +352,12 @@ class RecycleView(RecycleViewBehavior, ScrollView):
     def _get_viewclass(self):
         a = self.layout_manager
         return a and a.viewclass
+
     def _set_viewclass(self, value):
         a = self.layout_manager
         if a:
             a.viewclass = value
+
     viewclass = AliasProperty(_get_viewclass, _set_viewclass,
         bind=["layout_manager"])
     """Set the viewclass on the current layout_manager
@@ -349,10 +366,12 @@ class RecycleView(RecycleViewBehavior, ScrollView):
     def _get_key_viewclass(self):
         a = self.layout_manager
         return a and a.key_viewclass
+
     def _set_key_viewclass(self, value):
         a = self.layout_manager
         if a:
             a.key_viewclass = value
+
     key_viewclass = AliasProperty(_get_key_viewclass, _set_key_viewclass,
         bind=["layout_manager"])
     """Set the key viewclass on the current layout_manager

@@ -1,3 +1,14 @@
+'''
+SelectableView
+==============
+
+This module houses the :class:`SelectableView` mixin class. This is used by
+the :class:`~kivy.uix.listview.ListView` and it's associated
+:mod:`Adapters <kivy.adapters>` to provide selection behaviour
+when presenting large lists.
+
+'''
+
 from kivy.properties import NumericProperty, BooleanProperty
 
 
