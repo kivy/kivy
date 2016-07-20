@@ -108,7 +108,7 @@ cdef class ClockEvent(object):
                 # cap is next, so we have reached the end of the list
                 # because current one being processed is going to be the last event now
                 if self.clock._cap_event is self.clock._next_event:
-                   self.clock._cap_event = None
+                    self.clock._cap_event = None
                 else:
                     self.clock._cap_event = self.prev  # new cap
 
@@ -376,7 +376,7 @@ cdef class CyClockBase(object):
 
         self._cap_event = self._last_event
         event = self._root_event
-        while not done:
+        while not done and event is not None:
             self._next_event = event.next
             done = self._cap_event is event or self._cap_event is None
             '''Usage of _cap_event: We have to worry about this case:
@@ -400,7 +400,7 @@ cdef class CyClockBase(object):
                 self._lock_acquire()
             event = self._next_event
 
-        self._cap_event = None
+        self._next_event = self._cap_event = None
         self._lock_release()
 
     cpdef _process_events_before_frame(self):
@@ -429,7 +429,7 @@ cdef class CyClockBase(object):
 
             self._cap_event = self._last_event
             event = self._root_event
-            while not done:
+            while not done and event is not None:
                 if event.timeout != -1:
                     done = self._cap_event is event or self._cap_event is None
                     event = event.next
@@ -447,7 +447,7 @@ cdef class CyClockBase(object):
                 else:
                     self._lock_acquire()
                 event = self._next_event
-            self._cap_event = None
+            self._next_event = self._cap_event = None
             self._lock_release()
 
     cpdef get_min_timeout(self):
@@ -565,7 +565,7 @@ cdef class CyClockBaseFree(CyClockBase):
 
         self._cap_event = self._last_event
         event = self._root_event
-        while not done:
+        while not done and event is not None:
             if not event.free:
                 done = self._cap_event is event or self._cap_event is None
                 event = event.next
@@ -584,7 +584,7 @@ cdef class CyClockBaseFree(CyClockBase):
                 self._lock_acquire()
             event = self._next_event
 
-        self._cap_event = None
+        self._next_event = self._cap_event = None
         self._lock_release()
 
     cpdef get_min_free_timeout(self):
