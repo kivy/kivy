@@ -682,7 +682,6 @@ class ScrollView(StencilView):
         # this touch.
         self._touch = touch
         uid = self._get_uid()
-        FocusBehavior.ignored_touch.append(touch)
 
         ud[uid] = {
             'mode': 'unknown',
@@ -736,6 +735,10 @@ class ScrollView(StencilView):
 
         rv = True
 
+        # By default this touch can be used to defocus currently focused
+        # widget, like any touch outside of ScrollView.
+        touch.ud['sv.can_defocus'] = True
+
         uid = self._get_uid()
         if not uid in touch.ud:
             self._touch = False
@@ -759,6 +762,8 @@ class ScrollView(StencilView):
                     rv = False
                 else:
                     touch.ud['sv.handled']['x'] = True
+                # Touch resulted in scroll should not defocus focused widget
+                touch.ud['sv.can_defocus'] = False
             if not touch.ud['sv.handled']['y'] and self.do_scroll_y \
                     and self.effect_y:
                 height = self.height
@@ -773,6 +778,8 @@ class ScrollView(StencilView):
                     rv = False
                 else:
                     touch.ud['sv.handled']['y'] = True
+                # Touch resulted in scroll should not defocus focused widget
+                touch.ud['sv.can_defocus'] = False
 
         if mode == 'unknown':
             ud['dx'] += abs(touch.dx)
@@ -809,6 +816,9 @@ class ScrollView(StencilView):
 
         if self.dispatch('on_scroll_stop', touch):
             touch.ungrab(self)
+            if not touch.ud.get('sv.can_defocus', True):
+                # Focused widget should stay focused
+                FocusBehavior.ignored_touch.append(touch)
             return True
 
     def on_scroll_stop(self, touch, check_children=True):
