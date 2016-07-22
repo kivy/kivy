@@ -136,7 +136,7 @@ class RecycleBoxLayout(RecycleLayout, BoxLayout):
         x, y = pos
 
         if self.orientation == 'horizontal':
-            if x >= calc_pos[-1]:
+            if x >= calc_pos[-1] or len(calc_pos) == 1:
                 return len(calc_pos) - 1
 
             ix = 0
@@ -145,7 +145,7 @@ class RecycleBoxLayout(RecycleLayout, BoxLayout):
                     return ix
                 ix += 1
         else:
-            if y >= calc_pos[-1]:
+            if y >= calc_pos[-1] or len(calc_pos) == 1:
                 return 0
 
             iy = 0
