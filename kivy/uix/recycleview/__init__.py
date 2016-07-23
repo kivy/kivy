@@ -2,9 +2,9 @@
 RecycleView
 ===========
 
-A flexible view for providing a limited window into a large data set. This
-approach prevents the performance degradation that can occur when trying to
-generate large numbers of widgets to display many data items.
+The RecycleView provides a flexible model for viewing selected sections of
+large data sets. It aims to prevent the performance degradation that can occur
+when generating large numbers of widgets in order to display many data items.
 
 .. warning::
     This module is highly experimental, its API may change in the future and
@@ -22,7 +22,7 @@ Its design is based on the MVC (`Model-view-controller
 <https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller>`_)
 pattern.
 
-* Model: The model is implemented by ....
+* Model: The model is formed by 'data' you pass in via a list of dicts.
 * View: The View is split across layout and views and implemented by...
 * Controller: The controller is implemented by :class:`RecycleViewBehavior`.
 
