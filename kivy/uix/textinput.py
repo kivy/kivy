@@ -158,7 +158,7 @@ from kivy.metrics import inch
 from kivy.utils import boundary, platform
 from kivy.uix.behaviors import FocusBehavior
 
-from kivy.core.text import Label
+from kivy.core.text import Label, DEFAULT_FONT
 from kivy.graphics import Color, Rectangle, PushMatrix, PopMatrix, Callback
 from kivy.graphics.context_instructions import Transform
 from kivy.graphics.texture import Texture
@@ -2919,7 +2919,7 @@ class TextInput(FocusBehavior, Widget):
     :attr:`text` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
-    font_name = StringProperty('Roboto')
+    font_name = StringProperty(DEFAULT_FONT)
     '''Filename of the font to use. The path can be absolute or relative.
     Relative paths are resolved by the :func:`~kivy.resources.resource_find`
     function.

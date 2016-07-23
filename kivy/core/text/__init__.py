@@ -57,6 +57,15 @@ FONT_BOLDITALIC = 3
 whitespace_pat = re.compile('( +)')
 
 
+def set_default_font(fontname):
+    global DEFAULT_FONT
+    DEFAULT_FONT = fontname
+    from kivy.uix.label import Label
+    Label.font_name.defaultvalue = fontname
+    from kivy.uix.textinput import TextInput
+    TextInput.font_name.defaultvalue = fontname
+
+
 class LabelBase(object):
     '''Core text label.
     This is the abstract class used by different backends to render text.
