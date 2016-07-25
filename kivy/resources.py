@@ -30,7 +30,7 @@ images and icons.
 
 __all__ = ('resource_find', 'resource_add_path', 'resource_remove_path')
 
-from os.path import join, dirname, exists
+from os.path import join, dirname, exists, abspath
 from kivy import kivy_data_dir
 from kivy.utils import platform
 from kivy.logger import Logger
@@ -52,11 +52,11 @@ def resource_find(filename):
     if filename[:8] == 'atlas://':
         return filename
     if exists(filename):
-        return filename
+        return abspath(filename)
     for path in reversed(resource_paths):
         output = join(path, filename)
         if exists(output):
-            return output
+            return abspath(output)
     if filename[:5] == 'data:':
         return filename
     return None
