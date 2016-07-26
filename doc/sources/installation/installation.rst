@@ -131,7 +131,7 @@ you have the command line tools installed::
 
     xcode-select --install
 
-Go to an apropriate dir like::
+Go to an appropriate dir like::
 
     mkdir ~/code
     cd ~/code
