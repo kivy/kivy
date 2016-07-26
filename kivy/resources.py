@@ -51,12 +51,12 @@ def resource_find(filename):
         return None
     if filename[:8] == 'atlas://':
         return filename
-    if exists(filename):
+    if exists(abspath(filename)):
         return abspath(filename)
     for path in reversed(resource_paths):
-        output = join(path, filename)
+        output = abspath(join(path, filename))
         if exists(output):
-            return abspath(output)
+            return output
     if filename[:5] == 'data:':
         return filename
     return None
