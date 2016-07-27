@@ -190,6 +190,8 @@ Available configuration tokens
         :class:`~kivy.uix.behaviors.buttonbehavior.ButtonBehavior` to
         make sure they display their current visual state for the given
         time.
+    `kivy_clock`: one of `default`, `interrupt`, `free_all`, `free_only`
+        The clock type to use with kivy. See :mod:`kivy.clock`.
 
 :input:
 
@@ -263,6 +265,7 @@ Available configuration tokens
 
 .. versionchanged:: 1.9.2
     `min_state_time` has been added to the `graphics` section.
+    `kivy_clock` has been added to the kivy section
 
 .. versionchanged:: 1.9.0
     `borderless` and `window_state` have been added to the graphics section.
@@ -309,7 +312,7 @@ from weakref import ref
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 15
+KIVY_CONFIG_VERSION = 16
 
 Config = None
 '''The default Kivy configuration object. This is a :class:`ConfigParser`
@@ -798,6 +801,9 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 14:
             Config.setdefault('graphics', 'min_state_time', '.035')
+
+        elif version == 15:
+            Config.setdefault('kivy', 'kivy_clock', 'default')
 
         # elif version == 1:
         #    # add here the command for upgrading from configuration 0 to 1
