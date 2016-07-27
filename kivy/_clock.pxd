@@ -29,6 +29,13 @@ cdef class ClockEvent(object):
     cpdef tick(self, double curtime)
 
 
+cdef class FreeClockEvent(ClockEvent):
+
+    cdef public int free
+    '''Whether this event was scheduled as a free event.
+    '''
+
+
 cdef class CyClockBase(object):
 
     cdef public double _last_tick
@@ -36,6 +43,16 @@ cdef class CyClockBase(object):
     '''The maximum number of callback iterations at the end of the frame, before the next
     frame. If more iterations occur, a warning is issued.
     '''
+
+    cdef public double clock_resolution
+    '''If the remaining time until the event timeout is less than :attr:`clock_resolution`,
+    the clock will execute the callback even if it hasn't exactly timed out.
+
+    If -1, the default, the resolution will be computed from config's ``maxfps``.
+    Otherwise, the provided value is used. Defaults to -1.
+    '''
+
+    cdef public double _max_fps
 
     cdef public ClockEvent _root_event
     '''The first event in the chain. Can be None.
@@ -65,6 +82,7 @@ cdef class CyClockBase(object):
     cdef public object _lock_acquire
     cdef public object _lock_release
 
+    cpdef get_resolution(self)
     cpdef create_trigger(self, callback, timeout=*, interval=*)
     cpdef schedule_once(self, callback, timeout=*)
     cpdef schedule_interval(self, callback, timeout)
@@ -72,3 +90,14 @@ cdef class CyClockBase(object):
     cpdef _release_references(self)
     cpdef _process_events(self)
     cpdef _process_events_before_frame(self)
+    cpdef get_min_timeout(self)
+    cpdef get_events(self)
+
+
+cdef class CyClockBaseFree(CyClockBase):
+
+    cpdef create_trigger_free(self, callback, timeout=*, interval=*)
+    cpdef schedule_once_free(self, callback, timeout=*)
+    cpdef schedule_interval_free(self, callback, timeout)
+    cpdef _process_free_events(self, double last_tick)
+    cpdef get_min_free_timeout(self)
