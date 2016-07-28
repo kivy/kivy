@@ -10,15 +10,10 @@ when generating large numbers of widgets in order to display many data items.
     This module is highly experimental, its API may change in the future and
     the documentation is not complete at this time.
 
-Data accepted: list of dicts.
-
-TODO:
-    - Method to clear cached class instances.
-    - Test when views cannot be found (e.g. viewclass is None).
-    - Fix selection goto.
-
-
-Its design is based on the MVC (`Model-view-controller
+The view is generatad by processing the :attr:`~RecycleView.data`, essentially
+a list of dicts, and using these dicts to generate instances of the
+:attr:`~RecycleView.viewclass` as required. Its design is based on the
+MVC (`Model-view-controller
 <https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller>`_)
 pattern.
 
@@ -38,6 +33,45 @@ A layout manager is automatically added as a layout manager when added as the
 child of the RecycleView. Similarly when removed. A requirement is that the
 layout manager must be a sub-child of the RecycleView so the view port can be
 found.
+
+A minimal example might look something like this::
+
+    from kivy.app import App
+    from kivy.lang import Builder
+    from kivy.uix.recycleview import RecycleView
+
+
+    Builder.load_string('''
+    <RV>:
+        viewclass: 'Label'
+        RecycleBoxLayout:
+            default_size: None, dp(56)
+            default_size_hint: 1, None
+            size_hint_y: None
+            height: self.minimum_height
+            orientation: 'vertical'
+    ''')
+
+    class RV(RecycleView):
+        def __init__(self, **kwargs):
+            super(RV, self).__init__(**kwargs)
+            self.data = [{'text': str(x)} for x in range(100)]
+
+
+    class TestApp(App):
+        def build(self):
+            return RV()
+
+    if __name__ == '__main__':
+        TestApp().run()
+
+Please see the `examples/widgets/recycleview/basic_data.py` file for a more
+complete example.
+
+TODO:
+    - Method to clear cached class instances.
+    - Test when views cannot be found (e.g. viewclass is None).
+    - Fix selection goto.
 
 .. warning::
     When views are re-used they may not trigger if the data remains the same.
@@ -346,7 +380,9 @@ class RecycleView(RecycleViewBehavior, ScrollView):
             d.data = value
 
     data = AliasProperty(_get_data, _set_data, bind=["data_model"])
-    """Set the data on the current view adapter
+    """
+    Set the data on the current view adapter. This is a list of dicts whose
+    keys map to the appropriate property names of the View
     """
 
     def _get_viewclass(self):
