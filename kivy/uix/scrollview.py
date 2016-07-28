@@ -1058,7 +1058,7 @@ class ScrollView(StencilView):
     def _do_touch_up(self, touch, *largs):
         # touch is in window coords
         touch.push()
-        touch.apply_transform_2d(self.to_widget)
+        touch.apply_transform_2d(self.to_local)
         super(ScrollView, self).on_touch_up(touch)
         touch.pop()
         # don't forget about grab event!
