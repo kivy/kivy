@@ -396,10 +396,11 @@ class RecycleView(RecycleViewBehavior, ScrollView):
     data = AliasProperty(_get_data, _set_data, bind=["data_model"])
     """
     The data used by the current view adapter. This is a list of dicts whose
-    keys map to the corresponding property names of the View.
+    keys map to the corresponding property names of the
+    :attr:`~RecycleView.viewclass`.
 
     data is an :class:`~kivy.properties.AliasProperty` that gets and sets the
-    data used to generate the views..
+    data used to generate the views.
     """
 
     def _get_viewclass(self):
@@ -412,8 +413,12 @@ class RecycleView(RecycleViewBehavior, ScrollView):
             a.viewclass = value
 
     viewclass = AliasProperty(_get_viewclass, _set_viewclass,
-        bind=["layout_manager"])
-    """Set the viewclass on the current layout_manager
+                              bind=["layout_manager"])
+    """
+    The viewclass used by the current layout_manager.
+
+    viewclass is an :class:`~kivy.properties.AliasProperty` that gets and sets
+    the class used to generate the individual items presented in the view.
     """
 
     def _get_key_viewclass(self):
