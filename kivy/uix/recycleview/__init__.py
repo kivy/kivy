@@ -173,7 +173,7 @@ class RecycleViewBehavior(object):
         '''Should be called when data changes. Data changes typically indicate
         that everything has to be recomputed since the source data changed.
 
-        It is automatically bound to `'on_data_changed'` in
+        This method is automatically bound to `'on_data_changed'` in
         :class:`~kivy.uix.recycleview.datamodel.RecycleDataModelBehavior` and
         therefore responds to and accepts the keyword arguments of that event.
 
@@ -229,7 +229,12 @@ class RecycleViewBehavior(object):
         return True
 
     data_model = AliasProperty(_get_data_model, _set_data_model)
-    """Data model responsible for keeping the data set. """
+    """
+    The Data model responsible for maintaining the data set.
+
+    data_model is an :class:`~kivy.properties.AliasProperty` that gets and sets
+    the current data model.
+    """
 
     def _get_view_adapter(self):
         return self._view_adapter
@@ -256,8 +261,13 @@ class RecycleViewBehavior(object):
         return True
 
     view_adapter = AliasProperty(_get_view_adapter, _set_view_adapter)
-    """Adapter responsible for providing views that represent items in a data
-    set."""
+    """
+    The adapter responsible for providing views that represent items in a data
+    set.
+
+    view_adapter is an :class:`~kivy.properties.AliasProperty` that gets and
+    sets the current view adapter.
+    """
 
     def _get_layout_manager(self):
         return self._layout_manager
@@ -286,7 +296,8 @@ class RecycleViewBehavior(object):
 
     layout_manager = AliasProperty(
         _get_layout_manager, _set_layout_manager)
-    """Layout manager responsible to position views within the
+    """
+    The Layout manager responsible for positioning views within the
     :class:`RecycleView`.
     """
 
@@ -295,7 +306,7 @@ class RecycleView(RecycleViewBehavior, ScrollView):
     """RecycleView is a flexible view for providing a limited window
     into a large data set.
 
-    See module documentation for more informations.
+    See module documentation for more information.
     """
     def __init__(self, **kwargs):
         if self.data_model is None:
@@ -381,8 +392,11 @@ class RecycleView(RecycleViewBehavior, ScrollView):
 
     data = AliasProperty(_get_data, _set_data, bind=["data_model"])
     """
-    Set the data on the current view adapter. This is a list of dicts whose
-    keys map to the appropriate property names of the View
+    The data used by the current view adapter. This is a list of dicts whose
+    keys map to the corresponding property names of the View.
+
+    data is an :class:`~kivy.properties.AliasProperty` that gets and sets the
+    data used to generate the views..
     """
 
     def _get_viewclass(self):
