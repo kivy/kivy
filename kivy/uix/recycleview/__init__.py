@@ -174,8 +174,9 @@ class RecycleViewBehavior(object):
         This should be called when data changes. Data changes typically indicate
         that everything should be be recomputed since the source data changed.
 
-        This method is automatically bound to `'on_data_changed'` in
-        :class:`~kivy.uix.recycleview.datamodel.RecycleDataModelBehavior` and
+        This method is automatically bound to the
+        :attr:`~RecycleDataModelBehavior.on_data_changed` method of the
+        :class:`~RecycleDataModelBehavior` class and
         therefore responds to and accepts the keyword arguments of that event.
 
         It can be called manually to trigger an update.
