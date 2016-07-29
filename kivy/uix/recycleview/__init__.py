@@ -11,7 +11,7 @@ when generating large numbers of widgets in order to display many data items.
     the documentation is not complete at this time.
 
 The view is generatad by processing the :attr:`~RecycleView.data`, essentially
-a list of dicts, and using these dicts to generate instances of the
+a list of dicts, and uses these dicts to generate instances of the
 :attr:`~RecycleView.viewclass` as required. Its design is based on the
 MVC (`Model-view-controller
 <https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller>`_)
