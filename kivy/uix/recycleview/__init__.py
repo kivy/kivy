@@ -22,8 +22,9 @@ pattern.
 * Controller: The controller is implemented by :class:`RecycleViewBehavior`.
 
 These are abstract classes and cannot be used directly. The default concrete
-implementation is RecycleDataModel for M, RecycleLayout and ... for views,
-and RecycleView for C.
+implementation is the :class:`RecycleDataModel` for the model, the
+:class:`RecycleLayout` and ... for view, and the :class:`RecycleView` for the
+controller.
 
 When a RecycleView is instantiated it automatically creates the views and data
 classes. However, one must manually create the layout classes and add them to
