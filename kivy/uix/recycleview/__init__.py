@@ -97,7 +97,7 @@ class RecycleViewBehavior(object):
     :class:`RecycleView` is built. Together, they offer an extensible and
     flexible way to produce views with limited windows over large data sets.
 
-    See module documentation for more informations.
+    See the module documentation for more information.
     """
 
     # internals
@@ -170,38 +170,39 @@ class RecycleViewBehavior(object):
             lm.set_visible_views(indices, data, viewport)
 
     def refresh_from_data(self, *largs, **kwargs):
-        '''Should be called when data changes. Data changes typically indicate
-        that everything has to be recomputed since the source data changed.
+        """
+        This should be called when data changes. Data changes typically indicate
+        that everything should be be recomputed since the source data changed.
 
         This method is automatically bound to `'on_data_changed'` in
         :class:`~kivy.uix.recycleview.datamodel.RecycleDataModelBehavior` and
         therefore responds to and accepts the keyword arguments of that event.
 
         It can be called manually to trigger an update.
-        '''
+        """
         self._refresh_flags['data'].append(kwargs)
         self._refresh_trigger()
 
     def refresh_from_layout(self, *largs, **kwargs):
-        '''Should be called when the layout changes or needs to change.
-        Typically called when the data has not been changed but a layout
-        parameter has and therefore the layout needs to be recomputed.
-        '''
+        """
+        This should be called when the layout changes or needs to change. It is
+        typically called when a layout parameter has changed and therefore the
+        layout needs to be recomputed.
+        """
         self._refresh_flags['layout'].append(kwargs)
         self._refresh_trigger()
 
     def refresh_from_viewport(self, *largs):
-        '''Should be called when the viewport changes and the displayed data
-        must be updated. Typically neither the data nor the layout will be
-        recomputed.
-        '''
+        """
+        This should be called when the viewport changes and the displayed data
+        must be updated. Neither the data nor the layout will be recomputed.
+        """
         self._refresh_flags['viewport'] = True
         self._refresh_trigger()
 
     def _dispatch_prop_on_source(self, prop_name, *largs):
-        '''Dispatches the prop of this class when the
-        view_adapter/layout_manager property changes.
-        '''
+        # Dispatches the prop of this class when the
+        # view_adapter/layout_manager property changes.
         getattr(self.__class__, prop_name).dispatch(self)
 
     def _get_data_model(self):
@@ -303,10 +304,11 @@ class RecycleViewBehavior(object):
 
 
 class RecycleView(RecycleViewBehavior, ScrollView):
-    """RecycleView is a flexible view for providing a limited window
+    """
+    RecycleView is a flexible view for providing a limited window
     into a large data set.
 
-    See module documentation for more information.
+    See the module documentation for more information.
     """
     def __init__(self, **kwargs):
         if self.data_model is None:
