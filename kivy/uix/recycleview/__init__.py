@@ -23,11 +23,12 @@ pattern.
 * Controller: The controller is implemented by :class:`RecycleViewBehavior`.
 
 These are abstract classes and cannot be used directly. The default concrete
-implementation is the :class:`RecycleDataModel` for the model, the
-:class:`RecycleLayout` and ... for view, and the :class:`RecycleView` for the
-controller.
+implementation is the
+:class:`~kivy.uix.recycleview.datamodel.RecycleDataModel` for the model, the
+:class:`~kivy.uix.recyclelayout.RecycleLayout` and ... for view, and the
+:class:`RecycleView` for the controller.
 
-When a RecycleView is instantiated it automatically creates the views and data
+When a RecycleView is instantiated, it automatically creates the views and data
 classes. However, one must manually create the layout classes and add them to
 the RecycleView.
 
@@ -303,6 +304,9 @@ class RecycleViewBehavior(object):
     """
     The Layout manager responsible for positioning views within the
     :class:`RecycleView`.
+
+    layout_manager is an :class:`~kivy.uix.property.AliasProperty` that gets and
+    sets the layout_manger,
     """
 
 
@@ -434,5 +438,8 @@ class RecycleView(RecycleViewBehavior, ScrollView):
 
     key_viewclass = AliasProperty(_get_key_viewclass, _set_key_viewclass,
         bind=["layout_manager"])
-    """Set the key viewclass on the current layout_manager
+    """
+    key_viewclass is an :class:`~kivy.properties.AliasProperty` that gets and
+    sets the key viewclass for the current
+    :attr:`~kivy.uix.recycleview.layout_manager`.
     """
