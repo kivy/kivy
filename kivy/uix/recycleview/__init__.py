@@ -33,7 +33,7 @@ the RecycleView.
 
 A layout manager is automatically added as a layout manager when added as the
 child of the RecycleView. Similarly when removed. A requirement is that the
-layout manager must be a subclass of the RecycleView so the view port can be
+layout manager must be a child of the RecycleView so the view port can be
 found.
 
 A minimal example might look something like this::
