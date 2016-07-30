@@ -17,7 +17,8 @@ MVC (`Model-view-controller
 <https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller>`_)
 pattern.
 
-* Model: The model is formed by 'data' you pass in via a list of dicts.
+* Model: The model is formed by :attr:`~RecycleView.data` you pass in via a
+  list of dicts.
 * View: The View is split across layout and views and implemented by...
 * Controller: The controller is implemented by :class:`RecycleViewBehavior`.
 
@@ -32,7 +33,7 @@ the RecycleView.
 
 A layout manager is automatically added as a layout manager when added as the
 child of the RecycleView. Similarly when removed. A requirement is that the
-layout manager must be a sub-child of the RecycleView so the view port can be
+layout manager must be a subclass of the RecycleView so the view port can be
 found.
 
 A minimal example might look something like this::
