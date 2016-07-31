@@ -707,7 +707,7 @@ class TextInput(FocusBehavior, Widget):
         wrap = (self._get_text_width(
             new_text,
             self.tab_width,
-            self._label_cached) > self.width)
+            self._label_cached) > (self.width - self.padding[0] - self.padding[2]))
         if len_str > 1 or substring == u'\n' or wrap:
             # Avoid refreshing text on every keystroke.
             # Allows for faster typing of text when the amount of text in
