@@ -32,10 +32,11 @@ When a RecycleView is instantiated, it automatically creates the views and data
 classes. However, one must manually create the layout classes and add them to
 the RecycleView.
 
-A layout manager is automatically added as a layout manager when added as the
-child of the RecycleView. Similarly when removed. A requirement is that the
-layout manager must be a child of the RecycleView so the view port can be
-found.
+A layout manager is automatically created as a
+:attr:`~RecycleViewBehavior.layout_manager` when added as the child of the
+RecycleView. Similarly when removed. A requirement is that the layout manager
+must be contained as a child somewhere within the RecycleView's widget tree so
+the view port can be found.
 
 A minimal example might look something like this::
 
@@ -306,7 +307,7 @@ class RecycleViewBehavior(object):
     :class:`RecycleView`.
 
     layout_manager is an :class:`~kivy.uix.property.AliasProperty` that gets and
-    sets the layout_manger,
+    sets the layout_manger.
     """
 
 
