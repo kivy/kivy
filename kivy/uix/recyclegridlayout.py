@@ -5,6 +5,11 @@ RecycleGridLayout
 .. warning::
     This module is highly experimental, its API may change in the future and
     the documentation is not complete at this time.
+
+The RecycleGridLayout is designed to provide a
+:class:`~kivy.uix.gridlayout.GridLayout` type layout when used with the
+:class:`~kivy.uix.recycleview.RecycleView` widget. Please refer to the
+:mod:`~kivy.uix.recycleview` module documentation for more information.
 """
 
 from kivy.uix.recyclelayout import RecycleLayout
@@ -12,6 +17,7 @@ from kivy.uix.gridlayout import GridLayout
 from collections import defaultdict
 
 __all__ = ('RecycleGridLayout', )
+
 
 def nmax(*args):
     # merge into one list
