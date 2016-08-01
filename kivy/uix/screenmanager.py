@@ -200,7 +200,7 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.lang import Builder
 from kivy.graphics import (RenderContext, Rectangle, Fbo,
                            ClearColor, ClearBuffers, BindTexture, PushMatrix,
-                           PopMatrix, Translate, Callback)
+                           PopMatrix, Translate, Callback, Scale)
 
 
 class ScreenManagerException(Exception):
