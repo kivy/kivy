@@ -322,7 +322,7 @@ cs\\/doclist\\/images\\/icon_9_archive_xl128\\.png"\\/><\\/div>\
 https:\\/\\/ssl\\.gstatic\\.com\\/docs\\/doclist\\/images\\/icon_9_\
 archive_list\\.png"\\/><\\/div><div class="flip-entry-title">)';
     var wheel = '(Kivy-\\d\\.\\d\\.\\d)(\\.\\w{4}_$date$_git\\_?\\w\
-{7}-$pyVer$)(-none|_\\d{8}_git_\\w{7}-$pyVer$m)(-$arch$.whl)';
+{7}-$pyVer$)(-none|_\\d{8}_git_\\w{7}-$pyVer$m|-$pyVer$m)(-$arch$.whl)';
     var date = new Date();
     var yesterday = addZeros(date.getDate() - 1, 2);
     var month = addZeros(date.getMonth() + 1, 2);
