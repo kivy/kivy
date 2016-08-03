@@ -596,6 +596,7 @@ class ScrollView(StencilView):
             touch.push()
             touch.apply_transform_2d(self.to_local)
             if self.dispatch_children('on_scroll_start', touch):
+                touch.pop()
                 return True
             touch.pop()
 
@@ -730,6 +731,7 @@ class ScrollView(StencilView):
         touch.push()
         touch.apply_transform_2d(self.to_local)
         if self.dispatch_children('on_scroll_move', touch):
+            touch.pop()
             return True
         touch.pop()
 
@@ -810,6 +812,7 @@ class ScrollView(StencilView):
             touch.push()
             touch.apply_transform_2d(self.to_local)
             if super(ScrollView, self).on_touch_up(touch):
+                touch.pop()
                 return True
             touch.pop()
             return False
@@ -828,6 +831,7 @@ class ScrollView(StencilView):
             touch.push()
             touch.apply_transform_2d(self.to_local)
             if self.dispatch_children('on_scroll_stop', touch):
+                touch.pop()
                 return True
             touch.pop()
 
