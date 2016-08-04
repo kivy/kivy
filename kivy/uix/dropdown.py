@@ -314,6 +314,8 @@ class DropDown(ScrollView):
             return True
         if 'button' in touch.profile and touch.button.startswith('scroll'):
             return
+        if self.collide_point(*touch.pos):
+            return True
         if self.auto_dismiss:
             self.dismiss()
 
