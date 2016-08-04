@@ -52,6 +52,7 @@ from kivy.resources import resource_find
 from kivy.properties import StringProperty, ObjectProperty, ListProperty, \
     AliasProperty, BooleanProperty, NumericProperty
 from kivy.logger import Logger
+from kivy.compat import PY2
 
 # delayed imports
 Loader = None
@@ -252,11 +253,14 @@ class Image(Widget):
             if self._coreimage is not None:
                 self._coreimage.unbind(on_texture=self._on_tex_change)
             try:
+                if PY2:
+                    filename = filename.decode('utf-8')
                 self._coreimage = ci = CoreImage(filename, mipmap=mipmap,
                                                  anim_delay=self.anim_delay,
                                                  keep_data=self.keep_data,
                                                  nocache=self.nocache)
-            except:
+            except Exception as e:
+                Logger.exception(e)
                 self._coreimage = ci = None
 
             if ci:
