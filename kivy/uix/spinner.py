@@ -117,7 +117,7 @@ class Spinner(Button):
 
     .. versionadded:: 1.4.0
     '''
-    
+
     sync_height = BooleanProperty(False)
     '''Each element in a dropdown list uses a default/user-supplied height.
     Set to True to propagate the Spinner's height value to each dropdown
@@ -138,7 +138,7 @@ class Spinner(Button):
         fbind('dropdown_cls', build_dropdown)
         fbind('option_cls', build_dropdown)
         fbind('values', self._update_dropdown)
-        fbind('size', self._update_dropdown)
+        fbind('size', self._update_dropdown_size)
         fbind('text_autoupdate', self._update_dropdown)
         build_dropdown()
 
@@ -155,6 +155,19 @@ class Spinner(Button):
         self._dropdown.bind(on_select=self._on_dropdown_select)
         self._dropdown.bind(on_dismiss=self._close_dropdown)
         self._update_dropdown()
+
+    def _update_dropdown_size(self, *largs):
+        if not self.sync_height:
+            return
+        dp = self._dropdown
+        if not dp:
+            return
+
+        container = dp.container
+        if not container:
+            return
+        for value in container.children:
+            item.height = self.height
 
     def _update_dropdown(self, *largs):
         dp = self._dropdown

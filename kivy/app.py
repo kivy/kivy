@@ -169,9 +169,9 @@ user in order to adapt or reload your UI. You can then overload the
             if config is self.config:
                 token = (section, key)
                 if token == ('section1', 'key1'):
-                    print('Our key1 have been changed to', value)
+                    print('Our key1 has been changed to', value)
                 elif token == ('section1', 'key2'):
-                    print('Our key2 have been changed to', value)
+                    print('Our key2 has been changed to', value)
 
 The Kivy configuration panel is added by default to the settings
 instance. If you don't want this panel, you can declare your Application as
