@@ -166,8 +166,9 @@ class Spinner(Button):
         container = dp.container
         if not container:
             return
-        for value in container.children:
-            item.height = self.height
+        h = self.height
+        for item in container.children[:]:
+            item.height = h
 
     def _update_dropdown(self, *largs):
         dp = self._dropdown
