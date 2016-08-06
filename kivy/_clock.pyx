@@ -239,7 +239,7 @@ cdef class CyClockBase(object):
 
         .. versionadded:: 1.0.5
 
-        ..versionchanged:: 1.9.2
+        .. versionchanged:: 1.9.2
 
             ``interval`` has been added. If True, it create a event that is called
             every <timeout> seconds similar to :meth:`schedule_interval`. Defaults to
@@ -301,7 +301,7 @@ cdef class CyClockBase(object):
                 If it's a callable, then the callable will be unscheduled if it
                 was scheduled.
 
-                ..warning::
+                .. warning::
 
                     Passing the callback function rather than the returned
                     :class:`ClockEvent` will result in a significantly slower

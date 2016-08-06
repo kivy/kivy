@@ -33,14 +33,14 @@ the text.
 For example, this label's size will be set to the text content
 (plus :attr:`~Label.padding`):
 
-.. code-block:: python
+.. code-block:: kv
 
     Label:
         size: self.texture_size
 
 This label's text will wrap at the specified width and be clipped to the height:
 
-.. code-block:: python
+.. code-block:: kv
 
     Label:
         text_size: cm(6), cm(4)
@@ -51,7 +51,7 @@ This label's text will wrap at the specified width and be clipped to the height:
 Combine these concepts to create a Label that can grow vertically but wraps the
 text at a certain width:
 
-.. code-block:: python
+.. code-block:: kv
 
     Label:
         text_size: root.width, None
@@ -74,7 +74,7 @@ which text is aligned. For instance, the following code binds this size to the
 size of the Label, so text will be aligned within the widget bounds. This
 will also automatically wrap the text of the Label to remain within this area.
 
-.. code-block:: python
+.. code-block:: kv
 
     Label:
         text_size: self.size
@@ -177,7 +177,7 @@ and deploy it universally via kv:
 .. code-block:: kv
 
     <Label>:
-        -font_name: '/<path>/<to>/<font>'
+        font_name: '/<path>/<to>/<font>'
 
 Note that this needs to be done before your widgets are loaded as kv rules are
 only applied at load time.
