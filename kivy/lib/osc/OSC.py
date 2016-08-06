@@ -196,7 +196,7 @@ def OSCBlob(next):
     """Convert a string into an OSC Blob,
     returning a (typetag, data) tuple."""
 
-    if type(next) == type(""):
+    if type(next) == type(b""):
         length = len(next)
         padded = math.ceil((len(next)) / 4.0) * 4
         binary = struct.pack(">i%ds" % (padded), length, next)
@@ -218,7 +218,7 @@ def OSCArgument(data):
         padded = math.ceil((len(data)) / 4.0) * 4
         binary = struct.pack(b">i%ds" % (padded), length, str(data))
         tag = b'b'
-    elif isinstance(data, string_types):
+    elif isinstance(data, string_types) or isinstance(data, bytes):
         OSCstringLength = math.ceil((len(data)+1) / 4.0) * 4
         binary = struct.pack(b">%ds" % (OSCstringLength), data)
         tag = b"s"
@@ -270,46 +270,43 @@ def parseArgs(args):
 
 
 def decodeOSC(data):
-    try:
-        """Converts a typetagged OSC message to a Python list."""
-        table = { "i" : readInt,
-                  "f" : readFloat,
-                  "s" : readString,
-                  "b" : readBlob,
-                  "d" : readDouble,
-                  "t" : readLong,
-                  "T" : readTrue,
-                  "F" : readFalse,
-                  "I" : readImpulse,
-                  "N" : readNull
-        }
-        decoded = []
-        address,  rest = readString(data)
-        typetags = b""
-    
-        if address == "#bundle":
-            time, rest = readLong(rest)
-            #decoded.append(address)
-            #decoded.append(time)
-            while len(rest)>0:
-                length, rest = readInt(rest)
-                decoded.append(decodeOSC(rest[:length]))
-                rest = rest[length:]
-    
-        elif len(rest) > 0:
-            typetags, rest = readString(rest)
-            decoded.append(address)
-            decoded.append(typetags)
-            if typetags[0] == b",":
-                for tag in typetags[1:]:
-                    value, rest = table[tag](rest)
-                    decoded.append(value)
-            else:
-                print("Oops, typetag lacks the magic ,")
-    
-        return decoded
-    except Exception as e:
-        print("exception: %s" % (e))
+    """Converts a typetagged OSC message to a Python list."""
+    table = { ord(b"i") : readInt,
+              ord(b"f") : readFloat,
+              ord(b"s") : readString,
+              ord(b"b") : readBlob,
+              ord(b"d") : readDouble,
+              ord(b"t") : readLong,
+              ord(b"T") : readTrue,
+              ord(b"F") : readFalse,
+              ord(b"I") : readImpulse,
+              ord(b"N") : readNull
+    }
+    decoded = []
+    address,  rest = readString(data)
+    typetags = b""
+
+    if address == "#bundle":
+        time, rest = readLong(rest)
+        #decoded.append(address)
+        #decoded.append(time)
+        while len(rest)>0:
+            length, rest = readInt(rest)
+            decoded.append(decodeOSC(rest[:length]))
+            rest = rest[length:]
+
+    elif len(rest) > 0:
+        typetags, rest = readString(rest)
+        decoded.append(address)
+        decoded.append(typetags)
+        if typetags[0] == ord(b","):
+            for tag in typetags[1:]:
+                value, rest = table[tag](rest)
+                decoded.append(value)
+        else:
+            print("Oops, typetag lacks the magic ,")
+
+    return decoded
 
 
 class CallbackManager:
@@ -337,11 +334,11 @@ class CallbackManager:
             # smells like nested messages
             for msg in message :
                 self.dispatch(msg, source)
-        elif type(message[0]) == str :
+        elif type(message[0]) == str or type(message[0]) == bytes:
             # got a single message
             try:
                 address = message[0]
-                if self.callbacks.has_key(address):
+                if address in self.callbacks:
                     callbackfunction = self.callbacks[address]
                 elif self.callbacks.has_key('default'):
                     callbackfunction = self.callbacks['default']

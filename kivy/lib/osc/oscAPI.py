@@ -133,8 +133,8 @@ def sendMsg(oscAddress, dataArray=[], ipAddr='127.0.0.1', port=9000, typehint=No
         defaults to '127.0.0.1', port 9000
     '''
     with oscLock:
-        outSocket.sendto(
-            createBinaryMsg(oscAddress, dataArray, typehint),  (ipAddr, port))
+        msg = createBinaryMsg(oscAddress, dataArray, typehint)
+        outSocket.sendto(msg,  (ipAddr, port))
 
 
 def createBundle():
