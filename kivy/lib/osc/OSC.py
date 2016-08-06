@@ -271,40 +271,43 @@ def parseArgs(args):
 
 def decodeOSC(data):
     """Converts a typetagged OSC message to a Python list."""
-    table = { ord(b"i") : readInt,
-              ord(b"f") : readFloat,
-              ord(b"s") : readString,
-              ord(b"b") : readBlob,
-              ord(b"d") : readDouble,
-              ord(b"t") : readLong,
-              ord(b"T") : readTrue,
-              ord(b"F") : readFalse,
-              ord(b"I") : readImpulse,
-              ord(b"N") : readNull
-    }
-    decoded = []
-    address,  rest = readString(data)
-    typetags = b""
+    try:
+        table = { ord(b"i") : readInt,
+                  ord(b"f") : readFloat,
+                  ord(b"s") : readString,
+                  ord(b"b") : readBlob,
+                  ord(b"d") : readDouble,
+                  ord(b"t") : readLong,
+                  ord(b"T") : readTrue,
+                  ord(b"F") : readFalse,
+                  ord(b"I") : readImpulse,
+                  ord(b"N") : readNull
+        }
+        decoded = []
+        address,  rest = readString(data)
+        typetags = b""
 
-    if address == "#bundle":
-        time, rest = readLong(rest)
-        #decoded.append(address)
-        #decoded.append(time)
-        while len(rest)>0:
-            length, rest = readInt(rest)
-            decoded.append(decodeOSC(rest[:length]))
-            rest = rest[length:]
+        if address == "#bundle":
+            time, rest = readLong(rest)
+            #decoded.append(address)
+            #decoded.append(time)
+            while len(rest)>0:
+                length, rest = readInt(rest)
+                decoded.append(decodeOSC(rest[:length]))
+                rest = rest[length:]
 
-    elif len(rest) > 0:
-        typetags, rest = readString(rest)
-        decoded.append(address)
-        decoded.append(typetags)
-        if typetags[0] == ord(b","):
-            for tag in typetags[1:]:
-                value, rest = table[tag](rest)
-                decoded.append(value)
-        else:
-            print("Oops, typetag lacks the magic ,")
+        elif len(rest) > 0:
+            typetags, rest = readString(rest)
+            decoded.append(address)
+            decoded.append(typetags)
+            if typetags[0] == ord(b","):
+                for tag in typetags[1:]:
+                    value, rest = table[tag](rest)
+                    decoded.append(value)
+            else:
+                print("Oops, typetag lacks the magic ,")
+    except Exception as e:
+        print("exception: %s" % (e))
 
     return decoded
 
