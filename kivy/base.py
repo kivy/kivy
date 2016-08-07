@@ -30,8 +30,11 @@ from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.context import register_context
-from asyncio import set_event_loop
-from kivy.guievents import GuiEventLoop
+from kivy.compat import PY2
+
+if not PY2:
+    from asyncio import set_event_loop
+    from kivy.guievents import GuiEventLoop
 
 # private vars
 EventLoop = None
@@ -501,45 +504,45 @@ def stopTouchApp():
     EventLoop.close()
 
 
-class KivyEventLoop(GuiEventLoop):
-    _default_executor = None
+if not PY2:
+    class KivyEventLoop(GuiEventLoop):
+        _default_executor = None
 
-    def __init__(self, app):
-        super().__init__()
-        self.app = app
+        def __init__(self, app):
+            super().__init__()
+            self.app = app
 
-    def mainloop(self):
-        set_event_loop(self)
-        try:
-            self.run_forever()
-        finally:
-            set_event_loop(None)
+        def mainloop(self):
+            set_event_loop(self)
+            try:
+                self.run_forever()
+            finally:
+                set_event_loop(None)
 
-    def run(self):
-        self.app.run()
+        def run(self):
+            self.app.run()
 
-    def run_forever(self):
-        self.run()
+        def run_forever(self):
+            self.run()
 
-    def run_once(self, timeout=None):
-        EventLoop.tick()
+        def run_once(self, timeout=None):
+            EventLoop.tick()
 
-    def stop(self):
-        super().stop()
-        self.app.stop()
+        def stop(self):
+            super().stop()
+            self.app.stop()
 
-    def call_later(self, delay, callback, *args):
-        res = Clock.schedule_once(
-            lambda *args: callback(*args),
-            delay * 1000)
+        def call_later(self, delay, callback, *args):
+            res = Clock.schedule_once(
+                lambda *args: callback(*args),
+                delay * 1000)
 
-        return _CancelJob(self, res)
+            return _CancelJob(self, res)
 
+    class _CancelJob(object):
+        def __init__(self, event_loop, after_id):
+            self.event_loop = event_loop
+            self.after_id = after_id
 
-class _CancelJob(object):
-    def __init__(self, event_loop, after_id):
-        self.event_loop = event_loop
-        self.after_id = after_id
-
-    def cancel(self):
-        Clock.unschedule(self.after_id)
+        def cancel(self):
+            Clock.unschedule(self.after_id)
