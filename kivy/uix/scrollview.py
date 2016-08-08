@@ -1,5 +1,6 @@
-'''Scroll View
-===========
+'''
+ScrollView
+==========
 
 .. versionadded:: 1.0.4
 
@@ -11,16 +12,16 @@ Scrolling Behavior
 ------------------
 
 The ScrollView accepts only one child and applies a viewport/window to
-it according to the :attr:`ScrollView.scroll_x` and
-:attr:`ScrollView.scroll_y` properties. Touches are analyzed to
+it according to the :attr:`~ScrollView.scroll_x` and
+:attr:`~ScrollView.scroll_y` properties. Touches are analyzed to
 determine if the user wants to scroll or control the child in some
-other manner - you cannot do both at the same time. To determine if
+other manner: you cannot do both at the same time. To determine if
 interaction is a scrolling gesture, these properties are used:
 
-    - :attr:`ScrollView.scroll_distance`: the minimum distance to travel,
-         defaults to 20 pixels.
-    - :attr:`ScrollView.scroll_timeout`: the maximum time period, defaults
-         to 250 milliseconds.
+    - :attr:`~ScrollView.scroll_distance`: the minimum distance to travel,
+      defaults to 20 pixels.
+    - :attr:`~ScrollView.scroll_timeout`: the maximum time period, defaults
+      to 250 milliseconds.
 
 If a touch travels :attr:`~ScrollView.scroll_distance` pixels within the
 :attr:`~ScrollView.scroll_timeout` period, it is recognized as a scrolling
@@ -41,9 +42,9 @@ The default value for those settings can be changed in the configuration file::
 Limiting to the X or Y Axis
 ---------------------------
 
-By default, the ScrollView allows scrolling in both the X and Y axes. You can
+By default, the ScrollView allows scrolling along both the X and Y axes. You can
 explicitly disable scrolling on an axis by setting
-:attr:`ScrollView.do_scroll_x` or :attr:`ScrollView.do_scroll_y` to False.
+:attr:`~crollView.do_scroll_x` or :attr:`~ScrollView.do_scroll_y` to False.
 
 
 Managing the Content Size and Position
@@ -85,7 +86,7 @@ boundaries. Note that complex effects may perform many computations,
 which can be slow on weaker hardware.
 
 You can change what effect is being used by setting
-:attr:`ScrollView.effect_cls` to any effect class. Current options
+:attr:`~ScrollView.effect_cls` to any effect class. Current options
 include:
 
     - :class:`~kivy.effects.scroll.ScrollEffect`: Does not allow
@@ -101,10 +102,10 @@ include:
 You can also create your own scroll effect by subclassing one of these,
 then pass it as the :attr:`~ScrollView.effect_cls` in the same way.
 
-Alternatively, you can set :attr:`ScrollView.effect_x` and/or
-:attr:`ScrollView.effect_y` to an *instance* of the effect you want to
+Alternatively, you can set :attr:`~ScrollView.effect_x` and/or
+:attr:`~ScrollView.effect_y` to an *instance* of the effect you want to
 use. This will override the default effect set in
-:attr:`ScrollView.effect_cls`.
+:attr:`~ScrollView.effect_cls`.
 
 All the effects are located in the :mod:`kivy.effects`.
 
@@ -130,7 +131,8 @@ from kivy.uix.behaviors import FocusBehavior
 _scroll_timeout = _scroll_distance = 0
 if Config:
     _scroll_timeout = Config.getint('widgets', 'scroll_timeout')
-    _scroll_distance = '{}sp'.format(Config.getint('widgets', 'scroll_distance'))
+    _scroll_distance = '{}sp'.format(Config.getint('widgets',
+                                                   'scroll_distance'))
 
 
 class ScrollView(StencilView):
