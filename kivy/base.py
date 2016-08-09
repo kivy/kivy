@@ -526,7 +526,10 @@ if not PY2:
             self.run()
 
         def run_once(self, timeout=None):
-            EventLoop.idle()
+            if EventLoop.window and hasattr(EventLoop.window, '_mainloop'):
+                EventLoop.window._mainloop()
+            else:
+                EventLoop.idle()
 
         def stop(self):
             super().stop()
@@ -536,7 +539,6 @@ if not PY2:
             res = Clock.schedule_once(
                 lambda *_: callback(*args),
                 delay * 1000)
-            print("{} scheduled".format(res))
 
             return _CancelJob(self, res)
 

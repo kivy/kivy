@@ -38,7 +38,6 @@ BoxLayout:
 def generate_text():
     '''XXX
     '''
-    print("called")
     sleep(1)
     return ''.join(sample(printable, 10))
 
