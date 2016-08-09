@@ -66,15 +66,22 @@ To scroll a :class:`~kivy.uix.gridlayout.GridLayout` on it's Y-axis/vertically,
 set the child's width  to that of the ScrollView (size_hint_x=1), and set
 the size_hint_y property to None::
 
+    from kivy.uix.gridlayout import GridLayout
+    from kivy.uix.button import Button
+    from kivy.uix.scrollview import ScrollView
+    from kivy.core.window import Window
+    from kivy.app import runTouchApp
+
     layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
     # Make sure the height is such that there is something to scroll.
     layout.bind(minimum_height=layout.setter('height'))
-    for i in range(30):
+    for i in range(100):
         btn = Button(text=str(i), size_hint_y=None, height=40)
         layout.add_widget(btn)
-    root = ScrollView(size_hint=(None, None), size=(400, 400))
+    root = ScrollView(size_hint=(1, None), size=(Window.width, Window.height))
     root.add_widget(layout)
 
+    runTouchApp(root)
 
 Overscroll Effects
 ------------------
