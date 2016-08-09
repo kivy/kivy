@@ -51,10 +51,11 @@ to False.
 Managing the Content Size and Position
 --------------------------------------
 
-ScrollView manages the position of its children similarly to a
-RelativeLayout (see :mod:`~kivy.uix.relativelayout`) but not the size. You must
-carefully specify the `size_hint` of your content to get the desired
-scroll/pan effect.
+The ScrollView manages the position of its children similarly to a
+:class:`~kivy.uix.relativelayout.RelativeLayout` but does not use the
+:attr:`~kivy.uix.widget.Widget.size_hint`. You must
+carefully specify the :attr:`~kivy.uix.widget.Widget.size` of your content to
+get the desired scroll/pan effect.
 
 By default, size_hint is (1, 1), so the content size will fit your ScrollView
 exactly (you will have nothing to scroll). You must deactivate at least one of
