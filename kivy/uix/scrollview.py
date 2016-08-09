@@ -43,8 +43,9 @@ Limiting to the X or Y Axis
 ---------------------------
 
 By default, the ScrollView allows scrolling along both the X and Y axes. You can
-explicitly disable scrolling on an axis by setting
-:attr:`~crollView.do_scroll_x` or :attr:`~ScrollView.do_scroll_y` to False.
+explicitly disable scrolling on an axis by setting the
+:attr:`~ScrollView.do_scroll_x` or :attr:`~ScrollView.do_scroll_y` properties
+to False.
 
 
 Managing the Content Size and Position
