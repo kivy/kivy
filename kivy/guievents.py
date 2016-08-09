@@ -43,7 +43,7 @@ class GuiEventLoop(BaseEventLoop):
         new_future = futures.Future()
         future.add_done_callback(
             lambda future:
-                self.call_soon_threadsafe(new_future._copy_state, future))
+                self.call_soon_threadsafe(_copy_state, new_future, future))
         return new_future
 
     def run_until_complete(self, future, timeout=None):  # NEW!
@@ -55,7 +55,7 @@ class GuiEventLoop(BaseEventLoop):
         if the Future is still not done, raise TimeoutError
         (but don't cancel the Future).
         """
-        assert isinstance(future, Future)
+        assert isinstance(future, futures.Future)
 
         signal = threading.Condition()
         if timeout is None:
@@ -245,3 +245,25 @@ class _CancelJobRepeatedly(object):
 
     def cancel(self):
         self.canceler.cancel()
+
+
+def _copy_state(one, other):
+    """Internal helper to copy state from another Future.
+    The other Future may be a concurrent.futures.Future.
+    """
+    assert other.done()
+    if one.cancelled():
+        return
+
+    assert not one.done()
+    if other.cancelled():
+        one.cancel()
+
+    else:
+        exception = other.exception()
+        if exception is not None:
+            one.set_exception(exception)
+
+        else:
+            result = other.result()
+            one.set_result(result)

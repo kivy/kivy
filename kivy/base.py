@@ -526,7 +526,7 @@ if not PY2:
             self.run()
 
         def run_once(self, timeout=None):
-            EventLoop.tick()
+            EventLoop.idle()
 
         def stop(self):
             super().stop()
@@ -534,8 +534,9 @@ if not PY2:
 
         def call_later(self, delay, callback, *args):
             res = Clock.schedule_once(
-                lambda *args: callback(*args),
+                lambda *_: callback(*args),
                 delay * 1000)
+            print("{} scheduled".format(res))
 
             return _CancelJob(self, res)
 

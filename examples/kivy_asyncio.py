@@ -13,7 +13,6 @@ logging.basicConfig(level=logging.DEBUG)
 KV = '''
 #:import cos math.cos
 #:import sin math.sin
-#:import asyncio asyncio
 
 BoxLayout:
     Label:
@@ -37,29 +36,34 @@ BoxLayout:
 
 
 def generate_text():
+    '''XXX
+    '''
     print("called")
+    sleep(1)
     return ''.join(sample(printable, 10))
 
 
 class MyApp(App):
+    '''XXX
+    '''
     time = NumericProperty()
 
     def build(self):
         Clock.schedule_interval(self.update_time, 0)
         return Builder.load_string(KV)
 
+    def _do_slow_stuff(self, *args):
+        lbl = self.root.ids.label
+        lbl.text = ''
+        for _ in range(10):
+            lbl.text += ev.run_until_complete(
+                ev.run_in_executor(None, generate_text))
+
     def do_slow_stuff(self):
-        ev.run_in_executor(None, self._do_slow_stuff)
+        self._do_slow_stuff()
 
-    def _do_slow_stuff(self):
-        label = self.root.ids.label
-        label.text = ''
-        for i in range(10):
-            sleep(.1)
-            label.text += generate_text()
-
-    def update_time(self, dt):
-        self.time += dt
+    def update_time(self, deltatime):
+        self.time += deltatime
 
 
 if __name__ == '__main__':
