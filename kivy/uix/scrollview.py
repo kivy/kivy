@@ -57,13 +57,14 @@ The ScrollView manages the position of its children similarly to a
 carefully specify the :attr:`~kivy.uix.widget.Widget.size` of your content to
 get the desired scroll/pan effect.
 
-By default, size_hint is (1, 1), so the content size will fit your ScrollView
+By default, the :attr:`~kivy.uix.widget.Widget.size_hint` is (1, 1), so the
+content size will fit your ScrollView
 exactly (you will have nothing to scroll). You must deactivate at least one of
 the size_hint instructions (x or y) of the child to enable scrolling.
 
-To scroll a :class:`GridLayout` on Y-axis/vertically, set the child's width
-identical to that of the ScrollView (size_hint_x=1, default), and set the
-size_hint_y property to None::
+To scroll a :class:`~kivy.uix.gridlayout.GridLayout` on it's Y-axis/vertically,
+set the child's width  to that of the ScrollView (size_hint_x=1), and set
+the size_hint_y property to None::
 
     layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
     # Make sure the height is such that there is something to scroll.
