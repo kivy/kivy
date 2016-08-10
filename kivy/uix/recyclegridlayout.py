@@ -2,6 +2,8 @@
 RecycleGridLayout
 =================
 
+.. versionadded:: 1.9.2
+
 .. warning::
     This module is highly experimental, its API may change in the future and
     the documentation is not complete at this time.
