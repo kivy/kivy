@@ -215,9 +215,15 @@ Installation
 
     # Make sure Pip, Virtualenv and Setuptools are updated
     sudo pip install --upgrade pip virtualenv setuptools
-
-    # Create a virtualenv
+    
+    # Then create a virtualenv by either:
+    
+    # 1. using the default interpreter
     virtualenv --no-site-packages kivyinstall
+    
+    # or 2. using a specific interpreter 
+    # (this will use the interpreter in /usr/bin/python2.7)
+    virtualenv --no-site-packages -p /usr/bin/python2.7 kivyinstall
 
     # Enter the virtualenv
     . kivyinstall/bin/activate
