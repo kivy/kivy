@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 '''
 Carousel
 ========
@@ -243,37 +244,12 @@ class Carousel(StencilView):
     .. versionadded:: 1.8.0
     '''
 
-    do_scroll_x = BooleanProperty(True)
-    '''Allow scroll on X axis.
+    ignore_perpendicular_swipes = BooleanProperty(False)
+    '''ignore swipes on axis perpendicular to direction.
 
     .. versionadded:: 1.9.2
-    :attr:`do_scroll_x` is a :class:`~kivy.properties.BooleanProperty` and
-    defaults to True.
-    '''
-
-    do_scroll_y = BooleanProperty(True)
-    '''Allow scroll on Y axis.
-
-    .. versionadded:: 1.9.2
-    :attr:`do_scroll_y` is a :class:`~kivy.properties.BooleanProperty` and
-    defaults to True.
-    '''
-
-    def _get_do_scroll(self):
-        return (self.do_scroll_x, self.do_scroll_y)
-
-    def _set_do_scroll(self, value):
-        if type(value) in (list, tuple):
-            self.do_scroll_x, self.do_scroll_y = value
-        else:
-            self.do_scroll_x = self.do_scroll_y = bool(value)
-    do_scroll = AliasProperty(_get_do_scroll, _set_do_scroll,
-                              bind=('do_scroll_x', 'do_scroll_y'))
-    '''Allow scroll on X or Y axis.
-
-    .. versionadded:: 1.9.2
-    :attr:`do_scroll` is a :class:`~kivy.properties.AliasProperty` of
-    (:attr:`do_scroll_x` + :attr:`do_scroll_y`)
+    :attr:`ignore_perpendicular_swipes` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
     '''
 
     #### private properties, for internal use only ###
@@ -552,14 +528,15 @@ class Carousel(StencilView):
         return True
 
     def on_touch_move(self, touch):
-        if not self.do_scroll_x and not self.touchModeChange:
-            if abs(touch.ox - touch.x) > self.scroll_distance:
-                self._change_touch_mode()
-                self.touchModeChange = True
-        elif not self.do_scroll_y and not self.touchModeChange:
-            if abs(touch.oy - touch.y) > self.scroll_distance:
-                self._change_touch_mode()
-                self.touchModeChange = True
+        if self.touchModeChange == False:
+            if self.ignore_perpendicular_swipes and self.direction in ('top','bottom'):
+                if abs(touch.ox - touch.x) > self.scroll_distance:
+                    self._change_touch_mode()
+                    self.touchModeChange = True
+            elif self.ignore_perpendicular_swipes and self.direction in ('right,left'):
+                if abs(touch.oy - touch.y) > self.scroll_distance:
+                    self._change_touch_mode()
+                    self.touchModeChange = True
 
         if self._get_uid('cavoid') in touch.ud:
             return
