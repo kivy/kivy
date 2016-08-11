@@ -532,7 +532,7 @@ class Carousel(StencilView):
                 if abs(touch.ox - touch.x) > self.scroll_distance:
                     self._change_touch_mode()
                     self.touchModeChange = True
-            elif self.ignore_perpendicular_swipes and self.direction in ('right,left'):
+            elif self.ignore_perpendicular_swipes and self.direction in ('right','left'):
                 if abs(touch.oy - touch.y) > self.scroll_distance:
                     self._change_touch_mode()
                     self.touchModeChange = True
