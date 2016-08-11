@@ -216,7 +216,7 @@ Installation
     # Make sure Pip, Virtualenv and Setuptools are updated
     sudo pip install --upgrade pip virtualenv setuptools
     
-    # Then create a virtualenv by either:
+    # Then create a virtualenv named "kivyinstall" by either:
     
     # 1. using the default interpreter
     virtualenv --no-site-packages kivyinstall
@@ -316,7 +316,7 @@ Installation
     # Make sure Pip, Virtualenv and Setuptools are updated
     sudo pip install --upgrade pip virtualenv setuptools
 
-    # Then create a virtualenv by either:
+    # Then create a virtualenv named "kivyinstall" by either:
     
     # 1. using the default interpreter
     virtualenv --no-site-packages kivyinstall
