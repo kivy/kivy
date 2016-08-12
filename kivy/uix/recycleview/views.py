@@ -2,6 +2,8 @@
 RecycleView Views
 =================
 
+.. versionadded:: 1.9.2
+
 The adapter part of the RecycleView which together with the layout is the
 view part of the model-view-controller pattern.
 
