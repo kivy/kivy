@@ -98,7 +98,7 @@ class GuiEventLoop(BaseEventLoop):
         res = None
 
         def helper_target():
-            # nonlocal res
+            nonlocal res
             res = target(*args, **kwargs)
             lock.release()
 
@@ -107,19 +107,9 @@ class GuiEventLoop(BaseEventLoop):
         return res
 
     # Network I/O methods returning Futures.
-    def getaddrinfo(
-        self, host, port, *, family=0, type=0, proto=0, flags=0
-    ):
+    def getaddrinfo(*args, **kwargs):
         return self._io_helper(
-            self._io_event_loop.getaddrinfo,
-            (host, port),
-            {
-                'family': family,
-                'type': type,
-                'proto': proto,
-                'flags': flags
-            }
-        )
+            self._io_event_loop.getaddrinfo, args, kwargs)
 
     def getnameinfo(self, sockaddr, flags=0):
         return self._io_helper(
