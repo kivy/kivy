@@ -523,7 +523,7 @@ class Carousel(StencilView):
             'time': touch.time_start}
         self._change_touch_mode_ev = Clock.schedule_once(
             self._change_touch_mode, self.scroll_timeout / 1000.)
-        self.touc_mode_change = False
+        self.touch_mode_change = False
         return True
 
     def on_touch_move(self, touch):
