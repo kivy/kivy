@@ -118,18 +118,10 @@ class GuiEventLoop(BaseEventLoop):
             {}
         )
 
-    def create_connection(self, protocol_factory, host=None, port=None, *,
-                          family=0, proto=0, flags=0, sock=None):
+    def create_connection(self, *args, **kwargs):
         return self._io_helper(
             self._io_event_loop.create_connection,
-            (protocol_factory, host, port),
-            {
-                'family': family,
-                'proto': proto,
-                'flags': flags,
-                'sock': sock
-            }
-        )
+            args, kwargs)
 
     def start_serving(self, protocol_factory, host=None, port=None, *,
                       family=0, proto=0, flags=0, sock=None):
@@ -163,16 +155,16 @@ class GuiEventLoop(BaseEventLoop):
         lock.acquire()
         return handler
 
-    def add_reader(self, fd, callback, *args):
+    def add_reader(self, *args):
         return _ready_helper(
-            self._io_event_loop.add_reader, fd, callback, *args)
+            self._io_event_loop.add_reader, *args)
 
-    def remove_reader(self, fd):
-        return _ready_helper(self._io_event_loop.remove_reader, fd)
+    def remove_reader(self, *args):
+        return _ready_helper(self._io_event_loop.remove_reader, *args)
 
-    def add_writer(self, fd, callback, *args):
+    def add_writer(self, *args):
         return _ready_helper(
-            self._io_event_loop.add_writer, fd, callback, *args)
+            self._io_event_loop.add_writer, *args)
 
     def remove_writer(self, fd):
         return _ready_helper(self._io_event_loop.remove_writer, fd)
