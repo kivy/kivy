@@ -269,7 +269,7 @@ class Label(Widget):
                         'line_height', 'max_lines', 'strip', 'shorten_from',
                         'split_str', 'ellipsis_options', 'unicode_errors',
                         'markup', 'font_hinting', 'font_kerning',
-                        'font_blended')
+                        'font_blended', 'rtl')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -923,4 +923,10 @@ class Label(Widget):
 
     :attr:`font_blended` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
+    '''
+
+    rtl = BooleanProperty(False)
+    '''Indicates the Right-To-left text display based on the unicode bidirectional
+    algorithm. This will be reshape the characters for arabic languages.
+    In order to use this feature, you have to install the rtl python package.
     '''

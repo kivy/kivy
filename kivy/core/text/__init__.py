@@ -46,6 +46,7 @@ from kivy.core.text.text_layout import layout_text, LayoutWord
 from kivy.resources import resource_find, resource_add_path
 from kivy.compat import PY2
 from kivy.setupconfig import USE_SDL2
+from kivy.core.text.globalization import arabic_reshape, arabic_bidi, has_arabic_letters
 
 DEFAULT_FONT = 'Roboto'
 
@@ -120,9 +121,13 @@ class LabelBase(object):
             Width in pixels for the outline.
         `outline_color`: tuple, defaults to (0, 0, 0)
             Color of the outline.
+        `rtl`: bool, default to False
+            If True, The reshape & bidi algorithms will be applied on the text before render, for persian & arabic text.
+
 
     .. versionchanged:: 1.9.2
         `outline_width` and `outline_color` were added.
+        `rtl` was added.
 
     .. versionchanged:: 1.9.0
         `strip`, `strip_reflow`, `shorten_from`, `split_str`, and
@@ -167,7 +172,7 @@ class LabelBase(object):
         strip_reflow=True, shorten_from='center', split_str=' ',
         unicode_errors='replace',
         font_hinting='normal', font_kerning=True, font_blended=True,
-        outline_width=None, outline_color=None,
+        outline_width=None, outline_color=None, rtl=False,
         **kwargs):
 
         # Include system fonts_dir in resource paths.
@@ -185,7 +190,8 @@ class LabelBase(object):
                    'font_hinting': font_hinting,
                    'font_kerning': font_kerning,
                    'font_blended': font_blended,
-                   'outline_width': outline_width}
+                   'outline_width': outline_width,
+                   'rtl': rtl}
 
         options['color'] = color or (1, 1, 1, 1)
         options['outline_color'] = outline_color or (0, 0, 0)
@@ -498,6 +504,7 @@ class LabelBase(object):
         sw = options['space_width']
         halign = options['halign']
         split = re.split
+        rtl = options.get('rtl')
 
         for layout_line in lines:  # for plain label each line has only one str
             lw, lh = layout_line.w, layout_line.h
@@ -511,6 +518,9 @@ class LabelBase(object):
                 x = int((w - lw) / 2.)
             elif halign == 'right':
                 x = max(0, int(w - lw - xpad))
+
+            if rtl:
+                line = arabic_bidi(line)
 
             # right left justify
             # divide left over space between `spaces`
@@ -526,10 +536,13 @@ class LabelBase(object):
                     words = split(whitespace_pat, line)
                 if words is not None and len(words) > 1:
                     space = type(line)(' ')
-                    # words: every even index is spaces, just add ltr n spaces
+                    # words: every even index is spaces, just add ltr or rtl n spaces
                     for i in range(n):
                         idx = (2 * i + 1) % (len(words) - 1)
-                        words[idx] = words[idx] + space
+                        if rtl:
+                            words[idx] = space + words[idx]
+                        else:
+                            words[idx] = words[idx] + space
                     if rem:
                         # render the last word at the edge, also add it to line
                         ext = get_extents(words[-1])
@@ -545,8 +558,14 @@ class LabelBase(object):
                     layout_line.w = uww  # the line occupies full width
 
             if len(line):
+
+                # Just after justify process, if rtl is true, forcing to render line from right
+                if rtl and halign == 'justify':
+                    x = max(0, int(w - layout_line.w - xpad))
+
                 layout_line.x = x
                 layout_line.y = y
+
                 render_text(line, x, y)
             y += lh
         return y
@@ -594,6 +613,13 @@ class LabelBase(object):
                                     options['halign'] == 'justify')
         uw, uh = options['text_size'] = self._text_size
         text = self.text
+
+        # Reshaping the text for arabic support,
+        if options.get('rtl') and has_arabic_letters(self.text):
+            text = arabic_reshape(self.text)
+        else:
+            text = self.text
+
         if strip:
             text = text.strip()
         if uw is not None and options['shorten']:
