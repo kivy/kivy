@@ -529,14 +529,16 @@ class Carousel(StencilView):
 
     def on_touch_move(self, touch):
         if self.touch_mode_change == False:
-            if self.ignore_perpendicular_swipes and self.direction in ('top', 'bottom'):
-                if abs(touch.ox - touch.x) > self.scroll_distance:
-                    self._change_touch_mode()
-                    self.touchModeChange = True
-            elif self.ignore_perpendicular_swipes and self.direction in ('right', 'left'):
-                if abs(touch.oy - touch.y) > self.scroll_distance:
-                    self._change_touch_mode()
-                    self.touchModeChange = True
+            if self.ignore_perpendicular_swipes and self.direction in ('top','bottom'):
+                if abs(touch.oy - touch.y) < self.scroll_distance:
+                    if abs(touch.ox - touch.x) > self.scroll_distance:
+                        self._change_touch_mode()
+                        self.touchModeChange = True
+            elif self.ignore_perpendicular_swipes and self.direction in ('right','left'):
+                if abs(touch.ox - touch.x) < self.scroll_distance:
+                    if abs(touch.oy - touch.y) > self.scroll_distance:
+                        self._change_touch_mode()
+                        self.touchModeChange = True
 
         if self._get_uid('cavoid') in touch.ud:
             return
