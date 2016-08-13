@@ -266,6 +266,7 @@ class Carousel(StencilView):
             self._position_visible_slides, -1)
         super(Carousel, self).__init__(**kwargs)
         self._skip_slide = None
+        self.touch_mode_change = False
 
     def load_slide(self, slide):
         '''Animate to the slide that is passed as the argument.
