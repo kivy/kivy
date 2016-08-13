@@ -260,7 +260,8 @@ class Image(Widget):
                                                  keep_data=self.keep_data,
                                                  nocache=self.nocache)
             except Exception as e:
-                Logger.exception(e)
+                Logger.error('Image: Error reading file {filename}'.
+                                    format(filename=self.source))
                 self._coreimage = ci = None
 
             if ci:
