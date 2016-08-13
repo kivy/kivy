@@ -260,7 +260,7 @@ class Image(Widget):
                                                  keep_data=self.keep_data,
                                                  nocache=self.nocache)
             except Exception as e:
-                Logger.error('Image: Error reading file {filename}'.
+                Logger.error('Image: Error loading texture {filename}'.
                                     format(filename=self.source))
                 self._coreimage = ci = None
 
