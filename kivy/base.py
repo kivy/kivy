@@ -33,7 +33,7 @@ from kivy.context import register_context
 from kivy.compat import PY2
 
 if not PY2:
-    from asyncio import set_event_loop
+    from asyncio import set_event_loop, Handle
     from kivy.guievents import GuiEventLoop
 
 # private vars
@@ -485,13 +485,13 @@ def runTouchApp(widget=None, slave=False):
     # 2. if no window is created, we are dispatching event lopp
     #    ourself (previous behavior.)
     #
-    try:
-        if EventLoop.window is None:
-            _run_mainloop()
-        else:
-            EventLoop.window.mainloop()
-    finally:
-        stopTouchApp()
+    # try:
+    #     if EventLoop.window is None:
+    #         _run_mainloop()
+    #     else:
+    #         EventLoop.window.mainloop()
+    # finally:
+    #     stopTouchApp()
 
 
 def stopTouchApp():
@@ -504,7 +504,19 @@ def stopTouchApp():
     EventLoop.close()
 
 
+
 if not PY2:
+
+    class KivyHandle(Handle):
+        def __init__(self, callback, args, loop):
+            super().__init__(callback, args, loop)
+            self.clock_id = None
+
+        def cancel(self):
+            Clock.unschedule(self.clock_id)
+            super().cancel()
+
+
     class KivyEventLoop(GuiEventLoop):
         _default_executor = None
 
@@ -514,13 +526,18 @@ if not PY2:
 
         def mainloop(self):
             set_event_loop(self)
+            self.app.run()
+            print("before")
+            print(EventLoop.quit, EventLoop.status)
             try:
                 self.run_forever()
             finally:
                 set_event_loop(None)
 
         def run(self):
-            self.app.run()
+            while not EventLoop.quit:
+                self.run_once()
+            # stopTouchApp()
 
         def run_forever(self):
             self.run()
@@ -536,16 +553,21 @@ if not PY2:
             self.app.stop()
 
         def call_later(self, delay, callback, *args):
+            print("call_later", delay, callback, args)
+            handle = KivyHandle(callback, args, self)
             res = Clock.schedule_once(
-                lambda *_: callback(*args),
-                delay * 1000)
+                lambda *_: handle._run(),
+                delay)
+            print("scheduled", res)
+            handle.clock_id = res
 
-            return _CancelJob(self, res)
+            return handle
 
-    class _CancelJob(object):
-        def __init__(self, event_loop, after_id):
-            self.event_loop = event_loop
-            self.after_id = after_id
+    # class _CancelJob(object):
+    #     def __init__(self, event_loop, after_id):
+    #         self.event_loop = event_loop
+    #         self.after_id = after_id
 
-        def cancel(self):
-            Clock.unschedule(self.after_id)
+    #     def cancel(self):
+    #         print("cancel called", self.after_id)
+    #         Clock.unschedule(self.after_id)

@@ -826,7 +826,7 @@ class App(EventDispatcher):
 
         self.dispatch('on_start')
         runTouchApp()
-        self.stop()
+        # self.stop()
 
     def stop(self, *largs):
         '''Stop the application.
