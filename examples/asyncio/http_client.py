@@ -35,13 +35,7 @@ BoxLayout:
         w3: (app.time + 66) % 100
         canvas.after:
             Color:
-                rgba:
-                    (
-                    1, 1, 1 ,1
-                    ) if app.loading else (
-                    0, 0, 0, 0
-                    )
-
+                rgba: 1, 1, 1, 1 - (self.w1 if app.loading else 100) / 100
             Line:
                 width: 4
                 ellipse:
@@ -50,6 +44,8 @@ BoxLayout:
                     self.center_y - (self.w1 or 0) / 2,
                     self.w1 or 0, self.w1 or 0
                     ) if app.time else (0, 0, 0, 0)
+            Color:
+                rgba: 1, 1, 1, 1 - (self.w2 if app.loading else 100) / 100
             Line:
                 width: 4
                 ellipse:
@@ -58,6 +54,8 @@ BoxLayout:
                     self.center_y - (self.w2 or 0) / 2,
                     self.w2 or 0, self.w2 or 0
                     ) if app.time else (0, 0, 0, 0)
+            Color:
+                rgba: 1, 1, 1, 1 - (self.w3 if app.loading else 100) / 100
             Line:
                 width: 4
                 ellipse:
@@ -123,12 +121,6 @@ class MyApp(App):
         self.loading = False
 
 if __name__ == '__main__':
-    # ev = asyncio.get_event_loop()
-    # with aiohttp.ClientSession(loop=ev) as session:
-    #     print("session")
-    #     print(ev.run_until_complete(
-    #         DebugTask(fetch_page(session, 'http://www.sphinx-doc.org/en/stable/_sources/rest.txt'))
-    #     ))
     ev = KivyEventLoop(MyApp())
     ev.set_debug(True)
     ev.mainloop()
