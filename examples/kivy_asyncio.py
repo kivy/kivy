@@ -51,15 +51,14 @@ class MyApp(App):
         Clock.schedule_interval(self.update_time, 0)
         return Builder.load_string(KV)
 
-    def _do_slow_stuff(self, *args):
+    async def _do_slow_stuff(self, *args):
         lbl = self.root.ids.label
         lbl.text = ''
         for _ in range(10):
-            lbl.text += ev.run_until_complete(
-                ev.run_in_executor(None, generate_text))
+            lbl.text += await ev.run_in_executor(None, generate_text)
 
     def do_slow_stuff(self):
-        self._do_slow_stuff()
+        asyncio.ensure_future(self._do_slow_stuff())
 
     def update_time(self, deltatime):
         self.time += deltatime

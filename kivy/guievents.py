@@ -16,37 +16,37 @@ class GuiEventLoop(SelectorEventLoop):
         # self._io_event_loop.stop()
         pass
 
-    def wrap_future(self, future):
-        """XXX"""
-        if isinstance(future, futures.Future):
-            return future  # Don't wrap our own type of Future.
-        new_future = futures.Future()
-        future.add_done_callback(
-            lambda future:
-                self.call_soon_threadsafe(
-                    futures._copy_future_state, future, new_future))
-        return new_future
+    # def wrap_future(self, future):
+    #     """XXX"""
+    #     if isinstance(future, futures.Future):
+    #         return future  # Don't wrap our own type of Future.
+    #     new_future = futures.Future()
+    #     future.add_done_callback(
+    #         lambda future:
+    #             self.call_soon_threadsafe(
+    #                 futures._copy_future_state, future, new_future))
+    #     return new_future
 
-    def run_until_complete(self, future, timeout=None):  # NEW!
-        """Run the event loop until a Future is done.
+    # def run_until_complete(self, future, timeout=None):  # NEW!
+    #     """Run the event loop until a Future is done.
 
-        Return the Future's result, or raise its exception.
+    #     Return the Future's result, or raise its exception.
 
-        If timeout is not None, run it for at most that long;
-        if the Future is still not done, raise TimeoutError
-        (but don't cancel the Future).
-        """
-        print("run_until_complete called")
-        assert isinstance(future, futures.Future)
+    #     If timeout is not None, run it for at most that long;
+    #     if the Future is still not done, raise TimeoutError
+    #     (but don't cancel the Future).
+    #     """
+    #     print("run_until_complete called")
+    #     assert isinstance(future, futures.Future)
 
-        # signal = threading.Condition()
-        if timeout is None:
-            while not future.done():
-                self.run_once()
-        else:
-            raise Exception('Not implemented: timeouts until complete')
+    #     # signal = threading.Condition()
+    #     if timeout is None:
+    #         while not future.done():
+    #             self.run_once()
+    #     else:
+    #         raise Exception('Not implemented: timeouts until complete')
 
-        return future.result()
+    #     return future.result()
 
     def call_repeatedly(self, interval, callback, *args):  # NEW!
         return _CancelJobRepeatedly(self, interval, callback, args)
@@ -57,21 +57,21 @@ class GuiEventLoop(SelectorEventLoop):
     def call_soon_threadsafe(self, callback, *args):
         return self.call_soon(callback, *args)
 
-    def run_in_executor(self, executor, callback, *args):
-        if isinstance(callback, asyncio.Handle):
-            assert not args
-            assert not isinstance(callback, asyncio.TimerHandle)
-            if callback.cancelled:
-                f = futures.Future()
-                f.set_result(None)
-                return f
-            callback, args = callback.callback, callback.args
-        if executor is None:
-            executor = self._default_executor
-            if executor is None:
-                executor = concurrent.futures.ThreadPoolExecutor(_MAX_WORKERS)
-                self._default_executor = executor
-        return self.wrap_future(executor.submit(callback, *args))
+    # def run_in_executor(self, executor, callback, *args):
+    #     if isinstance(callback, asyncio.Handle):
+    #         assert not args
+    #         assert not isinstance(callback, asyncio.TimerHandle)
+    #         if callback.cancelled:
+    #             f = futures.Future()
+    #             f.set_result(None)
+    #             return f
+    #         callback, args = callback.callback, callback.args
+    #     if executor is None:
+    #         executor = self._default_executor
+    #         if executor is None:
+    #             executor = concurrent.futures.ThreadPoolExecutor(_MAX_WORKERS)
+    #             self._default_executor = executor
+    #     return self.wrap_future(executor.submit(callback, *args))
 
 
 class _CancelJobRepeatedly(object):

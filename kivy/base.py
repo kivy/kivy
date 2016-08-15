@@ -501,7 +501,7 @@ def stopTouchApp():
     if EventLoop.status != 'started':
         return
     Logger.info('Base: Leaving application in progress...')
-    EventLoop.close()
+    # EventLoop.close()
 
 
 
@@ -537,7 +537,8 @@ if not PY2:
         def run(self):
             while not EventLoop.quit:
                 self.run_once()
-            # stopTouchApp()
+
+            self.close()
 
         def run_forever(self):
             self.run()
