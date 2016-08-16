@@ -72,24 +72,14 @@ BoxLayout:
 
 async def fetch_page(session, url):
     print("fetch page")
-    with aiohttp.Timeout(10):
-        print("timeout context")
-        async with session.get(url) as response:
-            print("response")
-            if response.status == 200:
-                print("200")
-                return await response.read()
-            else:
-                print("error")
-                return 'error: {}'.format(response.status)
-    print("end timeout context")
-
-
-class DebugTask(asyncio.Task):
-    def _wakeup(self, future):
-        print("woke up", self)
-        super()._wakeup(future)
-        print("after wakeup", self)
+    resonse = await session.get(url)
+    print("response")
+    if response.status == 200:
+        print("200")
+        return await response.read()
+    else:
+        print("error")
+        return 'error: {}'.format(response.status)
 
 
 class MyApp(App):

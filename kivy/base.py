@@ -22,6 +22,10 @@ __all__ = (
     'stopTouchApp',
 )
 
+from traceback import format_stack
+import q
+from pprint import pformat
+
 import sys
 from kivy.config import Config
 from kivy.logger import Logger
@@ -507,10 +511,16 @@ def stopTouchApp():
 
 if not PY2:
 
+    from kivy.app import App
+
     class KivyHandle(Handle):
         def __init__(self, callback, args, loop):
             super().__init__(callback, args, loop)
             self.clock_id = None
+
+        def _run(self, *args):
+            # import pudb; pudb.set_trace()
+            super()._run(*args)
 
         def cancel(self):
             Clock.unschedule(self.clock_id)
@@ -520,9 +530,9 @@ if not PY2:
     class KivyEventLoop(GuiEventLoop):
         _default_executor = None
 
-        def __init__(self, app):
+        def __init__(self, app=None):
             super().__init__()
-            self.app = app
+            self.app = app or App()
 
         def mainloop(self):
             set_event_loop(self)
@@ -538,7 +548,7 @@ if not PY2:
             while not EventLoop.quit:
                 self.run_once()
 
-            self.close()
+            # self.close()
 
         def run_forever(self):
             self.run()
@@ -550,8 +560,20 @@ if not PY2:
                 EventLoop.idle()
 
         def stop(self):
+            q("stop called")
+            with open('/tmp/q', 'a') as f:
+                for l in format_stack():
+                    f.write(l)
             super().stop()
             self.app.stop()
+
+        def close(self):
+            q("close called", self, id(self))
+            with open('/tmp/q', 'a') as f:
+                for l in format_stack():
+                    f.write(l)
+            super().close()
+            q("closed", self, id(self))
 
         def call_later(self, delay, callback, *args):
             print("call_later", delay, callback, args)
