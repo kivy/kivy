@@ -106,13 +106,15 @@ class MyApp(App):
         self.time += deltatime * 10
 
     def load_page(self, url):
+        asyncio.ensure_future(self._load_page(url))
+
+    async def _load_page(self, url):
         self.loading = True
         print("load page")
         with aiohttp.ClientSession(loop=ev) as session:
             print("session")
             try:
-                content = ev.run_until_complete(
-                    DebugTask(fetch_page(session, url)))
+                content = await fetch_page(session, url)
             except asyncio.TimeoutError:
                 content = "timeout!"
 
