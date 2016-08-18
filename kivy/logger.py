@@ -299,6 +299,9 @@ class LogFile(object):
 
     def flush(self):
         return
+    
+    def isatty(self):
+        return False
 
 
 def logger_config_update(section, key, value):
