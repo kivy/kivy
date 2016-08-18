@@ -3,25 +3,25 @@
 Crash Course
 ============
 
-Crash Course (or Kivy Crash Course) is a series of YouTube video tutorials by
-Kivy core developer `inclement <https://github.com/inclement>`_ which provides
-a simple walkthrough in Kivy for users who know how to code in Python, but is
-also friendly even to beginners with Python as with Kivy. After Pong and Paint
-tutorials, this set of videos covers more features and tweaks that can be used
-to create your app quicker, your code elegant and eye-friendly.
-
+The Kivy Crash Course is a series of YouTube video tutorials by
+Kivy core developer `inclement <https://github.com/inclement>`_. They provide
+a simple walkthrough in Kivy for users who know how to code in Python and is
+friendly to Python beginners. After the Pong and Paint
+tutorials, this set of videos covers basic features and techniques that can be
+used to create your app quicker, keeping your code elegant and eye-friendly.
 
 Basic Info
 ----------
 
-Crash Course primarily consists of a series of YouTube videos each ~10 minutes
-(in total of 145 minutes), articles describing some of the videos and the code
-used in the videos.
+The Crash Course primarily consists of a series of YouTube videos, each roughly
+10 minutes long. There are also articles describing some of the videos and the
+code used in the videos.
 
 Topics covered by the Crash Course include:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    * Use of the basic Kivy widgets such as Label, Button, Scatter, TextInput
+    * Use of the basic Kivy widgets such as the Label, Button, Scatter and
+      TextInput
     * Building an app for android with python-for-android's `old
       toolchain <https://github.com/kivy/python-for-android/tree/old_toolchain>`_
     * Binding functions to events
