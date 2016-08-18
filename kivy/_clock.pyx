@@ -195,7 +195,7 @@ cdef class CyClockBase(object):
     def __cinit__(self, **kwargs):
         self.clock_resolution = -1
         self._max_fps = 60
-        self.max_iteration = 10
+        self.max_iteration = 20
 
     def __init__(self, **kwargs):
         super(CyClockBase, self).__init__(**kwargs)
