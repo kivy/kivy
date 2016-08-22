@@ -81,36 +81,40 @@ Filtering
 ---------
 
 You can control which text can be added to the :class:`TextInput` by
-overwriting :meth:`TextInput.insert_text`. Every string that is typed, pasted
+using the :meth:`TextInput.input_filter`. Every string that is typed, pasted
 or inserted by any other means into the :class:`TextInput` is passed through
-this function. By overwriting it you can reject or change unwanted characters.
+this function. You can either set it to `int` or `float` or set it to a method.
 
 For example, to write only in capitalized characters::
 
-    class CapitalInput(TextInput):
+    capitalInput = TextInput()
 
-        def insert_text(self, substring, from_undo=False):
-            s = substring.upper()
-            return super(CapitalInput, self).insert_text(s,\
- from_undo=from_undo)
+    def capitalize_input(substring, old_text, new_text):
+        # if old_text is invalid, do not allow insertion/deletion.
+        # by returning `None`
+        if old_text != old_text.upper():
+            return None
+        # if old_text was valid then, just make sure new substring is
+        # in right format. Returning a substring replaces older substring with
+        # new one. If new_text is valid just return substring as is.
+        return substring.upper()
 
-Or to only allow floats (0 - 9 and a single period)::
+    capitalInput.input_filter = capitalise_input
 
-    class FloatInput(TextInput):
 
-        pat = re.compile('[^0-9]')
-        def insert_text(self, substring, from_undo=False):
-            pat = self.pat
-            if '.' in self.text:
-                s = re.sub(pat, '', substring)
-            else:
-                s = '.'.join([re.sub(pat, '', s) for s in\
- substring.split('.', 1)])
-            return super(FloatInput, self).insert_text(s, from_undo=from_undo)
+Or to only allow hex::
 
-Default shortcuts
+    hexInput = TextInput()
+
+    def capitalize_input(substring, new_text):
+        if hex(new_text):
+            return substring
+        return None # fail
+
+    hexInput.input_filter = capitalise_input
+
+Default Shortcuts
 -----------------
-
 =============== ========================================================
    Shortcuts    Description
 --------------- --------------------------------------------------------
@@ -446,7 +450,7 @@ class TextInput(FocusBehavior, Widget):
     '''
 
     __events__ = ('on_text_validate', 'on_double_tap', 'on_triple_tap',
-                  'on_quad_touch')
+                  'on_quad_touch', 'on_input_filtered')
 
     def __init__(self, **kwargs):
         self._update_graphics_ev = Clock.create_trigger(
@@ -545,8 +549,12 @@ class TextInput(FocusBehavior, Widget):
             self._reset_cursor_blink)
         self._trigger_update_cutbuffer = Clock.create_trigger(
             self._update_cutbuffer)
-        refresh_line_options()
-        self._trigger_refresh_text()
+        t = self.text
+        if self._filter_input(t, t, t) != None:
+            refresh_line_options()
+            self._trigger_refresh_text()
+        else:
+            self.text = ''
 
         fbind('pos', handles)
         fbind('size', handles)
@@ -557,7 +565,53 @@ class TextInput(FocusBehavior, Widget):
         if platform == 'linux':
             self._ensure_clipboard()
 
+    def _filter_input(self, substring, old_text, new_text):
+        # do tests here
+        # check special case `''` blank text.
+        if not new_text:
+            return substring
+        mode = self.input_filter
+
+        if mode is None:
+            return substring
+
+        if mode == 'int':
+            if new_text in ('-', '.', '+'):
+                return substring
+            try:
+                int(new_text)
+            except ValueError:
+                self.dispatch('on_input_filtered', substring, new_text)
+                return None
+        elif mode == 'float':
+            if new_text in ('-', '.', '+'):
+                return substring
+            try:
+                float(new_text)
+            except ValueError:
+                self.dispatch('on_input_filtered', substring, new_text)
+                return None
+        else:
+            nsubstring = mode(substring, old_text, new_text)
+            if nsubstring != substring:
+                substring = None
+
+        if not substring:
+            self.dispatch('on_input_filtered', substring, new_text)
+            return
+
+        return substring
+
     def on_text_validate(self):
+        pass
+
+    def on_input_filtered(self, value, whole_text):
+        '''This event is called when input filtering fails.
+         This accepts two parameters, `value` that causes filtering &
+         the whole text including filtered value.
+
+        ..versionadded::1.9.1
+        '''
         pass
 
     def cursor_index(self, cursor=None):
@@ -669,27 +723,6 @@ class TextInput(FocusBehavior, Widget):
         if self.replace_crlf:
             substring = substring.replace(u'\r\n', u'\n')
 
-        mode = self.input_filter
-        if mode is not None:
-            chr = type(substring)
-            if chr is bytes:
-                int_pat = self._insert_int_patb
-            else:
-                int_pat = self._insert_int_patu
-
-            if mode == 'int':
-                substring = re.sub(int_pat, chr(''), substring)
-            elif mode == 'float':
-                if '.' in self.text:
-                    substring = re.sub(int_pat, chr(''), substring)
-                else:
-                    substring = '.'.join([re.sub(int_pat, chr(''), k) for k
-                                          in substring.split(chr('.'), 1)])
-            else:
-                substring = mode(substring, from_undo)
-            if not substring:
-                return
-
         self._hide_handles(EventLoop.window)
 
         if not from_undo and self.multiline and self.auto_indent \
@@ -702,6 +735,10 @@ class TextInput(FocusBehavior, Widget):
         text = self._lines[cr]
         len_str = len(substring)
         new_text = text[:cc] + substring + text[cc:]
+        substring = self._filter_input(substring, text, new_text)
+        if not substring:
+            return
+
         self._set_line_text(cr, new_text)
 
         wrap = (self._get_text_width(
@@ -856,6 +893,8 @@ class TextInput(FocusBehavior, Widget):
         if cc == 0:
             substring = u'\n' if _lines_flags[cr] else u' '
             new_text = text_last_line + text
+            if not self._filter_input(substring, text, new_text):
+                return
             self._set_line_text(cr - 1, new_text)
             self._delete_line(cr)
             start = cr - 1
@@ -863,6 +902,9 @@ class TextInput(FocusBehavior, Widget):
             #ch = text[cc-1]
             substring = text[cc - 1]
             new_text = text[:cc - 1] + text[cc:]
+            substring = self._filter_input(substring, text, new_text)
+            if not substring:
+                return
             self._set_line_text(cr, new_text)
 
         # refresh just the current line instead of the whole text
@@ -1214,6 +1256,8 @@ class TextInput(FocusBehavior, Widget):
         else:
             self._refresh_text_from_property('del', start[1], finish[1], lines,
                                              lineflags, len_lines)
+        # call filter input when selection is deleted, just don't stop deletion.
+        self._filter_input(cur_line, cur_line, self.text)
         self.scroll_x = scrl_x
         self.scroll_y = scrl_y
         # handle undo and redo for delete selecttion
@@ -2460,8 +2504,6 @@ class TextInput(FocusBehavior, Widget):
     _lines = ListProperty([])
     _hint_text_lines = ListProperty([])
     _editable = BooleanProperty(True)
-    _insert_int_patu = re.compile(u'[^0-9]')
-    _insert_int_patb = re.compile(b'[^0-9]')
 
     readonly = BooleanProperty(False)
     '''If True, the user will not be able to change the content of a textinput.
@@ -3050,8 +3092,9 @@ class TextInput(FocusBehavior, Widget):
     defaults to `None`. Can be one of `None`, `'int'` (string), or `'float'`
     (string), or a callable. If it is `'int'`, it will only accept numbers.
     If it is `'float'` it will also accept a single period. Finally, if it is
-    a callable it will be called with two parameter; the string to be added
-    and a bool indicating whether the string is a result of undo (True). The
+    a callable it will be called with two(4 since 1.9.1) parameter; the string
+    to be added and a bool indicating whether the string is a result of undo
+    , since 1.9.1 we also have two named arguments `new_text` & `old_text`. The
     callable should return a new substring that will be used instead.
     '''
 
@@ -3122,15 +3165,20 @@ if __name__ == '__main__':
 
             Builder.load_string('''
 <TextInput>
-    on_text:
-        self.suggestion_text = ''
-        self.suggestion_text = 'ion_text'
-
+    on_input_filtered: print 'input_filtered', args
 ''')
             root = BoxLayout(orientation='vertical')
             textinput = TextInput(multiline=True, use_bubble=True,
                                   use_handles=True)
-            #textinput.text = __doc__
+            textinput.text = "9Hello"
+            def capitalize_input(substring, old_text, new_text):
+                # if old_text is invalid, do not allow insertion/deletion.
+                if old_text != old_text.upper():
+                    return None
+                # if old_text was valid then, just make sure new substring is
+                # in right format.
+                return substring.upper()
+            textinput.input_filter = capitalize_input
             root.add_widget(textinput)
             textinput2 = TextInput(multiline=False, text='monoline textinput',
                                    size_hint=(1, None), height=30)
