@@ -226,7 +226,7 @@ class Slider(Widget):
 
     .. versionadded 1.9.2
 
-    :attr:`value_line` is a :class:`~kivy.properties.BooleanProperty`
+    :attr:`value_track` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to False.
     """
 
@@ -235,7 +235,7 @@ class Slider(Widget):
 
     .. versionadded 1.9.2
 
-    :attr:`value_line_color` is a :class:`~kivy.properties.ListProperty`
+    :attr:`value_track_color` is a :class:`~kivy.properties.ListProperty`
     and defaults to [1, 1, 1, 1].
     """
 
