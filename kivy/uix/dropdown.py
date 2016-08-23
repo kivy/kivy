@@ -334,7 +334,7 @@ class DropDown(ScrollView):
         self.x = x
 
         # determine if we display the dropdown upper or lower to the widget
-        if self.max_height:
+        if self.max_height is not None:
             height = min(self.max_height, self.container.minimum_height)
         else:
             height = self.container.minimum_height
