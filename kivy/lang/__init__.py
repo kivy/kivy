@@ -392,7 +392,7 @@ The syntax looks like:
     <NewWidget@ButtonBehavior+Label>:
         # kv code here ...
 
-The `@` character is used to seperate your class name from the classes you want
+The `@` character is used to separate your class name from the classes you want
 to subclass. The Python equivalent would have been:
 
 .. code-block:: python
