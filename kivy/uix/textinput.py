@@ -3050,7 +3050,7 @@ class TextInput(FocusBehavior, Widget):
     defaults to `None`. Can be one of `None`, `'int'` (string), or `'float'`
     (string), or a callable. If it is `'int'`, it will only accept numbers.
     If it is `'float'` it will also accept a single period. Finally, if it is
-    a callable it will be called with two parameter; the string to be added
+    a callable it will be called with two parameters; the string to be added
     and a bool indicating whether the string is a result of undo (True). The
     callable should return a new substring that will be used instead.
     '''
