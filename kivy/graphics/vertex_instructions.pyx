@@ -114,7 +114,7 @@ cdef class Bezier(VertexInstruction):
         VertexInstruction.__init__(self, **kwargs)
         v = kwargs.get('points')
         self.points = v if v is not None else [0, 0, 0, 0, 0, 0, 0, 0]
-        self._segments = kwargs.get('segments') or 10
+        self._segments = kwargs.get('segments') or 180
         self._loop = kwargs.get('loop') or False
         if self._loop:
             self.points.extend(self.points[:2])
