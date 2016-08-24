@@ -69,10 +69,19 @@ Snapshot wheels of current Kivy master are created every night. They can be foun
 To use them, instead of doing `python -m pip install kivy` we'll install one of
 these wheels as follows.
 
-- `Python 2.7, 32bit <javascript:getNightly('cp27','win32');>`_
-- `Python 3.4, 32bit <javascript:getNightly('cp34','win32');>`_
-- `Python 2.7, 64bit <javascript:getNightly('cp27','win_amd64');>`_
-- `Python 3.4, 64bit <javascript:getNightly('cp34','win_amd64');>`_
+.. |cp27_win32| replace:: Python 2.7, 32bit
+.. _cp27_win32: https://drive.google.com/uc?id=0B-080DPVLKs2amMxY3o1cHNzRjQ
+.. |cp34_win32| replace:: Python 3.4, 32bit
+.. _cp34_win32: https://drive.google.com/uc?id=0B-080DPVLKs2TnpLb25lcUh3d0U
+.. |cp27_amd64| replace:: Python 2.7, 64bit
+.. _cp27_amd64: https://drive.google.com/uc?id=0B-080DPVLKs2TmRrMExqLVJ1M28
+.. |cp34_amd64| replace:: Python 3.4, 64bit
+.. _cp34_amd64: https://drive.google.com/uc?id=0B-080DPVLKs2eDlqQlJCRldkNE0
+
+- |cp27_win32|_
+- |cp34_win32|_
+- |cp27_amd64|_
+- |cp34_amd64|_
 
 #. Perform steps 1 and 2 of the above Installation section.
 #. Download the appropriate wheel for your system.

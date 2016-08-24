@@ -98,7 +98,7 @@ next frame even if you add a new callback with -1 from a running
 callback. However, :class:`Clock` has an iteration limit for these
 callbacks: it defaults to 10.
 
-If you schedule a callback that schedules a callback that schedules a .. etc
+If you schedule a callback that schedules a callback that schedules a ... etc
 more than 10 times, it will leave the loop and send a warning to the console,
 then continue after the next frame. This is implemented to prevent bugs from
 hanging or crashing the application.
@@ -156,7 +156,7 @@ Even if x and y changes within one frame, the callback is only run once.
 :meth:`CyClockBase.create_trigger` has a timeout parameter that
 behaves exactly like :meth:`CyClockBase.schedule_once`.
 
-..versionchanged:: 1.9.2
+.. versionchanged:: 1.9.2
 
     :meth:`CyClockBase.create_trigger` now has a ``interval`` parameter.
     If False, the default, it'll create an event similar to
@@ -168,7 +168,7 @@ Unscheduling
 
 An event scheduled with :meth:`CyClockBase.schedule_once`,
 :meth:`CyClockBase.schedule_interval`, or with
-:meth:`CyClockBase.create_trigger`and then triggered can be unscheduled in
+:meth:`CyClockBase.create_trigger` and then triggered can be unscheduled in
 multiple ways. E.g::
 
     def my_callback(dt):

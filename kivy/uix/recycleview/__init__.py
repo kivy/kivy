@@ -2,6 +2,8 @@
 RecycleView
 ===========
 
+.. versionadded:: 1.9.2
+
 The RecycleView provides a flexible model for viewing selected sections of
 large data sets. It aims to prevent the performance degradation that can occur
 when generating large numbers of widgets in order to display many data items.

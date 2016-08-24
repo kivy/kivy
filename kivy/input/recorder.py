@@ -74,7 +74,7 @@ Let's say you want to save the angle and pressure of the touch, if available::
 
 Or with modules variables::
 
-    $ python main.py -m recorder,attrs=is_touch:sx:sy:angle:pressure,\
+    $ python main.py -m recorder,attrs=is_touch:sx:sy:angle:pressure, \
             profile_mask=pos:angle:pressure
 
 Known limitations

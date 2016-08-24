@@ -775,6 +775,30 @@ cdef extern from "SDL_ttf.h":
 
 cdef extern from "SDL_audio.h":
     cdef int AUDIO_S16SYS
+    ctypedef struct SDL_AudioFilter:
+        pass
+    ctypedef struct SDL_AudioCVT:
+        int needed
+        int src_format
+        int dst_format
+        double rate_incr
+        Uint8 *buf
+        int len
+        int len_cvt
+        int len_mult
+        double len_ratio
+        SDL_AudioFilter filters[10]
+        int filter_index
+    cdef int SDL_BuildAudioCVT(
+        SDL_AudioCVT *cvt,
+        int src_format,
+        Uint8 src_channels,
+        int src_rate,
+        int dst_format,
+        Uint8 dst_channels,
+        int dst_rate
+    )
+    cdef int SDL_ConvertAudio(SDL_AudioCVT *cvt)
 
 cdef extern from "SDL_mixer.h":
     cdef struct Mix_Chunk:

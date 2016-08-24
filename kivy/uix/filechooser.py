@@ -307,7 +307,8 @@ class FileChooserController(RelativeLayout):
 
     :Events:
         `on_entry_added`: entry, parent
-            Fired when a root-level entry is added to the file list.
+            Fired when a root-level entry is added to the file list. If you
+            return True from this event, the entry is not added to FileChooser.
         `on_entries_cleared`
             Fired when the the entries list is cleared, usually when the
             root is refreshed.

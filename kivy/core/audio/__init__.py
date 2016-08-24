@@ -50,9 +50,11 @@ from kivy.core import core_register_libs
 from kivy.compat import PY2
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, NumericProperty, OptionProperty, \
-    AliasProperty, BooleanProperty
+    AliasProperty, BooleanProperty, BoundedNumericProperty
 from kivy.utils import platform
 from kivy.setupconfig import USE_SDL2
+
+from sys import float_info
 
 
 class SoundLoader:
@@ -113,6 +115,16 @@ class Sound(EventDispatcher):
     .. versionadded:: 1.3.0
 
     :attr:`volume` is a :class:`~kivy.properties.NumericProperty` and defaults
+    to 1.
+    '''
+
+    pitch = BoundedNumericProperty(1., min=float_info.epsilon)
+    '''Pitch of a sound. 2 is an octave higher, .5 one below. This is only
+    implemented for SDL2 audio provider yet.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`pitch` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 1.
     '''
 

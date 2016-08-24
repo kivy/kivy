@@ -175,6 +175,7 @@ Kivy       Cython
 Ubuntu example
 --------------
 
+In the following command use "python" and "python-dev" for Python 2, or "python3" and "python3-dev" for Python 3.
 
 ::
 
@@ -214,9 +215,15 @@ Installation
 
     # Make sure Pip, Virtualenv and Setuptools are updated
     sudo pip install --upgrade pip virtualenv setuptools
-
-    # Create a virtualenv
+    
+    # Then create a virtualenv named "kivyinstall" by either:
+    
+    # 1. using the default interpreter
     virtualenv --no-site-packages kivyinstall
+    
+    # or 2. using a specific interpreter 
+    # (this will use the interpreter in /usr/bin/python2.7)
+    virtualenv --no-site-packages -p /usr/bin/python2.7 kivyinstall
 
     # Enter the virtualenv
     . kivyinstall/bin/activate
@@ -228,13 +235,6 @@ Installation
     pip install kivy
     # For the development version of Kivy, use the following command instead
     # pip install git+https://github.com/kivy/kivy.git@master
-
-Python 3
---------
-
-
-If you want to use Python 3 you install "python3" and "python3-dev" and then pass
-"-p python3" to virtualenv.
 
 
 *Dependencies with legacy PyGame*
@@ -316,7 +316,7 @@ Installation
     # Make sure Pip, Virtualenv and Setuptools are updated
     sudo pip install --upgrade pip virtualenv setuptools
 
-    # Then create a virtualenv by either:
+    # Then create a virtualenv named "kivyinstall" by either:
     
     # 1. using the default interpreter
     virtualenv --no-site-packages kivyinstall

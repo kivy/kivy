@@ -285,7 +285,7 @@ class WindowBase(EventDispatcher):
                 The *unicode* parameter has been deprecated in favor of
                 codepoint, and will be removed completely in future versions.
 
-        `on_key_down`: key, scancode, codepoint
+        `on_key_down`: key, scancode, codepoint, modifier
             Fired when a key pressed.
 
             .. versionchanged:: 1.3.0

@@ -45,6 +45,8 @@ class MutableTextInput(FloatLayout):
 
     def view(self):
         self.clear_widgets()
+        if not self.text:
+            self.w_label.text = "Double tap/click to edit"
         self.add_widget(self.w_label)
 
     def check_focus_and_view(self, textinput):

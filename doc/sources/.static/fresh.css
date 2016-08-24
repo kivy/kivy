@@ -353,7 +353,7 @@ table.field-list td.field-body {
 	padding-top: 0px;
 }
 table.field-list td.field-body dl.docutils {
-	margin-top: 0px;
+	margin-top: -1px;
 	margin-left: -10px;
 }
 

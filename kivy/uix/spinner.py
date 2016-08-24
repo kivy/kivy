@@ -191,7 +191,8 @@ class Spinner(Button):
                 self.text = ''
 
     def _toggle_dropdown(self, *largs):
-        self.is_open = not self.is_open
+        if self.values:
+            self.is_open = not self.is_open
 
     def _close_dropdown(self, *largs):
         self.is_open = False

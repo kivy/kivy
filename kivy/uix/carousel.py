@@ -243,6 +243,14 @@ class Carousel(StencilView):
     .. versionadded:: 1.8.0
     '''
 
+    ignore_perpendicular_swipes = BooleanProperty(False)
+    '''ignore swipes on axis perpendicular to direction.
+
+    .. versionadded:: 1.9.2
+    :attr:`ignore_perpendicular_swipes` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
+    '''
+
     #### private properties, for internal use only ###
     _index = NumericProperty(0, allownone=True)
     _prev = ObjectProperty(None, allownone=True)
@@ -258,6 +266,7 @@ class Carousel(StencilView):
             self._position_visible_slides, -1)
         super(Carousel, self).__init__(**kwargs)
         self._skip_slide = None
+        self.touch_mode_change = False
 
     def load_slide(self, slide):
         '''Animate to the slide that is passed as the argument.
@@ -515,9 +524,22 @@ class Carousel(StencilView):
             'time': touch.time_start}
         self._change_touch_mode_ev = Clock.schedule_once(
             self._change_touch_mode, self.scroll_timeout / 1000.)
+        self.touch_mode_change = False
         return True
 
     def on_touch_move(self, touch):
+        if self.touch_mode_change == False:
+            if self.ignore_perpendicular_swipes and self.direction in ('top','bottom'):
+                if abs(touch.oy - touch.y) < self.scroll_distance:
+                    if abs(touch.ox - touch.x) > self.scroll_distance:
+                        self._change_touch_mode()
+                        self.touchModeChange = True
+            elif self.ignore_perpendicular_swipes and self.direction in ('right','left'):
+                if abs(touch.ox - touch.x) < self.scroll_distance:
+                    if abs(touch.oy - touch.y) > self.scroll_distance:
+                        self._change_touch_mode()
+                        self.touchModeChange = True
+
         if self._get_uid('cavoid') in touch.ud:
             return
         if self._touch is not touch:
