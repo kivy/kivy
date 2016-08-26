@@ -345,7 +345,16 @@ class TreeView(Widget):
 
     def select_node(self, node):
         '''Select a node in the tree.
+
+        .. versionchanged:: 1.9.2
+
+        If ``None`` is used as a value for `node` and there's
+        already a selected node, it will unselect it.
         '''
+        if not node:
+            if self._selected_node:
+                self._selected_node.is_selected = False
+            return
         if node.no_selection:
             return
         if self._selected_node:
