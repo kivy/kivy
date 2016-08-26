@@ -487,7 +487,7 @@ class TabbedPanel(GridLayout):
         self._setup_default_tab()
         self.switch_to(self.default_tab)
 
-    def switch_to(self, header):
+    def switch_to(self, header, do_scroll=True):
         '''Switch to a specific panel header.
         '''
         header_content = header.content
@@ -502,6 +502,10 @@ class TabbedPanel(GridLayout):
         if parent:
             parent.remove_widget(header_content)
         self.add_widget(header_content)
+
+        if do_scroll:
+            tabs = self._tab_strip
+            tabs.parent.scroll_to(header)
 
     def clear_tabs(self, *l):
         self_tabs = self._tab_strip
