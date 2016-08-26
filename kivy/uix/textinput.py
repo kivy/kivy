@@ -1092,6 +1092,8 @@ class TextInput(FocusBehavior, Widget):
         .. versionchanged:: 1.9.1
 
         '''
+        if not self._lines:
+            return
         pgmove_speed = int(self.height /
             (self.line_height + self.line_spacing) - 1)
         col, row = self.cursor
