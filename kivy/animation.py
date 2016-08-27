@@ -127,7 +127,7 @@ class Animation(EventDispatcher):
         self._clock_installed = False
         self._duration = kw.pop('d', kw.pop('duration', 1.))
         self._transition = kw.pop('t', kw.pop('transition', 'linear'))
-        self._step = kw.pop('s', kw.pop('step', 1. / 60.))
+        self._step = kw.pop('s', kw.pop('step', 0))
         if isinstance(self._transition, string_types):
             self._transition = getattr(AnimationTransition, self._transition)
         self._animated_properties = kw
