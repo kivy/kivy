@@ -819,7 +819,7 @@ class ScrollView(StencilView):
         return rv
 
     def on_touch_up(self, touch):
-        if self._touch is not touch and self._get_uid() not in touch.ud:
+        if self._touch is not touch and self._get_uid('svavoid') not in touch.ud:
             # touch is in parents
             touch.push()
             touch.apply_transform_2d(self.to_local)
