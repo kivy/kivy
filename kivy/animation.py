@@ -100,7 +100,8 @@ class Animation(EventDispatcher):
             Transition function for animate properties. It can be the name of a
             method from :class:`AnimationTransition`.
         `step` or `s`: float
-            Step in milliseconds of the animation. Defaults to 1 / 60.
+            Step in milliseconds of the animation. Defaults to 0, which means
+            animation is updated every frame.
 
     :Events:
         `on_start`: widget
