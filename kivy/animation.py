@@ -102,6 +102,9 @@ class Animation(EventDispatcher):
         `step` or `s`: float
             Step in milliseconds of the animation. Defaults to 0, which means
             animation is updated every frame.
+            
+            To draw the animation less often, set the step value to float.
+            For example, if you want to animate at 30 FPS, use s=1/30. 
 
     :Events:
         `on_start`: widget
