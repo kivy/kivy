@@ -66,21 +66,23 @@ from kivy.factory import Factory
 from kivy.lib import osc, ddsfile, mtdev
 
 # check for silenced build
-BE_QUIET = False
-for arg in sys.argv:
-    if "silenced=" in arg:
-        if arg.split("=")[1] == "yes":
-            BE_QUIET = True
+BE_QUIET = True
+if os.environ.get('BE_QUIET') == 'False':
+    BE_QUIET = False
 
 # force loading of all classes from factory
 for x in list(Factory.classes.keys())[:]:
     getattr(Factory, x)
 
-
 # Directory of doc
 base_dir = os.path.dirname(__file__)
 dest_dir = os.path.join(base_dir, 'sources')
 examples_framework_dir = os.path.join(base_dir, '..', 'examples', 'framework')
+
+# Check touch file
+base = 'autobuild.py-done'
+with open(os.path.join(base_dir, base), 'w') as f:
+    f.write('')
 
 
 def writefile(filename, data):
