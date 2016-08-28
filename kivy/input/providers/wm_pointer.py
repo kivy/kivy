@@ -111,18 +111,18 @@ else:
                 pointerID = GET_POINTERID_WPARAM(wParam)
                 if GetPointerPenInfo(pointerID,pointpenst) != 0:
                     
-                    self.pointer_events.appendleft(('begin', penstruct.pointerInfo.ptPixelLocation.x, penstruct.pointerInfo.ptPixelLocation.y,penstruct.pressure))
+                    self.pointer_events.appendleft(('begin', penstruct.pointerInfo.ptPixelLocation.x, penstruct.pointerInfo.ptPixelLocation.y,penstruct.pressure, pointerID))
                     self.pointer_status = True
 
             if msg == WM_POINTERUPDATE and self.pointer_status:
                 pointerID = GET_POINTERID_WPARAM(wParam)
                 if GetPointerPenInfo(pointerID,pointpenst) != 0:
-                    self.pointer_events.appendleft(('update',penstruct.pointerInfo.ptPixelLocation.x, penstruct.pointerInfo.ptPixelLocation.y,penstruct.pressure))
+                    self.pointer_events.appendleft(('update',penstruct.pointerInfo.ptPixelLocation.x, penstruct.pointerInfo.ptPixelLocation.y,penstruct.pressure, pointerID))
 
             if msg == WM_POINTERUP or msg == WM_POINTERLEAVE:
                 pointerID = GET_POINTERID_WPARAM(wParam)
                 if GetPointerPenInfo(pointerID,pointpenst) != 0:
-                    self.pointer_events.appendleft(('end', penstruct.pointerInfo.ptPixelLocation.x, penstruct.pointerInfo.ptPixelLocation.y,penstruct.pressure))
+                    self.pointer_events.appendleft(('end', penstruct.pointerInfo.ptPixelLocation.x, penstruct.pointerInfo.ptPixelLocation.y,penstruct.pressure, pointerID))
                     self.pointer_status = False
 
         def _pointer_wndProc(self, hwnd, msg, wParam, lParam):
@@ -136,6 +136,7 @@ else:
             #                                         hwnd, msg, wParam, lParam)
 
         def start(self):
+            print("start")
             self.uid = 0
             self.pointer = None
             self.pointer_status = None
@@ -154,14 +155,14 @@ else:
             while True:
 
                 try:
-                    etype, x, y, pressure = self.pointer_events.pop()
+                    etype, x, y, pressure, self.uid = self.pointer_events.pop()
                     pressure = float(pressure / 1024)
                 except:
                     break
 
                 if etype == 'begin':
-                    self.uid += 1
-                    self.peointer = WM_Pointer(self.device, self.uid, [x, y, pressure])
+                    #self.uid += 1
+                    self.pointer = WM_Pointer(self.device, self.uid, [x, y, pressure])
                 elif etype == 'update':
                     self.pointer.move([x, y, pressure])
                 elif etype == 'end':
