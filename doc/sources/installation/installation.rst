@@ -72,7 +72,10 @@ in a way that allows for easy development. For that, please see our
 Installing Dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-To install Kivy's dependencies, follow the guide below for your platform.
+To install Kivy's dependencies, follow the guide below for your platform. You
+might also need these packages for the RST and lexing components::
+
+    $ sudo pip install pygments docutils
 
 Ubuntu
 ++++++
