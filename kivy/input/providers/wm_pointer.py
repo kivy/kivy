@@ -8,7 +8,9 @@ __all__ = ('WM_PointerProvider', 'WM_Pointer')
 import os
 from kivy.input.providers.wm_common import *
 from kivy.input.motionevent import MotionEvent
+from ctypes import *
 from ctypes.wintypes import *
+from win32api import LOWORD
 
 GET_POINTERID_WPARAM = LOWORD
 GetPointerPenInfo = windll.user32.GetPointerPenInfo
@@ -24,7 +26,6 @@ WM_POINTERDOWN = 0x0246
 WM_POINTERENTER = 0x0249
 WM_POINTERLEAVE = 0x024A
 WM_POINTERUP = 0x0247
-
 
 class POINTER_INFO(Structure):
     _fields_ = [
@@ -73,6 +74,7 @@ class WM_Pointer(MotionEvent):
         return '<WMPointer id:%d uid:%d pos:%s device:%s pressure:%d>' % (i, u, s, d, self.pressure)
 if 'KIVY_DOC' in os.environ:
     # documentation hack
+    print("duh")
     WM_PointerProvider = None
 
 else:
@@ -124,26 +126,27 @@ else:
                     self.pointer_status = False
 
         def _pointer_wndProc(self, hwnd, msg, wParam, lParam):
-            if msg == WM_TABLET_QUERYSYSTEMGESTURE:
-                return QUERYSYSTEMGESTURE_WNDPROC
+            #if msg == WM_TABLET_QUERYSYSTEMGESTURE:
+            #    return QUERYSYSTEMGESTURE_WNDPROC
             #if self._is_pen_message(msg):
             self._pointer_handler(msg, wParam, lParam)
-                return 1
-            else:
-                return windll.user32.CallWindowProcW(self.old_windProc,
-                                                     hwnd, msg, wParam, lParam)
+            #    return 1
+            #else:
+            #    return windll.user32.CallWindowProcW(self.old_windProc,
+            #                                         hwnd, msg, wParam, lParam)
 
         def start(self):
             self.uid = 0
             self.pointer = None
             self.pointer_status = None
             self.pointer_events = deque()
-
             self.hwnd = windll.user32.GetActiveWindow()
             windll.user32.EnableMouseInPointer(BOOL(True))
+            if windll.user32.IsMouseInPointerEnabled() != 1:
+                raise Exception
             # inject our own wndProc to handle messages
             # before window manager does
-            self.new_windProc = WNDPROC(self._pointer_wndProc)
+            self.new_windProc = WNDPROC(self._pointer_handler)
             self.old_windProc = SetWindowLong_wrapper(
                 self.hwnd, GWL_WNDPROC, self.new_windProc)
 
@@ -152,6 +155,7 @@ else:
 
                 try:
                     etype, x, y, pressure = self.pointer_events.pop()
+                    pressure = float(pressure / 1024)
                 except:
                     break
 
