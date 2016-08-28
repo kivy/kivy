@@ -259,7 +259,7 @@ class Image(Widget):
                                                  anim_delay=self.anim_delay,
                                                  keep_data=self.keep_data,
                                                  nocache=self.nocache)
-            except Exception as e:
+            except:
                 Logger.error('Image: Error loading texture {filename}'.
                                     format(filename=self.source))
                 self._coreimage = ci = None
