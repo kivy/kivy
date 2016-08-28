@@ -21,7 +21,7 @@ interaction is a scrolling gesture, these properties are used:
     - :attr:`~ScrollView.scroll_distance`: the minimum distance to travel,
       defaults to 20 pixels.
     - :attr:`~ScrollView.scroll_timeout`: the maximum time period, defaults
-      to 250 milliseconds.
+      to 55 milliseconds.
 
 If a touch travels :attr:`~ScrollView.scroll_distance` pixels within the
 :attr:`~ScrollView.scroll_timeout` period, it is recognized as a scrolling
