@@ -26,7 +26,7 @@ _statsinput = 0
 _maxinput = -1
 
 
-def update_fps(win, ctx, *largs):
+def update_fps(ctx, *largs):
     ctx.label.text = 'FPS: %f' % Clock.get_fps()
     ctx.rectangle.texture = ctx.label.texture
     ctx.rectangle.size = ctx.label.texture_size
@@ -79,7 +79,7 @@ def start(win, ctx):
                 Rectangle(pos=(win.width - 64 * 4 + i * 4, win.height - 25),
                           size=(4, 0)))
     win.bind(size=partial(_update_monitor_canvas, win, ctx))
-    Clock.schedule_interval(partial(update_fps, win, ctx), .5)
+    Clock.schedule_interval(partial(update_fps, ctx), .5)
     Clock.schedule_interval(partial(update_stats, win, ctx), 1 / 60.)
 
 
