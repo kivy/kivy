@@ -698,19 +698,27 @@ cdef class ListProperty(Property):
     .. warning::
 
         When assigning a list to a :class:`ListProperty`, the list stored in
-        the property is a copy of the list and not the original list. This can
+        the property is a shallow copy of the list and not the original list. This can
         be demonstrated with the following example::
 
             >>> class MyWidget(Widget):
             >>>     my_list = ListProperty([])
 
             >>> widget = MyWidget()
-            >>> my_list = widget.my_list = [1, 5, 7]
-            >>> print my_list is widget.my_list
+            >>> my_list = [1, 5, {'hi': 'hello'}]
+            >>> widget.my_list = my_list
+            >>> print(my_list is widget.my_list)
             False
             >>> my_list.append(10)
             >>> print(my_list, widget.my_list)
-            [1, 5, 7, 10], [1, 5, 7]
+            [1, 5, {'hi': 'hello'}, 10] [1, 5, {'hi': 'hello'}]
+            
+        However, changes to nested levels will affect the property as well, 
+        since Properties are a shallow copy of my_list.
+            >>> my_list[2]['hi'] = 'bye'
+            >>> print(my_list, widget.my_list)
+            [1, 5, {'hi': 'bye'}, 10] [1, 5, {'hi': 'bye'}]
+            
     '''
     def __init__(self, defaultvalue=None, **kw):
         defaultvalue = defaultvalue or []
@@ -815,7 +823,7 @@ cdef class DictProperty(Property):
     .. warning::
 
         Similar to :class:`ListProperty`, when assigning a dict to a
-        :class:`DictProperty`, the dict stored in the property is a copy of the
+        :class:`DictProperty`, the dict stored in the property is a shallow copy of the
         dict and not the original dict. See :class:`ListProperty` for details.
     '''
     def __init__(self, defaultvalue=None, rebind=False, **kw):
