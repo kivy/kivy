@@ -9,9 +9,10 @@ Usage example:
 
 .. code-block:: kv
 
+    #:import Clipboard kivy.core.clipboard.Clipboard
+
     Button:
         on_release:
-            from kivy.core.clipboard import Clipboard
             self.text = Clipboard.paste()
             Clipboard.copy('Data')
 '''
