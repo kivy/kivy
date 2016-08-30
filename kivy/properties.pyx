@@ -57,9 +57,9 @@ Depth being tracked
 Only the "top level" of a nested object is being tracked. For example:: 
 
     my_list_prop = ListProperty([1, {'hi': 0}])
-    # Changing the any top level element will trigger all `on_my_list_prop` callbacks
+    # Changing a top level element will trigger all `on_my_list_prop` callbacks
     my_list_prop[0] = 4  
-    # Changing any deeper element will be ignored by all `on_my_list_prop` callbacks
+    # Changing a deeper element will be ignored by all `on_my_list_prop` callbacks
     my_list_prop[1]['hi'] = 4 
 
 Another example::
