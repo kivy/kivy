@@ -62,17 +62,7 @@ Only the "top level" of a nested object is being tracked. For example::
     # Changing a deeper element will be ignored by all `on_my_list_prop` callbacks
     my_list_prop[1]['hi'] = 4 
 
-Another example::
-
-    class A(object):
-        pass
-    
-    instance_a = A()
-    my_obj_prop = ObjectProperty(instance_a)
-    # The following will be ignored by `on_my_obj_prop` callbacks
-    my_obj_prop.hello = 4
-
-The same holds true for all kivy properties.
+The same holds true for all container-type kivy properties.
 
 Value checking
 ~~~~~~~~~~~~~~
