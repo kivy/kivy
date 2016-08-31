@@ -16,21 +16,17 @@ import kivy.input.providers.mouse
 platform = core_platform
 
 if platform == 'win' or 'KIVY_DOC' in os.environ:
-    use_wm_pointer = False
     try:
         import kivy.input.providers.wm_pointer
-        use_wm_pointer = True
     except:
-        use_wm_pointer = False
         err = 'Input: WM_Pointer not supported by your version of Windows'
         Logger.warning(err)
-    if use_wm_pointer == False:
-        try:
-            import kivy.input.providers.wm_touch
-            import kivy.input.providers.wm_pen
-        except:
-            err = 'Input: WM_Touch/WM_Pen not supported by your version of Windows'
-            Logger.warning(err)
+    try:
+        import kivy.input.providers.wm_touch
+        import kivy.input.providers.wm_pen
+    except:
+        err = 'Input: WM_Touch/WM_Pen not supported by your version of Windows'
+        Logger.warning(err)
 
 
 if platform == 'macosx' or 'KIVY_DOC' in os.environ:

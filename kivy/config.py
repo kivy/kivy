@@ -709,6 +709,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             # from 1.0.9, don't activate mactouch by default, or app are
             # unusable.
             if platform == 'win':
+                Config.setdefault('input', 'wm_pointer', 'wm_pointer')
                 Config.setdefault('input', 'wm_touch', 'wm_touch')
                 Config.setdefault('input', 'wm_pen', 'wm_pen')
             elif platform == 'linux':

@@ -8,8 +8,8 @@ __all__ = ('WM_PointerProvider', 'WM_Pointer')
 import os
 from kivy.input.providers.wm_common import *
 from kivy.input.motionevent import MotionEvent
-from ctypes import *
-from ctypes.wintypes import *
+from ctypes import (c_uint32, c_int, c_uint64, c_int32)
+from ctypes.wintypes import pointer, HWND
 from win32api import LOWORD
 
 GET_POINTERID_WPARAM = LOWORD
@@ -53,10 +53,10 @@ class POINTER_PEN_INFO(Structure):
         ('pointerInfo', POINTER_INFO),
         ('penFlags', c_int),
         ('penMask', c_int),
-        ('pressure', c_uint32),
-        ('rotation', c_uint32),
-        ('tiltX', c_int32),
-        ('tiltY', c_int32),
+        ('pressure', c_uint32),    # 0 to 1024
+        ('rotation', c_uint32),    # 0 to 359
+        ('tiltX', c_int32),    # -90 to +90
+        ('tiltY', c_int32),    # -90 to +90
     
     ]
 
@@ -74,7 +74,6 @@ class WM_Pointer(MotionEvent):
         return '<WMPointer id:%d uid:%d pos:%s device:%s pressure:%d>' % (i, u, s, d, self.pressure)
 if 'KIVY_DOC' in os.environ:
     # documentation hack
-    print("duh")
     WM_PointerProvider = None
 
 else:
@@ -87,6 +86,12 @@ else:
 
     class WM_PointerProvider(MotionEventProvider):
 
+        # def __init__(self, device,args):
+            # super(WM_PointerProvider, self).__init__(device, args)
+            # windll.user32.EnableMouseInPointer(BOOL(True))    #If this works (Win8 minimum) we should only get WM_POINTER Events
+            # if windll.user32.IsMouseInPointerEnabled() != 1:
+                # raise Exception
+    
         def _is_pen_message(self, msg):
             info = windll.user32.GetMessageExtraInfo()
             # It's a touch or a pen
@@ -95,59 +100,59 @@ else:
                     return True
 
         def _pointer_handler(self, msg, wParam, lParam):
-            if msg not in (WM_POINTERDOWN, WM_POINTERENTER, WM_POINTERLEAVE, WM_POINTERUP, WM_POINTERUPDATE):
+            if msg not in (WM_POINTERDOWN, WM_POINTERUP, WM_POINTERUPDATE):
                 return
 
             windll.user32.GetClientRect(self.hwnd, byref(win_rect))
+            print("Winrect: ")
+            print(win_rect.w)
+            print(win_rect.x)
             x = c_int16(lParam & 0xffff).value / float(win_rect.w)
             y = c_int16(lParam >> 16).value / float(win_rect.h)
             y = abs(1.0 - y)
+            print("windowx: ",c_int16(lParam & 0xffff).value,"windowy: ", c_int16(lParam >> 16).value)
+            print("windowpenx: ",x,"windowpeny: ", y)
             penstruct = POINTER_PEN_INFO()
-            pointpenst = pointer(penstruct)
-            ps = PAINTSTRUCT()
-            rect = RECT()
 
-            if msg == WM_POINTERDOWN or msg == WM_POINTERENTER:
+            if msg == WM_POINTERDOWN:# or msg == WM_POINTERENTER:
                 pointerID = GET_POINTERID_WPARAM(wParam)
-                if GetPointerPenInfo(pointerID,pointpenst) != 0:
+                if GetPointerPenInfo(pointerID,byref(penstruct)) != 0:
                     
-                    self.pointer_events.appendleft(('begin', penstruct.pointerInfo.ptPixelLocation.x, penstruct.pointerInfo.ptPixelLocation.y,penstruct.pressure, pointerID))
+                    self.pointer_events.appendleft(('begin', x, y,penstruct.pressure, pointerID))
                     self.pointer_status = True
 
             if msg == WM_POINTERUPDATE and self.pointer_status:
                 pointerID = GET_POINTERID_WPARAM(wParam)
-                if GetPointerPenInfo(pointerID,pointpenst) != 0:
-                    self.pointer_events.appendleft(('update',penstruct.pointerInfo.ptPixelLocation.x, penstruct.pointerInfo.ptPixelLocation.y,penstruct.pressure, pointerID))
+                if GetPointerPenInfo(pointerID,byref(penstruct)) != 0:
+                    self.pointer_events.appendleft(('update',x, y,penstruct.pressure, pointerID))
 
-            if msg == WM_POINTERUP or msg == WM_POINTERLEAVE:
+            if msg == WM_POINTERUP:# or msg == WM_POINTERLEAVE:
                 pointerID = GET_POINTERID_WPARAM(wParam)
-                if GetPointerPenInfo(pointerID,pointpenst) != 0:
-                    self.pointer_events.appendleft(('end', penstruct.pointerInfo.ptPixelLocation.x, penstruct.pointerInfo.ptPixelLocation.y,penstruct.pressure, pointerID))
+                if GetPointerPenInfo(pointerID,byref(penstruct)) != 0:
+                    self.pointer_events.appendleft(('end', x, y,penstruct.pressure, pointerID))
                     self.pointer_status = False
 
         def _pointer_wndProc(self, hwnd, msg, wParam, lParam):
             #if msg == WM_TABLET_QUERYSYSTEMGESTURE:
             #    return QUERYSYSTEMGESTURE_WNDPROC
             #if self._is_pen_message(msg):
-            self._pointer_handler(msg, wParam, lParam)
-            #    return 1
-            #else:
-            #    return windll.user32.CallWindowProcW(self.old_windProc,
-            #                                         hwnd, msg, wParam, lParam)
+            if msg in (WM_POINTERDOWN, WM_POINTERUP, WM_POINTERUPDATE):
+                self._pointer_handler(msg, wParam, lParam)
+                return 1
+            else:
+                return windll.user32.CallWindowProcW(self.old_windProc,
+                                                     hwnd, msg, wParam, lParam)
 
         def start(self):
-            print("start")
             self.uid = 0
             self.pointer = None
             self.pointer_status = None
             self.pointer_events = deque()
             self.hwnd = windll.user32.GetActiveWindow()
-            windll.user32.EnableMouseInPointer(BOOL(True))
-            if windll.user32.IsMouseInPointerEnabled() != 1:
-                raise Exception
+
             # inject our own wndProc to handle messages
             # before window manager does
-            self.new_windProc = WNDPROC(self._pointer_handler)
+            self.new_windProc = WNDPROC(self._pointer_wndProc)
             self.old_windProc = SetWindowLong_wrapper(
                 self.hwnd, GWL_WNDPROC, self.new_windProc)
 
@@ -156,7 +161,9 @@ else:
 
                 try:
                     etype, x, y, pressure, self.uid = self.pointer_events.pop()
-                    pressure = float(pressure / 1024)
+                    pressure = float(pressure / 1024.0)
+                    #x = x + 1980 #Quick local fix
+                    print("X: ",x,"Y: ",y)
                 except:
                     break
 
@@ -166,7 +173,8 @@ else:
                 elif etype == 'update':
                     self.pointer.move([x, y, pressure])
                 elif etype == 'end':
-                    self.pointer.update_time_end()
+                    if self.pointer:
+                        self.pointer.update_time_end()
 
                 dispatch_fn(etype, self.pointer)
 
