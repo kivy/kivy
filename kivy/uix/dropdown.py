@@ -131,6 +131,9 @@ class DropDown(ScrollView):
     auto_width = BooleanProperty(True)
     '''By default, the width of the dropdown will be the same as the width of
     the attached widget. Set to False if you want to provide your own width.
+    
+    :attr:`auto_width` is a :class:`~kivy.properties.BooleanProperty`
+    and defaults to True.
     '''
 
     max_height = NumericProperty(None, allownone=True)
@@ -152,7 +155,7 @@ class DropDown(ScrollView):
 
     auto_dismiss = BooleanProperty(True)
     '''By default, the dropdown will be automatically dismissed when a
-    touch happens outside of it, this option allow to disable this
+    touch happens outside of it, this option allows to disable this
     feature
 
     :attr:`auto_dismiss` is a :class:`~kivy.properties.BooleanProperty`
