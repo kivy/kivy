@@ -140,7 +140,7 @@ def get_random_color(alpha=1.0):
     '''Returns a random color (4 tuple).
 
     :Parameters:
-        `alpha` : float, defaults to 1.0
+        `alpha`: float, defaults to 1.0
             If alpha == 'random', a random alpha value is generated.
     '''
     from random import random

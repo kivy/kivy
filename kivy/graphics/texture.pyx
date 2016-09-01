@@ -853,7 +853,7 @@ cdef class Texture:
             called in order to update the texture.
 
         :Parameters:
-            `pbuffer` : bytes, or a class that implements the buffer interface\
+            `pbuffer`: bytes, or a class that implements the buffer interface\
  (including memoryview).
                 A buffer containing the image data. It can be either a bytes
                 object or a instance of a class that implements the python
@@ -862,14 +862,14 @@ cdef class Texture:
                 be contiguous, have only one dimension and must not be
                 readonly, even though the data is not modified, due to a cython
                 limitation. See module description for usage details.
-            `size` : tuple, defaults to texture size
+            `size`: tuple, defaults to texture size
                 Size of the image (width, height)
-            `colorfmt` : str, defaults to 'rgb'
+            `colorfmt`: str, defaults to 'rgb'
                 Image format, can be one of 'rgb', 'rgba', 'bgr', 'bgra',
                 'luminance' or 'luminance_alpha'.
-            `pos` : tuple, defaults to (0, 0)
+            `pos`: tuple, defaults to (0, 0)
                 Position to blit in the texture.
-            `bufferfmt` : str, defaults to 'ubyte'
+            `bufferfmt`: str, defaults to 'ubyte'
                 Type of the data buffer, can be one of 'ubyte', 'ushort',
                 'uint', 'byte', 'short', 'int' or 'float'.
             `mipmap_level`: int, defaults to 0

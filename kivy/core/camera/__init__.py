@@ -29,10 +29,10 @@ class CameraBase(EventDispatcher):
     :Parameters:
         `index`: int
             Source index of the camera.
-        `size` : tuple (int, int)
+        `size`: tuple (int, int)
             Size at which the image is drawn. If no size is specified,
             it defaults to the resolution of the camera image.
-        `resolution` : tuple (int, int)
+        `resolution`: tuple (int, int)
             Resolution to try to request from the camera.
             Used in the gstreamer pipeline by forcing the appsink caps
             to this resolution. If the camera doesnt support the resolution,

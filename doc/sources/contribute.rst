@@ -252,7 +252,6 @@ Examples::
 Will result in:
 
     def my_new_feature(self, arg):
-        """
         New feature is awesome
 
         .. versionadded:: 1.1.4
@@ -261,7 +260,6 @@ Will result in:
 
         .. warning:: Please take a seat before trying this feature
 
-        """
 
 
 When referring to other parts of the api use:

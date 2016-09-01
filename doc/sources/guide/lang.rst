@@ -24,9 +24,9 @@ There are two ways to load Kv code into your application:
 - By name convention:
 
   Kivy looks for a Kv file with the same name as your App class in
-  lowercase,  minus "App" if it ends with 'App'. E.g::
+  lowercase,  minus "App" if it ends with 'App' e.g::
 
-    MyApp -> my.kv.
+    MyApp -> my.kv
 
   If this file defines a `Root Widget` it will be attached to the App's `root`
   attribute and used as the base of the application widget tree.
@@ -242,8 +242,11 @@ following:
             text: s_but.state
 
 An ``id`` is limited in scope to the rule it is declared in, so in the
-code above ``s_but`` can not be accessed outside the <MySecondWidget>
+code above ``s_but`` can not be accessed outside the ``<MySecondWidget>``
 rule.
+
+.. warning:: When assigning a value to ``id``, remember that the value isn't
+   a string. There are no quotes: good -> ``id: value``, bad -> ``id: 'value'``
 
 An ``id`` is a ``weakref`` to the widget and not the widget itself. As a
 consequence, storing the ``id`` is not sufficient to keep the widget from being

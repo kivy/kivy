@@ -103,17 +103,17 @@ class LabelBase(object):
         `max_lines`: int, defaults to 0 (unlimited)
             If set, this indicate how maximum line are allowed to render the
             text. Works only if a limitation on text_size is set.
-        `mipmap` : bool, defaults to False
+        `mipmap`: bool, defaults to False
             Create a mipmap for the texture
-        `strip` : bool, defaults to False
+        `strip`: bool, defaults to False
             Whether each row of text has its leading and trailing spaces
             stripped. If `halign` is `justify` it is implicitly True.
-        `strip_reflow` : bool, defaults to True
+        `strip_reflow`: bool, defaults to True
             Whether text that has been reflowed into a second line should
             be striped, even if `strip` is False. This is only in effect when
             `size_hint_x` is not None, because otherwise lines are never
             split.
-        `unicode_errors` : str, defaults to `'replace'`
+        `unicode_errors`: str, defaults to `'replace'`
             How to handle unicode decode errors. Can be `'strict'`, `'replace'`
             or `'ignore'`.
         `outline_width`: int, defaults to None

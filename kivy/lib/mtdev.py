@@ -160,7 +160,7 @@ class Device:
         '''Check state of kernel device
         
         :Parameters:
-            `ms` : int
+            `ms`: int
                 Number of milliseconds to wait for activity
 
         :Return:
@@ -198,7 +198,7 @@ class Device:
         '''Return True if the device has abs data.
 
         :Parameters:
-            `index` : int
+            `index`: int
                 One of const starting with a name ABS_MT_
         '''
         if self._fd == -1:
@@ -225,7 +225,7 @@ class Device:
         '''Return the abs data.
 
         :Parameters:
-            `index` : int
+            `index`: int
                 One of const starting with a name ABS_MT_
         '''
         if self._fd == -1:

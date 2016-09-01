@@ -93,9 +93,9 @@ class Sound(EventDispatcher):
     Use SoundLoader to load a sound.
 
     :Events:
-        `on_play` : None
+        `on_play`: None
             Fired when the sound is played.
-        `on_stop` : None
+        `on_stop`: None
             Fired when the sound is stopped.
     '''
 

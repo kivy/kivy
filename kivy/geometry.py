@@ -16,11 +16,11 @@ def circumcircle(a, b, c):
     See: http://en.wikipedia.org/wiki/Circumscribed_circle
 
     :Parameters:
-        `a` : iterable containing at least 2 values (for x and y)
+        `a`: iterable containing at least 2 values (for x and y)
             The 1st point of the triangle.
-        `b` : iterable containing at least 2 values (for x and y)
+        `b`: iterable containing at least 2 values (for x and y)
             The 2nd point of the triangle.
-        `c` : iterable containing at least 2 values (for x and y)
+        `c`: iterable containing at least 2 values (for x and y)
             The 3rd point of the triangle.
 
     :Return:
@@ -61,7 +61,7 @@ def minimum_bounding_circle(points):
     See: http://tinyurl.com/6e4n5yb
 
     :Parameters:
-        `points` : iterable
+        `points`: iterable
             A list of points (2 tuple with x,y coordinates)
 
     :Return:

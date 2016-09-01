@@ -242,17 +242,3 @@ anything. This is because widgets use size hinting by default.
 The code above doesn't handle the input from the user, does no validation or
 anything else. We will delve deeper into this and :class:`~kivy.widget.Widget`
 size and positioning in the coming sections.
-
-
-Platform specifics
-------------------
-
-Opening a Terminal application and setting the kivy environment variables.
-
-    On Windows, just double click the kivy.bat and a terminal will be opened
-    with all the required variables already set.
-
-    On nix* systems, open the terminal of your choice and if
-    kivy isn't installed globally::
-
-        export python=$PYTHONPATH:/path/to/kivy_installation

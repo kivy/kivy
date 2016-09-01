@@ -44,7 +44,7 @@ class CameraGi(CameraBase):
     '''Implementation of CameraBase using GStreamer
 
     :Parameters:
-        `video_src` : str, default is 'v4l2src'
+        `video_src`: str, default is 'v4l2src'
             Other tested options are: 'dc1394src' for firewire
             dc camera (e.g. firefly MV). Any gstreamer video source
             should potentially work.
