@@ -9,7 +9,7 @@ from kivy.core.video import VideoBase
 
 
 #have to set these before importing pyglet.gl
-#otherwise pyglet creates a seperate gl context and fails
+#otherwise pyglet creates a separate gl context and fails
 # on error checks because we use pygame window
 pyglet.options['shadow_window'] = False
 pyglet.options['debug_gl'] = False

@@ -646,7 +646,7 @@ class VKeyboard(Scatter):
             BorderImage(texture=texture, size=self.size,
                         border=self.background_border)
 
-        # XXX seperate drawing the keys and the fonts to avoid
+        # XXX separate drawing the keys and the fonts to avoid
         # XXX reloading the texture each time
 
         # first draw keys without the font

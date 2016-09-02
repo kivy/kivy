@@ -30,7 +30,7 @@ class InputPostprocDejitter(object):
         `jitter_distance`: float
             A float in range 0-1.
         `jitter_ignore_devices`: string
-            A comma-seperated list of device identifiers that
+            A comma-separated list of device identifiers that
             should not be processed by dejitter (because they're
             very precise already).
     '''

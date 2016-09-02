@@ -32,7 +32,7 @@ source.include_exts = py,png,jpg,kv,atlas,wav
 version = 1.0
 
 # (list) Application requirements
-# comma seperated e.g. requirements = sqlite3,kivy
+# comma separated e.g. requirements = sqlite3,kivy
 requirements = kivy
 
 # (str) Custom source folders for requirements
