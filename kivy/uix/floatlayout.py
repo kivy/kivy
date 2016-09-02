@@ -78,13 +78,12 @@ class FloatLayout(Layout):
         for c in self.children:
             # size
             shw, shh = c.size_hint
-            if shw and shh:
+            if shw is not None and shh is not None:
                 c.size = w * shw, h * shh
-            elif shw:
+            elif shw is not None:
                 c.width = w * shw
-            elif shh:
+            elif shh is not None:
                 c.height = h * shh
-
             # pos
             for key, value in c.pos_hint.items():
                 if key == 'x':
