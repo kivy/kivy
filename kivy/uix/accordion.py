@@ -107,7 +107,7 @@ class AccordionItem(FloatLayout):
     '''
 
     title = StringProperty('')
-    '''Title string of the item. The title might be used in conjuction with the
+    '''Title string of the item. The title might be used in conjunction with the
     `AccordionItemTitle` template. If you are using a custom template, you can
     use that property as a text entry, or not. By default, it's used for the
     title text. See title_template and the example below.
