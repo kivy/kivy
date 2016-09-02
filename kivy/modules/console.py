@@ -39,7 +39,7 @@ Keyboard navigation
 - "Left": select the previous following sibling
 - "Right": select the next following sibling
 
-Additionnal informations
+Additional informations
 ------------------------
 
 Some properties can be edited live. However, due to the delayed usage of
