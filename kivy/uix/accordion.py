@@ -173,7 +173,7 @@ class AccordionItem(FloatLayout):
     '''
 
     collapse_alpha = NumericProperty(1.)
-    '''Value between 0 and 1 to indicate how much the item is collasped (1) or
+    '''Value between 0 and 1 to indicate how much the item is collapsed (1) or
     whether it is selected (0). It's mostly used for animation.
 
     :attr:`collapse_alpha` is a :class:`~kivy.properties.NumericProperty` and
