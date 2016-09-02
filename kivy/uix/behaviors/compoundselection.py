@@ -53,7 +53,7 @@ to :meth:`select_with_touch` to pass on the touch events::
             """ Use the initialize method to bind to the keyboard to enable
             keyboard interaction e.g. using shift and control for multi-select.
             """
-            super(CompoundSelectionBehavior, self).__init__(**kwargs)
+            super(SelectableGrid, self).__init__(**kwargs)
             keyboard = Window.request_keyboard(None, self)
             keyboard.bind(on_key_down=self.select_with_key_down,
                           on_key_up=self.select_with_key_up)
