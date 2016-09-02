@@ -565,7 +565,7 @@ cdef class Transform(MatrixInstruction):
         self.transform( Matrix().translate(tx, ty, tz) )
 
     cpdef rotate(self, float angle, float ax, float ay, float az):
-        '''Rotate the transformation by matrix by *angle* degress around the
+        '''Rotate the transformation by matrix by *angle* degrees around the
         axis defined by the vector ax, ay, az.
         '''
         self.transform( Matrix().rotate(angle, ax, ay, az) )

@@ -1295,7 +1295,7 @@ cdef class RoundedRectangle(Rectangle):
 
         index = 1  # vertex index from 1 to count
         for corner in xrange(4):
-            # start angle for the corner. end is 90 degress lesser (clockwise)
+            # start angle for the corner. end is 90 degrees lesser (clockwise)
             angle = 180 - 90 * corner
 
             # coefficients to enable/disable multiplication by width/height
