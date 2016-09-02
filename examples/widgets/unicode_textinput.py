@@ -162,7 +162,7 @@ Hebrew:         השועל החום הזריז קופץ על הכלב הישן �
 Hindi:          तेज भूरे रंग की लोमड़ी आलसी बूढ़े कुत्ते के उपर से कूदती है ॥
 Hungarian:      A gyors barna róka átugorja a lusta vén kutya.
 Icelandic:      The fljótur Brown refur stökk yfir latur gamall hundur.
-Indonesian      Cepat rubah cokelat melompat atas anjing tua malas.
+Indonesian:     Cepat rubah cokelat melompat atas anjing tua malas.
 Irish:          An sionnach donn tapaidh jumps thar an madra leisciúil d\'aois.
 Italian:        The quick brown fox salta sul cane pigro vecchio.
 Japanese:       速い茶色のキツネは、のろまな古いイヌに飛びかかった。
