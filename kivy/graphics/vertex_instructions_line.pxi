@@ -59,7 +59,7 @@ cdef class Line(VertexInstruction):
         `dash_length`: int
             Length of a segment (if dashed), defaults to 1.
         `dash_offset`: int
-            Offset between the end of a segment and the begining of the
+            Offset between the end of a segment and the beginning of the
             next one, defaults to 0. Changing this makes it dashed.
         `width`: float
             Width of the line, defaults to 1.0.
