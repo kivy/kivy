@@ -129,7 +129,7 @@ typedef struct TESSalloc TESSalloc;
 // freelist to speed up the allocation. The bucket size should roughly match your
 // expected input data. For example if you process only hundreds of vertices,
 // a bucket size of 128 might be ok, where as when processing thousands of vertices
-// bucket size of 1024 might be approproate. The bucket size is a compromise between
+// bucket size of 1024 might be appropriate. The bucket size is a compromise between
 // how often to allocate memory from the system versus how much extra space the system
 // should allocate. Reasonable defaults are show in commects below, they will be used if
 // the bucket sizes are zero.
