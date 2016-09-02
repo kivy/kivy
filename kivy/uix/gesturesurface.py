@@ -359,7 +359,7 @@ class GestureSurface(FloatLayout):
     def on_touch_move(self, touch):
         '''When a touch moves, we add a point to the line on the canvas so the
         path is updated. We must also check if the new point collides with the
-        bouonding box of another gesture - if so, they should be merged.'''
+        bounding box of another gesture - if so, they should be merged.'''
         if touch.grab_current is not self:
             return
         if not self.collide_point(touch.y, touch.y):

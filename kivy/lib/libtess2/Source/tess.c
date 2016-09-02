@@ -181,7 +181,7 @@ extern int RandomSweep;
 /* The "feature merging" is not intended to be complete.  There are
 * special cases where edges are nearly parallel to the sweep line
 * which are not implemented.  The algorithm should still behave
-* robustly (ie. produce a reasonable tesselation) in the presence
+* robustly (ie. produce a reasonable tessellation) in the presence
 * of such edges, however it may miss features which could have been
 * merged.  We could minimize this effect by choosing the sweep line
 * direction to be something unusual (ie. not parallel to one of the

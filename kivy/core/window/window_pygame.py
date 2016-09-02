@@ -184,7 +184,7 @@ class WindowPygame(WindowBase):
         # set mouse visibility
         self._set_cursor_state(self.show_cursor)
 
-        # if we are on android platform, automaticly create hooks
+        # if we are on android platform, automatically create hooks
         if android:
             from kivy.support import install_android
             install_android()

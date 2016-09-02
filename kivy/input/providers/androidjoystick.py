@@ -101,7 +101,7 @@ class AndroidMotionEventProvider(MotionEventProvider):
                         continue
                     touch.move([x, y, pressure, radius])
                     dispatch_fn('update', touch)
-                # disapear
+                # disappear
                 elif not pressed and jid in touches:
                     touch = touches[jid]
                     touch.move([x, y, pressure, radius])

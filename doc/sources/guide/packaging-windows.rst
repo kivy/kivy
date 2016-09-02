@@ -73,7 +73,7 @@ to the examples as ``examples-path``. The touchtracer example is in
    package.
 
    To add the dependencies, before the first keyword argument in COLLECT add a
-   Tree object for every path of the dependecies. E.g.
+   Tree object for every path of the dependencies. E.g.
    ``*[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)]`` so it'll look
    something like::
 

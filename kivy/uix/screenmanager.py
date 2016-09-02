@@ -998,7 +998,7 @@ class ScreenManager(FloatLayout):
         return bool([s for s in self.screens if s.name == name])
 
     def __next__(self):
-        '''Py2K backwards compatability without six or other lib.
+        '''Py2K backwards compatibility without six or other lib.
         '''
         screens = self.screens
         if not screens:

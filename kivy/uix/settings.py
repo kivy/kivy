@@ -726,7 +726,7 @@ class InterfaceWithSpinner(BoxLayout):
     '''(internal) A reference to the sidebar menu widget.
 
     :attr:`menu` is an :class:`~kivy.properties.ObjectProperty` and
-    defauls to None.
+    defaults to None.
     '''
 
     content = ObjectProperty()

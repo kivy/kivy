@@ -85,7 +85,7 @@ if 'KIVY_DOC' not in environ:
     '''
 
     excludedimports = [modname_tkinter, '_tkinter', 'twisted']
-    '''List of excludedimports that should alwayys be excluded from
+    '''List of excludedimports that should always be excluded from
     pyinstaller.
     '''
 
@@ -259,7 +259,7 @@ def get_factory_modules():
 
 def add_dep_paths():
     '''Should be called by the hook. It adds the paths with the binary
-    dependecies to the system path so that pyinstaller can find the binaries
+    dependencies to the system path so that pyinstaller can find the binaries
     during its crawling stage.
     '''
     paths = []

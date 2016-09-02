@@ -562,7 +562,7 @@ class WindowBase(EventDispatcher):
 
     keyboard_height = AliasProperty(_get_kheight, None,
                                     bind=('_keyboard_changed',), cached=True)
-    '''Rerturns the height of the softkeyboard/IME on mobile platforms.
+    '''Returns the height of the softkeyboard/IME on mobile platforms.
     Will return 0 if not on mobile platform or if IME is not active.
 
     .. versionadded:: 1.9.0

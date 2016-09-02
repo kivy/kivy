@@ -29,7 +29,7 @@ mixer.set_num_channels(32)
 
 class SoundPygame(Sound):
 
-    # XXX we don't set __slots__ here, to automaticly add
+    # XXX we don't set __slots__ here, to automatically add
     # a dictionary. We need that to be able to use weakref for
     # SoundPygame object. Otherwise, it failed with:
     # TypeError: cannot create weak reference to 'SoundPygame' object

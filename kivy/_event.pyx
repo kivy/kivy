@@ -993,7 +993,7 @@ cdef class EventObservers:
         cdef BoundCallback callback = self.first_callback
 
         while callback is not None:
-            # try a quick comparision
+            # try a quick comparison
             if callback.lock == deleted or callback.largs is not None or callback.kwargs is not None:
                 callback = callback.next
                 continue

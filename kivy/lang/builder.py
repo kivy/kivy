@@ -702,7 +702,7 @@ class BuilderBase(object):
         instead of the widget itself, because Builder is using it in the
         widget destructor.
 
-        This effectively clearls all the KV rules associated with this widget.
+        This effectively clears all the KV rules associated with this widget.
         For example:
 
         .. code-block:: python

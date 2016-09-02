@@ -139,7 +139,7 @@ Texture atlas
 -------------
 
 A texture atlas is a single texture that contains many images.
-If you want to seperate the original texture into many single ones, you don't
+If you want to separate the original texture into many single ones, you don't
 need to. You can get a region of the original texture. That will return the
 original texture with custom texture coordinates::
 
@@ -534,11 +534,11 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False,
             Size of the texture.
         `colorfmt`: str, defaults to 'rgba'
             Color format of the texture. Can be 'rgba' or 'rgb',
-            'luminance' or 'luminance_alpha'. On desktop, additionnal values are
+            'luminance' or 'luminance_alpha'. On desktop, additional values are
             available: 'red', 'rg'.
         `icolorfmt`: str, defaults to the value of `colorfmt`
             Internal format storage of the texture. Can be 'rgba' or 'rgb',
-            'luminance' or 'luminance_alpha'. On desktop, additionnal values are
+            'luminance' or 'luminance_alpha'. On desktop, additional values are
             available: 'r8', 'rg8', 'rgba8'.
         `bufferfmt`: str, defaults to 'ubyte'
             Internal buffer format of the texture. Can be 'ubyte', 'ushort',

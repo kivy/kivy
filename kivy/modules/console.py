@@ -39,7 +39,7 @@ Keyboard navigation
 - "Left": select the previous following sibling
 - "Right": select the next following sibling
 
-Additionnal informations
+Additional informations
 ------------------------
 
 Some properties can be edited live. However, due to the delayed usage of
@@ -525,7 +525,7 @@ class ConsoleAddonWidgetPanel(ConsoleAddon):
         dtype = None
 
         if isinstance(prop, AliasProperty) or nested:
-            # trying to resolve type dynamicly
+            # trying to resolve type dynamically
             if type(value) in (str, str):
                 dtype = 'string'
             elif type(value) in (int, float):
@@ -772,7 +772,7 @@ class Console(RelativeLayout):
     #: floating window.
     mode = OptionProperty("docked", options=["docked", "floated"])
 
-    #: Current widget beeing selected
+    #: Current widget being selected
     widget = ObjectProperty(None, allownone=True)
 
     #: Indicate if the inspector inspection is enabled. If yes, the next

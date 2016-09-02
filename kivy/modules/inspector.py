@@ -586,7 +586,7 @@ class Inspector(FloatLayout):
         dtype = None
 
         if isinstance(prop, AliasProperty) or nested:
-            # trying to resolve type dynamicly
+            # trying to resolve type dynamically
             if type(value) in (str, str):
                 dtype = 'string'
             elif type(value) in (int, float):

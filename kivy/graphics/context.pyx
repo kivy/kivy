@@ -193,7 +193,7 @@ cdef class Context:
         self.flush()
 
         # First step, prevent double loading by setting everything to -1
-        # We do this because texture might be loaded in seperate texture at first,
+        # We do this because texture might be loaded in separate texture at first,
         # then merged from the cache cause of the same source
         Logger.debug('Context: Reload textures')
         cdef list l = self.l_texture[:]

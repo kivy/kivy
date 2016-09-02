@@ -8,7 +8,7 @@ To see a list of the available screenid's, just run::
 
     python main.py -m screen
 
-To simulate a medium-density screen such as the Motolora Droid 2::
+To simulate a medium-density screen such as the Motorola Droid 2::
 
     python main.py -m screen:droid2
 
@@ -142,7 +142,7 @@ def usage(device=None):
         print('{0:12} {1:<22} {2:<8} {3:<8} {4:<5} {5:<8}'.format(
             device, *info))
     print('\n')
-    print('Simulate a medium-density screen such as Motolora Droid 2:\n')
+    print('Simulate a medium-density screen such as Motorola Droid 2:\n')
     print('    python main.py -m screen:droid2\n')
     print('Simulate a high-density screen such as HTC One X, in portrait:\n')
     print('    python main.py -m screen:onex,portrait\n')
