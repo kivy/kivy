@@ -51,6 +51,19 @@ With Kivy, you can do::
         a = NumericProperty(1.0)
 
 
+Depth being tracked
+~~~~~~~~~~~~~~
+
+Only the "top level" of a nested object is being tracked. For example:: 
+
+    my_list_prop = ListProperty([1, {'hi': 0}])
+    # Changing a top level element will trigger all `on_my_list_prop` callbacks
+    my_list_prop[0] = 4  
+    # Changing a deeper element will be ignored by all `on_my_list_prop` callbacks
+    my_list_prop[1]['hi'] = 4 
+
+The same holds true for all container-type kivy properties.
+
 Value checking
 ~~~~~~~~~~~~~~
 
