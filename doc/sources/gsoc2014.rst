@@ -211,7 +211,7 @@ Enhancements to Toolchain
     - https://github.com/kivy/Buildozer
     - https://github.com/kivy/buildozer/tree/master/buildozer/targets
   Expected Outcome:
-    Running `buildoer deb debug` or `buildozer deb release` should result in a .deb
+    Running `buildozer deb debug` or `buildozer deb release` should result in a .deb
     package that can be directly be used to install on the target machine,
     or the equivalent for other package and binary formats.
 
