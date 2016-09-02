@@ -741,7 +741,7 @@ cdef class Scale(Transform):
                     "y, z, etc properties to get scale factor based on axis.")
                 return self._x
             else:
-                raise Exception("trying to access deprectaed property" +\
+                raise Exception("trying to access deprecated property" +\
                     " 'scale' on Scale instruction with non unifrom scaling!")
 
         def __set__(self, s):
