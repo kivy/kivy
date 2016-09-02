@@ -85,7 +85,7 @@ if 'KIVY_DOC' not in environ:
     '''
 
     excludedimports = [modname_tkinter, '_tkinter', 'twisted']
-    '''List of excludedimports that should alwayys be excluded from
+    '''List of excludedimports that should always be excluded from
     pyinstaller.
     '''
 
