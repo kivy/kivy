@@ -90,7 +90,7 @@
   "Regexp matching a line containing a kivy comment or delimiter.")
 
 (defconst kivy-directive-re "^\\(?:#:\\)\\(\\w+ +.*\\)"
-  "Regexp matching a line contatining a kivy directive.")
+  "Regexp matching a line containing a kivy directive.")
 
 (defconst kivy-tag-re "^ *id: *\\([^ \n]+\\)$"
   "Rexexp matching a kivy tag.")
