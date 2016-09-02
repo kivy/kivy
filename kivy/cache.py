@@ -198,7 +198,7 @@ class Cache(object):
                 # time to draw. and the timeout is not adapted to the current
                 # framerate. So, increase the timeout by two.
                 # ie: if the timeout is 1 sec, and framerate go to 0.7, newly
-                # object added will be automaticly trashed.
+                # object added will be automatically trashed.
                 timeout *= 2
                 Cache._categories[category]['timeout'] = timeout
                 continue
