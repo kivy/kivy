@@ -72,7 +72,7 @@ class GraphicUnitTest(_base):
         from kivy.core.window import Window
         Window.bind(on_flip=self.on_window_flip)
 
-        # ensure our window is correcly created
+        # ensure our window is correctly created
         Window.create_window()
         Window.canvas.clear()
 

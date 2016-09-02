@@ -30,7 +30,7 @@ class TextInputTest(unittest.TestCase):
         # Check if text is modified while recreating from lines and lines_flags
         self.assertEquals(instance.text, self.test_txt)
 
-        # Check if wordbreaking is correclty done
+        # Check if wordbreaking is correctly done
         # If so Secondvery... should start from the 7th line
         pos_S = self.test_txt.index('S')
         self.assertEquals(instance.get_cursor_from_index(pos_S), (0,6))
