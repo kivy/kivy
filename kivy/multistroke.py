@@ -60,7 +60,7 @@ various aspects of the recognition process ::
         print("A search is starting with %d tasks" % (pt.tasks))
 
     def search_stop(gdb, pt):
-        # This will call max() on the result dictonary, so it's best to store
+        # This will call max() on the result dictionary, so it's best to store
         # it instead of calling it 3 times consecutively
         best = pt.best
         print("Search ended (%s). Best is %s (score %f, distance %f)" % (
