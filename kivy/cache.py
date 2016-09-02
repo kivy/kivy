@@ -155,7 +155,7 @@ class Cache(object):
                 Identifier of the category.
             `key`: str (optional)
                 Unique identifier of the object in the store. If this
-                arguement is not supplied, the entire category will be purged.
+                argument is not supplied, the entire category will be purged.
         '''
         try:
             if key is not None:
