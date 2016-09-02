@@ -179,7 +179,7 @@ Persian:        روباه قهوه ای سریع روی سگ تنبل قدیم�
 Polish:         Szybki brązowy lis przeskoczył nad leniwym psem życia.
 Portugese:      A ligeira raposa marrom ataca o cão preguiçoso de idade.
 Romanian:       Rapidă maro vulpea sare peste cainele lenes vechi.
-Russioan:       Быстрый коричневый лис перепрыгивает через ленивый старый пес.
+Russian:       Быстрый коричневый лис перепрыгивает через ленивый старый пес.
 Serniam:        Брза смеђа лисица прескаче лењог пса старог.
 Slovak:         Rýchla hnedá líška skáče cez lenivého starého psa.
 Slovenian:      Kožuščku hudobnega nad leni starega psa.
