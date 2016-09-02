@@ -48,7 +48,7 @@ enum TessWindingRule
 };
 
 // The contents of the tessGetElements() depends on element type being passed to tessTesselate().
-// Tesselation result element types:
+// Tessellation result element types:
 // TESS_POLYGONS
 //   Each element in the element array is polygon defined as 'polySize' number of vertex indices.
 //   If a polygon has than 'polySize' vertices, the remaining indices are stored as TESS_UNDEF.
@@ -187,10 +187,10 @@ void tessAddContour( TESStesselator *tess, int size, const void* pointer, int st
 // tessTesselate() - tesselate contours.
 // Parameters:
 //   tess - pointer to tesselator object.
-//   windingRule - winding rules used for tesselation, must be one of TessWindingRule.
-//   elementType - defines the tesselation result element type, must be one of TessElementType.
+//   windingRule - winding rules used for tessellation, must be one of TessWindingRule.
+//   elementType - defines the tessellation result element type, must be one of TessElementType.
 //   polySize - defines maximum vertices per polygons if output is polygons.
-//   vertexSize - defines the number of coordinates in tesselation result vertex, must be 2 or 3.
+//   vertexSize - defines the number of coordinates in tessellation result vertex, must be 2 or 3.
 //   normal - defines the normal of the input contours, of null the normal is calculated automatically.
 // Returns:
 //   1 if succeed, 0 if failed.
