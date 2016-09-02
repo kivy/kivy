@@ -201,7 +201,7 @@ class Recognizer(EventDispatcher):
 
                     gdb = Recognizer()
 
-                    # Will match all names that start with a captial N
+                    # Will match all names that start with a capital N
                     # (ie Next, New, N, Nebraska etc, but not "n" or "next")
                     gdb.filter(name='N')
 
