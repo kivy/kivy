@@ -710,7 +710,7 @@ the animation changes, and the texture of BorderImage instruction is updated in
 the process.
 
 You can also just blit custom data to the texture. For details, look at the
-documention of :class:`~kivy.graphics.texture.Texture`.
+documentation of :class:`~kivy.graphics.texture.Texture`.
 
 Nesting Layouts
 ---------------

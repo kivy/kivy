@@ -1,4 +1,4 @@
-''' Create rst documentaiton of the examples directory.
+''' Create rst documentation of the examples directory.
 
 This uses screenshots in the screenshots_dir
 (currently doc/sources/images/examples) along with source code and files
