@@ -423,7 +423,7 @@ class Label(Widget):
     text_size = ListProperty([None, None])
     '''By default, the label is not constrained to any bounding box.
     You can set the size constraint of the label with this property.
-    The text will autoflow into the constrains. So although the font size
+    The text will autoflow into the constraints. So although the font size
     will not be reduced, the text will be arranged to fit into the box as best
     as possible, with any text still outside the box clipped.
 
