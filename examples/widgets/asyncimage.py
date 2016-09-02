@@ -3,7 +3,7 @@ Asynchronous image loading
 ==========================
 
 Test of the widget AsyncImage.
-We are just putting it in a CenteredAsyncImage for beeing able to center the
+We are just putting it in a CenteredAsyncImage for being able to center the
 image on screen without doing upscale like the original AsyncImage.
 '''
 

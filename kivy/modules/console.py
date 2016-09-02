@@ -772,7 +772,7 @@ class Console(RelativeLayout):
     #: floating window.
     mode = OptionProperty("docked", options=["docked", "floated"])
 
-    #: Current widget beeing selected
+    #: Current widget being selected
     widget = ObjectProperty(None, allownone=True)
 
     #: Indicate if the inspector inspection is enabled. If yes, the next
