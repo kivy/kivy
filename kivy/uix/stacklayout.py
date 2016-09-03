@@ -152,8 +152,6 @@ class StackLayout(Layout):
         padding_y = padding_top + padding_bottom
         spacing_x, spacing_y = self.spacing
 
-        lc = []
-
         # Determine which direction and in what order to place the widgets
         posattr = [0] * 2
         posdelta = [0] * 2
@@ -210,6 +208,7 @@ class StackLayout(Layout):
         vrev = (deltav < 0)
         firstchild = self.children[0]
         sizes = []
+        lc = []
         for c in reversed(self.children):
             if c.size_hint[outerattr]:
                 c.size[outerattr] = max(1,
