@@ -32,7 +32,7 @@ if PY3:  # fix error with py3's LooseVersion comparisons
     LooseVersion.__eq__ = ver_equal
 
 
-MIN_CYTHON_STRING = '0.20'
+MIN_CYTHON_STRING = '0.23'
 MIN_CYTHON_VERSION = LooseVersion(MIN_CYTHON_STRING)
 MAX_CYTHON_STRING = '0.23'
 MAX_CYTHON_VERSION = LooseVersion(MAX_CYTHON_STRING)
