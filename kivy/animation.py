@@ -101,9 +101,9 @@ class Animation(EventDispatcher):
             method from :class:`AnimationTransition`.
         `step` or `s`: float
             Step in milliseconds of the animation. Defaults to 0, which means
-            animation is updated every frame.
+            the animation is updated for every frame.
             
-            To draw the animation less often, set the step value to float.
+            To update the animation less often, set the step value to a float.
             For example, if you want to animate at 30 FPS, use s=1/30. 
 
     :Events:
@@ -117,6 +117,8 @@ class Animation(EventDispatcher):
     .. versionchanged:: 1.4.0
         Added s/step parameter.
 
+    .. versionchanged:: 1.9.2
+        The default value of the step parameter was changed from 1/60. to 0.
     '''
 
     _update_ev = None
