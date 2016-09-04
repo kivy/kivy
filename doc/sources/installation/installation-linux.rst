@@ -32,39 +32,12 @@ Ubuntu / Kubuntu / Xubuntu / Lubuntu (Saucy and above)
         $ sudo apt-get install python-kivy-examples
 
 
-Debian  (Jessie or newer)
--------------------------
+Debian
+------
 
-#. Add one of the PPAs to your sources.list in apt manually or via Synaptic
-
-    * Jessie/Testing:
-
-        :stable builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu trusty main
-        :daily builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu trusty main
-
-    * Sid/Unstable:
-
-        :stable builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu utopic main
-        :daily builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu utopic main
-
-        **Notice**: Wheezy is not supported - You'll need to upgrade to Jessie at least!
-
-#. Add the GPG key to your apt keyring by executing
-
-    as user:
-
-    ``sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6``
-
-    as root:
-
-    ``apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6``
-
-#. Refresh your package list and install **python-kivy** and/or **python3-kivy** and optionally the examples
-   found in **kivy-examples**
+Kivy is already included in Debian Jessie and above.  You should be
+able to install **python-kivy** and/or **python3-kivy** and optionally
+the examples found in **kivy-examples**
 
 
 Linux Mint
