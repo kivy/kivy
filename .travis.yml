@@ -42,7 +42,6 @@ install:
           pip install --upgrade cython pillow nose coveralls;
         fi;
         if [ "${RUN}" == "docs" ]; then
-          echo -e "sudo apt-get -y install texlive-full";
           pip install --upgrade sphinxcontrib-blockdiag sphinxcontrib-seqdiag sphinxcontrib-actdiag sphinxcontrib-nwdiag;
         fi;
     fi;
@@ -115,7 +114,6 @@ script:
         fi;
         if [ "${RUN}" == "docs" ]; then
           make html;
-          echo -e "make pdf";
         fi;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
@@ -153,8 +151,6 @@ after_success:
       chmod 600 ~/.ssh/id_rsa;
       echo -e "Host kivy.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
       rsync --delete --force -r -e ssh ./doc/build/html/ kivy@kivy.org:~/kivy.org/docs/api-trunk/;
-      echo -e "mv ./doc/build/latex/Kivy.pdf ./doc/build/latex/Kivy-latest.pdf";
-      echo -e "rsync -e ssh ./doc/build/latex/Kivy-latest.pdf kivy@kivy.org:~/kivy.org/docs/pdf/Kivy-latest.pdf";
     fi;
 
 notifications:
