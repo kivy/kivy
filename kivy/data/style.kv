@@ -472,6 +472,9 @@
             source: 'atlas://data/images/defaulttheme/switch-background{}'.format('_disabled' if self.disabled else '')
             size: sp(83), sp(32)
             pos: int(self.center_x - sp(41)), int(self.center_y - sp(16))
+    canvas.after:
+        Color:
+            rgb: 1, 1, 1
         Rectangle:
             source: 'atlas://data/images/defaulttheme/switch-button{}'.format('_disabled' if self.disabled else '')
             size: sp(43), sp(32)
