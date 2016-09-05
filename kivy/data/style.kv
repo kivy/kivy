@@ -461,24 +461,46 @@
             on_release: root.cancel()
 
 
-
+# =============================================================================
 # Switch widget
+# =============================================================================
+
+<SwitchLabel@Label>:
+    markup: True
+    font_size: 13
+    size: self.texture_size
+
 <Switch>:
     active_norm_pos: max(0., min(1., (int(self.active) + self.touch_distance / sp(41))))
     canvas:
-        Color:
-            rgb: 1, 1, 1
         Rectangle:
-            source: 'atlas://data/images/defaulttheme/switch-background{}'.format('_disabled' if self.disabled else '')
+            source:
+                self.background_disabled if self.disabled else self.background_normal
             size: sp(83), sp(32)
             pos: int(self.center_x - sp(41)), int(self.center_y - sp(16))
+
     canvas.after:
-        Color:
-            rgb: 1, 1, 1
         Rectangle:
-            source: 'atlas://data/images/defaulttheme/switch-button{}'.format('_disabled' if self.disabled else '')
+            source:
+                self.button_disabled if self.disabled else self.button_normal
             size: sp(43), sp(32)
-            pos: int(self.center_x - sp(41) + self.active_norm_pos * sp(41)), int(self.center_y - sp(16))
+            pos:
+                [int(self.center_x - sp(41) + self.active_norm_pos * sp(41)),
+                int(self.center_y - sp(16))]
+
+    SwitchLabel:
+        color: root.color
+        text: root.values[0]
+        pos:
+            [root.center_x - sp(23.25) - self.size[0] / 3.0,
+            root.center_y - sp(8.5)]
+
+    SwitchLabel:
+        color: root.color
+        text: root.values[1]
+        pos:
+            [root.center_x + sp(23.25) - 2 * self.size[0] / 3.0,
+            root.center_y - sp(8.5)]
 
 
 # ModalView widget

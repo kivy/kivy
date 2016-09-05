@@ -39,7 +39,8 @@ swipe over the widget's bounding box, it will work.
 
 from kivy.uix.widget import Widget
 from kivy.animation import Animation
-from kivy.properties import BooleanProperty, ObjectProperty, NumericProperty
+from kivy.properties import BooleanProperty, ObjectProperty,\
+    NumericProperty, ListProperty, StringProperty
 
 
 class Switch(Widget):
@@ -50,6 +51,65 @@ class Switch(Widget):
 
     :attr:`active` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
+    '''
+
+    color = ListProperty([0.75, 0.75, 0.75, 1])
+    '''Text color, in the format (r, g, b, a).
+    :attr:`color` is a :class:`~kivy.properties.ListProperty` and defaults to
+    [1, 1, 1, 1].
+    '''
+
+    background_normal = StringProperty(
+        'atlas://data/images/defaulttheme/switch-background')
+    '''Background image of the Switch used for the default graphical
+    representation when the button is not disabled.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`background_normal` is a :class:`~kivy.properties.StringProperty`
+    and defaults to 'atlas://data/images/defaulttheme/switch-background'.
+    '''
+
+    background_disabled = StringProperty(
+        'atlas://data/images/defaulttheme/switch-background_disabled')
+    '''Background image of the Switch used for the default graphical
+    representation when the button is disabled.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`background_disabled` is a
+    :class:`~kivy.properties.StringProperty` and defaults to
+    'atlas://data/images/defaulttheme/switch-background_disabled'.
+    '''
+
+    button_normal = StringProperty(
+        'atlas://data/images/defaulttheme/switch-button')
+    '''An image used for the default graphical
+    representation of the Switch button itself when the switch isn't disabled.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`button_normal` is a :class:`~kivy.properties.StringProperty`
+    and defaults to 'atlas://data/images/defaulttheme/switch-button'.
+    '''
+
+    button_disabled = StringProperty(
+        'atlas://data/images/defaulttheme/switch-button_disabled')
+    '''An image used for the default graphical
+    representation of the Switch button itself when the switch is disabled.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`background_disabled` is a
+    :class:`~kivy.properties.StringProperty` and defaults to
+    'atlas://data/images/defaulttheme/switch-button_disabled'.
+    '''
+
+    values = ListProperty(['[b]ON[/b]', '[b]OFF[/b]'])
+    '''Text values shown on the both sides of the widget.
+
+    :attr:`values` is a :class:`~kivy.properties.ListProperty` and
+    defaults to '['[b]ON[/b]', '[b]OFF[/b]']'.
     '''
 
     touch_control = ObjectProperty(None, allownone=True)
@@ -107,5 +167,37 @@ class Switch(Widget):
         return True
 
 if __name__ == '__main__':
+    from kivy.lang import Builder
     from kivy.base import runTouchApp
-    runTouchApp(Switch())
+    from kivy.uix.gridlayout import GridLayout
+    Builder.load_string('''
+<SwitchShow>:
+    rows: 3
+    Switch:
+        disabled: False
+        active: False
+    Switch:
+        disabled: False
+        active: True
+    Switch:
+        disabled: True
+        active: False
+    Switch:
+        disabled: True
+        active: True
+    Switch:
+        values: ['[b]TRUE[/b]', '[b]FALSE[/b]']
+    Switch:
+        values: ['[i]ON[/i]', '[i]OFF[/i]']
+    Switch:
+        values: ['[b]ENABLE[/b]', '[b]DISABLE[/b]']
+    Switch:
+        values: ['[i]ENABLE[/i]', '[i]DISABLE[/i]']
+    Switch:
+        values: ['ENABLE', 'DISABLE']
+        color: [0.74, 0.56, 0.24, 0.78]
+    ''')
+
+    class SwitchShow(GridLayout):
+        pass
+    runTouchApp(SwitchShow())
