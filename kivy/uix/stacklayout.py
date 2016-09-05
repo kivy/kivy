@@ -248,7 +248,7 @@ class StackLayout(Layout):
             # causing unexpected children reordering when parent resizes.
             # e.g. if size is 101 and children size_hint_x is 1./5
             # 5 children would not fit in one line because 101*(1./5) > 101/5
-            if (availsize + 1e-12) >= 0 or not lc:
+            if (availsize + 1e-10) >= 0 or not lc:
                 # even if there's no space, we always add one widget to a row
                 lc.append(c)
                 sizes = testsizes
