@@ -45,7 +45,7 @@ def getoutput(cmd, env=None):
                          stderr=subprocess.PIPE, env=env)
     p.wait()
     if p.returncode:  # if not returncode == 0
-        print('WARNING: A problem occured while running {0} (code {1})\n'
+        print('WARNING: A problem occurred while running {0} (code {1})\n'
               .format(cmd, p.returncode))
         stderr_content = p.stderr.read()
         if stderr_content:

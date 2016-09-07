@@ -288,7 +288,7 @@ cdef class StripMesh(VertexInstruction):
 
         if vcount == 0 or icount < 3:
             return 0
-        if self.icount + icount > 65533:  # (optim of) self.icount + icount - 2 > 65535
+        if self.icount + icount > 65533:  # (optimization of) self.icount + icount - 2 > 65535
             return 0
 
         if self.icount > 0:
@@ -875,7 +875,7 @@ cdef class BorderImage(Rectangle):
         w = self.w
         h = self.h
 
-        # width and heigth of texture in pixels, and tex coord space
+        # width and height of texture in pixels, and tex coord space
         cdef float tw, th, tcw, tch
         cdef float *tc = self._tex_coords
         cdef float tc0, tc1, tc2, tc7
@@ -968,7 +968,7 @@ cdef class BorderImage(Rectangle):
             15, 14,  7,     7,  8, 15,  # top middle
             10, 15,  8,     8,  9, 10,  # top left
             11, 12, 15,    15, 10, 11,  # center left
-            12, 13, 14,    14, 15, 12]  # center middel
+            12, 13, 14,    14, 15, 12]  # center middle
 
         self.batch.set_data(<vertex_t *>vertices, 16, indices, 54)
 
@@ -1034,7 +1034,7 @@ cdef class Ellipse(Rectangle):
         cdef int i, angle_dir
         cdef float angle_start, angle_end, angle_range
         cdef float x, y, angle, rx, ry, ttx, tty, tx, ty, tw, th
-        cdef float cx, cy, tangetial_factor, radial_factor, fx, fy
+        cdef float cx, cy, tangential_factor, radial_factor, fx, fy
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
         cdef int count = self._segments
@@ -1083,7 +1083,7 @@ cdef class Ellipse(Rectangle):
 
         # super fast ellipse drawing
         # credit goes to: http://slabode.exofire.net/circle_draw.shtml
-        tangetial_factor = tan(angle_range)
+        tangential_factor = tan(angle_range)
         radial_factor = cos(angle_range)
 
         # Calculate the coordinates for a circle with radius 0.5 about
@@ -1107,8 +1107,8 @@ cdef class Ellipse(Rectangle):
 
             fx = -y
             fy = x
-            x += fx * tangetial_factor
-            y += fy * tangetial_factor
+            x += fx * tangential_factor
+            y += fy * tangential_factor
             x *= radial_factor
             y *= radial_factor
 

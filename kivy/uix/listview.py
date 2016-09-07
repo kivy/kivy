@@ -188,7 +188,7 @@ The :class:`~kivy.adapters.listadapter.ListAdapter` is the base class for
 :class:`~kivy.adapters.dictadapter.DictAdapter`, so we can start with it.
 
 Refer to the :class:`~kivy.adapters.listadapter.ListAdapter` docs for details,
-but here is a synopses of its arguments:
+but here is a synopsis of its arguments:
 
 * :attr:`~kivy.adapters.adapter.Adapter.data`:
   strings, class instances, dicts, etc. that form the base data
@@ -514,7 +514,7 @@ In another example, we could set the selection_mode of a listview to
 'multiple', and load it with a list of answers to a multiple-choice question.
 The question could have several correct answers. A color swatch view could be
 bound to selection change, as above, so that it turns green as soon as the
-correct choices are made, unless the number of touches exeeds a limit, then the
+correct choices are made, unless the number of touches exceeds a limit, then the
 answer session could be terminated. See the examples that feature thumbnail
 images to get some ideas, e.g. list_cascade_dict.py.
 
@@ -650,7 +650,7 @@ class CompositeListItem(SelectableView, BoxLayout):
     '''
 
     background_color = ListProperty([1, 1, 1, 1])
-    '''ListItem sublasses Button, which has background_color, but
+    '''ListItem subclasses Button, which has background_color, but
     for a composite list item, we must add this property.
 
     :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and

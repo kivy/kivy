@@ -286,7 +286,7 @@ Will result in:
     :doc:`/api-kivy.core.window`
 
 `:doc:` and `:mod:` are essentially the same, except for an anchor in the url
-which makes `:doc:` prefered for the cleaner url.
+which makes `:doc:` preferred for the cleaner url.
 
 To build your documentation, run::
 

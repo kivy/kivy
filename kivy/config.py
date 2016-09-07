@@ -727,7 +727,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault('postproc', 'retain_distance', '50')
             Config.setdefault('postproc', 'retain_time', '0')
 
-            # default configuration for keyboard repeatition
+            # default configuration for keyboard repetition
             Config.setdefault('widgets', 'keyboard_layout', 'qwerty')
             Config.setdefault('widgets', 'keyboard_type', '')
             Config.setdefault('widgets', 'list_friction', '10')

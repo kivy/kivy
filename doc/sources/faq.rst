@@ -72,7 +72,7 @@ There have been reports of crashes on Adreno 200/205 based devices.
 Apps otherwise run fine but crash when interacted with/through the screen.
 
 These reports also mentioned the issue being resolved when moving to an ICS or
-higher rom.
+higher ROM.
 
 Is it possible to have a kiosk app on android 3.0 ?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -252,7 +252,7 @@ class Screen(RelativeLayout):
 
     transition_progress = NumericProperty(0.)
     '''Value that represents the completion of the current transition, if any
-    is occuring.
+    is occurring.
 
     If a transition is in progress, whatever the mode, the value will change
     from 0 to 1. If you want to know if it's an entering or leaving animation,
@@ -303,7 +303,7 @@ class TransitionBase(EventDispatcher):
         `on_progress`: Transition object, progression float
             Fired during the animation of the transition.
         `on_complete`: Transition object
-            Fired when the transition is fininshed.
+            Fired when the transition is finished.
     '''
 
     screen_out = ObjectProperty()

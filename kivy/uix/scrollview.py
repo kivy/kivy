@@ -379,7 +379,7 @@ class ScrollView(StencilView):
     '''
 
     effect_cls = ObjectProperty(DampedScrollEffect, allownone=True)
-    '''Class effect to instanciate for X and Y axis.
+    '''Class effect to instantiate for X and Y axis.
 
     .. versionadded:: 1.7.0
 
@@ -1056,7 +1056,7 @@ class ScrollView(StencilView):
         if self.do_scroll_y and self.effect_y:
             self.effect_y.cancel()
         # XXX the next line was in the condition. But this stop
-        # the possibily to "drag" an object out of the scrollview in the
+        # the possibility to "drag" an object out of the scrollview in the
         # non-used direction: if you have an horizontal scrollview, a
         # vertical gesture will not "stop" the scroll view to look for an
         # horizontal gesture, until the timeout is done.

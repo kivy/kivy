@@ -4,7 +4,7 @@ RecycleView Layouts
 
 .. versionadded:: 1.9.2
 
-The Layouts handle the presentaiton of views for the
+The Layouts handle the presentation of views for the
 :class:`~kivy.uix.recycleview.RecycleView`.
 
 .. warning::

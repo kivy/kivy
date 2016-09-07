@@ -298,7 +298,7 @@ class LoaderBase(object):
         if proto == 'smb':
             try:
                 # note: it's important to load SMBHandler every time
-                # otherwise the data is occasionaly not loaded
+                # otherwise the data is occasionally not loaded
                 from smb.SMBHandler import SMBHandler
             except ImportError:
                 Logger.warning(

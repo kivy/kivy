@@ -318,7 +318,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     if ('KIVY_UNITTEST' not in environ and
             'KIVY_PACKAGING' not in environ and
             'KIVY_NO_ARGS' not in environ):
-        # save sys argv, otherwize, gstreamer use it and display help..
+        # save sys argv, otherwise, gstreamer use it and display help..
         sys_argv = sys.argv
         sys.argv = sys.argv[:1]
 

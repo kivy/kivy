@@ -789,7 +789,7 @@ class Label(Widget):
     The references marked "hello" have a bounding box at (x1, y1, x2, y2).
     These co-ordinates are relative to the top left corner of the text, with
     the y value increasing downwards. You can define multiple refs with the same
-    name: each occurence will be added as another (x1, y1, x2, y2) tuple to
+    name: each occurrence will be added as another (x1, y1, x2, y2) tuple to
     this list.
 
     The current Label implementation uses these references if they exist in
@@ -816,7 +816,7 @@ class Label(Widget):
     Position of all the ``[anchor=xxx]`` markup in the text.
     These co-ordinates are relative to the top left corner of the text, with
     the y value increasing downwards. Anchors names should be unique and only
-    the first occurence of any duplicate anchors will be recorded.
+    the first occurrence of any duplicate anchors will be recorded.
 
 
     You can place anchors in your markup text as follows::

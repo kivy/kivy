@@ -149,7 +149,7 @@ def createBundle():
 
 
 def appendToBundle(bundle, oscAddress, dataArray):
-    '''create OSC mesage and append it to a given bundle
+    '''create OSC message and append it to a given bundle
     '''
     bundle.append(createBinaryMsg(oscAddress, dataArray),  b'b')
 
