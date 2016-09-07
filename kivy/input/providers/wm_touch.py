@@ -56,7 +56,7 @@ else:
             self.touches = {}
             self.uid = 0
 
-            # get window handle, and register to recive WM_TOUCH messages
+            # get window handle, and register to receive WM_TOUCH messages
             self.hwnd = windll.user32.GetActiveWindow()
             windll.user32.RegisterTouchWindow(self.hwnd, 1)
 

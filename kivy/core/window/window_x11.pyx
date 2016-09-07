@@ -188,7 +188,7 @@ class WindowX11(WindowBase):
 
         # Sets CWOverrideRedirect in x11.
         # This can lead to unknown effects depending on your
-        # system-configuration as the WindowManager will loos the control
+        # system-configuration as the WindowManager will loose the control
         # about this window. (In most cases the window then just gets placed
         # above all other windows without any decoration)
         if 'KIVY_WINDOW_X11_CWOR' in environ:

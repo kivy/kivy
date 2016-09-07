@@ -1001,7 +1001,7 @@ cdef class BoundedNumericProperty(Property):
                 number = BoundedNumericProperty(0, min=-5, max=5)
 
             widget = MyWidget()
-            # change the minmium to -10
+            # change the minimum to -10
             widget.property('number').set_min(widget, -10)
             # or disable the minimum check
             widget.property('number').set_min(widget, None)
@@ -1610,7 +1610,7 @@ cdef class ConfigParserProperty(Property):
         values in the parser might be overwritten by objects it's bound to.
         So in the example above, the TextInput might be initially empty,
         and if `number: number.text` is evaluated before
-        `text: str(info.number)`, the config value will be overwitten with the
+        `text: str(info.number)`, the config value will be overwritten with the
         (empty) text value.
 
     :Parameters:
@@ -1726,7 +1726,7 @@ cdef class ConfigParserProperty(Property):
             self.last_value = self.config.get(self.section, self.key)
             self.config.add_callback(self._edit_setting, self.section, self.key)
             self.config.write()
-            #self.dispatch(obj)  # we need to dispatch, so not overwitten
+            #self.dispatch(obj)  # we need to dispatch, so not overwritten
         elif self.config_name:
             # ConfigParser will set_config when one named config is created
             Clock.schedule_once(partial(ConfigParser._register_named_property,

@@ -568,7 +568,7 @@ class WindowBase(EventDispatcher):
     .. versionadded:: 1.9.0
 
     :attr:`keyboard_height` is a read-only
-    :class:`~kivy.propertries.AliasProperty` and defaults to 0.
+    :class:`~kivy.properties.AliasProperty` and defaults to 0.
     '''
 
     keyboard_anim_args = {'t': 'in_out_quart', 'd': .5}
@@ -588,7 +588,7 @@ class WindowBase(EventDispatcher):
     .. versionadded:: 1.9.2
 
     :attr:`keyboard_padding` is a
-    :class:`~kivy.propertries.NumericProperty` and defaults to 0.
+    :class:`~kivy.properties.NumericProperty` and defaults to 0.
     '''
 
     def _set_system_size(self, size):
@@ -1395,8 +1395,8 @@ class WindowBase(EventDispatcher):
                            "semantics.")
 
     def on_textinput(self, text):
-        '''Event called whem text: i.e. alpha numeric non control keys or set
-        of keys is entered. As it is not gaurenteed whether we get one
+        '''Event called when text: i.e. alpha numeric non control keys or set
+        of keys is entered. As it is not guaranteed whether we get one
         character or multiple ones, this event supports handling multiple
         characters.
 

@@ -1218,7 +1218,7 @@ class TextInput(FocusBehavior, Widget):
                                              lineflags, len_lines)
         self.scroll_x = scrl_x
         self.scroll_y = scrl_y
-        # handle undo and redo for delete selecttion
+        # handle undo and redo for delete selection
         self._set_unredo_delsel(a, b, v[a:b], from_undo)
         self.cancel_selection()
 
@@ -2545,7 +2545,7 @@ class TextInput(FocusBehavior, Widget):
         sx = self.scroll_x
         offset = self.cursor_offset()
 
-        # if offset is outside the current bounds, reajust
+        # if offset is outside the current bounds, readjust
         if offset > viewport_width + sx:
             self.scroll_x = offset - viewport_width
         if offset < sx:

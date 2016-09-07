@@ -642,7 +642,7 @@ class VideoPlayer(GridLayout):
             window.add_widget(self)
 
             # ensure the video widget is in 0, 0, and the size will be
-            # reajusted
+            # readjusted
             self.pos = (0, 0)
             self.size = (100, 100)
             self.pos_hint = {}

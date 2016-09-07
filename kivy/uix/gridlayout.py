@@ -360,13 +360,13 @@ class GridLayout(Layout):
             cols = self._cols
             cols_sh = self._cols_sh
             cols_weigth = sum([x for x in cols_sh if x])
-            strech_w = max(0, selfw - self.minimum_width)
+            stretch_w = max(0, selfw - self.minimum_width)
             for index, col_stretch in enumerate(cols_sh):
-                # if the col don't have strech information, nothing to do
+                # if the col don't have stretch information, nothing to do
                 if not col_stretch:
                     continue
                 # add to the min width whatever remains from size_hint
-                cols[index] += strech_w * col_stretch / cols_weigth
+                cols[index] += stretch_w * col_stretch / cols_weigth
 
         # same algo for rows
         if self.row_force_default:
@@ -378,14 +378,14 @@ class GridLayout(Layout):
             rows = self._rows
             rows_sh = self._rows_sh
             rows_weigth = sum([x for x in rows_sh if x])
-            strech_h = max(0, selfh - self.minimum_height)
+            stretch_h = max(0, selfh - self.minimum_height)
             for index in range(len(rows)):
-                # if the row don't have strech information, nothing to do
+                # if the row don't have stretch information, nothing to do
                 row_stretch = rows_sh[index]
                 if not row_stretch:
                     continue
                 # add to the min height whatever remains from size_hint
-                rows[index] += strech_h * row_stretch / rows_weigth
+                rows[index] += stretch_h * row_stretch / rows_weigth
 
     def _iterate_layout(self, count):
         selfx = self.x

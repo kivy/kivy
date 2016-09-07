@@ -16,7 +16,7 @@ to an **alternate location** and not to site-packages, please see :ref:`alternat
     Python 3.5 is currently not supported on Windows due to issues with MinGW and
     Python 3.5. Support is not expected for some time. See
     `this issue <http://bugs.python.org/issue4709>`_ for details. If required,
-    3.5 MSVC builds should be posssible, but have not been attempted, please enquire
+    3.5 MSVC builds should be possible, but have not been attempted, please enquire
     or let us know if you've compiled with MSVC.
 
 To use Kivy you need `Python <https://www.python.org/downloads/windows/>`_.
@@ -135,7 +135,7 @@ The default command line on Windows is
 quickest way to open it is to press `Win+R` on your keyboard, type ``cmd``
 in the window that opens, and then press enter.
 
-Alternate linux style command shells that we reccomend is
+Alternate linux style command shells that we recommend is
 `Git for Windows <https://git-for-windows.github.io/>`_ which offers a bash
 command line as `well <http://rogerdudler.github.io/git-guide/>`_ as
 `git <https://try.github.io>`_. Note, CMD can still be used even if bash is

@@ -563,7 +563,7 @@ def glClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha):
     '''
     cgl.glClearColor(red, green, blue, alpha)
 
-# We don't use this syumbol yet, but if we activate it, android platform crash
+# We don't use this symbol yet, but if we activate it, android platform crash
 # >_<
 #def glClearDepthf(GLclampf depth):
 #    '''See: `glClearDepthf() on Kronos website

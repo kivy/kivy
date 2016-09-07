@@ -190,7 +190,7 @@ multiple ways. E.g::
     Clock.unschedule(event2)
 
     # unschedule using Clock.unschedule with the callback
-    # NOT RECCOMENDED
+    # NOT RECOMMENDED
     Clock.unschedule(my_callback)
 
 The best way to unschedule a callback is with :meth:`ClockEvent.cancel`.
@@ -500,7 +500,7 @@ class ClockBaseBehavior(object):
 
     @property
     def frames(self):
-        '''Number of internal frames (not necesseraly drawed) from the start of
+        '''Number of internal frames (not necessarily drawed) from the start of
         the clock.
 
         .. versionadded:: 1.8.0
@@ -785,7 +785,7 @@ def mainthread(func):
 
         @mainthread
         def callback(self, *args):
-            print('The request succedded!',
+            print('The request succeeded!',
                   'This callback is called in the main thread.')
 
 

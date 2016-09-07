@@ -165,7 +165,7 @@ cdef class Tesselator:
         :param enum element_type: The result type, you can generate the
             polygons with TYPE_POLYGONS, or the contours with
             TYPE_BOUNDARY_CONTOURS. Defaults to TYPE_POLYGONS.
-        :return: 1 if the tessellation happenned, 0 otherwise.
+        :return: 1 if the tessellation happened, 0 otherwise.
         :rtype: int
 
         """

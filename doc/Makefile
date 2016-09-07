@@ -12,7 +12,7 @@ PAPER		=
 
 fasthtml: SPHINXOPTS += -j4
 
-# platform indepnt path separator
+# platform independent path separator
 # only system calls need to use $(P), b/c on win system calls have issues with /
 ifdef ComSpec
 	PATHSEP2=\\
@@ -121,7 +121,7 @@ pdf: latex
 ifneq ("$(wildcard build$(P)latex$(P)Kivy.pdf)","")
 	@echo
 	@echo "Build finished; the PDF file(s) are in build/latex."
-	@echo "You can savely ignore the errors which might appeared above!"
+	@echo "You can safely ignore the errors which might appeared above!"
 else
 	@echo
 	@echo "Build failed; there is no PDF file(s) in build/latex."

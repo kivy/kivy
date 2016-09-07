@@ -692,7 +692,7 @@ cdef class Scale(Transform):
 
     .. deprecated:: 1.6.0
         Deprecated single scale property in favor of x, y, z, xyz axis
-        independant scaled factors.
+        independent scaled factors.
     '''
     def __init__(self, *args, **kwargs):
         cdef double x, y, z
@@ -742,7 +742,7 @@ cdef class Scale(Transform):
                 return self._x
             else:
                 raise Exception("trying to access deprecated property" +\
-                    " 'scale' on Scale instruction with non unifrom scaling!")
+                    " 'scale' on Scale instruction with non uniform scaling!")
 
         def __set__(self, s):
             Logger.warning("scale property is deprecated, use xyz, x, " +\

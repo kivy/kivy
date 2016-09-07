@@ -257,7 +257,7 @@ class CompoundSelectionBehavior(object):
 
         :Parameters:
             `node`
-                The node that recieved the touch. Can be None for a scroll
+                The node that received the touch. Can be None for a scroll
                 type touch.
             `touch`
                 Optionally, the touch. Defaults to None.
@@ -292,7 +292,7 @@ class CompoundSelectionBehavior(object):
                 self.clear_selection()
                 self.select_node(node)
         elif range_select:
-            # keep anchor only if not multislect (ctrl-type selection)
+            # keep anchor only if not multiselect (ctrl-type selection)
             self._select_range(multiselect, not multiselect, node, 0)
         else:   # it's not selected at this point
             if not multiselect:

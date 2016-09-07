@@ -368,7 +368,7 @@ can also iterate over these widgets and access them dictionary style::
 .. Note::
 
     Although the `self.ids` method is very concise, it is generally regarded as
-    'best practise' to use the ObjectProperty. This creates a direct reference,
+    'best practice' to use the ObjectProperty. This creates a direct reference,
     provides faster access and is more explicit.
 
 Dynamic Classes

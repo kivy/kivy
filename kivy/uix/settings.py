@@ -149,7 +149,7 @@ that displays a json settings panel with some way to switch between
 panels. An instance will be automatically created by :class:`Settings`.
 
 Interface widgets may be anything you like, but *must* have a method
-add_panel that recieves newly created json settings panels for the
+add_panel that receives newly created json settings panels for the
 interface to display. See the documentation for
 :class:`InterfaceWithSidebar` for more information. They may
 optionally dispatch an on_close event, for instance if a close button

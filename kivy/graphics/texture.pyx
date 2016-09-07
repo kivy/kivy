@@ -13,7 +13,7 @@ hardware,
 some OpenGL capabilities might not be available (BGRA support, NPOT support,
 etc.)
 
-You cannot instanciate this class yourself. You must use the function
+You cannot instantiate this class yourself. You must use the function
 :meth:`Texture.create` to create a new texture::
 
     texture = Texture.create(size=(640, 480))

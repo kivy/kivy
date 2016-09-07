@@ -17,7 +17,7 @@ vertical list, where folders can be collapsed and expanded.
 .. image:: images/filechooser_list.png
 
 The :class:`FileChooserIconView` presents icons and text from left to right,
-wrappping them as required.
+wrapping them as required.
 
 .. image:: images/filechooser_icon.png
 
@@ -176,7 +176,7 @@ class FileSystemLocal(FileSystemAbstract):
             try:
                 return GetFileAttributesExW(fn)[0] & FILE_ATTRIBUTE_HIDDEN
             except error:
-                # This error can occured when a file is already accessed by
+                # This error can occurred when a file is already accessed by
                 # someone else. So don't return to True, because we have lot
                 # of chances to not being able to do anything with it.
                 Logger.exception('unable to access to <%s>' % fn)

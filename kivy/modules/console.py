@@ -340,7 +340,7 @@ class ConsoleAddon(object):
         self.init()
 
     def init(self):
-        """Method called when the addon is instanciated by the Console
+        """Method called when the addon is instantiated by the Console
         """
         pass
 
@@ -760,7 +760,7 @@ class Console(RelativeLayout):
 
     This widget is created by create_console(), when the module is loaded.
     During that time, you can add addons on the console to extend the
-    functionnalities, or add your own application stats / debugging module.
+    functionalities, or add your own application stats / debugging module.
     """
 
     #: Array of addons that will be created at Console creation
@@ -794,7 +794,7 @@ class Console(RelativeLayout):
             PopMatrix()
         Clock.schedule_interval(self.update_widget_graphics, 0)
 
-        # instanciate all addons
+        # instantiate all addons
         self._toolbar = {"left": [], "panels": [], "right": []}
         self._addons = []
         self._panel = None
@@ -842,7 +842,7 @@ class Console(RelativeLayout):
         - `cb_deactivate` is a callable that will be called when the panel is
           deactivated or when the console will hide.
 
-        - `cb_refresh` is an optionnal callable that is called if the user
+        - `cb_refresh` is an optional callable that is called if the user
           click again on the button for display the panel
 
         When activated, it's up to the panel to display a content in the

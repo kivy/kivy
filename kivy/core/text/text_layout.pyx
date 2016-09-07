@@ -358,7 +358,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
         ... False)
         >>> w, h, clipped
         (46, 90, False)
-        # now add text from bottom up, and constrain witdh only be 100
+        # now add text from bottom up, and constrain width only be 100
         >>> w, h, clipped = layout_text('\\nyay, more text\\n', lines, (w, h),
         ... (100, None), l.options, l.get_cached_extents(), False, True)
         >>> w, h, clipped

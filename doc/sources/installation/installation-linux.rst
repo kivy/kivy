@@ -137,7 +137,7 @@ Gentoo
 
    `cairo: Standard flag, let kivy use cairo graphical libraries.`
    `camera: Install libraries needed to support camera.`
-   `doc: Standard flag, will make you build the documentation localy.`
+   `doc: Standard flag, will make you build the documentation locally.`
    `examples: Standard flag, will give you kivy examples programs.`
    `garden: Install garden tool to manage user maintained widgets.`
    `gstreamer: Standard flag, kivy will be able to use audio/video streaming libraries.`

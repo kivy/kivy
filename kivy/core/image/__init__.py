@@ -315,7 +315,7 @@ class ImageLoader(object):
 
         Returns an Image with a list of type ImageData stored in Image._data
         '''
-        # read zip in menory for faster access
+        # read zip in memory for faster access
         _file = BytesIO(open(filename, 'rb').read())
         # read all images inside the zip
         z = zipfile.ZipFile(_file)
@@ -801,7 +801,7 @@ class Image(EventDispatcher):
 
         The filename should have the '.png' extension because the texture data
         read from the GPU is in the RGBA format. '.jpg' might work but has not
-        been heavilly tested so some providers might break when using it.
+        been heavily tested so some providers might break when using it.
         Any other extensions are not officially supported.
 
         The flipped parameter flips the saved image vertically, and
@@ -883,7 +883,7 @@ class Image(EventDispatcher):
         '''
         data = self.image._data[0]
 
-        # can't use this fonction without ImageData
+        # can't use this function without ImageData
         if data.data is None:
             raise EOFError('Image data is missing, make sure that image is'
                            'loaded with keep_data=True keyword.')

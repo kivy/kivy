@@ -23,9 +23,9 @@ and selection system and which work with views such as a
 :class:`~kivy.uix.listview.ListView`. A boolean *is_selected*
 property a requirement.
 
-The default operation of the selection system is to not propogate selection in
+The default operation of the selection system is to not propagate selection in
 views such as ListView to the underlying data: selection is by default a
-view-only operation. However, in some cases, it is useful to propogate
+view-only operation. However, in some cases, it is useful to propagate
 selection to the actual data items.
 
 You may, of course, build your own Python data model system as the backend for

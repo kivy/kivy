@@ -9,7 +9,7 @@ Create a package for IOS
 
     From the 4th march 2015, the toolchain for iOS has been rewritten. The
     previous instructions don't work anymore (using `build_all.sh`). We
-    strongly recommend you upgrade to the latest toochain which contains many
+    strongly recommend you upgrade to the latest toolchain which contains many
     improvements, including support for i386, x86_64, armv7, arm64 and the
     iOS emulators. If you must use the older version, try the old-toolchain
     tag in git.
@@ -112,7 +112,7 @@ You can customize the build in many ways:
 #. Set the icon and launch images in XCode. Note that XCode requires that you
    specify these assests per device or/and iOS version.
 
-#. Specify your app orientation and enviroment via the 'main.m' file. Please
+#. Specify your app orientation and environment via the 'main.m' file. Please
    refer to the `kivy-ios <https://github.com/kivy/kivy-ios>`_ page for more
    information.
 

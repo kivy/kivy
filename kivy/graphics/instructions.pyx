@@ -701,7 +701,7 @@ cdef class Canvas(CanvasBase):
 
 # Active Canvas and getActiveCanvas function is used
 # by instructions, so they know which canvas to add
-# tehmselves to
+# themselves to
 cdef CanvasBase ACTIVE_CANVAS = None
 
 cdef CanvasBase getActiveCanvas():
@@ -709,7 +709,7 @@ cdef CanvasBase getActiveCanvas():
     return ACTIVE_CANVAS
 
 # Canvas Stack, for internal use so canvas can be bound
-# inside other canvas, and restroed when other canvas is done
+# inside other canvas, and restored when other canvas is done
 cdef list CANVAS_STACK = list()
 
 cdef pushActiveCanvas(CanvasBase c):

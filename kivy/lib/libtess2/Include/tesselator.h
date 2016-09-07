@@ -67,7 +67,7 @@ enum TessWindingRule
 //
 // TESS_CONNECTED_POLYGONS
 //   Each element in the element array is polygon defined as 'polySize' number of vertex indices,
-//   followed by 'polySize' indices to neighour polygons, that is each element is 'polySize' * 2 indices.
+//   followed by 'polySize' indices to neighbour polygons, that is each element is 'polySize' * 2 indices.
 //   If a polygon has than 'polySize' vertices, the remaining indices are stored as TESS_UNDEF.
 //   If a polygon edge is a boundary, that is, not connected to another polygon, the neighbour index is TESS_UNDEF.
 //   Example, flood fill based on seed polygon:

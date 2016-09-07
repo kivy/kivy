@@ -137,11 +137,11 @@ Trigger events
 Sometimes you may want to schedule a function to be called only once for the next 
 frame, preventing duplicate calls. You might be tempted to achieve that like so::
 
-    # First, shedule once.
+    # First, schedule once.
     event = Clock.schedule_once(my_callback, 0)
     
     # Then, in another place you will have to unschedule first
-    # to avoid duplicate call. Then you can shedule again.
+    # to avoid duplicate call. Then you can schedule again.
     Clock.unschedule(event)
     event = Clock.schedule_once(my_callback, 0)
 
@@ -310,7 +310,7 @@ propagate any further.
 
 Finally, if the touch falls outside our widget, we call the original event
 using `super(...)` and return the result. This allows the touch event propagation
-to continue as it would normally have occured.
+to continue as it would normally have occurred.
 
 Finally on line 11::
 

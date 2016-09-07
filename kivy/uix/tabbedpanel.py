@@ -625,7 +625,7 @@ class TabbedPanel(GridLayout):
             raise TabbedPanelException('`default_tab_class` should be\
                 subclassed from `TabbedPanelHeader`')
 
-        # no need to instanciate if class is TabbedPanelHeader
+        # no need to instantiate if class is TabbedPanelHeader
         if cls != TabbedPanelHeader:
             self._current_tab = self._original_tab = self._default_tab = cls()
 

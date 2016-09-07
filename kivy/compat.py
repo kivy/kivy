@@ -13,7 +13,7 @@ try:
 except ImportError:
     import Queue as queue
 
-#: True if Python 2 intepreter is used
+#: True if Python 2 interpreter is used
 PY2 = sys.version_info[0] == 2
 '''True, if the version of python running is 2.x. '''
 

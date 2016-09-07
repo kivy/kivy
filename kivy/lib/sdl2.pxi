@@ -681,7 +681,7 @@ cdef extern from "SDL_ttf.h":
     cdef char *  TTF_FontFaceFamilyName( TTF_Font *font)
     cdef char *  TTF_FontFaceStyleName( TTF_Font *font)
 
-    ## Check wether a glyph is provided by the font or not */
+    ## Check whether a glyph is provided by the font or not */
     cdef int  TTF_GlyphIsProvided( TTF_Font *font, Uint16 ch)
 
     ## Get the metrics (dimensions) of a glyph

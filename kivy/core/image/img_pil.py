@@ -21,7 +21,7 @@ class ImageLoaderPIL(ImageLoaderBase):
     Support for GIF animation added.
 
     Gif animation has a lot of issues(transparency/color depths... etc).
-    In order to keep it simple, what is implimented here is what is
+    In order to keep it simple, what is implemented here is what is
     natively supported by the PIL library.
 
     As a general rule, try to use gifs that have no transparency.

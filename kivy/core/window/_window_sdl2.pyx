@@ -119,7 +119,7 @@ cdef class _WindowSDL2Storage:
             self.win = SDL_CreateWindow(NULL, x, y, width, height,
                                         self.win_flags)
             if not self.win:
-                # if an error occured, create window without multisampling:
+                # if an error occurred, create window without multisampling:
                 SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0)
                 SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0)
                 self.win = SDL_CreateWindow(NULL, x, y, width, height,
