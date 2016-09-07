@@ -59,6 +59,9 @@ configuration. You should edit it appropriately with your app name
 etc. You can set variables to control most or all of the parameters
 passed to python-for-android.
 
+Install buildozer's `dependencies
+<https://buildozer.readthedocs.io/en/latest/installation.html#targeting-android>`_.
+
 Finally, plug in your android device and run::
 
     buildozer android debug deploy run
