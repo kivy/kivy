@@ -116,6 +116,9 @@ class ToggleButtonBehavior(ButtonBehavior):
         self._release_group(self)
         self.state = 'normal' if self.state == 'down' else 'down'
 
+    def on_release_outside(self):
+        pass
+
     def _do_release(self, *args):
         pass
 

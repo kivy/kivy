@@ -116,6 +116,7 @@ class ButtonBehavior(object):
     def __init__(self, **kwargs):
         self.register_event_type('on_press')
         self.register_event_type('on_release')
+        self.register_event_type('on_release_outside')
         if 'min_state_time' not in kwargs:
             self.min_state_time = float(Config.get('graphics', 'min_state_time'))
         super(ButtonBehavior, self).__init__(**kwargs)
@@ -158,6 +159,9 @@ class ButtonBehavior(object):
             return True
         return self in touch.ud
 
+    def on_release_outside(self):
+        self.state = 'normal'
+
     def on_touch_up(self, touch):
         if touch.grab_current is not self:
             return super(ButtonBehavior, self).on_touch_up(touch)
@@ -165,9 +169,11 @@ class ButtonBehavior(object):
         touch.ungrab(self)
         self.last_touch = touch
 
-        if (not self.always_release
-                and not self.collide_point(*touch.pos)):
-            self.state = 'normal'
+        if(
+            not self.always_release
+            and not self.collide_point(*touch.pos)
+        ):
+            self.dispatch('on_release_outside')
             return
 
         touchtime = time() - self.__touch_time
