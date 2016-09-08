@@ -330,10 +330,13 @@ class ScatterBehavior(object):
         x, y = touch.pos
 
         if self.do_dispatch_after_children:
-            # We yet need to define how dispatch/collide options interact :-/
-            # if not self.do_collide_after_children:
+            # XXX We yet need to define how dispatch/collide options
+            # interact :-/ if not self.do_collide_after_children:
             if not self.collide_point(x, y):
-                touch.ud[self._get_scatter_behavior_uid('scatter_avoid')] = True
+                suid = self._get_scatter_behavior_uid('scatter_avoid')
+                touch.ud[suid] = True
+                if self.do_collide_after_children and self._do_dispatch(touch):
+                    return True
                 return False
 
             touch.grab(self)
@@ -404,8 +407,10 @@ class ScatterBehavior(object):
             ud = touch.ud.get(uid, {})
 
             if self._get_scatter_behavior_uid('scatter_avoid') in touch.ud:
-                # We yet need to define how dispatch/collide options interact :-/
-                # if not self.do_collide_after_children:
+                # XXX We yet need to define how dispatch/collide options
+                # interact :-/ if not self.do_collide_after_children:
+                if self.do_collide_after_children and self._do_dispatch(touch):
+                    return True
                 return False
             elif ud.get('_mode') == 'dispatch':
                 touch.push()
@@ -566,8 +571,8 @@ class ScatterBehavior(object):
             ud = touch.ud.get(uid)
 
             if self._get_scatter_behavior_uid('scatter_avoid') in touch.ud:
-                # We yet need to define how dispatch/collide options interact :-/
-                # if not self.do_collide_after_children:
+                # XXX We yet need to define how dispatch/collide options
+                # interact :-/ if not self.do_collide_after_children:
                 #     return False
                 self._do_dispatch(touch)
                 Clock.schedule_once(partial(self._do_touch_up, touch), .1)
@@ -581,7 +586,10 @@ class ScatterBehavior(object):
                     touch.pop()
                     return ret
 
-                if ud.get('_mode') == 'unknown' and self in [x() for x in touch.grab_list]:
+                if (
+                    ud.get('_mode') == 'unknown' and
+                    self in [x() for x in touch.grab_list]
+                ):
                     self._do_dispatch(touch)
                     Clock.schedule_once(partial(self._do_touch_up, touch), .1)
 
