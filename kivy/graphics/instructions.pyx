@@ -63,7 +63,7 @@ cdef class Instruction(ObjectWithUid):
         return 0
 
     IF DEBUG:
-        cpdef int flag_update(self, int do_parent=1, list _instrs=None) except -1:
+        cpdef flag_update(self, int do_parent=1, list _instrs=None):
             cdef list instrs = _instrs if _instrs else []
             if _instrs and self in _instrs:
                 raise RuntimeError('Encountered instruction group render loop: %r in %r' % (self, _instrs,))
@@ -72,7 +72,7 @@ cdef class Instruction(ObjectWithUid):
                 self.parent.flag_update(do_parent=1, _instrs=instrs)
             self.flags |= GI_NEEDS_UPDATE
     ELSE:
-        cpdef void flag_update(self, int do_parent=1):
+        cpdef flag_update(self, int do_parent=1):
             if do_parent == 1 and self.parent is not None:
                 self.parent.flag_update()
             self.flags |= GI_NEEDS_UPDATE
