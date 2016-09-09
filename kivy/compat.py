@@ -1,9 +1,12 @@
 '''
 Compatibility module for Python 2.7 and > 3.3
 =============================================
+
+This module provides a set of utility types and functions for optimization and
+to aid in writing Python 2/3 compatibile code.
 '''
 
-__all__ = ('PY2', 'string_types', 'queue', 'iterkeys',
+__all__ = ('PY2', 'clock', 'string_types', 'queue', 'iterkeys',
            'itervalues', 'iteritems')
 
 import sys
@@ -13,15 +16,25 @@ try:
 except ImportError:
     import Queue as queue
 
-#: True if Python 2 interpreter is used
 PY2 = sys.version_info[0] == 2
-'''True, if the version of python running is 2.x. '''
+'''True if this version of python is 2.x.'''
 
 clock = None
-'''A clock with the highest available resolution. '''
+'''A clock with the highest available resolution on your current Operating
+System.'''
 
-#: String types that can be used for checking if a object is a string
 string_types = None
+'''A utility type for detecting string in a Python 2/3 friendly way. For
+example:
+
+.. code-block:: python
+
+    if isinstance(s, string_types):
+        print("It's a string or unicode type")
+    else:
+        print("It's something else.")
+'''
+
 text_type = None
 if PY2:
     string_types = basestring
