@@ -219,6 +219,15 @@ class CompoundSelectionBehavior(object):
     (e.g. how the children property is reversed compared to how it's displayed).
     '''
 
+    text_entry_timeout = NumericProperty(1.)
+    '''When typing characters in rapid sucession (i.e. the time difference since
+    the last character is less than :attr:`text_entry_timeout`), the keys get
+    concatenated and the combined text is passed as the key argument of
+    :meth:`goto_node`.
+    
+    .. versionadded:: 1.9.2
+    '''
+
     _anchor = None  # the last anchor node selected (e.g. shift relative node)
     # the idx may be out of sync
     _anchor_idx = 0  # cache indexs in case list hasn't changed
@@ -333,7 +342,7 @@ class CompoundSelectionBehavior(object):
             keys.append(scancode[1])
         else:
             if scancode[1] in self._printable:
-                if time() - self._last_key_time <= 1.:
+                if time() - self._last_key_time <= self.text_entry_timeout:
                     self._word_filter += scancode[1]
                 else:
                     self._word_filter = scancode[1]
