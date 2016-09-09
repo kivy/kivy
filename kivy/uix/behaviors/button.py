@@ -167,7 +167,7 @@ class ButtonBehavior(object):
 
         if (not self.always_release
                 and not self.collide_point(*touch.pos)):
-            self.state = 'normal'
+            self._do_release()
             return
 
         touchtime = time() - self.__touch_time
