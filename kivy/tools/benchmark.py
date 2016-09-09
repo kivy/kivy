@@ -2,6 +2,12 @@
 Benchmark
 =========
 
+This script performs and displays the results of a set of benchmarks. These
+provide a set of metrics mainly aimed at gauging the OpenGL performance of your
+system.
+
+It also provides more specs regarding your graphics card setup together with
+more comprehensive system information.
 '''
 
 from __future__ import print_function
