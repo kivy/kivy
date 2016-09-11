@@ -251,7 +251,7 @@ class StripLayout(GridLayout):
     '''Background image to be used for the Strip layout of the TabbedPanel.
 
     :attr:`background_image` is a :class:`~kivy.properties.StringProperty` and
-     defaults to a transparent image.
+    defaults to a transparent image.
     '''
 
 

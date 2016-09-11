@@ -2506,10 +2506,10 @@ class TextInput(FocusBehavior, Widget):
     '''If True provides auto suggestions on top of keyboard.
     This will only work if :attr:`input_type` is set to `text`.
 
-     .. versionadded:: 1.8.0
+    .. versionadded:: 1.8.0
 
-     :attr:`keyboard_suggestions` is a
-     :class:`~kivy.properties.BooleanProperty` defaults to True.
+    :attr:`keyboard_suggestions` is a :class:`~kivy.properties.BooleanProperty`
+    defaults to True.
     '''
 
     cursor_blink = BooleanProperty(False)
