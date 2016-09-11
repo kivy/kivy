@@ -45,9 +45,9 @@ You can check the `examples/widgets/boxlayout_poshint.py` for a live example.
     fixed-size widgets. For example, if you have a layout that is 800px
     wide, and add three buttons like this::
 
-    btn1 = Button(text='Hello', size=(200, 100), size_hint=(None, None))
-    btn2 = Button(text='Kivy', size_hint=(.5, 1))
-    btn3 = Button(text='World', size_hint=(.5, 1))
+        btn1 = Button(text='Hello', size=(200, 100), size_hint=(None, None))
+        btn2 = Button(text='Kivy', size_hint=(.5, 1))
+        btn3 = Button(text='World', size_hint=(.5, 1))
 
     The first button will be 200px wide as specified, the second and third
     will be 300px each, e.g. (800-200) * 0.5
