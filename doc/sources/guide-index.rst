@@ -19,3 +19,4 @@ Programming Guide
     guide/bestpractices
     guide/advancedgraphics
     guide/packaging
+    guide/licensing
