@@ -276,7 +276,7 @@ If you want to control the absolute |size| of a |Widget|, you can set
 
 |pos_hint| is a dict, which defaults to empty. As for |size_hint|, layouts honor
 |pos_hint| differently, but generally you can add values to any of the |pos|
-attributes (|x|, |y|, |left|, |top|, |center_x|, |center_y|) to have the
+attributes (|x|, |y|, |right|, |top|, |center_x|, |center_y|) to have the
 |Widget| positioned relative to its |parent|.
 
 Let's experiment with the following code in kivycatalog to understand |pos_hint|
