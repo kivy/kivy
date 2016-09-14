@@ -38,7 +38,8 @@ code.
 
 You'll probably need to check image and audio libraries manually (mostly
 begin with ``lib``). The ``LICENSE*`` files that belong to them should be
-included by PyInstaller.
+included by PyInstaller, but are not by python-for-android and you need
+to find them.
 
 Windows (PyInstaller)
 ---------------------
@@ -47,7 +48,7 @@ Windows (PyInstaller)
 .. _win32: https://pypi.python.org/pypi/pypiwin32
 
 To access Windows API, Kivy uses |win32|_ package. This package is released
-under [PSF license](https://opensource.org/licenses/Python-2.0).
+under `PSF license <https://opensource.org/licenses/Python-2.0>`_.
 
 VS redistributables
 ~~~~~~~~~~~~~~~~~~~
@@ -93,11 +94,44 @@ Missing.
 Android
 -------
 
-Missing.
+As APK is just an archive of files, you can extract files from it and (as in
+Windows part) check all the files.
 
-(pygame license, etc)
+``APK/assets/private.mp3/private.mp3/`` contains all the included files. Most
+of them are related to Kivy, Python or your source, but those that aren't need
+checking.
+
+Known packages:
+
+* `pygame <https://bitbucket.org/pygame/pygame/src/a9c9f5bf17445dfc8f7a85b9c5222dbcb3ece3bb/LGPL>`_
+  (if old_toolchain is used)
+* `sqlite3 <https://github.com/ghaering/pysqlite/blob/master/LICENSE>`_
+* `six <https://bitbucket.org/gutworth/six/src/ca4580a5a648fc75abc568907e81abc80b05d58c/LICENSE>`_
+
+There are included libraries either Kivy directly or through Pygame/SDL2 uses,
+those are located in ``APK/lib/armeabi/``. Most of them are related to
+dependencies or are produced from python-for-android and are part of its source
+(and licensing).
+
+* libapplication.so
 
 RPi
 ---
 
 Missing.
+
+Avoiding binaries
+-----------------
+
+.. |cons| replace:: consequences
+.. _cons: http://programmers.stackexchange.com/a/234295
+
+There is a way how to avoid this licensing process with avoiding creating
+a distribution with third-party stuff completely. With Python you can create
+a module, which is only your code with ``__main__.py`` + ``setup.py`` that only
+lists required deps. This way you can still distribute your app - your *code* -
+and don't need to care about other licenses. The combination of your code and
+the dependencies is then a "usage", not a "distribution". The responsibility of
+satisfying licenses then targets your user, who needs to assemble the
+environment to even run the application. If you care about your users, slow
+down a little and read more about |cons|_.
