@@ -15,7 +15,7 @@ require including a copyright notice somewhere in your app (or more). Before
 distributing any of the binaries, please **check all the created files** that
 don't belong to your source (.dll, .pyd, .so, ...) and include approperiate
 copyright notices if required by the license the files belong to. This way you
-should satisfy licensing requirements of the Kivy deps.
+may satisfy licensing requirements of the Kivy deps.
 
 Dependencies
 ------------
@@ -47,8 +47,8 @@ Windows (PyInstaller)
 .. |win32| replace:: pypiwin32
 .. _win32: https://pypi.python.org/pypi/pypiwin32
 
-To access Windows API, Kivy uses |win32|_ package. This package is released
-under `PSF license <https://opensource.org/licenses/Python-2.0>`_.
+To access some Windows API features, Kivy uses |win32|_ package. This package
+is released under `PSF license <https://opensource.org/licenses/Python-2.0>`_.
 
 VS redistributables
 ~~~~~~~~~~~~~~~~~~~
@@ -60,11 +60,11 @@ VS redistributables
 .. |redist| replace:: List of redistributables
 .. _redist: https://msdn.microsoft.com/en-us/library/8kche8ah(v=vs.90).aspx
 
-Python compiled with Visual Studio (official) has some files from Microsoft
-and you are required to protect them if you distribute them. You can do that
-by including names of the files and a reworded version of |py2crt|_ or
-|py3crt|_ depending which interpreter you use, so that it targets the end-user
-of your application.
+Python compiled with Visual Studio (official) has some files from Microsoft and
+you are allowed to redistribute them under specific conditions listed in the
+CRTlicense. Including the names of the files and a reworded version of
+|py2crt|_ or |py3crt|_ depending which interpreter you use, so that it targets
+the end-user of your application may satisfy such requirements.
 
 * |redist|_
 
@@ -126,12 +126,13 @@ Avoiding binaries
 .. |cons| replace:: consequences
 .. _cons: http://programmers.stackexchange.com/a/234295
 
-There is a way how to avoid this licensing process with avoiding creating
+There might be a way how to avoid this licensing process with avoiding creating
 a distribution with third-party stuff completely. With Python you can create
 a module, which is only your code with ``__main__.py`` + ``setup.py`` that only
 lists required deps. This way you can still distribute your app - your *code* -
-and don't need to care about other licenses. The combination of your code and
-the dependencies is then a "usage", not a "distribution". The responsibility of
-satisfying licenses then targets your user, who needs to assemble the
-environment to even run the application. If you care about your users, slow
-down a little and read more about |cons|_.
+and you might not need to care about other licenses. The combination of your
+code and the dependencies could be specified as a "usage" rather than
+a "distribution". The responsibility of satisfying licenses, however, most
+likely transfers to your user, who needs to assemble the environment to even
+run the module. If you care about your users, you might want to slow down
+a little and read more about |cons|_.
