@@ -36,10 +36,9 @@ code.
   (if used)
 * image & audio libraries(e.g. |mixer|_)
 
-You'll probably need to check image and audio libraries manually (mostly
-begin with ``lib``). The ``LICENSE*`` files that belong to them should be
-included by PyInstaller, but are not by python-for-android and you need
-to find them.
+You'll probably need to check image and audio libraries manually (mostly begin
+with ``lib``). The ``LICENSE*`` files that belong to them should be included by
+PyInstaller, but are not by python-for-android and you need to find them.
 
 Windows (PyInstaller)
 ---------------------
@@ -79,7 +78,22 @@ Other libraries
 Linux
 -----
 
-Missing.
+.. |badsit| replace:: situation bad for your user
+.. _badsit: avoid_
+
+Linux has many distributions which means there's no correct guide for all of
+the distributions. Under this part belongs RPi too. However, it can be
+simplified into two ways of how to create a package (also with PyInstaller):
+with or without including binaries.
+
+If the binaries are included, you should check every file (e.g. `.so`) that's
+not your source and find a license it belongs to. According to that license
+you'll probably need to put an attribution into your application or even more.
+
+If the binaries are excluded (which allows packaging your app as e.g. `.deb`
+package), there's a |badsit|_. It's up to you to decide whether you satisfy
+conditions of other licenses and for example including copyright attribution
+into your app or not.
 
 Mac
 ---
@@ -115,10 +129,7 @@ dependencies or are produced from python-for-android and are part of its source
 
 * libapplication.so
 
-RPi
----
-
-Missing.
+.. _avoid:
 
 Avoiding binaries
 -----------------
@@ -129,10 +140,12 @@ Avoiding binaries
 There might be a way how to avoid this licensing process with avoiding creating
 a distribution with third-party stuff completely. With Python you can create
 a module, which is only your code with ``__main__.py`` + ``setup.py`` that only
-lists required deps. This way you can still distribute your app - your *code* -
-and you might not need to care about other licenses. The combination of your
-code and the dependencies could be specified as a "usage" rather than
-a "distribution". The responsibility of satisfying licenses, however, most
-likely transfers to your user, who needs to assemble the environment to even
-run the module. If you care about your users, you might want to slow down
-a little and read more about |cons|_.
+lists required deps.
+
+This way you can still distribute your app - your *code* - and you might not
+need to care about other licenses. The combination of your code and the
+dependencies could be specified as a "usage" rather than a "distribution". The
+responsibility of satisfying licenses, however, most likely transfers to your
+user, who needs to assemble the environment to even run the module. If you care
+about your users, you might want to slow down a little and read more about
+|cons|_.
