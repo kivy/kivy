@@ -26,10 +26,12 @@ only pasting a copyright notice to your app and not pretending you wrote the
 code.
 
 .. |mixer| replace:: SDL_mixer has them
-.. _mixer: http://hg.libsdl.org/SDL_mixer/file/efa81a285f22/VisualC/external/lib/x86
+.. _mixer: http://hg.libsdl.org/SDL_mixer/file/default/VisualC/external/lib/x86
+.. |dcutil| replace:: docutils
+.. _dcutil: https://sf.net/p/docutils/code/HEAD/tree/trunk/docutils/COPYING.txt
 
-* `docutils <https://sourceforge.net/p/docutils/code/HEAD/tree/trunk/docutils/COPYING.txt>`_
-* `pygments <https://bitbucket.org/birkenfeld/pygments-main/src/a042025b350cd9c9461f7385d9ba0f13cdb01bb9/LICENSE>`_
+* |dcutil|_
+* `pygments <https://bitbucket.org/birkenfeld/pygments-main/src/tip/LICENSE>`_
 * `sdl2 <https://www.libsdl.org/license.php>`_
 * `glew <http://glew.sourceforge.net/glew.txt>`_
 * `gstreamer <https://github.com/GStreamer/gstreamer/blob/master/COPYING>`_
@@ -95,16 +97,6 @@ package), there's a |badsit|_. It's up to you to decide whether you satisfy
 conditions of other licenses and for example including copyright attribution
 into your app or not.
 
-Mac
----
-
-Missing.
-
-iOS
----
-
-Missing.
-
 Android
 -------
 
@@ -117,10 +109,10 @@ checking.
 
 Known packages:
 
-* `pygame <https://bitbucket.org/pygame/pygame/src/a9c9f5bf17445dfc8f7a85b9c5222dbcb3ece3bb/LGPL>`_
+* `pygame <https://bitbucket.org/pygame/pygame/src/tip/LGPL>`_
   (if old_toolchain is used)
 * `sqlite3 <https://github.com/ghaering/pysqlite/blob/master/LICENSE>`_
-* `six <https://bitbucket.org/gutworth/six/src/ca4580a5a648fc75abc568907e81abc80b05d58c/LICENSE>`_
+* `six <https://bitbucket.org/gutworth/six/src/tip/LICENSE>`_
 
 There are included libraries either Kivy directly or through Pygame/SDL2 uses,
 those are located in ``APK/lib/armeabi/``. Most of them are related to
@@ -128,6 +120,16 @@ dependencies or are produced from python-for-android and are part of its source
 (and licensing).
 
 * libapplication.so
+
+Mac
+---
+
+Missing.
+
+iOS
+---
+
+Missing.
 
 .. _avoid:
 
