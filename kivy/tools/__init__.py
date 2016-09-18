@@ -1,12 +1,13 @@
-'''
+"""
 Tools
 =====
 
 The tools module provides various utility scripts and examples. These include
-scripts for:
+scripts such as:
 
-* :mod:`~kivy.tools.kviewer`: for viewing kv files with automatic updating
-* benchmarking
+* :file:`kviewer.py`: for viewing kv files with automatic updating
+* :file:`benchmark.py': provides detailed OpenGL hardware information as well
+  as some benchmarks measuring kivy specific performance
 * debug reports
 * texture compression
 * building kv extensions
@@ -18,5 +19,4 @@ scripts for:
 
 This help documenmt is a work-in-progress and currently under construction.
 
-'''
-
+"""
