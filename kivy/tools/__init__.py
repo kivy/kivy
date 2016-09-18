@@ -2,8 +2,12 @@
 Tools
 =====
 
-The tools module provides various utility scripts and examples. These include
-scripts such as:
+The tools module provides various utility scripts, modules and examples.
+
+Scripts
+-------
+
+Some useful scripts include:
 
 * :file:`kviewer.py`: for viewing kv files with automatic updating
 * :file:`benchmark.py`: provides detailed OpenGL hardware information as well
@@ -16,10 +20,22 @@ scripts such as:
   store and package formats
 * :file:`extensions/make-kivyext.py`: a helper script for building kivy
   extensions
-* text editor highlighting
+
+Modules
+-------
+
+Tool modules provide various resources for:
+
 * :mod:`~kivy.tools.packaging`
 * pep8 checking
-* theming
+* text editor highlighting
+
+Other
+-----
+
+Other miscellaneous resources include
+
+* theming kivy
 * travis continuous integration
 
 This help document is a work-in-progress and currently under construction.
