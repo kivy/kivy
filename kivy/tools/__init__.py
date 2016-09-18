@@ -20,6 +20,8 @@ Some useful scripts include:
   store and package formats
 * :file:`extensions/make-kivyext.py`: a helper script for building kivy
   extensions
+* :file:`gles_compat/subset_gles.py`: examines compatibility between GLEXT and
+  GLES2 headers for finding compatible subsets
 
 Modules
 -------
@@ -27,16 +29,17 @@ Modules
 Tool modules provide various resources for:
 
 * :mod:`~kivy.tools.packaging`
-* pep8 checking
-* text editor highlighting
+* :mod:`pep8 checking <kivy.tools.pep8checker>`
+* :mod:`text editor highlighting <kivy.tools.highlight>`
+
 
 Other
 -----
 
 Other miscellaneous resources include
 
-* theming kivy
-* travis continuous integration
+* :file:`theming`: demonstrates an alternative theme for kivy
+* :file:`travis`: travis continuous integration
 
 This help document is a work-in-progress and currently under construction.
 
