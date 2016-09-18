@@ -29,7 +29,6 @@ Modules
 Tool modules provide various resources for:
 
 * :mod:`~kivy.tools.packaging`
-* :mod:`pep8 checking <kivy.tools.pep8checker>`
 * :mod:`text editor highlighting <kivy.tools.highlight>`
 
 
@@ -38,6 +37,7 @@ Other
 
 Other miscellaneous resources include
 
+* :file:`pep8checker`: pep8 checking scripts and git hook
 * :file:`theming`: demonstrates an alternative theme for kivy
 * :file:`travis`: travis continuous integration
 
