@@ -446,8 +446,8 @@ class Widget(WidgetBase):
                 :mod:`~kivy.uix.relativelayout` for a discussion on
                 coordinate systems.
 
-        :Returns:
-            bool. If True, the dispatching of the touch event will stop.
+        :Returns: bool
+            If True, the dispatching of the touch event will stop.
             If False, the event will continue to be dispatched to the rest
             of the widget tree.
         '''

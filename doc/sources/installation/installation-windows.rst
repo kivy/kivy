@@ -66,7 +66,7 @@ Nightly wheel installation
 
 Snapshot wheels of current Kivy master are created every night. They can be found
 `here <https://drive.google.com/folderview?id=0B1_HB9J8mZepOV81UHpDbmg5SWM&usp=sharing#list>`_.
-To use them, instead of doing `python -m pip install kivy` we'll install one of
+To use them, instead of doing ``python -m pip install kivy`` we'll install one of
 these wheels as follows.
 
 .. |cp27_win32| replace:: Python 2.7, 32bit

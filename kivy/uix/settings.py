@@ -1162,7 +1162,7 @@ class MenuSidebar(FloatLayout):
     :attr:`~ContentPanel.current_uid` of a :class:`ContentPanel`.
 
     :attr:`selected_uid` is a
-    :class`~kivy.properties.NumericProperty` and defaults to 0.
+    :class:`~kivy.properties.NumericProperty` and defaults to 0.
 
     '''
 

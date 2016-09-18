@@ -220,7 +220,8 @@ class TabbedPanelItem(TabbedPanelHeader):
 class TabbedPanelStrip(GridLayout):
     '''A strip intended to be used as background for Heading/Tab.
     This does not cover the blank areas in case the tabs don't cover
-    the entire width/height of the TabbedPanel(use StripLayout for that).
+    the entire width/height of the TabbedPanel(use :class:`StripLayout`
+    for that).
     '''
     tabbed_panel = ObjectProperty(None)
     '''Link to the panel that the tab strip is a part of.

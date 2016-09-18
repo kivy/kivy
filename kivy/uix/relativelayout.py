@@ -229,7 +229,7 @@ This also applies to the position of sub-widgets. Instead of positioning a
         Widget:
             center: self.parent.center
 
-...use the :attr:`pos_hint` property:
+use the :attr:`pos_hint` property:
 
 .. code-block:: kv
 
