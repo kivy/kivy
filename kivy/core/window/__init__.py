@@ -982,6 +982,8 @@ class WindowBase(EventDispatcher):
         widget.bind(
             pos_hint=self._update_childsize,
             size_hint=self._update_childsize,
+            size_hint_max=self._update_childsize,
+            size_hint_min=self._update_childsize,
             size=self._update_childsize,
             pos=self._update_childsize)
 
@@ -1001,6 +1003,8 @@ class WindowBase(EventDispatcher):
         widget.unbind(
             pos_hint=self._update_childsize,
             size_hint=self._update_childsize,
+            size_hint_max=self._update_childsize,
+            size_hint_min=self._update_childsize,
             size=self._update_childsize,
             pos=self._update_childsize)
 
@@ -1173,12 +1177,40 @@ class WindowBase(EventDispatcher):
             childs = self.children
         for w in childs:
             shw, shh = w.size_hint
-            if shw and shh:
-                w.size = shw * width, shh * height
-            elif shw:
-                w.width = shw * width
-            elif shh:
-                w.height = shh * height
+            shw_min, shh_min = w.size_hint_min
+            shw_max, shh_max = w.size_hint_max
+
+            if shw is not None and shh is not None:
+                c_w = shw * width
+                c_h = shh * height
+
+                if shw_min is not None and c_w < shw_min:
+                    c_w = shw_min
+                elif shw_max is not None and c_w > shw_max:
+                    c_w = shw_max
+
+                if shh_min is not None and c_h < shh_min:
+                    c_h = shh_min
+                elif shh_max is not None and c_h > shh_max:
+                    c_h = shh_max
+                w.size = c_w, c_h
+            elif shw is not None:
+                c_w = shw * width
+
+                if shw_min is not None and c_w < shw_min:
+                    c_w = shw_min
+                elif shw_max is not None and c_w > shw_max:
+                    c_w = shw_max
+                w.width = c_w
+            elif shh is not None:
+                c_h = shh * height
+
+                if shh_min is not None and c_h < shh_min:
+                    c_h = shh_min
+                elif shh_max is not None and c_h > shh_max:
+                    c_h = shh_max
+                w.height = c_h
+
             for key, value in w.pos_hint.items():
                 if key == 'x':
                     w.x = value * width
