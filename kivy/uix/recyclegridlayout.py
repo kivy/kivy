@@ -35,6 +35,8 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
     def __init__(self, **kwargs):
         super(RecycleGridLayout, self).__init__(**kwargs)
         self.funbind('children', self._trigger_layout)
+        self._has_hint_bound_x = False
+        self._has_hint_bound_y = False
 
     def on_children(self, instance, value):
         pass

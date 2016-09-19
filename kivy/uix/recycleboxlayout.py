@@ -106,7 +106,8 @@ class RecycleBoxLayout(RecycleLayout, BoxLayout):
         view_opts = self.view_opts
         n = len(view_opts)
         for i, x, y, w, h in self._iterate_layout(
-                [(opt['size'], opt['size_hint'], opt['pos_hint']) for
+                [(opt['size'], opt['size_hint'], opt['pos_hint'],
+                  (None, None), (None, None)) for
                  opt in reversed(view_opts)]):
             opt = view_opts[n - i - 1]
             shw, shh = opt['size_hint']
