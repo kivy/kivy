@@ -865,7 +865,10 @@ if 'KIVY_PROFILE_LANG' in environ:
             '</style>']
         files = set([x[1].ctx.filename for x in Builder.rules])
         for fn in files:
-            lines = open(fn).readlines()
+            try:
+                lines = open(fn).readlines()
+            except:
+                continue
             html += ['<h2>', fn, '</h2>', '<table>']
             count = 0
             for index, line in enumerate(lines):
