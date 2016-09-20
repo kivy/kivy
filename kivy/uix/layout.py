@@ -276,9 +276,11 @@ class Layout(Widget):
         contrib_prop_sum_i = contrib_proportion[j]
 
         n = len(items)  # check when n <= 1
-        j = items[1]
         i = 1
-        curr_height = contrib_height[j]
+        if 1 < n:
+            j = items[1]
+            curr_height = contrib_height[j]
+
         done = False
         while not done and i < n:
             while i < n and last_height == curr_height:
