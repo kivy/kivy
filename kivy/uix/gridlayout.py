@@ -372,6 +372,7 @@ class GridLayout(Layout):
         cols, rows = self._cols, self._rows
 
         width = l + r + spacing_x * (len(cols) - 1)
+        self._cols_min_size_none = sum(cols) + width
         # we need to subtract for the sh_max/min the already guaranteed size
         # due to having a None in the col. So sh_min gets smaller by that size
         # since it's already covered. Similarly for sh_max, because if we
@@ -380,7 +381,6 @@ class GridLayout(Layout):
         if self._has_hint_bound_x:
             cols_sh_min = self._cols_sh_min
             cols_sh_max = self._cols_sh_max
-            self._cols_min_size_none = sum(cols) + width
 
             for i, (c, sh_min, sh_max) in enumerate(
                     zip(cols, cols_sh_min, cols_sh_max)):
@@ -393,13 +393,13 @@ class GridLayout(Layout):
                 if sh_max is not None:
                     cols_sh_max[i] = max(0., sh_max - c)
         else:
-            width += sum(cols)
+            width = self._cols_min_size_none
 
         height = t + b + spacing_y * (len(rows) - 1)
+        self._rows_min_size_none = sum(rows) + height
         if self._has_hint_bound_y:
             rows_sh_min = self._rows_sh_min
             rows_sh_max = self._rows_sh_max
-            self._rows_min_size_none = sum(rows) + height
 
             for i, (r, sh_min, sh_max) in enumerate(
                     zip(rows, rows_sh_min, rows_sh_max)):
@@ -412,7 +412,7 @@ class GridLayout(Layout):
                 if sh_max is not None:
                     rows_sh_max[i] = max(0., sh_max - r)
         else:
-            height += sum(rows)
+            height = self._rows_min_size_none
 
         # finally, set the minimum size
         self.minimum_size = (width, height)

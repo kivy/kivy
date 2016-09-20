@@ -15,8 +15,6 @@ kv = """
             size: self.size
             pos: self.pos
     value: ''
-    size_hint_y: None
-    height: dp(100)
     Label:
         text: root.value
 

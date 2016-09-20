@@ -154,9 +154,10 @@ class BoxLayout(Layout):
         has_bound = False
         hint = [None] * len_children
         # min size from all the None hint, and from those with sh_min
-        minimum_size_bounded = minimum_size_none = 0
+        minimum_size_bounded = 0
         if orientation == 'horizontal':
             minimum_size_y = 0
+            minimum_size_none = padding_x + spacing * (len_children - 1)
 
             for i, ((w, h), (shw, shh), _, (shw_min, shh_min),
                     (shw_max, _)) in enumerate(sizes):
@@ -176,11 +177,11 @@ class BoxLayout(Layout):
                 elif shh_min:
                     minimum_size_y = max(minimum_size_y, shh_min)
 
-            minimum_size_x = minimum_size_bounded + minimum_size_none + \
-                padding_x + spacing * (len_children - 1)
+            minimum_size_x = minimum_size_bounded + minimum_size_none
             minimum_size_y += padding_y
         else:
             minimum_size_x = 0
+            minimum_size_none = padding_y + spacing * (len_children - 1)
 
             for i, ((w, h), (shw, shh), _, (shw_min, shh_min),
                     (_, shh_max)) in enumerate(sizes):
@@ -200,8 +201,8 @@ class BoxLayout(Layout):
                 elif shw_min:
                     minimum_size_x = max(minimum_size_x, shw_min)
 
-            minimum_size_y = minimum_size_bounded + minimum_size_none + \
-                padding_y + spacing * (len_children - 1)
+
+            minimum_size_y = minimum_size_bounded + minimum_size_none
             minimum_size_x += padding_x
 
         self.minimum_size = minimum_size_x, minimum_size_y
