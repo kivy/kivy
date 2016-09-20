@@ -196,7 +196,7 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
             s = opt['size']
             w, h = sn = widget.size
             sh = opt['size_hint']
-            shn = widget.size_hint
+            shnw, shnh = shn = widget.size_hint
             sh_min = opt['size_hint_min']
             shn_min = widget.size_hint_min
             sh_max = opt['size_hint_max']
