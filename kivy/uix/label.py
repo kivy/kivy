@@ -749,6 +749,26 @@ class Label(Widget):
     '''
 
     ellipsis_options = DictProperty({})
+    '''Font options for the ellipsis string('...') used to split the text.
+
+    Accepts a dict as option name with the value. Only applied when
+    :attr:`markup` is true and text is shortened. All font options which work
+    for :class:`Label` will work for :attr:`ellipsis_options`. Defaults for
+    the options not specified are taken from the surronding text.
+
+    .. code-block:: kv
+
+        Label:
+            text: 'Some very long line which will be cut'
+            markup: True
+            shorten: True
+            ellipsis_options: {'color':(1,0.5,0.5,1),'underline':True}
+
+    .. versionadded:: 2.0.0
+
+    :attr:`ellipsis_options` is a :class:`~kivy.properties.DictProperty` and
+    defaults to `{}` (the empty dict).
+    '''
 
     unicode_errors = OptionProperty(
         'replace', options=('strict', 'replace', 'ignore'))
