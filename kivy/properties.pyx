@@ -574,7 +574,7 @@ cdef class NumericProperty(Property):
         elif isinstance(x, string_types):
             return self.parse_str(obj, x)
         else:
-            raise ValueError('%s.%s have an invalid format (got %r)' % (
+            raise ValueError('%s.%s has an invalid format (got %r)' % (
                 obj.__class__.__name__,
                 self.name, x))
 
@@ -1536,7 +1536,7 @@ cdef class VariableListProperty(Property):
         elif isinstance(x, string_types):
             return self.parse_str(obj, x)
         else:
-            raise ValueError('%s.%s have an invalid format (got %r)' % (
+            raise ValueError('%s.%s has an invalid format (got %r)' % (
                 obj.__class__.__name__,
                 self.name, x))
 
@@ -1888,7 +1888,7 @@ cdef class ColorProperty(Property):
         elif isinstance(x, string_types):
             return self.parse_str(obj, x)
         else:
-            raise ValueError('{}.{} have an invalid format (got {!r})'.format(
+            raise ValueError('{}.{} has an invalid format (got {!r})'.format(
                 obj.__class__.__name__, self.name, x))
 
     cdef list parse_str(self, EventDispatcher obj, value):
