@@ -90,7 +90,6 @@ class PageLayout(Layout):
         right = self.right
         width = self.width - border
         for i, c in enumerate(reversed(self.children)):
-            not i or i == l_children
 
             if i < p:
                 x = x_parent
