@@ -54,13 +54,13 @@ With Kivy, you can do::
 Depth being tracked
 ~~~~~~~~~~~~~~
 
-Only the "top level" of a nested object is being tracked. For example:: 
+Only the "top level" of a nested object is being tracked. For example::
 
     my_list_prop = ListProperty([1, {'hi': 0}])
     # Changing a top level element will trigger all `on_my_list_prop` callbacks
-    my_list_prop[0] = 4  
+    my_list_prop[0] = 4
     # Changing a deeper element will be ignored by all `on_my_list_prop` callbacks
-    my_list_prop[1]['hi'] = 4 
+    my_list_prop[1]['hi'] = 4
 
 The same holds true for all container-type kivy properties.
 
@@ -574,7 +574,7 @@ cdef class NumericProperty(Property):
         elif isinstance(x, string_types):
             return self.parse_str(obj, x)
         else:
-            raise ValueError('%s.%s have an invalid format (got %r)' % (
+            raise ValueError('%s.%s has an invalid format (got %r)' % (
                 obj.__class__.__name__,
                 self.name, x))
 
@@ -725,13 +725,13 @@ cdef class ListProperty(Property):
             >>> my_list.append(10)
             >>> print(my_list, widget.my_list)
             [1, 5, {'hi': 'hello'}, 10] [1, 5, {'hi': 'hello'}]
-            
-        However, changes to nested levels will affect the property as well, 
+
+        However, changes to nested levels will affect the property as well,
         since the property uses a shallow copy of my_list.
             >>> my_list[2]['hi'] = 'bye'
             >>> print(my_list, widget.my_list)
             [1, 5, {'hi': 'bye'}, 10] [1, 5, {'hi': 'bye'}]
-            
+
     '''
     def __init__(self, defaultvalue=None, **kw):
         defaultvalue = defaultvalue or []
@@ -1536,7 +1536,7 @@ cdef class VariableListProperty(Property):
         elif isinstance(x, string_types):
             return self.parse_str(obj, x)
         else:
-            raise ValueError('%s.%s have an invalid format (got %r)' % (
+            raise ValueError('%s.%s has an invalid format (got %r)' % (
                 obj.__class__.__name__,
                 self.name, x))
 
@@ -1888,7 +1888,7 @@ cdef class ColorProperty(Property):
         elif isinstance(x, string_types):
             return self.parse_str(obj, x)
         else:
-            raise ValueError('{}.{} have an invalid format (got {!r})'.format(
+            raise ValueError('{}.{} has an invalid format (got {!r})'.format(
                 obj.__class__.__name__, self.name, x))
 
     cdef list parse_str(self, EventDispatcher obj, value):
