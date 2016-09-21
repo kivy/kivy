@@ -579,7 +579,10 @@ cdef class NumericProperty(Property):
                 self.name, x))
 
     cdef float parse_str(self, EventDispatcher obj, value):
-        return self.parse_list(obj, value[:-2], value[-2:])
+        if value[-2:] in NUMERIC_FORMATS:
+            return self.parse_list(obj, value[:-2], value[-2:])
+        else:
+            return float(value)
 
     cdef float parse_list(self, EventDispatcher obj, value, ext):
         cdef PropertyStorage ps = obj.__storage[self._name]
