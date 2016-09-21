@@ -89,7 +89,7 @@ else:
                    'min_position_y', 'max_position_y',
                    'min_pressure', 'max_pressure',
                    'min_touch_major', 'max_touch_major',
-                   'min_touch_minor', 'min_touch_major',
+                   'min_touch_minor', 'max_touch_minor',
                    'invert_x', 'invert_y',
                    'rotation')
 
