@@ -267,8 +267,9 @@ class Label(Widget):
                         'outline_width', 'disabled_outline_color',
                         'outline_color', 'text_size', 'shorten', 'mipmap',
                         'line_height', 'max_lines', 'strip', 'shorten_from',
-                        'split_str', 'unicode_errors', 'markup',
-                        'font_hinting', 'font_kerning', 'font_blended')
+                        'split_str', 'ellipsis_options', 'unicode_errors',
+                        'markup', 'font_hinting', 'font_kerning',
+                        'font_blended')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -746,6 +747,8 @@ class Label(Widget):
     :attr:`split_str` is a :class:`~kivy.properties.StringProperty` and
     defaults to `''` (the empty string).
     '''
+
+    ellipsis_options = DictProperty({})
 
     unicode_errors = OptionProperty(
         'replace', options=('strict', 'replace', 'ignore'))
