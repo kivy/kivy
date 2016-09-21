@@ -725,13 +725,13 @@ cdef class ListProperty(Property):
             >>> my_list.append(10)
             >>> print(my_list, widget.my_list)
             [1, 5, {'hi': 'hello'}, 10] [1, 5, {'hi': 'hello'}]
-            
-        However, changes to nested levels will affect the property as well, 
+
+        However, changes to nested levels will affect the property as well,
         since the property uses a shallow copy of my_list.
             >>> my_list[2]['hi'] = 'bye'
             >>> print(my_list, widget.my_list)
             [1, 5, {'hi': 'bye'}, 10] [1, 5, {'hi': 'bye'}]
-            
+
     '''
     def __init__(self, defaultvalue=None, **kw):
         defaultvalue = defaultvalue or []
