@@ -82,33 +82,30 @@ class AnchorLayout(Layout):
         height = self.height
         anchor_x = self.anchor_x
         anchor_y = self.anchor_y
-        padding = self.padding
-
-        left, top, right, bottom = range(4)
-        horizontal, vertical = range(2)
+        pad_left, pad_top, pad_right, pad_bottom = self.padding
 
         for c in self.children:
             x, y = _x, _y
             cw, ch = c.size
-            if c.size_hint[horizontal] is not None:
-                cw = c.size_hint[horizontal] * (width - padding[left] - padding[right])
-            if c.size_hint[vertical] is not None:
-                ch = c.size_hint[vertical] * (height - padding[top] - padding[bottom])
+            size_hint_h, size_hint_v = c.size_hint
+
+            if size_hint_h is not None:
+                cw = size_hint_h * (width - pad_left - pad_right)
+            if size_hint_v is not None:
+                ch = size_hint_v * (height - pad_top - pad_bottom)
 
             if anchor_x == 'left':
-                x = x + padding[left]
-            if anchor_x == 'right':
-                x = x + width - (cw + padding[right])
-            if self.anchor_x == 'center':
-                x = x + (width - padding[right] + padding[left] - cw) / 2
+                x = x + pad_left
+            elif anchor_x == 'right':
+                x = x + width - (cw + pad_right)
+            else:
+                x = x + (width - pad_right + pad_left - cw) / 2
             if anchor_y == 'bottom':
-                y = y + padding[bottom]
-            if anchor_y == 'top':
-                y = y + height - (ch + padding[top])
-            if anchor_y == 'center':
-                y = y + (height - padding[top] + padding[bottom] - ch) / 2
+                y = y + pad_bottom
+            elif anchor_y == 'top':
+                y = y + height - (ch + pad_top)
+            else:
+                y = y + (height - pad_top + pad_bottom - ch) / 2
 
-            c.x = x
-            c.y = y
-            c.width = cw
-            c.height = ch
+            c.pos = x, y
+            c.size = cw, ch
