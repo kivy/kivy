@@ -738,7 +738,7 @@ class Label(Widget):
 
     For example, if it's a space, the string will be broken into words and as
     many whole words that can fit into a single line will be displayed. If
-    :attr:`shorten_from` is the empty string, `''`, we split on every character
+    :attr:`split_str` is the empty string, `''`, we split on every character
     fitting as much text as possible into the line.
 
     .. versionadded:: 1.9.0
