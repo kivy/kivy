@@ -84,28 +84,31 @@ class AnchorLayout(Layout):
         anchor_y = self.anchor_y
         padding = self.padding
 
+        left, top, right, bottom = range(4)
+        horizontal, vertical = range(2)
+
         for c in self.children:
             x, y = _x, _y
-            w, h = c.size
-            if c.size_hint[0] is not None:
-                w = c.size_hint[0] * width - (padding[0] + padding[2])
-            if c.size_hint[1] is not None:
-                h = c.size_hint[1] * height - (padding[1] + padding[3])
+            cw, ch = c.size
+            if c.size_hint[horizontal] is not None:
+                cw = c.size_hint[horizontal] * (width - padding[left] - padding[right])
+            if c.size_hint[vertical] is not None:
+                ch = c.size_hint[vertical] * (height - padding[top] - padding[bottom])
 
             if anchor_x == 'left':
-                x = x + padding[0]
+                x = x + padding[left]
             if anchor_x == 'right':
-                x = x + width - (w + padding[2])
+                x = x + width - (cw + padding[right])
             if self.anchor_x == 'center':
-                x = x + (width / 2) - (w / 2)
+                x = x + (width - padding[right] + padding[left] - cw) / 2
             if anchor_y == 'bottom':
-                y = y + padding[1]
+                y = y + padding[bottom]
             if anchor_y == 'top':
-                y = y + height - (h + padding[3])
+                y = y + height - (ch + padding[top])
             if anchor_y == 'center':
-                y = y + (height / 2) - (h / 2)
+                y = y + (height - padding[top] + padding[bottom] - ch) / 2
 
             c.x = x
             c.y = y
-            c.width = w
-            c.height = h
+            c.width = cw
+            c.height = ch
