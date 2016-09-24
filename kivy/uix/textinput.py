@@ -1187,6 +1187,7 @@ class TextInput(FocusBehavior, Widget):
         self._selection = False
         self._selection_finished = True
         self._selection_touch = None
+        self.selection_text = u''
         self._trigger_update_graphics()
 
     def delete_selection(self, from_undo=False):
