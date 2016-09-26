@@ -491,9 +491,8 @@ def runTouchApp(widget=None, slave=False):
 
 def stopTouchApp():
     '''Stop the current application by leaving the main loop'''
-    if EventLoop is None:
-        return
-    if EventLoop.status != 'started':
+    if EventLoop is None or EventLoop.status != 'started':
+        Clock.schedule_once(lambda dt: stopTouchApp(), 0)
         return
     Logger.info('Base: Leaving application in progress...')
     EventLoop.close()
