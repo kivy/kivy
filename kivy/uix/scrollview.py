@@ -895,6 +895,13 @@ class ScrollView(StencilView):
         if not self.parent:
             return
 
+        # if _viewport is layout and has pending operation, reschedule
+        if hasattr(self._viewport,'do_layout'):
+            if self._viewport._trigger_layout.is_triggered:
+                Clock.schedule_once(
+                     lambda *dt: self.scroll_to(widget,padding,animate))
+                return
+            
         if isinstance(padding, (int, float)):
             padding = (padding, padding)
 
