@@ -79,6 +79,10 @@ class Layout(Widget):
         If you are writing a new Layout subclass, don't call this function
         directly but use :meth:`_trigger_layout` instead.
 
+        The function is by default called *before* the next frame, therefore
+        the layout isn't updated immediately. Anything depending on the
+        positions of e.g. children should be scheduled for the next frame.
+
         .. versionadded:: 1.0.8
         '''
         raise NotImplementedError('Must be implemented in subclasses.')
