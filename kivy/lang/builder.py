@@ -866,8 +866,9 @@ if 'KIVY_PROFILE_LANG' in environ:
         files = set([x[1].ctx.filename for x in Builder.rules])
         for fn in files:
             try:
-                lines = open(fn).readlines()
-            except:
+                with open(fn) as f:
+                    lines = f.readlines()
+            except IOError:
                 continue
             html += ['<h2>', fn, '</h2>', '<table>']
             count = 0
