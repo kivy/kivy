@@ -471,7 +471,7 @@ class TabbedPanel(GridLayout):
         self.rows = 1
         self._tab_strip = TabbedPanelStrip(
             tabbed_panel=self,
-            rows=1, cols=99, size_hint=(None, None),
+            rows=1, size_hint=(None, None),
             height=self.tab_height, width=self.tab_width)
 
         self._partial_update_scrollview = None
