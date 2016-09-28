@@ -627,6 +627,12 @@ class MarkupLabel(MarkupLabelBase):
             return lw + 2 * xpad, lh + 2 * ypad, [LayoutLine(0, 0,
             lw, lh, 1, 0, line)]
 
+        elps_opts = copy(old_opts)
+        if 'ellipsis_options' in old_opts:
+            elps_opts.update(old_opts['ellipsis_options'])
+
+        # Set new opts for ellipsis
+        self.options = elps_opts
         # find the size of ellipsis that'll fit
         elps_s = textwidth('...')
         if elps_s[0] > uw:  # even ellipsis didn't fit...
@@ -640,8 +646,10 @@ class MarkupLabel(MarkupLabelBase):
                 return (s[0] + 2 * xpad, s[1] * line_height + 2 * ypad,
                     [LayoutLine(0, 0, s[0], s[1], 1, 0, [LayoutWord(old_opts,
                     s[0], s[1], '.')])])
-        elps = LayoutWord(old_opts, elps_s[0], elps_s[1], '...')
+        elps = LayoutWord(elps_opts, elps_s[0], elps_s[1], '...')
         uw -= elps_s[0]
+        # Restore old opts
+        self.options = old_opts
 
         # now find the first left and right words that fit
         w1, e1, l1, clipped1 = n_restricted(line, uw, c)
@@ -752,7 +760,6 @@ class MarkupLabel(MarkupLabelBase):
         s = self.get_extents(last_text)
         if len(last_text):
             line1.append(LayoutWord(last_word.options, s[0], s[1], last_text))
-        elps.options = last_word.options
         line1.append(elps)
 
         # now add back the right half
