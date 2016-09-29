@@ -142,10 +142,9 @@ apply_selection` method will be called everything the view needs to refresh
         if _view_base_cache[viewclass]:
             view.apply_selection(self.recycleview, index, is_selected)
 
-    def refresh_view_layout(self, index, pos, pos_hint, size, size_hint, view,
-                            viewport):
+    def refresh_view_layout(self, index, layout, view, viewport):
         super(LayoutSelectionBehavior, self).refresh_view_layout(
-            index, pos, pos_hint, size, size_hint, view, viewport)
+            index, layout, view, viewport)
         self.apply_selection(index, view, index in self.selected_nodes)
 
 
@@ -207,13 +206,12 @@ class RecycleLayoutManagerBehavior(object):
         '''
         pass
 
-    def refresh_view_layout(self, index, pos, pos_hint, size, size_hint, view,
-                            viewport):
+    def refresh_view_layout(self, index, layout, view, viewport):
         '''`See :meth:`~kivy.uix.recycleview.views.RecycleDataAdapter.\
 refresh_view_layout`.
         '''
         self.recycleview.view_adapter.refresh_view_layout(
-            index, pos, pos_hint, size, size_hint, view, viewport)
+            index, layout, view, viewport)
 
     def get_view_index_at(self, pos):
         """Return the view `index` on which position, `pos`, falls.

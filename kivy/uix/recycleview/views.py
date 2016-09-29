@@ -73,8 +73,7 @@ class RecycleDataViewBehavior(object):
             if key not in sizing_attrs:
                 setattr(self, key, value)
 
-    def refresh_view_layout(self, rv, index, pos, pos_hint, size, size_hint,
-                            viewport):
+    def refresh_view_layout(self, rv, index, layout, viewport):
         '''Called when the view's size is updated by the layout manager,
         :class:`RecycleLayoutManagerBehavior`.
 
@@ -92,9 +91,7 @@ class RecycleDataViewBehavior(object):
             will force a refresh. Useful when data changed and we don't want
             to layout further since it'll be overwritten again soon.
         '''
-        self.size_hint = size_hint
-        self.pos_hint = pos_hint
-        w, h = size
+        w, h = layout.pop('size')
         if w is None:
             if h is not None:
                 self.height = h
@@ -102,8 +99,10 @@ class RecycleDataViewBehavior(object):
             if h is None:
                 self.width = w
             else:
-                self.size = size
-        self.pos = pos
+                self.size = w, h
+
+        for name, value in layout.items():
+            setattr(self, name, value)
 
     def apply_selection(self, rv, index, is_selected):
         pass
@@ -145,9 +144,11 @@ class RecycleDataAdapter(EventDispatcher):
     # items whose attrs, except for pos/size is still accurate
     dirty_views = defaultdict(dict)
 
-    _sizing_attrs = {'size', 'width', 'height', 'size_hint', 'size_hint_x',
-                     'size_hint_y', 'pos', 'x', 'y', 'center', 'center_x',
-                     'center_y', 'pos_hint'}
+    _sizing_attrs = {
+        'size', 'width', 'height', 'size_hint', 'size_hint_x', 'size_hint_y',
+        'pos', 'x', 'y', 'center', 'center_x', 'center_y', 'pos_hint',
+        'size_hint_min', 'size_hint_min_x', 'size_hint_min_y', 'size_hint_max',
+        'size_hint_max_x', 'size_hint_max_y'}
 
     def attach_recycleview(self, rv):
         '''Associates a :class:`~kivy.uix.recycleview.RecycleViewBehavior`
@@ -238,11 +239,10 @@ class RecycleDataAdapter(EventDispatcher):
                 if key not in sizing_attrs:
                     setattr(view, key, value)
 
-    def refresh_view_layout(self, index, pos, pos_hint, size, size_hint, view,
-                            viewport):
+    def refresh_view_layout(self, index, layout, view, viewport):
         '''Updates the sizing information of the view.
 
-        viewport` is in coordinates of the layout manager.
+        viewport is in coordinates of the layout manager.
 
         This method calls :meth:`RecycleDataViewBehavior.refresh_view_attrs`
         if the view inherits from :class:`RecycleDataViewBehavior`. See that
@@ -257,12 +257,9 @@ class RecycleDataAdapter(EventDispatcher):
 
         if _view_base_cache[view.__class__]:
             view.refresh_view_layout(
-                self.recycleview, index, pos, pos_hint, size, size_hint,
-                viewport)
+                self.recycleview, index, layout, viewport)
         else:
-            view.size_hint = size_hint
-            view.pos_hint = pos_hint
-            w, h = size
+            w, h = layout.pop('size')
             if w is None:
                 if h is not None:
                     view.height = h
@@ -270,8 +267,10 @@ class RecycleDataAdapter(EventDispatcher):
                 if h is None:
                     view.width = w
                 else:
-                    view.size = size
-            view.pos = pos
+                    view.size = w, h
+
+            for name, value in layout.items():
+                setattr(view, name, value)
 
     def make_view_dirty(self, view, index):
         '''(internal) Used to flag this view as dirty, ready to be used for
