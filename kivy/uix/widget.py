@@ -1127,6 +1127,86 @@ class Widget(WidgetBase):
     containing a dict.
     '''
 
+    size_hint_min_x = NumericProperty(None, allownone=True)
+    '''When not None, the X-direction minimum size (in pixels,
+    like :attr:`width`) when :attr:`size_hint_x` is also not None.
+
+    When :attr:`size_hint_x` is not None, it is the minimum width that the
+    widget will be set due to the :attr:`size_hint_x`. I.e. when a smaller size
+    would be set, :attr:`size_hint_min_x` is the value used instead for the
+    widget width. When None, or when :attr:`size_hint_x` is None,
+    :attr:`size_hint_min_x` doesn't do anything.
+
+    Only the :class:`~kivy.uix.layout.Layout` and
+    :class:`~kivy.core.window.Window` classes make use of the hint.
+
+    :attr:`size_hint_min_x` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to None.
+
+    .. versionadded:: 1.9.2
+    '''
+
+    size_hint_min_y = NumericProperty(None, allownone=True)
+    '''When not None, the Y-direction minimum size (in pixels,
+    like :attr:`height`) when :attr:`size_hint_y` is also not None.
+
+    When :attr:`size_hint_y` is not None, it is the minimum height that the
+    widget will be set due to the :attr:`size_hint_y`. I.e. when a smaller size
+    would be set, :attr:`size_hint_min_y` is the value used instead for the
+    widget height. When None, or when :attr:`size_hint_y` is None,
+    :attr:`size_hint_min_y` doesn't do anything.
+
+    Only the :class:`~kivy.uix.layout.Layout` and
+    :class:`~kivy.core.window.Window` classes make use of the hint.
+
+    :attr:`size_hint_min_y` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to None.
+
+    .. versionadded:: 1.9.2
+    '''
+
+    size_hint_min = ReferenceListProperty(size_hint_min_x, size_hint_min_y)
+    '''Minimum size when using :attr:`size_hint`.
+
+    :attr:`size_hint_min` is a :class:`~kivy.properties.ReferenceListProperty`
+    of (:attr:`size_hint_min_x`, :attr:`size_hint_min_y`) properties.
+
+    .. versionadded:: 1.9.2
+    '''
+
+    size_hint_max_x = NumericProperty(None, allownone=True)
+    '''When not None, the X-direction maximum size (in pixels,
+    like :attr:`width`) when :attr:`size_hint_x` is also not None.
+
+    Similar to :attr:`size_hint_min_x`, except that it sets the maximum width.
+
+    :attr:`size_hint_max_x` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to None.
+
+    .. versionadded:: 1.9.2
+    '''
+
+    size_hint_max_y = NumericProperty(None, allownone=True)
+    '''When not None, the Y-direction maximum size (in pixels,
+    like :attr:`height`) when :attr:`size_hint_y` is also not None.
+
+    Similar to :attr:`size_hint_min_y`, except that it sets the maximum height.
+
+    :attr:`size_hint_max_y` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to None.
+
+    .. versionadded:: 1.9.2
+    '''
+
+    size_hint_max = ReferenceListProperty(size_hint_max_x, size_hint_max_y)
+    '''Maximum size when using :attr:`size_hint`.
+
+    :attr:`size_hint_max` is a :class:`~kivy.properties.ReferenceListProperty`
+    of (:attr:`size_hint_max_x`, :attr:`size_hint_max_y`) properties.
+
+    .. versionadded:: 1.9.2
+    '''
+
     ids = DictProperty({})
     '''This is a dictionary of ids defined in your kv language. This will only
     be populated if you use ids in your kv language code.

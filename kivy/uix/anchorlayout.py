@@ -87,12 +87,23 @@ class AnchorLayout(Layout):
         for c in self.children:
             x, y = _x, _y
             cw, ch = c.size
-            size_hint_h, size_hint_v = c.size_hint
+            shw, shh = c.size_hint
+            shw_min, shh_min = c.size_hint_min
+            shw_max, shh_max = c.size_hint_max
 
-            if size_hint_h is not None:
-                cw = size_hint_h * (width - pad_left - pad_right)
-            if size_hint_v is not None:
-                ch = size_hint_v * (height - pad_top - pad_bottom)
+            if shw is not None:
+                cw = shw * (width - pad_left - pad_right)
+                if shw_min is not None and cw < shw_min:
+                    cw = shw_min
+                elif shw_max is not None and cw > shw_max:
+                    cw = shw_max
+
+            if shh is not None:
+                ch = shh * (height - pad_top - pad_bottom)
+                if shh_min is not None and ch < shh_min:
+                    ch = shh_min
+                elif shh_max is not None and ch > shh_max:
+                    ch = shh_max
 
             if anchor_x == 'left':
                 x = x + pad_left
