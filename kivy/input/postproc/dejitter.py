@@ -58,7 +58,8 @@ class InputPostprocDejitter(object):
             if etype == 'begin':
                 self.last_touches[touch.id] = touch.spos
             if etype == 'end':
-                del self.last_touches[touch.id]
+                if touch.id in self.last_touches:
+                    del self.last_touches[touch.id]
             if etype != 'update':
                 processed.append((etype, touch))
                 continue
