@@ -758,24 +758,10 @@ class ScrollView(StencilView):
             self._touch = False
             return self.on_scroll_start(touch, False)
         ud = touch.ud[uid]
+        mode = ud['mode']
 
         # check if the minimum distance has been travelled
-        if ud['mode'] == 'unknown':
-            ud['dx'] += abs(touch.dx)
-            ud['dy'] += abs(touch.dy)
-            if ((ud['dx'] > self.scroll_distance) or
-                    (ud['dy'] > self.scroll_distance)):
-                if not self.do_scroll_x and not self.do_scroll_y:
-                    # touch is in parent, but _change expects window coords
-                    touch.push()
-                    touch.apply_transform_2d(self.to_local)
-                    touch.apply_transform_2d(self.to_window)
-                    self._change_touch_mode()
-                    touch.pop()
-                    return
-                ud['mode'] = 'scroll'
-                
-        if ud['mode'] == 'scroll':
+        if mode == 'unknown' or mode == 'scroll':
             if not touch.ud['sv.handled']['x'] and self.do_scroll_x \
                     and self.effect_x:
                 width = self.width
@@ -808,9 +794,28 @@ class ScrollView(StencilView):
                     touch.ud['sv.handled']['y'] = True
                 # Touch resulted in scroll should not defocus focused widget
                 touch.ud['sv.can_defocus'] = False
+
+        if mode == 'unknown':
+            ud['dx'] += abs(touch.dx)
+            ud['dy'] += abs(touch.dy)
+            if ((ud['dx'] > self.scroll_distance) or
+                    (ud['dy'] > self.scroll_distance)):
+                if not self.do_scroll_x and not self.do_scroll_y:
+                    # touch is in parent, but _change expects window coords
+                    touch.push()
+                    touch.apply_transform_2d(self.to_local)
+                    touch.apply_transform_2d(self.to_window)
+                    self._change_touch_mode()
+                    touch.pop()
+                    return
+                mode = 'scroll'
+            ud['mode'] = mode
+
+        if mode == 'scroll':
             ud['dt'] = touch.time_update - ud['time']
             ud['time'] = touch.time_update
             ud['user_stopped'] = True
+
         return rv
 
     def on_touch_up(self, touch):
