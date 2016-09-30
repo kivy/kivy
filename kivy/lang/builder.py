@@ -868,7 +868,7 @@ if 'KIVY_PROFILE_LANG' in environ:
             try:
                 with open(fn) as f:
                     lines = f.readlines()
-            except IOError:
+            except (IOError, TypeError) as e:
                 continue
             html += ['<h2>', fn, '</h2>', '<table>']
             count = 0
