@@ -135,7 +135,7 @@ Installation of Examples
 Kivy comes with many examples, and these can be a great place to start
 trying the Kivy launcher. You can run them as below::
 
-#. Download the `Kivy demos for Android <http://kivy.googlecode.com/files/kivydemo-for-android.zip>`_
+#. Download the `Kivy demos for Android <https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/kivy/kivydemo-for-android.zip>`_
 #. Unzip the contents and go to the folder `kivydemo-for-android`
 #. Copy all the the subfolders here to
 
