@@ -626,6 +626,9 @@ def determine_sdl2():
         ['-L' + p for p in sdl2_paths] if sdl2_paths else
         ['-L/usr/local/lib/'])
 
+    if sdl2_flags:
+        flags = merge(flags, sdl2_flags)
+
     # ensure headers for all the SDL2 and sub libraries are available
     libs_to_check = ['SDL', 'SDL_mixer', 'SDL_ttf', 'SDL_image']
     can_compile = True
