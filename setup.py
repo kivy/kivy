@@ -603,7 +603,7 @@ def determine_sdl2():
 
     sdl2_path = environ.get('KIVY_SDL2_PATH', None)
 
-    if sdl2_flags and not sdl2_path and (platform == 'darwin' or platform == 'linux'):
+    if sdl2_flags and not sdl2_path and platform == 'darwin':
         return sdl2_flags
 
     # no pkgconfig info, or we want to use a specific sdl2 path, so perform
