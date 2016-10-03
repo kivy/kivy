@@ -763,8 +763,8 @@ class ScrollView(StencilView):
         if ud['mode'] == 'unknown':
             ud['dx'] += abs(touch.dx)
             ud['dy'] += abs(touch.dy)
-            if ((ud['dx'] > self.scroll_distance) or
-                    (ud['dy'] > self.scroll_distance)):
+            if ((ud['dx'] > self.scroll_distance and self.do_scroll_x) or
+                    (ud['dy'] > self.scroll_distance and self.do_scroll_y)):
                 if not self.do_scroll_x and not self.do_scroll_y:
                     # touch is in parent, but _change expects window coords
                     touch.push()
