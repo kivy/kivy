@@ -761,18 +761,18 @@ class ScrollView(StencilView):
 
         # check if the minimum distance has been travelled
         if ud['mode'] == 'unknown':
+            if not self.do_scroll_x and not self.do_scroll_y:
+                # touch is in parent, but _change expects window coords
+                touch.push()
+                touch.apply_transform_2d(self.to_local)
+                touch.apply_transform_2d(self.to_window)
+                self._change_touch_mode()
+                touch.pop()
+                return
             ud['dx'] += abs(touch.dx)
             ud['dy'] += abs(touch.dy)
             if ((ud['dx'] > self.scroll_distance and self.do_scroll_x) or
                     (ud['dy'] > self.scroll_distance and self.do_scroll_y)):
-                if not self.do_scroll_x and not self.do_scroll_y:
-                    # touch is in parent, but _change expects window coords
-                    touch.push()
-                    touch.apply_transform_2d(self.to_local)
-                    touch.apply_transform_2d(self.to_window)
-                    self._change_touch_mode()
-                    touch.pop()
-                    return
                 ud['mode'] = 'scroll'
                 
         if ud['mode'] == 'scroll':
