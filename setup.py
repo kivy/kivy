@@ -86,6 +86,13 @@ if sys.platform == 'darwin':
     else:
         osx_arch = 'i386'
 
+# search for libMali.so
+libmali_path = None
+for root, subFolders, files in walk('/usr/lib'):
+    for fn in files:
+        if fn == 'libMali.so':
+            libmali_path = os.path.join(root, fn)
+
 # Detect Python for android project (http://github.com/kivy/python-for-android)
 ndkplatform = environ.get('NDKPLATFORM')
 if ndkplatform is not None and environ.get('LIBLINK'):
@@ -95,7 +102,7 @@ if kivy_ios_root is not None:
     platform = 'ios'
 if exists('/opt/vc/include/bcm_host.h'):
     platform = 'rpi'
-if exists('/usr/lib/arm-linux-gnueabihf/libMali.so'):
+if exists(libmali_path):
     platform = 'mali'
 
 # -----------------------------------------------------------------------------
@@ -582,7 +589,7 @@ def determine_gl_flags():
         flags['libraries'] = ['bcm_host', 'EGL', 'GLESv2']
     elif platform == 'mali':
         flags['include_dirs'] = ['/usr/include/']
-        flags['library_dirs'] = ['/usr/lib/arm-linux-gnueabihf']
+        flags['library_dirs'] = [libmali_path]
         flags['libraries'] = ['GLESv2']
         c_options['use_x11'] = True
         c_options['use_egl'] = True
