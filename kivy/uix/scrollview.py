@@ -61,6 +61,9 @@ By default, the :attr:`~kivy.uix.widget.Widget.size_hint` is (1, 1), so the
 content size will fit your ScrollView
 exactly (you will have nothing to scroll). You must deactivate at least one of
 the size_hint instructions (x or y) of the child to enable scrolling.
+Setting :attr:`~kivy.uix.widget.Widget.size_hint_min` to not be None will
+also enable scrolling for that dimension when the :class:`ScrollView` is
+smaller than the minimum size.
 
 To scroll a :class:`~kivy.uix.gridlayout.GridLayout` on it's Y-axis/vertically,
 set the child's width  to that of the ScrollView (size_hint_x=1), and set
@@ -774,7 +777,7 @@ class ScrollView(StencilView):
             if ((ud['dx'] > self.scroll_distance and self.do_scroll_x) or
                     (ud['dy'] > self.scroll_distance and self.do_scroll_y)):
                 ud['mode'] = 'scroll'
-                
+
         if ud['mode'] == 'scroll':
             if not touch.ud['sv.handled']['x'] and self.do_scroll_x \
                     and self.effect_x:
@@ -896,7 +899,7 @@ class ScrollView(StencilView):
                 Clock.schedule_once(
                      lambda *dt: self.scroll_to(widget,padding,animate))
                 return
-            
+
         if isinstance(padding, (int, float)):
             padding = (padding, padding)
 
@@ -965,9 +968,19 @@ class ScrollView(StencilView):
 
         # update from size_hint
         if vp.size_hint_x is not None:
-            vp.width = vp.size_hint_x * self.width
+            w = vp.size_hint_x * self.width
+            if self.size_hint_min_x is not None:
+                w = max(w, self.size_hint_min_x)
+            if self.size_hint_max_x is not None:
+                w = min(w, self.size_hint_max_x)
+            vp.width = w
         if vp.size_hint_y is not None:
-            vp.height = vp.size_hint_y * self.height
+            h = vp.size_hint_y * self.height
+            if self.size_hint_min_y is not None:
+                h = max(h, self.size_hint_min_y)
+            if self.size_hint_max_y is not None:
+                h = min(h, self.size_hint_max_y)
+            vp.height = h
 
         if vp.width > self.width:
             sw = vp.width - self.width
