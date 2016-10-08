@@ -969,17 +969,17 @@ class ScrollView(StencilView):
         # update from size_hint
         if vp.size_hint_x is not None:
             w = vp.size_hint_x * self.width
-            if self.size_hint_min_x is not None:
-                w = max(w, self.size_hint_min_x)
-            if self.size_hint_max_x is not None:
-                w = min(w, self.size_hint_max_x)
+            if vp.size_hint_min_x is not None:
+                w = max(w, vp.size_hint_min_x)
+            if vp.size_hint_max_x is not None:
+                w = min(w, vp.size_hint_max_x)
             vp.width = w
         if vp.size_hint_y is not None:
             h = vp.size_hint_y * self.height
-            if self.size_hint_min_y is not None:
-                h = max(h, self.size_hint_min_y)
-            if self.size_hint_max_y is not None:
-                h = min(h, self.size_hint_max_y)
+            if vp.size_hint_min_y is not None:
+                h = max(h, vp.size_hint_min_y)
+            if vp.size_hint_max_y is not None:
+                h = min(h, vp.size_hint_max_y)
             vp.height = h
 
         if vp.width > self.width:
@@ -1031,7 +1031,8 @@ class ScrollView(StencilView):
         super(ScrollView, self).add_widget(widget, index)
         self.canvas = canvas
         self._viewport = widget
-        widget.bind(size=self._trigger_update_from_scroll)
+        widget.bind(size=self._trigger_update_from_scroll,
+                    size_hint_min=self._trigger_update_from_scroll)
         self._trigger_update_from_scroll()
 
     def remove_widget(self, widget):
