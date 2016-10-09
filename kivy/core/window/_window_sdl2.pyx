@@ -231,7 +231,6 @@ cdef class _WindowSDL2Storage:
         cdef SDL_Rect *rect = <SDL_Rect *>PyMem_Malloc(sizeof(SDL_Rect))
         if not rect:
             raise MemoryError('Memory error in rect allocation')
-        cdef int targetbottom, targetleft, targetwidth, targetheight
         try:
             if platform == 'android':
                 # This could probably be safely done on every platform
