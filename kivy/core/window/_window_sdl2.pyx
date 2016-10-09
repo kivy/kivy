@@ -274,9 +274,7 @@ cdef class _WindowSDL2Storage:
 
     def hide_keyboard(self):
         if SDL_IsTextInputActive():
-
             SDL_StopTextInput()
-
 
     def is_keyboard_shown(self):
         return SDL_IsTextInputActive()

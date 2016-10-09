@@ -567,6 +567,9 @@ class WindowBase(EventDispatcher):
     '''Returns the height of the softkeyboard/IME on mobile platforms.
     Will return 0 if not on mobile platform or if IME is not active.
 
+    .. note:: This property returns 0 with SDL2 on Android, but setting
+              Window.softinput_mode does works.
+
     .. versionadded:: 1.9.0
 
     :attr:`keyboard_height` is a read-only
