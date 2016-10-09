@@ -516,6 +516,8 @@ class WindowBase(EventDispatcher):
     :attr:`softinput_mode` is an :class:`~kivy.properties.OptionProperty` and
     defaults to `None`.
 
+    .. note:: The `resize` option does not currently work with SDL2 on Android.
+
     .. versionadded:: 1.9.0
 
     .. versionchanged:: 1.9.1
