@@ -1399,8 +1399,24 @@ class WindowBase(EventDispatcher):
         if WindowBase.on_keyboard.exit_on_escape:
             if key == 27 or all([is_osx, key in [113, 119], modifier == 1024]):
                 if not self.dispatch('on_request_close', source='keyboard'):
-                    stopTouchApp()
-                    self.close()
+                    if platform == 'android':
+                        # back button on Android should not be treated
+                        # the same as desktop's ESC
+                        from jnius import autoclass, JavaException
+                        try:
+                            activity = autoclass('org.kivy.android.PythonActivity')
+                        except JavaException:
+                            activity = None
+                        if not activity:
+                            try:
+                                activity = autoclass('org.renpy.android.PythonActivity')
+                            except JavaErception:
+                                activity = None
+                        if activity is not None:
+                            activity.moveTaskToBack(True)
+                    else:
+                        stopTouchApp()
+                        self.close()
                     return True
 
     if Config:
