@@ -516,6 +516,8 @@ class WindowBase(EventDispatcher):
     :attr:`softinput_mode` is an :class:`~kivy.properties.OptionProperty` and
     defaults to `None`.
 
+    .. note:: The `resize` option does not currently work with SDL2 on Android.
+
     .. versionadded:: 1.9.0
 
     .. versionchanged:: 1.9.1
@@ -564,6 +566,9 @@ class WindowBase(EventDispatcher):
                                     bind=('_keyboard_changed',), cached=True)
     '''Returns the height of the softkeyboard/IME on mobile platforms.
     Will return 0 if not on mobile platform or if IME is not active.
+
+    .. note:: This property returns 0 with SDL2 on Android, but setting
+              Window.softinput_mode does works.
 
     .. versionadded:: 1.9.0
 
