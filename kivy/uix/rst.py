@@ -8,6 +8,10 @@ reStructuredText renderer
 easy-to-read, what-you-see-is-what-you-get plaintext markup syntax and parser
 system.
 
+.. note::
+
+    This widget requires ``docutils`` package to run. Install it with ``pip``.
+
 .. warning::
 
     This widget is highly experimental. The whole styling and
