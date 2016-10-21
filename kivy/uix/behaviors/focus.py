@@ -69,7 +69,7 @@ effect. To initialize focus, you can use the 'on_parent' event::
 
     SampleApp().run()
 
-If you are using a :class:`~kivy.uix.popup`, you can use the 'on_enter' event.
+If you are using a :class:`~kivy.uix.popup`, you can use the 'on_open' event.
 
 For an overview of behaviors, please refer to the :mod:`~kivy.uix.behaviors`
 documentation.
