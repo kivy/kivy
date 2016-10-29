@@ -102,9 +102,9 @@ class Animation(EventDispatcher):
         `step` or `s`: float
             Step in milliseconds of the animation. Defaults to 0, which means
             the animation is updated for every frame.
-            
+
             To update the animation less often, set the step value to a float.
-            For example, if you want to animate at 30 FPS, use s=1/30. 
+            For example, if you want to animate at 30 FPS, use s=1/30.
 
     :Events:
         `on_start`: animation, widget
@@ -321,7 +321,10 @@ class Animation(EventDispatcher):
 
             if isinstance(widget, WeakProxy) and not len(dir(widget)):
                 # empty proxy, widget is gone. ref: #2458
-                del widgets[uid]
+                self._widgets.pop(uid, None)
+                self._clock_uninstall()
+                if not self._widgets:
+                    self._unregister()
                 continue
 
             if anim['time'] is None:
@@ -472,6 +475,7 @@ class Sequence(Animation):
             self.anim1.bind(on_complete=self.on_anim1_complete)
         else:
             self.dispatch('on_complete', widget)
+            self.cancel(widget)
 
     def on_anim2_progress(self, instance, widget, progress):
         self.dispatch('on_progress', widget, .5 + progress / 2.)
