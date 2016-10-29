@@ -209,6 +209,11 @@ with git rather than a wheel there are some additional steps:
    can be a url such as ``https://github.com/kivy/kivy/archive/master.zip`` for
    kivy master, or the full path to a local copy of a kivy zip.
 
+MSVC
+~~~~
+
+...
+
 .. _alternate-win:
 
 Installing Kivy to an alternate location
