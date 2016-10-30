@@ -212,10 +212,6 @@ with git rather than a wheel there are some additional steps:
 MSVC
 ~~~~
 
-.. warning::
-   The branch is still in progress and some things might not work when compiled
-   with msvc.
-
 .. |msvc| replace:: compiler
 .. _msvc: http://landinghub.visualstudio.com/visual-cpp-build-tools
 .. |py3deps| replace:: py3.5 deps
@@ -223,14 +219,18 @@ MSVC
 .. |gl-back| replace:: feature-gl-backend
 .. _gl-back: https://github.com/kivy/kivy/pull/4385
 
+.. warning::
+   The branch |gl-back|_ is still in progress and some things might not work
+   when compiled with MSVC. Using it until properly merged into `master` is
+   more than experimental.
+
 Environment
 ^^^^^^^^^^^
 
 1. Get the |msvc|_ (~5GB total size)
 2. Open ``cmd.exe`` in `<python.exe dir>` (`shift` + right click)
 3. Upgrade pip and setuptools*
-4. Get sdl2 and glew |py3deps|_
-   and install them
+4. Get sdl2 and glew |py3deps|_ and install them.
 5. ``"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"``
 6. Set environment variables::
 
@@ -243,8 +243,6 @@ Environment
 
 7. ``git clone -b feature-gl-backend https://github.com/kivy/kivy``
 
-.. note:: Use branch |gl-back|_ until properly merged into `master`
-
 \*The setuptools Python package version must be at least 24.0. according to
 Python's `wiki <https://wiki.python.org/moin/WindowsCompilers>`_
 
@@ -253,8 +251,16 @@ Compile Kivy
 
 1. ``python -m pip install kivy\`` (the local path, not "kivy" as stable from
    pypi)
+2. Set correct paths for binaries (located in ``share\sdl2`` and
+   ``share\glew``) and run. ::
 
-Kivy then will be installed into `site-packages` and you can delete the clone.
+    set PATH=%PATH%;%cd%\share\sdl2;%cd%\share\glew
+
+Kivy was successfully installed into `site-packages` and you can delete
+the clone. There's a tricky part about SDL2 now, because for 3.5 weren't
+created binaries yet, therefore you'll need to download `kivy.deps.sdl2`
+wheel for Python 3.4 and rename parts of sdl2 wheels from `cp34` to `cp35`
+so that is could be installed.
 
 .. _alternate-win:
 
