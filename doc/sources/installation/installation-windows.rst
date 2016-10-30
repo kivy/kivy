@@ -212,7 +212,49 @@ with git rather than a wheel there are some additional steps:
 MSVC
 ~~~~
 
-...
+.. warning::
+   The branch is still in progress and some things might not work when compiled
+   with msvc.
+
+.. |msvc| replace:: compiler
+.. _msvc: http://landinghub.visualstudio.com/visual-cpp-build-tools
+.. |py3deps| replace:: py3.5 deps
+.. _py3deps: https://drive.google.com/drive/folders/0B1_HB9J8mZepdUl0bEZubXZiSUE
+.. |gl-back| replace:: feature-gl-backend
+.. _gl-back: https://github.com/kivy/kivy/pull/4385
+
+Environment
+^^^^^^^^^^^
+
+1. Get the |msvc|_ (~5GB total size)
+2. Open ``cmd.exe`` in `<python.exe dir>` (`shift` + right click)
+3. Upgrade pip and setuptools*
+4. Get sdl2 and glew |py3deps|_
+   and install them
+5. ``"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"``
+6. Set environment variables::
+
+    set MSSdk=1
+    set USE_SDL2=1
+    REM ^^^^^^^^^^ and USE_GSTREAMER if used
+    set DISTUTILS_USE_SDK=1
+    set LIB=%cd%\libs;%LIB%
+    set INCLUDE=%cd%\include;%INCLUDE%
+
+7. ``git clone -b feature-gl-backend https://github.com/kivy/kivy``
+
+.. note:: Use branch |gl-back|_ until properly merged into `master`
+
+\*The setuptools Python package version must be at least 24.0. according to
+Python's `wiki <https://wiki.python.org/moin/WindowsCompilers>`_
+
+Compile Kivy
+^^^^^^^^^^^^
+
+1. ``python -m pip install kivy\`` (the local path, not "kivy" as stable from
+   pypi)
+
+Kivy then will be installed into `site-packages` and you can delete the clone.
 
 .. _alternate-win:
 
