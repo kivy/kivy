@@ -149,7 +149,7 @@ Using MacPorts with pip
 
 You can install Kivy with Macports and pip using the following steps:
 
-    1. Install `Macports <https://www.macports.org>`_::
+    1. Install `Macports <https://www.macports.org>`_
 
     2. Install and set Python 3.4 as the default::
 

@@ -52,7 +52,7 @@ With Kivy, you can do::
 
 
 Depth being tracked
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 Only the "top level" of a nested object is being tracked. For example::
 
@@ -731,6 +731,7 @@ cdef class ListProperty(Property):
 
         However, changes to nested levels will affect the property as well,
         since the property uses a shallow copy of my_list.
+
             >>> my_list[2]['hi'] = 'bye'
             >>> print(my_list, widget.my_list)
             [1, 5, {'hi': 'bye'}, 10] [1, 5, {'hi': 'bye'}]

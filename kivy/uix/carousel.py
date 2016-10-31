@@ -244,11 +244,12 @@ class Carousel(StencilView):
     '''
 
     ignore_perpendicular_swipes = BooleanProperty(False)
-    '''ignore swipes on axis perpendicular to direction.
+    '''Ignore swipes on axis perpendicular to direction.
+
+    :attr:`ignore_perpendicular_swipes` is a
+    :class:`~kivy.properties.BooleanProperty` and defaults to False.
 
     .. versionadded:: 1.9.2
-    :attr:`ignore_perpendicular_swipes` is a :class:`~kivy.properties.BooleanProperty` and
-    defaults to False.
     '''
 
     #### private properties, for internal use only ###
