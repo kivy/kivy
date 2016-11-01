@@ -166,8 +166,6 @@ class StackLayout(Layout):
         padding_y = padding_top + padding_bottom
         spacing_x, spacing_y = self.spacing
 
-        lc = []
-
         # Determine which direction and in what order to place the widgets
         posattr = [0] * 2
         posdelta = [0] * 2
@@ -224,6 +222,7 @@ class StackLayout(Layout):
         vrev = (deltav < 0)
         firstchild = self.children[0]
         sizes = []
+        lc = []
         for c in reversed(self.children):
             if c.size_hint[outerattr] is not None:
                 c.size[outerattr] = max(
@@ -261,7 +260,11 @@ class StackLayout(Layout):
                     testsizes[-1] = max(0, c.size[innerattr])
                 availsize -= testsizes[-1]
 
-            if availsize >= 0 or not lc:
+            # Tiny value added in order to avoid issues with float precision
+            # causing unexpected children reordering when parent resizes.
+            # e.g. if size is 101 and children size_hint_x is 1./5
+            # 5 children would not fit in one line because 101*(1./5) > 101/5
+            if (availsize + 1e-10) >= 0 or not lc:
                 # even if there's no space, we always add one widget to a row
                 lc.append(c)
                 sizes = testsizes
