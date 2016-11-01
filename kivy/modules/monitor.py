@@ -41,14 +41,15 @@ def update_stats(win, ctx, *largs):
         ctx.statsr[i].size = (4, ctx.stats[i] / m * 20)
         ctx.statsr[i].pos = (win.width - 64 * 4 + i * 4, win.height - 25)
 
+
 def _update_monitor_canvas(win, ctx, *largs):
     with win.canvas.after:
         ctx.overlay.pos = (0, win.height - 25)
         ctx.overlay.size = (win.width, 25)
         ctx.rectangle.pos = (5, win.height - 20)
 
-class StatsInput(object):
 
+class StatsInput(object):
     def process(self, events):
         global _statsinput, _maxinput
         _statsinput += len(events)
@@ -64,12 +65,12 @@ def start(win, ctx):
     global _ctx
     ctx.label = Label(text='FPS: 0.0')
     ctx.inputstats = 0
-    ctx.stats = [] # stats
-    ctx.statsr = [] # stats Rectangle objects
+    ctx.stats = []
+    ctx.statsr = []
     with win.canvas.after:
         ctx.color = Color(1, 0, 0, .5)
         ctx.overlay = Rectangle(pos=(0, win.height - 25),
-                                  size=(win.width, 25))
+                                size=(win.width, 25))
         ctx.color = Color(1, 1, 1)
         ctx.rectangle = Rectangle(pos=(5, win.height - 20))
         ctx.color = Color(1, 1, 1, .5)
