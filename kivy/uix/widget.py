@@ -546,7 +546,7 @@ class Widget(WidgetBase):
             children = self.children
             if index >= len(children):
                 index = len(children)
-                next_index = 0
+                next_index = canvas.indexof(children[-1].canvas)
             else:
                 next_child = children[index]
                 next_index = canvas.indexof(next_child.canvas)
