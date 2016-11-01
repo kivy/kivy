@@ -57,6 +57,7 @@ __all__ = ('Triangle', 'Quad', 'Rectangle', 'RoundedRectangle', 'BorderImage', '
 
 include "config.pxi"
 include "common.pxi"
+include "memory.pxi"
 
 from os import environ
 from kivy.graphics.vbo cimport *
@@ -346,9 +347,9 @@ cdef class Mesh(VertexInstruction):
     .. versionadded:: 1.1.0
 
     :Parameters:
-        `vertices`: list
+        `vertices`: iterable
             List of vertices in the format (x1, y1, u1, v1, x2, y2, u2, v2...).
-        `indices`: list
+        `indices`: iterable
             List of indices in the format (i1, i2, i3...).
         `mode`: str
             Mode of the vbo. Check :attr:`mode` for more information. Defaults to
@@ -370,6 +371,21 @@ cdef class Mesh(VertexInstruction):
                 attribute vec2 v_tc;
 
             in glsl's vertex shader.
+
+    .. versionchanged:: 1.8.1
+        Before, `vertices` and `indices` would always be converted to a list,
+        now, they are only converted to a list if they do not implement the
+        buffer interface. So e.g. numpy arrays, python arrays etc. are used
+        in place, without creating any additional copies. However, the
+        buffers cannot be readonly (even though they are not changed, due to
+        a cython limitation) and must be contiguous in memory.
+
+    ..note::
+        When passing a memoryview or a instance that implements the buffer
+        interface, `vertices` should be a buffer of floats (`'f'` code in
+        python array) and `indices` should be a buffer of unsigned short (`'H'`
+        code in python array). Arrays in other formats will still have to be
+        converted internally, negating any potential gain.
     '''
 
     def __init__(self, **kwargs):
@@ -416,37 +432,29 @@ cdef class Mesh(VertexInstruction):
     cdef void build(self):
         if self.is_built:
             return
-        cdef int i
-        cdef long vcount = len(self._vertices)
-        cdef long icount = len(self._indices)
-        cdef float *vertices = NULL
-        cdef unsigned short *indices = NULL
-        cdef list lvertices = self._vertices
-        cdef list lindices = self._indices
         cdef vsize = self.batch.vbo.vertex_format.vsize
 
-        if vcount == 0 or icount == 0:
+        # if user updated the list, but didn't do self.indices = ... then
+        # we'd not know about it, so ensure _indices/_indices is up to date
+        if len(self._vertices) != self.vcount:
+            self._vertices, self._fvertices = _ensure_float_view(self._vertices,
+                &self._pvertices)
+            self.vcount = len(self._vertices)
+
+        if len(self._indices) != self.icount:
+            if len(self._indices) > 65535:
+                raise GraphicException('Cannot upload more than 65535 indices'
+                                       '(OpenGL ES 2 limitation)')
+            self._indices, self._lindices = _ensure_ushort_view(self._indices,
+                &self._pindices)
+            self.icount = len(self._indices)
+
+        if self.vcount == 0 or self.icount == 0:
             self.batch.clear_data()
             return
 
-        vertices = <float *>malloc(vcount * sizeof(float))
-        if vertices == NULL:
-            raise MemoryError('vertices')
-
-        indices = <unsigned short *>malloc(icount * sizeof(unsigned short))
-        if indices == NULL:
-            free(vertices)
-            raise MemoryError('indices')
-
-        for i in xrange(vcount):
-            vertices[i] = lvertices[i]
-        for i in xrange(icount):
-            indices[i] = lindices[i]
-
-        self.batch.set_data(vertices, <int>(vcount / vsize), indices, <int>icount)
-
-        free(vertices)
-        free(indices)
+        self.batch.set_data(&self._pvertices[0], <int>(self.vcount / vsize),
+                            &self._pindices[0], <int>self.icount)
 
     property vertices:
         '''List of x, y, u, v coordinates used to construct the Mesh. Right now,
@@ -456,7 +464,9 @@ cdef class Mesh(VertexInstruction):
         def __get__(self):
             return self._vertices
         def __set__(self, value):
-            self._vertices = list(value)
+            self._vertices, self._fvertices = _ensure_float_view(value,
+                &self._pvertices)
+            self.vcount = len(self._vertices)
             self.flag_update()
 
     property indices:
@@ -470,7 +480,9 @@ cdef class Mesh(VertexInstruction):
                 raise GraphicException(
                     'Cannot upload more than 65535 indices (OpenGL ES 2'
                     ' limitation - consider setting KIVY_GLES_LIMITS)')
-            self._indices = list(value)
+            self._indices, self._lindices = _ensure_ushort_view(value,
+                &self._pindices)
+            self.icount = len(self._indices)
             self.flag_update()
 
     property mode:
