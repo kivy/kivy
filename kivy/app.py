@@ -869,7 +869,7 @@ class App(EventDispatcher):
 
         .. versionadded:: 1.1.0
         '''
-        return False
+        return True
 
     def on_resume(self):
         '''Event handler called when your application is resuming from
