@@ -107,11 +107,11 @@ class Animation(EventDispatcher):
             For example, if you want to animate at 30 FPS, use s=1/30. 
 
     :Events:
-        `on_start`: widget
+        `on_start`: animation, widget
             Fired when the animation is started on a widget.
-        `on_complete`: widget
+        `on_complete`: animation, widget
             Fired when the animation is completed or stopped on a widget.
-        `on_progress`: widget, progression
+        `on_progress`: animation, widget, progression
             Fired when the progression of the animation is changing.
 
     .. versionchanged:: 1.4.0

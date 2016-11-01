@@ -93,7 +93,7 @@ class Keyboard(EventDispatcher):
         '(': 40, ')': 41,
         '[': 91, ']': 93,
         '{': 123, '}': 125,
-        ':': 59, ';': 59,
+        ':': 58, ';': 59,
         '=': 61, '+': 43,
         '-': 45, '_': 95,
         '/': 47, '*': 42,
@@ -516,6 +516,8 @@ class WindowBase(EventDispatcher):
     :attr:`softinput_mode` is an :class:`~kivy.properties.OptionProperty` and
     defaults to `None`.
 
+    .. note:: The `resize` option does not currently work with SDL2 on Android.
+
     .. versionadded:: 1.9.0
 
     .. versionchanged:: 1.9.1
@@ -564,6 +566,9 @@ class WindowBase(EventDispatcher):
                                     bind=('_keyboard_changed',), cached=True)
     '''Returns the height of the softkeyboard/IME on mobile platforms.
     Will return 0 if not on mobile platform or if IME is not active.
+
+    .. note:: This property returns 0 with SDL2 on Android, but setting
+              Window.softinput_mode does works.
 
     .. versionadded:: 1.9.0
 
@@ -982,6 +987,8 @@ class WindowBase(EventDispatcher):
         widget.bind(
             pos_hint=self._update_childsize,
             size_hint=self._update_childsize,
+            size_hint_max=self._update_childsize,
+            size_hint_min=self._update_childsize,
             size=self._update_childsize,
             pos=self._update_childsize)
 
@@ -1001,6 +1008,8 @@ class WindowBase(EventDispatcher):
         widget.unbind(
             pos_hint=self._update_childsize,
             size_hint=self._update_childsize,
+            size_hint_max=self._update_childsize,
+            size_hint_min=self._update_childsize,
             size=self._update_childsize,
             pos=self._update_childsize)
 
@@ -1173,12 +1182,40 @@ class WindowBase(EventDispatcher):
             childs = self.children
         for w in childs:
             shw, shh = w.size_hint
-            if shw and shh:
-                w.size = shw * width, shh * height
-            elif shw:
-                w.width = shw * width
-            elif shh:
-                w.height = shh * height
+            shw_min, shh_min = w.size_hint_min
+            shw_max, shh_max = w.size_hint_max
+
+            if shw is not None and shh is not None:
+                c_w = shw * width
+                c_h = shh * height
+
+                if shw_min is not None and c_w < shw_min:
+                    c_w = shw_min
+                elif shw_max is not None and c_w > shw_max:
+                    c_w = shw_max
+
+                if shh_min is not None and c_h < shh_min:
+                    c_h = shh_min
+                elif shh_max is not None and c_h > shh_max:
+                    c_h = shh_max
+                w.size = c_w, c_h
+            elif shw is not None:
+                c_w = shw * width
+
+                if shw_min is not None and c_w < shw_min:
+                    c_w = shw_min
+                elif shw_max is not None and c_w > shw_max:
+                    c_w = shw_max
+                w.width = c_w
+            elif shh is not None:
+                c_h = shh * height
+
+                if shh_min is not None and c_h < shh_min:
+                    c_h = shh_min
+                elif shh_max is not None and c_h > shh_max:
+                    c_h = shh_max
+                w.height = c_h
+
             for key, value in w.pos_hint.items():
                 if key == 'x':
                     w.x = value * width

@@ -838,8 +838,9 @@ class App(EventDispatcher):
         stopTouchApp()
 
         # Clear the window children
-        for child in self._app_window.children:
-            self._app_window.remove_widget(child)
+        if self._app_window:
+            for child in self._app_window.children:
+                self._app_window.remove_widget(child)
 
     def on_start(self):
         '''Event handler for the `on_start` event which is fired after

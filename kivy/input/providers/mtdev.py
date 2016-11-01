@@ -47,8 +47,14 @@ class MTDMotionEvent(MotionEvent):
 
     def depack(self, args):
         self.is_touch = True
-        self.sx = args['x']
-        self.sy = args['y']
+        if 'x' in args:
+            self.sx = args['x']
+        else:
+            self.sx = -1
+        if 'y' in args:
+            self.sy = args['y']
+        else:
+            self.sy = -1
         self.profile = ['pos']
         if 'size_w' in args and 'size_h' in args:
             self.shape = ShapeRect()
@@ -89,7 +95,7 @@ else:
                    'min_position_y', 'max_position_y',
                    'min_pressure', 'max_pressure',
                    'min_touch_major', 'max_touch_major',
-                   'min_touch_minor', 'min_touch_major',
+                   'min_touch_minor', 'max_touch_minor',
                    'invert_x', 'invert_y',
                    'rotation')
 

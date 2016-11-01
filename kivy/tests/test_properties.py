@@ -410,6 +410,17 @@ class PropertiesTestCase(unittest.TestCase):
         self.assertEqual(a.get(wid), 9504.0 * density)
         self.assertEqual(a.get_format(wid), 'in')
 
+    def test_numeric_string_without_units(self):
+        from kivy.properties import NumericProperty
+
+        a = NumericProperty()
+        a.link(wid, 'a')
+        a.link_deps(wid, 'a')
+        self.assertEqual(a.get(wid), 0)
+
+        a.set(wid, '2')
+        self.assertEqual(a.get(wid), 2)
+
     def test_property_rebind(self):
         from kivy.uix.label import Label
         from kivy.uix.togglebutton import ToggleButton

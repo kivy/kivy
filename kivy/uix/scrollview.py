@@ -61,6 +61,9 @@ By default, the :attr:`~kivy.uix.widget.Widget.size_hint` is (1, 1), so the
 content size will fit your ScrollView
 exactly (you will have nothing to scroll). You must deactivate at least one of
 the size_hint instructions (x or y) of the child to enable scrolling.
+Setting :attr:`~kivy.uix.widget.Widget.size_hint_min` to not be None will
+also enable scrolling for that dimension when the :class:`ScrollView` is
+smaller than the minimum size.
 
 To scroll a :class:`~kivy.uix.gridlayout.GridLayout` on it's Y-axis/vertically,
 set the child's width  to that of the ScrollView (size_hint_x=1), and set
@@ -758,10 +761,24 @@ class ScrollView(StencilView):
             self._touch = False
             return self.on_scroll_start(touch, False)
         ud = touch.ud[uid]
-        mode = ud['mode']
 
         # check if the minimum distance has been travelled
-        if mode == 'unknown' or mode == 'scroll':
+        if ud['mode'] == 'unknown':
+            if not self.do_scroll_x and not self.do_scroll_y:
+                # touch is in parent, but _change expects window coords
+                touch.push()
+                touch.apply_transform_2d(self.to_local)
+                touch.apply_transform_2d(self.to_window)
+                self._change_touch_mode()
+                touch.pop()
+                return
+            ud['dx'] += abs(touch.dx)
+            ud['dy'] += abs(touch.dy)
+            if ((ud['dx'] > self.scroll_distance and self.do_scroll_x) or
+                    (ud['dy'] > self.scroll_distance and self.do_scroll_y)):
+                ud['mode'] = 'scroll'
+
+        if ud['mode'] == 'scroll':
             if not touch.ud['sv.handled']['x'] and self.do_scroll_x \
                     and self.effect_x:
                 width = self.width
@@ -794,28 +811,9 @@ class ScrollView(StencilView):
                     touch.ud['sv.handled']['y'] = True
                 # Touch resulted in scroll should not defocus focused widget
                 touch.ud['sv.can_defocus'] = False
-
-        if mode == 'unknown':
-            ud['dx'] += abs(touch.dx)
-            ud['dy'] += abs(touch.dy)
-            if ((ud['dx'] > self.scroll_distance) or
-                    (ud['dy'] > self.scroll_distance)):
-                if not self.do_scroll_x and not self.do_scroll_y:
-                    # touch is in parent, but _change expects window coords
-                    touch.push()
-                    touch.apply_transform_2d(self.to_local)
-                    touch.apply_transform_2d(self.to_window)
-                    self._change_touch_mode()
-                    touch.pop()
-                    return
-                mode = 'scroll'
-            ud['mode'] = mode
-
-        if mode == 'scroll':
             ud['dt'] = touch.time_update - ud['time']
             ud['time'] = touch.time_update
             ud['user_stopped'] = True
-
         return rv
 
     def on_touch_up(self, touch):
@@ -895,6 +893,13 @@ class ScrollView(StencilView):
         if not self.parent:
             return
 
+        # if _viewport is layout and has pending operation, reschedule
+        if hasattr(self._viewport,'do_layout'):
+            if self._viewport._trigger_layout.is_triggered:
+                Clock.schedule_once(
+                     lambda *dt: self.scroll_to(widget,padding,animate))
+                return
+
         if isinstance(padding, (int, float)):
             padding = (padding, padding)
 
@@ -963,9 +968,19 @@ class ScrollView(StencilView):
 
         # update from size_hint
         if vp.size_hint_x is not None:
-            vp.width = vp.size_hint_x * self.width
+            w = vp.size_hint_x * self.width
+            if vp.size_hint_min_x is not None:
+                w = max(w, vp.size_hint_min_x)
+            if vp.size_hint_max_x is not None:
+                w = min(w, vp.size_hint_max_x)
+            vp.width = w
         if vp.size_hint_y is not None:
-            vp.height = vp.size_hint_y * self.height
+            h = vp.size_hint_y * self.height
+            if vp.size_hint_min_y is not None:
+                h = max(h, vp.size_hint_min_y)
+            if vp.size_hint_max_y is not None:
+                h = min(h, vp.size_hint_max_y)
+            vp.height = h
 
         if vp.width > self.width:
             sw = vp.width - self.width
@@ -1016,7 +1031,8 @@ class ScrollView(StencilView):
         super(ScrollView, self).add_widget(widget, index)
         self.canvas = canvas
         self._viewport = widget
-        widget.bind(size=self._trigger_update_from_scroll)
+        widget.bind(size=self._trigger_update_from_scroll,
+                    size_hint_min=self._trigger_update_from_scroll)
         self._trigger_update_from_scroll()
 
     def remove_widget(self, widget):

@@ -9,8 +9,10 @@ The :class:`PageLayout` class is used to create a simple multi-page
 layout, in a way that allows easy flipping from one page to another using
 borders.
 
-:class:`PageLayout` does not currently honor
-:attr:`~kivy.uix.widget.Widget.size_hint` or
+:class:`PageLayout` does not currently honor the
+:attr:`~kivy.uix.widget.Widget.size_hint`,
+:attr:`~kivy.uix.widget.Widget.size_hint_min`,
+:attr:`~kivy.uix.widget.Widget.size_hint_max`, or
 :attr:`~kivy.uix.widget.Widget.pos_hint` properties.
 
 .. versionadded:: 1.8.0
@@ -90,7 +92,6 @@ class PageLayout(Layout):
         right = self.right
         width = self.width - border
         for i, c in enumerate(reversed(self.children)):
-            not i or i == l_children
 
             if i < p:
                 x = x_parent

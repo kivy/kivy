@@ -16,6 +16,7 @@ Widgets
 .. |x| replace:: :attr:`~kivy.uix.widget.Widget.x`
 .. |y| replace:: :attr:`~kivy.uix.widget.Widget.y`
 .. |left| replace:: :attr:`~kivy.uix.widget.Widget.left`
+.. |right| replace:: :attr:`~kivy.uix.widget.Widget.right`
 .. |top| replace:: :attr:`~kivy.uix.widget.Widget.top`
 .. |center_x| replace:: :attr:`~kivy.uix.widget.Widget.center_x`
 .. |center_y| replace:: :attr:`~kivy.uix.widget.Widget.center_y`

@@ -630,6 +630,9 @@ class CompoundSelectionBehavior(object):
             is overwritten.
         '''
         nodes = self.selected_nodes
+        if node in nodes:
+            return False
+
         if (not self.multiselect) and len(nodes):
             self.clear_selection()
         if node not in nodes:
