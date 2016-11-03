@@ -156,7 +156,7 @@ after_success:
 notifications:
   webhooks:
     urls:
-      - http://kivy.org:5000/travisevent
+      - https://kivy.org:5000/travisevent
     on_success: always
     on_failure: always
     on_start: always
