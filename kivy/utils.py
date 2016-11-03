@@ -364,7 +364,7 @@ class SafeList(list):
 class QueryDict(dict):
     '''QueryDict is a dict() that can be queried with dot.
 
-  ::
+    ::
 
         d = QueryDict()
         # create a key named toto, with the value 1
