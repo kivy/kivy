@@ -6,6 +6,9 @@ Code Input
 
 .. image:: images/codeinput.jpg
 
+.. note::
+
+    This widget requires ``pygments`` package to run. Install it with ``pip``.
 
 The :class:`CodeInput` provides a box of editable highlighted text like the one
 shown in the image.
