@@ -5,7 +5,9 @@ from libc.string cimport memcpy
 from os import environ
 from kivy.config import Config
 from kivy.logger import Logger
+from kivy import platform
 
+from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 
 cdef int _event_filter(void *userdata, SDL_Event *event) with gil:
     return (<_WindowSDL2Storage>userdata).cb_event_filter(event)
@@ -119,7 +121,7 @@ cdef class _WindowSDL2Storage:
             self.win = SDL_CreateWindow(NULL, x, y, width, height,
                                         self.win_flags)
             if not self.win:
-                # if an error occured, create window without multisampling:
+                # if an error occurred, create window without multisampling:
                 SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0)
                 SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0)
                 self.win = SDL_CreateWindow(NULL, x, y, width, height,
@@ -223,9 +225,51 @@ cdef class _WindowSDL2Storage:
         SDL_DestroyWindow(self.win)
         SDL_Quit()
 
-    def show_keyboard(self):
-        if not SDL_IsTextInputActive():
+    def show_keyboard(self, system_keyboard, softinput_mode):
+        if SDL_IsTextInputActive():
+            return
+        cdef SDL_Rect *rect = <SDL_Rect *>PyMem_Malloc(sizeof(SDL_Rect))
+        if not rect:
+            raise MemoryError('Memory error in rect allocation')
+        try:
+            if platform == 'android':
+                # This could probably be safely done on every platform
+                # (and should behave correctly with e.g. the windows
+                # software keyboard), but this hasn't been tested
+
+                wx, wy = self.window_size
+
+                # Note Android's coordinate system has y=0 at the top
+                # of the screen
+
+                if softinput_mode == 'below_target':
+                    target = system_keyboard.target
+                    rect.y = max(0, wy - target.to_window(0, target.top)[1]) if target else 0
+                    rect.x = max(0, target.to_window(target.x, 0)[0]) if target else 0
+                    rect.w = max(0, target.width) if target else 0
+                    rect.h = max(0, target.height) if target else 0
+                    SDL_SetTextInputRect(rect)
+                elif softinput_mode == 'pan':
+                    # tell Android the TextInput is at the screen
+                    # bottom, so that it always pans
+                    rect.y = wy - 5
+                    rect.x = 0
+                    rect.w = wx
+                    rect.h = 5
+                    SDL_SetTextInputRect(rect)
+                else:
+                    # Supporting 'resize' needs to call the Android
+                    # API to set ADJUST_RESIZE mode, and change the
+                    # java bootstrap to a different root Layout.
+                    rect.y = 0
+                    rect.x = 0
+                    rect.w = 10
+                    rect.h = 1
+                    SDL_SetTextInputRect(rect)
+
             SDL_StartTextInput()
+        finally:
+            PyMem_Free(<void *>rect)
 
     def hide_keyboard(self):
         if SDL_IsTextInputActive():

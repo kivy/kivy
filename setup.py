@@ -32,7 +32,7 @@ if PY3:  # fix error with py3's LooseVersion comparisons
     LooseVersion.__eq__ = ver_equal
 
 
-MIN_CYTHON_STRING = '0.20'
+MIN_CYTHON_STRING = '0.23'
 MIN_CYTHON_VERSION = LooseVersion(MIN_CYTHON_STRING)
 MAX_CYTHON_STRING = '0.23'
 MAX_CYTHON_VERSION = LooseVersion(MAX_CYTHON_STRING)
@@ -45,7 +45,7 @@ def getoutput(cmd, env=None):
                          stderr=subprocess.PIPE, env=env)
     p.wait()
     if p.returncode:  # if not returncode == 0
-        print('WARNING: A problem occured while running {0} (code {1})\n'
+        print('WARNING: A problem occurred while running {0} (code {1})\n'
               .format(cmd, p.returncode))
         stderr_content = p.stderr.read()
         if stderr_content:
@@ -177,8 +177,10 @@ cython_unsupported = '''\
            cython_unsupported_append)
 
 have_cython = False
+skip_cython = False
 if platform in ('ios', 'android'):
     print('\nCython check avoided.')
+    skip_cython = True
 else:
     try:
         # check for cython
@@ -720,6 +722,7 @@ graphics_dependencies = {
 
 sources = {
     '_event.pyx': merge(base_flags, {'depends': ['properties.pxd']}),
+    '_clock.pyx': {},
     'weakproxy.pyx': {},
     'properties.pyx': merge(base_flags, {'depends': ['_event.pxd']}),
     'graphics/buffer.pyx': base_flags,
@@ -1028,4 +1031,4 @@ setup(
     dependency_links=[
         'https://github.com/kivy-garden/garden/archive/master.zip'],
     install_requires=['Kivy-Garden>=0.1.4', 'docutils', 'pygments'],
-    setup_requires=['cython>=' + MIN_CYTHON_STRING])
+    setup_requires=['cython>=' + MIN_CYTHON_STRING] if not skip_cython else [])

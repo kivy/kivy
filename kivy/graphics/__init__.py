@@ -27,7 +27,7 @@ a widget, you can create all the instructions needed for drawing. If
         # Add a rectangle
         Rectangle(pos=(10, 10), size=(500, 500))
 
-The instructions :class:`Color` and :class:`Rectangle` are automaticly added to
+The instructions :class:`Color` and :class:`Rectangle` are automatically added to
 the canvas object and will be used when the window is drawn.
 
 .. note::

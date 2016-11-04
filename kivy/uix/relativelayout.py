@@ -229,7 +229,7 @@ This also applies to the position of sub-widgets. Instead of positioning a
         Widget:
             center: self.parent.center
 
-...use the :attr:`pos_hint` property:
+use the :attr:`pos_hint` property:
 
 .. code-block:: kv
 
@@ -247,7 +247,7 @@ This also applies to the position of sub-widgets. Instead of positioning a
     supports relative positions (and can't be rotated, scaled or translated on
     a multitouch system using two or more fingers). This was done so that the
     implementation could be optimized and avoid the heavier calculations of
-    :class:`Scatter` (e.g. inverse matrix, recaculating multiple properties
+    :class:`Scatter` (e.g. inverse matrix, recalculating multiple properties
     etc.)
 
 '''

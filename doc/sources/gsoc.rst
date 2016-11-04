@@ -77,7 +77,7 @@ http://kivy.org/docs/installation/installation.html#development-version
 For the rest it's usually sufficient to install the relevant project from git 
 and add it to your PYTHONPATH.
 
-eg.. for PyJNIus::
+e.g. for PyJNIus::
 
     git clone http://github.com/kivy/pyjnius
     export PYTHONPATH=/path/to/pyjnius:$PYTHONPATH

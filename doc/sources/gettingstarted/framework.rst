@@ -31,8 +31,8 @@ Non-widget stuff
 .. |unsched| replace:: :meth:`~kivy.clock.ClockBase.unschedule`
 .. |trigger| replace:: :meth:`~kivy.clock.ClockBase.create_trigger`
 .. |urlreq| replace:: :class:`UrlRequest <kivy.network.urlrequest.UrlRequest>`
-    is useful for asynchronous requests that do not block the event loop, and
-    manage the result and progress with callbacks.
+    is useful for asynchronous requests that do not block the event loop. You
+    can use it to manage the progress of URL requests via callbacks.
 
 +------------------+------------------+
 | |animation_text| |   |animation_img||

@@ -134,9 +134,12 @@ class FileHandler(logging.Handler):
             l = l[:-maxfiles]
             print('Purge %d log files' % len(l))
 
-            # now, unlink every files in the list
+            # now, unlink every file in the list
             for filename in l:
-                unlink(filename['fn'])
+                try:
+                    unlink(filename['fn'])
+                except PermissionError as e:
+                    print('Skipped file {0}, {1}'.format(filename['fn'], e))
 
         print('Purge finished!')
 
@@ -183,7 +186,7 @@ class FileHandler(logging.Handler):
         msg = self.format(record)
         stream = FileHandler.fd
         fs = "%s\n"
-        stream.write('[%-18s] ' % record.levelname)
+        stream.write('[%-7s] ' % record.levelname)
         if PY2:
             try:
                 if (isinstance(msg, unicode) and
@@ -296,6 +299,9 @@ class LogFile(object):
 
     def flush(self):
         return
+    
+    def isatty(self):
+        return False
 
 
 def logger_config_update(section, key, value):
@@ -325,9 +331,23 @@ if 'KIVY_NO_CONSOLELOG' not in os.environ:
             os.name != 'nt' and
             os.environ.get('KIVY_BUILD') not in ('android', 'ios') and
             os.environ.get('TERM') in (
-                'xterm', 'rxvt', 'rxvt-unicode', 'xterm-256color'))
-        color_fmt = formatter_message(
-            '[%(levelname)-18s] %(message)s', use_color)
+                'rxvt',
+                'rxvt-256color',
+                'rxvt-unicode',
+                'rxvt-unicode-256color',
+                'xterm',
+                'xterm-256color',
+                ))
+        if not use_color:
+            # No additional control characters will be inserted inside the
+            # levelname field, 7 chars will fit "WARNING"
+            color_fmt = formatter_message(
+                '[%(levelname)-7s] %(message)s', use_color)
+        else:
+            # levelname field width need to take into account the length of the
+            # color control codes (7+4 chars for bold+color, and reset)
+            color_fmt = formatter_message(
+                '[%(levelname)-18s] %(message)s', use_color)
         formatter = ColoredFormatter(color_fmt, use_color=use_color)
         console = ConsoleHandler()
         console.setFormatter(formatter)

@@ -72,7 +72,10 @@ in a way that allows for easy development. For that, please see our
 Installing Dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-To install Kivy's dependencies, follow the guide below for your platform.
+To install Kivy's dependencies, follow the guide below for your platform. You
+might also need these packages for the RST and lexing components::
+
+    $ sudo pip install pygments docutils
 
 Ubuntu
 ++++++
@@ -131,7 +134,7 @@ you have the command line tools installed::
 
     xcode-select --install
 
-Go to an apropriate dir like::
+Go to an appropriate dir like::
 
     mkdir ~/code
     cd ~/code
@@ -156,7 +159,7 @@ It should give you an output similar to the following::
 
     $ python -c "import kivy"
     [INFO   ] [Logger      ] Record log in /Users/quanon/.kivy/logs/kivy_15-12-31_21.txt
-    [INFO   ] [Screen      ] Apply screen settings for Motolora Droid 2
+    [INFO   ] [Screen      ] Apply screen settings for Motorola Droid 2
     [INFO   ] [Screen      ] size=480x854 dpi=240 density=1.5 orientation=portrait
     [INFO   ] [Kivy        ] v1.9.1-stable
     [INFO   ] [Python      ] v2.7.10 (default, Oct 23 2015, 18:05:06)
@@ -180,7 +183,7 @@ Installing Kivy for Development
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now that you've installed all the required dependencies, it's time to
-download and compile a development version of Kivy::
+download and compile a development version of Kivy:
 
 Download Kivy from GitHub::
 

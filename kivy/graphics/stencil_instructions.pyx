@@ -39,7 +39,7 @@ You should always respect this scheme:
 
     StencilUnUse
 
-    # PHASE 3: drawing instructions wil now be drawn without clipping but the
+    # PHASE 3: drawing instructions will now be drawn without clipping but the
     # mask will still be on the stack. You can return to PHASE 2 at any
     # time by issuing another *StencilUse* command.
 

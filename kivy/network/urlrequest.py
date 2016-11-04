@@ -363,7 +363,7 @@ class UrlRequest(Thread):
             else:
                 bytes_so_far, result = get_chunks()
 
-            # ensure that restults are dispatched for the last chunk,
+            # ensure that results are dispatched for the last chunk,
             # avoid trigger
             if report_progress:
                 q(('progress', resp, (bytes_so_far, total_size)))
@@ -559,7 +559,7 @@ if __name__ == '__main__':
         pprint('Got an error:')
         pprint(error)
 
-    req = UrlRequest('http://en.wikipedia.org/w/api.php?format'
+    req = UrlRequest('https://en.wikipedia.org/w/api.php?format'
         '=json&action=query&titles=Kivy&prop=revisions&rvprop=content',
         on_success, on_error)
     while not req.is_finished:

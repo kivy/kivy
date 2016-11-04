@@ -36,7 +36,7 @@ Manual installation (On Raspbian Jessie)
     
 
 Manual installation (On Raspbian Wheezy)
----------------------------------------
+----------------------------------------
 
 #. Add APT sources for Gstreamer 1.0 in `/etc/apt/sources.list`::
 
@@ -113,8 +113,7 @@ HDMI, use::
 
     KIVY_BCM_DISPMANX_ID=2 python main.py
 
-Check the :doc:`guide/environment` documentation to see all the possible
-value.
+Check :ref:`environment` to see all the possible values.
 
 Using Official RPi touch display
 --------------------------------

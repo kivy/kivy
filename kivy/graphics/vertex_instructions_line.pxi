@@ -59,7 +59,7 @@ cdef class Line(VertexInstruction):
         `dash_length`: int
             Length of a segment (if dashed), defaults to 1.
         `dash_offset`: int
-            Offset between the end of a segment and the begining of the
+            Offset between the end of a segment and the beginning of the
             next one, defaults to 0. Changing this makes it dashed.
         `width`: float
             Width of the line, defaults to 1.0.
@@ -1047,7 +1047,7 @@ cdef class Line(VertexInstruction):
         * x and y represent the bottom-left position of the rectangle
         * width and height represent the size
         * corner_radius is the number of pixels between two borders and the center of the circle arc joining them
-        * resolution is the numper of line segment that will be used to draw the circle arc at each corner (defaults to 30)
+        * resolution is the number of line segment that will be used to draw the circle arc at each corner (defaults to 30)
 
         The line is automatically closed.
 

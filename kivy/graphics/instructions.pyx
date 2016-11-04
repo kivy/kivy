@@ -63,7 +63,7 @@ cdef class Instruction(ObjectWithUid):
         return 0
 
     IF DEBUG:
-        cdef int flag_update(self, int do_parent=1, list _instrs=None) except -1:
+        cpdef flag_update(self, int do_parent=1, list _instrs=None):
             cdef list instrs = _instrs if _instrs else []
             if _instrs and self in _instrs:
                 raise RuntimeError('Encountered instruction group render loop: %r in %r' % (self, _instrs,))
@@ -72,7 +72,7 @@ cdef class Instruction(ObjectWithUid):
                 self.parent.flag_update(do_parent=1, _instrs=instrs)
             self.flags |= GI_NEEDS_UPDATE
     ELSE:
-        cdef void flag_update(self, int do_parent=1):
+        cpdef flag_update(self, int do_parent=1):
             if do_parent == 1 and self.parent is not None:
                 self.parent.flag_update()
             self.flags |= GI_NEEDS_UPDATE
@@ -701,7 +701,7 @@ cdef class Canvas(CanvasBase):
 
 # Active Canvas and getActiveCanvas function is used
 # by instructions, so they know which canvas to add
-# tehmselves to
+# themselves to
 cdef CanvasBase ACTIVE_CANVAS = None
 
 cdef CanvasBase getActiveCanvas():
@@ -709,7 +709,7 @@ cdef CanvasBase getActiveCanvas():
     return ACTIVE_CANVAS
 
 # Canvas Stack, for internal use so canvas can be bound
-# inside other canvas, and restroed when other canvas is done
+# inside other canvas, and restored when other canvas is done
 cdef list CANVAS_STACK = list()
 
 cdef pushActiveCanvas(CanvasBase c):

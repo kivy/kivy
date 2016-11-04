@@ -169,9 +169,9 @@ user in order to adapt or reload your UI. You can then overload the
             if config is self.config:
                 token = (section, key)
                 if token == ('section1', 'key1'):
-                    print('Our key1 have been changed to', value)
+                    print('Our key1 has been changed to', value)
                 elif token == ('section1', 'key2'):
-                    print('Our key2 have been changed to', value)
+                    print('Our key2 has been changed to', value)
 
 The Kivy configuration panel is added by default to the settings
 instance. If you don't want this panel, you can declare your Application as
@@ -838,8 +838,9 @@ class App(EventDispatcher):
         stopTouchApp()
 
         # Clear the window children
-        for child in self._app_window.children:
-            self._app_window.remove_widget(child)
+        if self._app_window:
+            for child in self._app_window.children:
+                self._app_window.remove_widget(child)
 
     def on_start(self):
         '''Event handler for the `on_start` event which is fired after
@@ -868,7 +869,7 @@ class App(EventDispatcher):
 
         .. versionadded:: 1.1.0
         '''
-        return False
+        return True
 
     def on_resume(self):
         '''Event handler called when your application is resuming from

@@ -162,7 +162,7 @@ Hebrew:         השועל החום הזריז קופץ על הכלב הישן �
 Hindi:          तेज भूरे रंग की लोमड़ी आलसी बूढ़े कुत्ते के उपर से कूदती है ॥
 Hungarian:      A gyors barna róka átugorja a lusta vén kutya.
 Icelandic:      The fljótur Brown refur stökk yfir latur gamall hundur.
-Indonesian      Cepat rubah cokelat melompat atas anjing tua malas.
+Indonesian:     Cepat rubah cokelat melompat atas anjing tua malas.
 Irish:          An sionnach donn tapaidh jumps thar an madra leisciúil d\'aois.
 Italian:        The quick brown fox salta sul cane pigro vecchio.
 Japanese:       速い茶色のキツネは、のろまな古いイヌに飛びかかった。
@@ -179,7 +179,7 @@ Persian:        روباه قهوه ای سریع روی سگ تنبل قدیم�
 Polish:         Szybki brązowy lis przeskoczył nad leniwym psem życia.
 Portugese:      A ligeira raposa marrom ataca o cão preguiçoso de idade.
 Romanian:       Rapidă maro vulpea sare peste cainele lenes vechi.
-Russioan:       Быстрый коричневый лис перепрыгивает через ленивый старый пес.
+Russian:       Быстрый коричневый лис перепрыгивает через ленивый старый пес.
 Serniam:        Брза смеђа лисица прескаче лењог пса старог.
 Slovak:         Rýchla hnedá líška skáče cez lenivého starého psa.
 Slovenian:      Kožuščku hudobnega nad leni starega psa.

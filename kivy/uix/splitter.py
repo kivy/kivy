@@ -102,8 +102,8 @@ class Splitter(BoxLayout):
 
     sizable_from = OptionProperty('left', options=(
         'left', 'right', 'top', 'bottom'))
-    '''Specifies whether the widget is resizable. Options are::
-        `left`, `right`, `top` or `bottom`
+    '''Specifies whether the widget is resizable. Options are:
+    `left`, `right`, `top` or `bottom`
 
     :attr:`sizable_from` is an :class:`~kivy.properties.OptionProperty`
     and defaults to `left`.

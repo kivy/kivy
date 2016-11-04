@@ -13,7 +13,7 @@ hardware,
 some OpenGL capabilities might not be available (BGRA support, NPOT support,
 etc.)
 
-You cannot instanciate this class yourself. You must use the function
+You cannot instantiate this class yourself. You must use the function
 :meth:`Texture.create` to create a new texture::
 
     texture = Texture.create(size=(640, 480))
@@ -139,7 +139,7 @@ Texture atlas
 -------------
 
 A texture atlas is a single texture that contains many images.
-If you want to seperate the original texture into many single ones, you don't
+If you want to separate the original texture into many single ones, you don't
 need to. You can get a region of the original texture. That will return the
 original texture with custom texture coordinates::
 
@@ -534,11 +534,11 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False,
             Size of the texture.
         `colorfmt`: str, defaults to 'rgba'
             Color format of the texture. Can be 'rgba' or 'rgb',
-            'luminance' or 'luminance_alpha'. On desktop, additionnal values are
+            'luminance' or 'luminance_alpha'. On desktop, additional values are
             available: 'red', 'rg'.
         `icolorfmt`: str, defaults to the value of `colorfmt`
             Internal format storage of the texture. Can be 'rgba' or 'rgb',
-            'luminance' or 'luminance_alpha'. On desktop, additionnal values are
+            'luminance' or 'luminance_alpha'. On desktop, additional values are
             available: 'r8', 'rg8', 'rgba8'.
         `bufferfmt`: str, defaults to 'ubyte'
             Internal buffer format of the texture. Can be 'ubyte', 'ushort',
@@ -853,7 +853,7 @@ cdef class Texture:
             called in order to update the texture.
 
         :Parameters:
-            `pbuffer` : bytes, or a class that implements the buffer interface\
+            `pbuffer`: bytes, or a class that implements the buffer interface\
  (including memoryview).
                 A buffer containing the image data. It can be either a bytes
                 object or a instance of a class that implements the python
@@ -862,14 +862,14 @@ cdef class Texture:
                 be contiguous, have only one dimension and must not be
                 readonly, even though the data is not modified, due to a cython
                 limitation. See module description for usage details.
-            `size` : tuple, defaults to texture size
+            `size`: tuple, defaults to texture size
                 Size of the image (width, height)
-            `colorfmt` : str, defaults to 'rgb'
+            `colorfmt`: str, defaults to 'rgb'
                 Image format, can be one of 'rgb', 'rgba', 'bgr', 'bgra',
                 'luminance' or 'luminance_alpha'.
-            `pos` : tuple, defaults to (0, 0)
+            `pos`: tuple, defaults to (0, 0)
                 Position to blit in the texture.
-            `bufferfmt` : str, defaults to 'ubyte'
+            `bufferfmt`: str, defaults to 'ubyte'
                 Type of the data buffer, can be one of 'ubyte', 'ushort',
                 'uint', 'byte', 'short', 'int' or 'float'.
             `mipmap_level`: int, defaults to 0

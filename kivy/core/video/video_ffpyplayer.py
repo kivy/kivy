@@ -100,6 +100,8 @@ class VideoFFPy(VideoBase):
     }
     """
 
+    _trigger = None
+
     def __init__(self, **kwargs):
         self._ffplayer = None
         self._thread = None
@@ -198,12 +200,12 @@ class VideoFFPy(VideoBase):
                 self._tex_y.blit_buffer(dy, colorfmt='luminance')
                 self._tex_u.blit_buffer(du, colorfmt='luminance')
                 self._tex_v.blit_buffer(dv, colorfmt='luminance')
+                self._fbo.ask_update()
+                self._fbo.draw()
             else:
                 self._texture.blit_buffer(
                     img.to_memoryview()[0], colorfmt='rgba')
 
-            self._fbo.ask_update()
-            self._fbo.draw()
             self.dispatch('on_frame')
 
     def _next_frame_run(self):
@@ -315,7 +317,8 @@ class VideoFFPy(VideoBase):
         self.unload()
 
     def unload(self):
-        Clock.unschedule(self._redraw)
+        if self._trigger is not None:
+            self._trigger.cancel()
         self._ffplayer_need_quit = True
         if self._thread:
             self._thread.join()

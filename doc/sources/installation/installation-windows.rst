@@ -15,8 +15,8 @@ to an **alternate location** and not to site-packages, please see :ref:`alternat
 
     Python 3.5 is currently not supported on Windows due to issues with MinGW and
     Python 3.5. Support is not expected for some time. See
-    `here <http://bugs.python.org/issue4709>`_ for details. If required,
-    3.5 MSVC builds should be posssible, but have not been attempted, please enquire
+    `this issue <http://bugs.python.org/issue4709>`_ for details. If required,
+    3.5 MSVC builds should be possible, but have not been attempted, please enquire
     or let us know if you've compiled with MSVC.
 
 To use Kivy you need `Python <https://www.python.org/downloads/windows/>`_.
@@ -28,7 +28,7 @@ be installed for each Python version that you want to use Kivy.
 Installation
 ------------
 
-Now that python is installed, open the :ref:`Command line` and make sure python
+Now that python is installed, open the :ref:`windows-run-app` and make sure python
 is available by typing ``python --version``. Then, do the following to install.
 
 #. Ensure you have the latest pip and wheel::
@@ -36,7 +36,7 @@ is available by typing ``python --version``. Then, do the following to install.
      python -m pip install --upgrade pip wheel setuptools
 
 #. Install the dependencies (skip gstreamer (~90MB) if not needed, see
-   :ref:`Kivy's dependencies`)::
+   :ref:`kivy-dependencies`)::
 
      python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew
      python -m pip install kivy.deps.gstreamer --extra-index-url https://kivy.org/downloads/packages/simple/
@@ -66,13 +66,22 @@ Nightly wheel installation
 
 Snapshot wheels of current Kivy master are created every night. They can be found
 `here <https://drive.google.com/folderview?id=0B1_HB9J8mZepOV81UHpDbmg5SWM&usp=sharing#list>`_.
-To use them, instead of doing `python -m pip install kivy` we'll install one of
+To use them, instead of doing ``python -m pip install kivy`` we'll install one of
 these wheels as follows.
 
-- `Python 2.7, 32bit <javascript:getNightly('cp27','win32');>`_
-- `Python 3.4, 32bit <javascript:getNightly('cp34','win32');>`_
-- `Python 2.7, 64bit <javascript:getNightly('cp27','win_amd64');>`_
-- `Python 3.4, 64bit <javascript:getNightly('cp34','win_amd64');>`_
+.. |cp27_win32| replace:: Python 2.7, 32bit
+.. _cp27_win32: https://drive.google.com/uc?id=0B-080DPVLKs2amMxY3o1cHNzRjQ
+.. |cp34_win32| replace:: Python 3.4, 32bit
+.. _cp34_win32: https://drive.google.com/uc?id=0B-080DPVLKs2TnpLb25lcUh3d0U
+.. |cp27_amd64| replace:: Python 2.7, 64bit
+.. _cp27_amd64: https://drive.google.com/uc?id=0B-080DPVLKs2TmRrMExqLVJ1M28
+.. |cp34_amd64| replace:: Python 3.4, 64bit
+.. _cp34_amd64: https://drive.google.com/uc?id=0B-080DPVLKs2eDlqQlJCRldkNE0
+
+- |cp27_win32|_
+- |cp34_win32|_
+- |cp27_amd64|_
+- |cp34_amd64|_
 
 #. Perform steps 1 and 2 of the above Installation section.
 #. Download the appropriate wheel for your system.
@@ -82,6 +91,7 @@ these wheels as follows.
 #. Install it with ``python -m pip install wheel-name`` where ``wheel-name``
    is the name of the renamed file.
 
+.. _kivy-dependencies:
 
 Kivy's dependencies
 -------------------
@@ -107,10 +117,13 @@ distributions of a package that has already been compiled and do not require
 additional steps to install.
 
 When hosted on `pypi <https://pypi.python.org/pypi>`_ one installs a wheel
-using ``pip``, e.g. ``python -m pip install kivy``. When downloading and installing
-a wheel directly, ``python -m pip install wheel_file_name`` is used, such as::
+using ``pip``, e.g. ``python -m pip install kivy``. When downloading and
+installing a wheel directly, ``python -m pip install wheel_file_name`` is used,
+such as::
 
     python -m pip install C:\Kivy-1.9.1.dev-cp27-none-win_amd64.whl
+
+.. _windows-run-app:
 
 Command line
 ------------
@@ -118,22 +131,22 @@ Command line
 Know your command line. To execute any of the ``pip``
 or ``wheel`` commands, one needs a command line tool with python on the path.
 The default command line on Windows is
-`CMD <http://www.computerhope.com/issues/chusedos.htm>`_, and the quickest way
-to open it is to press `Win+R` on your keyboard, type ``cmd``
+`Command Prompt <http://www.computerhope.com/issues/chusedos.htm>`_, and the
+quickest way to open it is to press `Win+R` on your keyboard, type ``cmd``
 in the window that opens, and then press enter.
 
-Alternate linux style command shells that we reccomend is
+Alternate linux style command shells that we recommend is
 `Git for Windows <https://git-for-windows.github.io/>`_ which offers a bash
 command line as `well <http://rogerdudler.github.io/git-guide/>`_ as
 `git <https://try.github.io>`_. Note, CMD can still be used even if bash is
 installed.
 
 Walking the path! To add your python to the path, simply open your command line
-and then us the ``cd`` command to change the current directory to where python is
-installed, e.g. ``cd C:\Python27``. Alternatively if you only have one python
-version installed, permanently add the python directory to the path for
-`CMD <http://www.computerhope.com/issues/ch000549.htm>`_ for
-`bash <http://stackoverflow.com/questions/14637979/how-to-permanently-set-path-on-linux>`_.
+and then us the ``cd`` command to change the current directory to where python
+is installed, e.g. ``cd C:\Python27``. Alternatively if you only have one
+python version installed, permanently add the python directory to the path for
+`cmd <http://www.computerhope.com/issues/ch000549.htm>`_ or
+`bash <http://stackoverflow.com/q/14637979>`_.
 
 .. _dev-install-win:
 
@@ -222,12 +235,12 @@ and and the kivy or kivy.deps* folders from site-packages.
 Making Python available anywhere
 --------------------------------
 
-There are two methods for launching python on your *.py files.
+There are two methods for launching python on your ``*.py`` files.
 
 Double-click method
 ~~~~~~~~~~~~~~~~~~~
 
-If you only have one Python installed, you can associate all *.py files with
+If you only have one Python installed, you can associate all ``*.py`` files with
 your python, if it isn't already, and then run it by double clicking. Or you can
 only do it once if you want to be able to choose each time:
 
@@ -249,6 +262,7 @@ You can launch a .py file with our Python using the Send-to menu:
    You should get the special Windows directory `SendTo`
 #. Paste the previously copied ``python.exe`` file **as a shortcut**.
 #. Rename it to python <python-version>. E.g. ``python27-x64``
+
 You can now execute your application by right clicking on the .py file ->
 "Send To" -> "python <python-version>".
 

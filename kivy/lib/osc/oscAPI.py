@@ -142,16 +142,16 @@ def createBundle():
     '''
     b = OSC.OSCMessage()
     b.address = ""
-    b.append("#bundle")
+    b.append(b"#bundle")
     b.append(0)
     b.append(0)
     return b
 
 
 def appendToBundle(bundle, oscAddress, dataArray):
-    '''create OSC mesage and append it to a given bundle
+    '''create OSC message and append it to a given bundle
     '''
-    bundle.append( createBinaryMsg(oscAddress, dataArray),  'b')
+    bundle.append(createBinaryMsg(oscAddress, dataArray),  b'b')
 
 
 def sendBundle(bundle, ipAddr='127.0.0.1', port=9000) :

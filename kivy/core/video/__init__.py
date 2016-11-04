@@ -9,8 +9,6 @@ Core class for reading video files and managing the
     There is now 2 distinct Gstreamer implementation: one using Gi/Gst
     working for both Python 2+3 with Gstreamer 1.0, and one using PyGST
     working only for Python 2 + Gstreamer 0.10.
-    If you have issue with GStreamer, have a look at
-    :ref:`gstreamer-compatibility`
 
 .. note::
 
@@ -30,19 +28,19 @@ class VideoBase(EventDispatcher):
     '''VideoBase, a class used to implement a video reader.
 
     :Parameters:
-        `filename` : str
+        `filename`: str
             Filename of the video. Can be a file or an URI.
-        `eos` : str, defaults to 'pause'
+        `eos`: str, defaults to 'pause'
             Action to take when EOS is hit. Can be one of 'pause', 'stop' or
             'loop'.
 
             .. versionchanged:: unknown
                 added 'pause'
 
-        `async` : bool, defaults to True
+        `async`: bool, defaults to True
             Load the video asynchronously (may be not supported by all
             providers).
-        `autoplay` : bool, defaults to False
+        `autoplay`: bool, defaults to False
             Auto play the video on init.
 
     :Events:

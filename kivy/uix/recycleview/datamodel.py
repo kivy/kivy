@@ -1,4 +1,10 @@
-'''The data model part of the RecycleView model-view-controller pattern.
+'''
+RecycleView Data Model
+======================
+
+.. versionadded:: 1.9.2
+
+The data model part of the RecycleView model-view-controller pattern.
 
 It defines the models (classes) that store the data associated with a
 :class:`~kivy.uix.recycleview.RecycleViewBehavior`. Each model (class)

@@ -131,6 +131,9 @@ class DropDown(ScrollView):
     auto_width = BooleanProperty(True)
     '''By default, the width of the dropdown will be the same as the width of
     the attached widget. Set to False if you want to provide your own width.
+    
+    :attr:`auto_width` is a :class:`~kivy.properties.BooleanProperty`
+    and defaults to True.
     '''
 
     max_height = NumericProperty(None, allownone=True)
@@ -152,7 +155,7 @@ class DropDown(ScrollView):
 
     auto_dismiss = BooleanProperty(True)
     '''By default, the dropdown will be automatically dismissed when a
-    touch happens outside of it, this option allow to disable this
+    touch happens outside of it, this option allows to disable this
     feature
 
     :attr:`auto_dismiss` is a :class:`~kivy.properties.BooleanProperty`
@@ -219,8 +222,7 @@ class DropDown(ScrollView):
             return True
 
     def on_container(self, instance, value):
-        if value is not None:
-            self.container.bind(minimum_size=self._container_minimum_size)
+        pass
 
     def open(self, widget):
         '''Open the dropdown list and attach it to a specific widget.
@@ -275,14 +277,6 @@ class DropDown(ScrollView):
     def on_select(self, data):
         pass
 
-    def _container_minimum_size(self, instance, size):
-        if self.max_height:
-            self.height = min(size[1], self.max_height)
-            self.do_scroll_y = size[1] > self.max_height
-        else:
-            self.height = size[1]
-            self.do_scroll_y = True
-
     def add_widget(self, *largs):
         if self.container:
             return self.container.add_widget(*largs)
@@ -314,6 +308,8 @@ class DropDown(ScrollView):
             return True
         if 'button' in touch.profile and touch.button.startswith('scroll'):
             return
+        if self.collide_point(*touch.pos):
+            return True
         if self.auto_dismiss:
             self.dismiss()
 
@@ -341,22 +337,26 @@ class DropDown(ScrollView):
         self.x = x
 
         # determine if we display the dropdown upper or lower to the widget
-        h_bottom = wy - self.height
-        h_top = win.height - (wtop + self.height)
+        if self.max_height is not None:
+            height = min(self.max_height, self.container.minimum_height)
+        else:
+            height = self.container.minimum_height
+
+        h_bottom = wy - height
+        h_top = win.height - (wtop + height)
         if h_bottom > 0:
             self.top = wy
-            self.height = self.container.minimum_height
+            self.height = height
         elif h_top > 0:
             self.y = wtop
-            self.height = self.container.minimum_height
+            self.height = height
         else:
             # none of both top/bottom have enough place to display the
             # widget at the current size. Take the best side, and fit to
             # it.
-            height = max(h_bottom, h_top)
-            if height == h_bottom:
-                self.top = wy
-                self.height = wy
+
+            if h_top < h_bottom:
+                self.top = self.height = wy
             else:
                 self.y = wtop
                 self.height = win.height - wtop

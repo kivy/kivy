@@ -5,7 +5,7 @@ Kivy Base
 
 This module contains core Kivy functionality and is not intended for end users.
 Feel free to look though it, but calling any of these methods directly may well
-result in unpredicatable behavior.
+result in unpredictable behavior.
 
 Event loop management
 ---------------------
@@ -80,7 +80,7 @@ class ExceptionManagerBase:
             self.handlers.remove(cls)
 
     def handle_exception(self, inst):
-        '''Called when an exception occured in the runTouchApp() main loop.'''
+        '''Called when an exception occurred in the runTouchApp() main loop.'''
         ret = self.policy
         for handler in self.handlers:
             r = handler.handle_exception(inst)
@@ -421,7 +421,7 @@ def runTouchApp(widget=None, slave=False):
         `widget + slave`
             No event dispatching is done. This will be your job but
             we try to get the window (must be created by you beforehand)
-            and add the widget to it. Very usefull for embedding Kivy
+            and add the widget to it. Very useful for embedding Kivy
             in another toolkit. (like Qt, check kivy-designed)
 
     '''
@@ -477,7 +477,7 @@ def runTouchApp(widget=None, slave=False):
     #    So, we are executing the dispatching function inside
     #    a redisplay event.
     #
-    # 2. if no window is created, we are dispatching event lopp
+    # 2. if no window is created, we are dispatching event loop
     #    ourself (previous behavior.)
     #
     try:

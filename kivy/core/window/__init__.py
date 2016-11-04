@@ -93,7 +93,7 @@ class Keyboard(EventDispatcher):
         '(': 40, ')': 41,
         '[': 91, ']': 93,
         '{': 123, '}': 125,
-        ':': 59, ';': 59,
+        ':': 58, ';': 59,
         '=': 61, '+': 43,
         '-': 45, '_': 95,
         '/': 47, '*': 42,
@@ -285,7 +285,7 @@ class WindowBase(EventDispatcher):
                 The *unicode* parameter has been deprecated in favor of
                 codepoint, and will be removed completely in future versions.
 
-        `on_key_down`: key, scancode, codepoint
+        `on_key_down`: key, scancode, codepoint, modifier
             Fired when a key pressed.
 
             .. versionchanged:: 1.3.0
@@ -516,6 +516,8 @@ class WindowBase(EventDispatcher):
     :attr:`softinput_mode` is an :class:`~kivy.properties.OptionProperty` and
     defaults to `None`.
 
+    .. note:: The `resize` option does not currently work with SDL2 on Android.
+
     .. versionadded:: 1.9.0
 
     .. versionchanged:: 1.9.1
@@ -562,13 +564,16 @@ class WindowBase(EventDispatcher):
 
     keyboard_height = AliasProperty(_get_kheight, None,
                                     bind=('_keyboard_changed',), cached=True)
-    '''Rerturns the height of the softkeyboard/IME on mobile platforms.
+    '''Returns the height of the softkeyboard/IME on mobile platforms.
     Will return 0 if not on mobile platform or if IME is not active.
+
+    .. note:: This property returns 0 with SDL2 on Android, but setting
+              Window.softinput_mode does works.
 
     .. versionadded:: 1.9.0
 
     :attr:`keyboard_height` is a read-only
-    :class:`~kivy.propertries.AliasProperty` and defaults to 0.
+    :class:`~kivy.properties.AliasProperty` and defaults to 0.
     '''
 
     keyboard_anim_args = {'t': 'in_out_quart', 'd': .5}
@@ -588,7 +593,7 @@ class WindowBase(EventDispatcher):
     .. versionadded:: 1.9.2
 
     :attr:`keyboard_padding` is a
-    :class:`~kivy.propertries.NumericProperty` and defaults to 0.
+    :class:`~kivy.properties.NumericProperty` and defaults to 0.
     '''
 
     def _set_system_size(self, size):
@@ -620,6 +625,8 @@ class WindowBase(EventDispatcher):
 
     borderless = BooleanProperty(False)
     '''When set to True, this property removes the window border/decoration.
+    Check the :mod:`~kivy.config` documentation for a more detailed
+    explanation on the values.
 
     .. versionadded:: 1.9.0
 
@@ -665,7 +672,7 @@ class WindowBase(EventDispatcher):
 
     .. versionadded:: 1.9.1
 
-    :attr:`focus` is a read-only :class:`~kivy.properties.AliasProperty and
+    :attr:`focus` is a read-only :class:`~kivy.properties.AliasProperty` and
     defaults to True.
     '''
 
@@ -682,6 +689,8 @@ class WindowBase(EventDispatcher):
     render_context = ObjectProperty(None)
     canvas = ObjectProperty(None)
     title = StringProperty('Kivy')
+
+    trigger_create_window = None
 
     __events__ = (
         'on_draw', 'on_flip', 'on_rotate', 'on_resize', 'on_close',
@@ -922,7 +931,7 @@ class WindowBase(EventDispatcher):
         '''
         # just to be sure, if the trigger is set, and if this method is
         # manually called, unset the trigger
-        Clock.unschedule(self.create_window)
+        self.trigger_create_window.cancel()
 
         # ensure the window creation will not be called twice
         if platform in ('android', 'ios'):
@@ -978,6 +987,8 @@ class WindowBase(EventDispatcher):
         widget.bind(
             pos_hint=self._update_childsize,
             size_hint=self._update_childsize,
+            size_hint_max=self._update_childsize,
+            size_hint_min=self._update_childsize,
             size=self._update_childsize,
             pos=self._update_childsize)
 
@@ -997,6 +1008,8 @@ class WindowBase(EventDispatcher):
         widget.unbind(
             pos_hint=self._update_childsize,
             size_hint=self._update_childsize,
+            size_hint_max=self._update_childsize,
+            size_hint_min=self._update_childsize,
             size=self._update_childsize,
             pos=self._update_childsize)
 
@@ -1169,12 +1182,40 @@ class WindowBase(EventDispatcher):
             childs = self.children
         for w in childs:
             shw, shh = w.size_hint
-            if shw and shh:
-                w.size = shw * width, shh * height
-            elif shw:
-                w.width = shw * width
-            elif shh:
-                w.height = shh * height
+            shw_min, shh_min = w.size_hint_min
+            shw_max, shh_max = w.size_hint_max
+
+            if shw is not None and shh is not None:
+                c_w = shw * width
+                c_h = shh * height
+
+                if shw_min is not None and c_w < shw_min:
+                    c_w = shw_min
+                elif shw_max is not None and c_w > shw_max:
+                    c_w = shw_max
+
+                if shh_min is not None and c_h < shh_min:
+                    c_h = shh_min
+                elif shh_max is not None and c_h > shh_max:
+                    c_h = shh_max
+                w.size = c_w, c_h
+            elif shw is not None:
+                c_w = shw * width
+
+                if shw_min is not None and c_w < shw_min:
+                    c_w = shw_min
+                elif shw_max is not None and c_w > shw_max:
+                    c_w = shw_max
+                w.width = c_w
+            elif shh is not None:
+                c_h = shh * height
+
+                if shh_min is not None and c_h < shh_min:
+                    c_h = shh_min
+                elif shh_max is not None and c_h > shh_max:
+                    c_h = shh_max
+                w.height = c_h
+
             for key, value in w.pos_hint.items():
                 if key == 'x':
                     w.x = value * width
@@ -1391,8 +1432,8 @@ class WindowBase(EventDispatcher):
                            "semantics.")
 
     def on_textinput(self, text):
-        '''Event called whem text: i.e. alpha numeric non control keys or set
-        of keys is entered. As it is not gaurenteed whether we get one
+        '''Event called when text: i.e. alpha numeric non control keys or set
+        of keys is entered. As it is not guaranteed whether we get one
         character or multiple ones, this event supports handling multiple
         characters.
 

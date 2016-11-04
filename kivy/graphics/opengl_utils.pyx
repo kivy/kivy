@@ -93,7 +93,7 @@ cpdef gl_register_get_size(int constid, int size):
 cpdef int gl_has_capability(int cap):
     '''Return the status of a OpenGL Capability. This is a wrapper that
     auto-discovers all the capabilities that Kivy might need. The current
-    capabilites tested are:
+    capabilities tested are:
 
         - GLCAP_BGRA: Test the support of BGRA texture format
         - GLCAP_NPOT: Test the support of Non Power of Two texture

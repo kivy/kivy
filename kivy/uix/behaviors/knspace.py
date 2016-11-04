@@ -195,7 +195,7 @@ their children also use different namespaces. Consequently, the
 pretty and complex widgets of each instance will have different text.
 
 Further, because both the namespace :class:`~kivy.properties.ObjectProperty`
-references, and :atrr:`KNSpaceBehavior.knspace` have `rebind=True`, the
+references, and :attr:`KNSpaceBehavior.knspace` have `rebind=True`, the
 text of the `MyComplexWidget` label is rebound to match the text of
 `MyPrettyWidget` when either the root's namespace changes or when the
 `root.knspace.pretty` property changes, as expected.
@@ -203,7 +203,7 @@ text of the `MyComplexWidget` label is rebound to match the text of
 Forking a namespace
 -------------------
 
-Forking a namespace provides the opportunity to create a new namesapce
+Forking a namespace provides the opportunity to create a new namespace
 from a parent namespace so that the forked namespace will contain everything
 in the origin namespace, but the origin namespace will not have access to
 anything added to the forked namespace.
@@ -496,7 +496,7 @@ class KNSpaceBehavior(object):
             if knspace:
                 value = knspace.fork()
             else:
-                raise ValueError('Cannot fork with no namesapce')
+                raise ValueError('Cannot fork with no namespace')
 
         for obj, prop_name, uid in self.__callbacks or []:
             obj.unbind_uid(prop_name, uid)

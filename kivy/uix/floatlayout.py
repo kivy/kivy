@@ -78,12 +78,39 @@ class FloatLayout(Layout):
         for c in self.children:
             # size
             shw, shh = c.size_hint
-            if shw and shh:
-                c.size = w * shw, h * shh
-            elif shw:
-                c.width = w * shw
-            elif shh:
-                c.height = h * shh
+            shw_min, shh_min = c.size_hint_min
+            shw_max, shh_max = c.size_hint_max
+
+            if shw is not None and shh is not None:
+                c_w = shw * w
+                c_h = shh * h
+
+                if shw_min is not None and c_w < shw_min:
+                    c_w = shw_min
+                elif shw_max is not None and c_w > shw_max:
+                    c_w = shw_max
+
+                if shh_min is not None and c_h < shh_min:
+                    c_h = shh_min
+                elif shh_max is not None and c_h > shh_max:
+                    c_h = shh_max
+                c.size = c_w, c_h
+            elif shw is not None:
+                c_w = shw * w
+
+                if shw_min is not None and c_w < shw_min:
+                    c_w = shw_min
+                elif shw_max is not None and c_w > shw_max:
+                    c_w = shw_max
+                c.width = c_w
+            elif shh is not None:
+                c_h = shh * h
+
+                if shh_min is not None and c_h < shh_min:
+                    c_h = shh_min
+                elif shh_max is not None and c_h > shh_max:
+                    c_h = shh_max
+                c.height = c_h
 
             # pos
             for key, value in c.pos_hint.items():

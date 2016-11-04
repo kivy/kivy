@@ -131,6 +131,8 @@ class SDL2MotionEventProvider(MotionEventProvider):
 
 class WindowSDL(WindowBase):
 
+    _do_resize_ev = None
+
     def __init__(self, **kwargs):
         self._pause_loop = False
         self._win = _WindowSDL2Storage()
@@ -381,7 +383,7 @@ class WindowSDL(WindowBase):
 
     def _fix_mouse_pos(self, x, y):
         y -= 1
-        self.mouse_pos = x, self.system_size[1] - y
+        self.mouse_pos = x * self._density, (self.system_size[1] - y) * self._density
         return x, y
 
     def _mainloop(self):
@@ -390,7 +392,7 @@ class WindowSDL(WindowBase):
         # for android/iOS, we don't want to have any event nor executing our
         # main loop while the pause is going on. This loop wait any event (not
         # handled by the event filter), and remove them from the queue.
-        # Nothing happen during the pause on iOS, except gyroscope value sended
+        # Nothing happen during the pause on iOS, except gyroscope value sent
         # over joystick. So it's safe.
         while self._pause_loop:
             self._win.wait_event()
@@ -481,9 +483,11 @@ class WindowSDL(WindowBase):
             elif action == 'windowresized':
                 self._size = self._win.window_size
                 # don't use trigger here, we want to delay the resize event
-                cb = self._do_resize
-                Clock.unschedule(cb)
-                Clock.schedule_once(cb, .1)
+                ev = self._do_resize_ev
+                if ev is None:
+                    ev = self._do_resize_ev = Clock.schedule_once(self._do_resize, .1)
+                else:
+                    ev()
 
             elif action == 'windowresized':
                 self.canvas.ask_update()
@@ -678,7 +682,7 @@ class WindowSDL(WindowBase):
     def request_keyboard(self, callback, target, input_type='text'):
         self._sdl_keyboard = super(WindowSDL, self).\
             request_keyboard(callback, target, input_type)
-        self._win.show_keyboard()
+        self._win.show_keyboard(self._system_keyboard, self.softinput_mode)
         Clock.schedule_interval(self._check_keyboard_shown, 1 / 5.)
         return self._sdl_keyboard
 

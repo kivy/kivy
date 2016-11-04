@@ -88,7 +88,7 @@ project idea of your own.
 Beginner Projects
 ~~~~~~~~~~~~~~~~~
 These projects should be suitable for anyone with a college level familiarity
-with Python and require little knowedge of platform specifics.
+with Python and require little knowledge of platform specifics.
 
 **Kivy Designer**
 

@@ -20,6 +20,7 @@ except:
 class CameraVideoCapture(CameraBase):
     '''Implementation of CameraBase using VideoCapture
     '''
+    _update_ev = None
 
     def __init__(self, **kwargs):
         self._device = None
@@ -52,9 +53,12 @@ class CameraVideoCapture(CameraBase):
 
     def start(self):
         super(CameraVideoCapture, self).start()
-        Clock.unschedule(self._update)
-        Clock.schedule_interval(self._update, self.fps)
+        if self._update_ev is not None:
+            self._update_ev.cancel()
+        self._update_ev = Clock.schedule_interval(self._update, self.fps)
 
     def stop(self):
         super(CameraVideoCapture, self).stop()
-        Clock.unschedule(self._update)
+        if self._update_ev is not None:
+            self._update_ev.cancel()
+            self._update_ev = None

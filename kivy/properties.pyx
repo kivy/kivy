@@ -51,6 +51,19 @@ With Kivy, you can do::
         a = NumericProperty(1.0)
 
 
+Depth being tracked
+~~~~~~~~~~~~~~~~~~~
+
+Only the "top level" of a nested object is being tracked. For example::
+
+    my_list_prop = ListProperty([1, {'hi': 0}])
+    # Changing a top level element will trigger all `on_my_list_prop` callbacks
+    my_list_prop[0] = 4
+    # Changing a deeper element will be ignored by all `on_my_list_prop` callbacks
+    my_list_prop[1]['hi'] = 4
+
+The same holds true for all container-type kivy properties.
+
 Value checking
 ~~~~~~~~~~~~~~
 
@@ -561,12 +574,15 @@ cdef class NumericProperty(Property):
         elif isinstance(x, string_types):
             return self.parse_str(obj, x)
         else:
-            raise ValueError('%s.%s have an invalid format (got %r)' % (
+            raise ValueError('%s.%s has an invalid format (got %r)' % (
                 obj.__class__.__name__,
                 self.name, x))
 
     cdef float parse_str(self, EventDispatcher obj, value):
-        return self.parse_list(obj, value[:-2], value[-2:])
+        if value[-2:] in NUMERIC_FORMATS:
+            return self.parse_list(obj, value[:-2], value[-2:])
+        else:
+            return float(value)
 
     cdef float parse_list(self, EventDispatcher obj, value, ext):
         cdef PropertyStorage ps = obj.__storage[self._name]
@@ -698,19 +714,28 @@ cdef class ListProperty(Property):
     .. warning::
 
         When assigning a list to a :class:`ListProperty`, the list stored in
-        the property is a copy of the list and not the original list. This can
+        the property is a shallow copy of the list and not the original list. This can
         be demonstrated with the following example::
 
             >>> class MyWidget(Widget):
             >>>     my_list = ListProperty([])
 
             >>> widget = MyWidget()
-            >>> my_list = widget.my_list = [1, 5, 7]
-            >>> print my_list is widget.my_list
+            >>> my_list = [1, 5, {'hi': 'hello'}]
+            >>> widget.my_list = my_list
+            >>> print(my_list is widget.my_list)
             False
             >>> my_list.append(10)
             >>> print(my_list, widget.my_list)
-            [1, 5, 7, 10], [1, 5, 7]
+            [1, 5, {'hi': 'hello'}, 10] [1, 5, {'hi': 'hello'}]
+
+        However, changes to nested levels will affect the property as well,
+        since the property uses a shallow copy of my_list.
+
+            >>> my_list[2]['hi'] = 'bye'
+            >>> print(my_list, widget.my_list)
+            [1, 5, {'hi': 'bye'}, 10] [1, 5, {'hi': 'bye'}]
+
     '''
     def __init__(self, defaultvalue=None, **kw):
         defaultvalue = defaultvalue or []
@@ -815,7 +840,7 @@ cdef class DictProperty(Property):
     .. warning::
 
         Similar to :class:`ListProperty`, when assigning a dict to a
-        :class:`DictProperty`, the dict stored in the property is a copy of the
+        :class:`DictProperty`, the dict stored in the property is a shallow copy of the
         dict and not the original dict. See :class:`ListProperty` for details.
     '''
     def __init__(self, defaultvalue=None, rebind=False, **kw):
@@ -980,7 +1005,7 @@ cdef class BoundedNumericProperty(Property):
                 number = BoundedNumericProperty(0, min=-5, max=5)
 
             widget = MyWidget()
-            # change the minmium to -10
+            # change the minimum to -10
             widget.property('number').set_min(widget, -10)
             # or disable the minimum check
             widget.property('number').set_min(widget, None)
@@ -1515,7 +1540,7 @@ cdef class VariableListProperty(Property):
         elif isinstance(x, string_types):
             return self.parse_str(obj, x)
         else:
-            raise ValueError('%s.%s have an invalid format (got %r)' % (
+            raise ValueError('%s.%s has an invalid format (got %r)' % (
                 obj.__class__.__name__,
                 self.name, x))
 
@@ -1589,7 +1614,7 @@ cdef class ConfigParserProperty(Property):
         values in the parser might be overwritten by objects it's bound to.
         So in the example above, the TextInput might be initially empty,
         and if `number: number.text` is evaluated before
-        `text: str(info.number)`, the config value will be overwitten with the
+        `text: str(info.number)`, the config value will be overwritten with the
         (empty) text value.
 
     :Parameters:
@@ -1705,7 +1730,7 @@ cdef class ConfigParserProperty(Property):
             self.last_value = self.config.get(self.section, self.key)
             self.config.add_callback(self._edit_setting, self.section, self.key)
             self.config.write()
-            #self.dispatch(obj)  # we need to dispatch, so not overwitten
+            #self.dispatch(obj)  # we need to dispatch, so not overwritten
         elif self.config_name:
             # ConfigParser will set_config when one named config is created
             Clock.schedule_once(partial(ConfigParser._register_named_property,
@@ -1867,7 +1892,7 @@ cdef class ColorProperty(Property):
         elif isinstance(x, string_types):
             return self.parse_str(obj, x)
         else:
-            raise ValueError('{}.{} have an invalid format (got {!r})'.format(
+            raise ValueError('{}.{} has an invalid format (got {!r})'.format(
                 obj.__class__.__name__, self.name, x))
 
     cdef list parse_str(self, EventDispatcher obj, value):

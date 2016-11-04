@@ -15,9 +15,9 @@ An :class:`ActionBar` contains an :class:`ActionView` with various
 :class:`ContextualActionViews <kivy.uix.actionbar.ContextualActionView>`.
 An :class:`ActionView` will contain an :class:`ActionPrevious` having title,
 app_icon and previous_icon properties. An :class:`ActionView` will contain
-subclasses of :class:`ActionItems <ActionItem>`. Some predefined ones inlcude an
-:class:`ActionButton`, an :class:`ActionToggleButton`, an :class:`ActionCheck`,
-an :class:`ActionSeparator` and an :class:`ActionGroup`.
+subclasses of :class:`ActionItems <ActionItem>`. Some predefined ones include
+an :class:`ActionButton`, an :class:`ActionToggleButton`, an
+:class:`ActionCheck`, an :class:`ActionSeparator` and an :class:`ActionGroup`.
 
 An :class:`ActionGroup` is used to display :class:`ActionItems <ActionItem>`
 in a group. An :class:`ActionView` will always display an :class:`ActionGroup`
@@ -41,8 +41,8 @@ from kivy.uix.checkbox import CheckBox
 from kivy.uix.spinner import Spinner
 from kivy.uix.label import Label
 from kivy.config import Config
-from kivy.properties import ObjectProperty, NumericProperty, \
-    BooleanProperty, StringProperty, ListProperty, OptionProperty, AliasProperty
+from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty, \
+    StringProperty, ListProperty, OptionProperty, AliasProperty
 from kivy.metrics import sp
 from kivy.lang import Builder
 from functools import partial
@@ -119,8 +119,8 @@ class ActionItem(object):
     '''Defines whether the image/icon dispayed on top of the button uses a
     mipmap or not.
 
-    :attr:`mipmap` is a :class:`~kivy.properties.BooleanProperty` and defaults
-    to `True`.
+       :attr:`mipmap` is a :class:`~kivy.properties.BooleanProperty` and
+       defaults to `True`.
     '''
 
 
@@ -180,8 +180,8 @@ class ActionPrevious(BoxLayout, ActionItem):
     color = ListProperty([1, 1, 1, 1])
     '''Text color, in the format (r, g, b, a)
 
-    :attr:`color` is a :class:`~kivy.properties.ListProperty` and defaults to
-    [1, 1, 1, 1].
+       :attr:`color` is a :class:`~kivy.properties.ListProperty` and defaults
+       to [1, 1, 1, 1].
     '''
 
     previous_image = StringProperty(
@@ -259,7 +259,12 @@ class ActionSeparator(ActionItem, Widget):
 class ActionDropDown(DropDown):
     '''ActionDropDown class, see module documentation for more information.
     '''
-    pass
+
+    def on_touch_down(self, touch):
+        if super(ActionDropDown, self).on_touch_down(touch):
+            if self.auto_dismiss:
+                self.dismiss()
+            return True
 
 
 class ActionGroup(ActionItem, Spinner):
@@ -360,8 +365,8 @@ class ActionOverflow(ActionGroup):
         'atlas://data/images/defaulttheme/overflow')
     '''Image to be used as an Overflow Image.
 
-      :attr:`overflow_image` is an :class:`~kivy.properties.ObjectProperty` and
-       defaults to 'atlas://data/images/defaulttheme/overflow'.
+       :attr:`overflow_image` is an :class:`~kivy.properties.ObjectProperty`
+       and defaults to 'atlas://data/images/defaulttheme/overflow'.
     '''
 
     def add_widget(self, action_item, index=0):
@@ -396,22 +401,22 @@ class ActionView(BoxLayout):
     '''Previous button for an ActionView.
 
        :attr:`action_previous` is an :class:`~kivy.properties.ObjectProperty`
-        and defaults to None.
+       and defaults to None.
     '''
 
     background_color = ListProperty([1, 1, 1, 1])
     '''Background color in the format (r, g, b, a).
 
        :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and
-        defaults to [1, 1, 1, 1].
+       defaults to [1, 1, 1, 1].
     '''
 
     background_image = StringProperty(
         'atlas://data/images/defaulttheme/action_view')
     '''Background image of an ActionViews default graphical representation.
 
-      :attr:`background_image` is an :class:`~kivy.properties.StringProperty`
-      and defaults to 'atlas://data/images/defaulttheme/action_view'.
+       :attr:`background_image` is an :class:`~kivy.properties.StringProperty`
+       and defaults to 'atlas://data/images/defaulttheme/action_view'.
     '''
 
     use_separator = BooleanProperty(False)
@@ -531,7 +536,7 @@ class ActionView(BoxLayout):
         super_add(self.action_previous)
 
         width = (self.width - self.overflow_group.pack_width -
-                 self.action_previous.pack_width)
+                 self.action_previous.minimum_width)
 
         if len(self._list_action_items):
             for child in self._list_action_items[1:]:
@@ -643,7 +648,7 @@ class ActionBar(BoxLayout):
     '''Background color, in the format (r, g, b, a).
 
        :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and
-        defaults to [1, 1, 1, 1].
+       defaults to [1, 1, 1, 1].
     '''
 
     background_image = StringProperty(

@@ -252,7 +252,6 @@ Examples::
 Will result in:
 
     def my_new_feature(self, arg):
-        """
         New feature is awesome
 
         .. versionadded:: 1.1.4
@@ -261,7 +260,6 @@ Will result in:
 
         .. warning:: Please take a seat before trying this feature
 
-        """
 
 
 When referring to other parts of the api use:
@@ -288,7 +286,7 @@ Will result in:
     :doc:`/api-kivy.core.window`
 
 `:doc:` and `:mod:` are essentially the same, except for an anchor in the url
-which makes `:doc:` prefered for the cleaner url.
+which makes `:doc:` preferred for the cleaner url.
 
 To build your documentation, run::
 

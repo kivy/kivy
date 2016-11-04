@@ -43,12 +43,12 @@ class Cache(object):
         '''Register a new category in the cache with the specified limit.
 
         :Parameters:
-            `category` : str
+            `category`: str
                 Identifier of the category.
-            `limit` : int (optional)
+            `limit`: int (optional)
                 Maximum number of objects allowed in the cache.
                 If None, no limit is applied.
-            `timeout` : double (optional)
+            `timeout`: double (optional)
                 Time after which to delete the object if it has not been used.
                 If None, no timeout is applied.
         '''
@@ -65,13 +65,13 @@ class Cache(object):
         '''Add a new object to the cache.
 
         :Parameters:
-            `category` : str
+            `category`: str
                 Identifier of the category.
-            `key` : str
+            `key`: str
                 Unique identifier of the object to store.
-            `obj` : object
+            `obj`: object
                 Object to store in cache.
-            `timeout` : double (optional)
+            `timeout`: double (optional)
                 Time after which to delete the object if it has not been used.
                 If None, no timeout is applied.
         '''
@@ -99,11 +99,11 @@ class Cache(object):
         '''Get a object from the cache.
 
         :Parameters:
-            `category` : str
+            `category`: str
                 Identifier of the category.
-            `key` : str
+            `key`: str
                 Unique identifier of the object in the store.
-            `default` : anything, defaults to None
+            `default`: anything, defaults to None
                 Default value to be returned if the key is not found.
         '''
         try:
@@ -117,11 +117,11 @@ class Cache(object):
         '''Get the object timestamp in the cache.
 
         :Parameters:
-            `category` : str
+            `category`: str
                 Identifier of the category.
-            `key` : str
+            `key`: str
                 Unique identifier of the object in the store.
-            `default` : anything, defaults to None
+            `default`: anything, defaults to None
                 Default value to be returned if the key is not found.
         '''
         try:
@@ -134,11 +134,11 @@ class Cache(object):
         '''Get the objects last access time in the cache.
 
         :Parameters:
-            `category` : str
+            `category`: str
                 Identifier of the category.
-            `key` : str
+            `key`: str
                 Unique identifier of the object in the store.
-            `default` : anything, defaults to None
+            `default`: anything, defaults to None
                 Default value to be returned if the key is not found.
         '''
         try:
@@ -151,11 +151,11 @@ class Cache(object):
         '''Purge the cache.
 
         :Parameters:
-            `category` : str
+            `category`: str
                 Identifier of the category.
-            `key` : str (optional)
+            `key`: str (optional)
                 Unique identifier of the object in the store. If this
-                arguement is not supplied, the entire category will be purged.
+                argument is not supplied, the entire category will be purged.
         '''
         try:
             if key is not None:
@@ -198,7 +198,7 @@ class Cache(object):
                 # time to draw. and the timeout is not adapted to the current
                 # framerate. So, increase the timeout by two.
                 # ie: if the timeout is 1 sec, and framerate go to 0.7, newly
-                # object added will be automaticly trashed.
+                # object added will be automatically trashed.
                 timeout *= 2
                 Cache._categories[category]['timeout'] = timeout
                 continue

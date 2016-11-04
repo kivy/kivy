@@ -28,6 +28,7 @@ Depending the compilation of SDL2 mixer and/or installed libraries:
 __all__ = ('SoundSDL2', 'MusicSDL2')
 
 include "../../../kivy/lib/sdl2.pxi"
+include "../../../kivy/graphics/common.pxi"  # For malloc and memcpy (on_pitch)
 
 from kivy.core.audio import Sound, SoundLoader
 from kivy.logger import Logger
@@ -35,11 +36,6 @@ from kivy.clock import Clock
 
 cdef int mix_is_init = 0
 cdef int mix_flags = 0
-
-# old code from audio_sdl, never used it = unfinished?
-#cdef void channel_finished_cb(int channel) nogil:
-#    with gil:
-#        print('Channel finished playing.', channel)
 
 
 cdef mix_init():
@@ -72,14 +68,13 @@ cdef mix_init():
         mix_is_init = -1
         return 0
 
-    #Mix_ChannelFinished(channel_finished_cb)
-
     mix_is_init = 1
     return 1
 
 # Container for samples (Mix_LoadWAV)
 cdef class ChunkContainer:
     cdef Mix_Chunk *chunk
+    cdef Mix_Chunk *original_chunk
     cdef int channel
 
     def __init__(self):
@@ -92,6 +87,9 @@ cdef class ChunkContainer:
                 Mix_HaltChannel(self.channel)
             Mix_FreeChunk(self.chunk)
             self.chunk = NULL
+        if self.original_chunk != NULL:
+            Mix_FreeChunk(self.original_chunk)
+            self.original_chunk = NULL
 
 # Container for music (Mix_LoadMUS), one channel only
 cdef class MusicContainer:
@@ -126,6 +124,7 @@ class SoundSDL2(Sound):
         return extensions
 
     def __init__(self, **kwargs):
+        self._check_play_ev = None
         self.cc = ChunkContainer()
         mix_init()
         super(SoundSDL2, self).__init__(**kwargs)
@@ -157,6 +156,26 @@ class SoundSDL2(Sound):
         frames = points / channels
         return <double>frames / <double>freq
 
+    def on_pitch(self, instance, value):
+        cdef ChunkContainer cc = self.cc
+        cdef int freq, channels
+        cdef unsigned short fmt
+        cdef SDL_AudioCVT cvt
+        if cc.chunk == NULL:
+            return
+        if not Mix_QuerySpec(&freq, &fmt, &channels):
+            return
+        SDL_BuildAudioCVT(
+            &cvt,
+            fmt, channels, int(freq * self.pitch),
+            fmt, channels, freq,
+        )
+        cvt.buf = <Uint8 *>malloc(cc.original_chunk.alen * cvt.len_mult)
+        cvt.len = cc.original_chunk.alen
+        memcpy(cvt.buf, cc.original_chunk.abuf, cc.original_chunk.alen)
+        SDL_ConvertAudio(&cvt)
+        cc.chunk = Mix_QuickLoad_RAW(cvt.buf, <Uint32>(cvt.len * cvt.len_ratio))
+
     def play(self):
         cdef ChunkContainer cc = self.cc
         self.stop()
@@ -169,7 +188,7 @@ class SoundSDL2(Sound):
                            self.filename, Mix_GetError()))
             return
         # schedule event to check if the sound is still playing or not
-        Clock.schedule_interval(self._check_play, 0.1)
+        self._check_play_ev = Clock.schedule_interval(self._check_play, 0.1)
         super(SoundSDL2, self).play()
 
     def stop(self):
@@ -179,7 +198,9 @@ class SoundSDL2(Sound):
         if Mix_GetChunk(cc.channel) == cc.chunk:
             Mix_HaltChannel(cc.channel)
         cc.channel = -1
-        Clock.unschedule(self._check_play)
+        if self._check_play_ev is not None:
+            self._check_play_ev.cancel()
+            self._check_play_ev = None
         super(SoundSDL2, self).stop()
 
     def load(self):
@@ -198,7 +219,10 @@ class SoundSDL2(Sound):
             Logger.warning('AudioSDL2: Unable to load {}: {}'.format(
                            self.filename, Mix_GetError()))
         else:
+            cc.original_chunk = Mix_QuickLoad_RAW(cc.chunk.abuf, cc.chunk.alen)
             cc.chunk.volume = int(self.volume * 128)
+            if self.pitch != 1.:
+                self.on_pitch(self, self.pitch)
 
     def unload(self):
         cdef ChunkContainer cc = self.cc
@@ -243,6 +267,7 @@ class MusicSDL2(Sound):
 
     def __init__(self, **kwargs):
         self.mc = MusicContainer()
+        self._check_play_ev = None
         mix_init()
         super(MusicSDL2, self).__init__(**kwargs)
 
@@ -279,7 +304,7 @@ class MusicSDL2(Sound):
             return
         mc.playing = 1
         # schedule event to check if the sound is still playing or not
-        Clock.schedule_interval(self._check_play, 0.1)
+        self._check_play_ev = Clock.schedule_interval(self._check_play, 0.1)
         super(MusicSDL2, self).play()
 
     def stop(self):
@@ -288,7 +313,9 @@ class MusicSDL2(Sound):
             return
         Mix_HaltMusic()
         mc.playing = 0
-        Clock.unschedule(self._check_play)
+        if self._check_play_ev is not None:
+            self._check_play_ev.cancel()
+            self._check_play_ev = None
         super(MusicSDL2, self).stop()
 
     def load(self):

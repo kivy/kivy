@@ -565,7 +565,7 @@ cdef class Transform(MatrixInstruction):
         self.transform( Matrix().translate(tx, ty, tz) )
 
     cpdef rotate(self, float angle, float ax, float ay, float az):
-        '''Rotate the transformation by matrix by *angle* degress around the
+        '''Rotate the transformation by matrix by *angle* degrees around the
         axis defined by the vector ax, ay, az.
         '''
         self.transform( Matrix().rotate(angle, ax, ay, az) )
@@ -692,7 +692,7 @@ cdef class Scale(Transform):
 
     .. deprecated:: 1.6.0
         Deprecated single scale property in favor of x, y, z, xyz axis
-        independant scaled factors.
+        independent scaled factors.
     '''
     def __init__(self, *args, **kwargs):
         cdef double x, y, z
@@ -741,8 +741,8 @@ cdef class Scale(Transform):
                     "y, z, etc properties to get scale factor based on axis.")
                 return self._x
             else:
-                raise Exception("trying to access deprectaed property" +\
-                    " 'scale' on Scale instruction with non unifrom scaling!")
+                raise Exception("trying to access deprecated property" +\
+                    " 'scale' on Scale instruction with non uniform scaling!")
 
         def __set__(self, s):
             Logger.warning("scale property is deprecated, use xyz, x, " +\

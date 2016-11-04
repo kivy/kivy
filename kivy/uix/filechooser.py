@@ -17,7 +17,7 @@ vertical list, where folders can be collapsed and expanded.
 .. image:: images/filechooser_list.png
 
 The :class:`FileChooserIconView` presents icons and text from left to right,
-wrappping them as required.
+wrapping them as required.
 
 .. image:: images/filechooser_icon.png
 
@@ -176,7 +176,7 @@ class FileSystemLocal(FileSystemAbstract):
             try:
                 return GetFileAttributesExW(fn)[0] & FILE_ATTRIBUTE_HIDDEN
             except error:
-                # This error can occured when a file is already accessed by
+                # This error can occurred when a file is already accessed by
                 # someone else. So don't return to True, because we have lot
                 # of chances to not being able to do anything with it.
                 Logger.exception('unable to access to <%s>' % fn)
@@ -307,7 +307,8 @@ class FileChooserController(RelativeLayout):
 
     :Events:
         `on_entry_added`: entry, parent
-            Fired when a root-level entry is added to the file list.
+            Fired when a root-level entry is added to the file list. If you
+            return True from this event, the entry is not added to FileChooser.
         `on_entries_cleared`
             Fired when the the entries list is cleared, usually when the
             root is refreshed.
@@ -508,6 +509,9 @@ class FileChooserController(RelativeLayout):
     .. versionadded:: 1.8.0
     '''
 
+    _update_files_ev = None
+    _create_files_entries_ev = None
+
     __events__ = ('on_entry_added', 'on_entries_cleared',
                   'on_subentry_to_entry', 'on_remove_subentry', 'on_submit')
 
@@ -552,8 +556,11 @@ class FileChooserController(RelativeLayout):
         self._previous_path = self._previous_path[-2:]
 
     def _trigger_update(self, *args):
-        Clock.unschedule(self._update_files)
-        Clock.schedule_once(self._update_files)
+        ev = self._update_files_ev
+        if ev is None:
+            ev = self._update_files_ev = Clock.create_trigger(
+                self._update_files)
+        ev()
 
     def on_entry_added(self, node, parent=None):
         if self.layout:
@@ -679,14 +686,19 @@ class FileChooserController(RelativeLayout):
             parent=self._gitems_parent)
 
         # cancel any previous clock if exist
-        Clock.unschedule(self._create_files_entries)
+        ev = self._create_files_entries_ev
+        if ev is not None:
+            ev.cancel()
 
         # show the progression screen
         self._hide_progress()
         if self._create_files_entries():
             # not enough for creating all the entries, all a clock to continue
             # start a timer for the next 100 ms
-            Clock.schedule_interval(self._create_files_entries, .1)
+            if ev is None:
+                ev = self._create_files_entries_ev = Clock.schedule_interval(
+                    self._create_files_entries, .1)
+            ev()
 
     def _get_file_paths(self, items):
         return [file.path for file in items]
@@ -735,7 +747,9 @@ class FileChooserController(RelativeLayout):
         self._hide_progress()
         self._gitems = None
         self._gitems_gen = None
-        Clock.unschedule(self._create_files_entries)
+        ev = self._create_files_entries_ev
+        if ev is not None:
+            ev.cancel()
         return False
 
     def cancel(self, *largs):
@@ -744,14 +758,20 @@ class FileChooserController(RelativeLayout):
 
         .. versionadded:: 1.2.0
         '''
-        Clock.unschedule(self._create_files_entries)
+        ev = self._create_files_entries_ev
+        if ev is not None:
+            ev.cancel()
+
         self._hide_progress()
         if len(self._previous_path) > 1:
             # if we cancel any action, the path will be set same as the
             # previous one, so we can safely cancel the update of the previous
             # path.
             self.path = self._previous_path[-2]
-            Clock.unschedule(self._update_files)
+
+            ev = self._update_files_ev
+            if ev is not None:
+                ev.cancel()
 
     def _show_progress(self):
         if self._progress:

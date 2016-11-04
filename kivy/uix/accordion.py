@@ -107,7 +107,7 @@ class AccordionItem(FloatLayout):
     '''
 
     title = StringProperty('')
-    '''Title string of the item. The title might be used in conjuction with the
+    '''Title string of the item. The title might be used in conjunction with the
     `AccordionItemTitle` template. If you are using a custom template, you can
     use that property as a text entry, or not. By default, it's used for the
     title text. See title_template and the example below.
@@ -173,7 +173,7 @@ class AccordionItem(FloatLayout):
     '''
 
     collapse_alpha = NumericProperty(1.)
-    '''Value between 0 and 1 to indicate how much the item is collasped (1) or
+    '''Value between 0 and 1 to indicate how much the item is collapsed (1) or
     whether it is selected (0). It's mostly used for animation.
 
     :attr:`collapse_alpha` is a :class:`~kivy.properties.NumericProperty` and

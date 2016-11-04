@@ -136,6 +136,7 @@ Builder.load_string('''
 
 
 class LinePlayground(FloatLayout):
+
     alpha_controlline = NumericProperty(1.0)
     alpha = NumericProperty(0.5)
     close = BooleanProperty(False)
@@ -147,6 +148,8 @@ class LinePlayground(FloatLayout):
     cap = OptionProperty('none', options=('round', 'square', 'none'))
     linewidth = NumericProperty(10.0)
     dt = NumericProperty(0)
+
+    _update_points_animation_ev = None
 
     def on_touch_down(self, touch):
         if super(LinePlayground, self).on_touch_down(touch):
@@ -169,9 +172,10 @@ class LinePlayground(FloatLayout):
 
     def animate(self, do_animation):
         if do_animation:
-            Clock.schedule_interval(self.update_points_animation, 0)
-        else:
-            Clock.unschedule(self.update_points_animation)
+            self._update_points_animation_ev = Clock.schedule_interval(
+                self.update_points_animation, 0)
+        elif self._update_points_animation_ev is not None:
+            self._update_points_animation_ev.cancel()
 
     def update_points_animation(self, dt):
         cy = self.height * 0.6

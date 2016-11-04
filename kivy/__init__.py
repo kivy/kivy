@@ -36,6 +36,7 @@ from getopt import getopt, GetoptError
 from os import environ, mkdir
 from os.path import dirname, join, basename, exists, expanduser
 import pkgutil
+from kivy.compat import PY2
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.utils import platform
 
@@ -284,6 +285,10 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         elif platform == 'ios':
             user_home_dir = join(expanduser('~'), 'Documents')
         kivy_home_dir = join(user_home_dir, '.kivy')
+
+    if PY2:
+        kivy_home_dir = kivy_home_dir.decode(sys.getfilesystemencoding())
+
     kivy_config_fn = join(kivy_home_dir, 'config.ini')
     kivy_usermodules_dir = join(kivy_home_dir, 'mods')
     kivy_userexts_dir = join(kivy_home_dir, 'extensions')
@@ -313,7 +318,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     if ('KIVY_UNITTEST' not in environ and
             'KIVY_PACKAGING' not in environ and
             'KIVY_NO_ARGS' not in environ):
-        # save sys argv, otherwize, gstreamer use it and display help..
+        # save sys argv, otherwise, gstreamer use it and display help..
         sys_argv = sys.argv
         sys.argv = sys.argv[:1]
 
@@ -331,14 +336,19 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         mp_fork = None
         try:
-            mp_fork = opts['multiprocessing-fork']
+            for opt, arg in opts:
+                if opt == '--multiprocessing-fork':
+                    mp_fork = True
+                    break
         except:
             pass
 
         # set argv to the non-read args
         sys.argv = sys_argv[0:1] + args
         if mp_fork is not None:
-            sys.argv = sys.argv + ['--multiprocessing-fork']
+            # Needs to be first opt for support_freeze to work
+            sys.argv.insert(1, '--multiprocessing-fork')
+
     else:
         opts = []
         args = []

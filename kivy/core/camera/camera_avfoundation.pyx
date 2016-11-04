@@ -36,6 +36,7 @@ class CameraAVFoundation(CameraBase):
 
     def __init__(self, **kwargs):
         self._storage = _AVStorage()
+        self._update_ev = None
         super(CameraAVFoundation, self).__init__(**kwargs)
 
     def init_camera(self):
@@ -72,14 +73,17 @@ class CameraAVFoundation(CameraBase):
     def start(self):
         cdef _AVStorage storage = <_AVStorage>self._storage
         super(CameraAVFoundation, self).start()
-        Clock.unschedule(self._update)
-        Clock.schedule_interval(self._update, 1 / 30.)
+        if self._update_ev is not None:
+            self._update_ev.cancel()
+        self._update_ev = Clock.schedule_interval(self._update, 1 / 30.)
         avf_camera_start(storage.camera)
 
     def stop(self):
         cdef _AVStorage storage = <_AVStorage>self._storage
         super(CameraAVFoundation, self).stop()
-        Clock.unschedule(self._update)
+        if self._update_ev is not None:
+            self._update_ev.cancel()
+            self._update_ev = None
         avf_camera_stop(storage.camera)
 
 

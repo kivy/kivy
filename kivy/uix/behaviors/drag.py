@@ -92,7 +92,7 @@ class DragBehavior(object):
 
     :attr:`drag_timeout` is a :class:`~kivy.properties.NumericProperty` and
     defaults to the `scroll_timeout` as defined in the user
-    :class:`~kivy.config.Config` (55 milliseconds by defaut).
+    :class:`~kivy.config.Config` (55 milliseconds by default).
     '''
 
     drag_rect_x = NumericProperty(0)

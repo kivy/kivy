@@ -423,7 +423,7 @@ class Parser(object):
                     force_load = True
 
                 if ref[-3:] != '.kv':
-                    Logger.warn('WARNING: {0} does not have a valid Kivy'
+                    Logger.warn('Lang: {0} does not have a valid Kivy'
                                 'Language extension (.kv)'.format(ref))
                     break
                 if ref in __KV_INCLUDES__:
@@ -431,16 +431,16 @@ class Parser(object):
                         raise ParserException(self, ln,
                             'Invalid or unknown file: {0}'.format(ref))
                     if not force_load:
-                        Logger.warn('WARNING: {0} has already been included!'
+                        Logger.warn('Lang: {0} has already been included!'
                                     .format(ref))
                         continue
                     else:
-                        Logger.debug('Reloading {0} because include was forced.'
+                        Logger.debug('Lang: Reloading {0} because include was forced.'
                                     .format(ref))
                         kivy.lang.builder.Builder.unload_file(ref)
                         kivy.lang.builder.Builder.load_file(ref)
                         continue
-                Logger.debug('Including file: {0}'.format(0))
+                Logger.debug('Lang: Including file: {0}'.format(0))
                 __KV_INCLUDES__.append(ref)
                 kivy.lang.builder.Builder.load_file(ref)
             elif cmd[:7] == 'import ':
@@ -566,14 +566,14 @@ class Parser(object):
                     not x[1].lstrip().startswith('#')):
                     raise ParserException(self, ln,
                                           'Invalid data after declaration')
-                name = x[0]
+                name = x[0].rstrip()
                 # if it's not a root rule, then we got some restriction
                 # aka, a valid name, without point or everything else
                 if count != 0:
                     if False in [ord(z) in Parser.PROP_RANGE for z in name]:
                         raise ParserException(self, ln, 'Invalid class name')
 
-                current_object = ParserRule(self, ln, x[0], rlevel)
+                current_object = ParserRule(self, ln, name, rlevel)
                 current_property = None
                 objects.append(current_object)
 

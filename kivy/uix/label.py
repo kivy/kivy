@@ -33,14 +33,14 @@ the text.
 For example, this label's size will be set to the text content
 (plus :attr:`~Label.padding`):
 
-.. code-block:: python
+.. code-block:: kv
 
     Label:
         size: self.texture_size
 
 This label's text will wrap at the specified width and be clipped to the height:
 
-.. code-block:: python
+.. code-block:: kv
 
     Label:
         text_size: cm(6), cm(4)
@@ -51,7 +51,7 @@ This label's text will wrap at the specified width and be clipped to the height:
 Combine these concepts to create a Label that can grow vertically but wraps the
 text at a certain width:
 
-.. code-block:: python
+.. code-block:: kv
 
     Label:
         text_size: root.width, None
@@ -74,7 +74,7 @@ which text is aligned. For instance, the following code binds this size to the
 size of the Label, so text will be aligned within the widget bounds. This
 will also automatically wrap the text of the Label to remain within this area.
 
-.. code-block:: python
+.. code-block:: kv
 
     Label:
         text_size: self.size
@@ -177,7 +177,7 @@ and deploy it universally via kv:
 .. code-block:: kv
 
     <Label>:
-        -font_name: '/<path>/<to>/<font>'
+        font_name: '/<path>/<to>/<font>'
 
 Note that this needs to be done before your widgets are loaded as kv rules are
 only applied at load time.
@@ -267,8 +267,9 @@ class Label(Widget):
                         'outline_width', 'disabled_outline_color',
                         'outline_color', 'text_size', 'shorten', 'mipmap',
                         'line_height', 'max_lines', 'strip', 'shorten_from',
-                        'split_str', 'unicode_errors', 'markup',
-                        'font_hinting', 'font_kerning', 'font_blended')
+                        'split_str', 'ellipsis_options', 'unicode_errors',
+                        'markup', 'font_hinting', 'font_kerning',
+                        'font_blended')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -423,7 +424,7 @@ class Label(Widget):
     text_size = ListProperty([None, None])
     '''By default, the label is not constrained to any bounding box.
     You can set the size constraint of the label with this property.
-    The text will autoflow into the constrains. So although the font size
+    The text will autoflow into the constraints. So although the font size
     will not be reduced, the text will be arranged to fit into the box as best
     as possible, with any text still outside the box clipped.
 
@@ -738,13 +739,35 @@ class Label(Widget):
 
     For example, if it's a space, the string will be broken into words and as
     many whole words that can fit into a single line will be displayed. If
-    :attr:`shorten_from` is the empty string, `''`, we split on every character
+    :attr:`split_str` is the empty string, `''`, we split on every character
     fitting as much text as possible into the line.
 
     .. versionadded:: 1.9.0
 
     :attr:`split_str` is a :class:`~kivy.properties.StringProperty` and
     defaults to `''` (the empty string).
+    '''
+
+    ellipsis_options = DictProperty({})
+    '''Font options for the ellipsis string('...') used to split the text.
+
+    Accepts a dict as option name with the value. Only applied when
+    :attr:`markup` is true and text is shortened. All font options which work
+    for :class:`Label` will work for :attr:`ellipsis_options`. Defaults for
+    the options not specified are taken from the surronding text.
+
+    .. code-block:: kv
+
+        Label:
+            text: 'Some very long line which will be cut'
+            markup: True
+            shorten: True
+            ellipsis_options: {'color':(1,0.5,0.5,1),'underline':True}
+
+    .. versionadded:: 2.0.0
+
+    :attr:`ellipsis_options` is a :class:`~kivy.properties.DictProperty` and
+    defaults to `{}` (the empty dict).
     '''
 
     unicode_errors = OptionProperty(
@@ -789,7 +812,7 @@ class Label(Widget):
     The references marked "hello" have a bounding box at (x1, y1, x2, y2).
     These co-ordinates are relative to the top left corner of the text, with
     the y value increasing downwards. You can define multiple refs with the same
-    name: each occurence will be added as another (x1, y1, x2, y2) tuple to
+    name: each occurrence will be added as another (x1, y1, x2, y2) tuple to
     this list.
 
     The current Label implementation uses these references if they exist in
@@ -816,7 +839,7 @@ class Label(Widget):
     Position of all the ``[anchor=xxx]`` markup in the text.
     These co-ordinates are relative to the top left corner of the text, with
     the y value increasing downwards. Anchors names should be unique and only
-    the first occurence of any duplicate anchors will be recorded.
+    the first occurrence of any duplicate anchors will be recorded.
 
 
     You can place anchors in your markup text as follows::

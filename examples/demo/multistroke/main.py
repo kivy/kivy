@@ -6,7 +6,7 @@ This application records gestures and attempts to match them. You should
 see a black drawing surface with some buttons across the bottom. As you
 make a gesture on the drawing surface, the gesture will be added to
 the history and a match will be attempted. If you go to the history tab,
-name the gesture, and add it to the database, then simliar gestures in the
+name the gesture, and add it to the database, then similar gestures in the
 future will be recognized. You can load and save databases of gestures
 in .kg files.
 

@@ -323,6 +323,9 @@ class VKeyboard(Scatter):
     font_name = StringProperty('data/fonts/DejaVuSans.ttf')
     repeat_touch = ObjectProperty(allownone=True)
 
+    _start_repeat_key_ev = None
+    _repeat_key_ev = None
+
     __events__ = ('on_key_down', 'on_key_up', 'on_textinput')
 
     def __init__(self, **kwargs):
@@ -643,7 +646,7 @@ class VKeyboard(Scatter):
             BorderImage(texture=texture, size=self.size,
                         border=self.background_border)
 
-        # XXX seperate drawing the keys and the fonts to avoid
+        # XXX separate drawing the keys and the fonts to avoid
         # XXX reloading the texture each time
 
         # first draw keys without the font
@@ -750,7 +753,9 @@ class VKeyboard(Scatter):
         if special_char is not None:
             # Do not repeat special keys
             if special_char in ('capslock', 'shift', 'layout', 'special'):
-                Clock.unschedule(self._start_repeat_key)
+                if self._start_repeat_key_ev is not None:
+                    self._start_repeat_key_ev.cancel()
+                    self._start_repeat_key_ev = None
                 self.repeat_touch = None
             if special_char == 'capslock':
                 self.have_capslock = not self.have_capslock
@@ -811,7 +816,7 @@ class VKeyboard(Scatter):
         return ret
 
     def _start_repeat_key(self, *kwargs):
-        Clock.schedule_interval(self._repeat_key, 0.05)
+        self._repeat_key_ev = Clock.schedule_interval(self._repeat_key, 0.05)
 
     def _repeat_key(self, *kwargs):
         self.process_key_on(self.repeat_touch)
@@ -826,7 +831,8 @@ class VKeyboard(Scatter):
         x, y = self.to_local(x, y)
         if not self.collide_margin(x, y):
             if self.repeat_touch is None:
-                Clock.schedule_once(self._start_repeat_key, 0.5)
+                self._start_repeat_key_ev = Clock.schedule_once(
+                    self._start_repeat_key, 0.5)
             self.repeat_touch = touch
 
             self.process_key_on(touch)
@@ -840,9 +846,13 @@ class VKeyboard(Scatter):
         if touch.grab_current is self:
             self.process_key_up(touch)
 
-            Clock.unschedule(self._start_repeat_key)
+            if self._start_repeat_key_ev is not None:
+                self._start_repeat_key_ev.cancel()
+                self._start_repeat_key_ev = None
             if touch == self.repeat_touch:
-                Clock.unschedule(self._repeat_key)
+                if self._repeat_key_ev is not None:
+                    self._repeat_key_ev.cancel()
+                    self._repeat_key_ev = None
                 self.repeat_touch = None
 
         return super(VKeyboard, self).on_touch_up(touch)

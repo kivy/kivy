@@ -51,14 +51,26 @@
         Color:
             rgb: 1, 1, 1
         BorderImage:
-            border: (0, 18, 0, 18) if self.orientation == 'horizontal' else (18, 0, 18, 0)
-            pos: (self.x + self.padding, self.center_y - sp(18)) if self.orientation == 'horizontal' else (self.center_x - 18, self.y + self.padding)
-            size: (self.width - self.padding * 2, sp(36)) if self.orientation == 'horizontal' else (sp(36), self.height - self.padding * 2)
-            source: 'atlas://data/images/defaulttheme/slider{}_background{}'.format(self.orientation[0], '_disabled' if self.disabled else '')
+            border: self.border_horizontal if self.orientation == 'horizontal' else self.border_vertical
+            pos: (self.x + self.padding, self.center_y - self.background_width / 2) if self.orientation == 'horizontal' else (self.center_x - self.background_width / 2, self.y + self.padding)
+            size: (self.width - self.padding * 2, self.background_width) if self.orientation == 'horizontal' else (self.background_width, self.height - self.padding * 2)
+            source: (self.background_disabled_horizontal if self.orientation == 'horizontal' else self.background_disabled_vertical) if self.disabled else (self.background_horizontal if self.orientation == 'horizontal' else self.background_vertical)
+        Color:
+            rgba: root.value_track_color if self.value_track and self.orientation == 'horizontal' else [1, 1, 1, 0]
+        Line:
+            width: self.value_track_width
+            points: self.x + self.padding, self.center_y - self.value_track_width / 2, self.value_pos[0], self.center_y - self.value_track_width / 2
+        Color:
+            rgba: root.value_track_color if self.value_track and self.orientation == 'vertical' else [1, 1, 1, 0]
+        Line:
+            width: self.value_track_width
+            points: self.center_x, self.y + self.padding, self.center_x, self.value_pos[1]
+        Color:
+            rgb: 1, 1, 1
         Rectangle:
-            pos: (self.value_pos[0] - sp(16), self.center_y - sp(17)) if self.orientation == 'horizontal' else (self.center_x - (16), self.value_pos[1] - sp(16))
-            size: (sp(32), sp(32))
-            source: 'atlas://data/images/defaulttheme/slider_cursor{}'.format('_disabled' if self.disabled else '')
+            pos: (self.value_pos[0] - self.cursor_width / 2, self.center_y - self.cursor_height / 2) if self.orientation == 'horizontal' else (self.center_x - self.cursor_width / 2, self.value_pos[1] - self.cursor_height / 2)
+            size: self.cursor_size
+            source: self.cursor_disabled_image if self.disabled else self.cursor_image
 
 <ProgressBar>:
     canvas:
@@ -326,10 +338,11 @@
     on_touch_up: self.collide_point(*args[1].pos) and ctx.controller().entry_released(self, args[1])
     BoxLayout:
         pos: root.pos
+        size_hint_x: None
+        width: root.width - dp(10)
         Label:
             id: filename
-            size_hint_x: None
-            width: (self.texture_size[0] + dp(4)) if self.texture_size else dp(10)
+            text_size: self.width, None
             halign: 'left'
             shorten: True
             text: ctx.name
@@ -459,6 +472,9 @@
             source: 'atlas://data/images/defaulttheme/switch-background{}'.format('_disabled' if self.disabled else '')
             size: sp(83), sp(32)
             pos: int(self.center_x - sp(41)), int(self.center_y - sp(16))
+    canvas.after:
+        Color:
+            rgb: 1, 1, 1
         Rectangle:
             source: 'atlas://data/images/defaulttheme/switch-button{}'.format('_disabled' if self.disabled else '')
             size: sp(43), sp(32)

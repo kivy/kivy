@@ -29,12 +29,14 @@ mixer.set_num_channels(32)
 
 class SoundPygame(Sound):
 
-    # XXX we don't set __slots__ here, to automaticly add
+    # XXX we don't set __slots__ here, to automatically add
     # a dictionary. We need that to be able to use weakref for
     # SoundPygame object. Otherwise, it failed with:
     # TypeError: cannot create weak reference to 'SoundPygame' object
     # We use our clock in play() method.
     # __slots__ = ('_data', '_channel')
+    _check_play_ev = None
+
     @staticmethod
     def extensions():
         if _platform == 'android':
@@ -66,7 +68,7 @@ class SoundPygame(Sound):
         self._channel = self._data.play()
         self.start_time = Clock.time()
         # schedule event to check if the sound is still playing or not
-        Clock.schedule_interval(self._check_play, 0.1)
+        self._check_play_ev = Clock.schedule_interval(self._check_play, 0.1)
         super(SoundPygame, self).play()
 
     def stop(self):
@@ -74,7 +76,9 @@ class SoundPygame(Sound):
             return
         self._data.stop()
         # ensure we don't have anymore the callback
-        Clock.unschedule(self._check_play)
+        if self._check_play_ev is not None:
+            self._check_play_ev.cancel()
+            self._check_play_ev = None
         self._channel = None
         super(SoundPygame, self).stop()
 

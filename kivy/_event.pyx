@@ -843,6 +843,7 @@ cdef class EventDispatcher(ObjectWithUid):
 
 
         ::
+
             >>> mywidget = Widget()
             >>> mywidget.create_property('custom')
             >>> mywidget.custom = True
@@ -879,7 +880,7 @@ cdef class EventDispatcher(ObjectWithUid):
 
         .. warning::
 
-            This method is not reccomended for common usage because you should
+            This method is not recommended for common usage because you should
             declare the properties in your class instead of using this method.
 
         For example::
@@ -992,7 +993,7 @@ cdef class EventObservers:
         cdef BoundCallback callback = self.first_callback
 
         while callback is not None:
-            # try a quick comparision
+            # try a quick comparison
             if callback.lock == deleted or callback.largs is not None or callback.kwargs is not None:
                 callback = callback.next
                 continue
@@ -1157,7 +1158,7 @@ cdef class EventObservers:
         otherwise we start with the first.
 
         The logic and reason for locking callbacks is as followes. During a dispatch,
-        arbitrary code can be executed, therefore, as we trasverse and execute
+        arbitrary code can be executed, therefore, as we traverse and execute
         each callback, the callback may in turn bind. unbind or even cause a
         new dispatch recursively many times. Therefore, our goal should be to
         during a dispatch, allow such recursiveness, while at each level, only
@@ -1174,11 +1175,11 @@ cdef class EventObservers:
         we can mark it deleted but not actually delete it or unlock it. Also, that level
         is responsible for deleting the callbacks it locked if a lower
         level marked them deleted, otherwise it just unlocks them before returning.
-        So a callback locked by a level, is guerenteed to not be removed (but at most
+        So a callback locked by a level, is guaranteed to not be removed (but at most
         marked for deletion) by a recursive dispatch.
 
         Each callback as it is dispatched is locked. Also, the last callback
-        scheduled to be executed is immediatly locked, so that we know where to
+        scheduled to be executed is immediately locked, so that we know where to
         stop, in case new callbacks are added.
         '''
         cdef BoundCallback callback, final

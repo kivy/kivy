@@ -42,7 +42,6 @@ install:
           pip install --upgrade cython pillow nose coveralls;
         fi;
         if [ "${RUN}" == "docs" ]; then
-          echo -e "sudo apt-get -y install texlive-full";
           pip install --upgrade sphinxcontrib-blockdiag sphinxcontrib-seqdiag sphinxcontrib-actdiag sphinxcontrib-nwdiag;
         fi;
     fi;
@@ -115,7 +114,6 @@ script:
         fi;
         if [ "${RUN}" == "docs" ]; then
           make html;
-          echo -e "make pdf";
         fi;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
@@ -151,16 +149,14 @@ after_success:
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" == "docs" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ] && [ "${TRAVIS_BRANCH}" == "master" ]; then
       openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
       chmod 600 ~/.ssh/id_rsa;
-      echo -e "Host kivy.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
-      rsync --delete --force -r -e ssh ./doc/build/html/ kivy@kivy.org:~/kivy.org/docs/api-trunk/;
-      echo -e "mv ./doc/build/latex/Kivy.pdf ./doc/build/latex/Kivy-latest.pdf";
-      echo -e "rsync -e ssh ./doc/build/latex/Kivy-latest.pdf kivy@kivy.org:~/kivy.org/docs/pdf/Kivy-latest.pdf";
+      echo -e "Host 159.203.106.198\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
+      rsync --delete --force -r -e "ssh -p 2457" ./doc/build/html/ root@159.203.106.198:/web/docs/;
     fi;
 
 notifications:
   webhooks:
     urls:
-      - http://kivy.org:5000/travisevent
+      - https://kivy.org:5000/travisevent
     on_success: always
     on_failure: always
     on_start: always
