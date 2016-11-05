@@ -425,8 +425,8 @@ class ImageLoader(object):
             return ImageLoader.zip_loader(filename)
         else:
             im = None
-            # Get actual image format by file info instead of extension
-            ext = imghdr.what(filename)
+            # Get actual image format instead of extension if possible
+            ext = imghdr.what(filename) or ext
             for loader in ImageLoader.loaders:
                 if ext not in loader.extensions():
                     continue
