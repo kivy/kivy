@@ -2400,7 +2400,8 @@ class TextInput(FocusBehavior, Widget):
             else:
                 if EventLoop.window.__class__.__module__ == \
                     'kivy.core.window.window_sdl2':
-                    return
+                    if not (text == ' ' and platform == 'android'):
+                        return
                 if self._selection:
                     self.delete_selection()
                 self.insert_text(text)
