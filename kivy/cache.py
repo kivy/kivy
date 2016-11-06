@@ -39,7 +39,8 @@ class Cache(object):
     _objects = {}
 
     @staticmethod
-    def register(category, limit=None, timeout=None):
+    def register(category, limit=None, timeout=None, max_size=None,
+                 compute_size=None):
         '''Register a new category in the cache with the specified limit.
 
         :Parameters:
@@ -51,14 +52,31 @@ class Cache(object):
             `timeout`: double (optional)
                 Time after which to delete the object if it has not been used.
                 If None, no timeout is applied.
+            `max_size`: maximum memory to be used by the cache.
+                If None, no limit is applied.
+                This require the `compute_size` argument to be set.
+                .. versionadded:: 1.9.2
+            `compute_size`: a function to compute the size of an object
+                in cache.  current size of the cache will be updated
+                whenever an object is added/removed using this function
+                on the object. If max_size is > 0, this method will be
+                called every time an object is added, so it must be fast
+                enough.
+                .. versionadded:: 1.9.2
         '''
         Cache._categories[category] = {
             'limit': limit,
-            'timeout': timeout}
+            'timeout': timeout,
+            'max_size': max_size,
+            'compute_size': compute_size,
+            'sizes': {},
+            'size': 0}
         Cache._objects[category] = {}
         Logger.debug(
-            'Cache: register <%s> with limit=%s, timeout=%s' %
-            (category, str(limit), str(timeout)))
+            'Cache: register <%s> with limit=%s, timeout=%s, '
+            'max_size=%s, compute_size=%s' % (
+                category, str(limit), str(timeout), str(max_size),
+                str(compute_size)))
 
     @staticmethod
     def append(category, key, obj, timeout=None):
@@ -89,6 +107,19 @@ class Cache(object):
         limit = cat['limit']
         if limit is not None and len(Cache._objects[category]) >= limit:
             Cache._purge_oldest(category)
+
+        if cat['max_size']:
+            object_size = cat['compute_size'](obj)
+            cat['size'] += object_size
+            if key in Cache._objects[category]:
+                # old value is being overwritten, so we need to
+                # substract its size first
+                cat['size'] -= cat['sizes'][key]
+            cat['sizes'][key] = object_size
+
+            while cat['size'] > cat['max_size']:
+                Logger.trace("%s size %s", category, cat['size'])
+                Cache._purge_oldest(category)
 
         Cache._objects[category][key] = {
             'object': obj,
@@ -159,13 +190,22 @@ class Cache(object):
                 Unique identifier of the object in the store. If this
                 argument is not supplied, the entire category will be purged.
         '''
-        try:
-            if key is not None:
-                del Cache._objects[category][key]
-            else:
-                Cache._objects[category] = {}
-        except Exception:
-            pass
+        Logger.trace("trying to remove %s from %s", key, category)
+        if key is not None:
+            cat = Cache._categories[category]
+            Logger.trace('cat max size %s', cat['max_size'])
+            if cat['max_size']:
+                obj_size = cat['sizes'][key]
+                Logger.trace('removing %s from %s size',
+                             obj_size, category)
+                cat['size'] -= obj_size
+                del cat['sizes'][key]
+
+            del Cache._objects[category][key]
+            Logger.trace("removed %s:%s from cache", category, key)
+        else:
+            Cache._objects[category] = {}
+            Logger.trace("flushed category %s from cache", category)
 
     @staticmethod
     def _purge_oldest(category, maxpurge=1):
