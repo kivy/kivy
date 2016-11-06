@@ -103,7 +103,6 @@ class Cache(object):
             return
         timeout = timeout or cat['timeout']
 
-        # FIXME: activate purge when limit is hit
         limit = cat['limit']
         if limit is not None and len(Cache._objects[category]) >= limit:
             Cache._purge_oldest(category)
