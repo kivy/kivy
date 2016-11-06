@@ -81,13 +81,15 @@ class Cache(object):
         try:
             cat = Cache._categories[category]
         except KeyError:
-            Logger.warning('Cache: category <%s> not exist' % category)
+            Logger.warning('Cache: category <%s> does not exist' % category)
             return
         timeout = timeout or cat['timeout']
+
         # FIXME: activate purge when limit is hit
-        #limit = cat['limit']
-        #if limit is not None and len(Cache._objects[category]) >= limit:
-        #    Cache._purge_oldest(category)
+        limit = cat['limit']
+        if limit is not None and len(Cache._objects[category]) >= limit:
+            Cache._purge_oldest(category)
+
         Cache._objects[category][key] = {
             'object': obj,
             'timeout': timeout,
@@ -167,23 +169,25 @@ class Cache(object):
 
     @staticmethod
     def _purge_oldest(category, maxpurge=1):
-        print('PURGE', category)
+        Logger.debug('PURGE %s', category)
         import heapq
         heap_list = []
+        time = Clock.get_time()
         for key in Cache._objects[category]:
             obj = Cache._objects[category][key]
-            if obj['lastaccess'] == obj['timestamp']:
+            if obj['lastaccess'] == obj['timestamp'] == time:
+                Logger.trace("ignoring %s", obj)
                 continue
+
             heapq.heappush(heap_list, (obj['lastaccess'], key))
-            print('<<<', obj['lastaccess'])
+            Logger.debug('<<< %s %s', obj, obj['lastaccess'])
+
         n = 0
         while n < maxpurge:
-            try:
-                lastaccess, key = heapq.heappop(heap_list)
-                print('=>', key, lastaccess, Clock.get_time())
-            except Exception:
-                return
-            del Cache._objects[category][key]
+            n += 1
+            lastaccess, key = heapq.heappop(heap_list)
+            Logger.debug('=> %s %s %s', key, lastaccess, Clock.get_time())
+            Cache.remove(category, key)
 
     @staticmethod
     def _purge_by_timeout(dt):
@@ -216,7 +220,7 @@ class Cache(object):
                     continue
 
                 if curtime - lastaccess > timeout:
-                    del Cache._objects[category][key]
+                    Cache.remove(category, key)
 
     @staticmethod
     def print_usage():
