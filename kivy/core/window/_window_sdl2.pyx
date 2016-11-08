@@ -94,16 +94,6 @@ cdef class _WindowSDL2Storage:
                 'LandscapeLeft LandscapeRight')
         SDL_SetHint(SDL_HINT_ORIENTATIONS, <bytes>orientations)
 
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16)
-        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1)
-        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 0)
-        SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1)
-
         if x is None:
             x = SDL_WINDOWPOS_UNDEFINED
         if y is None:

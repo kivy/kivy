@@ -47,11 +47,11 @@ static int g_width, g_height;
 	static EGLSurface eglsurface;
 	static EGLContext eglcontext;
 	static EGLint egl_config_attribs[] = {
-		EGL_BUFFER_SIZE,        32,
-		EGL_RED_SIZE,            8,
-		EGL_GREEN_SIZE,          8,
-		EGL_BLUE_SIZE,           8,
-		EGL_ALPHA_SIZE,          8,
+		EGL_BUFFER_SIZE,        EGL_DONT_CARE,
+		EGL_RED_SIZE,           EGL_DONT_CARE,
+		EGL_GREEN_SIZE,         EGL_DONT_CARE,
+		EGL_BLUE_SIZE,          EGL_DONT_CARE,
+		EGL_ALPHA_SIZE,         EGL_DONT_CARE,
 
 		EGL_DEPTH_SIZE,         EGL_DONT_CARE,
 		EGL_STENCIL_SIZE,       EGL_DONT_CARE,
