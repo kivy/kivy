@@ -773,7 +773,11 @@ class ClockBaseFreeInterruptOnly(
         event.clear()  # this needs to stay after _last_tick
         return current
 
+    time = staticmethod(partial(_default_time))
 
+ClockBase.time.__doc__ = '''Proxy method for time.time() or time.clock(), 
+whichever is more suitable for the running OS'''
+    
 def mainthread(func):
     '''Decorator that will schedule the call of the function for the next
     available frame in the mainthread. It can be useful when you use
