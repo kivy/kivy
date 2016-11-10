@@ -1,34 +1,23 @@
 '''
-Touchring
-=========
+Cursor
+======
 
-Shows rings around every touch on the surface / screen. You can use this module
-to check that you don't have any calibration issues with touches.
+Shows a cursor following mouse motion events, useful on systems with no
+visible native mouse cursor.
 
 Configuration
 -------------
 
 :Parameters:
-    `image`: str, defaults to '<kivy>/data/images/ring.png'
-        Filename of the image to use.
-    `scale`: float, defaults to 1.
-        Scale of the image.
-    `alpha`: float, defaults to 1.
-        Opacity of the image.
-    `show_cursor`: boolean, defaults to False
-        .. versionadded:: 1.8.0
-    `cursor_texture`: str, defaults to
-        'data/images/cursor.png' Image used to
-        represent the cursor if displayed
-        .. versionadded:: 1.8.0
-    `cursor_size`: tuple, defaults to (40, 40)
+    `texture`: str, defaults to
+        'data/images/cursor.png' Image used to represent the cursor if
+        displayed
+    `size`: tuple, defaults to (40, 40)
         Apparent size of the mouse cursor, if displayed, (None,None) value
         will keep its real size.
-        .. versionadded:: 1.8.0
-    `cursor_offset`: tuple, defaults to (None, None)
+    `offset`: tuple, defaults to (None, None)
         Offset of the texture image. The default value will align the
         top-left corner of the image to the mouse pos.
-        .. versionadded:: 1.8.0
 
 Example
 -------
@@ -37,8 +26,9 @@ In your configuration (`~/.kivy/config.ini`), you can add something like
 this::
 
     [modules]
-    touchring = image=mypointer.png,scale=.3,alpha=.7
+    cursor = texture=mypointer.png,size=20x20,offset=20x20
 
+.. versionadded:: 1.9.2
 '''
 
 __all__ = ('start', 'stop')
@@ -46,41 +36,41 @@ __all__ = ('start', 'stop')
 from kivy.core.image import Image
 from kivy.graphics import Color, Rectangle
 from kivy import kivy_data_dir
+from kivy.compat import string_types
 from os.path import join
-
-cursor_texture = None
-cursor_offset = (0, 0)
-cursor_size = (20, 20)
+from functools import partial
 
 
-
-def _mouse_move(win, pos, *args):
-    print "move"
+def _mouse_move(texture, size, offset, win, pos, *args):
     if hasattr(win, '_cursor'):
         c = win._cursor
     else:
-        with win.canvas.after:            
+        with win.canvas.after:
             Color(1, 1, 1, 1, mode='rgba')
-            win._cursor = c = Rectangle(texture=cursor_texture,
-                                        size=cursor_size)
+            win._cursor = c = Rectangle(texture=texture, size=size)
 
-    c.pos = pos[0] + cursor_offset[0], pos[1] -cursor_size[1] + cursor_offset[1]
+    c.pos = pos[0] + offset[0], pos[1] - size[1] + offset[1]
 
 
 def start(win, ctx):
-    # XXX use ctx !
-    global cursor_size, cursor_texture, cursor_offset
-
-    cursor_texture = Image(join(kivy_data_dir, 'images', 'cursor.png')).texture
-    cursor_size = ctx.config.get('cursor_size', cursor_size)
-    if isinstance(cursor_size, str):
+    cursor_texture = Image(
+        ctx.config.get('texture', join(kivy_data_dir, 'images', 'cursor.png'))
+    ).texture
+    cursor_size = ctx.config.get('size')
+    print type(cursor_size)
+    if isinstance(cursor_size, string_types):
         cursor_size = [int(x) for x in cursor_size.split('x')]
+    elif not cursor_size:
+        cursor_size = cursor_texture.size
+    print cursor_size
 
-    cursor_offset = ctx.config.get('cursor_offset', (0, 0))
-    if isinstance(cursor_offset, str):
+    cursor_offset = ctx.config.get('offset', (0, 0))
+    if isinstance(cursor_offset, string_types):
         cursor_offset = [int(x) for x in cursor_offset.split('x')]
 
-    win.bind(mouse_pos=_mouse_move)
+    win.bind(
+        mouse_pos=partial(
+            _mouse_move, cursor_texture, cursor_size, cursor_offset))
 
 
 def stop(win, ctx):
