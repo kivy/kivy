@@ -68,9 +68,12 @@ class VideoBase(EventDispatcher):
         self._wantplay = False
         self._buffer = None
         self._filename = None
+        self._subtitulo = None
         self._texture = None
         self._volume = 1.
         self._state = ''
+        self._audio_track = -1
+        self._subtitle_track = -1
 
         self._autoplay = kwargs.get('autoplay')
         self._async = kwargs.get('async')
@@ -197,6 +200,51 @@ class VideoBase(EventDispatcher):
     def unload(self):
         '''Unload the actual video'''
         self._state = ''
+
+    def load_sub(self):
+        '''Load subtitle to current video stream'''
+        pass
+
+    #Declaracion y obtencion de propiedad subtitulo (subtitle file)
+    @property
+    def subtitulo(self):
+        return self._subtitulo
+    
+    #Asignar valor a propiedad subtitulo (subtitle file)
+    @subtitulo.setter
+    def subtitulo(self, file_or_url):
+        '''Setting subtitle'''
+        self._subtitulo = file_or_url
+        self.load_sub()
+
+    @property
+    def audio_track(self):
+        '''Asigna la pista de audio contenida en el archivo de video'''
+        return self._audio_track
+
+    def load_audio_track(self):
+        '''Asignar la pista de Audio'''
+        pass
+
+    @audio_track.setter      
+    def set_audio_track(self, index):
+        self._audio_track = index
+        self.load_audio_track()
+
+    @property
+    def subtitle_track(self):
+        '''Asignar la pista de texto contenida en el archivo de video'''
+        return self._subtitle_track
+
+    def load_sub_track(self):
+        '''Asignar los subtitulos'''
+        pass
+
+    @subtitle_track.setter
+    def set_subtitle_track(self, index):
+        self._subtitle_track = index
+        self.load_sub_track()
+
 
 
 # Load the appropriate provider

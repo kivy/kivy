@@ -31,7 +31,7 @@ from kivy.uix.image import Image
 from kivy.core.video import Video as CoreVideo
 from kivy.resources import resource_find
 from kivy.properties import (BooleanProperty, NumericProperty, ObjectProperty,
-                             OptionProperty)
+                             OptionProperty, StringProperty)
 
 
 class Video(Image):
@@ -118,6 +118,14 @@ class Video(Image):
     to 1.
     '''
 
+    subtitle = StringProperty(None)
+    '''Subtitulo de el video. Por defecto no se cargan subtitulos y se cargan a 
+    traves de un String.
+
+    :attr:`subtitle` is a :class:`~kivy.properties.StringProperty` and defaults
+    to None.
+    '''
+
     options = ObjectProperty({})
     '''Options to pass at Video core object creation.
 
@@ -175,6 +183,7 @@ class Video(Image):
                 filename = resource_find(filename)
             self._video = CoreVideo(filename=filename, **self.options)
             self._video.volume = self.volume
+            self._video.subtitulo = self.subtitle
             self._video.bind(on_load=self._on_load,
                              on_frame=self._on_video_frame,
                              on_eos=self._on_eos)
