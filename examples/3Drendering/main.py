@@ -14,7 +14,6 @@ a simple vertex and fragment shader written in GLSL.
 
 from kivy.app import App
 from kivy.clock import Clock
-from kivy.core.window import Window
 from kivy.uix.widget import Widget
 from kivy.resources import resource_find
 from kivy.graphics.transformation import Matrix
