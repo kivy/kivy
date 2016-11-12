@@ -222,7 +222,16 @@ else:
             # open mtdev device
             _fn = input_fn
             _slot = 0
-            _device = Device(_fn)
+            try:
+                _device = Device(_fn)
+            except OSError as e:
+                if e.errno == 13:  # Permission denied
+                    Logger.warn(
+                        'MTD: Unable to open device "{0}". Please ensure you'
+                        ' have the appropriate permissions.'.format(_fn))
+                    return
+                else:
+                    raise
             _changes = set()
 
             # prepare some vars to get limit of some component
