@@ -144,8 +144,8 @@ Gentoo
    `spell: Standard flag, provide enchant to use spelling in kivy apps.`
 
 
-*Installation in a Virtual Environment*
-=======================================
+Installation in a Virtual Environment
+=====================================
 
 
 Common dependencies
@@ -168,8 +168,8 @@ Kivy       Cython
 ========   =============
 
 
-*Dependencies with SDL2*
-~~~~~~~~~~~~~~~~~~~~~~~~
+Dependencies with SDL2
+~~~~~~~~~~~~~~~~~~~~~~
 
 
 Ubuntu example
@@ -237,8 +237,8 @@ Installation
     # pip install git+https://github.com/kivy/kivy.git@master
 
 
-*Dependencies with legacy PyGame*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Dependencies with legacy PyGame
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Ubuntu example
@@ -364,8 +364,8 @@ Install additional Virtualenv packages
 .. _linux-run-app:
 
 
-*Start from the Command Line*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Start from the Command Line
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We ship some examples that are ready-to-run. However, these examples are packaged inside the package.
 This means you must first know where easy_install has installed your current kivy package,
