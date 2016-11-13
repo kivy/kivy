@@ -28,6 +28,7 @@ from kivy.cache import Cache
 from kivy.resources import resource_find
 from kivy.core.image import Image
 from kivy.logger import Logger
+from kivy.config import Config
 
 from os.path import join
 from kivy import kivy_shader_dir
@@ -40,7 +41,13 @@ cdef object get_default_texture():
     return DEFAULT_TEXTURE
 
 # register Image cache
-Cache.register('kv.texture', limit=1000, timeout=60)
+texture_max_cache = Config.getint('graphics', 'texture_max_cache')
+if texture_max_cache:
+    kw = {'max_size': texture_max_cache, 'compute_size': lambda x: x.memory_size}
+else:
+    kw = {}
+
+Cache.register('kv.texture', limit=1000, timeout=60, **kw)
 Cache.register('kv.shader', limit=1000, timeout=3600)
 
 # ensure that our resources are cleaned

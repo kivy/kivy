@@ -93,6 +93,7 @@ class Cache(object):
                 Time after which to delete the object if it has not been used.
                 If None, no timeout is applied.
         '''
+        Logger.trace('appending %s to Cache %s', key, category)
         #check whether obj should not be cached first
         if getattr(obj, '_no_cache', False):
             return
@@ -109,6 +110,7 @@ class Cache(object):
 
         if cat['max_size']:
             object_size = cat['compute_size'](obj)
+            Logger.trace('object size is %s', object_size)
             cat['size'] += object_size
             if key in Cache._objects[category]:
                 # old value is being overwritten, so we need to
@@ -118,7 +120,10 @@ class Cache(object):
 
             while cat['size'] > cat['max_size']:
                 Logger.trace("%s size %s", category, cat['size'])
-                Cache._purge_oldest(category)
+                if not Cache._purge_oldest(category):
+                    Logger.warning('new cache size %s', cat['size'])
+                    break
+                Logger.trace('new cache size %s', cat['size'])
 
         Cache._objects[category][key] = {
             'object': obj,
@@ -195,8 +200,8 @@ class Cache(object):
             Logger.trace('cat max size %s', cat['max_size'])
             if cat['max_size']:
                 obj_size = cat['sizes'][key]
-                Logger.trace('removing %s from %s size',
-                             obj_size, category)
+                Logger.trace('removing %s from %s size: %s',
+                             obj_size, category, obj_size)
                 cat['size'] -= obj_size
                 del cat['sizes'][key]
 
@@ -224,6 +229,9 @@ class Cache(object):
         n = 0
         while n < maxpurge:
             n += 1
+            if not heap_list:
+                Logger.warning('unable to reduce Cache %s', category)
+                return False
             lastaccess, key = heapq.heappop(heap_list)
             Logger.debug('=> %s %s %s', key, lastaccess, Clock.get_time())
             Cache.remove(category, key)

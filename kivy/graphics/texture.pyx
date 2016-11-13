@@ -972,6 +972,7 @@ cdef class Texture:
         cdef char *cpdst
         cdef int i
         cdef int require_subimage = 0
+        self._memory_size = bytes_per_pixels * self._width * self._height
 
         # if the hardware doesn't support native unpack, use alternative method.
         if need_unpack and not gl_has_capability(GLCAP_UNPACK_SUBIMAGE):
@@ -1013,9 +1014,10 @@ cdef class Texture:
             else:
                 glTexImage2D(target, _mipmap_level, iglfmt, w, h, 0, glfmt,
                     glbufferfmt, cdata)
-                
+
             if _mipmap_generation:
                 glGenerateMipmap(target)
+                self._memory_size *= 2
 
             if need_unpack:
                 glPixelStorei(GL_UNPACK_ROW_LENGTH, 0)
@@ -1171,6 +1173,12 @@ cdef class Texture:
         '''
         def __get__(self):
             return self._height
+
+    property memory_size:
+        '''Return the (gpu) memory size of the texture (readonly).
+        '''
+        def __get__(self):
+            return self._memory_size
 
     property tex_coords:
         '''Return the list of tex_coords (opengl).
