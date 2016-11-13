@@ -420,7 +420,7 @@ and will try to use it as part of the file name. This makes confusing error mess
 Device permissions
 ~~~~~~~~~~~~~~~~~~
 
-When you app starts, Kivy uses `Mtdev <http://wiki.ubuntu.com/Multitouch>` to
+When you app starts, Kivy uses `Mtdev <http://wiki.ubuntu.com/Multitouch>`_ to
 scan for available multi-touch devices to use for input. Access to these
 devices is typically restricted to users or group with the appropriate
 permissions.
