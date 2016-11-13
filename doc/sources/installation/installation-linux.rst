@@ -416,3 +416,35 @@ Then, inside each main.py, add a new first line::
 
 NOTE: Beware of Python files stored with Windows-style line endings (CR-LF). Linux will not ignore the <CR>
 and will try to use it as part of the file name. This makes confusing error messages. Convert to Unix line endings.
+
+Device permissions
+~~~~~~~~~~~~~~~~~~
+
+When you app starts, Kivy uses `Mtdev <http://wiki.ubuntu.com/Multitouch>` to
+scan for available multi-touch devices to use for input. Access to these
+devices is typically restricted to users or group with the appropriate
+permissions.
+
+If you do not have access to these devices, Kivy will log an error or warning
+specifying these devices, normally something like::
+
+    Permission denied:'/dev/input/eventX'
+
+In order to use these devices, you need to grant the user or group permission.
+This can be done via::
+
+    $ sudo chmod u+r /dev/input/eventX
+
+for the user or::
+
+    $ sudo chmod g+r /dev/input/eventX
+
+for the group. These permissions will only be effective for the duration of
+your current session. A more permanent solution is to add the user to a group
+that has these permissions. For example, in Ubuntu, you can add the user to
+the 'input' group::
+
+    $ sudo adduser $USER input
+
+Note that you need to log out then back in again for these permissions to
+be applied.
