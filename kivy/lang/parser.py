@@ -514,11 +514,22 @@ class Parser(object):
             stripped = line.strip()
             if stripped[:2] == '#:':
                 self.directives.append((ln, stripped[2:]))
-            if mult_com or "'''#" in stripped or '"""#' in stripped:
-                mult_com = True
+            if mult_com or '###' in stripped:
                 lines.remove((ln, line))
-                if "#'''" in stripped or '#"""' in stripped:
+                begin = stripped.find('###') + 1
+                end = stripped.find('###', begin + 2) + 1
+
+                if begin and mult_com:
+                    # end of multiline com found
                     mult_com = False
+                    continue
+
+                if end:
+                    # end of multiline com in single line
+                    mult_com = False
+                    continue
+                mult_com = True
+
             elif stripped[:1] == '#':
                 lines.remove((ln, line))
             if not stripped:
