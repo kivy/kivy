@@ -130,8 +130,9 @@ class ScatterBehavior(object):
         `on_touch_timeout`:
             Fired when a touch event hits the :attr:`pan_timeout`.
 
-    .. versionchanged:: 1.9.1
-        Events `on_pan`, `on_rotate`, `on_zoom` added.
+    .. versionchanged:: 1.9.2
+        Events `on_pan`, `on_rotate`, `on_zoom`, `on_zoom_x`,
+        `on_zoom_y` added
 
     .. versionchanged:: 1.9.0
         Event `on_bring_to_front` added.
@@ -142,7 +143,7 @@ class ScatterBehavior(object):
 
     __events__ = (
         'on_transform_with_touch', 'on_bring_to_front',
-        'on_pan', 'on_rotate', 'on_zoom',
+        'on_pan', 'on_rotate', 'on_zoom', 'on_zoom_x', 'on_zoom_y',
         'on_touch_timeout',
     )
 
@@ -227,7 +228,7 @@ class ScatterBehavior(object):
     which touches belong to the Scatter and which belong to its
     children.
 
-    .. versionadded:: 1.9.1
+    .. versionadded:: 1.9.2
     '''
 
     pan_distance = NumericProperty(_scroll_distance)
@@ -240,6 +241,8 @@ class ScatterBehavior(object):
     :attr:`pan_distance` is a :class:`~kivy.properties.NumericProperty` and
     defaults to the `scroll_distance` as defined in the user
     :class:`~kivy.config.Config` (20 pixels by default).
+
+    .. versionadded:: 1.9.2
     '''
 
     pan_timeout = NumericProperty(_scroll_timeout)
@@ -251,6 +254,8 @@ class ScatterBehavior(object):
     :attr:`pan_timeout` is a :class:`~kivy.properties.NumericProperty` and
     defaults to the `scroll_timeout` as defined in the user
     :class:`~kivy.config.Config` (55 milliseconds by defaut).
+
+    .. versionadded:: 1.9.2
     '''
 
     def __init__(self, **kwargs):
@@ -312,7 +317,27 @@ class ScatterBehavior(object):
 
         if self.do_scale:
             scale = new_line.length() / float(old_line.length())
+            try:
+                # scale_x = touch.dx * scale
+                sign = (touch.x - anchor.x) < 0
+                scale_x = touch.x / float(touch.px)
+                if sign:
+                    scale_x = 1 / scale_x
+            except ZeroDivisionError:
+                scale_x = 1
+
+            try:
+                # scale_y = touch.dy * scale
+                sign = (touch.y - anchor.y) < 0
+                scale_y = touch.y / float(touch.py)
+                if sign:
+                    scale_y = 1 / scale_y
+            except ZeroDivisionError:
+                scale_y = 1
+
             self.dispatch('on_zoom', scale, anchor)
+            self.dispatch('on_zoom_x', scale_x, anchor)
+            self.dispatch('on_zoom_y', scale_y, anchor)
             changed = True
         return changed
 
@@ -526,6 +551,30 @@ class ScatterBehavior(object):
         pass
 
     def on_zoom(self, scale, center):
+        '''
+        Called when a touch event would cause the scatter to be zoomed.
+
+        :Parameters:
+            `scale`: the factor the scatter should be scaled.
+            `center`: the point the scatter should be scaled around.
+
+        .. versionadded:: 1.9.1
+        '''
+        pass
+
+    def on_zoom_x(self, scale_x, center):
+        '''
+        Called when a touch event would cause the scatter to be zoomed.
+
+        :Parameters:
+            `scale`: the factor the scatter should be scaled.
+            `center`: the point the scatter should be scaled around.
+
+        .. versionadded:: 1.9.1
+        '''
+        pass
+
+    def on_zoom_y(self, scale_y, center):
         '''
         Called when a touch event would cause the scatter to be zoomed.
 
