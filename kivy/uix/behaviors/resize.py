@@ -349,58 +349,54 @@ class ResizableBehavior(object):
     def on_touch_down(self, touch):
         if not self.hovering:
             return super(ResizableBehavior, self).on_touch_down(touch)
-        else:
-            if any([self.resizing_right, self.resizing_left,
-                    self.resizing_down, self.resizing_up]):
-                self.oldpos = list(self.pos)
-                self.oldsize = list(self.size)
-                self.resizing = True
-                Window.show_cursor = False
-                return True
-            else:
+        if not any([self.resizing_right, self.resizing_left,
+            self.resizing_down, self.resizing_up]):
                 return super(ResizableBehavior, self).on_touch_down(touch)
+        self.oldpos = list(self.pos)
+        self.oldsize = list(self.size)
+        self.resizing = True
+        Window.show_cursor = False
+        return True
 
     def on_touch_move(self, touch):
         if not self.resizing:
             return super(ResizableBehavior, self).on_touch_move(touch)
-        else:
-            rb3 = self.rborder * 3
-            if self.resizing_right:
-                if touch.pos[0] > self.pos[0] + rb3:
-                    self.width = touch.pos[0] - self.pos[0]
-            elif self.resizing_left:
-                if touch.pos[0] < self.oldpos[0] + self.oldsize[0] - rb3:
-                    if self.can_move_resize:
-                        self.pos[0] = touch.pos[0]
-                        self.width = self.oldpos[0] - touch.pos[0] + \
-                            self.oldsize[0]
-                    else:
-                        self.width = abs(touch.pos[0] - self.pos[0])
-                        if self.width < rb3:
-                            self.width = rb3
-            if self.resizing_down:
-                if touch.pos[1] < self.oldpos[1] + self.oldsize[1] - rb3:
-                    if self.can_move_resize:
-                        self.pos[1] = touch.pos[1]
-                        self.height = self.oldpos[1] - touch.pos[1] + \
-                            self.oldsize[1]
-                    else:
-                        self.height = abs(touch.pos[1] - self.pos[1])
-                        if self.height < rb3:
-                            self.height = rb3
-            elif self.resizing_up:
-                if touch.pos[1] > self.pos[1] + rb3:
-                    self.height = touch.pos[1] - self.pos[1]
-            return True
+        rb3 = self.rborder * 3
+        if self.resizing_right:
+            if touch.pos[0] > self.pos[0] + rb3:
+                self.width = touch.pos[0] - self.pos[0]
+        elif self.resizing_left:
+            if touch.pos[0] < self.oldpos[0] + self.oldsize[0] - rb3:
+                if self.can_move_resize:
+                    self.pos[0] = touch.pos[0]
+                    self.width = self.oldpos[0] - touch.pos[0] + \
+                        self.oldsize[0]
+                else:
+                    self.width = abs(touch.pos[0] - self.pos[0])
+                    if self.width < rb3:
+                        self.width = rb3
+        if self.resizing_down:
+            if touch.pos[1] < self.oldpos[1] + self.oldsize[1] - rb3:
+                if self.can_move_resize:
+                    self.pos[1] = touch.pos[1]
+                    self.height = self.oldpos[1] - touch.pos[1] + \
+                        self.oldsize[1]
+                else:
+                    self.height = abs(touch.pos[1] - self.pos[1])
+                    if self.height < rb3:
+                        self.height = rb3
+        elif self.resizing_up:
+            if touch.pos[1] > self.pos[1] + rb3:
+                self.height = touch.pos[1] - self.pos[1]
+        return True
 
     def on_touch_up(self, touch):
         if not self.resizing:
             return super(ResizableBehavior, self).on_touch_up(touch)
-        else:
-            self.resizing = False
-            self.resizing_right = False
-            self.resizing_left = False
-            self.resizing_down = False
-            self.resizing_up = False
-            Window.show_cursor = True
-            return True
+        self.resizing = False
+        self.resizing_right = False
+        self.resizing_left = False
+        self.resizing_down = False
+        self.resizing_up = False
+        Window.show_cursor = True
+        return True
