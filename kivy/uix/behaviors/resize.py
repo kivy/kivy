@@ -292,9 +292,8 @@ class ResizableBehavior(object):
         self.cursor.hidden = True
 
     def on_mouse_move(self, pos):
-        if self.hovering:
-            if self.cursor:
-                self.cursor.on_mouse_move(pos)
+        if self.hovering and self.cursor:
+            self.cursor.on_mouse_move(pos)
             if not self.resizing:
                 if not self.collide_point(pos[0], pos[1]):
                     self.hovering = False
