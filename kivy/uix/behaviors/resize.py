@@ -1,6 +1,6 @@
 '''
 Resizable Behavior
-===============
+==================
 
 The :class:`~kivy.uix.behaviors.resize.ResizableBehavior`
 `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides Resize behavior.
@@ -60,7 +60,6 @@ The following example adds resize behavior to a sidebar to make it resizable
 See :class:`~kivy.uix.behaviors.ResizableBehavior` for details.
 '''
 
-from __future__ import print_function
 from kivy.core.window import Window
 from kivy.uix.widget import Widget
 from kivy.properties import BooleanProperty, NumericProperty, \
@@ -292,23 +291,25 @@ class ResizableBehavior(object):
         self.cursor.hidden = True
 
     def on_mouse_move(self, pos):
-        if self.hovering and self.cursor:
-            self.cursor.on_mouse_move(pos)
-            if not self.resizing:
-                if not self.collide_point(pos[0], pos[1]):
-                    self.hovering = False
-                    self.on_leave()
-                    self.on_leave_resizable()
+        if self.hovering and not self.resizing:
+            if self.cursor:
+                self.cursor.on_mouse_move(pos)
+
+            if not self.collide_point(pos[0], pos[1]):
+                self.hovering = False
+                self.on_leave()
+                self.on_leave_resizable()
+                return
+
+            chkr = self.check_resizable_side(pos)
+            if chkr != self.hovering_resizable:
+                self.hovering_resizable = chkr
+                if chkr:
+                    self.on_enter_resizable()
+                    self.cursor.hidden = False
                 else:
-                    chkr = self.check_resizable_side(pos)
-                    if chkr != self.hovering_resizable:
-                        self.hovering_resizable = chkr
-                        if chkr:
-                            self.on_enter_resizable()
-                            self.cursor.hidden = False
-                        else:
-                            self.on_leave_resizable()
-                            self.cursor.hidden = True
+                    self.on_leave_resizable()
+                    self.cursor.hidden = True
         else:
             if self.collide_point(pos[0], pos[1]):
                 self.hovering = True
