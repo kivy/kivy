@@ -57,11 +57,9 @@ effect. To initialize focus, you can use the 'on_parent' event::
     from kivy.app import App
     from kivy.uix.textinput import TextInput
 
-
     class MyTextInput(TextInput):
         def on_parent(self, widget, parent):
             self.focus = True
-
 
     class SampleApp(App):
         def build(self):
