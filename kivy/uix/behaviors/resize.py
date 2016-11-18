@@ -240,15 +240,14 @@ class ResizableBehavior(object):
     defaults to False.
     '''
 
-    dont_move = BooleanProperty(False)
+    can_move_resize = BooleanProperty(True)
     '''Move widget when resizing down or left.
-    Actual position has to keep position on screen when widget has a FloatLayout parent
-    and is being resized.
+    To keep position on screen in a floatlayout, actual postition has to be adjusted.
     Resizing and changing position variables is problematic inside movement restricting widgets,
-    (StackLayout, BoxLayout, others) this property disables that.
+    (StackLayout, BoxLayout, others) this property manages that.
 
-    :attr:`dont_move` is a :class:`~kivy.properties.BooleanProperty` and
-    defaults to False.
+    :attr:`can_move_resize` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
     '''
 
     def __init__(self, **kwargs):
@@ -347,7 +346,7 @@ class ResizableBehavior(object):
                     self.width = touch.pos[0] - self.pos[0]
             elif self.resizing_left:
                 if touch.pos[0] < self.oldpos[0] + self.oldsize[0] - (self.rborder * 3):
-                    if not self.dont_move:
+                    if self.can_move_resize:
                         self.pos[0] = touch.pos[0]
                         self.width = self.oldpos[0] - touch.pos[0] + self.oldsize[0]
                     else:
@@ -356,7 +355,7 @@ class ResizableBehavior(object):
                             self.width = self.rborder * 3
             if self.resizing_down:
                 if touch.pos[1] < self.oldpos[1] + self.oldsize[1] - (self.rborder * 3):
-                    if not self.dont_move:
+                    if self.can_move_resize:
                         self.pos[1] = touch.pos[1]
                         self.height = self.oldpos[1] - touch.pos[1] + self.oldsize[1]
                     else:
