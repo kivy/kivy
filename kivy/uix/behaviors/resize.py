@@ -1,5 +1,5 @@
 '''
-Resable Behavior
+Resizable Behavior
 ===============
 
 The :class:`~kivy.uix.behaviors.resize.ResizableBehavior`
