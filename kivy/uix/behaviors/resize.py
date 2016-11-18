@@ -348,7 +348,9 @@ class ResizableBehavior(object):
             return False
 
     def on_touch_down(self, touch):
-        if self.hovering:
+        if not self.hovering:
+            return super(ResizableBehavior, self).on_touch_down(touch)
+        else:
             if any([self.resizing_right, self.resizing_left,
                     self.resizing_down, self.resizing_up]):
                 self.oldpos = list(self.pos)
@@ -358,11 +360,11 @@ class ResizableBehavior(object):
                 return True
             else:
                 return super(ResizableBehavior, self).on_touch_down(touch)
-        else:
-            return super(ResizableBehavior, self).on_touch_down(touch)
 
     def on_touch_move(self, touch):
-        if self.resizing:
+        if not self.resizing:
+            return super(ResizableBehavior, self).on_touch_move(touch)
+        else:
             rb3 = self.rborder * 3
             if self.resizing_right:
                 if touch.pos[0] > self.pos[0] + rb3:
@@ -391,11 +393,11 @@ class ResizableBehavior(object):
                 if touch.pos[1] > self.pos[1] + rb3:
                     self.height = touch.pos[1] - self.pos[1]
             return True
-        else:
-            return super(ResizableBehavior, self).on_touch_move(touch)
 
     def on_touch_up(self, touch):
-        if self.resizing:
+        if not self.resizing:
+            return super(ResizableBehavior, self).on_touch_up(touch)
+        else:
             self.resizing = False
             self.resizing_right = False
             self.resizing_left = False
@@ -403,5 +405,3 @@ class ResizableBehavior(object):
             self.resizing_up = False
             Window.show_cursor = True
             return True
-        else:
-            return super(ResizableBehavior, self).on_touch_up(touch)
