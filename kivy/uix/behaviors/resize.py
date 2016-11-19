@@ -1,11 +1,12 @@
 '''
 Resizable Behavior
-==================
+===============
 
 The :class:`~kivy.uix.behaviors.resize.ResizableBehavior`
 `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides Resize behavior.
 When combined with a widget, dragging at the resize enabled widget edge
-defined by the :attr:`~kivy.uix.behaviors.resize.ResizableBehavior.rborder`
+defined by the
+:attr:`~kivy.uix.behaviors.resize.ResizableBehavior.resizable_border`
 will resize the widget.
 
 For an overview of behaviors, please refer to the :mod:`~kivy.uix.behaviors`
@@ -35,7 +36,7 @@ The following example adds resize behavior to a sidebar to make it resizable
                 lbl = Label(size_hint=(1, None), height=(cm(1)))
                 lbl.text = 'Text '+str(x)
                 self.add_widget(lbl)
-            self.bind(size=lambda obj, val: setattr(self.bg, 'size', self.size))
+            self.bind(size=lambda obj, val: setattr(self.bg, 'size', val))
 
             instr = InstructionGroup()
             instr.add(Color(0.6, 0.6, 0.7, 1))
@@ -60,14 +61,14 @@ The following example adds resize behavior to a sidebar to make it resizable
 See :class:`~kivy.uix.behaviors.ResizableBehavior` for details.
 '''
 
+from __future__ import print_function
 from kivy.core.window import Window
 from kivy.uix.widget import Widget
 from kivy.properties import BooleanProperty, NumericProperty, \
     StringProperty
-from kivy.metrics import cm
+from kivy.metrics import dp, cm
 from kivy.graphics import Rectangle
 from kivy.graphics import InstructionGroup
-
 
 __all__ = ('ResizableBehavior', )
 
@@ -97,7 +98,7 @@ class ResizableCursor(Widget):
         self.pos_hint = (None, None)
         self.source = 'data/images/resizable/transparent.png'
         self.parent = parent
-        self.size = (cm(0.6), cm(0.6))
+        self.size = (dp(22), dp(22))
         self.pos = [-9999, -9999]
 
         # Makes an instruction group with a rectangle and
@@ -120,7 +121,8 @@ class ResizableCursor(Widget):
             self.pos[1] = val[1] - self.height / 2.0
 
     def change_side(self, left, right, up, down):
-        # Changes images when ResizableBehavior.hovering_resizable state changes
+        # Changes images when ResizableBehavior.hovering_resizable
+        # state changes
         if not self.hidden and self.sides != (left, right, up, down):
             if left and up or right and down:
                 self.source = 'data/images/resizable/resize2.png'
@@ -142,8 +144,8 @@ class ResizableBehavior(object):
     class provides Resize behavior.
     When combined with a widget, dragging at the resize enabled widget edge
     defined by the
-    :attr:`~kivy.uix.behaviors.resize.ResizableBehavior.rborder` will resize
-    the widget. Please see the :mod:`drag behaviors module
+    :attr:`~kivy.uix.behaviors.resize.ResizableBehavior.resizable_border`
+    will resize the widget. Please see the :mod:`drag behaviors module
     <kivy.uix.behaviors.resize>` documentation for more information.
 
     .. versionadded:: 1.9.2
@@ -166,11 +168,11 @@ class ResizableBehavior(object):
     and defaults to False.
     '''
 
-    rborder = NumericProperty(cm(0.5))
+    resizable_border = NumericProperty(dp(20))
     '''Widgets resizable border size on each side.
-    Minimum resizing size is limited to rborder * 3 on all sides
+    Minimum resizing size is limited to resizable_border * 3 on all sides
 
-    :attr:`rborder` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`resizable_border` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.5 centimeters.
     '''
 
@@ -291,25 +293,21 @@ class ResizableBehavior(object):
         self.cursor.hidden = True
 
     def on_mouse_move(self, pos):
-        if self.hovering and not self.resizing:
-            if self.cursor:
-                self.cursor.on_mouse_move(pos)
-
-            if not self.collide_point(pos[0], pos[1]):
-                self.hovering = False
-                self.on_leave()
-                self.on_leave_resizable()
-                return
-
-            chkr = self.check_resizable_side(pos)
-            if chkr != self.hovering_resizable:
-                self.hovering_resizable = chkr
-                if chkr:
-                    self.on_enter_resizable()
-                    self.cursor.hidden = False
-                else:
+        if self.hovering and self.cursor:
+            self.cursor.on_mouse_move(pos)
+            if not self.resizing:
+                if not self.collide_point(pos[0], pos[1]):
+                    self.hovering = False
+                    self.on_leave()
                     self.on_leave_resizable()
-                    self.cursor.hidden = True
+                else:
+                    chkr = self.check_resizable_side(pos)
+                    if chkr != self.hovering_resizable:
+                        self.hovering_resizable = chkr
+                        if chkr:
+                            self.on_enter_resizable()
+                        else:
+                            self.on_leave_resizable()
         else:
             if self.collide_point(pos[0], pos[1]):
                 self.hovering = True
@@ -321,25 +319,26 @@ class ResizableBehavior(object):
         if self.resizable_left:
             self.resizing_left = False
             if mpos[0] > self.pos[0]:
-                if mpos[0] < self.pos[0] + self.rborder:
+                if mpos[0] < self.pos[0] + self.resizable_border:
                     self.resizing_left = True
         if self.resizable_right and not self.resizing_left:
             self.resizing_right = False
             if mpos[0] < self.pos[0] + self.width:
-                if mpos[0] > self.pos[0] + self.width - self.rborder:
+                if mpos[0] > self.pos[0] + self.width - self.resizable_border:
                     self.resizing_right = True
         if self.resizable_down:
             self.resizing_down = False
             if mpos[1] > self.pos[1]:
-                if mpos[1] < self.pos[1] + self.rborder:
+                if mpos[1] < self.pos[1] + self.resizable_border:
                     self.resizing_down = True
         if self.resizable_up and not self.resizing_down:
             self.resizing_up = False
             if mpos[1] < self.pos[1] + self.height:
-                if mpos[1] > self.pos[1] + self.height - self.rborder:
+                if mpos[1] > self.pos[1] + self.height - self.resizable_border:
                     self.resizing_up = True
         if self.cursor:
-            self.cursor.change_side(self.resizing_left, self.resizing_right,
+            self.cursor.change_side(
+                self.resizing_left, self.resizing_right,
                 self.resizing_up, self.resizing_down)
         if any((self.resizing_left, self.resizing_right,
                self.resizing_up, self.resizing_down)):
@@ -350,9 +349,11 @@ class ResizableBehavior(object):
     def on_touch_down(self, touch):
         if not self.hovering:
             return super(ResizableBehavior, self).on_touch_down(touch)
-        if not any([self.resizing_right, self.resizing_left,
-            self.resizing_down, self.resizing_up]):
-                return super(ResizableBehavior, self).on_touch_down(touch)
+        if not any([
+            self.resizing_right, self.resizing_left,
+            self.resizing_down, self.resizing_up
+        ]):
+            return super(ResizableBehavior, self).on_touch_down(touch)
         self.oldpos = list(self.pos)
         self.oldsize = list(self.size)
         self.resizing = True
@@ -362,7 +363,7 @@ class ResizableBehavior(object):
     def on_touch_move(self, touch):
         if not self.resizing:
             return super(ResizableBehavior, self).on_touch_move(touch)
-        rb3 = self.rborder * 3
+        rb3 = self.resizable_border * 3
         if self.resizing_right:
             if touch.pos[0] > self.pos[0] + rb3:
                 self.width = touch.pos[0] - self.pos[0]
