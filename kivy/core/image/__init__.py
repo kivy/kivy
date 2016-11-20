@@ -40,6 +40,7 @@ will be used only for caching)::
 '''
 import re
 from base64 import b64decode
+import imghdr
 
 __all__ = ('Image', 'ImageLoader', 'ImageData')
 
@@ -424,6 +425,8 @@ class ImageLoader(object):
             return ImageLoader.zip_loader(filename)
         else:
             im = None
+            # Get actual image format instead of extension if possible
+            ext = imghdr.what(filename) or ext
             for loader in ImageLoader.loaders:
                 if ext not in loader.extensions():
                     continue
