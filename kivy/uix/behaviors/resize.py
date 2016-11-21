@@ -61,7 +61,6 @@ The following example adds resize behavior to a sidebar to make it resizable
 See :class:`~kivy.uix.behaviors.ResizableBehavior` for details.
 '''
 
-from __future__ import print_function
 from kivy.core.window import Window
 from kivy.uix.widget import Widget
 from kivy.properties import BooleanProperty, NumericProperty, \
@@ -69,8 +68,54 @@ from kivy.properties import BooleanProperty, NumericProperty, \
 from kivy.metrics import dp, cm
 from kivy.graphics import Rectangle
 from kivy.graphics import InstructionGroup
+from kivy.uix.modalview import ModalView
+from kivy.logger import Logger
+from kivy.app import App
+from time import time
 
 __all__ = ('ResizableBehavior', )
+
+
+class ModalViewModified(ModalView):
+    last_opened = 0.0
+    def __init__(self, **kwargs):
+        super(ModalViewModified, self).__init__(**kwargs)
+        self.auto_dismiss = False
+        self.size_hint = (None, None)
+        self.background = 'data/images/resizable/transparent.png'
+        self.background_color = (0, 0, 0, 0)
+        self.cursor = ResizableCursor()
+        self.add_widget(self.cursor)
+        self.open()
+
+    def open(self, *largs):
+        self._window = self._search_window()
+        if not self._window:
+            Logger.warning('ModalView: cannot open view, no window found.')
+            return
+        self._window.add_widget(self)
+
+    def put_on_top(self, *args):
+        self.dismiss()
+        self.open()
+
+    def on_hidden(self, val):
+        # View has to be reopened to get it on top of other widgets
+        timenow = time()
+        if not val and timenow > self.last_opened + 1:
+            self.dismiss()
+            self.open()
+            self.open()
+            self.last_opened = timenow
+
+    def on_touch_down(self, *args):
+        pass
+
+    def on_touch_up(self, *args):
+        pass
+
+    def on_touch_move(self, *args):
+        pass
 
 
 class ResizableCursor(Widget):
@@ -92,12 +137,12 @@ class ResizableCursor(Widget):
     sides = ()
     source = StringProperty('')
 
-    def __init__(self, parent, **kwargs):
+    def __init__(self, **kwargs):
         super(ResizableCursor, self).__init__(**kwargs)
         self.size_hint = (None, None)
         self.pos_hint = (None, None)
         self.source = 'data/images/resizable/transparent.png'
-        self.parent = parent
+        self.rect = Rectangle(pos=(0, 0), size=(1, 1), source=self.source)
         self.size = (dp(22), dp(22))
         self.pos = [-9999, -9999]
 
@@ -105,12 +150,17 @@ class ResizableCursor(Widget):
         # loads an image inside it
         # Binds its properties to mouse positional changes and events triggered
         instr = InstructionGroup()
-        self.rect = Rectangle(pos=self.pos, size=self.size, source=self.source)
         instr.add(self.rect)
-        self.parent.canvas.after.add(instr)
+        self.canvas.after.add(instr)
         self.bind(pos=lambda obj, val: setattr(self.rect, 'pos', val))
         self.bind(source=lambda obj, val: setattr(self.rect, 'source', val))
         self.bind(hidden=lambda obj, val: self.on_mouse_move(Window.mouse_pos))
+
+    def on_size(self, obj, val):
+        self.rect.size = val
+
+    def on_hidden(self, obj, val):
+        self.parent.on_hidden(val)
 
     def on_mouse_move(self, val):
         if self.hidden:
@@ -274,9 +324,16 @@ class ResizableBehavior(object):
         super(ResizableBehavior, self).__init__(**kwargs)
         Window.bind(mouse_pos=lambda obj, val: self.on_mouse_move(val))
         self.cursor = None
+        app = App.get_running_app()
+        try:
+            app.resizable_cursor
+        except AttributeError:
+            app.resizable_cursor = ModalViewModified()
+        self.modalview = app.resizable_cursor
+        self.cursor = self.modalview.cursor
         self.oldpos = []
         self.oldsize = []
-        self.cursor = ResizableCursor(parent=self)
+
 
     def on_enter(self):
         self.on_enter_resizable()
@@ -402,3 +459,9 @@ class ResizableBehavior(object):
         self.resizing_up = False
         Window.show_cursor = True
         return True
+
+    def set_cursor_size(self, size):
+        '''Default cursor size is (dp(22), dp(22)).
+        Use this method to change it
+        '''
+        self.cursor.size = size
