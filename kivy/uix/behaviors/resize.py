@@ -78,6 +78,7 @@ __all__ = ('ResizableBehavior', )
 
 class ModalViewModified(ModalView):
     last_opened = 0.0
+
     def __init__(self, **kwargs):
         super(ModalViewModified, self).__init__(**kwargs)
         self.auto_dismiss = False
@@ -333,7 +334,6 @@ class ResizableBehavior(object):
         self.cursor = self.modalview.cursor
         self.oldpos = []
         self.oldsize = []
-
 
     def on_enter(self):
         self.on_enter_resizable()
