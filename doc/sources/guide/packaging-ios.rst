@@ -135,16 +135,9 @@ in the `Resources` folder in Xcode (not in your application folder)
 Known issues
 ------------
 
-Currently, the project has a few known issues (we'll fix these in future
-versions):
+All known issues with packaging for iOS are currently tracked on our `issues <https://github.com/kivy/kivy-ios/issues>`_ page. If you encounter an issue specific to packaging for iOS that isn't listed there, please feel free to file a new issue, and we will get back to you on it.
 
-- You can't export your project outside the kivy-ios directory because the
-  libraries included in the project are relative to it.
-
-- Removing some libraries (like SDL_Mixer for audio) is currently not
-  possible because the kivy project requires it.
-
-- And more, just too technical to be written here.
+While most are too technical to be written here, one important known issue is that some libraries (like SDL_Mixer for audio) is currently not possible because the kivy project requires it. We will fix this and others in future versions.
 
 .. _ios_packaging_faq:
 
