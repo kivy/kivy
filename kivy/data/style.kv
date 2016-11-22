@@ -187,7 +187,7 @@
             rgba: (self.cursor_color if self.focus and not self.cursor_blink else (0, 0, 0, 0))
         Rectangle:
             pos: [int(x) for x in self.cursor_pos]
-            size: 1, -self.line_height
+            size: root.cursor_width, -self.line_height
         Color:
             rgba: self.disabled_foreground_color if self.disabled else (self.hint_text_color if not self.text else self.foreground_color)
 
