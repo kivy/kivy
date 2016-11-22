@@ -3,17 +3,6 @@
 Create a package for IOS
 ========================
 
-.. versionadded:: 1.2.0
-
-.. note::
-
-    From the 4th march 2015, the toolchain for iOS has been rewritten. The
-    previous instructions don't work anymore (using `build_all.sh`). We
-    strongly recommend you upgrade to the latest toolchain which contains many
-    improvements, including support for i386, x86_64, armv7, arm64 and the
-    iOS emulators. If you must use the older version, try the old-toolchain
-    tag in git.
-
 .. note::
 
     Currently, packages for iOS can only be generated with Python 2.7. Python
