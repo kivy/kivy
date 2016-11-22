@@ -584,8 +584,11 @@ def texture_create_from_data(im, mipmap=False):
         allocate = 0
 
     # if imagedata have more than one image, activate mipmap
-    if im.have_mipmap:
-        mipmap = True
+    try:
+        if im.have_mipmap:
+            mipmap = True
+    except Exception:
+        pass
 
     IF not USE_OPENGL_ES2:
         if gl_get_version_major() < 3:
