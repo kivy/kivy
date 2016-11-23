@@ -96,28 +96,9 @@ added to your Xcode project.
 Customize
 ---------
 
-You can customize the build in many ways:
-
-#. Set the icon and launch images in XCode. Note that XCode requires that you
-   specify these assests per device or/and iOS version.
-
-#. Specify your app orientation and environment via the 'main.m' file. Please
-   refer to the `kivy-ios <https://github.com/kivy/kivy-ios>`_ page for more
-   information.
-
-#. Minimize the `build/python/lib/python27.zip`: this contains all the python
-   modules. You can edit the zip file and remove all the files you'll not use
-   (reduce encodings, remove xml, email...)i
-
-#. Go to the settings panel > build, search for "strip" options, and
-   triple-check that they are all set to NO. Stripping does not work with
-   Python dynamic modules and will remove needed symbols.
-
-Kivy uses SDL, and as soon as the application starts the SDL main, the launch
-image will disappear. To prevent that, you need to have 2 files named
-`Default.png` and `Default-Landscape.png`, and put them
-in the `Resources` folder in Xcode (not in your application folder)
-
+There are various ways to customize and configure your app. Please refer
+to the `kivy-ios <http://www.github.com/kivy/kivy-ios>`_ documentation
+for more information.
 
 .. _Known issues:
 
