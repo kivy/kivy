@@ -938,6 +938,7 @@ setup(
         'kivy.deps',
         'kivy.effects',
         'kivy.ext',
+        'kivy.ext.mpl',
         'kivy.graphics',
         'kivy.garden',
         'kivy.input',
