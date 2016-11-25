@@ -106,7 +106,6 @@ class ModalViewModified(ModalView):
         if not val and timenow > self.last_opened + 1:
             self.dismiss()
             self.open()
-            self.open()
             self.last_opened = timenow
 
     def on_touch_down(self, *args):
@@ -135,6 +134,13 @@ class ResizableCursor(Widget):
     defaults to False.
     '''
 
+    grabbed_by = None
+    '''Object reference.
+    Is used to prevent attribute changes from multiple widgets at same time.
+
+    :attr:`grabbed_by` defaults to None.
+    '''
+
     sides = ()
     source = StringProperty('')
 
@@ -156,6 +162,7 @@ class ResizableCursor(Widget):
         self.bind(pos=lambda obj, val: setattr(self.rect, 'pos', val))
         self.bind(source=lambda obj, val: setattr(self.rect, 'source', val))
         self.bind(hidden=lambda obj, val: self.on_mouse_move(Window.mouse_pos))
+        Window.bind(mouse_pos=lambda obj, val: self.on_mouse_move(val))
 
     def on_size(self, obj, val):
         self.rect.size = val
@@ -188,6 +195,13 @@ class ResizableCursor(Widget):
                     self.source = 'data/images/resizable/transparent.png'
             self.sides = (left, right, up, down)
 
+    def grab(self, wid):
+        self.grabbed_by = wid
+
+    def ungrab(self, wid):
+        if self.grabbed_by == wid:
+            self.grabbed_by = None
+
 
 class ResizableBehavior(object):
     '''
@@ -200,14 +214,6 @@ class ResizableBehavior(object):
     <kivy.uix.behaviors.resize>` documentation for more information.
 
     .. versionadded:: 1.9.2
-    '''
-
-    hovering = BooleanProperty(False)
-    '''State of mouse hover.
-    It is switched to True when mouse is on the widget and False when it isn't
-
-    :attr:`hovering` is a :class:`~kivy.properties.BooleanProperty` and
-    defaults to False.
     '''
 
     hovering_resizable = BooleanProperty(False)
@@ -224,7 +230,35 @@ class ResizableBehavior(object):
     Minimum resizing size is limited to resizable_border * 3 on all sides
 
     :attr:`resizable_border` is a :class:`~kivy.properties.NumericProperty` and
-    defaults to 0.5 centimeters.
+    defaults to 20 dp.
+    '''
+
+    min_resizable_width = NumericProperty(0)
+    '''Minimum width
+
+    :attr:`min_resizable_width` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to 0 (disabled).
+    '''
+
+    min_resizable_height = NumericProperty(0)
+    '''Minimum height
+
+    :attr:`min_resizable_height` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to 0 (disabled).
+    '''
+
+    max_resizable_width = NumericProperty(0)
+    '''Maximum width
+
+    :attr:`max_resizable_width` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to 0 (disabled).
+    '''
+
+    max_resizable_height = NumericProperty(0)
+    '''Maximum height
+
+    :attr:`max_resizable_height` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to 0 (disabled).
     '''
 
     resizable_left = BooleanProperty(False)
@@ -332,14 +366,7 @@ class ResizableBehavior(object):
             app.resizable_cursor = ModalViewModified()
         self.modalview = app.resizable_cursor
         self.cursor = self.modalview.cursor
-        self.oldpos = []
-        self.oldsize = []
-
-    def on_enter(self):
-        self.on_enter_resizable()
-
-    def on_leave(self):
-        self.cursor.hidden = True
+        self.oldpos, self.oldsize = [], []
 
     def on_enter_resizable(self):
         Window.show_cursor = False
@@ -350,80 +377,83 @@ class ResizableBehavior(object):
         self.cursor.hidden = True
 
     def on_mouse_move(self, pos):
-        if self.hovering and self.cursor:
-            self.cursor.on_mouse_move(pos)
-            if not self.resizing:
-                if not self.collide_point(pos[0], pos[1]):
-                    self.hovering = False
-                    self.on_leave()
-                    self.on_leave_resizable()
+        if self.cursor and self.cursor.grabbed_by is None:
+            oldhover = self.hovering_resizable
+            self.hovering_resizable = self.check_resizable_side(pos[0], pos[1])
+            if oldhover != self.hovering_resizable:
+                if self.hovering_resizable:
+                    self.on_enter_resizable()
                 else:
-                    chkr = self.check_resizable_side(pos)
-                    if chkr != self.hovering_resizable:
-                        self.hovering_resizable = chkr
-                        if chkr:
-                            self.on_enter_resizable()
-                        else:
-                            self.on_leave_resizable()
-        else:
-            if self.collide_point(pos[0], pos[1]):
-                self.hovering = True
-                if not self.resizing:
-                    self.check_resizable_side(pos)
-                self.on_enter()
+                    self.on_leave_resizable()
 
-    def check_resizable_side(self, mpos):
+    def check_resizable_side(self, x, y):
+        # Add small performance increase when distance is too high
+        # for possible hovering
+        if abs(self.x - x) > self.width:
+            return False
+        elif abs(self.y - y) > self.height:
+            return False
+
         if self.resizable_left:
             self.resizing_left = False
-            if mpos[0] > self.pos[0]:
-                if mpos[0] < self.pos[0] + self.resizable_border:
+            if self.x <= x <= self.x + self.resizable_border:
+                if self.y <= y <= self.top:
                     self.resizing_left = True
         if self.resizable_right and not self.resizing_left:
             self.resizing_right = False
-            if mpos[0] < self.pos[0] + self.width:
-                if mpos[0] > self.pos[0] + self.width - self.resizable_border:
+            if self.right - self.resizable_border <= x <= self.right:
+                if self.y <= y <= self.top:
                     self.resizing_right = True
-        if self.resizable_down:
-            self.resizing_down = False
-            if mpos[1] > self.pos[1]:
-                if mpos[1] < self.pos[1] + self.resizable_border:
-                    self.resizing_down = True
-        if self.resizable_up and not self.resizing_down:
+        if self.resizable_up:
             self.resizing_up = False
-            if mpos[1] < self.pos[1] + self.height:
-                if mpos[1] > self.pos[1] + self.height - self.resizable_border:
+            if self.top - self.resizable_border <= y <= self.top:
+                if self.x <= x <= self.right:
                     self.resizing_up = True
-        if self.cursor:
-            self.cursor.change_side(
-                self.resizing_left, self.resizing_right,
-                self.resizing_up, self.resizing_down)
+        if self.resizable_down and not self.resizing_up:
+            self.resizing_down = False
+            if self.y <= y <= self.y + self.resizable_border:
+                if self.x <= x <= self.right:
+                    self.resizing_down = True
+
         if any((self.resizing_left, self.resizing_right,
-               self.resizing_up, self.resizing_down)):
+                self.resizing_up, self.resizing_down)):
+            if self.cursor:
+                self.cursor.change_side(
+                    self.resizing_left, self.resizing_right,
+                    self.resizing_up, self.resizing_down)
             return True
         else:
             return False
 
     def on_touch_down(self, touch):
-        if not self.hovering:
+        if not self.hovering_resizable:
             return super(ResizableBehavior, self).on_touch_down(touch)
+
         if not any([
             self.resizing_right, self.resizing_left,
             self.resizing_down, self.resizing_up
         ]):
             return super(ResizableBehavior, self).on_touch_down(touch)
+
         self.oldpos = list(self.pos)
         self.oldsize = list(self.size)
         self.resizing = True
         Window.show_cursor = False
+        self.cursor.grab(self)
         return True
 
     def on_touch_move(self, touch):
         if not self.resizing:
             return super(ResizableBehavior, self).on_touch_move(touch)
+        self.resize_widget(touch)
+
+    def resize_widget(self, touch):
         rb3 = self.resizable_border * 3
+
         if self.resizing_right:
             if touch.pos[0] > self.pos[0] + rb3:
                 self.width = touch.pos[0] - self.pos[0]
+
         elif self.resizing_left:
             if touch.pos[0] < self.oldpos[0] + self.oldsize[0] - rb3:
                 if self.can_move_resize:
@@ -434,6 +464,7 @@ class ResizableBehavior(object):
                     self.width = abs(touch.pos[0] - self.pos[0])
                     if self.width < rb3:
                         self.width = rb3
+
         if self.resizing_down:
             if touch.pos[1] < self.oldpos[1] + self.oldsize[1] - rb3:
                 if self.can_move_resize:
@@ -444,10 +475,50 @@ class ResizableBehavior(object):
                     self.height = abs(touch.pos[1] - self.pos[1])
                     if self.height < rb3:
                         self.height = rb3
+
         elif self.resizing_up:
             if touch.pos[1] > self.pos[1] + rb3:
                 self.height = touch.pos[1] - self.pos[1]
+
+        self.check_min_max_size(touch)
         return True
+
+    def check_min_max_size(self, touch):
+        # Resizes widgets back to min / max when smaller / bigger
+        # Resets position only when it's necessary
+        if self.min_resizable_width:
+            if self.width < self.min_resizable_width:
+                if self.pos[0] != self.oldpos[0]:
+                    self.width = self.min_resizable_width
+                    self.pos[0] = self.oldpos[0] + self.oldsize[0] - self.width
+                else:
+                    self.width = self.min_resizable_width
+
+        if self.max_resizable_width:
+            if self.width > self.max_resizable_width:
+                if self.pos[0] != self.oldpos[0]:
+                    self.width = self.max_resizable_width
+                    self.pos[0] = self.oldpos[0] + self.oldsize[0] - self.width
+                else:
+                    self.width = self.max_resizable_width
+
+        if self.min_resizable_height:
+            if self.height < self.min_resizable_height:
+                if self.pos[1] != self.oldpos[1]:
+                    self.height = self.min_resizable_height
+                    self.pos[1] = (
+                        self.oldpos[1] + self.oldsize[1] - self.height)
+                else:
+                    self.height = self.min_resizable_height
+
+        if self.max_resizable_height:
+            if self.height > self.max_resizable_height:
+                if self.pos[1] != self.oldpos[1]:
+                    self.height = self.max_resizable_height
+                    self.pos[1] = (
+                        self.oldpos[1] + self.oldsize[1] - self.height)
+                else:
+                    self.height = self.max_resizable_height
 
     def on_touch_up(self, touch):
         if not self.resizing:
@@ -458,6 +529,8 @@ class ResizableBehavior(object):
         self.resizing_down = False
         self.resizing_up = False
         Window.show_cursor = True
+        self.cursor.ungrab(self)
+        self.cursor.hidden = True
         return True
 
     def set_cursor_size(self, size):
