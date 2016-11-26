@@ -197,6 +197,9 @@ build_script:
       $env:DISTUTILS_USE_SDK=1
       $env:LIB=$PYTHON_ROOT+"\libs;"+$env:LIB
       $env:INCLUDE=$PYTHON_ROOT+"\include;"+$env:INCLUDE
+      (new-object net.webclient).DownloadFile("https://patch-diff.githubusercontent.com/raw/kivy/kivy/pull/4698.patch", "C:\projects\kivy_temp\mismatch.patch")
+      cd "C:\projects\kivy_temp"
+      git apply "mismatch.patch"
 
 
       python -m pip install pip wheel setuptools --upgrade
@@ -204,11 +207,11 @@ build_script:
       pip install mock cython pygments docutils nose $sdl2_file $sdl2_dev_file $glew_file $glew_dev_file
       Check-Error
 
-      Copy-Item "$PYTHON_ROOT\Lib\site-packages\kivy\deps\*" -destination "$env:APPVEYOR_BUILD_FOLDER\kivy\deps" -recurse
+      Copy-Item "$PYTHON_ROOT\Lib\site-packages\kivy\deps\*" -destination "C:\projects\kivy_temp\kivy\deps" -recurse
       Remove-Item "$PYTHON_ROOT\Lib\site-packages\kivy" -Force -Recurse
       Remove-Item "$PYTHON_ROOT\Lib\site-packages\kivy.deps.*nspkg.pth"
 
-      python "C:\projects\kivy_temp\setup.py" build_ext --inplace
+      python setup.py build_ext --inplace
       Check-Error
     }
 
