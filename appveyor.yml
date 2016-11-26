@@ -20,19 +20,19 @@ environment:
   KIVY_USE_SETUPTOOLS: 1
   matrix:
   - PYVER: 35
-    BITTNESS: 86
+    BITTNESS: 64
     COMPILER: msvc
-  - PYVER: 27
-    BITTNESS: 86
-  - PYVER: 34
-    BITTNESS: 86
-  - PYVER: 27
-    BITTNESS: 64
-  - PYVER: 34
-    BITTNESS: 64
   - PYVER: 35
-    BITTNESS: 64
+    BITTNESS: 86
     COMPILER: msvc
+  - PYVER: 27
+    BITTNESS: 86
+  - PYVER: 34
+    BITTNESS: 86
+  - PYVER: 27
+    BITTNESS: 64
+  - PYVER: 34
+    BITTNESS: 64
 install:
 - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-desktop.ps1'))
 build_script:
@@ -149,6 +149,7 @@ build_script:
       python setup.py build_ext --inplace
       Check-Error
     } else {
+      $env:DO_TEST = "False"
       $py35="C:\py35"
       if ($env:BITTNESS -eq "64") {
         $sdl2_url = "0B-080DPVLKs2cWZXRXhGSXZqYmM"
@@ -159,6 +160,7 @@ build_script:
         $sdl2_dev_file = $py35+"\kivy.deps.sdl2_dev-0.1.13-cp35-cp35m-win_amd64.whl"
         $glew_file = $py35+"\kivy.deps.glew-0.1.5-cp35-cp35m-win_amd64.whl"
         $glew_dev_file = $py35+"\kivy.deps.glew_dev-0.1.5-cp35-cp35m-win_amd64.whl"
+        $vcvars="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\amd64\vcvars64.bat"
       } else {
         $sdl2_url = "0B-080DPVLKs2TGg0SXcwX1p1OHc"
         $sdl2_dev_url = "0B-080DPVLKs2bjIyVDN3S0c0c0U"
@@ -168,6 +170,7 @@ build_script:
         $sdl2_dev_file = $py35+"\kivy.deps.sdl2_dev-0.1.13-cp35-cp35m-win32.whl"
         $glew_file = $py35+"\kivy.deps.glew-0.1.5-cp35-cp35m-win32.whl"
         $glew_dev_file = $py35+"\kivy.deps.glew_dev-0.1.5-cp35-cp35m-win32.whl"
+        $vcvars="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"
       }
       Check-Error
       mkdir "$py35"
@@ -183,7 +186,7 @@ build_script:
       Check-Error
       (new-object net.webclient).DownloadFile("https://docs.google.com/uc?id="+$glew_dev_url, $glew_dev_file)
       Check-Error
-      cmd /c '"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"&set' |
+      cmd /c '$vcvars&set' |
       foreach {
         if ($_ -match "=") {
           $v = $_.split("="); set-item -force -path "ENV:\$($v[0])"  -value "$($v[1])"
@@ -200,6 +203,7 @@ build_script:
       (new-object net.webclient).DownloadFile("https://patch-diff.githubusercontent.com/raw/kivy/kivy/pull/4698.patch", "C:\projects\kivy_temp\mismatch.patch")
       cd "C:\projects\kivy_temp"
       git apply "mismatch.patch"
+      $env:PATH=$PYTHON_ROOT+"\share\glew\bin;"+$PYTHON_ROOT+"\share\sdl2\bin;"+$env:PATH
 
 
       python -m pip install pip wheel setuptools --upgrade
