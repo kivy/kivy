@@ -160,7 +160,6 @@ build_script:
         $sdl2_dev_file = $py35+"\kivy.deps.sdl2_dev-0.1.13-cp35-cp35m-win_amd64.whl"
         $glew_file = $py35+"\kivy.deps.glew-0.1.5-cp35-cp35m-win_amd64.whl"
         $glew_dev_file = $py35+"\kivy.deps.glew_dev-0.1.5-cp35-cp35m-win_amd64.whl"
-        $vcvars="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\amd64\vcvars64.bat"
       } else {
         $sdl2_url = "0B-080DPVLKs2TGg0SXcwX1p1OHc"
         $sdl2_dev_url = "0B-080DPVLKs2bjIyVDN3S0c0c0U"
@@ -170,7 +169,6 @@ build_script:
         $sdl2_dev_file = $py35+"\kivy.deps.sdl2_dev-0.1.13-cp35-cp35m-win32.whl"
         $glew_file = $py35+"\kivy.deps.glew-0.1.5-cp35-cp35m-win32.whl"
         $glew_dev_file = $py35+"\kivy.deps.glew_dev-0.1.5-cp35-cp35m-win32.whl"
-        $vcvars="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"
       }
       Check-Error
       mkdir "$py35"
@@ -186,7 +184,7 @@ build_script:
       Check-Error
       (new-object net.webclient).DownloadFile("https://docs.google.com/uc?id="+$glew_dev_url, $glew_dev_file)
       Check-Error
-      cmd /c '$vcvars&set' |
+      cmd /c '("C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x%BITTNESS%)&set' |
       foreach {
         if ($_ -match "=") {
           $v = $_.split("="); set-item -force -path "ENV:\$($v[0])"  -value "$($v[1])"
