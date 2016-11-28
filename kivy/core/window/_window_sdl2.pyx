@@ -160,6 +160,11 @@ cdef class _WindowSDL2Storage:
         SDL_GL_GetDrawableSize(self.win, &w, &h)
         return w, h
 
+    def get_currentdisplaymode(self):
+        cdef SDL_DisplayMode mode
+        SDL_GetCurrentDisplayMode(0, &mode)
+        return mode.w, mode.h
+
     def resize_display_mode(self, w, h):
         cdef SDL_DisplayMode mode
         cdef int draw_w, draw_h
