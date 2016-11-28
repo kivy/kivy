@@ -86,6 +86,7 @@ build_script:
 
     $env:PATH = "$PYTHON_ROOT;$PYTHON_ROOT\Scripts;$env:PATH;C:\Program Files\7-Zip"
 
+    $env:PATH = $PYTHON_ROOT+"\share\glew\bin;"+$PYTHON_ROOT+"\share\sdl2\bin;"+$PYTHON_ROOT+"\share\gstreamer\bin;"+$env:PATH
 
     $WHEEL_DATE = python -c "from time import strftime;print(strftime('%d%m%Y'))"
 
@@ -127,9 +128,10 @@ build_script:
       $DO_WHEEL = "False"
     }
 
-    $env:DO_TEST = "False"
+    # remove this block later, it is only branch fix (appveyor, not master)
 
     $DO_WHEEL = "True"
+
 
     echo "test=$env:DO_TEST, make_wheel=$DO_WHEEL"
 
@@ -151,6 +153,8 @@ build_script:
       python setup.py build_ext --inplace
       Check-Error
     } else {
+      # until 35 branch is merged, tests wont do any good here and we need DO_WHEEL too
+
       $env:DO_TEST = "False"
       $DO_WHEEL = "True"
       $py35="C:\py35"
@@ -159,23 +163,23 @@ build_script:
         $sdl2_dev_url = "0B-080DPVLKs2QVZ6QUlTQjlwamM"
         $glew_url = "0B-080DPVLKs2UkdqTUZWZmdvRXc"
         $glew_dev_url = "0B-080DPVLKs2Q09zVnVjYngtX0E"
-        $gst_dev_url = "0B-080DPVLKs2M3VMSWJYcVJWdTg"
+        $gst_dev_url = "0B-080DPVLKs2dEw5a0Fsb0FValE"
         $sdl2_file = $py35+"\kivy.deps.sdl2-0.1.13-cp35-cp35m-win_amd64.whl"
         $sdl2_dev_file = $py35+"\kivy.deps.sdl2_dev-0.1.13-cp35-cp35m-win_amd64.whl"
         $glew_file = $py35+"\kivy.deps.glew-0.1.5-cp35-cp35m-win_amd64.whl"
         $glew_dev_file = $py35+"\kivy.deps.glew_dev-0.1.5-cp35-cp35m-win_amd64.whl"
-        $gst_dev_file = $py35+"\kivy.deps.gstreamer_dev-0.1.7-cp35-cp35m-win_amd64.whl"
+        $gst_dev_file = $py35+"\kivy.deps.gstreamer_dev-0.1.5-cp35-cp35m-win_amd64.whl"
       } else {
         $sdl2_url = "0B-080DPVLKs2TGg0SXcwX1p1OHc"
         $sdl2_dev_url = "0B-080DPVLKs2bjIyVDN3S0c0c0U"
         $glew_url = "0B-080DPVLKs2dkdoS2t1cU9PZmc"
         $glew_dev_url = "0B-080DPVLKs2QUZZNDNvem9meU0"
-        $gst_dev_url = "0B-080DPVLKs2UEczUFZDOFF3cGM"
+        $gst_dev_url = "0B-080DPVLKs2X1dfYkpXdmtMa3M"
         $sdl2_file = $py35+"\kivy.deps.sdl2-0.1.13-cp35-cp35m-win32.whl"
         $sdl2_dev_file = $py35+"\kivy.deps.sdl2_dev-0.1.13-cp35-cp35m-win32.whl"
         $glew_file = $py35+"\kivy.deps.glew-0.1.5-cp35-cp35m-win32.whl"
         $glew_dev_file = $py35+"\kivy.deps.glew_dev-0.1.5-cp35-cp35m-win32.whl"
-        $gst_dev_file = $py35+"\kivy.deps.gstreamer_dev-0.1.7-cp35-cp35m-win32.whl"
+        $gst_dev_file = $py35+"\kivy.deps.gstreamer_dev-0.1.5-cp35-cp35m-win32.whl"
       }
       Check-Error
       mkdir "$py35"
@@ -205,12 +209,14 @@ build_script:
       $env:DISTUTILS_USE_SDK=1
       $env:LIB=$PYTHON_ROOT+"\libs;"+$env:LIB
       $env:INCLUDE=$PYTHON_ROOT+"\include;"+$env:INCLUDE
-      (new-object net.webclient).DownloadFile("https://patch-diff.githubusercontent.com/raw/kivy/kivy/pull/4698.patch", "C:\projects\kivy_temp\mismatch.patch")
-      cd "C:\projects\kivy_temp"
-      git apply "mismatch.patch"
-      $env:PATH=$PYTHON_ROOT+"\share\glew\bin;"+$PYTHON_ROOT+"\share\sdl2\bin;"+$PYTHON_ROOT+"\share\gstreamer\bin;"+$env:PATH
 
-      $env:USE_GSTREAMER=0
+      cd "C:\projects\kivy_temp"
+
+      # pointer mismatch dirty fix
+
+      (new-object net.webclient).DownloadFile("https://patch-diff.githubusercontent.com/raw/kivy/kivy/pull/4698.patch", "C:\projects\kivy_temp\mismatch.patch")
+      git apply "mismatch.patch"
+
       python -m pip install pip wheel setuptools --upgrade
       Check-Error
       pip install mock cython pygments docutils nose kivy.deps.gstreamer $sdl2_file $sdl2_dev_file $glew_file $glew_dev_file $gst_dev_file --extra-index-url https://kivy.org/downloads/packages/simple/
