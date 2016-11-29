@@ -1,8 +1,8 @@
 version: 1.0.{build}
 branches:
   only:
+  - master
   - appveyor
-  - gl-happy
 image: Unstable
 environment:
   WHEEL_DIR: C:\kivy_wheels
@@ -116,6 +116,8 @@ build_script:
     }
 
 
+    $DO_WHEEL = "True"
+
     if ($env:APPVEYOR_REPO_TAG -eq "true"){
       $WHEEL_NAME = "-cp"
     } elseif ($env:APPVEYOR_SCHEDULED_BUILD -eq "True" -or $env:APPVEYOR_FORCED_BUILD -eq "True" -or $env:APPVEYOR_RE_BUILD -eq "True"){
@@ -127,11 +129,6 @@ build_script:
     if ($env:APPVEYOR_REPO_BRANCH -ne "master") {
       $DO_WHEEL = "False"
     }
-
-    # remove this block later, it is only branch fix (appveyor, not master)
-
-    $DO_WHEEL = "True"
-
 
     echo "test=$env:DO_TEST, make_wheel=$DO_WHEEL"
 
@@ -229,6 +226,7 @@ build_script:
       python setup.py build_ext --inplace
       Check-Error
     }
+
 
     if ($DO_WHEEL -eq "True") {
       python setup.py bdist_wheel -d "$env:WHEEL_DIR"
