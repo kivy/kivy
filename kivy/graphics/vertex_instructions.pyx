@@ -380,7 +380,7 @@ cdef class Mesh(VertexInstruction):
         buffers cannot be readonly (even though they are not changed, due to
         a cython limitation) and must be contiguous in memory.
 
-    ..note::
+    .. note::
         When passing a memoryview or a instance that implements the buffer
         interface, `vertices` should be a buffer of floats (`'f'` code in
         python array) and `indices` should be a buffer of unsigned short (`'H'`

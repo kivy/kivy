@@ -70,13 +70,13 @@ To use them, instead of doing ``python -m pip install kivy`` we'll install one o
 these wheels as follows.
 
 .. |cp27_win32| replace:: Python 2.7, 32bit
-.. _cp27_win32: https://drive.google.com/uc?id=0B-080DPVLKs2amMxY3o1cHNzRjQ
+.. _cp27_win32: https://drive.google.com/uc?id=0B-ydZwFoA2uQckNqaXhqMDZEQlk
 .. |cp34_win32| replace:: Python 3.4, 32bit
-.. _cp34_win32: https://drive.google.com/uc?id=0B-080DPVLKs2TnpLb25lcUh3d0U
+.. _cp34_win32: https://drive.google.com/uc?id=0B-ydZwFoA2uQYXhBQ2xlenR3M0k
 .. |cp27_amd64| replace:: Python 2.7, 64bit
-.. _cp27_amd64: https://drive.google.com/uc?id=0B-080DPVLKs2TmRrMExqLVJ1M28
+.. _cp27_amd64: https://drive.google.com/uc?id=0B-ydZwFoA2uQOGtScEhxVHFxUDQ
 .. |cp34_amd64| replace:: Python 3.4, 64bit
-.. _cp34_amd64: https://drive.google.com/uc?id=0B-080DPVLKs2eDlqQlJCRldkNE0
+.. _cp34_amd64: https://drive.google.com/uc?id=0B-ydZwFoA2uQV3hDa0lZNm1WYlE
 
 - |cp27_win32|_
 - |cp34_win32|_

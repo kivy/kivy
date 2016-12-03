@@ -71,7 +71,7 @@ Linux Mint
 ----------
 
 #. Find out on which Ubuntu release your installation is based on, using this
-   `overview <http://www.linuxmint.com/oldreleases.php>`_.
+   `overview <https://linuxmint.com/download_all.php>`_.
 #. Continue as described for Ubuntu above, depending on which version your
    installation is based on.
 
@@ -88,6 +88,8 @@ Bodhi Linux
         Ubuntu 12.04 LTS aka Precise
     :Bodhi 3:
         Ubuntu 14.04 LTS aka Trusty
+    :Bodhi 4:
+        Ubuntu 16.04 LTS aka Xenial
 
 
 2. Continue as described for Ubuntu above, depending on which version your installation is based on.
