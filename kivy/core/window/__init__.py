@@ -1690,6 +1690,26 @@ class WindowBase(EventDispatcher):
             callback()
             return True
 
+    def grab_mouse(self):
+        '''Grab mouse - so won't leave window
+
+        .. versionadded:: 1.9.2
+
+        .. note::
+            This feature requires the SDL2 window provider.
+        '''
+        pass
+
+    def ungrab_mouse(self):
+        '''Ungrab mouse
+
+        .. versionadded:: 1.9.2
+
+        .. note::
+            This feature requires the SDL2 window provider.
+        '''
+        pass
+
 #: Instance of a :class:`WindowBase` implementation
 window_impl = []
 if platform == 'linux':

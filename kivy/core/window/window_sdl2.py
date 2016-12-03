@@ -704,3 +704,9 @@ class WindowSDL(WindowBase):
     def unmap_key(self, key):
         if key in self.key_map:
             del self.key_map[key]
+
+    def grab_mouse(self):
+        self._win.grab_mouse(True)
+
+    def ungrab_mouse(self):
+        self._win.grab_mouse(False)
