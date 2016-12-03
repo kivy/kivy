@@ -127,7 +127,7 @@ Download the android-sdk and android-ndk commandline tools for linux::
     # wget https://dl.google.com/android/repository/android-ndk-r13b-linux-x86_64.zip
 
 
-Now unzpack the NDK and SDK:
+Now unzpack the NDK and SDK::
 
     # unzip android-ndk-r13b-linux-x86_64.zip # Check version
     # tar -xvzf android-sdk_r24.4.1-linux.tgz # Check version
