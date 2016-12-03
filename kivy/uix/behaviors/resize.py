@@ -63,8 +63,9 @@ See :class:`~kivy.uix.behaviors.ResizableBehavior` for details.
 
 from kivy.core.window import Window
 from kivy.uix.widget import Widget
+from kivy.clock import Clock
 from kivy.properties import BooleanProperty, NumericProperty, \
-    StringProperty
+    StringProperty, ListProperty
 from kivy.metrics import dp, cm
 from kivy.graphics import Rectangle
 from kivy.graphics import InstructionGroup
@@ -134,6 +135,25 @@ class ResizableCursor(Widget):
     defaults to False.
     '''
 
+    resize_icon_paths = ListProperty([
+    'data/images/resizable/resize_horizontal.png',
+    'data/images/resizable/resize2.png',
+    'data/images/resizable/resize_vertical.png',
+    'data/images/resizable/resize1.png',
+    'data/images/resizable/transparent.png'
+    ])
+    '''Cursor icon paths,
+
+    :attr:`resize_icon_paths` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [
+    'data/images/resizable/resize_horizontal.png',
+    'data/images/resizable/resize2.png',
+    'data/images/resizable/resize_vertical.png',
+    'data/images/resizable/resize1.png',
+    'data/images/resizable/transparent.png'
+    ]
+    '''
+
     grabbed_by = None
     '''Object reference.
     Is used to prevent attribute changes from multiple widgets at same time.
@@ -148,7 +168,7 @@ class ResizableCursor(Widget):
         super(ResizableCursor, self).__init__(**kwargs)
         self.size_hint = (None, None)
         self.pos_hint = (None, None)
-        self.source = 'data/images/resizable/transparent.png'
+        self.source = self.resize_icon_paths[4]
         self.rect = Rectangle(pos=(0, 0), size=(1, 1), source=self.source)
         self.size = (dp(22), dp(22))
         self.pos = [-9999, -9999]
@@ -183,16 +203,16 @@ class ResizableCursor(Widget):
         # state changes
         if not self.hidden and self.sides != (left, right, up, down):
             if left and up or right and down:
-                self.source = 'data/images/resizable/resize2.png'
+                self.source = self.resize_icon_paths[1]
             elif left and down or right and up:
-                self.source = 'data/images/resizable/resize1.png'
+                self.source = self.resize_icon_paths[3]
             elif left or right:
-                self.source = 'data/images/resizable/resize_horizontal.png'
+                self.source = self.resize_icon_paths[0]
             elif up or down:
-                self.source = 'data/images/resizable/resize_vertical.png'
+                self.source = self.resize_icon_paths[2]
             else:
                 if not any((left, right, up, down)):
-                    self.source = 'data/images/resizable/transparent.png'
+                    self.pos[0] = -9999
             self.sides = (left, right, up, down)
 
     def grab(self, wid):
@@ -355,6 +375,13 @@ class ResizableBehavior(object):
     defaults to True.
     '''
 
+    resize_lock = BooleanProperty(False)
+    '''Enable / disable resizing
+
+    :attr:`resize_lock` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
+    '''
+
     def __init__(self, **kwargs):
         super(ResizableBehavior, self).__init__(**kwargs)
         Window.bind(mouse_pos=lambda obj, val: self.on_mouse_move(val))
@@ -364,6 +391,7 @@ class ResizableBehavior(object):
             app.resizable_cursor
         except AttributeError:
             app.resizable_cursor = ModalViewModified()
+            Clock.schedule_once(app.resizable_cursor.put_on_top, 0)
         self.modalview = app.resizable_cursor
         self.cursor = self.modalview.cursor
         self.oldpos, self.oldsize = [], []
@@ -377,6 +405,9 @@ class ResizableBehavior(object):
         self.cursor.hidden = True
 
     def on_mouse_move(self, pos):
+        if self.resize_lock:
+            return
+
         if self.cursor and self.cursor.grabbed_by is None:
             oldhover = self.hovering_resizable
             self.hovering_resizable = self.check_resizable_side(pos[0], pos[1])
@@ -427,6 +458,9 @@ class ResizableBehavior(object):
 
     def on_touch_down(self, touch):
         if not self.hovering_resizable:
+            return super(ResizableBehavior, self).on_touch_down(touch)
+
+        if self.resize_lock:
             return super(ResizableBehavior, self).on_touch_down(touch)
 
         if not any([
@@ -533,8 +567,29 @@ class ResizableBehavior(object):
         self.cursor.hidden = True
         return True
 
+    def on_resize_lock(self, obj, locked):
+        if locked:
+            self.resizing = False
+            self.resizing_right = False
+            self.resizing_left = False
+            self.resizing_down = False
+            self.resizing_up = False
+            Window.show_cursor = True
+            self.cursor.ungrab(self)
+            self.cursor.hidden = True
+
     def set_cursor_size(self, size):
         '''Default cursor size is (dp(22), dp(22)).
         Use this method to change it
         '''
         self.cursor.size = size
+
+    def set_cursor_icons(self, hor, deg45, deg90, deg135):
+        '''Change cursor icon paths.
+        Function takes 4 arguments, first is horizontal,
+        next 3 are turned 45, 90, 135 degrees clockwise.
+        '''
+        self.cursor.resize_icon_paths[0] = hor
+        self.cursor.resize_icon_paths[1] = deg45
+        self.cursor.resize_icon_paths[2] = deg90
+        self.cursor.resize_icon_paths[3] = deg135
