@@ -8,6 +8,7 @@ Packaging your application
 
     packaging-windows
     packaging-android
+    packaging-android-windows
     packaging-android-vm
     android
     packaging-osx
