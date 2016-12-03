@@ -283,6 +283,7 @@ class TextInputCutCopyPaste(Bubble):
     _check_parent_ev = None
 
     def __init__(self, **kwargs):
+        self.always_release = BooleanProperty(True)
         self.mode = 'normal'
         super(TextInputCutCopyPaste, self).__init__(**kwargs)
         self._check_parent_ev = Clock.schedule_interval(self._check_parent, .5)
@@ -1403,7 +1404,8 @@ class TextInput(FocusBehavior, Widget):
             # show Bubble
             win = EventLoop.window
             if self._selection_to != self._selection_from:
-                self._show_cut_copy_paste(touch.pos, win)
+                touch_rel_pos = (touch.pos[0] - self.x, touch.pos[1] - self.y)
+                self._show_cut_copy_paste(touch_rel_pos, win)
             elif self.use_handles:
                 self._hide_handles()
                 handle_middle = self._handle_middle
@@ -1596,7 +1598,7 @@ class TextInput(FocusBehavior, Widget):
 
         if (bubble_pos[0] - bubble_hw) < 0:
             # bubble beyond left of window
-            if bubble_pos[1] > (win_size[1] - bubble_size[1]):
+            if (bubble_pos[1] + self.y) > (win_size[1] - bubble_size[1]):
                 # bubble above window height
                 bubble_pos = (bubble_hw, (t_pos[1]) - (lh + ls + inch(.25)))
                 bubble.arrow_pos = 'top_left'
@@ -1605,7 +1607,7 @@ class TextInput(FocusBehavior, Widget):
                 bubble.arrow_pos = 'bottom_left'
         elif (bubble_pos[0] + bubble_hw) > win_size[0]:
             # bubble beyond right of window
-            if bubble_pos[1] > (win_size[1] - bubble_size[1]):
+            if (bubble_pos[1] + self.y) > (win_size[1] - bubble_size[1]):
                 # bubble above window height
                 bubble_pos = (win_size[0] - bubble_hw,
                              (t_pos[1]) - (lh + ls + inch(.25)))
@@ -1614,7 +1616,7 @@ class TextInput(FocusBehavior, Widget):
                 bubble_pos = (win_size[0] - bubble_hw, bubble_pos[1])
                 bubble.arrow_pos = 'bottom_right'
         else:
-            if bubble_pos[1] > (win_size[1] - bubble_size[1]):
+            if (bubble_pos[1] + self.y) > (win_size[1] - bubble_size[1]):
                 # bubble above window height
                 bubble_pos = (bubble_pos[0],
                              (t_pos[1]) - (lh + ls + inch(.25)))

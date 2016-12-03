@@ -80,7 +80,7 @@ class BubbleButton(Button):
     Rather use this BubbleButton widget that is already defined and provides a
     suitable background for you.
     '''
-    pass
+    always_release = BooleanProperty(True)
 
 
 class BubbleContent(GridLayout):
@@ -372,3 +372,4 @@ class Bubble(GridLayout):
     def _update_arrow(self, *dt):
         if self.arrow_pos in ('left_mid', 'right_mid'):
             self._sctr.center_y = self._arrow_layout.center_y
+
