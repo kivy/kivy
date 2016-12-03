@@ -707,7 +707,8 @@ class TextInput(FocusBehavior, Widget):
         wrap = (self._get_text_width(
             new_text,
             self.tab_width,
-            self._label_cached) > (self.width - self.padding[0] - self.padding[2]))
+            self._label_cached) > (self.width - self.padding[0] -
+                                   self.padding[2]))
         if len_str > 1 or substring == u'\n' or wrap:
             # Avoid refreshing text on every keystroke.
             # Allows for faster typing of text when the amount of text in
@@ -2821,6 +2822,9 @@ class TextInput(FocusBehavior, Widget):
         global MarkupLabel
         if not MarkupLabel:
             from kivy.core.text.markup import MarkupLabel
+
+        if self.canvas is None:
+            return
 
         cursor_pos = self.cursor_pos
         txt = self._lines[self.cursor_row]
