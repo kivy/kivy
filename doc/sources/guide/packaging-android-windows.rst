@@ -81,23 +81,16 @@ Everything will be run as root, so start by entering this command::
 
 When in the root shell, run these commands::
 
+    # dpkg --add-architecture i386
+    # add-apt-repository ppa:openjdk-r/ppa
     # apt-get update
     # apt-get upgrade -y
-    # apt-get install -y python-pip
-    # pip install python-for-android
-    # dpkg --add-architecture i386
-    # apt-get update
-    # apt-get install -y build-essential ccache git zlib1g-dev python2.7 \
-                                  python2.7-dev libncurses5:i386 libstdc++6:i386 cython \
-                                  zlib1g:i386 unzip ant ccache python-virtualenv \
-                                  autoconf automake pkg-config libtool
-    # add-apt-repository ppa:webupd8team/java -y
-    # apt-get update
-
-
-Install java, and accept license::
-
-    # apt-get install -y oracle-java8-installer oracle-java8-set-default
+    # apt-get install -y build-essential git zlib1g-dev python2.7 python2.7-dev \
+                                  libncurses5:i386 libstdc++6:i386 cython zlib1g:i386 \
+                                  unzip ant ccache python-virtualenv autoconf automake \
+                                  pkg-config libtool python-pip openjdk-8-jdk
+    # update-alternatives --config java
+    # update-alternatives --config javac
 
 
 Now make a directory to install SDK and NDK in.
@@ -145,7 +138,7 @@ Update sdk. Accept the license agreements
 
 We dont need all the packages, so to see a list of available packages, run::
 
-    # ANDROIDSDK/tools/android list sdk
+    # $ANDROIDSDK/tools/android list sdk
 
 
 We need to install the build_tools and the platform_tools, which in my case show
@@ -165,7 +158,7 @@ will empty the tools folder, and we dont want that.
 
 Then run this command to install the packages you chose::
 
-    # ANDROIDSDK/tools/android update sdk --no-ui --filter 2,3,15
+    # $ANDROIDSDK/tools/android update sdk --no-ui --filter 2,3,15
 
 
 .. _Build:
