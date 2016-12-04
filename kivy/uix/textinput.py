@@ -485,7 +485,7 @@ class TextInput(FocusBehavior, Widget):
         self._refresh_text_from_property_ev = None
         self._long_touch_ev = None
         self._do_blink_cursor_ev = Clock.create_trigger(
-            self._do_blink_cursor, .5, interval=True)
+            self._do_blink_cursor, .5)
         self._refresh_line_options_ev = None
         self.interesting_keys = {
             8: 'backspace',
@@ -1596,7 +1596,7 @@ class TextInput(FocusBehavior, Widget):
         win_size = win.size
         bubble_pos = (t_pos[0], t_pos[1] + inch(.25))
 
-        if (bubble_pos[0] - bubble_hw) < 0:
+        if (bubble_pos[0] - bubble_hw + self.x) < 0:
             # bubble beyond left of window
             if (bubble_pos[1] + self.y) > (win_size[1] - bubble_size[1]):
                 # bubble above window height
@@ -1605,15 +1605,15 @@ class TextInput(FocusBehavior, Widget):
             else:
                 bubble_pos = (bubble_hw, bubble_pos[1])
                 bubble.arrow_pos = 'bottom_left'
-        elif (bubble_pos[0] + bubble_hw) > win_size[0]:
+        elif (bubble_pos[0] + bubble_hw + self.x) > win_size[0]:
             # bubble beyond right of window
             if (bubble_pos[1] + self.y) > (win_size[1] - bubble_size[1]):
                 # bubble above window height
-                bubble_pos = (win_size[0] - bubble_hw,
+                bubble_pos = (win_size[0] - bubble_hw - self.x,
                              (t_pos[1]) - (lh + ls + inch(.25)))
                 bubble.arrow_pos = 'top_right'
             else:
-                bubble_pos = (win_size[0] - bubble_hw, bubble_pos[1])
+                bubble_pos = (win_size[0] - bubble_hw - self.x, bubble_pos[1])
                 bubble.arrow_pos = 'bottom_right'
         else:
             if (bubble_pos[1] + self.y) > (win_size[1] - bubble_size[1]):
