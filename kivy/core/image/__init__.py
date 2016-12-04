@@ -840,7 +840,7 @@ class Image(EventDispatcher):
             # we might have a ImageData object to use
             data = self.image._data[0]
             if data.data is not None:
-                if data.fmt not in ('rgba', 'rgb'):
+                if data.fmt in ('rgba', 'rgb'):
                     # fast path, use the "raw" data when keep_data is used
                     size = data.width, data.height
                     pixels = data.data
