@@ -453,7 +453,7 @@ class SettingPath(SettingItem):
     :attr:`show_hidden` is an :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
 
-    .. versionadded:: 1.9.1
+    .. versionadded:: 1.9.2
     '''
 
     dirselect = BooleanProperty(True)
@@ -462,7 +462,7 @@ class SettingPath(SettingItem):
     :attr:`dirselect` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
 
-    .. versionadded:: 1.9.1
+    .. versionadded:: 1.9.2
     '''
 
     def on_panel(self, instance, value):
