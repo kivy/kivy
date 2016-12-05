@@ -91,6 +91,7 @@ When in the root shell, run these commands::
                                   pkg-config libtool python-pip openjdk-8-jdk
     # update-alternatives --config java
     # update-alternatives --config javac
+    # pip install pyhton-for-android
 
 
 Now make a directory to install SDK and NDK in.
