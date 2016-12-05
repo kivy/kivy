@@ -10,8 +10,6 @@ Packaging your application
     packaging-android
     packaging-android-vm
     android
-    packaging-macosx
+    packaging-osx
     packaging-ios
     packaging-ios-prerequisites
-    packaging-ios-compile
-

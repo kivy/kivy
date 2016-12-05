@@ -3,11 +3,12 @@ from kivy.extras.highlight import KivyLexer
 from kivy.uix.spinner import Spinner, SpinnerOption
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.codeinput import CodeInput
+from kivy.uix.behaviors import EmacsBehavior
 from kivy.uix.popup import Popup
 from kivy.properties import ListProperty
 from kivy.core.window import Window
+from kivy.core.text import LabelBase
 from pygments import lexers
-from pygame import font as fonts
 import codecs
 import os
 
@@ -55,6 +56,26 @@ public static byte toUnsignedByte(int intVal) {
     s.parentNode.insertBefore(po, s);
   })();
 </script>
+----------------------Emacs key bindings---------------------
+This CodeInput inherits from EmacsBehavior, so you can use Emacs key bindings
+if you want! To try out Emacs key bindings, set the "Key bindings" option to
+"Emacs". Experiment with the shortcuts below on some of the text in this window
+(just be careful not to delete the cheat sheet before you have made note of the
+commands!)
+
+Shortcut           Description
+--------           -----------
+Control + a        Move cursor to the beginning of the line
+Control + e        Move cursor to the end of the line
+Control + f        Move cursor one character to the right
+Control + b        Move cursor one character to the left
+Alt + f            Move cursor to the end of the word to the right
+Alt + b            Move cursor to the start of the word to the left
+Alt + Backspace    Delete text left of the cursor to the beginning of word
+Alt + d            Delete text right of the cursor to the end of the word
+Alt + w            Copy selection
+Control + w        Cut selection
+Control + y        Paste selection
 '''
 
 
@@ -87,6 +108,14 @@ class SaveDialog(Popup):
         self.dismiss()
 
 
+class CodeInputWithBindings(EmacsBehavior, CodeInput):
+    '''CodeInput with keybindings.
+    To add more bindings, add the behavior before CodeInput in the class
+    definition.
+    '''
+    pass
+
+
 class CodeInputTest(App):
 
     files = ListProperty([None, ])
@@ -106,26 +135,38 @@ class CodeInputTest(App):
             text='12',
             values=list(map(str, list(range(5, 40)))))
         fnt_size.bind(text=self._update_size)
+
+        fonts = [
+            file for file in LabelBase._font_dirs_files
+            if file.endswith('.ttf')]
+
         fnt_name = Spinner(
             text='RobotoMono',
             option_cls=Fnt_SpinnerOption,
-            values=sorted(map(str, fonts.get_fonts())))
+            values=fonts)
         fnt_name.bind(text=self._update_font)
         mnu_file = Spinner(
             text='File',
             values=('Open', 'SaveAs', 'Save', 'Close'))
         mnu_file.bind(text=self._file_menu_selected)
+        key_bindings = Spinner(
+            text='Key bindings',
+            values=('Default key bindings', 'Emacs key bindings'))
+        key_bindings.bind(text=self._bindings_selected)
 
         menu.add_widget(mnu_file)
         menu.add_widget(fnt_size)
         menu.add_widget(fnt_name)
         menu.add_widget(languages)
+        menu.add_widget(key_bindings)
         b.add_widget(menu)
 
-        self.codeinput = CodeInput(
+        self.codeinput = CodeInputWithBindings(
             lexer=KivyLexer(),
             font_size=12,
-            text=example_text)
+            text=example_text,
+            key_bindings='default',
+        )
 
         b.add_widget(self.codeinput)
 
@@ -135,9 +176,7 @@ class CodeInputTest(App):
         self.codeinput.font_size = float(size)
 
     def _update_font(self, instance, fnt_name):
-        font_name = fonts.match_font(fnt_name)
-        if os.path.exists(font_name):
-            instance.font_name = self.codeinput.font_name = font_name
+        instance.font_name = self.codeinput.font_name = fnt_name
 
     def _file_menu_selected(self, instance, value):
         if value == 'File':
@@ -162,6 +201,10 @@ class CodeInputTest(App):
             if self.files[0]:
                 self.codeinput.text = ''
                 Window.title = 'untitled'
+
+    def _bindings_selected(self, instance, value):
+        value = value.split(' ')[0]
+        self.codeinput.key_bindings = value.lower()
 
     def on_files(self, instance, values):
         if not values[0]:

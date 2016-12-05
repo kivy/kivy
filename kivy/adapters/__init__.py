@@ -6,7 +6,7 @@ Adapters
 
 An adapter is a mediating controller-type class that processes and presents
 data for use in views. It does this by generating models, generally lists of
-:class:`~kivy.uix.listview.SelectableView` items, that are consumed and
+:class:`~kivy.uix.selectableview.SelectableView` items, that are consumed and
 presented by views. Views are top-level widgets, such as a
 :class:`~kivy.uix.listview.ListView`, that allow users to scroll through
 and (optionally) interact with your data.

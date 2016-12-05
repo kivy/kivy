@@ -20,14 +20,17 @@ Configuration
     `cursor_image`: str, defaults to
         'atlas://data/images/defaulttheme/slider_cursor' Image used to
         represent the cursor if displayed
+
         .. versionadded:: 1.8.0
     `cursor_size`: tuple, defaults to (None, None)
         Apparent size of the mouse cursor, if displayed, default value
         will keep its real size.
+
         .. versionadded:: 1.8.0
     `cursor_offset`: tuple, defaults to (None, None)
         Offset of the texture image. The default value will align the
         top-left corner of the image to the mouse pos.
+
         .. versionadded:: 1.8.0
 
 Example
@@ -45,6 +48,7 @@ __all__ = ('start', 'stop')
 
 from kivy.core.image import Image
 from kivy.graphics import Color, Rectangle
+from kivy.logger import Logger
 
 pointer_image = None
 pointer_scale = 1.0
@@ -134,7 +138,7 @@ def start(win, ctx):
              on_touch_up=_touch_up)
 
     if ctx.config.get('show_cursor', False):
-        print('adding binding for mouse move')
+        Logger.info('Base: Adding binding for mouse move')
         win.bind(mouse_pos=_mouse_move)
 
 

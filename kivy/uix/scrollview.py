@@ -1,5 +1,6 @@
-'''Scroll View
-===========
+'''
+ScrollView
+==========
 
 .. versionadded:: 1.0.4
 
@@ -11,16 +12,16 @@ Scrolling Behavior
 ------------------
 
 The ScrollView accepts only one child and applies a viewport/window to
-it according to the :attr:`ScrollView.scroll_x` and
-:attr:`ScrollView.scroll_y` properties. Touches are analyzed to
+it according to the :attr:`~ScrollView.scroll_x` and
+:attr:`~ScrollView.scroll_y` properties. Touches are analyzed to
 determine if the user wants to scroll or control the child in some
-other manner - you cannot do both at the same time. To determine if
+other manner: you cannot do both at the same time. To determine if
 interaction is a scrolling gesture, these properties are used:
 
-    - :attr:`ScrollView.scroll_distance`: the minimum distance to travel,
-         defaults to 20 pixels.
-    - :attr:`ScrollView.scroll_timeout`: the maximum time period, defaults
-         to 250 milliseconds.
+    - :attr:`~ScrollView.scroll_distance`: the minimum distance to travel,
+      defaults to 20 pixels.
+    - :attr:`~ScrollView.scroll_timeout`: the maximum time period, defaults
+      to 55 milliseconds.
 
 If a touch travels :attr:`~ScrollView.scroll_distance` pixels within the
 :attr:`~ScrollView.scroll_timeout` period, it is recognized as a scrolling
@@ -41,36 +42,49 @@ The default value for those settings can be changed in the configuration file::
 Limiting to the X or Y Axis
 ---------------------------
 
-By default, the ScrollView allows scrolling in both the X and Y axes. You can
-explicitly disable scrolling on an axis by setting
-:attr:`ScrollView.do_scroll_x` or :attr:`ScrollView.do_scroll_y` to False.
+By default, the ScrollView allows scrolling along both the X and Y axes. You can
+explicitly disable scrolling on an axis by setting the
+:attr:`~ScrollView.do_scroll_x` or :attr:`~ScrollView.do_scroll_y` properties
+to False.
 
 
 Managing the Content Size and Position
 --------------------------------------
 
-ScrollView manages the position of its children similarly to a
-RelativeLayout (see :mod:`~kivy.uix.relativelayout`) but not the size. You must
-carefully specify the `size_hint` of your content to get the desired
-scroll/pan effect.
+The ScrollView manages the position of its children similarly to a
+:class:`~kivy.uix.relativelayout.RelativeLayout` but does not use the
+:attr:`~kivy.uix.widget.Widget.size_hint`. You must
+carefully specify the :attr:`~kivy.uix.widget.Widget.size` of your content to
+get the desired scroll/pan effect.
 
-By default, size_hint is (1, 1), so the content size will fit your ScrollView
+By default, the :attr:`~kivy.uix.widget.Widget.size_hint` is (1, 1), so the
+content size will fit your ScrollView
 exactly (you will have nothing to scroll). You must deactivate at least one of
 the size_hint instructions (x or y) of the child to enable scrolling.
+Setting :attr:`~kivy.uix.widget.Widget.size_hint_min` to not be None will
+also enable scrolling for that dimension when the :class:`ScrollView` is
+smaller than the minimum size.
 
-To scroll a :class:`GridLayout` on Y-axis/vertically, set the child's width
-identical to that of the ScrollView (size_hint_x=1, default), and set the
-size_hint_y property to None::
+To scroll a :class:`~kivy.uix.gridlayout.GridLayout` on it's Y-axis/vertically,
+set the child's width  to that of the ScrollView (size_hint_x=1), and set
+the size_hint_y property to None::
+
+    from kivy.uix.gridlayout import GridLayout
+    from kivy.uix.button import Button
+    from kivy.uix.scrollview import ScrollView
+    from kivy.core.window import Window
+    from kivy.app import runTouchApp
 
     layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
     # Make sure the height is such that there is something to scroll.
     layout.bind(minimum_height=layout.setter('height'))
-    for i in range(30):
+    for i in range(100):
         btn = Button(text=str(i), size_hint_y=None, height=40)
         layout.add_widget(btn)
-    root = ScrollView(size_hint=(None, None), size=(400, 400))
+    root = ScrollView(size_hint=(1, None), size=(Window.width, Window.height))
     root.add_widget(layout)
 
+    runTouchApp(root)
 
 Overscroll Effects
 ------------------
@@ -85,7 +99,7 @@ boundaries. Note that complex effects may perform many computations,
 which can be slow on weaker hardware.
 
 You can change what effect is being used by setting
-:attr:`ScrollView.effect_cls` to any effect class. Current options
+:attr:`~ScrollView.effect_cls` to any effect class. Current options
 include:
 
     - :class:`~kivy.effects.scroll.ScrollEffect`: Does not allow
@@ -101,10 +115,10 @@ include:
 You can also create your own scroll effect by subclassing one of these,
 then pass it as the :attr:`~ScrollView.effect_cls` in the same way.
 
-Alternatively, you can set :attr:`ScrollView.effect_x` and/or
-:attr:`ScrollView.effect_y` to an *instance* of the effect you want to
+Alternatively, you can set :attr:`~ScrollView.effect_x` and/or
+:attr:`~ScrollView.effect_y` to an *instance* of the effect you want to
 use. This will override the default effect set in
-:attr:`ScrollView.effect_cls`.
+:attr:`~ScrollView.effect_cls`.
 
 All the effects are located in the :mod:`kivy.effects`.
 
@@ -130,7 +144,8 @@ from kivy.uix.behaviors import FocusBehavior
 _scroll_timeout = _scroll_distance = 0
 if Config:
     _scroll_timeout = Config.getint('widgets', 'scroll_timeout')
-    _scroll_distance = sp(Config.getint('widgets', 'scroll_distance'))
+    _scroll_distance = '{}sp'.format(Config.getint('widgets',
+                                                   'scroll_distance'))
 
 
 class ScrollView(StencilView):
@@ -165,7 +180,7 @@ class ScrollView(StencilView):
     configuration.
     '''
 
-    scroll_wheel_distance = NumericProperty(20)
+    scroll_wheel_distance = NumericProperty('20sp')
     '''Distance to move when scrolling with a mouse wheel.
     It is advisable that you base this value on the dpi of your target device's
     screen.
@@ -367,7 +382,7 @@ class ScrollView(StencilView):
     '''
 
     effect_cls = ObjectProperty(DampedScrollEffect, allownone=True)
-    '''Class effect to instanciate for X and Y axis.
+    '''Class effect to instantiate for X and Y axis.
 
     .. versionadded:: 1.7.0
 
@@ -420,6 +435,10 @@ class ScrollView(StencilView):
 
     _viewport = ObjectProperty(None, allownone=True)
     _bar_color = ListProperty([0, 0, 0, 0])
+    _effect_x_start_width = None
+    _effect_y_start_height = None
+    _update_effect_bounds_ev = None
+    _bind_inactive_bar_color_ev = None
 
     def _set_viewport_size(self, instance, value):
         self.viewport_size = value
@@ -530,7 +549,11 @@ class ScrollView(StencilView):
         vp = self._viewport
         if not vp or not self.effect_x:
             return
-        sw = vp.width - self.width
+
+        if self.effect_x.is_manual:
+            sw = vp.width - self._effect_x_start_width
+        else:
+            sw = vp.width - self.width
         if sw < 1:
             return
         sx = self.effect_x.scroll / float(sw)
@@ -541,7 +564,10 @@ class ScrollView(StencilView):
         vp = self._viewport
         if not vp or not self.effect_y:
             return
-        sh = vp.height - self.height
+        if self.effect_y.is_manual:
+            sh = vp.height - self._effect_y_start_height
+        else:
+            sh = vp.height - self.height
         if sh < 1:
             return
         sy = self.effect_y.scroll / float(sh)
@@ -575,11 +601,17 @@ class ScrollView(StencilView):
             touch.grab(self)
             return True
 
+    def _touch_in_handle(self, pos, size, touch):
+        x, y = pos
+        width, height = size
+        return x <= touch.x <= x + width and y <= touch.y <= y + height
+
     def on_scroll_start(self, touch, check_children=True):
         if check_children:
             touch.push()
             touch.apply_transform_2d(self.to_local)
             if self.dispatch_children('on_scroll_start', touch):
+                touch.pop()
                 return True
             touch.pop()
 
@@ -620,7 +652,7 @@ class ScrollView(StencilView):
         if vp and 'button' in touch.profile and \
                 touch.button.startswith('scroll'):
             btn = touch.button
-            m = sp(self.scroll_wheel_distance)
+            m = self.scroll_wheel_distance
             e = None
 
             if ((btn == 'scrolldown' and self.scroll_y >= 1) or
@@ -648,36 +680,46 @@ class ScrollView(StencilView):
                 e.trigger_velocity_update()
             return True
 
+        in_bar = ud['in_bar_x'] or ud['in_bar_y']
+        if scroll_type == ['bars'] and not in_bar:
+            return self.simulate_touch_down(touch)
+
+        if in_bar:
+            if (ud['in_bar_y'] and not
+                    self._touch_in_handle(
+                        self._handle_y_pos, self._handle_y_size, touch)):
+                self.scroll_y = (touch.y - self.y) / self.height
+            elif (ud['in_bar_x'] and not
+                    self._touch_in_handle(
+                        self._handle_x_pos, self._handle_x_size, touch)):
+                self.scroll_x = (touch.x - self.x) / self.width
+
         # no mouse scrolling, so the user is going to drag the scrollview with
         # this touch.
         self._touch = touch
         uid = self._get_uid()
-        FocusBehavior.ignored_touch.append(touch)
 
         ud[uid] = {
             'mode': 'unknown',
             'dx': 0,
             'dy': 0,
-            'user_stopped': False,
+            'user_stopped': in_bar,
             'frames': Clock.frames,
             'time': touch.time_start}
 
         if self.do_scroll_x and self.effect_x and not ud['in_bar_x']:
+            self._effect_x_start_width = self.width
             self.effect_x.start(touch.x)
             self._scroll_x_mouse = self.scroll_x
         if self.do_scroll_y and self.effect_y and not ud['in_bar_y']:
+            self._effect_y_start_height = self.height
             self.effect_y.start(touch.y)
             self._scroll_y_mouse = self.scroll_y
 
-        if (ud.get('in_bar_x', False) or ud.get('in_bar_y', False)):
-            return True
-
-        Clock.schedule_once(self._change_touch_mode,
+        if not in_bar:
+            Clock.schedule_once(self._change_touch_mode,
                                 self.scroll_timeout / 1000.)
-        if scroll_type == ['bars']:
-            return False
-        else:
-            return True
+        return True
 
     def on_touch_move(self, touch):
         if self._touch is not touch:
@@ -690,7 +732,7 @@ class ScrollView(StencilView):
         if touch.grab_current is not self:
             return True
 
-        if not (self.do_scroll_y or self.do_scroll_x):
+        if touch.ud.get(self._get_uid()) is None:
             return super(ScrollView, self).on_touch_move(touch)
 
         touch.ud['sv.handled'] = {'x': False, 'y': False}
@@ -704,20 +746,39 @@ class ScrollView(StencilView):
         touch.push()
         touch.apply_transform_2d(self.to_local)
         if self.dispatch_children('on_scroll_move', touch):
+            touch.pop()
             return True
         touch.pop()
 
         rv = True
+
+        # By default this touch can be used to defocus currently focused
+        # widget, like any touch outside of ScrollView.
+        touch.ud['sv.can_defocus'] = True
 
         uid = self._get_uid()
         if not uid in touch.ud:
             self._touch = False
             return self.on_scroll_start(touch, False)
         ud = touch.ud[uid]
-        mode = ud['mode']
 
         # check if the minimum distance has been travelled
-        if mode == 'unknown' or mode == 'scroll':
+        if ud['mode'] == 'unknown':
+            if not self.do_scroll_x and not self.do_scroll_y:
+                # touch is in parent, but _change expects window coords
+                touch.push()
+                touch.apply_transform_2d(self.to_local)
+                touch.apply_transform_2d(self.to_window)
+                self._change_touch_mode()
+                touch.pop()
+                return
+            ud['dx'] += abs(touch.dx)
+            ud['dy'] += abs(touch.dy)
+            if ((ud['dx'] > self.scroll_distance and self.do_scroll_x) or
+                    (ud['dy'] > self.scroll_distance and self.do_scroll_y)):
+                ud['mode'] = 'scroll'
+
+        if ud['mode'] == 'scroll':
             if not touch.ud['sv.handled']['x'] and self.do_scroll_x \
                     and self.effect_x:
                 width = self.width
@@ -732,6 +793,8 @@ class ScrollView(StencilView):
                     rv = False
                 else:
                     touch.ud['sv.handled']['x'] = True
+                # Touch resulted in scroll should not defocus focused widget
+                touch.ud['sv.can_defocus'] = False
             if not touch.ud['sv.handled']['y'] and self.do_scroll_y \
                     and self.effect_y:
                 height = self.height
@@ -746,52 +809,29 @@ class ScrollView(StencilView):
                     rv = False
                 else:
                     touch.ud['sv.handled']['y'] = True
-
-        if mode == 'unknown':
-            ud['dx'] += abs(touch.dx)
-            ud['dy'] += abs(touch.dy)
-            if ud['dx'] > self.scroll_distance:
-                if not self.do_scroll_x:
-                    # touch is in parent, but _change expects window coords
-                    touch.push()
-                    touch.apply_transform_2d(self.to_local)
-                    touch.apply_transform_2d(self.to_window)
-                    self._change_touch_mode()
-                    touch.pop()
-                    return
-                mode = 'scroll'
-
-            if ud['dy'] > self.scroll_distance:
-                if not self.do_scroll_y:
-                    # touch is in parent, but _change expects window coords
-                    touch.push()
-                    touch.apply_transform_2d(self.to_local)
-                    touch.apply_transform_2d(self.to_window)
-                    self._change_touch_mode()
-                    touch.pop()
-                    return
-                mode = 'scroll'
-            ud['mode'] = mode
-
-        if mode == 'scroll':
+                # Touch resulted in scroll should not defocus focused widget
+                touch.ud['sv.can_defocus'] = False
             ud['dt'] = touch.time_update - ud['time']
             ud['time'] = touch.time_update
             ud['user_stopped'] = True
-
         return rv
 
     def on_touch_up(self, touch):
-        if self._touch is not touch and self.uid not in touch.ud:
+        if self._touch is not touch and self._get_uid('svavoid') not in touch.ud:
             # touch is in parents
             touch.push()
             touch.apply_transform_2d(self.to_local)
             if super(ScrollView, self).on_touch_up(touch):
+                touch.pop()
                 return True
             touch.pop()
             return False
 
         if self.dispatch('on_scroll_stop', touch):
             touch.ungrab(self)
+            if not touch.ud.get('sv.can_defocus', True):
+                # Focused widget should stay focused
+                FocusBehavior.ignored_touch.append(touch)
             return True
 
     def on_scroll_stop(self, touch, check_children=True):
@@ -801,6 +841,7 @@ class ScrollView(StencilView):
             touch.push()
             touch.apply_transform_2d(self.to_local)
             if self.dispatch_children('on_scroll_stop', touch):
+                touch.pop()
                 return True
             touch.pop()
 
@@ -827,8 +868,12 @@ class ScrollView(StencilView):
             if not ud['user_stopped']:
                 self.simulate_touch_down(touch)
             Clock.schedule_once(partial(self._do_touch_up, touch), .2)
-        Clock.unschedule(self._update_effect_bounds)
-        Clock.schedule_once(self._update_effect_bounds)
+
+        ev = self._update_effect_bounds_ev
+        if ev is None:
+            ev = self._update_effect_bounds_ev = Clock.create_trigger(
+                self._update_effect_bounds)
+        ev()
 
         # if we do mouse scrolling, always accept it
         if 'button' in touch.profile and touch.button.startswith('scroll'):
@@ -847,6 +892,13 @@ class ScrollView(StencilView):
         '''
         if not self.parent:
             return
+
+        # if _viewport is layout and has pending operation, reschedule
+        if hasattr(self._viewport,'do_layout'):
+            if self._viewport._trigger_layout.is_triggered:
+                Clock.schedule_once(
+                     lambda *dt: self.scroll_to(widget,padding,animate))
+                return
 
         if isinstance(padding, (int, float)):
             padding = (padding, padding)
@@ -916,9 +968,19 @@ class ScrollView(StencilView):
 
         # update from size_hint
         if vp.size_hint_x is not None:
-            vp.width = vp.size_hint_x * self.width
+            w = vp.size_hint_x * self.width
+            if vp.size_hint_min_x is not None:
+                w = max(w, vp.size_hint_min_x)
+            if vp.size_hint_max_x is not None:
+                w = min(w, vp.size_hint_max_x)
+            vp.width = w
         if vp.size_hint_y is not None:
-            vp.height = vp.size_hint_y * self.height
+            h = vp.size_hint_y * self.height
+            if vp.size_hint_min_y is not None:
+                h = max(h, vp.size_hint_min_y)
+            if vp.size_hint_max_y is not None:
+                h = min(h, vp.size_hint_max_y)
+            vp.height = h
 
         if vp.width > self.width:
             sw = vp.width - self.width
@@ -939,12 +1001,15 @@ class ScrollView(StencilView):
 
         # New in 1.2.0, show bar when scrolling happens and (changed in 1.9.0)
         # fade to bar_inactive_color when no scroll is happening.
-        Clock.unschedule(self._bind_inactive_bar_color)
+        ev = self._bind_inactive_bar_color_ev
+        if ev is None:
+            ev = self._bind_inactive_bar_color_ev = Clock.create_trigger(
+                self._bind_inactive_bar_color, .5)
         self.funbind('bar_inactive_color', self._change_bar_color)
         Animation.stop_all(self, '_bar_color')
         self.fbind('bar_color', self._change_bar_color)
         self._bar_color = self.bar_color
-        Clock.schedule_once(self._bind_inactive_bar_color, .5)
+        ev()
 
     def _bind_inactive_bar_color(self, *l):
         self.funbind('bar_color', self._change_bar_color)
@@ -966,7 +1031,8 @@ class ScrollView(StencilView):
         super(ScrollView, self).add_widget(widget, index)
         self.canvas = canvas
         self._viewport = widget
-        widget.bind(size=self._trigger_update_from_scroll)
+        widget.bind(size=self._trigger_update_from_scroll,
+                    size_hint_min=self._trigger_update_from_scroll)
         self._trigger_update_from_scroll()
 
     def remove_widget(self, widget):
@@ -1006,7 +1072,7 @@ class ScrollView(StencilView):
         if self.do_scroll_y and self.effect_y:
             self.effect_y.cancel()
         # XXX the next line was in the condition. But this stop
-        # the possibily to "drag" an object out of the scrollview in the
+        # the possibility to "drag" an object out of the scrollview in the
         # non-used direction: if you have an horizontal scrollview, a
         # vertical gesture will not "stop" the scroll view to look for an
         # horizontal gesture, until the timeout is done.

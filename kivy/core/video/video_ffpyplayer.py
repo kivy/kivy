@@ -48,7 +48,7 @@ __all__ = ('VideoFFPy', )
 try:
     import ffpyplayer
     from ffpyplayer.player import MediaPlayer
-    from ffpyplayer.tools import set_log_callback, loglevels, get_log_callback
+    from ffpyplayer.tools import set_log_callback, get_log_callback
 except:
     raise
 
@@ -100,12 +100,14 @@ class VideoFFPy(VideoBase):
     }
     """
 
+    _trigger = None
+
     def __init__(self, **kwargs):
         self._ffplayer = None
         self._thread = None
         self._next_frame = None
+        self._seek_queue = []
         self._ffplayer_need_quit = False
-        self._callback_ref = WeakMethod(self._player_callback)
         self._trigger = Clock.create_trigger(self._redraw)
 
         super(VideoFFPy, self).__init__(**kwargs)
@@ -129,15 +131,10 @@ class VideoFFPy(VideoBase):
     def _set_position(self, pos):
         self.seek(pos)
 
-    def _get_volume(self):
-        if self._ffplayer is not None:
-            self._volume = self._ffplayer.get_volume()
-        return self._volume
-
     def _set_volume(self, volume):
         self._volume = volume
-        if self._ffplayer is not None:
-            self._ffplayer.set_volume(volume)
+        if self._ffplayer:
+            self._ffplayer.set_volume(self._volume)
 
     def _get_duration(self):
         if self._ffplayer is None:
@@ -203,12 +200,12 @@ class VideoFFPy(VideoBase):
                 self._tex_y.blit_buffer(dy, colorfmt='luminance')
                 self._tex_u.blit_buffer(du, colorfmt='luminance')
                 self._tex_v.blit_buffer(dv, colorfmt='luminance')
+                self._fbo.ask_update()
+                self._fbo.draw()
             else:
                 self._texture.blit_buffer(
                     img.to_memoryview()[0], colorfmt='rgba')
 
-            self._fbo.ask_update()
-            self._fbo.draw()
             self.dispatch('on_frame')
 
     def _next_frame_run(self):
@@ -216,6 +213,7 @@ class VideoFFPy(VideoBase):
         sleep = time.sleep
         trigger = self._trigger
         did_dispatch_eof = False
+        seek_queue = self._seek_queue
 
         # fast path, if the source video is yuv420p, we'll use a glsl shader for
         # buffer conversion to rgba
@@ -252,6 +250,14 @@ class VideoFFPy(VideoBase):
         self._change_state('playing')
 
         while not self._ffplayer_need_quit:
+            if seek_queue:
+                vals = seek_queue[:]
+                del seek_queue[:len(vals)]
+                ffplayer.seek(
+                    vals[-1] * ffplayer.get_metadata()['duration'],
+                    relative=False)
+                self._next_frame = None
+
             t1 = time.time()
             frame, val = ffplayer.get_frame()
             t2 = time.time()
@@ -275,9 +281,7 @@ class VideoFFPy(VideoBase):
     def seek(self, percent):
         if self._ffplayer is None:
             return
-        self._ffplayer.seek(percent * self._ffplayer.get_metadata()
-                            ['duration'], relative=False)
-        self._next_frame = None
+        self._seek_queue.append(percent)
 
     def stop(self):
         self.unload()
@@ -300,9 +304,10 @@ class VideoFFPy(VideoBase):
             'out_fmt': self._out_fmt
         }
         self._ffplayer = MediaPlayer(
-                self._filename, callback=self._callback_ref,
+                self._filename, callback=self._player_callback,
                 thread_lib='SDL',
                 loglevel='info', ff_opts=ff_opts)
+        self._ffplayer.set_volume(self._volume)
 
         self._thread = Thread(target=self._next_frame_run, name='Next frame')
         self._thread.daemon = True
@@ -312,7 +317,8 @@ class VideoFFPy(VideoBase):
         self.unload()
 
     def unload(self):
-        Clock.unschedule(self._redraw)
+        if self._trigger is not None:
+            self._trigger.cancel()
         self._ffplayer_need_quit = True
         if self._thread:
             self._thread.join()

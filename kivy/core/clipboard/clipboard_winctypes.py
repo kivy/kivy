@@ -27,7 +27,7 @@ class ClipboardWindows(ClipboardBase):
         if not pcontents:
             return ''
         data = c_wchar_p(pcontents).value.encode(self._encoding)
-        #ctypes.windll.kernel32.GlobalUnlock(pcontents)
+        # ctypes.windll.kernel32.GlobalUnlock(pcontents)
         user32.CloseClipboard()
         return data
 
@@ -44,4 +44,4 @@ class ClipboardWindows(ClipboardBase):
         user32.CloseClipboard()
 
     def get_types(self):
-        return list('text/plain',)
+        return ['text/plain']

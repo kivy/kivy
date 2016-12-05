@@ -27,7 +27,7 @@ Typically, having the argument converter perform a simple mapping suffices.
 There are times, however, when more complex manipulation is required. When using
 a :class:`~kivy.uix.listview.CompositeListItem`, it is possible to specify
 a list of cls dictionaries. This allows you so compose a single view item
-out of multiple classes, each of which can recieve their own class constructor
+out of multiple classes, each of which can receive their own class constructor
 arguments via the *kwargs* keyword::
 
     args_converter = lambda row_index, rec: \\

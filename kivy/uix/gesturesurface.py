@@ -98,6 +98,9 @@ class GestureContainer(EventDispatcher):
     height = NumericProperty(0)
 
     def __init__(self, touch, **kwargs):
+        # The color is applied to all canvas items of this gesture
+        self.color = kwargs.pop('color', [1., 1., 1.])
+
         super(GestureContainer, self).__init__(**kwargs)
 
         # This is the touch.uid of the oldest touch represented
@@ -112,15 +115,8 @@ class GestureContainer(EventDispatcher):
         # We can cache the candidate here to save zip()/Vector instantiation
         self._vectors = None
 
-        # The color is applied to all canvas items of this gesture
-        col = kwargs.get('color', None)
-        if col is not None:
-            self.color = col
-        else:
-            self.color = [1.0, 1.0, 1.0]
-
         # Key is touch.uid; value is a kivy.graphics.Line(); it's used even
-        # if line_width is 0 (ie not actually drawn anywhere)
+        # if line_width is 0 (i.e. not actually drawn anywhere)
         self._strokes = {}
 
         # Make sure the bbox is up to date with the first touch position
@@ -277,7 +273,7 @@ class GestureSurface(FloatLayout):
 
     :Events:
         `on_gesture_start` :class:`GestureContainer`
-            Fired when a new gesture is initiated on the surface, ie the
+            Fired when a new gesture is initiated on the surface, i.e. the
             first on_touch_down that does not collide with an existing
             gesture on the surface.
 
@@ -363,7 +359,7 @@ class GestureSurface(FloatLayout):
     def on_touch_move(self, touch):
         '''When a touch moves, we add a point to the line on the canvas so the
         path is updated. We must also check if the new point collides with the
-        bouonding box of another gesture - if so, they should be merged.'''
+        bounding box of another gesture - if so, they should be merged.'''
         if touch.grab_current is not self:
             return
         if not self.collide_point(touch.y, touch.y):
@@ -412,14 +408,13 @@ class GestureSurface(FloatLayout):
 # Gesture related methods
 # -----------------------------------------------------------------------------
     def init_gesture(self, touch):
-        '''Create a new gesture from touch, ie it's the first on
+        '''Create a new gesture from touch, i.e. it's the first on
         surface, or was not close enough to any existing gesture (yet)'''
         col = self.color
-        if self.use_random_color is True:
+        if self.use_random_color:
             col = hsv_to_rgb(random(), 1., 1.)
 
-        g = GestureContainer(touch, max_strokes=self.max_strokes,
-                             line_width=self.line_width, color=col)
+        g = GestureContainer(touch, max_strokes=self.max_strokes, color=col)
 
         # Create the bounding box Rectangle for the gesture
         if self.draw_bbox:

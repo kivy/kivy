@@ -1,4 +1,3 @@
-#!/usr/bin/kivy
 '''
 Basic Picture Viewer
 ====================
@@ -34,8 +33,6 @@ from kivy.app import App
 from kivy.logger import Logger
 from kivy.uix.scatter import Scatter
 from kivy.properties import StringProperty
-# FIXME this shouldn't be necessary
-from kivy.core.window import Window
 
 
 class Picture(Scatter):
@@ -74,4 +71,3 @@ class PicturesApp(App):
 
 if __name__ == '__main__':
     PicturesApp().run()
-

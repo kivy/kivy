@@ -13,7 +13,7 @@ Windows and MacOS X, we provide a portable package that you can just
 unzip and use.
 
 * :ref:`installation_windows`
-* :ref:`installation_macosx`
+* :ref:`installation_osx`
 * :ref:`installation_linux`
 
 If you want to install everything yourself, ensure that you have at
@@ -146,7 +146,7 @@ To run the application, follow the instructions for your operating system:
 
     Mac OS X
         Follow the instructions for
-        :ref:`running a Kivy application on MacOSX <macosx-run-app>`::
+        :ref:`running a Kivy application on OS X <osx-run-app>`::
 
             $ kivy main.py
 
@@ -242,17 +242,3 @@ anything. This is because widgets use size hinting by default.
 The code above doesn't handle the input from the user, does no validation or
 anything else. We will delve deeper into this and :class:`~kivy.widget.Widget`
 size and positioning in the coming sections.
-
-
-Platform specifics
-------------------
-
-Opening a Terminal application and setting the kivy environment variables.
-
-    On Windows, just double click the kivy.bat and a terminal will be opened
-    with all the required variables already set.
-
-    On nix* systems, open the terminal of your choice and if
-    kivy isn't installed globally::
-
-        export python=$PYTHONPATH:/path/to/kivy_installation

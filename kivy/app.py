@@ -53,6 +53,7 @@ See :file:`kivy/examples/application/app_with_kv.py`.
 The relationship between main.py and test.kv is explained in
 :meth:`App.load_kv`.
 
+.. _Application configuration:
 
 Application configuration
 -------------------------
@@ -73,8 +74,9 @@ the section key-value pair to the :meth:`App.build_config` method using the
             })
 
 As soon as you add one section to the config, a file is created on the
-disk and named based your class name. "TestApp" will give
-a config file named "test.ini" with the content::
+disk (see :attr:`~App.get_application_config` for its location) and
+named based your class name. "TestApp" will give a config file named
+"test.ini" with the content::
 
     [section1]
     key1 = value1
@@ -167,9 +169,9 @@ user in order to adapt or reload your UI. You can then overload the
             if config is self.config:
                 token = (section, key)
                 if token == ('section1', 'key1'):
-                    print('Our key1 have been changed to', value)
+                    print('Our key1 has been changed to', value)
                 elif token == ('section1', 'key2'):
-                    print('Our key2 have been changed to', value)
+                    print('Our key2 has been changed to', value)
 
 The Kivy configuration panel is added by default to the settings
 instance. If you don't want this panel, you can declare your Application as
@@ -324,6 +326,7 @@ from kivy.resources import resource_find
 from kivy.utils import platform as core_platform
 from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty, StringProperty
+from kivy.setupconfig import USE_SDL2
 
 
 platform = core_platform
@@ -636,7 +639,7 @@ class App(EventDispatcher):
         system-wide, the user might not have write-access to the
         application directory. If you want to store user settings, you
         should overload this method and change the default behavior to
-        save the configuration file in the user directory.::
+        save the configuration file in the user directory. ::
 
             class TestApp(App):
                 def get_application_config(self):
@@ -749,14 +752,14 @@ class App(EventDispatcher):
         This function implements these conventions. The <app_name> directory
         is created when the property is called, unless it already exists.
 
-        On iOS, `~/Documents<app_name>` is returned (which is inside the
+        On iOS, `~/Documents/<app_name>` is returned (which is inside the
         app's sandbox).
 
         On Android, `/sdcard/<app_name>` is returned.
 
         On Windows, `%APPDATA%/<app_name>` is returned.
 
-        On Mac OSX, `~/Library/Application Support/<app_name>` is returned.
+        On OS X, `~/Library/Application Support/<app_name>` is returned.
 
         On Linux, `$XDG_CONFIG_HOME/<app_name>` is returned.
         '''
@@ -835,8 +838,9 @@ class App(EventDispatcher):
         stopTouchApp()
 
         # Clear the window children
-        for child in self._app_window.children:
-            self._app_window.remove_widget(child)
+        if self._app_window:
+            for child in self._app_window.children:
+                self._app_window.remove_widget(child)
 
     def on_start(self):
         '''Event handler for the `on_start` event which is fired after
@@ -865,7 +869,7 @@ class App(EventDispatcher):
 
         .. versionadded:: 1.1.0
         '''
-        return False
+        return True
 
     def on_resume(self):
         '''Event handler called when your application is resuming from
@@ -1021,7 +1025,7 @@ class App(EventDispatcher):
         setting_key = 282  # F1
 
         # android hack, if settings key is pygame K_MENU
-        if platform == 'android':
+        if platform == 'android' and not USE_SDL2:
             import pygame
             setting_key = pygame.K_MENU
 

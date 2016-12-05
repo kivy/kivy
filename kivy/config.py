@@ -41,6 +41,9 @@ Change the configuration and save it::
     >>> Config.set('postproc', 'retain_time', '50')
     >>> Config.write()
 
+For information on configuring your :class:`~kivy.app.App`, please see the
+:ref:`Application configuration` section.
+
 .. versionchanged:: 1.7.1
     The ConfigParser should work correctly with utf-8 now. The values are
     converted from ascii to unicode only when needed. The method get() returns
@@ -123,7 +126,8 @@ Available configuration tokens
 
 :graphics:
     `borderless`: int , one of 0 or 1
-        If set to `1`, removes the window border/decoration.
+        If set to `1`, removes the window border/decoration. Window resizing
+        must also be disabled to hide the resizing border.
     `window_state`: string , one of 'visible', 'hidden', 'maximized' \
                     or 'minimized'
         Sets the window state, defaults to 'visible'. This option is available
@@ -146,6 +150,10 @@ Available configuration tokens
         Left position of the :class:`~kivy.core.window.Window`.
     `maxfps`: int, defaults to 60
         Maximum FPS allowed.
+
+        .. warning::
+            Setting maxfps to 0 will lead to max CPU usage.
+
     'multisamples': int, defaults to 2
         Sets the `MultiSample Anti-Aliasing (MSAA)
         <http://en.wikipedia.org/wiki/Multisample_anti-aliasing>`_ level.
@@ -153,7 +161,6 @@ Available configuration tokens
         processing time.
 
         .. note::
-
            This feature is limited by device hardware support and will have no
            effect on devices which do not support the level of MSAA requested.
 
@@ -161,7 +168,7 @@ Available configuration tokens
         Position of the window on your display. If `auto` is used, you have no
         control of the initial position: `top` and `left` are ignored.
     `show_cursor`: int, one of 0 or 1
-        Show the cursor on the screen.
+        Set whether or not the cursor is shown on the window.
     `top`: int
         Top position of the :class:`~kivy.core.window.Window`.
     `resizable`: int, one of 0 or 1
@@ -174,8 +181,17 @@ Available configuration tokens
         `fullscreen` is set to `auto`.
     `minimum_width`: int
         Minimum width to restrict the window to. (sdl2 only)
-    `minimun_height`: int
+    `minimum_height`: int
         Minimum height to restrict the window to. (sdl2 only)
+    `min_state_time`: float, defaults to .035
+        Minimum time for widgets to display a given visual state.
+        This attrib is currently used by widgets like
+        :class:`~kivy.uix.dropdown.DropDown` &
+        :class:`~kivy.uix.behaviors.buttonbehavior.ButtonBehavior` to
+        make sure they display their current visual state for the given
+        time.
+    `kivy_clock`: one of `default`, `interrupt`, `free_all`, `free_only`
+        The clock type to use with kivy. See :mod:`kivy.clock`.
 
 :input:
 
@@ -190,8 +206,8 @@ Available configuration tokens
 
     .. seealso::
 
-        Check the providers in kivy.input.providers for the syntax to use
-        inside the configuration file.
+        Check the providers in :mod:`kivy.input.providers` for the syntax to
+        use inside the configuration file.
 
 :widgets:
 
@@ -206,6 +222,10 @@ Available configuration tokens
         :attr:`~kivy.uix.scrollview.ScrollView.scroll_friction`
         property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
+
+        .. deprecated:: 1.7.0
+            Please use
+            :class:`~kivy.uix.scrollview.ScrollView.effect_cls` instead.
 
     `scroll_timeout`: int
         Default value of the
@@ -242,6 +262,10 @@ Available configuration tokens
     Anything after the = will be passed to the module as arguments.
     Check the specific module's documentation for a list of accepted
     arguments.
+
+.. versionchanged:: 1.9.2
+    `min_state_time` has been added to the `graphics` section.
+    `kivy_clock` has been added to the kivy section
 
 .. versionchanged:: 1.9.0
     `borderless` and `window_state` have been added to the graphics section.
@@ -288,7 +312,7 @@ from weakref import ref
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 14
+KIVY_CONFIG_VERSION = 16
 
 Config = None
 '''The default Kivy configuration object. This is a :class:`ConfigParser`
@@ -703,7 +727,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault('postproc', 'retain_distance', '50')
             Config.setdefault('postproc', 'retain_time', '0')
 
-            # default configuration for keyboard repeatition
+            # default configuration for keyboard repetition
             Config.setdefault('widgets', 'keyboard_layout', 'qwerty')
             Config.setdefault('widgets', 'keyboard_type', '')
             Config.setdefault('widgets', 'list_friction', '10')
@@ -775,6 +799,12 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault('graphics', 'minimum_width', '0')
             Config.setdefault('graphics', 'minimum_height', '0')
 
+        elif version == 14:
+            Config.setdefault('graphics', 'min_state_time', '.035')
+
+        elif version == 15:
+            Config.setdefault('kivy', 'kivy_clock', 'default')
+
         # elif version == 1:
         #    # add here the command for upgrading from configuration 0 to 1
 
@@ -799,4 +829,3 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.write()
         except Exception as e:
             Logger.exception('Core: Error while saving default config file')
-

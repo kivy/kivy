@@ -59,6 +59,7 @@ cdef extern from "X11/Xutil.h":
 cdef extern int x11_create_window(int width, int height, int x, int y, \
         int resizable, int fullscreen, int border, int above, int CWOR, char *title)
 cdef extern void x11_gl_swap()
+cdef extern void x11_set_title(char *title)
 cdef extern int x11_idle()
 cdef extern int x11_get_width()
 cdef extern int x11_get_height()
@@ -106,6 +107,7 @@ cdef int event_callback(XEvent *event):
                 
     elif event.type == ConfigureNotify:
         if (event.xconfigure.width != _window_object.system_size[0]) or (event.xconfigure.height != _window_object.system_size[1]):
+            _window_object._size = event.xconfigure.width, event.xconfigure.height
             _window_object.dispatch('on_resize', event.xconfigure.width, event.xconfigure.height)
 
     # mouse motion
@@ -119,6 +121,10 @@ cdef int event_callback(XEvent *event):
             btn = 'scrolldown'
         elif event.xbutton.button == 5:
             btn = 'scrollup'
+        elif event.xbutton.button == 6:
+            btn = 'scrollleft'
+        elif event.xbutton.button == 7:
+            btn = 'scrollright'
         modifiers = get_modifiers_from_state(event.xbutton.state)
         eventname = 'on_mouse_down'
         if event.type == ButtonRelease:
@@ -145,6 +151,7 @@ class WindowX11(WindowBase):
 
         resizable = Config.getint('graphics', 'resizable')
         multisamples = Config.getint('graphics', 'multisamples')
+        border = not Config.getint('graphics', 'borderless')
         pos = (0, 0)
 
         if self.position == 'auto':
@@ -156,7 +163,6 @@ class WindowX11(WindowBase):
                              '"auto" or "custom"')
 
         fullscreen = False
-        border = True
         above = False
         CWOR = False
         size = list(self.system_size)
@@ -182,7 +188,7 @@ class WindowX11(WindowBase):
 
         # Sets CWOverrideRedirect in x11.
         # This can lead to unknown effects depending on your
-        # system-configuration as the WindowManager will loos the control
+        # system-configuration as the WindowManager will loose the control
         # about this window. (In most cases the window then just gets placed
         # above all other windows without any decoration)
         if 'KIVY_WINDOW_X11_CWOR' in environ:
@@ -200,6 +206,7 @@ class WindowX11(WindowBase):
         self._pos = (0, 0)
         self.system_size = size
         super(WindowX11, self).create_window()
+        self._unbind_create_window()
 
     def mainloop(self):
         while not EventLoop.quit and EventLoop.status == 'started':
@@ -222,6 +229,9 @@ class WindowX11(WindowBase):
     def flip(self):
         x11_gl_swap()
         super(WindowX11, self).flip()
+
+    def on_title(self, *kwargs):
+        x11_set_title(<char *><bytes>self.title)
 
     def on_keyboard(self, key,
         scancode=None, codepoint=None, modifier=None, **kwargs):

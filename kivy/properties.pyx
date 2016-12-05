@@ -51,6 +51,19 @@ With Kivy, you can do::
         a = NumericProperty(1.0)
 
 
+Depth being tracked
+~~~~~~~~~~~~~~~~~~~
+
+Only the "top level" of a nested object is being tracked. For example::
+
+    my_list_prop = ListProperty([1, {'hi': 0}])
+    # Changing a top level element will trigger all `on_my_list_prop` callbacks
+    my_list_prop[0] = 4
+    # Changing a deeper element will be ignored by all `on_my_list_prop` callbacks
+    my_list_prop[1]['hi'] = 4
+
+The same holds true for all container-type kivy properties.
+
 Value checking
 ~~~~~~~~~~~~~~
 
@@ -211,6 +224,8 @@ from functools import partial
 from kivy.clock import Clock
 from kivy.weakmethod import WeakMethod
 from kivy.logger import Logger
+from kivy.utils import get_color_from_hex
+
 
 cdef float g_dpi = -1
 cdef float g_density = -1
@@ -559,12 +574,15 @@ cdef class NumericProperty(Property):
         elif isinstance(x, string_types):
             return self.parse_str(obj, x)
         else:
-            raise ValueError('%s.%s have an invalid format (got %r)' % (
+            raise ValueError('%s.%s has an invalid format (got %r)' % (
                 obj.__class__.__name__,
                 self.name, x))
 
     cdef float parse_str(self, EventDispatcher obj, value):
-        return self.parse_list(obj, value[:-2], value[-2:])
+        if value[-2:] in NUMERIC_FORMATS:
+            return self.parse_list(obj, value[:-2], value[-2:])
+        else:
+            return float(value)
 
     cdef float parse_list(self, EventDispatcher obj, value, ext):
         cdef PropertyStorage ps = obj.__storage[self._name]
@@ -616,73 +634,73 @@ class ObservableList(list):
     def __init__(self, *largs):
         self.prop = largs[0]
         self.obj = ref(largs[1])
-        self.last_op = ''
+        self.last_op = '', None
         super(ObservableList, self).__init__(*largs[2:])
 
     def __setitem__(self, key, value):
-        self.last_op = '__setitem__'
         list.__setitem__(self, key, value)
+        self.last_op = '__setitem__', key
         observable_list_dispatch(self)
 
     def __delitem__(self, key):
-        self.last_op = '__delitem__'
         list.__delitem__(self, key)
+        self.last_op = '__delitem__', key
         observable_list_dispatch(self)
 
-    def __setslice__(self, *largs):
-        self.last_op = '__setslice__'
-        list.__setslice__(self, *largs)
+    def __setslice__(self, b, c, v):
+        list.__setslice__(self, b, c, v)
+        self.last_op = '__setslice__', (b, c)
         observable_list_dispatch(self)
 
-    def __delslice__(self, *largs):
-        self.last_op = '__delslice__'
-        list.__delslice__(self, *largs)
+    def __delslice__(self, b, c):
+        list.__delslice__(self, b, c)
+        self.last_op = '__delslice__', (b, c)
         observable_list_dispatch(self)
 
     def __iadd__(self, *largs):
-        self.last_op = '__iadd__'
         list.__iadd__(self, *largs)
+        self.last_op = '__iadd__', None
         observable_list_dispatch(self)
 
-    def __imul__(self, *largs):
-        self.last_op = '__imul__'
-        list.__imul__(self, *largs)
+    def __imul__(self, b):
+        list.__imul__(self, b)
+        self.last_op = '__imul__'. b
         observable_list_dispatch(self)
 
     def append(self, *largs):
-        self.last_op = 'append'
         list.append(self, *largs)
+        self.last_op = 'append', None
         observable_list_dispatch(self)
 
     def remove(self, *largs):
-        self.last_op = 'remove'
         list.remove(self, *largs)
+        self.last_op = 'remove', None
         observable_list_dispatch(self)
 
-    def insert(self, *largs):
-        self.last_op = 'insert'
-        list.insert(self, *largs)
+    def insert(self, i, x):
+        list.insert(self, i, x)
+        self.last_op = 'insert', i
         observable_list_dispatch(self)
 
     def pop(self, *largs):
-        self.last_op = 'pop'
         cdef object result = list.pop(self, *largs)
+        self.last_op = 'pop', largs
         observable_list_dispatch(self)
         return result
 
     def extend(self, *largs):
-        self.last_op = 'extend'
         list.extend(self, *largs)
+        self.last_op = 'extend', None
         observable_list_dispatch(self)
 
     def sort(self, *largs):
-        self.last_op = 'sort'
         list.sort(self, *largs)
+        self.last_op = 'sort', None
         observable_list_dispatch(self)
 
     def reverse(self, *largs):
-        self.last_op = 'reverse'
         list.reverse(self, *largs)
+        self.last_op = 'reverse', None
         observable_list_dispatch(self)
 
 
@@ -696,19 +714,28 @@ cdef class ListProperty(Property):
     .. warning::
 
         When assigning a list to a :class:`ListProperty`, the list stored in
-        the property is a copy of the list and not the original list. This can
+        the property is a shallow copy of the list and not the original list. This can
         be demonstrated with the following example::
 
             >>> class MyWidget(Widget):
             >>>     my_list = ListProperty([])
 
             >>> widget = MyWidget()
-            >>> my_list = widget.my_list = [1, 5, 7]
-            >>> print my_list is widget.my_list
+            >>> my_list = [1, 5, {'hi': 'hello'}]
+            >>> widget.my_list = my_list
+            >>> print(my_list is widget.my_list)
             False
             >>> my_list.append(10)
             >>> print(my_list, widget.my_list)
-            [1, 5, 7, 10], [1, 5, 7]
+            [1, 5, {'hi': 'hello'}, 10] [1, 5, {'hi': 'hello'}]
+
+        However, changes to nested levels will affect the property as well,
+        since the property uses a shallow copy of my_list.
+
+            >>> my_list[2]['hi'] = 'bye'
+            >>> print(my_list, widget.my_list)
+            [1, 5, {'hi': 'bye'}, 10] [1, 5, {'hi': 'bye'}]
+
     '''
     def __init__(self, defaultvalue=None, **kw):
         defaultvalue = defaultvalue or []
@@ -813,7 +840,7 @@ cdef class DictProperty(Property):
     .. warning::
 
         Similar to :class:`ListProperty`, when assigning a dict to a
-        :class:`DictProperty`, the dict stored in the property is a copy of the
+        :class:`DictProperty`, the dict stored in the property is a shallow copy of the
         dict and not the original dict. See :class:`ListProperty` for details.
     '''
     def __init__(self, defaultvalue=None, rebind=False, **kw):
@@ -978,7 +1005,7 @@ cdef class BoundedNumericProperty(Property):
                 number = BoundedNumericProperty(0, min=-5, max=5)
 
             widget = MyWidget()
-            # change the minmium to -10
+            # change the minimum to -10
             widget.property('number').set_min(widget, -10)
             # or disable the minimum check
             widget.property('number').set_min(widget, None)
@@ -1367,8 +1394,8 @@ cdef class AliasProperty(Property):
 
     cpdef trigger_change(self, EventDispatcher obj, value):
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.alias_initial = 1
-        dvalue = self.get(obj)
+        ps.alias_initial = 0
+        dvalue = ps.getter(obj)
         if ps.value != dvalue:
             ps.value = dvalue
             self.dispatch(obj)
@@ -1380,8 +1407,7 @@ cdef class AliasProperty(Property):
         cdef PropertyStorage ps = obj.__storage[self._name]
         if self.use_cache:
             if ps.alias_initial:
-                ps.value = ps.getter(obj)
-                ps.alias_initial = 0
+                return ps.getter(obj)
             return ps.value
         return ps.getter(obj)
 
@@ -1514,7 +1540,7 @@ cdef class VariableListProperty(Property):
         elif isinstance(x, string_types):
             return self.parse_str(obj, x)
         else:
-            raise ValueError('%s.%s have an invalid format (got %r)' % (
+            raise ValueError('%s.%s has an invalid format (got %r)' % (
                 obj.__class__.__name__,
                 self.name, x))
 
@@ -1588,7 +1614,7 @@ cdef class ConfigParserProperty(Property):
         values in the parser might be overwritten by objects it's bound to.
         So in the example above, the TextInput might be initially empty,
         and if `number: number.text` is evaluated before
-        `text: str(info.number)`, the config value will be overwitten with the
+        `text: str(info.number)`, the config value will be overwritten with the
         (empty) text value.
 
     :Parameters:
@@ -1704,7 +1730,7 @@ cdef class ConfigParserProperty(Property):
             self.last_value = self.config.get(self.section, self.key)
             self.config.add_callback(self._edit_setting, self.section, self.key)
             self.config.write()
-            #self.dispatch(obj)  # we need to dispatch, so not overwitten
+            #self.dispatch(obj)  # we need to dispatch, so not overwritten
         elif self.config_name:
             # ConfigParser will set_config when one named config is created
             Clock.schedule_once(partial(ConfigParser._register_named_property,
@@ -1834,3 +1860,40 @@ cdef class ConfigParserProperty(Property):
             self.last_value = None
             self._edit_setting(self.section, self.key,
                                self.config.get(self.section, self.key))
+
+
+cdef class ColorProperty(Property):
+    '''Property that represents a color. The assignment can take either:
+
+    - a list of 3 to 4 float value between 0-1 (kivy default)
+    - a string in the format #rrggbb or #rrggbbaa
+
+    :Parameters:
+        `defaultvalue`: list or string, defaults to [1, 1, 1, 1]
+            Specifies the default value of the property.
+
+    .. versionadded:: 1.9.2
+    '''
+    def __init__(self, defaultvalue=None, **kw):
+        defaultvalue = defaultvalue or [1, 1, 1, 1]
+        super(ColorProperty, self).__init__(defaultvalue, **kw)
+
+    cdef convert(self, EventDispatcher obj, x):
+        if x is None:
+            return x
+        tp = type(x)
+        if tp is tuple or tp is list:
+            if len(x) != 3 and len(x) != 4:
+                raise ValueError('{}.{} must have 3 or 4 components (got {!r})'.format(
+                    obj.__class__.__name__, self.name, x))
+            if len(x) == 3:
+                return list(x) + [1]
+            return list(x)
+        elif isinstance(x, string_types):
+            return self.parse_str(obj, x)
+        else:
+            raise ValueError('{}.{} has an invalid format (got {!r})'.format(
+                obj.__class__.__name__, self.name, x))
+
+    cdef list parse_str(self, EventDispatcher obj, value):
+        return get_color_from_hex(value)

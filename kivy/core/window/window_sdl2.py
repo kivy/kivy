@@ -18,7 +18,6 @@ __all__ = ('WindowSDL2', )
 from os.path import join
 from kivy import kivy_data_dir
 from kivy.logger import Logger
-from kivy import metrics
 from kivy.base import EventLoop, ExceptionManager, stopTouchApp
 from kivy.clock import Clock
 from kivy.config import Config
@@ -132,6 +131,8 @@ class SDL2MotionEventProvider(MotionEventProvider):
 
 class WindowSDL(WindowBase):
 
+    _do_resize_ev = None
+
     def __init__(self, **kwargs):
         self._pause_loop = False
         self._win = _WindowSDL2Storage()
@@ -156,6 +157,30 @@ class WindowSDL(WindowBase):
                     280: 'pgup',
                     281: 'pgdown'}
         self._mouse_buttons_down = set()
+        self.key_map = {SDLK_LEFT: 276, SDLK_RIGHT: 275, SDLK_UP: 273,
+                        SDLK_DOWN: 274, SDLK_HOME: 278, SDLK_END: 279,
+                        SDLK_PAGEDOWN: 281, SDLK_PAGEUP: 280, SDLK_SHIFTR: 303,
+                        SDLK_SHIFTL: 304, SDLK_SUPER: 309, SDLK_LCTRL: 305,
+                        SDLK_RCTRL: 306, SDLK_LALT: 308, SDLK_RALT: 307,
+                        SDLK_CAPS: 301, SDLK_INSERT: 277, SDLK_F1: 282,
+                        SDLK_F2: 283, SDLK_F3: 284, SDLK_F4: 285, SDLK_F5: 286,
+                        SDLK_F6: 287, SDLK_F7: 288, SDLK_F8: 289, SDLK_F9: 290,
+                        SDLK_F10: 291, SDLK_F11: 292, SDLK_F12: 293,
+                        SDLK_F13: 294, SDLK_F14: 295, SDLK_F15: 296,
+                        SDLK_KEYPADNUM: 300, SDLK_KP_DEVIDE: 267,
+                        SDLK_KP_MULTIPLY: 268, SDLK_KP_MINUS: 269,
+                        SDLK_KP_PLUS: 270, SDLK_KP_ENTER: 271,
+                        SDLK_KP_DOT: 266, SDLK_KP_0: 256, SDLK_KP_1: 257,
+                        SDLK_KP_2: 258, SDLK_KP_3: 259, SDLK_KP_4: 260,
+                        SDLK_KP_5: 261, SDLK_KP_6: 262, SDLK_KP_7: 263,
+                        SDLK_KP_8: 264, SDLK_KP_9: 265}
+        if platform == 'ios':
+            # XXX ios keyboard suck, when backspace is hit, the delete
+            # keycode is sent. fix it.
+            self.key_map[127] = 8
+        elif platform == 'android':
+            # map android back button to escape
+            self.key_map[1073742094] = 27
 
         self.bind(minimum_width=self._set_minimum_size,
                   minimum_height=self._set_minimum_size)
@@ -211,7 +236,6 @@ class WindowSDL(WindowBase):
                 self.fullscreen = self._fake_fullscreen = False
             elif not self.fullscreen or self.fullscreen == 'auto':
                 self.borderless = self._fake_fullscreen = False
-
         if self.fullscreen == 'fake':
             self.borderless = self._fake_fullscreen = True
             Logger.warning("The 'fake' fullscreen option has been "
@@ -228,7 +252,7 @@ class WindowSDL(WindowBase):
             # ensure we have an event filter
             self._win.set_event_filter(self._event_filter)
 
-            # setup !
+            # setup window
             w, h = self.system_size
             resizable = Config.getboolean('graphics', 'resizable')
             state = (Config.get('graphics', 'window_state')
@@ -247,6 +271,9 @@ class WindowSDL(WindowBase):
             # will be fired.
             self._pos = (0, 0)
             self._set_minimum_size()
+
+            if state == 'hidden':
+                self._focus = False
         else:
             w, h = self.system_size
             self._win.resize_window(w, h)
@@ -255,8 +282,7 @@ class WindowSDL(WindowBase):
 
         super(WindowSDL, self).create_window()
         # set mouse visibility
-        self._win.show_cursor(
-            Config.getboolean('graphics', 'show_cursor'))
+        self._set_cursor_state(self.show_cursor)
 
         if self.initialized:
             return
@@ -352,9 +378,12 @@ class WindowSDL(WindowBase):
         self._win.flip()
         super(WindowSDL, self).flip()
 
+    def _set_cursor_state(self, value):
+        self._win._set_cursor_state(value)
+
     def _fix_mouse_pos(self, x, y):
         y -= 1
-        self.mouse_pos = x, self.system_size[1] - y
+        self.mouse_pos = x * self._density, (self.system_size[1] - y) * self._density
         return x, y
 
     def _mainloop(self):
@@ -363,7 +392,7 @@ class WindowSDL(WindowBase):
         # for android/iOS, we don't want to have any event nor executing our
         # main loop while the pause is going on. This loop wait any event (not
         # handled by the event filter), and remove them from the queue.
-        # Nothing happen during the pause on iOS, except gyroscope value sended
+        # Nothing happen during the pause on iOS, except gyroscope value sent
         # over joystick. So it's safe.
         while self._pause_loop:
             self._win.wait_event()
@@ -393,7 +422,7 @@ class WindowSDL(WindowBase):
                 # We have a conflict of using either the mouse or the finger.
                 # Right now, we have no mechanism that we could use to know
                 # which is the preferred one for the application.
-                if platform == "ios":
+                if platform in ('ios', 'android'):
                     SDL2MotionEventProvider.q.appendleft(event)
                 pass
 
@@ -454,22 +483,47 @@ class WindowSDL(WindowBase):
             elif action == 'windowresized':
                 self._size = self._win.window_size
                 # don't use trigger here, we want to delay the resize event
-                cb = self._do_resize
-                Clock.unschedule(cb)
-                Clock.schedule_once(cb, .1)
+                ev = self._do_resize_ev
+                if ev is None:
+                    ev = self._do_resize_ev = Clock.schedule_once(self._do_resize, .1)
+                else:
+                    ev()
 
             elif action == 'windowresized':
                 self.canvas.ask_update()
 
             elif action == 'windowrestored':
+                self.dispatch('on_restore')
                 self.canvas.ask_update()
 
             elif action == 'windowexposed':
                 self.canvas.ask_update()
 
             elif action == 'windowminimized':
+                self.dispatch('on_minimize')
                 if Config.getboolean('kivy', 'pause_on_minimize'):
                     self.do_pause()
+
+            elif action == 'windowmaximized':
+                self.dispatch('on_maximize')
+
+            elif action == 'windowhidden':
+                self.dispatch('on_hide')
+
+            elif action == 'windowshown':
+                self.dispatch('on_show')
+
+            elif action == 'windowfocusgained':
+                self._focus = True
+
+            elif action == 'windowfocuslost':
+                self._focus = False
+
+            elif action == 'windowenter':
+                self.dispatch('on_cursor_enter')
+
+            elif action == 'windowleave':
+                self.dispatch('on_cursor_leave')
 
             elif action == 'joyaxismotion':
                 stickid, axisid, value = args
@@ -490,31 +544,8 @@ class WindowSDL(WindowBase):
             elif action in ('keydown', 'keyup'):
                 mod, key, scancode, kstr = args
 
-                key_swap = {
-                    SDLK_LEFT: 276, SDLK_RIGHT: 275, SDLK_UP: 273,
-                    SDLK_DOWN: 274, SDLK_HOME: 278, SDLK_END: 279,
-                    SDLK_PAGEDOWN: 281, SDLK_PAGEUP: 280, SDLK_SHIFTR: 303,
-                    SDLK_SHIFTL: 304, SDLK_SUPER: 309, SDLK_LCTRL: 305,
-                    SDLK_RCTRL: 306, SDLK_LALT: 308, SDLK_RALT: 307,
-                    SDLK_CAPS: 301, SDLK_INSERT: 277, SDLK_F1: 282,
-                    SDLK_F2: 283, SDLK_F3: 284, SDLK_F4: 285, SDLK_F5: 286,
-                    SDLK_F6: 287, SDLK_F7: 288, SDLK_F8: 289, SDLK_F9: 290,
-                    SDLK_F10: 291, SDLK_F11: 292, SDLK_F12: 293, SDLK_F13: 294,
-                    SDLK_F14: 295, SDLK_F15: 296, SDLK_KEYPADNUM: 300,
-                    SDLK_KP_DEVIDE: 267, SDLK_KP_MULTIPLY: 268,
-                    SDLK_KP_MINUS: 269, SDLK_KP_PLUS: 270, SDLK_KP_ENTER: 271,
-                    SDLK_KP_DOT: 266, SDLK_KP_0: 256, SDLK_KP_1: 257,
-                    SDLK_KP_2: 258, SDLK_KP_3: 259, SDLK_KP_4: 260,
-                    SDLK_KP_5: 261, SDLK_KP_6: 262, SDLK_KP_7: 263,
-                    SDLK_KP_8: 264, SDLK_KP_9: 265}
-
-                if platform == 'ios':
-                    # XXX ios keyboard suck, when backspace is hit, the delete
-                    # keycode is sent. fix it.
-                    key_swap[127] = 8  # back
-
                 try:
-                    key = key_swap[key]
+                    key = self.key_map[key]
                 except KeyError:
                     pass
 
@@ -651,7 +682,7 @@ class WindowSDL(WindowBase):
     def request_keyboard(self, callback, target, input_type='text'):
         self._sdl_keyboard = super(WindowSDL, self).\
             request_keyboard(callback, target, input_type)
-        self._win.show_keyboard()
+        self._win.show_keyboard(self._system_keyboard, self.softinput_mode)
         Clock.schedule_interval(self._check_keyboard_shown, 1 / 5.)
         return self._sdl_keyboard
 
@@ -666,3 +697,16 @@ class WindowSDL(WindowBase):
             return False
         if not self._win.is_keyboard_shown():
             self._sdl_keyboard.release()
+
+    def map_key(self, original_key, new_key):
+        self.key_map[original_key] = new_key
+
+    def unmap_key(self, key):
+        if key in self.key_map:
+            del self.key_map[key]
+
+    def grab_mouse(self):
+        self._win.grab_mouse(True)
+
+    def ungrab_mouse(self):
+        self._win.grab_mouse(False)

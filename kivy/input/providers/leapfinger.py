@@ -5,7 +5,6 @@ Leap Motion - finger only
 
 __all__ = ('LeapFingerEventProvider', 'LeapFingerEvent')
 
-import os
 from collections import deque
 from kivy.logger import Logger
 from kivy.input.provider import MotionEventProvider
@@ -41,7 +40,7 @@ class LeapFingerEventProvider(MotionEventProvider):
     __handlers__ = {}
 
     def start(self):
-        # don't do the import at start, or teh error will be always displayed
+        # don't do the import at start, or the error will be always displayed
         # for user who don't have Leap
         global Leap, InteractionBox
         import Leap

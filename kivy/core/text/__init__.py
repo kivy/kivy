@@ -103,19 +103,26 @@ class LabelBase(object):
         `max_lines`: int, defaults to 0 (unlimited)
             If set, this indicate how maximum line are allowed to render the
             text. Works only if a limitation on text_size is set.
-        `mipmap` : bool, defaults to False
+        `mipmap`: bool, defaults to False
             Create a mipmap for the texture
-        `strip` : bool, defaults to False
+        `strip`: bool, defaults to False
             Whether each row of text has its leading and trailing spaces
             stripped. If `halign` is `justify` it is implicitly True.
-        `strip_reflow` : bool, defaults to True
+        `strip_reflow`: bool, defaults to True
             Whether text that has been reflowed into a second line should
-            be striped, even if `strip` is False. This is only in effect when
+            be stripped, even if `strip` is False. This is only in effect when
             `size_hint_x` is not None, because otherwise lines are never
             split.
-        `unicode_errors` : str, defaults to `'replace'`
+        `unicode_errors`: str, defaults to `'replace'`
             How to handle unicode decode errors. Can be `'strict'`, `'replace'`
             or `'ignore'`.
+        `outline_width`: int, defaults to None
+            Width in pixels for the outline.
+        `outline_color`: tuple, defaults to (0, 0, 0)
+            Color of the outline.
+
+    .. versionchanged:: 1.9.2
+        `outline_width` and `outline_color` were added.
 
     .. versionchanged:: 1.9.0
         `strip`, `strip_reflow`, `shorten_from`, `split_str`, and
@@ -148,14 +155,20 @@ class LabelBase(object):
 
     _fonts_dirs = []
 
+    _font_dirs_files = []
+
     _texture_1px = None
 
     def __init__(
         self, text='', font_size=12, font_name=DEFAULT_FONT, bold=False,
-        italic=False, halign='left', valign='bottom', shorten=False,
+        italic=False, underline=False, strikethrough=False,
+        halign='left', valign='bottom', shorten=False,
         text_size=None, mipmap=False, color=None, line_height=1.0, strip=False,
         strip_reflow=True, shorten_from='center', split_str=' ',
-        unicode_errors='replace', **kwargs):
+        unicode_errors='replace',
+        font_hinting='normal', font_kerning=True, font_blended=True,
+        outline_width=None, outline_color=None,
+        **kwargs):
 
         # Include system fonts_dir in resource paths.
         # This allows us to specify a font from those dirs.
@@ -163,13 +176,19 @@ class LabelBase(object):
 
         options = {'text': text, 'font_size': font_size,
                    'font_name': font_name, 'bold': bold, 'italic': italic,
+                   'underline': underline, 'strikethrough': strikethrough,
                    'halign': halign, 'valign': valign, 'shorten': shorten,
                    'mipmap': mipmap, 'line_height': line_height,
                    'strip': strip, 'strip_reflow': strip_reflow,
                    'shorten_from': shorten_from, 'split_str': split_str,
-                   'unicode_errors': unicode_errors}
+                   'unicode_errors': unicode_errors,
+                   'font_hinting': font_hinting,
+                   'font_kerning': font_kerning,
+                   'font_blended': font_blended,
+                   'outline_width': outline_width}
 
         options['color'] = color or (1, 1, 1, 1)
+        options['outline_color'] = outline_color or (0, 0, 0)
         options['padding'] = kwargs.get('padding', (0, 0))
         if not isinstance(options['padding'], (list, tuple)):
             options['padding'] = (options['padding'], options['padding'])
@@ -232,9 +251,9 @@ class LabelBase(object):
         fonts = self._fonts
         fontscache = self._fonts_cache
 
-        # is the font is registered ?
+        # is the font registered?
         if fontname in fonts:
-            # return the prefered font for the current bold/italic combinaison
+            # return the preferred font for the current bold/italic combination
             italic = int(options['italic'])
             if options['bold']:
                 bold = FONT_BOLD
@@ -247,9 +266,8 @@ class LabelBase(object):
             options['font_name_r'] = fontscache[fontname]
         else:
             filename = resource_find(fontname)
-            if not filename:
-                fontname = fontname + \
-                    ('' if fontname.endswith('.ttf') else '.ttf')
+            if not filename and not fontname.endswith('.ttf'):
+                fontname = '{}.ttf'.format(fontname)
                 filename = resource_find(fontname)
 
             if filename is None:
@@ -262,7 +280,7 @@ class LabelBase(object):
 
     @staticmethod
     def get_system_fonts_dir():
-        '''Return the Directory used by the system for fonts.
+        '''Return the directories used by the system for fonts.
         '''
         if LabelBase._fonts_dirs:
             return LabelBase._fonts_dirs
@@ -270,30 +288,34 @@ class LabelBase(object):
         fdirs = []
         if platform == 'linux':
             fdirs = [
-                '/usr/share/fonts/truetype', '/usr/local/share/fonts',
+                '/usr/share/fonts', '/usr/local/share/fonts',
                 os.path.expanduser('~/.fonts'),
                 os.path.expanduser('~/.local/share/fonts')]
         elif platform == 'macosx':
             fdirs = ['/Library/Fonts', '/System/Library/Fonts',
-                os.path.expanduser('~/Library/Fonts')]
+                     os.path.expanduser('~/Library/Fonts')]
         elif platform == 'win':
-            fdirs = [os.environ['SYSTEMROOT'] + os.sep + 'Fonts']
+            fdirs = [os.path.join(os.environ['SYSTEMROOT'], 'Fonts')]
         elif platform == 'ios':
             fdirs = ['/System/Library/Fonts']
         elif platform == 'android':
             fdirs = ['/system/fonts']
+        else:
+            raise Exception("Unknown platform: {}".format(platform))
 
-        if fdirs:
-            fdirs.append(kivy_data_dir + os.sep + 'fonts')
-            # let's register the font dirs
-            rdirs = []
-            for _dir in fdirs:
-                if os.path.exists(_dir):
-                    resource_add_path(_dir)
-                    rdirs.append(_dir)
-            LabelBase._fonts_dirs = rdirs
-            return rdirs
-        raise Exception("Unknown Platform {}".format(platform))
+        fdirs.append(os.path.join(kivy_data_dir, 'fonts'))
+        # register the font dirs
+        rdirs = []
+        _font_dir_files = []
+        for fdir in fdirs:
+            for _dir, dirs, files in os.walk(fdir):
+                _font_dir_files.extend(files)
+                resource_add_path(_dir)
+                rdirs.append(_dir)
+        LabelBase._fonts_dirs = rdirs
+        LabelBase._font_dirs_files = _font_dir_files
+
+        return rdirs
 
     def get_extents(self, text):
         '''Return a tuple (width, height) indicating the size of the specified
@@ -346,7 +368,7 @@ class LabelBase(object):
             `margin` int, the amount of space to leave between the margins
             and the text. This is in addition to :attr:`padding_x`.
 
-        :retruns:
+        :returns:
             the text shortened to fit into a single line.
         '''
         textwidth = self.get_cached_extents()
@@ -485,15 +507,15 @@ class LabelBase(object):
                 last_word = layout_line.words[0]
                 line = last_word.text
             x = xpad
-            if halign[0] == 'c':  # center
+            if halign == 'center':
                 x = int((w - lw) / 2.)
-            elif halign[0] == 'r':  # right
+            elif halign == 'right':
                 x = max(0, int(w - lw - xpad))
 
             # right left justify
             # divide left over space between `spaces`
             # TODO implement a better method of stretching glyphs?
-            if (uw is not None and halign[-1] == 'y' and line and not
+            if (uw is not None and halign == 'justify' and line and not
                 layout_line.is_last_line):
                 # number spaces needed to fill, and remainder
                 n, rem = divmod(max(uww - lw, 0), sw)
@@ -543,7 +565,7 @@ class LabelBase(object):
         y = ypad = options['padding_y']  # pos in the texture
         if valign == 'bottom':
             y = size[1] - ih + ypad
-        elif valign == 'middle':
+        elif valign == 'middle' or valign == 'center':
             y = int((size[1] - ih) / 2 + ypad)
 
         self._render_begin()
@@ -569,7 +591,7 @@ class LabelBase(object):
         options = copy(self.options)
         options['space_width'] = self.get_extents(' ')[0]
         options['strip'] = strip = (options['strip'] or
-                                    options['halign'][-1] == 'y')
+                                    options['halign'] == 'justify')
         uw, uh = options['text_size'] = self._text_size
         text = self.text
         if strip:
@@ -580,7 +602,8 @@ class LabelBase(object):
         if not text:
             return 0, 0
 
-        if uh is not None and options['valign'][-1] == 'e':  # middle
+        if uh is not None and (options['valign'] == 'middle' or
+                               options['valign'] == 'center'):
             center = -1  # pos of newline
             if len(text) > 1:
                 middle = int(len(text) // 2)
@@ -604,7 +627,7 @@ class LabelBase(object):
                 options, self.get_cached_extents(), True, True)
         else:  # top or bottom
             w, h, clipped = layout_text(text, lines, (0, 0), (uw, uh), options,
-                self.get_cached_extents(), options['valign'][-1] == 'p', True)
+                self.get_cached_extents(), options['valign'] == 'top', True)
         self._internal_size = w, h
         if uw:
             w = uw
@@ -719,7 +742,7 @@ class LabelBase(object):
     def fontid(self):
         '''Return a unique id for all font parameters'''
         return str([self.options[x] for x in (
-            'font_size', 'font_name_r', 'bold', 'italic')])
+            'font_size', 'font_name_r', 'bold', 'italic', 'underline', 'strikethrough')])
 
     def _get_text_size(self):
         return self._text_size
@@ -742,7 +765,7 @@ else:
     label_libs += [('pygame', 'text_pygame', 'LabelPygame')]
 label_libs += [
     ('pil', 'text_pil', 'LabelPIL')]
-Label = core_select_lib('text', label_libs)
+Text = Label = core_select_lib('text', label_libs)
 
 if 'KIVY_DOC' not in os.environ:
     if not Label:
@@ -751,7 +774,7 @@ if 'KIVY_DOC' not in os.environ:
         Logger.critical('App: Unable to get a Text provider, abort.')
         sys.exit(1)
 
-# For the first initalization, register the default font
+# For the first initialization, register the default font
     Label.register('Roboto',
                    'data/fonts/Roboto-Regular.ttf',
                    'data/fonts/Roboto-Italic.ttf',

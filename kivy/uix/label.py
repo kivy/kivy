@@ -1,6 +1,9 @@
 '''Label
 =====
 
+.. image:: images/label.png
+    :align: right
+
 The :class:`Label` widget is for rendering text. It supports ascii and unicode
 strings::
 
@@ -30,14 +33,14 @@ the text.
 For example, this label's size will be set to the text content
 (plus :attr:`~Label.padding`):
 
-.. code-block:: python
+.. code-block:: kv
 
     Label:
         size: self.texture_size
 
 This label's text will wrap at the specified width and be clipped to the height:
 
-.. code-block:: python
+.. code-block:: kv
 
     Label:
         text_size: cm(6), cm(4)
@@ -48,7 +51,7 @@ This label's text will wrap at the specified width and be clipped to the height:
 Combine these concepts to create a Label that can grow vertically but wraps the
 text at a certain width:
 
-.. code-block:: python
+.. code-block:: kv
 
     Label:
         text_size: root.width, None
@@ -71,7 +74,7 @@ which text is aligned. For instance, the following code binds this size to the
 size of the Label, so text will be aligned within the widget bounds. This
 will also automatically wrap the text of the Label to remain within this area.
 
-.. code-block:: python
+.. code-block:: kv
 
     Label:
         text_size: self.size
@@ -106,6 +109,10 @@ The following tags are available:
     Activate bold text
 ``[i][/i]``
     Activate italic text
+``[u][/u]``
+    Underlined text
+``[s][/s]``
+    Strikethrough text
 ``[font=<str>][/font]``
     Change the font
 ``[size=<integer>][/size]``
@@ -134,7 +141,7 @@ Then you can write::
 
     "[size=24]Hello &bl;World&bt;[/size]"
 
-Interactive Zone in Text
+Interactive zone in text
 ------------------------
 
 .. versionadded:: 1.1.0
@@ -156,6 +163,24 @@ For prettier rendering, you could add a color for the reference. Replace the
 ``text=`` in the previous example with::
 
     'Hello [ref=world][color=0000ff]World[/color][/ref]'
+
+Catering for Unicode languages
+------------------------------
+
+The font kivy uses does not contain all the characters required for displaying
+all languages. When you use the built-in widgets, this results in a block being
+drawn where you expect a character.
+
+If you want to display such characters, you can chose a font that supports them
+and deploy it universally via kv:
+
+.. code-block:: kv
+
+    <Label>:
+        font_name: '/<path>/<to>/<font>'
+
+Note that this needs to be done before your widgets are loaded as kv rules are
+only applied at load time.
 
 Usage example
 -------------
@@ -215,7 +240,6 @@ The following example marks the anchors and references contained in a label::
 
 __all__ = ('Label', )
 
-from functools import partial
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.core.text import Label as CoreLabel
@@ -238,10 +262,14 @@ class Label(Widget):
     __events__ = ['on_ref_press']
 
     _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
+                        'underline', 'strikethrough', 'color', 'disabled_color',
                         'halign', 'valign', 'padding_x', 'padding_y',
-                        'text_size', 'shorten', 'mipmap', 'markup',
+                        'outline_width', 'disabled_outline_color',
+                        'outline_color', 'text_size', 'shorten', 'mipmap',
                         'line_height', 'max_lines', 'strip', 'shorten_from',
-                        'split_str', 'unicode_errors')
+                        'split_str', 'ellipsis_options', 'unicode_errors',
+                        'markup', 'font_hinting', 'font_kerning',
+                        'font_blended')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -251,24 +279,15 @@ class Label(Widget):
         d = Label._font_properties
         fbind = self.fbind
         update = self._trigger_texture_update
+        fbind('disabled', update, 'disabled')
         for x in d:
             fbind(x, update, x)
 
         self._label = None
         self._create_label()
 
-        fbind('markup', self._bind_for_markup)
-        if self.markup:
-            self._bind_for_markup(self, self.markup)
-
         # force the texture creation
         self._trigger_texture()
-
-    def _bind_for_markup(self, inst, markup):
-        if markup:
-            self.fbind('color', self._trigger_texture_update, 'color')
-        else:
-            self.funbind('color', self._trigger_texture_update, 'color')
 
     def _create_label(self):
         # create the core label class according to markup value
@@ -298,6 +317,16 @@ class Label(Widget):
                 self._label.usersize = value
             elif name == 'font_size':
                 self._label.options[name] = value
+            elif name == 'disabled_color' and self.disabled:
+                self._label.options['color'] = value
+            elif name == 'disabled_outline_color' and self.disabled:
+                self._label.options['outline_color'] = value
+            elif name == 'disabled':
+                self._label.options['color'] = self.disabled_color if value \
+                    else self.color
+                self._label.options['outline_color'] = (
+                    self.disabled_outline_color if value else
+                    self.outline_color)
             else:
                 self._label.options[name] = value
         self._trigger_texture()
@@ -311,8 +340,8 @@ class Label(Widget):
         mrkup = self._label.__class__ is CoreMarkupLabel
         self.texture = None
 
-        if (not self._label.text or (self.halign[-1] == 'y' or self.strip) and
-            not self._label.text.strip()):
+        if (not self._label.text or (self.halign == 'justify' or self.strip)
+                and not self._label.text.strip()):
             self.texture_size = (0, 0)
             if mrkup:
                 self.refs, self._label._refs = {}, {}
@@ -323,10 +352,12 @@ class Label(Widget):
                 # we must strip here, otherwise, if the last line is empty,
                 # markup will retain the last empty line since it only strips
                 # line by line within markup
-                if self.halign[-1] == 'y' or self.strip:
+                if self.halign == 'justify' or self.strip:
                     text = text.strip()
                 self._label.text = ''.join(('[color=',
-                                            get_hex_from_color(self.color),
+                                            get_hex_from_color(
+                                                self.disabled_color if
+                                                self.disabled else self.color),
                                             ']', text, '[/color]'))
                 self._label.refresh()
                 # force the rendering to get the references
@@ -366,12 +397,13 @@ class Label(Widget):
     #
 
     disabled_color = ListProperty([1, 1, 1, .3])
-    '''Text color, in the format (r, g, b, a)
+    '''The color of the text when the widget is disabled, in the (r, g, b, a)
+    format.
 
     .. versionadded:: 1.8.0
 
     :attr:`disabled_color` is a :class:`~kivy.properties.ListProperty` and
-    defaults to [1, 1, 1, .5].
+    defaults to [1, 1, 1, .3].
     '''
 
     text = StringProperty('')
@@ -392,7 +424,7 @@ class Label(Widget):
     text_size = ListProperty([None, None])
     '''By default, the label is not constrained to any bounding box.
     You can set the size constraint of the label with this property.
-    The text will autoflow into the constrains. So although the font size
+    The text will autoflow into the constraints. So although the font size
     will not be reduced, the text will be arranged to fit into the box as best
     as possible, with any text still outside the box clipped.
 
@@ -479,6 +511,30 @@ class Label(Widget):
     to False.
     '''
 
+    underline = BooleanProperty(False)
+    '''Adds an underline to the text.
+
+    .. note::
+        This feature requires the SDL2 text provider.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`underline` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
+    '''
+
+    strikethrough = BooleanProperty(False)
+    '''Adds a strikethrough line to the text.
+
+    .. note::
+        This feature requires the SDL2 text provider.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`strikethrough` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
+    '''
+
     padding_x = NumericProperty(0)
     '''Horizontal padding of the text inside the widget box.
 
@@ -527,11 +583,16 @@ class Label(Widget):
         A new option was added to :attr:`halign`, namely `justify`.
     '''
 
-    valign = OptionProperty('bottom', options=['bottom', 'middle', 'top'])
+    valign = OptionProperty('bottom',
+                            options=['bottom', 'middle', 'center', 'top'])
     '''Vertical alignment of the text.
 
     :attr:`valign` is an :class:`~kivy.properties.OptionProperty` and defaults
-    to 'bottom'. Available options are : bottom, middle and top.
+    to 'bottom'. Available options are : `'bottom'`,
+    `'middle'` (or `'center'`) and `'top'`.
+
+    .. versionchanged:: 1.9.2
+        The `'center'` option has been added as an alias of `'middle'`.
 
     .. warning::
 
@@ -542,10 +603,48 @@ class Label(Widget):
     '''
 
     color = ListProperty([1, 1, 1, 1])
-    '''Text color, in the format (r, g, b, a)
+    '''Text color, in the format (r, g, b, a).
 
     :attr:`color` is a :class:`~kivy.properties.ListProperty` and defaults to
     [1, 1, 1, 1].
+    '''
+
+    outline_width = NumericProperty(None, allownone=True)
+    '''Width in pixels for the outline around the text. No outline will be
+    rendered if the value is None.
+
+    .. note::
+        This feature requires the SDL2 text provider.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`outline_width` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to None.
+    '''
+
+    outline_color = ListProperty([0, 0, 0])
+    '''The color of the text outline, in the (r, g, b) format.
+
+    .. note::
+        This feature requires the SDL2 text provider.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`outline_color` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [0, 0, 0].
+    '''
+
+    disabled_outline_color = ListProperty([0, 0, 0])
+    '''The color of the text outline when the widget is disabled, in the
+    (r, g, b) format.
+
+    .. note::
+        This feature requires the SDL2 text provider.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`disabled_outline_color` is a :class:`~kivy.properties.ListProperty`
+    and defaults to [0, 0, 0].
     '''
 
     texture = ObjectProperty(None, allownone=True)
@@ -640,13 +739,35 @@ class Label(Widget):
 
     For example, if it's a space, the string will be broken into words and as
     many whole words that can fit into a single line will be displayed. If
-    :attr:`shorten_from` is the empty string, `''`, we split on every character
+    :attr:`split_str` is the empty string, `''`, we split on every character
     fitting as much text as possible into the line.
 
     .. versionadded:: 1.9.0
 
     :attr:`split_str` is a :class:`~kivy.properties.StringProperty` and
     defaults to `''` (the empty string).
+    '''
+
+    ellipsis_options = DictProperty({})
+    '''Font options for the ellipsis string('...') used to split the text.
+
+    Accepts a dict as option name with the value. Only applied when
+    :attr:`markup` is true and text is shortened. All font options which work
+    for :class:`Label` will work for :attr:`ellipsis_options`. Defaults for
+    the options not specified are taken from the surronding text.
+
+    .. code-block:: kv
+
+        Label:
+            text: 'Some very long line which will be cut'
+            markup: True
+            shorten: True
+            ellipsis_options: {'color':(1,0.5,0.5,1),'underline':True}
+
+    .. versionadded:: 2.0.0
+
+    :attr:`ellipsis_options` is a :class:`~kivy.properties.DictProperty` and
+    defaults to `{}` (the empty dict).
     '''
 
     unicode_errors = OptionProperty(
@@ -691,7 +812,7 @@ class Label(Widget):
     The references marked "hello" have a bounding box at (x1, y1, x2, y2).
     These co-ordinates are relative to the top left corner of the text, with
     the y value increasing downwards. You can define multiple refs with the same
-    name: each occurence will be added as another (x1, y1, x2, y2) tuple to
+    name: each occurrence will be added as another (x1, y1, x2, y2) tuple to
     this list.
 
     The current Label implementation uses these references if they exist in
@@ -718,7 +839,7 @@ class Label(Widget):
     Position of all the ``[anchor=xxx]`` markup in the text.
     These co-ordinates are relative to the top left corner of the text, with
     the y value increasing downwards. Anchors names should be unique and only
-    the first occurence of any duplicate anchors will be recorded.
+    the first occurrence of any duplicate anchors will be recorded.
 
 
     You can place anchors in your markup text as follows::
@@ -764,4 +885,42 @@ class Label(Widget):
 
     :attr:`strip` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
+    '''
+
+    font_hinting = OptionProperty(
+        'normal', options=[None, 'normal', 'light', 'mono'], allownone=True)
+    '''What hinting option to use for font rendering.
+    Can be one of `'normal'`, `'light'`, `'mono'` or None.
+
+    .. note::
+        This feature requires the SDL2 text provider.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`font_hinting` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to `'normal'`.
+    '''
+
+    font_kerning = BooleanProperty(True)
+    '''Whether kerning is enabled for font rendering.
+
+    .. note::
+        This feature requires the SDL2 text provider.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`font_kerning` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
+    '''
+
+    font_blended = BooleanProperty(True)
+    '''Whether blended or solid font rendering should be used.
+
+    .. note::
+        This feature requires the SDL2 text provider.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`font_blended` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
     '''

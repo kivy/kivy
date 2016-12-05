@@ -92,7 +92,8 @@ class Bubble(GridLayout):
     '''
 
     background_color = ListProperty([1, 1, 1, 1])
-    '''Background color, in the format (r, g, b, a).
+    '''Background color, in the format (r, g, b, a). To use it you have to set
+    either :attr:`background_image` or :attr:`arrow_image` first.
 
     :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [1, 1, 1, 1].

@@ -31,7 +31,7 @@ A :class:`~kivy.adapters.dictadapter.DictAdapter` is a subclass of a
 :attr:`~ListAdapter.on_selection_change` event when selection changes.
 
 .. versionchanged:: 1.6.0
-    Added data = ListProperty([]), which was proably inadvertently deleted at
+    Added data = ListProperty([]), which was probably inadvertently deleted at
     some point. This means that whenever data changes an update will fire,
     instead of having to reset the data object (Adapter has data defined as
     an ObjectProperty, so we need to reset it here to ListProperty). See also
@@ -57,7 +57,7 @@ class ListAdapter(Adapter, EventDispatcher):
     '''
     A base class for adapters interfacing with lists, dictionaries or other
     collection type data, adding selection, view creation and management
-    functonality.
+    functionality.
     '''
 
     data = ListProperty([])
@@ -299,7 +299,14 @@ class ListAdapter(Adapter, EventDispatcher):
                 else:
                     self.select_item_view(view)
         else:
-            self.deselect_item_view(view)
+            if len(self.selection) == 1 and not self.allow_empty_selection:
+                # Maintain selection rather than always defaulting to first
+                # item. This probably invalidates the next if section, but I
+                # am unable to test all corner cases out, and leaving it in
+                # does not hurt anything.
+                pass
+            else:
+                self.deselect_item_view(view)
             if self.selection_mode != 'none':
                 # If the deselection makes selection empty, the following call
                 # will check allows_empty_selection, and if False, will

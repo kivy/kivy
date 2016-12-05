@@ -4,7 +4,6 @@ Pygame: Pygame image loader
 
 __all__ = ('ImageLoaderPygame', )
 
-from kivy.compat import PY2
 from kivy.logger import Logger
 from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 from os.path import isfile
@@ -21,7 +20,7 @@ class ImageLoaderPygame(ImageLoaderBase):
     @staticmethod
     def extensions():
         '''Return accepted extensions for this loader'''
-        # under macosx, i got with "pygame.error: File is not a Windows BMP
+        # under OS X, i got with "pygame.error: File is not a Windows BMP
         # file". documentation said: The image module is a required dependency
         # of Pygame, but it only optionally supports any extended file formats.
         # By default it can only load uncompressed BMP image

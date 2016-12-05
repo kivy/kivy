@@ -21,7 +21,7 @@ class ImageLoaderPIL(ImageLoaderBase):
     Support for GIF animation added.
 
     Gif animation has a lot of issues(transparency/color depths... etc).
-    In order to keep it simple, what is implimented here is what is
+    In order to keep it simple, what is implemented here is what is
     natively supported by the PIL library.
 
     As a general rule, try to use gifs that have no transparency.
@@ -83,7 +83,7 @@ class ImageLoaderPIL(ImageLoaderBase):
                     img_tmp = img_ol
                 img_ol = img_tmp
                 yield ImageData(img_tmp.size[0], img_tmp.size[1],
-                                img_tmp.mode.lower(), img_tmp.tostring())
+                                img_tmp.mode.lower(), img_tmp.tobytes())
                 im.seek(im.tell() + 1)
         except EOFError:
             pass
@@ -102,7 +102,8 @@ class ImageLoaderPIL(ImageLoaderBase):
 
     @staticmethod
     def save(filename, width, height, fmt, pixels, flipped=False):
-        image = PILImage.fromstring(fmt.upper(), (width, height), pixels)
+        image = PILImage.frombytes(fmt.upper(), (width, height), pixels)
+
         if flipped:
             image = image.transpose(PILImage.FLIP_TOP_BOTTOM)
         image.save(filename)

@@ -143,7 +143,7 @@ class ModalView(AnchorLayout):
 
     _anim_duration = NumericProperty(.1)
 
-    _window = ObjectProperty(None, allownone=True)
+    _window = ObjectProperty(None, allownone=True, rebind=True)
 
     __events__ = ('on_open', 'on_dismiss')
 
@@ -171,30 +171,23 @@ class ModalView(AnchorLayout):
         '''
         if self._window is not None:
             Logger.warning('ModalView: you can only open once.')
-            return self
+            return
         # search window
         self._window = self._search_window()
         if not self._window:
             Logger.warning('ModalView: cannot open view, no window found.')
-            return self
+            return
         self._window.add_widget(self)
         self._window.bind(
             on_resize=self._align_center,
             on_keyboard=self._handle_keyboard)
         self.center = self._window.center
-        self.fbind('size', self._update_center)
+        self.fbind('center', self._align_center)
+        self.fbind('size', self._align_center)
         a = Animation(_anim_alpha=1., d=self._anim_duration)
         a.bind(on_complete=lambda *x: self.dispatch('on_open'))
         a.start(self)
-        return self
-
-    def _update_center(self, *args):
-        if not self._window:
-            return
-        # XXX HACK DONT REMOVE OR FOUND AND FIX THE ISSUE
-        # It seems that if we don't access to the center before assigning a new
-        # value, no dispatch will be done >_>
-        self.center = self._window.center
+        return
 
     def dismiss(self, *largs, **kwargs):
         '''Close the view if it is open. If you really want to close the
@@ -202,7 +195,7 @@ class ModalView(AnchorLayout):
         argument:
         ::
 
-            view = ModalView(...)
+            view = ModalView()
             view.dismiss(force=True)
 
         When the view is dismissed, it will be faded out before being
@@ -212,27 +205,20 @@ class ModalView(AnchorLayout):
 
         '''
         if self._window is None:
-            return self
+            return
         if self.dispatch('on_dismiss') is True:
             if kwargs.get('force', False) is not True:
-                return self
+                return
         if kwargs.get('animation', True):
             Animation(_anim_alpha=0., d=self._anim_duration).start(self)
         else:
             self._anim_alpha = 0
             self._real_remove_widget()
-        return self
-
-    def on_size(self, instance, value):
-        self._align_center()
+        return
 
     def _align_center(self, *l):
         if self._window:
             self.center = self._window.center
-            # hack to resize dark background on window resize
-            _window = self._window
-            self._window = None
-            self._window = _window
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):

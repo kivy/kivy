@@ -5,7 +5,7 @@ Video Gstplayer
 .. versionadded:: 1.8.0
 
 Implementation of a VideoBase with Kivy :class:`~kivy.lib.gstplayer.GstPlayer`
-This player is the prefered player, using Gstreamer 1.0, working on both Python
+This player is the preferred player, using Gstreamer 1.0, working on both Python
 2 and 3.
 '''
 
@@ -96,9 +96,6 @@ class VideoGstplayer(VideoBase):
 
     def _get_duration(self):
         return self.player.get_duration()
-
-    def _get_volume(self):
-        return self._volume
 
     def _set_volume(self, value):
         self._volume = value

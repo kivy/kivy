@@ -160,7 +160,7 @@ java) to access a limited set of Android APIs. This has been largely
 superseded by the more flexible Pyjnius and Plyer as above, but may
 still occasionally be useful. The available functions are given in the
 `python-for-android documentation
-<http://python-for-android.readthedocs.org/en/latest/android/>`_.
+<http://python-for-android.readthedocs.org/en/latest/>`_.
 
 This includes code for billing/IAP and creating/accessing Android
 services, which is not yet available in the other tools above.

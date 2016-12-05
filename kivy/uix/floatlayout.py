@@ -62,7 +62,6 @@ class FloatLayout(Layout):
     '''
 
     def __init__(self, **kwargs):
-        kwargs.setdefault('size', (1, 1))
         super(FloatLayout, self).__init__(**kwargs)
         fbind = self.fbind
         update = self._trigger_layout
@@ -73,21 +72,45 @@ class FloatLayout(Layout):
         fbind('size', update)
 
     def do_layout(self, *largs, **kwargs):
-        # optimization, until the size is 1, 1, don't do layout
-        if self.size == [1, 1]:
-            return
         # optimize layout by preventing looking at the same attribute in a loop
         w, h = kwargs.get('size', self.size)
         x, y = kwargs.get('pos', self.pos)
         for c in self.children:
             # size
             shw, shh = c.size_hint
-            if shw and shh:
-                c.size = w * shw, h * shh
-            elif shw:
-                c.width = w * shw
-            elif shh:
-                c.height = h * shh
+            shw_min, shh_min = c.size_hint_min
+            shw_max, shh_max = c.size_hint_max
+
+            if shw is not None and shh is not None:
+                c_w = shw * w
+                c_h = shh * h
+
+                if shw_min is not None and c_w < shw_min:
+                    c_w = shw_min
+                elif shw_max is not None and c_w > shw_max:
+                    c_w = shw_max
+
+                if shh_min is not None and c_h < shh_min:
+                    c_h = shh_min
+                elif shh_max is not None and c_h > shh_max:
+                    c_h = shh_max
+                c.size = c_w, c_h
+            elif shw is not None:
+                c_w = shw * w
+
+                if shw_min is not None and c_w < shw_min:
+                    c_w = shw_min
+                elif shw_max is not None and c_w > shw_max:
+                    c_w = shw_max
+                c.width = c_w
+            elif shh is not None:
+                c_h = shh * h
+
+                if shh_min is not None and c_h < shh_min:
+                    c_h = shh_min
+                elif shh_max is not None and c_h > shh_max:
+                    c_h = shh_max
+                c.height = c_h
 
             # pos
             for key, value in c.pos_hint.items():

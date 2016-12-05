@@ -8,6 +8,10 @@ reStructuredText renderer
 easy-to-read, what-you-see-is-what-you-get plaintext markup syntax and parser
 system.
 
+.. note::
+
+    This widget requires ``docutils`` package to run. Install it with ``pip``.
+
 .. warning::
 
     This widget is highly experimental. The whole styling and
@@ -78,7 +82,6 @@ from docutils.parsers.rst import roles
 from docutils import nodes, frontend, utils
 from docutils.parsers.rst import Directive, directives
 from docutils.parsers.rst.roles import set_classes
-from kivy.parser import parse_color
 
 
 #

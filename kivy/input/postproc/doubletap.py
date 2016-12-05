@@ -82,7 +82,7 @@ class InputPostprocDoubleTap(object):
                     distance = double_tap.double_tap_distance
                     touch.double_tap_distance = distance
 
-            # add the touch internaly
+            # add the touch internally
             self.touches[touch.uid] = (etype, touch)
 
         # second, check if up-touch is timeout for double tap

@@ -19,7 +19,9 @@ Ubuntu / Kubuntu / Xubuntu / Lubuntu (Saucy and above)
     :nightly builds:
         $ sudo add-apt-repository ppa:kivy-team/kivy-daily
 
-#. Update your packagelist using your package manager
+#. Update your package list using your package manager
+    $ sudo apt-get update
+
 #. Install Kivy
 
     :Python2 - **python-kivy**:
@@ -27,7 +29,7 @@ Ubuntu / Kubuntu / Xubuntu / Lubuntu (Saucy and above)
     :Python3 - **python3-kivy**:
         $ sudo apt-get install python3-kivy
     :optionally the examples - **kivy-examples**:
-        $ sudo apt-get install kivy-examples
+        $ sudo apt-get install python-kivy-examples
 
 
 Debian  (Jessie or newer)
@@ -69,7 +71,7 @@ Linux Mint
 ----------
 
 #. Find out on which Ubuntu release your installation is based on, using this
-   `overview <http://www.linuxmint.com/oldreleases.php>`_.
+   `overview <https://linuxmint.com/download_all.php>`_.
 #. Continue as described for Ubuntu above, depending on which version your
    installation is based on.
 
@@ -86,6 +88,8 @@ Bodhi Linux
         Ubuntu 12.04 LTS aka Precise
     :Bodhi 3:
         Ubuntu 14.04 LTS aka Trusty
+    :Bodhi 4:
+        Ubuntu 16.04 LTS aka Xenial
 
 
 2. Continue as described for Ubuntu above, depending on which version your installation is based on.
@@ -96,7 +100,7 @@ OpenSuSE
 
 #. To install kivy go to http://software.opensuse.org/package/python-Kivy and use the "1 Click Install" for your openSuse version. You might need to make the latest kivy version appear in the list by clicking on "Show unstable packages". We prefer to use packages by " devel:languages:python".
 
-#. If you would like access to the examples, please select **python-Kivy-examples** in the upcomming installation wizard.
+#. If you would like access to the examples, please select **python-Kivy-examples** in the upcoming installation wizard.
 
 
 Fedora
@@ -135,15 +139,15 @@ Gentoo
 
    `cairo: Standard flag, let kivy use cairo graphical libraries.`
    `camera: Install libraries needed to support camera.`
-   `doc: Standard flag, will make you build the documentation localy.`
+   `doc: Standard flag, will make you build the documentation locally.`
    `examples: Standard flag, will give you kivy examples programs.`
    `garden: Install garden tool to manage user maintained widgets.`
    `gstreamer: Standard flag, kivy will be able to use audio/video streaming libraries.`
    `spell: Standard flag, provide enchant to use spelling in kivy apps.`
 
 
-*Installation in a Virtual Environment*
-=======================================
+Installation in a Virtual Environment
+=====================================
 
 
 Common dependencies
@@ -166,13 +170,14 @@ Kivy       Cython
 ========   =============
 
 
-*Dependencies with SDL2*
-~~~~~~~~~~~~~~~~~~~~~~~~
+Dependencies with SDL2
+~~~~~~~~~~~~~~~~~~~~~~
 
 
 Ubuntu example
 --------------
 
+In the following command use "python" and "python-dev" for Python 2, or "python3" and "python3-dev" for Python 3.
 
 ::
 
@@ -194,6 +199,15 @@ Ubuntu example
         libavcodec-dev \
         zlib1g-dev
 
+**Note:**  Depending on your Linux version, you may receive error messages related to the "ffmpeg" package.
+In this scenario, use "libav-tools \" in place of "ffmpeg \" (above), or use a PPA (as shown below):
+
+::
+
+- sudo add-apt-repository ppa:mc3man/trusty-media
+- sudo apt-get update
+- sudo apt-get install ffmpeg
+
 
 Installation
 ------------
@@ -203,31 +217,30 @@ Installation
 
     # Make sure Pip, Virtualenv and Setuptools are updated
     sudo pip install --upgrade pip virtualenv setuptools
-
-    # Create a virtualenv
+    
+    # Then create a virtualenv named "kivyinstall" by either:
+    
+    # 1. using the default interpreter
     virtualenv --no-site-packages kivyinstall
+    
+    # or 2. using a specific interpreter 
+    # (this will use the interpreter in /usr/bin/python2.7)
+    virtualenv --no-site-packages -p /usr/bin/python2.7 kivyinstall
 
     # Enter the virtualenv
     . kivyinstall/bin/activate
 
     # Use correct Cython version here
-    pip install Cython==0.21.2
+    pip install Cython==0.23
 
     # Install stable version of Kivy into the virtualenv
     pip install kivy
     # For the development version of Kivy, use the following command instead
     # pip install git+https://github.com/kivy/kivy.git@master
 
-Python 3
---------
 
-
-If you want to use Python 3 you install "python3" and "python3-dev" and then pass
-"-p python3" to virtualenv.
-
-
-*Dependencies with legacy PyGame*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Dependencies with legacy PyGame
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Ubuntu example
@@ -305,28 +318,34 @@ Installation
     # Make sure Pip, Virtualenv and Setuptools are updated
     sudo pip install --upgrade pip virtualenv setuptools
 
-    # Create a virtualenv
+    # Then create a virtualenv named "kivyinstall" by either:
+    
+    # 1. using the default interpreter
     virtualenv --no-site-packages kivyinstall
+    
+    # or 2. using a specific interpreter 
+    # (this will use the interpreter in /usr/bin/python2.7)
+    virtualenv --no-site-packages -p /usr/bin/python2.7 kivyinstall
 
     # Enter the virtualenv
     . kivyinstall/bin/activate
 
     pip install numpy
 
-    pip install Cython==0.21.2
+    pip install Cython==0.23
 
     # If you want to install pygame backend instead of sdl2
     # you can install pygame using command below and enforce using
     # export USE_SDL2=0. If kivy's setup can't find sdl2 libs it will
     # automatically set this value to 0 then try to build using pygame.
     pip install hg+http://bitbucket.org/pygame/pygame
-    
-    
+
+
 
     # Install stable version of Kivy into the virtualenv
     pip install kivy
     # For the development version of Kivy, use the following command instead
-    # pip install git+https://github.com/kivy/kivy.git@master
+    pip install git+https://github.com/kivy/kivy.git@master
 
 
 Install additional Virtualenv packages
@@ -347,10 +366,10 @@ Install additional Virtualenv packages
 .. _linux-run-app:
 
 
-*Start from the Command Line*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Start from the Command Line
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We ship some examples that are ready-to-run. However, theses examples are packaged inside the package.
+We ship some examples that are ready-to-run. However, these examples are packaged inside the package.
 This means you must first know where easy_install has installed your current kivy package,
 and then go to the examples directory::
 
@@ -399,3 +418,35 @@ Then, inside each main.py, add a new first line::
 
 NOTE: Beware of Python files stored with Windows-style line endings (CR-LF). Linux will not ignore the <CR>
 and will try to use it as part of the file name. This makes confusing error messages. Convert to Unix line endings.
+
+Device permissions
+~~~~~~~~~~~~~~~~~~
+
+When you app starts, Kivy uses `Mtdev <http://wiki.ubuntu.com/Multitouch>`_ to
+scan for available multi-touch devices to use for input. Access to these
+devices is typically restricted to users or group with the appropriate
+permissions.
+
+If you do not have access to these devices, Kivy will log an error or warning
+specifying these devices, normally something like::
+
+    Permission denied:'/dev/input/eventX'
+
+In order to use these devices, you need to grant the user or group permission.
+This can be done via::
+
+    $ sudo chmod u+r /dev/input/eventX
+
+for the user or::
+
+    $ sudo chmod g+r /dev/input/eventX
+
+for the group. These permissions will only be effective for the duration of
+your current session. A more permanent solution is to add the user to a group
+that has these permissions. For example, in Ubuntu, you can add the user to
+the 'input' group::
+
+    $ sudo adduser $USER input
+
+Note that you need to log out then back in again for these permissions to
+be applied.

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.factory import Factory
@@ -61,4 +60,3 @@ Factory.register('SaveDialog', cls=SaveDialog)
 
 if __name__ == '__main__':
     Editor().run()
-

@@ -467,8 +467,8 @@ cdef extern from "SDL.h":
     cdef Uint32 SDL_GetTicks()
     cdef void SDL_Delay(Uint32 ms) nogil
     cdef Uint8 SDL_EventState(Uint32 type, int state)
-    cdef int SDL_PollEvent(SDL_Event * event)
-    cdef void SDL_SetEventFilter(SDL_EventFilter filter, void* userdata)
+    cdef int SDL_PollEvent(SDL_Event * event) nogil
+    cdef void SDL_SetEventFilter(SDL_EventFilter *filter, void* userdata)
     cdef SDL_RWops * SDL_RWFromFile(char *file, char *mode)
     cdef SDL_RWops * SDL_RWFromMem(void *mem, int size)
     cdef SDL_RWops * SDL_RWFromConstMem(void *mem, int size)
@@ -631,6 +631,11 @@ cdef extern from "SDL_ttf.h":
     ##define TTF_STYLE_ITALIC    0x02
     ##define TTF_STYLE_UNDERLINE 0x04
     ##define TTF_STYLE_STRIKETHROUGH 0x08
+    cdef int TTF_STYLE_NORMAL
+    cdef int TTF_STYLE_BOLD
+    cdef int TTF_STYLE_ITALIC
+    cdef int TTF_STYLE_UNDERLINE
+    cdef int TTF_STYLE_STRIKETHROUGH
     cdef int  TTF_GetFontStyle( TTF_Font *font)
     cdef void  TTF_SetFontStyle(TTF_Font *font, int style)
     cdef int  TTF_GetFontOutline( TTF_Font *font)
@@ -641,6 +646,10 @@ cdef extern from "SDL_ttf.h":
     ##define TTF_HINTING_LIGHT     1
     ##define TTF_HINTING_MONO      2
     ##define TTF_HINTING_NONE      3
+    cdef int TTF_HINTING_NORMAL
+    cdef int TTF_HINTING_LIGHT
+    cdef int TTF_HINTING_MONO
+    cdef int TTF_HINTING_NONE
     cdef int  TTF_GetFontHinting( TTF_Font *font)
     cdef void  TTF_SetFontHinting(TTF_Font *font, int hinting)
 
@@ -672,7 +681,7 @@ cdef extern from "SDL_ttf.h":
     cdef char *  TTF_FontFaceFamilyName( TTF_Font *font)
     cdef char *  TTF_FontFaceStyleName( TTF_Font *font)
 
-    ## Check wether a glyph is provided by the font or not */
+    ## Check whether a glyph is provided by the font or not */
     cdef int  TTF_GlyphIsProvided( TTF_Font *font, Uint16 ch)
 
     ## Get the metrics (dimensions) of a glyph
@@ -766,6 +775,30 @@ cdef extern from "SDL_ttf.h":
 
 cdef extern from "SDL_audio.h":
     cdef int AUDIO_S16SYS
+    ctypedef struct SDL_AudioFilter:
+        pass
+    ctypedef struct SDL_AudioCVT:
+        int needed
+        int src_format
+        int dst_format
+        double rate_incr
+        Uint8 *buf
+        int len
+        int len_cvt
+        int len_mult
+        double len_ratio
+        SDL_AudioFilter filters[10]
+        int filter_index
+    cdef int SDL_BuildAudioCVT(
+        SDL_AudioCVT *cvt,
+        int src_format,
+        Uint8 src_channels,
+        int src_rate,
+        int dst_format,
+        Uint8 dst_channels,
+        int dst_rate
+    )
+    cdef int SDL_ConvertAudio(SDL_AudioCVT *cvt)
 
 cdef extern from "SDL_mixer.h":
     cdef struct Mix_Chunk:
@@ -793,9 +826,10 @@ cdef extern from "SDL_mixer.h":
     ctypedef enum MIX_InitFlags:
         MIX_INIT_FLAC        = 0x00000001
         MIX_INIT_MOD         = 0x00000002
-        MIX_INIT_MP3         = 0x00000004
-        MIX_INIT_OGG         = 0x00000008
-        MIX_INIT_FLUIDSYNTH  = 0x00000010
+        MIX_INIT_MODPLUG     = 0x00000004
+        MIX_INIT_MP3         = 0x00000008
+        MIX_INIT_OGG         = 0x00000010
+        MIX_INIT_FLUIDSYNTH  = 0x00000020
 
     cdef int MIX_MAX_VOLUME
 
@@ -877,3 +911,4 @@ cdef extern from "SDL_mixer.h":
     #cdef int  Mix_EachSoundFont(int (*function)( char*, void*), void *data)
     cdef Mix_Chunk *  Mix_GetChunk(int channel)
     cdef void  Mix_CloseAudio()
+    cdef char * Mix_GetError()

@@ -9,6 +9,8 @@ Color Picker
     This widget is experimental. Its use and API can change at any time until
     this warning is removed.
 
+.. image:: images/colorpicker.png
+    :align: right
 
 The ColorPicker widget allows a user to select a color from a chromatic
 wheel where pinch and zoom can be used to change the wheel's saturation.
@@ -27,6 +29,7 @@ Usage::
         print "HEX = ", str(instance.hex_color)
 
     clr_picker.bind(color=on_color)
+
 
 '''
 
@@ -406,6 +409,8 @@ class ColorPicker(RelativeLayout):
     defaults to None.
     '''
 
+    _update_clr_ev = _update_hex_ev = None
+
     # now used only internally.
     foreground_color = ListProperty((1, 1, 1, 1))
 
@@ -423,8 +428,10 @@ class ColorPicker(RelativeLayout):
 
     def _trigger_update_clr(self, mode, clr_idx, text):
         self._upd_clr_list = mode, clr_idx, text
-        Clock.unschedule(self._update_clr)
-        Clock.schedule_once(self._update_clr)
+        ev = self._update_clr_ev
+        if ev is None:
+            ev = self._update_clr_ev = Clock.create_trigger(self._update_clr)
+        ev()
 
     def _update_clr(self, dt):
         mode, clr_idx, text = self._upd_clr_list
@@ -444,8 +451,10 @@ class ColorPicker(RelativeLayout):
 
     def _trigger_update_hex(self, text):
         self._upd_hex_list = text
-        Clock.unschedule(self._update_hex)
-        Clock.schedule_once(self._update_hex)
+        ev = self._update_hex_ev
+        if ev is None:
+            ev = self._update_hex_ev = Clock.create_trigger(self._update_hex)
+        ev()
 
     def __init__(self, **kwargs):
         self._updating_clr = False

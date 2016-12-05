@@ -4,7 +4,7 @@ Settings
 
 .. versionadded:: 1.0.7
 
-This module is a complete and extensible framework for adding a
+This module provides a complete and extensible framework for adding a
 Settings interface to your application. By default, the interface uses
 a :class:`SettingsWithSpinner`, which consists of a
 :class:`~kivy.uix.spinner.Spinner` (top) to switch between individual
@@ -16,14 +16,14 @@ alternatives.
 
 A :class:`SettingsPanel` represents a group of configurable options. The
 :attr:`SettingsPanel.title` property is used by :class:`Settings` when a panel
-is added - it determines the name of the sidebar button. SettingsPanel controls
+is added: it determines the name of the sidebar button. SettingsPanel controls
 a :class:`~kivy.config.ConfigParser` instance.
 
 The panel can be automatically constructed from a JSON definition file: you
 describe the settings you want and corresponding sections/keys in the
 ConfigParser instance... and you're done!
 
-Settings are also integrated with the :class:`~kivy.app.App` class. Use
+Settings are also integrated into the :class:`~kivy.app.App` class. Use
 :meth:`Settings.add_kivy_panel` to configure the Kivy core settings in a panel.
 
 
@@ -44,7 +44,8 @@ To create a panel from a JSON-file, you need two things:
 
 You must create and handle the :class:`~kivy.config.ConfigParser`
 object. SettingsPanel will read the values from the associated
-ConfigParser instance. Make sure you have default values for all sections/keys
+ConfigParser instance. Make sure you have set default values (using
+:attr:`~kivy.config.ConfigParser.setdefaults`) for all the sections/keys
 in your JSON file!
 
 The JSON file contains structured information to describe the available
@@ -148,12 +149,15 @@ that displays a json settings panel with some way to switch between
 panels. An instance will be automatically created by :class:`Settings`.
 
 Interface widgets may be anything you like, but *must* have a method
-add_panel that recieves newly created json settings panels for the
+add_panel that receives newly created json settings panels for the
 interface to display. See the documentation for
 :class:`InterfaceWithSidebar` for more information. They may
 optionally dispatch an on_close event, for instance if a close button
 is clicked. This event is used by :class:`Settings` to trigger its own
 on_close event.
+
+For a complete, working example, please see
+:file:`kivy/examples/settings/main.py`.
 
 '''
 
@@ -161,11 +165,10 @@ __all__ = ('Settings', 'SettingsPanel', 'SettingItem', 'SettingString',
            'SettingPath', 'SettingBoolean', 'SettingNumeric', 'SettingOptions',
            'SettingTitle', 'SettingsWithSidebar', 'SettingsWithSpinner',
            'SettingsWithTabbedPanel', 'SettingsWithNoMenu',
-           'InterfaceWithSidebar', 'ContentPanel')
+           'InterfaceWithSidebar', 'ContentPanel', 'MenuSidebar')
 
 import json
 import os
-from kivy.compat import string_types
 from kivy.factory import Factory
 from kivy.metrics import dp
 from kivy.config import ConfigParser
@@ -603,6 +606,8 @@ class SettingTitle(Label):
 
     title = Label.text
 
+    panel = ObjectProperty(None)
+
 
 class SettingsPanel(GridLayout):
     '''This class is used to contruct panel settings, for use with a
@@ -625,7 +630,8 @@ class SettingsPanel(GridLayout):
     '''
 
     def __init__(self, **kwargs):
-        kwargs.setdefault('cols', 1)
+        if 'cols' not in kwargs:
+            self.cols = 1
         super(SettingsPanel, self).__init__(**kwargs)
 
     def on_config(self, instance, value):
@@ -706,16 +712,17 @@ class InterfaceWithSidebar(BoxLayout):
         display. Any replacement for ContentPanel *must* implement
         this method.
 
-        :param panel: A :class:`SettingsPanel`. It should be stored
-                      and the interface should provide a way to switch
-                      between panels.
+        :Parameters:
+            `panel`: :class:`SettingsPanel`
+                It should be stored and the interface should provide a way to
+                switch between panels.
+            `name`:
+                The name of the panel as a string. It may be used to represent
+                the panel but isn't necessarily unique.
+            `uid`:
+                A unique int identifying the panel. It should be used to
+                identify and switch between panels.
 
-        :param name: The name of the panel as a string. It
-                     may be used to represent the panel but isn't necessarily
-                     unique.
-
-        :param uid: A unique int identifying the panel. It should be
-                    used to identify and switch between panels.
         '''
         self.menu.add_item(name, uid)
         self.content.add_panel(panel, name, uid)
@@ -740,7 +747,7 @@ class InterfaceWithSpinner(BoxLayout):
     '''(internal) A reference to the sidebar menu widget.
 
     :attr:`menu` is an :class:`~kivy.properties.ObjectProperty` and
-    defauls to None.
+    defaults to None.
     '''
 
     content = ObjectProperty()
@@ -762,16 +769,16 @@ class InterfaceWithSpinner(BoxLayout):
         display. Any replacement for ContentPanel *must* implement
         this method.
 
-        :param panel: A :class:`SettingsPanel`. It should be stored
-                      and the interface should provide a way to switch
-                      between panels.
-
-        :param name: The name of the panel as a string. It
-                     may be used to represent the panel but may not
-                     be unique.
-
-        :param uid: A unique int identifying the panel. It should be
-                    used to identify and switch between panels.
+        :Parameters:
+            `panel`: :class:`SettingsPanel`
+                It should be stored and the interface should provide a way to
+                switch between panels.
+            `name`:
+                The name of the panel as a string. It may be used to represent
+                the panel but may not be unique.
+            `uid`:
+                A unique int identifying the panel. It should be used to
+                identify and switch between panels.
 
         '''
         self.content.add_panel(panel, name, uid)
@@ -827,14 +834,15 @@ class ContentPanel(ScrollView):
         display. Any replacement for ContentPanel *must* implement
         this method.
 
-        :param panel: A :class:`SettingsPanel`. It should be stored
-                      and displayed when requested.
-
-        :param name: The name of the panel as a string. It
-                     may be used to represent the panel.
-
-        :param uid: A unique int identifying the panel. It should be
-                    stored and used to identify panels when switching.
+        :Parameters:
+            `panel`: :class:`SettingsPanel`
+                It should be stored and displayed when requested.
+            `name`:
+                The name of the panel as a string. It may be used to represent
+                the panel.
+            `uid`:
+                A unique int identifying the panel. It should be stored and
+                used to identify panels when switching.
 
         '''
         self.panels[uid] = panel
@@ -845,9 +853,12 @@ class ContentPanel(ScrollView):
         '''The uid of the currently displayed panel. Changing this will
         automatically change the displayed panel.
 
-        :param uid: A panel uid. It should be used to retrieve and
-                    display a settings panel that has previously been
-                    added with :meth:`add_panel`.
+        :Parameters:
+            `uid`:
+                A panel uid. It should be used to retrieve and display
+                a settings panel that has previously been added with
+                :meth:`add_panel`.
+
         '''
         uid = self.current_uid
         if uid in self.panels:
@@ -903,7 +914,7 @@ class Settings(BoxLayout):
 
     :attr:`interface_cls` is an
     :class:`~kivy.properties.ObjectProperty` and defaults to
-    :class`InterfaceWithSidebar`.
+    :class:`InterfaceWithSidebar`.
 
     .. versionchanged:: 1.8.0
         If you set a string, the :class:`~kivy.factory.Factory` will be used to
@@ -1171,7 +1182,7 @@ class MenuSidebar(FloatLayout):
     :attr:`~ContentPanel.current_uid` of a :class:`ContentPanel`.
 
     :attr:`selected_uid` is a
-    :class`~kivy.properties.NumericProperty` and defaults to 0.
+    :class:`~kivy.properties.NumericProperty` and defaults to 0.
 
     '''
 
@@ -1195,12 +1206,14 @@ class MenuSidebar(FloatLayout):
     def add_item(self, name, uid):
         '''This method is used to add new panels to the menu.
 
-        :param name: The name (a string) of the panel. It should be
-                     used to represent the panel in the menu.
-
-        :param uid: The name (an int) of the panel. It should be used
-                    internally to represent the panel and used to set
-                    self.selected_uid when the panel is changed.
+        :Parameters:
+            `name`:
+                The name (a string) of the panel. It should be used
+                to represent the panel in the menu.
+            `uid`:
+                The name (an int) of the panel. It should be used internally
+                to represent the panel and used to set self.selected_uid when
+                the panel is changed.
 
         '''
 

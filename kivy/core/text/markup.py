@@ -7,21 +7,26 @@ Text Markup
 We provide a simple text-markup for inline text styling. The syntax look the
 same as the `BBCode <http://en.wikipedia.org/wiki/BBCode>`_.
 
-A tag is defined as ``[tag]``, and might have a closed tag associated:
-``[/tag]``. Example of a markup text::
+A tag is defined as ``[tag]``, and should have a corresponding
+``[/tag]`` closing tag. For example::
 
-    [b]Hello [color=ff0000]world[/b][/color]
+    [b]Hello [color=ff0000]world[/color][/b]
 
-The following tags are availables:
+The following tags are available:
 
 ``[b][/b]``
     Activate bold text
 ``[i][/i]``
     Activate italic text
+``[u][/u]``
+    Underlined text
+``[s][/s]``
+    Strikethrough text
 ``[font=<str>][/font]``
     Change the font
-``[size=<integer>][/size]``
-    Change the font size
+``[size=<size>][/size]``
+    Change the font size. <size> should be an integer, optionally with a
+    unit (i.e. ``16sp``)
 ``[color=#<color>][/color]``
     Change the text color
 ``[ref=<str>][/ref]``
@@ -48,7 +53,6 @@ from kivy.logger import Logger
 from kivy.core.text import Label, LabelBase
 from kivy.core.text.text_layout import layout_text, LayoutWord, LayoutLine
 from copy import copy
-from math import ceil
 from functools import partial
 
 # We need to do this trick when documentation is generated
@@ -142,9 +146,9 @@ class MarkupLabel(MarkupLabelBase):
         # mid-word will have space mid-word when lines are joined
         uw_temp = None if shorten else uw
         xpad = options['padding_x']
-        uhh = (None if uh is not None and options['valign'][-1] != 'p' or
+        uhh = (None if uh is not None and options['valign'] != 'top' or
                options['shorten'] else uh)
-        options['strip'] = options['strip'] or options['halign'][-1] == 'y'
+        options['strip'] = options['strip'] or options['halign'] == 'justify'
         for item in self.markup:
             if item == '[b]':
                 spush('bold')
@@ -159,6 +163,20 @@ class MarkupLabel(MarkupLabelBase):
                 self.resolve_font_name()
             elif item == '[/i]':
                 spop('italic')
+                self.resolve_font_name()
+            elif item == '[u]':
+                spush('underline')
+                options['underline'] = True
+                self.resolve_font_name()
+            elif item == '[/u]':
+                spop('underline')
+                self.resolve_font_name()
+            elif item == '[s]':
+                spush('strikethrough')
+                options['strikethrough'] = True
+                self.resolve_font_name()
+            elif item == '[/s]':
+                spop('strikethrough')
                 self.resolve_font_name()
             elif item[:6] == '[size=':
                 item = item[6:-1]
@@ -236,7 +254,7 @@ class MarkupLabel(MarkupLabelBase):
         # when valign is not top, for markup we layout everything (text_size[1]
         # is temporarily set to None) and after layout cut to size if too tall
         elif uh != uhh and h > uh and len(lines) > 1:
-            if options['valign'][-1] == 'm':  # bottom
+            if options['valign'] == 'bottom':
                 i = 0
                 while i < len(lines) - 1 and h > uh:
                     h -= lines[i].h
@@ -256,9 +274,9 @@ class MarkupLabel(MarkupLabelBase):
                 del lines[i + 1:]
 
         # now justify the text
-        if options['halign'][-1] == 'y' and uw is not None:
+        if options['halign'] == 'justify' and uw is not None:
             # XXX: update refs to justified pos
-            # when justify, each line shouldv'e been stripped already
+            # when justify, each line should've been stripped already
             split = partial(re.split, re.compile('( +)'))
             uww = uw - 2 * xpad
             chr = type(self.text)
@@ -376,9 +394,9 @@ class MarkupLabel(MarkupLabelBase):
         for layout_line in lines:  # for plain label each line has only one str
             lw, lh = layout_line.w, layout_line.h
             x = xpad
-            if halign[0] == 'c':  # center
+            if halign == 'center':
                 x = int((w - lw) / 2.)
-            elif halign[0] == 'r':  # right
+            elif halign == 'right':
                 x = max(0, int(w - lw - xpad))
             layout_line.x = x
             layout_line.y = y
@@ -609,6 +627,12 @@ class MarkupLabel(MarkupLabelBase):
             return lw + 2 * xpad, lh + 2 * ypad, [LayoutLine(0, 0,
             lw, lh, 1, 0, line)]
 
+        elps_opts = copy(old_opts)
+        if 'ellipsis_options' in old_opts:
+            elps_opts.update(old_opts['ellipsis_options'])
+
+        # Set new opts for ellipsis
+        self.options = elps_opts
         # find the size of ellipsis that'll fit
         elps_s = textwidth('...')
         if elps_s[0] > uw:  # even ellipsis didn't fit...
@@ -622,8 +646,10 @@ class MarkupLabel(MarkupLabelBase):
                 return (s[0] + 2 * xpad, s[1] * line_height + 2 * ypad,
                     [LayoutLine(0, 0, s[0], s[1], 1, 0, [LayoutWord(old_opts,
                     s[0], s[1], '.')])])
-        elps = LayoutWord(old_opts, elps_s[0], elps_s[1], '...')
+        elps = LayoutWord(elps_opts, elps_s[0], elps_s[1], '...')
         uw -= elps_s[0]
+        # Restore old opts
+        self.options = old_opts
 
         # now find the first left and right words that fit
         w1, e1, l1, clipped1 = n_restricted(line, uw, c)
@@ -734,7 +760,6 @@ class MarkupLabel(MarkupLabelBase):
         s = self.get_extents(last_text)
         if len(last_text):
             line1.append(LayoutWord(last_word.options, s[0], s[1], last_text))
-        elps.options = last_word.options
         line1.append(elps)
 
         # now add back the right half

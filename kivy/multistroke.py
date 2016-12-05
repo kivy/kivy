@@ -60,7 +60,7 @@ various aspects of the recognition process ::
         print("A search is starting with %d tasks" % (pt.tasks))
 
     def search_stop(gdb, pt):
-        # This will call max() on the result dictonary, so it's best to store
+        # This will call max() on the result dictionary, so it's best to store
         # it instead of calling it 3 times consecutively
         best = pt.best
         print("Search ended (%s). Best is %s (score %f, distance %f)" % (
@@ -201,7 +201,7 @@ class Recognizer(EventDispatcher):
 
                     gdb = Recognizer()
 
-                    # Will match all names that start with a captial N
+                    # Will match all names that start with a capital N
                     # (ie Next, New, N, Nebraska etc, but not "n" or "next")
                     gdb.filter(name='N')
 
@@ -696,7 +696,7 @@ class ProgressTracker(EventDispatcher):
             `stop`
                 Was stopped by the user (:meth:`stop` called)
             `timeout`
-                A timeout occured (specified as `timeout=` to recognize())
+                A timeout occurred (specified as `timeout=` to recognize())
             `goodscore`
                 The search was stopped early because a gesture with a high
                 enough score was found (specified as `goodscore=` to
@@ -884,7 +884,7 @@ class MultistrokeGesture(object):
         Returns the Cosine distance between the stroke paths.
 
         `numpoints` will prepare both the UnistrokeTemplate and Candidate path
-        to n points (when neccessary), you probably don't want to do this.
+        to n points (when necessary), you probably don't want to do this.
         '''
         n = numpoints
         if n is None or n < 2:
@@ -951,7 +951,7 @@ class MultistrokeGesture(object):
             # Handle a theoretical case where a MultistrokeGesture is composed
             # manually and the orientation_sensitive flag is True, and contains
             # a UnistrokeTemplate that has orientation_sensitive=False (or vice
-            # versa). This would cause KeyError - requesing nonexistant vector.
+            # versa). This would cause KeyError - requesting nonexistant vector.
             if tpl.orientation_sens:
                 if skip_bounded:
                     continue
@@ -1093,7 +1093,7 @@ class UnistrokeTemplate(object):
 
     .. Note::
         You will get an exception if you set a skip-flag and then attempt to
-        retrieve those vectorsa.
+        retrieve those vectors.
     '''
     def __init__(self, name, points=None, **kwargs):
         self.name = name

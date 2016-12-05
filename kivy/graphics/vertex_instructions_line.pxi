@@ -15,6 +15,7 @@ DEF LINE_MODE_ROUNDED_RECTANGLE = 4
 DEF LINE_MODE_BEZIER = 5
 
 from kivy.graphics.stencil_instructions cimport StencilUse, StencilUnUse, StencilPush, StencilPop
+import itertools
 
 cdef float PI = 3.1415926535
 
@@ -58,7 +59,7 @@ cdef class Line(VertexInstruction):
         `dash_length`: int
             Length of a segment (if dashed), defaults to 1.
         `dash_offset`: int
-            Offset between the end of a segment and the begining of the
+            Offset between the end of a segment and the beginning of the
             next one, defaults to 0. Changing this makes it dashed.
         `width`: float
             Width of the line, defaults to 1.0.
@@ -660,8 +661,6 @@ cdef class Line(VertexInstruction):
         free(vertices)
         free(indices)
 
-
-
     property points:
         '''Property for getting/settings points of the line
 
@@ -672,8 +671,13 @@ cdef class Line(VertexInstruction):
         '''
         def __get__(self):
             return self._points
+
         def __set__(self, points):
-            self._points = list(points)
+            if points and isinstance(points[0], (list, tuple)):
+                self._points = list(itertools.chain(*points))
+            else:
+                self._points = list(points)
+
             self.flag_update()
 
     property dash_length:
@@ -985,8 +989,7 @@ cdef class Line(VertexInstruction):
         '''Use this property to build a rectangle, without calculating the
         :attr:`points`. You can only set this property, not get it.
 
-        The argument must be a tuple of (x, y, width, height)
-        angle_end, segments):
+        The argument must be a tuple of (x, y, width, height):
 
         * x and y represent the bottom-left position of the rectangle
         * width and height represent the size
@@ -1044,7 +1047,7 @@ cdef class Line(VertexInstruction):
         * x and y represent the bottom-left position of the rectangle
         * width and height represent the size
         * corner_radius is the number of pixels between two borders and the center of the circle arc joining them
-        * resolution is the numper of line segment that will be used to draw the circle arc at each corner (defaults to 30)
+        * resolution is the number of line segment that will be used to draw the circle arc at each corner (defaults to 30)
 
         The line is automatically closed.
 

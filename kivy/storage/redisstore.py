@@ -12,7 +12,7 @@ Usage example::
     store = RedisStore(params)
 
 All the key-value pairs will be stored with a prefix 'store' by default.
-You can instanciate the storage with another prefix like this::
+You can instantiate the storage with another prefix like this::
 
 
     from kivy.storage.redisstore import RedisStore

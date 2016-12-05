@@ -1,7 +1,9 @@
 .coverage
 .noseids
 Kivy.egg-info
+Kivy-*.dist-info
 *.so
+*.pyd
 *.pyc
 *.pyo
 *.py#
@@ -16,6 +18,8 @@ doc/sources/api-*.rst
 doc/sources/examples/gen__*.rst
 doc/sources/examples/gallery.rst
 doc/sources/examples/index.rst
+examples/*/bin
+examples/*/.buildozer
 kivy/*.c
 kivy/*.pyd
 kivy/core/text/text_layout.c
@@ -41,6 +45,9 @@ python.exe
 .idea
 dist
 htmlcov
+kivy/deps/*
+!kivy/deps/__init__.py
+kivy.deps*
 
 MANIFEST
 
@@ -63,6 +70,8 @@ kivy/core/window/_window_sdl2.c
 # Virtualenv
 venv
 
+# Emacs
+.projectile
 
 kivy/setupconfig.py
 

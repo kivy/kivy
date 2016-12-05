@@ -7,14 +7,17 @@ Scissor Instructions
 
 Scissor instructions clip your drawing area into a rectangular region.
 
-- class:`ScissorPush`: Begins clipping, sets the bounds of the clip space
-- class:`ScissorPop`: Ends clipping
+- :class:`ScissorPush`: Begins clipping, sets the bounds of the clip space
+- :class:`ScissorPop`: Ends clipping
+
 The area provided to clip is in screenspace pixels and must be provided as
 integer values not floats.
 
 The following code will draw a circle ontop of our widget while clipping
 the circle so it does not expand beyond the widget borders.
+
 .. code-block:: python
+
     with self.canvas.after:
         #If our widget is inside another widget that modified the coordinates
         #spacing (such as ScrollView) we will want to convert to Window coords
@@ -34,6 +37,8 @@ include "config.pxi"
 include "opcodes.pxi"
 
 from kivy.graphics.c_opengl cimport *
+IF USE_OPENGL_MOCK == 1:
+    from kivy.graphics.c_opengl_mock cimport *
 IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
 from kivy.graphics.instructions cimport Instruction

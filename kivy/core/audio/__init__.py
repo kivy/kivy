@@ -13,15 +13,26 @@ Load an audio sound and play it with::
         sound.play()
 
 You should not use the Sound class directly. The class returned by
-**SoundLoader.load** will be the best sound provider for that particular file
-type, so it might return different Sound classes depending the file type.
+:func:`SoundLoader.load` will be the best sound provider for that particular
+file type, so it might return different Sound classes depending the file type.
+
+Event dispatching and state changes
+-----------------------------------
+
+Audio is often processed in parallel to your code. This means you often need to
+enter the Kivy :func:`eventloop <kivy.base.EventLoopBase>` in order to allow
+events and state changes to be dispatched correctly.
+
+You seldom need to worry about this as Kivy apps typically always
+require this event loop for the GUI to remain responsive, but it is good to
+keep this in mind when debugging or running in a
+`REPL <https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop>`_
+(Read-eval-print loop).
 
 .. versionchanged:: 1.8.0
     There are now 2 distinct Gstreamer implementations: one using Gi/Gst working
     for both Python 2+3 with Gstreamer 1.0, and one using PyGST working
     only for Python 2 + Gstreamer 0.10.
-    If you have issue with GStreamer, have a look at
-    :ref:`gstreamer-compatibility`
 
 .. note::
 
@@ -39,9 +50,11 @@ from kivy.core import core_register_libs
 from kivy.compat import PY2
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, NumericProperty, OptionProperty, \
-    AliasProperty, BooleanProperty
+    AliasProperty, BooleanProperty, BoundedNumericProperty
 from kivy.utils import platform
 from kivy.setupconfig import USE_SDL2
+
+from sys import float_info
 
 
 class SoundLoader:
@@ -80,9 +93,9 @@ class Sound(EventDispatcher):
     Use SoundLoader to load a sound.
 
     :Events:
-        `on_play` : None
+        `on_play`: None
             Fired when the sound is played.
-        `on_stop` : None
+        `on_stop`: None
             Fired when the sound is stopped.
     '''
 
@@ -102,6 +115,16 @@ class Sound(EventDispatcher):
     .. versionadded:: 1.3.0
 
     :attr:`volume` is a :class:`~kivy.properties.NumericProperty` and defaults
+    to 1.
+    '''
+
+    pitch = BoundedNumericProperty(1., min=float_info.epsilon)
+    '''Pitch of a sound. 2 is an octave higher, .5 one below. This is only
+    implemented for SDL2 audio provider yet.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`pitch` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 1.
     '''
 
@@ -210,4 +233,4 @@ if USE_SDL2:
 else:
     audio_libs += [('pygame', 'audio_pygame')]
 
-core_register_libs('audio', audio_libs)
+libs_loaded = core_register_libs('audio', audio_libs)

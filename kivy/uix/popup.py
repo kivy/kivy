@@ -125,7 +125,7 @@ class Popup(ModalView):
     .. versionadded:: 1.9.0
 
     :attr:`title_align` is a :class:`~kivy.properties.OptionProperty` and
-    defaults to 'left'. Available options are left, middle, right and justify.
+    defaults to 'left'. Available options are left, center, right and justify.
     '''
 
     title_font = StringProperty('Roboto')

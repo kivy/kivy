@@ -35,14 +35,34 @@ class StorageTestCase(unittest.TestCase):
         finally:
             unlink(tmpfn)
 
+        try:
+            tmpfd, tmpfn = mkstemp('.json')
+            close(tmpfd)
+            self._do_store_test_empty(JsonStore(tmpfn, indent=2))
+            self._do_store_test_filled(JsonStore(tmpfn, indent=2))
+        finally:
+            unlink(tmpfn)
+
+        try:
+            tmpfd, tmpfn = mkstemp('.json')
+            close(tmpfd)
+            self._do_store_test_empty(JsonStore(tmpfn, sort_keys=True))
+            self._do_store_test_filled(JsonStore(tmpfn, sort_keys=True))
+        finally:
+            unlink(tmpfn)
+
     def test_redis_storage(self):
         if os.environ.get('NONETWORK'):
             return
         try:
             from kivy.storage.redisstore import RedisStore
-            params = dict(db=15)
-            self._do_store_test_empty(RedisStore(params))
-            self._do_store_test_filled(RedisStore(params))
+            from redis.exceptions import ConnectionError
+            try:
+                params = dict(db=15)
+                self._do_store_test_empty(RedisStore(params))
+                self._do_store_test_filled(RedisStore(params))
+            except ConnectionError:
+                pass
         except ImportError:
             pass
 

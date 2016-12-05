@@ -6,7 +6,6 @@ from distutils.cmd import Command
 import fnmatch
 import os
 import kivy
-import types
 
 ignore_list = (
     'kivy.lib',
@@ -55,7 +54,7 @@ class FactoryBuild(Command):
                     if module.startswith(ignore):
                         ignore = True
                         break
-                if ignore is True:
+                if ignore:
                     #print('<<< ignored (ignore list)')
                     continue
 
