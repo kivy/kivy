@@ -2823,14 +2823,15 @@ class TextInput(FocusBehavior, Widget):
         if not MarkupLabel:
             from kivy.core.text.markup import MarkupLabel
 
-        if self.canvas is None:
+        cursor_row = self.cursor_row
+        if cursor_row >= len(self._lines) or self.canvas is None:
             return
 
         cursor_pos = self.cursor_pos
-        txt = self._lines[self.cursor_row]
-        cr = self.cursor_row
+        txt = self._lines[cursor_row]
+
         kw = self._get_line_options()
-        rct = self._lines_rects[cr]
+        rct = self._lines_rects[cursor_row]
 
         lbl = text = None
         if value:
@@ -2842,7 +2843,7 @@ class TextInput(FocusBehavior, Widget):
 
         lbl.refresh()
 
-        self._lines_labels[cr] = lbl.texture
+        self._lines_labels[cursor_row] = lbl.texture
         rct.size = lbl.size
         self._update_graphics()
 
