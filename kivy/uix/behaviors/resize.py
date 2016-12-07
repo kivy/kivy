@@ -78,14 +78,20 @@ __all__ = ('ResizableBehavior', )
 
 
 class ModalViewModified(ModalView):
+    '''
+    The ModalViewModified is the parent of ResizableCursor
+
+    .. versionadded:: 1.9.2
+    '''
+
     last_opened = 0.0
 
     def __init__(self, **kwargs):
         super(ModalViewModified, self).__init__(**kwargs)
         self.auto_dismiss = False
         self.size_hint = (None, None)
-        self.background = 'data/images/resizable/transparent.png'
         self.background_color = (0, 0, 0, 0)
+        self.pos = (-9999, -9999)
         self.cursor = ResizableCursor()
         self.add_widget(self.cursor)
         self.open()
@@ -126,13 +132,13 @@ class ResizableCursor(Widget):
     .. versionadded:: 1.9.2
     '''
 
-    hidden = BooleanProperty(False)
+    hidden = BooleanProperty(True)
     '''State of cursors visibility
     It is switched to True when mouse is inside the widgets resize border
     and False when it isn't.
 
     :attr:`hidden` is a :class:`~kivy.properties.BooleanProperty` and
-    defaults to False.
+    defaults to True.
     '''
 
     resize_icon_paths = ListProperty([
@@ -168,10 +174,10 @@ class ResizableCursor(Widget):
         super(ResizableCursor, self).__init__(**kwargs)
         self.size_hint = (None, None)
         self.pos_hint = (None, None)
-        self.source = self.resize_icon_paths[4]
-        self.rect = Rectangle(pos=(0, 0), size=(1, 1), source=self.source)
+        self.source = ''
+        self.rect = Rectangle(pos=(-9998,-9998), size=(1, 1))
         self.size = (dp(22), dp(22))
-        self.pos = [-9999, -9999]
+        self.pos = [-9998, -9998]
 
         # Makes an instruction group with a rectangle and
         # loads an image inside it
@@ -188,10 +194,15 @@ class ResizableCursor(Widget):
         self.rect.size = val
 
     def on_hidden(self, obj, val):
-        self.parent.on_hidden(val)
+        if not self.disabled:
+            self.parent.on_hidden(val)
+            if val:
+                Window.show_cursor = True
+            else:
+                Window.show_cursor = False
 
     def on_mouse_move(self, val):
-        if self.hidden:
+        if self.hidden or self.disabled or not self.source:
             if self.pos[0] != -9999:
                 self.pos[0] = -9999
         else:
@@ -201,6 +212,8 @@ class ResizableCursor(Widget):
     def change_side(self, left, right, up, down):
         # Changes images when ResizableBehavior.hovering_resizable
         # state changes
+        if self.disabled:
+            return
         if not self.hidden and self.sides != (left, right, up, down):
             if left and up or right and down:
                 self.source = self.resize_icon_paths[1]
@@ -221,6 +234,10 @@ class ResizableCursor(Widget):
     def ungrab(self, wid):
         if self.grabbed_by == wid:
             self.grabbed_by = None
+
+    def on_disabled(self, obj, val):
+        if not val:
+            Window.show_cursor = True
 
 
 class ResizableBehavior(object):
@@ -251,6 +268,17 @@ class ResizableBehavior(object):
 
     :attr:`resizable_border` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 20 dp.
+    '''
+
+    resizable_border_offset = NumericProperty(0)
+    '''Positive values move the resizable_border outside of the widget
+    and negative values put it closer to the center of the widget.
+    A value of resizable_border * 0.5 will center it on the widgets border,
+    which is the most expected behavior, but can sometimes interfere with
+    nearby widgets.
+
+    :attr:`resizable_border_offset` is a
+    :class:`~kivy.properties.NumericProperty` and defaults to 0.
     '''
 
     min_resizable_width = NumericProperty(0)
@@ -397,11 +425,9 @@ class ResizableBehavior(object):
         self.oldpos, self.oldsize = [], []
 
     def on_enter_resizable(self):
-        Window.show_cursor = False
         self.cursor.hidden = False
 
     def on_leave_resizable(self):
-        Window.show_cursor = True
         self.cursor.hidden = True
 
     def on_mouse_move(self, pos):
@@ -420,30 +446,34 @@ class ResizableBehavior(object):
     def check_resizable_side(self, x, y):
         # Add small performance increase when distance is too high
         # for possible hovering
-        if abs(self.x - x) > self.width:
+        if abs(self.x - x) > self.width + self.resizable_border_offset:
             return False
-        elif abs(self.y - y) > self.height:
+        elif abs(self.y - y) > self.height + self.resizable_border_offset:
             return False
 
+        startx = self.x - self.resizable_border_offset
+        endx = self.right + self.resizable_border_offset
+        starty = self.y - self.resizable_border_offset
+        endy = self.top + self.resizable_border_offset
         if self.resizable_left:
             self.resizing_left = False
-            if self.x <= x <= self.x + self.resizable_border:
-                if self.y <= y <= self.top:
+            if startx <= x <= startx + self.resizable_border:
+                if starty <= y <= endy:
                     self.resizing_left = True
         if self.resizable_right and not self.resizing_left:
             self.resizing_right = False
-            if self.right - self.resizable_border <= x <= self.right:
-                if self.y <= y <= self.top:
+            if endx - self.resizable_border <= x <= endx:
+                if starty <= y <= endy:
                     self.resizing_right = True
         if self.resizable_up:
             self.resizing_up = False
-            if self.top - self.resizable_border <= y <= self.top:
-                if self.x <= x <= self.right:
+            if endy - self.resizable_border <= y <= endy:
+                if startx <= x <= endx:
                     self.resizing_up = True
         if self.resizable_down and not self.resizing_up:
             self.resizing_down = False
-            if self.y <= y <= self.y + self.resizable_border:
-                if self.x <= x <= self.right:
+            if starty <= y <= starty + self.resizable_border:
+                if startx <= x <= endx:
                     self.resizing_down = True
 
         if any((self.resizing_left, self.resizing_right,
@@ -472,7 +502,6 @@ class ResizableBehavior(object):
         self.oldpos = list(self.pos)
         self.oldsize = list(self.size)
         self.resizing = True
-        Window.show_cursor = False
         self.cursor.grab(self)
         return True
 
@@ -562,12 +591,12 @@ class ResizableBehavior(object):
         self.resizing_left = False
         self.resizing_down = False
         self.resizing_up = False
-        Window.show_cursor = True
         self.cursor.ungrab(self)
-        self.cursor.hidden = True
+        self.on_mouse_move(touch.pos)
         return True
 
     def on_resize_lock(self, obj, locked):
+        'Resets behavior to default values when resizing is locked'
         if locked:
             self.resizing = False
             self.resizing_right = False
@@ -593,3 +622,14 @@ class ResizableBehavior(object):
         self.cursor.resize_icon_paths[1] = deg45
         self.cursor.resize_icon_paths[2] = deg90
         self.cursor.resize_icon_paths[3] = deg135
+
+    def set_cursor_mode(self, value):
+        '''Method takes expects one integer
+        0 - Disables the resize cursor
+        1 - Default mode, os cursor is hidden and replaced with resize cursor
+        when mouse position enters widgets resizable_border
+        '''
+        if value == 0 and not self.cursor.disabled:
+            self.cursor.disabled = True
+        elif value == 1 and self.cursor.disabled:
+            self.cursor.disabled = False
