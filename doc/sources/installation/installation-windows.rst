@@ -25,6 +25,9 @@ be installed for each Python version that you want to use Kivy.
 
 .. _install-win-dist:
 
+.. |nowinfound| replace:: issues
+.. _nowinfound: https://github.com/kivy/kivy/issues/3957
+
 Installation
 ------------
 
@@ -44,6 +47,10 @@ is available by typing ``python --version``. Then, do the following to install.
 #. Install kivy::
 
      python -m pip install kivy
+
+#. Add deps to PATH to avoid |nowinfound|_ (run in folder with `python.exe`)::
+
+     set PATH=%PATH%;%cd%\share\sdl2\bin;%cd%\share\glew\bin
      
 That's it. You should now be able to ``import kivy`` in python.
 
@@ -70,13 +77,13 @@ To use them, instead of doing ``python -m pip install kivy`` we'll install one o
 these wheels as follows.
 
 .. |cp27_win32| replace:: Python 2.7, 32bit
-.. _cp27_win32: https://drive.google.com/uc?id=0B-ydZwFoA2uQckNqaXhqMDZEQlk
+.. _cp27_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2-cp27-cp27m-win32.whl
 .. |cp34_win32| replace:: Python 3.4, 32bit
-.. _cp34_win32: https://drive.google.com/uc?id=0B-ydZwFoA2uQYXhBQ2xlenR3M0k
+.. _cp34_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2-cp34-cp34m-win32.whl
 .. |cp27_amd64| replace:: Python 2.7, 64bit
-.. _cp27_amd64: https://drive.google.com/uc?id=0B-ydZwFoA2uQOGtScEhxVHFxUDQ
+.. _cp27_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2-cp27-cp27m-win_amd64.whl
 .. |cp34_amd64| replace:: Python 3.4, 64bit
-.. _cp34_amd64: https://drive.google.com/uc?id=0B-ydZwFoA2uQV3hDa0lZNm1WYlE
+.. _cp34_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2-cp34-cp34m-win_amd64.whl
 
 - |cp27_win32|_
 - |cp34_win32|_
