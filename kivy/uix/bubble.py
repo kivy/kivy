@@ -80,6 +80,9 @@ class BubbleButton(Button):
     Rather use this BubbleButton widget that is already defined and provides a
     suitable background for you.
     '''
+    def __init__(self, **kwargs):
+        super(BubbleButton, self).__init__(**kwargs)
+        self.always_release = BooleanProperty(False)
     pass
 
 
