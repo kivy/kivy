@@ -254,7 +254,7 @@ Compile Kivy
 2. Set correct paths for binaries (located in ``share\sdl2`` and
    ``share\glew``) and run. ::
 
-    set PATH=%PATH%;%cd%\share\sdl2;%cd%\share\glew
+    set PATH=%PATH%;%cd%\share\sdl2\bin;%cd%\share\glew\bin
 
 Kivy was successfully installed into `site-packages` and you can delete
 the clone. There's a tricky part about SDL2 now, because for 3.5 weren't
