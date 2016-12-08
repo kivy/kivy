@@ -250,7 +250,7 @@ build_script:
 
       echo "Wheel file: $env:WHEEL_DIR\$WHEEL_FNAME"
       Check-Error
-      $NEW_WHEEL_FNAME = python -c "print('$WHEEL_FNAME'.replace('_dev0','').replace('.$WHEEL_DATE', '').replace('.$GIT_TAG`', ''))"
+      $NEW_WHEEL_FNAME = python -c "print('$WHEEL_FNAME'.replace('_dev0','.dev0').replace('.$WHEEL_DATE', '').replace('.$GIT_TAG`', ''))"
       Check-Error
 
       echo "Copying from $WHEEL_FNAME to nightly $NEW_WHEEL_FNAME"
