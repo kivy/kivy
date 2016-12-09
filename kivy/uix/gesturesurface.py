@@ -362,7 +362,7 @@ class GestureSurface(FloatLayout):
         bounding box of another gesture - if so, they should be merged.'''
         if touch.grab_current is not self:
             return
-        if not self.collide_point(touch.y, touch.y):
+        if not self.collide_point(touch.x, touch.y):
             return
 
         # Retrieve the GestureContainer object that handles this touch, and
