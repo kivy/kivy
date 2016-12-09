@@ -77,13 +77,13 @@ To use them, instead of doing ``python -m pip install kivy`` we'll install one o
 these wheels as follows.
 
 .. |cp27_win32| replace:: Python 2.7, 32bit
-.. _cp27_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2-cp27-cp27m-win32.whl
+.. _cp27_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp27-cp27m-win32.whl
 .. |cp34_win32| replace:: Python 3.4, 32bit
-.. _cp34_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2-cp34-cp34m-win32.whl
+.. _cp34_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp34-cp34m-win32.whl
 .. |cp27_amd64| replace:: Python 2.7, 64bit
-.. _cp27_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2-cp27-cp27m-win_amd64.whl
+.. _cp27_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp27-cp27m-win_amd64.whl
 .. |cp34_amd64| replace:: Python 3.4, 64bit
-.. _cp34_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2-cp34-cp34m-win_amd64.whl
+.. _cp34_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp34-cp34m-win_amd64.whl
 
 - |cp27_win32|_
 - |cp34_win32|_
