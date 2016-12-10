@@ -308,7 +308,7 @@ class CompoundSelectionBehavior(object):
             return False
 
         if (node in self.selected_nodes and (not range_select)):  # selected
-            if ((not multi) or multiselect):
+            if multiselect:
                 self.deselect_node(node)
             else:
                 self.clear_selection()
