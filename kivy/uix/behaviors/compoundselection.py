@@ -312,7 +312,6 @@ class CompoundSelectionBehavior(object):
                 self.deselect_node(node)
             else:
                 self.clear_selection()
-                self.select_node(node)
         elif range_select:
             # keep anchor only if not multiselect (ctrl-type selection)
             self._select_range(multiselect, not multiselect, node, 0)
