@@ -227,7 +227,6 @@ class Selector(ButtonBehavior, Image):
 
     def __init__(self, **kwargs):
         super(Selector, self).__init__(**kwargs)
-        self.window.bind(on_touch_down=self.on_window_touch_down)
         self.matrix = self.target.get_window_matrix()
 
         with self.canvas.before:
@@ -250,7 +249,8 @@ class Selector(ButtonBehavior, Image):
         touch.apply_transform_2d(
             lambda x, y: matrix.transform_point(x, y, 0)[:2])
 
-    def on_window_touch_down(self, win, touch):
+    def on_touch_down(self, touch):
+        win = EventLoop.window
         if self.parent is not win:
             return
 
