@@ -311,8 +311,10 @@ class CompoundSelectionBehavior(object):
             if multiselect:
                 self.deselect_node(node)
             else:
+                len_selected_node = len(self.selected_nodes)
                 self.clear_selection()
-                self.select_node(node)
+                if len_selected_node > 1:
+                    self.select_node(node)
         elif range_select:
             # keep anchor only if not multiselect (ctrl-type selection)
             self._select_range(multiselect, not multiselect, node, 0)
