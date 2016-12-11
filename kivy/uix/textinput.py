@@ -2616,6 +2616,15 @@ class TextInput(FocusBehavior, Widget):
     defaults to [1, 0, 0, 1].
     '''
 
+    cursor_width = NumericProperty('1sp')
+    '''Current width of the cursor.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`cursor_width` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to '1sp'.
+    '''
+
     line_height = NumericProperty(1)
     '''Height of a line. This property is automatically computed from the
     :attr:`font_name`, :attr:`font_size`. Changing the line_height will have
