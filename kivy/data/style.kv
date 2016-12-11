@@ -659,7 +659,7 @@
                     width:
                         (self.temp_width if self.temp_height <= self.height else \
                         self.temp_width * (self.height / self.temp_height)) \
-                        if self.texture else dp(8)
+                        if self.texture and root.app_icon else 0
                     mipmap: root.mipmap
                 Widget:
                     size_hint_x: None
