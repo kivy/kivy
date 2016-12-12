@@ -8,7 +8,7 @@ import sys
 
 from copy import deepcopy
 import os
-from os.path import join, dirname, sep, exists, basename, isdir
+from os.path import join, dirname, sep, exists, basename, isdir, isfile
 from os import walk, environ
 from distutils.version import LooseVersion
 from collections import OrderedDict
@@ -425,31 +425,64 @@ if platform not in ('ios', 'android') and (c_options['use_gstreamer']
 sdl2_flags = {}
 if c_options['use_sdl2'] or (
         platform not in ('android',) and c_options['use_sdl2'] is None):
-
     if c_options['use_osx_frameworks'] and platform == 'darwin':
         # check the existence of frameworks
+        sdl2_flags = {}
+        sdl2_flags['include_dirs'] = []
+        sdl2_flags['extra_link_args'] = []
+
         sdl2_valid = True
-        sdl2_flags = {
-            'extra_link_args': [
-                '-F/Library/Frameworks',
-                '-Xlinker', '-rpath',
-                '-Xlinker', '/Library/Frameworks',
-                '-Xlinker', '-headerpad',
-                '-Xlinker', '190'],
-            'include_dirs': [],
-            'extra_compile_args': ['-F/Library/Frameworks']
-        }
         for name in ('SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer'):
             f_path = '/Library/Frameworks/{}.framework'.format(name)
             if not exists(f_path):
                 print('Missing framework {}'.format(f_path))
                 sdl2_valid = False
                 continue
+
             sdl2_flags['extra_link_args'] += ['-framework', name]
             sdl2_flags['include_dirs'] += [join(f_path, 'Headers')]
             print('Found sdl2 frameworks: {}'.format(f_path))
+
             if name == 'SDL2_mixer':
                 _check_and_fix_sdl2_mixer(f_path)
+
+        if sdl2_valid:
+            sdl2_flags['extra_link_args'] += ['-F/Library/Frameworks',
+                                              '-Xlinker', '-rpath',
+                                              '-Xlinker',
+                                              '/Library/Frameworks',
+                                              '-Xlinker', '-headerpad',
+                                              '-Xlinker', '190']
+            sdl2_flags['extra_compile_args'] = ['-F/Library/Frameworks']
+        else:
+            # Maybe sdl2 is installed via Homebrew
+            sdl2_valid = True
+
+            if os.system('which brew') != 0:
+                print('Homebrew not installed')
+                sdl2_valid = False
+            else:
+                homebrew_repo = ([l for l
+                                  in os.popen('brew config').readlines()
+                                  if l.startswith('HOMEBREW_REPOSITORY')][0]
+                                 .split(':')[1].strip())
+                homebrew_lib = join(homebrew_repo, 'lib')
+                homebrew_inc = join(homebrew_repo, 'include')
+
+                for name in ('SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer'):
+                    lib_name = 'lib{}.dylib'.format(name)
+                    if not isfile(join(homebrew_lib, lib_name)):
+                        print('Missing library {}'.format(lib_name))
+                        sdl2_valid = False
+                        continue
+
+                    print('Found library {}'.format(lib_name))
+                    sdl2_flags['extra_link_args'] += ['-l{}'.format(name)]
+
+                if sdl2_valid:
+                    c_options['use_osx_frameworks'] = False
+                    sdl2_flags['include_dirs'] += [join(homebrew_inc, 'SDL2')]
+                    sdl2_flags['extra_link_args'] += ['-L', homebrew_lib]
 
         if not sdl2_valid:
             c_options['use_sdl2'] = False
@@ -823,9 +856,8 @@ if c_options['use_x11']:
             # cause keytab is included in core, and core is included in
             # window_x11
             #
-            #'depends': [
-            #    'core/window/window_x11_keytab.c',
-            #    'core/window/window_x11_core.c'],
+            # 'depends': ['core/window/window_x11_keytab.c',
+            #             'core/window/window_x11_core.c'],
             'libraries': libs})
 
 if c_options['use_gstreamer']:
@@ -960,7 +992,7 @@ setup(
         'kivy.tools.extensions',
         'kivy.uix',
         'kivy.uix.behaviors',
-        'kivy.uix.recycleview',],
+        'kivy.uix.recycleview'],
     package_dir={'kivy': 'kivy'},
     package_data={'kivy': [
         '*.pxd',
