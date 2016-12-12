@@ -91,8 +91,6 @@ class RecycleBoxLayout(RecycleLayout, BoxLayout):
                         xo = posx - (w / 2.)
                 opt['pos'] = [xo, yo]
 
-        return relayout
-
     def compute_layout(self, data, flags):
         super(RecycleBoxLayout, self).compute_layout(data, flags)
 
