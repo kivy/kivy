@@ -906,7 +906,7 @@ cdef class Line(VertexInstruction):
 
 
     property circle:
-        '''Use this property to build a circle, without calculate the
+        '''Use this property to build a circle, without calculating the
         :attr:`points`. You can only set this property, not get it.
 
         The argument must be a tuple of (center_x, center_y, radius, angle_start,
@@ -915,9 +915,9 @@ cdef class Line(VertexInstruction):
         * center_x and center_y represent the center of the circle
         * radius represent the radius of the circle
         * (optional) angle_start and angle_end are in degree. The default
-            value is 0 and 360.
+          value is 0 and 360.
         * (optional) segments is the precision of the ellipse. The default
-            value is calculated from the range between angle.
+          value is calculated from the range between angle.
 
         Note that it's up to you to :attr:`close` the circle or not.
 
