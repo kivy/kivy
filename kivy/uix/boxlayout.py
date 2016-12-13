@@ -127,7 +127,6 @@ class BoxLayout(Layout):
     only.
     '''
 
-
     def __init__(self, **kwargs):
         super(BoxLayout, self).__init__(**kwargs)
         update = self._trigger_layout
@@ -200,7 +199,6 @@ class BoxLayout(Layout):
                     minimum_size_x = max(minimum_size_x, w)
                 elif shw_min:
                     minimum_size_x = max(minimum_size_x, shw_min)
-
 
             minimum_size_y = minimum_size_bounded + minimum_size_none
             minimum_size_x += padding_x
