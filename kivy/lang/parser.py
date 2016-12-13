@@ -49,6 +49,9 @@ lang_cls_split_pat = re.compile(', *')
 # widget is deleted
 _handlers = defaultdict(partial(defaultdict, list))
 
+# global msg for premature EOL
+eol_msg = 'Consider escaping new-line characters (\\n)'
+
 
 class ProxyApp(object):
     # proxy app object
@@ -175,13 +178,27 @@ class ParserRuleProperty(object):
         if mode == 'eval':
             # if we don't detect any string/key in it, we can eval and give the
             # result
+            if re.search(lang_key, tmp) is None and value in ["'", '"']:
+                try:
+                    self.co_value = eval(value)
+                except SyntaxError as e:
+                    raise ParserException(
+                        self.ctx, self.line,
+                        '\n'.join([str(e), eol_msg]))
+                return
             if re.search(lang_key, tmp) is None:
                 self.co_value = eval(value)
                 return
 
         # ok, we can compile.
         value = '\n' * self.line + value
-        self.co_value = compile(value, self.ctx.filename or '<string>', mode)
+        try:
+            self.co_value = compile(
+                value, self.ctx.filename or '<string>', mode)
+        except SyntaxError as e:
+            raise ParserException(
+                self.ctx, self.line,
+                '\n'.join([str(e), eol_msg]))
 
         # for exec mode, we don't need to watch any keys.
         if mode == 'exec':
@@ -295,9 +312,16 @@ class ParserRule(object):
             self._build_template()
         else:
             if self.ctx.root is not None:
-                raise ParserException(
-                    self.ctx, self.line,
-                    'Only one root object is allowed by .kv')
+                err_msg = 'Only one root object is allowed by .kv'
+                sc_previous = self.ctx.sourcecode[self.line - 1]
+                sc_current = self.ctx.sourcecode[self.line]
+
+                for quote in ["'", '"', "''", '""']:
+                    if sc_previous.count(quote) == sc_current.count(quote):
+                        raise ParserException(
+                            self.ctx, self.line,
+                            '\n'.join([err_msg, eol_msg]))
+                raise ParserException(self.ctx, self.line, err_msg)
             self.ctx.root = self
 
     def _build_rule(self):
@@ -353,7 +377,7 @@ class ParserRule(object):
             raise ParserException(self.ctx, self.line,
                                   'Invalid template (must be inside [])')
         item_content = name[1:-1]
-        if not '@' in item_content:
+        if '@' not in item_content:
             raise ParserException(self.ctx, self.line,
                                   'Invalid template name (missing @)')
         template_name, template_root_cls = item_content.split('@')
@@ -428,17 +452,17 @@ class Parser(object):
                     break
                 if ref in __KV_INCLUDES__:
                     if not os.path.isfile(resource_find(ref) or ref):
-                        raise ParserException(self, ln,
-                                              'Invalid or unknown file: {0}'
-                                              .format(ref))
+                        raise ParserException(
+                            self, ln,
+                            'Invalid or unknown file: {0}'.format(ref))
                     if not force_load:
                         Logger.warn('Lang: {0} has already been included!'
                                     .format(ref))
                         continue
                     else:
-                        Logger.debug('Lang: Reloading {0} ' +
-                                     'because include was forced.'
-                                     .format(ref))
+                        Logger.debug(
+                            'Lang: Reloading {0} because include was forced.'
+                            .format(ref))
                         kivy.lang.builder.Builder.unload_file(ref)
                         kivy.lang.builder.Builder.load_file(ref)
                         continue
@@ -548,10 +572,20 @@ class Parser(object):
             count = len(tmp)
 
             if spaces > 0 and count % spaces != 0:
-                raise ParserException(self, ln,
-                                      'Invalid indentation, '
-                                      'must be a multiple of '
-                                      '%s spaces' % spaces)
+                err_msg = ('Invalid indentation, '
+                           'must be a multiple of '
+                           '%s spaces' % spaces)
+                print repr(lines), '___', repr(line)
+                sc_current = line
+                sc_previous = lines[lines.index(line) - 1]
+                print sc_current, sc_previous
+
+                for quote in ["'", '"', "''", '""']:
+                    if sc_previous.count(quote) == sc_current.count(quote):
+                        raise ParserException(
+                            self, ln,
+                            '\n'.join([err_msg, eol_msg]))
+                raise ParserException(self, ln, err_msg)
             content = content.strip()
             rlevel = count // spaces if spaces > 0 else 0
 
@@ -717,7 +751,7 @@ class ParserSelectorName(ParserSelector):
     def match(self, widget):
         parents = ParserSelectorName.parents
         cls = widget.__class__
-        if not cls in parents:
+        if cls not in parents:
             classes = [x.__name__.lower() for x in
                        [cls] + list(self.get_bases(cls))]
             parents[cls] = classes
