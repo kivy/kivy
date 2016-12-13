@@ -140,12 +140,15 @@ apply_selection` method will be called everything the view needs to refresh
                                                      RecycleDataViewBehavior)
 
         if _view_base_cache[viewclass]:
-            view.apply_selection(self.recycleview, index, is_selected)
+            if view.selected != is_selected:
+                view.apply_selection(self.recycleview, index, is_selected)
 
     def refresh_view_layout(self, index, layout, view, viewport):
         super(LayoutSelectionBehavior, self).refresh_view_layout(
             index, layout, view, viewport)
-        self.apply_selection(index, view, index in self.selected_nodes)
+        is_selected = index in self.selected_nodes
+        if view.selected != is_selected:
+            self.apply_selection(index, view, is_selected)
 
 
 class RecycleLayoutManagerBehavior(object):
