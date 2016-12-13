@@ -190,7 +190,7 @@ class FileHandler(logging.Handler):
         if PY2:
             try:
                 if (isinstance(msg, unicode) and
-                    getattr(stream, 'encoding', None)):
+                        getattr(stream, 'encoding', None)):
                     ufs = u'%s\n'
                     try:
                         stream.write(ufs % msg)
@@ -299,7 +299,7 @@ class LogFile(object):
 
     def flush(self):
         return
-    
+
     def isatty(self):
         return False
 
@@ -337,7 +337,8 @@ if 'KIVY_NO_CONSOLELOG' not in os.environ:
                 'rxvt-unicode-256color',
                 'xterm',
                 'xterm-256color',
-                ))
+            )
+        )
         if not use_color:
             # No additional control characters will be inserted inside the
             # levelname field, 7 chars will fit "WARNING"
