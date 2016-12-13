@@ -554,7 +554,7 @@ class ActionView(BoxLayout):
         if total_width < self.width:
             for group in self._list_action_group:
                 if group.pack_width + total_width +\
-                   group.separator_width < width:
+                        group.separator_width < width:
                     super_add(group)
                     group.show_group()
                     total_width += (group.pack_width +
