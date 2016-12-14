@@ -80,7 +80,7 @@ class ClipboardAndroid(ClipboardBase):
         clippy = PythonActivity._clipboard
 
         if sdk < 11:
-            #versions previous to honeycomb
+            # versions previous to honeycomb
             clippy.setText(AndroidString(data))
         else:
             ClipData = autoclass('android.content.ClipData')

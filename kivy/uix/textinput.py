@@ -861,7 +861,7 @@ class TextInput(FocusBehavior, Widget):
             self._delete_line(cr)
             start = cr - 1
         else:
-            #ch = text[cc-1]
+            # ch = text[cc-1]
             substring = text[cc - 1]
             new_text = text[:cc - 1] + text[cc:]
             self._set_line_text(cr, new_text)
@@ -888,7 +888,7 @@ class TextInput(FocusBehavior, Widget):
         self._undo.append({
             'undo_command': ('bkspc', new_index, substring),
             'redo_command': ol_index})
-        #reset redo when undo is appended to
+        # reset redo when undo is appended to
         self._redo = []
 
     _re_whitespace = re.compile(r'\s+')
@@ -1257,7 +1257,7 @@ class TextInput(FocusBehavior, Widget):
             # allows smoother scrolling, noticeably
             # faster when dealing with large text.
             self._update_graphics_selection()
-            #self._trigger_update_graphics()
+            # self._trigger_update_graphics()
 
     #
     # Touch control
@@ -1806,7 +1806,7 @@ class TextInput(FocusBehavior, Widget):
         mode = 'all'
         if len(largs) > 1:
             mode, start, finish, _lines, _lines_flags, len_lines = largs
-            #start = max(0, start)
+            # start = max(0, start)
             cursor = None
         else:
             cursor = self.cursor_index()
@@ -1841,7 +1841,7 @@ class TextInput(FocusBehavior, Widget):
         min_line_ht = self._label_cached.get_extents('_')[1]
         # with markup texture can be of height `1`
         self.line_height = max(_lines_labels[0].height, min_line_ht)
-        #self.line_spacing = 2
+        # self.line_spacing = 2
         # now, if the text change, maybe the cursor is not at the same place as
         # before. so, try to set the cursor on the good place
         row = self.cursor_row
@@ -2290,7 +2290,7 @@ class TextInput(FocusBehavior, Widget):
         elif internal_action == 'escape':
             self.focus = False
         if internal_action != 'escape':
-            #self._recalc_size()
+            # self._recalc_size()
             pass
 
     def _key_up(self, key, repeat=False):
@@ -2406,7 +2406,7 @@ class TextInput(FocusBehavior, Widget):
                 if self._selection:
                     self.delete_selection()
                 self.insert_text(text)
-            #self._recalc_size()
+            # self._recalc_size()
             return
 
         if is_interesting_key:
@@ -3148,7 +3148,7 @@ if __name__ == '__main__':
             root = BoxLayout(orientation='vertical')
             textinput = TextInput(multiline=True, use_bubble=True,
                                   use_handles=True)
-            #textinput.text = __doc__
+            # textinput.text = __doc__
             root.add_widget(textinput)
             textinput2 = TextInput(multiline=False, text='monoline textinput',
                                    size_hint=(1, None), height=30)

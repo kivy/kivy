@@ -56,7 +56,7 @@ Builder.load_string('''
 <PanelLeft>
     size_hint: (.45, .45)
     pos_hint: {'center_x': .25, 'y': .55}
-    #replace the default tab with our custom tab class
+    # replace the default tab with our custom tab class
     default_tab_cls: sh.__class__
     do_default_tab: True
     default_tab_content: default_content.__self__
@@ -117,7 +117,7 @@ Builder.load_string('''
     pos_hint: {'center_x': .75, 'y': .55}
     # replace the default tab with our custom tab
     default_tab: def_tab
-    #allow variable tab width
+    # allow variable tab width
     tab_width: None
     FloatLayout:
         RstDocument:
@@ -255,7 +255,7 @@ Builder.load_string('''
 
 class Tp(TabbedPanel):
 
-    #override tab switching method to animate on tab switch
+    # override tab switching method to animate on tab switch
     def switch_to(self, header):
         anim = Animation(opacity=0, d=.24, t='in_out_quad')
 

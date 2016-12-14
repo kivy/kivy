@@ -54,10 +54,10 @@ devices = {
     'nexus7': ('Nexus 7 (2012 version)', 1280, 800, 216, 1.325),
     'nexus7.2': ('Nexus 7 (2013 version)', 1920, 1200, 323, 2),
 
-    #taken from design.google.com/devices
-    #please consider using another data instead of
-    #a dict for autocompletion to work
-    #these are all in landscape
+    # taken from design.google.com/devices
+    # please consider using another data instead of
+    # a dict for autocompletion to work
+    # these are all in landscape
     'phone_android_one': ('Android One', 854, 480, 218, 1.5),
     'phone_htc_one_m8': ('HTC One M8', 1920, 1080, 432, 3.0),
     'phone_htc_one_m9': ('HTC One M9', 1920, 1080, 432, 3.0),

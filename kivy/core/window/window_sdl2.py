@@ -466,9 +466,9 @@ class WindowSDL(WindowBase):
 
                 self._mouse_meta = self.modifiers
                 self._mouse_btn = btn
-                #times = x if y == 0 else y
-                #times = min(abs(times), 100)
-                #for k in range(times):
+                # times = x if y == 0 else y
+                # times = min(abs(times), 100)
+                # for k in range(times):
                 self._mouse_down = True
                 self.dispatch('on_mouse_down',
                     self._mouse_x, self._mouse_y, btn, self.modifiers)
@@ -562,7 +562,7 @@ class WindowSDL(WindowBase):
                         kstr = unichr(key)
                     except ValueError:
                         pass
-                #if 'shift' in self._modifiers and key\
+                # if 'shift' in self._modifiers and key\
                 #        not in self.command_keys.keys():
                 #    return
 
@@ -630,7 +630,7 @@ class WindowSDL(WindowBase):
     def mainloop(self):
         # don't known why, but pygame required a resize event
         # for opengl, before mainloop... window reinit ?
-        #self.dispatch('on_resize', *self.size)
+        # self.dispatch('on_resize', *self.size)
 
         while not EventLoop.quit and EventLoop.status == 'started':
             try:

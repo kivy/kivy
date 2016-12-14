@@ -190,7 +190,7 @@ class VideoFFPy(VideoBase):
                 self._texture = Texture.create(size=self._size, colorfmt='rgba')
 
             # XXX FIXME
-            #self.texture.add_reload_observer(self.reload_buffer)
+            # self.texture.add_reload_observer(self.reload_buffer)
             self._texture.flip_vertical()
             self.dispatch('on_load')
 

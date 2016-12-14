@@ -823,7 +823,7 @@ if c_options['use_x11']:
             # cause keytab is included in core, and core is included in
             # window_x11
             #
-            #'depends': [
+            # 'depends': [
             #    'core/window/window_x11_keytab.c',
             #    'core/window/window_x11_core.c'],
             'libraries': libs})
