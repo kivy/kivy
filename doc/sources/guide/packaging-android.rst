@@ -159,7 +159,7 @@ python-for-android use the :code:`--release` option to build.py. This
 creates a release APK in the :code:`bin` directory, which you must
 properly sign and zipalign.
 The procedure for doing this is described in the Android documentation
-at http://developer.android.com/guide/publishing/app-signing.html -
+at https://developer.android.com/studio/publish/app-signing.html#signing-manually -
 all the necessary tools come with the Android SDK.
 
 
