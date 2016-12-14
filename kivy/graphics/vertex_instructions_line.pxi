@@ -832,9 +832,9 @@ cdef class Line(VertexInstruction):
         * x and y represent the bottom left of the ellipse
         * width and height represent the size of the ellipse
         * (optional) angle_start and angle_end are in degree. The default
-            value is 0 and 360.
+          value is 0 and 360.
         * (optional) segments is the precision of the ellipse. The default
-            value is calculated from the range between angle.
+          value is calculated from the range between angle.
 
         Note that it's up to you to :attr:`close` the ellipse or not.
 
