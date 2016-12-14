@@ -39,7 +39,8 @@ class Cache(object):
     _objects = {}
 
     @staticmethod
-    def register(category, limit=None, timeout=None):
+    def register(category, limit=None, timeout=None, max_size=None,
+                 compute_size=None):
         '''Register a new category in the cache with the specified limit.
 
         :Parameters:
@@ -51,14 +52,31 @@ class Cache(object):
             `timeout`: double (optional)
                 Time after which to delete the object if it has not been used.
                 If None, no timeout is applied.
+            `max_size`: maximum memory to be used by the cache.
+                If None, no limit is applied.
+                This require the `compute_size` argument to be set.
+                .. versionadded:: 1.9.2
+            `compute_size`: a function to compute the size of an object
+                in cache.  current size of the cache will be updated
+                whenever an object is added/removed using this function
+                on the object. If max_size is > 0, this method will be
+                called every time an object is added, so it must be fast
+                enough.
+                .. versionadded:: 1.9.2
         '''
         Cache._categories[category] = {
             'limit': limit,
-            'timeout': timeout}
+            'timeout': timeout,
+            'max_size': max_size,
+            'compute_size': compute_size,
+            'sizes': {},
+            'size': 0}
         Cache._objects[category] = {}
         Logger.debug(
-            'Cache: register <%s> with limit=%s, timeout=%s' %
-            (category, str(limit), str(timeout)))
+            'Cache: register <%s> with limit=%s, timeout=%s, '
+            'max_size=%s, compute_size=%s' % (
+                category, str(limit), str(timeout), str(max_size),
+                str(compute_size)))
 
     @staticmethod
     def append(category, key, obj, timeout=None):
@@ -75,19 +93,38 @@ class Cache(object):
                 Time after which to delete the object if it has not been used.
                 If None, no timeout is applied.
         '''
+        Logger.trace('appending %s to Cache %s', key, category)
         #check whether obj should not be cached first
         if getattr(obj, '_no_cache', False):
             return
         try:
             cat = Cache._categories[category]
         except KeyError:
-            Logger.warning('Cache: category <%s> not exist' % category)
+            Logger.warning('Cache: category <%s> does not exist' % category)
             return
         timeout = timeout or cat['timeout']
-        # FIXME: activate purge when limit is hit
-        #limit = cat['limit']
-        #if limit is not None and len(Cache._objects[category]) >= limit:
-        #    Cache._purge_oldest(category)
+
+        limit = cat['limit']
+        if limit is not None and len(Cache._objects[category]) >= limit:
+            Cache._purge_oldest(category)
+
+        if cat['max_size']:
+            object_size = cat['compute_size'](obj)
+            Logger.trace('object size is %s', object_size)
+            cat['size'] += object_size
+            if key in Cache._objects[category]:
+                # old value is being overwritten, so we need to
+                # substract its size first
+                cat['size'] -= cat['sizes'][key]
+            cat['sizes'][key] = object_size
+
+            while cat['size'] > cat['max_size']:
+                Logger.trace("%s size %s", category, cat['size'])
+                if not Cache._purge_oldest(category):
+                    Logger.warning('new cache size %s', cat['size'])
+                    break
+                Logger.trace('new cache size %s', cat['size'])
+
         Cache._objects[category][key] = {
             'object': obj,
             'timeout': timeout,
@@ -157,33 +194,47 @@ class Cache(object):
                 Unique identifier of the object in the store. If this
                 argument is not supplied, the entire category will be purged.
         '''
-        try:
-            if key is not None:
-                del Cache._objects[category][key]
-            else:
-                Cache._objects[category] = {}
-        except Exception:
-            pass
+        Logger.trace("trying to remove %s from %s", key, category)
+        if key is not None:
+            cat = Cache._categories[category]
+            Logger.trace('cat max size %s', cat['max_size'])
+            if cat['max_size']:
+                obj_size = cat['sizes'][key]
+                Logger.trace('removing %s from %s size: %s',
+                             obj_size, category, obj_size)
+                cat['size'] -= obj_size
+                del cat['sizes'][key]
+
+            del Cache._objects[category][key]
+            Logger.trace("removed %s:%s from cache", category, key)
+        else:
+            Cache._objects[category] = {}
+            Logger.trace("flushed category %s from cache", category)
 
     @staticmethod
     def _purge_oldest(category, maxpurge=1):
-        print('PURGE', category)
+        Logger.debug('PURGE %s', category)
         import heapq
         heap_list = []
+        time = Clock.get_time()
         for key in Cache._objects[category]:
             obj = Cache._objects[category][key]
-            if obj['lastaccess'] == obj['timestamp']:
+            if obj['lastaccess'] == obj['timestamp'] == time:
+                Logger.trace("ignoring %s", obj)
                 continue
+
             heapq.heappush(heap_list, (obj['lastaccess'], key))
-            print('<<<', obj['lastaccess'])
+            Logger.debug('<<< %s %s', obj, obj['lastaccess'])
+
         n = 0
         while n < maxpurge:
-            try:
-                lastaccess, key = heapq.heappop(heap_list)
-                print('=>', key, lastaccess, Clock.get_time())
-            except Exception:
-                return
-            del Cache._objects[category][key]
+            n += 1
+            if not heap_list:
+                Logger.warning('unable to reduce Cache %s', category)
+                return False
+            lastaccess, key = heapq.heappop(heap_list)
+            Logger.debug('=> %s %s %s', key, lastaccess, Clock.get_time())
+            Cache.remove(category, key)
 
     @staticmethod
     def _purge_by_timeout(dt):
@@ -216,7 +267,7 @@ class Cache(object):
                     continue
 
                 if curtime - lastaccess > timeout:
-                    del Cache._objects[category][key]
+                    Cache.remove(category, key)
 
     @staticmethod
     def print_usage():
