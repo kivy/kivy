@@ -90,7 +90,7 @@ if __name__ == '__main__':
             # test with FboFloatLayout or FloatLayout
             # comment/uncomment to test it
             root = FboFloatLayout()
-            #root = FloatLayout()
+            # root = FloatLayout()
 
             # this part of creation can be slow. try to optimize the loop a
             # little bit.

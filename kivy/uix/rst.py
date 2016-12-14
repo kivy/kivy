@@ -657,11 +657,11 @@ class RstDocument(ScrollView):
         # get the anchor coordinate inside widget space
         ax += node.x
         ay = node.top - ay
-        #ay += node.y
+        # ay += node.y
 
         # what's the current coordinate for us?
         sx, sy = self.scatter.x, self.scatter.top
-        #ax, ay = self.scatter.to_parent(ax, ay)
+        # ax, ay = self.scatter.to_parent(ax, ay)
 
         ay -= self.height
 
@@ -859,7 +859,7 @@ class _Visitor(nodes.NodeVisitor):
             label = RstTitle(section=self.section, document=self.root)
             self.current.add_widget(label)
             self.push(label)
-            #assert(self.text == '')
+            # assert(self.text == '')
 
         elif cls is nodes.Text:
             if self.do_strip_text:

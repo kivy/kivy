@@ -224,7 +224,7 @@ try:
     from kivy.lib.gstplayer import GstPlayer  # NOQA
     audio_libs += [('gstplayer', 'audio_gstplayer')]
 except ImportError:
-    #audio_libs += [('gi', 'audio_gi')]
+    # audio_libs += [('gi', 'audio_gi')]
     if PY2:
         audio_libs += [('pygst', 'audio_pygst')]
 audio_libs += [('ffpyplayer', 'audio_ffpyplayer')]

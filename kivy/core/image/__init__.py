@@ -327,7 +327,7 @@ class ImageLoader(object):
         image = None
         for zfilename in znamelist:
             try:
-                #read file and store it in mem with fileIO struct around it
+                # read file and store it in mem with fileIO struct around it
                 tmpfile = BytesIO(z.read(zfilename))
                 ext = zfilename.split('.')[-1].lower()
                 im = None
@@ -349,7 +349,7 @@ class ImageLoader(object):
                     # overwritten
                     image_data.append(im._data[0])
                     image = im
-                #else: if not image file skip to next
+                # else: if not image file skip to next
             except:
                 Logger.warning('Image: Unable to load image'
                                '<%s> in zip <%s> trying to continue...'

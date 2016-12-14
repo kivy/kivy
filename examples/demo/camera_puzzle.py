@@ -44,7 +44,7 @@ class Puzzle(Camera):
                 bx = x * bs
                 by = y * bs
                 subtexture = texture.get_region(bx, by, bs, bs)
-                #node = PuzzleNode(texture=subtexture,
+                # node = PuzzleNode(texture=subtexture,
                 #                  size=(bs, bs), pos=(bx, by))
                 node = Scatter(pos=(bx, by), size=(bs, bs))
                 with node.canvas:

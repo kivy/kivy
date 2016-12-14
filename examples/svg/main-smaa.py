@@ -98,8 +98,8 @@ class SvgApp(App):
             effect.add_widget(wid)
 
         if 1:
-            #from kivy.uix.image import Image
-            #root.add_widget(Image(source='data/logo/kivy-icon-512.png',
+            # from kivy.uix.image import Image
+            # root.add_widget(Image(source='data/logo/kivy-icon-512.png',
             #                      size=(800, 600)))
 
             filenames = sys.argv[1:]

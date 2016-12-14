@@ -162,7 +162,7 @@ class VideoPyGst(VideoBase):
         seek_flags = gst.SEEK_FLAG_FLUSH | gst.SEEK_FLAG_KEY_UNIT
         self._playbin.seek_simple(seek_format, seek_flags, seek_t)
 
-        #if pipeline is not playing, we need to pull pre-roll to update frame
+        # if pipeline is not playing, we need to pull pre-roll to update frame
         if not self._state == 'playing':
             with self._buffer_lock:
                 self._buffer = self._appsink.emit('pull-preroll')

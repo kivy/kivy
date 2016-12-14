@@ -1149,9 +1149,9 @@ if __name__ == '__main__':
     class TestApp(App):
 
         def change_view(self, *l):
-            #d = ('left', 'up', 'down', 'right')
-            #di = d.index(self.sm.transition.direction)
-            #self.sm.transition.direction = d[(di + 1) % len(d)]
+            # d = ('left', 'up', 'down', 'right')
+            # di = d.index(self.sm.transition.direction)
+            # self.sm.transition.direction = d[(di + 1) % len(d)]
             self.sm.current = next(self.sm)
 
         def remove_screen(self, *l):

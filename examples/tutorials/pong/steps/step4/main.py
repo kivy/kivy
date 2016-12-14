@@ -26,11 +26,11 @@ class PongGame(Widget):
     def update(self, dt):
         self.ball.move()
 
-        #bounce off top and bottom
+        # bounce off top and bottom
         if (self.ball.y < 0) or (self.ball.top > self.height):
             self.ball.velocity_y *= -1
 
-        #bounce off left and right
+        # bounce off left and right
         if (self.ball.x < 0) or (self.ball.right > self.width):
             self.ball.velocity_x *= -1
 
