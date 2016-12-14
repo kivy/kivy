@@ -111,7 +111,7 @@ if __name__ == '__main__':
 
         else:
             # Got a single file to check
-            for pat in exclude_files:
+            for pat in exclude_dirs + exclude_files:
                 if pat in target:
                     break
             else:
