@@ -1,6 +1,6 @@
 import sys
 from os import walk
-from os.path import isdir, join, abspath, dirname
+from os.path import isdir, join, abspath, dirname, normpath
 import pep8
 import time
 
@@ -59,11 +59,21 @@ if __name__ == '__main__':
         return checker.check_all()
 
     errors = 0
-    exclude_dirs = ['/lib', '/coverage', '/pep8', '/doc']
-    exclude_files = ['kivy/gesture.py', 'osx/build.py', 'win32/build.py',
-                     'kivy/tools/stub-gl-debug.py',
-                     'kivy/modules/webdebugger.py',
-                     'kivy/modules/_webdebugger.py']
+
+    exclude_dirs = [
+        'kivy/lib',
+        'kivy/coverage',
+        'kivy/doc'
+    ]
+    exclude_dirs = [normpath(i) for i in exclude_dirs]
+    exclude_files = [
+        'kivy/gesture.py',
+        'kivy/tools/stub-gl-debug.py',
+        'kivy/modules/webdebugger.py',
+        'kivy/modules/_webdebugger.py'
+    ]
+    exclude_files = [normpath(i) for i in exclude_files]
+
     for target in targets:
         if isdir(target):
             if htmlmode:
