@@ -62,8 +62,8 @@ if __name__ == '__main__':
 
     exclude_dirs = [
         'kivy/lib',
-        'kivy/coverage',
-        'kivy/doc'
+        'coverage',
+        'doc'
     ]
     exclude_dirs = [normpath(i) for i in exclude_dirs]
     exclude_files = [
@@ -83,8 +83,9 @@ if __name__ == '__main__':
 
             for dirpath, dirnames, filenames in walk(target):
                 cont = False
+                dpath = normpath(dirpath)
                 for pat in exclude_dirs:
-                    if pat in dirpath:
+                    if dpath.startswith(pat):
                         cont = True
                         break
                 if cont:
@@ -110,7 +111,7 @@ if __name__ == '__main__':
 
         else:
             # Got a single file to check
-            for pat in exclude_dirs + exclude_files:
+            for pat in exclude_files:
                 if pat in target:
                     break
             else:
