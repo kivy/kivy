@@ -53,6 +53,7 @@ from kivy.properties import StringProperty, ObjectProperty, ListProperty, \
     AliasProperty, BooleanProperty, NumericProperty
 from kivy.logger import Logger
 from kivy.compat import PY2
+import os
 
 # delayed imports
 Loader = None
@@ -237,7 +238,9 @@ class Image(Widget):
         fbind('source', update)
         fbind('mipmap', update)
         if self.source:
-            update()
+            ext = os.path.splitext(self.source)[1]
+            if ext in ('.png', '.jpg', '.jpeg'):
+                update()
         self.on_anim_delay(self, kwargs.get('anim_delay', .25))
 
     def texture_update(self, *largs):
