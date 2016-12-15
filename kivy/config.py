@@ -406,7 +406,7 @@ class ConfigParser(PythonConfigParser, object):
         # a str() conversion -> fail.
         # Instead we currently to the conversion to utf-8 when value are
         # "get()", but we internally store them in ascii.
-        #with codecs.open(filename, 'r', encoding='utf-8') as f:
+        # with codecs.open(filename, 'r', encoding='utf-8') as f:
         #    self.readfp(f)
         old_vals = {sect: {k: v for k, v in self.items(sect)} for sect in
                     self.sections()}

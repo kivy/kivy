@@ -194,15 +194,15 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
         for widget, index in self.view_indices.items():
             opt = opts[index]
             s = opt['size']
-            w, h = sn = widget.size
+            w, h = sn = list(widget.size)
             sh = opt['size_hint']
-            shnw, shnh = shn = widget.size_hint
+            shnw, shnh = shn = list(widget.size_hint)
             sh_min = opt['size_hint_min']
-            shn_min = widget.size_hint_min
+            shn_min = list(widget.size_hint_min)
             sh_max = opt['size_hint_max']
-            shn_max = widget.size_hint_max
+            shn_max = list(widget.size_hint_max)
             ph = opt['pos_hint']
-            phn = widget.pos_hint
+            phn = dict(widget.pos_hint)
             if s != sn or sh != shn or ph != phn or sh_min != shn_min or \
                     sh_max != shn_max:
                 changed.append((index, widget, s, sn, sh, shn, sh_min, shn_min,

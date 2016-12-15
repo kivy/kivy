@@ -133,16 +133,16 @@ class FloatLayout(Layout):
 
     def add_widget(self, widget, index=0):
         widget.bind(
-            #size=self._trigger_layout,
-            #size_hint=self._trigger_layout,
+            # size=self._trigger_layout,
+            # size_hint=self._trigger_layout,
             pos=self._trigger_layout,
             pos_hint=self._trigger_layout)
         return super(FloatLayout, self).add_widget(widget, index)
 
     def remove_widget(self, widget):
         widget.unbind(
-            #size=self._trigger_layout,
-            #size_hint=self._trigger_layout,
+            # size=self._trigger_layout,
+            # size_hint=self._trigger_layout,
             pos=self._trigger_layout,
             pos_hint=self._trigger_layout)
         return super(FloatLayout, self).remove_widget(widget)

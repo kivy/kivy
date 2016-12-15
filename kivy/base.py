@@ -203,6 +203,15 @@ class EventLoopBase(EventDispatcher):
         if mod in self.postproc_modules:
             self.postproc_modules.remove(mod)
 
+    def remove_android_splash(self, *args):
+        '''Remove android presplash in SDL2 bootstrap.'''
+        try:
+            from android import remove_presplash
+            remove_presplash()
+        except:
+            Logger.error('Base: Could not remove android presplash')
+            return
+
     def post_dispatch_input(self, etype, me):
         '''This function is called by dispatch_input() when we want to dispatch
         an input event. The event is dispatched to all listeners and if
@@ -464,6 +473,10 @@ def runTouchApp(widget=None, slave=False):
     # start event loop
     Logger.info('Base: Start application main loop')
     EventLoop.start()
+
+    # remove presplash on the next frame
+    if platform == 'android':
+        Clock.schedule_once(EventLoop.remove_android_splash)
 
     # we are in a slave mode, don't do dispatching.
     if slave:

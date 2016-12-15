@@ -154,7 +154,7 @@ class WindowPygame(WindowBase):
 
         info = pygame.display.Info()
         self._size = (info.current_w, info.current_h)
-        #self.dispatch('on_resize', *self._size)
+        # self.dispatch('on_resize', *self._size)
 
         # in order to debug futur issue with pygame/display, let's show
         # more debug output.

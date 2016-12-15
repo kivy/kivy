@@ -94,7 +94,7 @@ class GraphicUnitTest(_base):
         from shutil import move, copy
 
         # don't save screenshot until we have enough frames.
-        #log.debug('framecount %d' % self.framecount)
+        # log.debug('framecount %d' % self.framecount)
         self.framecount -= 1
         if self.framecount > 0:
             return

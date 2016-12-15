@@ -403,6 +403,11 @@ cdef class _WindowSDL2Storage:
         cdef SDL_Surface *flipped_surface = flipVert(surface)
         IMG_SavePNG(flipped_surface, real_filename)
 
+    def grab_mouse(self, grab):
+        SDL_SetWindowGrab(self.win, SDL_TRUE if grab else SDL_FALSE)
+
+
+
     property window_size:
         def __get__(self):
             cdef int w, h

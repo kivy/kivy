@@ -707,7 +707,8 @@ class TextInput(FocusBehavior, Widget):
         wrap = (self._get_text_width(
             new_text,
             self.tab_width,
-            self._label_cached) > (self.width - self.padding[0] - self.padding[2]))
+            self._label_cached) > (self.width - self.padding[0] -
+                                   self.padding[2]))
         if len_str > 1 or substring == u'\n' or wrap:
             # Avoid refreshing text on every keystroke.
             # Allows for faster typing of text when the amount of text in
@@ -860,7 +861,7 @@ class TextInput(FocusBehavior, Widget):
             self._delete_line(cr)
             start = cr - 1
         else:
-            #ch = text[cc-1]
+            # ch = text[cc-1]
             substring = text[cc - 1]
             new_text = text[:cc - 1] + text[cc:]
             self._set_line_text(cr, new_text)
@@ -887,7 +888,7 @@ class TextInput(FocusBehavior, Widget):
         self._undo.append({
             'undo_command': ('bkspc', new_index, substring),
             'redo_command': ol_index})
-        #reset redo when undo is appended to
+        # reset redo when undo is appended to
         self._redo = []
 
     _re_whitespace = re.compile(r'\s+')
@@ -1256,7 +1257,7 @@ class TextInput(FocusBehavior, Widget):
             # allows smoother scrolling, noticeably
             # faster when dealing with large text.
             self._update_graphics_selection()
-            #self._trigger_update_graphics()
+            # self._trigger_update_graphics()
 
     #
     # Touch control
@@ -1805,7 +1806,7 @@ class TextInput(FocusBehavior, Widget):
         mode = 'all'
         if len(largs) > 1:
             mode, start, finish, _lines, _lines_flags, len_lines = largs
-            #start = max(0, start)
+            # start = max(0, start)
             cursor = None
         else:
             cursor = self.cursor_index()
@@ -1840,7 +1841,7 @@ class TextInput(FocusBehavior, Widget):
         min_line_ht = self._label_cached.get_extents('_')[1]
         # with markup texture can be of height `1`
         self.line_height = max(_lines_labels[0].height, min_line_ht)
-        #self.line_spacing = 2
+        # self.line_spacing = 2
         # now, if the text change, maybe the cursor is not at the same place as
         # before. so, try to set the cursor on the good place
         row = self.cursor_row
@@ -2289,7 +2290,7 @@ class TextInput(FocusBehavior, Widget):
         elif internal_action == 'escape':
             self.focus = False
         if internal_action != 'escape':
-            #self._recalc_size()
+            # self._recalc_size()
             pass
 
     def _key_up(self, key, repeat=False):
@@ -2400,11 +2401,12 @@ class TextInput(FocusBehavior, Widget):
             else:
                 if EventLoop.window.__class__.__module__ == \
                     'kivy.core.window.window_sdl2':
-                    return
+                    if not (text == ' ' and platform == 'android'):
+                        return
                 if self._selection:
                     self.delete_selection()
                 self.insert_text(text)
-            #self._recalc_size()
+            # self._recalc_size()
             return
 
         if is_interesting_key:
@@ -2615,6 +2617,15 @@ class TextInput(FocusBehavior, Widget):
     defaults to [1, 0, 0, 1].
     '''
 
+    cursor_width = NumericProperty('1sp')
+    '''Current width of the cursor.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`cursor_width` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to '1sp'.
+    '''
+
     line_height = NumericProperty(1)
     '''Height of a line. This property is automatically computed from the
     :attr:`font_name`, :attr:`font_size`. Changing the line_height will have
@@ -2822,11 +2833,15 @@ class TextInput(FocusBehavior, Widget):
         if not MarkupLabel:
             from kivy.core.text.markup import MarkupLabel
 
+        cursor_row = self.cursor_row
+        if cursor_row >= len(self._lines) or self.canvas is None:
+            return
+
         cursor_pos = self.cursor_pos
-        txt = self._lines[self.cursor_row]
-        cr = self.cursor_row
+        txt = self._lines[cursor_row]
+
         kw = self._get_line_options()
-        rct = self._lines_rects[cr]
+        rct = self._lines_rects[cursor_row]
 
         lbl = text = None
         if value:
@@ -2838,7 +2853,7 @@ class TextInput(FocusBehavior, Widget):
 
         lbl.refresh()
 
-        self._lines_labels[cr] = lbl.texture
+        self._lines_labels[cursor_row] = lbl.texture
         rct.size = lbl.size
         self._update_graphics()
 
@@ -3133,7 +3148,7 @@ if __name__ == '__main__':
             root = BoxLayout(orientation='vertical')
             textinput = TextInput(multiline=True, use_bubble=True,
                                   use_handles=True)
-            #textinput.text = __doc__
+            # textinput.text = __doc__
             root.add_widget(textinput)
             textinput2 = TextInput(multiline=False, text='monoline textinput',
                                    size_hint=(1, None), height=30)

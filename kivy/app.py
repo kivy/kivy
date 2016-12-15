@@ -284,9 +284,9 @@ The currently implemented Pause mechanism is:
        System due to the user switching to another application, a phone
        shutdown or any other reason.
     #. :meth:`App.on_pause` is called:
-    #. If False is returned (default case), then :meth:`App.on_stop` is
-       called.
-    #. Otherwise the application will sleep until the OS resumes our App
+    #. If False is returned, then :meth:`App.on_stop` is called.
+    #. If True is returned (default case), the application will sleep until
+       the OS resumes our App.
     #. When the app is resumed, :meth:`App.on_resume` is called.
     #. If our app memory has been reclaimed by the OS, then nothing will be
        called.
@@ -865,7 +865,7 @@ class App(EventDispatcher):
         It's determined by the Operating System and mostly used for mobile
         devices (android/ios) and for resizing.
 
-        The default return value is False.
+        The default return value is True.
 
         .. versionadded:: 1.1.0
         '''

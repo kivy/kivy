@@ -1,6 +1,6 @@
 import sys
 from os import walk
-from os.path import isdir, join, abspath, dirname
+from os.path import isdir, join, abspath, dirname, normpath
 import pep8
 import time
 
@@ -11,7 +11,9 @@ pep8_ignores = (
              # distinguish itself from next logical line
     'E126',  # continuation line over-indented for hanging indent
     'E127',  # continuation line over-indented for visual indent
-    'E128')  # continuation line under-indented for visual indent
+    'E128',  # continuation line under-indented for visual indent
+    'E402',  # module level import not at top of file
+)
 
 class KivyStyleChecker(pep8.Checker):
 
@@ -57,11 +59,21 @@ if __name__ == '__main__':
         return checker.check_all()
 
     errors = 0
-    exclude_dirs = ['/lib', '/coverage', '/pep8', '/doc']
-    exclude_files = ['kivy/gesture.py', 'osx/build.py', 'win32/build.py',
-                     'kivy/tools/stub-gl-debug.py',
-                     'kivy/modules/webdebugger.py',
-                     'kivy/modules/_webdebugger.py']
+
+    exclude_dirs = [
+        'kivy/lib',
+        'coverage',
+        'doc'
+    ]
+    exclude_dirs = [normpath(i) for i in exclude_dirs]
+    exclude_files = [
+        'kivy/gesture.py',
+        'kivy/tools/stub-gl-debug.py',
+        'kivy/modules/webdebugger.py',
+        'kivy/modules/_webdebugger.py'
+    ]
+    exclude_files = [normpath(i) for i in exclude_files]
+
     for target in targets:
         if isdir(target):
             if htmlmode:
@@ -71,8 +83,9 @@ if __name__ == '__main__':
 
             for dirpath, dirnames, filenames in walk(target):
                 cont = False
+                dpath = normpath(dirpath)
                 for pat in exclude_dirs:
-                    if pat in dirpath:
+                    if dpath.startswith(pat):
                         cont = True
                         break
                 if cont:

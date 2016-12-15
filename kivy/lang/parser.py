@@ -429,14 +429,16 @@ class Parser(object):
                 if ref in __KV_INCLUDES__:
                     if not os.path.isfile(resource_find(ref) or ref):
                         raise ParserException(self, ln,
-                            'Invalid or unknown file: {0}'.format(ref))
+                                              'Invalid or unknown file: {0}'
+                                              .format(ref))
                     if not force_load:
                         Logger.warn('Lang: {0} has already been included!'
                                     .format(ref))
                         continue
                     else:
-                        Logger.debug('Lang: Reloading {0} because include was forced.'
-                                    .format(ref))
+                        Logger.debug('Lang: Reloading {0} ' +
+                                     'because include was forced.'
+                                     .format(ref))
                         kivy.lang.builder.Builder.unload_file(ref)
                         kivy.lang.builder.Builder.load_file(ref)
                         continue
@@ -563,7 +565,7 @@ class Parser(object):
                 if not len(x[0]):
                     raise ParserException(self, ln, 'Identifier missing')
                 if (len(x) == 2 and len(x[1]) and
-                    not x[1].lstrip().startswith('#')):
+                        not x[1].lstrip().startswith('#')):
                     raise ParserException(self, ln,
                                           'Invalid data after declaration')
                 name = x[0].rstrip()
