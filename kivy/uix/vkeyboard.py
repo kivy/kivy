@@ -252,6 +252,14 @@ class VKeyboard(Scatter):
 
     '''
 
+    font_size = NumericProperty('20dp')
+    '''Font size of the characters on the keyboard.
+
+    :attr:`font_size` is a
+    :class:`~kivy.properties.NumericProperty`
+    and defaults to '20dp'.
+    '''
+
     key_background_color = ListProperty([1, 1, 1, 1])
     '''Key background color, in the format (r, g, b, a). If a key background is
     set, the color will be combined with the key background texture.
@@ -319,7 +327,6 @@ class VKeyboard(Scatter):
     have_shift = BooleanProperty(False)
     have_special = BooleanProperty(False)
     active_keys = DictProperty({})
-    font_size = NumericProperty('20dp')
     font_name = StringProperty('data/fonts/DejaVuSans.ttf')
     repeat_touch = ObjectProperty(allownone=True)
 
@@ -346,6 +353,8 @@ class VKeyboard(Scatter):
             self.scale_max = 1.6
         if 'docked' not in kwargs:
             self.docked = False
+
+        self.font_size = int(self.width)/46
 
         layout_mode = self._trigger_update_layout_mode = Clock.create_trigger(
             self._update_layout_mode)
@@ -662,14 +671,13 @@ class VKeyboard(Scatter):
 
         # then draw the text
         # calculate font_size
-        font_size = int(w) / 46
         # draw
         for line_nb in range(1, layout_rows + 1):
             key_nb = 0
             for pos, size in layout_geometry['LINE_%d' % line_nb]:
                 # retrieve the relative text
                 text = layout[layout_mode + '_' + str(line_nb)][key_nb][0]
-                l = Label(text=text, font_size=font_size, pos=pos, size=size,
+                l = Label(text=text, font_size=self.font_size, pos=pos, size=size,
                           font_name=self.font_name)
                 self.add_widget(l)
                 key_nb += 1
