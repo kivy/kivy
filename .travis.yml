@@ -105,7 +105,7 @@ before_script:
 
 script:
   - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
-      set -exv;
+      set -ex;
       if [ "${RUN}" == "unit" ]; then
         make;
         make test;
@@ -121,13 +121,13 @@ script:
       fi;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
-      set -exv;
+      set -ex;
       if [ "${PY}" == "3" ]; then
         python3 setup.py build_ext --inplace;
-        echo "python3 -m nose.core kivy/tests";
+        python3 -m nose.core kivy/tests;
       else
         make;
-        echo "make test";
+        make test;
       fi;
     fi;
 
