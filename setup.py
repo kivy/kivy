@@ -108,12 +108,14 @@ c_options['use_egl'] = False
 c_options['use_opengl_es2'] = None
 c_options['use_opengl_debug'] = False
 c_options['use_opengl_mock'] = environ.get('READTHEDOCS', None) == 'True'
+c_options['use_opengl_dynamic'] = False
 c_options['use_glew'] = False
 c_options['use_sdl2'] = None
 c_options['use_ios'] = False
 c_options['use_mesagl'] = False
 c_options['use_x11'] = False
 c_options['use_gstreamer'] = None
+c_options['use_angle'] = False
 c_options['use_avfoundation'] = platform == 'darwin'
 c_options['use_osx_frameworks'] = platform == 'darwin'
 c_options['debug_gl'] = False
@@ -125,6 +127,7 @@ for key in list(c_options.keys()):
         value = bool(int(environ[ukey]))
         print('Environ change {0} -> {1}'.format(key, value))
         c_options[key] = value
+
 
 # -----------------------------------------------------------------------------
 # Cython check
@@ -257,6 +260,8 @@ class KivyBuildExt(build_ext):
 
         config_pxi += 'DEF DEBUG = {0}\n'.format(debug)
         config_py += 'DEBUG = {0}\n'.format(debug)
+        config_pxi += 'DEF PLATFORM = "{0}"\n'.format(platform)
+        config_py += 'PLATFORM = "{0}"\n'.format(platform)
         for fn, content in (
                 (config_h_fn, config_h), (config_pxi_fn, config_pxi),
                 (config_py_fn, config_py)):
@@ -342,9 +347,18 @@ except ImportError:
 if platform in ('android', 'darwin', 'ios', 'rpi', 'mali'):
     c_options['use_opengl_es2'] = True
 elif platform == 'win32':
-    print('Windows platform detected, force GLEW usage.')
-    c_options['use_glew'] = True
-    c_options['use_opengl_es2'] = False
+    if c_options["use_angle"]:
+        # angle require SDL2 right now, and is incompatible with glew
+        print('Windows platform detected, ANGLE selected.')
+        c_options["usd_sdl2"] = True
+        c_options["usd_glew"] = False
+        c_options['use_opengl_dynamic'] = True
+        c_options["use_opengl_es2"] = True
+    else:
+        print('Windows platform detected, GLEW selected (default).')
+        c_options['use_glew'] = True
+        c_options['use_opengl_es2'] = False
+
 else:
     if c_options['use_opengl_es2'] is None:
         GLES = environ.get('GRAPHICS') == 'GLES'
@@ -514,6 +528,7 @@ def determine_base_flags():
     flags = {
         'libraries': [],
         'include_dirs': [],
+        'library_dirs': [],
         'extra_link_args': [],
         'extra_compile_args': []}
     if c_options['use_ios']:
@@ -526,7 +541,7 @@ def determine_base_flags():
     elif platform.startswith('freebsd'):
         flags['include_dirs'] += [join(
             environ.get('LOCALBASE', '/usr/local'), 'include')]
-        flags['extra_link_args'] += ['-L', join(
+        flags['library_dirs'] += [join(
             environ.get('LOCALBASE', '/usr/local'), 'lib')]
     elif platform == 'darwin':
         v = os.uname()
@@ -556,7 +571,10 @@ def determine_gl_flags():
     if c_options['use_opengl_mock']:
         return flags
     if platform == 'win32':
-        flags['libraries'] = ['opengl32']
+        # flags['libraries'] = ['opengl32']
+        flags["extra_link_args"] = ["-ggdb", "-O0"]
+        flags["extra_compile_args"] = ["-ggdb", "-O0"]
+        pass
     elif platform == 'ios':
         flags['libraries'] = ['GLESv2']
         flags['extra_link_args'] = ['-framework', 'OpenGLES']
@@ -567,11 +585,11 @@ def determine_gl_flags():
         flags['libraries'] = ['GL']
     elif platform.startswith('openbsd'):
         flags['include_dirs'] = ['/usr/X11R6/include']
-        flags['extra_link_args'] = ['-L', '/usr/X11R6/lib']
+        flags['library_dir'] = ['/usr/X11R6/lib']
         flags['libraries'] = ['GL']
     elif platform == 'android':
         flags['include_dirs'] = [join(ndkplatform, 'usr', 'include')]
-        flags['extra_link_args'] = ['-L', join(ndkplatform, 'usr', 'lib')]
+        flags['library_dir'] = [join(ndkplatform, 'usr', 'lib')]
         flags['libraries'] = ['GLESv2']
     elif platform == 'rpi':
         flags['include_dirs'] = [
@@ -587,7 +605,8 @@ def determine_gl_flags():
         c_options['use_x11'] = True
         c_options['use_egl'] = True
     else:
-        flags['libraries'] = ['GL']
+        # flags['libraries'] = ['GL']
+        pass
     if c_options['use_glew']:
         if platform == 'win32':
             flags['libraries'] += ['glew32']
@@ -619,12 +638,11 @@ def determine_sdl2():
         sdl2_paths.extend(['/usr/local/include/SDL2', '/usr/include/SDL2'])
 
     flags['include_dirs'] = sdl2_paths
-
     flags['extra_link_args'] = []
     flags['extra_compile_args'] = []
-    flags['extra_link_args'] += (
-        ['-L' + p for p in sdl2_paths] if sdl2_paths else
-        ['-L/usr/local/lib/'])
+    flags['library_dir'] = (
+        sdl2_paths if sdl2_paths else
+        ['/usr/local/lib/'])
 
     if sdl2_flags:
         flags = merge(flags, sdl2_flags)
@@ -730,8 +748,6 @@ sources = {
     'properties.pyx': merge(base_flags, {'depends': ['_event.pxd']}),
     'graphics/buffer.pyx': base_flags,
     'graphics/context.pyx': merge(base_flags, gl_flags),
-    'graphics/c_opengl_debug.pyx': merge(base_flags, gl_flags),
-    'graphics/c_opengl_mock.pyx': merge(base_flags, gl_flags),
     'graphics/compiler.pyx': merge(base_flags, gl_flags),
     'graphics/context_instructions.pyx': merge(base_flags, gl_flags),
     'graphics/fbo.pyx': merge(base_flags, gl_flags),
@@ -763,8 +779,24 @@ sources = {
     'graphics/svg.pyx': merge(base_flags, gl_flags)
 }
 
-if c_options['use_sdl2']:
+if c_options["use_opengl_mock"]:
+    sources['graphics/c_opengl_mock.pyx'] = merge(base_flags, gl_flags)
+
+if c_options["use_opengl_debug"]:
+    sources['graphics/c_opengl_debug.pyx'] = merge(base_flags, gl_flags)
+
+if c_options["use_sdl2"]:
     sdl2_flags = determine_sdl2()
+
+if c_options["use_opengl_dynamic"]:
+    sources['graphics/c_opengl_dynamic.pyx'] = merge(
+        base_flags, gl_flags, sdl2_flags)
+
+if c_options['use_angle']:
+    for key in sources:
+        sources[key] = merge(sources[key], sdl2_flags)
+
+if c_options['use_sdl2']:
     if sdl2_flags:
         sdl2_depends = {'depends': ['lib/sdl2.pxi']}
         for source_file in ('core/window/_window_sdl2.pyx',
