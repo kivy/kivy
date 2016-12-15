@@ -139,7 +139,7 @@ Control + r     redo
     :class:`~kivy.uix.behaviors.emacs.EmacsBehavior`.
 
 '''
-
+from kivy.core.text.globalization import arabic_reshape
 
 __all__ = ('TextInput', )
 
@@ -169,8 +169,11 @@ from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.image import Image
 
 from kivy.properties import StringProperty, NumericProperty, \
-    BooleanProperty, AliasProperty, \
+    BooleanProperty, AliasProperty, OptionProperty, \
     ListProperty, ObjectProperty, VariableListProperty
+
+from kivy.core.text.globalization import arabic_reshape
+
 
 Cache_register = Cache.register
 Cache_append = Cache.append
@@ -514,6 +517,8 @@ class TextInput(FocusBehavior, Widget):
 
         fbind('font_size', refresh_line_options)
         fbind('font_name', refresh_line_options)
+        fbind('halign', refresh_line_options)
+        fbind('rtl', refresh_line_options)
 
         def handle_readonly(instance, value):
             if value and (not _is_desktop or not self.allow_copy):
@@ -531,6 +536,8 @@ class TextInput(FocusBehavior, Widget):
         fbind('size', update_text_options)
         fbind('password', update_text_options)
         fbind('password_mask', update_text_options)
+        fbind('halign', update_text_options)
+        fbind('rtl', update_text_options)
 
         fbind('pos', self._trigger_update_graphics)
         fbind('readonly', handle_readonly)
@@ -1161,7 +1168,14 @@ class TextInput(FocusBehavior, Widget):
         padding_top = self.padding[1]
         l = self._lines
         dy = self.line_height + self.line_spacing
+
         cx = x - self.x
+
+        if self.right_align:
+            cxo = self.width - cx
+        else:
+            cxo = cx
+
         scrl_y = self.scroll_y
         scrl_x = self.scroll_x
         scrl_y = scrl_y / dy if scrl_y > 0 else 0
@@ -1803,6 +1817,9 @@ class TextInput(FocusBehavior, Widget):
     def _refresh_text(self, text, *largs):
         # Refresh all the lines from a new text.
         # By using cache in internal functions, this method should be fast.
+        if self.rtl:
+            text = arabic_reshape(text)
+
         mode = 'all'
         if len(largs) > 1:
             mode, start, finish, _lines, _lines_flags, len_lines = largs
@@ -1947,11 +1964,11 @@ class TextInput(FocusBehavior, Widget):
                 # adjust size/texcoord according to viewport
                 if viewport_pos:
                     tcx, tcy = viewport_pos
-                    tcx = tcx / tw * (ow)
+                    tcx = tcx / tw * ow
                     tcy = tcy / th * oh
                 if tw - viewport_pos[0] < vw:
-                    tcw = tcw - tcx
-                    size[0] = tcw * size[0]
+                    tcw -= tcx
+                    size[0] *= tcw
                 elif vw < tw:
                     tcw = (vw / tw) * tcw
                     size[0] = vw
@@ -1985,7 +2002,7 @@ class TextInput(FocusBehavior, Widget):
 
                 # add rectangle.
                 r = rects[line_num]
-                r.pos = int(x), int(y - mlh)
+                r.pos = int(x + (vw - size[0]) if self.right_align else x), int(y - mlh)
                 r.size = size
                 r.texture = texture
                 r.tex_coords = texc
@@ -2085,7 +2102,14 @@ class TextInput(FocusBehavior, Widget):
         top = self.top - padding_top
         y = top + self.scroll_y
         y -= self.cursor_row * dy
-        x, y = left + self.cursor_offset() - self.scroll_x, y
+
+        if self.right_align:
+            padding_right = self.padding[3]
+            right = self.x + self.width - padding_right
+            x, y = right - self.cursor_offset() + self.scroll_x, y
+        else:
+            x, y = left + self.cursor_offset() - self.scroll_x, y
+
         if x < left:
             self.scroll_x = 0
             x = left
@@ -2104,7 +2128,10 @@ class TextInput(FocusBehavior, Widget):
                 'anchor_y': 'top',
                 'padding_x': 0,
                 'padding_y': 0,
-                'padding': (0, 0)}
+                'padding': (0, 0),
+                'halign': self.halign,
+                'rtl': self.rtl
+            }
             self._label_cached = Label(**kw)
         return self._line_options
 
@@ -2210,7 +2237,7 @@ class TextInput(FocusBehavior, Widget):
                 x = 0
             if is_newline:
                 flags |= FL_IS_LINEBREAK
-            elif width >= 1 and w > width:
+            elif w > width >= 1:
                 while w > width:
                     split_width = split_pos = 0
                     # split the word
@@ -3127,6 +3154,24 @@ class TextInput(FocusBehavior, Widget):
     :attr:`write_tab` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to `True`.
     '''
+
+    rtl = BooleanProperty(False)
+    '''Indicates the Right-To-left text display based on the unicode bidirectional
+    algorithm. This will be reshape the characters for arabic languages.
+    In order to use this feature, you have to install the rtl python package.
+    '''
+
+    halign = OptionProperty('left', options=['left', 'center', 'right', 'justify'])
+    '''Horizontal alignment of the text.
+
+    :attr:`halign` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to 'left'. Available options are : left, center, right and
+    justify.
+    '''
+
+    @property
+    def right_align(self):
+        return self.halign == 'right' or (self.rtl and self.halign == 'justify')
 
 
 if __name__ == '__main__':
