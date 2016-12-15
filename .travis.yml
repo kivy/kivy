@@ -60,9 +60,7 @@ install:
       curl -O -L https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.14.dmg;
       /usr/local/aria2/bin/aria2c -x 10 https://gstreamer.freedesktop.org/data/pkg/osx/1.10.2/gstreamer-1.0-1.10.2-x86_64.pkg;
       /usr/local/aria2/bin/aria2c -x 10 https://gstreamer.freedesktop.org/data/pkg/osx/1.10.2/gstreamer-1.0-devel-1.10.2-x86_64.pkg;
-      curl -O -L http://www.sveinbjorn.org/files/software/platypus.zip;
-      curl -O -L http://www.kekaosx.com/release/Keka-1.0.4-intel.dmg;
-      hdiutil attach Keka-1.0.4-intel.dmg;
+
       hdiutil attach SDL2-2.0.5.dmg;
       sudo cp -a /Volumes/SDL2/SDL2.framework /Library/Frameworks/;
       hdiutil attach SDL2_image-2.0.1.dmg;
@@ -73,14 +71,6 @@ install:
       sudo cp -a /Volumes/SDL2_mixer/SDL2_mixer.framework /Library/Frameworks/;
       sudo installer -package gstreamer-1.0-1.10.2-x86_64.pkg -target /;
       sudo installer -package gstreamer-1.0-devel-1.10.2-x86_64.pkg -target /;
-      unzip platypus.zip;
-      mkdir -p /usr/local/bin;
-      mkdir -p /usr/local/share/platypus;
-      mkdir -p /usr/local/man/platypus;
-      cp Platypus-5.0/Platypus.app/Contents/Resources/platypus_clt /usr/local/bin/platypus;
-      cp Platypus-5.0/Platypus.app/Contents/Resources/ScriptExec /usr/local/share/platypus/ScriptExec;
-      cp Platypus-5.0/Platypus.app/Contents/Resources/MainMenu.nib /usr/local/share/platypus/MainMenu.nib;
-      chmod -R 755 /usr/local/share/platypus;
       if [ "${PY}" == "3" ]; then
          curl -O -L https://www.python.org/ftp/python/3.5.2/python-3.5.2-macosx10.6.pkg;
          sudo installer -package python-3.5.2-macosx10.6.pkg -target /;
@@ -133,24 +123,6 @@ script:
 
 
 after_success:
-  # - if [ "${TRAVIS_OS_NAME}" == "osx" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
-  #     openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
-  #     chmod 600 ~/.ssh/id_rsa;
-  #     echo -e "Host kivy.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
-  #     git clone https://github.com/kivy/kivy-sdk-packager;
-  #     cd kivy-sdk-packager/osx;
-  #     if [ "${PY}" == "3" ]; then
-  #       yes | ./create-osx-bundle.sh python3 master > output.txt;
-  #       mv Kivy.app Kivy3.app;
-  #       /Volumes/Keka/Keka.app/Contents/Resources/keka7z a Kivy3.7z Kivy3.app;
-  #       rsync --delete --force -r -e ssh ./Kivy3.7z kivy@kivy.org:~/kivy.org/downloads/tests/Kivy3.7z;
-  #     else
-  #       ./create-osx-bundle.sh python2 master > output.txt;
-  #       mv Kivy.app Kivy2.app;
-  #       /Volumes/Keka/Keka.app/Contents/Resources/keka7z a Kivy2.7z Kivy2.app;
-  #       rsync --delete --force -r -e ssh ./Kivy2.7z kivy@kivy.org:~/kivy.org/downloads/tests/Kivy2.7z;
-  #     fi;
-  #   fi;
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" == "docs" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ] && [ "${TRAVIS_BRANCH}" == "master" ]; then
       openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
       chmod 600 ~/.ssh/id_rsa;
