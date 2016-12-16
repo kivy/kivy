@@ -400,35 +400,27 @@ class LabelBase(object):
         e1, s2 = f(), f_rev()
 
         if dir != 'l':  # center or right
-            # no split, or the first word doesn't even fit
             if e1 != -1:
                 l1 = textwidth(text[:e1])[0]
                 l2 = textwidth(text[s2 + 1:])[0]
-            if e1 == -1 or l1 + l2 > uw:
-                if len(c):
-                    opts['split_str'] = ''
-                    res = self.shorten(text, margin)
-                    opts['split_str'] = c
-                    return res
-                # at this point we do char by char so e1 must be zero
-                if l1 <= uw:
-                    return chr('{0}...').format(text[:e1])
+            # split not found, or the first word doesn't even fit
+            # we don't split words, return '...'' directly
+            if e1 == -1 or l1 > uw:
                 return chr('...')
 
-            # both word fits, and there's at least on split_str
-            if s2 == e1:  # there's only on split_str
-                return chr('{0}...{1}').format(text[:e1], text[s2 + 1:])
-
-            # both the first and last word fits, and they start/end at diff pos
+            # now split found and first word fits
             if dir == 'r':
+                # step by step find the fitted words from l to r
                 ee1 = f(e1 + 1)
-                while l2 + textwidth(text[:ee1])[0] <= uw:
+                while textwidth(text[:ee1])[0] <= uw:
                     e1 = ee1
                     if e1 == s2:
                         break
                     ee1 = f(e1 + 1)
-            else:
-                while True:
+                # now return and make sure '...' only on right side
+                return chr('{0}...').format(text[:e1])
+            else:  # center
+                while l1 + l2 < uw:
                     if l1 <= l2:
                         ee1 = f(e1 + 1)
                         l1 = textwidth(text[:ee1])[0]
@@ -445,34 +437,25 @@ class LabelBase(object):
                         s2 = ss2
                         if e1 == s2:
                             break
+                if l1 + l2 > uw:
+                    return chr('{0}...').format(text[:e1])
+                else:
+                    return chr('{0}...{1}').format(text[:e1], text[s2 + 1:])
         else:  # left
-            # no split, or the last word doesn't even fit
             if s2 != -1:
                 l2 = textwidth(text[s2 + (1 if len(c) else -1):])[0]
                 l1 = textwidth(text[:max(0, e1)])[0]
-            # if split_str
-            if s2 == -1 or l2 + l1 > uw:
-                if len(c):
-                    opts['split_str'] = ''
-                    res = self.shorten(text, margin)
-                    opts['split_str'] = c
-                    return res
-
+            # split not found, or the last word doesn't even fit
+            if s2 == -1 or l2 > uw:
                 return chr('...')
-
-            # both word fits, and there's at least on split_str
-            if s2 == e1:  # there's only on split_str
-                return chr('{0}...{1}').format(text[:e1], text[s2 + 1:])
-
-            # both the first and last word fits, and they start/end at diff pos
+            # now split found and start searching fitted words from r
             ss2 = f_rev(0, s2 - offset)
-            while l1 + textwidth(text[ss2 + 1:])[0] <= uw:
+            while textwidth(text[ss2 + 1:])[0] <= uw:
                 s2 = ss2
                 if s2 == e1:
                     break
                 ss2 = f_rev(0, s2 - offset)
-
-        return chr('{0}...{1}').format(text[:e1], text[s2 + 1:])
+            return chr('...{0}').format(text[s2 + 1:])
 
     def _default_line_options(self, lines):
         for line in lines:
@@ -742,7 +725,8 @@ class LabelBase(object):
     def fontid(self):
         '''Return a unique id for all font parameters'''
         return str([self.options[x] for x in (
-            'font_size', 'font_name_r', 'bold', 'italic', 'underline', 'strikethrough')])
+            'font_size', 'font_name_r', 'bold', 'italic',
+            'underline', 'strikethrough')])
 
     def _get_text_size(self):
         return self._text_size
