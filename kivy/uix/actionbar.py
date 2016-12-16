@@ -302,6 +302,17 @@ class ActionGroup(ActionItem, Spinner):
        defaults to 'normal'.
     '''
 
+    dropdown_width = NumericProperty(0)
+    '''If non zero, provides the width for the associated DropDown. This is
+    useful when some items in the ActionGroup's DropDown are wider than usual
+    and you don't want to make the ActionGroup widget itself wider.
+
+    :attr:`dropdown_width` is an :class:`~kivy.properties.NumericProperty`
+    and defaults to 0.
+
+    .. versionadded:: 1.9.2
+    '''
+
     def __init__(self, **kwargs):
         self.list_action_item = []
         self._list_overflow_items = []
@@ -344,7 +355,8 @@ class ActionGroup(ActionItem, Spinner):
         children = ddn.container.children
 
         if children:
-            ddn.width = max(self.width, max(c.pack_width for c in children))
+            ddn.width = self.dropdown_width or max(
+                self.width, max(c.pack_width for c in children))
         else:
             ddn.width = self.width
 
@@ -735,6 +747,7 @@ if __name__ == "__main__":
                 ActionButton:
                     text: 'Btn4'
             ActionGroup:
+                dropdown_width: 200
                 text: 'Group1'
                 ActionButton:
                     text: 'Btn5'
