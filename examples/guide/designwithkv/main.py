@@ -24,5 +24,6 @@ class ControllerApp(App):
     def build(self):
         return Controller(info='Hello world')
 
+
 if __name__ == '__main__':
     ControllerApp().run()

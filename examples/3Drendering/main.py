@@ -71,5 +71,6 @@ class RendererApp(App):
     def build(self):
         return Renderer()
 
+
 if __name__ == "__main__":
     RendererApp().run()

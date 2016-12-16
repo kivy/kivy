@@ -4,7 +4,6 @@ from kivy.lang import Builder
 
 Builder.load_string("""
 #:import hex kivy.utils.get_color_from_hex
-
 <Root>:
     cols: 2
     canvas:
@@ -13,7 +12,6 @@ Builder.load_string("""
         Rectangle:
             pos: self.pos
             size: self.size
-
     Label:
         canvas.before:
             Color:

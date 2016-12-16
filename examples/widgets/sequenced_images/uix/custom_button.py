@@ -97,4 +97,5 @@ class AnimatedButton(Label):
     def on_release(self):
         pass
 
+
 Factory.register('AnimatedButton', cls=AnimatedButton)

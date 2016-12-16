@@ -45,5 +45,6 @@ class TestApp(App):
             root.add_widget(Page())
         return root
 
+
 if __name__ == '__main__':
     TestApp().run()

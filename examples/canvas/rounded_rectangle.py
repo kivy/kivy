@@ -147,5 +147,6 @@ Widget:
         widget.add_widget(kvrect)
         return widget
 
+
 if __name__ == '__main__':
     DrawRoundedRectanglesApp().run()

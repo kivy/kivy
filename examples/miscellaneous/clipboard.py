@@ -61,4 +61,5 @@ class Clip(BoxLayout):
             label = Label(text=value, size_hint_y=None, height=30)
             self.ids.container.add_widget(label)
 
+
 runTouchApp(Clip())

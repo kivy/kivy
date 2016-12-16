@@ -123,5 +123,6 @@ class RstApp(App):
     def build(self):
         return RstDocument(text=__doc__)
 
+
 if __name__ == '__main__':
     RstApp().run()

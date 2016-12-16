@@ -37,6 +37,7 @@ class TextureAccessibleWidget(Widget):
     def on_texture_wrap(self, instance, value):
         self.texture.wrap = value
 
+
 root = Builder.load_string('''
 <TextureAccessibleWidget>:
     canvas:
@@ -137,5 +138,6 @@ BoxLayout:
             text: 'mirrored_repeat'
             on_press: taw.texture_wrap = 'mirrored_repeat'
 ''')
+
 
 runTouchApp(root)

@@ -278,5 +278,6 @@ class KinectViewerApp(App):
             elif value == 'hsv':
                 self.viewer.shader = value
 
+
 if __name__ == '__main__':
     KinectViewerApp().run()

@@ -88,5 +88,6 @@ class PlasmaApp(App):
     def build(self):
         return ShaderWidget(fs=plasma_shader)
 
+
 if __name__ == '__main__':
     PlasmaApp().run()
