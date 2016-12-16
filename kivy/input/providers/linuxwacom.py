@@ -53,6 +53,7 @@ class LinuxWacomMotionEvent(MotionEvent):
         return '<LinuxWacomMotionEvent id=%d pos=(%f, %f) device=%s>' \
             % (self.id, self.sx, self.sy, self.device)
 
+
 if 'KIVY_DOC' in os.environ:
     # documentation hack
     LinuxWacomMotionEventProvider = None

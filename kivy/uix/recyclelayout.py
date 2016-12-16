@@ -117,7 +117,7 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
                         opts.insert(v, None)
                     elif k == 'modified':
                         start, stop, step = v.start, v.stop, v.step
-                        r = range (start, stop) if step == None else \
+                        r = range(start, stop) if step == None else \
                             range(start, stop, step)
                         for i in r:
                             opts[i] = None

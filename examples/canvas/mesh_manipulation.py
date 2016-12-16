@@ -96,5 +96,6 @@ class MeshBallApp(App):
 
         self.mesh_points = points
 
+
 if __name__ == '__main__':
     MeshBallApp().run()

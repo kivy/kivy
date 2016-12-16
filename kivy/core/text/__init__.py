@@ -742,7 +742,8 @@ class LabelBase(object):
     def fontid(self):
         '''Return a unique id for all font parameters'''
         return str([self.options[x] for x in (
-            'font_size', 'font_name_r', 'bold', 'italic', 'underline', 'strikethrough')])
+            'font_size', 'font_name_r', 'bold',
+            'italic', 'underline', 'strikethrough')])
 
     def _get_text_size(self):
         return self._text_size

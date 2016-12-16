@@ -287,5 +287,6 @@ class MouseMotionEventProvider(MotionEventProvider):
         except IndexError:
             pass
 
+
 # registers
 MotionEventFactory.register('mouse', MouseMotionEventProvider)

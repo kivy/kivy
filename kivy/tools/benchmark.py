@@ -116,7 +116,8 @@ class bench_button_creation:
     def __init__(self):
         labels = []
         for x in xrange(10000):
-            button = map(lambda x: chr(randint(ord('a'), ord('z'))), xrange(10))
+            button = map(lambda x: chr(randint(ord('a'), ord('z'))),
+                         xrange(10))
             labels.append(''.join(button))
         self.labels = labels
 
@@ -150,7 +151,8 @@ class bench_button_creation_with_tick:
     def __init__(self):
         labels = []
         for x in xrange(10000):
-            button = map(lambda x: chr(randint(ord('a'), ord('z'))), xrange(10))
+            button = map(lambda x: chr(randint(ord('a'), ord('z'))),
+                         xrange(10))
             labels.append(''.join(button))
         self.labels = labels
 

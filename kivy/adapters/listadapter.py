@@ -115,8 +115,8 @@ class ListAdapter(Adapter, EventDispatcher):
 
     Consider a shopping list application for shopping for fruits at the
     market. The app allows for the selection of fruits to buy for each day of
-    the week, presenting seven lists: one for each day of the week. Each list is
-    loaded with all the available fruits, but the selection for each is a
+    the week, presenting seven lists: one for each day of the week. Each list
+    is loaded with all the available fruits, but the selection for each is a
     subset. There is only one set of fruit data shared between the lists, so
     it would not make sense to propagate selection to the data because
     selection in any of the seven lists would clash and mix with that of the
@@ -274,8 +274,8 @@ class ListAdapter(Adapter, EventDispatcher):
         :Parameters:
             adapter: :class:`~ListAdapter` or subclass
                 The instance of the list adapter where the selection changed.
-                Use the adapters :attr:`selection` property to see what has been
-                selected.
+                Use the adapters :attr:`selection` property to see what has
+                been selected.
         '''
         pass
 
@@ -346,10 +346,11 @@ class ListAdapter(Adapter, EventDispatcher):
         #        Needed? Or handled from parent?
         #        (avoid circular, redundant selection)
         # if hasattr(view, 'parent') and hasattr(view.parent, 'children'):
-         # siblings = [child for child in view.parent.children if child != view]
-         # for sibling in siblings:
-             # if hasattr(sibling, 'select'):
-                 # sibling.select()
+            # siblings = [child for child in view.parent.children \
+                        # if child != view]
+            # for sibling in siblings:
+                # if hasattr(sibling, 'select'):
+                    # sibling.select()
 
         if self.propagate_selection_to_data:
             data_item = self.get_data_item(view.index)
@@ -382,10 +383,11 @@ class ListAdapter(Adapter, EventDispatcher):
         #        Needed? Or handled from parent?
         #        (avoid circular, redundant selection)
         # if hasattr(view, 'parent') and hasattr(view.parent, 'children'):
-         # siblings = [child for child in view.parent.children if child != view]
-         # for sibling in siblings:
-             # if hasattr(sibling, 'deselect'):
-                 # sibling.deselect()
+            # siblings = [child for child in view.parent.children \
+                        # if child != view]
+            # for sibling in siblings:
+                # if hasattr(sibling, 'deselect'):
+                    # sibling.deselect()
 
         if self.propagate_selection_to_data:
             item = self.get_data_item(view.index)

@@ -106,6 +106,7 @@ class MacMotionEvent(MotionEvent):
         return '<MacMotionEvent id=%d pos=(%f, %f) device=%s>' \
             % (self.id, self.sx, self.sy, self.device)
 
+
 _instance = None
 
 
@@ -210,5 +211,6 @@ class MacMotionEventProvider(MotionEventProvider):
                 del touches[tid]
 
         return 0
+
 
 MotionEventFactory.register('mactouch', MacMotionEventProvider)

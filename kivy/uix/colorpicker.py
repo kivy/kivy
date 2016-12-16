@@ -296,7 +296,7 @@ class ColorWheel(Widget):
 
 class _ColorArc(InstructionGroup):
     def __init__(self, r_min, r_max, theta_min, theta_max,
-                 color=(0, 0, 1, 1), origin = (0, 0), **kwargs):
+                 color=(0, 0, 1, 1), origin=(0, 0), **kwargs):
         super(_ColorArc, self).__init__(**kwargs)
         self.origin = origin
         self.r_min = r_min

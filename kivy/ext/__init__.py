@@ -4,13 +4,13 @@ Extension Support
 
 Sometimes your application requires functionality that is beyond the scope of
 what Kivy can deliver. In those cases it is necessary to resort to external
-software libraries. Given the richness of the Python ecosystem, there is already
-a great number of software libraries that you can simply import and use right
-away.
+software libraries. Given the richness of the Python ecosystem, there is
+already a great number of software libraries that you can simply import and use
+right away.
 
 For some third-party libraries, it's not as easy as that though. Some libraries
-require special *wrappers* to be written for them in order to be compatible with
-Kivy.
+require special *wrappers* to be written for them in order to be compatible
+ with Kivy.
 Some libraries might even need to be patched so that they can be used (e.g. if
 they open their own OpenGL context to draw in and don't support proper offscreen
 rendering). On those occasions it is often possible to patch the library in
@@ -23,8 +23,8 @@ single third-party library that is provided in such a way that it can simply be
 downloaded as a single file, put in a special directory and then offers the
 functionality of the wrapped library to Kivy applications.
 These extensions will not pollute the global Python environment (as they might
-be unusable on their own after potential patches have been applied) because they
-reside in special directories for Kivy that are not accessed by Python by
+be unusable on their own after potential patches have been applied) because
+they reside in special directories for Kivy that are not accessed by Python by
 default.
 
 Naming and versioning
@@ -248,8 +248,8 @@ def unzip_extensions():
                               "extracted manually, just moving the zip.")
                 already_unzipped = True
 
-            # Filter the namelist of zipfile to take only the members that start
-            # with the extension name (MyExt/...)
+            # Filter the namelist of zipfile to take only the members that
+            # start with the extension name (MyExt/...)
             members = [x for x in zipf.namelist()
                        if x.startswith(extname + '/')]
 

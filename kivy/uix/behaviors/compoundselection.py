@@ -210,8 +210,8 @@ class CompoundSelectionBehavior(object):
 
     right_count = NumericProperty(1)
     '''Determines by how much the selected node is moved up or down, relative
-    to the position of the last selected node, when the right (or left) arrow on
-    the keyboard is pressed.
+    to the position of the last selected node, when the right (or left) arrow
+    on the keyboard is pressed.
 
     :attr:`right_count` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1.
@@ -229,7 +229,7 @@ class CompoundSelectionBehavior(object):
     nodes_order_reversed = BooleanProperty(True)
     ''' (Internal) Indicates whether the order of the nodes as displayed top-
     down is reversed compared to their order in :meth:`get_selectable_nodes`
-    (e.g. how the children property is reversed compared to how it's displayed).
+    (e.g how the children property is reversed compared to how it's displayed).
     '''
 
     text_entry_timeout = NumericProperty(1.)

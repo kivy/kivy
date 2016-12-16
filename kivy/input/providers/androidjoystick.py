@@ -109,4 +109,5 @@ class AndroidMotionEventProvider(MotionEventProvider):
                     dispatch_fn('end', touch)
                     touches.pop(jid)
 
+
 MotionEventFactory.register('android', AndroidMotionEventProvider)

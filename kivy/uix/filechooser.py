@@ -348,8 +348,8 @@ class FileChooserController(RelativeLayout):
     filters = ListProperty([])
     '''
     filters specifies the filters to be applied to the files in the directory.
-    filters is a :class:`~kivy.properties.ListProperty` and defaults to []. This
-    is equivalent to '\*' i.e. nothing is filtered.
+    filters is a :class:`~kivy.properties.ListProperty` and defaults to [].
+    This is equivalent to '\*' i.e. nothing is filtered.
 
     The filters are not reset when the path changes. You need to do that
     yourself if desired.
@@ -423,8 +423,8 @@ class FileChooserController(RelativeLayout):
     '''
     Contains the list of files that are currently selected.
 
-    selection is a read-only :class:`~kivy.properties.ListProperty` and defaults
-    to [].
+    selection is a read-only :class:`~kivy.properties.ListProperty` and
+    defaults to [].
     '''
 
     multiselect = BooleanProperty(False)
@@ -452,15 +452,16 @@ class FileChooserController(RelativeLayout):
     rootpath to /users/foo, the user will be unable to go to /users or to any
     other directory not starting with /users/foo.
 
-    rootpath is a :class:`~kivy.properties.StringProperty` and defaults to None.
+    rootpath is a :class:`~kivy.properties.StringProperty` and defaults
+    to None.
 
     .. versionadded:: 1.2.0
 
     .. note::
 
         Similarly to :attr:`path`, whether `rootpath` is specified as
-        bytes or a unicode string determines the type of the filenames and paths
-        read.
+        bytes or a unicode string determines the type of the filenames and
+        paths read.
     '''
 
     progress_cls = ObjectProperty(FileChooserProgress)

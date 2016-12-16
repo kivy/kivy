@@ -74,6 +74,7 @@ class HIDMotionEvent(MotionEvent):
         return '<HIDMotionEvent id=%d pos=(%f, %f) device=%s>' \
             % (self.id, self.sx, self.sy, self.device)
 
+
 if 'KIVY_DOC' in os.environ:
     # documentation hack
     HIDInputMotionEventProvider = None
@@ -717,4 +718,3 @@ else:
                 pass
 
     MotionEventFactory.register('hidinput', HIDInputMotionEventProvider)
-

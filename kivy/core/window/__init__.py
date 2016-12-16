@@ -33,6 +33,7 @@ VKeyboard = None
 android = None
 Animation = None
 
+
 class Keyboard(EventDispatcher):
     '''Keyboard interface that is returned by
     :meth:`WindowBase.request_keyboard`. When you request a keyboard,
@@ -537,7 +538,7 @@ class WindowBase(EventDispatcher):
         Animation.cancel_all(self)
         Animation(
             _kheight = self.keyboard_height + self.keyboard_padding,
-            d=kargs['d'], t=kargs['t']).start(self)
+            d = kargs['d'], t = kargs['t']).start(self)
 
     def _upd_kbd_height(self, *kargs):
         self._keyboard_changed = not self._keyboard_changed
@@ -836,8 +837,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires the SDL2 window provider and is currently only
-            supported on desktop platforms.
+            This feature requires the SDL2 window provider and is currently
+            only supported on desktop platforms.
         '''
         Logger.warning('Window: maximize() is not implemented in the current '
                         'window provider.')
@@ -849,8 +850,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires the SDL2 window provider and is currently only
-            supported on desktop platforms.
+            This feature requires the SDL2 window provider and is currently
+            only supported on desktop platforms.
         '''
         Logger.warning('Window: minimize() is not implemented in the current '
                         'window provider.')
@@ -862,8 +863,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires the SDL2 window provider and is currently only
-            supported on desktop platforms.
+            This feature requires the SDL2 window provider and is currently
+            only supported on desktop platforms.
         '''
         Logger.warning('Window: restore() is not implemented in the current '
                         'window provider.')
@@ -875,8 +876,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires the SDL2 window provider and is currently only
-            supported on desktop platforms.
+            This feature requires the SDL2 window provider and is currently
+            only supported on desktop platforms.
         '''
         Logger.warning('Window: hide() is not implemented in the current '
                         'window provider.')
@@ -888,8 +889,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires the SDL2 window provider and is currently only
-            supported on desktop platforms.
+            This feature requires the SDL2 window provider and is currently
+            only supported on desktop platforms.
         '''
         Logger.warning('Window: show() is not implemented in the current '
                         'window provider.')
@@ -901,8 +902,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.1
 
         .. note::
-            This feature requires the SDL2 window provider and is currently only
-            supported on desktop platforms.
+            This feature requires the SDL2 window provider and is currently
+            only supported on desktop platforms.
         '''
         Logger.warning('Window: raise_window is not implemented in the current '
                         'window provider.')
@@ -1709,6 +1710,7 @@ class WindowBase(EventDispatcher):
             This feature requires the SDL2 window provider.
         '''
         pass
+
 
 #: Instance of a :class:`WindowBase` implementation
 window_impl = []

@@ -366,8 +366,8 @@ class App(EventDispatcher):
     .. versionadded:: 1.0.5
 
     .. versionchanged:: 1.8.0
-        `title` is now a :class:`~kivy.properties.StringProperty`. Don't set the
-        title in the class as previously stated in the documentation.
+        `title` is now a :class:`~kivy.properties.StringProperty`. Don't
+        set the title in the class as previously stated in the documentation.
 
     .. note::
 
@@ -385,8 +385,8 @@ class App(EventDispatcher):
 
     icon = StringProperty(None)
     '''Icon of your application.
-    The icon can be located in the same directory as your main file. You can set
-    this as follows::
+    The icon can be located in the same directory as your main file. You can
+    set this as follows::
 
         class MyApp(App):
             def build(self):
@@ -435,8 +435,8 @@ class App(EventDispatcher):
 
     :attr:`~App.settings_cls` is an :class:`~kivy.properties.ObjectProperty`
     and defaults to :class:`~kivy.uix.settings.SettingsWithSpinner` which
-    displays settings panels with a spinner to switch between them. If you set a
-    string, the :class:`~kivy.factory.Factory` will be used to resolve the
+    displays settings panels with a spinner to switch between them. If you set
+    a string, the :class:`~kivy.factory.Factory` will be used to resolve the
     class.
 
     '''
@@ -1044,4 +1044,3 @@ class App(EventDispatcher):
     def on_icon(self, instance, icon):
         if self._app_window:
             self._app_window.set_icon(self.get_application_icon())
-

@@ -207,7 +207,7 @@ class MetricsBase(object):
         elif platform == 'macosx':
             from kivy.base import EventLoop
             EventLoop.ensure_window()
-            return  EventLoop.window.dpi / 96.
+            return EventLoop.window.dpi / 96.
 
         return 1.0
 

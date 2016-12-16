@@ -42,8 +42,8 @@ The default value for those settings can be changed in the configuration file::
 Limiting to the X or Y Axis
 ---------------------------
 
-By default, the ScrollView allows scrolling along both the X and Y axes. You can
-explicitly disable scrolling on an axis by setting the
+By default, the ScrollView allows scrolling along both the X and Y axes. You
+can explicitly disable scrolling on an axis by setting the
 :attr:`~ScrollView.do_scroll_x` or :attr:`~ScrollView.do_scroll_y` properties
 to False.
 
@@ -894,10 +894,10 @@ class ScrollView(StencilView):
             return
 
         # if _viewport is layout and has pending operation, reschedule
-        if hasattr(self._viewport,'do_layout'):
+        if hasattr(self._viewport, 'do_layout'):
             if self._viewport._trigger_layout.is_triggered:
                 Clock.schedule_once(
-                     lambda *dt: self.scroll_to(widget,padding,animate))
+                     lambda *dt: self.scroll_to(widget, padding, animate))
                 return
 
         if isinstance(padding, (int, float)):
@@ -994,8 +994,8 @@ class ScrollView(StencilView):
             y = self.top - vp.height
 
         # from 1.8.0, we now use a matrix by default, instead of moving the
-        # widget position behind. We set it here, but it will be a no-op most of
-        # the time.
+        # widget position behind. We set it here, but it will be a no-op most
+        # of the time.
         vp.pos = 0, 0
         self.g_translate.xy = x, y
 
@@ -1061,8 +1061,8 @@ class ScrollView(StencilView):
 
         # in order to be able to scroll on very slow devices, let at least 3
         # frames displayed to accumulate some velocity. And then, change the
-        # touch mode. Otherwise, we might never be able to compute velocity, and
-        # no way to scroll it. See #1464 and #1499
+        # touch mode. Otherwise, we might never be able to compute velocity,
+        # and no way to scroll it. See #1464 and #1499
         if diff_frames < 3:
             Clock.schedule_once(self._change_touch_mode, 0)
             return

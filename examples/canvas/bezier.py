@@ -100,5 +100,6 @@ class Main(App):
             points.extend([x + cos(i) * l, y + sin(i) * l])
         return BezierTest(points=points, loop=True)
 
+
 if __name__ == '__main__':
     Main().run()

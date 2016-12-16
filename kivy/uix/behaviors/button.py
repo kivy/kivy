@@ -89,7 +89,7 @@ class ButtonBehavior(object):
     defaults to `None`.
     '''
 
-    
+
     min_state_time = NumericProperty(0)
     '''The minimum period of time which the widget must remain in the
     `'down'` state.
