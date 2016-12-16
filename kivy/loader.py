@@ -470,6 +470,7 @@ class LoaderBase(object):
 # Loader implementation
 #
 
+
 if 'KIVY_DOC' in environ:
 
     Loader = None

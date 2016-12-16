@@ -53,5 +53,6 @@ class ImageLoaderTex(ImageLoaderBase):
         '''
         return [im]
 
+
 # register
 ImageLoader.register(ImageLoaderTex)

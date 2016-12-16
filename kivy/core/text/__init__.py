@@ -758,6 +758,7 @@ class LabelBase(object):
     usersize = property(_get_text_size, _set_text_size,
                         doc='''(deprecated) Use text_size instead.''')
 
+
 # Load the appropriate provider
 label_libs = []
 if USE_SDL2:

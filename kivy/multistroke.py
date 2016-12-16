@@ -358,7 +358,8 @@ class Recognizer(EventDispatcher):
         '''
         if not strokes:
             return False
-        self.db.append(MultistrokeGesture(name=name, strokes=strokes, **kwargs))
+        self.db.append(MultistrokeGesture(name=name,
+                                          strokes=strokes, **kwargs))
         return True
 
     def parse_gesture(self, data):
@@ -1197,7 +1198,7 @@ class Candidate(object):
         self.db = {}
         self.strokes = []
 
-        if not strokes is None:
+        if (not strokes) is None:
             self.strokes = strokes
 
     def add_stroke(self, stroke):

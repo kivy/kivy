@@ -179,4 +179,5 @@ class SoundFFPy(Sound):
         else:
             self.seek(0.)
 
+
 SoundLoader.register(SoundFFPy)

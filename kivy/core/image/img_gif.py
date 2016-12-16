@@ -579,5 +579,6 @@ def pack_bits(bits):
         level += 1
     return packed
 
+
 # register
 ImageLoader.register(ImageLoaderGIF)

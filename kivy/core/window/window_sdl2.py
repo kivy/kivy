@@ -487,7 +487,8 @@ class WindowSDL(WindowBase):
                 # don't use trigger here, we want to delay the resize event
                 ev = self._do_resize_ev
                 if ev is None:
-                    ev = self._do_resize_ev = Clock.schedule_once(self._do_resize, .1)
+                    ev = Clock.schedule_once(self._do_resize, .1)
+                    self._do_resize_ev = ev
                 else:
                     ev()
 
@@ -554,7 +555,7 @@ class WindowSDL(WindowBase):
                 if action == 'keydown':
                     self._update_modifiers(mod, key)
                 else:
-                    self._update_modifiers(mod) # ignore the key, it
+                    self._update_modifiers(mod)  # ignore the key, it
                                                 # has been released
 
                 # if mod in self._meta_keys:

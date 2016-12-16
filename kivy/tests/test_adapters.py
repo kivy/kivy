@@ -222,6 +222,7 @@ def reset_to_defaults(db_dict):
     for key in db_dict:
         db_dict[key]['is_selected'] = False
 
+
 category_data_items = \
     [CategoryItem(**fruit_categories[c]) for c in sorted(fruit_categories)]
 
@@ -1325,7 +1326,7 @@ class AdaptersTestCase(unittest.TestCase):
         def sorted_keys_ok(letters_dict_adapter):
             sorted_keys_ok = True
             for key in letters_dict_adapter.sorted_keys:
-                if not key in letters_dict_adapter.data:
+                if (not key) in letters_dict_adapter.data:
                     sorted_keys_ok = False
                     break
             return sorted_keys_ok

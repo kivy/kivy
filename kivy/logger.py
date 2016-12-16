@@ -83,6 +83,7 @@ def formatter_message(message, use_color=True):
         message = message.replace("$RESET", "").replace("$BOLD", "")
     return message
 
+
 COLORS = {
     'TRACE': MAGENTA,
     'WARNING': YELLOW,
@@ -308,6 +309,7 @@ def logger_config_update(section, key, value):
     if LOG_LEVELS.get(value) is None:
         raise AttributeError('Loglevel {0!r} doesn\'t exists'.format(value))
     Logger.setLevel(level=LOG_LEVELS.get(value))
+
 
 #: Kivy default logger instance
 Logger = logging.getLogger('kivy')

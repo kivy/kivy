@@ -537,8 +537,8 @@ class WindowBase(EventDispatcher):
             from kivy.animation import Animation
         Animation.cancel_all(self)
         Animation(
-            _kheight = self.keyboard_height + self.keyboard_padding,
-            d = kargs['d'], t = kargs['t']).start(self)
+            _kheight=self.keyboard_height + self.keyboard_padding,
+            d=kargs['d'], t=kargs['t']).start(self)
 
     def _upd_kbd_height(self, *kargs):
         self._keyboard_changed = not self._keyboard_changed
@@ -905,8 +905,8 @@ class WindowBase(EventDispatcher):
             This feature requires the SDL2 window provider and is currently
             only supported on desktop platforms.
         '''
-        Logger.warning('Window: raise_window is not implemented in the current '
-                        'window provider.')
+        Logger.warning('Window: raise_window is not implemented in the current'
+                       ' window provider.')
 
     def close(self):
         '''Close the window'''
@@ -996,7 +996,7 @@ class WindowBase(EventDispatcher):
     def remove_widget(self, widget):
         '''Remove a widget from a window
         '''
-        if not widget in self.children:
+        if (not widget) in self.children:
             return
         self.children.remove(widget)
         if widget.canvas in self.canvas.children:
@@ -1405,7 +1405,8 @@ class WindowBase(EventDispatcher):
                     return True
 
     if Config:
-        on_keyboard.exit_on_escape = Config.getboolean('kivy', 'exit_on_escape')
+        on_keyboard.exit_on_escape = Config.getboolean(
+                                        'kivy', 'exit_on_escape')
 
         def __exit(section, name, value):
             WindowBase.__dict__['on_keyboard'].exit_on_escape = \

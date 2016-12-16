@@ -40,7 +40,7 @@ class WindowPygame(WindowBase):
 
         # force display to show (available only for fullscreen)
         displayidx = Config.getint('graphics', 'display')
-        if not 'SDL_VIDEO_FULLSCREEN_HEAD' in environ and displayidx != -1:
+        if (not 'SDL_VIDEO_FULLSCREEN_HEAD') in environ and displayidx != -1:
             environ['SDL_VIDEO_FULLSCREEN_HEAD'] = '%d' % displayidx
 
         # init some opengl, same as before.

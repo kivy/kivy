@@ -346,11 +346,11 @@ class ListAdapter(Adapter, EventDispatcher):
         #        Needed? Or handled from parent?
         #        (avoid circular, redundant selection)
         # if hasattr(view, 'parent') and hasattr(view.parent, 'children'):
-            # siblings = [child for child in view.parent.children \
-                        # if child != view]
-            # for sibling in siblings:
-                # if hasattr(sibling, 'select'):
-                    # sibling.select()
+        #     siblings = [child for child in view.parent.children \
+        #                 if child != view]
+        #     for sibling in siblings:
+        #         if hasattr(sibling, 'select'):
+        #             sibling.select()
 
         if self.propagate_selection_to_data:
             data_item = self.get_data_item(view.index)
@@ -383,11 +383,11 @@ class ListAdapter(Adapter, EventDispatcher):
         #        Needed? Or handled from parent?
         #        (avoid circular, redundant selection)
         # if hasattr(view, 'parent') and hasattr(view.parent, 'children'):
-            # siblings = [child for child in view.parent.children \
-                        # if child != view]
-            # for sibling in siblings:
-                # if hasattr(sibling, 'deselect'):
-                    # sibling.deselect()
+        #     siblings = [child for child in view.parent.children \
+        #                 if child != view]
+        #     for sibling in siblings:
+        #         if hasattr(sibling, 'deselect'):
+        #             sibling.deselect()
 
         if self.propagate_selection_to_data:
             item = self.get_data_item(view.index)
