@@ -5,8 +5,8 @@
 # more weird space due to ascii->utf8 encoding.
 # - create an unicode directory, and select it with Path. -> no more crash at
 # validation.
-# - create an unicode directory, and select it with Path and restart -> the path
-# is still correct.
+# - create an unicode directory, and select it with Path and restart -> the
+# path is still correct.
 
 from kivy.app import App
 from kivy.uix.settings import Settings

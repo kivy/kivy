@@ -228,9 +228,9 @@ class ColorWheel(Widget):
         if touch.grab_current is not self:
             return
         r = self._get_touch_r(touch.pos)
-        goal_sv_idx = (touch.ud['orig_sv_idx']
-                       - int((r - touch.ud['anchor_r'])
-                             / (float(self._radius) / self._piece_divisions)))
+        goal_sv_idx = (touch.ud['orig_sv_idx'] -
+                       int((r - touch.ud['anchor_r']) /
+                            (float(self._radius) / self._piece_divisions)))
 
         if (
             goal_sv_idx != self.sv_idx and
@@ -254,14 +254,14 @@ class ColorWheel(Widget):
                 if self.sv_idx > touch.ud['orig_sv_idx']:
                     Clock.schedule_once(
                         self.inertial_incr_sv_idx,
-                        (Clock.get_time() - touch.ud['orig_time'])
-                        / (self.sv_idx - touch.ud['orig_sv_idx']))
+                        (Clock.get_time() - touch.ud['orig_time']) /
+                        (self.sv_idx - touch.ud['orig_sv_idx']))
 
                 if self.sv_idx < touch.ud['orig_sv_idx']:
                     Clock.schedule_once(
                         self.inertial_decr_sv_idx,
-                        (Clock.get_time() - touch.ud['orig_time'])
-                        / (self.sv_idx - touch.ud['orig_sv_idx']))
+                        (Clock.get_time() - touch.ud['orig_time']) /
+                        (self.sv_idx - touch.ud['orig_sv_idx']))
 
                 self._pinch_flag = False
                 return

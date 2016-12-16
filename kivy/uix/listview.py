@@ -241,8 +241,8 @@ components can be summarized as follows:
 Please refer to the :mod:`~kivy.adapters` documentation for more details.
 
 A :class:`~kivy.adapters.dictadapter.DictAdapter` has the same arguments and
-requirements as a :class:`~kivy.adapters.listadapter.ListAdapter` except for two
-things:
+requirements as a :class:`~kivy.adapters.listadapter.ListAdapter` except for
+two things:
 
 1) There is an additional argument, sorted_keys, which must meet the
    requirements of normal python dictionary keys.

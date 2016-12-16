@@ -29,5 +29,6 @@ class TestAsyncApp(App):
         return CenteredAsyncImage(
             source='http://kivy.org/funny-pictures-cat-is-expecting-you.jpg')
 
+
 if __name__ == '__main__':
     TestAsyncApp().run()

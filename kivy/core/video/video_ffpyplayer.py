@@ -188,7 +188,8 @@ class VideoFFPy(VideoBase):
                 fbo['tex_v'] = 2
                 self._texture = fbo.texture
             else:
-                self._texture = Texture.create(size=self._size, colorfmt='rgba')
+                self._texture = Texture.create(size=self._size,
+                                                colorfmt='rgba')
 
             # XXX FIXME
             # self.texture.add_reload_observer(self.reload_buffer)

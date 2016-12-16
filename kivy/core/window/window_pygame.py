@@ -40,7 +40,7 @@ class WindowPygame(WindowBase):
 
         # force display to show (available only for fullscreen)
         displayidx = Config.getint('graphics', 'display')
-        if (not 'SDL_VIDEO_FULLSCREEN_HEAD') in environ and displayidx != -1:
+        if 'SDL_VIDEO_FULLSCREEN_HEAD' not in environ and displayidx != -1:
             environ['SDL_VIDEO_FULLSCREEN_HEAD'] = '%d' % displayidx
 
         # init some opengl, same as before.
@@ -339,7 +339,8 @@ class WindowPygame(WindowBase):
 
             # joystick action
             elif event.type == pygame.JOYAXISMOTION:
-                self.dispatch('on_joy_axis', event.joy, event.axis, event.value)
+                self.dispatch('on_joy_axis', event.joy, event.axis,
+                                event.value)
 
             elif event.type == pygame.JOYHATMOTION:
                 self.dispatch('on_joy_hat', event.joy, event.hat, event.value)

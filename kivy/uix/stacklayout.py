@@ -251,7 +251,8 @@ class StackLayout(Layout):
                         testsizes[i] = childsize = max(
                             1, _compute_size(child, totalsize, innerattr))
                     else:
-                        testsizes[i] = childsize = max(0, child.size[innerattr])
+                        childsize = max(0, child.size[innerattr])
+                        testsizes[i] = childsize
                     availsize -= childsize
                 if c.size_hint[innerattr] is not None:
                     testsizes[-1] = max(

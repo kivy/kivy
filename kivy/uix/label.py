@@ -38,7 +38,8 @@ For example, this label's size will be set to the text content
     Label:
         size: self.texture_size
 
-This label's text will wrap at the specified width and be clipped to the height:
+This label's text will wrap at the specified width and be clipped to the
+height:
 
 .. code-block:: kv
 

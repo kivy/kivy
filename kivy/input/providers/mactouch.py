@@ -162,7 +162,7 @@ class MacMotionEventProvider(MotionEventProvider):
         # XXX create live touch, we get one case that
         # the device announced by macosx don't match the device
         # in _mts_callback....
-        if not devid in _instance.touches:
+        if devid not in _instance.touches:
             _instance.touches[devid] = {}
 
         touches = _instance.touches[devid]
@@ -182,7 +182,7 @@ class MacMotionEventProvider(MotionEventProvider):
             norm_pos = data.normalized.position
             args = (norm_pos.x, norm_pos.y, data.size)
 
-            if not data_id in touches:
+            if data_id not in touches:
                 # increment uid
                 _instance.lock.acquire()
                 _instance.uid += 1

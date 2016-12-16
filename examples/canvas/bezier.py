@@ -92,12 +92,12 @@ class Main(App):
     def build(self):
         from math import cos, sin, radians
         x = y = 150
-        l = 100
+        z = 100
         # Pacman !
         points = [x, y]
         for i in range(45, 360, 45):
             i = radians(i)
-            points.extend([x + cos(i) * l, y + sin(i) * l])
+            points.extend([x + cos(i) * z, y + sin(i) * z])
         return BezierTest(points=points, loop=True)
 
 

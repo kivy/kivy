@@ -159,7 +159,7 @@ class Etc1Tool(Tool):
                 unlink(raw_tex_fn)
 
         # 5. write texture info
-        self.write_tex(data, 'etc1_rgb8', (w, h), (w2, h2), \
+        self.write_tex(data, 'etc1_rgb8', (w, h), (w2, h2),
                         self.options.mipmap)
 
 

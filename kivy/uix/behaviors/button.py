@@ -89,7 +89,6 @@ class ButtonBehavior(object):
     defaults to `None`.
     '''
 
-
     min_state_time = NumericProperty(0)
     '''The minimum period of time which the widget must remain in the
     `'down'` state.
@@ -165,8 +164,8 @@ class ButtonBehavior(object):
         touch.ungrab(self)
         self.last_touch = touch
 
-        if (not self.always_release
-                and not self.collide_point(*touch.pos)):
+        if (not self.always_release and
+                not self.collide_point(*touch.pos)):
             self._do_release()
             return
 

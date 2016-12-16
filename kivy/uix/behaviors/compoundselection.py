@@ -349,8 +349,8 @@ class CompoundSelectionBehavior(object):
             self._shift_down = True
         elif text in ('ctrl', 'lctrl', 'rctrl'):
             self._ctrl_down = True
-        elif (multi and 'ctrl' in modifiers and text in ('a', 'A')
-              and text not in keys):
+        elif (multi and 'ctrl' in modifiers and text in ('a', 'A') and
+              text not in keys):
             sister_nodes = self.get_selectable_nodes()
             select = self.select_node
             for node in sister_nodes:

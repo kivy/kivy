@@ -1198,7 +1198,7 @@ class Candidate(object):
         self.db = {}
         self.strokes = []
 
-        if (not strokes) is None:
+        if strokes is not None:
             self.strokes = strokes
 
     def add_stroke(self, stroke):

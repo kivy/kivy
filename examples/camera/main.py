@@ -36,4 +36,5 @@ class TestCamera(App):
     def build(self):
         return Builder.load_string(kv)
 
+
 TestCamera().run()

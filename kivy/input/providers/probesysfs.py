@@ -206,8 +206,8 @@ else:
 
             if not self.select_all:
                 inputs = [x for x in inputs if
-                          x.has_capability(ABS_MT_POSITION_X)
-                          and (use_mouse or not x.is_mouse)]
+                          x.has_capability(ABS_MT_POSITION_X) and
+                          (use_mouse or not x.is_mouse)]
             for device in inputs:
                 Logger.debug('ProbeSysfs: found device: %s at %s' % (
                     device.name, device.device))

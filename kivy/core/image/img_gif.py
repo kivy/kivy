@@ -370,11 +370,11 @@ class GifDecoder(Gif):
                 image.codesize = self_pops('<B', self_data)[0]
                 image.lzwcode = b''
                 image_lzwcode = image.lzwcode
-                ### TODO too many corner cases for gifs:(
-                table_size = image.local_color_table_size\
-                    if image.local_color_table_flag and \
-                    self.global_color_table_size < image.local_color_table_size\
-                    else self.global_color_table_size
+                # TODO too many corner cases for gifs:(
+                table_size = (image.local_color_table_size
+                    if image.local_color_table_flag and
+                    self.global_color_table_size < image.local_color_table_size
+                    else self.global_color_table_size)
 
                 while True:
                     try:

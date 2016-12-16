@@ -113,9 +113,9 @@ class LayoutSelectionBehavior(CompoundSelectionBehavior):
         a view is displayed and it needs to be shown as selected or as not
         selected.
 
-        It is called when :meth:`select_node` or :meth:`deselect_node` is called
-        or when a view needs to be refreshed. Its function is purely to update
-        the view to reflect the selection state. So the function may be
+        It is called when :meth:`select_node` or :meth:`deselect_node` is
+        called or when a view needs to be refreshed. Its function is purely to
+        update the view to reflect the selection state. So the function may be
         called multiple times even if the selection state may not have changed.
 
         If the view is a instance of

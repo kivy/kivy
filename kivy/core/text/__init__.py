@@ -516,7 +516,7 @@ class LabelBase(object):
             # divide left over space between `spaces`
             # TODO implement a better method of stretching glyphs?
             if (uw is not None and halign == 'justify' and line and not
-                layout_line.is_last_line):
+                    layout_line.is_last_line):
                 # number spaces needed to fill, and remainder
                 n, rem = divmod(max(uww - lw, 0), sw)
                 n = int(n)

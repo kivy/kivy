@@ -555,12 +555,12 @@ class WindowSDL(WindowBase):
                 if action == 'keydown':
                     self._update_modifiers(mod, key)
                 else:
-                    self._update_modifiers(mod)  # ignore the key, it
-                                                 # has been released
+                    # ignore the key, it has been released
+                    self._update_modifiers(mod)
 
                 # if mod in self._meta_keys:
                 if (key not in self._modifiers and
-                    key not in self.command_keys.keys()):
+                        key not in self.command_keys.keys()):
                     try:
                         kstr = unichr(key)
                     except ValueError:

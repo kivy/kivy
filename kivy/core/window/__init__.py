@@ -996,7 +996,7 @@ class WindowBase(EventDispatcher):
     def remove_widget(self, widget):
         '''Remove a widget from a window
         '''
-        if (not widget) in self.children:
+        if widget not in self.children:
             return
         self.children.remove(widget)
         if widget.canvas in self.canvas.children:

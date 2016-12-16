@@ -587,4 +587,5 @@ class KNSpaceBehavior(object):
     module description for more details.
     '''
 
+
 knspace = KNSpace()
