@@ -1,4 +1,9 @@
-#:import hex kivy.utils.get_color_from_hex
+from kivy.app import App
+from kivy.uix.label import Label
+from kivy.uix.boxlayout import BoxLayout
+from kivy.lang import Builder
+
+Builder.load_string(''' #:import hex kivy.utils.get_color_from_hex
 
 <Root>:
     orientation: 'vertical'
@@ -45,4 +50,16 @@
                 Rectangle:
                     pos: self.pos
                     size: self.size
-            text: "rgba: hex('#CDDC39')"
+            text: "rgba: hex('#CDDC39')" ''')
+
+
+class Root(BoxLayout):
+    pass
+
+
+class ColorusageApp(App):
+    def build(self):
+        return Root()
+
+if __name__ == "__main__":
+    ColorusageApp().run()
