@@ -79,4 +79,5 @@ for i in range(40):
     c.bind(on_touch_down=root.do_touch)
     root.add_widget(c)
 
+
 runTouchApp(root)

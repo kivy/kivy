@@ -211,6 +211,7 @@ Yiddish:        דער גיך ברוין פוקס דזשאַמפּס איבער 
             size_hint=(0.9, 0.9))
         self._popup.open()
 
+
 from kivy.utils import reify
 
 

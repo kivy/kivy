@@ -94,4 +94,5 @@ class PuzzleApp(App):
         puzzle.blocksize = value
         instance.value = value
 
+
 PuzzleApp().run()

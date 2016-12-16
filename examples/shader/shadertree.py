@@ -200,5 +200,6 @@ class ShaderTreeApp(App):
         root.add_widget(btn)
         return root
 
+
 if __name__ == '__main__':
     ShaderTreeApp().run()

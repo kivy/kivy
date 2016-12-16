@@ -101,5 +101,6 @@ class ScreenManagerApp(App):
             root.add_widget(CustomScreen(name='Screen %d' % x))
         return root
 
+
 if __name__ == '__main__':
     ScreenManagerApp().run()

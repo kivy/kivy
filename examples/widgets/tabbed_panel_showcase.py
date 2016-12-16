@@ -324,5 +324,6 @@ class TestTabApp(App):
     def build(self):
         return TabShowcase()
 
+
 if __name__ == '__main__':
     TestTabApp().run()

@@ -11,6 +11,7 @@ spinner = Spinner(
 def show_selected_value(spinner, text):
     print('The spinner', spinner, 'have text', text)
 
+
 spinner.bind(text=show_selected_value)
 
 runTouchApp(spinner)

@@ -95,4 +95,3 @@ Factory.register('MultistrokeSettingTitle', cls=MultistrokeSettingTitle)
 Factory.register('MultistrokeSettingBoolean', cls=MultistrokeSettingBoolean)
 Factory.register('MultistrokeSettingSlider', cls=MultistrokeSettingSlider)
 Factory.register('MultistrokeSettingString', cls=MultistrokeSettingString)
-

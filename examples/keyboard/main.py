@@ -217,5 +217,6 @@ class KeyboardDemo(App):
         self.sm.current = "mode"
         return self.sm
 
+
 if __name__ == "__main__":
     KeyboardDemo().run()
