@@ -204,6 +204,7 @@ def reset_to_defaults(data):
         for obj in data:
             obj.is_selected = False
 
+
 category_data_items = \
     [CategoryItem(**fruit_categories[c]) for c in sorted(fruit_categories)]
 

@@ -433,6 +433,7 @@ class Accordion(Widget):
                 child.height = child_space
                 y += child_space
 
+
 if __name__ == '__main__':
     from kivy.base import runTouchApp
     from kivy.uix.button import Button
@@ -445,10 +446,10 @@ if __name__ == '__main__':
         if x == 0:
             item.add_widget(Button(text='Content %d' % x))
         elif x == 1:
-            l = BoxLayout(orientation='vertical')
-            l.add_widget(Button(text=str(x), size_hint_y=None, height=35))
-            l.add_widget(Label(text='Content %d' % x))
-            item.add_widget(l)
+            z = BoxLayout(orientation='vertical')
+            z.add_widget(Button(text=str(x), size_hint_y=None, height=35))
+            z.add_widget(Label(text='Content %d' % x))
+            item.add_widget(z)
         else:
             item.add_widget(Label(text='This is a big content\n' * 20))
         acc.add_widget(item)

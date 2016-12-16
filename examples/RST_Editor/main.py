@@ -54,6 +54,7 @@ class Root(FloatLayout):
 class Editor(App):
     pass
 
+
 Factory.register('Root', cls=Root)
 Factory.register('LoadDialog', cls=LoadDialog)
 Factory.register('SaveDialog', cls=SaveDialog)

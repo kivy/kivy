@@ -611,8 +611,8 @@ class ClockBaseBehavior(object):
         '''Get the time in seconds from the application start.'''
         return self._last_tick - self._start_tick
 
-
     time = staticmethod(partial(_default_time))
+
 
 ClockBaseBehavior.time.__doc__ = \
     '''Proxy method for :func:`~kivy.compat.clock`. '''

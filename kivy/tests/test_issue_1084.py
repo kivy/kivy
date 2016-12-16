@@ -42,5 +42,6 @@ class UnicodeIssueSetting(App):
         s.add_json_panel('Test Panel', self.config, data=data)
         return s
 
+
 if __name__ == '__main__':
     UnicodeIssueSetting().run()

@@ -104,7 +104,7 @@ class MarkupLabel(MarkupLabelBase):
         return s
 
     def _push_style(self, k):
-        if not k in self._style_stack:
+        if (not k) in self._style_stack:
             self._style_stack[k] = []
         self._style_stack[k].append(self.options[k])
 
@@ -424,14 +424,14 @@ class MarkupLabel(MarkupLabelBase):
                 # should we record refs ?
                 ref = options['_ref']
                 if ref is not None:
-                    if not ref in refs:
+                    if (not ref) in refs:
                         refs[ref] = []
                     refs[ref].append((x, y, x + word.lw, y + wh))
 
                 # Should we record anchors?
                 anchor = options['_anchor']
                 if anchor is not None:
-                    if not anchor in anchors:
+                    if (not anchor) in anchors:
                         anchors[anchor] = (x, y)
                 x += word.lw
             y += lh

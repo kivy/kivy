@@ -556,7 +556,7 @@ class WindowSDL(WindowBase):
                     self._update_modifiers(mod, key)
                 else:
                     self._update_modifiers(mod)  # ignore the key, it
-                                                # has been released
+                                                 # has been released
 
                 # if mod in self._meta_keys:
                 if (key not in self._modifiers and

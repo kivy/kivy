@@ -1184,6 +1184,7 @@ class _Visitor(nodes.NodeVisitor):
             self.root.colors.get(name, self.root.colors['paragraph']),
             text)
 
+
 if __name__ == '__main__':
     from kivy.base import runTouchApp
     import sys
