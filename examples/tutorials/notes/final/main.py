@@ -160,5 +160,6 @@ class NoteApp(App):
     def notes_fn(self):
         return join(self.user_data_dir, 'notes.json')
 
+
 if __name__ == '__main__':
     NoteApp().run()

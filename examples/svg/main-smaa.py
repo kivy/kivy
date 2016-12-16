@@ -150,5 +150,6 @@ class SvgApp(App):
             self.label.text = self.effect.__class__.__name__
             Window.title = self.label.text
 
+
 if __name__ == '__main__':
     SvgApp().run()

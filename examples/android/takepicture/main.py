@@ -76,4 +76,5 @@ class TakePictureApp(App):
     def on_pause(self):
         return True
 
+
 TakePictureApp().run()

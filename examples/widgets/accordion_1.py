@@ -12,5 +12,6 @@ class AccordionApp(App):
             root.add_widget(item)
         return root
 
+
 if __name__ == '__main__':
     AccordionApp().run()

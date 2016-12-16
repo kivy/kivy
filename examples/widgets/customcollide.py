@@ -76,6 +76,7 @@ class Triangle(Scatter):
         return point_inside_polygon(x, y,
                 self.p1 + self.p2 + self.p3)
 
+
 if __name__ == '__main__':
     from kivy.base import runTouchApp
     runTouchApp(Triangle(size_hint=(None, None)))

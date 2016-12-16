@@ -220,5 +220,6 @@ class CodeInputTest(App):
             lx = lexers.get_lexer_by_name(lexers.LEXERS[l][2][0])
         self.codeinput.lexer = lx
 
+
 if __name__ == '__main__':
     CodeInputTest().run()

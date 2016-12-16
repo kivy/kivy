@@ -86,6 +86,7 @@ class ShaderViewer(FloatLayout):
     def on_vs(self, instance, value):
         self.canvas.shader.vs = value
 
+
 Factory.register('ShaderViewer', cls=ShaderViewer)
 
 
@@ -140,6 +141,7 @@ class ShaderEditorApp(App):
         if len(sys.argv) > 1:
             kwargs['source'] = sys.argv[1]
         return ShaderEditor(**kwargs)
+
 
 if __name__ == '__main__':
     ShaderEditorApp().run()
