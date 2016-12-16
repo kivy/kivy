@@ -19,5 +19,6 @@ class TestApp(App):
         # return a Button() as a root widget
         return Button(text='hello world')
 
+
 if __name__ == '__main__':
     TestApp().run()

@@ -229,5 +229,6 @@ class MainApp(App):
         if self.current_image:
             self.current_image.canvas.after.clear()
 
+
 if __name__ == '__main__':
     MainApp().run()
