@@ -178,7 +178,8 @@ class ParserRuleProperty(object):
         if mode == 'eval':
             # if we don't detect any string/key in it, we can eval and give the
             # result
-            if re.search(lang_key, tmp) is None and value in ["'", '"']:
+            quotes = ["'", '"', "'''", '"""']
+            if re.search(lang_key, tmp) is None and value in quotes:
                 try:
                     self.co_value = eval(value)
                 except SyntaxError as e:
@@ -316,7 +317,7 @@ class ParserRule(object):
                 sc_previous = self.ctx.sourcecode[self.line - 1]
                 sc_current = self.ctx.sourcecode[self.line]
 
-                for quote in ["'", '"', "''", '""']:
+                for quote in ["'", '"', "'''", '"""']:
                     if sc_previous.count(quote) == sc_current.count(quote):
                         raise ParserException(
                             self.ctx, self.line,
@@ -575,12 +576,10 @@ class Parser(object):
                 err_msg = ('Invalid indentation, '
                            'must be a multiple of '
                            '%s spaces' % spaces)
-                print repr(lines), '___', repr(line)
                 sc_current = line
                 sc_previous = lines[lines.index(line) - 1]
-                print sc_current, sc_previous
 
-                for quote in ["'", '"', "''", '""']:
+                for quote in ["'", '"', "'''", '"""']:
                     if sc_previous.count(quote) == sc_current.count(quote):
                         raise ParserException(
                             self, ln,
