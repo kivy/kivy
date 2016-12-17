@@ -81,7 +81,7 @@ class KivyRenderTextInput(CodeInput):
         ctrl, cmd = 64, 1024
         key, key_str = keycode
 
-        if text and key not in (list(self.interesting_keys.keys()) + [27]):
+        if text and not key in (list(self.interesting_keys.keys()) + [27]):
             # This allows *either* ctrl *or* cmd, but not both.
             if modifiers == ['ctrl'] or (is_osx and modifiers == ['meta']):
                 if key == ord('s'):
