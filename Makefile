@@ -77,9 +77,6 @@ html-embedded:
 style:
 	$(PYTHON) $(CHECKSCRIPT) .
 
-stylereport:
-	$(PYTHON) $(CHECKSCRIPT) -html .
-
 hook:
 	# Install pre-commit git hook to check your changes for styleguide
 	# consistency.
@@ -131,8 +128,7 @@ help:
 	@echo "  html           to make standalone HTML files"
 	@echo "  install        run a setup.py install"
 	@echo "  mesabuild      for a build with MesaGL"
-	@echo "  style          to check Python code for style hints."
-	@echo "  style-report   make html version of style hints"
+	@echo "  style          to check Python code for style issues"
 	@echo "  test           run unittests (nosetests)"
 	@echo "  theming        create a default theme atlas"
 	@echo "  "
