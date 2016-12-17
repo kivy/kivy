@@ -21,14 +21,11 @@ Path control
 
 .. versionadded:: 1.0.7
 
-You can control the default directories where config files, modules,
-extensions, and kivy data are located.
+You can control the default directories where config files, modules
+and kivy data are located.
 
 KIVY_DATA_DIR
     Location of the Kivy data, defaults to `<kivy path>/data`
-
-KIVY_EXTS_DIR
-    Location of the Kivy extensions, defaults to `<kivy path>/extensions`
 
 KIVY_MODULES_DIR
     Location of the Kivy modules, defaults to `<kivy path>/modules`

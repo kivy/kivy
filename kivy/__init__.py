@@ -24,7 +24,7 @@ __all__ = (
     'kivy_configure', 'kivy_register_post_configuration',
     'kivy_options', 'kivy_base_dir',
     'kivy_modules_dir', 'kivy_data_dir', 'kivy_shader_dir',
-    'kivy_icons_dir', 'kivy_home_dir', 'kivy_userexts_dir',
+    'kivy_icons_dir', 'kivy_home_dir',
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
@@ -231,9 +231,6 @@ kivy_base_dir = dirname(sys.modules[__name__].__file__)
 
 kivy_modules_dir = environ.get('KIVY_MODULES_DIR',
                                join(kivy_base_dir, 'modules'))
-#: Kivy extension directory
-kivy_exts_dir = environ.get('KIVY_EXTS_DIR',
-                            join(kivy_base_dir, 'extensions'))
 #: Kivy data directory
 kivy_data_dir = environ.get('KIVY_DATA_DIR',
                             join(kivy_base_dir, 'data'))
@@ -250,8 +247,6 @@ kivy_home_dir = ''
 kivy_config_fn = ''
 #: Kivy user modules directory
 kivy_usermodules_dir = ''
-#: Kivy user extensions directory
-kivy_userexts_dir = ''
 
 # if there are deps, import them so they can do their magic.
 import kivy.deps
@@ -291,7 +286,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
     kivy_config_fn = join(kivy_home_dir, 'config.ini')
     kivy_usermodules_dir = join(kivy_home_dir, 'mods')
-    kivy_userexts_dir = join(kivy_home_dir, 'extensions')
     icon_dir = join(kivy_home_dir, 'icon')
 
     if 'KIVY_NO_CONFIG' not in environ:
@@ -299,8 +293,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             mkdir(kivy_home_dir)
         if not exists(kivy_usermodules_dir):
             mkdir(kivy_usermodules_dir)
-        if not exists(kivy_userexts_dir):
-            mkdir(kivy_userexts_dir)
         if not exists(icon_dir):
             try:
                 shutil.copytree(join(kivy_data_dir, 'logo'), icon_dir)

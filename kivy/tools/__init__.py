@@ -18,8 +18,6 @@ Some useful scripts include:
   into PVRTC or ETC1 formats
 * :file:`generate-icons.py`: generates set of icons suitable for the various
   store and package formats
-* :file:`extensions/make-kivyext.py`: a helper script for building kivy
-  extensions
 * :file:`gles_compat/subset_gles.py`: examines compatibility between GLEXT and
   GLES2 headers for finding compatible subsets
 
