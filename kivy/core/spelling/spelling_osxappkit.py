@@ -48,7 +48,7 @@ class SpellingOSXAppKit(SpellingBase):
         raise NotImplementedError(err)
 
     def suggest(self, fragment):
-        lang = self._language
+        l = self._language
         # XXX Both ways below work on OSX 10.6. It has not been tested on any
         #     other version, but it should work.
         try:
@@ -58,6 +58,6 @@ class SpellingOSXAppKit(SpellingBase):
             # From 10.6 onwards you're supposed to do it like this:
             checkrange = NSMakeRange(0, len(fragment))
             g = l.guessesForWordRange_inString_language_inSpellDocumentWithTag_(
-                checkrange, fragment, lang.language(), 0)
+                checkrange, fragment, l.language(), 0)
             # Right, this was much easier, Apple! :-)
             return list(g)
