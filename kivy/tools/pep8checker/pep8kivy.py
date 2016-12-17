@@ -65,6 +65,7 @@ if __name__ == '__main__':
 
     exclude_dirs = [
         'kivy/lib',
+        'kivy/tools/pep8checker',
         'coverage',
         'doc'
     ]
