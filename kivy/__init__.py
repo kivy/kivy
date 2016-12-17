@@ -91,19 +91,19 @@ def require(version):
         tag = None
         tagrev = None
         if '-' in version:
-            z = version.split('-')
-            if len(z) == 2:
-                version, tag = z
-            elif len(z) == 3:
-                version, tag, tagrev = z
+            v = version.split('-')
+            if len(v) == 2:
+                version, tag = v
+            elif len(v) == 3:
+                version, tag, tagrev = v
             else:
                 raise Exception('Revision format must be X.Y.Z[-tag]')
 
         # check x y z
-        z = version.split('.')
-        if len(z) != 3:
+        v = version.split('.')
+        if len(v) != 3:
             raise Exception('Revision format must be X.Y.Z[-tag]')
-        return [int(x) for x in z], tag, tagrev
+        return [int(x) for x in v], tag, tagrev
 
     # user version
     revision, tag, tagrev = parse_version(version)
@@ -371,14 +371,14 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         elif opt in ('-a', '--auto-fullscreen'):
             Config.set('graphics', 'fullscreen', 'auto')
         elif opt in ('-c', '--config'):
-            z = arg.split(':', 2)
-            if len(z) == 2:
-                Config.set(z[0], z[1], '')
-            elif len(z) == 3:
-                Config.set(z[0], z[1], z[2])
+            ol = arg.split(':', 2)
+            if len(ol) == 2:
+                Config.set(ol[0], ol[1], '')
+            elif len(ol) == 3:
+                Config.set(ol[0], ol[1], ol[2])
             else:
                 raise Exception('Invalid --config value')
-            if z[0] == 'kivy' and z[1] == 'log_level':
+            if ol[0] == 'kivy' and ol[1] == 'log_level':
                 level = LOG_LEVELS.get(Config.get('kivy', 'log_level'))
                 Logger.setLevel(level=level)
         elif opt in ('-k', '--fake-fullscreen'):

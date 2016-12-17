@@ -229,7 +229,8 @@ class CompoundSelectionBehavior(object):
     nodes_order_reversed = BooleanProperty(True)
     ''' (Internal) Indicates whether the order of the nodes as displayed top-
     down is reversed compared to their order in :meth:`get_selectable_nodes`
-    (e.g how the children property is reversed compared to how it's displayed).
+    (e.g. how the children property is reversed compared to how
+    it's displayed).
     '''
 
     text_entry_timeout = NumericProperty(1.)

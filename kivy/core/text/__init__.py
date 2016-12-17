@@ -607,11 +607,11 @@ class LabelBase(object):
             center = -1  # pos of newline
             if len(text) > 1:
                 middle = int(len(text) // 2)
-                z, r = text.rfind('\n', 0, middle), text.find('\n', middle)
-                if z != -1 and r != -1:
-                    center = z if center - z <= r - center else r
-                elif z != -1:
-                    center = z
+                l, r = text.rfind('\n', 0, middle), text.find('\n', middle)
+                if l != -1 and r != -1:
+                    center = l if center - l <= r - center else r
+                elif l != -1:
+                    center = l
                 elif r != -1:
                     center = r
             # if a newline split text, render from center down and up til uh

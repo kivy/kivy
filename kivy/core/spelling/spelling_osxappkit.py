@@ -48,16 +48,16 @@ class SpellingOSXAppKit(SpellingBase):
         raise NotImplementedError(err)
 
     def suggest(self, fragment):
-        z = self._language
+        lang = self._language
         # XXX Both ways below work on OSX 10.6. It has not been tested on any
         #     other version, but it should work.
         try:
             # This is deprecated as of OSX 10.6, hence the try-except
-            return list(z.guessesForWord_(fragment))
+            return list(l.guessesForWord_(fragment))
         except AttributeError:
             # From 10.6 onwards you're supposed to do it like this:
             checkrange = NSMakeRange(0, len(fragment))
-            g = z.guessesForWordRange_inString_language_inSpellDocumentWithTag_(
-                checkrange, fragment, z.language(), 0)
+            g = l.guessesForWordRange_inString_language_inSpellDocumentWithTag_(
+                checkrange, fragment, lang.language(), 0)
             # Right, this was much easier, Apple! :-)
             return list(g)

@@ -213,8 +213,8 @@ class WindowSDL(WindowBase):
                 return 0
 
             if not app.dispatch('on_pause'):
-                Logger.info('WindowSDL: App doesn\'t support \
-                                pause mode, stop.')
+                Logger.info(
+                    'WindowSDL: App doesn\'t support pause mode, stop.')
                 stopTouchApp()
                 return 0
 
@@ -385,7 +385,7 @@ class WindowSDL(WindowBase):
     def _fix_mouse_pos(self, x, y):
         y -= 1
         self.mouse_pos = (x * self._density,
-                         (self.system_size[1] - y) * self._density)
+                          (self.system_size[1] - y) * self._density)
         return x, y
 
     def _mainloop(self):

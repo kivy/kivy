@@ -255,8 +255,8 @@ class FocusBehavior(object):
         if value is None or value is StopIteration:
             return
         if not isinstance(value, FocusBehavior):
-            raise ValueError('focus_next accepts only objects based'
-                             'on FocusBehavior, or the `StopIteration` class.')
+            raise ValueError('focus_next accepts only objects based on'
+                             ' FocusBehavior, or the `StopIteration` class.')
         value.focus_previous = self
 
     focus_next = ObjectProperty(None, allownone=True)

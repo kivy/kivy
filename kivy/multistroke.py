@@ -1250,9 +1250,9 @@ class Candidate(object):
 
     def prepare(self, numpoints=None):
         '''Prepare the Candidate vectors. self.strokes is combined to a single
-        unistroke(connected end-to-end), resampled to :attr:`numpoints` points,
-        and then the vectors are calculated and stored in self.db (for use by
-        `get_distance` and `get_angle_similarity`)'''
+        unistroke (connected end-to-end), resampled to :attr:`numpoints`
+        points, and then the vectors are calculated and stored in self.db
+        (for use by `get_distance` and `get_angle_similarity`).'''
         n = numpoints and numpoints or self.numpoints
 
         # Inlined combine_strokes() for performance

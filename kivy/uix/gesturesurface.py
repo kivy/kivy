@@ -434,11 +434,11 @@ class GestureSurface(FloatLayout):
         return g
 
     def init_stroke(self, g, touch):
-        z = [touch.x, touch.y]
+        points = [touch.x, touch.y]
         col = g.color
 
         new_line = Line(
-            points=z,
+            points=points,
             width=self.line_width,
             group=g.id)
         g._strokes[str(touch.uid)] = new_line
