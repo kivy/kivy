@@ -57,12 +57,10 @@ def start(win, ctx):
         ctx.config.get('texture', join(kivy_data_dir, 'images', 'cursor.png'))
     ).texture
     cursor_size = ctx.config.get('size')
-    print type(cursor_size)
     if isinstance(cursor_size, string_types):
         cursor_size = [int(x) for x in cursor_size.split('x')]
     elif not cursor_size:
         cursor_size = cursor_texture.size
-    print cursor_size
 
     cursor_offset = ctx.config.get('offset', (0, 0))
     if isinstance(cursor_offset, string_types):
