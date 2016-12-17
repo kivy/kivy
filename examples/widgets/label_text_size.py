@@ -45,5 +45,6 @@ class LabelTextSizeTest(App):
         return z
 
 
+
 if __name__ == '__main__':
     LabelTextSizeTest().run()

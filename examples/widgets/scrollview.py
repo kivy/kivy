@@ -34,6 +34,7 @@ class ScrollViewApp(App):
 
         return root
 
+
 if __name__ == '__main__':
 
     ScrollViewApp().run()

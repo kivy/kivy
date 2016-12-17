@@ -234,5 +234,6 @@ Button:
     def _update_clock(self, dt):
         self.time = time()
 
+
 if __name__ == '__main__':
     ShowcaseApp().run()

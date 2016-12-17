@@ -187,5 +187,6 @@ class LabelTextureSizeExample(App):
 
         self._add_word_ev = Clock.schedule_once(self.add_word, pause_time)
 
+
 if __name__ == '__main__':
     LabelTextureSizeExample().run()

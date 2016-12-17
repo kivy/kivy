@@ -139,4 +139,5 @@ BoxLayout:
             on_press: taw.texture_wrap = 'mirrored_repeat'
 ''')
 
+
 runTouchApp(root)

@@ -885,6 +885,7 @@ def get_extensions_from_sources(sources):
 
 ext_modules = get_extensions_from_sources(sources)
 
+
 # -----------------------------------------------------------------------------
 # automatically detect data files
 data_file_prefix = 'share/kivy-'
