@@ -209,8 +209,10 @@ class EventLoopBase(EventDispatcher):
         try:
             from android import remove_presplash
             remove_presplash()
-        except:
-            Logger.error('Base: Could not remove android presplash')
+        except ImportError:
+            Logger.error(
+                'Base: Failed to import "android" module. '
+                'Could not remove android presplash.')
             return
 
     def post_dispatch_input(self, etype, me):
