@@ -26,7 +26,7 @@ class LabelPIL(LabelBase):
         except UnicodeDecodeError:
             id = '%s.%s' % (fontname, fontsize)
 
-        if not id in self._cache:
+        if id not in self._cache:
             font = ImageFont.truetype(fontname, fontsize)
             self._cache[id] = font
 

@@ -125,7 +125,7 @@ class ImageLoaderGIF(ImageLoaderBase):
                                 rgba_pos += 4
                                 i += 1
                                 continue
-                           # this pixel isn't transparent
+                            # this pixel isn't transparent
                         # doesn't have transparent color
                         (pixel_map[rgba_pos], pixel_map[rgba_pos + 1],
                                 pixel_map[rgba_pos + 2]) = (r, g, b)
@@ -370,11 +370,11 @@ class GifDecoder(Gif):
                 image.codesize = self_pops('<B', self_data)[0]
                 image.lzwcode = b''
                 image_lzwcode = image.lzwcode
-                ### TODO too many corner casses for gifs:(
-                table_size = image.local_color_table_size\
-                    if image.local_color_table_flag and \
-                    self.global_color_table_size < image.local_color_table_size\
-                    else self.global_color_table_size
+                # TODO too many corner cases for gifs:(
+                table_size = (image.local_color_table_size
+                    if image.local_color_table_flag and
+                    self.global_color_table_size < image.local_color_table_size
+                    else self.global_color_table_size)
 
                 while True:
                     try:
@@ -578,6 +578,7 @@ def pack_bits(bits):
             packed += 2 ** level
         level += 1
     return packed
+
 
 # register
 ImageLoader.register(ImageLoaderGIF)

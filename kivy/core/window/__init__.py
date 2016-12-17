@@ -33,6 +33,7 @@ VKeyboard = None
 android = None
 Animation = None
 
+
 class Keyboard(EventDispatcher):
     '''Keyboard interface that is returned by
     :meth:`WindowBase.request_keyboard`. When you request a keyboard,
@@ -536,7 +537,7 @@ class WindowBase(EventDispatcher):
             from kivy.animation import Animation
         Animation.cancel_all(self)
         Animation(
-            _kheight = self.keyboard_height + self.keyboard_padding,
+            _kheight=self.keyboard_height + self.keyboard_padding,
             d=kargs['d'], t=kargs['t']).start(self)
 
     def _upd_kbd_height(self, *kargs):
@@ -836,8 +837,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires the SDL2 window provider and is currently only
-            supported on desktop platforms.
+            This feature requires the SDL2 window provider and is currently
+            only supported on desktop platforms.
         '''
         Logger.warning('Window: maximize() is not implemented in the current '
                         'window provider.')
@@ -849,8 +850,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires the SDL2 window provider and is currently only
-            supported on desktop platforms.
+            This feature requires the SDL2 window provider and is currently
+            only supported on desktop platforms.
         '''
         Logger.warning('Window: minimize() is not implemented in the current '
                         'window provider.')
@@ -862,8 +863,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires the SDL2 window provider and is currently only
-            supported on desktop platforms.
+            This feature requires the SDL2 window provider and is currently
+            only supported on desktop platforms.
         '''
         Logger.warning('Window: restore() is not implemented in the current '
                         'window provider.')
@@ -875,8 +876,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires the SDL2 window provider and is currently only
-            supported on desktop platforms.
+            This feature requires the SDL2 window provider and is currently
+            only supported on desktop platforms.
         '''
         Logger.warning('Window: hide() is not implemented in the current '
                         'window provider.')
@@ -888,8 +889,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires the SDL2 window provider and is currently only
-            supported on desktop platforms.
+            This feature requires the SDL2 window provider and is currently
+            only supported on desktop platforms.
         '''
         Logger.warning('Window: show() is not implemented in the current '
                         'window provider.')
@@ -901,11 +902,11 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.1
 
         .. note::
-            This feature requires the SDL2 window provider and is currently only
-            supported on desktop platforms.
+            This feature requires the SDL2 window provider and is currently
+            only supported on desktop platforms.
         '''
-        Logger.warning('Window: raise_window is not implemented in the current '
-                        'window provider.')
+        Logger.warning('Window: raise_window is not implemented in the current'
+                       ' window provider.')
 
     def close(self):
         '''Close the window'''
@@ -995,7 +996,7 @@ class WindowBase(EventDispatcher):
     def remove_widget(self, widget):
         '''Remove a widget from a window
         '''
-        if not widget in self.children:
+        if widget not in self.children:
             return
         self.children.remove(widget)
         if widget.canvas in self.canvas.children:
@@ -1404,7 +1405,8 @@ class WindowBase(EventDispatcher):
                     return True
 
     if Config:
-        on_keyboard.exit_on_escape = Config.getboolean('kivy', 'exit_on_escape')
+        on_keyboard.exit_on_escape = Config.getboolean(
+                                        'kivy', 'exit_on_escape')
 
         def __exit(section, name, value):
             WindowBase.__dict__['on_keyboard'].exit_on_escape = \
@@ -1709,6 +1711,7 @@ class WindowBase(EventDispatcher):
             This feature requires the SDL2 window provider.
         '''
         pass
+
 
 #: Instance of a :class:`WindowBase` implementation
 window_impl = []

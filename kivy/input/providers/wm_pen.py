@@ -21,6 +21,8 @@ class WM_Pen(MotionEvent):
     def __str__(self):
         i, u, s, d = (self.id, self.uid, str(self.spos), self.device)
         return '<WMPen id:%d uid:%d pos:%s device:%s>' % (i, u, s, d)
+
+
 if 'KIVY_DOC' in os.environ:
     # documentation hack
     WM_PenProvider = None

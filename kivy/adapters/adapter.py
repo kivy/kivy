@@ -87,8 +87,8 @@ class Adapter(EventDispatcher):
     '''
     A kv template for instantiating a given view item (Use this or cls).
 
-    :attr:`template` is an :class:`~kivy.properties.ObjectProperty` and defaults
-    to None.
+    :attr:`template` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
     '''
 
     args_converter = ObjectProperty(None)

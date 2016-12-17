@@ -16,7 +16,8 @@ from kivy.core.window import Window
 from kivy.graphics import RenderContext
 from kivy.properties import StringProperty
 
-# This header must be not changed, it contain the minimum information from Kivy.
+# This header must be not changed, it contains the minimum information
+# from Kivy.
 header = '''
 #ifdef GL_ES
 precision highp float;

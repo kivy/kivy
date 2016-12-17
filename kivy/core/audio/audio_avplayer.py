@@ -68,4 +68,5 @@ class SoundAvplayer(Sound):
             return self._avplayer.duration
         return super(SoundAvplayer, self)._get_length()
 
+
 SoundLoader.register(SoundAvplayer)

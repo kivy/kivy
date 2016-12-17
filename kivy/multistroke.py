@@ -226,10 +226,10 @@ class Recognizer(EventDispatcher):
                     # Min priority 50, max 100
                     gdb.filter(priority=[50, 100])
 
-                When this option is used, :attr:`Recognizer.db` is automatically
-                sorted according to priority, incurring extra cost. You can use
-                `force_priority_sort` to override this behavior if your gestures
-                are already sorted according to priority.
+                When this option is used, :attr:`Recognizer.db` is sorted
+                automatically according to priority, incurring extra cost. You
+                can use `force_priority_sort` to override this behavior if your
+                gestures are already sorted according to priority.
 
             `orientation_sensitive`
                 Limits the returned list to gestures that are
@@ -358,7 +358,8 @@ class Recognizer(EventDispatcher):
         '''
         if not strokes:
             return False
-        self.db.append(MultistrokeGesture(name=name, strokes=strokes, **kwargs))
+        self.db.append(MultistrokeGesture(name=name,
+                                          strokes=strokes, **kwargs))
         return True
 
     def parse_gesture(self, data):
@@ -906,7 +907,7 @@ class MultistrokeGesture(object):
         # If you put the below directly into math.acos(), you will get a domain
         # error when a=1.0 and angle=0.0 (ie math_cos(angle)=1.0). It seems to
         # be because float representation of 1.0*1.0 is >1.0 (ie 1.00000...001)
-        # and this is problematic for math.acos(). If you try math.acos(1.0*1.0)
+        # and this is problematic for math.acos().If you try math.acos(1.0*1.0)
         # in interpreter it does not happen, only with exact match at runtime
         result = a * math_cos(angle) + b * math_sin(angle)
 
@@ -951,7 +952,7 @@ class MultistrokeGesture(object):
             # Handle a theoretical case where a MultistrokeGesture is composed
             # manually and the orientation_sensitive flag is True, and contains
             # a UnistrokeTemplate that has orientation_sensitive=False (or vice
-            # versa). This would cause KeyError - requesting nonexistant vector.
+            # versa). This would cause KeyError-requesting nonexistant vector.
             if tpl.orientation_sens:
                 if skip_bounded:
                     continue
@@ -1197,7 +1198,7 @@ class Candidate(object):
         self.db = {}
         self.strokes = []
 
-        if not strokes is None:
+        if strokes is not None:
             self.strokes = strokes
 
     def add_stroke(self, stroke):
@@ -1249,7 +1250,7 @@ class Candidate(object):
 
     def prepare(self, numpoints=None):
         '''Prepare the Candidate vectors. self.strokes is combined to a single
-        unistroke (connected end-to-end), resampled to :attr:`numpoints` points,
+        unistroke(connected end-to-end), resampled to :attr:`numpoints` points,
         and then the vectors are calculated and stored in self.db (for use by
         `get_distance` and `get_angle_similarity`)'''
         n = numpoints and numpoints or self.numpoints

@@ -997,7 +997,7 @@ class Settings(BoxLayout):
 
         for setting in data:
             # determine the type and the class to use
-            if not 'type' in setting:
+            if 'type' not in setting:
                 raise ValueError('One setting are missing the "type" element')
             ttype = setting['type']
             cls = self._types.get(ttype)

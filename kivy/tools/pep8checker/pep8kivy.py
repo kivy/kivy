@@ -15,6 +15,7 @@ pep8_ignores = (
     'E402',  # module level import not at top of file
 )
 
+
 class KivyStyleChecker(pep8.Checker):
 
     def __init__(self, filename):
@@ -102,7 +103,7 @@ if __name__ == '__main__':
                         continue
 
                     if htmlmode:
-                        print('<tr><th colspan="2">%s</td></tr>' \
+                        print('<tr><th colspan="2">%s</td></tr>'
                              % complete_filename)
                     errors += check(complete_filename)
 

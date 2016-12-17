@@ -828,6 +828,7 @@ class BuilderBase(object):
                     prule.ctx, prule.line,
                     '{}: {}'.format(e.__class__.__name__, e), cause=tb)
 
+
 #: Main instance of a :class:`BuilderBase`.
 Builder = register_context('Builder', BuilderBase)
 Builder.load_file(join(kivy_data_dir, 'style.kv'), rulesonly=True)

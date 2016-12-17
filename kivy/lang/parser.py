@@ -353,7 +353,7 @@ class ParserRule(object):
             raise ParserException(self.ctx, self.line,
                                   'Invalid template (must be inside [])')
         item_content = name[1:-1]
-        if not '@' in item_content:
+        if '@' not in item_content:
             raise ParserException(self.ctx, self.line,
                                   'Invalid template name (missing @)')
         template_name, template_root_cls = item_content.split('@')
@@ -447,10 +447,10 @@ class Parser(object):
                 kivy.lang.builder.Builder.load_file(ref)
             elif cmd[:7] == 'import ':
                 package = cmd[7:].strip()
-                l = package.split()
-                if len(l) != 2:
+                z = package.split()
+                if len(z) != 2:
                     raise ParserException(self, ln, 'Invalid import syntax')
-                alias, package = l
+                alias, package = z
                 try:
                     if package not in sys.modules:
                         try:
@@ -717,7 +717,7 @@ class ParserSelectorName(ParserSelector):
     def match(self, widget):
         parents = ParserSelectorName.parents
         cls = widget.__class__
-        if not cls in parents:
+        if cls not in parents:
             classes = [x.__name__.lower() for x in
                        [cls] + list(self.get_bases(cls))]
             parents[cls] = classes

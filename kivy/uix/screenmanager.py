@@ -486,9 +486,9 @@ class ShaderTransition(TransitionBase):
         super(ShaderTransition, self).on_complete()
 
     def _remove_out_canvas(self, *args):
-        if (self.screen_out
-                and self.screen_out.canvas in self.manager.canvas.children
-                and self.screen_out not in self.manager.children):
+        if (self.screen_out and
+                self.screen_out.canvas in self.manager.canvas.children and
+                self.screen_out not in self.manager.children):
             self.manager.canvas.remove(self.screen_out.canvas)
 
     def add_screen(self, screen):
@@ -1122,6 +1122,7 @@ class ScreenManager(FloatLayout):
         if self.transition.is_active:
             return False
         return super(ScreenManager, self).on_touch_up(touch)
+
 
 if __name__ == '__main__':
     from kivy.app import App

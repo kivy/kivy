@@ -252,7 +252,7 @@ class Carousel(StencilView):
     .. versionadded:: 1.9.2
     '''
 
-    #### private properties, for internal use only ###
+    # private properties, for internal use only ###
     _index = NumericProperty(0, allownone=True)
     _prev = ObjectProperty(None, allownone=True)
     _current = ObjectProperty(None, allownone=True)
@@ -299,7 +299,7 @@ class Carousel(StencilView):
 
         .. versionadded:: 1.7.0
         '''
-        if not self.index is None:
+        if self.index is not None:
             w, h = self.size
             _direction = {
                 'top': -h / 2,

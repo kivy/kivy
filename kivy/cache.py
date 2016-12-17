@@ -229,6 +229,7 @@ class Cache(object):
                 str(Cache._categories[category]['limit']),
                 str(Cache._categories[category]['timeout'])))
 
+
 if 'KIVY_DOC_INCLUDE' not in environ:
     # install the schedule clock for purging
     Clock.schedule_interval(Cache._purge_by_timeout, 1)

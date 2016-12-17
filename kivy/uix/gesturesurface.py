@@ -402,7 +402,8 @@ class GestureSurface(FloatLayout):
 
         # dispatch later only if we have a window
         elif self.temporal_window > 0:
-            Clock.schedule_once(self._complete_dispatcher, self.temporal_window)
+            Clock.schedule_once(self._complete_dispatcher,
+                                    self.temporal_window)
 
 # -----------------------------------------------------------------------------
 # Gesture related methods
@@ -433,11 +434,11 @@ class GestureSurface(FloatLayout):
         return g
 
     def init_stroke(self, g, touch):
-        l = [touch.x, touch.y]
+        z = [touch.x, touch.y]
         col = g.color
 
         new_line = Line(
-            points=l,
+            points=z,
             width=self.line_width,
             group=g.id)
         g._strokes[str(touch.uid)] = new_line

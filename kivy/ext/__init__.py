@@ -4,35 +4,35 @@ Extension Support
 
 Sometimes your application requires functionality that is beyond the scope of
 what Kivy can deliver. In those cases it is necessary to resort to external
-software libraries. Given the richness of the Python ecosystem, there is already
-a great number of software libraries that you can simply import and use right
-away.
+software libraries. Given the richness of the Python ecosystem, there is
+already a great number of software libraries that you can simply import and use
+right away.
 
 For some third-party libraries, it's not as easy as that though. Some libraries
-require special *wrappers* to be written for them in order to be compatible with
-Kivy.
+require special *wrappers* to be written for them in order to be compatible
+ with Kivy.
 Some libraries might even need to be patched so that they can be used (e.g. if
-they open their own OpenGL context to draw in and don't support proper offscreen
-rendering). On those occasions it is often possible to patch the library in
-question and provide a Python wrapper around it that is compatible with Kivy.
-Sticking with this example, you can't just use the wrapper with a 'normal'
-installation of the library because the patch would be missing.
+they open their own OpenGL context to draw in and don't support proper
+offscreen rendering). On those occasions it is often possible to patch the
+library in question and provide a Python wrapper around it that is compatible
+with Kivy. Sticking with this example, you can't just use the wrapper with a
+'normal' installation of the library because the patch would be missing.
 
 That is where Kivy extensions come in handy. A Kivy extension represents a
 single third-party library that is provided in such a way that it can simply be
 downloaded as a single file, put in a special directory and then offers the
 functionality of the wrapped library to Kivy applications.
 These extensions will not pollute the global Python environment (as they might
-be unusable on their own after potential patches have been applied) because they
-reside in special directories for Kivy that are not accessed by Python by
+be unusable on their own after potential patches have been applied) because
+they reside in special directories for Kivy that are not accessed by Python by
 default.
 
 Naming and versioning
 ---------------------
 
-Kivy extensions are provided as ``*.kex`` files. They are really just zip files,
-but you must not unzip them yourself. Kivy will do that for you as soon as it's
-appropriate to do so. They follow the following naming convention::
+Kivy extensions are provided as ``*.kex`` files. They are really just zip
+files, but you must not unzip them yourself. Kivy will do that for you as soon
+as it's appropriate to do so. They follow the following naming convention::
 
     <NAME>-<MAJOR>.<MINOR>[.*].kex
 
@@ -63,7 +63,7 @@ from shutil import move
 
 from kivy.logger import Logger
 
-if not 'KIVY_DOC' in environ:
+if 'KIVY_DOC' not in environ:
     from kivy import kivy_userexts_dir, kivy_exts_dir
 
     # The paths where extensions can be put as a .zip file by the user
@@ -248,8 +248,8 @@ def unzip_extensions():
                               "extracted manually, just moving the zip.")
                 already_unzipped = True
 
-            # Filter the namelist of zipfile to take only the members that start
-            # with the extension name (MyExt/...)
+            # Filter the namelist of zipfile to take only the members that
+            # start with the extension name (MyExt/...)
             members = [x for x in zipf.namelist()
                        if x.startswith(extname + '/')]
 
@@ -268,7 +268,7 @@ def unzip_extensions():
                         # of the OS
                         mempath = join(epath, extdir, member)
                         directory = dirname(mempath)
-                        if not directory in cache_directories:
+                        if directory not in cache_directories:
                             cache_directories.append(directory)
                             if not exists(directory):
                                 mkdir(join(epath, extdir, directory))

@@ -94,7 +94,7 @@ class TestPrebuiltApp(App):
 
 
 def print_class(class_name):
-    """ Read this file and print the section with the class name specified.) """
+    """ Read this file and print the section with the class name specified.)"""
     filename = sys.argv[0]
     with open(filename) as f:
         data = f.read()

@@ -140,4 +140,5 @@ class SoundPyGst(Sound):
                     gst.Format(gst.FORMAT_TIME))[0] / 1000000000.
         return super(SoundPyGst, self)._get_length()
 
+
 SoundLoader.register(SoundPyGst)

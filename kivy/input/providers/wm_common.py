@@ -148,4 +148,3 @@ if 'KIVY_DOC' not in os.environ:
 
     windll.user32.ClientToScreen.restype = BOOL
     windll.user32.ClientToScreen.argtypes = [HANDLE, POINTER(POINT)]
-

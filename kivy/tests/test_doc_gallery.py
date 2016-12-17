@@ -30,5 +30,6 @@ blah blah
     assert '3D Rendering' in d['title']
     assert 'monkey head' in d['first_sentence']
 
+
 if __name__ == '__main__':
     test_parse_docstring_info()

@@ -83,6 +83,7 @@ def formatter_message(message, use_color=True):
         message = message.replace("$RESET", "").replace("$BOLD", "")
     return message
 
+
 COLORS = {
     'TRACE': MAGENTA,
     'WARNING': YELLOW,
@@ -122,20 +123,20 @@ class FileHandler(logging.Handler):
         unlink = os.unlink
 
         # search all log files
-        l = [join(directory, x) for x in os.listdir(directory)]
-        if len(l) > maxfiles:
+        lst = [join(directory, x) for x in os.listdir(directory)]
+        if len(lst) > maxfiles:
             # get creation time on every files
-            l = [{'fn': x, 'ctime': os.path.getctime(x)} for x in l]
+            lst = [{'fn': x, 'ctime': os.path.getctime(x)} for x in lst]
 
             # sort by date
-            l = sorted(l, key=lambda x: x['ctime'])
+            lst = sorted(lst, key=lambda x: x['ctime'])
 
             # get the oldest (keep last maxfiles)
-            l = l[:-maxfiles]
-            print('Purge %d log files' % len(l))
+            lst = lst[:-maxfiles]
+            print('Purge %d log files' % len(lst))
 
             # now, unlink every file in the list
-            for filename in l:
+            for filename in lst:
                 try:
                     unlink(filename['fn'])
                 except PermissionError as e:
@@ -308,6 +309,7 @@ def logger_config_update(section, key, value):
     if LOG_LEVELS.get(value) is None:
         raise AttributeError('Loglevel {0!r} doesn\'t exists'.format(value))
     Logger.setLevel(level=LOG_LEVELS.get(value))
+
 
 #: Kivy default logger instance
 Logger = logging.getLogger('kivy')

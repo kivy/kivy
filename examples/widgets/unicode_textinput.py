@@ -230,7 +230,7 @@ class unicode_app(App):
 
         for fdir in fonts_path:
             for fpath in sorted(os.listdir(fdir)):
-                if not '.' in fpath:
+                if '.' not in fpath:
                     continue
                 font, ext = fpath.rsplit('.')
                 if ext == 'ttf':

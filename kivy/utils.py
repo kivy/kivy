@@ -158,6 +158,7 @@ def is_color_transparent(c):
         return True
     return False
 
+
 hex_colormap = {
     'aliceblue': '#f0f8ff',
     'antiquewhite': '#faebd7',

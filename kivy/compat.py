@@ -96,5 +96,6 @@ def _isclose(a, b, rel_tol=1e-9, abs_tol=0.0):
              (diff <= fabs(rel_tol * a))) or
             (diff <= abs_tol))
 
+
 if isclose is None:
     isclose = _isclose

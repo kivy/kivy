@@ -516,7 +516,7 @@ class LabelBase(object):
             # divide left over space between `spaces`
             # TODO implement a better method of stretching glyphs?
             if (uw is not None and halign == 'justify' and line and not
-                layout_line.is_last_line):
+                    layout_line.is_last_line):
                 # number spaces needed to fill, and remainder
                 n, rem = divmod(max(uww - lw, 0), sw)
                 n = int(n)
@@ -607,11 +607,11 @@ class LabelBase(object):
             center = -1  # pos of newline
             if len(text) > 1:
                 middle = int(len(text) // 2)
-                l, r = text.rfind('\n', 0, middle), text.find('\n', middle)
-                if l != -1 and r != -1:
-                    center = l if center - l <= r - center else r
-                elif l != -1:
-                    center = l
+                z, r = text.rfind('\n', 0, middle), text.find('\n', middle)
+                if z != -1 and r != -1:
+                    center = z if center - z <= r - center else r
+                elif z != -1:
+                    center = z
                 elif r != -1:
                     center = r
             # if a newline split text, render from center down and up til uh
@@ -742,7 +742,8 @@ class LabelBase(object):
     def fontid(self):
         '''Return a unique id for all font parameters'''
         return str([self.options[x] for x in (
-            'font_size', 'font_name_r', 'bold', 'italic', 'underline', 'strikethrough')])
+            'font_size', 'font_name_r', 'bold',
+            'italic', 'underline', 'strikethrough')])
 
     def _get_text_size(self):
         return self._text_size
@@ -756,6 +757,7 @@ class LabelBase(object):
 
     usersize = property(_get_text_size, _set_text_size,
                         doc='''(deprecated) Use text_size instead.''')
+
 
 # Load the appropriate provider
 label_libs = []
