@@ -519,7 +519,7 @@ class TextInput(FocusBehavior, Widget):
             if value and (not _is_desktop or not self.allow_copy):
                 self.is_focusable = False
             if (not (value or self.disabled) or _is_desktop and
-                self._keyboard_mode == 'system'):
+                    self._keyboard_mode == 'system'):
                 self._editable = True
             else:
                 self._editable = False
@@ -1172,8 +1172,8 @@ class TextInput(FocusBehavior, Widget):
         _label_cached = self._label_cached
         for i in range(0, len(l[cy])):
             if _get_text_width(l[cy][:i], _tab_width, _label_cached) + \
-                  _get_text_width(l[cy][i], _tab_width, _label_cached) * 0.6 + \
-                  padding_left > cx + scrl_x:
+                  _get_text_width(l[cy][i], _tab_width, _label_cached) * \
+                  0.6 + padding_left > cx + scrl_x:
                 cx = i
                 break
         return cx, cy
@@ -1332,12 +1332,12 @@ class TextInput(FocusBehavior, Widget):
             if scroll_type == 'up':
                 if self.multiline:
                     if (self._lines_rects[-1].pos[1] > self.y +
-                        self.line_height):
+                            self.line_height):
                         return
                     self.scroll_y += self.line_height
                 else:
                     if (self.scroll_x + self.width >=
-                        self._lines_rects[-1].texture.size[0]):
+                            self._lines_rects[-1].texture.size[0]):
                         return
                     self.scroll_x += self.line_height
 
@@ -1362,7 +1362,9 @@ class TextInput(FocusBehavior, Widget):
             self._selection_from = self._selection_to = self.cursor_index()
             self._update_selection()
 
-        if CutBuffer and 'button' in touch.profile and touch.button == 'middle':
+        if (CutBuffer and
+                'button' in touch.profile and
+                touch.button == 'middle'):
             self.insert_text(CutBuffer.get_cutbuffer())
             return True
 
@@ -1658,7 +1660,7 @@ class TextInput(FocusBehavior, Widget):
 
         if value:
             if (not (self.readonly or self.disabled) or _is_desktop and
-                self._keyboard_mode == 'system'):
+                    self._keyboard_mode == 'system'):
                 self._trigger_cursor_reset()
                 self._editable = True
             else:
@@ -3026,8 +3028,8 @@ class TextInput(FocusBehavior, Widget):
     '''
 
     def _get_min_height(self):
-        return (len(self._lines) * (self.line_height + self.line_spacing)
-                + self.padding[1] + self.padding[3])
+        return (len(self._lines) * (self.line_height + self.line_spacing) +
+                self.padding[1] + self.padding[3])
 
     minimum_height = AliasProperty(_get_min_height, None,
                                    bind=('_lines', 'line_spacing', 'padding',

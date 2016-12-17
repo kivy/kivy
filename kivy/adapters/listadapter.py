@@ -248,8 +248,8 @@ class ListAdapter(Adapter, EventDispatcher):
                 if item['is_selected']:
                     self.handle_selection(view_instance)
             elif hasattr(item, 'is_selected'):
-                if (inspect.isfunction(item.is_selected)
-                        or inspect.ismethod(item.is_selected)):
+                if (inspect.isfunction(item.is_selected) or
+                        inspect.ismethod(item.is_selected)):
                     if item.is_selected():
                         self.handle_selection(view_instance)
                 else:
@@ -331,8 +331,8 @@ class ListAdapter(Adapter, EventDispatcher):
         elif type(item) == dict:
             item['is_selected'] = value
         elif hasattr(item, 'is_selected'):
-            if (inspect.isfunction(item.is_selected)
-                    or inspect.ismethod(item.is_selected)):
+            if (inspect.isfunction(item.is_selected) or
+                    inspect.ismethod(item.is_selected)):
                 item.is_selected()
             else:
                 item.is_selected = value

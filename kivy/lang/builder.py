@@ -707,25 +707,25 @@ class BuilderBase(object):
 
         .. code-block:: python
 
-                >>> w = Builder.load_string(\'''
-                ... Widget:
-                ...     height: self.width / 2. if self.disabled else self.width
-                ...     x: self.y + 50
-                ... \''')
-                >>> w.size
-                [100, 100]
-                >>> w.pos
-                [50, 0]
-                >>> w.width = 500
-                >>> w.size
-                [500, 500]
-                >>> Builder.unbind_widget(w.uid)
-                >>> w.width = 222
-                >>> w.y = 500
-                >>> w.size
-                [222, 500]
-                >>> w.pos
-                [50, 500]
+            >>> w = Builder.load_string(\'''
+            ... Widget:
+            ...     height: self.width / 2. if self.disabled else self.width
+            ...     x: self.y + 50
+            ... \''')
+            >>> w.size
+            [100, 100]
+            >>> w.pos
+            [50, 0]
+            >>> w.width = 500
+            >>> w.size
+            [500, 500]
+            >>> Builder.unbind_widget(w.uid)
+            >>> w.width = 222
+            >>> w.y = 500
+            >>> w.size
+            [222, 500]
+            >>> w.pos
+            [50, 500]
 
         .. versionadded:: 1.7.2
         '''

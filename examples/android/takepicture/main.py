@@ -5,9 +5,9 @@ Take picture
 .. author:: Mathieu Virbel <mat@kivy.org>
 
 Little example to demonstrate how to start an Intent, and get the result.
-When you use the Android.startActivityForResult(), the result will be dispatched
-into onActivityResult. You can catch the event with the android.activity API
-from python-for-android project.
+When you use the Android.startActivityForResult(), the result will be
+dispatched into onActivityResult. You can catch the event with the
+android.activity API from python-for-android project.
 
 If you want to compile it, don't forget to add the CAMERA permission::
 
