@@ -19,10 +19,16 @@ cdef class StripMesh(VertexInstruction):
 
 
 cdef class Mesh(VertexInstruction):
-    cdef list _vertices
-    cdef list _indices
-    cdef VertexFormat vertex_format
     cdef int is_built
+    cdef object _vertices  # the object the user passed in
+    cdef object _indices
+    cdef object _fvertices  # a buffer interface passed by user, or created
+    cdef object _lindices
+    cdef float *_pvertices  # the pointer to the start of buffer interface data
+    cdef unsigned short *_pindices
+    cdef VertexFormat vertex_format
+    cdef long vcount  # the length of last set _vertices
+    cdef long icount  # the length of last set _indices
 
     cdef void build_triangle_fan(self, float *vertices, int vcount, int icount)
     cdef void build(self)

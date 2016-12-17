@@ -19,8 +19,10 @@ class JsonStore(AbstractStore):
     '''Store implementation using a json file for storing the key-value pairs.
     See the :mod:`kivy.storage` module documentation for more information.
     '''
-    def __init__(self, filename, **kwargs):
+    def __init__(self, filename, indent=None, sort_keys=False, **kwargs):
         self.filename = filename
+        self.indent = indent
+        self.sort_keys = sort_keys
         self._data = {}
         self._is_changed = True
         super(JsonStore, self).__init__(**kwargs)
@@ -38,7 +40,7 @@ class JsonStore(AbstractStore):
         if not self._is_changed:
             return
         with open(self.filename, 'w') as fd:
-            dump(self._data, fd)
+            dump(self._data, fd, indent=self.indent, sort_keys=self.sort_keys)
         self._is_changed = False
 
     def store_exists(self, key):

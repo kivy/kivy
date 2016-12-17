@@ -187,10 +187,10 @@ class ModuleBase:
 
     def deactivate_module(self, name, win):
         '''Deactivate a module from a window'''
-        if not name in self.mods:
+        if name not in self.mods:
             Logger.warning('Modules: Module <%s> not found' % name)
             return
-        if not 'module' in self.mods[name]:
+        if 'module' not in self.mods[name]:
             return
 
         module = self.mods[name]['module']
@@ -215,7 +215,7 @@ class ModuleBase:
         modules_to_activate = [x[0] for x in Config.items('modules')]
         for win in self.wins:
             for name in self.mods:
-                if not name in modules_to_activate:
+                if name not in modules_to_activate:
                     self.deactivate_module(name, win)
             for name in modules_to_activate:
                 try:
@@ -268,15 +268,16 @@ class ModuleBase:
         print('Available modules')
         print('=================')
         for module in self.list():
-            if not 'module' in self.mods[module]:
+            if 'module' not in self.mods[module]:
                 self.import_module(module)
             text = self.mods[module]['module'].__doc__.strip("\n ")
             print('%-12s: %s' % (module, text))
         print()
 
+
 Modules = ModuleBase()
 Modules.add_path(kivy.kivy_modules_dir)
-if not 'KIVY_DOC' in os.environ:
+if 'KIVY_DOC' not in os.environ:
     Modules.add_path(kivy.kivy_usermodules_dir)
 
 if __name__ == '__main__':

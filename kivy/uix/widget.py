@@ -546,7 +546,7 @@ class Widget(WidgetBase):
             children = self.children
             if index >= len(children):
                 index = len(children)
-                next_index = 0
+                next_index = canvas.indexof(children[-1].canvas)
             else:
                 next_child = children[index]
                 next_index = canvas.indexof(next_child.canvas)
@@ -615,8 +615,8 @@ class Widget(WidgetBase):
             The image includes only this widget and its children. If you want
             to include widgets elsewhere in the tree, you must call
             :meth:`~Widget.export_to_png` from their common parent, or use
-            :meth:`~kivy.core.window.WindowBase.screenshot` to capture the whole
-            window.
+            :meth:`~kivy.core.window.WindowBase.screenshot` to capture the
+            whole window.
 
         .. note::
 

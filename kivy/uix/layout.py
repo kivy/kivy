@@ -175,7 +175,7 @@ class Layout(Widget):
         oversize_amt = undersize_amt = 0
         hint_orig = hint[:]
 
-        # first,  for all the items, set them to be withing their max/min
+        # first, for all the items, set them to be within their max/min
         # size_hint bound, also find how much their size_hint can be reduced
         # or increased
         for i, (sh, sh_min, sh_max) in enumerate(

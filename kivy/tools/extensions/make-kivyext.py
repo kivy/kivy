@@ -69,8 +69,8 @@ class PackageBuild(Command):
     user_options = []
 
     def run(self):
-        # Call this file and make a distributable .zip file that has our desired
-        # folder structure
+        # Call this file and make a distributable .zip file that has our
+        # desired folder structure
         call([sys.executable, 'setup.py', 'install', '--root', 'output/',
             '--install-lib', '/', '--install-platlib', '/', '--install-data',
             '/%(extname)s/data', 'bdist', '--formats=zip'])

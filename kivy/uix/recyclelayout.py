@@ -88,10 +88,10 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
                 return
             opt = self.view_opts[idx]
             if (instance.size == opt['size'] and
-                instance.size_hint == opt['size_hint'] and
-                instance.size_hint_min == opt['size_hint_min'] and
-                instance.size_hint_max == opt['size_hint_max'] and
-                instance.pos_hint == opt['pos_hint']):
+                    instance.size_hint == opt['size_hint'] and
+                    instance.size_hint_min == opt['size_hint_min'] and
+                    instance.size_hint_max == opt['size_hint_max'] and
+                    instance.pos_hint == opt['pos_hint']):
                 return
             self._size_needs_update = True
             rv.refresh_from_layout(view_size=True)
@@ -117,7 +117,7 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
                         opts.insert(v, None)
                     elif k == 'modified':
                         start, stop, step = v.start, v.stop, v.step
-                        r = range (start, stop) if step == None else \
+                        r = range(start, stop) if step is None else \
                             range(start, stop, step)
                         for i in r:
                             opts[i] = None
@@ -194,15 +194,15 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
         for widget, index in self.view_indices.items():
             opt = opts[index]
             s = opt['size']
-            w, h = sn = widget.size
+            w, h = sn = list(widget.size)
             sh = opt['size_hint']
-            shnw, shnh = shn = widget.size_hint
+            shnw, shnh = shn = list(widget.size_hint)
             sh_min = opt['size_hint_min']
-            shn_min = widget.size_hint_min
+            shn_min = list(widget.size_hint_min)
             sh_max = opt['size_hint_max']
-            shn_max = widget.size_hint_max
+            shn_max = list(widget.size_hint_max)
             ph = opt['pos_hint']
-            phn = widget.pos_hint
+            phn = dict(widget.pos_hint)
             if s != sn or sh != shn or ph != phn or sh_min != shn_min or \
                     sh_max != shn_max:
                 changed.append((index, widget, s, sn, sh, shn, sh_min, shn_min,
@@ -262,10 +262,10 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
         for index, widget in new:
             opt = view_opts[index]
             if (changed or widget.size == opt['size'] and
-                widget.size_hint == opt['size_hint'] and
-                widget.size_hint_min == opt['size_hint_min'] and
-                widget.size_hint_max == opt['size_hint_max'] and
-                widget.pos_hint == opt['pos_hint']):
+                    widget.size_hint == opt['size_hint'] and
+                    widget.size_hint_min == opt['size_hint_min'] and
+                    widget.size_hint_max == opt['size_hint_max'] and
+                    widget.pos_hint == opt['pos_hint']):
                 continue
             changed = True
 

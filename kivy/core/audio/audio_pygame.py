@@ -102,7 +102,7 @@ class SoundPygame(Sound):
         if self._data is not None and self._channel:
             if _platform == 'android':
                 return self._channel.get_pos()
-            return  Clock.time() - self.start_time
+            return Clock.time() - self.start_time
         return 0
 
     def on_volume(self, instance, volume):
@@ -115,5 +115,6 @@ class SoundPygame(Sound):
         if self._data is not None:
             return self._data.get_length()
         return super(SoundPygame, self)._get_length()
+
 
 SoundLoader.register(SoundPygame)

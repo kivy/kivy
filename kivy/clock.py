@@ -355,12 +355,10 @@ from sys import platform
 from os import environ
 from functools import wraps, partial
 from kivy.context import register_context
-from kivy.weakmethod import WeakMethod
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy.compat import clock as _default_time, PY2
 import time
-from threading import Lock
 from kivy._clock import CyClockBase, ClockEvent, FreeClockEvent, \
     CyClockBaseFree
 try:
@@ -374,6 +372,8 @@ from threading import Event as ThreadingEvent
 
 def _get_sleep_obj():
     pass
+
+
 try:
     import ctypes
     if platform in ('win32', 'cygwin'):
@@ -613,7 +613,9 @@ class ClockBaseBehavior(object):
 
     time = staticmethod(partial(_default_time))
 
-ClockBaseBehavior.time.__doc__ = '''Proxy method for :func:`~kivy.compat.clock`. '''
+
+ClockBaseBehavior.time.__doc__ = \
+    '''Proxy method for :func:`~kivy.compat.clock`. '''
 
 
 class ClockBaseInterruptBehavior(ClockBaseBehavior):
@@ -799,6 +801,7 @@ def mainthread(func):
             func(*args, **kwargs)
         Clock.schedule_once(callback_func, 0)
     return delayed_func
+
 
 if 'KIVY_DOC_INCLUDE' in environ:
     #: Instance of :class:`ClockBaseBehavior`.

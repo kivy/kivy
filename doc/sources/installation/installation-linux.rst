@@ -71,7 +71,7 @@ Linux Mint
 ----------
 
 #. Find out on which Ubuntu release your installation is based on, using this
-   `overview <http://www.linuxmint.com/oldreleases.php>`_.
+   `overview <https://linuxmint.com/download_all.php>`_.
 #. Continue as described for Ubuntu above, depending on which version your
    installation is based on.
 
@@ -88,6 +88,8 @@ Bodhi Linux
         Ubuntu 12.04 LTS aka Precise
     :Bodhi 3:
         Ubuntu 14.04 LTS aka Trusty
+    :Bodhi 4:
+        Ubuntu 16.04 LTS aka Xenial
 
 
 2. Continue as described for Ubuntu above, depending on which version your installation is based on.
@@ -144,8 +146,8 @@ Gentoo
    `spell: Standard flag, provide enchant to use spelling in kivy apps.`
 
 
-*Installation in a Virtual Environment*
-=======================================
+Installation in a Virtual Environment
+=====================================
 
 
 Common dependencies
@@ -168,8 +170,8 @@ Kivy       Cython
 ========   =============
 
 
-*Dependencies with SDL2*
-~~~~~~~~~~~~~~~~~~~~~~~~
+Dependencies with SDL2
+~~~~~~~~~~~~~~~~~~~~~~
 
 
 Ubuntu example
@@ -237,8 +239,8 @@ Installation
     # pip install git+https://github.com/kivy/kivy.git@master
 
 
-*Dependencies with legacy PyGame*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Dependencies with legacy PyGame
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Ubuntu example
@@ -364,8 +366,8 @@ Install additional Virtualenv packages
 .. _linux-run-app:
 
 
-*Start from the Command Line*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Start from the Command Line
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We ship some examples that are ready-to-run. However, these examples are packaged inside the package.
 This means you must first know where easy_install has installed your current kivy package,
@@ -416,3 +418,35 @@ Then, inside each main.py, add a new first line::
 
 NOTE: Beware of Python files stored with Windows-style line endings (CR-LF). Linux will not ignore the <CR>
 and will try to use it as part of the file name. This makes confusing error messages. Convert to Unix line endings.
+
+Device permissions
+~~~~~~~~~~~~~~~~~~
+
+When you app starts, Kivy uses `Mtdev <http://wiki.ubuntu.com/Multitouch>`_ to
+scan for available multi-touch devices to use for input. Access to these
+devices is typically restricted to users or group with the appropriate
+permissions.
+
+If you do not have access to these devices, Kivy will log an error or warning
+specifying these devices, normally something like::
+
+    Permission denied:'/dev/input/eventX'
+
+In order to use these devices, you need to grant the user or group permission.
+This can be done via::
+
+    $ sudo chmod u+r /dev/input/eventX
+
+for the user or::
+
+    $ sudo chmod g+r /dev/input/eventX
+
+for the group. These permissions will only be effective for the duration of
+your current session. A more permanent solution is to add the user to a group
+that has these permissions. For example, in Ubuntu, you can add the user to
+the 'input' group::
+
+    $ sudo adduser $USER input
+
+Note that you need to log out then back in again for these permissions to
+be applied.

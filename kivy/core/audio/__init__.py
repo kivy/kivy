@@ -30,9 +30,9 @@ keep this in mind when debugging or running in a
 (Read-eval-print loop).
 
 .. versionchanged:: 1.8.0
-    There are now 2 distinct Gstreamer implementations: one using Gi/Gst working
-    for both Python 2+3 with Gstreamer 1.0, and one using PyGST working
-    only for Python 2 + Gstreamer 0.10.
+    There are now 2 distinct Gstreamer implementations: one using Gi/Gst
+    working for both Python 2+3 with Gstreamer 1.0, and one using PyGST
+    working only for Python 2 + Gstreamer 0.10.
 
 .. note::
 
@@ -224,7 +224,7 @@ try:
     from kivy.lib.gstplayer import GstPlayer  # NOQA
     audio_libs += [('gstplayer', 'audio_gstplayer')]
 except ImportError:
-    #audio_libs += [('gi', 'audio_gi')]
+    # audio_libs += [('gi', 'audio_gi')]
     if PY2:
         audio_libs += [('pygst', 'audio_pygst')]
 audio_libs += [('ffpyplayer', 'audio_ffpyplayer')]

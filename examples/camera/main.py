@@ -10,9 +10,9 @@ throw an exception during the kv language processing.
 '''
 
 # Uncomment these lines to see all the messages
-#from kivy.logger import Logger
-#import logging
-#Logger.setLevel(logging.TRACE)
+# from kivy.logger import Logger
+# import logging
+# Logger.setLevel(logging.TRACE)
 
 from kivy.app import App
 from kivy.lang import Builder
@@ -35,5 +35,6 @@ BoxLayout:
 class TestCamera(App):
     def build(self):
         return Builder.load_string(kv)
+
 
 TestCamera().run()

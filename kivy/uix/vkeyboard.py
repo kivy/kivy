@@ -669,9 +669,9 @@ class VKeyboard(Scatter):
             for pos, size in layout_geometry['LINE_%d' % line_nb]:
                 # retrieve the relative text
                 text = layout[layout_mode + '_' + str(line_nb)][key_nb][0]
-                l = Label(text=text, font_size=font_size, pos=pos, size=size,
+                z = Label(text=text, font_size=font_size, pos=pos, size=size,
                           font_name=self.font_name)
-                self.add_widget(l)
+                self.add_widget(z)
                 key_nb += 1
 
     def on_key_down(self, *largs):

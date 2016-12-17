@@ -86,6 +86,7 @@ def extract_common_symbols(symbols1, symbols2, already_extracted):
                 print(line2)
                 print("#define %s %s" % (symbol1, symbol2))
 
+
 # Generate ------------------------------------------------
 # pipe to kivy/kivy/graphics/common_subset.h
 
@@ -122,4 +123,3 @@ print('#ifdef __cplusplus')
 print('}')
 print('#endif')
 print()
-

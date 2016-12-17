@@ -63,5 +63,6 @@ class CompassApp(App):
         # reactivate the sensor when you are back to the app
         Hardware.magneticFieldSensorEnable(True)
 
+
 if __name__ == '__main__':
     CompassApp().run()

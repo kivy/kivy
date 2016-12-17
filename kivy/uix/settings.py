@@ -446,6 +446,25 @@ class SettingPath(SettingItem):
     defaults to None.
     '''
 
+    show_hidden = BooleanProperty(False)
+    '''Whether to show 'hidden' filenames. What that means is
+    operating-system-dependent.
+
+    :attr:`show_hidden` is an :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
+
+    .. versionadded:: 1.9.2
+    '''
+
+    dirselect = BooleanProperty(True)
+    '''Whether to allow selection of directories.
+
+    :attr:`dirselect` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
+
+    .. versionadded:: 1.9.2
+    '''
+
     def on_panel(self, instance, value):
         if value is None:
             return
@@ -476,10 +495,11 @@ class SettingPath(SettingItem):
             width=popup_width)
 
         # create the filechooser
+        initial_path = self.value or os.getcwd()
         self.textinput = textinput = FileChooserListView(
-            path=self.value, size_hint=(1, 1), dirselect=True)
+            path=initial_path, size_hint=(1, 1),
+            dirselect=self.dirselect, show_hidden=self.show_hidden)
         textinput.bind(on_path=self._validate)
-        self.textinput = textinput
 
         # construct the content
         content.add_widget(textinput)
@@ -977,7 +997,7 @@ class Settings(BoxLayout):
 
         for setting in data:
             # determine the type and the class to use
-            if not 'type' in setting:
+            if 'type' not in setting:
                 raise ValueError('One setting are missing the "type" element')
             ttype = setting['type']
             cls = self._types.get(ttype)

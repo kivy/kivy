@@ -163,7 +163,7 @@ class TabbedPanelHeader(ToggleButton):
     # only allow selecting the tab if not already selected
     def on_touch_down(self, touch):
         if self.state == 'down':
-            #dispatch to children, not to self
+            # dispatch to children, not to self
             for child in self.children:
                 child.dispatch('on_touch_down', touch)
             return
@@ -392,8 +392,8 @@ class TabbedPanel(GridLayout):
     :class:`~kivy.factory.Factory` will be used to resolve the class.
 
     .. versionchanged:: 1.8.0
-        The :class:`~kivy.factory.Factory` will resolve the class if a string is
-        set.
+        The :class:`~kivy.factory.Factory` will resolve the class if a string
+        is set.
     '''
 
     def get_tab_list(self):
@@ -723,7 +723,7 @@ class TabbedPanel(GridLayout):
                     if tab_pos == 'bottom_left':
                         tab_list = (scrl_v, Widget(), Widget())
                     elif tab_pos == 'bottom_right':
-                        #add two dummy widgets
+                        # add two dummy widgets
                         tab_list = (Widget(), Widget(), scrl_v)
                     widget_list = (self_content, tab_layout)
             else:
@@ -772,11 +772,11 @@ class TabbedPanel(GridLayout):
             # fine but touch won't translate to the correct position
 
             if tab_pos[lentab_pos - 4:] == '_top':
-                #on positions 'left_top' and 'right_top'
+                # on positions 'left_top' and 'right_top'
                 sctr.bind(pos=partial(self._update_top, sctr, 'top', None))
                 tab_list = (sctr, )
             elif tab_pos[lentab_pos - 4:] == '_mid':
-                #calculate top of scatter
+                # calculate top of scatter
                 sctr.bind(pos=partial(self._update_top, sctr, 'mid',
                                       scrl_v.width))
                 tab_list = (Widget(), sctr, Widget())
@@ -810,7 +810,7 @@ class TabbedPanel(GridLayout):
                 if tab.size_hint_x:
                     # size_hint_x: x/.xyz
                     tab.size_hint_x = 1
-                    #drop to default tab_width
+                    # drop to default tab_width
                     tsw += 100
                 else:
                     # size_hint_x: None
@@ -837,10 +837,10 @@ class TabbedPanel(GridLayout):
         self_tab_pos = self.tab_pos
         self_tabs = self._tab_strip
         if self_tab_pos[0] == 'b' or self_tab_pos[0] == 't':
-            #bottom or top
+            # bottom or top
             scrl_v.width = min(self.width, self_tabs.width)
-            #required for situations when scrl_v's pos is calculated
-            #when it has no parent
+            # required for situations when scrl_v's pos is calculated
+            # when it has no parent
             scrl_v.top += 1
             scrl_v.top -= 1
         else:

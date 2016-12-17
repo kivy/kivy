@@ -53,50 +53,57 @@ devices = {
     'nexus4': ('Nexus 4', 1280, 768, 320, 2),
     'nexus7': ('Nexus 7 (2012 version)', 1280, 800, 216, 1.325),
     'nexus7.2': ('Nexus 7 (2013 version)', 1920, 1200, 323, 2),
-    
-    #taken from design.google.com/devices
-    #please consider using another data instead of a dict for autocompletion to work
-    #these are all in landscape
-    'phone_android_one':('Android One',854,480,218,1.5),
-    'phone_htc_one_m8':('HTC One M8',1920,1080,432,3.0),
-    'phone_htc_one_m9':('HTC One M9',1920,1080,432,3.0),
-    'phone_iphone':('iPhone',480,320,168,1.0),
-    'phone_iphone_4':('iPhone 4',960,640,320,2.0),
-    'phone_iphone_5':('iPhone 5',1136,640,320,2.0),
-    'phone_iphone_6':('iPhone 6',1334,750,326,2.0),
-    'phone_iphone_6_plus':('iPhone 6 Plus',1920,1080,400,3.0),
-    'phone_lg_g2':('LG G2',1920,1080,432,3.0),
-    'phone_lg_g3':('LG G3',2560,1440,533,3.0),
-    'phone_moto_g':('Moto G',1280,720,327,2.0),
-    'phone_moto_x':('Moto X',1280,720,313,2.0),
-    'phone_moto_x_2nd_gen':('Moto X 2nd Gen',1920,1080,432,3.0),
-    'phone_nexus_4':('Nexus 4',1280,768,240,2.0),
-    'phone_nexus_5':('Nexus 5',1920,1080,450,3.0),
-    'phone_nexus_5x':('Nexus 5X',1920,1080,432,2.6),
-    'phone_nexus_6':('Nexus 6',2560,1440,496,3.5),
-    'phone_nexus_6p':('Nexus 6P',2560,1440,514,3.5),
-    'phone_samsung_galaxy_note_4':('Samsung Galaxy Note 4',2560,1440,514,3.0),
-    'phone_samsung_galaxy_s5':('Samsung Galaxy S5',1920,1080,372,3.0),
-    'phone_samsung_galaxy_s6':('Samsung Galaxy S6',2560,1440,576,4.0),
-    'phone_sony_xperia_c4':('Sony Xperia C4',1920,1080,400,2.0),
-    'phone_sony_xperia_z_ultra':('Sony Xperia Z Ultra',1920,1080,348,2.0),
-    'phone_sony_xperia_z1_compact':('Sony Xperia Z1 Compact',1280,720,342,2.0),
-    'phone_sony_xperia_z2z3':('Sony Xperia Z2/Z3',1920,1080,432,3.0),
-    'phone_sony_xperia_z3_compact':('Sony Xperia Z3 Compact',1280,720,313,2.0),
-    'tablet_dell_venue_8':('Dell Venue 8',2560,1600,355,2.0),
-    'tablet_ipad':('iPad',1024,768,132,1.0),
-    'tablet_ipad_mini':('iPad Mini',1024,768,163,1.0),
-    'tablet_ipad_mini_retina':('iPad Mini Retina',2048,1536,326,2.0),
-    'tablet_ipad_pro':('iPad Pro',2732,2048,265,2.0),
-    'tablet_ipad_retina':('iPad Retina',2048,1536,264,2.0),
-    'tablet_nexus_10':('Nexus 10',2560,1600,297,2.0),
-    'tablet_nexus_7_12':('Nexus 7 12',1280,800,216,1.3),
-    'tablet_nexus_7_13':('Nexus 7 13',1920,1200,324,2.0),
-    'tablet_nexus_9':('Nexus 9',2048,1536,288,2.0),
-    'tablet_samsung_galaxy_tab_10':('Samsung Galaxy Tab 10',1280,800,148,1.0),
-    'tablet_sony_xperia_z3_tablet':('Sony Xperia Z3 Tablet',1920,1200,282,2.0),
-    'tablet_sony_xperia_z4_tablet':('Sony Xperia Z4 Tablet',2560,1600,297,2.0)
-    
+
+    # taken from design.google.com/devices
+    # please consider using another data instead of
+    # a dict for autocompletion to work
+    # these are all in landscape
+    'phone_android_one': ('Android One', 854, 480, 218, 1.5),
+    'phone_htc_one_m8': ('HTC One M8', 1920, 1080, 432, 3.0),
+    'phone_htc_one_m9': ('HTC One M9', 1920, 1080, 432, 3.0),
+    'phone_iphone': ('iPhone', 480, 320, 168, 1.0),
+    'phone_iphone_4': ('iPhone 4', 960, 640, 320, 2.0),
+    'phone_iphone_5': ('iPhone 5', 1136, 640, 320, 2.0),
+    'phone_iphone_6': ('iPhone 6', 1334, 750, 326, 2.0),
+    'phone_iphone_6_plus': ('iPhone 6 Plus', 1920, 1080, 400, 3.0),
+    'phone_lg_g2': ('LG G2', 1920, 1080, 432, 3.0),
+    'phone_lg_g3': ('LG G3', 2560, 1440, 533, 3.0),
+    'phone_moto_g': ('Moto G', 1280, 720, 327, 2.0),
+    'phone_moto_x': ('Moto X', 1280, 720, 313, 2.0),
+    'phone_moto_x_2nd_gen': ('Moto X 2nd Gen', 1920, 1080, 432, 3.0),
+    'phone_nexus_4': ('Nexus 4', 1280, 768, 240, 2.0),
+    'phone_nexus_5': ('Nexus 5', 1920, 1080, 450, 3.0),
+    'phone_nexus_5x': ('Nexus 5X', 1920, 1080, 432, 2.6),
+    'phone_nexus_6': ('Nexus 6', 2560, 1440, 496, 3.5),
+    'phone_nexus_6p': ('Nexus 6P', 2560, 1440, 514, 3.5),
+    'phone_samsung_galaxy_note_4': ('Samsung Galaxy Note 4',
+                                    2560, 1440, 514, 3.0),
+    'phone_samsung_galaxy_s5': ('Samsung Galaxy S5', 1920, 1080, 372, 3.0),
+    'phone_samsung_galaxy_s6': ('Samsung Galaxy S6', 2560, 1440, 576, 4.0),
+    'phone_sony_xperia_c4': ('Sony Xperia C4', 1920, 1080, 400, 2.0),
+    'phone_sony_xperia_z_ultra': ('Sony Xperia Z Ultra', 1920, 1080, 348, 2.0),
+    'phone_sony_xperia_z1_compact': ('Sony Xperia Z1 Compact',
+                                     1280, 720, 342, 2.0),
+    'phone_sony_xperia_z2z3': ('Sony Xperia Z2/Z3', 1920, 1080, 432, 3.0),
+    'phone_sony_xperia_z3_compact': ('Sony Xperia Z3 Compact',
+                                     1280, 720, 313, 2.0),
+    'tablet_dell_venue_8': ('Dell Venue 8', 2560, 1600, 355, 2.0),
+    'tablet_ipad': ('iPad', 1024, 768, 132, 1.0),
+    'tablet_ipad_mini': ('iPad Mini', 1024, 768, 163, 1.0),
+    'tablet_ipad_mini_retina': ('iPad Mini Retina', 2048, 1536, 326, 2.0),
+    'tablet_ipad_pro': ('iPad Pro', 2732, 2048, 265, 2.0),
+    'tablet_ipad_retina': ('iPad Retina', 2048, 1536, 264, 2.0),
+    'tablet_nexus_10': ('Nexus 10', 2560, 1600, 297, 2.0),
+    'tablet_nexus_7_12': ('Nexus 7 12', 1280, 800, 216, 1.3),
+    'tablet_nexus_7_13': ('Nexus 7 13', 1920, 1200, 324, 2.0),
+    'tablet_nexus_9': ('Nexus 9', 2048, 1536, 288, 2.0),
+    'tablet_samsung_galaxy_tab_10': ('Samsung Galaxy Tab 10',
+                                     1280, 800, 148, 1.0),
+    'tablet_sony_xperia_z3_tablet': ('Sony Xperia Z3 Tablet',
+                                     1920, 1200, 282, 2.0),
+    'tablet_sony_xperia_z4_tablet': ('Sony Xperia Z4 Tablet',
+                                     2560, 1600, 297, 2.0)
+
 }
 
 
@@ -165,6 +172,7 @@ def configure(ctx):
     if device not in devices:
         return usage('')
     apply_device(device, scale, orientation)
+
 
 if __name__ == "__main__":
     for n in devices.values():

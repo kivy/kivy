@@ -34,6 +34,7 @@ class WM_MotionEvent(MotionEvent):
         args = (self.id, self.uid, str(self.spos), self.device)
         return '<WMMotionEvent id:%d uid:%d pos:%s device:%s>' % args
 
+
 if 'KIVY_DOC' in os.environ:
     # documentation hack
     WM_MotionEventProvider = None

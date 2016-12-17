@@ -210,8 +210,8 @@ class CompoundSelectionBehavior(object):
 
     right_count = NumericProperty(1)
     '''Determines by how much the selected node is moved up or down, relative
-    to the position of the last selected node, when the right (or left) arrow on
-    the keyboard is pressed.
+    to the position of the last selected node, when the right (or left) arrow
+    on the keyboard is pressed.
 
     :attr:`right_count` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1.
@@ -229,7 +229,8 @@ class CompoundSelectionBehavior(object):
     nodes_order_reversed = BooleanProperty(True)
     ''' (Internal) Indicates whether the order of the nodes as displayed top-
     down is reversed compared to their order in :meth:`get_selectable_nodes`
-    (e.g. how the children property is reversed compared to how it's displayed).
+    (e.g. how the children property is reversed compared to how
+    it's displayed).
     '''
 
     text_entry_timeout = NumericProperty(1.)
@@ -311,8 +312,10 @@ class CompoundSelectionBehavior(object):
             if multiselect:
                 self.deselect_node(node)
             else:
+                len_selected_node = len(self.selected_nodes)
                 self.clear_selection()
-                self.select_node(node)
+                if len_selected_node > 1:
+                    self.select_node(node)
         elif range_select:
             # keep anchor only if not multiselect (ctrl-type selection)
             self._select_range(multiselect, not multiselect, node, 0)
@@ -347,8 +350,8 @@ class CompoundSelectionBehavior(object):
             self._shift_down = True
         elif text in ('ctrl', 'lctrl', 'rctrl'):
             self._ctrl_down = True
-        elif (multi and 'ctrl' in modifiers and text in ('a', 'A')
-              and text not in keys):
+        elif (multi and 'ctrl' in modifiers and text in ('a', 'A') and
+              text not in keys):
             sister_nodes = self.get_selectable_nodes()
             select = self.select_node
             for node in sister_nodes:

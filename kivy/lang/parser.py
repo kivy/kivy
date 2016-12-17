@@ -353,7 +353,7 @@ class ParserRule(object):
             raise ParserException(self.ctx, self.line,
                                   'Invalid template (must be inside [])')
         item_content = name[1:-1]
-        if not '@' in item_content:
+        if '@' not in item_content:
             raise ParserException(self.ctx, self.line,
                                   'Invalid template name (missing @)')
         template_name, template_root_cls = item_content.split('@')
@@ -429,14 +429,16 @@ class Parser(object):
                 if ref in __KV_INCLUDES__:
                     if not os.path.isfile(resource_find(ref) or ref):
                         raise ParserException(self, ln,
-                            'Invalid or unknown file: {0}'.format(ref))
+                                              'Invalid or unknown file: {0}'
+                                              .format(ref))
                     if not force_load:
                         Logger.warn('Lang: {0} has already been included!'
                                     .format(ref))
                         continue
                     else:
-                        Logger.debug('Lang: Reloading {0} because include was forced.'
-                                    .format(ref))
+                        Logger.debug('Lang: Reloading {0} ' +
+                                     'because include was forced.'
+                                     .format(ref))
                         kivy.lang.builder.Builder.unload_file(ref)
                         kivy.lang.builder.Builder.load_file(ref)
                         continue
@@ -445,10 +447,10 @@ class Parser(object):
                 kivy.lang.builder.Builder.load_file(ref)
             elif cmd[:7] == 'import ':
                 package = cmd[7:].strip()
-                l = package.split()
-                if len(l) != 2:
+                z = package.split()
+                if len(z) != 2:
                     raise ParserException(self, ln, 'Invalid import syntax')
-                alias, package = l
+                alias, package = z
                 try:
                     if package not in sys.modules:
                         try:
@@ -563,7 +565,7 @@ class Parser(object):
                 if not len(x[0]):
                     raise ParserException(self, ln, 'Identifier missing')
                 if (len(x) == 2 and len(x[1]) and
-                    not x[1].lstrip().startswith('#')):
+                        not x[1].lstrip().startswith('#')):
                     raise ParserException(self, ln,
                                           'Invalid data after declaration')
                 name = x[0].rstrip()
@@ -715,7 +717,7 @@ class ParserSelectorName(ParserSelector):
     def match(self, widget):
         parents = ParserSelectorName.parents
         cls = widget.__class__
-        if not cls in parents:
+        if cls not in parents:
             classes = [x.__name__.lower() for x in
                        [cls] + list(self.get_bases(cls))]
             parents[cls] = classes

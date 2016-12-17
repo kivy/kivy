@@ -75,7 +75,7 @@ class Cache(object):
                 Time after which to delete the object if it has not been used.
                 If None, no timeout is applied.
         '''
-        #check whether obj should not be cached first
+        # check whether obj should not be cached first
         if getattr(obj, '_no_cache', False):
             return
         try:
@@ -85,8 +85,8 @@ class Cache(object):
             return
         timeout = timeout or cat['timeout']
         # FIXME: activate purge when limit is hit
-        #limit = cat['limit']
-        #if limit is not None and len(Cache._objects[category]) >= limit:
+        # limit = cat['limit']
+        # if limit is not None and len(Cache._objects[category]) >= limit:
         #    Cache._purge_oldest(category)
         Cache._objects[category][key] = {
             'object': obj,
@@ -228,6 +228,7 @@ class Cache(object):
                 len(Cache._objects[category]),
                 str(Cache._categories[category]['limit']),
                 str(Cache._categories[category]['timeout'])))
+
 
 if 'KIVY_DOC_INCLUDE' not in environ:
     # install the schedule clock for purging

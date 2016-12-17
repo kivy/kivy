@@ -3,7 +3,6 @@ from kivy.uix.button import Button
 from kivy.uix.behaviors import CompoundSelectionBehavior
 from kivy.uix.behaviors import FocusBehavior
 from kivy.app import runTouchApp
-from kivy.core.window import Window
 
 
 class SelectableGrid(FocusBehavior, CompoundSelectionBehavior, GridLayout):
@@ -17,7 +16,7 @@ class SelectableGrid(FocusBehavior, CompoundSelectionBehavior, GridLayout):
 
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
         if super(SelectableGrid, self).keyboard_on_key_down(
-            window, keycode, text, modifiers):
+                window, keycode, text, modifiers):
             return True
         if self.select_with_key_down(window, keycode, text, modifiers):
             return True
@@ -56,7 +55,6 @@ class SelectableGrid(FocusBehavior, CompoundSelectionBehavior, GridLayout):
                 return child, i
         return node, idx
 
-
     def select_node(self, node):
         node.background_color = (1, 0, 0, 1)
         return super(SelectableGrid, self).select_node(node)
@@ -67,8 +65,8 @@ class SelectableGrid(FocusBehavior, CompoundSelectionBehavior, GridLayout):
 
     def do_touch(self, instance, touch):
         if ('button' in touch.profile and touch.button in
-            ('scrollup', 'scrolldown', 'scrollleft', 'scrollright')) or\
-            instance.collide_point(*touch.pos):
+                ('scrollup', 'scrolldown', 'scrollleft', 'scrollright')) or\
+                instance.collide_point(*touch.pos):
             self.select_with_touch(instance, touch)
         else:
             return False
@@ -80,5 +78,6 @@ for i in range(40):
     c = Button(text=str(i))
     c.bind(on_touch_down=root.do_touch)
     root.add_widget(c)
+
 
 runTouchApp(root)

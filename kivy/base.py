@@ -71,7 +71,7 @@ class ExceptionManagerBase:
 
     def add_handler(self, cls):
         '''Add a new exception handler to the stack.'''
-        if not cls in self.handlers:
+        if cls not in self.handlers:
             self.handlers.append(cls)
 
     def remove_handler(self, cls):
@@ -87,6 +87,7 @@ class ExceptionManagerBase:
             if r == ExceptionManagerBase.PASS:
                 ret = r
         return ret
+
 
 #: Instance of a :class:`ExceptionManagerBase` implementation.
 ExceptionManager = register_context('ExceptionManager', ExceptionManagerBase)
@@ -147,7 +148,7 @@ class EventLoopBase(EventDispatcher):
     def add_event_listener(self, listener):
         '''Add a new event listener for getting touch events.
         '''
-        if not listener in self.event_listeners:
+        if listener not in self.event_listeners:
             self.event_listeners.append(listener)
 
     def remove_event_listener(self, listener):
@@ -202,6 +203,15 @@ class EventLoopBase(EventDispatcher):
         '''Remove a postproc module.'''
         if mod in self.postproc_modules:
             self.postproc_modules.remove(mod)
+
+    def remove_android_splash(self, *args):
+        '''Remove android presplash in SDL2 bootstrap.'''
+        try:
+            from android import remove_presplash
+            remove_presplash()
+        except:
+            Logger.error('Base: Could not remove android presplash')
+            return
 
     def post_dispatch_input(self, etype, me):
         '''This function is called by dispatch_input() when we want to dispatch
@@ -379,6 +389,7 @@ class EventLoopBase(EventDispatcher):
         after all input providers have been started.'''
         pass
 
+
 #: EventLoop instance
 EventLoop = EventLoopBase()
 
@@ -464,6 +475,10 @@ def runTouchApp(widget=None, slave=False):
     # start event loop
     Logger.info('Base: Start application main loop')
     EventLoop.start()
+
+    # remove presplash on the next frame
+    if platform == 'android':
+        Clock.schedule_once(EventLoop.remove_android_splash)
 
     # we are in a slave mode, don't do dispatching.
     if slave:

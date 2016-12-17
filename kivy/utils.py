@@ -158,6 +158,7 @@ def is_color_transparent(c):
         return True
     return False
 
+
 hex_colormap = {
     'aliceblue': '#f0f8ff',
     'antiquewhite': '#faebd7',
@@ -364,7 +365,7 @@ class SafeList(list):
 class QueryDict(dict):
     '''QueryDict is a dict() that can be queried with dot.
 
-  ::
+    ::
 
         d = QueryDict()
         # create a key named toto, with the value 1

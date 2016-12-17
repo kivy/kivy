@@ -8,8 +8,8 @@ import pyglet
 from kivy.core.video import VideoBase
 
 
-#have to set these before importing pyglet.gl
-#otherwise pyglet creates a separate gl context and fails
+# have to set these before importing pyglet.gl
+# otherwise pyglet creates a separate gl context and fails
 # on error checks because we use pygame window
 pyglet.options['shadow_window'] = False
 pyglet.options['debug_gl'] = False
@@ -23,6 +23,7 @@ class FakePygletContext:
     # this means we cant have a pyglet window provider though! if we do,
     # this will break pyglet window context
     _workaround_unpack_row_length = False
+
 
 pyglet.gl.current_context = FakePygletContext()
 
@@ -39,12 +40,12 @@ class VideoPyglet(VideoBase):
     def load(self):
         self.unload()  # make sure we unload an resources
 
-        #load media file and set size of video
+        # load media file and set size of video
         self._source = source = pyglet.media.load(self._filename)
         self._format = source.video_format
         self.size = (self._format.width, self._format.height)
 
-        #load pyglet player and have it play the video we loaded
+        # load pyglet player and have it play the video we loaded
         self._player = None
         self._player = pyglet.media.Player()
         self._player.queue(source)

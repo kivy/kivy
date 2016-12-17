@@ -77,6 +77,7 @@ def _log_callback(message, level):
     if message:
         logger_func[level]('ffpyplayer: {}'.format(message))
 
+
 if not get_log_callback():
     set_log_callback(_log_callback)
 
@@ -187,10 +188,11 @@ class VideoFFPy(VideoBase):
                 fbo['tex_v'] = 2
                 self._texture = fbo.texture
             else:
-                self._texture = Texture.create(size=self._size, colorfmt='rgba')
+                self._texture = Texture.create(size=self._size,
+                                                colorfmt='rgba')
 
             # XXX FIXME
-            #self.texture.add_reload_observer(self.reload_buffer)
+            # self.texture.add_reload_observer(self.reload_buffer)
             self._texture.flip_vertical()
             self.dispatch('on_load')
 
@@ -215,8 +217,8 @@ class VideoFFPy(VideoBase):
         did_dispatch_eof = False
         seek_queue = self._seek_queue
 
-        # fast path, if the source video is yuv420p, we'll use a glsl shader for
-        # buffer conversion to rgba
+        # fast path, if the source video is yuv420p, we'll use a glsl shader
+        # for buffer conversion to rgba
         while not self._ffplayer_need_quit:
             src_pix_fmt = ffplayer.get_metadata().get('src_pix_fmt')
             if not src_pix_fmt:

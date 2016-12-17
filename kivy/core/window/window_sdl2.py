@@ -213,7 +213,8 @@ class WindowSDL(WindowBase):
                 return 0
 
             if not app.dispatch('on_pause'):
-                Logger.info('WindowSDL: App doesn\'t support pause mode, stop.')
+                Logger.info(
+                    'WindowSDL: App doesn\'t support pause mode, stop.')
                 stopTouchApp()
                 return 0
 
@@ -383,7 +384,8 @@ class WindowSDL(WindowBase):
 
     def _fix_mouse_pos(self, x, y):
         y -= 1
-        self.mouse_pos = x * self._density, (self.system_size[1] - y) * self._density
+        self.mouse_pos = (x * self._density,
+                          (self.system_size[1] - y) * self._density)
         return x, y
 
     def _mainloop(self):
@@ -466,9 +468,9 @@ class WindowSDL(WindowBase):
 
                 self._mouse_meta = self.modifiers
                 self._mouse_btn = btn
-                #times = x if y == 0 else y
-                #times = min(abs(times), 100)
-                #for k in range(times):
+                # times = x if y == 0 else y
+                # times = min(abs(times), 100)
+                # for k in range(times):
                 self._mouse_down = True
                 self.dispatch('on_mouse_down',
                     self._mouse_x, self._mouse_y, btn, self.modifiers)
@@ -485,7 +487,8 @@ class WindowSDL(WindowBase):
                 # don't use trigger here, we want to delay the resize event
                 ev = self._do_resize_ev
                 if ev is None:
-                    ev = self._do_resize_ev = Clock.schedule_once(self._do_resize, .1)
+                    ev = Clock.schedule_once(self._do_resize, .1)
+                    self._do_resize_ev = ev
                 else:
                     ev()
 
@@ -552,17 +555,17 @@ class WindowSDL(WindowBase):
                 if action == 'keydown':
                     self._update_modifiers(mod, key)
                 else:
-                    self._update_modifiers(mod)  # ignore the key, it
-                                                 # has been released
+                    # ignore the key, it has been released
+                    self._update_modifiers(mod)
 
                 # if mod in self._meta_keys:
                 if (key not in self._modifiers and
-                    key not in self.command_keys.keys()):
+                        key not in self.command_keys.keys()):
                     try:
                         kstr = unichr(key)
                     except ValueError:
                         pass
-                #if 'shift' in self._modifiers and key\
+                # if 'shift' in self._modifiers and key\
                 #        not in self.command_keys.keys():
                 #    return
 
@@ -630,7 +633,7 @@ class WindowSDL(WindowBase):
     def mainloop(self):
         # don't known why, but pygame required a resize event
         # for opengl, before mainloop... window reinit ?
-        #self.dispatch('on_resize', *self.size)
+        # self.dispatch('on_resize', *self.size)
 
         while not EventLoop.quit and EventLoop.status == 'started':
             try:
@@ -704,3 +707,9 @@ class WindowSDL(WindowBase):
     def unmap_key(self, key):
         if key in self.key_map:
             del self.key_map[key]
+
+    def grab_mouse(self):
+        self._win.grab_mouse(True)
+
+    def ungrab_mouse(self):
+        self._win.grab_mouse(False)

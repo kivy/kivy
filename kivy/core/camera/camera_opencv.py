@@ -66,7 +66,7 @@ class CameraOpenCV(CameraBase):
         # frame).
         self._resolution = (int(frame.width), int(frame.height))
 
-        #get fps
+        # get fps
         self.fps = cv.GetCaptureProperty(self._device, cv.CV_CAP_PROP_FPS)
         if self.fps <= 0:
             self.fps = 1 / 30.

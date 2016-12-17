@@ -70,6 +70,7 @@ class MTDMotionEvent(MotionEvent):
         i, sx, sy, d = (self.id, self.sx, self.sy, self.device)
         return '<MTDMotionEvent id=%d pos=(%f, %f) device=%s>' % (i, sx, sy, d)
 
+
 if 'KIVY_DOC' in os.environ:
 
     # documentation hack
@@ -193,8 +194,8 @@ else:
 
             def process(points):
                 for args in points:
-                    # this can happen if we have a touch going on already at the
-                    # start of the app
+                    # this can happen if we have a touch going on already at
+                    # the start of the app
                     if 'id' not in args:
                         continue
                     tid = args['id']
@@ -222,7 +223,16 @@ else:
             # open mtdev device
             _fn = input_fn
             _slot = 0
-            _device = Device(_fn)
+            try:
+                _device = Device(_fn)
+            except OSError as e:
+                if e.errno == 13:  # Permission denied
+                    Logger.warn(
+                        'MTD: Unable to open device "{0}". Please ensure you'
+                        ' have the appropriate permissions.'.format(_fn))
+                    return
+                else:
+                    raise
             _changes = set()
 
             # prepare some vars to get limit of some component
@@ -282,7 +292,7 @@ else:
                         continue
 
                     # fill the slot
-                    if not _slot in l_points:
+                    if _slot not in l_points:
                         l_points[_slot] = dict()
                     point = l_points[_slot]
                     ev_value = data.value

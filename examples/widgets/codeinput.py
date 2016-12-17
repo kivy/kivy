@@ -213,12 +213,13 @@ class CodeInputTest(App):
         self.codeinput.text = _file.read()
         _file.close()
 
-    def change_lang(self, instance, l):
-        if l == 'KvLexer':
+    def change_lang(self, instance, z):
+        if z == 'KvLexer':
             lx = KivyLexer()
         else:
-            lx = lexers.get_lexer_by_name(lexers.LEXERS[l][2][0])
+            lx = lexers.get_lexer_by_name(lexers.LEXERS[z][2][0])
         self.codeinput.lexer = lx
+
 
 if __name__ == '__main__':
     CodeInputTest().run()

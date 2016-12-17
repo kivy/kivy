@@ -1,8 +1,6 @@
 # encoding: utf8
 
 from kivy.app import App
-from kivy.lang import Builder
-from kivy.clock import Clock
 from kivy.core.audio import SoundLoader
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
@@ -11,14 +9,15 @@ from sys import version_info
 
 
 NOTES = (
-    ('Do',  1),
-    ('Ré',  9/8.),
-    ('Mi',  5/4.),
-    ('Fa',  4/3.),
-    ('Sol', 3/2.),
-    ('La',  5/3.),
-    ('Si',  15/8.),
+    ('Do', 1),
+    ('Ré', 9 / 8.),
+    ('Mi', 5 / 4.),
+    ('Fa', 4 / 3.),
+    ('Sol', 3 / 2.),
+    ('La', 5 / 3.),
+    ('Si', 15 / 8.),
 )
+
 
 class Test(App):
     def build(self):
@@ -38,5 +37,6 @@ class Test(App):
     def play_note(self, button):
         self.sound.pitch = button.pitch
         self.sound.play()
+
 
 Test().run()

@@ -264,7 +264,6 @@ class ActionDropDown(DropDown):
         if super(ActionDropDown, self).on_touch_down(touch):
             if self.auto_dismiss:
                 self.dismiss()
-            return True
 
 
 class ActionGroup(ActionItem, Spinner):
@@ -301,6 +300,17 @@ class ActionGroup(ActionItem, Spinner):
 
        :attr:`mode` is a :class:`~kivy.properties.OptionProperty` and
        defaults to 'normal'.
+    '''
+
+    dropdown_width = NumericProperty(0)
+    '''If non zero, provides the width for the associated DropDown. This is
+    useful when some items in the ActionGroup's DropDown are wider than usual
+    and you don't want to make the ActionGroup widget itself wider.
+
+    :attr:`dropdown_width` is an :class:`~kivy.properties.NumericProperty`
+    and defaults to 0.
+
+    .. versionadded:: 1.9.2
     '''
 
     def __init__(self, **kwargs):
@@ -345,7 +355,8 @@ class ActionGroup(ActionItem, Spinner):
         children = ddn.container.children
 
         if children:
-            ddn.width = max(self.width, max(c.pack_width for c in children))
+            ddn.width = self.dropdown_width or max(
+                self.width, max(c.pack_width for c in children))
         else:
             ddn.width = self.width
 
@@ -555,7 +566,7 @@ class ActionView(BoxLayout):
         if total_width < self.width:
             for group in self._list_action_group:
                 if group.pack_width + total_width +\
-                   group.separator_width < width:
+                        group.separator_width < width:
                     super_add(group)
                     group.show_group()
                     total_width += (group.pack_width +
@@ -736,6 +747,7 @@ if __name__ == "__main__":
                 ActionButton:
                     text: 'Btn4'
             ActionGroup:
+                dropdown_width: 200
                 text: 'Group1'
                 ActionButton:
                     text: 'Btn5'

@@ -102,7 +102,8 @@ class ImageLoaderPIL(ImageLoaderBase):
 
     @staticmethod
     def save(filename, width, height, fmt, pixels, flipped=False):
-        image = PILImage.fromstring(fmt.upper(), (width, height), pixels)
+        image = PILImage.frombytes(fmt.upper(), (width, height), pixels)
+
         if flipped:
             image = image.transpose(PILImage.FLIP_TOP_BOTTOM)
         image.save(filename)

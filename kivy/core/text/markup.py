@@ -104,7 +104,7 @@ class MarkupLabel(MarkupLabelBase):
         return s
 
     def _push_style(self, k):
-        if not k in self._style_stack:
+        if k not in self._style_stack:
             self._style_stack[k] = []
         self._style_stack[k].append(self.options[k])
 
@@ -288,7 +288,7 @@ class MarkupLabel(MarkupLabelBase):
                 words = line.words
                 # if there's nothing to justify, we're done
                 if (not line.w or int(uww - line.w) <= 0 or not len(words) or
-                    line.is_last_line):
+                        line.is_last_line):
                     continue
 
                 done = False
@@ -424,14 +424,14 @@ class MarkupLabel(MarkupLabelBase):
                 # should we record refs ?
                 ref = options['_ref']
                 if ref is not None:
-                    if not ref in refs:
+                    if ref not in refs:
                         refs[ref] = []
                     refs[ref].append((x, y, x + word.lw, y + wh))
 
                 # Should we record anchors?
                 anchor = options['_anchor']
                 if anchor is not None:
-                    if not anchor in anchors:
+                    if anchor not in anchors:
                         anchors[anchor] = (x, y)
                 x += word.lw
             y += lh

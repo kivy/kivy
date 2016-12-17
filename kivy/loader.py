@@ -260,7 +260,7 @@ class LoaderBase(object):
         try:
             proto = filename.split(':', 1)[0]
         except:
-            #if blank filename then return
+            # if blank filename then return
             return
         if load_callback is not None:
             data = load_callback(filename)
@@ -469,6 +469,7 @@ class LoaderBase(object):
 #
 # Loader implementation
 #
+
 
 if 'KIVY_DOC' in environ:
 

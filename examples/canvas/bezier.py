@@ -63,7 +63,7 @@ class BezierTest(FloatLayout):
             for i, p in enumerate(list(zip(self.points[::2],
                                            self.points[1::2]))):
                 if (abs(touch.pos[0] - self.pos[0] - p[0]) < self.d and
-                    abs(touch.pos[1] - self.pos[1] - p[1]) < self.d):
+                        abs(touch.pos[1] - self.pos[1] - p[1]) < self.d):
                     self.current_point = i + 1
                     return True
             return super(BezierTest, self).on_touch_down(touch)
@@ -92,13 +92,14 @@ class Main(App):
     def build(self):
         from math import cos, sin, radians
         x = y = 150
-        l = 100
+        z = 100
         # Pacman !
         points = [x, y]
         for i in range(45, 360, 45):
             i = radians(i)
-            points.extend([x + cos(i) * l, y + sin(i) * l])
+            points.extend([x + cos(i) * z, y + sin(i) * z])
         return BezierTest(points=points, loop=True)
+
 
 if __name__ == '__main__':
     Main().run()

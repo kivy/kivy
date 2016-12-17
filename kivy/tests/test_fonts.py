@@ -1,4 +1,4 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import unittest
 
 
@@ -27,4 +27,3 @@ class FontTestCase(unittest.TestCase):
                 os.unlink(self.font_name)
             except:
                 pass
-

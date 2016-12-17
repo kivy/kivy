@@ -288,7 +288,8 @@ class KivyBuildExt(build_ext):
 
 def _check_and_fix_sdl2_mixer(f_path):
     print("Check if SDL2_mixer smpeg2 have an @executable_path")
-    rpath_from = "@executable_path/../Frameworks/SDL2.framework/Versions/A/SDL2"
+    rpath_from = ("@executable_path/../Frameworks/SDL2.framework"
+                 "/Versions/A/SDL2")
     rpath_to = "@rpath/../../../../SDL2.framework/Versions/A/SDL2"
     smpeg2_path = ("{}/Versions/A/Frameworks/smpeg2.framework"
                    "/Versions/A/smpeg2").format(f_path)
@@ -312,6 +313,7 @@ def _check_and_fix_sdl2_mixer(f_path):
         print("WARNING: You'll never see this message again.")
     else:
         print("WARNING: Unable to apply the changes, sorry.")
+
 
 # -----------------------------------------------------------------------------
 # extract version (simulate doc generation, kivy will be not imported)
@@ -537,12 +539,12 @@ def determine_base_flags():
             xcode_dev = getoutput('xcode-select -p').splitlines()[0]
             sdk_mac_ver = '.'.join(_platform.mac_ver()[0].split('.')[:2])
             print('Xcode detected at {}, and using OS X{} sdk'.format(
-                    xcode_dev, sdk_mac_ver))
+                xcode_dev, sdk_mac_ver))
             sysroot = join(
-                    xcode_dev.decode('utf-8'),
-                    'Platforms/MacOSX.platform/Developer/SDKs',
-                    'MacOSX{}.sdk'.format(sdk_mac_ver),
-                    'System/Library/Frameworks')
+                xcode_dev.decode('utf-8'),
+                'Platforms/MacOSX.platform/Developer/SDKs',
+                'MacOSX{}.sdk'.format(sdk_mac_ver),
+                'System/Library/Frameworks')
         else:
             sysroot = ('/System/Library/Frameworks/'
                        'ApplicationServices.framework/Frameworks')
@@ -625,6 +627,9 @@ def determine_sdl2():
     flags['extra_link_args'] += (
         ['-L' + p for p in sdl2_paths] if sdl2_paths else
         ['-L/usr/local/lib/'])
+
+    if sdl2_flags:
+        flags = merge(flags, sdl2_flags)
 
     # ensure headers for all the SDL2 and sub libraries are available
     libs_to_check = ['SDL', 'SDL_mixer', 'SDL_ttf', 'SDL_image']
@@ -804,9 +809,9 @@ if c_options['use_avfoundation']:
 
 if c_options['use_rpi']:
     sources['lib/vidcore_lite/egl.pyx'] = merge(
-            base_flags, gl_flags)
+        base_flags, gl_flags)
     sources['lib/vidcore_lite/bcm.pyx'] = merge(
-            base_flags, gl_flags)
+        base_flags, gl_flags)
 
 if c_options['use_x11']:
     libs = ['Xrender', 'X11']
@@ -820,7 +825,7 @@ if c_options['use_x11']:
             # cause keytab is included in core, and core is included in
             # window_x11
             #
-            #'depends': [
+            # 'depends': [
             #    'core/window/window_x11_keytab.c',
             #    'core/window/window_x11_core.c'],
             'libraries': libs})
@@ -877,7 +882,9 @@ def get_extensions_from_sources(sources):
             module_name, [pyx] + f_depends + c_depends, **flags_clean))
     return ext_modules
 
+
 ext_modules = get_extensions_from_sources(sources)
+
 
 # -----------------------------------------------------------------------------
 # automatically detect data files
@@ -957,7 +964,8 @@ setup(
         'kivy.tools.extensions',
         'kivy.uix',
         'kivy.uix.behaviors',
-        'kivy.uix.recycleview',],
+        'kivy.uix.recycleview',
+    ],
     package_dir={'kivy': 'kivy'},
     package_data={'kivy': [
         '*.pxd',

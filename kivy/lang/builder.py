@@ -595,11 +595,11 @@ class BuilderBase(object):
                             rctx['ids'])
                         # if there's a rule
                         if (widget_set != widget or bound or
-                            key not in ignored_consts):
+                                key not in ignored_consts):
                             setattr(widget_set, key, value)
                     else:
                         if (widget_set != widget or
-                            key not in ignored_consts):
+                                key not in ignored_consts):
                             setattr(widget_set, key, value)
 
         except Exception as e:
@@ -827,6 +827,7 @@ class BuilderBase(object):
                 raise BuilderException(
                     prule.ctx, prule.line,
                     '{}: {}'.format(e.__class__.__name__, e), cause=tb)
+
 
 #: Main instance of a :class:`BuilderBase`.
 Builder = register_context('Builder', BuilderBase)

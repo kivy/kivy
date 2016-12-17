@@ -3,17 +3,6 @@
 Create a package for IOS
 ========================
 
-.. versionadded:: 1.2.0
-
-.. note::
-
-    From the 4th march 2015, the toolchain for iOS has been rewritten. The
-    previous instructions don't work anymore (using `build_all.sh`). We
-    strongly recommend you upgrade to the latest toolchain which contains many
-    improvements, including support for i386, x86_64, armv7, arm64 and the
-    iOS emulators. If you must use the older version, try the old-toolchain
-    tag in git.
-
 .. note::
 
     Currently, packages for iOS can only be generated with Python 2.7. Python
@@ -68,7 +57,7 @@ We provide a script that creates an initial Xcode project to start with. In the
 command line below, replace `test` with your project name. It must be a
 name without any spaces or illegal characters::
 
-    $ # ./toolchain.py create <title> <app_directory>
+    $ ./toolchain.py create <title> <app_directory>
     $ ./toolchain.py create Touchtracer ~/code/kivy/examples/demo/touchtracer
 
 .. Note::
@@ -107,44 +96,24 @@ added to your Xcode project.
 Customize
 ---------
 
-You can customize the build in many ways:
-
-#. Set the icon and launch images in XCode. Note that XCode requires that you
-   specify these assests per device or/and iOS version.
-
-#. Specify your app orientation and environment via the 'main.m' file. Please
-   refer to the `kivy-ios <https://github.com/kivy/kivy-ios>`_ page for more
-   information.
-
-#. Minimize the `build/python/lib/python27.zip`: this contains all the python
-   modules. You can edit the zip file and remove all the files you'll not use
-   (reduce encodings, remove xml, email...)i
-
-#. Go to the settings panel > build, search for "strip" options, and
-   triple-check that they are all set to NO. Stripping does not work with
-   Python dynamic modules and will remove needed symbols.
-
-Kivy uses SDL, and as soon as the application starts the SDL main, the launch
-image will disappear. To prevent that, you need to have 2 files named
-`Default.png` and `Default-Landscape.png`, and put them
-in the `Resources` folder in Xcode (not in your application folder)
-
+There are various ways to customize and configure your app. Please refer
+to the `kivy-ios <http://www.github.com/kivy/kivy-ios>`_ documentation
+for more information.
 
 .. _Known issues:
 
 Known issues
 ------------
 
-Currently, the project has a few known issues (we'll fix these in future
-versions):
+All known issues with packaging for iOS are currently tracked on our
+`issues <https://github.com/kivy/kivy-ios/issues>`_  page. If you encounter
+an issue specific to packaging for iOS that isn't listed there, please feel
+free to file a new issue, and we will get back to you on it.
 
-- You can't export your project outside the kivy-ios directory because the
-  libraries included in the project are relative to it.
-
-- Removing some libraries (like SDL_Mixer for audio) is currently not
-  possible because the kivy project requires it.
-
-- And more, just too technical to be written here.
+While most are too technical to be written here, one important known issue is
+that removing some libraries (e.g. SDL_Mixer for audio) is currently not
+possible because the kivy project requires it. We will fix this and others
+in future versions.
 
 .. _ios_packaging_faq:
 

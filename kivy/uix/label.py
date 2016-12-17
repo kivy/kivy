@@ -38,7 +38,8 @@ For example, this label's size will be set to the text content
     Label:
         size: self.texture_size
 
-This label's text will wrap at the specified width and be clipped to the height:
+This label's text will wrap at the specified width and be clipped to the
+height:
 
 .. code-block:: kv
 
@@ -65,8 +66,8 @@ properties to control the alignment of its text. However, by default the text
 image (:attr:`~Label.texture`) is only just large enough to contain the
 characters and is positioned in the center of the Label. The valign property
 will have no effect and halign will only have an effect if your text has
-newlines; a single line of text will appear to be centered even though halign is
-set to left (by default).
+newlines; a single line of text will appear to be centered even though halign
+is set to left (by default).
 
 In order for the alignment properties to take effect, set the
 :attr:`~Label.text_size`, which specifies the size of the bounding box within
@@ -519,8 +520,8 @@ class Label(Widget):
 
     .. versionadded:: 1.9.2
 
-    :attr:`underline` is a :class:`~kivy.properties.BooleanProperty` and defaults
-    to False.
+    :attr:`underline` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
     '''
 
     strikethrough = BooleanProperty(False)
@@ -531,8 +532,8 @@ class Label(Widget):
 
     .. versionadded:: 1.9.2
 
-    :attr:`strikethrough` is a :class:`~kivy.properties.BooleanProperty` and defaults
-    to False.
+    :attr:`strikethrough` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
     '''
 
     padding_x = NumericProperty(0)
@@ -811,9 +812,9 @@ class Label(Widget):
 
     The references marked "hello" have a bounding box at (x1, y1, x2, y2).
     These co-ordinates are relative to the top left corner of the text, with
-    the y value increasing downwards. You can define multiple refs with the same
-    name: each occurrence will be added as another (x1, y1, x2, y2) tuple to
-    this list.
+    the y value increasing downwards. You can define multiple refs with the
+    same name: each occurrence will be added as another (x1, y1, x2, y2) tuple
+    to this list.
 
     The current Label implementation uses these references if they exist in
     your markup text, automatically doing the collision with the touch and

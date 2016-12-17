@@ -118,4 +118,5 @@ class MySettingsWithTabbedPanel(SettingsWithTabbedPanel):
             "main.py: MySettingsWithTabbedPanel.on_config_change: "
             "{0}, {1}, {2}, {3}".format(config, section, key, value))
 
+
 MyApp().run()

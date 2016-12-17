@@ -279,7 +279,8 @@ class Splitter(BoxLayout):
             parent_proportion = self._parent_proportion
             if self.sizable_from in ('top', 'bottom'):
                 new_height = parent_proportion * self.parent.height
-                self.height = max(self.min_size, min(new_height, self.max_size))
+                self.height = max(self.min_size,
+                                 min(new_height, self.max_size))
             else:
                 new_width = parent_proportion * self.parent.width
                 self.width = max(self.min_size, min(new_width, self.max_size))
@@ -388,8 +389,8 @@ if __name__ == '__main__':
             bx2.add_widget(Button())
             spl = Splitter(
                 size_hint=(1, .25),
-                pos_hint = {'top': 1},
-                sizable_from = 'bottom')
+                pos_hint={'top': 1},
+                sizable_from='bottom')
             spl1 = Splitter(
                 sizable_from='left',
                 size_hint=(None, 1), width=90)

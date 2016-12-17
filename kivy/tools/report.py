@@ -93,6 +93,7 @@ def send_report(dict_report):
 # Start output debugging
 # ----------------------------------------------------------
 
+
 title('Global')
 report.append('OS platform     : %s | %s' % (plf.platform(), plf.machine()))
 report.append('Python EXE      : %s' % sys.executable)
@@ -145,10 +146,11 @@ title('Libraries')
 
 def testimport(libname):
     try:
-        l = __import__(libname)
-        report.append('%-20s exist at %s' % (libname, l.__file__))
+        lib = __import__(libname)
+        report.append('%-20s exist at %s' % (libname, lib.__file__))
     except ImportError:
         report.append('%-20s is missing' % libname)
+
 
 for x in (
     'gst',

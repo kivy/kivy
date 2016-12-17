@@ -252,7 +252,7 @@ class Carousel(StencilView):
     .. versionadded:: 1.9.2
     '''
 
-    #### private properties, for internal use only ###
+    # private properties, for internal use only ###
     _index = NumericProperty(0, allownone=True)
     _prev = ObjectProperty(None, allownone=True)
     _current = ObjectProperty(None, allownone=True)
@@ -299,7 +299,7 @@ class Carousel(StencilView):
 
         .. versionadded:: 1.7.0
         '''
-        if not self.index is None:
+        if self.index is not None:
             w, h = self.size
             _direction = {
                 'top': -h / 2,
@@ -529,13 +529,15 @@ class Carousel(StencilView):
         return True
 
     def on_touch_move(self, touch):
-        if self.touch_mode_change == False:
-            if self.ignore_perpendicular_swipes and self.direction in ('top','bottom'):
+        if not self.touch_mode_change:
+            if self.ignore_perpendicular_swipes and \
+                    self.direction in ('top', 'bottom'):
                 if abs(touch.oy - touch.y) < self.scroll_distance:
                     if abs(touch.ox - touch.x) > self.scroll_distance:
                         self._change_touch_mode()
                         self.touchModeChange = True
-            elif self.ignore_perpendicular_swipes and self.direction in ('right','left'):
+            elif self.ignore_perpendicular_swipes and \
+                    self.direction in ('right', 'left'):
                 if abs(touch.ox - touch.x) < self.scroll_distance:
                     if abs(touch.oy - touch.y) > self.scroll_distance:
                         self._change_touch_mode()

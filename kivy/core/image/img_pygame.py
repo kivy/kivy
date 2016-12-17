@@ -60,7 +60,7 @@ class ImageLoaderPygame(ImageLoaderBase):
             if im is None:
                 im = pygame.image.load(filename)
         except:
-            #Logger.warning(type(filename)('Image: Unable to load image <%s>')
+            # Logger.warning(type(filename)('Image: Unable to load image <%s>')
             #               % filename)
             raise
 

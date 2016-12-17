@@ -43,7 +43,8 @@ class ClipboardAndroid(ClipboardBase):
     def _initialize_clipboard(self):
         PythonActivity._clipboard = cast(
             'android.app.Activity',
-            PythonActivity.mActivity).getSystemService(Context.CLIPBOARD_SERVICE)
+            PythonActivity.mActivity).getSystemService(
+                                        Context.CLIPBOARD_SERVICE)
 
     def _get_clipboard(f):
         def called(*args, **kargs):
@@ -80,7 +81,7 @@ class ClipboardAndroid(ClipboardBase):
         clippy = PythonActivity._clipboard
 
         if sdk < 11:
-            #versions previous to honeycomb
+            # versions previous to honeycomb
             clippy.setText(AndroidString(data))
         else:
             ClipData = autoclass('android.content.ClipData')
@@ -88,4 +89,3 @@ class ClipboardAndroid(ClipboardBase):
                                          AndroidString(data))
             # put text data onto clipboard
             clippy.setPrimaryClip(new_clip)
-

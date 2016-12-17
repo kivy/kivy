@@ -85,8 +85,8 @@ class RedisStore(AbstractStore):
         return self.r.delete(key)
 
     def store_keys(self):
-        l = len(self.prefix + '.d.')
-        return [x[l:] for x in self.r.keys(self.prefix + '.d.*')]
+        z = len(self.prefix + '.d.')
+        return [x[z:] for x in self.r.keys(self.prefix + '.d.*')]
 
     def store_find(self, filters):
         fkeys = filters.keys()
