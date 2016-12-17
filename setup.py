@@ -313,6 +313,7 @@ def _check_and_fix_sdl2_mixer(f_path):
     else:
         print("WARNING: Unable to apply the changes, sorry.")
 
+
 # -----------------------------------------------------------------------------
 # extract version (simulate doc generation, kivy will be not imported)
 environ['KIVY_DOC_INCLUDE'] = '1'
@@ -880,7 +881,9 @@ def get_extensions_from_sources(sources):
             module_name, [pyx] + f_depends + c_depends, **flags_clean))
     return ext_modules
 
+
 ext_modules = get_extensions_from_sources(sources)
+
 
 # -----------------------------------------------------------------------------
 # automatically detect data files
