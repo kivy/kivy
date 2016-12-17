@@ -178,5 +178,6 @@ class LineExtendedApp(App):
         root.add_widget(LineBezier())
         return root
 
+
 if __name__ == '__main__':
     LineExtendedApp().run()

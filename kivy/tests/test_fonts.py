@@ -27,4 +27,3 @@ class FontTestCase(unittest.TestCase):
                 os.unlink(self.font_name)
             except:
                 pass
-

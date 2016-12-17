@@ -133,4 +133,5 @@ class SoundGi(Sound):
                     return value / float(Gst.SECOND)
         return super(SoundGi, self)._get_length()
 
+
 SoundLoader.register(SoundGi)

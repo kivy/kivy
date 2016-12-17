@@ -224,8 +224,8 @@ class FocusBehavior(object):
     :attr:`~kivy.core.window.WindowBase.softinput_mode` property to determine
     how the keyboard display is handled.
 
-    :attr:`focus` is a :class:`~kivy.properties.BooleanProperty` and defaults to
-    False.
+    :attr:`focus` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
     '''
 
     focused = focus
@@ -256,7 +256,7 @@ class FocusBehavior(object):
             return
         if not isinstance(value, FocusBehavior):
             raise ValueError('focus_next accepts only objects based'
-                             ' on FocusBehavior, or the `StopIteration` class.')
+                             'on FocusBehavior, or the `StopIteration` class.')
         value.focus_previous = self
 
     focus_next = ObjectProperty(None, allownone=True)
@@ -297,7 +297,7 @@ class FocusBehavior(object):
             return
         if not isinstance(value, FocusBehavior):
             raise ValueError('focus_previous accepts only objects based'
-                             ' on FocusBehavior, or the `StopIteration` class.')
+                             'on FocusBehavior, or the `StopIteration` class.')
         value.focus_next = self
 
     focus_previous = ObjectProperty(None, allownone=True)

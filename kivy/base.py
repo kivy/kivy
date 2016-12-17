@@ -71,7 +71,7 @@ class ExceptionManagerBase:
 
     def add_handler(self, cls):
         '''Add a new exception handler to the stack.'''
-        if not cls in self.handlers:
+        if cls not in self.handlers:
             self.handlers.append(cls)
 
     def remove_handler(self, cls):
@@ -87,6 +87,7 @@ class ExceptionManagerBase:
             if r == ExceptionManagerBase.PASS:
                 ret = r
         return ret
+
 
 #: Instance of a :class:`ExceptionManagerBase` implementation.
 ExceptionManager = register_context('ExceptionManager', ExceptionManagerBase)
@@ -147,7 +148,7 @@ class EventLoopBase(EventDispatcher):
     def add_event_listener(self, listener):
         '''Add a new event listener for getting touch events.
         '''
-        if not listener in self.event_listeners:
+        if listener not in self.event_listeners:
             self.event_listeners.append(listener)
 
     def remove_event_listener(self, listener):
@@ -387,6 +388,7 @@ class EventLoopBase(EventDispatcher):
         '''Event handler for `on_start` which will be fired right
         after all input providers have been started.'''
         pass
+
 
 #: EventLoop instance
 EventLoop = EventLoopBase()

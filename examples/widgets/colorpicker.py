@@ -148,7 +148,7 @@ class Picture(Scatter):
     def on_touch_down(self, touch):
         _app = self._app
         if (_app.color_mode[0] == 'c' or
-            not self.collide_point(*touch.pos)):
+                not self.collide_point(*touch.pos)):
             return super(Picture, self).on_touch_down(touch)
         ud = touch.ud
         ud['group'] = g = str(touch.uid)

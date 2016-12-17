@@ -24,6 +24,7 @@ class FakePygletContext:
     # this will break pyglet window context
     _workaround_unpack_row_length = False
 
+
 pyglet.gl.current_context = FakePygletContext()
 
 

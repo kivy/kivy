@@ -372,6 +372,7 @@ class Slider(Widget):
             self.value_pos = touch.pos
             return True
 
+
 if __name__ == '__main__':
     from kivy.app import App
 

@@ -1769,7 +1769,7 @@ class Checker(object):
             self.check_physical(self.lines[-1])
             self.check_logical()
         if self.blank_lines > 1:
-            self.report_error(token[2][0],0,
+            self.report_error(token[2][0], 0,
                 'E389 File ends in multiple blank lines',
                 check=None)
         return self.report.get_file_results()

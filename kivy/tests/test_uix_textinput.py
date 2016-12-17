@@ -33,4 +33,4 @@ class TextInputTest(unittest.TestCase):
         # Check if wordbreaking is correctly done
         # If so Secondvery... should start from the 7th line
         pos_S = self.test_txt.index('S')
-        self.assertEquals(instance.get_cursor_from_index(pos_S), (0,6))
+        self.assertEquals(instance.get_cursor_from_index(pos_S), (0, 6))

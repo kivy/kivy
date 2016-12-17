@@ -111,7 +111,7 @@ class ToggleButtonBehavior(ButtonBehavior):
 
     def _do_press(self):
         if (not self.allow_no_selection and
-            self.group and self.state == 'down'):
+                self.group and self.state == 'down'):
             return
         self._release_group(self)
         self.state = 'normal' if self.state == 'down' else 'down'

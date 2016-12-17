@@ -25,4 +25,3 @@ class BlehApp(App):
 
 if __name__ == '__main__':
     BlehApp().run()
-

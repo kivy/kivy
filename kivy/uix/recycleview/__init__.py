@@ -260,8 +260,9 @@ class RecycleViewBehavior(object):
 
     def refresh_from_data(self, *largs, **kwargs):
         """
-        This should be called when data changes. Data changes typically indicate
-        that everything should be be recomputed since the source data changed.
+        This should be called when data changes. Data changes typically
+        indicate that everything should be recomputed since the source data
+        changed.
 
         This method is automatically bound to the
         :attr:`~RecycleDataModelBehavior.on_data_changed` method of the

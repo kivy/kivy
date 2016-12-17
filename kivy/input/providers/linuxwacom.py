@@ -53,6 +53,7 @@ class LinuxWacomMotionEvent(MotionEvent):
         return '<LinuxWacomMotionEvent id=%d pos=(%f, %f) device=%s>' \
             % (self.id, self.sx, self.sy, self.device)
 
+
 if 'KIVY_DOC' in os.environ:
     # documentation hack
     LinuxWacomMotionEventProvider = None
@@ -343,7 +344,7 @@ else:
                                 and not reset_touch:
                             del l_points[touch_id]
                         if changed:
-                            if not 'x' in p:
+                            if 'x' not in p:
                                 reset_touch = False
                                 continue
                             process(l_points)

@@ -42,8 +42,8 @@ The default value for those settings can be changed in the configuration file::
 Limiting to the X or Y Axis
 ---------------------------
 
-By default, the ScrollView allows scrolling along both the X and Y axes. You can
-explicitly disable scrolling on an axis by setting the
+By default, the ScrollView allows scrolling along both the X and Y axes. You
+can explicitly disable scrolling on an axis by setting the
 :attr:`~ScrollView.do_scroll_x` or :attr:`~ScrollView.do_scroll_y` properties
 to False.
 
@@ -658,15 +658,15 @@ class ScrollView(StencilView):
             if ((btn == 'scrolldown' and self.scroll_y >= 1) or
                 (btn == 'scrollup' and self.scroll_y <= 0) or
                 (btn == 'scrollleft' and self.scroll_x >= 1) or
-                (btn == 'scrollright' and self.scroll_x <= 0)):
+                    (btn == 'scrollright' and self.scroll_x <= 0)):
                 return False
 
-            if (self.effect_x and self.do_scroll_y and height_scrollable
-                    and btn in ('scrolldown', 'scrollup')):
+            if (self.effect_x and self.do_scroll_y and height_scrollable and
+                    btn in ('scrolldown', 'scrollup')):
                 e = self.effect_x if ud['in_bar_x'] else self.effect_y
 
-            elif (self.effect_y and self.do_scroll_x and width_scrollable
-                    and btn in ('scrollleft', 'scrollright')):
+            elif (self.effect_y and self.do_scroll_x and width_scrollable and
+                    btn in ('scrollleft', 'scrollright')):
                 e = self.effect_y if ud['in_bar_y'] else self.effect_x
 
             if e:
@@ -757,7 +757,7 @@ class ScrollView(StencilView):
         touch.ud['sv.can_defocus'] = True
 
         uid = self._get_uid()
-        if not uid in touch.ud:
+        if uid not in touch.ud:
             self._touch = False
             return self.on_scroll_start(touch, False)
         ud = touch.ud[uid]
@@ -817,7 +817,8 @@ class ScrollView(StencilView):
         return rv
 
     def on_touch_up(self, touch):
-        if self._touch is not touch and self._get_uid('svavoid') not in touch.ud:
+        uid = self._get_uid('svavoid')
+        if self._touch is not touch and uid not in touch.ud:
             # touch is in parents
             touch.push()
             touch.apply_transform_2d(self.to_local)
@@ -894,10 +895,10 @@ class ScrollView(StencilView):
             return
 
         # if _viewport is layout and has pending operation, reschedule
-        if hasattr(self._viewport,'do_layout'):
+        if hasattr(self._viewport, 'do_layout'):
             if self._viewport._trigger_layout.is_triggered:
                 Clock.schedule_once(
-                     lambda *dt: self.scroll_to(widget,padding,animate))
+                     lambda *dt: self.scroll_to(widget, padding, animate))
                 return
 
         if isinstance(padding, (int, float)):
@@ -994,8 +995,8 @@ class ScrollView(StencilView):
             y = self.top - vp.height
 
         # from 1.8.0, we now use a matrix by default, instead of moving the
-        # widget position behind. We set it here, but it will be a no-op most of
-        # the time.
+        # widget position behind. We set it here, but it will be a no-op most
+        # of the time.
         vp.pos = 0, 0
         self.g_translate.xy = x, y
 
@@ -1015,7 +1016,8 @@ class ScrollView(StencilView):
         self.funbind('bar_color', self._change_bar_color)
         self.fbind('bar_inactive_color', self._change_bar_color)
         Animation(
-            _bar_color=self.bar_inactive_color, d=.5, t='out_quart').start(self)
+            _bar_color=self.bar_inactive_color,
+            d=.5, t='out_quart').start(self)
 
     def _change_bar_color(self, inst, value):
         self._bar_color = value
@@ -1061,8 +1063,8 @@ class ScrollView(StencilView):
 
         # in order to be able to scroll on very slow devices, let at least 3
         # frames displayed to accumulate some velocity. And then, change the
-        # touch mode. Otherwise, we might never be able to compute velocity, and
-        # no way to scroll it. See #1464 and #1499
+        # touch mode. Otherwise, we might never be able to compute velocity,
+        # and no way to scroll it. See #1464 and #1499
         if diff_frames < 3:
             Clock.schedule_once(self._change_touch_mode, 0)
             return

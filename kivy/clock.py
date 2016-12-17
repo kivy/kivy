@@ -372,6 +372,8 @@ from threading import Event as ThreadingEvent
 
 def _get_sleep_obj():
     pass
+
+
 try:
     import ctypes
     if platform in ('win32', 'cygwin'):
@@ -611,6 +613,7 @@ class ClockBaseBehavior(object):
 
     time = staticmethod(partial(_default_time))
 
+
 ClockBaseBehavior.time.__doc__ = \
     '''Proxy method for :func:`~kivy.compat.clock`. '''
 
@@ -798,6 +801,7 @@ def mainthread(func):
             func(*args, **kwargs)
         Clock.schedule_once(callback_func, 0)
     return delayed_func
+
 
 if 'KIVY_DOC_INCLUDE' in environ:
     #: Instance of :class:`ClockBaseBehavior`.

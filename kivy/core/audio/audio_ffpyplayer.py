@@ -60,7 +60,8 @@ from kivy.weakmethod import WeakMethod
 import time
 
 try:
-    Logger.info('SoundFFPy: Using ffpyplayer {}'.format(ffpyplayer.__version__))
+    Logger.info(
+        'SoundFFPy: Using ffpyplayer {}'.format(ffpyplayer.__version__))
 except:
     Logger.info('SoundFFPy: Using ffpyplayer {}'.format(ffpyplayer.version))
 
@@ -125,8 +126,8 @@ class SoundFFPy(Sound):
         # wait until loaded or failed, shouldn't take long, but just to make
         # sure metadata is available.
         s = time.clock()
-        while ((not player.get_metadata()['duration'])
-               and not self.quitted and time.clock() - s < 10.):
+        while ((not player.get_metadata()['duration']) and
+               not self.quitted and time.clock() - s < 10.):
             time.sleep(0.005)
 
     def unload(self):
@@ -178,5 +179,6 @@ class SoundFFPy(Sound):
             self.stop()
         else:
             self.seek(0.)
+
 
 SoundLoader.register(SoundFFPy)

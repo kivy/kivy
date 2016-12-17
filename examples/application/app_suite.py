@@ -94,7 +94,7 @@ class TestPrebuiltApp(App):
 
 
 def print_class(class_name):
-    """ Read this file and print the section with the class name specified.) """
+    """ Read this file and print the section with the class name specified.)"""
     filename = sys.argv[0]
     with open(filename) as f:
         data = f.read()
@@ -102,6 +102,7 @@ def print_class(class_name):
         match = re.search(regex, data, flags=re.MULTILINE | re.DOTALL)
         if match:
             print(match.group(1))
+
 
 # the __name__ idiom executes when run from command line but not from import.
 if __name__ == '__main__':

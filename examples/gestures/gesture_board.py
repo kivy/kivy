@@ -90,5 +90,6 @@ class DemoGesture(App):
     def build(self):
         return GestureBoard()
 
+
 if __name__ == '__main__':
     DemoGesture().run()

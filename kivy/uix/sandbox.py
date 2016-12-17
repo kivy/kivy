@@ -148,6 +148,7 @@ class Sandbox(FloatLayout):
     def _call_draw(self, dt):
         self.main_clock.schedule_once(self._clock_sandbox_draw, -1)
 
+
 if __name__ == '__main__':
     from kivy.base import runTouchApp
     from kivy.uix.button import Button

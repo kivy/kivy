@@ -12,8 +12,8 @@ This module implements behaviors that can be
 with existing base widgets. The idea behind these classes is to encapsulate
 properties and events associated with certain types of widgets.
 
-Isolating these properties and events in a mixin class allows you to define your
-own implementation for standard kivy widgets that can act as drop-in
+Isolating these properties and events in a mixin class allows you to define
+your own implementation for standard kivy widgets that can act as drop-in
 replacements. This means you can re-style and re-define widgets as desired
 without breaking compatibility: as long as they implement the behaviors
 correctly, they can simply replace the standard widgets.

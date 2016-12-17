@@ -77,4 +77,3 @@ class UIXAnchorLayoutTestcase(GraphicUnitTest):
         layout = AnchorLayout(anchor_y='top', anchor_x='right')
         layout.add_widget(b(1, 0, 0))
         r(layout)
-

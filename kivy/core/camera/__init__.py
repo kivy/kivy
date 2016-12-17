@@ -129,6 +129,7 @@ class CameraBase(EventDispatcher):
     def on_load(self):
         pass
 
+
 # Load the appropriate providers
 providers = ()
 

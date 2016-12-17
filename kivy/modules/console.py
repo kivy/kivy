@@ -877,7 +877,7 @@ class Console(RelativeLayout):
     def on_touch_down(self, touch):
         ret = super(Console, self).on_touch_down(touch)
         if (('button' not in touch.profile or touch.button == 'left') and
-            not ret and self.inspect_enabled):
+                not ret and self.inspect_enabled):
             self.highlight_at(*touch.pos)
             if touch.is_double_tap:
                 self.inspect_enabled = False
@@ -966,7 +966,7 @@ class Console(RelativeLayout):
             self._deactivate_console()
 
     def _activate_console(self):
-        if not self in self.win.children:
+        if self not in self.win.children:
             self.win.add_widget(self)
         self.y = 0
         for addon in self._addons:

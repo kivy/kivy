@@ -76,5 +76,6 @@ class AudioApp(App):
         for audiobutton in self.root.ids.sl.children:
             audiobutton.set_volume(value)
 
+
 if __name__ == '__main__':
     AudioApp().run()

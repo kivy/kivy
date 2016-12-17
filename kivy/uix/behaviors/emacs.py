@@ -99,7 +99,7 @@ class EmacsBehavior(object):
                                  (mod == 'alt' and
                                   chr(key) in self.bindings['alt'].keys()))
         if is_emacs_shortcut:
-            emacs_shortcut = self.bindings[mod][chr(key)]  # Look up mod and key
+            emacs_shortcut = self.bindings[mod][chr(key)] # Look up mod and key
             emacs_shortcut()
         else:
             super(EmacsBehavior, self).keyboard_on_key_down(window, keycode,
@@ -114,8 +114,8 @@ class EmacsBehavior(object):
         self.do_cursor_movement('cursor_right', control=True)
         end_index = self.cursor_index()
         if start_index != end_index:
-            ss = self.text[start_index:end_index]
-            self._set_unredo_delsel(start_index, end_index, ss, from_undo=False)
+            s = self.text[start_index:end_index]
+            self._set_unredo_delsel(start_index, end_index, s, from_undo=False)
             self.text = self.text[:start_index] + self.text[end_index:]
             self._set_cursor(pos=start_cursor)
 
@@ -128,7 +128,7 @@ class EmacsBehavior(object):
         end_cursor = self.cursor
         end_index = self.cursor_index()
         if start_index != end_index:
-            ss = self.text[end_index:start_index]
-            self._set_unredo_delsel(end_index, start_index, ss, from_undo=False)
+            s = self.text[end_index:start_index]
+            self._set_unredo_delsel(end_index, start_index, s, from_undo=False)
             self.text = self.text[:end_index] + self.text[start_index:]
             self._set_cursor(pos=end_cursor)

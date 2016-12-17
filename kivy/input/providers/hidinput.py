@@ -74,6 +74,7 @@ class HIDMotionEvent(MotionEvent):
         return '<HIDMotionEvent id=%d pos=(%f, %f) device=%s>' \
             % (self.id, self.sx, self.sy, self.device)
 
+
 if 'KIVY_DOC' in os.environ:
     # documentation hack
     HIDInputMotionEventProvider = None
@@ -544,20 +545,20 @@ else:
                                 point['_avoid'] = True
                     else:
                         if ev_value == 1:
-                            l = keyboard_keys[ev_code][-1
+                            z = keyboard_keys[ev_code][-1
                                 if 'shift' in Window._modifiers else 0]
-                            if l == 'shift' or l == 'alt':
-                                Window._modifiers.append(l)
+                            if z == 'shift' or z == 'alt':
+                                Window._modifiers.append(z)
                             dispatch_queue.append(('key_down', (
-                                Keyboard.keycodes[l.lower()], ev_code,
-                                keys_str.get(l, l), Window._modifiers)))
+                                Keyboard.keycodes[z.lower()], ev_code,
+                                keys_str.get(z, z), Window._modifiers)))
                         elif ev_value == 0:
-                            l = keyboard_keys[ev_code][-1
+                            z = keyboard_keys[ev_code][-1
                                 if 'shift' in Window._modifiers else 0]
                             dispatch_queue.append(('key_up', (
-                                Keyboard.keycodes[l.lower()], ev_code,
-                                keys_str.get(l, l), Window._modifiers)))
-                            if l == 'shift':
+                                Keyboard.keycodes[z.lower()], ev_code,
+                                keys_str.get(z, z), Window._modifiers)))
+                            if z == 'shift':
                                 Window._modifiers.remove('shift')
 
             def process(points):
@@ -568,7 +569,7 @@ else:
 
                 actives = [args['id']
                            for args in points
-                           if 'id' in args and not '_avoid' in args]
+                           if 'id' in args and '_avoid' not in args]
                 for args in points:
                     tid = args['id']
                     try:
@@ -717,4 +718,3 @@ else:
                 pass
 
     MotionEventFactory.register('hidinput', HIDInputMotionEventProvider)
-

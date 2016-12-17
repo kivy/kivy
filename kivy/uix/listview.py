@@ -69,9 +69,10 @@ kivy/kivy/tree/master/examples/widgets/lists/list_cascade_images.py>`_
 kivy/kivy/tree/master/examples/widgets/lists/list_ops.py>`_
 
 Many of the examples feature selection, some restricting selection to single
-selection, where only one item at at time can be selected, and others allowing
+selection, where only one item at a time can be selected, and others allowing
 multiple item selection. Many of the examples illustrate how selection in one
-list can be connected to actions and selections in another view or another list.
+list can be connected to actions and selections in another view or another
+list.
 
 Find your own way of reading the documentation here, examining the source code
 for the example apps and running the examples. Some may prefer to read the
@@ -129,8 +130,8 @@ list of strings.
 *without selection support*. It is a scrollable list of items that does not
 respond to touch events.
 
-To use a :class:`SimpleListAdaper` explicitly when creating a ListView instance,
-do::
+To use a :class:`SimpleListAdapter` explicitly when creating a ListView
+instance, do::
 
     simple_list_adapter = SimpleListAdapter(
             data=["Item #{0}".format(i) for i in range(100)],
@@ -240,8 +241,8 @@ components can be summarized as follows:
 Please refer to the :mod:`~kivy.adapters` documentation for more details.
 
 A :class:`~kivy.adapters.dictadapter.DictAdapter` has the same arguments and
-requirements as a :class:`~kivy.adapters.listadapter.ListAdapter` except for two
-things:
+requirements as a :class:`~kivy.adapters.listadapter.ListAdapter` except for
+two things:
 
 1) There is an additional argument, sorted_keys, which must meet the
    requirements of normal python dictionary keys.
@@ -390,9 +391,9 @@ has an is_selected property.
 Using an Item View Template
 ---------------------------
 
-:class:`~kivy.uix.selectableview.SelectableView` is another simple mixin class that
-has required properties for a list item: text, and is_selected. To make your
-own template, mix it in as follows::
+:class:`~kivy.uix.selectableview.SelectableView` is another simple mixin class
+that has required properties for a list item: text, and is_selected. To make
+your own template, mix it in as follows::
 
     from kivy.lang import Builder
 
@@ -514,9 +515,9 @@ In another example, we could set the selection_mode of a listview to
 'multiple', and load it with a list of answers to a multiple-choice question.
 The question could have several correct answers. A color swatch view could be
 bound to selection change, as above, so that it turns green as soon as the
-correct choices are made, unless the number of touches exceeds a limit, then the
+correct choices are made, unless the number of touches exceeds a limit, then
 answer session could be terminated. See the examples that feature thumbnail
-images to get some ideas, e.g. list_cascade_dict.py.
+the images to get some ideas, e.g. list_cascade_dict.py.
 
 In a more involved example, we could chain together three listviews, where
 selection in the first controls the items shown in the second, and selection in
@@ -562,7 +563,7 @@ class ListItemReprMixin(Label):
     '''
     if PY2:
         def __repr__(self):
-            text = self.text.encode('utf-8') if isinstance(self.text, unicode) \
+            text = self.text.encode('utf-8') if isinstance(self.text, unicode)\
                 else self.text
             return '<%s text=%s>' % (self.__class__.__name__, text)
     else:
@@ -644,8 +645,8 @@ class ListItemLabel(ListItemReprMixin, SelectableView, Label):
 
 class CompositeListItem(SelectableView, BoxLayout):
     ''':class:`~kivy.uix.listview.CompositeListItem` mixes
-    :class:`~kivy.uix.selectableview.SelectableView` with :class:`BoxLayout` for a
-    generic container-style list item, to be used in
+    :class:`~kivy.uix.selectableview.SelectableView` with :class:`BoxLayout`
+    for a generic container-style list item, to be used in
     :class:`~kivy.uix.listview.ListView`.
     '''
 

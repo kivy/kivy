@@ -35,5 +35,6 @@ class ImageLoaderDDS(ImageLoaderBase):
                 im.add_mipmap(index, w, h, data)
         return [im]
 
+
 # register
 ImageLoader.register(ImageLoaderDDS)

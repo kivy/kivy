@@ -288,7 +288,8 @@ class KivyBuildExt(build_ext):
 
 def _check_and_fix_sdl2_mixer(f_path):
     print("Check if SDL2_mixer smpeg2 have an @executable_path")
-    rpath_from = "@executable_path/../Frameworks/SDL2.framework/Versions/A/SDL2"
+    rpath_from = ("@executable_path/../Frameworks/SDL2.framework"
+                 "/Versions/A/SDL2")
     rpath_to = "@rpath/../../../../SDL2.framework/Versions/A/SDL2"
     smpeg2_path = ("{}/Versions/A/Frameworks/smpeg2.framework"
                    "/Versions/A/smpeg2").format(f_path)
@@ -312,6 +313,7 @@ def _check_and_fix_sdl2_mixer(f_path):
         print("WARNING: You'll never see this message again.")
     else:
         print("WARNING: Unable to apply the changes, sorry.")
+
 
 # -----------------------------------------------------------------------------
 # extract version (simulate doc generation, kivy will be not imported)
@@ -879,6 +881,7 @@ def get_extensions_from_sources(sources):
         ext_modules.append(CythonExtension(
             module_name, [pyx] + f_depends + c_depends, **flags_clean))
     return ext_modules
+
 
 ext_modules = get_extensions_from_sources(sources)
 

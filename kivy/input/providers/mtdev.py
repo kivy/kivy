@@ -70,6 +70,7 @@ class MTDMotionEvent(MotionEvent):
         i, sx, sy, d = (self.id, self.sx, self.sy, self.device)
         return '<MTDMotionEvent id=%d pos=(%f, %f) device=%s>' % (i, sx, sy, d)
 
+
 if 'KIVY_DOC' in os.environ:
 
     # documentation hack
@@ -193,8 +194,8 @@ else:
 
             def process(points):
                 for args in points:
-                    # this can happen if we have a touch going on already at the
-                    # start of the app
+                    # this can happen if we have a touch going on already at
+                    # the start of the app
                     if 'id' not in args:
                         continue
                     tid = args['id']
@@ -291,7 +292,7 @@ else:
                         continue
 
                     # fill the slot
-                    if not _slot in l_points:
+                    if _slot not in l_points:
                         l_points[_slot] = dict()
                     point = l_points[_slot]
                     ev_value = data.value

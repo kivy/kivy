@@ -47,7 +47,7 @@ class _MapInfo(Structure):
         ('memory', c_void_p),
         ('flags', c_int),
         ('data', c_void_p)]
-        # we don't care about the rest
+    # we don't care about the rest
 
 
 def _gst_new_buffer(obj, appsink):
@@ -200,7 +200,7 @@ class VideoGi(VideoBase):
         uri = self.filename
         if not uri:
             return
-        if not '://' in uri:
+        if '://' not in uri:
             uri = 'file:' + pathname2url(realpath(uri))
         return uri
 
