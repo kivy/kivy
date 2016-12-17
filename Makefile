@@ -29,7 +29,7 @@ ifneq ($(INSTALL_LAYOUT),)
 endif
 
 
-.PHONY: build force mesabuild pdf style stylereport hook test batchtest cover clean distclean theming
+.PHONY: build force mesabuild pdf style hook test batchtest cover clean distclean theming
 
 build:
 	$(PYTHON) setup.py $(BUILD_OPTS)
