@@ -13,6 +13,8 @@ pep8_ignores = (
     'E127',  # continuation line over-indented for visual indent
     'E128',  # continuation line under-indented for visual indent
     'E402',  # module level import not at top of file
+    'E741',  # ambiguous variable name
+    'E731',  # do not assign a lambda expression, use a def
 )
 
 
