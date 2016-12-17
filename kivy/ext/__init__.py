@@ -38,8 +38,9 @@ as it's appropriate to do so. They follow the following naming convention::
 
 .. warning::
 
-    Again, do not try to unzip ``*.kex`` files on your own. While unzipping will
-    work, Kivy will not be able to load the extension and will simply ignore it.
+    Again, do not try to unzip ``*.kex`` files on your own. While unzipping
+    will work, Kivy will not be able to load the extension and will simply
+    ignore it.
 
 With Kivy's extension system, your application can use specially packaged
 third-party libraries in a backwards compatible way (by specifying the version
@@ -90,8 +91,9 @@ def load(extname, version):
 
         from kivy.ext import load
         myextension = load('myextension', (2, 1))
-        # You can now use myextension as if you had done ``import myextension``,
-        # but with the added benefit of using the proper version.
+        # You can now use myextension as if you had done
+        # ``import myextension``, but with the added benefit of using the
+        # proper version.
 
     :Parameters:
         `extname`: str
@@ -117,8 +119,9 @@ def load(extname, version):
         NEED_UNZIP = False
 
     # Find the one path that best satisfies the specified criteria, i.e. same
-    # extension name, same major version number, maximum available minor version
-    # number but at least the same as the specified minor version number.
+    # extension name, same major version number, maximum available minor
+    # version number but at least the same as the specified minor version
+    # number.
     majmatch = extname + '_' + str(version[0]) + '.*'
     best = None
     bestpath = None
@@ -258,10 +261,11 @@ def unzip_extensions():
                 try:
                     cache_directories = []
                     mkdir(join(epath, extdir))
-                    # I know that there is zipf.extract() and zipf.extractall(),
-                    # but on OSX, Python 2.6 is the default and in that version,
-                    # both methods have a bug. Fixed in 2.7 only. So use this
-                    # workaround until apple upgrades its python. See
+                    # I know that there is zipf.extract() and
+                    # zipf.extractall(), but on OSX, Python 2.6 is the default
+                    # and in that version, both methods have a bug.
+                    # Fixed in 2.7 only. So use this workaround until
+                    # apple upgrades its python. See
                     # http://bugs.python.org/issue4710
                     for member in members:
                         # In zipfiles, folders always end with '/' regardless

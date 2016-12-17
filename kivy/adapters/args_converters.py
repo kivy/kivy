@@ -37,8 +37,10 @@ arguments via the *kwargs* keyword::
              'cls_dicts': [{'cls': ListItemButton,
                             'kwargs': {'text': rec['text']}},
                            {'cls': ListItemLabel,
-                            'kwargs': {'text': "Middle-{0}".format(rec['text']),
-                                       'is_representing_cls': True}},
+                            'kwargs': {'text':
+                                        "Middle-{0}".format(rec['text']),
+                                       'is_representing_cls':
+                                        True}},
                            {'cls': ListItemButton,
                             'kwargs': {'text': rec['text']}}]}
 

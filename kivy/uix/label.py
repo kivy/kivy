@@ -263,9 +263,9 @@ class Label(Widget):
     __events__ = ['on_ref_press']
 
     _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
-                        'underline', 'strikethrough', 'color', 'disabled_color',
-                        'halign', 'valign', 'padding_x', 'padding_y',
-                        'outline_width', 'disabled_outline_color',
+                        'underline', 'strikethrough', 'color',
+                        'disabled_color', 'halign', 'valign', 'padding_x',
+                        'padding_y', 'outline_width', 'disabled_outline_color',
                         'outline_color', 'text_size', 'shorten', 'mipmap',
                         'line_height', 'max_lines', 'strip', 'shorten_from',
                         'split_str', 'ellipsis_options', 'unicode_errors',
@@ -341,8 +341,9 @@ class Label(Widget):
         mrkup = self._label.__class__ is CoreMarkupLabel
         self.texture = None
 
-        if (not self._label.text or (self.halign == 'justify' or self.strip)
-                and not self._label.text.strip()):
+        if (not self._label.text or
+            (self.halign == 'justify' or self.strip) and not
+                self._label.text.strip()):
             self.texture_size = (0, 0)
             if mrkup:
                 self.refs, self._label._refs = {}, {}

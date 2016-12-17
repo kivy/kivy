@@ -102,7 +102,8 @@ class SelectionMonitor(Widget):
 
 
 letters_dict = \
-    {l: {'text': l, 'is_selected': False} for l in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'}
+    {l: {'text': l, 'is_selected': False}
+     for l in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'}
 
 listview_selection_buttons = {}
 
