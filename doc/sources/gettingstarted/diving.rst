@@ -20,8 +20,6 @@ such as the :doc:`/api-kivy.modules.inspector` for live inspection.
 
 Learn how to handle custom :doc:`/api-kivy.input`.
 
-See how kivy has been extended with :doc:`/api-kivy.ext` support.
-
 Familiarize yourself with the :mod:`Kivy Framework <kivy>`.
 
 Kivy is open source, so you can **contribute**. Take a look at the
