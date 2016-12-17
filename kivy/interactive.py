@@ -242,8 +242,8 @@ class SafeMembrane(object):
         return SafeMembrane(r)
 
     def __setattr__(self, attr, val, osa=object.__setattr__):
-        if (attr == '_ref'
-                or hasattr(type(self), attr) and not attr.startswith('__')):
+        if (attr == '_ref' or
+                hasattr(type(self), attr) and not attr.startswith('__')):
             osa(self, attr, val)
         else:
             self.safeIn()

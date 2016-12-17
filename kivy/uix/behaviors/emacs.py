@@ -99,7 +99,7 @@ class EmacsBehavior(object):
                                  (mod == 'alt' and
                                   chr(key) in self.bindings['alt'].keys()))
         if is_emacs_shortcut:
-            emacs_shortcut = self.bindings[mod][chr(key)] # Look up mod and key
+            emacs_shortcut = self.bindings[mod][chr(key)]  # Look up mod & key
             emacs_shortcut()
         else:
             super(EmacsBehavior, self).keyboard_on_key_down(window, keycode,

@@ -196,7 +196,8 @@ class ShaderTreeApp(App):
 
         def change(*largs):
             sw.fs = available_shaders[self.shader_index]
-            self.shader_index = (self.shader_index + 1) % len(available_shaders)
+            self.shader_index = \
+                (self.shader_index + 1) % len(available_shaders)
         btn.bind(on_release=change)
         root.add_widget(btn)
         return root

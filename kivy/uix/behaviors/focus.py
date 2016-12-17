@@ -135,7 +135,7 @@ class FocusBehavior(object):
             self.focus = False    # this'll unbind
             if self._keyboard:  # remove assigned keyboard from dict
                 del keyboards[keyboard]
-        if value and not value in keyboards:
+        if value and value not in keyboards:
             keyboards[value] = None
         self._keyboard = value
         self.focus = focus
