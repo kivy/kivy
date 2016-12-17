@@ -153,19 +153,19 @@ def testimport(libname):
 
 
 for x in (
-    'gst',
-    'pygame',
-    'pygame.midi',
-    'pyglet',
-    'videocapture',
-    'squirtle',
-    'PIL',
-    'sdl2',
-    'glew',
-    'opencv',
-    'opencv.cv',
-    'opencv.highgui',
-    'cython'):
+        'gst',
+        'pygame',
+        'pygame.midi',
+        'pyglet',
+        'videocapture',
+        'squirtle',
+        'PIL',
+        'sdl2',
+        'glew',
+        'opencv',
+        'opencv.cv',
+        'opencv.highgui',
+        'cython'):
     testimport(x)
 report_dict['Libraries'] = report
 report = []

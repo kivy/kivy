@@ -116,7 +116,8 @@ class ButtonBehavior(object):
         self.register_event_type('on_press')
         self.register_event_type('on_release')
         if 'min_state_time' not in kwargs:
-            self.min_state_time = float(Config.get('graphics', 'min_state_time'))
+            self.min_state_time = float(Config.get('graphics',
+                                                    'min_state_time'))
         super(ButtonBehavior, self).__init__(**kwargs)
         self.__state_event = None
         self.__touch_time = None

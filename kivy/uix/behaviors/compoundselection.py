@@ -88,7 +88,8 @@ to :meth:`select_with_touch` to pass on the touch events::
         def button_touch_up(self, button, touch):
             """ Use collision detection to de-select buttons when the touch
             occurs outside their area and *touch_multiselect* is not True. """
-            if not (button.collide_point(*touch.pos) or self.touch_multiselect):
+            if not (button.collide_point(*touch.pos) or
+                    self.touch_multiselect):
                 self.deselect_node(button)
 
         def select_node(self, node):

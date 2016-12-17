@@ -3,8 +3,8 @@ Custom Keyboards
 ================
 
 This demo shows how to create and display custom keyboards on screen. Note that
-the new "input_type" property of the TextInput means that this is rarely needed.
-We provide this demo for the sake of completeness.
+the new "input_type" property of the TextInput means that this is rarely
+needed. We provide this demo for the sake of completeness.
 """
 # Author: Zen-CODE
 from kivy.app import App
@@ -18,8 +18,8 @@ from kivy.config import Config
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy import require
 
-# This example uses features introduced in Kivy 1.8.0, namely being able to load
-# custom json files from the app folder
+# This example uses features introduced in Kivy 1.8.0, namely being able to
+# load custom json files from the app folder
 require("1.8.0")
 
 Builder.load_string('''
@@ -168,7 +168,7 @@ class KeyboardScreen(Screen):
         the buttons will change the keyboard layout to the one selected. """
         layouts = list(VKeyboard().available_layouts.keys())
         layouts.append("numeric.json")  # Add the file in our app directory
-                                        # Note the .json extension is required
+        # Note the .json extension is required
         for key in layouts:
             self.kbContainer.add_widget(
                 Button(
