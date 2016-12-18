@@ -59,7 +59,8 @@ fruit_data_list_of_dicts = [
     {
         'name': 'Cantaloupe',
         'Serving Size': '1/4 medium (134 g/4.8 oz)',
-        'data': [50, 0, 0, 0, 20, 1, 240, 7, 12, 4, 1, 4, 11, 1, 120, 80, 2, 2],
+        'data': [50, 0, 0, 0, 20, 1, 240, 7, 12, 4, 1, 4, 11, 1, 120,
+                 80, 2, 2],
         'is_selected': False},
     {
         'name': 'Grapefruit',

@@ -642,10 +642,10 @@ class ClockBaseInterruptBehavior(ClockBaseBehavior):
             return
 
         if not event.timeout or (
-                not self.interupt_next_only and event.timeout
-                <= 1 / fps  # remaining time
-                - (self.time() - self._last_tick)  # elapsed time
-                + 4 / 5. * self.get_resolution()):  # resolution fudge factor
+                not self.interupt_next_only and event.timeout <=
+                1 / fps -  # remaining time
+                (self.time() - self._last_tick) +  # elapsed time
+                4 / 5. * self.get_resolution()):  # resolution fudge factor
             self._event.set()
 
     def idle(self):

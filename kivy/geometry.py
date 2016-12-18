@@ -35,8 +35,8 @@ def circumcircle(a, b, c):
     mPQ = (P + Q) * .5
     mQR = (Q + R) * .5
 
-    numer = -(- mPQ.y * R.y + mPQ.y * Q.y + mQR.y * R.y - mQR.y * Q.y
-              - mPQ.x * R.x + mPQ.x * Q.x + mQR.x * R.x - mQR.x * Q.x)
+    numer = -(- mPQ.y * R.y + mPQ.y * Q.y + mQR.y * R.y - mQR.y * Q.y -
+              mPQ.x * R.x + mPQ.x * Q.x + mQR.x * R.x - mQR.x * Q.x)
     denom = (-Q.x * R.y + P.x * R.y - P.x * Q.y +
              Q.y * R.x - P.y * R.x + P.y * Q.x)
 

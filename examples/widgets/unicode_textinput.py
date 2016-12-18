@@ -124,7 +124,7 @@ class LoadDialog(FloatLayout):
 class Unicode_TextInput(BoxLayout):
 
     txt_input = ObjectProperty(None)
-    unicode_string = StringProperty('''Latin-1 supplement: éé çç ßß
+    unicode_string = StringProperty("""Latin-1 supplement: éé çç ßß
 
 List of major languages taken from Google Translate
 ____________________________________________________
@@ -150,11 +150,13 @@ Dutch:          De snelle bruine vos springt over de luie oude hond.
 Estonian:       Kiire pruun rebane hüppab üle laisa vana koer.
 Filipino:       Ang mabilis na brown soro jumps sa ang tamad lumang aso.
 Finnish:        Nopea ruskea kettu hyppää yli laiska vanha koira.
-French:         Le renard brun rapide saute par dessus le chien paresseux vieux.
+French:         Le renard brun rapide saute par dessus le chien
+                paresseux vieux.
 Galician:       A lixeira raposo marrón ataca o can preguiceiro de idade.
 Gregorian:      სწრაფი ყავისფერი მელა jumps გამო ზარმაცი წლის ძაღლი.
 German:         Der schnelle braune Fuchs springt über den faulen alten Hund.
-Greek:          Η γρήγορη καφέ αλεπού πηδάει πάνω από το τεμπέλικο γέρικο σκυλί.
+Greek:          Η γρήγορη καφέ αλεπού πηδάει πάνω από το τεμπέλικο
+                γέρικο σκυλί.
 Gujrati:        આ ઝડપી ભુરો શિયાળ તે બેકાર જૂના કૂતરા પર કૂદકા.
 Gurmukhi:       ਤੇਜ ਭੂਰੇ ਰੰਗ ਦੀ ਲੂੰਬੜੀ ਆਲਸੀ ਬੁੱਢੇ ਕੁੱਤੇ ਦੇ ਉਤੋਂ ਦੀ ਟੱਪਦੀ ਹੈ ।
 Hiation Creole: Rapid mawon Rena a so sou chen an parese fin vye granmoun.
@@ -186,15 +188,16 @@ Slovenian:      Kožuščku hudobnega nad leni starega psa.
 Spanish:        La cigüeña tocaba el saxofón en el viejo perro perezoso.
 Swahili:        Haraka brown fox anaruka juu ya mbwa wavivu zamani.
 Swedish:        Den snabba bruna räven hoppar över den lata gammal hund.
-Tamil:          விரைவான பிரவுன் ஃபாக்ஸ் சோம்பேறி பழைய நாய் மீது தொடரப்படுகிறது
+Tamil:          விரைவான பிரவுன் ஃபாக்ஸ் சோம்பேறி பழைய நாய் மீது
+                தொடரப்படுகிறது
 Telugu:         శీఘ్ర బ్రౌన్ ఫాక్స్ సోమరితనం పాత కుక్క కంటే హెచ్చుతగ్గుల.
 Thai:           สีน้ำตาลอย่างรวดเร็วจิ้งจอกกระโดดมากกว่าสุนัขเก่าที่ขี้เกียจ
 Turkish:        Hızlı kahverengi tilki tembel köpeğin üstünden atlar.
 Ukranian:       Швидкий коричневий лис перестрибує через лінивий старий пес.
 Urdu:           فوری بھوری لومڑی سست بوڑھے کتے پر کودتا.
 Vietnamese:     Các con cáo nâu nhanh chóng nhảy qua con chó lười biếng cũ.
-Welsh:          Mae\'r cyflym frown llwynog neidio dros y ci hen ddiog.
-Yiddish:        דער גיך ברוין פוקס דזשאַמפּס איבער די פויל אַלט הונט.''')
+Welsh:          Mae'r cyflym frown llwynog neidio dros y ci hen ddiog.
+Yiddish:        דער גיך ברוין פוקס דזשאַמפּס איבער די פויל אַלט הונט.""")
 
     def dismiss_popup(self):
         self._popup.dismiss()
