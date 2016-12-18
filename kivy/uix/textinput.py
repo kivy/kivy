@@ -283,7 +283,6 @@ class TextInputCutCopyPaste(Bubble):
     _check_parent_ev = None
 
     def __init__(self, **kwargs):
-        self.always_release = BooleanProperty(True)
         self.mode = 'normal'
         super(TextInputCutCopyPaste, self).__init__(**kwargs)
         self._check_parent_ev = Clock.schedule_interval(self._check_parent, .5)
@@ -485,7 +484,7 @@ class TextInput(FocusBehavior, Widget):
         self._refresh_text_from_property_ev = None
         self._long_touch_ev = None
         self._do_blink_cursor_ev = Clock.create_trigger(
-            self._do_blink_cursor, .5)
+            self._do_blink_cursor, .5, interval=True)
         self._refresh_line_options_ev = None
         self.interesting_keys = {
             8: 'backspace',
