@@ -6,7 +6,7 @@ include "common.pxi"
 include "config.pxi"
 
 from kivy.graphics.cgl cimport *
-from kivy.graphics.cgl_gl import link_static
+from kivy.graphics.cgl_backend.cgl_gl import link_static
 from kivy.logger import Logger
 
 cdef extern from "gl_redirect.h":
@@ -35,10 +35,10 @@ def init_backend():
         else:
             Logger.info('GL: GLEW initialization succeeded')
         link_static()
-        gl_dynamic_binding(wglGetProcAddress)
+        gl_dynamic_binding(<void *(__stdcall *)(const char *)>wglGetProcAddress)
 
 
-cdef void gl_dynamic_binding(void *(*f)(const char *)) except *:
+cdef void gl_dynamic_binding(void *(__stdcall * f)(const char *)) except *:
     cdef bytes gl_extensions
     if cgl.glGetString == NULL:
         Logger.error('glGetString is unavailable, skipping Fbo detection')

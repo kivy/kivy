@@ -29,7 +29,7 @@ cpdef cgl_get_backend_name():
         return name.lower()
 
     for name in ('glew', 'gl', 'sdl2', 'mock'):
-        mod = importlib.import_module("kivy.graphics.cgl_{}".format(name))
+        mod = importlib.import_module("kivy.graphics.cgl_backend.cgl_{}".format(name))
         if mod.is_backend_supported():
             return name
     assert False
@@ -59,13 +59,13 @@ cdef void cgl_init() except *:
     if cgl_name not in {'glew', 'sdl2', 'angle_sdl2', 'mock', 'gl'}:
         raise ValueError('{} is not a recognized GL backend'.format(backend))
 
-    mod = importlib.import_module("kivy.graphics.cgl_{}".format(backend))
+    mod = importlib.import_module("kivy.graphics.cgl_backend.cgl_{}".format(backend))
     mod.init_backend()
     log_cgl_funcs()
 
     use_debug = environ.get("KIVY_GL_DEBUG") == "1"
     if use_debug:
-        mod = importlib.import_module("kivy.graphics.cgl_debug")
+        mod = importlib.import_module("kivy.graphics.cgl_backend.cgl_debug")
         mod.init_backend_debug()
 
 
