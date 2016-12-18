@@ -202,7 +202,8 @@ class PvrtcTool(Tool):
 
         # 3. for PVR, the image MUST be a square. use the bigger size then
         s2 = max(w2, h2)
-        print('PVR need a square image, the texture will be {0}x{0}'.format(s2))
+        print('PVR need a square image, the texture will be {0}x{0}'
+                .format(s2))
 
         ext = self.source_fn.rsplit('.', 1)[-1]
         tmpfile = '/tmp/ktexturecompress.{}'.format(ext)

@@ -117,7 +117,8 @@ if platform == 'win':
     # Note: For some reason this doesn't work after a os.chdir(), no matter to
     #       what directory you change from where. Windows weirdness.
     try:
-        from win32file import FILE_ATTRIBUTE_HIDDEN, GetFileAttributesExW, error
+        from win32file import FILE_ATTRIBUTE_HIDDEN, GetFileAttributesExW, \
+                              error
         _have_win32file = True
     except ImportError:
         Logger.error('filechooser: win32file module is missing')

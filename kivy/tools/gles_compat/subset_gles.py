@@ -105,10 +105,10 @@ print('#endif')
 # Don't add the same symbol more than once
 already_extracted = []
 
-print('\n// Subset common to GLES and GL: ====================================')
+print('\n// Subset common to GLES and GL: ===================================')
 extract_common_symbols(gles_symbols, gl_symbols, already_extracted)
 
-print('\n// Subset common to GLES and GLEXT: =================================')
+print('\n// Subset common to GLES and GLEXT: ================================')
 extract_common_symbols(gles_symbols, glext_symbols, already_extracted)
 
 print()

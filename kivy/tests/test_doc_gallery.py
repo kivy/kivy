@@ -4,7 +4,9 @@ from doc.gallery import *
 def test_parse_docstring_info():
     assert 'error' in parse_docstring_info("No Docstring")
     assert 'error' in parse_docstring_info("'''No Docstring Title'''")
-    assert 'error' in parse_docstring_info("'''No Sentence\n======\nPeriods'''")
+    assert 'error' in parse_docstring_info(
+                            "'''No Sentence\n======\nPeriods'''"
+                        )
     assert 'error' in parse_docstring_info(
         "'\nSingle Quotes\n===\n\nNo singles.'")
 
@@ -26,7 +28,8 @@ blah blah
 blah blah
 """)
     assert 'error' not in d
-    assert '3D Rendering' in d['docstring'] and 'This example' in d['docstring']
+    assert '3D Rendering' in d['docstring'] and \
+           'This example' in d['docstring']
     assert '3D Rendering' in d['title']
     assert 'monkey head' in d['first_sentence']
 

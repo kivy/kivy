@@ -129,7 +129,8 @@ class GestureContainer(EventDispatcher):
         and end of a stroke and if `update_bbox` is called. If you are going
         to analyze a gesture mid-stroke, you may need to set the `no_cache`
         argument to True.'''
-        if self._cache_time == self._update_time and not kwargs.get('no_cache'):
+        if self._cache_time == self._update_time and \
+                not kwargs.get('no_cache'):
             return self._vectors
 
         vecs = []
