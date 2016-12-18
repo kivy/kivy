@@ -352,8 +352,8 @@ class Inspector(FloatLayout):
 
     def on_touch_down(self, touch):
         ret = super(Inspector, self).on_touch_down(touch)
-        if (('button' not in touch.profile or touch.button == 'left')
-                and not ret and self.inspect_enabled):
+        if (('button' not in touch.profile or touch.button == 'left') and
+                not ret and self.inspect_enabled):
             self.highlight_at(*touch.pos)
             if touch.is_double_tap:
                 self.inspect_enabled = False

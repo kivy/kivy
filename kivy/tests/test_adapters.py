@@ -1065,12 +1065,13 @@ class AdaptersTestCase(unittest.TestCase):
         # data records, and the args_converter above that will operate one
         # each item in the data to produce list item view instances from the
         # CompositeListItem class.
-        dict_adapter = DictAdapter(sorted_keys=item_strings,
-                                   data=self.integers_dict,
-                                   args_converter=self.composite_args_converter,
-                                   selection_mode='single',
-                                   allow_empty_selection=False,
-                                   cls=CompositeListItem)
+        dict_adapter = DictAdapter(
+                            sorted_keys=item_strings,
+                            data=self.integers_dict,
+                            args_converter=self.composite_args_converter,
+                            selection_mode='single',
+                            allow_empty_selection=False,
+                            cls=CompositeListItem)
 
         self.assertEqual(len(dict_adapter.selection), 1)
 
@@ -1081,11 +1082,12 @@ class AdaptersTestCase(unittest.TestCase):
 
     # test that sorted_keys is built, if not provided.
     def test_dict_adapter_no_sorted_keys(self):
-        dict_adapter = DictAdapter(data=self.integers_dict,
-                                   args_converter=self.composite_args_converter,
-                                   selection_mode='single',
-                                   allow_empty_selection=False,
-                                   cls=CompositeListItem)
+        dict_adapter = DictAdapter(
+                            data=self.integers_dict,
+                            args_converter=self.composite_args_converter,
+                            selection_mode='single',
+                            allow_empty_selection=False,
+                            cls=CompositeListItem)
 
         self.assertEqual(len(dict_adapter.sorted_keys), 100)
 
