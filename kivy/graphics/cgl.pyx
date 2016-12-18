@@ -2,8 +2,35 @@
 CGL: standard C interface for OpenGL
 ====================================
 
-It loads dynamically a backend (either from SDL, mock, wgl, etc...), and
-link all the symbols to the GLES2_Context context.
+Kivy uses OpenGL and therefore requires a backend that orovides it.
+The backend used is controlled through the ``USE_OPENGL_MOCK`` and ``USE_SDL2``
+compile-time variables and through the ``KIVY_GL_BACKEND`` runtime
+environmental variable.
+
+Currently, OpenGL is used through direct linking (gl/glew), sdl2,
+or by mocking it. Setting ``USE_OPENGL_MOCK`` disables gl/glew.
+Similarly, setting ``USE_SDL2`` to ``0`` will disable sdl2. Mocking
+is always available.
+
+At runtime the following backends are available and can be set using
+``KIVY_GL_BACKEND``:
+* ``gl`` -- Available on unix (the default backend). Unavailable when
+  ``USE_OPENGL_MOCK=0``. Requires gl be installed.
+* ``glew`` -- Available on Windows (the default backend). Unavailable when
+  ``USE_OPENGL_MOCK=0``. Requires glew be installed.
+* ``sdl2`` -- Available on Windows/unix (the default when gl/glew is disabled).
+  Unavailable when ``USE_SDL2=0``. Requires ``kivy.deps.sdl2`` be installed.
+* ``angle_sdl2`` -- Available on Windows with Python 3.5+.
+  Unavailable when ``USE_SDL2=0``. Requires ``kivy.deps.sdl2`` and
+  ``kivy.deps.angle`` be installed.
+* ``mock`` -- Always available. Doesn't actually do anything.
+
+
+Additionally, the following environmental runtime variables control the graphics
+system:
+* ``KIVY_GL_DEBUG`` -- Logs al gl calls when ``1``.
+* ``KIVY_GRAPHICS`` -- Forces OpenGL ES2 when it is ``gles``. OpenGL ES2 is always
+  used on the android, ios, rpi, and mali OSs.
 """
 
 include "config.pxi"

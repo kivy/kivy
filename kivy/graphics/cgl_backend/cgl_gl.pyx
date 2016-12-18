@@ -2,7 +2,7 @@
 CGL/GL: GL backend implementation using GL directly
 """
 
-include "common.pxi"
+include "../common.pxi"
 include "config.pxi"
 
 from kivy.graphics.cgl cimport *

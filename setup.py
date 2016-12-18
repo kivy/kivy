@@ -223,8 +223,8 @@ class KivyBuildExt(build_ext):
 
     def build_extensions(self):
         # build files
-        config_h_fn = ('graphics', 'config.h')
-        config_pxi_fn = ('graphics', 'config.pxi')
+        config_h_fn = ('include', 'config.h')
+        config_pxi_fn = ('include', 'config.pxi')
         config_py_fn = ('setupconfig.py', )
 
         # generate headers
@@ -701,11 +701,11 @@ sources = {
     'graphics/vertex.pyx': merge(base_flags, gl_flags_base),
     'graphics/vertex_instructions.pyx': merge(base_flags, gl_flags_base),
     'graphics/cgl.pyx': merge(base_flags, gl_flags_base),
-    'graphics/cgl_mock.pyx': merge(base_flags, gl_flags_base),
-    'graphics/cgl_gl.pyx': merge(base_flags, gl_flags),
-    'graphics/cgl_glew.pyx': merge(base_flags, gl_flags),
-    'graphics/cgl_sdl2.pyx': merge(base_flags, gl_flags_base),
-    'graphics/cgl_debug.pyx': merge(base_flags, gl_flags_base),
+    'graphics/cgl_backend/cgl_mock.pyx': merge(base_flags, gl_flags_base),
+    'graphics/cgl_backend/cgl_gl.pyx': merge(base_flags, gl_flags),
+    'graphics/cgl_backend/cgl_glew.pyx': merge(base_flags, gl_flags),
+    'graphics/cgl_backend/cgl_sdl2.pyx': merge(base_flags, gl_flags_base),
+    'graphics/cgl_backend/cgl_debug.pyx': merge(base_flags, gl_flags_base),
     'core/text/text_layout.pyx': base_flags,
     'graphics/tesselator.pyx': merge(base_flags, {
         'include_dirs': ['kivy/lib/libtess2/Include'],
@@ -726,8 +726,8 @@ if c_options["use_sdl2"]:
     sdl2_flags = determine_sdl2()
 
 if c_options['use_sdl2'] and sdl2_flags:
-    sources['graphics/cgl_sdl2.pyx'] = merge(
-        sources['graphics/cgl_sdl2.pyx'], sdl2_flags)
+    sources['graphics/cgl_backend/cgl_sdl2.pyx'] = merge(
+        sources['graphics/cgl_backend/cgl_sdl2.pyx'], sdl2_flags)
     sdl2_depends = {'depends': ['lib/sdl2.pxi']}
     for source_file in ('core/window/_window_sdl2.pyx',
                         'core/image/_img_sdl2.pyx',
@@ -902,6 +902,7 @@ setup(
         'kivy.deps',
         'kivy.effects',
         'kivy.graphics',
+        'kivy.graphics.cgl_backend',
         'kivy.garden',
         'kivy.input',
         'kivy.input.postproc',
@@ -933,6 +934,7 @@ setup(
         'graphics/*.pxd',
         'graphics/*.pxi',
         'graphics/*.h',
+        'include/*',
         'lib/vidcore_lite/*.pxd',
         'lib/vidcore_lite/*.pxi',
         'data/*.kv',

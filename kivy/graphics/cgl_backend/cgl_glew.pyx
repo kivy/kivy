@@ -2,7 +2,7 @@
 CGL/Glew: GL backend implementation using Glew
 """
 
-include "common.pxi"
+include "../common.pxi"
 include "config.pxi"
 
 from kivy.graphics.cgl cimport *

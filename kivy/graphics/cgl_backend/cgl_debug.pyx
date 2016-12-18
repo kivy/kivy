@@ -1,5 +1,5 @@
 include "config.pxi"
-include "common.pxi"
+include "../common.pxi"
 
 from kivy.graphics.cgl cimport *
 

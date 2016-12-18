@@ -2,7 +2,7 @@
 CGL/Mock: GL backend implementation by mocking functions to NOOP
 """
 
-include "common.pxi"
+include "../common.pxi"
 
 from kivy.graphics.cgl cimport *
 

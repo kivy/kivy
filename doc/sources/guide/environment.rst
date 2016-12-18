@@ -151,6 +151,15 @@ KIVY_METRICS_FONTSCALE
 Graphics
 --------
 
+KIVY_GL_BACKEND
+    The OpenGL backend to use. See :mod:`~kivy.graphics.cgl`.
+
+KIVY_GL_DEBUG
+    Whether to log OpenGL calls. See :mod:`~kivy.graphics.cgl`.
+
+KIVY_GRAPHICS
+    Whether to use OpenGL ES2. See :mod:`~kivy.graphics.cgl`.
+
 KIVY_GLES_LIMITS
     Whether the GLES2 restrictions are enforced (the default, or if set to
     1). If set to false, Kivy will not be truly GLES2 compatible.
