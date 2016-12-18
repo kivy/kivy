@@ -104,9 +104,9 @@ class FruitImageDetailView(BoxLayout):
             container.add_widget(Label(text=self.fruit_name))
             for attribute in fruit_data_attributes:
                 container.add_widget(Label(text="{0}:".format(attribute),
-                                      halign='right'))
+                                     halign='right'))
                 container.add_widget(
-                        Label(text=str(fruit_data[self.fruit_name][attribute])))
+                    Label(text=str(fruit_data[self.fruit_name][attribute])))
             self.add_widget(container)
 
     def fruit_changed(self, list_adapter, *args):
@@ -118,7 +118,8 @@ class FruitImageDetailView(BoxLayout):
             # [TODO] Would we want touch events for the composite, as well as
             #        the components? Just the components? Just the composite?
             #
-            # Is selected_object an instance of ThumbnailedListItem (composite)?
+            # Is selected_object an instance of ThumbnailedListItem
+            # (composite)?
             #
             # Or is it a ListItemButton?
             #
