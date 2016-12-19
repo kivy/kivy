@@ -1,11 +1,12 @@
 include "../../../kivy/lib/sdl2.pxi"
-include "../../../kivy/graphics/config.pxi"
+include "config.pxi"
 
 from libc.string cimport memcpy
 from os import environ
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy import platform
+from kivy.graphics.cgl import cgl_get_backend_name
 
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 
@@ -96,13 +97,18 @@ cdef class _WindowSDL2Storage:
 
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16)
-        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1)
+        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8)
         SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8)
         SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8)
         SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8)
         SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8)
         SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 0)
         SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1)
+
+        if cgl_get_backend_name() == "angle_sdl2":
+            Logger.info("Window: Activate GLES2/ANGLE context")
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, 4)
+            SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "none")
 
         if x is None:
             x = SDL_WINDOWPOS_UNDEFINED
@@ -136,7 +142,7 @@ cdef class _WindowSDL2Storage:
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2)
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0)
 
-        IF not USE_OPENGL_MOCK:
+        if cgl_get_backend_name() != "mock":
             self.ctx = SDL_GL_CreateContext(self.win)
             if not self.ctx:
                 self.die()
@@ -164,7 +170,7 @@ cdef class _WindowSDL2Storage:
         cdef SDL_DisplayMode mode
         cdef int draw_w, draw_h
         SDL_GetWindowDisplayMode(self.win, &mode)
-        if USE_IOS and not USE_OPENGL_MOCK:
+        if USE_IOS and self.ctx:
             SDL_GL_GetDrawableSize(self.win, &draw_w, &draw_h)
             mode.w = draw_w
             mode.h = draw_h
@@ -220,8 +226,9 @@ cdef class _WindowSDL2Storage:
         SDL_SetWindowIcon(self.win, icon)
 
     def teardown_window(self):
-        IF not USE_OPENGL_MOCK:
+        if self.ctx != NULL:
             SDL_GL_DeleteContext(self.ctx)
+            self.ctx = NULL
         SDL_DestroyWindow(self.win)
         SDL_Quit()
 

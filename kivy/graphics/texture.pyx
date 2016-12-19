@@ -231,12 +231,9 @@ from kivy.utils import platform
 from kivy.weakmethod import WeakMethod
 from kivy.graphics.context cimport get_context
 
-from kivy.graphics.c_opengl cimport *
-IF USE_OPENGL_MOCK == 1:
-    from kivy.graphics.c_opengl_mock cimport *
-IF USE_OPENGL_DEBUG == 1:
-    from kivy.graphics.c_opengl_debug cimport *
-from kivy.graphics.opengl_utils cimport *
+cimport kivy.graphics.cgl as cgldef
+from kivy.graphics.cgl cimport *
+from kivy.graphics.opengl_utils cimport gl_has_capability, gl_get_version_major
 
 cdef int gles_limts = int(environ.get(
     'KIVY_GLES_LIMITS', int(platform not in ('win', 'macosx', 'linux'))))
@@ -457,13 +454,13 @@ cdef inline void _gl_prepare_pixels_upload(int width) nogil:
     '''Set the best pixel alignment for the current width.
     '''
     if not (width & 0x7):
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 8)
+        cgl.glPixelStorei(GL_UNPACK_ALIGNMENT, 8)
     elif not (width & 0x3):
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 4)
+        cgl.glPixelStorei(GL_UNPACK_ALIGNMENT, 4)
     elif not (width & 0x1):
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 2)
+        cgl.glPixelStorei(GL_UNPACK_ALIGNMENT, 2)
     else:
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+        cgl.glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 
 
 
@@ -482,7 +479,7 @@ cdef Texture _texture_create(int width, int height, colorfmt, bufferfmt,
     if not _is_pow2(width) or not _is_pow2(height):
         make_npot = 1
 
-    IF not USE_OPENGL_ES2:
+    if not cgldef.kivy_opengl_es2:
         if gl_get_version_major() < 3:
             mipmap = 0
 
@@ -587,7 +584,7 @@ def texture_create_from_data(im, mipmap=False):
     if im.have_mipmap:
         mipmap = True
 
-    IF not USE_OPENGL_ES2:
+    if not cgldef.kivy_opengl_es2:
         if gl_get_version_major() < 3:
             mipmap = False
 
@@ -714,7 +711,7 @@ cdef class Texture:
                 _gl_prepare_pixels_upload(self._width)
 
                 # do the initial upload with fake data
-                glTexImage2D(self._target, 0, iglfmt, self._width, self._height,
+                cgl.glTexImage2D(self._target, 0, iglfmt, self._width, self._height,
                         0, glfmt, iglbufferfmt, data)
 
                 # free the data !
@@ -722,7 +719,7 @@ cdef class Texture:
 
                 # create mipmap if needed
                 if self._mipmap and is_npot == 0:
-                    glGenerateMipmap(self._target)
+                    cgl.glGenerateMipmap(self._target)
             else:
                 dataerr = 1
 
@@ -766,16 +763,16 @@ cdef class Texture:
 
         # if we have no change to apply, just bind and exit
         if not self.flags:
-            glBindTexture(self._target, self._id)
+            cgl.glBindTexture(self._target, self._id)
             log_gl_error('Texture.bind-glBindTexture')
             return
 
         if self.flags & TI_NEED_GEN:
             self.flags &= ~TI_NEED_GEN
-            glGenTextures(1, &self._id)
+            cgl.glGenTextures(1, &self._id)
             log_gl_error('Texture.bind-glGenTextures')
 
-        glBindTexture(self._target, self._id)
+        cgl.glBindTexture(self._target, self._id)
         log_gl_error('Texture.bind-glBindTexture')
 
         if self.flags & TI_NEED_ALLOCATE:
@@ -791,21 +788,21 @@ cdef class Texture:
         if self.flags & TI_MIN_FILTER:
             self.flags &= ~TI_MIN_FILTER
             value = _str_to_gl_texture_min_filter(self._min_filter)
-            glTexParameteri(self._target, GL_TEXTURE_MIN_FILTER, value)
+            cgl.glTexParameteri(self._target, GL_TEXTURE_MIN_FILTER, value)
             log_gl_error('Texture.bind-glTexParameteri (GL_TEXTURE_MIN_FILTER)')
 
         if self.flags & TI_MAG_FILTER:
             self.flags &= ~TI_MAG_FILTER
             value = _str_to_gl_texture_mag_filter(self._mag_filter)
-            glTexParameteri(self._target, GL_TEXTURE_MAG_FILTER, value)
+            cgl.glTexParameteri(self._target, GL_TEXTURE_MAG_FILTER, value)
             log_gl_error('Texture.bind-glTexParameteri (GL_TEXTURE_MAG_FILTER')
 
         if self.flags & TI_WRAP:
             self.flags &= ~TI_WRAP
             value = _str_to_gl_texture_wrap(self._wrap)
-            glTexParameteri(self._target, GL_TEXTURE_WRAP_S, value)
+            cgl.glTexParameteri(self._target, GL_TEXTURE_WRAP_S, value)
             log_gl_error('Texture.bind-glTexParameteri (GL_TEXTURE_WRAP_S)')
-            glTexParameteri(self._target, GL_TEXTURE_WRAP_T, value)
+            cgl.glTexParameteri(self._target, GL_TEXTURE_WRAP_T, value)
             log_gl_error('Texture.bind-glTexParameteri (GL_TEXTURE_WRAP_T')
 
     cdef void set_min_filter(self, x):
@@ -982,11 +979,11 @@ cdef class Texture:
 
             if need_unpack:
                 # native unpack supported, use it.
-                glPixelStorei(GL_UNPACK_ROW_LENGTH, rowlength / bytes_per_pixels)
+                cgl.glPixelStorei(GL_UNPACK_ROW_LENGTH, rowlength / bytes_per_pixels)
                 if y != 0:
-                    glPixelStorei(GL_UNPACK_SKIP_ROWS, y)
+                    cgl.glPixelStorei(GL_UNPACK_SKIP_ROWS, y)
                 if x != 0:
-                    glPixelStorei(GL_UNPACK_SKIP_PIXELS, x)
+                    cgl.glPixelStorei(GL_UNPACK_SKIP_PIXELS, x)
                 _gl_prepare_pixels_upload(rowlength)
 
             elif require_subimage:
@@ -1004,25 +1001,25 @@ cdef class Texture:
                 _gl_prepare_pixels_upload(w)
 
             if is_compressed:
-                glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-                glCompressedTexImage2D(target, _mipmap_level, glfmt, w, h, 0,
+                cgl.glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+                cgl.glCompressedTexImage2D(target, _mipmap_level, glfmt, w, h, 0,
                         <GLsizei>datasize, cdata)
             elif is_allocated:
-                glTexSubImage2D(target, _mipmap_level, x, y, w, h, glfmt,
+                cgl.glTexSubImage2D(target, _mipmap_level, x, y, w, h, glfmt,
                     glbufferfmt, cdata)
             else:
-                glTexImage2D(target, _mipmap_level, iglfmt, w, h, 0, glfmt,
+                cgl.glTexImage2D(target, _mipmap_level, iglfmt, w, h, 0, glfmt,
                     glbufferfmt, cdata)
-                
+
             if _mipmap_generation:
-                glGenerateMipmap(target)
+                cgl.glGenerateMipmap(target)
 
             if need_unpack:
-                glPixelStorei(GL_UNPACK_ROW_LENGTH, 0)
+                cgl.glPixelStorei(GL_UNPACK_ROW_LENGTH, 0)
                 if y != 0:
-                    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0)
+                    cgl.glPixelStorei(GL_UNPACK_SKIP_ROWS, 0)
                 if x != 0:
-                    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0)
+                    cgl.glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0)
             elif require_subimage:
                 if cpdata != NULL:
                     free(cpdata)
@@ -1351,4 +1348,3 @@ cdef class TextureRegion(Texture):
             fbo.draw()
             self.flip_vertical()
             return fbo.pixels
-

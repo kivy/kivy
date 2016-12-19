@@ -105,10 +105,7 @@ c_options = OrderedDict()
 c_options['use_rpi'] = platform == 'rpi'
 c_options['use_mali'] = platform == 'mali'
 c_options['use_egl'] = False
-c_options['use_opengl_es2'] = None
-c_options['use_opengl_debug'] = False
 c_options['use_opengl_mock'] = environ.get('READTHEDOCS', None) == 'True'
-c_options['use_glew'] = False
 c_options['use_sdl2'] = None
 c_options['use_ios'] = False
 c_options['use_mesagl'] = False
@@ -125,6 +122,7 @@ for key in list(c_options.keys()):
         value = bool(int(environ[ukey]))
         print('Environ change {0} -> {1}'.format(key, value))
         c_options[key] = value
+
 
 # -----------------------------------------------------------------------------
 # Cython check
@@ -225,8 +223,8 @@ class KivyBuildExt(build_ext):
 
     def build_extensions(self):
         # build files
-        config_h_fn = ('graphics', 'config.h')
-        config_pxi_fn = ('graphics', 'config.pxi')
+        config_h_fn = ('include', 'config.h')
+        config_pxi_fn = ('include', 'config.pxi')
         config_py_fn = ('setupconfig.py', )
 
         # generate headers
@@ -252,11 +250,11 @@ class KivyBuildExt(build_ext):
             config_py += '{0} = {1}\n'.format(opt, value)
         debug = bool(self.debug)
         print(' * debug = {0}'.format(debug))
-        config_h += \
-            '#if __USE_GLEW && defined(_WIN32)\n#   define GLEW_BUILD\n#endif'
 
         config_pxi += 'DEF DEBUG = {0}\n'.format(debug)
         config_py += 'DEBUG = {0}\n'.format(debug)
+        config_pxi += 'DEF PLATFORM = "{0}"\n'.format(platform)
+        config_py += 'PLATFORM = "{0}"\n'.format(platform)
         for fn, content in (
                 (config_h_fn, config_h), (config_pxi_fn, config_pxi),
                 (config_py_fn, config_py)):
@@ -339,43 +337,6 @@ try:
         cmdclass['build_portable'] = OSXPortableBuild
 except ImportError:
     print('User distribution detected, avoid portable command.')
-
-# Detect which opengl version headers to use
-if platform in ('android', 'darwin', 'ios', 'rpi', 'mali'):
-    c_options['use_opengl_es2'] = True
-elif platform == 'win32':
-    print('Windows platform detected, force GLEW usage.')
-    c_options['use_glew'] = True
-    c_options['use_opengl_es2'] = False
-else:
-    if c_options['use_opengl_es2'] is None:
-        GLES = environ.get('GRAPHICS') == 'GLES'
-        OPENGL = environ.get('GRAPHICS') == 'OPENGL'
-        if GLES:
-            c_options['use_opengl_es2'] = True
-        elif OPENGL:
-            c_options['use_opengl_es2'] = False
-        else:
-            # auto detection of GLES headers
-            default_header_dirs = ['/usr/include', join(
-                environ.get('LOCALBASE', '/usr/local'), 'include')]
-            c_options['use_opengl_es2'] = False
-            for hdir in default_header_dirs:
-                filename = join(hdir, 'GLES2', 'gl2.h')
-                if exists(filename):
-                    c_options['use_opengl_es2'] = True
-                    print('NOTE: Found GLES 2.0 headers at {0}'.format(
-                        filename))
-                    break
-            if not c_options['use_opengl_es2']:
-                print('NOTE: Not found GLES 2.0 headers at: {}'.format(
-                    default_header_dirs))
-                print(
-                    '      Please contact us if your distribution '
-                    'uses an alternative path for the headers.')
-
-print('Using this graphics system: {}'.format(
-    ['OpenGL', 'OpenGL ES 2'][int(c_options['use_opengl_es2'] or False)]))
 
 # check if we are in a kivy-ios build
 if platform == 'ios':
@@ -516,6 +477,7 @@ def determine_base_flags():
     flags = {
         'libraries': [],
         'include_dirs': [],
+        'library_dirs': [],
         'extra_link_args': [],
         'extra_compile_args': []}
     if c_options['use_ios']:
@@ -528,7 +490,7 @@ def determine_base_flags():
     elif platform.startswith('freebsd'):
         flags['include_dirs'] += [join(
             environ.get('LOCALBASE', '/usr/local'), 'include')]
-        flags['extra_link_args'] += ['-L', join(
+        flags['library_dirs'] += [join(
             environ.get('LOCALBASE', '/usr/local'), 'lib')]
     elif platform == 'darwin':
         v = os.uname()
@@ -554,11 +516,13 @@ def determine_base_flags():
 
 
 def determine_gl_flags():
-    flags = {'libraries': []}
+    kivy_graphics_include = join(src_path, 'kivy', 'include')
+    flags = {'include_dirs': [kivy_graphics_include], 'libraries': []}
+    base_flags = {'include_dirs': [kivy_graphics_include], 'libraries': []}
     if c_options['use_opengl_mock']:
-        return flags
+        return flags, base_flags
     if platform == 'win32':
-        flags['libraries'] = ['opengl32']
+        flags['libraries'] = ['opengl32', 'glew32']
     elif platform == 'ios':
         flags['libraries'] = ['GLESv2']
         flags['extra_link_args'] = ['-framework', 'OpenGLES']
@@ -569,11 +533,11 @@ def determine_gl_flags():
         flags['libraries'] = ['GL']
     elif platform.startswith('openbsd'):
         flags['include_dirs'] = ['/usr/X11R6/include']
-        flags['extra_link_args'] = ['-L', '/usr/X11R6/lib']
+        flags['library_dirs'] = ['/usr/X11R6/lib']
         flags['libraries'] = ['GL']
     elif platform == 'android':
         flags['include_dirs'] = [join(ndkplatform, 'usr', 'include')]
-        flags['extra_link_args'] = ['-L', join(ndkplatform, 'usr', 'lib')]
+        flags['library_dirs'] = [join(ndkplatform, 'usr', 'lib')]
         flags['libraries'] = ['GLESv2']
     elif platform == 'rpi':
         flags['include_dirs'] = [
@@ -590,12 +554,7 @@ def determine_gl_flags():
         c_options['use_egl'] = True
     else:
         flags['libraries'] = ['GL']
-    if c_options['use_glew']:
-        if platform == 'win32':
-            flags['libraries'] += ['glew32']
-        else:
-            flags['libraries'] += ['GLEW']
-    return flags
+    return flags, base_flags
 
 
 def determine_sdl2():
@@ -621,12 +580,11 @@ def determine_sdl2():
         sdl2_paths.extend(['/usr/local/include/SDL2', '/usr/include/SDL2'])
 
     flags['include_dirs'] = sdl2_paths
-
     flags['extra_link_args'] = []
     flags['extra_compile_args'] = []
-    flags['extra_link_args'] += (
-        ['-L' + p for p in sdl2_paths] if sdl2_paths else
-        ['-L/usr/local/lib/'])
+    flags['library_dirs'] = (
+        sdl2_paths if sdl2_paths else
+        ['/usr/local/lib/'])
 
     if sdl2_flags:
         flags = merge(flags, sdl2_flags)
@@ -655,7 +613,7 @@ def determine_sdl2():
 
 
 base_flags = determine_base_flags()
-gl_flags = determine_gl_flags()
+gl_flags, gl_flags_base = determine_gl_flags()
 
 # -----------------------------------------------------------------------------
 # sources to compile
@@ -663,66 +621,61 @@ gl_flags = determine_gl_flags()
 # grep -inr -E '(cimport|include)' kivy/graphics/context_instructions.{pxd,pyx}
 graphics_dependencies = {
     'gl_redirect.h': ['common_subset.h', 'gl_mock.h'],
-    'c_opengl.pxd': ['config.pxi', 'gl_redirect.h'],
     'buffer.pyx': ['common.pxi'],
-    'context.pxd': [
-        'instructions.pxd', 'texture.pxd', 'vbo.pxd',
-        'c_opengl.pxd', 'c_opengl_debug.pxd', 'c_opengl_mock.pxd'],
-    'c_opengl_debug.pyx': ['common.pxi', 'c_opengl.pxd'],
-    'c_opengl_mock.pyx': ['common.pxi', 'c_opengl.pxd'],
+    'context.pxd': ['instructions.pxd', 'texture.pxd', 'vbo.pxd', 'cgl.pxd'],
+    'cgl.pxd': ['common.pxi', 'config.pxi', 'gl_redirect.h'],
     'compiler.pxd': ['instructions.pxd'],
     'compiler.pyx': ['context_instructions.pxd'],
+    'cgl.pyx': ['cgl.pxd'],
+    'cgl_mock.pyx': ['cgl.pxd'],
+    'cgl_sdl2.pyx': ['cgl.pxd'],
+    'cgl_gl.pyx': ['cgl.pxd'],
+    'cgl_glew.pyx': ['cgl.pxd'],
     'context_instructions.pxd': [
         'transformation.pxd', 'instructions.pxd', 'texture.pxd'],
-    'fbo.pxd': ['c_opengl.pxd', 'instructions.pxd', 'texture.pxd'],
+    'fbo.pxd': ['cgl.pxd', 'instructions.pxd', 'texture.pxd'],
     'fbo.pyx': [
-        'config.pxi', 'opcodes.pxi', 'transformation.pxd', 'context.pxd',
-        'c_opengl_debug.pxd', 'c_opengl_mock.pxd'],
+        'config.pxi', 'opcodes.pxi', 'transformation.pxd', 'context.pxd'],
     'gl_instructions.pyx': [
-        'config.pxi', 'opcodes.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd',
-        'instructions.pxd', 'c_opengl_mock.pxd'],
+        'config.pxi', 'opcodes.pxi', 'cgl.pxd', 'instructions.pxd'],
     'instructions.pxd': [
         'vbo.pxd', 'context_instructions.pxd', 'compiler.pxd', 'shader.pxd',
         'texture.pxd', '../_event.pxd'],
     'instructions.pyx': [
-        'config.pxi', 'opcodes.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd',
-        'context.pxd', 'common.pxi', 'vertex.pxd', 'transformation.pxd',
-        'c_opengl_mock.pxd'],
+        'config.pxi', 'opcodes.pxi', 'cgl.pxd',
+        'context.pxd', 'common.pxi', 'vertex.pxd', 'transformation.pxd'],
     'opengl.pyx': [
-        'config.pxi', 'common.pxi', 'c_opengl.pxd', 'gl_redirect.h'],
+        'config.pxi', 'common.pxi', 'cgl.pxd', 'gl_redirect.h'],
     'opengl_utils.pyx': [
-        'opengl_utils_def.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd'],
-    'shader.pxd': ['c_opengl.pxd', 'transformation.pxd', 'vertex.pxd'],
+        'opengl_utils_def.pxi', 'cgl.pxd', ],
+    'shader.pxd': ['cgl.pxd', 'transformation.pxd', 'vertex.pxd'],
     'shader.pyx': [
-        'config.pxi', 'common.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd',
+        'config.pxi', 'common.pxi', 'cgl.pxd',
         'vertex.pxd', 'transformation.pxd', 'context.pxd',
-        'gl_debug_logger.pxi', 'c_opengl_mock.pxd'],
+        'gl_debug_logger.pxi'],
     'stencil_instructions.pxd': ['instructions.pxd'],
     'stencil_instructions.pyx': [
-        'config.pxi', 'opcodes.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd',
-        'gl_debug_logger.pxi', 'c_opengl_mock.pxd'],
+        'config.pxi', 'opcodes.pxi', 'cgl.pxd',
+        'gl_debug_logger.pxi'],
     'scissor_instructions.pyx': [
-        'config.pxi', 'opcodes.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd',
-        'c_opengl_mock.pxd'],
+        'config.pxi', 'opcodes.pxi', 'cgl.pxd'],
     'svg.pyx': ['config.pxi', 'common.pxi', 'texture.pxd', 'instructions.pxd',
                 'vertex_instructions.pxd', 'tesselator.pxd'],
-    'texture.pxd': ['c_opengl.pxd'],
+    'texture.pxd': ['cgl.pxd'],
     'texture.pyx': [
         'config.pxi', 'common.pxi', 'opengl_utils_def.pxi', 'context.pxd',
-        'c_opengl.pxd', 'c_opengl_debug.pxd', 'opengl_utils.pxd',
-        'img_tools.pxi', 'gl_debug_logger.pxi', 'c_opengl_mock.pxd'],
-    'vbo.pxd': ['buffer.pxd', 'c_opengl.pxd', 'vertex.pxd'],
+        'cgl.pxd', 'opengl_utils.pxd',
+        'img_tools.pxi', 'gl_debug_logger.pxi'],
+    'vbo.pxd': ['buffer.pxd', 'cgl.pxd', 'vertex.pxd'],
     'vbo.pyx': [
-        'config.pxi', 'common.pxi', 'c_opengl_debug.pxd', 'context.pxd',
-        'instructions.pxd', 'shader.pxd', 'gl_debug_logger.pxi',
-        'c_opengl_mock.pxd'],
-    'vertex.pxd': ['c_opengl.pxd'],
+        'config.pxi', 'common.pxi', 'context.pxd',
+        'instructions.pxd', 'shader.pxd', 'gl_debug_logger.pxi'],
+    'vertex.pxd': ['cgl.pxd'],
     'vertex.pyx': ['config.pxi', 'common.pxi'],
     'vertex_instructions.pyx': [
         'config.pxi', 'common.pxi', 'vbo.pxd', 'vertex.pxd',
         'instructions.pxd', 'vertex_instructions.pxd',
-        'c_opengl.pxd', 'c_opengl_debug.pxd', 'texture.pxd',
-        'vertex_instructions_line.pxi', 'c_opengl_mock.pxd'],
+        'cgl.pxd', 'texture.pxd', 'vertex_instructions_line.pxi'],
     'vertex_instructions_line.pxi': ['stencil_instructions.pxd']}
 
 sources = {
@@ -730,25 +683,29 @@ sources = {
     '_clock.pyx': {},
     'weakproxy.pyx': {},
     'properties.pyx': merge(base_flags, {'depends': ['_event.pxd']}),
-    'graphics/buffer.pyx': base_flags,
-    'graphics/context.pyx': merge(base_flags, gl_flags),
-    'graphics/c_opengl_debug.pyx': merge(base_flags, gl_flags),
-    'graphics/c_opengl_mock.pyx': merge(base_flags, gl_flags),
-    'graphics/compiler.pyx': merge(base_flags, gl_flags),
-    'graphics/context_instructions.pyx': merge(base_flags, gl_flags),
-    'graphics/fbo.pyx': merge(base_flags, gl_flags),
-    'graphics/gl_instructions.pyx': merge(base_flags, gl_flags),
-    'graphics/instructions.pyx': merge(base_flags, gl_flags),
-    'graphics/opengl.pyx': merge(base_flags, gl_flags),
-    'graphics/opengl_utils.pyx': merge(base_flags, gl_flags),
-    'graphics/shader.pyx': merge(base_flags, gl_flags),
-    'graphics/stencil_instructions.pyx': merge(base_flags, gl_flags),
-    'graphics/scissor_instructions.pyx': merge(base_flags, gl_flags),
-    'graphics/texture.pyx': merge(base_flags, gl_flags),
-    'graphics/transformation.pyx': merge(base_flags, gl_flags),
-    'graphics/vbo.pyx': merge(base_flags, gl_flags),
-    'graphics/vertex.pyx': merge(base_flags, gl_flags),
-    'graphics/vertex_instructions.pyx': merge(base_flags, gl_flags),
+    'graphics/buffer.pyx': merge(base_flags, gl_flags_base),
+    'graphics/context.pyx': merge(base_flags, gl_flags_base),
+    'graphics/compiler.pyx': merge(base_flags, gl_flags_base),
+    'graphics/context_instructions.pyx': merge(base_flags, gl_flags_base),
+    'graphics/fbo.pyx': merge(base_flags, gl_flags_base),
+    'graphics/gl_instructions.pyx': merge(base_flags, gl_flags_base),
+    'graphics/instructions.pyx': merge(base_flags, gl_flags_base),
+    'graphics/opengl.pyx': merge(base_flags, gl_flags_base),
+    'graphics/opengl_utils.pyx': merge(base_flags, gl_flags_base),
+    'graphics/shader.pyx': merge(base_flags, gl_flags_base),
+    'graphics/stencil_instructions.pyx': merge(base_flags, gl_flags_base),
+    'graphics/scissor_instructions.pyx': merge(base_flags, gl_flags_base),
+    'graphics/texture.pyx': merge(base_flags, gl_flags_base),
+    'graphics/transformation.pyx': merge(base_flags, gl_flags_base),
+    'graphics/vbo.pyx': merge(base_flags, gl_flags_base),
+    'graphics/vertex.pyx': merge(base_flags, gl_flags_base),
+    'graphics/vertex_instructions.pyx': merge(base_flags, gl_flags_base),
+    'graphics/cgl.pyx': merge(base_flags, gl_flags_base),
+    'graphics/cgl_backend/cgl_mock.pyx': merge(base_flags, gl_flags_base),
+    'graphics/cgl_backend/cgl_gl.pyx': merge(base_flags, gl_flags),
+    'graphics/cgl_backend/cgl_glew.pyx': merge(base_flags, gl_flags),
+    'graphics/cgl_backend/cgl_sdl2.pyx': merge(base_flags, gl_flags_base),
+    'graphics/cgl_backend/cgl_debug.pyx': merge(base_flags, gl_flags_base),
     'core/text/text_layout.pyx': base_flags,
     'graphics/tesselator.pyx': merge(base_flags, {
         'include_dirs': ['kivy/lib/libtess2/Include'],
@@ -762,20 +719,23 @@ sources = {
             'lib/libtess2/Source/tess.c'
         ]
     }),
-    'graphics/svg.pyx': merge(base_flags, gl_flags)
+    'graphics/svg.pyx': merge(base_flags, gl_flags_base)
 }
 
-if c_options['use_sdl2']:
+if c_options["use_sdl2"]:
     sdl2_flags = determine_sdl2()
-    if sdl2_flags:
-        sdl2_depends = {'depends': ['lib/sdl2.pxi']}
-        for source_file in ('core/window/_window_sdl2.pyx',
-                            'core/image/_img_sdl2.pyx',
-                            'core/text/_text_sdl2.pyx',
-                            'core/audio/audio_sdl2.pyx',
-                            'core/clipboard/_clipboard_sdl2.pyx'):
-            sources[source_file] = merge(
-                base_flags, gl_flags, sdl2_flags, sdl2_depends)
+
+if c_options['use_sdl2'] and sdl2_flags:
+    sources['graphics/cgl_backend/cgl_sdl2.pyx'] = merge(
+        sources['graphics/cgl_backend/cgl_sdl2.pyx'], sdl2_flags)
+    sdl2_depends = {'depends': ['lib/sdl2.pxi']}
+    for source_file in ('core/window/_window_sdl2.pyx',
+                        'core/image/_img_sdl2.pyx',
+                        'core/text/_text_sdl2.pyx',
+                        'core/audio/audio_sdl2.pyx',
+                        'core/clipboard/_clipboard_sdl2.pyx'):
+        sources[source_file] = merge(
+            base_flags, sdl2_flags, sdl2_depends)
 
 if platform in ('darwin', 'ios'):
     # activate ImageIO provider for our core image
@@ -942,6 +902,7 @@ setup(
         'kivy.deps',
         'kivy.effects',
         'kivy.graphics',
+        'kivy.graphics.cgl_backend',
         'kivy.garden',
         'kivy.input',
         'kivy.input.postproc',
@@ -973,6 +934,7 @@ setup(
         'graphics/*.pxd',
         'graphics/*.pxi',
         'graphics/*.h',
+        'include/*',
         'lib/vidcore_lite/*.pxd',
         'lib/vidcore_lite/*.pxi',
         'data/*.kv',

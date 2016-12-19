@@ -14,10 +14,11 @@ __all__ = ('GraphicUnitTest', )
 import unittest
 import logging
 import os
+from kivy.graphics.cgl import cgl_get_backend_name
 log = logging.getLogger('unittest')
 
 _base = object
-if not bool(int(os.environ.get('USE_OPENGL_MOCK', 0))):
+if 'mock' != cgl_get_backend_name():
     _base = unittest.TestCase
 
 

@@ -90,7 +90,7 @@ before_script:
       export CC=clang;
       export CXX=clang;
       export FFLAGS=-ff2c;
-      export USE_OPENGL_MOCK=1;
+      export KIVY_GL_BACKEND=mock;
     fi;
 
 script:
