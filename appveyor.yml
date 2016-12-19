@@ -205,7 +205,7 @@ test_script:
       if ($env:PYVER -eq "35") {
         $env:KIVY_GL_BACKEND = "angle_sdl2"
       } else {
-        $env:KIVY_GL_BACKEND = "sdl2"
+        $env:KIVY_GL_BACKEND = "mock"
       }
 
       python -m nose.core kivy/tests
