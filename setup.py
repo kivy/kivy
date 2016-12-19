@@ -476,7 +476,7 @@ def merge(d1, *args):
 def determine_base_flags():
     flags = {
         'libraries': [],
-        'include_dirs': [],
+        'include_dirs': [join(src_path, 'kivy', 'include')],
         'library_dirs': [],
         'extra_link_args': [],
         'extra_compile_args': []}
