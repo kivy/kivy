@@ -7,22 +7,10 @@
 #include "config.h"
 
 #if defined(_WIN32)
-#include <windows.h>
-#include <string.h>
+    #include <windows.h>
+    #include <string.h>
 #endif /* _WIN32 */
 
-#include <GL/glew.h>
-
-#define GL_GLEXT_PROTOTYPES
-#define GL_APICALL
-#define GL_APIENTRY
-#define GL_EXT_blend_func_extended
-#define GL_EXT_disjoint_timer_query
-#define GL_EXT_geometry_shader
-#define GL_EXT_multisampled_render_to_texture
-#define GL_EXT_texture_border_clamp
-#define GL_EXT_texture_buffer
-#define GL_EXT_texture_storage
 #define GL_FIXED                                    0x140C
 #define GL_MAX_VERTEX_UNIFORM_VECTORS               0x8DFB
 #define GL_MAX_VARYING_VECTORS                      0x8DFC
@@ -43,7 +31,83 @@
 #define GL_FRAMEBUFFER_UNDEFINED_OES                0x8219
 #define GL_DEPTH24_STENCIL8_OES                     0x88F0
 
-#include "GLES2/gl2.h"
-#include "GLES2/gl2ext.h"
+
+#if defined(_WIN32)
+    #include <GL/glew.h>
+    #define GL_GLEXT_PROTOTYPES
+    #define GL_APICALL
+    #define GL_APIENTRY
+    #define GL_EXT_blend_func_extended
+    #define GL_EXT_disjoint_timer_query
+    #define GL_EXT_geometry_shader
+    #define GL_EXT_multisampled_render_to_texture
+    #define GL_EXT_texture_border_clamp
+    #define GL_EXT_texture_buffer
+    #define GL_EXT_texture_storage
+
+    #include "GLES2/gl2.h"
+    #include "GLES2/gl2ext.h"
+#else
+
+/*
+#	if __USE_OPENGL_ES2
+#		if __APPLE__
+#			include "common_subset.h"
+#		else
+#			include <GLES2/gl2.h>
+#			include <GLES2/gl2ext.h>
+#		endif
+#		ifndef GL_DEPTH24_STENCIL8
+#			define GL_DEPTH24_STENCIL8                      GL_DEPTH24_STENCIL8_OES
+#		endif
+#	else
+#		ifdef __APPLE__
+#			include <OpenGL/gl.h>
+#			include <OpenGL/glext.h>
+#		else
+#			define GL_GLEXT_PROTOTYPES
+#			include <GL/gl.h>
+#			include <GL/glext.h>
+#		endif
+#		define GL_SHADER_BINARY_FORMATS					0x8DF8
+#		define GL_RGB565								0x8D62
+#		define GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS 	0x8CD9
+#   endif
+*/
+
+#		ifdef __APPLE__
+#			include <OpenGL/gl.h>
+#			include <OpenGL/glext.h>
+#		else
+#			define GL_GLEXT_PROTOTYPES
+#			include <GL/gl.h>
+#			include <GL/glext.h>
+#		endif
+
+
+#   ifndef GL_DEPTH24_STENCIL8
+#       define GL_DEPTH24_STENCIL8                      GL_DEPTH24_STENCIL8_OES
+#   endif
+
+#   define GL_SHADER_BINARY_FORMATS					0x8DF8
+#   define GL_RGB565								0x8D62
+#   define GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS 	0x8CD9
+#endif /* defined(_WIN32) */
+
+// In the webserver / unittest / buildbot case, we are compiling and running
+// kivy in an headless env, without proper GL support.
+// This is a hack to prevent to link with wrong symbol. :(
+#if __USE_MESAGL == 1
+#	define glBlendEquationSeparate(x, y)
+#	define glDepthRangef glDepthRange
+#	define glClearDepthf glClearDepth
+
+// C redirection to prevent warning of undeclared symbol
+// (these functions are not existing in GLES2, but if we are using GLES2
+// headers with GL library, we need to declare them.)
+GL_APICALL void GL_APIENTRY glDepthRange( GLclampf near_val, GLclampf far_val );
+GL_APICALL void GL_APIENTRY glClearDepth( GLclampf depth );
+
+#endif
 
 #endif /* __gl_redirect_h_ */

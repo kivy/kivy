@@ -247,7 +247,7 @@ cpdef link_static():
         cgl.glRenderbufferStorage = glRenderbufferStorage
         cgl.glSampleCoverage = glSampleCoverage
         cgl.glScissor = glScissor
-        cgl.glShaderBinary = glShaderBinary
+        # cgl.glShaderBinary = glShaderBinary
         cgl.glShaderSource = glShaderSource
         cgl.glStencilFunc = glStencilFunc
         cgl.glStencilFuncSeparate = glStencilFuncSeparate
