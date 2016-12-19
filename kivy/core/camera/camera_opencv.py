@@ -16,15 +16,17 @@ from kivy.core.camera import CameraBase
 try:
     # opencv 1 case
     import opencv as cv
+
     try:
         import opencv.highgui as hg
-    except ImportError: 
+    except ImportError:
         class Hg(object):
             '''
-            On OSX, not only are the import names different, but the API also
-            differs. There is no module called 'highgui' but the names are directly
-            available in the 'cv' module. Some of them even have a different
-            names.
+            On OSX, not only are the import names different,
+            but the API also differs.
+            There is no module called 'highgui' but the names are
+            directly available in the 'cv' module.
+            Some of them even have a different names.
 
             Therefore we use this proxy object.
             '''
@@ -45,28 +47,31 @@ except ImportError:
     except ImportError:
         raise
 
+
 class CameraOpenCV(CameraBase):
-    '''Implementation of CameraBase using OpenCV
+    '''
+    Implementation of CameraBase using OpenCV
     '''
 
     def __init__(self, **kwargs):
+        # we will need it, because constants have different access paths between ver. 2 and 3
         try:
-            self.opencvMajorVersion = int(cv.__version__[0]) # we will need it, because constants have different access paths between ver. 2 and 3
+            self.opencvMajorVersion = int(cv.__version__[0])
         except NameError:
             self.opencvMajorVersion = int(cv2.__version__[0])
-            
+
         self._device = None
         super(CameraOpenCV, self).__init__(**kwargs)
 
-    def init_camera(self):    
+    def init_camera(self):
         # consts have changed locations between versions 2 and 3
-        if self.opencvMajorVersion == 3: 
+        if self.opencvMajorVersion == 3:
             PROPERTY_WIDTH = cv2.CAP_PROP_FRAME_WIDTH
-            PROPERTY_HEIGHT=cv2.CAP_PROP_FRAME_HEIGHT
+            PROPERTY_HEIGHT = cv2.CAP_PROP_FRAME_HEIGHT
             PROPERTY_FPS = cv2.CAP_PROP_FPS
         elif self.opencvMajorVersion == 2:
-            PROPERTY_WIDTH=cv2.cv.CV_CAP_PROP_FRAME_WIDTH
-            PROPERTY_HEIGHT =cv2.cv.CV_CAP_PROP_FRAME_HEIGHT
+            PROPERTY_WIDTH = cv2.cv.CV_CAP_PROP_FRAME_WIDTH
+            PROPERTY_HEIGHT = cv2.cv.CV_CAP_PROP_FRAME_HEIGHT
             PROPERTY_FPS = cv2.cv.CV_CAP_PROP_FPS
         elif self.opencvMajorVersion == 1:
             PROPERTY_WIDTH = cv.CV_CAP_PROP_FRAME_WIDTH
@@ -74,7 +79,7 @@ class CameraOpenCV(CameraBase):
             PROPERTY_FPS = cv.CV_CAP_PROP_FPS
 
         Logger.debug('Using opencv ver.' + str(self.opencvMajorVersion))
-        
+
         if self.opencvMajorVersion == 1:
             # create the device
             self._device = hg.cvCreateCameraCapture(self._index)
@@ -103,7 +108,9 @@ class CameraOpenCV(CameraBase):
                              self.resolution[1])
             # and get frame to check if it's ok
             ret, frame = self._device.read()
-            self._resolution = (int(frame.shape[1]), int(frame.shape[0])) # source: http://stackoverflow.com/questions/32468371/video-capture-propid-parameters-in-opencv
+
+            # source: http://stackoverflow.com/questions/32468371/video-capture-propid-parameters-in-opencv
+            self._resolution = (int(frame.shape[1]), int(frame.shape[0]))
             # get fps
             self.fps = self._device.get(PROPERTY_FPS)
 
