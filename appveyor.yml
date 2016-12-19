@@ -1,9 +1,5 @@
 version: 1.0.{build}
-branches:
-  only:
-  - master
-  - appveyor
-image: Unstable
+os: Visual Studio 2015
 environment:
   WHEEL_DIR: C:\kivy_wheels
   KIVY_BUILD_DIR: C:\kivy_build
@@ -14,24 +10,21 @@ environment:
   GDRIVE_CLIENT_SECRET:
     secure: 7J8TZnhr3MsF5rveMVVkbrr9tzTwGG6rHWZMorW0WN4=
   GDRIVE_KIVY_UPLOAD_ID: 0B1_HB9J8mZepOV81UHpDbmg5SWM
-  GDRIVE_GST_ID: 0B1_HB9J8mZepNzZ5aW91Q0tJU2s
   USE_SDL2: 1
   USE_GSTREAMER: 1
   KIVY_USE_SETUPTOOLS: 1
   matrix:
   - PYVER: 27
     BITTNESS: 86
-  - PYVER: 35
-    BITTNESS: 86
-    COMPILER: msvc
-  - PYVER: 35
-    BITTNESS: 64
-    COMPILER: msvc
-  - PYVER: 34
-    BITTNESS: 86
   - PYVER: 27
     BITTNESS: 64
   - PYVER: 34
+    BITTNESS: 86
+  - PYVER: 34
+    BITTNESS: 64
+  - PYVER: 35
+    BITTNESS: 86
+  - PYVER: 35
     BITTNESS: 64
 install:
 - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-desktop.ps1'))
@@ -138,105 +131,34 @@ build_script:
 
     if ($env:APPVEYOR_REPO_BRANCH -ne "master") {
       $DO_WHEEL = "False"
-
-      # remove later
-
-      $DO_WHEEL = "True"
     }
 
     echo "test=$env:DO_TEST, make_wheel=$DO_WHEEL"
 
+    python -m pip install pip wheel setuptools --upgrade
 
-    if (($env:DO_TEST -eq "True" -or $DO_WHEEL -eq "True") -and $env:PYVER -ne "35") {
+    Check-Error
+
+    if ($env:PYVER -ne "35") {
       python -c "with open(r'$PYTHON_ROOT\Lib\distutils\distutils.cfg', 'wb') as fh: fh.write(b'[build]\ncompiler = mingw32\n')"
-      Check-Error
-      python -m pip install pip wheel setuptools --upgrade
       Check-Error
       pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy
       Check-Error
-      pip install mock cython pygments docutils nose kivy.deps.glew_dev kivy.deps.glew kivy.deps.gstreamer_dev kivy.deps.gstreamer kivy.deps.sdl2_dev kivy.deps.sdl2 --extra-index-url http://kivy.org/downloads/packages/simple/ --trusted-host kivy.org
-      Check-Error
+    }
 
-      Copy-Item "$PYTHON_ROOT\Lib\site-packages\kivy\deps\*" -destination "$env:APPVEYOR_BUILD_FOLDER\kivy\deps" -recurse
-      Remove-Item "$PYTHON_ROOT\Lib\site-packages\kivy" -Force -Recurse
-      Remove-Item "$PYTHON_ROOT\Lib\site-packages\kivy.deps.*nspkg.pth"
+    pip install mock cython pygments docutils nose kivy.deps.glew_dev kivy.deps.glew kivy.deps.gstreamer_dev kivy.deps.gstreamer kivy.deps.sdl2_dev kivy.deps.sdl2
+    Check-Error
 
-      python setup.py build_ext --inplace
+    if ($env:PYVER -eq "35") {
+      pip install kivy.deps.angle
       Check-Error
-    } else {
-      # until 35 branch is merged, tests wont do any good here and we need DO_WHEEL too
+    }
 
-      $env:DO_TEST = "False"
-      $DO_WHEEL = "True"
-      $py35="C:\py35"
-      if ($env:BITTNESS -eq "64") {
-        $sdl2_url = "0B-080DPVLKs2cWZXRXhGSXZqYmM"
-        $sdl2_dev_url = "0B-080DPVLKs2QVZ6QUlTQjlwamM"
-        $glew_url = "0B-080DPVLKs2UkdqTUZWZmdvRXc"
-        $glew_dev_url = "0B-080DPVLKs2Q09zVnVjYngtX0E"
-        $gst_dev_url = "0B-080DPVLKs2dEw5a0Fsb0FValE"
-        $sdl2_file = $py35+"\kivy.deps.sdl2-0.1.13-cp35-cp35m-win_amd64.whl"
-        $sdl2_dev_file = $py35+"\kivy.deps.sdl2_dev-0.1.13-cp35-cp35m-win_amd64.whl"
-        $glew_file = $py35+"\kivy.deps.glew-0.1.5-cp35-cp35m-win_amd64.whl"
-        $glew_dev_file = $py35+"\kivy.deps.glew_dev-0.1.5-cp35-cp35m-win_amd64.whl"
-        $gst_dev_file = $py35+"\kivy.deps.gstreamer_dev-0.1.5-cp35-cp35m-win_amd64.whl"
-      } else {
-        $sdl2_url = "0B-080DPVLKs2TGg0SXcwX1p1OHc"
-        $sdl2_dev_url = "0B-080DPVLKs2bjIyVDN3S0c0c0U"
-        $glew_url = "0B-080DPVLKs2dkdoS2t1cU9PZmc"
-        $glew_dev_url = "0B-080DPVLKs2QUZZNDNvem9meU0"
-        $gst_dev_url = "0B-080DPVLKs2X1dfYkpXdmtMa3M"
-        $sdl2_file = $py35+"\kivy.deps.sdl2-0.1.13-cp35-cp35m-win32.whl"
-        $sdl2_dev_file = $py35+"\kivy.deps.sdl2_dev-0.1.13-cp35-cp35m-win32.whl"
-        $glew_file = $py35+"\kivy.deps.glew-0.1.5-cp35-cp35m-win32.whl"
-        $glew_dev_file = $py35+"\kivy.deps.glew_dev-0.1.5-cp35-cp35m-win32.whl"
-        $gst_dev_file = $py35+"\kivy.deps.gstreamer_dev-0.1.5-cp35-cp35m-win32.whl"
-      }
-      Check-Error
-      mkdir "$py35"
-      Check-Error
-      git clone -q --branch=feature-gl-backend https://github.com/kivy/kivy.git C:\projects\kivy_temp
-      Check-Error
-      (new-object net.webclient).DownloadFile("https://docs.google.com/uc?id="+$sdl2_url, $sdl2_file)
-      Check-Error
-      (new-object net.webclient).DownloadFile("https://docs.google.com/uc?id="+$sdl2_dev_url, $sdl2_dev_file)
-      Check-Error
-      (new-object net.webclient).DownloadFile("https://docs.google.com/uc?id="+$glew_url, $glew_file)
-      Check-Error
-      (new-object net.webclient).DownloadFile("https://docs.google.com/uc?id="+$glew_dev_url, $glew_dev_file)
-      Check-Error
-      (new-object net.webclient).DownloadFile("https://docs.google.com/uc?id="+$gst_dev_url, $gst_dev_file)
-      Check-Error
-      cmd /c '("C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x%BITTNESS%)&set' |
-      foreach {
-        if ($_ -match "=") {
-          $v = $_.split("="); set-item -force -path "ENV:\$($v[0])"  -value "$($v[1])"
-        }
-      }
-      Check-Error
-      write-host "`nMSVC variables set."
-      $env:MSSdk=1
-      $env:USE_SDL2=1
-      $env:DISTUTILS_USE_SDK=1
-      $env:LIB=$PYTHON_ROOT+"\libs;"+$env:LIB
-      $env:INCLUDE=$PYTHON_ROOT+"\include;"+$env:INCLUDE
+    Copy-Item "$PYTHON_ROOT\Lib\site-packages\kivy\deps\*" -destination "$env:APPVEYOR_BUILD_FOLDER\kivy\deps" -recurse
+    Remove-Item "$PYTHON_ROOT\Lib\site-packages\kivy" -Force -Recurse
+    Remove-Item "$PYTHON_ROOT\Lib\site-packages\kivy.deps.*nspkg.pth"
 
-      cd "C:\projects\kivy_temp"
-
-      # pointer mismatch dirty fix
-
-      (new-object net.webclient).DownloadFile("https://patch-diff.githubusercontent.com/raw/kivy/kivy/pull/4698.patch", "C:\projects\kivy_temp\mismatch.patch")
-      git apply "mismatch.patch"
-
-      python -m pip install pip wheel setuptools --upgrade
-      Check-Error
-      pip install mock cython pygments docutils nose kivy.deps.gstreamer $sdl2_file $sdl2_dev_file $glew_file $glew_dev_file $gst_dev_file --extra-index-url https://kivy.org/downloads/packages/simple/
-      Check-Error
-
-      Copy-Item "$PYTHON_ROOT\Lib\site-packages\kivy\deps\*" -destination "C:\projects\kivy_temp\kivy\deps" -recurse
-      Remove-Item "$PYTHON_ROOT\Lib\site-packages\kivy" -Force -Recurse
-      Remove-Item "$PYTHON_ROOT\Lib\site-packages\kivy.deps.*nspkg.pth"
-      
+    if ($env:DO_TEST -eq "True" -or $DO_WHEEL -eq "True") {
       python setup.py build_ext --inplace
       Check-Error
     }
@@ -278,9 +200,12 @@ test_script:
 
 
     if ($env:DO_TEST -eq "True"){
-      $env:USE_OPENGL_MOCK = 1
-      python setup.py build_ext --inplace -f
-      Check-Error
+      if ($env:PYVER -eq "35") {
+        $env:KIVY_GL_BACKEND = angle_sdl2
+      } else {
+        $env:KIVY_GL_BACKEND = sdl2
+      }
+
       python -m nose.core kivy/tests
       Check-Error
     }
