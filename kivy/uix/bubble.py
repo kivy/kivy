@@ -80,7 +80,7 @@ class BubbleButton(Button):
     Rather use this BubbleButton widget that is already defined and provides a
     suitable background for you.
     '''
-    always_release = BooleanProperty(True)
+    pass
 
 
 class BubbleContent(GridLayout):

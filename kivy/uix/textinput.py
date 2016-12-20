@@ -285,8 +285,11 @@ class TextInputCutCopyPaste(Bubble):
     def __init__(self, **kwargs):
         self.mode = 'normal'
         super(TextInputCutCopyPaste, self).__init__(**kwargs)
+        textinput = kwargs.get('textinput')
         self._check_parent_ev = Clock.schedule_interval(self._check_parent, .5)
         self.matrix = self.textinput.get_window_matrix()
+        for children in self.children[1].children:
+            children.always_release = textinput.always_release_bubble
 
         with self.canvas.before:
             Callback(self.update_transform)
@@ -361,6 +364,8 @@ class TextInputCutCopyPaste(Bubble):
     def do(self, action):
         textinput = self.textinput
 
+        if not textinput.always_release_bubble:
+            return
         if action == 'cut':
             textinput._cut(textinput.selection_text)
         elif action == 'copy':
@@ -449,6 +454,7 @@ class TextInput(FocusBehavior, Widget):
                   'on_quad_touch')
 
     def __init__(self, **kwargs):
+        self.always_release_bubble = kwargs.get('always_release_bubble', False)
         self._update_graphics_ev = Clock.create_trigger(
             self._update_graphics, -1)
         self.is_focusable = kwargs.get('is_focusable', True)
@@ -1265,7 +1271,7 @@ class TextInput(FocusBehavior, Widget):
     def long_touch(self, dt):
         self._long_touch_ev = None
         if self._selection_to == self._selection_from:
-            pos = self.to_local(*self._long_touch_pos, relative=True)
+            pos = self.to_local(*self._long_touch_pos, relative=False)
             self._show_cut_copy_paste(
                 pos, EventLoop.window, mode='paste')
 
@@ -1403,8 +1409,7 @@ class TextInput(FocusBehavior, Widget):
             # show Bubble
             win = EventLoop.window
             if self._selection_to != self._selection_from:
-                touch_rel_pos = (touch.pos[0] - self.x, touch.pos[1] - self.y)
-                self._show_cut_copy_paste(touch_rel_pos, win)
+                self._show_cut_copy_paste(touch.pos, win)
             elif self.use_handles:
                 self._hide_handles()
                 handle_middle = self._handle_middle
@@ -1595,27 +1600,27 @@ class TextInput(FocusBehavior, Widget):
         win_size = win.size
         bubble_pos = (t_pos[0], t_pos[1] + inch(.25))
 
-        if (bubble_pos[0] - bubble_hw + self.x) < 0:
+        if (bubble_pos[0] - bubble_hw) < 0:
             # bubble beyond left of window
-            if (bubble_pos[1] + self.y) > (win_size[1] - bubble_size[1]):
+            if bubble_pos[1] > (win_size[1] - bubble_size[1]):
                 # bubble above window height
                 bubble_pos = (bubble_hw, (t_pos[1]) - (lh + ls + inch(.25)))
                 bubble.arrow_pos = 'top_left'
             else:
                 bubble_pos = (bubble_hw, bubble_pos[1])
                 bubble.arrow_pos = 'bottom_left'
-        elif (bubble_pos[0] + bubble_hw + self.x) > win_size[0]:
+        elif (bubble_pos[0] + bubble_hw) > win_size[0]:
             # bubble beyond right of window
-            if (bubble_pos[1] + self.y) > (win_size[1] - bubble_size[1]):
+            if bubble_pos[1] > (win_size[1] - bubble_size[1]):
                 # bubble above window height
-                bubble_pos = (win_size[0] - bubble_hw - self.x,
+                bubble_pos = (win_size[0] - bubble_hw,
                              (t_pos[1]) - (lh + ls + inch(.25)))
                 bubble.arrow_pos = 'top_right'
             else:
-                bubble_pos = (win_size[0] - bubble_hw - self.x, bubble_pos[1])
+                bubble_pos = (win_size[0] - bubble_hw, bubble_pos[1])
                 bubble.arrow_pos = 'bottom_right'
         else:
-            if (bubble_pos[1] + self.y) > (win_size[1] - bubble_size[1]):
+            if bubble_pos[1] > (win_size[1] - bubble_size[1]):
                 # bubble above window height
                 bubble_pos = (bubble_pos[0],
                              (t_pos[1]) - (lh + ls + inch(.25)))
@@ -1623,7 +1628,7 @@ class TextInput(FocusBehavior, Widget):
             else:
                 bubble.arrow_pos = 'bottom_mid'
 
-        bubble_pos = self.to_widget(*bubble_pos)
+        bubble_pos = self.to_local(*bubble_pos, relative=True)
         bubble.center_x = bubble_pos[0]
         if bubble.arrow_pos[0] == 't':
             bubble.top = bubble_pos[1]
