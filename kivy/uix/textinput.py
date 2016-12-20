@@ -285,8 +285,11 @@ class TextInputCutCopyPaste(Bubble):
     def __init__(self, **kwargs):
         self.mode = 'normal'
         super(TextInputCutCopyPaste, self).__init__(**kwargs)
+        textinput = kwargs.get('textinput')
         self._check_parent_ev = Clock.schedule_interval(self._check_parent, .5)
         self.matrix = self.textinput.get_window_matrix()
+        for children in self.children[1].children:
+            children.always_release = textinput.always_release_bubble
 
         with self.canvas.before:
             Callback(self.update_transform)
@@ -361,6 +364,8 @@ class TextInputCutCopyPaste(Bubble):
     def do(self, action):
         textinput = self.textinput
 
+        if not textinput.always_release_bubble:
+            return
         if action == 'cut':
             textinput._cut(textinput.selection_text)
         elif action == 'copy':
@@ -449,6 +454,7 @@ class TextInput(FocusBehavior, Widget):
                   'on_quad_touch')
 
     def __init__(self, **kwargs):
+        self.always_release_bubble = kwargs.get('always_release_bubble', True)
         self._update_graphics_ev = Clock.create_trigger(
             self._update_graphics, -1)
         self.is_focusable = kwargs.get('is_focusable', True)
@@ -1265,7 +1271,7 @@ class TextInput(FocusBehavior, Widget):
     def long_touch(self, dt):
         self._long_touch_ev = None
         if self._selection_to == self._selection_from:
-            pos = self.to_local(*self._long_touch_pos, relative=True)
+            pos = self.to_local(*self._long_touch_pos, relative=False)
             self._show_cut_copy_paste(
                 pos, EventLoop.window, mode='paste')
 
@@ -1622,7 +1628,7 @@ class TextInput(FocusBehavior, Widget):
             else:
                 bubble.arrow_pos = 'bottom_mid'
 
-        bubble_pos = self.to_widget(*bubble_pos)
+        bubble_pos = self.to_local(*bubble_pos, relative=True)
         bubble.center_x = bubble_pos[0]
         if bubble.arrow_pos[0] == 't':
             bubble.top = bubble_pos[1]
