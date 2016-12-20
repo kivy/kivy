@@ -160,8 +160,6 @@ build_script:
 
     Remove-Item "$PYTHON_ROOT\Lib\site-packages\kivy" -Force -Recurse
 
-    Remove-Item "$PYTHON_ROOT\Lib\site-packages\kivy.deps.*nspkg.pth"
-
     if ($env:DO_TEST -eq "True" -or $DO_WHEEL -eq "True") {
       python setup.py build_ext --inplace
       Check-Error
