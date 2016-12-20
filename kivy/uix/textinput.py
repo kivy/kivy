@@ -454,7 +454,7 @@ class TextInput(FocusBehavior, Widget):
                   'on_quad_touch')
 
     def __init__(self, **kwargs):
-        self.always_release_bubble = kwargs.get('always_release_bubble', False)
+        self.always_release_bubble = kwargs.get('always_release_bubble', True)
         self._update_graphics_ev = Clock.create_trigger(
             self._update_graphics, -1)
         self.is_focusable = kwargs.get('is_focusable', True)
