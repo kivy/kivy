@@ -145,7 +145,9 @@ build_script:
       Check-Error
     }
 
-    pip install mock cython pygments docutils nose kivy.deps.glew_dev kivy.deps.glew kivy.deps.gstreamer_dev kivy.deps.gstreamer kivy.deps.sdl2_dev kivy.deps.sdl2
+    pip install mock cython pygments docutils nose kivy.deps.glew_dev kivy.deps.glew kivy.deps.gstreamer_dev kivy.deps.sdl2_dev kivy.deps.sdl2
+
+    pip --no-cache-dir install kivy.deps.gstreamer
 
     Check-Error
 
@@ -157,8 +159,6 @@ build_script:
     Copy-Item "$PYTHON_ROOT\Lib\site-packages\kivy\deps\*" -destination "$env:APPVEYOR_BUILD_FOLDER\kivy\deps" -recurse
 
     Remove-Item "$PYTHON_ROOT\Lib\site-packages\kivy" -Force -Recurse
-
-    Remove-Item "$PYTHON_ROOT\Lib\site-packages\kivy.deps.*nspkg.pth"
 
     if ($env:DO_TEST -eq "True" -or $DO_WHEEL -eq "True") {
       python setup.py build_ext --inplace
