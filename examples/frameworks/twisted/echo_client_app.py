@@ -1,9 +1,9 @@
-#install_twisted_rector must be called before importing the reactor
+# install_twisted_rector must be called before importing the reactor
 from kivy.support import install_twisted_reactor
 install_twisted_reactor()
 
 
-#A simple Client that send messages to the echo server
+# A simple Client that send messages to the echo server
 from twisted.internet import reactor, protocol
 
 
@@ -58,7 +58,7 @@ class TwistedClientApp(App):
         reactor.connectTCP('localhost', 8000, EchoFactory(self))
 
     def on_connection(self, connection):
-        self.print_message("connected succesfully!")
+        self.print_message("connected successfully!")
         self.connection = connection
 
     def send_message(self, *args):
@@ -69,6 +69,7 @@ class TwistedClientApp(App):
 
     def print_message(self, msg):
         self.label.text += msg + "\n"
+
 
 if __name__ == '__main__':
     TwistedClientApp().run()

@@ -86,6 +86,7 @@ def extract_common_symbols(symbols1, symbols2, already_extracted):
                 print(line2)
                 print("#define %s %s" % (symbol1, symbol2))
 
+
 # Generate ------------------------------------------------
 # pipe to kivy/kivy/graphics/common_subset.h
 
@@ -104,10 +105,10 @@ print('#endif')
 # Don't add the same symbol more than once
 already_extracted = []
 
-print('\n// Subset common to GLES and GL: ====================================')
+print('\n// Subset common to GLES and GL: ===================================')
 extract_common_symbols(gles_symbols, gl_symbols, already_extracted)
 
-print('\n// Subset common to GLES and GLEXT: =================================')
+print('\n// Subset common to GLES and GLEXT: ================================')
 extract_common_symbols(gles_symbols, glext_symbols, already_extracted)
 
 print()
@@ -122,4 +123,3 @@ print('#ifdef __cplusplus')
 print('}')
 print('#endif')
 print()
-

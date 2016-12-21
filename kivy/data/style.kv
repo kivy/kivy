@@ -3,7 +3,7 @@
 <Label>:
     canvas:
         Color:
-            rgba: self.disabled_color if self.disabled else (self.color if not self.markup else (1, 1, 1, 1))
+            rgba: 1, 1, 1, 1
         Rectangle:
             texture: self.texture
             size: self.texture_size
@@ -21,7 +21,7 @@
             size: self.size
             source: self.disabled_image if self.disabled else self.state_image
         Color:
-            rgba: self.disabled_color if self.disabled else self.color
+            rgba: 1, 1, 1, 1
         Rectangle:
             texture: self.texture
             size: self.texture_size
@@ -51,14 +51,26 @@
         Color:
             rgb: 1, 1, 1
         BorderImage:
-            border: (0, 18, 0, 18) if self.orientation == 'horizontal' else (18, 0, 18, 0)
-            pos: (self.x + self.padding, self.center_y - sp(18)) if self.orientation == 'horizontal' else (self.center_x - 18, self.y + self.padding)
-            size: (self.width - self.padding * 2, sp(36)) if self.orientation == 'horizontal' else (sp(36), self.height - self.padding * 2)
-            source: 'atlas://data/images/defaulttheme/slider{}_background{}'.format(self.orientation[0], '_disabled' if self.disabled else '')
+            border: self.border_horizontal if self.orientation == 'horizontal' else self.border_vertical
+            pos: (self.x + self.padding, self.center_y - self.background_width / 2) if self.orientation == 'horizontal' else (self.center_x - self.background_width / 2, self.y + self.padding)
+            size: (self.width - self.padding * 2, self.background_width) if self.orientation == 'horizontal' else (self.background_width, self.height - self.padding * 2)
+            source: (self.background_disabled_horizontal if self.orientation == 'horizontal' else self.background_disabled_vertical) if self.disabled else (self.background_horizontal if self.orientation == 'horizontal' else self.background_vertical)
+        Color:
+            rgba: root.value_track_color if self.value_track and self.orientation == 'horizontal' else [1, 1, 1, 0]
+        Line:
+            width: self.value_track_width
+            points: self.x + self.padding, self.center_y - self.value_track_width / 2, self.value_pos[0], self.center_y - self.value_track_width / 2
+        Color:
+            rgba: root.value_track_color if self.value_track and self.orientation == 'vertical' else [1, 1, 1, 0]
+        Line:
+            width: self.value_track_width
+            points: self.center_x, self.y + self.padding, self.center_x, self.value_pos[1]
+        Color:
+            rgb: 1, 1, 1
         Rectangle:
-            pos: (self.value_pos[0] - sp(16), self.center_y - sp(17)) if self.orientation == 'horizontal' else (self.center_x - (16), self.value_pos[1] - sp(16))
-            size: (sp(32), sp(32))
-            source: 'atlas://data/images/defaulttheme/slider_cursor{}'.format('_disabled' if self.disabled else '')
+            pos: (self.value_pos[0] - self.cursor_width / 2, self.center_y - self.cursor_height / 2) if self.orientation == 'horizontal' else (self.center_x - self.cursor_width / 2, self.value_pos[1] - self.cursor_height / 2)
+            size: self.cursor_size
+            source: self.cursor_disabled_image if self.disabled else self.cursor_image
 
 <ProgressBar>:
     canvas:
@@ -159,6 +171,7 @@
     font_size: '15sp'
 
 <Selector>
+    color: 148. / 255, 208 / 255., 230 / 255., 1
     allow_stretch: True
 
 <TextInput>:
@@ -169,14 +182,14 @@
             border: self.border
             pos: self.pos
             size: self.size
-            source: (self.background_disabled_active if self.disabled else self.background_active) if self.focus else (self.background_disabled_normal if self.disabled else self.background_normal)
+            source: self.background_active if self.focus else (self.background_disabled_normal if self.disabled else self.background_normal)
         Color:
             rgba: (self.cursor_color if self.focus and not self.cursor_blink else (0, 0, 0, 0))
         Rectangle:
             pos: [int(x) for x in self.cursor_pos]
-            size: 1, -self.line_height
+            size: root.cursor_width, -self.line_height
         Color:
-            rgba: self.disabled_foreground_color if self.disabled else (self.hint_text_color if not self.text and not self.focus else self.foreground_color)
+            rgba: self.disabled_foreground_color if self.disabled else (self.hint_text_color if not self.text else self.foreground_color)
 
 <TextInputCutCopyPaste>:
     but_cut: cut.__self__
@@ -325,9 +338,11 @@
     on_touch_up: self.collide_point(*args[1].pos) and ctx.controller().entry_released(self, args[1])
     BoxLayout:
         pos: root.pos
+        size_hint_x: None
+        width: root.width - dp(10)
         Label:
             id: filename
-            width: (self.texture_size[0] + dp(4)) if self.texture_size else dp(10)
+            text_size: self.width, None
             halign: 'left'
             shorten: True
             text: ctx.name
@@ -457,6 +472,9 @@
             source: 'atlas://data/images/defaulttheme/switch-background{}'.format('_disabled' if self.disabled else '')
             size: sp(83), sp(32)
             pos: int(self.center_x - sp(41)), int(self.center_y - sp(16))
+    canvas.after:
+        Color:
+            rgb: 1, 1, 1
         Rectangle:
             source: 'atlas://data/images/defaulttheme/switch-button{}'.format('_disabled' if self.disabled else '')
             size: sp(43), sp(32)
@@ -641,7 +659,7 @@
                     width:
                         (self.temp_width if self.temp_height <= self.height else \
                         self.temp_width * (self.height / self.temp_height)) \
-                        if self.texture else dp(8)
+                        if self.texture and root.app_icon else 0
                     mipmap: root.mipmap
                 Widget:
                     size_hint_x: None
@@ -960,20 +978,22 @@
         x: root.x + root.width - self.width
         y: root.y + root.height - self.height
 
-
 <ScrollView>:
+    _handle_y_pos: (self.right - self.bar_width - self.bar_margin) if self.bar_pos_y == 'right' else (self.x + self.bar_margin), self.y + self.height * self.vbar[0]
+    _handle_y_size: min(self.bar_width, self.width), self.height * self.vbar[1]
+    _handle_x_pos: self.x + self.width * self.hbar[0], (self.y + self.bar_margin) if self.bar_pos_x == 'bottom' else (self.top - self.bar_margin - self.bar_width)
+    _handle_x_size: self.width * self.hbar[1], min(self.bar_width, self.height)
     canvas.after:
         Color:
             rgba: self._bar_color if (self.do_scroll_y and self.viewport_size[1] > self.height) else [0, 0, 0, 0]
         Rectangle:
-            pos: (self.right - self.bar_width - self.bar_margin) if self.bar_pos_y == 'right' else (self.x + self.bar_margin), self.y + self.height * self.vbar[0]
-            size: min(self.bar_width, self.width), self.height * self.vbar[1]
+            pos: root._handle_y_pos or (0, 0)
+            size: root._handle_y_size or (0, 0)
         Color:
             rgba: self._bar_color if (self.do_scroll_x and self.viewport_size[0] > self.width) else [0, 0, 0, 0]
         Rectangle:
-            pos: self.x + self.width * self.hbar[0], (self.y + self.bar_margin) if self.bar_pos_x == 'bottom' else (self.top - self.bar_margin - self.bar_width)
-            size: self.width * self.hbar[1], min(self.bar_width, self.height)
-
+            pos: root._handle_x_pos or (0, 0)
+            size: root._handle_x_size or (0, 0)
 
 # =============================================================================
 # Video player
@@ -1077,7 +1097,7 @@
         if self.disabled else self._radio_state_image
     canvas:
         Color:
-            rgb: 1, 1, 1
+            rgba: self.color
         Rectangle:
             source: self._radio_image if self.group else self._checkbox_image
             size: sp(32), sp(32)
@@ -1147,6 +1167,10 @@
         value: root.color * 255
         on_value:
             root.mroot._trigger_update_clr(root.mode, root.clr_idx, args[1])
+
+<ColorWheel>:
+    _origin: self.center
+    _radius: 0.45 * min(self.size)
 
 <ColorPicker>:
     foreground_color: (1, 1, 1, 1) if self.hsv[2] * wheel.a < .5 else (0, 0, 0, 1)
@@ -1259,7 +1283,5 @@
 
         ColorWheel:
             id: wheel
-            _origin: (self.center_x, self.center_y)
-            _radius: 0.45 * min(self.size)
             color: root.color
             on_color: root.color[:3] = args[1][:3]

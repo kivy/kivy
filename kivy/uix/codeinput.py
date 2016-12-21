@@ -6,6 +6,9 @@ Code Input
 
 .. image:: images/codeinput.jpg
 
+.. note::
+
+    This widget requires ``pygments`` package to run. Install it with ``pip``.
 
 The :class:`CodeInput` provides a box of editable highlighted text like the one
 shown in the image.
@@ -42,7 +45,7 @@ from pygments.formatters import BBCodeFormatter
 from kivy.uix.textinput import TextInput
 from kivy.core.text.markup import MarkupLabel as Label
 from kivy.cache import Cache
-from kivy.properties import ObjectProperty, OptionProperty, StringProperty
+from kivy.properties import ObjectProperty, OptionProperty
 from kivy.utils import get_hex_from_color, get_color_from_hex
 from kivy.uix.behaviors import CodeNavigationBehavior
 
@@ -179,7 +182,7 @@ class CodeInput(CodeNavigationBehavior, TextInput):
             ntext = ''.join((u'[color=', str(self.text_color), u']',
                              ntext, u'[/color]'))
             ntext = ntext.replace(u'\n', u'')
-            # remove possibles extra highlight options
+            # remove possible extra highlight options
             ntext = ntext.replace(u'[u]', '').replace(u'[/u]', '')
             return ntext
         except IndexError:

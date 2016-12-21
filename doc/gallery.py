@@ -1,4 +1,4 @@
-''' Create rst documentaiton of the examples directory.
+''' Create rst documentation of the examples directory.
 
 This uses screenshots in the screenshots_dir
 (currently doc/sources/images/examples) along with source code and files
@@ -10,6 +10,7 @@ in the examples/ directory to create rst files in the generation_dir
 
 import os
 import re
+from os.path import sep
 from os.path import join as slash  # just like that name better
 from kivy.logger import Logger
 import textwrap
@@ -35,7 +36,7 @@ def iter_filename_info(dir_name):
     """
     Yield info (dict) of each matching screenshot found walking the
     directory dir_name.  A matching screenshot uses double underscores to
-    separate fields, i.e., path__to__filename__py.png as the screenshot for
+    separate fields, i.e. path__to__filename__py.png as the screenshot for
     examples/path/to/filename.py.
 
     Files not ending with .png are ignored, others are either parsed or
@@ -52,13 +53,13 @@ def iter_filename_info(dir_name):
                     yield {'error': 'png filename not following screenshot'
                                     ' pattern: {}'.format(filename)}
                 else:
-                    d = m.group(2).replace('__', os.path.sep)
+                    d = m.group(2).replace('__', sep)
                     yield {'dunder': m.group(1),
                            'dir': d,
                            'file': m.group(3),
                            'ext': m.group(4),
                            'source': slash(d, m.group(3) + '.' + m.group(4))
-                    }
+                           }
 
 
 def parse_docstring_info(text):
@@ -112,13 +113,13 @@ def enhance_info_description(info, line_length=50):
     ''' Using the info['description'], add fields to info.
 
     info['files'] is the source filename and any filenames referenced by the
-    magic words in the description, e.g., 'the file xxx.py' or
+    magic words in the description, e.g. 'the file xxx.py' or
     'The image this.png'.  These are as written in the description, do
     not allow ../dir notation, and are relative to the source directory.
 
     info['enhanced_description'] is the description, as an array of
     paragraphs where each paragraph is an array of lines wrapped to width
-    line_length.  This enchanced description include the rst links to
+    line_length.  This enhanced description include the rst links to
     the files of info['files'].
     '''
 
@@ -134,7 +135,10 @@ def enhance_info_description(info, line_length=50):
             info['files'].append(name)
 
     # add links where the files are referenced
-    text = re.sub(r'([tT]he (?:file|image) )([\w\/]+\.\w+)', r'\1`\2`_', text)
+    folder = '_'.join(info['source'].split(sep)[:-1]) + '_'
+    text = re.sub(r'([tT]he (?:file|image) )([\w\/]+\.\w+)',
+                  r'\1:ref:`\2 <$folder$\2>`', text)
+    text = text.replace('$folder$', folder)
 
     # now break up text into array of paragraphs, each an array of lines.
     lines = text.split('\n')
@@ -171,7 +175,7 @@ def make_gallery_page(infos):
         r = right.format(**info)
         if len(l) > width1 or len(r) > width2:
             Logger.error('items to wide for generated table: "%s" and "%s"',
-                         l,r)
+                         l, r)
             return
         output.append('| {0:{w1}} | {1:{w2}} |'
                       .format(l, r, w1=width1, w2=width2))
@@ -257,7 +261,10 @@ def make_detail_page(info):
     for fname in info['files']:
         full_name = slash(info['dir'], fname)
         ext = re.search(r'\.\w+$', fname).group(0)
-        a('\n.. _`' + fname + '`:')
+        a('\n.. _`' + full_name.replace(sep, '_') + '`:')
+        # double separator if building on windows (sphinx skips backslash)
+        if '\\' in full_name:
+            full_name = full_name.replace(sep, sep*2)
 
         if ext in ['.png', '.jpg', '.jpeg']:
             title = 'Image **' + full_name + '**'
@@ -273,6 +280,11 @@ def make_detail_page(info):
                 a('\n.. highlight:: ' + ext[1:])
                 a('    :linenothreshold: 3')
                 last_lang = ext
+            # prevent highlight errors with 'none'
+            elif ext == '.txt':
+                a('\n.. highlight:: none')
+                a('    :linenothreshold: 3')
+                last_lang = ext
             a('\n.. include:: ../../../examples/' + full_name)
             a('    :code:')
     return '\n'.join(output) + '\n'
@@ -285,7 +297,7 @@ def write_file(name, s):
 
 
 def make_index(infos):
-    ''' return string of the rst for the gallary's index.rst file. '''
+    ''' return string of the rst for the gallery's index.rst file. '''
     start_string = '''
 Gallery of Examples
 ===================
@@ -301,7 +313,9 @@ Gallery of Examples
 
 
 def write_all_rst_pages():
-    ''' Do the main task of writing the gallery, detail, and index rst pages '''
+    ''' Do the main task of writing the gallery,
+    detail, and index rst pages.
+    '''
     infos = get_infos(screenshots_dir)
     s = make_gallery_page(infos)
     write_file(gallery_filename, s)

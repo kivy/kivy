@@ -13,10 +13,16 @@ __all__ = ('GraphicUnitTest', )
 
 import unittest
 import logging
+import os
+from kivy.graphics.cgl import cgl_get_backend_name
 log = logging.getLogger('unittest')
 
+_base = object
+if 'mock' != cgl_get_backend_name():
+    _base = unittest.TestCase
 
-class GraphicUnitTest(unittest.TestCase):
+
+class GraphicUnitTest(_base):
 
     def render(self, root, framecount=1):
         '''Call rendering process using the `root` widget.
@@ -67,7 +73,7 @@ class GraphicUnitTest(unittest.TestCase):
         from kivy.core.window import Window
         Window.bind(on_flip=self.on_window_flip)
 
-        # ensure our window is correcly created
+        # ensure our window is correctly created
         Window.create_window()
         Window.canvas.clear()
 
@@ -89,7 +95,7 @@ class GraphicUnitTest(unittest.TestCase):
         from shutil import move, copy
 
         # don't save screenshot until we have enough frames.
-        #log.debug('framecount %d' % self.framecount)
+        # log.debug('framecount %d' % self.framecount)
         self.framecount -= 1
         if self.framecount > 0:
             return
@@ -181,7 +187,7 @@ class GraphicUnitTest(unittest.TestCase):
                     fd.write('<td><img src="test_%s"/></td>' %
                              basename(reffn))
                 else:
-                    fd.write('<td>First time, no comparaison.</td>')
+                    fd.write('<td>First time, no comparison.</td>')
                 fd.write('<td><pre>%s</pre></td>' % sourcecode)
                 fd.write('</table></div>')
         finally:

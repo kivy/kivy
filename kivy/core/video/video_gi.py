@@ -47,7 +47,7 @@ class _MapInfo(Structure):
         ('memory', c_void_p),
         ('flags', c_int),
         ('data', c_void_p)]
-        # we don't care about the rest
+    # we don't care about the rest
 
 
 def _gst_new_buffer(obj, appsink):
@@ -191,7 +191,7 @@ class VideoGi(VideoBase):
         seek_flags = Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT
         self._playbin.seek_simple(seek_format, seek_flags, seek_t)
 
-        #if pipeline is not playing, we need to pull pre-roll to update frame
+        # if pipeline is not playing, we need to pull pre-roll to update frame
         if not self._state == 'playing':
             with self._buffer_lock:
                 self._buffer = self._appsink.emit('pull-preroll')
@@ -200,7 +200,7 @@ class VideoGi(VideoBase):
         uri = self.filename
         if not uri:
             return
-        if not '://' in uri:
+        if '://' not in uri:
             uri = 'file:' + pathname2url(realpath(uri))
         return uri
 

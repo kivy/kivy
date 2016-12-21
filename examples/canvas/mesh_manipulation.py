@@ -87,14 +87,15 @@ class MeshBallApp(App):
         while i < 2 * pi:
             i += 0.01 * pi
             points.extend([
-                Window.width / 2 + cos(i) * (self.radius + self.sin_wobble
-                                             * sin(i * self.sin_wobble_speed)),
-                Window.height / 2 + sin(i) * (self.radius + self.sin_wobble
-                                              * sin(i * self.sin_wobble_speed)),
+                Window.width / 2 + cos(i) * (self.radius + self.sin_wobble *
+                                             sin(i * self.sin_wobble_speed)),
+                Window.height / 2 + sin(i) * (self.radius + self.sin_wobble *
+                                              sin(i * self.sin_wobble_speed)),
                 self.offset_x + sin(i),
                 self.offset_y + cos(i)])
 
         self.mesh_points = points
+
 
 if __name__ == '__main__':
     MeshBallApp().run()

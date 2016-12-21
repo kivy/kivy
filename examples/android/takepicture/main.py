@@ -5,9 +5,9 @@ Take picture
 .. author:: Mathieu Virbel <mat@kivy.org>
 
 Little example to demonstrate how to start an Intent, and get the result.
-When you use the Android.startActivityForResult(), the result will be dispatched
-into onActivityResult. You can catch the event with the android.activity API
-from python-for-android project.
+When you use the Android.startActivityForResult(), the result will be
+dispatched into onActivityResult. You can catch the event with the
+android.activity API from python-for-android project.
 
 If you want to compile it, don't forget to add the CAMERA permission::
 
@@ -23,7 +23,7 @@ __version__ = '0.1'
 from kivy.app import App
 from os.path import exists
 from jnius import autoclass, cast
-from android import activity
+from android import activity, mActivity
 from functools import partial
 from kivy.clock import Clock
 from kivy.uix.scatter import Scatter
@@ -32,7 +32,6 @@ from kivy.properties import StringProperty
 from PIL import Image
 
 Intent = autoclass('android.content.Intent')
-PythonActivity = autoclass('org.renpy.android.PythonActivity')
 MediaStore = autoclass('android.provider.MediaStore')
 Uri = autoclass('android.net.Uri')
 Environment = autoclass('android.os.Environment')
@@ -61,7 +60,7 @@ class TakePictureApp(App):
         self.uri = Uri.parse('file://' + self.last_fn)
         self.uri = cast('android.os.Parcelable', self.uri)
         intent.putExtra(MediaStore.EXTRA_OUTPUT, self.uri)
-        PythonActivity.mActivity.startActivityForResult(intent, 0x123)
+        mActivity.startActivityForResult(intent, 0x123)
 
     def on_activity_result(self, requestCode, resultCode, intent):
         if requestCode == 0x123:
@@ -76,5 +75,6 @@ class TakePictureApp(App):
 
     def on_pause(self):
         return True
+
 
 TakePictureApp().run()

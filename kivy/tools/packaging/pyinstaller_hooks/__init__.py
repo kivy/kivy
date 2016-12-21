@@ -85,7 +85,7 @@ if 'KIVY_DOC' not in environ:
     '''
 
     excludedimports = [modname_tkinter, '_tkinter', 'twisted']
-    '''List of excludedimports that should alwayys be excluded from
+    '''List of excludedimports that should always be excluded from
     pyinstaller.
     '''
 
@@ -93,7 +93,7 @@ if 'KIVY_DOC' not in environ:
         (kivy.kivy_data_dir,
          os.path.join('kivy_install', os.path.basename(kivy.kivy_data_dir))),
         (kivy.kivy_modules_dir,
-         os.path.join('kivy_install', os.path.basename(kivy.kivy_modules_dir))),
+         os.path.join('kivy_install', os.path.basename(kivy.kivy_modules_dir)))
     ]
 '''List of datas to be included by pyinstaller.
 '''
@@ -165,7 +165,7 @@ def get_deps_minimal(exclude_ignored=True, **kwargs):
 
         A dict with two keys, ``hiddenimports`` and ``excludes``. Their values
         are a list of the corresponding modules to include/exclude. This can
-        be passed directly to `Analysis`` with e.g.::
+        be passed directly to `Analysis`` with e.g. ::
 
             a = Analysis(['..\\kivy\\examples\\demo\\touchtracer\\main.py'],
                         ...
@@ -238,7 +238,7 @@ def get_deps_all():
 
         A dict with two keys, ``hiddenimports`` and ``excludes``. Their values
         are a list of the corresponding modules to include/exclude. This can
-        be passed directly to `Analysis`` with e.g.::
+        be passed directly to `Analysis`` with e.g. ::
 
             a = Analysis(['..\\kivy\\examples\\demo\\touchtracer\\main.py'],
                         ...
@@ -259,7 +259,7 @@ def get_factory_modules():
 
 def add_dep_paths():
     '''Should be called by the hook. It adds the paths with the binary
-    dependecies to the system path so that pyinstaller can find the binaries
+    dependencies to the system path so that pyinstaller can find the binaries
     during its crawling stage.
     '''
     paths = []

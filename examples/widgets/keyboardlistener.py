@@ -36,6 +36,7 @@ class MyKeyboardListener(Widget):
         # the system.
         return True
 
+
 if __name__ == '__main__':
     from kivy.base import runTouchApp
     runTouchApp(MyKeyboardListener())

@@ -12,7 +12,6 @@ from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import ObjectProperty
 
-import os
 import kivy
 kivy.require('1.8.0')
 

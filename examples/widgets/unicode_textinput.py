@@ -124,7 +124,7 @@ class LoadDialog(FloatLayout):
 class Unicode_TextInput(BoxLayout):
 
     txt_input = ObjectProperty(None)
-    unicode_string = StringProperty('''Latin-1 supplement: éé çç ßß
+    unicode_string = StringProperty("""Latin-1 supplement: éé çç ßß
 
 List of major languages taken from Google Translate
 ____________________________________________________
@@ -150,11 +150,13 @@ Dutch:          De snelle bruine vos springt over de luie oude hond.
 Estonian:       Kiire pruun rebane hüppab üle laisa vana koer.
 Filipino:       Ang mabilis na brown soro jumps sa ang tamad lumang aso.
 Finnish:        Nopea ruskea kettu hyppää yli laiska vanha koira.
-French:         Le renard brun rapide saute par dessus le chien paresseux vieux.
+French:         Le renard brun rapide saute par dessus le chien
+                paresseux vieux.
 Galician:       A lixeira raposo marrón ataca o can preguiceiro de idade.
 Gregorian:      სწრაფი ყავისფერი მელა jumps გამო ზარმაცი წლის ძაღლი.
 German:         Der schnelle braune Fuchs springt über den faulen alten Hund.
-Greek:          Η γρήγορη καφέ αλεπού πηδάει πάνω από το τεμπέλικο γέρικο σκυλί.
+Greek:          Η γρήγορη καφέ αλεπού πηδάει πάνω από το τεμπέλικο
+                γέρικο σκυλί.
 Gujrati:        આ ઝડપી ભુરો શિયાળ તે બેકાર જૂના કૂતરા પર કૂદકા.
 Gurmukhi:       ਤੇਜ ਭੂਰੇ ਰੰਗ ਦੀ ਲੂੰਬੜੀ ਆਲਸੀ ਬੁੱਢੇ ਕੁੱਤੇ ਦੇ ਉਤੋਂ ਦੀ ਟੱਪਦੀ ਹੈ ।
 Hiation Creole: Rapid mawon Rena a so sou chen an parese fin vye granmoun.
@@ -162,7 +164,7 @@ Hebrew:         השועל החום הזריז קופץ על הכלב הישן �
 Hindi:          तेज भूरे रंग की लोमड़ी आलसी बूढ़े कुत्ते के उपर से कूदती है ॥
 Hungarian:      A gyors barna róka átugorja a lusta vén kutya.
 Icelandic:      The fljótur Brown refur stökk yfir latur gamall hundur.
-Indonesian      Cepat rubah cokelat melompat atas anjing tua malas.
+Indonesian:     Cepat rubah cokelat melompat atas anjing tua malas.
 Irish:          An sionnach donn tapaidh jumps thar an madra leisciúil d\'aois.
 Italian:        The quick brown fox salta sul cane pigro vecchio.
 Japanese:       速い茶色のキツネは、のろまな古いイヌに飛びかかった。
@@ -179,22 +181,23 @@ Persian:        روباه قهوه ای سریع روی سگ تنبل قدیم�
 Polish:         Szybki brązowy lis przeskoczył nad leniwym psem życia.
 Portugese:      A ligeira raposa marrom ataca o cão preguiçoso de idade.
 Romanian:       Rapidă maro vulpea sare peste cainele lenes vechi.
-Russioan:       Быстрый коричневый лис перепрыгивает через ленивый старый пес.
+Russian:       Быстрый коричневый лис перепрыгивает через ленивый старый пес.
 Serniam:        Брза смеђа лисица прескаче лењог пса старог.
 Slovak:         Rýchla hnedá líška skáče cez lenivého starého psa.
 Slovenian:      Kožuščku hudobnega nad leni starega psa.
 Spanish:        La cigüeña tocaba el saxofón en el viejo perro perezoso.
 Swahili:        Haraka brown fox anaruka juu ya mbwa wavivu zamani.
 Swedish:        Den snabba bruna räven hoppar över den lata gammal hund.
-Tamil:          விரைவான பிரவுன் ஃபாக்ஸ் சோம்பேறி பழைய நாய் மீது தொடரப்படுகிறது
+Tamil:          விரைவான பிரவுன் ஃபாக்ஸ் சோம்பேறி பழைய நாய் மீது
+                தொடரப்படுகிறது
 Telugu:         శీఘ్ర బ్రౌన్ ఫాక్స్ సోమరితనం పాత కుక్క కంటే హెచ్చుతగ్గుల.
 Thai:           สีน้ำตาลอย่างรวดเร็วจิ้งจอกกระโดดมากกว่าสุนัขเก่าที่ขี้เกียจ
 Turkish:        Hızlı kahverengi tilki tembel köpeğin üstünden atlar.
 Ukranian:       Швидкий коричневий лис перестрибує через лінивий старий пес.
 Urdu:           فوری بھوری لومڑی سست بوڑھے کتے پر کودتا.
 Vietnamese:     Các con cáo nâu nhanh chóng nhảy qua con chó lười biếng cũ.
-Welsh:          Mae\'r cyflym frown llwynog neidio dros y ci hen ddiog.
-Yiddish:        דער גיך ברוין פוקס דזשאַמפּס איבער די פויל אַלט הונט.''')
+Welsh:          Mae'r cyflym frown llwynog neidio dros y ci hen ddiog.
+Yiddish:        דער גיך ברוין פוקס דזשאַמפּס איבער די פויל אַלט הונט.""")
 
     def dismiss_popup(self):
         self._popup.dismiss()
@@ -210,6 +213,7 @@ Yiddish:        דער גיך ברוין פוקס דזשאַמפּס איבער 
         self._popup = Popup(title="load file", content=content,
             size_hint=(0.9, 0.9))
         self._popup.open()
+
 
 from kivy.utils import reify
 
@@ -229,7 +233,7 @@ class unicode_app(App):
 
         for fdir in fonts_path:
             for fpath in sorted(os.listdir(fdir)):
-                if not '.' in fpath:
+                if '.' not in fpath:
                     continue
                 font, ext = fpath.rsplit('.')
                 if ext == 'ttf':

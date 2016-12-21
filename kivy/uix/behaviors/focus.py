@@ -57,11 +57,9 @@ effect. To initialize focus, you can use the 'on_parent' event::
     from kivy.app import App
     from kivy.uix.textinput import TextInput
 
-
     class MyTextInput(TextInput):
         def on_parent(self, widget, parent):
             self.focus = True
-
 
     class SampleApp(App):
         def build(self):
@@ -69,7 +67,7 @@ effect. To initialize focus, you can use the 'on_parent' event::
 
     SampleApp().run()
 
-If you are using a :class:`~kivy.uix.popup`, you can use the 'on_enter' event.
+If you are using a :class:`~kivy.uix.popup`, you can use the 'on_open' event.
 
 For an overview of behaviors, please refer to the :mod:`~kivy.uix.behaviors`
 documentation.
@@ -137,7 +135,7 @@ class FocusBehavior(object):
             self.focus = False    # this'll unbind
             if self._keyboard:  # remove assigned keyboard from dict
                 del keyboards[keyboard]
-        if value and not value in keyboards:
+        if value and value not in keyboards:
             keyboards[value] = None
         self._keyboard = value
         self.focus = focus
@@ -226,8 +224,8 @@ class FocusBehavior(object):
     :attr:`~kivy.core.window.WindowBase.softinput_mode` property to determine
     how the keyboard display is handled.
 
-    :attr:`focus` is a :class:`~kivy.properties.BooleanProperty` and defaults to
-    False.
+    :attr:`focus` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
     '''
 
     focused = focus
@@ -257,8 +255,8 @@ class FocusBehavior(object):
         if value is None or value is StopIteration:
             return
         if not isinstance(value, FocusBehavior):
-            raise ValueError('focus_next accepts only objects based'
-                             ' on FocusBehavior, or the `StopIteration` class.')
+            raise ValueError('focus_next accepts only objects based on'
+                             ' FocusBehavior, or the `StopIteration` class.')
         value.focus_previous = self
 
     focus_next = ObjectProperty(None, allownone=True)
@@ -299,7 +297,7 @@ class FocusBehavior(object):
             return
         if not isinstance(value, FocusBehavior):
             raise ValueError('focus_previous accepts only objects based'
-                             ' on FocusBehavior, or the `StopIteration` class.')
+                             'on FocusBehavior, or the `StopIteration` class.')
         value.focus_next = self
 
     focus_previous = ObjectProperty(None, allownone=True)

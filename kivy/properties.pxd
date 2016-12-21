@@ -101,3 +101,6 @@ cdef class ConfigParserProperty(Property):
     cdef object config_name
     cpdef _edit_setting(self, section, key, value)
     cdef inline object _parse_str(self, object value)
+
+cdef class ColorProperty(Property):
+    cdef list parse_str(self, EventDispatcher obj, value)

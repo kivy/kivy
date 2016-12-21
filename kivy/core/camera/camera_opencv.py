@@ -42,6 +42,8 @@ class CameraOpenCV(CameraBase):
     '''Implementation of CameraBase using OpenCV
     '''
 
+    _update_ev = None
+
     def __init__(self, **kwargs):
         self._device = None
         super(CameraOpenCV, self).__init__(**kwargs)
@@ -64,7 +66,7 @@ class CameraOpenCV(CameraBase):
         # frame).
         self._resolution = (int(frame.width), int(frame.height))
 
-        #get fps
+        # get fps
         self.fps = cv.GetCaptureProperty(self._device, cv.CV_CAP_PROP_FPS)
         if self.fps <= 0:
             self.fps = 1 / 30.
@@ -95,9 +97,12 @@ class CameraOpenCV(CameraBase):
 
     def start(self):
         super(CameraOpenCV, self).start()
-        Clock.unschedule(self._update)
-        Clock.schedule_interval(self._update, self.fps)
+        if self._update_ev is not None:
+            self._update_ev.cancel()
+        self._update_ev = Clock.schedule_interval(self._update, self.fps)
 
     def stop(self):
         super(CameraOpenCV, self).stop()
-        Clock.unschedule(self._update)
+        if self._update_ev is not None:
+            self._update_ev.cancel()
+            self._update_ev = None

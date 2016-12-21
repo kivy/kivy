@@ -123,8 +123,8 @@ void main (void) {
     float dr = th / 10.;
     v = min(v, dr) / dr;
 
-    // calculate the distance between the center of the square and current pixel
-    // display the pixel only if the distance is inside the circle
+    // calculate the distance between the center of the square and current
+    // pixel; display the pixel only if the distance is inside the circle
     float vdist = length(abs(tex_coord0 - center) * size / square);
     float value = 1 - v;
     if ( vdist < value ) {
@@ -277,6 +277,7 @@ class KinectViewerApp(App):
                 self.viewer.canvas.shader.fs = rgb_kinect
             elif value == 'hsv':
                 self.viewer.shader = value
+
 
 if __name__ == '__main__':
     KinectViewerApp().run()

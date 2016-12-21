@@ -3,7 +3,7 @@ Asynchronous image loading
 ==========================
 
 Test of the widget AsyncImage.
-We are just putting it in a CenteredAsyncImage for beeing able to center the
+We are just putting it in a CenteredAsyncImage for being able to center the
 image on screen without doing upscale like the original AsyncImage.
 '''
 
@@ -28,6 +28,7 @@ class TestAsyncApp(App):
     def build(self):
         return CenteredAsyncImage(
             source='http://kivy.org/funny-pictures-cat-is-expecting-you.jpg')
+
 
 if __name__ == '__main__':
     TestAsyncApp().run()

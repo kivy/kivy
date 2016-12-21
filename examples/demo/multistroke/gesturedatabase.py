@@ -7,7 +7,6 @@ from kivy.properties import ListProperty, ObjectProperty
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.popup import Popup
-from kivy.uix.filechooser import FileChooserListView
 from kivy.graphics import Rectangle, Color
 from kivy.multistroke import Recognizer
 
@@ -135,7 +134,7 @@ class GestureDatabase(GridLayout):
             if i.ids.select.state == 'down':
                 self.selected_count -= 1
                 for g in i.gesture_list:
-#                    if g in self.recognizer.db:  # not needed, for testing
+                    # if g in self.recognizer.db:  # not needed, for testing
                     self.recognizer.db.remove(g)
                     self.ids.gesture_list.remove_widget(i)
 

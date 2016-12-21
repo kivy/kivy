@@ -24,7 +24,7 @@ __all__ = (
     'kivy_configure', 'kivy_register_post_configuration',
     'kivy_options', 'kivy_base_dir',
     'kivy_modules_dir', 'kivy_data_dir', 'kivy_shader_dir',
-    'kivy_icons_dir', 'kivy_home_dir', 'kivy_userexts_dir',
+    'kivy_icons_dir', 'kivy_home_dir',
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
@@ -33,9 +33,10 @@ __version__ = '1.9.2-dev0'
 import sys
 import shutil
 from getopt import getopt, GetoptError
-from os import environ, mkdir, pathsep
-from os.path import dirname, join, basename, exists, expanduser, isdir
+from os import environ, mkdir
+from os.path import dirname, join, basename, exists, expanduser
 import pkgutil
+from kivy.compat import PY2
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.utils import platform
 
@@ -90,19 +91,19 @@ def require(version):
         tag = None
         tagrev = None
         if '-' in version:
-            l = version.split('-')
-            if len(l) == 2:
-                version, tag = l
-            elif len(l) == 3:
-                version, tag, tagrev = l
+            v = version.split('-')
+            if len(v) == 2:
+                version, tag = v
+            elif len(v) == 3:
+                version, tag, tagrev = v
             else:
                 raise Exception('Revision format must be X.Y.Z[-tag]')
 
         # check x y z
-        l = version.split('.')
-        if len(l) != 3:
+        v = version.split('.')
+        if len(v) != 3:
             raise Exception('Revision format must be X.Y.Z[-tag]')
-        return [int(x) for x in l], tag, tagrev
+        return [int(x) for x in v], tag, tagrev
 
     # user version
     revision, tag, tagrev = parse_version(version)
@@ -201,7 +202,7 @@ kivy_options = {
     'audio': (
         'gstplayer', 'pygame', 'gi', 'pygst', 'ffpyplayer', 'sdl2',
         'avplayer'),
-    'image': ('tex', 'imageio', 'dds', 'gif', 'sdl2', 'pygame', 'pil', 'ffpy'),
+    'image': ('tex', 'imageio', 'dds', 'sdl2', 'pygame', 'pil', 'ffpy', 'gif'),
     'camera': ('opencv', 'gi', 'pygst', 'videocapture', 'avfoundation',
                'android'),
     'spelling': ('enchant', 'osxappkit', ),
@@ -230,9 +231,6 @@ kivy_base_dir = dirname(sys.modules[__name__].__file__)
 
 kivy_modules_dir = environ.get('KIVY_MODULES_DIR',
                                join(kivy_base_dir, 'modules'))
-#: Kivy extension directory
-kivy_exts_dir = environ.get('KIVY_EXTS_DIR',
-                            join(kivy_base_dir, 'extensions'))
 #: Kivy data directory
 kivy_data_dir = environ.get('KIVY_DATA_DIR',
                             join(kivy_base_dir, 'data'))
@@ -249,8 +247,6 @@ kivy_home_dir = ''
 kivy_config_fn = ''
 #: Kivy user modules directory
 kivy_usermodules_dir = ''
-#: Kivy user extensions directory
-kivy_userexts_dir = ''
 
 # if there are deps, import them so they can do their magic.
 import kivy.deps
@@ -284,9 +280,12 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         elif platform == 'ios':
             user_home_dir = join(expanduser('~'), 'Documents')
         kivy_home_dir = join(user_home_dir, '.kivy')
+
+    if PY2:
+        kivy_home_dir = kivy_home_dir.decode(sys.getfilesystemencoding())
+
     kivy_config_fn = join(kivy_home_dir, 'config.ini')
     kivy_usermodules_dir = join(kivy_home_dir, 'mods')
-    kivy_userexts_dir = join(kivy_home_dir, 'extensions')
     icon_dir = join(kivy_home_dir, 'icon')
 
     if 'KIVY_NO_CONFIG' not in environ:
@@ -294,8 +293,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             mkdir(kivy_home_dir)
         if not exists(kivy_usermodules_dir):
             mkdir(kivy_usermodules_dir)
-        if not exists(kivy_userexts_dir):
-            mkdir(kivy_userexts_dir)
         if not exists(icon_dir):
             try:
                 shutil.copytree(join(kivy_data_dir, 'logo'), icon_dir)
@@ -313,7 +310,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     if ('KIVY_UNITTEST' not in environ and
             'KIVY_PACKAGING' not in environ and
             'KIVY_NO_ARGS' not in environ):
-        # save sys argv, otherwize, gstreamer use it and display help..
+        # save sys argv, otherwise, gstreamer use it and display help..
         sys_argv = sys.argv
         sys.argv = sys.argv[:1]
 
@@ -331,14 +328,19 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         mp_fork = None
         try:
-            mp_fork = opts['multiprocessing-fork']
+            for opt, arg in opts:
+                if opt == '--multiprocessing-fork':
+                    mp_fork = True
+                    break
         except:
             pass
 
         # set argv to the non-read args
         sys.argv = sys_argv[0:1] + args
         if mp_fork is not None:
-            sys.argv = sys.argv + ['--multiprocessing-fork']
+            # Needs to be first opt for support_freeze to work
+            sys.argv.insert(1, '--multiprocessing-fork')
+
     else:
         opts = []
         args = []
@@ -361,14 +363,14 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         elif opt in ('-a', '--auto-fullscreen'):
             Config.set('graphics', 'fullscreen', 'auto')
         elif opt in ('-c', '--config'):
-            l = arg.split(':', 2)
-            if len(l) == 2:
-                Config.set(l[0], l[1], '')
-            elif len(l) == 3:
-                Config.set(l[0], l[1], l[2])
+            ol = arg.split(':', 2)
+            if len(ol) == 2:
+                Config.set(ol[0], ol[1], '')
+            elif len(ol) == 3:
+                Config.set(ol[0], ol[1], ol[2])
             else:
                 raise Exception('Invalid --config value')
-            if l[0] == 'kivy' and l[1] == 'log_level':
+            if ol[0] == 'kivy' and ol[1] == 'log_level':
                 level = LOG_LEVELS.get(Config.get('kivy', 'log_level'))
                 Logger.setLevel(level=level)
         elif opt in ('-k', '--fake-fullscreen'):

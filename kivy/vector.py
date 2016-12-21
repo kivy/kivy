@@ -334,7 +334,7 @@ class Vector(list):
 
         For math see: http://en.wikipedia.org/wiki/Line-line_intersection
         '''
-        #linear algebar sucks...seriously!!
+        # linear algebar sucks...seriously!!
         x1, x2, x3, x4 = float(v1[0]), float(v2[0]), float(v3[0]), float(v4[0])
         y1, y2, y3, y4 = float(v1[1]), float(v2[1]), float(v3[1]), float(v4[1])
 
@@ -369,10 +369,10 @@ class Vector(list):
         >>> Vector.segment_intersection(a, b, c, d)
         [5, 5]
         '''
-        #Yaaay! I love linear algebra applied within the realms of geometry.
+        # Yaaay! I love linear algebra applied within the realms of geometry.
         x1, x2, x3, x4 = float(v1[0]), float(v2[0]), float(v3[0]), float(v4[0])
         y1, y2, y3, y4 = float(v1[1]), float(v2[1]), float(v3[1]), float(v4[1])
-        #This is mostly the same as the line_intersection
+        # This is mostly the same as the line_intersection
         u = (x1 * y2 - y1 * x2)
         v = (x3 * y4 - y3 * x4)
         denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
@@ -381,7 +381,7 @@ class Vector(list):
 
         px = (u * (x3 - x4) - (x1 - x2) * v) / denom
         py = (u * (y3 - y4) - (y1 - y2) * v) / denom
-        #Here are the new bits
+        # Here are the new bits
         c1 = (x1 <= px <= x2) or (x2 <= px <= x1)
         c2 = (y1 <= py <= y2) or (y2 <= py <= y1)
         c3 = (x3 <= px <= x4) or (x4 <= px <= x3)

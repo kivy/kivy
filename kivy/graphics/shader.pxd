@@ -1,6 +1,6 @@
-from c_opengl cimport GLuint
-from transformation cimport Matrix
-from vertex cimport VertexFormat
+from kivy.graphics.cgl cimport GLuint
+from kivy.graphics.transformation cimport Matrix
+from kivy.graphics.vertex cimport VertexFormat
 
 cdef class ShaderSource:
     cdef int shader

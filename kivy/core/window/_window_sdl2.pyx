@@ -1,15 +1,17 @@
 include "../../../kivy/lib/sdl2.pxi"
-include "../../../kivy/graphics/config.pxi"
+include "config.pxi"
 
 from libc.string cimport memcpy
 from os import environ
 from kivy.config import Config
+from kivy.logger import Logger
+from kivy import platform
+from kivy.graphics.cgl import cgl_get_backend_name
 
+from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 
-cdef int _event_filter(void *userdata, SDL_Event *event):
-    cdef _WindowSDL2Storage win
-    win = <_WindowSDL2Storage>userdata
-    return win.cb_event_filter(event)
+cdef int _event_filter(void *userdata, SDL_Event *event) with gil:
+    return (<_WindowSDL2Storage>userdata).cb_event_filter(event)
 
 
 cdef class _WindowSDL2Storage:
@@ -91,17 +93,22 @@ cdef class _WindowSDL2Storage:
         else:
             orientations = <bytes>environ.get('KIVY_ORIENTATION',
                 'LandscapeLeft LandscapeRight')
-        SDL_SetHint(SDL_HINT_ORIENTATIONS, orientations)
+        SDL_SetHint(SDL_HINT_ORIENTATIONS, <bytes>orientations)
 
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16)
-        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1)
+        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8)
         SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8)
         SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8)
         SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8)
         SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8)
         SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 0)
         SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1)
+
+        if cgl_get_backend_name() == "angle_sdl2":
+            Logger.info("Window: Activate GLES2/ANGLE context")
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, 4)
+            SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "none")
 
         if x is None:
             x = SDL_WINDOWPOS_UNDEFINED
@@ -120,7 +127,7 @@ cdef class _WindowSDL2Storage:
             self.win = SDL_CreateWindow(NULL, x, y, width, height,
                                         self.win_flags)
             if not self.win:
-                # if an error occured, create window without multisampling:
+                # if an error occurred, create window without multisampling:
                 SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0)
                 SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0)
                 self.win = SDL_CreateWindow(NULL, x, y, width, height,
@@ -135,9 +142,10 @@ cdef class _WindowSDL2Storage:
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2)
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0)
 
-        self.ctx = SDL_GL_CreateContext(self.win)
-        if not self.ctx:
-            self.die()
+        if cgl_get_backend_name() != "mock":
+            self.ctx = SDL_GL_CreateContext(self.win)
+            if not self.ctx:
+                self.die()
         SDL_JoystickOpen(0)
 
         SDL_SetEventFilter(_event_filter, <void *>self)
@@ -162,7 +170,7 @@ cdef class _WindowSDL2Storage:
         cdef SDL_DisplayMode mode
         cdef int draw_w, draw_h
         SDL_GetWindowDisplayMode(self.win, &mode)
-        if USE_IOS:
+        if USE_IOS and self.ctx:
             SDL_GL_GetDrawableSize(self.win, &draw_w, &draw_h)
             mode.w = draw_w
             mode.h = draw_h
@@ -210,21 +218,65 @@ cdef class _WindowSDL2Storage:
         IF not USE_IOS:
             SDL_SetWindowFullscreen(self.win, mode)
 
-    def set_window_title(self, str title):
+    def set_window_title(self,  title):
         SDL_SetWindowTitle(self.win, <bytes>title.encode('utf-8'))
 
-    def set_window_icon(self, str filename):
+    def set_window_icon(self, filename):
         icon = IMG_Load(<bytes>filename.encode('utf-8'))
         SDL_SetWindowIcon(self.win, icon)
 
     def teardown_window(self):
-        SDL_GL_DeleteContext(self.ctx)
+        if self.ctx != NULL:
+            SDL_GL_DeleteContext(self.ctx)
+            self.ctx = NULL
         SDL_DestroyWindow(self.win)
         SDL_Quit()
 
-    def show_keyboard(self):
-        if not SDL_IsTextInputActive():
+    def show_keyboard(self, system_keyboard, softinput_mode):
+        if SDL_IsTextInputActive():
+            return
+        cdef SDL_Rect *rect = <SDL_Rect *>PyMem_Malloc(sizeof(SDL_Rect))
+        if not rect:
+            raise MemoryError('Memory error in rect allocation')
+        try:
+            if platform == 'android':
+                # This could probably be safely done on every platform
+                # (and should behave correctly with e.g. the windows
+                # software keyboard), but this hasn't been tested
+
+                wx, wy = self.window_size
+
+                # Note Android's coordinate system has y=0 at the top
+                # of the screen
+
+                if softinput_mode == 'below_target':
+                    target = system_keyboard.target
+                    rect.y = max(0, wy - target.to_window(0, target.top)[1]) if target else 0
+                    rect.x = max(0, target.to_window(target.x, 0)[0]) if target else 0
+                    rect.w = max(0, target.width) if target else 0
+                    rect.h = max(0, target.height) if target else 0
+                    SDL_SetTextInputRect(rect)
+                elif softinput_mode == 'pan':
+                    # tell Android the TextInput is at the screen
+                    # bottom, so that it always pans
+                    rect.y = wy - 5
+                    rect.x = 0
+                    rect.w = wx
+                    rect.h = 5
+                    SDL_SetTextInputRect(rect)
+                else:
+                    # Supporting 'resize' needs to call the Android
+                    # API to set ADJUST_RESIZE mode, and change the
+                    # java bootstrap to a different root Layout.
+                    rect.y = 0
+                    rect.x = 0
+                    rect.w = 10
+                    rect.h = 1
+                    SDL_SetTextInputRect(rect)
+
             SDL_StartTextInput()
+        finally:
+            PyMem_Free(<void *>rect)
 
     def hide_keyboard(self):
         if SDL_IsTextInputActive():
@@ -234,12 +286,16 @@ cdef class _WindowSDL2Storage:
         return SDL_IsTextInputActive()
 
     def wait_event(self):
-        SDL_WaitEvent(NULL)
+        with nogil:
+            SDL_WaitEvent(NULL)
 
     def poll(self):
         cdef SDL_Event event
+        cdef int rv
 
-        if SDL_PollEvent(&event) == 0:
+        with nogil:
+            rv = SDL_PollEvent(&event)
+        if rv == 0:
             return False
 
         action = None
@@ -303,6 +359,8 @@ cdef class _WindowSDL2Storage:
                 action = ('windowresized', event.window.data1, event.window.data2)
             elif event.window.event == SDL_WINDOWEVENT_MINIMIZED:
                 action = ('windowminimized', )
+            elif event.window.event == SDL_WINDOWEVENT_MAXIMIZED:
+                action = ('windowmaximized', )
             elif event.window.event == SDL_WINDOWEVENT_RESTORED:
                 action = ('windowrestored', )
             elif event.window.event == SDL_WINDOWEVENT_SHOWN:
@@ -351,6 +409,11 @@ cdef class _WindowSDL2Storage:
 
         cdef SDL_Surface *flipped_surface = flipVert(surface)
         IMG_SavePNG(flipped_surface, real_filename)
+
+    def grab_mouse(self, grab):
+        SDL_SetWindowGrab(self.win, SDL_TRUE if grab else SDL_FALSE)
+
+
 
     property window_size:
         def __get__(self):

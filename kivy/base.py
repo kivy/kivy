@@ -5,7 +5,7 @@ Kivy Base
 
 This module contains core Kivy functionality and is not intended for end users.
 Feel free to look though it, but calling any of these methods directly may well
-result in unpredicatable behavior.
+result in unpredictable behavior.
 
 Event loop management
 ---------------------
@@ -71,7 +71,7 @@ class ExceptionManagerBase:
 
     def add_handler(self, cls):
         '''Add a new exception handler to the stack.'''
-        if not cls in self.handlers:
+        if cls not in self.handlers:
             self.handlers.append(cls)
 
     def remove_handler(self, cls):
@@ -80,13 +80,14 @@ class ExceptionManagerBase:
             self.handlers.remove(cls)
 
     def handle_exception(self, inst):
-        '''Called when an exception occured in the runTouchApp() main loop.'''
+        '''Called when an exception occurred in the runTouchApp() main loop.'''
         ret = self.policy
         for handler in self.handlers:
             r = handler.handle_exception(inst)
             if r == ExceptionManagerBase.PASS:
                 ret = r
         return ret
+
 
 #: Instance of a :class:`ExceptionManagerBase` implementation.
 ExceptionManager = register_context('ExceptionManager', ExceptionManagerBase)
@@ -147,7 +148,7 @@ class EventLoopBase(EventDispatcher):
     def add_event_listener(self, listener):
         '''Add a new event listener for getting touch events.
         '''
-        if not listener in self.event_listeners:
+        if listener not in self.event_listeners:
             self.event_listeners.append(listener)
 
     def remove_event_listener(self, listener):
@@ -202,6 +203,17 @@ class EventLoopBase(EventDispatcher):
         '''Remove a postproc module.'''
         if mod in self.postproc_modules:
             self.postproc_modules.remove(mod)
+
+    def remove_android_splash(self, *args):
+        '''Remove android presplash in SDL2 bootstrap.'''
+        try:
+            from android import remove_presplash
+            remove_presplash()
+        except ImportError:
+            Logger.error(
+                'Base: Failed to import "android" module. '
+                'Could not remove android presplash.')
+            return
 
     def post_dispatch_input(self, etype, me):
         '''This function is called by dispatch_input() when we want to dispatch
@@ -379,6 +391,7 @@ class EventLoopBase(EventDispatcher):
         after all input providers have been started.'''
         pass
 
+
 #: EventLoop instance
 EventLoop = EventLoopBase()
 
@@ -421,7 +434,7 @@ def runTouchApp(widget=None, slave=False):
         `widget + slave`
             No event dispatching is done. This will be your job but
             we try to get the window (must be created by you beforehand)
-            and add the widget to it. Very usefull for embedding Kivy
+            and add the widget to it. Very useful for embedding Kivy
             in another toolkit. (like Qt, check kivy-designed)
 
     '''
@@ -465,6 +478,10 @@ def runTouchApp(widget=None, slave=False):
     Logger.info('Base: Start application main loop')
     EventLoop.start()
 
+    # remove presplash on the next frame
+    if platform == 'android':
+        Clock.schedule_once(EventLoop.remove_android_splash)
+
     # we are in a slave mode, don't do dispatching.
     if slave:
         return
@@ -477,7 +494,7 @@ def runTouchApp(widget=None, slave=False):
     #    So, we are executing the dispatching function inside
     #    a redisplay event.
     #
-    # 2. if no window is created, we are dispatching event lopp
+    # 2. if no window is created, we are dispatching event loop
     #    ourself (previous behavior.)
     #
     try:

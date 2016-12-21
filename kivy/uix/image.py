@@ -52,6 +52,7 @@ from kivy.resources import resource_find
 from kivy.properties import StringProperty, ObjectProperty, ListProperty, \
     AliasProperty, BooleanProperty, NumericProperty
 from kivy.logger import Logger
+from kivy.compat import PY2
 
 # delayed imports
 Loader = None
@@ -70,7 +71,7 @@ class Image(Widget):
 
     texture = ObjectProperty(None, allownone=True)
     '''Texture object of the image. The texture represents the original, loaded
-    image texture. It is streched and positioned during rendering according to
+    image texture. It is stretched and positioned during rendering according to
     the :attr:`allow_stretch` and :attr:`keep_ratio` properties.
 
     Depending of the texture creation, the value will be a
@@ -252,11 +253,15 @@ class Image(Widget):
             if self._coreimage is not None:
                 self._coreimage.unbind(on_texture=self._on_tex_change)
             try:
+                if PY2:
+                    filename = filename.decode('utf-8')
                 self._coreimage = ci = CoreImage(filename, mipmap=mipmap,
                                                  anim_delay=self.anim_delay,
                                                  keep_data=self.keep_data,
                                                  nocache=self.nocache)
             except:
+                Logger.error('Image: Error loading texture {filename}'.
+                                    format(filename=self.source))
                 self._coreimage = ci = None
 
             if ci:
@@ -305,9 +310,9 @@ class Image(Widget):
         except AttributeError:
             pass
 
-        olsource = self.source
+        oldsource = self.source
         self.source = ''
-        self.source = olsource
+        self.source = oldsource
 
     def on_nocache(self, *args):
         if self.nocache and self._coreimage:
@@ -326,6 +331,8 @@ class AsyncImage(Image):
         particular, the :class:`~kivy.loader.ProxyImage` for more detail
         on how to handle events around asynchronous image loading.
     '''
+
+    __events__ = ('on_error', )
 
     def __init__(self, **kwargs):
         self._coreimage = None
@@ -353,6 +360,7 @@ class AsyncImage(Image):
                 anim_delay=self.anim_delay)
 
             image.bind(on_load=self._on_source_load)
+            image.bind(on_error=self._on_source_error)
             image.bind(on_texture=self._on_tex_change)
             self.texture = image.texture
 
@@ -361,6 +369,12 @@ class AsyncImage(Image):
         if not image:
             return
         self.texture = image.texture
+
+    def _on_source_error(self, instance, error=None):
+        self.dispatch('on_error', error)
+
+    def on_error(self, error):
+        pass
 
     def is_uri(self, filename):
         proto = filename.split('://', 1)[0]

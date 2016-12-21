@@ -22,6 +22,7 @@ class KvApp(App):
         Window.bind(on_keyboard=self._reload_keypress)
         return Builder.load_file(self.options['filename'])
 
+
 if __name__ == '__main__':
     import sys
     import os

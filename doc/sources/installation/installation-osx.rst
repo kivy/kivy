@@ -23,7 +23,7 @@ To install Kivy, you must:
 
     1. Download the latest version from http://kivy.org/#download
        Kivy2.7z is using using Python 2 (System Python), Kivy3.7z (Python 3)
-    2. Extract it using an archive program like http://www.kekaosx.com/en/.
+    2. Extract it using an archive program like `Keka <http://www.kekaosx.com/>`_.
     3. Copy the Kivy2.app or Kivy3.app as Kivy.app to /Applications.
        Paste the following line in the terminal::
 
@@ -59,14 +59,14 @@ That binary will be only available from the venv above, as in after you do::
 
     kivy -m pip install kivy-garden
 
-The garden lib will be only available when you activate this env.
+The garden lib will be only available when you activate this env::
 
     source /Applications/Kivy.app/Contents/Resources/venv/bin/activate
     garden install mapview
     deactivate
 
 To install binary files
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Just copy the binary to the /Applications/Kivy.app/Contents/Resources/venv/bin/ directory.
 
@@ -119,16 +119,59 @@ after you have dragged the Kivy.app into the Applications folder. To test if it 
            $ kivy yourapplication.py
 
 
-Using pip
----------
+Using Homebrew with pip
+-----------------------
 
-Alternatively you can install Kivy using the following steps:
+You can install Kivy with Homebrew and pip using the following steps:
 
     1. Install the requirements using `homebrew <http://brew.sh>`_::
 
         $ brew install sdl2 sdl2_image sdl2_ttf sdl2_mixer gstreamer
 
-    2. Install cython 0.23 and kivy using pip::
+    2. Install cython 0.23 and kivy using pip
+       (make sure to set the env variable USE_OSX_FRAMEWORKS=0, command varies by shell)::
 
         $ pip install -I Cython==0.23
         $ USE_OSX_FRAMEWORKS=0 pip install kivy
+
+    - To install the development version, use this in the second step::
+
+        $ USE_OSX_FRAMEWORKS=0 pip install https://github.com/kivy/kivy/archive/master.zip
+
+Using MacPorts with pip
+-----------------------
+
+.. note::
+
+    You will have to manually install gstreamer support if you wish to
+    support video playback in your Kivy App. The latest port documents show the
+    following `py-gst-python port <https://trac.macports.org/ticket/44813>`_.
+
+You can install Kivy with Macports and pip using the following steps:
+
+    1. Install `Macports <https://www.macports.org>`_
+
+    2. Install and set Python 3.4 as the default::
+
+        $ port install python34
+        $ port select --set python python34
+
+    3. Install and set pip as the default::
+
+        $ port install pip-34
+        $ port select --set pip pip-34
+
+    4. Install the requirements using `Macports <https://www.macports.org>`_::
+
+        $ port install libsdl2 libsdl2_image libsdl2_ttf libsdl2_mixer
+
+    5. Install cython 0.23 and kivy using pip
+       (make sure to set the env variable USE_OSX_FRAMEWORKS=0, command varies by shell)::
+
+        $ pip install -I Cython==0.23
+        $ USE_OSX_FRAMEWORKS=0 pip install kivy
+
+    - To install the development version, use this in the second step::
+
+        $ USE_OSX_FRAMEWORKS=0 pip install https://github.com/kivy/kivy/archive/master.zip
+

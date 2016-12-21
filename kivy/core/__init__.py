@@ -93,7 +93,7 @@ def core_select_lib(category, llist, create_instance=False,
     err = '\n'.join(['{} - {}: {}\n{}'.format(opt, e.__class__.__name__, e,
                    ''.join(traceback.format_tb(tb))) for opt, e, tb in errs])
     Logger.critical(
-        '{0}: Unable to find any valuable {0} provider at all!\n{1}'.format(
+        '{0}: Unable to find any valuable {0} provider.\n{1}'.format(
             category.capitalize(), err))
 
 

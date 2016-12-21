@@ -4,10 +4,8 @@ Text PIL: Draw text with PIL
 
 __all__ = ('LabelPIL', )
 
-try:
-    from PIL import Image, ImageFont, ImageDraw
-except:
-    raise
+from PIL import Image, ImageFont, ImageDraw
+
 
 from kivy.compat import text_type
 from kivy.core.text import LabelBase
@@ -28,7 +26,7 @@ class LabelPIL(LabelBase):
         except UnicodeDecodeError:
             id = '%s.%s' % (fontname, fontsize)
 
-        if not id in self._cache:
+        if id not in self._cache:
             font = ImageFont.truetype(fontname, fontsize)
             self._cache[id] = font
 

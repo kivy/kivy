@@ -64,7 +64,7 @@ class FlaskThread(threading.Thread):
         m['Python garbage'].append(len(garbage))
         m['FPS (internal)'].append(Clock.get_fps())
         m['FPS (real)'].append(Clock.get_rfps())
-        m['Events'].append(sum([len(x) for x in Clock._events]))
+        m['Events'].append(len(Clock.get_events()))
         for category in Cache._categories:
             m['Cache ' + category].append(
                 len(Cache._objects.get(category, [])))

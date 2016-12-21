@@ -49,8 +49,7 @@ The following example creates a draggable label::
 __all__ = ('DragBehavior', )
 
 from kivy.clock import Clock
-from kivy.properties import NumericProperty, ReferenceListProperty, \
-    ListProperty
+from kivy.properties import NumericProperty, ReferenceListProperty
 from kivy.config import Config
 from kivy.metrics import sp
 from functools import partial
@@ -93,7 +92,7 @@ class DragBehavior(object):
 
     :attr:`drag_timeout` is a :class:`~kivy.properties.NumericProperty` and
     defaults to the `scroll_timeout` as defined in the user
-    :class:`~kivy.config.Config` (55 milliseconds by defaut).
+    :class:`~kivy.config.Config` (55 milliseconds by default).
     '''
 
     drag_rect_x = NumericProperty(0)

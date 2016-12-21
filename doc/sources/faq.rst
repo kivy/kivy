@@ -72,7 +72,7 @@ There have been reports of crashes on Adreno 200/205 based devices.
 Apps otherwise run fine but crash when interacted with/through the screen.
 
 These reports also mentioned the issue being resolved when moving to an ICS or
-higher rom.
+higher ROM.
 
 Is it possible to have a kiosk app on android 3.0 ?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -158,24 +158,12 @@ clever optimizations to make your application run smoothly.
 Does Kivy support Python 3.x?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Yes! As of version 1.8.0 Kivy supports both Python >= 2.7 and Python >= 3.3
-with the same codebase.
+Yes! As of version 1.8.0 Kivy supports both Python >= 2.7 and Python
+>= 3.3 with the same codebase. Python 3 is also now supported by
+python-for-android.
 
-However, be aware that while Kivy will run in Python 3.3+, packaging support
-is not yet complete. If you plan to create mobile apps for Android or iOS,
-you should use Python 2.7 for now.
-
-
-I've already started with Python 3.x! Is there anything I can do?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Be patient. We're working on it. :)
-
-If you can't wait, you could try using the 3to2_ tool, which converts valid
-Python 3 syntax to Python 2. However, be warned that this tool does not work
-for all Python 3 code.
-
-.. _3to2: https://pypi.python.org/pypi/3to2
+However, be aware that while Kivy will run in Python 3.3+, our iOS
+build tools still require Python 2.7.
 
 
 How is Kivy related to PyMT?

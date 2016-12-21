@@ -39,7 +39,7 @@ False::
         print "Tesselator didn't work :("
         return
 
-After the tesselation, you have multiple ways to iterate over the result. The
+After the tessellation, you have multiple ways to iterate over the result. The
 best approach is using :data:`Tesselator.meshes` to get a format directly usable
 for a :class:`~kivy.graphics.Mesh`::
 
@@ -165,7 +165,7 @@ cdef class Tesselator:
         :param enum element_type: The result type, you can generate the
             polygons with TYPE_POLYGONS, or the contours with
             TYPE_BOUNDARY_CONTOURS. Defaults to TYPE_POLYGONS.
-        :return: 1 if the tesselation happenned, 0 otherwise.
+        :return: 1 if the tessellation happened, 0 otherwise.
         :rtype: int
 
         """
