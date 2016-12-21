@@ -43,7 +43,8 @@ except ImportError:
     # opencv 2 case (and also opencv 3, because it still uses cv2 module name)
     try:
         import cv2
-        # here missing this OSX specific highgui thing. I'm not on OSX so don't know if it is still valid in opencv >= 2
+        # here missing this OSX specific highgui thing.
+        # I'm not on OSX so don't know if it is still valid in opencv >= 2
     except ImportError:
         raise
 
@@ -54,7 +55,8 @@ class CameraOpenCV(CameraBase):
     '''
 
     def __init__(self, **kwargs):
-        # we will need it, because constants have different access paths between ver. 2 and 3
+        # we will need it, because constants have
+        # different access paths between ver. 2 and 3
         try:
             self.opencvMajorVersion = int(cv.__version__[0])
         except NameError:
@@ -91,9 +93,9 @@ class CameraOpenCV(CameraBase):
             # and get frame to check if it's ok
             frame = hg.cvQueryFrame(self._device)
             # Just set the resolution to the frame we just got, but don't use
-            # self.resolution for that as that would cause an infinite recursion
-            # with self.init_camera (but slowly as we'd have to always get a
-            # frame).
+            # self.resolution for that as that would cause an infinite
+            # recursion with self.init_camera (but slowly as we'd have to
+            # always get a frame).
             self._resolution = (int(frame.width), int(frame.height))
             # get fps
             self.fps = cv.GetCaptureProperty(self._device, cv.CV_CAP_PROP_FPS)
@@ -109,7 +111,8 @@ class CameraOpenCV(CameraBase):
             # and get frame to check if it's ok
             ret, frame = self._device.read()
 
-            # source: http://stackoverflow.com/questions/32468371/video-capture-propid-parameters-in-opencv
+            # source:
+            # http://stackoverflow.com/questions/32468371/video-capture-propid-parameters-in-opencv # noqa
             self._resolution = (int(frame.shape[1]), int(frame.shape[0]))
             # get fps
             self.fps = self._device.get(PROPERTY_FPS)
