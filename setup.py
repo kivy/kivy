@@ -105,6 +105,7 @@ c_options = OrderedDict()
 c_options['use_rpi'] = platform == 'rpi'
 c_options['use_mali'] = platform == 'mali'
 c_options['use_egl'] = False
+c_options['use_opengl_es2'] = None
 c_options['use_opengl_mock'] = environ.get('READTHEDOCS', None) == 'True'
 c_options['use_sdl2'] = None
 c_options['use_ios'] = False
@@ -337,6 +338,39 @@ try:
         cmdclass['build_portable'] = OSXPortableBuild
 except ImportError:
     print('User distribution detected, avoid portable command.')
+
+# Detect which opengl version headers to use
+if platform in ('android', 'darwin', 'ios', 'rpi', 'mali'):
+    c_options['use_opengl_es2'] = True
+elif platform != 'win32':
+    if c_options['use_opengl_es2'] is None:
+        GLES = environ.get('GRAPHICS') == 'GLES'
+        OPENGL = environ.get('GRAPHICS') == 'OPENGL'
+        if GLES:
+            c_options['use_opengl_es2'] = True
+        elif OPENGL:
+            c_options['use_opengl_es2'] = False
+        else:
+            # auto detection of GLES headers
+            default_header_dirs = ['/usr/include', join(
+                environ.get('LOCALBASE', '/usr/local'), 'include')]
+            c_options['use_opengl_es2'] = False
+            for hdir in default_header_dirs:
+                filename = join(hdir, 'GLES2', 'gl2.h')
+                if exists(filename):
+                    c_options['use_opengl_es2'] = True
+                    print('NOTE: Found GLES 2.0 headers at {0}'.format(
+                        filename))
+                    break
+            if not c_options['use_opengl_es2']:
+                print('NOTE: Not found GLES 2.0 headers at: {}'.format(
+                    default_header_dirs))
+                print(
+                    '      Please contact us if your distribution '
+                    'uses an alternative path for the headers.')
+
+print('Using this graphics system: {}'.format(
+['OpenGL', 'OpenGL ES 2'][int(c_options['use_opengl_es2'] or False)]))
 
 # check if we are in a kivy-ios build
 if platform == 'ios':
