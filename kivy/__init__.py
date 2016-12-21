@@ -250,9 +250,16 @@ kivy_usermodules_dir = ''
 
 # if there are deps, import them so they can do their magic.
 import kivy.deps
+_packages = []
 for importer, modname, ispkg in pkgutil.iter_modules(kivy.deps.__path__):
     if not ispkg:
         continue
+    if modname.startswith('gst'):
+        _packages.insert(0, (importer, modname))
+    else:
+        _packages.append((importer, modname))
+
+for importer, modname in _packages:
     try:
         importer.find_module(modname).load_module(modname)
     except ImportError as e:
