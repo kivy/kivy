@@ -344,7 +344,7 @@ if platform in ('android', 'darwin', 'ios', 'rpi', 'mali'):
     c_options['use_opengl_es2'] = True
 elif c_options['use_opengl_es2'] is None:
     c_options['use_opengl_es2'] = \
-        environ.get('KIVY_GRAPHICS').lower() == 'gles'
+        environ.get('KIVY_GRAPHICS', '').lower() == 'gles'
 
 print('Using this graphics system: {}'.format(
 ['OpenGL', 'OpenGL ES 2'][int(c_options['use_opengl_es2'] or False)]))
