@@ -76,8 +76,6 @@ documentation.
 
     This code is still experimental, and its API is subject to change in a
     future version.
-
-.
 '''
 
 __all__ = ('FocusBehavior', )
