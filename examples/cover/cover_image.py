@@ -5,13 +5,13 @@ from kivy.uix.image import Image
 
 
 class CoverImage(CoverBehavior, Image):
-    """Image using cover behavior
+    """Image using cover behavior.
     """
 
     def __init__(self, **kwargs):
         super(CoverImage, self).__init__(**kwargs)
         texture = self._coreimage.texture
-        self.cover_origin_size = texture.size
+        self.reference_size = texture.size
         self.texture = texture
 
 

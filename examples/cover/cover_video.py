@@ -5,7 +5,7 @@ from kivy.uix.video import Video
 
 
 class CoverVideo(CoverBehavior, Video):
-    """Video using cover behavior
+    """Video using cover behavior.
     """
 
     def _on_video_frame(self, *largs):
@@ -13,7 +13,7 @@ class CoverVideo(CoverBehavior, Video):
         if not video:
             return
         texture = video.texture
-        self.cover_origin_size = texture.size
+        self.reference_size = texture.size
         self.calculate_cover()
         self.duration = video.duration
         self.position = video.position
