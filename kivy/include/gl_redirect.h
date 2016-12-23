@@ -45,8 +45,6 @@
     #define GL_EXT_texture_buffer
     #define GL_EXT_texture_storage
 
-    #include "GLES2/gl2.h"
-    #include "GLES2/gl2ext.h"
 #else
 
 #	if __USE_OPENGL_ES2
