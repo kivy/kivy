@@ -44,8 +44,7 @@ from kivy.logger import Logger
 cdef GLES2_Context g_cgl
 cdef GLES2_Context *cgl = &g_cgl
 cdef object cgl_name = None
-cdef int kivy_opengl_es2 = platform in ('android', 'ios', 'rpi', \
-    'mali') or environ.get('KIVY_GRAPHICS', '').lower() == 'gles'
+cdef int kivy_opengl_es2 = USE_OPENGL_ES2 or environ.get('KIVY_GRAPHICS', '').lower() == 'gles'
 
 
 cpdef cgl_get_backend_name():

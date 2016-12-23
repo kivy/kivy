@@ -45,20 +45,14 @@
     #define GL_EXT_texture_buffer
     #define GL_EXT_texture_storage
 
-    #include "GLES2/gl2.h"
-    #include "GLES2/gl2ext.h"
 #else
 
-/*
 #	if __USE_OPENGL_ES2
 #		if __APPLE__
 #			include "common_subset.h"
 #		else
 #			include <GLES2/gl2.h>
 #			include <GLES2/gl2ext.h>
-#		endif
-#		ifndef GL_DEPTH24_STENCIL8
-#			define GL_DEPTH24_STENCIL8                      GL_DEPTH24_STENCIL8_OES
 #		endif
 #	else
 #		ifdef __APPLE__
@@ -73,25 +67,13 @@
 #		define GL_RGB565								0x8D62
 #		define GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS 	0x8CD9
 #   endif
-*/
 
-#		ifdef __APPLE__
-#			include <OpenGL/gl.h>
-#			include <OpenGL/glext.h>
-#		else
-#			define GL_GLEXT_PROTOTYPES
-#			include <GL/gl.h>
-#			include <GL/glext.h>
-#		endif
 
 
 #   ifndef GL_DEPTH24_STENCIL8
 #       define GL_DEPTH24_STENCIL8                      GL_DEPTH24_STENCIL8_OES
 #   endif
 
-#   define GL_SHADER_BINARY_FORMATS					0x8DF8
-#   define GL_RGB565								0x8D62
-#   define GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS 	0x8CD9
 #endif /* defined(_WIN32) */
 
 // In the webserver / unittest / buildbot case, we are compiling and running
