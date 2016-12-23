@@ -105,6 +105,7 @@ c_options = OrderedDict()
 c_options['use_rpi'] = platform == 'rpi'
 c_options['use_mali'] = platform == 'mali'
 c_options['use_egl'] = False
+c_options['use_opengl_es2'] = None
 c_options['use_opengl_mock'] = environ.get('READTHEDOCS', None) == 'True'
 c_options['use_sdl2'] = None
 c_options['use_ios'] = False
@@ -337,6 +338,16 @@ try:
         cmdclass['build_portable'] = OSXPortableBuild
 except ImportError:
     print('User distribution detected, avoid portable command.')
+
+# Detect which opengl version headers to use
+if platform in ('android', 'darwin', 'ios', 'rpi', 'mali'):
+    c_options['use_opengl_es2'] = True
+elif c_options['use_opengl_es2'] is None:
+    c_options['use_opengl_es2'] = \
+        environ.get('KIVY_GRAPHICS', '').lower() == 'gles'
+
+print('Using this graphics system: {}'.format(
+['OpenGL', 'OpenGL ES 2'][int(c_options['use_opengl_es2'] or False)]))
 
 # check if we are in a kivy-ios build
 if platform == 'ios':
