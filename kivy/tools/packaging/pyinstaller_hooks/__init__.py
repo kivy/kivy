@@ -203,7 +203,7 @@ def get_deps_minimal(exclude_ignored=True, **kwargs):
                 single_mod = True
                 mods.append('kivy.core.{0}.{0}_{1}'.format(mod_name, val))
         else:
-            # There is no `basestring` in Py3 and unicode string could reasonably be either str or bytes
+            # There is no `basestring` in Py3 
             if isinstance(val, (str, bytes)):
                 single_mod = True
                 mods.append('kivy.core.{0}.{0}_{1}'.format(mod_name, val))
