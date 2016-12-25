@@ -196,7 +196,7 @@ def get_deps_minimal(exclude_ignored=True, **kwargs):
         core_mods.remove(mod_name)
 
         mods.append(full_name)
-        if isinstance(val, basestring):
+        if isinstance(val, str):
             mods.append('kivy.core.{0}.{0}_{1}'.format(mod_name, val))
         else:
             for v in val:
