@@ -49,8 +49,10 @@ from kivy.resources import resource_find, resource_add_path
 from kivy.compat import PY2
 from kivy.setupconfig import USE_SDL2
 
-FONT = literal_eval(Config.get('kivy', 'default_font'))
-DEFAULT_FONT = FONT.pop(0)
+
+_default_font_paths = literal_eval(Config.get('kivy', 'default_font'))
+DEFAULT_FONT = _default_font_paths.pop(0)
+
 
 FONT_REGULAR = 0
 FONT_ITALIC = 1
@@ -780,8 +782,4 @@ if 'KIVY_DOC' not in os.environ:
         sys.exit(1)
 
 # For the first initialization, register the default font
-    Label.register(DEFAULT_FONT,
-                   FONT[FONT_REGULAR],
-                   FONT[FONT_ITALIC],
-                   FONT[FONT_BOLD],
-                   FONT[FONT_BOLDITALIC])
+    Label.register(DEFAULT_FONT, *_default_font_paths)
