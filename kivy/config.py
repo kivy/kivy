@@ -192,6 +192,11 @@ Available configuration tokens
         time.
     `kivy_clock`: one of `default`, `interrupt`, `free_all`, `free_only`
         The clock type to use with kivy. See :mod:`kivy.clock`.
+    `default_font`: list, defaults to ['Roboto',
+    'data/fonts/Roboto-Regular.ttf', 'data/fonts/Roboto-Italic.ttf',
+    'data/fonts/Roboto-Bold.ttf', 'data/fonts/Roboto-BoldItalic.ttf']
+
+        Default font used for widgets displaying any text.
 
 :input:
 
@@ -266,6 +271,7 @@ Available configuration tokens
 .. versionchanged:: 1.9.2
     `min_state_time` has been added to the `graphics` section.
     `kivy_clock` has been added to the kivy section
+    `default_font` has beed added to the kivy section
 
 .. versionchanged:: 1.9.0
     `borderless` and `window_state` have been added to the graphics section.
@@ -312,7 +318,7 @@ from weakref import ref
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 16
+KIVY_CONFIG_VERSION = 17
 
 Config = None
 '''The default Kivy configuration object. This is a :class:`ConfigParser`
@@ -804,6 +810,14 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 15:
             Config.setdefault('kivy', 'kivy_clock', 'default')
+
+        elif version == 16:
+            Config.setdefault('kivy', 'default_font', [
+                'Roboto',
+                'data/fonts/Roboto-Regular.ttf',
+                'data/fonts/Roboto-Italic.ttf',
+                'data/fonts/Roboto-Bold.ttf',
+                'data/fonts/Roboto-BoldItalic.ttf'])
 
         # elif version == 1:
         #    # add here the command for upgrading from configuration 0 to 1

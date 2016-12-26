@@ -36,9 +36,11 @@ __all__ = ('LabelBase', 'Label')
 
 import re
 import os
+from ast import literal_eval
 from functools import partial
 from copy import copy
 from kivy import kivy_data_dir
+from kivy.config import Config
 from kivy.utils import platform
 from kivy.graphics.texture import Texture
 from kivy.core import core_select_lib
@@ -47,7 +49,8 @@ from kivy.resources import resource_find, resource_add_path
 from kivy.compat import PY2
 from kivy.setupconfig import USE_SDL2
 
-DEFAULT_FONT = 'Roboto'
+FONT = literal_eval(Config.get('kivy', 'default_font'))
+DEFAULT_FONT = FONT.pop(0)
 
 FONT_REGULAR = 0
 FONT_ITALIC = 1
@@ -777,8 +780,8 @@ if 'KIVY_DOC' not in os.environ:
         sys.exit(1)
 
 # For the first initialization, register the default font
-    Label.register('Roboto',
-                   'data/fonts/Roboto-Regular.ttf',
-                   'data/fonts/Roboto-Italic.ttf',
-                   'data/fonts/Roboto-Bold.ttf',
-                   'data/fonts/Roboto-BoldItalic.ttf')
+    Label.register(DEFAULT_FONT,
+                   FONT[FONT_REGULAR],
+                   FONT[FONT_ITALIC],
+                   FONT[FONT_BOLD],
+                   FONT[FONT_BOLDITALIC])
