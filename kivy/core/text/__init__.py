@@ -50,9 +50,11 @@ from kivy.compat import PY2
 from kivy.setupconfig import USE_SDL2
 
 
-_default_font_paths = literal_eval(Config.get('kivy', 'default_font'))
-DEFAULT_FONT = _default_font_paths.pop(0)
-
+if 'KIVY_DOC' not in os.environ:
+    _default_font_paths = literal_eval(Config.get('kivy', 'default_font'))
+    DEFAULT_FONT = _default_font_paths.pop(0)
+else:
+    DEFAULT_FONT = None
 
 FONT_REGULAR = 0
 FONT_ITALIC = 1
