@@ -347,7 +347,7 @@ elif c_options['use_opengl_es2'] is None:
         environ.get('KIVY_GRAPHICS', '').lower() == 'gles'
 
 print('Using this graphics system: {}'.format(
-['OpenGL', 'OpenGL ES 2'][int(c_options['use_opengl_es2'] or False)]))
+    ['OpenGL', 'OpenGL ES 2'][int(c_options['use_opengl_es2'] or False)]))
 
 # check if we are in a kivy-ios build
 if platform == 'ios':
