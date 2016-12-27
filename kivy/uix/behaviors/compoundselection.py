@@ -125,8 +125,17 @@ to :meth:`select_with_touch` to pass on the touch events::
 
 __all__ = ('CompoundSelectionBehavior', )
 
-from kivy.properties import NumericProperty, BooleanProperty, ListProperty
 from time import time
+from os import environ
+
+from kivy.config import Config
+from kivy.properties import NumericProperty, BooleanProperty, ListProperty
+
+
+if 'KIVY_DOC' not in environ:
+    _is_desktop = Config.getboolean('kivy', 'desktop')
+else:
+    _is_desktop = False
 
 
 class CompoundSelectionBehavior(object):
@@ -181,6 +190,16 @@ class CompoundSelectionBehavior(object):
 
     :attr:`multiselect` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
+    '''
+
+    touch_deselect_last = BooleanProperty(not _is_desktop)
+    '''Determines whether the last selected node can be deselected when
+    :attr:`multiselect` or :attr:`touch_multiselect` is False.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`touch_deselect_last` is a :class:`~kivy.properties.BooleanProperty`
+    and defaults to True on mobile, False on desktop platforms.
     '''
 
     keyboard_select = BooleanProperty(True)
@@ -313,9 +332,9 @@ class CompoundSelectionBehavior(object):
             if multiselect:
                 self.deselect_node(node)
             else:
-                len_selected_node = len(self.selected_nodes)
+                selected_node_count = len(self.selected_nodes)
                 self.clear_selection()
-                if len_selected_node > 1:
+                if not self.touch_deselect_last or selected_node_count > 1:
                     self.select_node(node)
         elif range_select:
             # keep anchor only if not multiselect (ctrl-type selection)
