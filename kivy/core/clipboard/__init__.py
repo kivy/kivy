@@ -81,14 +81,9 @@ class ClipboardBase(object):
         return self._paste()
 
     def _copy(self, data):
-        # explicitly terminate strings with a null character
-        # so as to avoid putting spurious data after the end.
-        # MS windows issue.
         self._ensure_clipboard()
         if not isinstance(data, bytes):
             data = data.encode(self._encoding)
-        if platform == 'win':
-            data += b'\x00'
         self.put(data, self._clip_mime_type)
 
     def _paste(self):
