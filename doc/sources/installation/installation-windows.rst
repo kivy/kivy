@@ -31,6 +31,11 @@ be installed for each Python version that you want to use Kivy.
 Installation
 ------------
 
+.. |gst| replace:: Google Drive
+.. |gstdev| replace:: Google Drive
+.. _gst: https://drive.google.com/drive/folders/0B1_HB9J8mZepNzZ5aW91Q0tJU2s
+.. _gstdev: https://drive.google.com/drive/folders/0B1_HB9J8mZepZzNSZVI2V19mQ00
+
 Now that python is installed, open the :ref:`windows-run-app` and make sure python
 is available by typing ``python --version``. Then, do the following to install.
 
@@ -42,7 +47,11 @@ is available by typing ``python --version``. Then, do the following to install.
    :ref:`kivy-dependencies`)::
 
      python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew
-     python -m pip install kivy.deps.gstreamer --extra-index-url https://kivy.org/downloads/packages/simple/
+
+   Wheels for gstreamer are hosted on |gst|_, you need to download
+   the file and install it with pip::
+
+       python -m pip install wheel-name
 
 #. Install kivy::
 
@@ -200,8 +209,13 @@ with git rather than a wheel there are some additional steps:
    gstreamer and gstreamer_dev if you aren't going to use video/audio)::
 
      python -m pip install cython docutils pygments pypiwin32 kivy.deps.sdl2 \
-     kivy.deps.glew kivy.deps.gstreamer kivy.deps.glew_dev kivy.deps.sdl2_dev \
-     kivy.deps.gstreamer_dev --extra-index-url https://kivy.org/downloads/packages/simple/
+     kivy.deps.glew kivy.deps.glew_dev kivy.deps.sdl2_dev \
+      --extra-index-url https://kivy.org/downloads/packages/simple/
+
+   Wheels for gstreamer-dev are hosted on |gstdev|_, you need to download the
+   file and install it with pip::
+
+       python -m pip install wheel-name
 
 #. If you downloaded or cloned kivy to an alternate location and don't want to
    install it to site-packages read the next section.
