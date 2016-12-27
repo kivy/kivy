@@ -219,7 +219,7 @@ This way, you can use the same method for initialization and reloading.
 
 __all__ = ('Texture', 'TextureRegion')
 
-include "config.pxi"
+include "../include/config.pxi"
 include "common.pxi"
 include "opengl_utils_def.pxi"
 include "img_tools.pxi"

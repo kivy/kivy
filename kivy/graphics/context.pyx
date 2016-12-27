@@ -14,7 +14,7 @@ module documentation. These are based on
 
 __all__ = ('Context',)
 
-include "config.pxi"
+include "../include/config.pxi"
 
 from cpython.array cimport array
 import gc
