@@ -680,12 +680,32 @@ class WindowBase(EventDispatcher):
     def _set_cursor_state(self, value):
         pass
 
+    def _get_window_pos(self):
+        pass
+
+    def _set_window_pos(self, x, y):
+        pass
+
+    def _get_left(self):
+        return self._get_window_pos()[0]
+
+    def _set_left(self, value):
+        pos = self._get_window_pos()
+        self._set_window_pos(value, pos[1])
+
+    def _get_top(self):
+        return self._get_window_pos()[1]
+
+    def _set_top(self, value):
+        pos = self._get_window_pos()
+        self._set_window_pos(pos[0], value)
+
     @property
     def __self__(self):
         return self
 
-    top = NumericProperty(None, allownone=True)
-    left = NumericProperty(None, allownone=True)
+    top = AliasProperty(_get_top, _set_top)
+    left = AliasProperty(_get_left, _set_left)
     position = OptionProperty('auto', options=['auto', 'custom'])
     render_context = ObjectProperty(None)
     canvas = ObjectProperty(None)
