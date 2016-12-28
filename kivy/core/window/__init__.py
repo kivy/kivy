@@ -700,12 +700,38 @@ class WindowBase(EventDispatcher):
         pos = self._get_window_pos()
         self._set_window_pos(pos[0], value)
 
+    top = AliasProperty(_get_top, _set_top)
+    '''Top position of the window.
+
+    .. note:: It's an SDL2 property with `[0, 0]` in the top-left corner.
+
+    .. versionchanged:: 1.9.2
+        :attr:`top` is now an :class:`~kivy.properties.AliasProperty`
+
+    .. versionadded:: 1.9.1
+
+    :attr:`top` is an :class:`~kivy.properties.AliasProperty` and defaults to
+    position set in :class:`~kivy.config.Config`.
+    '''
+
+    left = AliasProperty(_get_left, _set_left)
+    '''Left position of the window.
+
+    .. note:: It's an SDL2 property with `[0, 0]` in the top-left corner.
+
+    .. versionchanged:: 1.9.2
+        :attr:`left` is now an :class:`~kivy.properties.AliasProperty`
+
+    .. versionadded:: 1.9.1
+
+    :attr:`left` is an :class:`~kivy.properties.AliasProperty` and defaults to
+    position set in :class:`~kivy.config.Config`.
+    '''
+
     @property
     def __self__(self):
         return self
 
-    top = AliasProperty(_get_top, _set_top)
-    left = AliasProperty(_get_left, _set_left)
     position = OptionProperty('auto', options=['auto', 'custom'])
     render_context = ObjectProperty(None)
     canvas = ObjectProperty(None)
