@@ -84,6 +84,7 @@ class ToggleButtonBehavior(ButtonBehavior):
         super(ToggleButtonBehavior, self).__init__(**kwargs)
 
     def on_group(self, *largs):
+        #print 'Inside on_group'
         groups = ToggleButtonBehavior.__groups
         if self._previous_group:
             group = groups[self._previous_group]
@@ -107,12 +108,15 @@ class ToggleButtonBehavior(ButtonBehavior):
                 group.remove(item)
             if widget is current:
                 continue
+            widget.x = True
             widget.state = 'normal'
+            widget.x = False
 
     def _do_press(self):
         if (not self.allow_no_selection and
                 self.group and self.state == 'down'):
             return
+        self.x = True
         self._release_group(self)
         self.state = 'normal' if self.state == 'down' else 'down'
 
