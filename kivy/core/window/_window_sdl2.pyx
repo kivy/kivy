@@ -218,8 +218,16 @@ cdef class _WindowSDL2Storage:
         IF not USE_IOS:
             SDL_SetWindowFullscreen(self.win, mode)
 
-    def set_window_title(self,  title):
+    def set_window_title(self, title):
         SDL_SetWindowTitle(self.win, <bytes>title.encode('utf-8'))
+
+    def get_window_pos(self):
+        cdef int x, y
+        SDL_GetWindowPosition(self.win, &x, &y)
+        return x, y
+
+    def set_window_pos(self, x, y):
+        SDL_SetWindowPosition(self.win, x, y)
 
     def set_window_icon(self, filename):
         icon = IMG_Load(<bytes>filename.encode('utf-8'))
