@@ -69,7 +69,7 @@ or before each run of the application change it manually in the console:
     export KIVY_HOME=<folder>
 
 After the change of ``KIVY_HOME``, the folder will behave exactly the same
-as the casual ``.kivy/`` folder mentioned above.
+as the default ``.kivy/`` folder mentioned above.
 
 Understanding config tokens
 ---------------------------
