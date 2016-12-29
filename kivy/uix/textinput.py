@@ -2536,8 +2536,6 @@ class TextInput(FocusBehavior, Widget):
         cr = boundary(pos[1], 0, len(l) - 1)
         cc = boundary(pos[0], 0, len(l[cr]))
         cursor = cc, cr
-        if self._cursor == cursor:
-            return
 
         self._cursor = cursor
 
