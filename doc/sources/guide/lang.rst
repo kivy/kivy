@@ -427,13 +427,13 @@ Consider the code below in my.kv:
 
     <MyFirstWidget>:
         Button:
-            on_press: self.text(txt_inpt.text)
+            on_press: root.text(txt_inpt.text)
         TextInput:
             id: txt_inpt
 
     <MySecondWidget>:
         Button:
-            on_press: self.text(txt_inpt.text)
+            on_press: root.text(txt_inpt.text)
         TextInput:
             id: txt_inpt
 
