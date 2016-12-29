@@ -3,21 +3,21 @@
 Installation on Windows
 =======================
 
-Beginning with 1.9.1 we provide binary `wheels <https://wheel.readthedocs.org/en/latest/>`_
-for Kivy and all its dependencies to be used with an existing Python installation. See
-:ref:`install-win-dist`.
+Beginning with 1.9.1 we provide binary
+`wheels <https://wheel.readthedocs.org/en/latest/>`_
+for Kivy and all its dependencies to be used with an existing Python
+installation. See :ref:`install-win-dist`.
 
-We also provide nightly wheels generated using Kivy `master <https://github.com/kivy/kivy>`_.
-See :ref:`install-nightly-win-dist`. See also :ref:`upgrade-win-dist`. If installing kivy
-to an **alternate location** and not to site-packages, please see :ref:`alternate-win`.
+We also provide nightly wheels generated using Kivy
+`master <https://github.com/kivy/kivy>`_. See :ref:`install-nightly-win-dist`.
+See also :ref:`upgrade-win-dist`. If installing kivy to an **alternate
+location** and not to site-packages, please see :ref:`alternate-win`.
 
 .. warning::
 
-    Python 3.5 is currently not supported on Windows due to issues with MinGW and
-    Python 3.5. Support is not expected for some time. See
-    `this issue <http://bugs.python.org/issue4709>`_ for details. If required,
-    3.5 MSVC builds should be possible, but have not been attempted, please enquire
-    or let us know if you've compiled with MSVC.
+    Python 3.5 is currently not supported on Windows with GCC from MinGW due to
+    `this issue <http://bugs.python.org/issue4709>`_. You can compile with
+    :ref:`msvc-install-win` or download already compiled wheel.
 
 To use Kivy you need `Python <https://www.python.org/downloads/windows/>`_.
 Multiple versions of Python can be installed side by side, but Kivy needs to
@@ -31,8 +31,9 @@ be installed for each Python version that you want to use Kivy.
 Installation
 ------------
 
-Now that python is installed, open the :ref:`windows-run-app` and make sure python
-is available by typing ``python --version``. Then, do the following to install.
+Now that python is installed, open the :ref:`windows-run-app` and make sure
+python is available by typing ``python --version``. Then, do the following to
+install.
 
 #. Ensure you have the latest pip and wheel::
 
@@ -48,11 +49,14 @@ is available by typing ``python --version``. Then, do the following to install.
 
      python -m pip install kivy
 
-#. Add deps to PATH to avoid |nowinfound|_ (run in folder with `python.exe`)::
+#. Add deps to ``PATH`` to avoid |nowinfound|_ (run in `python.exe` folder)::
 
      set PATH=%PATH%;%cd%\share\sdl2\bin;%cd%\share\glew\bin
      
-That's it. You should now be able to ``import kivy`` in python.
+That's it. You should now be able to ``import kivy`` in python or run a basic
+example::
+
+    python share\kivy-examples\demo\showcase\main.py
 
 .. note::
 
@@ -60,58 +64,6 @@ That's it. You should now be able to ``import kivy`` in python.
     `Command prompt as administrator
     <https://technet.microsoft.com/en-us/library/cc947813%28v=ws.10%29.aspx>`_
     and trying again.
-
-.. _install-nightly-win-dist:
-
-Nightly wheel installation
---------------------------
-
-.. warning::
-
-    Using the latest development version can be risky and you might encounter
-    issues during development. If you encounter any bugs, please report them.
-
-Snapshot wheels of current Kivy master are created every night. They can be found
-`here <https://drive.google.com/folderview?id=0B1_HB9J8mZepOV81UHpDbmg5SWM&usp=sharing#list>`_.
-To use them, instead of doing ``python -m pip install kivy`` we'll install one of
-these wheels as follows.
-
-.. |cp27_win32| replace:: Python 2.7, 32bit
-.. _cp27_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp27-cp27m-win32.whl
-.. |cp34_win32| replace:: Python 3.4, 32bit
-.. _cp34_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp34-cp34m-win32.whl
-.. |cp27_amd64| replace:: Python 2.7, 64bit
-.. _cp27_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp27-cp27m-win_amd64.whl
-.. |cp34_amd64| replace:: Python 3.4, 64bit
-.. _cp34_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp34-cp34m-win_amd64.whl
-
-- |cp27_win32|_
-- |cp34_win32|_
-- |cp27_amd64|_
-- |cp34_amd64|_
-
-#. Perform steps 1 and 2 of the above Installation section.
-#. Download the appropriate wheel for your system.
-#. Rename the wheel to remove the version tag, e.g.
-   ``Kivy-1.9.1.dev0_30112015_gitc68b630-cp27-none-win32.whl``
-   should be renamed to ``Kivy-1.9.1.dev0-cp27-none-win32.whl``.
-#. Install it with ``python -m pip install wheel-name`` where ``wheel-name``
-   is the name of the renamed file.
-
-.. _kivy-dependencies:
-
-Kivy's dependencies
--------------------
-
-We offer wheels for Kivy and its dependencies separately so only desired
-dependencies need be installed. The dependencies are offered as
-`namespace <https://www.python.org/dev/peps/pep-0420/>`_
-packages of Kivy.deps, e.g. ``kivy.deps.sdl2``.
-
-Currently on Windows, we provide the following dependency
-wheels: ``gstreamer`` for audio and video and `glew` and ``sdl2`` for graphics
-and control. ``gstreamer`` is an optional dependency which only needs to be
-installed if video display or audio is desired.
 
 What are wheels, pip and wheel
 ------------------------------
@@ -129,6 +81,70 @@ installing a wheel directly, ``python -m pip install wheel_file_name`` is used,
 such as::
 
     python -m pip install C:\Kivy-1.9.1.dev-cp27-none-win_amd64.whl
+
+.. _install-nightly-win-dist:
+
+Nightly wheel installation
+--------------------------
+
+.. |cp27_win32| replace:: Python 2.7, 32bit
+.. _cp27_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp27-cp27m-win32.whl
+.. |cp34_win32| replace:: Python 3.4, 32bit
+.. _cp34_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp34-cp34m-win32.whl
+.. |cp27_amd64| replace:: Python 2.7, 64bit
+.. _cp27_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp27-cp27m-win_amd64.whl
+.. |cp34_amd64| replace:: Python 3.4, 64bit
+.. _cp34_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp34-cp34m-win_amd64.whl
+.. |cp35_win32| replace:: Python 3.5, 32bit
+.. _cp35_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp35-cp35m-win32.whl
+.. |cp35_amd64| replace:: Python 3.5, 64bit
+.. _cp35_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp35-cp35m-win_amd64.whl
+
+.. warning::
+
+    Using the latest development version can be risky and you might encounter
+    issues during development. If you encounter any bugs, please report them.
+
+Snapshot wheels of current Kivy master are created on every commit to the
+`master` branch of kivy repository. They can be found
+`here <https://kivy.org/downloads/appveyor/kivy>`_. To use them, instead of
+doing ``python -m pip install kivy`` we'll install one of these wheels as
+follows.
+
++ |cp27_win32|_
++ |cp34_win32|_
++ |cp35_win32|_
+
+- |cp27_amd64|_
+- |cp34_amd64|_
+- |cp35_amd64|_
+
+#. Perform steps 1 and 2 of the above Installation section.
+#. Download the appropriate wheel for your system.
+#. Install it with ``python -m pip install wheel-name`` where ``wheel-name``
+   is the name of the renamed file and add deps to the `PATH`.
+
+
+.. _kivy-dependencies:
+
+Kivy's dependencies
+-------------------
+
+We offer wheels for Kivy and its dependencies separately so only desired
+dependencies need be installed. The dependencies are offered as
+`namespace <https://www.python.org/dev/peps/pep-0420/>`_
+packages of Kivy.deps, e.g. ``kivy.deps.sdl2``.
+
+Currently on Windows, we provide the following dependency wheels:
+
+* `gstreamer <https://gstreamer.freedesktop.org>`_ for audio and video
+* `glew <http://glew.sourceforge.net/>`_ or
+  `angle <https://github.com/Microsoft/angle>`_ for OpenGL
+* `sdl2 <https://libsdl.org>`_ for using OpenGL and control
+
+`gstreamer` is an optional dependency which only needs to be
+installed if video display or audio is desired. `angle` is currently
+in an experimental phase as a substitute for `glew`.
 
 .. _windows-run-app:
 
@@ -166,16 +182,18 @@ Use development Kivy
     issues during development. If you encounter any bugs, please report them.
 
 To compile and install kivy using the kivy
-`source code <https://github.com/kivy/kivy/archive/master.zip>`_  or to use kivy
-with git rather than a wheel there are some additional steps:
+`source code <https://github.com/kivy/kivy/archive/master.zip>`_  or to use
+kivy with git rather than a wheel there are some additional steps:
 
-#. Both the ``python`` and the ``Python\Scripts`` directories **must** be on the path
-   They must be on the path every time you recompile kivy.
+#. Both the ``python`` and the ``Python\Scripts`` directories **must** be on
+   the path. They must be on the path every time you recompile kivy.
+
 #. Ensure you have the latest pip and wheel with::
 
      python -m pip install --upgrade pip wheel setuptools
 
-#. Create the ``python\Lib\distutils\distutils.cfg`` file and add the two lines::
+#. Create the ``python\Lib\distutils\distutils.cfg`` file and add the two
+   lines::
 
      [build]
      compiler = mingw32
@@ -205,62 +223,70 @@ with git rather than a wheel there are some additional steps:
 
 #. If you downloaded or cloned kivy to an alternate location and don't want to
    install it to site-packages read the next section.
-#. Finally compile and install kivy with ``pip install filename``, where ``filename``
-   can be a url such as ``https://github.com/kivy/kivy/archive/master.zip`` for
-   kivy master, or the full path to a local copy of a kivy zip.
+
+#. Finally compile and install kivy with ``pip install filename``, where
+   ``filename`` can be a url such as
+   ``https://github.com/kivy/kivy/archive/master.zip`` for kivy master, or the
+   full path to a local copy of a kivy.
+
+.. _msvc-install-win:
 
 MSVC
 ~~~~
 
-.. |msvc| replace:: compiler
+.. |msvc| replace:: Visual C++ Build Tools
 .. _msvc: http://landinghub.visualstudio.com/visual-cpp-build-tools
-.. |py3deps| replace:: py3.5 deps
-.. _py3deps: https://drive.google.com/drive/folders/0B1_HB9J8mZepdUl0bEZubXZiSUE
-.. |gl-back| replace:: feature-gl-backend
-.. _gl-back: https://github.com/kivy/kivy/pull/4385
-
-.. warning::
-   The branch |gl-back|_ is still in progress and some things might not work
-   when compiled with MSVC. Using it until properly merged into `master` is
-   more than experimental.
 
 Environment
 ^^^^^^^^^^^
 
-1. Get the |msvc|_ (~5GB total size)
-2. Open ``cmd.exe`` in `<python.exe dir>` (`shift` + right click)
-3. Upgrade pip and setuptools*
-4. Get sdl2 and glew |py3deps|_ and install them.
-5. ``"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"``
-6. Set environment variables::
+MSVC is used mainly to support Python 3.5 and higher versions. To compile
+for Python 3.5 there's more than one tool to use for compilation although the
+used compiler is basically the same. Visual C++ Build Tools is the smallest one
+among all of them. If you already have Visual Studio, you can skip downloading,
+``vcvarsall.bat`` and setting environment variables for compiler.
+
+#. Get |msvc|_ (~5GB total size)
+#. Open ``cmd.exe`` in `<python.exe folder>` (`shift` + right click)
+#. Upgrade pip and setuptools*
+#. Get sdl2 and glew DLLs and headers::
+
+    python -m pip install kivy.deps.sdl2 kivy.deps.glew
+    python -m pip install kivy.deps.sdl2_dev kivy.deps.glew_dev
+
+#. ``"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"``
+#. Set environment variables for compiler::
 
     set MSSdk=1
-    set USE_SDL2=1
-    REM ^^^^^^^^^^ and USE_GSTREAMER if used
     set DISTUTILS_USE_SDK=1
     set LIB=%cd%\libs;%LIB%
     set INCLUDE=%cd%\include;%INCLUDE%
 
-7. ``git clone -b feature-gl-backend https://github.com/kivy/kivy``
+#. Set environment variables for Kivy::
 
-\*The setuptools Python package version must be at least 24.0. according to
-Python's `wiki <https://wiki.python.org/moin/WindowsCompilers>`_
+    set USE_SDL2=1
+    set USE_GSTREAMER=1
+
+#. ``git clone https://github.com/kivy/kivy``
+
+\*The setuptools Python package version must be at least 24.0. according
+to Python's `wiki <https://wiki.python.org/moin/WindowsCompilers>`_
 
 Compile Kivy
 ^^^^^^^^^^^^
 
-1. ``python -m pip install kivy\`` (the local path, not "kivy" as stable from
-   pypi)
-2. Set correct paths for binaries (located in ``share\sdl2`` and
-   ``share\glew``) and run. ::
+#. Start installation of Kivy cloned from GitHub::
+
+    python -m pip install kivy\.
+
+#. Set correct paths for binaries::
 
     set PATH=%PATH%;%cd%\share\sdl2\bin;%cd%\share\glew\bin
 
-Kivy was successfully installed into `site-packages` and you can delete
-the clone. There's a tricky part about SDL2 now, because for 3.5 weren't
-created binaries yet, therefore you'll need to download `kivy.deps.sdl2`
-wheel for Python 3.4 and rename parts of sdl2 wheels from `cp34` to `cp35`
-so that is could be installed.
+If the compilation succeeds without any error, Kivy should be good to go. You
+can test it with running a basic example::
+
+    python share\kivy-examples\demo\showcase\main.py
 
 .. _alternate-win:
 
@@ -268,12 +294,18 @@ Installing Kivy to an alternate location
 ----------------------------------------
 
 In development Kivy is often installed to an alternate location and then
-installed with ``python -m pip install -e location``, which allows it to remain
-in its original location while being available to python.
-In that case extra tweaking is required. Due to a
-`issue <https://github.com/pypa/pip/issues/2677>`_ ``wheel`` and
-``pip`` install the dependency wheels to ``python\Lib\site-packages\kivy``. So they
-need to be moved to your actual kivy installation from site-packages.
+installed with::
+
+    python -m pip install -e location
+
+That allows Kivy to remain in its original location while being available
+to python, which is useful for tracking changes you make in Kivy for example
+directly with Git.
+
+To achieve using Kivy in an alternate location extra tweaking is required.
+Due to this `issue <https://github.com/pypa/pip/issues/2677>`_ ``wheel`` and
+``pip`` install the dependency wheels to ``python\Lib\site-packages\kivy``. So
+they need to be moved to your actual kivy installation from site-packages.
 
 After installing the kivy dependencies and downloading or cloning kivy to your
 favorite location, do the following:
@@ -283,14 +315,19 @@ favorite location, do the following:
    located.
 #. Remove the ``python\Lib\site-packages\kivy`` directory altogether.
 #. From ``python\Lib\site-packages`` move **all** the ``kivy.deps.*.pth``
-   files and **all** ``kivy.deps.*.dist-info` directories to ``your-path``
+   files and **all** ``kivy.deps.*.dist-info`` directories to ``your-path``
    right next to ``kivy``.
 
-Now you can safely compile kivy in its current location with ``make`` or
-``python -m pip install -e location`` or just ``python setup.py build_ext --inplace``.
+Now you can safely compile kivy in its current location with one of these
+commands::
 
-**If kivy fails to be imported,** you probably didn't delete all the *.pth files
-and and the kivy or kivy.deps* folders from site-packages.
+> make
+> mingw32-make
+> python -m pip install -e location
+> python setup.py build_ext --inplace
+
+**If kivy fails to be imported,** you probably didn't delete all the *.pth
+files and and the kivy or kivy.deps* folders from site-packages.
 
 Making Python available anywhere
 --------------------------------
@@ -300,15 +337,20 @@ There are two methods for launching python on your ``*.py`` files.
 Double-click method
 ~~~~~~~~~~~~~~~~~~~
 
-If you only have one Python installed, you can associate all ``*.py`` files with
-your python, if it isn't already, and then run it by double clicking. Or you can
-only do it once if you want to be able to choose each time:
+If you only have one Python installed, you can associate all ``*.py`` files
+with your python, if it isn't already, and then run it by double clicking. Or
+you can only do it once if you want to be able to choose each time:
 
-#. Right click on the Python file (.py file extension) of the application you want to launch
+#. Right click on the Python file (.py file extension) of the application you
+   want to launch
+
 #. From the context menu that appears, select *Open With*
-#. Browse your hard disk drive and find the file ``python.exe`` that you want to use. Select it.
-#. Select "Always open the file with..." if you don't want to repeat this procedure every time you
-   double click a .py file.
+#. Browse your hard disk drive and find the file ``python.exe`` that you want
+   to use. Select it.
+
+#. Select "Always open the file with..." if you don't want to repeat this
+   procedure every time you double click a .py file.
+
 #. You are done. Open the file.
 
 Send-to method
@@ -318,12 +360,14 @@ You can launch a .py file with our Python using the Send-to menu:
 
 #. Browse to the ``python.exe`` file you want to use. Right click on it and
    copy it.
-#. Open Windows explorer (File explorer in Windows 8), and to go the address 'shell:sendto'.
-   You should get the special Windows directory `SendTo`
+
+#. Open Windows explorer (File explorer in Windows 8), and to go the address
+   'shell:sendto'. You should get the special Windows directory `SendTo`
+
 #. Paste the previously copied ``python.exe`` file **as a shortcut**.
 #. Rename it to python <python-version>. E.g. ``python27-x64``
 
-You can now execute your application by right clicking on the .py file ->
+You can now execute your application by right clicking on the `.py` file ->
 "Send To" -> "python <python-version>".
 
 .. _upgrade-win-dist:
@@ -331,7 +375,7 @@ You can now execute your application by right clicking on the .py file ->
 Upgrading from a previous Kivy dist
 -----------------------------------
 
-To install the new wheels to a previous Kivy distribution all the files
-and folders, except for the python folder should be deleted from the distribution.
-This python folder will then be treated as a normal system installed python and all
-the steps described in :ref:`Installation` can then be continued.
+To install the new wheels to a previous Kivy distribution all the files and
+folders, except for the python folder should be deleted from the distribution.
+This python folder will then be treated as a normal system installed python and
+all the steps described in :ref:`Installation` can then be continued.
