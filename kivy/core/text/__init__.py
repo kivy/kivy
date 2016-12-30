@@ -217,6 +217,7 @@ class LabelBase(object):
 
         self.options = options
         self.texture = None
+        self.is_shortened = False
         self.resolve_font_name()
 
     @staticmethod
@@ -604,7 +605,16 @@ class LabelBase(object):
         if strip:
             text = text.strip()
         if uw is not None and options['shorten']:
-            text = self.shorten(text)
+            short_text = self.shorten(text)
+            chr = type(text)
+            flat_text = text.replace(chr('\n'), chr(' '))
+            if flat_text != short_text:
+                self.is_shortened = True
+                text = short_text
+            else:
+                self.is_shortened = False
+        else:
+            self.is_shortened = False
         self._cached_lines = lines = []
         if not text:
             return 0, 0
