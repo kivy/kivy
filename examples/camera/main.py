@@ -35,19 +35,20 @@ Builder.load_string('''
         size_hint_y: None
         height: '48dp'
         on_press: root.capture()
-'''
-)
+''')
+
+
 class CameraClick(BoxLayout):
     def capture(self):
         '''
-        Function to capture the images and give them the names 
+        Function to capture the images and give them the names
         according to their captured time and date.
         '''
         camera = self.ids['camera']
         timestr = time.strftime("%Y%m%d_%H%M%S")
         camera.export_to_png("IMG_" + timestr)
         print ("Captured")
-        
+
 
 class TestCamera(App):
 
