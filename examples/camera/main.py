@@ -38,7 +38,7 @@ Builder.load_string('''
 '''
 )
 class CameraClick(BoxLayout):
-    def Capture(self):
+    def capture(self):
         '''
         Function to capture the images and give them the names 
         according to their captured time and date.
