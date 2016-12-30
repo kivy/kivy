@@ -34,7 +34,7 @@ Builder.load_string('''
         text: 'Capture'
         size_hint_y: None
         height: '48dp'
-        on_press: root.Capture()
+        on_press: root.capture()
 '''
 )
 class CameraClick(BoxLayout):
