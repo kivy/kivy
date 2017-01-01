@@ -277,3 +277,85 @@ Touch Event Management
 In order to see how touch events are controlled and propagated between 
 widgets, please refer to the
 :ref:`Widget touch event bubbling <widget-event-bubbling>` section.
+
+Joystick events
+---------------
+
+A joystick input represents raw values taken directly from physical or virtual
+controllers through SDL2 provider via these events:
+
+* SDL_JOYAXISMOTION
+* SDL_JOYHATMOTION
+* SDL_JOYBALLMOTION
+* SDL_JOYBUTTONDOWN
+* SDL_JOYBUTTONUP
+
+Each of motion events has its minimal, maximal and default value that
+can reach:
+
++-------------+----------+---------+---------+
+| Event       | Minimum  | Maximum | Default |
++=============+==========+=========+=========+
+| on_joy_axis | -32767   |  32767  |    0    |
++-------------+----------+---------+---------+
+| on_joy_hat  | (-1, -1) |  (1, 1) |  (0, 0) |
++-------------+----------+---------+---------+
+| on_joy_ball | Unknown  | Unknown | Unknown |
++-------------+----------+---------+---------+
+
+Button events, on the other hand represent basically only a state of each
+button i.e. `up` and `down`, therefore no such values are present.
+
+* on_joy_button_up
+* on_joy_button_down
+
+Joystick event basics
+~~~~~~~~~~~~~~~~~~~~~
+
+.. |dropexpl| replace:: Multiple dropfile example
+.. _dropexpl:
+   https://github.com/kivy/kivy/blob/master/examples/miscellaneous/multiple_dropfile.py
+
+Unlike touch events, joystick events are dispatched directly to the Window,
+which means there's only a single value passed for e.g. a specified axis,
+not multiple ones. This makes things harder if you want to separate input
+to different widgets, yet not impossible. You can use |dropexpl|_ as an
+inspiration.
+
+To get a joystick event, you first need to bind some function to Window
+joystick event like this::
+
+    Window.bind(on_joy_axis=self.on_joy_axis)
+
+Then you need to fetch parameters specified in
+:class:`~kivy.core.window.Window` for each event you use, for example::
+
+    def on_joy_axis(self, win, stickid, axisid, value):
+        print(win, stickid, axisid, value)
+
+A variable `stickid` is an id of a controller that sent the value, `axisid` is
+an id of an axis to which the value belongs.
+
+Joystick input
+~~~~~~~~~~~~~~
+
+Kivy should be able to fetch input from any device specified as `gamepad`,
+`joystick` or basically any other type of game controller recognized by SDL2
+provider. To make things easier, here are layouts of some common controllers
+together with ids for each part.
+
+Xbox 360
+^^^^^^^^
+
+Soon.
+
+Joystick debugging
+~~~~~~~~~~~~~~~~~~
+
+.. |vjoy| replace:: vJoy
+.. _vjoy: http://vjoystick.sourceforge.net
+
+Mostly you'd want to debug your application with multiple controllers, or
+test it against _other_ types of controllers (e.g. different brand). Such
+thing might require buying additional piece of hardware. Instead of that
+you might want to use some of available controller emulators such as |vjoy|_.
