@@ -1352,7 +1352,7 @@ def scale_dim(points, size, oneDratio):
     bbox_x, bbox_y, bbox_w, bbox_h = bounding_box(points)
 
     if bbox_h == 0 or bbox_w == 0:
-        raise MultistrokeError('scale_dim() called with invalid points')
+        raise MultistrokeError('scale_dim() called with invalid points: h:{}, w:{}'.format(bbox_h, bbox_w))
 
     # 1D or 2D gesture test
     uniformly = min(bbox_w / bbox_h, bbox_h / bbox_w) <= oneDratio
@@ -1449,7 +1449,7 @@ def bounding_box(points):
         if py > maxy:
             maxy = py
 
-    return (minx, miny, maxx - minx, maxy - miny)
+    return (minx, miny, maxx - minx + 1, maxy - miny + 1)
 
 
 def path_length(points):
