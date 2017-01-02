@@ -37,6 +37,10 @@ class Slider(Widget):
     Check module documentation for more details.
     """
 
+    value_range = None
+    '''Value Range just for checking purpose
+    '''
+
     value = NumericProperty(0.)
     '''Current value used for the slider.
 
