@@ -205,8 +205,11 @@ class Sound(EventDispatcher):
 
     def seek(self, position):
         '''Go to the <position> (in seconds).
+
         .. note::
-            Most sound providers can not seek when the audio is stopped. Play then seek.'''
+            Most sound providers cannot seek when the audio is stopped.
+            Play then seek.
+        '''
         pass
 
     def on_play(self):
