@@ -325,6 +325,7 @@ class TextInputCutCopyPaste(Bubble):
             for child in self.content.children:
                 if ref(child) in touch.grab_list:
                     touch.grab_current = child
+                    break
             return super(TextInputCutCopyPaste, self).on_touch_up(touch)
         finally:
             touch.pop()
