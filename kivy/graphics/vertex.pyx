@@ -1,7 +1,7 @@
 
 __all__ = ('VertexFormat', 'VertexFormatException')
 
-include "config.pxi"
+include "../include/config.pxi"
 include "common.pxi"
 
 from kivy.graphics.cgl cimport GL_FLOAT, GLfloat

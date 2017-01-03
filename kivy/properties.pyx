@@ -214,7 +214,7 @@ __all__ = ('Property',
            'OptionProperty', 'ReferenceListProperty', 'AliasProperty',
            'DictProperty', 'VariableListProperty', 'ConfigParserProperty')
 
-include "config.pxi"
+include "include/config.pxi"
 
 
 from weakref import ref

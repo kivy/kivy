@@ -67,7 +67,7 @@ But it's up to you.
 
 __all__ = ('Fbo', )
 
-include "config.pxi"
+include "../include/config.pxi"
 include "opcodes.pxi"
 
 from os import environ

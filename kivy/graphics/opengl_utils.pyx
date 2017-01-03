@@ -13,7 +13,7 @@ __all__ = ('gl_get_extensions', 'gl_has_extension',
         'gl_get_version', 'gl_get_version_minor', 'gl_get_version_major',
         'GLCAP_BGRA', 'GLCAP_NPOT', 'GLCAP_S3TC', 'GLCAP_DXT1', 'GLCAP_ETC1')
 
-include "config.pxi"
+include "../include/config.pxi"
 include "opengl_utils_def.pxi"
 
 from kivy.graphics.cgl cimport *

@@ -1,5 +1,5 @@
 from kivy.logger import Logger
-include "config.pxi"
+include "../include/config.pxi"
 
 from kivy.graphics.cgl cimport cgl
 
