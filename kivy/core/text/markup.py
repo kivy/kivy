@@ -272,6 +272,8 @@ class MarkupLabel(MarkupLabelBase):
                     h -= lines[i].h
                     i -= 1
                 del lines[i + 1:]
+        else:
+            self.is_shortened = False
 
         # now justify the text
         if options['halign'] == 'justify' and uw is not None:
