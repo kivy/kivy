@@ -55,7 +55,7 @@ __all__ = ('Triangle', 'Quad', 'Rectangle', 'RoundedRectangle', 'BorderImage', '
            'Line', 'Point', 'Mesh', 'GraphicException', 'Bezier', 'SmoothLine')
 
 
-include "config.pxi"
+include "../include/config.pxi"
 include "common.pxi"
 include "memory.pxi"
 

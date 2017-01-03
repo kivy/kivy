@@ -1,5 +1,5 @@
 include "common.pxi"
-include "config.pxi"
+include "../include/config.pxi"
 
 
 cdef extern from "gl_redirect.h":

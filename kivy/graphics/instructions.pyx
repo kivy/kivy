@@ -12,7 +12,7 @@ __all__ = ('Instruction', 'InstructionGroup',
            'Canvas', 'CanvasBase',
            'RenderContext', 'Callback')
 
-include "config.pxi"
+include "../include/config.pxi"
 include "opcodes.pxi"
 
 from kivy.graphics.cgl cimport *

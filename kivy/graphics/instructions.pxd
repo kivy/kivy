@@ -1,4 +1,4 @@
-include "config.pxi"
+include "../include/config.pxi"
 
 cdef class Instruction
 cdef class InstructionGroup

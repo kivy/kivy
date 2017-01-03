@@ -20,7 +20,7 @@ instructions like this example::
 __all__ = ('ClearColor', 'ClearBuffers')
 
 
-include "config.pxi"
+include "../include/config.pxi"
 include "opcodes.pxi"
 
 from kivy.graphics.cgl cimport *

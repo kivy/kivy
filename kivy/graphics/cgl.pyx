@@ -33,7 +33,7 @@ system:
   used on the android, ios, rpi, and mali OSs.
 """
 
-include "config.pxi"
+include "../include/config.pxi"
 
 from sys import platform
 from os import environ

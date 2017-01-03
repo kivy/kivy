@@ -33,7 +33,7 @@ the circle so it does not expand beyond the widget borders.
             pos=self.center)
         ScissorPop()
 '''
-include "config.pxi"
+include "../include/config.pxi"
 include "opcodes.pxi"
 
 from kivy.graphics.cgl cimport *

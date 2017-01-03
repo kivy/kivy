@@ -59,7 +59,7 @@ shader file (of the above format), e.g. `phong.glsl`
 
 __all__ = ('Shader', )
 
-include "config.pxi"
+include "../include/config.pxi"
 include "common.pxi"
 include "gl_debug_logger.pxi"
 

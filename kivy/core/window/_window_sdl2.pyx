@@ -1,5 +1,5 @@
 include "../../../kivy/lib/sdl2.pxi"
-include "config.pxi"
+include "../../include/config.pxi"
 
 from libc.string cimport memcpy
 from os import environ

@@ -18,7 +18,7 @@ Objects in OpenGL.
 
 __all__ = ('VBO', 'VertexBatch', 'VertexFormat')
 
-include "config.pxi"
+include "../include/config.pxi"
 include "common.pxi"
 include "gl_debug_logger.pxi"
 

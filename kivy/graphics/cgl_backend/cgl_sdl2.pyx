@@ -3,7 +3,7 @@ CGL/SDL: GL backend implementation using SDL2
 """
 
 include "../common.pxi"
-include "config.pxi"
+include "../../include/config.pxi"
 
 from kivy.graphics.cgl cimport *
 

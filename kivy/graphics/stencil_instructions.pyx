@@ -95,7 +95,7 @@ Here is an example, in kv style::
 
 __all__ = ('StencilPush', 'StencilPop', 'StencilUse', 'StencilUnUse')
 
-include "config.pxi"
+include "../include/config.pxi"
 include "opcodes.pxi"
 include "gl_debug_logger.pxi"
 
