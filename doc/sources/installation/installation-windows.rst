@@ -39,11 +39,11 @@ install.
 
      python -m pip install --upgrade pip wheel setuptools
 
-#. Install the dependencies (skip gstreamer (~90MB) if not needed, see
+#. Install the dependencies (skip gstreamer (~120MB) if not needed, see
    :ref:`kivy-dependencies`)::
 
      python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew
-     python -m pip install kivy.deps.gstreamer --extra-index-url https://kivy.org/downloads/packages/simple/
+     python -m pip install kivy.deps.gstreamer
 
 #. Install kivy::
 
@@ -52,7 +52,7 @@ install.
 #. Add deps to ``PATH`` to avoid |nowinfound|_ (run in `python.exe` folder)::
 
      set PATH=%PATH%;%cd%\share\sdl2\bin;%cd%\share\glew\bin
-     
+
 That's it. You should now be able to ``import kivy`` in python or run a basic
 example::
 
@@ -219,7 +219,7 @@ kivy with git rather than a wheel there are some additional steps:
 
      python -m pip install cython docutils pygments pypiwin32 kivy.deps.sdl2 \
      kivy.deps.glew kivy.deps.gstreamer kivy.deps.glew_dev kivy.deps.sdl2_dev \
-     kivy.deps.gstreamer_dev --extra-index-url https://kivy.org/downloads/packages/simple/
+     kivy.deps.gstreamer_dev
 
 #. If you downloaded or cloned kivy to an alternate location and don't want to
    install it to site-packages read the next section.
