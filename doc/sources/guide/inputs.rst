@@ -281,8 +281,8 @@ widgets, please refer to the
 Joystick events
 ---------------
 
-A joystick input represents raw values taken directly from physical or virtual
-controllers through SDL2 provider via these events:
+A joystick input represents raw values received directly from physical
+or virtual controllers through the SDL2 provider via these events:
 
 * SDL_JOYAXISMOTION
 * SDL_JOYHATMOTION
@@ -290,7 +290,7 @@ controllers through SDL2 provider via these events:
 * SDL_JOYBUTTONDOWN
 * SDL_JOYBUTTONUP
 
-Each of motion events has its minimal, maximal and default value that
+Every motion event has a minimum, maximum and default value which
 can reach:
 
 +-------------+----------+---------+---------+
@@ -322,12 +322,12 @@ not multiple ones. This makes things harder if you want to separate input
 to different widgets, yet not impossible. You can use |dropexpl|_ as an
 inspiration.
 
-To get a joystick event, you first need to bind some function to Window
+To get a joystick event, you first need to bind some function to the Window
 joystick event like this::
 
     Window.bind(on_joy_axis=self.on_joy_axis)
 
-Then you need to fetch parameters specified in
+Then you need to fetch the parameters specified in
 :class:`~kivy.core.window.Window` for each event you use, for example::
 
     def on_joy_axis(self, win, stickid, axisid, value):
@@ -340,7 +340,7 @@ Joystick input
 ~~~~~~~~~~~~~~
 
 Kivy should be able to fetch input from any device specified as `gamepad`,
-`joystick` or basically any other type of game controller recognized by SDL2
+`joystick` or basically any other type of game controller recognized by the SDL2
 provider. To make things easier, here are layouts of some common controllers
 together with ids for each part.
 
@@ -379,6 +379,6 @@ Joystick debugging
 .. _vjoy: http://vjoystick.sourceforge.net
 
 Mostly you'd want to debug your application with multiple controllers, or
-test it against _other_ types of controllers (e.g. different brand). Such
-thing might require buying additional piece of hardware. Instead of that
-you might want to use some of available controller emulators such as |vjoy|_.
+test it against _other_ types of controllers (e.g. different brands).
+As an alternative you might want to use some of the available
+controller emulators, such as |vjoy|_.
