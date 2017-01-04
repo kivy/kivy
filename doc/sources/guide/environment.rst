@@ -102,12 +102,12 @@ KIVY_TEXT
 KIVY_VIDEO
     Implementation to use for rendering video
 
-    Values: pygst, gstplayer, pyglet, ffpyplayer, ffmpeg, gi, null
+    Values: gstplayer, ffpyplayer, ffmpeg, null
 
 KIVY_AUDIO
     Implementation to use for playing audio
 
-    Values: sdl2, gstplayer, pygst, ffpyplayer, pygame, gi, avplayer
+    Values: sdl2, gstplayer, ffpyplayer, pygame, avplayer
 
 KIVY_IMAGE
     Implementation to use for reading image
@@ -117,7 +117,7 @@ KIVY_IMAGE
 KIVY_CAMERA
     Implementation to use for reading camera
 
-    Values: videocapture, avfoundation, pygst, opencv
+    Values: avfoundation, android, opencv
 
 KIVY_SPELLING
     Implementation to use for spelling

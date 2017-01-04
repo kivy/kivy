@@ -198,13 +198,12 @@ kivy_options = {
     'window': ('egl_rpi', 'sdl2', 'pygame', 'sdl', 'x11'),
     'text': ('pil', 'sdl2', 'pygame', 'sdlttf'),
     'video': (
-        'gstplayer', 'ffmpeg', 'ffpyplayer', 'gi', 'pygst', 'pyglet',
-        'null'),
+        'gstplayer', 'ffmpeg', 'ffpyplayer', 'null'),
     'audio': (
-        'gstplayer', 'pygame', 'gi', 'pygst', 'ffpyplayer', 'sdl2',
+        'gstplayer', 'pygame', 'ffpyplayer', 'sdl2',
         'avplayer'),
     'image': ('tex', 'imageio', 'dds', 'sdl2', 'pygame', 'pil', 'ffpy', 'gif'),
-    'camera': ('opencv', 'gi', 'pygst', 'videocapture', 'avfoundation',
+    'camera': ('opencv', 'gi', 'avfoundation',
                'android'),
     'spelling': ('enchant', 'osxappkit', ),
     'clipboard': (

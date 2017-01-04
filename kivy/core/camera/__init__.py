@@ -5,6 +5,9 @@ Camera
 Core class for acquiring the camera and converting its input into a
 :class:`~kivy.graphics.texture.Texture`.
 
+.. versionchanged:: 1.9.2
+    The pygst and videocapture providers have been removed.
+
 .. versionchanged:: 1.8.0
     There is now 2 distinct Gstreamer implementation: one using Gi/Gst
     working for both Python 2+3 with Gstreamer 1.0, and one using PyGST
