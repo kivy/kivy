@@ -230,8 +230,7 @@ try:
     audio_libs += [('gstplayer', 'audio_gstplayer')]
 except ImportError:
     # audio_libs += [('gi', 'audio_gi')]
-    if PY2:
-        audio_libs += [('pygst', 'audio_pygst')]
+    pass
 audio_libs += [('ffpyplayer', 'audio_ffpyplayer')]
 if USE_SDL2:
     audio_libs += [('sdl2', 'audio_sdl2')]
