@@ -133,10 +133,7 @@ class CameraBase(EventDispatcher):
 # Load the appropriate providers
 providers = ()
 
-if platform == 'win':
-    providers += (('videocapture', 'camera_videocapture',
-                   'CameraVideoCapture'), )
-elif platform == 'macosx':
+if platform == 'macosx':
     providers += (('avfoundation', 'camera_avfoundation',
                    'CameraAVFoundation'), )
 elif platform == 'android':
