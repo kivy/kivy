@@ -863,7 +863,7 @@ data_file_prefix = 'share/kivy-'
 examples = {}
 examples_allowed_ext = ('readme', 'py', 'wav', 'png', 'jpg', 'svg', 'json',
                         'avi', 'gif', 'txt', 'ttf', 'obj', 'mtl', 'kv', 'mpg',
-                        'glsl')
+                        'glsl', 'zip')
 for root, subFolders, files in walk('examples'):
     for fn in files:
         ext = fn.split('.')[-1].lower()
