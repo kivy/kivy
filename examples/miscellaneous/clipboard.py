@@ -11,7 +11,7 @@ Builder.load_string('''
     orientation: 'vertical'
     BoxLayout:
         size_hint_y: None
-        height: self.minimum_height
+        height: self.height
         Button:
             text: 'Paste raw clipboard'
             size_hint_y: None
