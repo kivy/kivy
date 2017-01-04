@@ -373,6 +373,7 @@ class Label(Widget):
             if texture is not None:
                 self.texture = self._label.texture
                 self.texture_size = list(self.texture.size)
+            self.shortened_text = self._label.shortened_text
 
     def on_touch_down(self, touch):
         if super(Label, self).on_touch_down(touch):
@@ -734,6 +735,16 @@ class Label(Widget):
 
     :attr:`shorten_from` is a :class:`~kivy.properties.OptionProperty` and
     defaults to `center`.
+    '''
+
+    shortened_text = StringProperty(allownone=True)
+    '''This property holds the shortened form of :attr:`text`, if applicable.
+    A value of None means the text was rendered without shortening.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`shortened_text` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
     '''
 
     split_str = StringProperty('')
