@@ -155,8 +155,6 @@ def testimport(libname):
 for x in ('gst',
           'pygame',
           'pygame.midi',
-          'pyglet',
-          'videocapture',
           'squirtle',
           'PIL',
           'sdl2',

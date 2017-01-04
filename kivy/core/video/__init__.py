@@ -5,6 +5,9 @@ Video
 Core class for reading video files and managing the
 :class:`kivy.graphics.texture.Texture` video.
 
+.. versionchanged:: 1.9.2
+    The pyglet, pygst and gi providers have been removed.
+
 .. versionchanged:: 1.8.0
     There is now 2 distinct Gstreamer implementation: one using Gi/Gst
     working for both Python 2+3 with Gstreamer 1.0, and one using PyGST

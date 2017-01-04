@@ -29,6 +29,9 @@ keep this in mind when debugging or running in a
 `REPL <https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop>`_
 (Read-eval-print loop).
 
+.. versionchanged:: 1.9.2
+    The pygst and gi providers have been removed.
+
 .. versionchanged:: 1.8.0
     There are now 2 distinct Gstreamer implementations: one using Gi/Gst
     working for both Python 2+3 with Gstreamer 1.0, and one using PyGST
@@ -224,12 +227,10 @@ class Sound(EventDispatcher):
 audio_libs = []
 if platform in ('macosx', 'ios'):
     audio_libs += [('avplayer', 'audio_avplayer')]
-# from now on, prefer our gstplayer instead of gi/pygst.
 try:
     from kivy.lib.gstplayer import GstPlayer  # NOQA
     audio_libs += [('gstplayer', 'audio_gstplayer')]
 except ImportError:
-    # audio_libs += [('gi', 'audio_gi')]
     pass
 audio_libs += [('ffpyplayer', 'audio_ffpyplayer')]
 if USE_SDL2:
