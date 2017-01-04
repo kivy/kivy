@@ -480,6 +480,7 @@ class LabelBase(object):
                     break
                 ss2 = f_rev(0, s2 - offset)
 
+        self.is_shortened = True
         return chr('{0}...{1}').format(text[:e1], text[s2 + 1:])
 
     def _default_line_options(self, lines):
@@ -606,8 +607,6 @@ class LabelBase(object):
             text = text.strip()
         if uw is not None and options['shorten']:
             text = self.shorten(text)
-            chr = type(text)
-            self.is_shortened = chr('\n') not in text
         else:
             self.is_shortened = False
         self._cached_lines = lines = []
