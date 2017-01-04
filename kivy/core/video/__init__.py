@@ -205,7 +205,6 @@ try:
     from kivy.lib.gstplayer import GstPlayer  # NOQA
     video_providers += [('gstplayer', 'video_gstplayer', 'VideoGstplayer')]
 except ImportError:
-    # video_providers += [('gi', 'video_gi', 'VideoGi')]
     pass
 video_providers += [
     ('ffmpeg', 'video_ffmpeg', 'VideoFFMpeg'),
