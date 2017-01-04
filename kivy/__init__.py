@@ -145,7 +145,8 @@ def get_includes():
     .. versionadded:: 1.9.1
     '''
     root_dir = dirname(__file__)
-    return [join(root_dir, 'graphics'), join(root_dir, 'tools', 'gles_compat')]
+    return [join(root_dir, 'graphics'), join(root_dir, 'tools', 'gles_compat'),
+            join(root_dir, 'include')]
 
 
 def kivy_register_post_configuration(callback):
