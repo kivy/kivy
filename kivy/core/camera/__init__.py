@@ -141,9 +141,6 @@ elif platform == 'macosx':
                    'CameraAVFoundation'), )
 elif platform == 'android':
     providers += (('android', 'camera_android', 'CameraAndroid'), )
-else:
-    # providers += (('gi', 'camera_gi', 'CameraGi'), )
-    providers += (('pygst', 'camera_pygst', 'CameraPyGst'), )
 
 providers += (('opencv', 'camera_opencv', 'CameraOpenCV'), )
 
