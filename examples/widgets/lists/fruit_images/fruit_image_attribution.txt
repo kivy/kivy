@@ -1,42 +1,63 @@
 Attribution pages at wikipedia.org for fruit images:
 
 Apple:
-     http://en.wikipedia.org/wiki/File:Red_Apple.jpg
+    http://en.wikipedia.org/wiki/File:Red_Apple.jpg
+    by Abhijit Tembhekar from Mumbai, India, cc-by-sa-2.0
 Avocado:
-     http://en.wikipedia.org/wiki/File:Persea_americana_fruit_2.JPG
+    http://en.wikipedia.org/wiki/File:Persea_americana_fruit_2.JPG
+    by B.navez, cc-by-sa-3.0 / cc-by-sa-2.5 / cc-by-sa-2.0 / cc-by-sa-1.0 / GFDL v1.2
 Banana:
-     http://en.wikipedia.org/wiki/File:Banana-Single.jpg
+    http://en.wikipedia.org/wiki/File:Banana-Single.jpg
+    by Evan-Amos, cc-by-sa-3.0
 Cantaloupe:
-     http://en.wikipedia.org/wiki/File:Cantaloupes.jpg
+    http://en.wikipedia.org/wiki/File:Cantaloupes.jpg
+    by USDA photo by Scott Bauer. Image Number K7355-11., CC0
 Cherry:
-     http://en.wikipedia.org/wiki/File:Cherry_Stella444.jpg
+    http://en.wikipedia.org/wiki/File:Cherry_Stella444.jpg
+    by Benjamint444, edited by Fir0002, cc-by-sa-3.0 / GFDL v1.2
 Grape:
-     http://en.wikipedia.org/wiki/File:Table_grapes_on_white.jpg
+    http://en.wikipedia.org/wiki/File:Table_grapes_on_white.jpg
+    by Fir0002/Flagstaffotos, cc-by-nc / GFDL v1.2
 Grapefruit:
-     http://en.wikipedia.org/wiki/File:Citrus_paradisi_(Grapefruit,_pink)_white_bg.jpg
+    http://en.wikipedia.org/wiki/File:Citrus_paradisi_(Grapefruit,_pink)_white_bg.jpg
+    by https://commons.wikimedia.org/wiki/User:%D7%90, cc-by-sa-2.5
+    by https://commons.wikimedia.org/wiki/User:Raeky, cc-by-sa-2.5
 Honeydew:
-     http://en.wikipedia.org/wiki/File:Honeydew.jpg
+    http://en.wikipedia.org/wiki/File:Honeydew.jpg
+    by Yotoen, CC0
 Kiwifruit:
-     http://en.wikipedia.org/wiki/File:Kiwi_(Actinidia_chinensis)_1_Luc_Viatour_edit.jpg
+    http://en.wikipedia.org/wiki/File:Kiwi_(Actinidia_chinensis)_1_Luc_Viatour_edit.jpg
+    by Luc Viatour, cc-by-sa-2.5 / cc-by-sa-2.0 / cc-by-sa-1.0 / GFDL v1.2
 Lemon:
-     http://en.wikipedia.org/wiki/File:Lemon.jpg
+    http://en.wikipedia.org/wiki/File:Lemon.jpg
+    by André Karwath, cc-by-sa-2.5
 Lime:
-     http://en.wikipedia.org/wiki/File:Backyard_limes.jpg
+    http://en.wikipedia.org/wiki/File:Backyard_limes.jpg
+    by Wtstoffs, CC0
 Nectarine:
-     http://en.wikipedia.org/wiki/File:White_nectarine_and_cross_section02_edit.jpg
+    http://en.wikipedia.org/wiki/File:White_nectarine_and_cross_section02_edit.jpg
+    by Fir0002/Flagstaffotos, cc-by-nc / GFDL v1.2
 Orange:
-     http://en.wikipedia.org/wiki/File:Orange_and_cross_section.jpg
+    http://en.wikipedia.org/wiki/File:Orange_and_cross_section.jpg
+    by Fir0002/Flagstaffotos, cc-by-nc / GFDL v1.2
 Peach:
-     http://en.wikipedia.org/wiki/File:Autumn_Red_peaches.jpg
+    http://en.wikipedia.org/wiki/File:Autumn_Red_peaches.jpg
+    by Jack Dykinga, USDA, CC0
 Pear:
-     http://en.wikipedia.org/wiki/File:Alexander_Lucas_10.10.10.jpg
+    http://en.wikipedia.org/wiki/File:Alexander_Lucas_10.10.10.jpg
+    by Kombucha, GFDL / cc-by-sa-3.0 / cc-by-sa-2.5 / cc-by-sa-2.0 / cc-by-sa-1.0
 Pineapple:
-     http://en.wikipedia.org/wiki/File:Pineapple_and_cross_section.jpg
+    http://en.wikipedia.org/wiki/File:Pineapple_and_cross_section.jpg
+    by Fir0002/Flagstaffotos, cc-by-nc / GFDL v1.2
 Plum:
-     http://en.wikipedia.org/wiki/File:Plum_on_tree02.jpg
+    http://en.wikipedia.org/wiki/File:Plum_on_tree02.jpg
+    by Fir0002/Flagstaffotos, cc-by-nc / GFDL v1.2
 Strawberry:
-     http://en.wikipedia.org/wiki/File:Strawberry_gariguette_DSC03063.JPG
+    http://en.wikipedia.org/wiki/File:Strawberry_gariguette_DSC03063.JPG
+    by David Monniaux, GFDL / cc-by-sa-2.0 / cc-by-sa-2.0-fr
 Tangerine:
-     http://en.wikipedia.org/wiki/File:TangerineFruit.jpg
+    http://en.wikipedia.org/wiki/File:TangerineFruit.jpg
+    by Brent Ramerth (Wikipedia Username: barfooz), cc-by-sa-3.0
 Watermelon:
-     http://en.wikipedia.org/wiki/File:Watermelons.jpg
+    http://en.wikipedia.org/wiki/File:Watermelons.jpg
+    by babasteve at http://flickr.com/photos/64749744@N00/5563390, cc-by-2.0
