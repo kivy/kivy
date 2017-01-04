@@ -638,19 +638,17 @@ class MarkupLabel(MarkupLabelBase):
                 if word.lw:
                     line.append(word)
 
-        # if nothing to shorten
-        if uw >= sum([word.lw for word in line]):
-            self.is_shortened = False
-
         # if that fits, just return the flattened line
         lw = sum([word.lw for word in line])
         if lw <= uw:
             lh = max([word.lh for word in line] + [0]) * line_height
+            self.is_shortened = False
             return (
                 lw + 2 * xpad,
                 lh + 2 * ypad,
                 [LayoutLine(0, 0, lw, lh, 1, 0, line)]
             )
+
 
         elps_opts = copy(old_opts)
         if 'ellipsis_options' in old_opts:
@@ -816,7 +814,7 @@ class MarkupLabel(MarkupLabelBase):
         lw = sum([word.lw for word in line1])
         lh = max([word.lh for word in line1]) * line_height
         self.options = old_opts
-        if uw < sum([word.lw for word in line]):
+        if uw < lw:
             self.is_shortened = True
         return (
             lw + 2 * xpad,
