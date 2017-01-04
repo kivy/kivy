@@ -206,14 +206,10 @@ try:
     video_providers += [('gstplayer', 'video_gstplayer', 'VideoGstplayer')]
 except ImportError:
     # video_providers += [('gi', 'video_gi', 'VideoGi')]
-    if PY2:
-        # if peoples do not have gi, fallback on pygst, only for python2
-        video_providers += [
-            ('pygst', 'video_pygst', 'VideoPyGst')]
+    pass
 video_providers += [
     ('ffmpeg', 'video_ffmpeg', 'VideoFFMpeg'),
     ('ffpyplayer', 'video_ffpyplayer', 'VideoFFPy'),
-    ('pyglet', 'video_pyglet', 'VideoPyglet'),
     ('null', 'video_null', 'VideoNull')]
 
 
