@@ -605,14 +605,9 @@ class LabelBase(object):
         if strip:
             text = text.strip()
         if uw is not None and options['shorten']:
-            short_text = self.shorten(text)
+            text = self.shorten(text)
             chr = type(text)
-            flat_text = text.replace(chr('\n'), chr(' '))
-            if flat_text != short_text:
-                self.is_shortened = True
-                text = short_text
-            else:
-                self.is_shortened = False
+            self.is_shortened = chr('\n') not in text
         else:
             self.is_shortened = False
         self._cached_lines = lines = []
