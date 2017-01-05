@@ -486,24 +486,50 @@ class ActionView(BoxLayout):
             group.use_separator = value
         self.overflow_group.use_separator = value
 
+    def remove_widget(self, widget):
+        super(ActionView, self).remove_widget(widget)
+        if isinstance(widget, ActionOverflow):
+            for item in widget.list_action_item:
+                self._list_action_items.remove(item)
+
+        if widget in self._list_action_items:
+            self._list_action_items.remove(widget)
+    """
+    def clear_widgets(self, children=None):
+        '''
+        if not children:
+            children = self.children
+        remove_widget = self.remove_widget
+        for child in children[:]:
+            remove_widget(child)
+        '''
+        super(ActionView, self).clear_widgets()
+        self._list_action_items = []
+    """
     def _clear_all(self):
+        lst = []
+        for item in self._list_action_items:
+            lst.append(item)
         self.clear_widgets()
         for group in self._list_action_group:
             group.clear_widgets()
 
         self.overflow_group.clear_widgets()
         self.overflow_group.list_action_item = []
+        self._list_action_items = lst
 
     def _layout_all(self):
         # all the items can fit to the view, so expand everything
         super_add = super(ActionView, self).add_widget
         self._state = 'all'
         self._clear_all()
-        super_add(self.action_previous)
+        if self.action_previous.parent is None:
+            super_add(self.action_previous)
         if len(self._list_action_items) > 1:
-            for child in self._list_action_items[1:]:
-                child.inside_group = False
-                super_add(child)
+            for child in self._list_action_items[:]:
+                if not isinstance(child, ActionPrevious):
+                    child.inside_group = False
+                    super_add(child)
 
         for group in self._list_action_group:
             if group.mode == 'spinner':
@@ -523,7 +549,8 @@ class ActionView(BoxLayout):
         super_add = super(ActionView, self).add_widget
         self._state = 'group'
         self._clear_all()
-        super_add(self.action_previous)
+        if self.action_previous.parent is None:
+            super_add(self.action_previous)
         if len(self._list_action_items) > 1:
             for child in self._list_action_items[1:]:
                 super_add(child)
@@ -544,7 +571,8 @@ class ActionView(BoxLayout):
         hidden_items = []
         hidden_groups = []
         total_width = 0
-        super_add(self.action_previous)
+        if self.action_previous.parent is None:
+            super_add(self.action_previous)
 
         width = (self.width - self.overflow_group.pack_width -
                  self.action_previous.minimum_width)
@@ -574,7 +602,6 @@ class ActionView(BoxLayout):
 
                 else:
                     hidden_groups.append(group)
-
         group_index = len(self.children) - 1
         # if space is left then display other ActionItems
         if total_width < self.width:
@@ -600,7 +627,8 @@ class ActionView(BoxLayout):
                 over_add(child)
 
             overflow_group.show_group()
-            super_add(overflow_group)
+            if self.overflow_group.parent is None:
+                super_add(overflow_group)
 
     def on_width(self, width, *args):
         # determine the layout to use
