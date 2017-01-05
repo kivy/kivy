@@ -659,6 +659,7 @@ class MarkupLabel(MarkupLabelBase):
         # find the size of ellipsis that'll fit
         elps_s = textwidth('...')
         if elps_s[0] > uw:  # even ellipsis didn't fit...
+            self.is_shortened = True
             s = textwidth('..')
             if s[0] <= uw:
                 return (
@@ -697,6 +698,7 @@ class MarkupLabel(MarkupLabelBase):
                     old_opts['split_str'] = ''
                     res = self.shorten_post(lines, w, h, margin)
                     self.options['split_str'] = c
+                    self.is_shortened = True
                     return res
                 line1 = line[:w1]
                 last_word = line[w1]
@@ -712,6 +714,7 @@ class MarkupLabel(MarkupLabelBase):
                 lw = sum([word.lw for word in line1])
                 lh = max([word.lh for word in line1]) * line_height
                 self.options = old_opts
+                self.is_shortened = True
                 return (
                     lw + 2 * xpad,
                     lh + 2 * ypad,
@@ -759,6 +762,7 @@ class MarkupLabel(MarkupLabelBase):
                     old_opts['split_str'] = ''
                     res = self.shorten_post(lines, w, h, margin)
                     self.options['split_str'] = c
+                    self.is_shortened = True
                     return res
                 first_word = line[w2]
                 first_text = first_word.text[s2 + 1:]
@@ -773,6 +777,7 @@ class MarkupLabel(MarkupLabelBase):
                 lw = sum([word.lw for word in line1])
                 lh = max([word.lh for word in line1]) * line_height
                 self.options = old_opts
+                self.is_shortened = True
                 return (
                     lw + 2 * xpad,
                     lh + 2 * ypad,

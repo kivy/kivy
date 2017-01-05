@@ -396,6 +396,7 @@ class LabelBase(object):
         dir = opts['shorten_from'][0]
         elps = textwidth('...')[0]
         if elps > uw:
+            self.is_shortened = True
             if textwidth('..')[0] <= uw:
                 return '..'
             else:
@@ -413,6 +414,7 @@ class LabelBase(object):
                 l1 = textwidth(text[:e1])[0]
                 l2 = textwidth(text[s2 + 1:])[0]
             if e1 == -1 or l1 + l2 > uw:
+                self.is_shortened = True
                 if len(c):
                     opts['split_str'] = ''
                     res = self.shorten(text, margin)
@@ -425,6 +427,7 @@ class LabelBase(object):
 
             # both word fits, and there's at least on split_str
             if s2 == e1:  # there's only on split_str
+                self.is_shortened = True
                 return chr('{0}...{1}').format(text[:e1], text[s2 + 1:])
 
             # both the first and last word fits, and they start/end at diff pos
@@ -460,6 +463,7 @@ class LabelBase(object):
                 l1 = textwidth(text[:max(0, e1)])[0]
             # if split_str
             if s2 == -1 or l2 + l1 > uw:
+                self.is_shortened = True
                 if len(c):
                     opts['split_str'] = ''
                     res = self.shorten(text, margin)
@@ -470,6 +474,7 @@ class LabelBase(object):
 
             # both word fits, and there's at least on split_str
             if s2 == e1:  # there's only on split_str
+                self.is_shortened = True
                 return chr('{0}...{1}').format(text[:e1], text[s2 + 1:])
 
             # both the first and last word fits, and they start/end at diff pos
