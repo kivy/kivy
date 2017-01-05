@@ -12,7 +12,6 @@ import kivy
 from kivy.animation import Animation
 from kivy.app import App
 from kivy.uix.button import Button
-kivy.require('1.0.7')
 
 
 class TestApp(App):

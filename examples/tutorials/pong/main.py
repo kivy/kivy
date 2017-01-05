@@ -7,7 +7,6 @@ from kivy.properties import NumericProperty, ReferenceListProperty,\
     ObjectProperty
 from kivy.vector import Vector
 from kivy.clock import Clock
-kivy.require('1.1.1')
 
 
 class PongPaddle(Widget):

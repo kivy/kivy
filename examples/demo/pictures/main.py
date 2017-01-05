@@ -32,7 +32,6 @@ from kivy.app import App
 from kivy.logger import Logger
 from kivy.uix.scatter import Scatter
 from kivy.properties import StringProperty
-kivy.require('1.0.6')
 
 
 class Picture(Scatter):

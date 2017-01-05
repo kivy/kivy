@@ -27,7 +27,6 @@ from kivy.properties import NumericProperty
 from kivy.clock import Clock
 from kivy.vector import Vector
 from kivy.animation import Animation
-kivy.require('1.7.0')
 
 
 Hardware = autoclass('org.renpy.android.Hardware')

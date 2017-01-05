@@ -19,7 +19,6 @@ import kivy
 from kivy.uix.scatter import Scatter
 from kivy.properties import ListProperty
 from kivy.lang import Builder
-kivy.require('1.0.8')
 
 
 Builder.load_string('''
