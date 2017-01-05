@@ -1,12 +1,10 @@
-
-__all__ = ('AnimatedButton')
-
 from kivy.factory import Factory
 from kivy.uix.label import Label
 from kivy.uix.image import Image
 from kivy.graphics import *
 from kivy.properties import StringProperty, OptionProperty, \
                             ObjectProperty, BooleanProperty
+__all__ = ('AnimatedButton')
 
 
 class AnimatedButton(Label):

@@ -6,10 +6,11 @@ This example shows how to refer to an id from a Python file.
 '''
 
 import kivy
-kivy.require('1.8.0')
+
 
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
+kivy.require('1.8.0')
 
 
 class RootWidget(BoxLayout):

@@ -1,4 +1,4 @@
-__all__ = ('GestureHistoryManager', 'GestureVisualizer')
+
 
 from kivy.app import App
 from kivy.clock import Clock
@@ -14,6 +14,7 @@ from kivy.compat import PY2
 # local libraries
 from helpers import InformationPopup
 from settings import MultistrokeSettingsContainer
+__all__ = ('GestureHistoryManager', 'GestureVisualizer')
 
 
 # refuse heap permute for gestures with more strokes than 3

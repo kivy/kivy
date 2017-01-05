@@ -6,7 +6,6 @@ Simple application for reading/writing notes.
 
 '''
 
-__version__ = '1.0'
 
 import json
 from os.path import join, exists
@@ -17,6 +16,7 @@ from kivy.properties import ListProperty, StringProperty, \
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.clock import Clock
+__version__ = '1.0'
 
 
 class MutableTextInput(FloatLayout):

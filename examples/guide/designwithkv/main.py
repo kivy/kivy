@@ -1,9 +1,9 @@
 import kivy
-kivy.require('1.0.5')
 
 from kivy.uix.floatlayout import FloatLayout
 from kivy.app import App
 from kivy.properties import ObjectProperty, StringProperty
+kivy.require('1.0.5')
 
 
 class Controller(FloatLayout):

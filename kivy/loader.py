@@ -32,9 +32,6 @@ parameters:
   GPU to do per frame.
 
 '''
-
-__all__ = ('Loader', 'LoaderBase', 'ProxyImage')
-
 from kivy import kivy_data_dir
 from kivy.logger import Logger
 from kivy.clock import Clock
@@ -48,6 +45,8 @@ from os.path import join
 from os import write, close, unlink, environ
 import threading
 import mimetypes
+__all__ = ('Loader', 'LoaderBase', 'ProxyImage')
+
 
 # Register a cache for loader
 Cache.register('kv.loader', limit=500, timeout=60)

@@ -95,8 +95,7 @@ class RoundedRectangleWidget(Widget):
             Color(*ORANGE)
             RoundedRectangle(
                 pos=(200, 25),
-                radius=[(40, 20),
-                45.5, 45.5, 0],
+                radius=[(40, 20), 45.5, 45.5, 0],
                 segments=[2, 3, 3, 1], size=(125, 100))
 
             Color(*RED)

@@ -18,7 +18,16 @@ using `Cython <http://cython.org/>`_.
 
 See http://kivy.org for more information.
 '''
-
+import sys
+import kivy.deps
+import shutil
+from getopt import getopt, GetoptError
+from os import environ, mkdir
+from os.path import dirname, join, basename, exists, expanduser
+import pkgutil
+from kivy.compat import PY2
+from kivy.logger import Logger, LOG_LEVELS
+from kivy.utils import platform
 __all__ = (
     'require',
     'kivy_configure', 'kivy_register_post_configuration',
@@ -30,15 +39,6 @@ __all__ = (
 
 __version__ = '1.9.2-dev0'
 
-import sys
-import shutil
-from getopt import getopt, GetoptError
-from os import environ, mkdir
-from os.path import dirname, join, basename, exists, expanduser
-import pkgutil
-from kivy.compat import PY2
-from kivy.logger import Logger, LOG_LEVELS
-from kivy.utils import platform
 
 # internals for post-configuration
 __kivy_post_configuration = []
@@ -250,7 +250,7 @@ kivy_config_fn = ''
 kivy_usermodules_dir = ''
 
 # if there are deps, import them so they can do their magic.
-import kivy.deps
+
 _packages = []
 for importer, modname, ispkg in pkgutil.iter_modules(kivy.deps.__path__):
     if not ispkg:

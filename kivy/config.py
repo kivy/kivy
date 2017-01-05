@@ -299,13 +299,6 @@ Available configuration tokens
     removed from the widget. `keyboard_mode` and `keyboard_layout` have
     been added to the kivy section.
 '''
-
-__all__ = ('Config', 'ConfigParser')
-
-try:
-    from ConfigParser import ConfigParser as PythonConfigParser
-except ImportError:
-    from configparser import RawConfigParser as PythonConfigParser
 from os import environ
 from os.path import exists
 from kivy import kivy_config_fn
@@ -314,6 +307,13 @@ from collections import OrderedDict
 from kivy.utils import platform
 from kivy.compat import PY2, string_types
 from weakref import ref
+
+__all__ = ('Config', 'ConfigParser')
+
+try:
+    from ConfigParser import ConfigParser as PythonConfigParser
+except ImportError:
+    from configparser import RawConfigParser as PythonConfigParser
 
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 

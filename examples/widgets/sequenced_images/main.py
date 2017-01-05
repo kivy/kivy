@@ -1,5 +1,4 @@
 import kivy
-kivy.require('1.0.8')
 
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
@@ -7,6 +6,7 @@ from kivy.uix.gridlayout import GridLayout
 from uix.custom_button import AnimatedButton
 from kivy.uix.scatter import Scatter
 from kivy.properties import ObjectProperty
+kivy.require('1.0.8')
 
 
 class gifScatter(Scatter):

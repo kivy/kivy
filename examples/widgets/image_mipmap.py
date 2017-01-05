@@ -7,12 +7,12 @@ The lower image is normal, and the top image is mipmapped.
 '''
 
 import kivy
-kivy.require('1.0.7')
 
 from kivy.app import App
 from kivy.uix.scatter import ScatterPlane
 from kivy.uix.image import Image
 from os.path import join
+kivy.require('1.0.7')
 
 
 class LabelMipmapTest(App):

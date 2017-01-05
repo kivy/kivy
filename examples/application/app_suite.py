@@ -19,12 +19,12 @@ import re
 from random import choice
 
 import kivy
-kivy.require('1.8.0')  # 1.8 is when kv_directory became part of app.
+
 from kivy.app import App
 from kivy.uix.button import Button
 from kivy.lang import Builder
-
 from kivy.uix.floatlayout import FloatLayout
+kivy.require('1.8.0')  # 1.8 is when kv_directory became part of app.
 # Note that importing FloatLayout causes Kivy to execute, including
 # starting up the Logger and some other messages.
 print("** In main program, done with imports")

@@ -81,13 +81,13 @@ For flow control of animations such as stopping and cancelling, use the methods
 already in place in the animation module.
 '''
 
-__all__ = ('Animation', 'AnimationTransition')
 
 from math import sqrt, cos, sin, pi
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
 from kivy.compat import string_types, iterkeys
 from kivy.weakproxy import WeakProxy
+__all__ = ('Animation', 'AnimationTransition')
 
 
 class Animation(EventDispatcher):

@@ -1,6 +1,4 @@
-__all__ = ('MultistrokeSettingsContainer', 'MultistrokeSettingItem',
-           'MultistrokeSettingBoolean', 'MultistrokeSettingSlider',
-           'MultistrokeSettingString', 'MultistrokeSettingTitle')
+
 
 from kivy.factory import Factory
 from kivy.lang import Builder
@@ -9,6 +7,9 @@ from kivy.uix.label import Label
 from kivy.properties import (StringProperty, NumericProperty, OptionProperty,
                              BooleanProperty)
 from kivy.uix.popup import Popup
+__all__ = ('MultistrokeSettingsContainer', 'MultistrokeSettingItem',
+           'MultistrokeSettingBoolean', 'MultistrokeSettingSlider',
+           'MultistrokeSettingString', 'MultistrokeSettingTitle')
 
 Builder.load_file('settings.kv')
 
