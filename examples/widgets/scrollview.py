@@ -4,7 +4,6 @@ from kivy.app import App
 from kivy.uix.button import Button
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
-kivy.require('1.0.8')
 
 
 class ScrollViewApp(App):

@@ -2,7 +2,6 @@ import kivy
 
 from kivy.core.window import Window
 from kivy.uix.widget import Widget
-kivy.require('1.0.8')
 
 
 class MyKeyboardListener(Widget):

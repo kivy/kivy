@@ -26,7 +26,7 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.config import Config
 from kivy.base import runTouchApp
-kivy.require('1.0.8')
+
 
 if __name__ == '__main__':
 

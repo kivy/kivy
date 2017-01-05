@@ -6,7 +6,6 @@ from kivy.uix.gridlayout import GridLayout
 from uix.custom_button import AnimatedButton
 from kivy.uix.scatter import Scatter
 from kivy.properties import ObjectProperty
-kivy.require('1.0.8')
 
 
 class gifScatter(Scatter):

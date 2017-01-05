@@ -12,7 +12,6 @@ import kivy
 
 from kivy.app import App
 from kivy.uix.label import Label
-kivy.require('1.0.7')
 
 
 _long_text = ("""Lorem ipsum dolor sit amet, consectetur adipiscing elit. """
