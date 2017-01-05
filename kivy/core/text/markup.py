@@ -254,6 +254,7 @@ class MarkupLabel(MarkupLabelBase):
             )
             self.options = old_opts
 
+        self.is_shortened = False
         if shorten:
             options['_ref'] = None  # no refs for you!
             options['_anchor'] = None
@@ -280,8 +281,6 @@ class MarkupLabel(MarkupLabelBase):
                     h -= lines[i].h
                     i -= 1
                 del lines[i + 1:]
-        else:
-            self.is_shortened = False
 
         # now justify the text
         if options['halign'] == 'justify' and uw is not None:

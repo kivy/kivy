@@ -610,10 +610,11 @@ class LabelBase(object):
         text = self.text
         if strip:
             text = text.strip()
+
+        self.is_shortened = False
         if uw is not None and options['shorten']:
             text = self.shorten(text)
-        else:
-            self.is_shortened = False
+
         self._cached_lines = lines = []
         if not text:
             return 0, 0
