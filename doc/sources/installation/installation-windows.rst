@@ -25,9 +25,6 @@ be installed for each Python version that you want to use Kivy.
 
 .. _install-win-dist:
 
-.. |nowinfound| replace:: issues
-.. _nowinfound: https://github.com/kivy/kivy/issues/3957
-
 Installation
 ------------
 
@@ -48,10 +45,6 @@ install.
 #. Install kivy::
 
      python -m pip install kivy
-
-#. Add deps to ``PATH`` to avoid |nowinfound|_ (run in `python.exe` folder)::
-
-     set PATH=%PATH%;%cd%\share\sdl2\bin;%cd%\share\glew\bin
 
 That's it. You should now be able to ``import kivy`` in python or run a basic
 example::
@@ -279,10 +272,6 @@ Compile Kivy
 
     python -m pip install kivy\.
 
-#. Set correct paths for binaries::
-
-    set PATH=%PATH%;%cd%\share\sdl2\bin;%cd%\share\glew\bin
-
 If the compilation succeeds without any error, Kivy should be good to go. You
 can test it with running a basic example::
 
@@ -314,20 +303,20 @@ favorite location, do the following:
    ``your-path\kivy\deps`` where ``your-path`` is the path where your kivy is
    located.
 #. Remove the ``python\Lib\site-packages\kivy`` directory altogether.
-#. From ``python\Lib\site-packages`` move **all** the ``kivy.deps.*.pth``
-   files and **all** ``kivy.deps.*.dist-info`` directories to ``your-path``
-   right next to ``kivy``.
+#. From ``python\Lib\site-packages`` move **all** ``kivy.deps.*.dist-info``
+directories to ``your-path`` right next to ``kivy``.
 
 Now you can safely compile kivy in its current location with one of these
 commands::
 
 > make
 > mingw32-make
-> python -m pip install -e location
+> python -m pip install -e .
 > python setup.py build_ext --inplace
 
-**If kivy fails to be imported,** you probably didn't delete all the *.pth
-files and and the kivy or kivy.deps* folders from site-packages.
+**If kivy fails to be imported,** you probably didn't delete all the
+``*.dist-info`` folders and and the kivy or ``kivy.deps*`` folders from
+site-packages.
 
 Making Python available anywhere
 --------------------------------
