@@ -648,7 +648,6 @@ class MarkupLabel(MarkupLabelBase):
                 [LayoutLine(0, 0, lw, lh, 1, 0, line)]
             )
 
-
         elps_opts = copy(old_opts)
         if 'ellipsis_options' in old_opts:
             elps_opts.update(old_opts['ellipsis_options'])
