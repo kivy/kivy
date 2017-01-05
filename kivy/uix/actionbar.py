@@ -494,18 +494,7 @@ class ActionView(BoxLayout):
 
         if widget in self._list_action_items:
             self._list_action_items.remove(widget)
-    """
-    def clear_widgets(self, children=None):
-        '''
-        if not children:
-            children = self.children
-        remove_widget = self.remove_widget
-        for child in children[:]:
-            remove_widget(child)
-        '''
-        super(ActionView, self).clear_widgets()
-        self._list_action_items = []
-    """
+
     def _clear_all(self):
         lst = []
         for item in self._list_action_items:
