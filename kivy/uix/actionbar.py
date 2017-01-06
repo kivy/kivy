@@ -512,13 +512,12 @@ class ActionView(BoxLayout):
         super_add = super(ActionView, self).add_widget
         self._state = 'all'
         self._clear_all()
-        if self.action_previous.parent is None:
+        if not self.action_previous.parent:
             super_add(self.action_previous)
         if len(self._list_action_items) > 1:
-            for child in self._list_action_items[:]:
-                if not isinstance(child, ActionPrevious):
-                    child.inside_group = False
-                    super_add(child)
+            for child in self._list_action_items[1:]:
+                child.inside_group = False
+                super_add(child)
 
         for group in self._list_action_group:
             if group.mode == 'spinner':
@@ -538,7 +537,7 @@ class ActionView(BoxLayout):
         super_add = super(ActionView, self).add_widget
         self._state = 'group'
         self._clear_all()
-        if self.action_previous.parent is None:
+        if not self.action_previous.parent:
             super_add(self.action_previous)
         if len(self._list_action_items) > 1:
             for child in self._list_action_items[1:]:
@@ -560,7 +559,7 @@ class ActionView(BoxLayout):
         hidden_items = []
         hidden_groups = []
         total_width = 0
-        if self.action_previous.parent is None:
+        if not self.action_previous.parent:
             super_add(self.action_previous)
 
         width = (self.width - self.overflow_group.pack_width -
@@ -616,7 +615,7 @@ class ActionView(BoxLayout):
                 over_add(child)
 
             overflow_group.show_group()
-            if self.overflow_group.parent is None:
+            if not self.overflow_group.parent:
                 super_add(overflow_group)
 
     def on_width(self, width, *args):
