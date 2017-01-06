@@ -142,7 +142,7 @@ class Vector(list):
         return Vector(list(map(lambda x, y: x + y, self, val)))
 
     def __iadd__(self, val):
-        if type(val) in (int, float):
+        if isinstance(val, (int, float, long)):
             self.x += val
             self.y += val
         else:
@@ -157,7 +157,7 @@ class Vector(list):
         return Vector(list(map(lambda x, y: x - y, self, val)))
 
     def __isub__(self, val):
-        if type(val) in (int, float):
+        if isinstance(val, (int, float, long)):
             self.x -= val
             self.y -= val
         else:
@@ -172,7 +172,7 @@ class Vector(list):
             return Vector([x * val for x in self])
 
     def __imul__(self, val):
-        if type(val) in (int, float):
+        if isinstance(val, (int, float, long)):
             self.x *= val
             self.y *= val
         else:
@@ -208,7 +208,7 @@ class Vector(list):
             return Vector(val, val) / self
 
     def __idiv__(self, val):
-        if type(val) in (int, float):
+        if isinstance(val, (int, float, long)):
             self.x /= val
             self.y /= val
         else:
