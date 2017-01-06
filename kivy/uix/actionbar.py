@@ -496,9 +496,7 @@ class ActionView(BoxLayout):
             self._list_action_items.remove(widget)
 
     def _clear_all(self):
-        lst = []
-        for item in self._list_action_items:
-            lst.append(item)
+        lst = self._list_action_items[:]
         self.clear_widgets()
         for group in self._list_action_group:
             group.clear_widgets()
