@@ -78,13 +78,12 @@ class ToggleButtonBehavior(ButtonBehavior):
     :attr:`allow_no_selection` is a :class:`BooleanProperty` and defaults to
     `True`
     '''
-
+    check_variable = BooleanProperty(False)
     def __init__(self, **kwargs):
         self._previous_group = None
         super(ToggleButtonBehavior, self).__init__(**kwargs)
 
     def on_group(self, *largs):
-        #print 'Inside on_group'
         groups = ToggleButtonBehavior.__groups
         if self._previous_group:
             group = groups[self._previous_group]
@@ -97,6 +96,8 @@ class ToggleButtonBehavior(ButtonBehavior):
             groups[group] = []
         r = ref(self, ToggleButtonBehavior._clear_groups)
         groups[group].append(r)
+        if self.active:
+            self._release_group(self)
 
     def _release_group(self, current):
         if self.group is None:
@@ -108,15 +109,15 @@ class ToggleButtonBehavior(ButtonBehavior):
                 group.remove(item)
             if widget is current:
                 continue
-            widget.x = True
+            widget.check_variable = True
             widget.state = 'normal'
-            widget.x = False
+            widget.check_variable = False
 
     def _do_press(self):
         if (not self.allow_no_selection and
                 self.group and self.state == 'down'):
             return
-        self.x = True
+        self.check_variable = True
         self._release_group(self)
         self.state = 'normal' if self.state == 'down' else 'down'
 
