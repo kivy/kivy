@@ -489,6 +489,12 @@ class FocusBehavior(object):
             else:
                 return None
 
+    def go_left(self,*args):
+        self._get_focus_next('focus_previous')
+
+    def go_right(self,*args):
+        self._get_focus_next('focus_next')
+
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
         '''The method bound to the keyboard when the instance has focus.
 
