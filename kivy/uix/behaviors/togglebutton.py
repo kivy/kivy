@@ -78,9 +78,10 @@ class ToggleButtonBehavior(ButtonBehavior):
     :attr:`allow_no_selection` is a :class:`BooleanProperty` and defaults to
     `True`
     '''
-    check_variable = BooleanProperty(False)
+
     def __init__(self, **kwargs):
         self._previous_group = None
+        self.check_variable = BooleanProperty(False)
         super(ToggleButtonBehavior, self).__init__(**kwargs)
 
     def on_group(self, *largs):
