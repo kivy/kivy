@@ -102,20 +102,26 @@ class RangeSlider(Slider):
         if touch.is_mouse_scrolling:
             if 'down' in touch.button or 'left' in touch.button:
                 if self.step:
-                    self.value_range = min(self.max, self.value_range +
-                                            self.step)
+                    self.value_range = [min(self.max, self.value_range[0] +
+                                        self.step), min(self.max,
+                                        self.value_range[1] + self.step)]
                 else:
-                    self.value_range = min(
-                        self.max,
-                        self.value_range + (self.max - self.min) / 20)
+                    self.value_range = [min(self.max, self.value_range[0] +
+                                        (self.max - self.min) / 20),
+                                        min(self.max, self.value_range[1] +
+                                        (self.max - self.min) / 20)]
+
             if 'up' in touch.button or 'right' in touch.button:
                 if self.step:
-                    self.value_range = max(self.min, self.value_range -
-                                            self.step)
+                    self.value_range = [max(self.min, self.value_range[0] -
+                                            self.step),
+                                        max(self.min, self.value_range[1] -
+                                            self.step)]
                 else:
-                    self.value_range = max(
-                        self.min,
-                        self.value_range - (self.max - self.min) / 20)
+                    self.value_range = [max(self.min, self.value_range[0] -
+                                        (self.max - self.min) / 20),
+                                        max(self.min, self.value_range[1] -
+                                        (self.max - self.min) / 20)]
         else:
             touch.grab(self)
             i = 0 if self.orientation == 'horizontal' else 1
@@ -152,6 +158,6 @@ if __name__ == '__main__':
 
     class RangeSliderApp(App):
         def build(self):
-            return RangeSlider(padding=25, value_track=True,
-                value_track_color=[1, 0, 0, 1], value_range=[25, 75])
+            return RangeSlider(padding=25)
+
     RangeSliderApp().run()
