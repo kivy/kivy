@@ -28,7 +28,8 @@ __all__ = ('Slider', )
 from kivy.uix.widget import Widget
 from kivy.properties import (NumericProperty, AliasProperty, OptionProperty,
                              ReferenceListProperty, BoundedNumericProperty,
-                             StringProperty, ListProperty, BooleanProperty)
+                             StringProperty, ListProperty, BooleanProperty,
+                             ObjectProperty)
 
 
 class Slider(Widget):
@@ -37,9 +38,11 @@ class Slider(Widget):
     Check module documentation for more details.
     """
 
-    value_range = None
-    '''Value Range just for checking purpose
-    '''
+    value_range = ObjectProperty(None)
+    '''Value Range is used in RangeSlider class
+
+    :attr:`value_range` is a :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.'''
 
     value = NumericProperty(0.)
     '''Current value used for the slider.
