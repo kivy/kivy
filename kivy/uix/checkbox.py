@@ -155,7 +155,7 @@ class CheckBox(ToggleButtonBehavior, Widget):
     '''
 
     def on_state(self, instance, value):
-        if self.check_variable is False and self.group:
+        if (not self.check_variable) and self.group:
             self._toggle_active()
         if value == 'down':
             self.active = True
