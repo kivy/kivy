@@ -285,11 +285,15 @@ cdef class Line(VertexInstruction):
         self._bxmax = -999999999
         self._bymax = -999999999
 
+        cap = self._cap
+        if cap == LINE_CAP_SQUARE:
+            p = p[2:]
+            count -= 1
+
         if count < 2:
             self.batch.clear_data()
             return
 
-        cap = self._cap
         if self._close and count > 2:
             p = p + p[0:4]
             count += 2
