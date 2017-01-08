@@ -224,6 +224,15 @@ class VKeyboard(Scatter):
     to [2, 2, 2, 2]
     '''
 
+    font_size = NumericProperty('15dp')
+    '''font_size, specifies the size of the text of virtual keyboard.
+    It should be kept within a limit otherwise text either goes outside
+    the bounds of the key or becomes too small to read.
+
+    :attr:`font_size` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 15dp.
+    '''
+
     background_color = ListProperty([1, 1, 1, 1])
     '''Background color, in the format (r, g, b, a). If a background is
     set, the color will be combined with the background texture.
@@ -319,7 +328,6 @@ class VKeyboard(Scatter):
     have_shift = BooleanProperty(False)
     have_special = BooleanProperty(False)
     active_keys = DictProperty({})
-    font_size = NumericProperty('20dp')
     font_name = StringProperty('data/fonts/DejaVuSans.ttf')
     repeat_touch = ObjectProperty(allownone=True)
 
@@ -634,8 +642,6 @@ class VKeyboard(Scatter):
         layout_mode = self.layout_mode
 
         # draw background
-        w, h = self.size
-
         background = resource_find(self.background_disabled
                                    if self.disabled else
                                    self.background)
@@ -661,16 +667,13 @@ class VKeyboard(Scatter):
                                     border=self.key_border)
 
         # then draw the text
-        # calculate font_size
-        font_size = int(w) / 46
-        # draw
         for line_nb in range(1, layout_rows + 1):
             key_nb = 0
             for pos, size in layout_geometry['LINE_%d' % line_nb]:
                 # retrieve the relative text
                 text = layout[layout_mode + '_' + str(line_nb)][key_nb][0]
-                z = Label(text=text, font_size=font_size, pos=pos, size=size,
-                          font_name=self.font_name)
+                z = Label(text=text, font_size=self.font_size, pos=pos,
+                           size=size, font_name=self.font_name)
                 self.add_widget(z)
                 key_nb += 1
 
