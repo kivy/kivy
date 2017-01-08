@@ -224,13 +224,13 @@ class VKeyboard(Scatter):
     to [2, 2, 2, 2]
     '''
 
-    font_size = NumericProperty('15dp')
+    font_size = NumericProperty(20.)
     '''font_size, specifies the size of the text of virtual keyboard.
     It should be kept within a limit otherwise text either goes outside
     the bounds of the key or becomes too small to read.
 
     :attr:`font_size` is a :class:`~kivy.properties.NumericProperty` and
-    defaults to 15dp.
+    defaults to 20.
     '''
 
     background_color = ListProperty([1, 1, 1, 1])
