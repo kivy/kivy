@@ -459,6 +459,11 @@ class FocusBehavior(object):
             focusable.focus = False
 
     def get_focus_next(self):
+        '''This method provides the next focuses(ie self.focus_next)
+        and ponders over two cases if one hits focusable we walk through
+        focus_next.If one hits unfocusable we walk the widget tree
+        keeping various cases in mind in both of the cases.
+        '''
         current = self
         walk_tree = 'walk'
         focus_dir = 'focus_next'
@@ -488,6 +493,11 @@ class FocusBehavior(object):
                 return None
 
     def get_focus_previous(self):
+        '''This method provides the previous focuses(ie self.focus_previous)
+        and ponders over two cases if one hits focusable we walk through
+        focus_previous.If one hits unfocusable we walk the widget tree
+        keeping various cases in mind in both of the cases.
+        '''
         current = self
         walk_tree = 'walk_reverse'
         focus_dir = 'focus_previous'
