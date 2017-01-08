@@ -76,8 +76,6 @@ documentation.
 
     This code is still experimental, and its API is subject to change in a
     future version.
-
-.
 '''
 
 __all__ = ('FocusBehavior', )
@@ -135,7 +133,7 @@ class FocusBehavior(object):
             self.focus = False    # this'll unbind
             if self._keyboard:  # remove assigned keyboard from dict
                 del keyboards[keyboard]
-        if value and not value in keyboards:
+        if value and value not in keyboards:
             keyboards[value] = None
         self._keyboard = value
         self.focus = focus
@@ -460,10 +458,10 @@ class FocusBehavior(object):
                 continue
             focusable.focus = False
 
-    def _get_focus_next(self, focus_dir):
+    def get_focus_next(self):
         current = self
-        walk_tree = 'walk' if focus_dir is 'focus_next' else 'walk_reverse'
-
+        walk_tree = 'walk'
+        focus_dir = 'focus_next'
         while 1:
             # if we hit a focusable, walk through focus_xxx
             while getattr(current, focus_dir) is not None:
@@ -489,11 +487,34 @@ class FocusBehavior(object):
             else:
                 return None
 
-    def go_left(self,*args):
-        self._get_focus_next('focus_previous')
+    def get_focus_previous(self):
+        current = self
+        walk_tree = 'walk_reverse'
+        focus_dir = 'focus_previous'
+        while 1:
+            # if we hit a focusable, walk through focus_xxx
+            while getattr(current, focus_dir) is not None:
+                current = getattr(current, focus_dir)
+                if current is self or current is StopIteration:
+                    return None  # make sure we don't loop forever
+                if current.is_focusable and not current.disabled:
+                    return current
 
-    def go_right(self,*args):
-        self._get_focus_next('focus_next')
+            # hit unfocusable, walk widget tree
+            itr = getattr(current, walk_tree)(loopback=True)
+            if focus_dir is 'focus_next':
+                next(itr)  # current is returned first  when walking forward
+            for current in itr:
+                if isinstance(current, FocusBehavior):
+                    break
+            # why did we stop
+            if isinstance(current, FocusBehavior):
+                if current is self:
+                    return None
+                if current.is_focusable and not current.disabled:
+                    return current
+            else:
+                return None
 
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
         '''The method bound to the keyboard when the instance has focus.
@@ -512,9 +533,9 @@ class FocusBehavior(object):
         '''
         if keycode[1] == 'tab':  # deal with cycle
             if ['shift'] == modifiers:
-                next = self._get_focus_next('focus_previous')
+                next = self.get_focus_previous()
             else:
-                next = self._get_focus_next('focus_next')
+                next = self.get_focus_next()
             if next:
                 self.focus = False
 
