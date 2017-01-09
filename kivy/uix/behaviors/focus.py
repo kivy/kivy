@@ -487,6 +487,20 @@ class FocusBehavior(object):
             else:
                 return None
 
+    def get_focus_next(self):
+        '''Returns the next focusable widget using either :attr:`focus_next`
+           or the :attr:`children` similar to the order when tabbing forwards
+           with the ``tab`` key.
+        '''
+        return self._get_focus_next('focus_next')
+
+    def get_focus_previous(self):
+        '''Returns the previous focusable widget using either
+           :attr:`focus_previous` or the :attr:`children` similar to the
+           order when ``tab`` + ``shift`` key are triggered together.
+        '''
+        return self._get_focus_next('focus_previous')
+
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
         '''The method bound to the keyboard when the instance has focus.
 
@@ -504,9 +518,9 @@ class FocusBehavior(object):
         '''
         if keycode[1] == 'tab':  # deal with cycle
             if ['shift'] == modifiers:
-                next = self._get_focus_next('focus_previous')
+                next = self.get_focus_previous()
             else:
-                next = self._get_focus_next('focus_next')
+                next = self.get_focus_next()
             if next:
                 self.focus = False
 
