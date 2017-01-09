@@ -488,18 +488,16 @@ class FocusBehavior(object):
                 return None
 
     def get_focus_next(self):
-        '''This method provides the next focuses(ie self.focus_next)
-        and ponders over two cases if one hits focusable we walk through
-        focus_next.If one hits unfocusable we walk the widget tree
-        keeping various cases in mind in both of the cases.
+        '''Returns the next focusable widget using either :attr:`focus_next`
+           or the :attr:`children` similar to the order when tabbing forwards
+           with the ``tab`` key.
         '''
         return self._get_focus_next('focus_next')
 
     def get_focus_previous(self):
-        '''This method provides the previous focuses(ie self.focus_previous)
-        and ponders over two cases if one hits focusable we walk through
-        focus_previous.If one hits unfocusable we walk the widget tree
-        keeping various cases in mind in both of the cases.
+        '''Returns the previous focusable widget using either
+           :attr:`focus_previous` or the :attr:`children` similar to the
+           order when ``tab`` + ``shift`` key are triggered together.
         '''
         return self._get_focus_next('focus_previous')
 
