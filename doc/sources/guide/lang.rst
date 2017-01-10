@@ -461,7 +461,7 @@ In my.kv:
 
     <MyFirstWidget,MySecondWidget>:
         Button:
-            on_press: self.text(txt_inpt.text)
+            on_press: root.text(txt_inpt.text)
         TextInput:
             id: txt_inpt
 
