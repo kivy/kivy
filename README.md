@@ -97,7 +97,7 @@ Licenses
   distributed under the terms of the
   [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
   The DejaVuSans (used for the virtual keyboard) license can be viewed
-  [here](http://dejavu-fonts.org/wiki/License).
+  [here](https://github.com/dejavu-fonts/dejavu-fonts/blob/master/LICENSE).
 - The current UI design has been adapted from Moblintouch theme's SVGs
   and is licensed under the terms of the
   [LGPLv2.1](https://www.gnu.org/licenses/old-licenses/lgpl-2.1).
