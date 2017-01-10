@@ -739,15 +739,15 @@ class ClockBaseFreeInterruptOnly(
 
     def idle(self):
         fps = self._max_fps
+        current = self.time()
+        event = self._event
         if fps > 0:
-            event = self._event
             min_sleep = self.get_resolution()
             usleep = self.usleep
             undershoot = 4 / 5. * min_sleep
             min_t = self.get_min_free_timeout
             interupt_next_only = self.interupt_next_only
 
-            current = self.time()
             sleeptime = 1 / fps - (current - self._last_tick)
             while sleeptime - undershoot > min_sleep:
                 if event.is_set():
