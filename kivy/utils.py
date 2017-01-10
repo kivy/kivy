@@ -33,12 +33,20 @@ def boundary(value, minvalue, maxvalue):
 
 def intersection(set1, set2):
     '''Return the intersection of 2 lists.'''
-    return [s for s in set1 if s in set2]
+    return list(set(set1) & set(set2))
+
+
+def union(set1, set2):
+    return list(set(set1) | set(set2))
 
 
 def difference(set1, set2):
     '''Return the difference between 2 lists.'''
-    return [s for s in set1 if s not in set2]
+    return list(set(set1) - set(set2))
+
+
+def symmetric_difference(set1, set2):
+    return list(set(set1) ^ set(set2))
 
 
 def interpolate(value_from, value_to, step=10):
