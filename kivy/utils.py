@@ -37,6 +37,7 @@ def intersection(set1, set2):
 
 
 def union(set1, set2):
+    '''Return union of 2 lists'''
     return list(set(set1) | set(set2))
 
 
@@ -46,6 +47,7 @@ def difference(set1, set2):
 
 
 def symmetric_difference(set1, set2):
+    '''Return symmetric_difference between 2 sets'''
     return list(set(set1) ^ set(set2))
 
 
