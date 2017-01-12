@@ -39,7 +39,7 @@ class Slider(Widget):
     """
 
     value_range = ObjectProperty(None)
-    '''Value Range is used in RangeSlider class
+    '''Value Range used in RangeSlider class
 
     :attr:`value_range` is a :class:`~kivy.properties.ObjectProperty` and
     defaults to None.'''

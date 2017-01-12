@@ -88,12 +88,12 @@ class RangeSlider(Slider):
                                          (y_top - self.y - padding) /
                                          float(self.height - 2 * padding)]
 
-    value_pos_slider = AliasProperty(get_value_pos, set_value_pos,
+    value_pos_range = AliasProperty(get_value_pos, set_value_pos,
                               bind=('x', 'y', 'width', 'height', 'min',
                             'max', 'value_normalized_slider', 'orientation'))
     '''Position of the internal cursor, based on the normalized value.
 
-    :attr:`value_pos_slider` is an :class:`~kivy.properties.AliasProperty`.
+    :attr:`value_pos_range` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     def on_touch_down(self, touch):
@@ -125,31 +125,31 @@ class RangeSlider(Slider):
         else:
             touch.grab(self)
             i = 0 if self.orientation == 'horizontal' else 1
-            if abs(touch.pos[i] - self.value_pos_slider[0][i]) < abs(
-                            touch.pos[i] - self.value_pos_slider[1][i]):
-                self.value_pos_slider = [touch.pos, self.value_pos_slider[1]]
+            if abs(touch.pos[i] - self.value_pos_range[0][i]) < abs(
+                            touch.pos[i] - self.value_pos_range[1][i]):
+                self.value_pos_range = [touch.pos, self.value_pos_range[1]]
             else:
-                self.value_pos_slider = [self.value_pos_slider[0], touch.pos]
+                self.value_pos_range = [self.value_pos_range[0], touch.pos]
         return True
 
     def on_touch_move(self, touch):
         if touch.grab_current == self:
             i = 0 if self.orientation == 'horizontal' else 1
-            if abs(touch.pos[i] - self.value_pos_slider[0][i]) < abs(
-                            touch.pos[i] - self.value_pos_slider[1][i]):
-                self.value_pos_slider = [touch.pos, self.value_pos_slider[1]]
+            if abs(touch.pos[i] - self.value_pos_range[0][i]) < abs(
+                            touch.pos[i] - self.value_pos_range[1][i]):
+                self.value_pos_range = [touch.pos, self.value_pos_range[1]]
             else:
-                self.value_pos_slider = [self.value_pos_slider[0], touch.pos]
+                self.value_pos_range = [self.value_pos_range[0], touch.pos]
             return True
 
     def on_touch_up(self, touch):
         if touch.grab_current == self:
             i = 0 if self.orientation == 'horizontal' else 1
-            if abs(touch.pos[i] - self.value_pos_slider[0][i]) < abs(
-                            touch.pos[i] - self.value_pos_slider[1][i]):
-                self.value_pos_slider = [touch.pos, self.value_pos_slider[1]]
+            if abs(touch.pos[i] - self.value_pos_range[0][i]) < abs(
+                            touch.pos[i] - self.value_pos_range[1][i]):
+                self.value_pos_range = [touch.pos, self.value_pos_range[1]]
             else:
-                self.value_pos_slider = [self.value_pos_slider[0], touch.pos]
+                self.value_pos_range = [self.value_pos_range[0], touch.pos]
             return True
 
 
