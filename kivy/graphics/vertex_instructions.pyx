@@ -487,7 +487,7 @@ cdef class Mesh(VertexInstruction):
         'triangle_fan'.
         '''
         def __get__(self):
-            self.batch.get_mode()
+            return self.batch.get_mode()
         def __set__(self, mode):
             self.batch.set_mode(mode)
 
