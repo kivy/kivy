@@ -313,7 +313,7 @@ class CompoundSelectionBehavior(object):
         range_select = multi and self._shift_down
 
         if touch and 'button' in touch.profile and touch.button in\
-            ('scrollup', 'scrolldown', 'scrollleft', 'scrollright'):
+                ('scrollup', 'scrolldown', 'scrollleft', 'scrollright'):
             node_src, idx_src = self._reslove_last_node()
             node, idx = self.goto_node(touch.button, node_src, idx_src)
             if node == node_src:
@@ -492,8 +492,12 @@ class CompoundSelectionBehavior(object):
         last_idx = self._anchor_idx
 
         if last_node is None:
-            last_idx = end
-            last_node = sister_nodes[end]
+            self.clear_selection()
+            select(node)
+            index = len(sister_nodes) - \
+                self.get_index_of_node(node, sister_nodes) - 1
+            select(sister_nodes[len(sister_nodes) - index])
+
         else:
             if last_idx > end or sister_nodes[last_idx] != last_node:
                 try:
@@ -501,6 +505,7 @@ class CompoundSelectionBehavior(object):
                 except ValueError:
                     # list changed - cannot do select across them
                     return
+
         if idx > end or sister_nodes[idx] != node:
             try:    # just in case
                 idx = self.get_index_of_node(node, sister_nodes)
@@ -662,6 +667,7 @@ class CompoundSelectionBehavior(object):
             nodes.append(node)
         self._anchor = node
         self._last_selected_node = node
+        self._reslove_last_node()
         return True
 
     def deselect_node(self, node):
@@ -681,6 +687,12 @@ class CompoundSelectionBehavior(object):
             This method must be called by the derived widget using super if it
             is overwritten.
         '''
+        self._last_selected_node = None
+        self._reslove_last_node()
+        if(len(self.selected_nodes) > 1):
+            self._anchor = node
+            self._anchor_idx = self.get_index_of_node(
+                node, self.get_selectable_nodes())
         try:
             self.selected_nodes.remove(node)
             return True
