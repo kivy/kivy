@@ -417,6 +417,7 @@ cdef extern from "SDL.h":
 
     cdef char *SDL_HINT_ORIENTATIONS
     cdef char *SDL_HINT_VIDEO_WIN_D3DCOMPILER
+    cdef char *SDL_HINT_ACCELEROMETER_AS_JOYSTICK
 
     cdef int SDL_QUERY               = -1
     cdef int SDL_IGNORE              =  0
