@@ -311,6 +311,7 @@ class CompoundSelectionBehavior(object):
         multi = self.multiselect
         multiselect = multi and (self._ctrl_down or self.touch_multiselect)
         range_select = multi and self._shift_down
+
         if touch and 'button' in touch.profile and touch.button in\
             ('scrollup', 'scrolldown', 'scrollleft', 'scrollright'):
             node_src, idx_src = self._reslove_last_node()
@@ -326,6 +327,7 @@ class CompoundSelectionBehavior(object):
             return True
         if node is None:
             return False
+
         if (node in self.selected_nodes and (not range_select)):  # selected
             if multiselect:
                 self.deselect_node(node)
@@ -363,6 +365,7 @@ class CompoundSelectionBehavior(object):
         multi = self.multiselect
         node_src, idx_src = self._reslove_last_node()
         text = scancode[1]
+
         if text == 'shift':
             self._shift_down = True
         elif text in ('ctrl', 'lctrl', 'rctrl'):
