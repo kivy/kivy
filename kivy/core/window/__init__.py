@@ -215,6 +215,10 @@ class WindowBase(EventDispatcher):
             Minimum width of the window (only works for sdl2 window provider).
         `minimum_height`: int
             Minimum height of the window (only works for sdl2 window provider).
+        `allow_screensaver`: bool
+            Allow the device to show a screen saver, or to go to sleep
+            on mobile devices. Defaults to True. Only works for sdl2 window
+            provider.
 
     :Events:
         `on_motion`: etype, motionevent
@@ -390,6 +394,16 @@ class WindowBase(EventDispatcher):
 
     :attr:`minimum_height` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
+    '''
+
+    allow_screensaver = BooleanProperty(True)
+    '''Whether the screen saver is enabled, or on mobile devices whether the
+    device is allowed to go to sleep while the app is open.
+
+    .. versionadded:: 1.10.0
+
+    :attr:`allow_screensaver` is a :class:`~kivy.properties.BooleanProperty`
+    and defaults to True.
     '''
 
     size = AliasProperty(_get_size, _set_size, bind=('_size', ))
@@ -748,6 +762,9 @@ class WindowBase(EventDispatcher):
         if 'minimum_height' not in kwargs:
             kwargs['minimum_height'] = Config.getint('graphics',
                                                      'minimum_height')
+        if 'allow_screensaver' not in kwargs:
+            kwargs['allow_screensaver'] = Config.getint('graphics',
+                                                        'allow_screensaver')
         if 'rotation' not in kwargs:
             kwargs['rotation'] = Config.getint('graphics', 'rotation')
         if 'position' not in kwargs:

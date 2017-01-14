@@ -185,6 +185,8 @@ class WindowSDL(WindowBase):
         self.bind(minimum_width=self._set_minimum_size,
                   minimum_height=self._set_minimum_size)
 
+        self.bind(allow_screensaver=self._set_allow_screensaver)
+
     def _set_minimum_size(self, *args):
         minimum_width = self.minimum_width
         minimum_height = self.minimum_height
@@ -194,6 +196,10 @@ class WindowSDL(WindowBase):
             Logger.warning(
                 'Both Window.minimum_width and Window.minimum_height must be '
                 'bigger than 0 for the size restriction to take effect.')
+
+    def _set_allow_screensaver(self, *args):
+        allow_screensaver = self.allow_screensaver
+        self._win.set_allow_screensaver(allow_screensaver)
 
     def _event_filter(self, action):
         from kivy.app import App
@@ -272,6 +278,7 @@ class WindowSDL(WindowBase):
             # will be fired.
             self._pos = (0, 0)
             self._set_minimum_size()
+            self._set_allow_screensaver()
 
             if state == 'hidden':
                 self._focus = False

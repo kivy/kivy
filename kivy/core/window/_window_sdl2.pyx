@@ -190,6 +190,12 @@ cdef class _WindowSDL2Storage:
     def set_minimum_size(self, w, h):
         SDL_SetWindowMinimumSize(self.win, w, h)
 
+    def set_allow_screensaver(self, allow_screensaver):
+        if allow_screensaver:
+            SDL_EnableScreenSaver()
+        else:
+            SDL_DisableScreenSaver()
+
     def maximize_window(self):
         SDL_MaximizeWindow(self.win)
 

@@ -318,7 +318,7 @@ from weakref import ref
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 17
+KIVY_CONFIG_VERSION = 18
 
 Config = None
 '''The default Kivy configuration object. This is a :class:`ConfigParser`
@@ -818,6 +818,9 @@ if not environ.get('KIVY_DOC_INCLUDE'):
                 'data/fonts/Roboto-Italic.ttf',
                 'data/fonts/Roboto-Bold.ttf',
                 'data/fonts/Roboto-BoldItalic.ttf'])
+
+        elif version == 17:
+            Config.setdefault('graphics', 'allow_screensaver', '1')
 
         # elif version == 1:
         #    # add here the command for upgrading from configuration 0 to 1
