@@ -311,7 +311,6 @@ class CompoundSelectionBehavior(object):
         multi = self.multiselect
         multiselect = multi and (self._ctrl_down or self.touch_multiselect)
         range_select = multi and self._shift_down
-
         if touch and 'button' in touch.profile and touch.button in\
             ('scrollup', 'scrolldown', 'scrollleft', 'scrollright'):
             node_src, idx_src = self._reslove_last_node()
@@ -327,7 +326,6 @@ class CompoundSelectionBehavior(object):
             return True
         if node is None:
             return False
-
         if (node in self.selected_nodes and (not range_select)):  # selected
             if multiselect:
                 self.deselect_node(node)
@@ -365,7 +363,6 @@ class CompoundSelectionBehavior(object):
         multi = self.multiselect
         node_src, idx_src = self._reslove_last_node()
         text = scancode[1]
-
         if text == 'shift':
             self._shift_down = True
         elif text in ('ctrl', 'lctrl', 'rctrl'):
@@ -488,6 +485,25 @@ class CompoundSelectionBehavior(object):
         select = self.select_node
         sister_nodes = self.get_selectable_nodes()
         end = len(sister_nodes) - 1
+        if self._anchor in self.selected_nodes:
+            pass
+        else:
+            if self._last_node_idx < self._anchor_idx:
+                for node in sister_nodes[self._anchor_idx:
+                                        self._last_node_idx + 1:-1]:
+                    if node in self.selected_nodes:
+                        self._anchor = node
+                        self._anchor_idx = self.get_index_of_node(
+                                                    node, sister_nodes)
+                        break
+            else:
+                for node in sister_nodes[self._anchor_idx:
+                                            self._last_node_idx + 1]:
+                    if node in self.selected_nodes:
+                        self._anchor = node
+                        self._anchor_idx = self.get_index_of_node(
+                                                    node, sister_nodes)
+                        break
         last_node = self._anchor
         last_idx = self._anchor_idx
 
@@ -506,13 +522,18 @@ class CompoundSelectionBehavior(object):
                 idx = self.get_index_of_node(node, sister_nodes)
             except ValueError:
                 return
-
+        '''
         if last_idx > idx:
             last_idx, idx = idx, last_idx
+        '''
         if not multiselect:
             self.clear_selection()
-        for item in sister_nodes[last_idx:idx + 1]:
-            select(item)
+        if last_idx < idx:
+            for item in sister_nodes[last_idx:idx + 1]:
+                select(item)
+        else:
+            for item in sister_nodes[idx:last_idx + 1]:
+                select(item)
 
         if keep_anchor:
             self._anchor = last_node
