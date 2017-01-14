@@ -489,20 +489,20 @@ class CompoundSelectionBehavior(object):
             pass
         else:
             if self._last_node_idx < self._anchor_idx:
-                for node in sister_nodes[self._anchor_idx:
+                for item in sister_nodes[self._anchor_idx:
                                         self._last_node_idx + 1:-1]:
-                    if node in self.selected_nodes:
-                        self._anchor = node
+                    if item in self.selected_nodes:
+                        self._anchor = item
                         self._anchor_idx = self.get_index_of_node(
-                                                    node, sister_nodes)
+                                                    item, sister_nodes)
                         break
             else:
-                for node in sister_nodes[self._anchor_idx:
-                                            self._last_node_idx + 1]:
-                    if node in self.selected_nodes:
-                        self._anchor = node
+                for item in sister_nodes[self._anchor_idx:
+                                        self._last_node_idx + 1]:
+                    if item in self.selected_nodes:
+                        self._anchor = item
                         self._anchor_idx = self.get_index_of_node(
-                                                    node, sister_nodes)
+                                                    item, sister_nodes)
                         break
         last_node = self._anchor
         last_idx = self._anchor_idx
