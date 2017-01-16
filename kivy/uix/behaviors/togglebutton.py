@@ -83,7 +83,7 @@ class ToggleButtonBehavior(ButtonBehavior):
     '''This private variable is used to check at various places when
     the state/activeness of togglebutton is changed via code.
 
-    :attr:`_check_variable` is a :class:`BooleanProperty` and defaults to 
+    :attr:`_check_variable` is a :class:`BooleanProperty` and defaults to
     `False`
     '''
 
