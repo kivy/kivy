@@ -78,6 +78,8 @@ cdef class _WindowSDL2Storage:
         elif state == 'hidden':
             self.win_flags |= SDL_WINDOW_HIDDEN
 
+        SDL_SetHint(SDL_HINT_ACCELEROMETER_AS_JOYSTICK, b'0')
+
         if SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0:
             self.die()
 
