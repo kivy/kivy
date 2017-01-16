@@ -1,9 +1,0 @@
-[
-	{"start": 0, "duration": 2, "text": "This is an example of annotation"},
-	{"start": 2, "duration": 2, "text": "You can change the background color", "bgcolor": [0.5, 0.2, 0.4, 0.5]},
-	{"start": 4, "duration": 2, "text": "Or the font size", "bgcolor": [0.5, 0.2, 0.4, 0.5], "font_size": 24},
-	{"start": 6, "duration": 2, "text": "Or the bold...\nAnd multiline", "bgcolor": [0.5, 0.2, 0.4, 0.5], "bold": 1},
-	{"start": 8, "duration": 2, "text": "Or even\nchange the alignment!", "bgcolor": [0.5, 0.2, 0.4, 0.5], "halign": "center"},
-	{"start": 10, "duration": 2, "text": "Position hint are supported too", "bgcolor": [0.5, 0.2, 0.4, 0.5], "pos_hint": {"top": 0.95, "center_x": 0.5}},
-	{"start": 12, "duration": 2, "text": "[b]Text[/b] [i]Markup[/i] too.", "bgcolor": [0.5, 0.2, 0.4, 0.5], "markup": 1}
-]
