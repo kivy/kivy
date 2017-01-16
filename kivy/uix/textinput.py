@@ -250,8 +250,7 @@ class Selector(ButtonBehavior, Image):
             lambda x, y: matrix.transform_point(x, y, 0)[:2])
 
     def on_touch_down(self, touch):
-        win = EventLoop.window
-        if self.parent is not win:
+        if self.parent is not EventLoop.window:
             return
 
         try:
