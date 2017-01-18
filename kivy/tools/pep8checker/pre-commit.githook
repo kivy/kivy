@@ -72,7 +72,6 @@ retval = call([sys.executable, script, srcdir] + targets)
 call(['git', 'stash', 'pop', '--quiet'])
 
 if retval:
-    # There are styleguide violations
-    print("Error:", retval, "styleguide violation(s) encountered!")
+    # There are style guide violations
     print("Your commit has been aborted. Please fix the violations and retry.")
-    sys.exit(retval)
+    sys.exit(1)
