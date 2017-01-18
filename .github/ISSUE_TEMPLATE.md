@@ -10,6 +10,13 @@ Before opening a new issue, make sure you do the following:
     * double-check that the issue is indeed a bug and not a support request
 -->
 
+### Versions
+
+* Python:
+* OS:
+* Kivy:
+* Kivy installation method:
+
 ### Description
 
 // REPLACE ME: What are you trying to get done, what has happened, what went wrong, and what did you expect?
@@ -20,9 +27,3 @@ Before opening a new issue, make sure you do the following:
 // REPLACE ME: Paste your code and logs here, a template can be found at https://git.io/vM1id.
 
 ```
-
-### Versions
-
-* Kivy:
-* Python:
-* OS:
