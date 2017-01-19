@@ -1,4 +1,4 @@
-##[Contributing](http://kivy.org/docs/contribute.html)
+##[Contributing](https://kivy.org/docs/contribute.html)
 
 There are many ways in which you can contribute to Kivy.
 Code patches are just one thing amongst others that you can submit to help the
@@ -7,7 +7,7 @@ improvements, advertisement & advocating, testing, graphics contributions and
 many different things. Just talk to us if you want to help, and we will help you
 help us.
 
-##[Feedback](http://kivy.org/docs/contact.html)
+##[Feedback](https://kivy.org/docs/contact.html)
 
 This is by far the easiest way to contribute something. If you're using
 Kivy for your own project, don't hesitate sharing. It doesn't have to be a
@@ -22,14 +22,14 @@ feel encouraged to report any obstacles you encountered such as missing
 documentation, misleading directions or similar.
 We are perfectionists, so even if it's just a typo, let us know.
 
-#[Reporting an Issue](http://kivy.org/docs/contribute.html#reporting-an-issue)
+#[Reporting an Issue](https://kivy.org/docs/contribute.html#reporting-an-issue)
 
 If you have any problems, a crash, a segfault, missing documentation, invalid
 spelling, weird examples, please take 2 minutes to report the issue and follow
 the guide lines mentioned
-[here.](http://kivy.org/docs/contribute.html#reporting-an-issue)
+[here.](https://kivy.org/docs/contribute.html#reporting-an-issue)
 
-##[Code Contributions](http://kivy.org/docs/contribute.html#code-contributions)
+##[Code Contributions](https://kivy.org/docs/contribute.html#code-contributions)
 
 Code contributions (patches, new features) are the most obvious way to help with
 the project's development. Since this is quite common, we ask you to follow our
@@ -39,12 +39,12 @@ associated with the change you made, which basically means eternal fame in our
 code history (you can opt-out if you don't want that).
 
 
-* [Coding style](http://kivy.org/docs/contribute.html#coding-style)
-* [Performances](http://kivy.org/docs/contribute.html#performances)
-* [Git & GitHub](http://kivy.org/docs/contribute.html#git-github)
-* [Code Workflow](http://kivy.org/docs/contribute.html#code-workflow)
+* [Coding style](https://kivy.org/docs/contribute.html#coding-style)
+* [Performance](https://kivy.org/docs/contribute.html#performance)
+* [Git & GitHub](https://kivy.org/docs/contribute.html#git-github)
+* [Code Workflow](https://kivy.org/docs/contribute.html#code-workflow)
 
-##[Documentation Contributions](http://kivy.org/docs/contribute.html#documentation-contributions)
+##[Documentation Contributions](https://kivy.org/docs/contribute.html#documentation-contributions)
 
 Documentation contributions generally follow the same workflow as code
 contributions, just a bit more lax. We don't ask you to go through all the
@@ -52,12 +52,12 @@ hassle just to correct a single typo. For more complex contributions, please
 follow the suggested workflow.
 
 
-* [Docstrings](http://kivy.org/docs/contribute.html#docstrings)
+* [Docstrings](https://kivy.org/docs/contribute.html#docstrings)
 
 
 #Unit tests contributions
 
-For the testing team, we have a document `contribute-unittest` that
+The [Unit tests](https://kivy.org/docs/contribute-unittest.html) page
 explains how the Kivy unit tests work and how you can create your own. Please
 use the same approach as the `Code Workflow` to
-[submit new tests](http://kivy.org/docs/contribute.html#unit-tests-contributions).
+[submit new tests](https://kivy.org/docs/contribute.html#unit-tests-contributions).
