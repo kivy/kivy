@@ -224,8 +224,7 @@ cdef class _WindowSDL2Storage:
         SDL_SetWindowTitle(self.win, <bytes>title.encode('utf-8'))
 
     def get_window_pos(self):
-        cdef int x = -10000
-        cdef int y = -10000
+        cdef int x, y
         SDL_GetWindowPosition(self.win, &x, &y)
         return x, y
 
