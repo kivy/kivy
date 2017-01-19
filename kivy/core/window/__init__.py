@@ -687,14 +687,16 @@ class WindowBase(EventDispatcher):
         pass
 
     def _get_left(self):
-        return self._get_window_pos()[0]
+        left = self._get_window_pos()[0]
+        return left if left != -10000 else Config.getint('graphics', 'left')
 
     def _set_left(self, value):
         pos = self._get_window_pos()
         self._set_window_pos(value, pos[1])
 
     def _get_top(self):
-        return self._get_window_pos()[1]
+        top = self._get_window_pos()[1]
+        return top if top != -10000 else Config.getint('graphics', 'top')
 
     def _set_top(self, value):
         pos = self._get_window_pos()
