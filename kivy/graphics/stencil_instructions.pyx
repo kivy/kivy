@@ -120,7 +120,7 @@ cdef inline int _stencil_op_to_gl(x):
     try:
         return _gl_stencil_op[x]
     except KeyError:
-        raise Exception('Unknow <%s> stencil op' % x)
+        raise Exception('Unknown <%s> stencil op' % x)
 
 
 cdef class StencilPush(Instruction):
