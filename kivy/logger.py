@@ -51,6 +51,9 @@ messages::
 
     print(LoggerHistory.history)
 
+.. versionchanged:: 1.9.2
+    The root logger is no longer replaced unless the KIVY_REPLACE_ROOT_LOGGER
+    environment variable is set.
 '''
 
 import logging
@@ -316,8 +319,9 @@ Logger = logging.getLogger('kivy')
 Logger.logfile_activated = None
 Logger.trace = partial(Logger.log, logging.TRACE)
 
-# set the Kivy logger as the default
-logging.root = Logger
+if 'KIVY_REPLACE_ROOT_LOGGER' in os.environ:
+    # set the Kivy logger as the default
+    logging.root = Logger
 
 # add default kivy logger
 Logger.addHandler(LoggerHistory())
