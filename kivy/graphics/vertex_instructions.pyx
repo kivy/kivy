@@ -856,7 +856,7 @@ cdef class BorderImage(Rectangle):
 
             If the BorderImage's size is less than the sum of it's
             borders, horizontally or vertically, and this property is
-            set to True, the borders will be rescaled to accomodate for
+            set to True, the borders will be rescaled to accommodate for
             the smaller size.
 
     '''
