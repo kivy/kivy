@@ -247,7 +247,14 @@ among all of them. If you already have Visual Studio, you can skip downloading,
     python -m pip install kivy.deps.sdl2 kivy.deps.glew
     python -m pip install kivy.deps.sdl2_dev kivy.deps.glew_dev
 
+    :: optionally install GStreamer + headers
+    python -m pip install kivy.deps.gstreamer kivy.deps.gstreamer_dev
+
 #. ``"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"``
+
+   For 64bit add ``x64`` at the end of the command. More options available
+   with ``--help``
+
 #. Set environment variables for compiler::
 
     set MSSdk=1
@@ -258,6 +265,9 @@ among all of them. If you already have Visual Studio, you can skip downloading,
 #. Set environment variables for Kivy::
 
     set USE_SDL2=1
+    set USE_GSTREAMER=0
+
+    :: optionally
     set USE_GSTREAMER=1
 
 #. ``git clone https://github.com/kivy/kivy``
@@ -304,7 +314,7 @@ favorite location, do the following:
    located.
 #. Remove the ``python\Lib\site-packages\kivy`` directory altogether.
 #. From ``python\Lib\site-packages`` move **all** ``kivy.deps.*.dist-info``
-directories to ``your-path`` right next to ``kivy``.
+   directories to ``your-path`` right next to ``kivy``.
 
 Now you can safely compile kivy in its current location with one of these
 commands::
