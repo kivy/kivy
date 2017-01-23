@@ -4,6 +4,9 @@ List Item View Argument Converters
 
 .. versionadded:: 1.5
 
+.. note::
+
+    The feature has been deprecated.
 
 The default list item args converter for list adapters is a function (shown
 below) that takes a row index and a string. It returns a dict with the string

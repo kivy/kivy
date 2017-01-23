@@ -4,6 +4,10 @@ SelectableDataItem
 
 .. versionadded:: 1.5
 
+.. note::
+
+    The feature has been deprecated.
+
 .. warning::
 
     This code is still experimental, and its API is subject to change in a
@@ -45,12 +49,15 @@ It is easy to build such a class with plain Python.
 
 __all__ = ('SelectableDataItem', )
 
+from kivy.utils import deprecated
+
 
 class SelectableDataItem(object):
     '''
     A mixin class containing requirements for selection operations.
     '''
 
+    @deprecated
     def __init__(self, is_selected=False):
         super(SelectableDataItem, self).__init__()
 
