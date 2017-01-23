@@ -4,6 +4,10 @@ Adapters
 
 .. versionadded:: 1.5.0
 
+.. note::
+
+    The feature has been deprecated.
+
 An adapter is a mediating controller-type class that processes and presents
 data for use in views. It does this by generating models, generally lists of
 :class:`~kivy.uix.selectableview.SelectableView` items, that are consumed and
