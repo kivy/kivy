@@ -688,7 +688,8 @@ class WindowBase(EventDispatcher):
 
     def _get_left(self):
         sdl_left = self._get_window_pos()[0]
-        if self._left != sdl_left:
+        if not self.initialized:
+            # use Config
             return self._left
         return sdl_left
 
@@ -699,7 +700,7 @@ class WindowBase(EventDispatcher):
 
     def _get_top(self):
         sdl_top = self._get_window_pos()[1]
-        if self._top != sdl_top:
+        if not self.initialized:
             return self._top
         return sdl_top
 
