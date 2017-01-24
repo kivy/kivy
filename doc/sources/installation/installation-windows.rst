@@ -13,11 +13,13 @@ We also provide nightly wheels generated using Kivy
 See also :ref:`upgrade-win-dist`. If installing kivy to an **alternate
 location** and not to site-packages, please see :ref:`alternate-win`.
 
-.. warning::
+.. note::
 
-    Python 3.5 is currently not supported on Windows with GCC from MinGW due to
-    `this issue <http://bugs.python.org/issue4709>`_. You can compile with
-    :ref:`msvc-install-win` or download already compiled wheel.
+    For Python < 3.5 we use the MinGW compiler. However, for Python 3.5 on
+    Windows we currently only support the microsoft MSVC compiler
+    because of the following MinGW
+    `issue <http://bugs.python.org/issue4709>`_. Generally this should make
+    no difference when using precompiled wheels.
 
 To use Kivy you need `Python <https://www.python.org/downloads/windows/>`_.
 Multiple versions of Python can be installed side by side, but Kivy needs to
@@ -41,6 +43,11 @@ install.
 
      python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew
      python -m pip install kivy.deps.gstreamer
+
+   For Python 3.5 only we additionally offer angle which can be used instead of glew
+   and can be installed with::
+
+    python -m pip install kivy.deps.angle
 
 #. Install kivy::
 
@@ -125,19 +132,24 @@ Kivy's dependencies
 
 We offer wheels for Kivy and its dependencies separately so only desired
 dependencies need be installed. The dependencies are offered as
-`namespace <https://www.python.org/dev/peps/pep-0420/>`_
-packages of Kivy.deps, e.g. ``kivy.deps.sdl2``.
+optional sub-packages of kivy.deps, e.g. ``kivy.deps.sdl2``.
 
 Currently on Windows, we provide the following dependency wheels:
 
 * `gstreamer <https://gstreamer.freedesktop.org>`_ for audio and video
-* `glew <http://glew.sourceforge.net/>`_ or
-  `angle <https://github.com/Microsoft/angle>`_ for OpenGL
-* `sdl2 <https://libsdl.org>`_ for using OpenGL and control
+* `glew <http://glew.sourceforge.net/>`_ and/or
+  `angle (3.5 only) <https://github.com/Microsoft/angle>`_ for OpenGL
+* `sdl2 <https://libsdl.org>`_ for control and/or OpenGL.
+
+One can select which of these to use for OpenGL use using the 
+`KIVY_GL_BACKEND` envrionment variable by setting it to `glew`
+(the default), `angle`, or `sdl2`. `angle` is currently
+in an experimental phase as a substitute for `glew` on Python
+3.5 only.
 
 `gstreamer` is an optional dependency which only needs to be
-installed if video display or audio is desired. `angle` is currently
-in an experimental phase as a substitute for `glew`.
+installed if video display or audio is desired. `ffpyplayer`
+is an alternate dependency for audio or video.
 
 .. _windows-run-app:
 
@@ -185,15 +197,27 @@ kivy with git rather than a wheel there are some additional steps:
 
      python -m pip install --upgrade pip wheel setuptools
 
-#. Create the ``python\Lib\distutils\distutils.cfg`` file and add the two
-   lines::
+#. Get the compiler.
+   For Python < 3.5 we use mingwpy as follows.
+   
+   #. Create the
+      ``python\Lib\distutils\distutils.cfg`` file and add the two lines::
 
-     [build]
-     compiler = mingw32
+        [build]
+        compiler = mingw32
 
-#. Install MinGW with::
+   #. Install MinGW with::
 
-     python -m pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy
+        python -m pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy
+
+   For Python 3.5 we use the MSVC compiler. For 3.5,
+   `Visual Studio 2015 <https://www.visualstudio.com/downloads/>`_ is
+   required, which is availible for free. Just download and install it and
+   you'll be good to go. 
+   
+   Visual Studio is very big so you can also use the smaller,
+   `Visual C Build Tools instead
+   <https://github.com/kivy/kivy/wiki/Using-Visual-C---Build-Tools-instead-of-Visual-Studio-on-Windows>`_.
 
 #. Set the environment variables. On windows do::
 
@@ -221,59 +245,6 @@ kivy with git rather than a wheel there are some additional steps:
    ``filename`` can be a url such as
    ``https://github.com/kivy/kivy/archive/master.zip`` for kivy master, or the
    full path to a local copy of a kivy.
-
-.. _msvc-install-win:
-
-MSVC
-~~~~
-
-.. |msvc| replace:: Visual C++ Build Tools
-.. _msvc: http://landinghub.visualstudio.com/visual-cpp-build-tools
-
-Environment
-^^^^^^^^^^^
-
-MSVC is used mainly to support Python 3.5 and higher versions. To compile
-for Python 3.5 there's more than one tool to use for compilation although the
-used compiler is basically the same. Visual C++ Build Tools is the smallest one
-among all of them. If you already have Visual Studio, you can skip downloading,
-``vcvarsall.bat`` and setting environment variables for compiler.
-
-#. Get |msvc|_ (~5GB total size)
-#. Open ``cmd.exe`` in `<python.exe folder>` (`shift` + right click)
-#. Upgrade pip and setuptools*
-#. Get sdl2 and glew DLLs and headers::
-
-    python -m pip install kivy.deps.sdl2 kivy.deps.glew
-    python -m pip install kivy.deps.sdl2_dev kivy.deps.glew_dev
-
-    :: optionally install GStreamer + headers
-    python -m pip install kivy.deps.gstreamer kivy.deps.gstreamer_dev
-
-#. ``"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"``
-
-   For 64bit add ``x64`` at the end of the command. More options available
-   with ``--help``
-
-#. Set environment variables for compiler::
-
-    set MSSdk=1
-    set DISTUTILS_USE_SDK=1
-    set LIB=%cd%\libs;%LIB%
-    set INCLUDE=%cd%\include;%INCLUDE%
-
-#. Set environment variables for Kivy::
-
-    set USE_SDL2=1
-    set USE_GSTREAMER=0
-
-    :: optionally
-    set USE_GSTREAMER=1
-
-#. ``git clone https://github.com/kivy/kivy``
-
-\*The setuptools Python package version must be at least 24.0. according
-to Python's `wiki <https://wiki.python.org/moin/WindowsCompilers>`_
 
 Compile Kivy
 ^^^^^^^^^^^^
