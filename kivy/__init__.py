@@ -30,6 +30,8 @@ __all__ = (
 
 __version__ = '1.9.2-dev0'
 
+print "USING CUSTOM KIVY VERSION"
+
 import sys
 import shutil
 from getopt import getopt, GetoptError

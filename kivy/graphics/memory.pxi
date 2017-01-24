@@ -1,4 +1,4 @@
-from cpython.array cimport array, clone
+from cython cimport view as cyview
 
 
 '''
@@ -20,38 +20,16 @@ slow in cython.
 When the user passes in a memoryview type, we have no choice but to use the
 memoryview passed in, though.
 '''
+cdef void track_free(void *ptr):
+    print "track free", <unsigned long>ptr
+
+
 cdef inline _ensure_float_view(data, float **f):
-    cdef array arr
+    cdef cyview.array arr
     cdef list src
     cdef int i
     cdef float [::1] memview
-    # do if/else instead of straight try/except because its faster for list
-    if not isinstance(data, (tuple, list)):
-        try:
-            memview = data
-            f[0] = &memview[0]
-            return data, None
-        except Exception as e:
-            import traceback; traceback.print_exc() 
-            src = list(data)
-            arr = clone(array('f'), len(src), False)
-            f[0] = arr.data.as_floats
-            for i in range(len(src)):
-                f[0][i] = src[i]
-    else:
-        src = list(data)
-        arr = clone(array('f'), len(src), False)
-        f[0] = arr.data.as_floats
-        for i in range(len(src)):
-            f[0][i] = src[i]
-    return src, arr
 
-
-cdef inline _ensure_ushort_view(data, unsigned short **f):
-    cdef array arr
-    cdef list src
-    cdef int i
-    cdef unsigned short [::1] memview
     # do if/else instead of straight try/except because its faster for list
     if not isinstance(data, (tuple, list)):
         try:
@@ -59,16 +37,43 @@ cdef inline _ensure_ushort_view(data, unsigned short **f):
             f[0] = &memview[0]
             return data, None
         except:
-            src = list(data)
-            arr = clone(array('H'), len(src), False)
-            f[0] = arr.data.as_ushorts
-            for i in range(len(src)):
-                f[0][i] = src[i]
-    else:
-        src = list(data)
-        arr = clone(array('H'), len(src), False)
-        f[0] = arr.data.as_ushorts
-        for i in range(len(src)):
-            f[0][i] = src[i]
+            pass
+
+    # no way to get a memview about it, so we need to clone it
+    arr = cyview.array(
+        shape=(len(data), ), itemsize=sizeof(float), format="f", mode="c",
+        allocate_buffer=True)
+    arr.callback_free_data = track_free
+
+    src = list(data)
+    f[0] = (<float *>arr.data)
+    for i in range(len(data)):
+        f[0][i] = src[i]
     return src, arr
 
+cdef inline _ensure_ushort_view(data, unsigned short **f):
+    cdef cyview.array arr
+    cdef list src
+    cdef int i
+    cdef unsigned short [::1] memview
+
+    # do if/else instead of straight try/except because its faster for list
+    if not isinstance(data, (tuple, list)):
+        try:
+            memview = data
+            f[0] = &memview[0]
+            return data, None
+        except:
+            pass
+
+    # no way to get a memview about it, so we need to clone it
+    arr = cyview.array(
+        shape=(len(data), ), itemsize=sizeof(unsigned short), format="H",
+        mode="c", allocate_buffer=True)
+    arr.callback_free_data = track_free
+
+    src = list(data)
+    f[0] = (<unsigned short *>arr.data)
+    for i in range(len(data)):
+        f[0][i] = src[i]
+    return src, arr
