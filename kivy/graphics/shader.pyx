@@ -517,6 +517,8 @@ cdef class Shader:
                 attr = &self._current_vertex_format.vattr[i]
                 if attr.per_vertex == 0:
                     continue
+                if attr.index == -1:
+                    continue
                 cgl.glDisableVertexAttribArray(attr.index)
                 log_gl_error(
                     'Shader.bind_vertex_format-glDisableVertexAttribArray')
@@ -530,6 +532,8 @@ cdef class Shader:
                     continue
                 name = <bytes>attr.name
                 attr.index = cgl.glGetAttribLocation(self.program, <char *>name)
+                if attr.index == -1:
+                    print "Unable to find location for", name
                 cgl.glEnableVertexAttribArray(attr.index)
                 log_gl_error(
                     'Shader.bind_vertex_format-glEnableVertexAttribArray')

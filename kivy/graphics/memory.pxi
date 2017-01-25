@@ -20,9 +20,6 @@ slow in cython.
 When the user passes in a memoryview type, we have no choice but to use the
 memoryview passed in, though.
 '''
-cdef void track_free(void *ptr):
-    print "track free", <unsigned long>ptr
-
 
 cdef inline _ensure_float_view(data, float **f):
     cdef cyview.array arr
@@ -43,7 +40,6 @@ cdef inline _ensure_float_view(data, float **f):
     arr = cyview.array(
         shape=(len(data), ), itemsize=sizeof(float), format="f", mode="c",
         allocate_buffer=True)
-    arr.callback_free_data = track_free
 
     src = list(data)
     f[0] = (<float *>arr.data)
@@ -70,7 +66,6 @@ cdef inline _ensure_ushort_view(data, unsigned short **f):
     arr = cyview.array(
         shape=(len(data), ), itemsize=sizeof(unsigned short), format="H",
         mode="c", allocate_buffer=True)
-    arr.callback_free_data = track_free
 
     src = list(data)
     f[0] = (<unsigned short *>arr.data)

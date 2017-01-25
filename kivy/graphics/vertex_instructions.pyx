@@ -430,33 +430,37 @@ cdef class Mesh(VertexInstruction):
             return
         cdef vsize = self.batch.vbo.vertex_format.vsize
 
-        # # if user updated the list, but didn't do self.indices = ... then
-        # # we'd not know about it, so ensure _indices/_indices is up to date
-        # if len(self._vertices) != self.vcount:
-        #     self._vertices, self._fvertices = _ensure_float_view(self._vertices,
-        #         &self._pvertices)
-        #     self.vcount = len(self._vertices)
-        #
-        # if len(self._indices) != self.icount:
-        #     if len(self._indices) > 65535:
-        #         raise GraphicException('Cannot upload more than 65535 indices'
-        #                                '(OpenGL ES 2 limitation)')
-        #     self._indices, self._lindices = _ensure_ushort_view(self._indices,
-        #         &self._pindices)
-        #     self.icount = len(self._indices)
-
         if self.vcount == 0 or self.icount == 0:
             self.batch.clear_data()
             return
 
-        print "SET MESH BATCH DATA"
-        print "pvertices", <unsigned long><void *>self._pvertices
-        print "pindices", <unsigned long><void *>self._pindices
-        print "vcount", self.vcount
-        print "vsize", vsize
-        print "icount", self.icount
         self.batch.set_data(&self._pvertices[0], <int>(self.vcount / vsize),
                             &self._pindices[0], <int>self.icount)
+
+    cdef int set_vertices(self, vertices):
+        if vertices is None or not len(vertices):
+            if self.vcount == 0:
+                return 0
+            self.vcount = 0
+        else:
+            self._vertices, self._fvertices = _ensure_float_view(vertices,
+                &self._pvertices)
+            self.vcount = len(self._vertices)
+        return 1
+
+    cdef int set_indices(self, indices):
+        if indices is None or not len(indices):
+            if self.icount == 0:
+                return 0
+            self.icount = 0
+        else:
+            if gles_limts and len(indices) > 65535:
+                raise GraphicException(
+                    'Cannot upload more than 65535 indices (OpenGL ES 2'
+                    ' limitation - consider setting KIVY_GLES_LIMITS)')
+            self._indices, self._lindices = _ensure_ushort_view(indices,
+                &self._pindices)
+            self.icount = len(self._indices)
 
     property vertices:
         '''List of x, y, u, v coordinates used to construct the Mesh. Right now,
@@ -466,19 +470,8 @@ cdef class Mesh(VertexInstruction):
         def __get__(self):
             return self._vertices
         def __set__(self, value):
-            if len(value):
-                self._vertices, self._fvertices = _ensure_float_view(value,
-                    &self._pvertices)
-                self.vcount = len(self._vertices)
-                print "got vertices", self._vertices
-                print "got fvertices", self._fvertices
-                print "got pvertices", <unsigned long><void *>self._pvertices
-            else:
-                self._vertices = None
-                self._fvertices = None
-                self._pvertices = NULL
-                self.vcount = 0
-            self.flag_update()
+            if self.set_vertices(value):
+                self.flag_update()
 
     property indices:
         '''Vertex indices used to specify the order when drawing the
@@ -487,21 +480,8 @@ cdef class Mesh(VertexInstruction):
         def __get__(self):
             return self._indices
         def __set__(self, value):
-            if gles_limts and len(value) > 65535:
-                raise GraphicException(
-                    'Cannot upload more than 65535 indices (OpenGL ES 2'
-                    ' limitation - consider setting KIVY_GLES_LIMITS)')
-
-            if len(value):
-                self._indices, self._lindices = _ensure_ushort_view(value,
-                    &self._pindices)
-                self.icount = len(self._indices)
-            else:
-                self._indices = None
-                self._lindices = None
-                self._pindices = NULL
-                self.icount = 0
-            self.flag_update()
+            if self.set_indices(value):
+                self.flag_update()
 
     property mode:
         '''VBO Mode used for drawing vertices/indices. Can be one of 'points',
@@ -512,7 +492,6 @@ cdef class Mesh(VertexInstruction):
             return self.batch.get_mode()
         def __set__(self, mode):
             self.batch.set_mode(mode)
-
 
 
 cdef class Point(VertexInstruction):

@@ -6,7 +6,7 @@ cdef struct vertex_t:
 
 ctypedef struct vertex_attr_t:
     char *name
-    unsigned int index
+    int index
     unsigned int size
     GLuint type
     unsigned int bytesize

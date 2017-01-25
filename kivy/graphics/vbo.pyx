@@ -95,7 +95,7 @@ cdef class VBO:
     cdef void bind(self):
         cdef Shader shader = getActiveContext()._shader
         cdef vertex_attr_t *attr
-        cdef int offset = 0, i
+        cdef unsigned long offset = 0, i
         self.update_buffer()
         cgl.glBindBuffer(GL_ARRAY_BUFFER, self.id)
         log_gl_error('VBO.bind-glBindBuffer')
@@ -104,8 +104,10 @@ cdef class VBO:
             attr = &self.format[i]
             if attr.per_vertex == 0:
                 continue
+            if attr.index == -1:
+                continue
             cgl.glVertexAttribPointer(attr.index, attr.size, attr.type,
-                    GL_FALSE, <GLsizei>self.format_size, <GLvoid*><long>offset)
+                    GL_FALSE, <GLsizei>self.format_size, <GLvoid *>offset)
             log_gl_error('VBO.bind-glVertexAttribPointer')
             offset += attr.bytesize
 
