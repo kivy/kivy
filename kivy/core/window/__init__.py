@@ -687,25 +687,20 @@ class WindowBase(EventDispatcher):
         pass
 
     def _get_left(self):
-        sdl_left = self._get_window_pos()[0]
         if not self.initialized:
-            # use Config
             return self._left
-        return sdl_left
+        return self._get_window_pos()[0]
 
     def _set_left(self, value):
-        self._left = value
         pos = self._get_window_pos()
         self._set_window_pos(value, pos[1])
 
     def _get_top(self):
-        sdl_top = self._get_window_pos()[1]
         if not self.initialized:
             return self._top
-        return sdl_top
+        return self._get_window_pos()[1]
 
     def _set_top(self, value):
-        self._top = value
         pos = self._get_window_pos()
         self._set_window_pos(pos[0], value)
 
@@ -810,16 +805,14 @@ class WindowBase(EventDispatcher):
                                                    'auto')
         if 'top' in kwargs:
             kwargs['position'] = 'custom'
-            kwargs['top'] = kwargs['top']
             self._top = kwargs['top']
         else:
-            kwargs['top'] = Config.getint('graphics', 'top')
+            self._top = Config.getint('graphics', 'top')
         if 'left' in kwargs:
             kwargs['position'] = 'custom'
-            kwargs['left'] = kwargs['left']
             self._left = kwargs['left']
         else:
-            kwargs['left'] = Config.getint('graphics', 'left')
+            self._left = Config.getint('graphics', 'left')
         kwargs['_size'] = (kwargs.pop('width'), kwargs.pop('height'))
         if 'show_cursor' not in kwargs:
             kwargs['show_cursor'] = Config.getboolean('graphics',
