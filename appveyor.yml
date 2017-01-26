@@ -81,7 +81,7 @@ build_script:
 
     $env:PATH = $PYTHON_ROOT+"\share\glew\bin;"+$PYTHON_ROOT+"\share\sdl2\bin;"+$PYTHON_ROOT+"\share\gstreamer\bin;"+$env:PATH
 
-    $WHEEL_DATE = python -c "from time import strftime;print(strftime('%d%m%Y'))"
+    $WHEEL_DATE = python -c "from datetime import datetime;print(datetime.utcnow().strftime('%Y%m%d'))"
 
     Check-Error
 
