@@ -28,8 +28,6 @@ __all__ = (
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
-__version__ = '1.9.2-dev0'
-
 import sys
 import shutil
 from getopt import getopt, GetoptError
@@ -39,6 +37,11 @@ import pkgutil
 from kivy.compat import PY2
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.utils import platform
+
+try:
+    from kivy.version import __version__
+except ImportError:
+    __version__ = 'Unknown'
 
 # internals for post-configuration
 __kivy_post_configuration = []
@@ -101,8 +104,9 @@ def require(version):
 
         # check x y z
         v = version.split('.')
-        if len(v) != 3:
-            raise Exception('Revision format must be X.Y.Z[-tag]')
+        if len(v) == 4:
+            tag, tagrev = v[3].split('+')
+            return [int(x) for x in v[:3]], tag, tagrev
         return [int(x) for x in v], tag, tagrev
 
     # user version

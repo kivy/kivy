@@ -13,6 +13,7 @@ from os import walk, environ
 from distutils.version import LooseVersion
 from collections import OrderedDict
 from time import sleep
+from subprocess import check_output, CalledProcessError
 
 if environ.get('KIVY_USE_SETUPTOOLS'):
     from setuptools import setup, Extension
@@ -30,6 +31,41 @@ if PY3:  # fix error with py3's LooseVersion comparisons
         return self.version == other
 
     LooseVersion.__eq__ = ver_equal
+
+
+MAJOR = 1
+MINOR = 9
+MICRO = 2
+RELEASED = environ.get('KIVY_RELEASE', False)
+VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
+
+
+def get_version(filename='kivy/version.py'):
+    try:
+        GIT_REVISION = check_output(
+            ['git', 'rev-parse', 'HEAD']
+        ).strip().decode('ascii')
+    except CalledProcessError:
+        GIT_REVISION = "Unknown"
+
+    global VERSION
+    if not RELEASED:
+        VERSION += '.dev0+' + GIT_REVISION[:7]
+
+    cnt = (
+        "# THIS FILE IS GENERATED FROM KIVY SETUP.PY\n"
+        "__version__ = '%(version)s'\n"
+        "git_revision = '%(git_revision)s'\n"
+        "release = %(release)s\n"
+    )
+
+    with open(filename, 'w') as f:
+        f.write(cnt % {
+            'version': VERSION,
+            'git_revision': GIT_REVISION,
+            'release': str(RELEASED)
+        })
+    return VERSION
 
 
 MIN_CYTHON_STRING = '0.23'
@@ -288,7 +324,7 @@ class KivyBuildExt(build_ext):
 def _check_and_fix_sdl2_mixer(f_path):
     print("Check if SDL2_mixer smpeg2 have an @executable_path")
     rpath_from = ("@executable_path/../Frameworks/SDL2.framework"
-                 "/Versions/A/SDL2")
+                  "/Versions/A/SDL2")
     rpath_to = "@rpath/../../../../SDL2.framework/Versions/A/SDL2"
     smpeg2_path = ("{}/Versions/A/Frameworks/smpeg2.framework"
                    "/Versions/A/smpeg2").format(f_path)
@@ -887,7 +923,7 @@ if isdir(binary_deps_path):
 # setup !
 setup(
     name='Kivy',
-    version=kivy.__version__,
+    version=get_version(),
     author='Kivy Team and other contributors',
     author_email='kivy-dev@googlegroups.com',
     url='http://kivy.org',
