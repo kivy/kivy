@@ -570,26 +570,46 @@ def determine_gl_flags():
 
 def determine_sdl2():
     flags = {}
+    # This is redundant; the only time determine_sdl2 is called is preceded by
+    # verification that this condition is already satisfied
     if not c_options['use_sdl2']:
         return flags
 
+    # Check the environment for a Kivy SDL2 path (all platforms) or for Include
+    # and Lib (intended to catch Windows installation, see #4941)
     sdl2_path = environ.get('KIVY_SDL2_PATH', None)
 
-    if sdl2_flags and not sdl2_path and platform == 'darwin':
-        return sdl2_flags
+    # SDL2 path was not contained in the environment; attempt to infer it
+    if not sdl2_path:
+        if platform == 'darwin' and sdl2_flags:
+            return sdl2_flags
+        # no pkgconfig info, or we want to use a specific sdl2 path, so perform
+        # manual configuration
 
-    # no pkgconfig info, or we want to use a specific sdl2 path, so perform
-    # manual configuration
+        # Not on OSX, and/or no sdl2_flags defined
+        sdl2_paths = []
+        sdl2_path_candidates = []
+        # Check in the executable's include dir
+        sdl2_path_candidates.append(
+            join(dirname(sys.executable), 'include', 'SDL2'))
+        # For every path in the %INCLUDE% (Windows), add the SDL2 subdir
+        sdl2_path_candidates.extend(
+            [join(p, 'SDL2') for p in
+             environ.get('INCLUDE', '').split(os.pathsep)]
+        )
+        # Check in various other unix-only locations
+        sdl2_path_candidates.append('/usr/local/include/SDL2')
+        sdl2_path_candidates.append('/usr/include/SDL2')
+
+        # Now make sure we only have valid paths
+        for path_candidate in sdl2_path_candidates:
+            if isdir(path_candidate):
+                sdl2_paths.append(path_candidate)
+
+    else:
+        sdl2_paths = sdl2_path.split(os.pathsep)
+
     flags['libraries'] = ['SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer']
-    split_chr = ';' if platform == 'win32' else ':'
-    sdl2_paths = sdl2_path.split(split_chr) if sdl2_path else []
-
-    if not sdl2_paths:
-        sdl_inc = join(dirname(sys.executable), 'include', 'SDL2')
-        if isdir(sdl_inc):
-            sdl2_paths = [sdl_inc]
-        sdl2_paths.extend(['/usr/local/include/SDL2', '/usr/include/SDL2'])
-
     flags['include_dirs'] = sdl2_paths
     flags['extra_link_args'] = []
     flags['extra_compile_args'] = []
@@ -617,6 +637,7 @@ def determine_sdl2():
             can_compile = False
 
     if not can_compile:
+        print('Failed SDL2 check. Compilation proceeding without SDL2.')
         c_options['use_sdl2'] = False
         return {}
 
