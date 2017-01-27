@@ -38,10 +38,16 @@ from kivy.compat import PY2
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.utils import platform
 
+MAJOR = 1
+MINOR = 9
+MICRO = 2
+RELEASE = False
+
 try:
-    from kivy.version import __version__
+    from kivy.version import __version__, __hash__
 except ImportError:
-    __version__ = 'Unknown'
+    __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
+    __hash__ = 'Unknown'
 
 # internals for post-configuration
 __kivy_post_configuration = []
@@ -104,9 +110,11 @@ def require(version):
 
         # check x y z
         v = version.split('.')
-        if len(v) == 4:
-            tag, tagrev = v[3].split('+')
-            return [int(x) for x in v[:3]], tag, tagrev
+        if len(v) != 3:
+            if 'dev0' in v:
+                tag = v.pop()
+            else:
+                raise Exception('Revision format must be X.Y.Z[-tag]')
         return [int(x) for x in v], tag, tagrev
 
     # user version
@@ -440,4 +448,5 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         Config.set('input', 'androidtouch', 'android')
 
 Logger.info('Kivy: v%s' % (__version__))
+Logger.info('Kivy rev.: %s' % (__hash__))
 Logger.info('Python: v{}'.format(sys.version))

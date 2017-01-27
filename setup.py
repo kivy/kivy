@@ -33,14 +33,9 @@ if PY3:  # fix error with py3's LooseVersion comparisons
     LooseVersion.__eq__ = ver_equal
 
 
-MAJOR = 1
-MINOR = 9
-MICRO = 2
-RELEASED = environ.get('KIVY_RELEASE', False)
-VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
-
-
 def get_version(filename='kivy/version.py'):
+    VERSION = kivy.__version__
+    RELEASE = kivy.RELEASE
     try:
         GIT_REVISION = check_output(
             ['git', 'rev-parse', 'HEAD']
@@ -48,22 +43,19 @@ def get_version(filename='kivy/version.py'):
     except CalledProcessError:
         GIT_REVISION = "Unknown"
 
-    global VERSION
-    if not RELEASED:
-        VERSION += '.dev0+' + GIT_REVISION[:7]
+    if not RELEASE and '.dev0' not in VERSION:
+        VERSION += '.dev0'
 
     cnt = (
         "# THIS FILE IS GENERATED FROM KIVY SETUP.PY\n"
         "__version__ = '%(version)s'\n"
-        "git_revision = '%(git_revision)s'\n"
-        "release = %(release)s\n"
+        "__hash__ = '%(hash)s'\n"
     )
 
     with open(filename, 'w') as f:
         f.write(cnt % {
             'version': VERSION,
-            'git_revision': GIT_REVISION,
-            'release': str(RELEASED)
+            'hash': GIT_REVISION,
         })
     return VERSION
 
