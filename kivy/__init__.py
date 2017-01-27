@@ -43,11 +43,16 @@ MINOR = 9
 MICRO = 2
 RELEASE = False
 
+__version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
+
+if not RELEASE and '.dev0' not in __version__:
+    __version__ += '.dev0'
+
 try:
-    from kivy.version import __version__, __hash__
+    from kivy.version import __hash__, __date__
+    __hash__ = __hash__[:7]
 except ImportError:
-    __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
-    __hash__ = 'Unknown'
+    __hash__ = __date__ = 'Unknown'
 
 # internals for post-configuration
 __kivy_post_configuration = []
@@ -447,6 +452,5 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     if platform == 'android':
         Config.set('input', 'androidtouch', 'android')
 
-Logger.info('Kivy: v%s' % (__version__))
-Logger.info('Kivy rev.: %s' % (__hash__))
+Logger.info('Kivy: v%s, %s, %s' % (__version__, __hash__, __date__))
 Logger.info('Python: v{}'.format(sys.version))

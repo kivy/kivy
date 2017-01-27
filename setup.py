@@ -14,6 +14,7 @@ from distutils.version import LooseVersion
 from collections import OrderedDict
 from time import sleep
 from subprocess import check_output, CalledProcessError
+from datetime import datetime
 
 if environ.get('KIVY_USE_SETUPTOOLS'):
     from setuptools import setup, Extension
@@ -35,7 +36,7 @@ if PY3:  # fix error with py3's LooseVersion comparisons
 
 def get_version(filename='kivy/version.py'):
     VERSION = kivy.__version__
-    RELEASE = kivy.RELEASE
+    DATE = datetime.utcnow().strftime('%Y%m%d')
     try:
         GIT_REVISION = check_output(
             ['git', 'rev-parse', 'HEAD']
@@ -43,19 +44,18 @@ def get_version(filename='kivy/version.py'):
     except CalledProcessError:
         GIT_REVISION = "Unknown"
 
-    if not RELEASE and '.dev0' not in VERSION:
-        VERSION += '.dev0'
-
     cnt = (
         "# THIS FILE IS GENERATED FROM KIVY SETUP.PY\n"
         "__version__ = '%(version)s'\n"
         "__hash__ = '%(hash)s'\n"
+        "__date__ = '%(date)s'\n"
     )
 
     with open(filename, 'w') as f:
         f.write(cnt % {
             'version': VERSION,
             'hash': GIT_REVISION,
+            'date': DATE
         })
     return VERSION
 
