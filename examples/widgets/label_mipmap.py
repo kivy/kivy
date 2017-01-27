@@ -7,7 +7,6 @@ non mipmapped and mipmapped label.
 '''
 
 import kivy
-kivy.require('1.0.7')
 
 from kivy.app import App
 from kivy.uix.scatter import ScatterPlane

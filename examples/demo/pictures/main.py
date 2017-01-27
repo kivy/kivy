@@ -24,7 +24,6 @@ domain.
 '''
 
 import kivy
-kivy.require('1.0.6')
 
 from glob import glob
 from random import randint

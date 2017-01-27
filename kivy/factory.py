@@ -37,10 +37,8 @@ classname before you re-assign it::
     >>> Factory.register('MyWidget', cls=CustomWidget)
     >>> customWidget = Factory.MyWidget()
 '''
-
-__all__ = ('Factory', 'FactoryException')
-
 from kivy.logger import Logger
+__all__ = ('Factory', 'FactoryException')
 
 
 class FactoryException(Exception):

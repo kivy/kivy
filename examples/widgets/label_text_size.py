@@ -1,4 +1,5 @@
 
+
 '''
 Label textsize
 ============
@@ -8,7 +9,6 @@ to format label widget
 '''
 
 import kivy
-kivy.require('1.0.7')
 
 from kivy.app import App
 from kivy.uix.label import Label

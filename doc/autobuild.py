@@ -6,17 +6,6 @@ Be careful if you change anything in !
 
 '''
 
-ignore_list = (
-    'kivy._clock',
-    'kivy._event',
-    'kivy.factory_registers',
-    'kivy.graphics.buffer',
-    'kivy.graphics.vbo',
-    'kivy.graphics.vertex',
-    'kivy.uix.recycleview.__init__',
-    'kivy.setupconfig'
-)
-
 import os
 import sys
 from glob import glob
@@ -63,6 +52,19 @@ import kivy.interactive
 import kivy.garden
 from kivy.factory import Factory
 from kivy.lib import osc, ddsfile, mtdev
+
+
+ignore_list = (
+    'kivy._clock',
+    'kivy._event',
+    'kivy.factory_registers',
+    'kivy.graphics.buffer',
+    'kivy.graphics.vbo',
+    'kivy.graphics.vertex',
+    'kivy.uix.recycleview.__init__',
+    'kivy.setupconfig'
+)
+
 
 # check for silenced build
 BE_QUIET = True

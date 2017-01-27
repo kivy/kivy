@@ -9,6 +9,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.spinner import SpinnerOption
 from kivy.uix.popup import Popup
 import os
+from kivy.utils import reify
 
 
 Builder.load_string('''
@@ -213,9 +214,6 @@ Yiddish:        דער גיך ברוין פוקס דזשאַמפּס איבער 
         self._popup = Popup(title="load file", content=content,
             size_hint=(0.9, 0.9))
         self._popup.open()
-
-
-from kivy.utils import reify
 
 
 class unicode_app(App):

@@ -156,9 +156,6 @@ Could be re-written with a context-manager style i.e. ::
 Any use cases besides compacting code?
 
 '''
-
-__all__ = ('SafeMembrane', 'InteractiveLauncher')
-
 import inspect
 from threading import Thread, Event
 
@@ -166,6 +163,7 @@ from kivy.app import App
 from kivy.base import EventLoop
 from kivy.clock import Clock
 from kivy.utils import deprecated
+__all__ = ('SafeMembrane', 'InteractiveLauncher')
 
 
 def safeWait(dt):

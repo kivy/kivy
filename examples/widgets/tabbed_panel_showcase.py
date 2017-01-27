@@ -10,6 +10,7 @@ from kivy.animation import Animation
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelHeader
 from kivy.factory import Factory
+from kivy.lang import Builder
 
 
 class StandingHeader(TabbedPanelHeader):
@@ -23,7 +24,6 @@ class CloseableHeader(TabbedPanelHeader):
 Factory.register('StandingHeader', cls=StandingHeader)
 Factory.register('CloseableHeader', cls=CloseableHeader)
 
-from kivy.lang import Builder
 
 Builder.load_string('''
 <TabShowcase>

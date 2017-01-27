@@ -345,11 +345,6 @@ overwrites the config selection. Its possible values are as follows:
 
 '''
 
-__all__ = (
-    'Clock', 'ClockEvent', 'FreeClockEvent', 'CyClockBase', 'CyClockBaseFree',
-    'ClockBaseBehavior', 'ClockBaseInterruptBehavior',
-    'ClockBaseInterruptFreeBehavior', 'ClockBase', 'ClockBaseInterrupt',
-    'ClockBaseFreeInterruptAll', 'ClockBaseFreeInterruptOnly', 'mainthread')
 
 from sys import platform
 from os import environ
@@ -361,12 +356,16 @@ from kivy.compat import clock as _default_time, PY2
 import time
 from kivy._clock import CyClockBase, ClockEvent, FreeClockEvent, \
     CyClockBaseFree
+from threading import Event as ThreadingEvent
+__all__ = (
+    'Clock', 'ClockEvent', 'FreeClockEvent', 'CyClockBase', 'CyClockBaseFree',
+    'ClockBaseBehavior', 'ClockBaseInterruptBehavior',
+    'ClockBaseInterruptFreeBehavior', 'ClockBase', 'ClockBaseInterrupt',
+    'ClockBaseFreeInterruptAll', 'ClockBaseFreeInterruptOnly', 'mainthread')
 try:
     from multiprocessing import Event as MultiprocessingEvent
 except ImportError:  # https://bugs.python.org/issue3770
     from threading import Event as MultiprocessingEvent
-from threading import Event as ThreadingEvent
-
 # some reading: http://gameprogrammingpatterns.com/game-loop.html
 
 

@@ -18,8 +18,6 @@ If you want to compile it, don't forget to add the CAMERA permission::
 
 '''
 
-__version__ = '0.1'
-
 from kivy.app import App
 from os.path import exists
 from jnius import autoclass, cast
@@ -28,8 +26,8 @@ from functools import partial
 from kivy.clock import Clock
 from kivy.uix.scatter import Scatter
 from kivy.properties import StringProperty
-
 from PIL import Image
+__version__ = '0.1'
 
 Intent = autoclass('android.content.Intent')
 MediaStore = autoclass('android.provider.MediaStore')

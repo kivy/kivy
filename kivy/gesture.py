@@ -31,8 +31,6 @@ gestures and compare them::
 
 '''
 
-__all__ = ('Gesture', 'GestureDatabase', 'GesturePoint', 'GestureStroke')
-
 import pickle
 import base64
 import zlib
@@ -41,6 +39,7 @@ import math
 from kivy.vector import Vector
 
 from io import BytesIO
+__all__ = ('Gesture', 'GestureDatabase', 'GesturePoint', 'GestureStroke')
 
 
 class GestureDatabase(object):

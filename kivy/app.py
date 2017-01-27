@@ -309,9 +309,6 @@ Here is a simple example of how on_pause() should be used::
     `on_pause` is called, `on_resume` may not be called at all.
 
 '''
-
-__all__ = ('App', )
-
 import os
 from inspect import getfile
 from os.path import dirname, join, exists, sep, expanduser, isfile
@@ -327,6 +324,7 @@ from kivy.utils import platform as core_platform
 from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.setupconfig import USE_SDL2
+__all__ = ('App', )
 
 
 platform = core_platform

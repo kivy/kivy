@@ -6,12 +6,12 @@ This module provides a set of utility types and functions for optimization and
 to aid in writing Python 2/3 compatibile code.
 '''
 
-__all__ = ('PY2', 'clock', 'string_types', 'queue', 'iterkeys',
-           'itervalues', 'iteritems', 'isclose')
 
 import sys
 import time
 from math import isinf, fabs
+__all__ = ('PY2', 'clock', 'string_types', 'queue', 'iterkeys',
+           'itervalues', 'iteritems', 'isclose')
 try:
     import queue
 except ImportError:

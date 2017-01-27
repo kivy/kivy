@@ -18,8 +18,6 @@ Run this test as::
 '''
 
 import kivy
-kivy.require('1.0.8')
-
 from kivy.core.window import Window
 from kivy.uix.textinput import TextInput
 from kivy.uix.floatlayout import FloatLayout
@@ -28,6 +26,7 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.config import Config
 from kivy.base import runTouchApp
+
 
 if __name__ == '__main__':
 

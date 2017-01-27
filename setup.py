@@ -13,6 +13,8 @@ from os import walk, environ
 from distutils.version import LooseVersion
 from collections import OrderedDict
 from time import sleep
+import kivy
+from kivy.tools.packaging.factory import FactoryBuild
 
 if environ.get('KIVY_USE_SETUPTOOLS'):
     from setuptools import setup, Extension
@@ -317,13 +319,12 @@ def _check_and_fix_sdl2_mixer(f_path):
 # -----------------------------------------------------------------------------
 # extract version (simulate doc generation, kivy will be not imported)
 environ['KIVY_DOC_INCLUDE'] = '1'
-import kivy
 
 # extra build commands go in the cmdclass dict {'command-name': CommandClass}
 # see tools.packaging.{platform}.build.py for custom build commands for
 # portable packages. Also e.g. we use build_ext command from cython if its
 # installed for c extensions.
-from kivy.tools.packaging.factory import FactoryBuild
+
 cmdclass = {
     'build_factory': FactoryBuild,
     'build_ext': KivyBuildExt}

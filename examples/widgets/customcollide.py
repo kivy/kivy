@@ -16,8 +16,6 @@ We are using a external method that will check if a point is inside a polygon
 
 
 import kivy
-kivy.require('1.0.8')
-
 from kivy.uix.scatter import Scatter
 from kivy.properties import ListProperty
 from kivy.lang import Builder

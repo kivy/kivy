@@ -1,10 +1,11 @@
 # install_twisted_rector must be called before importing  and using the reactor
-from kivy.support import install_twisted_reactor
-install_twisted_reactor()
-
+from kivy.app import App
+from kivy.uix.label import Label
 
 from twisted.internet import reactor
 from twisted.internet import protocol
+from kivy.support import install_twisted_reactor
+install_twisted_reactor()
 
 
 class EchoProtocol(protocol.Protocol):
@@ -19,10 +20,6 @@ class EchoFactory(protocol.Factory):
 
     def __init__(self, app):
         self.app = app
-
-
-from kivy.app import App
-from kivy.uix.label import Label
 
 
 class TwistedServerApp(App):

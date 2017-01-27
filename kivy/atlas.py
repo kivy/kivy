@@ -135,15 +135,13 @@ Manual usage of the Atlas
     <kivy.graphics.texture.TextureRegion object at 0x2404d10>
 '''
 
-__all__ = ('Atlas', )
-
 import json
 from os.path import basename, dirname, join, splitext
 from kivy.event import EventDispatcher
 from kivy.logger import Logger
 from kivy.properties import AliasProperty, DictProperty, ListProperty
 import os
-
+__all__ = ('Atlas', )
 
 # late import to prevent recursion
 CoreImage = None

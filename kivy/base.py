@@ -12,6 +12,14 @@ Event loop management
 
 '''
 
+import sys
+from kivy.config import Config
+from kivy.logger import Logger
+from kivy.utils import platform
+from kivy.clock import Clock
+from kivy.event import EventDispatcher
+from kivy.lang import Builder
+from kivy.context import register_context
 __all__ = (
     'EventLoop',
     'EventLoopBase',
@@ -21,16 +29,6 @@ __all__ = (
     'runTouchApp',
     'stopTouchApp',
 )
-
-import sys
-from kivy.config import Config
-from kivy.logger import Logger
-from kivy.utils import platform
-from kivy.clock import Clock
-from kivy.event import EventDispatcher
-from kivy.lang import Builder
-from kivy.context import register_context
-
 # private vars
 EventLoop = None
 

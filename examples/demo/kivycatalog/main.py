@@ -20,7 +20,7 @@ kivycatalog.kv.
 Known bugs include some issue with the drop
 '''
 import kivy
-kivy.require('1.4.2')
+
 import os
 import sys
 from kivy.app import App
