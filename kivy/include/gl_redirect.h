@@ -31,8 +31,9 @@
 #define GL_FRAMEBUFFER_UNDEFINED_OES                0x8219
 #define GL_DEPTH24_STENCIL8_OES                     0x88F0
 
-
-#if defined(_WIN32)
+#if __USE_OPENGL_MOCK
+    #include "common_subset.h"
+#elif defined(_WIN32)
     #include <GL/glew.h>
     #define GL_GLEXT_PROTOTYPES
     #define GL_APICALL
