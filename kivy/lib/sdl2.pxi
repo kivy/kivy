@@ -567,7 +567,7 @@ cdef extern from "SDL.h":
     cdef void SDL_GL_SwapWindow(SDL_Window * window)
     cdef void SDL_GL_DeleteContext(SDL_GLContext context)
 
-    cdef int SDL_NumJoysticks(void)
+    cdef int SDL_NumJoysticks()
     cdef SDL_Joystick * SDL_JoystickOpen(int index)
     cdef SDL_Window * SDL_GetKeyboardFocus()
     cdef Uint8 *SDL_GetKeyboardState(int *numkeys)
