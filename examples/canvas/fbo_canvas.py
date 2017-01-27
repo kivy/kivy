@@ -8,7 +8,6 @@ button labelled 'FBO' in the bottom left corner. Clicking it
 animates the button moving right to left.
 '''
 
-__all__ = ('FboFloatLayout', )
 
 from kivy.graphics import Color, Rectangle, Canvas, ClearBuffers, ClearColor
 from kivy.graphics.fbo import Fbo
@@ -18,6 +17,7 @@ from kivy.app import App
 from kivy.core.window import Window
 from kivy.animation import Animation
 from kivy.factory import Factory
+__all__ = ('FboFloatLayout', )
 
 
 class FboFloatLayout(FloatLayout):

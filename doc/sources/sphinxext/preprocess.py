@@ -8,11 +8,13 @@ import sys
 from os.path import dirname, join
 from sphinx.ext.autodoc import MethodDocumenter
 
+
 class CythonMethodDocumenter(MethodDocumenter):
     # XXX i don't understand the impact of having a priority more than the
     # attribute or instance method but the things is, if it's a cython module,
     # the attribute will be prefer over method.
     priority = 12
+
 
 def is_cython_extension(what, obj):
     # try to check if the first line of the doc is a signature
@@ -39,6 +41,7 @@ def is_cython_extension(what, obj):
         if not re.match('^([a-zA-Z_][a-zA-Z0-9_]*)\((.*)\)', doc):
             return False
         return True
+
 
 def callback_docstring(app, what, name, obj, options, lines):
     if what == 'module':
@@ -86,7 +89,9 @@ def callback_docstring(app, what, name, obj, options, lines):
                     continue
                 if not line.startswith(spaces):
                     continue
+
                 lines[idx] = line[min_space:]
+
 
 def callback_signature(app, what, name, obj, options, signature,
                        return_annotation):
@@ -103,6 +108,7 @@ def callback_signature(app, what, name, obj, options, signature,
             pass
         except IndexError:
             pass
+
 
 def setup(app):
     import kivy

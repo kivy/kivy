@@ -15,6 +15,11 @@
 
 import os
 import sys
+import sphinx.ext.autodoc
+import kivy
+import gallery
+
+from kivy import setupconfig
 
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
@@ -37,7 +42,7 @@ todo_include_todos = True
 
 # XXX HACK mathieu: monkey patch the autodoc module, to give a better priority
 # for ClassDocumenter, or the cython class will be documented as AttributeClass
-import sphinx.ext.autodoc
+
 sphinx.ext.autodoc.ClassDocumenter.priority = 10
 
 # Add any paths that contain templates here, relative to this directory.
@@ -60,7 +65,7 @@ copyright = '2010, The Kivy Authors'
 # other places throughout the built documents.
 #
 os.environ['KIVY_DOC_INCLUDE'] = '1'
-import kivy
+
 print(kivy.__file__)
 
 version = kivy.__version__
@@ -68,7 +73,6 @@ release = kivy.__version__
 base = 'autobuild.py-done'
 if not os.path.exists(os.path.join(os.path.dirname(base_dir), base)):
     import autobuild
-import gallery
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -213,7 +217,6 @@ latex_use_parts = True
 # If false, no module index is generated.
 # latex_use_modindex = True
 
-from kivy import setupconfig
 
 replacements = {
     'cython_install': 'Cython==' + setupconfig.CYTHON_MAX,

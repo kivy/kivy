@@ -1,10 +1,12 @@
 # install_twisted_rector must be called before importing the reactor
+from kivy.app import App
+from kivy.uix.label import Label
+from kivy.uix.textinput import TextInput
+from kivy.uix.boxlayout import BoxLayout
+from twisted.internet import reactor, protocol
 from kivy.support import install_twisted_reactor
 install_twisted_reactor()
-
-
 # A simple Client that send messages to the echo server
-from twisted.internet import reactor, protocol
 
 
 class EchoClient(protocol.Protocol):
@@ -26,17 +28,11 @@ class EchoFactory(protocol.ClientFactory):
 
     def clientConnectionFailed(self, conn, reason):
         self.app.print_message("connection failed")
-
-
-from kivy.app import App
-from kivy.uix.label import Label
-from kivy.uix.textinput import TextInput
-from kivy.uix.boxlayout import BoxLayout
-
-
 # A simple kivy App, with a textbox to enter messages, and
 # a large label to display all the messages received from
 # the server
+
+
 class TwistedClientApp(App):
     connection = None
 

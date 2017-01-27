@@ -4,10 +4,9 @@ Geometry utilities
 
 This module contains some helper functions for geometric calculations.
 '''
+from kivy.vector import Vector
 
 __all__ = ('circumcircle', 'minimum_bounding_circle')
-
-from kivy.vector import Vector
 
 
 def circumcircle(a, b, c):

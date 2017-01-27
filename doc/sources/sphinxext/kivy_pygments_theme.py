@@ -11,12 +11,12 @@ class KivyStyle(Style):
 
     styles = {
         # No corresponding class for the following:
-        #Text:                     "", # class:  ''
+        # Text:                     "", # class:  ''
         Whitespace:                "underline #ffffff",      # class: 'w'
-        Error:                     "#FF0000 border:#FF0000", # class: 'err'
+        Error:                     "#FF0000 border:#FF0000",  # class: 'err'
         Other:                     "#FF0000",                # class 'x'
 
-        Comment:                   "italic #666385", # class: 'c'
+        Comment:                   "italic #666385",  # class: 'c'
         Comment.Preproc:           "noitalic",       # class: 'cp'
 
         Keyword:                   "bold #000000",   # class: 'k'
@@ -63,7 +63,7 @@ class KivyStyle(Style):
         String:                    "#74171b",        # class: 's'
         String.Backtick:           "#4e9a06",        # class: 'sb'
         String.Char:               "#4e9a06",        # class: 'sc'
-        String.Doc:                "italic #640000", # class: 'sd' - like a comment
+        String.Doc:                "italic #640000",  # class: 'sd' - like a comment
         String.Double:             "#74171b",        # class: 's2'
         String.Escape:             "#74171b",        # class: 'se'
         String.Heredoc:            "#74171b",        # class: 'sh'
@@ -75,7 +75,7 @@ class KivyStyle(Style):
 
         Generic:                   "#000000",        # class: 'g'
         Generic.Deleted:           "#a40000",        # class: 'gd'
-        Generic.Emph:              "italic #000000", # class: 'ge'
+        Generic.Emph:              "italic #000000",  # class: 'ge'
         Generic.Error:             "#ef2929",        # class: 'gr'
         Generic.Heading:           "bold #000080",   # class: 'gh'
         Generic.Inserted:          "#00A000",        # class: 'gi'

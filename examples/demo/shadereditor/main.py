@@ -16,7 +16,6 @@ the error is visible as logging message in your terminal.
 
 import sys
 import kivy
-kivy.require('1.0.6')
 
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
@@ -26,6 +25,8 @@ from kivy.graphics import RenderContext
 from kivy.properties import StringProperty, ObjectProperty
 from kivy.clock import Clock
 from kivy.compat import PY2
+kivy.require('1.0.6')
+
 
 fs_header = '''
 #ifdef GL_ES

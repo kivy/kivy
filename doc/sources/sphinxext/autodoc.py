@@ -25,6 +25,8 @@ class KivyClassDocumenter(ClassDocumenter):
                          for b in self.object.__bases__]
                 self.add_line(_('   Bases: %s') % ', '.join(bases),
                               '<autodoc>')
+
+
 def setup(app):
     core_setup(app)
     app.add_autodocumenter(KivyClassDocumenter)

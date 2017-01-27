@@ -7,9 +7,8 @@ to another within KV.
 '''
 
 import kivy
-kivy.require('1.8.0')
-
 from kivy.app import App
+kivy.require('1.8.0')
 
 
 class TestApp(App):

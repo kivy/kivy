@@ -1,5 +1,3 @@
-from kivy.support import install_twisted_reactor
-install_twisted_reactor()
 
 import os
 import sys
@@ -8,6 +6,9 @@ from kivy.app import App
 from kivy.uix.gridlayout import GridLayout
 from kivy.properties import BooleanProperty
 from kivy.lang import Builder
+from kivy.support import install_twisted_reactor
+install_twisted_reactor()
+
 
 from twisted.scripts._twistd_unix import UnixApplicationRunner, ServerOptions
 from twisted.application.service import IServiceCollection

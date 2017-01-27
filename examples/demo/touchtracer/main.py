@@ -23,10 +23,10 @@ Kivy Launcher Android application. For Android devices, you can
 copy/paste this directory into /sdcard/kivy/touchtracer on your Android device.
 
 '''
-__version__ = '1.0'
+
 
 import kivy
-kivy.require('1.0.6')
+
 
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
@@ -34,6 +34,8 @@ from kivy.uix.label import Label
 from kivy.graphics import Color, Rectangle, Point, GraphicException
 from random import random
 from math import sqrt
+kivy.require('1.0.6')
+__version__ = '1.0'
 
 
 def calculate_points(x1, y1, x2, y2, steps=5):
