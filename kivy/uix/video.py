@@ -17,7 +17,7 @@ the video is loaded (when the texture is created)::
     def on_position_change(instance, value):
         print('The position in the video is', value)
     def on_duration_change(instance, value):
-        print('The duration of the video is', video)
+        print('The duration of the video is', value)
     video = Video(source='PandaSneezes.avi')
     video.bind(position=on_position_change,
                duration=on_duration_change)
