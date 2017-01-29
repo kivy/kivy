@@ -36,8 +36,14 @@ Example of fetching weather in Paris::
             print(key, ': ', value)
 
     req = UrlRequest(
-        'http://api.openweathermap.org/data/2.5/weather?q=Paris,fr',
+        'http://api.openweathermap.org/data/2.5/weather?q=Paris,fr&APPID=YourAPIKey',
         got_weather)
+
+As of 01/29/2017, OpenWeatherMap requires an API. If you're trying this example: 
+
+    1) Register for a free account at openweathermap.org 
+    2) Insert your API key at 'YourAPIKey' in the URL above, when using your 
+       UrlRequest.
 
 Example of Posting data (adapted from httplib example)::
 
