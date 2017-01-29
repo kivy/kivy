@@ -53,7 +53,6 @@ Please refer to the installation instructions for your specific platform:
     installation-linux
     installation-android
     installation-rpi
-    troubleshooting-osx
 
 
 .. _installation_devel:
