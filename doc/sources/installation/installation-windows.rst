@@ -100,9 +100,9 @@ Nightly wheel installation
 .. |cp35_amd64| replace:: Python 3.5, 64bit
 .. _cp35_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp35-cp35m-win_amd64.whl
 .. |cp36_win32| replace:: Python 3.6, 32bit
-.. _cp36_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp36-cp35m-win32.whl
+.. _cp36_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp36-cp36m-win32.whl
 .. |cp36_amd64| replace:: Python 3.6, 64bit
-.. _cp36_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp36-cp35m-win_amd64.whl
+.. _cp36_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp36-cp36m-win_amd64.whl
 
 .. warning::
 
