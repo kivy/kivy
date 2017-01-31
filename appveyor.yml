@@ -16,16 +16,28 @@ environment:
   matrix:
   - PYVER: 27
     BITTNESS: 86
+    COMPILER: mingw
   - PYVER: 27
     BITTNESS: 64
+    COMPILER: mingw
   - PYVER: 34
     BITTNESS: 86
+    COMPILER: mingw
   - PYVER: 34
     BITTNESS: 64
+    COMPILER: mingw
   - PYVER: 35
     BITTNESS: 86
+    COMPILER: msvc
   - PYVER: 35
     BITTNESS: 64
+    COMPILER: msvc
+  - PYVER: 36
+    BITTNESS: 86
+    COMPILER: msvc
+  - PYVER: 36
+    BITTNESS: 64
+    COMPILER: msvc
 install:
 - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-desktop.ps1'))
 build_script:
@@ -135,7 +147,7 @@ build_script:
 
     Check-Error
 
-    if ($env:PYVER -ne "35") {
+    if ($env:COMPILER -ne "msvc") {
       python -c "with open(r'$PYTHON_ROOT\Lib\distutils\distutils.cfg', 'wb') as fh: fh.write(b'[build]\ncompiler = mingw32\n')"
       Check-Error
       pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy
@@ -148,7 +160,7 @@ build_script:
 
     Check-Error
 
-    if ($env:PYVER -eq "35") {
+    if ($env:COMPILER -eq "msvc") {
       pip install kivy.deps.angle
       Check-Error
     }
@@ -204,7 +216,7 @@ test_script:
 
 
     if ($env:DO_TEST -eq "True"){
-      if ($env:PYVER -eq "35") {
+      if ($env:COMPILER -eq "msvc") {
         $env:KIVY_GL_BACKEND = "angle_sdl2"
       } else {
         $env:KIVY_GL_BACKEND = "mock"
