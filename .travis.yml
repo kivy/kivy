@@ -19,8 +19,7 @@ install:
   - if [ ${DOCKER_IMAGE} ]; then
       docker pull $DOCKER_IMAGE;
     fi;
-  # install deps for docker too
-  - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ ! ${DOCKER_IMAGE} ]; then
       if [ "${RUN}" != "pep8" ]; then
         yes | sudo add-apt-repository ppa:zoogie/sdl2-snapshots;
         yes | sudo add-apt-repository ppa:gstreamer-developers/ppa;
