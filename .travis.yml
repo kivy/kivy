@@ -19,6 +19,7 @@ install:
   - if [ ${DOCKER_IMAGE} ]; then
       docker pull $DOCKER_IMAGE;
     fi;
+  # install deps for docker too
   - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
       if [ "${RUN}" != "pep8" ]; then
         yes | sudo add-apt-repository ppa:zoogie/sdl2-snapshots;
@@ -67,7 +68,7 @@ install:
     fi;
 
 before_script:
-  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" != "pep8" ]; then
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" != "pep8" ] && [ ! ${DOCKER_IMAGE} ]; then
       export DISPLAY=:99.0;
       /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX;
       export PYTHONPATH=$PYTHONPATH:$(pwd);
@@ -84,7 +85,7 @@ script:
       docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build-wheels.sh
       ls wheelhouse/
     fi;
-  - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ ! ${DOCKER_IMAGE} ]; then
       set -ex;
       if [ "${RUN}" == "unit" ]; then
         make;
