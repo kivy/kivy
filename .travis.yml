@@ -82,7 +82,7 @@ before_script:
 script:
   - if [ ${DOCKER_IMAGE} ]; then
       set -ex;
-      docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build-wheels.sh;
+      sudo docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build-wheels.sh;
       ls wheelhouse/;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ ! ${DOCKER_IMAGE} ]; then
