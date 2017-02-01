@@ -82,7 +82,7 @@ before_script:
 script:
   - if [ ${DOCKER_IMAGE} ]; then
       set -ex;
-      sudo chmod 755 travis/build-wheels.sh;
+      sudo chmod +x travis/build-wheels.sh;
       docker run --rm -v `pwd` $DOCKER_IMAGE echo Running docker;$PRE_CMD `pwd`/travis/build-wheels.sh;
       ls wheelhouse/;
     fi;
