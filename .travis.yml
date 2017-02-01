@@ -1,38 +1,24 @@
 matrix:
   fast_finish: true
   include:
-    - language: python
-      python: 2.7
-      env: RUN=unit
-      os: linux
-      dist: trusty
-    - language: python
-      python: 3.5
-      env: RUN=unit COVERALLS=true
-      os: linux
-      dist: trusty
-    - language: python
-      python: 3.5
-      env: RUN=pep8
-      os: linux
-      dist: trusty
-    - language: python
-      python: 3.5
-      env: RUN=docs
-      os: linux
-      dist: trusty
-    - language: generic
-      env: RUN=unit PY=2
-      os: osx
-    - language: generic
-      env: RUN=unit PY=3
-      os: osx
+    - sudo: required
+      services:
+        - docker
+      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
+    - sudo: required
+      services:
+        - docker
+      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_i686
+           PRE_CMD=linux32
 
 before_install:
   # https://github.com/travis-ci/travis-ci/issues/6307
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then rvm get head; fi
 
 install:
+  - if [ ${DOCKER_IMAGE} ]; then
+      docker pull $DOCKER_IMAGE;
+    fi;
   - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
       if [ "${RUN}" != "pep8" ]; then
         yes | sudo add-apt-repository ppa:zoogie/sdl2-snapshots;
@@ -94,6 +80,10 @@ before_script:
     fi;
 
 script:
+  - if [ ${DOCKER_IMAGE} ]; then
+      docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build-wheels.sh
+      ls wheelhouse/
+    fi;
   - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
       set -ex;
       if [ "${RUN}" == "unit" ]; then
