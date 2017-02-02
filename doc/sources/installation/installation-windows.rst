@@ -228,53 +228,25 @@ kivy with git rather than a wheel there are some additional steps:
 #. Set the environment variables.
 
    .. warning::
+    
+      These variables must be set every time you recompile kivy.
+
+   .. warning::
    
       If compiling without the optional GSTREAMER dependency, set
       ``USE_GSTREAMER=0`` instead of ``USE_GSTREAMER=1``.
-
-   **mingwpy:**
-
-   On windows do::
+      
+   In your Windows command prompt do::
 
      set USE_SDL2=1
      set USE_GSTREAMER=1
+   
+   **mingwpy:**
 
-   In bash do::
+   In bash, also do::
 
      export USE_SDL2=1
      export USE_GSTREAMER=1
-
-   These variables must be set everytime you recompile kivy.
-   
-   **MSVC:**
-   
-   First, you need to CD to your Python directory. If you're installing Kivy
-   into a virtual environment, CD into that. For example::
-   
-     # Python installed at C:\Python35
-     cd C:\\Python35
-     
-   or, if you're compiling in a venv::
-     
-     # Installing into a virtualenv
-     python -m venv kivy-env
-     cd kivy-env
-   
-   Now, in your command prompt do::
-
-     set USE_SDL2=1
-     set USE_GSTREAMER=1
-     "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"
-     set MSSdk=1
-     set DISTUTILS_USE_SDK=1
-     set LIB=%cd%\libs;%LIB%
-     set INCLUDE=%cd%\include;%INCLUDE%
-     
-   .. warning::
-      
-     For 64-bit Python, run
-     ``"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x64``
-     instead.
 
 #. Install the other dependencies as well as their dev versions (you can skip
    gstreamer and gstreamer_dev if you aren't going to use video/audio)::
@@ -305,15 +277,13 @@ can test it with running a basic example::
     
 .. note::
 
-    When compiling within a virtual environment, you must ensure that the paths
-    to the C headers can be discovered by setup. If you follow the directions
-    above from within the environment's base folder, everything should work
-    fine. If you compile and then get errors related to a missing ``pygame``
-    dependency, then compilation failed to find SDL2, and you need to reinstall
-    and rebuild Kivy. You may need to force compilation to recognize the SDL2
-    header directory by setting the ``KIVY_SDL2_PATH`` environment variable::
+    When compiling within a virtual environment, the paths to the C headers
+    have to be discoverable by setup. This should work automatically, but if
+    you compile Kivy and then get errors related to a missing ``pygame``
+    dependency, you need to uninstall and rebuild Kivy, explicitly setting the
+    ``KIVY_SDL2_PATH`` environment variable before building::
     
-      set KIVY_SDK2_PATH=\path\to\python\Include\SDL2
+      set KIVY_SDL2_PATH=\path\to\python\Include\SDL2
 
 .. _alternate-win:
 
