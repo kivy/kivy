@@ -198,8 +198,7 @@ class WindowSDL(WindowBase):
                 'bigger than 0 for the size restriction to take effect.')
 
     def _set_allow_screensaver(self, *args):
-        allow_screensaver = self.allow_screensaver
-        self._win.set_allow_screensaver(allow_screensaver)
+        self._win.set_allow_screensaver(self.allow_screensaver)
 
     def _event_filter(self, action):
         from kivy.app import App
