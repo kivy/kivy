@@ -16,16 +16,28 @@ environment:
   matrix:
   - PYVER: 27
     BITTNESS: 86
+    COMPILER: mingw
   - PYVER: 27
     BITTNESS: 64
+    COMPILER: mingw
   - PYVER: 34
     BITTNESS: 86
+    COMPILER: mingw
   - PYVER: 34
     BITTNESS: 64
+    COMPILER: mingw
   - PYVER: 35
     BITTNESS: 86
+    COMPILER: msvc
   - PYVER: 35
     BITTNESS: 64
+    COMPILER: msvc
+  - PYVER: 36
+    BITTNESS: 86
+    COMPILER: msvc
+  - PYVER: 36
+    BITTNESS: 64
+    COMPILER: msvc
 install:
 - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-desktop.ps1'))
 build_script:
@@ -81,7 +93,7 @@ build_script:
 
     $env:PATH = $PYTHON_ROOT+"\share\glew\bin;"+$PYTHON_ROOT+"\share\sdl2\bin;"+$PYTHON_ROOT+"\share\gstreamer\bin;"+$env:PATH
 
-    $WHEEL_DATE = python -c "from time import strftime;print(strftime('%d%m%Y'))"
+    $WHEEL_DATE = python -c "from datetime import datetime;print(datetime.utcnow().strftime('%Y%m%d'))"
 
     Check-Error
 
@@ -90,14 +102,6 @@ build_script:
     Check-Error
 
     python -c "import kivy"
-
-    Check-Error
-
-    $WHEEL_VERSION_T = python -c "import kivy;print(kivy.__version__)" --config "kivy:log_level:error"
-
-    Check-Error
-
-    python -c "from os.path import join;kv=join('$env:APPVEYOR_BUILD_FOLDER','kivy','__init__.py');f=open(kv);s=f.read().replace('$WHEEL_VERSION_T','$WHEEL_VERSION_T`.$WHEEL_DATE`.$GIT_TAG');f.close();f=open(kv,'w');f.write(s);f.close()"
 
     Check-Error
 
@@ -120,10 +124,15 @@ build_script:
 
     $DO_WHEEL = "True"
 
+    # Set new wheel name, keep default if release (tag)
+    # release: Kivy-X.Y.Z-cpAB-cpABm-ARCH.whl
+    # nightly: Kivy-X.Y.Z.dev0-cpAB-cpABm-ARCH.whl
+    # archive: Kivy-X.Y.Z.dev0.YYYYMMDD.githash-cpAB-cpABm-ARCH.whl
+
     if ($env:APPVEYOR_REPO_TAG -eq "true"){
-      $WHEEL_NAME = "-cp"
+      $WHEEL_NAME = "dev0-cp"
     } elseif ($env:APPVEYOR_SCHEDULED_BUILD -eq "True" -or $env:APPVEYOR_FORCED_BUILD -eq "True" -or $env:APPVEYOR_RE_BUILD -eq "True"){
-      $WHEEL_NAME = "_$WHEEL_DATE`_git_$GIT_TAG-cp"
+      $WHEEL_NAME = "dev0.$WHEEL_DATE`.$GIT_TAG-cp"
     } else {
       $DO_WHEEL = "False"
     }
@@ -138,7 +147,7 @@ build_script:
 
     Check-Error
 
-    if ($env:PYVER -ne "35") {
+    if ($env:COMPILER -ne "msvc") {
       python -c "with open(r'$PYTHON_ROOT\Lib\distutils\distutils.cfg', 'wb') as fh: fh.write(b'[build]\ncompiler = mingw32\n')"
       Check-Error
       pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy
@@ -151,7 +160,7 @@ build_script:
 
     Check-Error
 
-    if ($env:PYVER -eq "35") {
+    if ($env:COMPILER -eq "msvc") {
       pip install kivy.deps.angle
       Check-Error
     }
@@ -169,16 +178,21 @@ build_script:
       python setup.py bdist_wheel -d "$env:WHEEL_DIR"
       Check-Error
 
-      $WHEEL_FNAME = python -c "from os import listdir;print(listdir(r'$env:WHEEL_DIR')[0])".Replace("_dev0", "")
+      # Default file bdist_wheel creates:
+      # Kivy-X.Y.Z[.dev0]-cpAB-cpABm-ARCH.whl
+
+      $WHEEL_DEFAULT = python -c "from os import listdir;print(listdir(r'$env:WHEEL_DIR')[0])"
+
+      echo "Wheel file: $env:WHEEL_DIR\$WHEEL_DEFAULT"
+
+      $WHEEL_NIGHTLY = $WHEEL_DEFAULT.Replace("dev0-cp", $WHEEL_NAME)
+
+      echo "Nightly file: $env:WHEEL_DIR\$WHEEL_NIGHTLY"
+
       Check-Error
 
-      echo "Wheel file: $env:WHEEL_DIR\$WHEEL_FNAME"
-      Check-Error
-      $NEW_WHEEL_FNAME = python -c "print('$WHEEL_FNAME'.replace('_dev0','.dev0').replace('.$WHEEL_DATE', '').replace('.$GIT_TAG`', ''))"
-      Check-Error
-
-      echo "Copying from $WHEEL_FNAME to nightly $NEW_WHEEL_FNAME"
-      Copy-Item "$env:WHEEL_DIR\$WHEEL_FNAME" "$env:WHEEL_DIR\$NEW_WHEEL_FNAME"
+      echo "Copying from default $WHEEL_DEFAULT to nightly $WHEEL_NIGHTLY"
+      Copy-Item "$env:WHEEL_DIR\$WHEEL_DEFAULT" "$env:WHEEL_DIR\$WHEEL_NIGHTLY"
       Check-Error
 
       dir "$env:WHEEL_DIR"
@@ -202,7 +216,7 @@ test_script:
 
 
     if ($env:DO_TEST -eq "True"){
-      if ($env:PYVER -eq "35") {
+      if ($env:COMPILER -eq "msvc") {
         $env:KIVY_GL_BACKEND = "angle_sdl2"
       } else {
         $env:KIVY_GL_BACKEND = "mock"
