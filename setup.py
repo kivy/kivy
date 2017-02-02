@@ -16,6 +16,7 @@ from collections import OrderedDict
 from time import sleep
 from subprocess import check_output, CalledProcessError
 from datetime import datetime
+from platform import python_compiler
 
 if environ.get('KIVY_USE_SETUPTOOLS'):
     from setuptools import setup, Extension
@@ -553,8 +554,10 @@ def determine_base_flags():
         flags['extra_compile_args'] += ['-F%s' % sysroot]
         flags['extra_link_args'] += ['-F%s' % sysroot]
     elif platform == 'win32':
-        flags['include_dirs'] += [get_python_inc(prefix=sys.prefix)]
-        flags['extra_link_args'] += ['-L', join(sys.prefix, "libs")]
+        # We need this to compile in mingw virtualenv but it breaks MSVC builds
+        if not python_compiler().lower().startswith('ms'):
+            flags['include_dirs'] += [get_python_inc(prefix=sys.prefix)]
+            flags['extra_link_args'] += ['-L', join(sys.prefix, "libs")]
     return flags
 
 
