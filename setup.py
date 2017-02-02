@@ -554,7 +554,7 @@ def determine_base_flags():
         flags['extra_link_args'] += ['-F%s' % sysroot]
     elif platform == 'win32':
         flags['include_dirs'] += [get_python_inc(prefix=sys.prefix)]
-        flags['extra_link_args'] += ['-L', join(sys.prefix, "libs")]
+        flags['library_dirs'] += [join(sys.prefix, "libs")]
     return flags
 
 
