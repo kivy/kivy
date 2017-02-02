@@ -11,6 +11,7 @@ import os
 from os.path import join, dirname, sep, exists, basename, isdir
 from os import walk, environ
 from distutils.version import LooseVersion
+from distutils.sysconfig import get_python_inc
 from collections import OrderedDict
 from time import sleep
 
@@ -57,7 +58,7 @@ def getoutput(cmd, env=None):
 def pkgconfig(*packages, **kw):
     flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
     lenviron = None
-    pconfig = join(dirname(sys.executable), 'libs', 'pkgconfig')
+    pconfig = join(sys.prefix, 'libs', 'pkgconfig')
 
     if isdir(pconfig):
         lenviron = environ.copy()
@@ -523,6 +524,9 @@ def determine_base_flags():
                        'ApplicationServices.framework/Frameworks')
         flags['extra_compile_args'] += ['-F%s' % sysroot]
         flags['extra_link_args'] += ['-F%s' % sysroot]
+    elif platform == 'win32':
+        flags['include_dirs'] += [get_python_inc(prefix=sys.prefix)]
+        flags['extra_link_args'] += ['-L', join(sys.prefix, "libs")]
     return flags
 
 
