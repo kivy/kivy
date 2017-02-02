@@ -11,10 +11,12 @@ import os
 from os.path import join, dirname, sep, exists, basename, isdir
 from os import walk, environ
 from distutils.version import LooseVersion
+from distutils.sysconfig import get_python_inc
 from collections import OrderedDict
 from time import sleep
 from subprocess import check_output, CalledProcessError
 from datetime import datetime
+from platform import python_compiler
 
 if environ.get('KIVY_USE_SETUPTOOLS'):
     from setuptools import setup, Extension
@@ -85,7 +87,7 @@ def getoutput(cmd, env=None):
 def pkgconfig(*packages, **kw):
     flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
     lenviron = None
-    pconfig = join(dirname(sys.executable), 'libs', 'pkgconfig')
+    pconfig = join(sys.prefix, 'libs', 'pkgconfig')
 
     if isdir(pconfig):
         lenviron = environ.copy()
@@ -551,6 +553,11 @@ def determine_base_flags():
                        'ApplicationServices.framework/Frameworks')
         flags['extra_compile_args'] += ['-F%s' % sysroot]
         flags['extra_link_args'] += ['-F%s' % sysroot]
+    elif platform == 'win32':
+        # We need this to compile in mingw virtualenv but it breaks MSVC builds
+        if not python_compiler().lower().startswith('ms'):
+            flags['include_dirs'] += [get_python_inc(prefix=sys.prefix)]
+            flags['extra_link_args'] += ['-L', join(sys.prefix, "libs")]
     return flags
 
 
@@ -603,21 +610,29 @@ def determine_sdl2():
 
     sdl2_path = environ.get('KIVY_SDL2_PATH', None)
 
-    if sdl2_flags and not sdl2_path and platform == 'darwin':
-        return sdl2_flags
+    if not sdl2_path:
+        if platform == 'darwin' and sdl2_flags:
+            return sdl2_flags
+        # no pkgconfig info, or we want to use a specific sdl2 path, so perform
+        # manual configuration
 
-    # no pkgconfig info, or we want to use a specific sdl2 path, so perform
-    # manual configuration
+        sdl2_paths = []
+        sdl2_path_candidates = []
+        sdl2_path_candidates.append(
+            join(dirname(sys.executable), 'include', 'SDL2'))
+        sdl2_path_candidates.append(
+            join(sys.prefix, 'include', 'SDL2'))
+        sdl2_path_candidates.append('/usr/local/include/SDL2')
+        sdl2_path_candidates.append('/usr/include/SDL2')
+
+        for path_candidate in sdl2_path_candidates:
+            if isdir(path_candidate):
+                sdl2_paths.append(path_candidate)
+
+    else:
+        sdl2_paths = sdl2_path.split(os.pathsep)
+
     flags['libraries'] = ['SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer']
-    split_chr = ';' if platform == 'win32' else ':'
-    sdl2_paths = sdl2_path.split(split_chr) if sdl2_path else []
-
-    if not sdl2_paths:
-        sdl_inc = join(dirname(sys.executable), 'include', 'SDL2')
-        if isdir(sdl_inc):
-            sdl2_paths = [sdl_inc]
-        sdl2_paths.extend(['/usr/local/include/SDL2', '/usr/include/SDL2'])
-
     flags['include_dirs'] = sdl2_paths
     flags['extra_link_args'] = []
     flags['extra_compile_args'] = []
@@ -645,6 +660,7 @@ def determine_sdl2():
             can_compile = False
 
     if not can_compile:
+        print('Failed SDL2 check. Compilation proceeding without SDL2.')
         c_options['use_sdl2'] = False
         return {}
 
@@ -761,9 +777,7 @@ sources = {
     'graphics/svg.pyx': merge(base_flags, gl_flags_base)
 }
 
-if c_options["use_sdl2"]:
-    sdl2_flags = determine_sdl2()
-
+sdl2_flags = determine_sdl2()
 if c_options['use_sdl2'] and sdl2_flags:
     sources['graphics/cgl_backend/cgl_sdl2.pyx'] = merge(
         sources['graphics/cgl_backend/cgl_sdl2.pyx'], sdl2_flags)

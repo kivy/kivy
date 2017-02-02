@@ -204,7 +204,8 @@ kivy with git rather than a wheel there are some additional steps:
      python -m pip install --upgrade pip wheel setuptools
 
 #. Get the compiler.
-   For Python < 3.5 we use mingwpy as follows.
+   
+   **mingwpy (Python < 3.5):**
    
    #. Create the
       ``python\Lib\distutils\distutils.cfg`` file and add the two lines::
@@ -215,27 +216,37 @@ kivy with git rather than a wheel there are some additional steps:
    #. Install MinGW with::
 
         python -m pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy
+        
+   **MSVC (Python >= 3.5):**
+    
+   #. Download and install
+      `Visual Studio 2015 <https://www.visualstudio.com/downloads/>`_ .
+      Alternatively, use the smaller,
+      `Visual C Build Tools instead
+      <https://github.com/kivy/kivy/wiki/Using-Visual-C---Build-Tools-instead-of-Visual-Studio-on-Windows>`_.
 
-   For Python 3.5 we use the MSVC compiler. For 3.5,
-   `Visual Studio 2015 <https://www.visualstudio.com/downloads/>`_ is
-   required, which is availible for free. Just download and install it and
-   you'll be good to go. 
+#. Set the environment variables.
+
+   .. warning::
+    
+      These variables must be set every time you recompile kivy.
+
+   .. warning::
    
-   Visual Studio is very big so you can also use the smaller,
-   `Visual C Build Tools instead
-   <https://github.com/kivy/kivy/wiki/Using-Visual-C---Build-Tools-instead-of-Visual-Studio-on-Windows>`_.
-
-#. Set the environment variables. On windows do::
+      If compiling without the optional GSTREAMER dependency, set
+      ``USE_GSTREAMER=0`` instead of ``USE_GSTREAMER=1``.
+      
+   In your Windows command prompt do::
 
      set USE_SDL2=1
      set USE_GSTREAMER=1
+   
+   **mingwpy:**
 
-   In bash do::
+   In bash, also do::
 
      export USE_SDL2=1
      export USE_GSTREAMER=1
-
-   These variables must be set everytime you recompile kivy.
 
 #. Install the other dependencies as well as their dev versions (you can skip
    gstreamer and gstreamer_dev if you aren't going to use video/audio)::
@@ -263,6 +274,16 @@ If the compilation succeeds without any error, Kivy should be good to go. You
 can test it with running a basic example::
 
     python share\kivy-examples\demo\showcase\main.py
+    
+.. note::
+
+    When compiling within a virtual environment, the paths to the C headers
+    have to be discoverable by setup. This should work automatically, but if
+    you compile Kivy and then get errors related to a missing ``pygame``
+    dependency, you need to uninstall and rebuild Kivy, explicitly setting the
+    ``KIVY_SDL2_PATH`` environment variable before building::
+    
+      set KIVY_SDL2_PATH=\path\to\python\Include\SDL2
 
 .. _alternate-win:
 
