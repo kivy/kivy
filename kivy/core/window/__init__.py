@@ -763,8 +763,8 @@ class WindowBase(EventDispatcher):
             kwargs['minimum_height'] = Config.getint('graphics',
                                                      'minimum_height')
         if 'allow_screensaver' not in kwargs:
-            kwargs['allow_screensaver'] = Config.getint('graphics',
-                                                        'allow_screensaver')
+            kwargs['allow_screensaver'] = Config.getboolean(
+                'graphics', 'allow_screensaver')
         if 'rotation' not in kwargs:
             kwargs['rotation'] = Config.getint('graphics', 'rotation')
         if 'position' not in kwargs:
