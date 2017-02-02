@@ -197,6 +197,9 @@ Available configuration tokens
     'data/fonts/Roboto-Bold.ttf', 'data/fonts/Roboto-BoldItalic.ttf']
 
         Default font used for widgets displaying any text.
+    `allow_screensaver`: int, one of 0 or 1, defaults to 1
+        Allow the device to show a screen saver, or to go to sleep
+        on mobile devices. Only works for the sdl2 window provider.
 
 :input:
 
@@ -269,9 +272,10 @@ Available configuration tokens
     arguments.
 
 .. versionchanged:: 1.9.2
-    `min_state_time` has been added to the `graphics` section.
-    `kivy_clock` has been added to the kivy section
-    `default_font` has beed added to the kivy section
+    `min_state_time`  and `allow_screensaver` have been added
+    to the `graphics` section.
+    `kivy_clock` has been added to the kivy section.
+    `default_font` has beed added to the kivy section.
 
 .. versionchanged:: 1.9.0
     `borderless` and `window_state` have been added to the graphics section.
