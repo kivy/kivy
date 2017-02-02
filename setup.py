@@ -574,38 +574,26 @@ def determine_gl_flags():
 
 def determine_sdl2():
     flags = {}
-    # This is redundant; the only time determine_sdl2 is called is preceded by
-    # verification that this condition is already satisfied
     if not c_options['use_sdl2']:
         return flags
 
-    # Check the environment for a Kivy SDL2 path (all platforms) or for Include
-    # and Lib (intended to catch Windows installation, see #4941)
     sdl2_path = environ.get('KIVY_SDL2_PATH', None)
 
-    # SDL2 path was not contained in the environment; attempt to infer it
     if not sdl2_path:
         if platform == 'darwin' and sdl2_flags:
             return sdl2_flags
         # no pkgconfig info, or we want to use a specific sdl2 path, so perform
         # manual configuration
 
-        # Not on OSX, and/or no sdl2_flags defined
         sdl2_paths = []
         sdl2_path_candidates = []
-        # Check in the executable's include dir
         sdl2_path_candidates.append(
             join(dirname(sys.executable), 'include', 'SDL2'))
-        # For every path in the %INCLUDE% (Windows), add the SDL2 subdir
-        sdl2_path_candidates.extend(
-            [join(p, 'SDL2') for p in
-             environ.get('INCLUDE', '').split(os.pathsep)]
-        )
-        # Check in various other unix-only locations
+        sdl2_path_candidates.append(
+            join(sys.prefix, 'include', 'SDL2'))
         sdl2_path_candidates.append('/usr/local/include/SDL2')
         sdl2_path_candidates.append('/usr/include/SDL2')
 
-        # Now make sure we only have valid paths
         for path_candidate in sdl2_path_candidates:
             if isdir(path_candidate):
                 sdl2_paths.append(path_candidate)
@@ -758,9 +746,7 @@ sources = {
     'graphics/svg.pyx': merge(base_flags, gl_flags_base)
 }
 
-if c_options["use_sdl2"]:
-    sdl2_flags = determine_sdl2()
-
+sdl2_flags = determine_sdl2()
 if c_options['use_sdl2'] and sdl2_flags:
     sources['graphics/cgl_backend/cgl_sdl2.pyx'] = merge(
         sources['graphics/cgl_backend/cgl_sdl2.pyx'], sdl2_flags)
