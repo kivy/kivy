@@ -1,23 +1,31 @@
 #!/bin/bash
 
 # Install a system package required by our library
-wget http://download.fedoraproject.org/pub/epel/5/i386/epel-release-5-4.noarch.rpm
-rpm -ivh epel-release-5-4.noarch.rpm
+wget ftp://mirror.switch.ch/pool/4/mirror/fedora/linux/releases/25/Everything/x86_64/os/Packages/s/SDL2-devel-2.0.5-2.fc25.i686.rpm
+wget ftp://mirror.switch.ch/pool/4/mirror/fedora/linux/releases/25/Everything/x86_64/os/Packages/s/SDL2-devel-2.0.5-2.fc25.x86_64.rpm
+
+wget ftp://mirror.switch.ch/pool/4/mirror/fedora/linux/releases/24/Everything/x86_64/os/Packages/s/SDL2_mixer-devel-2.0.1-2.fc24.x86_64.rpm
+wget ftp://mirror.switch.ch/pool/4/mirror/fedora/linux/development/rawhide/Everything/x86_64/os/Packages/s/SDL2_mixer-devel-2.0.1-2.fc24.i686.rpm
+
+wget ftp://mirror.switch.ch/pool/4/mirror/fedora/linux/development/rawhide/Everything/x86_64/os/Packages/s/SDL2_ttf-devel-2.0.14-2.fc25.i686.rpm
+wget ftp://mirror.switch.ch/pool/4/mirror/fedora/linux/development/rawhide/Everything/x86_64/os/Packages/s/SDL2_ttf-devel-2.0.14-2.fc25.x86_64.rpm
+
+rpm -ivh SDL2-devel-2.0.5-2.fc25.i686.rpm
+rpm -ivh SDL2-devel-2.0.5-2.fc25.x86_64.rpm
+
+rpm -ivh SDL2_mixer-devel-2.0.1-2.fc24.x86_64.rpm
+rpm -ivh SDL2_mixer-devel-2.0.1-2.fc24.i686.rpm
+
+rpm -ivh SDL2_ttf-devel-2.0.14-2.fc25.i686.rpm
+rpm -ivh SDL2_ttf-devel-2.0.14-2.fc25.x86_64.rpm
+
 yum check-update
-yum search SDL
-yum search libsdl
 yum install \
     make \
     mercurial \
     automake \
     gcc \
     gcc-c++ \
-    SDL2-devel \
-    SDL2_ttf-devel \
-    SDL2_mixer-devel \
-    SDL2* \
-    libsdl2* \
-    libSDL2* \
     khrplatform-devel \
     mesa-libGLES \
     mesa-libGLES-devel \
