@@ -83,7 +83,7 @@ script:
   - if [ ${DOCKER_IMAGE} ]; then
       set -ex;
       sudo chmod +x travis/build_wheels.sh;
-      docker pull multiarch/qemu-user-static;
+      docker pull multiarch/qemu-user-static:register;
       docker run --rm --privileged multiarch/qemu-user-static:register;
       docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build_wheels.sh;
       ls wheelhouse/;
