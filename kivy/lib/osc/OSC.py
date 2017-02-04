@@ -103,6 +103,8 @@ class OSCMessage:
 
     def rawAppend(self, data):
         """Appends raw data to the message.  Use append()."""
+        if not isinstance(data, bytes): 
+            data = data.encode('utf-8')
         self.message = self.message + data
 
     def getBinary(self):
