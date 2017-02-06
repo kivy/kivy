@@ -4,8 +4,10 @@
 yum check-update
 yum install -y \
     make \
+    cmake \
     mercurial \
     automake \
+    autoconf \
     gcc \
     gcc-c++ \
     khrplatform-devel \
@@ -19,23 +21,56 @@ yum install -y \
     python-devel \
     python-pip
 
-wget ftp://mirror.switch.ch/pool/4/mirror/fedora/linux/releases/25/Everything/x86_64/os/Packages/s/SDL2-devel-2.0.5-2.fc25.i686.rpm
-wget ftp://mirror.switch.ch/pool/4/mirror/fedora/linux/releases/25/Everything/x86_64/os/Packages/s/SDL2-devel-2.0.5-2.fc25.x86_64.rpm
+# https://hg.libsdl.org/SDL/file/default/docs/README-linux.md
+# libtool libasound2-dev libpulse-dev libaudio-dev libxext-dev \
+# libxrandr-dev libxcursor-dev libxi-dev libxinerama-dev libxxf86vm-dev \
+# libxss-dev libesd0-dev libdbus-1-dev libudev-dev libibus-1.0-dev \
+# fcitx-libs-dev libsamplerate0-dev
 
-wget ftp://mirror.switch.ch/pool/4/mirror/fedora/linux/development/rawhide/Everything/x86_64/os/Packages/s/SDL2_mixer-devel-2.0.1-2.fc24.i686.rpm
-wget ftp://mirror.switch.ch/pool/4/mirror/fedora/linux/releases/24/Everything/x86_64/os/Packages/s/SDL2_mixer-devel-2.0.1-2.fc24.x86_64.rpm
+# Make SDL2 packages
+SDL="SDL2-2.0.5"
+TTF="SDL_ttf-2.0.14"
+MIX="SDL_mixer-2.0.1"
+IMG="SDL_image-2.0.1"
+curl -sL https://www.libsdl.org/release/${SDL}.tar.gz > ${SDL}.tar.gz
+curl -sL https://www.libsdl.org/projects/SDL_image/release/${IMG}.tar.gz > ${IMG}.tar.gz
+curl -sL https://www.libsdl.org/projects/SDL_ttf/release/${TTF}.tar.gz > ${TTF}.tar.gz
+curl -sL https://www.libsdl.org/projects/SDL_mixer/release/${MIX}.tar.gz > ${MIX}.tar.gz
 
-wget ftp://mirror.switch.ch/pool/4/mirror/fedora/linux/development/rawhide/Everything/x86_64/os/Packages/s/SDL2_ttf-devel-2.0.14-2.fc25.i686.rpm
-wget ftp://mirror.switch.ch/pool/4/mirror/fedora/linux/development/rawhide/Everything/x86_64/os/Packages/s/SDL2_ttf-devel-2.0.14-2.fc25.x86_64.rpm
+# SDL2
+tar xzf ${SDL}.tar.gz
+cd $SDL
+./configure --enable-png --disable-png-shared --enable-jpg --disable-jpg-shared
+make
+make install
+cd ..
 
-rpm -ivh SDL2-devel-2.0.5-2.fc25.i686.rpm
-rpm -ivh SDL2-devel-2.0.5-2.fc25.x86_64.rpm
+# SDL image
+tar xzf ${IMG}.tar.gz
+cd $IMG
+./configure --enable-png --disable-png-shared --enable-jpg --disable-jpg-shared
+make
+make install
+cd ..
 
-rpm -ivh SDL2_mixer-devel-2.0.1-2.fc24.i686.rpm
-rpm -ivh SDL2_mixer-devel-2.0.1-2.fc24.x86_64.rpm
+# SDL ttf
+tar xzf ${TTF}.tar.gz
+cd $TTF
+./configure
+make
+make install
+cd ..
 
-rpm -ivh SDL2_ttf-devel-2.0.14-2.fc25.i686.rpm
-rpm -ivh SDL2_ttf-devel-2.0.14-2.fc25.x86_64.rpm
+# SDL mixer
+tar xzf ${MIX}.tar.gz
+cd $MIX
+./configure --enable-music-mod --disable-music-mod-shared \
+            --enable-music-ogg  --disable-music-ogg-shared \
+            --enable-music-flac  --disable-music-flac-shared \
+            --enable-music-mp3  --disable-music-mp3-shared
+make
+make install
+cd ..
 
 # Compile wheels
 for PYBIN in /opt/python/*/bin; do
