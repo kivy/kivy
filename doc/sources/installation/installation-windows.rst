@@ -123,7 +123,7 @@ follows.
 - |cp27_amd64|_
 - |cp34_amd64|_
 - |cp35_amd64|_
-- |cp35_amd64|_
+- |cp36_amd64|_
 
 #. Perform steps 1 and 2 of the above Installation section.
 #. Download the appropriate wheel for your system.
