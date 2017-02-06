@@ -136,7 +136,7 @@ wheelhouse of the average Pythonista.
     from p4a/kivy-ios to plyer and implementing some or all
     of the new facades to be decided with the student.
     
-  - **Mentors**: ?
+  - **Mentors**: Akshay Arora, Ryan Pessa
   - **Requirements**: Access to Linux, Windows, OS X, iOS device,  
     Android device.
   - **Task level**: Intermediate
@@ -152,7 +152,7 @@ with C code, and using Cython to build your own C extensions these projects
 may appeal to you.
 
 
-**Kivent: Chipmunk 7 Integration**
+**Kivent: Tiled Integration**
 
   Description:
     KivEnt is a modular entity-component based game engine built on top of
@@ -160,28 +160,52 @@ may appeal to you.
     Python that avoids some of the worst overhead of Python using specialized
     Cython constructs.
 
-    At the moment, KivEnt internally makes use of the cymunk library 
-    (https://github.com/tito/cymunk) for physics simulation and collision 
-    detection. Cymunk is based on Chipmunk2d 6.x, recently Chipmunk 7 has
-    released and brought many previously premium features into the core library.
-    In addition to the API changes present in the newest Chipmunk, the 
-    KivEnt - Cymunk bridging does not make most efficient use of the KivEnt
-    API for handling C level objects and data. The student will be responsible
-    for creating a new wrapper over Chipmunk2d 7 that better matches KivEnt's
-    approach to handling game data.
+    The student would work to finish creating a fully functional Tiled module
+    that supports the full range of map types Tiled supports: hex, square, and
+    isometric square tiles. This task will likely involve writing both logic
+    and rendering game systems. In addition, the student will be responsible
+    for completing an MIT licensed tmx (the tiled file format) loader for use
+    in KivEnt. 
 
   References:
-    - http://chipmunk-physics.net/
+    - http://www.mapeditor.org/
     - https://github.com/kivy/kivent
   Expected Outcome:
     A successful outcome involves a new kivent_tiled module being released for
     the KivEnt game engine.
 
-  - **Mentors**: Jacob Kovac
+  - **Mentors**: Jacob Kovac, Gabriel Pettier
   - **Requirements**: Access to at least one Kivy platform.
   - **Task level**: Advanced
   - **Desired Skills**: Familiarity with Cython, Python, and game dev related
     math concepts.
+
+**Python for Android: New features**
+
+  Description:
+    Python for Android is a project to create your own Python distribution 
+    including the modules you want, and create an APK including Python, libs,
+    and your application.
+
+    This tool was recently rewritten to provide a new, easier to use and
+    extended interface.
+
+    The student would work to help bring this new toolchain to
+    feature parity with the old toolchain and improve it with new features
+    like:: custom splash screen support including animation, ability to
+    fully customize AndroiManifest.xml, and work on known missing stuff
+    (linked below). 
+
+  References:
+    - https://github.com/kivy/python-for-android#known-missing-stuff-from-p4a
+  Expected Outcome:
+    A successful outcome involves the new p4a toolchain being at feature parity
+    with the old toolchain, including extra functionality as outlined above.
+
+  - **Mentors**: Alexander Taylor, Ryan Pessa
+  - **Requirements**: Access to Linux and Android.
+  - **Task level**: Advanced
+  - **Desired Skills**: Familiarity with Cython, Python and PyJNIus
 
 
 
