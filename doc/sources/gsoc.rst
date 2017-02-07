@@ -1,4 +1,4 @@
-Google Summer of Code - 2016
+Google Summer of Code - 2017
 ============================
 
 Introduction
@@ -136,7 +136,7 @@ wheelhouse of the average Pythonista.
     from p4a/kivy-ios to plyer and implementing some or all
     of the new facades to be decided with the student.
     
-  - **Mentors**: ?
+  - **Mentors**: Akshay Arora, Sebastian Armin
   - **Requirements**: Access to Linux, Windows, OS X, iOS device,  
     Android device.
   - **Task level**: Intermediate
