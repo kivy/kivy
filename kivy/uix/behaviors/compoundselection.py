@@ -314,7 +314,7 @@ class CompoundSelectionBehavior(object):
 
         if touch and 'button' in touch.profile and touch.button in\
             ('scrollup', 'scrolldown', 'scrollleft', 'scrollright'):
-            node_src, idx_src = self._reslove_last_node()
+            node_src, idx_src = self._resolve_last_node()
             node, idx = self.goto_node(touch.button, node_src, idx_src)
             if node == node_src:
                 return False
@@ -363,7 +363,7 @@ class CompoundSelectionBehavior(object):
             return False
         keys = self._key_list
         multi = self.multiselect
-        node_src, idx_src = self._reslove_last_node()
+        node_src, idx_src = self._resolve_last_node()
         text = scancode[1]
 
         if text == 'shift':
@@ -454,7 +454,7 @@ class CompoundSelectionBehavior(object):
         'down': uc, 'right': rc, 'left': -rc, 'scrollup': sc,
         'scrolldown': -sc, 'scrollright': -sc, 'scrollleft': sc}
 
-    def _reslove_last_node(self):
+    def _resolve_last_node(self):
         # for offset selection, we have a anchor, and we select everything
         # between anchor and added offset relative to last node
         sister_nodes = self.get_selectable_nodes()
