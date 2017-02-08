@@ -37,7 +37,7 @@ Java, Objective-C, or C in addition to Python. We make heavy use of Cython and
 OpenGL for computational and graphics performance where it matters, and the
 other languages are typically involved in accessing OS or provider level APIs.
 
-We are hoping to participate in Google Summer of Code 2016. This page showcases
+We are hoping to participate in Google Summer of Code 2017. This page showcases
 some ideas for GSoC projects and corresponding guidelines for students
 contributing to the Kivy Framework.
 
