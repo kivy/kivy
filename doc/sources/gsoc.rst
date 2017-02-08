@@ -184,6 +184,49 @@ may appeal to you.
     math concepts.
 
 
+**KV Compiler: A compiler for the KV language**
+
+  Description:
+    The KV language is a fundamental component of Kivy. The KV language allows one
+    to describe a GUI; from the creation of a Widget tree to the actions that should be
+    taken in response value changes and events. In effect it is a concise way to create
+    rule bindings using the Kivy properties and events. Internally, python code that
+    reflects these rules are created and bound to the properties and events. Currently,
+    these bindings are not at all optimized because upon each widget creation all of
+    these rules are re-evaluated and bound. This process can be significantly optimized
+    by pre-compiling the kv code, especially the bindings. A compiler would also allow
+    us to update and fix some of the long-standing kv language issues.
+
+    Work on a kv-compiler has already progressed quite far, in fact a PR in the pre-alpha
+    stage, is currently open. However, it is out of sync with the current codebase due to
+    some unrelated kv changes in the meantime. Also, that PR would require a significant
+    re-write to make things more modular, self-contained, and extensible. So there is much
+    work still to be done on it.
+
+    Theming has also been a prepatual issue in Kivy, a KV compiler may help implement bindings
+    that facilitate theming.
+
+  References:
+    - https://kivy.org/docs/guide/lang.html
+    - https://github.com/kivy/kivy/pull/3456
+    - https://github.com/kivy/kivy/wiki/KEP001:-Instantiate-things-other-than-widgets-from-kv
+    - https://github.com/kivy/kivy/issues/691
+    - https://github.com/kivy/kivy/issues/2727
+  Expected Outcome:
+    A successful outcome would be a compiler which compiles kv code into python
+    code. The compiler should be modular and extensible so that we can continue to
+    improve the kv language. The compiler should have the common debug/optimization
+    options. The compiled code should also be human readable so issues could be traced
+    back to the original kv code. The compiler should also be a drop in replacement for the
+    current KV runtime compiler, and would require extensive testing.
+
+  - **Mentors**: Matthew Einhorn, Sebastian Armin
+  - **Requirements**: Access to at least one Kivy platform.
+  - **Task level**: Advanced
+  - **Desired Skills**: Familiarity with Cython, Python, and Kivy. Familiarity
+    with typical computer science concepts and data structures is also desired.
+
+
 
 How to Contact devs
 -------------------
