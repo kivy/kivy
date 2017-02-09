@@ -346,12 +346,22 @@ class WindowBase(EventDispatcher):
     '''
 
     icon = StringProperty()
+    '''A path to the window icon.
+
+    .. versionadded:: 1.1.2
+
+    :attr:`icon` is a :class:`~kivy.properties.StringProperty`.
+    '''
 
     def _get_modifiers(self):
         return self._modifiers
 
     modifiers = AliasProperty(_get_modifiers, None)
     '''List of keyboard modifiers currently active.
+
+    .. versionadded:: 1.0.9
+
+    :attr:`modifiers` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_size(self):
@@ -409,6 +419,10 @@ class WindowBase(EventDispatcher):
     size = AliasProperty(_get_size, _set_size, bind=('_size', ))
     '''Get the rotated size of the window. If :attr:`rotation` is set, then the
     size will change to reflect the rotation.
+
+    .. versionadded:: 1.0.9
+
+    :attr:`size` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_clearcolor(self):
@@ -439,6 +453,10 @@ class WindowBase(EventDispatcher):
     .. versionchanged:: 1.7.2
         The clearcolor default value is now: (0, 0, 0, 1).
 
+    .. versionadded:: 1.0.9
+
+    :attr:`clearcolor` is an :class:`~kivy.properties.AliasProperty` and
+    defaults to (0, 0, 0, 1).
     '''
 
     # make some property read-only
@@ -480,7 +498,9 @@ class WindowBase(EventDispatcher):
     center = AliasProperty(_get_center, None, bind=('width', 'height'))
     '''Center of the rotated window.
 
-    :attr:`center` is a :class:`~kivy.properties.AliasProperty`.
+    .. versionadded:: 1.0.9
+
+    :attr:`center` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_rotation(self):
@@ -502,6 +522,10 @@ class WindowBase(EventDispatcher):
                              bind=('_rotation', ))
     '''Get/set the window content rotation. Can be one of 0, 90, 180, 270
     degrees.
+
+    .. versionadded:: 1.0.9
+
+    :attr:`rotation` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     softinput_mode = OptionProperty('', options=(
@@ -624,6 +648,10 @@ class WindowBase(EventDispatcher):
         _set_system_size,
         bind=('_size', ))
     '''Real size of the window ignoring rotation.
+
+    .. versionadded:: 1.0.9
+
+    :attr:`system_size` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_effective_size(self):
@@ -668,6 +696,9 @@ class WindowBase(EventDispatcher):
     '''2d position of the mouse within the window.
 
     .. versionadded:: 1.2.0
+
+    :attr:`mouse_pos` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to [0, 0].
     '''
 
     show_cursor = BooleanProperty(True)
