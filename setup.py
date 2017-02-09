@@ -891,6 +891,7 @@ ext_modules = get_extensions_from_sources(sources)
 
 # -----------------------------------------------------------------------------
 # automatically detect data files
+split_examples = int(environ.get('KIVY_SPLIT_EXAMPLES', '0'))
 data_file_prefix = 'share/kivy-'
 examples = {}
 examples_allowed_ext = ('readme', 'py', 'wav', 'png', 'jpg', 'svg', 'json',
@@ -1007,7 +1008,7 @@ setup(
         'tools/packaging/osx/InfoPlist.strings',
         'tools/gles_compat/*.h',
         'tools/packaging/osx/kivy.sh'] + binary_deps},
-    data_files=list(examples.items()),
+    data_files=[] if split_examples else list(examples.items()),
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: MacOS X',
@@ -1043,3 +1044,16 @@ setup(
         'https://github.com/kivy-garden/garden/archive/master.zip'],
     install_requires=['Kivy-Garden>=0.1.4', 'docutils', 'pygments'],
     setup_requires=['cython>=' + MIN_CYTHON_STRING] if not skip_cython else [])
+
+# -----------------------------------------------------------------------------
+# setup kivy-examples!
+if split_examples:
+    setup(
+        name='Kivy-examples',
+        version=get_version(),
+        author='Kivy Team and other contributors',
+        author_email='kivy-dev@googlegroups.com',
+        url='http://kivy.org',
+        license='MIT',
+        description=('Kivy examples.'),
+        data_files=list(examples.items()))
