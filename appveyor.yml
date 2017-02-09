@@ -13,6 +13,7 @@ environment:
   USE_SDL2: 1
   USE_GSTREAMER: 1
   KIVY_USE_SETUPTOOLS: 1
+  KIVY_SPLIT_EXAMPLES: 1
   matrix:
   - PYVER: 27
     BITTNESS: 86
@@ -177,6 +178,8 @@ build_script:
     if ($DO_WHEEL -eq "True") {
       python setup.py bdist_wheel -d "$env:WHEEL_DIR"
       Check-Error
+
+      dir "$env:WHEEL_DIR"
 
       # Default file bdist_wheel creates:
       # Kivy-X.Y.Z[.dev0]-cpAB-cpABm-ARCH.whl
