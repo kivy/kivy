@@ -183,7 +183,7 @@ build_script:
       # Default file bdist_wheel creates:
       # Kivy-X.Y.Z[.dev0]-cpAB-cpABm-ARCH.whl (Kivy_examples-X.Y.Z[.dev0]-py2.py3-none-any.whl)
 
-      $files = Get-ChildItem "$env:WHEEL_DIR" *.whl
+      $files = Get-ChildItem "$env:WHEEL_DIR" *.whl -Name
       foreach ($WHEEL_DEFAULT in $files){
         echo "Wheel file: $env:WHEEL_DIR\$WHEEL_DEFAULT"
         $WHEEL_NIGHTLY = $WHEEL_DEFAULT.Replace("dev0-", $WHEEL_NAME)
