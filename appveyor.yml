@@ -138,6 +138,10 @@ build_script:
       $DO_WHEEL = "False"
     }
 
+    if ($env:APPVEYOR_REPO_BRANCH -ne "master") {
+      $DO_WHEEL = "False"
+    }
+
     echo "test=$env:DO_TEST, make_wheel=$DO_WHEEL"
 
     python -m pip install pip wheel setuptools --upgrade
