@@ -18,7 +18,7 @@ class CoverImage(CoverBehavior, Image):
 class MainApp(App):
 
     def build(self):
-        return CoverImage(source='image.jpg')
+        return CoverImage(source='../widgets/cityCC0.png')
 
 
 if __name__ == '__main__':
