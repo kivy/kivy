@@ -13,6 +13,7 @@ environment:
   USE_SDL2: 1
   USE_GSTREAMER: 1
   KIVY_USE_SETUPTOOLS: 1
+  KIVY_SPLIT_EXAMPLES: 1
   matrix:
   - PYVER: 27
     BITTNESS: 86
@@ -125,14 +126,14 @@ build_script:
     $DO_WHEEL = "True"
 
     # Set new wheel name, keep default if release (tag)
-    # release: Kivy-X.Y.Z-cpAB-cpABm-ARCH.whl
-    # nightly: Kivy-X.Y.Z.dev0-cpAB-cpABm-ARCH.whl
-    # archive: Kivy-X.Y.Z.dev0.YYYYMMDD.githash-cpAB-cpABm-ARCH.whl
+    # release: Kivy-X.Y.Z-cpAB-cpABm-ARCH.whl (Kivy_examples-X.Y.Z-py2.py3-none-any.whl)
+    # nightly: Kivy-X.Y.Z.dev0-cpAB-cpABm-ARCH.whl (Kivy_examples-X.Y.Z.dev0-py2.py3-none-any.whl)
+    # archive: Kivy-X.Y.Z.dev0.YYYYMMDD.githash-cpAB-cpABm-ARCH.whl (Kivy_examples-X.Y.Z.dev0.YYYYMMDD.githash-py2.py3-none-any.whl)
 
     if ($env:APPVEYOR_REPO_TAG -eq "true"){
-      $WHEEL_NAME = "dev0-cp"
+      $WHEEL_NAME = "dev0-"
     } elseif ($env:APPVEYOR_SCHEDULED_BUILD -eq "True" -or $env:APPVEYOR_FORCED_BUILD -eq "True" -or $env:APPVEYOR_RE_BUILD -eq "True"){
-      $WHEEL_NAME = "dev0.$WHEEL_DATE`.$GIT_TAG-cp"
+      $WHEEL_NAME = "dev0.$WHEEL_DATE`.$GIT_TAG-"
     } else {
       $DO_WHEEL = "False"
     }
@@ -178,24 +179,25 @@ build_script:
       python setup.py bdist_wheel -d "$env:WHEEL_DIR"
       Check-Error
 
+      if ($env:BITTNESS -eq "64" -and $env:PYVER -eq "27") {
+        python setup.py bdist_wheel -d "$env:WHEEL_DIR" --build_examples --universal
+        Check-Error
+      }
+
       # Default file bdist_wheel creates:
-      # Kivy-X.Y.Z[.dev0]-cpAB-cpABm-ARCH.whl
+      # Kivy-X.Y.Z[.dev0]-cpAB-cpABm-ARCH.whl (Kivy_examples-X.Y.Z[.dev0]-py2.py3-none-any.whl)
 
-      $WHEEL_DEFAULT = python -c "from os import listdir;print(listdir(r'$env:WHEEL_DIR')[0])"
+      $files = Get-ChildItem "$env:WHEEL_DIR" *.whl -Name
+      foreach ($WHEEL_DEFAULT in $files){
+        echo "Wheel file: $env:WHEEL_DIR\$WHEEL_DEFAULT"
+        $WHEEL_NIGHTLY = $WHEEL_DEFAULT.Replace("dev0-", $WHEEL_NAME)
+        echo "Nightly file: $env:WHEEL_DIR\$WHEEL_NIGHTLY"
+        Check-Error
 
-      echo "Wheel file: $env:WHEEL_DIR\$WHEEL_DEFAULT"
-
-      $WHEEL_NIGHTLY = $WHEEL_DEFAULT.Replace("dev0-cp", $WHEEL_NAME)
-
-      echo "Nightly file: $env:WHEEL_DIR\$WHEEL_NIGHTLY"
-
-      Check-Error
-
-      echo "Copying from default $WHEEL_DEFAULT to nightly $WHEEL_NIGHTLY"
-      Copy-Item "$env:WHEEL_DIR\$WHEEL_DEFAULT" "$env:WHEEL_DIR\$WHEEL_NIGHTLY"
-      Check-Error
-
-      dir "$env:WHEEL_DIR"
+        echo "Copying from default $WHEEL_DEFAULT to nightly $WHEEL_NIGHTLY"
+        Copy-Item "$env:WHEEL_DIR\$WHEEL_DEFAULT" "$env:WHEEL_DIR\$WHEEL_NIGHTLY"
+        Check-Error
+      }
 
       C:\Python27\python.exe C:\projects\kivy-sdk-packager\win\gdrive.py upload "$env:GDRIVE_KIVY_UPLOAD_ID" "$env:WHEEL_DIR\*"
       Check-Error
