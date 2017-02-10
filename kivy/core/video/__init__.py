@@ -6,6 +6,7 @@ Core class for reading video files and managing the
 :class:`kivy.graphics.texture.Texture` video.
 
 .. versionchanged:: 1.9.2
+    The ffmpeg provider is deprecated.
     The pyglet, pygst and gi providers have been removed.
 
 .. versionchanged:: 1.8.0
