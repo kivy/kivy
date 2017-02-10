@@ -1043,12 +1043,14 @@ if not build_examples:
             'Topic :: Multimedia :: Video :: Display',
             'Topic :: Scientific/Engineering :: Human Machine Interfaces',
             'Topic :: Scientific/Engineering :: Visualization',
-            'Topic :: Software Development :: Libraries :: Application Frameworks',
+            ('Topic :: Software Development :: Libraries :: '
+             'Application Frameworks'),
             'Topic :: Software Development :: User Interfaces'],
         dependency_links=[
             'https://github.com/kivy-garden/garden/archive/master.zip'],
         install_requires=['Kivy-Garden>=0.1.4', 'docutils', 'pygments'],
-        setup_requires=['cython>=' + MIN_CYTHON_STRING] if not skip_cython else [])
+        setup_requires=['cython>=' + MIN_CYTHON_STRING]
+            if not skip_cython else [])
 else:
     setup(
         name='Kivy-examples',
