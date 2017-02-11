@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Install a system package required by our library
+yum list installed
 yum check-update
 # already installed:
 # make \
@@ -18,25 +19,34 @@ yum install -y \
     gstreamer \
     gstreamer-python \
     python-devel \
+    dbus-devel \
+    xorg-x11-server-Xvfb \
+    libXext-devel \
+    libXrandr-devel \
+    libXcursor-devel \
+    libXinerama-devel \
+    libXxf86vm-devel \
+    libXScrnSaver-devel \
+    libsamplerate-devel \
+    libjpeg-devel \
+    libtiff-devel \
+    libX11-devel \
 
 # deps from travis
 # -dev
+yum search libc
 yum search smpeg
 yum search swscale
 yum search avformat
 yum search avcodec
-yum search jpeg
 # substring v
-yum search tiff
-yum search tiff4
-yum search X11
+yum search mt
 yum search mtdev
 yum search gl1-mesa
 yum search gles2-mesa
 
 # non -dev
 yum search build-essential
-yum search xvfb
 yum search pulseaudio
 
 
@@ -52,27 +62,15 @@ yum search asound
 yum search asound2
 yum search pulse
 yum search audio
-yum search xext
-yum search xrandr
-yum search xcursor
 yum search xi
-yum search xinerama
-yum search xxf86vm
-yum search xss
 # substring v
 yum search esd
 yum search esd0
-# substring v
-yum search dbus
-yum search dbus-1
 yum search udev
 # substring v
 yum search ibus
 yum search ibus-1.0
 yum search fcitx-libs
-# substring v
-yum search samplerate
-yum search samplerate0
 
 # Not sure if khr is even needed now
 yum search khr
