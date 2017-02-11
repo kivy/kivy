@@ -2,30 +2,80 @@
 
 # Install a system package required by our library
 yum check-update
+# already installed:
+# make \
+# automake \
+# autoconf \
+# libX11-devel \
+
 yum install -y \
-    make \
     cmake \
-    mercurial \
-    automake \
-    autoconf \
     gcc \
     gcc-c++ \
-    khrplatform-devel \
     mesa-libGLU \
     mesa-libGLU-devel \
-    libX11-devel \
     gstreamer-plugins-good \
     gstreamer \
     gstreamer-python \
-    mtdev-devel \
     python-devel \
-    python-pip
 
-# https://hg.libsdl.org/SDL/file/default/docs/README-linux.md
-# libtool libasound2-dev libpulse-dev libaudio-dev libxext-dev \
-# libxrandr-dev libxcursor-dev libxi-dev libxinerama-dev libxxf86vm-dev \
-# libxss-dev libesd0-dev libdbus-1-dev libudev-dev libibus-1.0-dev \
-# fcitx-libs-dev libsamplerate0-dev
+# deps from travis
+# -dev
+yum search smpeg
+yum search swscale
+yum search avformat
+yum search avcodec
+yum search jpeg
+# substring v
+yum search tiff
+yum search tiff4
+yum search X11
+yum search mtdev
+yum search gl1-mesa
+yum search gles2-mesa
+
+# non -dev
+yum search build-essential
+yum search xvfb
+yum search pulseaudio
+
+
+# sdl2 deps
+# non -dev libs
+yum search tool
+yum search libtool
+# mercurial make cmake autoconf automake
+
+# -dev libs
+# substring v
+yum search asound
+yum search asound2
+yum search pulse
+yum search audio
+yum search xext
+yum search xrandr
+yum search xcursor
+yum search xi
+yum search xinerama
+yum search xxf86vm
+yum search xss
+# substring v
+yum search esd
+yum search esd0
+# substring v
+yum search dbus
+yum search dbus-1
+yum search udev
+# substring v
+yum search ibus
+yum search ibus-1.0
+yum search fcitx-libs
+# substring v
+yum search samplerate
+yum search samplerate0
+
+# Not sure if khr is even needed now
+yum search khr
 
 # Make SDL2 packages
 SDL="SDL2-2.0.5"
@@ -40,7 +90,8 @@ curl -sL https://www.libsdl.org/projects/SDL_mixer/release/${MIX}.tar.gz > ${MIX
 # SDL2
 tar xzf ${SDL}.tar.gz
 cd $SDL
-./configure --enable-png --disable-png-shared --enable-jpg --disable-jpg-shared
+./configure
+# --enable-png --disable-png-shared --enable-jpg --disable-jpg-shared
 make
 make install
 cd ..
@@ -48,7 +99,8 @@ cd ..
 # SDL image
 tar xzf ${IMG}.tar.gz
 cd $IMG
-./configure --enable-png --disable-png-shared --enable-jpg --disable-jpg-shared
+./configure
+# --enable-png --disable-png-shared --enable-jpg --disable-jpg-shared
 make
 make install
 cd ..
