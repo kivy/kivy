@@ -3,11 +3,6 @@
 # Install a system package required by our library
 yum list installed
 yum check-update
-# already installed:
-# make \
-# automake \
-# autoconf \
-# libX11-devel \
 
 yum install -y \
     cmake \
@@ -31,49 +26,24 @@ yum install -y \
     libjpeg-devel \
     libtiff-devel \
     libX11-devel \
+    libXi-devel \
+    libtool
 
-# deps from travis
-# -dev
-yum search libc
+# missing libs, compile?
+## -dev
 yum search smpeg
 yum search swscale
 yum search avformat
 yum search avcodec
-# substring v
-yum search mt
 yum search mtdev
-yum search gl1-mesa
-yum search gles2-mesa
-
-# non -dev
-yum search build-essential
-yum search pulseaudio
-
-
-# sdl2 deps
-# non -dev libs
-yum search tool
-yum search libtool
-# mercurial make cmake autoconf automake
-
-# -dev libs
-# substring v
-yum search asound
 yum search asound2
-yum search pulse
-yum search audio
-yum search xi
-# substring v
-yum search esd
 yum search esd0
 yum search udev
-# substring v
-yum search ibus
 yum search ibus-1.0
 yum search fcitx-libs
 
-# Not sure if khr is even needed now
-yum search khr
+## non -dev
+yum search pulseaudio
 
 # Make SDL2 packages
 SDL="SDL2-2.0.5"
@@ -92,6 +62,7 @@ cd $SDL
 # --enable-png --disable-png-shared --enable-jpg --disable-jpg-shared
 make
 make install
+export KIVY_SDL2_PATH=$PWD
 cd ..
 
 # SDL image
@@ -101,6 +72,7 @@ cd $IMG
 # --enable-png --disable-png-shared --enable-jpg --disable-jpg-shared
 make
 make install
+export KIVY_SDL2_PATH=$KIVY_SDL2_PATH:$PWD
 cd ..
 
 # SDL ttf
@@ -109,6 +81,7 @@ cd $TTF
 ./configure
 make
 make install
+export KIVY_SDL2_PATH=$KIVY_SDL2_PATH:$PWD
 cd ..
 
 # SDL mixer
@@ -122,8 +95,12 @@ make
 make install
 cd ..
 
+PYTHONS="cp27-cp27mu cp34-cp34m cp35-cp35m cp36-cp36m"
+
 # Compile wheels
-for PYBIN in /opt/python/*/bin; do
+for PY in $PYTHONS; do
+    rm -rf /io/Setup /io/build/
+    PYBIN="/opt/python/${PY}/bin"
     "${PYBIN}/pip" install --upgrade cython nose
     "${PYBIN}/pip" wheel /io/ -w wheelhouse/
 done
@@ -134,7 +111,8 @@ for whl in wheelhouse/*.whl; do
 done
 
 # Install packages and test
-for PYBIN in /opt/python/*/bin/; do
+for PY in $PYTHONS; do
+    PYBIN="/opt/python/${PYBIN}/bin/"
     "${PYBIN}/pip" install . --no-index -f /io/wheelhouse
     (cd "$HOME"; "${PYBIN}/nosetests" kivy)
 done
