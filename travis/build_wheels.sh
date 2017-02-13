@@ -4,6 +4,9 @@
 yum list installed
 yum check-update
 
+rpm -ivh pulseaudio-0.9.5-5.el5.kb.i386.rpm
+rpm -ivh pulseaudio-0.9.5-5.el5.kb.x86_64.rpm
+
 yum install -y \
     cmake \
     gcc \
@@ -31,6 +34,7 @@ yum install -y \
 
 # missing libs, compile?
 ## -dev
+yum search ffmpeg
 yum search smpeg
 yum search swscale
 yum search avformat
@@ -41,9 +45,6 @@ yum search esd0
 yum search udev
 yum search ibus-1.0
 yum search fcitx-libs
-
-## non -dev
-yum search pulseaudio
 
 # Make SDL2 packages
 SDL="SDL2-2.0.5"
