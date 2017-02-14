@@ -46,7 +46,7 @@ You can create your own data and blit it to the texture using
 
 For example, to blit immutable bytes data::
 
-    # create a 64x64 texture, defaults to rgb / ubyte
+    # create a 64x64 texture, defaults to rgba / ubyte
     texture = Texture.create(size=(64, 64))
 
     # create 64x64 rgb tab, and fill with values from 0 to 255
