@@ -148,7 +148,11 @@ cdef class _WindowSDL2Storage:
             self.ctx = SDL_GL_CreateContext(self.win)
             if not self.ctx:
                 self.die()
-        SDL_JoystickOpen(0)
+
+        # Open all available joysticks
+        cdef int joy_i
+        for joy_i in range(SDL_NumJoysticks()):
+            SDL_JoystickOpen(joy_i)
 
         SDL_SetEventFilter(_event_filter, <void *>self)
 
