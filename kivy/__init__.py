@@ -28,6 +28,8 @@ __all__ = (
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
+__version__ = '1.9.2-dev0'
+
 import sys
 import shutil
 from getopt import getopt, GetoptError
@@ -37,22 +39,6 @@ import pkgutil
 from kivy.compat import PY2
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.utils import platform
-
-MAJOR = 1
-MINOR = 9
-MICRO = 2
-RELEASE = False
-
-__version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
-
-if not RELEASE and '.dev0' not in __version__:
-    __version__ += '.dev0'
-
-try:
-    from kivy.version import __hash__, __date__
-    __hash__ = __hash__[:7]
-except ImportError:
-    __hash__ = __date__ = ''
 
 # internals for post-configuration
 __kivy_post_configuration = []
@@ -116,10 +102,7 @@ def require(version):
         # check x y z
         v = version.split('.')
         if len(v) != 3:
-            if 'dev0' in v:
-                tag = v.pop()
-            else:
-                raise Exception('Revision format must be X.Y.Z[-tag]')
+            raise Exception('Revision format must be X.Y.Z[-tag]')
         return [int(x) for x in v], tag, tagrev
 
     # user version
@@ -213,7 +196,7 @@ def kivy_usage():
 #: Global settings options for kivy
 kivy_options = {
     'window': ('egl_rpi', 'sdl2', 'pygame', 'sdl', 'x11'),
-    'text': ('pil', 'sdl2', 'pygame', 'sdlttf'),
+    'text': ('pil', 'sdl2', 'pygame', 'sdlttf', 'pango'),
     'video': (
         'gstplayer', 'ffmpeg', 'ffpyplayer', 'null'),
     'audio': (
@@ -452,8 +435,5 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     if platform == 'android':
         Config.set('input', 'androidtouch', 'android')
 
-if RELEASE:
-    Logger.info('Kivy: v%s' % (__version__))
-elif not RELEASE and __hash__ and __date__:
-    Logger.info('Kivy: v%s, git-%s, %s' % (__version__, __hash__, __date__))
+Logger.info('Kivy: v%s' % (__version__))
 Logger.info('Python: v{}'.format(sys.version))

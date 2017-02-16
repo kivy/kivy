@@ -784,6 +784,7 @@ else:
     label_libs += [('pygame', 'text_pygame', 'LabelPygame')]
 label_libs += [
     ('pil', 'text_pil', 'LabelPIL')]
+label_libs += [('pango', 'text_pango', 'LabelPango')]
 Text = Label = core_select_lib('text', label_libs)
 
 if 'KIVY_DOC' not in os.environ:
