@@ -29,7 +29,7 @@ keep this in mind when debugging or running in a
 `REPL <https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop>`_
 (Read-eval-print loop).
 
-.. versionchanged:: 1.9.2
+.. versionchanged:: 1.10.0
     The pygst and gi providers have been removed.
 
 .. versionchanged:: 1.8.0
@@ -125,7 +125,7 @@ class Sound(EventDispatcher):
     '''Pitch of a sound. 2 is an octave higher, .5 one below. This is only
     implemented for SDL2 audio provider yet.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`pitch` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 1.

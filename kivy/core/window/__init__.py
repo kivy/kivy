@@ -261,27 +261,27 @@ class WindowBase(EventDispatcher):
         `on_minimize`:
             Fired when the window is minimized.
 
-            .. versionadded:: 1.9.2
+            .. versionadded:: 1.10.0
 
         `on_maximize`:
             Fired when the window is maximized.
 
-            .. versionadded:: 1.9.2
+            .. versionadded:: 1.10.0
 
         `on_restore`:
             Fired when the window is restored.
 
-            .. versionadded:: 1.9.2
+            .. versionadded:: 1.10.0
 
         `on_hide`:
             Fired when the window is hidden.
 
-            .. versionadded:: 1.9.2
+            .. versionadded:: 1.10.0
 
         `on_show`:
             Fired when when the window is shown.
 
-            .. versionadded:: 1.9.2
+            .. versionadded:: 1.10.0
 
         `on_keyboard`: key, scancode, codepoint, modifier
             Fired when the keyboard is used for input.
@@ -595,7 +595,7 @@ class WindowBase(EventDispatcher):
     '''The attributes for animating softkeyboard/IME.
     `t` = `transition`, `d` = `duration`. Will have no effect on desktops.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`keyboard_anim_args` is a dict with values
     't': 'in_out_quart', 'd': `.5`.
@@ -605,7 +605,7 @@ class WindowBase(EventDispatcher):
     '''The padding to have between the softkeyboard/IME & target
     or bottom of window. Will have no effect on desktops.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`keyboard_padding` is a
     :class:`~kivy.properties.NumericProperty` and defaults to 0.
@@ -723,7 +723,7 @@ class WindowBase(EventDispatcher):
 
     .. note:: It's an SDL2 property with `[0, 0]` in the top-left corner.
 
-    .. versionchanged:: 1.9.2
+    .. versionchanged:: 1.10.0
         :attr:`top` is now an :class:`~kivy.properties.AliasProperty`
 
     .. versionadded:: 1.9.1
@@ -737,7 +737,7 @@ class WindowBase(EventDispatcher):
 
     .. note:: It's an SDL2 property with `[0, 0]` in the top-left corner.
 
-    .. versionchanged:: 1.9.2
+    .. versionchanged:: 1.10.0
         :attr:`left` is now an :class:`~kivy.properties.AliasProperty`
 
     .. versionadded:: 1.9.1
@@ -1326,7 +1326,7 @@ class WindowBase(EventDispatcher):
     def on_minimize(self, *largs):
         '''Event called when the window is minimized.
 
-        .. versionadded:: 1.9.2
+        .. versionadded:: 1.10.0
 
         .. note::
             This feature requires the SDL2 window provider.
@@ -1336,7 +1336,7 @@ class WindowBase(EventDispatcher):
     def on_maximize(self, *largs):
         '''Event called when the window is maximized.
 
-        .. versionadded:: 1.9.2
+        .. versionadded:: 1.10.0
 
         .. note::
             This feature requires the SDL2 window provider.
@@ -1346,7 +1346,7 @@ class WindowBase(EventDispatcher):
     def on_restore(self, *largs):
         '''Event called when the window is restored.
 
-        .. versionadded:: 1.9.2
+        .. versionadded:: 1.10.0
 
         .. note::
             This feature requires the SDL2 window provider.
@@ -1356,7 +1356,7 @@ class WindowBase(EventDispatcher):
     def on_hide(self, *largs):
         '''Event called when the window is hidden.
 
-        .. versionadded:: 1.9.2
+        .. versionadded:: 1.10.0
 
         .. note::
             This feature requires the SDL2 window provider.
@@ -1366,7 +1366,7 @@ class WindowBase(EventDispatcher):
     def on_show(self, *largs):
         '''Event called when the window is shown.
 
-        .. versionadded:: 1.9.2
+        .. versionadded:: 1.10.0
 
         .. note::
             This feature requires the SDL2 window provider.
@@ -1762,7 +1762,7 @@ class WindowBase(EventDispatcher):
     def grab_mouse(self):
         '''Grab mouse - so won't leave window
 
-        .. versionadded:: 1.9.2
+        .. versionadded:: 1.10.0
 
         .. note::
             This feature requires the SDL2 window provider.
@@ -1772,7 +1772,7 @@ class WindowBase(EventDispatcher):
     def ungrab_mouse(self):
         '''Ungrab mouse
 
-        .. versionadded:: 1.9.2
+        .. versionadded:: 1.10.0
 
         .. note::
             This feature requires the SDL2 window provider.

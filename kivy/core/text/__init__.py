@@ -128,7 +128,7 @@ class LabelBase(object):
         `outline_color`: tuple, defaults to (0, 0, 0)
             Color of the outline.
 
-    .. versionchanged:: 1.9.2
+    .. versionchanged:: 1.10.0
         `outline_width` and `outline_color` were added.
 
     .. versionchanged:: 1.9.0

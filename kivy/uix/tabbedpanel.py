@@ -491,7 +491,7 @@ class TabbedPanel(GridLayout):
     def switch_to(self, header, do_scroll=False):
         '''Switch to a specific panel header.
 
-        .. versionchanged:: 1.9.2
+        .. versionchanged:: 1.10.0
 
         If used with `do_scroll=True`, it scrolls
         to the header's tab too.

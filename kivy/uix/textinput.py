@@ -437,7 +437,7 @@ class TextInput(FocusBehavior, Widget):
         (use Clock.schedule) the call to the functions for selecting
         text (select_all, select_text).
 
-    .. versionchanged:: 1.9.2
+    .. versionchanged:: 1.10.0
         `background_disabled_active` has been removed.
 
     .. versionchanged:: 1.9.0
@@ -2511,7 +2511,7 @@ class TextInput(FocusBehavior, Widget):
     password_mask = StringProperty('*')
     '''Sets the character used to mask the text when :attr:`password` is True.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`password_mask` is a :class:`~kivy.properties.StringProperty` and
     defaults to `'*'`.
@@ -2632,7 +2632,7 @@ class TextInput(FocusBehavior, Widget):
     cursor_width = NumericProperty('1sp')
     '''Current width of the cursor.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`cursor_width` is a :class:`~kivy.properties.NumericProperty` and
     defaults to '1sp'.
@@ -2994,7 +2994,7 @@ class TextInput(FocusBehavior, Widget):
 
     .. versionadded:: 1.6.0
 
-    .. versionchanged:: 1.9.2
+    .. versionchanged:: 1.10.0
         The property is now an AliasProperty and byte values are decoded to
         strings. The hint text will stay visible when the widget is focused.
 

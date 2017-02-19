@@ -310,7 +310,7 @@ class ActionGroup(ActionItem, Spinner):
     :attr:`dropdown_width` is an :class:`~kivy.properties.NumericProperty`
     and defaults to 0.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
     '''
 
     def __init__(self, **kwargs):

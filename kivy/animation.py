@@ -117,7 +117,7 @@ class Animation(EventDispatcher):
     .. versionchanged:: 1.4.0
         Added s/step parameter.
 
-    .. versionchanged:: 1.9.2
+    .. versionchanged:: 1.10.0
         The default value of the step parameter was changed from 1/60. to 0.
     '''
 
@@ -447,7 +447,7 @@ class Sequence(Animation):
         This method overrides `:class:kivy.animation.Animation`'s
         version, to cancel it on all animations of the Sequence.
 
-        .. versionadded:: 1.9.2
+        .. versionadded:: 1.10.0
         '''
         self.anim1.cancel_property(widget, prop)
         self.anim2.cancel_property(widget, prop)

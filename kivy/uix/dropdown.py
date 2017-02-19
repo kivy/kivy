@@ -175,7 +175,7 @@ class DropDown(ScrollView):
     :attr:`min_state_time` is a :class:`~kivy.properties.NumericProperty`
     and defaults to the `Config` value `min_state_time`.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
     '''
 
     attach_to = ObjectProperty(allownone=True)
