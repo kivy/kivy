@@ -249,7 +249,7 @@ class Carousel(StencilView):
     :attr:`ignore_perpendicular_swipes` is a
     :class:`~kivy.properties.BooleanProperty` and defaults to False.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
     '''
 
     # private properties, for internal use only ###

@@ -271,7 +271,7 @@ Available configuration tokens
     Check the specific module's documentation for a list of accepted
     arguments.
 
-.. versionchanged:: 1.9.2
+.. versionchanged:: 1.10.0
     `min_state_time`  and `allow_screensaver` have been added
     to the `graphics` section.
     `kivy_clock` has been added to the kivy section.

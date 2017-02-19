@@ -522,7 +522,7 @@ class Label(Widget):
     .. note::
         This feature requires the SDL2 text provider.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`underline` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
@@ -534,7 +534,7 @@ class Label(Widget):
     .. note::
         This feature requires the SDL2 text provider.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`strikethrough` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
@@ -596,7 +596,7 @@ class Label(Widget):
     to 'bottom'. Available options are : `'bottom'`,
     `'middle'` (or `'center'`) and `'top'`.
 
-    .. versionchanged:: 1.9.2
+    .. versionchanged:: 1.10.0
         The `'center'` option has been added as an alias of `'middle'`.
 
     .. warning::
@@ -621,7 +621,7 @@ class Label(Widget):
     .. note::
         This feature requires the SDL2 text provider.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`outline_width` is a :class:`~kivy.properties.NumericProperty` and
     defaults to None.
@@ -633,7 +633,7 @@ class Label(Widget):
     .. note::
         This feature requires the SDL2 text provider.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`outline_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [0, 0, 0].
@@ -646,7 +646,7 @@ class Label(Widget):
     .. note::
         This feature requires the SDL2 text provider.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`disabled_outline_color` is a :class:`~kivy.properties.ListProperty`
     and defaults to [0, 0, 0].
@@ -742,7 +742,7 @@ class Label(Widget):
     '''This property indicates if :attr:`text` was rendered with or without
     shortening when :attr:`shorten` is True.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`is_shortened` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
@@ -910,7 +910,7 @@ class Label(Widget):
     .. note::
         This feature requires the SDL2 text provider.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`font_hinting` is an :class:`~kivy.properties.OptionProperty` and
     defaults to `'normal'`.
@@ -922,7 +922,7 @@ class Label(Widget):
     .. note::
         This feature requires the SDL2 text provider.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`font_kerning` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
@@ -934,7 +934,7 @@ class Label(Widget):
     .. note::
         This feature requires the SDL2 text provider.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`font_blended` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.

@@ -4,7 +4,7 @@ Interactive launcher
 
 .. versionadded:: 1.3.0
 
-.. versionchanged:: 1.9.2
+.. versionchanged:: 1.10.0
     The interactive launcher has been deprecated.
 
 The :class:`InteractiveLauncher` provides a user-friendly python shell

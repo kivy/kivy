@@ -2,7 +2,7 @@
 RecycleView Data Model
 ======================
 
-.. versionadded:: 1.9.2
+.. versionadded:: 1.10.0
 
 The data model part of the RecycleView model-view-controller pattern.
 

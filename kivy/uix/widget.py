@@ -1143,7 +1143,7 @@ class Widget(WidgetBase):
     :attr:`size_hint_min_x` is a :class:`~kivy.properties.NumericProperty` and
     defaults to None.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
     '''
 
     size_hint_min_y = NumericProperty(None, allownone=True)
@@ -1162,7 +1162,7 @@ class Widget(WidgetBase):
     :attr:`size_hint_min_y` is a :class:`~kivy.properties.NumericProperty` and
     defaults to None.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
     '''
 
     size_hint_min = ReferenceListProperty(size_hint_min_x, size_hint_min_y)
@@ -1171,7 +1171,7 @@ class Widget(WidgetBase):
     :attr:`size_hint_min` is a :class:`~kivy.properties.ReferenceListProperty`
     of (:attr:`size_hint_min_x`, :attr:`size_hint_min_y`) properties.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
     '''
 
     size_hint_max_x = NumericProperty(None, allownone=True)
@@ -1183,7 +1183,7 @@ class Widget(WidgetBase):
     :attr:`size_hint_max_x` is a :class:`~kivy.properties.NumericProperty` and
     defaults to None.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
     '''
 
     size_hint_max_y = NumericProperty(None, allownone=True)
@@ -1195,7 +1195,7 @@ class Widget(WidgetBase):
     :attr:`size_hint_max_y` is a :class:`~kivy.properties.NumericProperty` and
     defaults to None.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
     '''
 
     size_hint_max = ReferenceListProperty(size_hint_max_x, size_hint_max_y)
@@ -1204,7 +1204,7 @@ class Widget(WidgetBase):
     :attr:`size_hint_max` is a :class:`~kivy.properties.ReferenceListProperty`
     of (:attr:`size_hint_max_x`, :attr:`size_hint_max_y`) properties.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
     '''
 
     ids = DictProperty({})

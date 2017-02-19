@@ -196,7 +196,7 @@ class CompoundSelectionBehavior(object):
     '''Determines whether the last selected node can be deselected when
     :attr:`multiselect` or :attr:`touch_multiselect` is False.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`touch_deselect_last` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to True on mobile, False on desktop platforms.
@@ -259,7 +259,7 @@ class CompoundSelectionBehavior(object):
     concatenated and the combined text is passed as the key argument of
     :meth:`goto_node`.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
     '''
 
     _anchor = None  # the last anchor node selected (e.g. shift relative node)

@@ -5,7 +5,7 @@ Camera
 Core class for acquiring the camera and converting its input into a
 :class:`~kivy.graphics.texture.Texture`.
 
-.. versionchanged:: 1.9.2
+.. versionchanged:: 1.10.0
     The pygst and videocapture providers have been removed.
 
 .. versionchanged:: 1.8.0
