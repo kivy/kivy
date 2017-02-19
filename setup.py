@@ -232,7 +232,7 @@ else:
             print(cython_max)
             sleep(1)
     except ImportError:
-        print('\nCython is missing, its required for compiling kivy !\n\n')
+        print("\nCython is missing, it's required for compiling kivy !\n\n")
         raise
 
 if not have_cython:
