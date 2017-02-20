@@ -109,7 +109,8 @@ from kivy.vector import Vector
 _scroll_timeout = _scroll_distance = 0
 if Config:
     _scroll_timeout = Config.getint('widgets', 'scroll_timeout')
-    _scroll_distance = sp(Config.getint('widgets', 'scroll_distance'))
+    _scroll_distance = '{}sp'.format(Config.getint('widgets',
+                                                   'scroll_distance'))
 
 
 class ScatterBehavior(object):
@@ -233,10 +234,10 @@ class ScatterBehavior(object):
 
     pan_distance = NumericProperty(_scroll_distance)
     '''Distance to move before panning the :class:`ScatterBehavior`, in pixels.
-    As soon as the distance has been traveled, the :class:`ScatterBehavior` will
-    start to pan, and no touch event will be dispatched to the children.
-    It is advisable that you base this value on the dpi of your target device's
-    screen.
+    As soon as the distance has been traveled, the
+    :class:`ScatterBehavior` will start to pan, and no touch event will
+    be dispatched to the children. It is advisable that you base this
+    value on the dpi of your target device's screen.
 
     :attr:`pan_distance` is a :class:`~kivy.properties.NumericProperty` and
     defaults to the `scroll_distance` as defined in the user
