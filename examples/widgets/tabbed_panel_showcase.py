@@ -69,13 +69,9 @@ Builder.load_string('''
                 "Tabs in \\'%s\\' position" %root.tab_pos))
         Image:
             id: tab_2_content
-            pos:self.parent.pos
-            size: self.parent.size
             source: 'data/images/defaulttheme-0.png'
         Image:
             id: tab_3_content
-            pos:self.parent.pos
-            size: self.parent.size
             source: 'data/images/image-loading.gif'
     StandingHeader:
         id: sh
@@ -127,13 +123,9 @@ Builder.load_string('''
                 "- Tabs in \\'%s\\' position" %root.tab_pos))
         Image:
             id: tab_2_content
-            pos:self.parent.pos
-            size: self.parent.size
             source: 'data/images/defaulttheme-0.png'
         BoxLayout:
             id: tab_3_content
-            pos:self.parent.pos
-            size: self.parent.size
             BubbleButton:
                 text: 'Press to add new tab'
                 on_release: root.add_header()
@@ -205,19 +197,15 @@ Builder.load_string('''
                 "4. Tabs in \\'%s\\' position" %root.tab_pos))
         Image:
             id: tab_2_content
-            pos:self.parent.pos
-            size: self.parent.size
             source: 'data/images/defaulttheme-0.png'
         VideoPlayer:
             id: tab_3_content
-            pos:self.parent.pos
-            size: self.parent.size
             source: 'cityCC0.mpg'
     TabbedPanelHeader:
         id: def_tab
         content:default_content.__self__
         border: 0, 0, 0, 0
-        background_down: 'softboy.png'
+        background_down: 'cityCC0.png'
         background_normal:'sequenced_images/data/images/info.png'
     TabbedPanelHeader:
         id: tph
@@ -228,7 +216,7 @@ Builder.load_string('''
             orientation: 'vertical'
             Image:
                 source: 'sequenced_images/data/images/info.png'\
-                    if tph.state == 'normal' else 'softboy.png'
+                    if tph.state == 'normal' else 'cityCC0.png'
             Label:
                 text: 'text & img'
     TabbedPanelHeader:
@@ -246,7 +234,7 @@ Builder.load_string('''
             Image:
                 id: img
                 source: 'sequenced_images/data/images/info.png'\
-                    if my_header.state == 'normal' else 'softboy.png'
+                    if my_header.state == 'normal' else 'cityCC0.png'
                 size: my_header.size
                 allow_stretch: True
                 keep_ratio: False
