@@ -229,7 +229,7 @@ class VKeyboard(Scatter):
     It should be kept within a limit otherwise text either goes outside
     the bounds of the key or becomes too small to read.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10
 
     :attr:`font_size` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 20.
