@@ -1060,8 +1060,8 @@ class Widget(WidgetBase):
     '''
 
     size_hint_x = NumericProperty(1, allownone=True)
-    '''X size hint. Represents how much space the widget should use in the
-    direction of the X axis relative to its parent's width.
+    '''x size hint. Represents how much space the widget should use in the
+    direction of the x axis relative to its parent's width.
     Only the :class:`~kivy.uix.layout.Layout` and
     :class:`~kivy.core.window.Window` classes make use of the hint.
 
@@ -1086,7 +1086,7 @@ class Widget(WidgetBase):
     '''
 
     size_hint_y = NumericProperty(1, allownone=True)
-    '''Y size hint.
+    '''y size hint.
 
     :attr:`size_hint_y` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1.
