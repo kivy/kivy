@@ -408,7 +408,7 @@ class Widget(WidgetBase):
 
         :Parameters:
             `wid`: :class:`Widget` class
-                Widget to collide with.
+                Widget to test collision with.
 
         :Returns:
             bool. True if the other widget collides with this widget, False
@@ -1128,7 +1128,7 @@ class Widget(WidgetBase):
     '''
 
     size_hint_min_x = NumericProperty(None, allownone=True)
-    '''When not None, the X-direction minimum size (in pixels,
+    '''When not None, the x-direction minimum size (in pixels,
     like :attr:`width`) when :attr:`size_hint_x` is also not None.
 
     When :attr:`size_hint_x` is not None, it is the minimum width that the
@@ -1147,7 +1147,7 @@ class Widget(WidgetBase):
     '''
 
     size_hint_min_y = NumericProperty(None, allownone=True)
-    '''When not None, the Y-direction minimum size (in pixels,
+    '''When not None, the y-direction minimum size (in pixels,
     like :attr:`height`) when :attr:`size_hint_y` is also not None.
 
     When :attr:`size_hint_y` is not None, it is the minimum height that the
@@ -1175,7 +1175,7 @@ class Widget(WidgetBase):
     '''
 
     size_hint_max_x = NumericProperty(None, allownone=True)
-    '''When not None, the X-direction maximum size (in pixels,
+    '''When not None, the x-direction maximum size (in pixels,
     like :attr:`width`) when :attr:`size_hint_x` is also not None.
 
     Similar to :attr:`size_hint_min_x`, except that it sets the maximum width.
@@ -1187,7 +1187,7 @@ class Widget(WidgetBase):
     '''
 
     size_hint_max_y = NumericProperty(None, allownone=True)
-    '''When not None, the Y-direction maximum size (in pixels,
+    '''When not None, the y-direction maximum size (in pixels,
     like :attr:`height`) when :attr:`size_hint_y` is also not None.
 
     Similar to :attr:`size_hint_min_y`, except that it sets the maximum height.
