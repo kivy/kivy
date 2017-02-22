@@ -53,7 +53,6 @@ class CameraOpenCV(CameraBase):
     '''
     Implementation of CameraBase using OpenCV
     '''
-    
     _update_ev = None
 
     def __init__(self, **kwargs):
