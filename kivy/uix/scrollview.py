@@ -130,7 +130,7 @@ from functools import partial
 from kivy.animation import Animation
 from kivy.compat import string_types
 from kivy.config import Config
-from kivy.clock import Clock
+from kivy.clock import Clock, ClockEvent
 from kivy.factory import Factory
 from kivy.uix.stencilview import StencilView
 from kivy.metrics import sp, dp
@@ -896,7 +896,7 @@ class ScrollView(StencilView):
 
         # if _viewport is layout and has pending operation, reschedule
         if hasattr(self._viewport, 'do_layout'):
-            if self._viewport._trigger_layout.is_triggered:
+            if type(self._viewport._trigger_layout) is ClockEvent and self._viewport._trigger_layout.is_triggered:
                 Clock.schedule_once(
                      lambda *dt: self.scroll_to(widget, padding, animate))
                 return
