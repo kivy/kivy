@@ -386,9 +386,9 @@ class Widget(WidgetBase):
 
         :Parameters:
             `x`: numeric
-                x position of the point (in window coordinates)
+                x position of the point (in parent coordinates)
             `y`: numeric
-                y position of the point (in window coordinates)
+                y position of the point (in parent coordinates)
 
         :Returns:
             A bool. True if the point is inside the bounding box, False
