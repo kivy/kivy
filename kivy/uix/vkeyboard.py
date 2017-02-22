@@ -225,9 +225,9 @@ class VKeyboard(Scatter):
     '''
 
     font_size = NumericProperty(20.)
-    '''font_size, specifies the size of the text of virtual keyboard.
-    It should be kept within a limit otherwise text either goes outside
-    the bounds of the key or becomes too small to read.
+    '''font_size, specifies the size of the text on the virtual keyboard keys.
+    It should be kept within limits to ensure the text does not extend beyond
+    the bounds of the key or become too small to read.
 
     .. versionadded:: 1.10.0
 
@@ -247,13 +247,13 @@ class VKeyboard(Scatter):
         'atlas://data/images/defaulttheme/vkeyboard_background')
     '''Filename of the background image.
 
-    :attr:`background` a :class:`~kivy.properties.StringProperty` and defaults
-    to :file:`atlas://data/images/defaulttheme/vkeyboard_background`.
+    :attr:`background` is a :class:`~kivy.properties.StringProperty` and
+    defaults to :file:`atlas://data/images/defaulttheme/vkeyboard_background`.
     '''
 
     background_disabled = StringProperty(
         'atlas://data/images/defaulttheme/vkeyboard_disabled_background')
-    '''Filename of the background image when vkeyboard is disabled.
+    '''Filename of the background image when the vkeyboard is disabled.
 
     .. versionadded:: 1.8.0
 
@@ -276,7 +276,7 @@ class VKeyboard(Scatter):
     '''Filename of the key background image for use when no touches are active
     on the widget.
 
-    :attr:`key_background_normal` a :class:`~kivy.properties.StringProperty`
+    :attr:`key_background_normal` is a :class:`~kivy.properties.StringProperty`
     and defaults to
     :file:`atlas://data/images/defaulttheme/vkeyboard_key_normal`.
     '''
@@ -288,7 +288,7 @@ class VKeyboard(Scatter):
 
     .. versionadded:: 1.8.0
 
-    :attr:`key_disabled_background_normal` a
+    :attr:`key_disabled_background_normal` is a
     :class:`~kivy.properties.StringProperty` and defaults to
     :file:`atlas://data/images/defaulttheme/vkeyboard_disabled_key_normal`.
 
@@ -299,7 +299,7 @@ class VKeyboard(Scatter):
     '''Filename of the key background image for use when a touch is active
     on the widget.
 
-    :attr:`key_background_down` a :class:`~kivy.properties.StringProperty`
+    :attr:`key_background_down` is a :class:`~kivy.properties.StringProperty`
     and defaults to
     :file:`atlas://data/images/defaulttheme/vkeyboard_key_down`.
     '''
