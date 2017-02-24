@@ -307,6 +307,12 @@ class WindowBase(EventDispatcher):
         `on_dropfile`: str
             Fired when a file is dropped on the application.
 
+            .. note::
+                This event doesn't work for apps with elevated permissions,
+                because the OS API calls are filtered. Check issue
+                `#4999 <https://github.com/kivy/kivy/issues/4999>`_ for
+                pointers to workarounds.
+
         `on_memorywarning`:
             Fired when the platform have memory issue (iOS / Android mostly)
             You can listen to this one, and clean whatever you can.
