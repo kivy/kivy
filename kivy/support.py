@@ -166,6 +166,12 @@ def install_twisted_reactor(**kwargs):
         put the twisted distribution (and zope.interface dependency) in your
         application directory.
     '''
+    import sys
+    if sys.version_info[0] > 2:
+        raise NotImplementedError(
+            "_threadselect interface of twisted is not available on Python 3."
+        )
+
     import twisted
 
     # prevent installing more than once
