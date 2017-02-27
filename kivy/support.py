@@ -169,7 +169,7 @@ def install_twisted_reactor(**kwargs):
     import sys
     if sys.version_info[0] > 2:
         raise NotImplementedError(
-            "Python 3 support isn't currently available in this example!"
+            "_threadselect interface of twisted is not available on Python 3."
         )
 
     import twisted
