@@ -79,7 +79,7 @@ class Splitter(BoxLayout):
     :class:`~kivy.graphics.vertex_instructions.BorderImage`
     graphics instruction.
 
-    This must be a list of four values: (top, right, bottom, left).
+    This must be a list of four values: (bottom, right, top, left).
     Read the BorderImage instructions for more information about how
     to use it.
 

@@ -848,7 +848,7 @@ cdef class BorderImage(Rectangle):
 
     :Parameters:
         `border`: list
-            Border information in the format (top, right, bottom, left).
+            Border information in the format (bottom, right, top, left).
             Each value is in pixels.
 
         `auto_scale`: bool
