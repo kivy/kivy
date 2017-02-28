@@ -16,6 +16,7 @@ TODO:
 __all__ = ('WindowSDL2', )
 
 from os.path import join
+import sys
 from kivy import kivy_data_dir
 from kivy.logger import Logger
 from kivy.base import EventLoop, ExceptionManager, stopTouchApp
@@ -574,7 +575,12 @@ class WindowSDL(WindowBase):
                 if (key not in self._modifiers and
                         key not in self.command_keys.keys()):
                     try:
-                        kstr = unichr(key)
+                        kstr_chr = unichr(key)
+                        try:
+                            kstr_chr.encode(sys.stdout.encoding)
+                            kstr = kstr_chr
+                        except UnicodeError:
+                            pass
                     except ValueError:
                         pass
                 # if 'shift' in self._modifiers and key\
