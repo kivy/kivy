@@ -278,7 +278,7 @@ class TabbedPanel(GridLayout):
     graphics instruction, used itself for :attr:`background_image`.
     Can be changed for a custom background.
 
-    It must be a list of four values: (top, right, bottom, left). Read the
+    It must be a list of four values: (bottom, right, top, left). Read the
     BorderImage instructions for more information.
 
     :attr:`border` is a :class:`~kivy.properties.ListProperty` and

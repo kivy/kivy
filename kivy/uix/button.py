@@ -116,7 +116,7 @@ class Button(ButtonBehavior, Label):
     graphics instruction. Used with :attr:`background_normal` and
     :attr:`background_down`. Can be used for custom backgrounds.
 
-    It must be a list of four values: (top, right, bottom, left). Read the
+    It must be a list of four values: (bottom, right, top, left). Read the
     BorderImage instruction for more information about how to use it.
 
     :attr:`border` is a :class:`~kivy.properties.ListProperty` and defaults to

@@ -130,7 +130,7 @@ class ModalView(AnchorLayout):
     :attr:`background_down` properties. Can be used when using custom
     backgrounds.
 
-    It must be a list of four values: (top, right, bottom, left). Read the
+    It must be a list of four values: (bottom, right, top, left). Read the
     BorderImage instructions for more information about how to use it.
 
     :attr:`border` is a :class:`~kivy.properties.ListProperty` and defaults to

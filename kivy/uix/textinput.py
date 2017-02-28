@@ -2743,7 +2743,7 @@ class TextInput(FocusBehavior, Widget):
 
     .. versionadded:: 1.4.1
 
-    It must be a list of four values: (top, right, bottom, left). Read the
+    It must be a list of four values: (bottom, right, top, left). Read the
     BorderImage instruction for more information about how to use it.
 
     :attr:`border` is a :class:`~kivy.properties.ListProperty` and defaults
