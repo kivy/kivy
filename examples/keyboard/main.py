@@ -204,7 +204,11 @@ class KeyboardScreen(Screen):
     # def key_up(self, keyboard, keycode):
     def key_up(self, keyboard, keycode, *args):
         """ The callback function that catches keyboard events. """
-        self.displayLabel.text += u" (up {0[1]})".format(keycode)
+        # system keyboard keycode: (122, 'z')
+        # dock keyboard keycode: 'z'
+        if isinstance(keycode, tuple):
+            keycode = keycode[1]
+        self.displayLabel.text += u" (up {0})".format(keycode)
 
 
 class KeyboardDemo(App):

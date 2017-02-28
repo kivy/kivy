@@ -124,6 +124,7 @@ from kivy.core.image import Image
 from kivy.resources import resource_find
 from kivy.clock import Clock
 
+from io import open
 from os.path import join, splitext, basename
 from os import listdir
 from json import loads
@@ -446,7 +447,7 @@ class VKeyboard(Scatter):
         available_layouts = self.available_layouts
         if fn[-5:] != '.json':
             return
-        with open(fn, 'r') as fd:
+        with open(fn, 'r', encoding='utf-8') as fd:
             json_content = fd.read()
             layout = loads(json_content)
         available_layouts[name] = layout
