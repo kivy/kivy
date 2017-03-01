@@ -15,6 +15,7 @@ ignore_list = (
     'kivy.graphics.vertex',
     'kivy.uix.recycleview.__init__',
     'kivy.setupconfig'
+    'kivy.version',
 )
 
 import os
