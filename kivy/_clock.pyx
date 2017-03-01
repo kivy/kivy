@@ -72,7 +72,6 @@ cdef class ClockEvent(object):
                 self.clock._last_event = self
             self.clock.on_schedule(self)
             self.clock._lock_release()
-            return True
         self.clock._lock_release()
 
     cpdef get_callback(self):
