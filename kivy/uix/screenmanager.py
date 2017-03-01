@@ -592,6 +592,78 @@ class SlideTransition(TransitionBase):
         super(SlideTransition, self).on_complete()
 
 
+class CardTransition(SlideTransition):
+    '''Card transition that looks similar to Android 4.x application drawer
+    interface animation.
+
+    It supports 4 directions like SlideTransition: left, right, up and down,
+    and two modes, pop and push. If push mode is activated, the previous
+    screen does not move, and the new one slides in from the given direction.
+    If the pop mode is activated, the previous screen slides out, when the new
+    screen is already on the position of the ScreenManager.
+
+    .. versionadded:: 1.10
+    '''
+
+    mode = OptionProperty('push', options=['pop', 'push'])
+    '''Indicates if the transition should push or pop
+    the screen on/off the ScreenManager.
+
+    - 'push' means the screen slides in in the given direction
+    - 'pop' means the screen slides out in the given direction
+
+    :attr:`mode` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to 'push'.
+    '''
+
+    def start(self, manager):
+        '''(internal) Starts the transition. This is automatically
+        called by the :class:`ScreenManager`.
+        '''
+        super(CardTransition, self).start(manager)
+        mode = self.mode
+        a = self.screen_in
+        b = self.screen_out
+        # ensure that the correct widget is "on top"
+        if mode == 'push':
+            self.manager.canvas.remove(a.canvas)
+            self.manager.canvas.add(a.canvas)
+        elif mode == 'pop':
+            self.manager.canvas.remove(b.canvas)
+            self.manager.canvas.add(b.canvas)
+
+    def on_progress(self, progression):
+        a = self.screen_in
+        b = self.screen_out
+        manager = self.manager
+        x, y = manager.pos
+        width, height = manager.size
+        direction = self.direction
+        mode = self.mode
+        al = AnimationTransition.out_quad
+        progression = al(progression)
+        if mode == 'push':
+            b.pos = x, y
+            if direction == 'left':
+                a.pos = x + width * (1 - progression), y
+            elif direction == 'right':
+                a.pos = x - width * (1 - progression), y
+            elif direction == 'down':
+                a.pos = x, y + height * (1 - progression)
+            elif direction == 'up':
+                a.pos = x, y - height * (1 - progression)
+        if mode == 'pop':
+            a.pos = x, y
+            if direction == 'left':
+                b.pos = x - width * progression, y
+            elif direction == 'right':
+                b.pos = x + width * progression, y
+            elif direction == 'down':
+                b.pos = x, y - height * progression
+            elif direction == 'up':
+                b.pos = x, y + height * progression
+
+
 class SwapTransition(TransitionBase):
     '''Swap transition that looks like iOS transition when a new window
     appears on the screen.
