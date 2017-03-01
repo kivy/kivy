@@ -626,11 +626,11 @@ class CardTransition(SlideTransition):
         b = self.screen_out
         # ensure that the correct widget is "on top"
         if mode == 'push':
-            self.manager.canvas.remove(a.canvas)
-            self.manager.canvas.add(a.canvas)
+            manager.canvas.remove(a.canvas)
+            manager.canvas.add(a.canvas)
         elif mode == 'pop':
-            self.manager.canvas.remove(b.canvas)
-            self.manager.canvas.add(b.canvas)
+            manager.canvas.remove(b.canvas)
+            manager.canvas.add(b.canvas)
 
     def on_progress(self, progression):
         a = self.screen_in
