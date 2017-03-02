@@ -117,7 +117,7 @@ class ActionItem(object):
 
     mipmap = BooleanProperty(True)
     '''Defines whether the image/icon dispayed on top of the button uses a
-    mipmap or not.
+       mipmap or not.
 
        :attr:`mipmap` is a :class:`~kivy.properties.BooleanProperty` and
        defaults to `True`.

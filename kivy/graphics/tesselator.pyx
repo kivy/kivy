@@ -158,13 +158,16 @@ cdef class Tesselator:
         Compute all the contours added with :meth:`add_contour`, and generate
         polygons.
 
-        :param enum winding_rule: The winding rule classifies a region as inside
-            if its winding number belongs to the chosen category. Can be one of
-            WINDING_ODD, WINDING_NONZERO, WINDING_POSITIVE, WINDING_NEGATIVE,
-            WINDING_ABS_GEQ_TWO. Defaults to WINDING_ODD.
-        :param enum element_type: The result type, you can generate the
-            polygons with TYPE_POLYGONS, or the contours with
-            TYPE_BOUNDARY_CONTOURS. Defaults to TYPE_POLYGONS.
+        :Parameters:
+            `winding_rule`: enum
+                The winding rule classifies a region as inside if its winding
+                number belongs to the chosen category. Can be one of
+                WINDING_ODD, WINDING_NONZERO, WINDING_POSITIVE,
+                WINDING_NEGATIVE, WINDING_ABS_GEQ_TWO. Defaults to WINDING_ODD.
+            `element_type`: enum
+                The result type, you can generate the polygons with
+                TYPE_POLYGONS, or the contours with TYPE_BOUNDARY_CONTOURS.
+                Defaults to TYPE_POLYGONS.
         :return: 1 if the tessellation happened, 0 otherwise.
         :rtype: int
 
