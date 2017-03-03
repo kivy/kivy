@@ -44,10 +44,12 @@ install.
      python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew
      python -m pip install kivy.deps.gstreamer
 
-   For Python 3.5 only we additionally offer angle which can be used instead of glew
-   and can be installed with::
+   We also offer angle which can be used instead of glew on systems that don't support
+   GL 2.0, but still support MS Direct3D9+. It can be installed with::
 
     python -m pip install kivy.deps.angle
+
+   and used by setting the environment variable `KIVY_GL_BACKEND` to `angle_sdl2`.
 
 #. Install kivy::
 
@@ -144,14 +146,14 @@ Currently on Windows, we provide the following dependency wheels:
 
 * `gstreamer <https://gstreamer.freedesktop.org>`_ for audio and video
 * `glew <http://glew.sourceforge.net/>`_ and/or
-  `angle (3.5 only) <https://github.com/Microsoft/angle>`_ for OpenGL
+  `angle (py 3.5+) <https://github.com/Microsoft/angle>`_ for OpenGL
+  `angle_mingw (py < 3.5) <https://github.com/Google/angle>`_ for OpenGL
 * `sdl2 <https://libsdl.org>`_ for control and/or OpenGL.
 
 One can select which of these to use for OpenGL use using the 
 `KIVY_GL_BACKEND` envrionment variable by setting it to `glew`
 (the default), `angle`, or `sdl2`. `angle` is currently
-in an experimental phase as a substitute for `glew` on Python
-3.5 only.
+in an experimental phase as a substitute for `glew`.
 
 `gstreamer` is an optional dependency which only needs to be
 installed if video display or audio is desired. `ffpyplayer`
