@@ -15,7 +15,11 @@ documentation.
 Example
 -------
 
-The following example adds cover behavior to an image::
+The following examples add cover behavior to an image::
+
+In python:
+
+.. code-block:: python
 
     from kivy.app import App
     from kivy.uix.behaviors import CoverBehavior
@@ -37,6 +41,16 @@ The following example adds cover behavior to an image::
             return CoverImage(source='image.jpg')
 
     MainApp().run()
+
+In Kivy Language:
+
+.. code-block:: kv
+
+    CoverImage:
+        source: 'image.png'
+
+    <CoverImage@CoverBehavior+Image>:
+        reference_size: self.texture_size
 
 See :class:`~kivy.uix.behaviors.cover.CoverBehavior` for details.
 '''
