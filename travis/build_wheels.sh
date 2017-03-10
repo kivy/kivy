@@ -19,8 +19,8 @@ rpm -Uvh rpmforge-release-0.5.3-1.el5.rf.x86_64.rpm
 yum check-update
 yum search pulseaudio
 
-rpm -ivh pulseaudio-0.9.5-5.el5.kb.i386.rpm
-rpm -ivh pulseaudio-0.9.5-5.el5.kb.x86_64.rpm
+rpm -ivh /io/travis/pulseaudio-0.9.5-5.el5.kb.i386.rpm
+rpm -ivh /io/travis/pulseaudio-0.9.5-5.el5.kb.x86_64.rpm
 
 yum install -y \
     cmake \
@@ -45,23 +45,26 @@ yum install -y \
     libtiff-devel \
     libX11-devel \
     libXi-devel \
-    libtool \
-    ffmpeg \
-    ffmpeg-devel
+    libtool
 #    libedit \
 
-# missing libs, compile?
-## -dev
-yum search smpeg
-yum search swscale
-yum search avformat
-yum search avcodec
-yum search mtdev
-yum search asound2
-yum search esd0
-yum search udev
-yum search ibus-1.0
-yum search fcitx-libs
+# from Forge
+yum install -y \
+    ffmpeg \
+    ffmpeg-devel \
+    smpeg-devel
+
+# https://hg.libsdl.org/SDL/file/default/docs/README-linux.md#l18
+# not available, need to make *-dev pacckages
+# swscale
+# avformat
+# avcodec
+# mtdev
+# asound2
+# esd0
+# libudev-dev / udev-devel; udev itself is available
+# ibus-1.0
+# fcitx-libs
 
 # Make SDL2 packages
 SDL="SDL2-2.0.5"
