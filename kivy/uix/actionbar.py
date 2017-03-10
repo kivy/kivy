@@ -264,6 +264,7 @@ class ActionDropDown(DropDown):
         if super(ActionDropDown, self).on_touch_down(touch):
             if self.auto_dismiss:
                 self.dismiss()
+            return True
 
 
 class ActionGroup(ActionItem, Spinner):
