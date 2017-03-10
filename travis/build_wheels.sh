@@ -6,14 +6,15 @@ yum list installed
 # get RPM FORGE
 MIRROR="http://repoforge.mirror.digitalpacific.com.au/"
 ARCH="uname -m"
+echo ${ARCH}
 
 ## get GPG
 wget ${MIRROR}RPM-GPG-KEY.dag.txt
 rpm --import RPM-GPG-KEY.dag.txt
 
 ## get RPM
-wget ${MIRROR}redhat/el5/en/${ARCH}/rpmforge/RPMS/rpmforge-release-0.5.3-1.el5.rf.${ARCH}.rpm
-rpm -Uvh rpmforge-release-0.5.3-1.el5.rf.${ARCH}.rpm
+wget ${MIRROR}redhat/el5/en/${arch}/rpmforge/RPMS/rpmforge-release-0.5.3-1.el5.rf.${arch}.rpm
+rpm -Uvh rpmforge-release-0.5.3-1.el5.rf.${arch}.rpm
 
 yum check-update
 yum search pulseaudio
