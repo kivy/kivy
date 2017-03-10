@@ -2,7 +2,21 @@
 
 # Install a system package required by our library
 yum list installed
+
+# get RPM FORGE
+MIRROR="http://repoforge.mirror.digitalpacific.com.au/"
+ARCH=uname -m
+
+## get GPG
+wget ${MIRROR}RPM-GPG-KEY.dag.txt
+rpm --import RPM-GPG-KEY.dag.txt
+
+## get RPM
+wget ${MIRROR}redhat/el5/en/${ARCH}/rpmforge/RPMS/rpmforge-release-0.5.3-1.el5.rf.${ARCH}.rpm
+rpm -Uvh rpmforge-release-0.5.3-1.el5.rf.${ARCH}.rpm
+
 yum check-update
+yum search pulseaudio
 
 rpm -ivh pulseaudio-0.9.5-5.el5.kb.i386.rpm
 rpm -ivh pulseaudio-0.9.5-5.el5.kb.x86_64.rpm
@@ -30,11 +44,13 @@ yum install -y \
     libtiff-devel \
     libX11-devel \
     libXi-devel \
-    libtool
+    libtool \
+    ffmpeg \
+    ffmpeg-devel
+#    libedit \
 
 # missing libs, compile?
 ## -dev
-yum search ffmpeg
 yum search smpeg
 yum search swscale
 yum search avformat
