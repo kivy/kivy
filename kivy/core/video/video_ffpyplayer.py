@@ -261,7 +261,40 @@ class VideoFFPy(VideoBase):
                 self._next_frame = None
 
             t1 = time.time()
-            frame, val = ffplayer.get_frame()
+
+            # If player is paused, but frame outdated,
+            # we need to unpause ffpyplayer to get actual frame.
+            if self._next_frame is None and self._ffplayer.get_pause():
+                self._ffplayer.set_volume(0)  # Try to do it silently.
+                self._ffplayer.set_mute(True)
+                self._ffplayer.set_pause(False)
+                try:
+                    # We need to skip few frames to sure
+                    # frame is actual after seek:
+                    to_skip = 4
+                    while True:
+                        frame, val = ffplayer.get_frame(show=False)
+                        # Exit loop on invalid val:
+                        if val in ('paused', 'eof'):
+                            break
+                        # Wait for next frame:
+                        if frame is None:
+                            sleep(1 / 30.)
+                            continue
+                        # Wait until we skipped enough frames:
+                        to_skip -= 1
+                        if to_skip == 0:
+                            break
+                    # Assuming last frame is actual, just get it:
+                    frame, val = ffplayer.get_frame(force_refresh=True)
+                finally:
+                    self._ffplayer.set_pause(True)
+                    self._ffplayer.set_mute(False)
+                    self._ffplayer.set_volume(self._volume)
+            # In any other case just get next frame:
+            else:
+                frame, val = ffplayer.get_frame()
+
             t2 = time.time()
             if val == 'eof':
                 sleep(0.2)
