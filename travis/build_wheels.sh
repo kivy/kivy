@@ -5,7 +5,7 @@ yum list installed
 
 # get RPM FORGE
 MIRROR="http://repoforge.mirror.digitalpacific.com.au/"
-ARCH=uname -m
+ARCH="uname -m"
 
 ## get GPG
 wget ${MIRROR}RPM-GPG-KEY.dag.txt
