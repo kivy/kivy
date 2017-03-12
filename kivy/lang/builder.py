@@ -319,6 +319,8 @@ class BuilderBase(object):
             if y[2] != filename:
                 templates[x] = y
         self.templates = templates
+
+        filename = resource_find(filename) or filename
         if filename in self.files:
             self.files.remove(filename)
 
@@ -340,7 +342,7 @@ class BuilderBase(object):
         # put a warning if a file is loaded multiple times
         if fn in self.files:
             Logger.warning(
-                'Lang: The file {} is loaded multiples times, '
+                'Builder: The file {} is loaded multiples times, '
                 'you might have unwanted behaviors.'.format(fn))
 
         try:
