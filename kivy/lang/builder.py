@@ -342,7 +342,7 @@ class BuilderBase(object):
         # put a warning if a file is loaded multiple times
         if fn in self.files:
             Logger.warning(
-                'Builder: The file {} is loaded multiples times, '
+                'Lang: The file {} is loaded multiples times, '
                 'you might have unwanted behaviors.'.format(fn))
 
         try:
