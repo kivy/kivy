@@ -266,7 +266,6 @@ class VideoFFPy(VideoBase):
             # we need to unpause ffpyplayer to get actual frame.
             if self._next_frame is None and self._ffplayer.get_pause():
                 self._ffplayer.set_volume(0)  # Try to do it silently.
-                self._ffplayer.set_mute(True)
                 self._ffplayer.set_pause(False)
                 try:
                     # We need to skip few frames to sure
@@ -289,7 +288,6 @@ class VideoFFPy(VideoBase):
                     frame, val = ffplayer.get_frame(force_refresh=True)
                 finally:
                     self._ffplayer.set_pause(bool(self._state == 'paused'))
-                    self._ffplayer.set_mute(False)
                     self._ffplayer.set_volume(self._volume)
             # In any other case just get next frame:
             else:
