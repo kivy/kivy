@@ -577,7 +577,8 @@ class WindowSDL(WindowBase):
                     try:
                         kstr_chr = unichr(key)
                         try:
-                            kstr_chr.encode(sys.stdout.encoding)
+                            encoding = sys.stdout.encoding or 'utf8'
+                            kstr_chr.encode(encoding)
                             kstr = kstr_chr
                         except UnicodeError:
                             pass

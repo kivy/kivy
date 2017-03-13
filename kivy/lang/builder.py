@@ -319,6 +319,8 @@ class BuilderBase(object):
             if y[2] != filename:
                 templates[x] = y
         self.templates = templates
+
+        filename = resource_find(filename) or filename
         if filename in self.files:
             self.files.remove(filename)
 

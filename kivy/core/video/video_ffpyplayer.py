@@ -199,11 +199,12 @@ class VideoFFPy(VideoBase):
         if self._texture:
             if self._out_fmt == 'yuv420p':
                 dy, du, dv, _ = img.to_memoryview()
-                self._tex_y.blit_buffer(dy, colorfmt='luminance')
-                self._tex_u.blit_buffer(du, colorfmt='luminance')
-                self._tex_v.blit_buffer(dv, colorfmt='luminance')
-                self._fbo.ask_update()
-                self._fbo.draw()
+                if dy and du and dv:
+                    self._tex_y.blit_buffer(dy, colorfmt='luminance')
+                    self._tex_u.blit_buffer(du, colorfmt='luminance')
+                    self._tex_v.blit_buffer(dv, colorfmt='luminance')
+                    self._fbo.ask_update()
+                    self._fbo.draw()
             else:
                 self._texture.blit_buffer(
                     img.to_memoryview()[0], colorfmt='rgba')
