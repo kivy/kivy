@@ -288,7 +288,7 @@ class VideoFFPy(VideoBase):
                     # Assuming last frame is actual, just get it:
                     frame, val = ffplayer.get_frame(force_refresh=True)
                 finally:
-                    self._ffplayer.set_pause(True)
+                    self._ffplayer.set_pause(bool(self._state == 'paused'))
                     self._ffplayer.set_mute(False)
                     self._ffplayer.set_volume(self._volume)
             # In any other case just get next frame:
