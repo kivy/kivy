@@ -10,12 +10,13 @@ system.
 
 .. note::
 
-    This widget requires ``docutils`` package to run. Install it with ``pip``.
+    This widget requires the ``docutils`` package to run. Install it with
+    ``pip`` or include it as one of your deployment requirements.
 
 .. warning::
 
-    This widget is highly experimental. The whole styling and
-    implementation are not stable until this warning has been removed.
+    This widget is highly experimental. The styling and implementation should
+    not be considered stable until this warning has been removed.
 
 Usage with Text
 ---------------
