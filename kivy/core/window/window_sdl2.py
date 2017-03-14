@@ -577,7 +577,9 @@ class WindowSDL(WindowBase):
                     try:
                         kstr_chr = unichr(key)
                         try:
-                            encoding = getattr(sys.stdout, 'encoding', 'utf8')
+                            # On android, there is no 'encoding' attribute.
+                            # On other platforms, if stdout is redirected, 'encoding' may be None
+                            encoding = getattr(sys.stdout, 'encoding', 'utf8') or 'utf8'
                             kstr_chr.encode(encoding)
                             kstr = kstr_chr
                         except UnicodeError:
