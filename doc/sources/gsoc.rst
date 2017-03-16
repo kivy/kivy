@@ -136,7 +136,7 @@ wheelhouse of the average Pythonista.
     from p4a/kivy-ios to plyer and implementing some or all
     of the new facades to be decided with the student.
 
-  - **Mentors**: Akshay Arora, Sebastian Armin
+  - **Mentors**: Akshay Arora
   - **Requirements**: Access to Linux, Windows, OS X, iOS device,
     Android device.
   - **Task level**: Intermediate
@@ -251,7 +251,7 @@ may appeal to you.
     back to the original kv code. The compiler should also be a drop in replacement for the
     current KV runtime compiler, and would require extensive testing.
 
-  - **Mentors**: Matthew Einhorn, Sebastian Armin
+  - **Mentors**: Matthew Einhorn
   - **Requirements**: Access to at least one Kivy platform.
   - **Task level**: Advanced
   - **Desired Skills**: Familiarity with Cython, Python, and Kivy. Familiarity
