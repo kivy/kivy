@@ -161,10 +161,7 @@ build_script:
 
     Check-Error
 
-    if ($env:COMPILER -eq "msvc") {
-      pip install kivy.deps.angle
-      Check-Error
-    }
+    pip install kivy.deps.angle
 
     Copy-Item "$PYTHON_ROOT\Lib\site-packages\kivy\deps\*" -destination "$env:APPVEYOR_BUILD_FOLDER\kivy\deps" -recurse
 
@@ -218,12 +215,7 @@ test_script:
 
 
     if ($env:DO_TEST -eq "True"){
-      if ($env:COMPILER -eq "msvc") {
-        $env:KIVY_GL_BACKEND = "angle_sdl2"
-      } else {
-        $env:KIVY_GL_BACKEND = "mock"
-      }
-
+      $env:KIVY_GL_BACKEND = "angle_sdl2"
       python -m nose.core kivy/tests
       Check-Error
     }
