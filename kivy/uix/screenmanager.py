@@ -156,6 +156,8 @@ You have multiple transitions available by default, such as:
 
 - :class:`NoTransition` - switches screens instantly with no animation
 - :class:`SlideTransition` - slide the screen in/out, from any direction
+- :class:`CardTransition` - new screen slides on the previous
+  or the old one slides off the new one depending on the mode
 - :class:`SwapTransition` - implementation of the iOS swap transition
 - :class:`FadeTransition` - shader to fade the screen in/out
 - :class:`WipeTransition` - shader to wipe the screens from right to left
