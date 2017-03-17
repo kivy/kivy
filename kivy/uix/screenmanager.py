@@ -185,7 +185,8 @@ You can easily switch transitions by changing the
 __all__ = ('Screen', 'ScreenManager', 'ScreenManagerException',
            'TransitionBase', 'ShaderTransition', 'SlideTransition',
            'SwapTransition', 'FadeTransition', 'WipeTransition',
-           'FallOutTransition', 'RiseInTransition', 'NoTransition')
+           'FallOutTransition', 'RiseInTransition', 'NoTransition',
+           'CardTransition')
 
 from kivy.compat import iteritems
 from kivy.logger import Logger
