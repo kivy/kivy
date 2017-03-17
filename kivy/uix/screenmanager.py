@@ -655,7 +655,7 @@ class CardTransition(SlideTransition):
                 a.pos = x, y + height * (1 - progression)
             elif direction == 'up':
                 a.pos = x, y - height * (1 - progression)
-        if mode == 'pop':
+        elif mode == 'pop':
             a.pos = x, y
             if direction == 'left':
                 b.pos = x - width * progression, y
