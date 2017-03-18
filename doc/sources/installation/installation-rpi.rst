@@ -17,7 +17,12 @@ Manual installation (On Raspbian Jessie)
        pkg-config libgl1-mesa-dev libgles2-mesa-dev \
        python-setuptools libgstreamer1.0-dev git-core \
        gstreamer1.0-plugins-{bad,base,good,ugly} \
-       gstreamer1.0-{omx,alsa} python-dev cython
+       gstreamer1.0-{omx,alsa} python-dev libmtdev-dev \
+       xclip
+
+#. Install a new enough version of Cython::
+
+    sudo pip install -I Cython==0.23
 
 
 #. Install Kivy globally on your system::
