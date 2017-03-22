@@ -46,6 +46,7 @@ class LabelHarfBuzz(LabelBase):
             ).scaled_font
         self.buf = hb.Buffer.create()
         self.line_pos = Vector(0, 0)
+        _font = "DejaVu Serif" #expermiental
         self.ft_face = self.ft.find_face(_font)
         self.ft_face.set_char_size(size = self.text_size, resolution = qah.base_dpi)
         self.hb_font = hb.Font.ft_create(self.ft_face)
