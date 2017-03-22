@@ -85,11 +85,10 @@ class LabelHarfBuzz(LabelBase):
         self.ctx.set_scaled_font(label_font)
         self.ctx.set_scaled_font(self.lines["font"])
         self.ctx.show_glyphs(tuple(qah.offset_glyphs(self.lines["text"], Vector(0, 0))))
-        # Imgdata = (qah.ImageSurface.get_data()) unable to implement! 
-        # only this line  is setback? we need to implement this method somehow.
+        Imgdata = img.data #exprimental fix
         # https://www.cairographics.org/manual/cairo-Image-Surfaces.html#cairo-image-surface-get-data
         # https://cairographics.org/documentation/pycairo/2/reference/surfaces.html#class-imagesurface-surface
         # img.flush().write_to_png("output.png")
         self.hb_font = None # prevents crash at end?
-        return ImageData(self._size[0], self._size[1], 'rgba', Imgdata) #will not work Imgdata not set
+        return ImageData(self._size[0], self._size[1], 'rgba', Imgdata)
 
