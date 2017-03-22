@@ -31,10 +31,10 @@ class LabelHarfBuzz(LabelBase):
                 'italic', 'underline', 'strikethrough')])
 
     def _get_font(self):
-        return qah.get_ft_lib()
+        return qah.get_ft_lib() 
 
     def get_extents(self, text):
-        pass
+        return (100,100)     #hardcoded to get this feature working,experimantal
 
     def _render_begin(self):
         self.ft = self._get_font()
@@ -61,12 +61,12 @@ class LabelHarfBuzz(LabelBase):
             {
                 "font" :
                     (qah.Context.create_for_dummy()
-                        .set_font_face(qah.FontFace.create_for_ft_face(ft_face))
+                        .set_font_face(qah.FontFace.create_for_ft_face(self.ft_face))
                         .set_font_size(self.text_size)
                     ).scaled_font,
                 "text" : line,
             }
-        self.line_pos = Vector(0, self.line_pos.y + ft_face.size["metrics"]["height"])
+        self.line_pos = Vector(0, self.line_pos.y + self.ft_face.size["metrics"]["height"])
         margin = Vector(10, 10)
         figure_size = Vector(line_end.x, self.line_pos.y) + 2 * margin
         self.img = qah.ImageSurface.create \
@@ -75,7 +75,7 @@ class LabelHarfBuzz(LabelBase):
             dimensions = round(figure_size)
           )
         self.ctx = \
-            (qah.Context.create(img)
+            (qah.Context.create(self.img)
                 .translate(margin + Vector(0, self.text_size ))
                 .set_source_colour(Colour.grey(1))
                 .paint()
@@ -83,10 +83,10 @@ class LabelHarfBuzz(LabelBase):
             )
 
     def _render_end(self):
-        self.ctx.set_scaled_font(label_font)
+        self.ctx.set_scaled_font(self.label_font)
         self.ctx.set_scaled_font(self.lines["font"])
         self.ctx.show_glyphs(tuple(qah.offset_glyphs(self.lines["text"], Vector(0, 0))))
-        Imgdata = img.data #exprimental fix
+        Imgdata = qah.ImageSurface.data #exprimental fix,still not working
         # https://www.cairographics.org/manual/cairo-Image-Surfaces.html#cairo-image-surface-get-data
         # https://cairographics.org/documentation/pycairo/2/reference/surfaces.html#class-imagesurface-surface
         # img.flush().write_to_png("output.png")
