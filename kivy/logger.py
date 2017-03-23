@@ -59,7 +59,6 @@ import os
 import sys
 import kivy
 from kivy.compat import PY2
-from kivy.config import Config
 from random import randint
 from functools import partial
 
@@ -117,6 +116,7 @@ class FileHandler(logging.Handler):
         if randint(0, 20) != 0:
             return
 
+        from kivy.config import Config
         maxfiles = Config.getint('kivy', 'log_maxfiles')
 
         if maxfiles <= 0:
@@ -150,6 +150,7 @@ class FileHandler(logging.Handler):
 
     def _configure(self, *largs, **kwargs):
         from time import strftime
+        from kivy.config import Config
         log_dir = Config.get('kivy', 'log_dir')
         log_name = Config.get('kivy', 'log_name')
 
@@ -222,6 +223,7 @@ class FileHandler(logging.Handler):
         if FileHandler.fd is None:
             try:
                 self._configure()
+                from kivy.config import Config
                 Config.add_callback(self._configure, 'kivy', 'log_dir')
                 Config.add_callback(self._configure, 'kivy', 'log_name')
             except Exception:
