@@ -59,6 +59,7 @@ import os
 import sys
 import kivy
 from kivy.compat import PY2
+from kivy.config import Config
 from random import randint
 from functools import partial
 
@@ -116,8 +117,10 @@ class FileHandler(logging.Handler):
         if randint(0, 20) != 0:
             return
 
-        from kivy.config import Config
-        maxfiles = Config.getint('kivy', 'log_maxfiles') - 1
+        maxfiles = Config.getint('kivy', 'log_maxfiles')
+
+        if maxfiles <= 0:
+            return
 
         print('Purge log fired. Analysing...')
         join = os.path.join
@@ -132,21 +135,21 @@ class FileHandler(logging.Handler):
             # sort by date
             lst = sorted(lst, key=lambda x: x['ctime'])
 
-            print('Purge %d log files' % (len(lst) - maxfiles))
+            # get the oldest (keep last maxfiles)
+            lst = lst[:-maxfiles]
+            print('Purge %d log files' % len(lst))
 
-            # unlink the oldest files in the list,
-            # keep last maxfiles
-            for i in range(len(lst) - maxfiles):
+            # now, unlink every file in the list
+            for filename in lst:
                 try:
-                    unlink(lst[i]['fn'])
+                    unlink(filename['fn'])
                 except PermissionError as e:
-                    print('Skipped file {0}, {1}'.format(lst[i]['fn'], e))
+                    print('Skipped file {0}, {1}'.format(filename['fn'], e))
 
         print('Purge finished!')
 
     def _configure(self, *largs, **kwargs):
         from time import strftime
-        from kivy.config import Config
         log_dir = Config.get('kivy', 'log_dir')
         log_name = Config.get('kivy', 'log_name')
 
@@ -219,7 +222,6 @@ class FileHandler(logging.Handler):
         if FileHandler.fd is None:
             try:
                 self._configure()
-                from kivy.config import Config
                 Config.add_callback(self._configure, 'kivy', 'log_dir')
                 Config.add_callback(self._configure, 'kivy', 'log_name')
             except Exception:
