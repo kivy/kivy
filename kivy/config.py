@@ -92,8 +92,8 @@ Available configuration tokens
     `log_maxfiles`: int, greater or equal 0
         Keep log_maxfiles recent logfiles while purging the log directory. Set
         'log_maxfiles' to 0 to disable logfile purging (eg keep all logfiles).
-        Note: You end up with 'log_maxfiles + 1' logfiles because the logger adds
-        a new one after purging.
+        Note: You end up with 'log_maxfiles + 1' logfiles because the logger
+        adds a new one after purging.
     `window_icon`: string
         Path of the window icon. Use this if you want to replace the default
         pygame icon.
