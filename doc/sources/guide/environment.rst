@@ -192,3 +192,6 @@ KIVY_BCM_DISPMANX_ID
     - 4: DISPMANX_ID_FORCE_LCD
     - 5: DISPMANX_ID_FORCE_TV
     - 6: DISPMANX_ID_FORCE_OTHER
+
+KIVY_BCM_DISPMANX_LAYER
+    Change the default Raspberry Pi dispmanx layer. Default value is 0.
