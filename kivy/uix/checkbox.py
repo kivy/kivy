@@ -150,7 +150,7 @@ class CheckBox(ToggleButtonBehavior, Widget):
     brighter colors. Alpha greater than 4 causes blending border and check
     mark together.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`color` is a
     :class:`~kivy.properties.ListProperty` and defaults to

@@ -30,12 +30,13 @@ Layouts are containers used to arrange widgets in a particular manner.
 When you add a widget to a layout, the following properties are used to
 determine the widget's size and position, depending on the type of layout:
 
-    **size_hint**: defines the size of a widget in its parent space as a percentage.
-    Values are restricted to the range 0.0 - 1.0 i.e. 0.01 = 1% and 1. = 100%.
+    **size_hint**: defines the size of a widget as a fraction of the parents
+    size. Values are restricted to the range 0.0 - 1.0 i.e. 0.01 = 1/100th
+    of the parent size (1%) and 1. = same size (100%).
 
     **pos_hint**: is used to place the widget relative to the parent.
 
 The **size_hint** and **pos_hint** are used to calculate a widget's size and
-position only if the value(s) are not set to ``None``. If you set these values to
-``None``, the layout will not position/size the widget and you can specify the
-values (x, y, width, height) directly in screen coordinates.
+position only if the value(s) are not set to ``None``. If you set these values
+to ``None``, the layout will not position/size the widget and you can specify
+the values (x, y, width, height) directly in screen coordinates.

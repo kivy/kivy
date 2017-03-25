@@ -312,6 +312,7 @@ class BuilderBase(object):
             template invocation.
         '''
         # remove rules and templates
+        filename = resource_find(filename) or filename
         self.rules = [x for x in self.rules if x[1].ctx.filename != filename]
         self._clear_matchcache()
         templates = {}
@@ -319,6 +320,7 @@ class BuilderBase(object):
             if y[2] != filename:
                 templates[x] = y
         self.templates = templates
+
         if filename in self.files:
             self.files.remove(filename)
 
@@ -417,7 +419,7 @@ class BuilderBase(object):
         '''Search all the rules that match `rule_name` widget
         and apply them to `widget`.
 
-        .. versionadded:: 1.9.2
+        .. versionadded:: 1.10.0
 
         `ignored_consts` is a set or list type whose elements are property
         names for which constant KV rules (i.e. those that don't create

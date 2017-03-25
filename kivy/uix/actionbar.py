@@ -117,7 +117,7 @@ class ActionItem(object):
 
     mipmap = BooleanProperty(True)
     '''Defines whether the image/icon dispayed on top of the button uses a
-    mipmap or not.
+       mipmap or not.
 
        :attr:`mipmap` is a :class:`~kivy.properties.BooleanProperty` and
        defaults to `True`.
@@ -264,6 +264,7 @@ class ActionDropDown(DropDown):
         if super(ActionDropDown, self).on_touch_down(touch):
             if self.auto_dismiss:
                 self.dismiss()
+            return True
 
 
 class ActionGroup(ActionItem, Spinner):
@@ -310,7 +311,7 @@ class ActionGroup(ActionItem, Spinner):
     :attr:`dropdown_width` is an :class:`~kivy.properties.NumericProperty`
     and defaults to 0.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
     '''
 
     def __init__(self, **kwargs):

@@ -29,22 +29,20 @@ to the request will be accessible as the parameter called "result" on
 the callback function of the on_success event.
 
 
-Example of fetching weather in Paris::
+Example of fetching JSON::
 
-    def got_weather(req, results):
-        for key, value in results['weather'][0].items():
-            print(key, ': ', value)
+    def got_json(req, result):
+        for key, value in result['headers'].items():
+            print('{}: {}'.format(key, value))
 
-    req = UrlRequest(
-        'http://api.openweathermap.org/data/2.5/weather?q=Paris,fr',
-        got_weather)
+    req = UrlRequest('https://httpbin.org/headers', got_json)
 
 Example of Posting data (adapted from httplib example)::
 
     import urllib
 
     def bug_posted(req, result):
-        print('Our bug is posted !')
+        print('Our bug is posted!')
         print(result)
 
     params = urllib.urlencode({'@number': 12524, '@type': 'issue',
@@ -114,7 +112,7 @@ class UrlRequest(Thread):
         Parameter `ca_file` added.
         Parameter `verify` added.
 
-    .. versionchanged:: 1.9.2
+    .. versionchanged:: 1.10.0
 
         Parameters `proxy_host`, `proxy_port` and `proxy_headers` added.
 

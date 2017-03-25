@@ -859,7 +859,7 @@ class App(EventDispatcher):
     def on_pause(self):
         '''Event handler called when Pause mode is requested. You should
         return True if your app can go into Pause mode, otherwise
-        return False and your application will be stopped (the default).
+        return False and your application will be stopped.
 
         You cannot control when the application is going to go into this mode.
         It's determined by the Operating System and mostly used for mobile
@@ -868,6 +868,8 @@ class App(EventDispatcher):
         The default return value is True.
 
         .. versionadded:: 1.1.0
+        .. versionchanged:: 1.10.0
+            The default return value is now True.
         '''
         return True
 

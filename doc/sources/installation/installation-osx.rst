@@ -75,18 +75,14 @@ Using The Kivy.app
     `homebrew <http://brew.sh>`_ to do that.
 
 For OS X 10.7 and later, we provide packages with all dependencies
-bundled in a virtual environment, including a Python interpreter for
+bundled in a virtual environment, including a Python 3 interpreter for
 Kivy3.app. These bundles are primarily used for rapid prototyping,
 and currently serve as containers for packaging Kivy apps with Buildozer.
-Download them from our `Download Page <http://kivy.org/#download>`_.
-They come as .7z files which contain:
-
-    * Kivy.app
 
 To install Kivy, you must:
 
-    1. Download the latest version from http://kivy.org/#download
-       Kivy2.7z is using using Python 2 (System Python), Kivy3.7z (Python 3)
+    1. Navigate to the latest Kivy release at
+       https://kivy.org/downloads/ and download `Kivy-*-osx-python*.7z`.
     2. Extract it using an archive program like `Keka <http://www.kekaosx.com/>`_.
     3. Copy the Kivy2.app or Kivy3.app as Kivy.app to /Applications.
        Paste the following line in the terminal::

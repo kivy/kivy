@@ -2,7 +2,7 @@
 CGL: standard C interface for OpenGL
 ====================================
 
-Kivy uses OpenGL and therefore requires a backend that orovides it.
+Kivy uses OpenGL and therefore requires a backend that provides it.
 The backend used is controlled through the ``USE_OPENGL_MOCK`` and ``USE_SDL2``
 compile-time variables and through the ``KIVY_GL_BACKEND`` runtime
 environmental variable.

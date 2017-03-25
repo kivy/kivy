@@ -16,6 +16,7 @@ TODO:
 __all__ = ('WindowSDL2', )
 
 from os.path import join
+import sys
 from kivy import kivy_data_dir
 from kivy.logger import Logger
 from kivy.base import EventLoop, ExceptionManager, stopTouchApp
@@ -574,7 +575,17 @@ class WindowSDL(WindowBase):
                 if (key not in self._modifiers and
                         key not in self.command_keys.keys()):
                     try:
-                        kstr = unichr(key)
+                        kstr_chr = unichr(key)
+                        try:
+                            # On android, there is no 'encoding' attribute.
+                            # On other platforms, if stdout is redirected,
+                            # 'encoding' may be None
+                            encoding = getattr(sys.stdout, 'encoding',
+                                               'utf8') or 'utf8'
+                            kstr_chr.encode(encoding)
+                            kstr = kstr_chr
+                        except UnicodeError:
+                            pass
                     except ValueError:
                         pass
                 # if 'shift' in self._modifiers and key\

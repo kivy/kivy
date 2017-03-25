@@ -28,7 +28,7 @@ this::
     [modules]
     cursor = texture=mypointer.png,size=20x20,offset=20x20
 
-.. versionadded:: 1.9.2
+.. versionadded:: 1.10.0
 '''
 
 __all__ = ('start', 'stop')

@@ -71,8 +71,7 @@ cdef class ClockEvent(object):
                 self.prev = self.clock._last_event
                 self.clock._last_event = self
             self.clock.on_schedule(self)
-            self.clock._lock_release()
-            return True
+
         self.clock._lock_release()
 
     cpdef get_callback(self):
@@ -239,7 +238,7 @@ cdef class CyClockBase(object):
 
         .. versionadded:: 1.0.5
 
-        .. versionchanged:: 1.9.2
+        .. versionchanged:: 1.10.0
 
             ``interval`` has been added. If True, it create a event that is called
             every <timeout> seconds similar to :meth:`schedule_interval`. Defaults to

@@ -356,7 +356,7 @@ class TreeView(Widget):
     def deselect_node(self, *args):
         '''Deselect any selected node.
 
-        .. versionadded:: 1.9.2
+        .. versionadded:: 1.10.0
         '''
         if self._selected_node:
             self._selected_node.is_selected = False

@@ -73,12 +73,12 @@ cdef class Matrix:
 
     def tolist(Matrix self):
         '''Retrieve the value of the current matrix in numpy format.
-        for example m.tolist() will return 
+        for example m.tolist() will return::
 
-                [[1.000000, 0.000000, 0.000000, 0.000000],
-                [0.000000, 1.000000, 0.000000, 0.000000],
-                [0.000000, 0.000000, 1.000000, 0.000000],
-                [0.000000, 0.000000, 0.000000, 1.000000]]
+            [[1.000000, 0.000000, 0.000000, 0.000000],
+            [0.000000, 1.000000, 0.000000, 0.000000],
+            [0.000000, 0.000000, 1.000000, 0.000000],
+            [0.000000, 0.000000, 0.000000, 1.000000]]
 
         you can use this format to plug the result straight into numpy 
         in this way numpy.array(m.tolist()) 
@@ -101,13 +101,14 @@ cdef class Matrix:
 
     def set(Matrix self, flat=None, array=None):
         '''Insert custom values into the matrix in a flat list format
-        or 4x4 array format like below
+        or 4x4 array format like below::
 
-        m.set(array=[
-            [1.0, 0.0, 0.0, 0.0],
-            [0.0, 1.0, 0.0, 0.0],
-            [0.0, 0.0, 1.0, 0.0],
-            [0.0, 0.0, 0.0, 1.0]])
+            m.set(array=[
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0]]
+            )
 
         .. versionadded:: 1.9.0
         '''
