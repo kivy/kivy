@@ -10,7 +10,7 @@ from kivy.clock import Clock
 from kivy.uix.label import Label
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
-from kivy.graphics import Color, Mesh, Line
+from kivy.graphics import Color, Mesh, Point
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import (
     ListProperty,
@@ -79,6 +79,7 @@ class BaseShape(Widget):
         '''Move debug collider when the shape moves.
         '''
         points = self.debug_collider.points[:]
+
         for i in range(len(points)):
             if not i % 2:
                 points[i] += offset_x
@@ -197,8 +198,8 @@ class RegularShape(BaseShape):
         vertices = []
         for i in range(edges):
             # get points within a circle with radius of [r_x, r_y]
-            x = cos(rad_edge * i + pi / 4.0) * r_x + self.center_x
-            y = sin(rad_edge * i + pi / 4.0) * r_y + self.center_y
+            x = cos(rad_edge * i) * r_x + self.center_x
+            y = sin(rad_edge * i) * r_y + self.center_y
             poly.extend([x, y])
 
             # add UV layout zeros for Mesh, see Mesh docs
@@ -337,13 +338,13 @@ class Collisions(App):
             if shape.debug_collider is not None:
                 continue
 
+            d = distance / 2.0
+            cx, cy = shape.center
+            points = [(cx + d * cos(i), cy + d * sin(i)) for i in range(44)]
+            points = [p for ps in points for p in ps]
             with shape.canvas:
                 Color(rgba=(0, 1, 0, 1))
-                shape.debug_collider = Line(circle=(
-                    *shape.center,
-                    distance / 2.0,
-                    0, 360, 20
-                ))
+                shape.debug_collider = Point(points=points)
 
     def on_collision(self, pair, *args):
         '''Dispatched when objects collide, gives back colliding objects
