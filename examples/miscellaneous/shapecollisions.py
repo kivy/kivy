@@ -1,6 +1,5 @@
 # python
 from math import cos, sin, pi, sqrt
-from functools import partial
 from random import random, randint
 from itertools import combinations
 
@@ -15,7 +14,8 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import (
     ListProperty,
     StringProperty,
-    ObjectProperty
+    ObjectProperty,
+    NumericProperty
 )
 
 
@@ -60,7 +60,9 @@ class BaseShape(Widget):
     # shape properties
     name = StringProperty('')
     poly = ListProperty([])
+    poly_len = NumericProperty(0)
     debug_collider = ObjectProperty()
+    debug_collider_len = NumericProperty(0)
 
     def __init__(self, **kwargs):
         '''Create a shape with size [100, 100]
@@ -80,11 +82,20 @@ class BaseShape(Widget):
         '''
         points = self.debug_collider.points[:]
 
-        for i in range(len(points)):
-            if not i % 2:
-                points[i] += offset_x
-                points[i + 1] += offset_y
+        for i in range(0, self.debug_collider_len, 2):
+            points[i] += offset_x
+            points[i + 1] += offset_y
         self.debug_collider.points = points
+
+    def on_debug_collider(self, instance, value):
+        '''Recalculate length of collider points' array.
+        '''
+        self.debug_collider_len = len(value.points)
+
+    def on_poly(self, instance, value):
+        '''Recalculate length of polygon points' array.
+        '''
+        self.poly_len = len(value)
 
     def on_pos(self, instance, pos):
         '''Move polygon and its Mesh on each position change.
@@ -107,11 +118,9 @@ class BaseShape(Widget):
             self._old_pos = pos
 
         # move polygon points by offset
-        for i in range(len(self.poly)):
-            if i % 2:
-                self.poly[i] += offset_y
-            else:
-                self.poly[i] += offset_x
+        for i in range(0, self.poly_len, 2):
+            self.poly[i] += offset_x
+            self.poly[i + 1] += offset_y
 
         # stick label to bounding box (widget)
         if self.name:
@@ -159,7 +168,7 @@ class BaseShape(Widget):
             return
         poly = self.poly
 
-        n = len(poly)
+        n = self.poly_len
         inside = False
         p1x = poly[0]
         p1y = poly[1]
@@ -252,6 +261,7 @@ class MeshShape(BaseShape):
 
         # create list of vertices & get edges of the polygon
         vertices = []
+        vertices_len = 0
         for i in range(0, poly_len, 2):
             min_x = poly[i] if poly[i] < min_x else min_x
             min_y = poly[i + 1] if poly[i + 1] < min_y else min_y
@@ -259,6 +269,7 @@ class MeshShape(BaseShape):
             max_y = poly[i + 1] if poly[i + 1] > max_y else max_y
 
             # add UV layout zeros for Mesh
+            vertices_len += 4
             vertices.extend([poly[i], poly[i + 1], 0, 0])
 
         # get center of poly from edges
@@ -276,14 +287,12 @@ class MeshShape(BaseShape):
 
         # move polygon points to the bounding box (touch)
         for i in range(0, poly_len, 2):
-            # poly[i] -= poly_center_x
-            # poly[i + 1] += self.center_y - poly_center_y
             poly[i] += dec_x
             poly[i + 1] += dec_y
 
         # move mesh points to the bounding box (image)
         # has to contain the same points as polygon
-        for i in range(0, len(vertices), 4):
+        for i in range(0, vertices_len, 4):
             vertices[i] += dec_x
             vertices[i + 1] += dec_y
 
