@@ -494,6 +494,8 @@ class ScrollView(StencilView):
         fbind('scroll_y', trigger_update_from_scroll)
         fbind('pos', trigger_update_from_scroll)
         fbind('size', trigger_update_from_scroll)
+        fbind('scroll_y', self._update_effect_bounds)
+        fbind('scroll_x', self._update_effect_bounds)
 
         update_effect_widget()
         update_effect_x_bounds()
