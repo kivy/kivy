@@ -119,7 +119,7 @@ class FileHandler(logging.Handler):
         from kivy.config import Config
         maxfiles = Config.getint('kivy', 'log_maxfiles')
 
-        if maxfiles <= 0:
+        if maxfiles < 0:
             return
 
         print('Purge log fired. Analysing...')
@@ -136,7 +136,7 @@ class FileHandler(logging.Handler):
             lst = sorted(lst, key=lambda x: x['ctime'])
 
             # get the oldest (keep last maxfiles)
-            lst = lst[:-maxfiles]
+            lst = lst[:-maxfiles] if maxfiles else lst
             print('Purge %d log files' % len(lst))
 
             # now, unlink every file in the list
