@@ -120,9 +120,9 @@ Known packages:
 * `sqlite3 <https://github.com/ghaering/pysqlite/blob/master/LICENSE>`_
 * `six <https://bitbucket.org/gutworth/six/src/tip/LICENSE>`_
 
-There are included libraries either Kivy directly or through Pygame/SDL2 uses,
-those are located in ``APK/lib/armeabi/``. Most of them are related to
-dependencies or are produced from python-for-android and are part of its source
+There are other included libraries, included either by Kivy directly or through
+Pygame/SDL2, that are located in ``APK/lib/armeabi/``. Most of them are related
+to dependencies or are produced by python-for-android and are part of its source
 (and licensing).
 
 * libapplication.so
