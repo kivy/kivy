@@ -89,24 +89,25 @@ Linux
 .. _badsit: avoid_
 
 Linux has many distributions which means there's no correct guide for all of
-the distributions. Under this part belongs RPi too. However, it can be
-simplified into two ways of how to create a package (also with PyInstaller):
-with or without including binaries.
+the distributions. This applies to the RPi too. However, it can be
+simplified in two ways depending on how you create a package (also with
+PyInstaller): with or without including binaries.
 
 If the binaries are included, you should check every file (e.g. `.so`) that's
-not your source and find a license it belongs to. According to that license
-you'll probably need to put an attribution into your application or even more.
+not your source and find the license it belongs to. According to that license,
+you'll probably need to put an attribution into your application or possibly
+more, depending on the requirements of that license.
 
-If the binaries are excluded (which allows packaging your app as e.g. `.deb`
-package), there's a |badsit|_. It's up to you to decide whether you satisfy
-conditions of other licenses and for example including copyright attribution
-into your app or not.
+If the binaries are not included (which allows packaging your app as e.g. a
+`.deb` package), there's a |badsit|_. It's up to you to decide whether you
+satisfy the conditions of other licenses and, for example, include copyright
+attributions into your app or not.
 
 Android
 -------
 
-As APK is just an archive of files, you can extract files from it and (as in
-Windows part) check all the files.
+As APK is just an archive of files: you can extract files from it and (as in
+Windows redistributables) check all the files.
 
 ``APK/assets/private.mp3/private.mp3/`` contains all the included files. Most
 of them are related to Kivy, Python or your source, but those that aren't need
