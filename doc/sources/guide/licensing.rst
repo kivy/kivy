@@ -39,9 +39,10 @@ code.
   (if used)
 * image & audio libraries(e.g. |mixer|_)
 
-You'll probably need to check image and audio libraries manually (mostly begin
+You'll probably need to check image and audio libraries manually (most begin
 with ``lib``). The ``LICENSE*`` files that belong to them should be included by
-PyInstaller, but are not by python-for-android and you need to find them.
+PyInstaller, but are not included by python-for-android and you need to find
+them.
 
 Windows (PyInstaller)
 ---------------------
@@ -49,11 +50,12 @@ Windows (PyInstaller)
 .. |win32| replace:: pypiwin32
 .. _win32: https://pypi.python.org/pypi/pypiwin32
 
-To access some Windows API features, Kivy uses |win32|_ package. This package
-is released under `PSF license <https://opensource.org/licenses/Python-2.0>`_.
+To access some Windows API features, Kivy uses the |win32|_ package. This
+package is released under the
+`PSF license <https://opensource.org/licenses/Python-2.0>`_.
 
-VS redistributables
-~~~~~~~~~~~~~~~~~~~
+Visual Studio Redistributables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. |py2crt| replace:: Py2 CRT license
 .. _py2crt: https://hg.python.org/sandbox/2.7/file/tip/Tools/msi/crtlicense.txt
@@ -62,11 +64,12 @@ VS redistributables
 .. |redist| replace:: List of redistributables
 .. _redist: https://msdn.microsoft.com/en-us/library/8kche8ah(v=vs.90).aspx
 
-Python compiled with Visual Studio (official) has some files from Microsoft and
-you are allowed to redistribute them under specific conditions listed in the
-CRTlicense. Including the names of the files and a reworded version of
-|py2crt|_ or |py3crt|_ depending which interpreter you use, so that it targets
-the end-user of your application may satisfy such requirements.
+Python compiled with Visual Studio (official) includes files from Microsoft and
+you are only allowed to redistribute them under specific conditions listed in
+the CRTlicense. You need to include the names of the files and a reworded
+version of |py2crt|_ or |py3crt|_ (depending which interpreter you use) and
+present these to the end-user of your application in order to satisfy their
+requirements.
 
 * |redist|_
 
@@ -75,8 +78,9 @@ Other libraries
 
 * `zlib <https://github.com/madler/zlib/blob/master/README>`_
 
-.. note:: Please add other libs that you *don't use directly* and are present
-   after packaging with e.g. PyInstaller on Windows.
+.. note:: Please add the attributions for other libraries that you
+   *don't use directly* but are present after packaging with e.g. PyInstaller
+   on Windows.
 
 Linux
 -----
