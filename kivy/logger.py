@@ -37,6 +37,7 @@ The Logger can be controlled via the Kivy configuration file::
     log_enable = 1
     log_dir = logs
     log_name = kivy_%y-%m-%d_%_.txt
+    log_maxfile = 100
 
 More information about the allowed values are described in the
 :mod:`kivy.config` module.
@@ -115,8 +116,11 @@ class FileHandler(logging.Handler):
         if randint(0, 20) != 0:
             return
 
-        # Use config ?
-        maxfiles = 100
+        from kivy.config import Config
+        maxfiles = Config.getint('kivy', 'log_maxfiles')
+
+        if maxfiles < 0:
+            return
 
         print('Purge log fired. Analysing...')
         join = os.path.join
@@ -132,7 +136,7 @@ class FileHandler(logging.Handler):
             lst = sorted(lst, key=lambda x: x['ctime'])
 
             # get the oldest (keep last maxfiles)
-            lst = lst[:-maxfiles]
+            lst = lst[:-maxfiles] if maxfiles else lst
             print('Purge %d log files' % len(lst))
 
             # now, unlink every file in the list
