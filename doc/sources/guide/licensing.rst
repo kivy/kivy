@@ -1,28 +1,29 @@
 Package licensing
 =================
 
-.. warning:: This is not a lawyer consulted guide! Kivy organisation, authors
-   or contributors to this guide take no responsibility for any lack of
-   information, misleading information presented here or any actions based on
-   this guide. The guide is merely informative and is meant to protect
-   inexperienced users.
+.. warning:: This is not a legally authoratative guide! The Kivy organisation,
+   authors and contributors take no responsibility for any lack of knowledge,
+   information or advice presented here. The guide is merely informative and is
+   meant to protect inexperienced users.
 
-Your code alone may not require including licensing info and copyright notices
-of other used software, but binaries are something else. When a binary (.exe,
-.app, .apk, ...) is created it includes Kivy, its dependencies and other
-packages that your application uses. Some of them are licensed in a way they
-require including a copyright notice somewhere in your app (or more). Before
+Your code alone may not require including licensing information or copyright
+notices of other included software, but binaries are something else. When a
+binary (.exe, .app, .apk, ...) is created, it includes Kivy, its dependencies
+and other packages that your application uses.
+
+Some of them are licensed in a way that requires including a copyright notice
+somewhere in your app (or more). Before
 distributing any of the binaries, please **check all the created files** that
-don't belong to your source (.dll, .pyd, .so, ...) and include approperiate
+don't belong to your source (.dll, .pyd, .so, ...) and include the appropriate
 copyright notices if required by the license the files belong to. This way you
 may satisfy licensing requirements of the Kivy deps.
 
 Dependencies
 ------------
 
-All of the dependencies will jump out at least partially on each platform Kivy
-supports, therefore you need to comply to their licenses, which mostly requires
-only pasting a copyright notice to your app and not pretending you wrote the
+All of the dependencies will be used at least partially on each platform Kivy
+supports. You therefore need to comply to their licenses, which mostly requires
+only pasting a copyright notice in your app and not pretending you wrote the
 code.
 
 .. |mixer| replace:: SDL_mixer has them
