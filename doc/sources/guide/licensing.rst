@@ -145,15 +145,15 @@ Avoiding binaries
 .. |cons| replace:: consequences
 .. _cons: http://programmers.stackexchange.com/a/234295
 
-There might be a way how to avoid this licensing process with avoiding creating
+There might be a way how to avoid this licensing process by avoiding creating
 a distribution with third-party stuff completely. With Python you can create
 a module, which is only your code with ``__main__.py`` + ``setup.py`` that only
-lists required deps.
+lists required depencies.
 
-This way you can still distribute your app - your *code* - and you might not
+This way, you can still distribute your app - your *code* - and you might not
 need to care about other licenses. The combination of your code and the
 dependencies could be specified as a "usage" rather than a "distribution". The
 responsibility of satisfying licenses, however, most likely transfers to your
 user, who needs to assemble the environment to even run the module. If you care
-about your users, you might want to slow down a little and read more about
+about your users, you might want to slow down a little and read more about the
 |cons|_.
