@@ -1,9 +1,12 @@
-# python
+# This is a simple demo for advanced collisions and mesh creation from a set
+# of points. Its purpose is only to give an idea on how to make complex stuff.
+
+# Check garden.collider for better performance.
+
 from math import cos, sin, pi, sqrt
 from random import random, randint
 from itertools import combinations
 
-# kivy
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.uix.label import Label
@@ -49,8 +52,7 @@ cloud_poly = [
 
 
 class BaseShape(Widget):
-    '''(internal) Base class for moving with touches or calls.
-    '''
+    '''(internal) Base class for moving with touches or calls.'''
 
     # keep references for offset
     _old_pos = ListProperty([0, 0])
@@ -60,7 +62,9 @@ class BaseShape(Widget):
     # shape properties
     name = StringProperty('')
     poly = ListProperty([])
+    shape = ObjectProperty()
     poly_len = NumericProperty(0)
+    shape_len = NumericProperty(0)
     debug_collider = ObjectProperty()
     debug_collider_len = NumericProperty(0)
 
@@ -73,13 +77,11 @@ class BaseShape(Widget):
         self.add_widget(Label(text=self.name))
 
     def move_label(self, x, y, *args):
-        '''Move label with shape name as the only child.
-        '''
+        '''Move label with shape name as the only child.'''
         self.children[0].pos = [x, y]
 
     def move_collider(self, offset_x, offset_y, *args):
-        '''Move debug collider when the shape moves.
-        '''
+        '''Move debug collider when the shape moves.'''
         points = self.debug_collider.points[:]
 
         for i in range(0, self.debug_collider_len, 2):
@@ -88,14 +90,16 @@ class BaseShape(Widget):
         self.debug_collider.points = points
 
     def on_debug_collider(self, instance, value):
-        '''Recalculate length of collider points' array.
-        '''
+        '''Recalculate length of collider points' array.'''
         self.debug_collider_len = len(value.points)
 
     def on_poly(self, instance, value):
-        '''Recalculate length of polygon points' array.
-        '''
+        '''Recalculate length of polygon points' array.'''
         self.poly_len = len(value)
+
+    def on_shape(self, instance, value):
+        '''Recalculate length of Mesh vertices' array.'''
+        self.shape_len = len(value.vertices)
 
     def on_pos(self, instance, pos):
         '''Move polygon and its Mesh on each position change.
@@ -131,20 +135,19 @@ class BaseShape(Widget):
             self.move_collider(offset_x, offset_y)
 
         # return if no Mesh available
-        if not hasattr(self, 'shape'):
+        if self.shape is None:
             return
 
         # move Mesh vertices by offset
         points = self.shape.vertices[:]
-        for i in range(len(points)):
-            if not i % 2:
-                points[i] += offset_x
-                points[i + 1] += offset_y
+        for i in range(0, self.shape_len, 2):
+            points[i] += offset_x
+            points[i + 1] += offset_y
         self.shape.vertices = points
 
     def on_touch_move(self, touch, *args):
-        '''Move shape with dragging.
-        '''
+        '''Move shape with dragging.'''
+
         # grab single touch for shape
         if touch.grab_current is not self:
             return
@@ -161,12 +164,12 @@ class BaseShape(Widget):
         self.pos = [self.x + offset_x, self.y + offset_y]
 
     def shape_collide(self, x, y, *args):
-        '''Point to polygon collision through a list of points.
-        '''
+        '''Point to polygon collision through a list of points.'''
+
         # ignore if no polygon area is set
-        if not hasattr(self, 'poly'):
-            return
         poly = self.poly
+        if not self.poly:
+            return False
 
         n = self.poly_len
         inside = False
@@ -234,13 +237,13 @@ class MeshShape(BaseShape):
     '''Starting from a custom origin and custom points, draw
     a convex Mesh shape with both touch and shape collisions.
 
-    .. Note::
+    .. note::
 
         To get the points, use e.g. Pen tool from your favorite
         graphics editor and export it to a human readable format.
     '''
 
-    def __init__(self, edges=3, color=None, **kwargs):
+    def __init__(self, color=None, **kwargs):
         super(MeshShape, self).__init__(**kwargs)
 
         color = color or [random() for i in range(3)]
