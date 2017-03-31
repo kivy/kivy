@@ -168,7 +168,7 @@ class BaseShape(Widget):
 
         # ignore if no polygon area is set
         poly = self.poly
-        if not self.poly:
+        if not poly:
             return False
 
         n = self.poly_len
