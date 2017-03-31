@@ -851,8 +851,29 @@ cdef class BorderImage(Rectangle):
             Border information in the format (top, right, bottom, left).
             Each value is in pixels.
 
-        `auto_scale`: bool
+        `auto_scale`: string
             .. versionadded:: 1.9.1
+
+            .. versionchanged:: 1.9.2 
+
+                This used to be a bool and has been changed to be a string
+                state. 
+
+            Can be one of 'off', 'both', 'x_only', 'y_only', 'y_full_x_lower',
+            'x_full_y_lower', 'both_lower'.
+
+            Autoscale controls the behavior of the 9-slice.
+
+            By default the border values are preserved exactly, meaning that
+            if the total size of the object is smaller than the border values
+            you will have some 'rendering errors' where your texture appears
+            inside out. This also makes it impossible to achieve a rounded
+            button that scales larger than the size of its source texture.
+
+            'off' is the default and behaves as BorderImage did when auto_scale
+            was False before.
+
+            '
 
             If the BorderImage's size is less than the sum of it's
             borders, horizontally or vertically, and this property is
@@ -862,13 +883,13 @@ cdef class BorderImage(Rectangle):
     '''
     cdef list _border
     cdef list _display_border
-    cdef int _auto_scale
+    cdef str _auto_scale
 
     def __init__(self, **kwargs):
         Rectangle.__init__(self, **kwargs)
         v = kwargs.get('border')
         self.border = v if v is not None else (10, 10, 10, 10)
-        self.auto_scale = kwargs.get('auto_scale', False)
+        self.auto_scale = kwargs.get('auto_scale', 'off')
         self.display_border = kwargs.get('display_border', [])
 
     cdef void build(self):
@@ -907,7 +928,35 @@ cdef class BorderImage(Rectangle):
         tb[3] = b3 / tw * tcw
 
         cdef float sb0, sb1, sb2, sb3
-        if self.auto_scale:
+
+        if self._auto_scale == 'off':
+            sb0, sb1, sb2, sb3 = b0, b1, b2, b3
+        elif self._auto_scale == 'both':
+            sb0 = (b0/th) * h
+            sb1 = (b1/tw) * w
+            sb2 = (b2/th) * h
+            sb3 = (b3/tw) * w
+        elif self._auto_scale == 'x_only':
+            sb0 = b0
+            sb1 = (b1/tw) * w
+            sb2 = b2
+            sb3 = (b3/tw) * w
+        elif self._auto_scale == 'y_only':
+            sb0 = (b0/th) * h
+            sb1 = b1
+            sb2 = (b2/th) * h
+            sb3 = b3
+        elif self._auto_scale == 'y_full_x_lower':
+            sb0 = (b0/th) * h
+            sb1 = min((b1/tw) * w, b1)
+            sb2 = (b2/th) * h
+            sb3 = min((b3/tw) * w, b3)
+        elif self._auto_scale == 'x_full_y_lower':
+            sb0 = min((b0/th) * h, b0)
+            sb1 = (b1/tw) * w
+            sb2 = min((b2/th) * h, b2)
+            sb3 = (b3/tw) * w
+        elif self._auto_scale == 'both_lower':
             sb0 = min((b0/th) * h, b0)
             sb1 = min((b1/tw) * w, b1)
             sb2 = min((b2/th) * h, b2)
@@ -997,8 +1046,8 @@ cdef class BorderImage(Rectangle):
         def __get__(self):
             return self._auto_scale
 
-        def __set__(self, value):
-            self._auto_scale = int(bool(value))
+        def __set__(self, str value):
+            self._auto_scale = value
             self.flag_update()
 
     property display_border:
