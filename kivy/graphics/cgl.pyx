@@ -14,6 +14,7 @@ is always available.
 
 At runtime the following backends are available and can be set using
 ``KIVY_GL_BACKEND``:
+
 * ``gl`` -- Available on unix (the default backend). Unavailable when
   ``USE_OPENGL_MOCK=0``. Requires gl be installed.
 * ``glew`` -- Available on Windows (the default backend). Unavailable when
@@ -28,6 +29,7 @@ At runtime the following backends are available and can be set using
 
 Additionally, the following environmental runtime variables control the graphics
 system:
+
 * ``KIVY_GL_DEBUG`` -- Logs al gl calls when ``1``.
 * ``KIVY_GRAPHICS`` -- Forces OpenGL ES2 when it is ``gles``. OpenGL ES2 is always
   used on the android, ios, rpi, and mali OSs.
