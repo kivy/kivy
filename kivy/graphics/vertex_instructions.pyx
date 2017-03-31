@@ -868,12 +868,34 @@ cdef class BorderImage(Rectangle):
             if the total size of the object is smaller than the border values
             you will have some 'rendering errors' where your texture appears
             inside out. This also makes it impossible to achieve a rounded
-            button that scales larger than the size of its source texture.
+            button that scales larger than the size of its source texture. The
+            various options for auto_scale will let you achieve some mixes of
+            the 2 types of rendering.
 
-            'off' is the default and behaves as BorderImage did when auto_scale
+            'off': is the default and behaves as BorderImage did when auto_scale
             was False before.
 
-            '
+            'both': Scales both x and y dimension borders according to the size
+            of the BorderImage, this disables the BorderImage making it render
+            the same as a regular Image. 
+
+            'x_only': The Y dimension functions as the default, and the X
+            scales to the size of the BorderImage's width.
+
+            'y_only': The X dimension functions as the default, and the Y 
+            scales to the size of the BorderImage's height.
+
+            'y_full_x_lower': Y scales as in 'y_only', Y scales if the
+            size of the scaled version would be smaller than the provided
+            border only.
+
+            'x_full_y_lower': X scales as in 'x_only', Y scales if the
+            size of the scaled version would be smaller than the provided
+            border only.
+
+            'both_lower': This is what auto_scale did when it was True in 1.9.1
+            Both X and Y dimensions will be scaled if the BorderImage is
+            smaller than the source.
 
             If the BorderImage's size is less than the sum of it's
             borders, horizontally or vertically, and this property is
