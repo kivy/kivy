@@ -463,6 +463,5 @@ cdef class Fbo(RenderContext):
         self.bind()
         data = py_glReadPixels(wx, wy, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE)
         self.release()
-        raw_data = str(data)
 
         return [ord(i) if PY2 else i for i in raw_data]
