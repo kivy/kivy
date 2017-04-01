@@ -71,6 +71,7 @@ include "../include/config.pxi"
 include "opcodes.pxi"
 
 from os import environ
+from kivy.compat import PY2
 from kivy.logger import Logger
 from kivy.weakmethod import WeakMethod
 from kivy.graphics.texture cimport Texture
@@ -464,4 +465,4 @@ cdef class Fbo(RenderContext):
         self.release()
         raw_data = str(data)
 
-        return [ord(i) for i in raw_data]
+        return [ord(i) if PY2 else i for i in raw_data]
