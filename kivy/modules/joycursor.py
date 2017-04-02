@@ -115,7 +115,6 @@ class JoyCursor(Widget):
                 points=self.cursor_pts[4:],
                 width=self.cursor_width
             )
-        self.move = Clock.schedule_interval(self.move_cursor, 0)
         self.pos = [-i for i in self.size]
 
     def on_window_children(self, win, *args):
@@ -132,6 +131,7 @@ class JoyCursor(Widget):
         # bind/unbind when JoyCursor's state is changed
         if activated:
             self.win.add_widget(self)
+            self.move = Clock.schedule_interval(self.move_cursor, 0)
             self.win.fbind('on_joy_axis', self.check_cursor)
             self.win.fbind('on_joy_button_down', self.set_intensity)
             self.win.fbind('on_joy_button_down', self.check_dispatch)
@@ -141,7 +141,6 @@ class JoyCursor(Widget):
                 mouse_pos[0] - self.size[0] / 2.0,
                 mouse_pos[1] - self.size[1] / 2.0
             )
-
             Logger.info('JoyCursor: joycursor activated')
         else:
             self.pos = [-i for i in self.size]
@@ -260,8 +259,8 @@ class JoyCursor(Widget):
     def joystick_shortcuts(self, win, stickid, buttonid):
         if buttonid == 7:
             self.activated = not self.activated
-        if self.activated:
-            self.pos = [round(i / 2.0) for i in win.size]
+            if self.activated:
+                self.pos = [round(i / 2.0) for i in win.size]
 
 
 def create_joycursor(win, ctx, *args):
@@ -295,5 +294,6 @@ def stop(win, ctx):
         ctx.joycursor.activated = False
         win.unbind(children=ctx.joycursor.on_window_children,
                    on_keyboard=ctx.joycursor.keyboard_shortcuts)
+        win.funbind('on_joy_button_down', ctx.joycursor.joystick_shortcuts)
         win.remove_widget(ctx.joycursor)
         del ctx.joycursor
