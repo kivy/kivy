@@ -44,6 +44,8 @@ and these bindings:
 +------------------+--------------------+
 | hold button      | Button 6           |
 +------------------+--------------------+
+| joycursor on/off | Button 7           |
++------------------+--------------------+
 
 The JoyCursor, like Inspector, can also be imported and used as a normal
 python module. This has the added advantage of being able to activate and
@@ -55,7 +57,7 @@ deactivate the module programmatically::
     #:import jc kivy.modules.joycursor
     BoxLayout:
         Button:
-            text: 'Press & activate with Ctrl + E'
+            text: 'Press & activate with Ctrl+E or Button 7'
             on_release: jc.create_joycursor(root.parent, root)
         Button:
             text: 'Disable'
@@ -255,6 +257,12 @@ class JoyCursor(Widget):
                 self.activated = False
                 return True
 
+    def joystick_shortcuts(self, win, stickid, buttonid):
+        if buttonid == 7:
+            self.activated = not self.activated
+        if self.activated:
+            self.pos = [round(i / 2.0) for i in win.size]
+
 
 def create_joycursor(win, ctx, *args):
     '''Create a JoyCursor instance attached to the *ctx* and bound to the
@@ -271,6 +279,9 @@ def create_joycursor(win, ctx, *args):
     ctx.joycursor = JoyCursor(win=win)
     win.bind(children=ctx.joycursor.on_window_children,
              on_keyboard=ctx.joycursor.keyboard_shortcuts)
+    # always listen for joystick input to open the module
+    # (like a keyboard listener)
+    win.fbind('on_joy_button_down', ctx.joycursor.joystick_shortcuts)
 
 
 def start(win, ctx):
