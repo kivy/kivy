@@ -103,6 +103,8 @@ Nightly wheel installation
 .. _cp36_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp36-cp36m-win32.whl
 .. |cp36_amd64| replace:: Python 3.6, 64bit
 .. _cp36_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp36-cp36m-win_amd64.whl
+.. |examples_whl| replace:: Kivy examples
+.. _examples_whl: https://kivy.org/downloads/appveyor/kivy/Kivy_examples-1.9.2.dev0-py2.py3-none-any.whl
 
 .. warning::
 
@@ -130,6 +132,10 @@ follows.
 #. Install it with ``python -m pip install wheel-name`` where ``wheel-name``
    is the name of the renamed file and add deps to the `PATH`.
 
+Kivy examples are separated from the core because of their size. The examples
+can be installed separately on both Python 2 and 3 with this single wheel:
+
+- |examples_whl|_
 
 .. _kivy-dependencies:
 
@@ -147,7 +153,7 @@ Currently on Windows, we provide the following dependency wheels:
   `angle (3.5 only) <https://github.com/Microsoft/angle>`_ for OpenGL
 * `sdl2 <https://libsdl.org>`_ for control and/or OpenGL.
 
-One can select which of these to use for OpenGL use using the 
+One can select which of these to use for OpenGL use using the
 `KIVY_GL_BACKEND` envrionment variable by setting it to `glew`
 (the default), `angle`, or `sdl2`. `angle` is currently
 in an experimental phase as a substitute for `glew` on Python
@@ -205,7 +211,7 @@ kivy with git rather than a wheel there are some additional steps:
 
 #. Get the compiler.
    For Python < 3.5 we use mingwpy as follows.
-   
+
    #. Create the
       ``python\Lib\distutils\distutils.cfg`` file and add the two lines::
 
@@ -219,8 +225,8 @@ kivy with git rather than a wheel there are some additional steps:
    For Python 3.5 we use the MSVC compiler. For 3.5,
    `Visual Studio 2015 <https://www.visualstudio.com/downloads/>`_ is
    required, which is availible for free. Just download and install it and
-   you'll be good to go. 
-   
+   you'll be good to go.
+
    Visual Studio is very big so you can also use the smaller,
    `Visual C Build Tools instead
    <https://github.com/kivy/kivy/wiki/Using-Visual-C---Build-Tools-instead-of-Visual-Studio-on-Windows>`_.

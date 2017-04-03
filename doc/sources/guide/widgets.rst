@@ -238,7 +238,7 @@ of the |layout| |width|/|height|.
 .. image:: images/size_hint[b_].jpg
 
 You can see here that, although we specify |size_hint_x| and |size_hint_y| both
-to be .5, only |size_hint_x| seems to be honored. That is because |BoxLayout|
+to be .5, only |size_hint_y| seems to be honored. That is because |BoxLayout|
 controls the |size_hint_y| when |orientation| is `vertical` and |size_hint_x|
 when |orientation| is 'horizontal'. The controlled dimension's size is calculated depending
 upon the total no. of |children| in the |BoxLayout|. In this example, one child has

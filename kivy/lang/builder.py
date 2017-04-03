@@ -312,6 +312,7 @@ class BuilderBase(object):
             template invocation.
         '''
         # remove rules and templates
+        filename = resource_find(filename) or filename
         self.rules = [x for x in self.rules if x[1].ctx.filename != filename]
         self._clear_matchcache()
         templates = {}
@@ -319,6 +320,7 @@ class BuilderBase(object):
             if y[2] != filename:
                 templates[x] = y
         self.templates = templates
+
         if filename in self.files:
             self.files.remove(filename)
 

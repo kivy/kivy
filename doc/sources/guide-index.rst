@@ -16,6 +16,5 @@ Programming Guide
     guide/graphics
     guide/lang
     guide/other-frameworks
-    guide/bestpractices
     guide/packaging
     guide/licensing

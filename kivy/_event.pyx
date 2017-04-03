@@ -52,7 +52,7 @@ def _get_bases(cls):
 cdef class ObjectWithUid(object):
     '''
     (internal) This class assists in providing unique identifiers for class
-    instances. It it not intended for direct usage.
+    instances. It is not intended for direct usage.
     '''
     def __cinit__(self):
         global widget_uid

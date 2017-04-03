@@ -10,12 +10,13 @@ system.
 
 .. note::
 
-    This widget requires ``docutils`` package to run. Install it with ``pip``.
+    This widget requires the ``docutils`` package to run. Install it with
+    ``pip`` or include it as one of your deployment requirements.
 
 .. warning::
 
-    This widget is highly experimental. The whole styling and
-    implementation are not stable until this warning has been removed.
+    This widget is highly experimental. The styling and implementation should
+    not be considered stable until this warning has been removed.
 
 Usage with Text
 ---------------
@@ -43,11 +44,11 @@ The rendering will output:
 Usage with Source
 -----------------
 
-You can also render a rst file using the :attr:`RstDocument.source` property::
+You can also render a rst file using the :attr:`~RstDocument.source` property::
 
     document = RstDocument(source='index.rst')
 
-You can reference other documents with the role ``:doc:``. For example, in the
+You can reference other documents using the role ``:doc:``. For example, in the
 document ``index.rst`` you can write::
 
     Go to my next document: :doc:`moreinfo.rst`
