@@ -24,11 +24,11 @@ If the instance is NULL, the cache may have trashed it because you've
 not used the label for 5 seconds and you've reach the limit.
 '''
 
-__all__ = ('Cache', )
-
 from os import environ
 from kivy.logger import Logger
 from kivy.clock import Clock
+
+__all__ = ('Cache', )
 
 
 class Cache(object):
@@ -89,7 +89,7 @@ class Cache(object):
         limit = cat['limit']
 
         if limit is not None and len(Cache._objects[category]) >= limit:
-           Cache._purge_oldest(category)
+            Cache._purge_oldest(category)
 
         Cache._objects[category][key] = {
             'object': obj,
@@ -183,7 +183,7 @@ class Cache(object):
         n = 0
         while n <= maxpurge:
             try:
-                n +=1
+                n += 1
                 lastaccess, key = heapq.heappop(heap_list)
                 print(n, '=>', key, lastaccess, Clock.get_time())
             except Exception:
