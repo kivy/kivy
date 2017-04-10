@@ -43,6 +43,7 @@ class Test(unittest.TestCase):
         app = self.app
         fbow = self.fbow
 
+        render_error = 2
         values = (
             # out of bounds of FBO
             (tuple, int, (0, 0, 0, 0)),
@@ -70,7 +71,10 @@ class Test(unittest.TestCase):
             for v in c:
                 self.assertTrue(isinstance(v, values[i][1]))
             # returned values
-            self.assertEqual(c, values[i][2])
+            self.assertAlmostEqual(
+                c, values[i][2],
+                delta=render_error
+            )
 
         # kill app
         win.unbind(on_flip=self.on_window_flip)
