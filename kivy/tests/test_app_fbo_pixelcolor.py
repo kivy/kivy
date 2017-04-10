@@ -71,10 +71,11 @@ class Test(unittest.TestCase):
             for v in c:
                 self.assertTrue(isinstance(v, values[i][1]))
             # returned values
-            self.assertAlmostEqual(
-                c, values[i][2],
-                delta=render_error
-            )
+            for j, val in enumerate(c):
+                self.assertAlmostEqual(
+                    val, values[i][2][j],
+                    delta=render_error
+                )
 
         # kill app
         win.unbind(on_flip=self.on_window_flip)
