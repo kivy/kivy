@@ -1,4 +1,6 @@
 import unittest
+import os
+
 
 from kivy.app import App
 from kivy.clock import Clock
@@ -87,6 +89,8 @@ class Test(unittest.TestCase):
         app.root.add_widget(self.fbow)
 
     def test_app_fbo_getpixelcolor(self):
+        if environ.get('KIVY_GL_BACKEND') == 'mock':
+            return
         self.app = App()
         Window.bind(on_flip=self.on_window_flip)
         Clock.schedule_once(lambda *t: self.set_env(self.app), 0)
