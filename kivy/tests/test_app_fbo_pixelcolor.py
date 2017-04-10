@@ -1,5 +1,5 @@
 import unittest
-import os
+from os import environ
 
 
 from kivy.app import App
