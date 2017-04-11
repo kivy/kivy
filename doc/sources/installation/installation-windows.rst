@@ -21,6 +21,12 @@ location** and not to site-packages, please see :ref:`alternate-win`.
     `issue <http://bugs.python.org/issue4709>`_. Generally this should make
     no difference when using precompiled wheels.
 
+.. warning::
+
+    Support for Python 3.5 and higher isn't available with the current
+    stable version (``1.9.1``). Compile the master branch or use the
+    nightly wheels.
+
 To use Kivy you need `Python <https://www.python.org/downloads/windows/>`_.
 Multiple versions of Python can be installed side by side, but Kivy needs to
 be installed for each Python version that you want to use Kivy.
