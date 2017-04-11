@@ -54,7 +54,8 @@ For information on configuring your :class:`~kivy.app.App`, please see the
 Available configuration tokens
 ------------------------------
 
-.. |log_levels| replace:: 'debug', 'info', 'warning', 'error' or 'critical'
+.. |log_levels| replace::
+    'trace', 'debug', 'info', 'warning', 'error' or 'critical'
 
 :kivy:
 
