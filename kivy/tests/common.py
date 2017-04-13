@@ -145,11 +145,11 @@ class GraphicUnitTest(_base):
                 else:
                     log.info('Image discarded')
             else:
-                import pygame
-                s1 = pygame.image.load(tmpfn)
-                s2 = pygame.image.load(reffn)
-                sd1 = pygame.image.tostring(s1, 'RGB')
-                sd2 = pygame.image.tostring(s2, 'RGB')
+                from kivy.core.image import Image as CoreImage
+                s1 = CoreImage(tmpfn, keep_data=True)
+                sd1 = s1.image._data[0].data
+                s2 = CoreImage(reffn, keep_data=True)
+                sd2 = s2.image._data[0].data
                 if sd1 != sd2:
                     log.critical(
                         '%s at render() #%d, images are different.' % (
