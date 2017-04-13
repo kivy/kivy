@@ -1,9 +1,6 @@
-import unittest
-from os import environ
-
+from kivy.tests.common import GraphicUnitTest
 
 from kivy.app import App
-from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
 from kivy.graphics import Fbo, Color, Rectangle
@@ -23,10 +20,7 @@ class FboTest(Widget):
             (32.0, 32.0)
         )
 
-        with self.canvas:
-            self.fbo = Fbo(size=(256, 256))
-
-        # draw on canvas too to make visible ^
+        self.fbo = Fbo(size=(256, 256))
         with self.fbo:
             Color(0.56789, 0, 0, 1)
             Rectangle(size=(256, 64))
@@ -36,15 +30,13 @@ class FboTest(Widget):
             Rectangle(pos=(64, 64), size=(192, 64))
             Color(0, 0.56789, 0, .5)
             Rectangle(pos=(64, 64), size=(64, 192))
+        self.fbo.draw()
 
 
-class Test(unittest.TestCase):
-    def on_window_flip(self, win):
-        # get_pixel_color doesn't work until
-        # window is flipped (returns zero tuple)
-        app = self.app
-        fbow = self.fbow
-
+class FBOPy2Py3TestCase(GraphicUnitTest):
+    def test_fbo_get_pixel_color(self):
+        fbow = FboTest(size=Window.size)
+        self.render(fbow)
         render_error = 2
         values = (
             # out of bounds of FBO
@@ -79,23 +71,7 @@ class Test(unittest.TestCase):
                     delta=render_error
                 )
 
-        # kill app
-        win.unbind(on_flip=self.on_window_flip)
-        app.stop()
-
-    def set_env(self, app, *args):
-        # set up app environment
-        self.fbow = FboTest(size=Window.size)
-        app.root.add_widget(self.fbow)
-
-    def test_app_fbo_getpixelcolor(self):
-        if environ.get('KIVY_GL_BACKEND') == 'mock':
-            return
-        self.app = App()
-        Window.bind(on_flip=self.on_window_flip)
-        Clock.schedule_once(lambda *t: self.set_env(self.app), 0)
-        self.app.run()
-
 
 if __name__ == '__main__':
+    import unittest
     unittest.main()
