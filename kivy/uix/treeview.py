@@ -456,10 +456,8 @@ class TreeView(Widget):
         self._do_layout_node(self.root, 0, self.top)
         # now iterate for calculating minimum size
         min_width = min_height = 0
-        count = 0
-        for node in self.iterate_open_nodes(self.root):
+        for count, node in enumerate(self.iterate_open_nodes(self.root)):
             node.odd = False if count % 2 else True
-            count += 1
             min_width = max(min_width, node.right - self.x)
             min_height += node.height
         self.minimum_size = (min_width, min_height)
