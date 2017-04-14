@@ -405,7 +405,7 @@ cdef class LoadIdentity(ContextInstruction):
         'projection_mat'.
         '''
         def __get__(self):
-            return self.context_state.keys()[0]
+            return list(self.context_state.keys())[0]
         def __set__(self, value):
             self.context_state = {value: Matrix()}
 
