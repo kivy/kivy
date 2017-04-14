@@ -86,4 +86,4 @@ class DictStore(AbstractStore):
         return len(self._data)
 
     def store_keys(self):
-        return self._data.keys()
+        return list(self._data.keys())
