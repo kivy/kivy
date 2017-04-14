@@ -100,7 +100,7 @@ include "opcodes.pxi"
 include "gl_debug_logger.pxi"
 
 from kivy.graphics.cgl cimport *
-
+from kivy.compat import PY2
 from kivy.graphics.instructions cimport Instruction
 
 cdef int _stencil_level = 0
@@ -214,7 +214,10 @@ cdef class StencilUse(Instruction):
 
         def __get__(self):
             index = _gl_stencil_op.values().index(self._op)
-            return _gl_stencil_op.keys()[index]
+            if PY2:
+                return _gl_stencil_op.keys()[index]
+            else:
+                return list(_gl_stencil_op.keys())[index]
 
         def __set__(self, x):
             cdef int op = _stencil_op_to_gl(x)
