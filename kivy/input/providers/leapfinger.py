@@ -98,7 +98,7 @@ class LeapFingerEventProvider(MotionEventProvider):
                     touch = touches[uid]
                     touch.move(args)
                     events.append(('update', touch))
-        for key in touches.keys()[:]:
+        for key in list(touches.keys())[:]:
             if key not in available_uid:
                 events.append(('end', touches[key]))
                 del touches[key]
