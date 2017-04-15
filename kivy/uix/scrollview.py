@@ -945,16 +945,8 @@ class ScrollView(StencilView):
         if not self._viewport:
             return 0, 0
         vp = self._viewport
-        if vp.width > self.width:
-            sw = vp.width - self.width
-            sx = dx / float(sw)
-        else:
-            sx = 0
-        if vp.height > self.height:
-            sh = vp.height - self.height
-            sy = dy / float(sh)
-        else:
-            sy = 1
+        sx = dx / float(vp.width - self.width) if vp.width > self.width else 0
+        sy = dy / float(vp.height - self.height) if vp.height > self.height else 1
         return sx, sy
 
     def update_from_scroll(self, *largs):
