@@ -549,6 +549,11 @@ class FileChooserController(RelativeLayout):
             return True
         return super(FileChooserController, self).on_touch_up(touch)
 
+    def on_touch_up(self, touch):
+        # make sure FileChooser doesn't respond to touches outside itself
+        if self.collide_point(*touch.pos):
+            return True
+
     def _update_item_selection(self, *args):
         for item in self._items:
             item.selected = item.path in self.selection
