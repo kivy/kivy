@@ -70,7 +70,6 @@ class FBOPy2Py3TestCase(GraphicUnitTest):
                     val, values[i][2][j],
                     delta=render_error
                 )
-            self.assertTrue(False)
 
 
 if __name__ == '__main__':
