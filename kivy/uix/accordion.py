@@ -1,4 +1,4 @@
-'''
+﻿'''
 Accordion
 =========
 
@@ -276,6 +276,7 @@ class AccordionItem(FloatLayout):
 
     def on_collapse(self, instance, value):
         accordion = self.accordion
+        self.collapsing = True
         if accordion is None:
             return
         if not value:
@@ -303,6 +304,25 @@ class AccordionItem(FloatLayout):
             return True
         else:
             return super(AccordionItem, self).on_touch_down(touch)
+
+    def on_touch_move(self, touch):
+        if not self.collide_point(*touch.pos):
+            return
+        if self.disabled or self.collapse or self.collapsing:
+            return True
+        else:
+            return super(AccordionItem, self).on_touch_move(touch)
+
+    def on_touch_up(self, touch):
+        if not self.collide_point(*touch.pos):
+            return
+        if self.disabled:
+            return True
+        if self.collapsing:
+            self.collapsing = False
+            return True
+        else:
+            return super(AccordionItem, self).on_touch_up(touch)
 
     def _update_title(self, dt):
         if not self.container_title:
@@ -359,14 +379,13 @@ class Accordion(Widget):
 
     def __init__(self, **kwargs):
         super(Accordion, self).__init__(**kwargs)
-        update = self._trigger_layout = \
-            Clock.create_trigger(self._do_layout, -1)
-        fbind = self.fbind
-        fbind('orientation', update)
-        fbind('children', update)
-        fbind('size', update)
-        fbind('pos', update)
-        fbind('min_space', update)
+        self._trigger_layout = Clock.create_trigger(self._do_layout, -1)
+        self.bind(
+            orientation=self._trigger_layout,
+            children=self._trigger_layout,
+            size=self._trigger_layout,
+            pos=self._trigger_layout,
+            min_space=self._trigger_layout)
 
     def add_widget(self, widget, *largs):
         if not isinstance(widget, AccordionItem):
