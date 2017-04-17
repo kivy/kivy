@@ -192,7 +192,7 @@ Builder.load_string('''
     height: max(lkey.texture_size[1], ltext.texture_size[1])
     Label:
         id: lkey
-        text: root.key
+        text: root.key or ''
         text_size: (self.width, None)
         width: 150
         size_hint_x: None
@@ -256,6 +256,11 @@ class TreeViewProperty(BoxLayout, TreeViewNode):
     inspector = ObjectProperty(None)
 
     refresh = BooleanProperty(False)
+
+    def __init__(self, key=None, widget_ref=None, **kwargs):
+        super(TreeViewProperty, self).__init__(**kwargs)
+        self.key = key
+        self.widget_ref = widget_ref
 
 
 class TreeViewWidget(Label, TreeViewNode):
