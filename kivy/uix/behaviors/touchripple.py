@@ -155,7 +155,7 @@ class TouchRippleBehavior(object):
         Expects touch event as argument.
         '''
         Animation.cancel_all(self, 'ripple_rad', 'ripple_color')
-        self._ripple_anim_complete(self, self)
+        self._reset_ripple_pane()
         x, y = self.to_window(*self.pos)
         width, height = self.size
         if isinstance(self, RelativeLayout):
@@ -223,6 +223,9 @@ class TouchRippleBehavior(object):
         self.ripple_col_instruction.rgba = value
 
     def _ripple_anim_complete(self, anim, instance):
+        self._reset_ripple_pane()
+
+    def _reset_ripple_pane(self):
         self.ripple_rad = self.ripple_rad_default
         self.ripple_pane.clear()
 
