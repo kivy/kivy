@@ -42,15 +42,15 @@ class PongGame(Widget):
     def update(self, dt):
         self.ball.move()
 
-        #bounce ball off paddles
+        # bounce ball off paddles
         self.player1.bounce_ball(self.ball)
         self.player2.bounce_ball(self.ball)
 
-        #bounce ball off bottom or top
+        # bounce ball off bottom or top
         if (self.ball.y < self.y) or (self.ball.top > self.top):
             self.ball.velocity_y *= -1
 
-        #went off a side to score point?
+        # went off a side to score point?
         if self.ball.x < self.x:
             self.player2.score += 1
             self.serve_ball(vel=(4, 0))

@@ -24,7 +24,8 @@ from ctypes import cdll, Structure, c_ulong, c_int, c_ushort, \
                    c_void_p, pointer, POINTER, byref
 
 # load library
-libmtdev = cdll.LoadLibrary('libmtdev.so.1')
+if 'KIVY_DOC' not in os.environ:
+    libmtdev = cdll.LoadLibrary('libmtdev.so.1')
 
 # from linux/input.h
 MTDEV_CODE_SLOT          = 0x2f  # MT slot being modified
@@ -122,14 +123,15 @@ class mtdev(Structure):
     ]
 
 # binding
-mtdev_open = libmtdev.mtdev_open
-mtdev_open.argtypes = [POINTER(mtdev), c_int]
-mtdev_get = libmtdev.mtdev_get
-mtdev_get.argtypes = [POINTER(mtdev), c_int, POINTER(input_event), c_int]
-mtdev_idle = libmtdev.mtdev_idle
-mtdev_idle.argtypes = [POINTER(mtdev), c_int, c_int]
-mtdev_close = libmtdev.mtdev_close
-mtdev_close.argtypes = [POINTER(mtdev)]
+if 'KIVY_DOC' not in os.environ:
+    mtdev_open = libmtdev.mtdev_open
+    mtdev_open.argtypes = [POINTER(mtdev), c_int]
+    mtdev_get = libmtdev.mtdev_get
+    mtdev_get.argtypes = [POINTER(mtdev), c_int, POINTER(input_event), c_int]
+    mtdev_idle = libmtdev.mtdev_idle
+    mtdev_idle.argtypes = [POINTER(mtdev), c_int, c_int]
+    mtdev_close = libmtdev.mtdev_close
+    mtdev_close.argtypes = [POINTER(mtdev)]
 
 
 class Device:
@@ -158,7 +160,7 @@ class Device:
         '''Check state of kernel device
         
         :Parameters:
-            `ms` : int
+            `ms`: int
                 Number of milliseconds to wait for activity
 
         :Return:
@@ -196,7 +198,7 @@ class Device:
         '''Return True if the device has abs data.
 
         :Parameters:
-            `index` : int
+            `index`: int
                 One of const starting with a name ABS_MT_
         '''
         if self._fd == -1:
@@ -223,7 +225,7 @@ class Device:
         '''Return the abs data.
 
         :Parameters:
-            `index` : int
+            `index`: int
                 One of const starting with a name ABS_MT_
         '''
         if self._fd == -1:

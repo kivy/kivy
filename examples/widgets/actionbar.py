@@ -30,4 +30,3 @@ ActionBar:
             ActionButton:
                 text: 'Btn7'
 '''))
-

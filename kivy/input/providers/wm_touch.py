@@ -6,12 +6,7 @@ Support for WM_TOUCH messages (Windows platform)
 __all__ = ('WM_MotionEventProvider', 'WM_MotionEvent')
 
 import os
-from kivy.input.providers.wm_common import (
-    WM_TABLET_QUERYSYSTEMGESTURE,
-    GWL_WNDPROC, QUERYSYSTEMGESTURE_WNDPROC, WM_TOUCH, WM_MOUSEMOVE,
-    WM_MOUSELAST, PEN_OR_TOUCH_MASK, PEN_OR_TOUCH_SIGNATURE,
-    PEN_EVENT_TOUCH_MASK, TOUCHEVENTF_UP, TOUCHEVENTF_DOWN,
-    TOUCHEVENTF_MOVE, SM_CYCAPTION)
+from kivy.input.providers.wm_common import *
 from kivy.input.motionevent import MotionEvent
 from kivy.input.shape import ShapeRect
 
@@ -39,98 +34,17 @@ class WM_MotionEvent(MotionEvent):
         args = (self.id, self.uid, str(self.spos), self.device)
         return '<WMMotionEvent id:%d uid:%d pos:%s device:%s>' % args
 
+
 if 'KIVY_DOC' in os.environ:
     # documentation hack
     WM_MotionEventProvider = None
 
 else:
-    from ctypes.wintypes import (ULONG, HANDLE, DWORD, LONG, UINT,
-                                 WPARAM, LPARAM, BOOL)
-    from ctypes import (windll, WINFUNCTYPE, POINTER,
-                        c_int, Structure, sizeof, byref)
+    from ctypes.wintypes import HANDLE
+    from ctypes import (windll, sizeof, byref)
     from collections import deque
     from kivy.input.provider import MotionEventProvider
     from kivy.input.factory import MotionEventFactory
-
-    # check availability of RegisterTouchWindow
-    if not hasattr(windll.user32, 'RegisterTouchWindow'):
-        raise Exception('Unsupported Window version')
-
-    LRESULT = LPARAM
-    WNDPROC = WINFUNCTYPE(LRESULT, HANDLE, UINT, WPARAM, LPARAM)
-
-    class TOUCHINPUT(Structure):
-        _fields_ = [
-            ('x', LONG),
-            ('y', LONG),
-            ('pSource', HANDLE),
-            ('id', DWORD),
-            ('flags', DWORD),
-            ('mask', DWORD),
-            ('time', DWORD),
-            ('extraInfo', POINTER(ULONG)),
-            ('size_x', DWORD),
-            ('size_y', DWORD)]
-
-        def size(self):
-            return (self.size_x, self.size_y)
-
-        def screen_x(self):
-            return self.x / 100.0
-
-        def screen_y(self):
-            return self.y / 100.0
-
-        def _event_type(self):
-            if self.flags & TOUCHEVENTF_MOVE:
-                return 'update'
-            if self.flags & TOUCHEVENTF_DOWN:
-                return 'begin'
-            if self.flags & TOUCHEVENTF_UP:
-                return 'end'
-        event_type = property(_event_type)
-
-    class RECT(Structure):
-        _fields_ = [
-            ('left', LONG),
-            ('top', LONG),
-            ('right', LONG),
-            ('bottom', LONG)]
-
-        x = property(lambda self: self.left)
-        y = property(lambda self: self.top)
-        w = property(lambda self: self.right - self.left)
-        h = property(lambda self: self.bottom - self.top)
-
-    try:
-        windll.user32.SetWindowLongPtrW.restype = WNDPROC
-        windll.user32.SetWindowLongPtrW.argtypes = [HANDLE, c_int, WNDPROC]
-        SetWindowLong_wrapper = windll.user32.SetWindowLongPtrW
-    except AttributeError:
-        windll.user32.SetWindowLongW.restype = WNDPROC
-        windll.user32.SetWindowLongW.argtypes = [HANDLE, c_int, WNDPROC]
-        SetWindowLong_wrapper = windll.user32.SetWindowLongW
-
-    windll.user32.GetMessageExtraInfo.restype = LPARAM
-    windll.user32.GetMessageExtraInfo.argtypes = []
-    windll.user32.GetClientRect.restype = BOOL
-    windll.user32.GetClientRect.argtypes = [HANDLE, POINTER(RECT)]
-    windll.user32.GetWindowRect.restype = BOOL
-    windll.user32.GetWindowRect.argtypes = [HANDLE, POINTER(RECT)]
-    windll.user32.CallWindowProcW.restype = LRESULT
-    windll.user32.CallWindowProcW.argtypes = [WNDPROC, HANDLE, UINT, WPARAM,
-                                              LPARAM]
-    windll.user32.GetActiveWindow.restype = HANDLE
-    windll.user32.GetActiveWindow.argtypes = []
-    windll.user32.RegisterTouchWindow.restype = BOOL
-    windll.user32.RegisterTouchWindow.argtypes = [HANDLE, ULONG]
-    windll.user32.UnregisterTouchWindow.restype = BOOL
-    windll.user32.UnregisterTouchWindow.argtypes = [HANDLE]
-    windll.user32.GetTouchInputInfo.restype = BOOL
-    windll.user32.GetTouchInputInfo.argtypes = [HANDLE, UINT,
-                                                POINTER(TOUCHINPUT), c_int]
-    windll.user32.GetSystemMetrics.restype = c_int
-    windll.user32.GetSystemMetrics.argtypes = [c_int]
 
     class WM_MotionEventProvider(MotionEventProvider):
 
@@ -143,7 +57,7 @@ else:
             self.touches = {}
             self.uid = 0
 
-            # get window handle, and register to recive WM_TOUCH messages
+            # get window handle, and register to receive WM_TOUCH messages
             self.hwnd = windll.user32.GetActiveWindow()
             windll.user32.RegisterTouchWindow(self.hwnd, 1)
 
@@ -153,15 +67,13 @@ else:
             self.old_windProc = SetWindowLong_wrapper(
                 self.hwnd, GWL_WNDPROC, self.new_windProc)
 
-            if Window.borderless or Window.fullscreen:
-                self.caption_size = 0
-            else:
-                self.caption_size = windll.user32.GetSystemMetrics(SM_CYCAPTION)
-
         def update(self, dispatch_fn):
-            win_rect = RECT()
-            windll.user32.GetWindowRect(self.hwnd, byref(win_rect))
-            caption = self.caption_size
+            c_rect = RECT()
+            windll.user32.GetClientRect(self.hwnd, byref(c_rect))
+            pt = POINT(x=0, y=0)
+            windll.user32.ClientToScreen(self.hwnd, byref(pt))
+            x_offset, y_offset = pt.x, pt.y
+            usable_w, usable_h = float(c_rect.w), float(c_rect.h)
 
             while True:
                 try:
@@ -170,9 +82,8 @@ else:
                     break
 
                 # adjust x,y to window coordinates (0.0 to 1.0)
-                x = (t.screen_x() - win_rect.x) / float(win_rect.w)
-                y = 1.0 - (t.screen_y() - win_rect.y - caption
-                           ) / float(win_rect.h)
+                x = (t.screen_x() - x_offset) / usable_w
+                y = 1.0 - (t.screen_y() - y_offset) / usable_h
 
                 # actually dispatch input
                 if t.event_type == 'begin':

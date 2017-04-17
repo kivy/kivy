@@ -37,6 +37,40 @@ On iOS, this defaults to::
     <HOME_DIRECTORY>/Documents/.kivy/config.ini
 
 
+Local configuration
+-------------------
+
+Sometimes it's desired to change configuration only for certain applications
+or during testing of a separate part of Kivy for example input providers.
+To create a separate configuration file you can simply use these commands::
+
+    from kivy.config import Config
+
+    Config.read(<file>)
+    # set config
+    Config.write()
+
+When a local configuration of single ``.ini`` file isn't enough, e.g. when
+you want to have separate environment for `garden`, kivy logs and other things,
+you'll need to change the the ``KIVY_HOME`` environment variable in your
+application to get desired result::
+
+    import os
+    os.environ['KIVY_HOME'] = <folder>
+
+or before each run of the application change it manually in the console:
+
+#. Windows::
+
+    set KIVY_HOME=<folder>
+
+#. Linux & OSX::
+
+    export KIVY_HOME=<folder>
+
+After the change of ``KIVY_HOME``, the folder will behave exactly the same
+as the default ``.kivy/`` folder mentioned above.
+
 Understanding config tokens
 ---------------------------
 

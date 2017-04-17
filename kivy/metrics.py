@@ -97,8 +97,7 @@ You can also simulate an alternative user preference for fontscale as follows::
 '''
 
 
-__all__ = ('Metrics', 'MetricsBase', 'pt', 'inch', 'cm', 'mm', 'dp', 'sp',
-           'metrics')
+__all__ = ('Metrics', 'MetricsBase', 'pt', 'inch', 'cm', 'mm', 'dp', 'sp')
 
 
 from os import environ
@@ -208,7 +207,7 @@ class MetricsBase(object):
         elif platform == 'macosx':
             from kivy.base import EventLoop
             EventLoop.ensure_window()
-            return  EventLoop.window.dpi / 96.
+            return EventLoop.window.dpi / 96.
 
         return 1.0
 
@@ -236,7 +235,3 @@ class MetricsBase(object):
 #: Default instance of :class:`MetricsBase`, used everywhere in the code
 #: .. versionadded:: 1.7.0
 Metrics = MetricsBase()
-
-#: default instance of :class:`MetricsBase`, used everywhere in the code
-#: (deprecated, use `Metrics` instead.)
-metrics = Metrics

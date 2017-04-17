@@ -17,7 +17,12 @@ Manual installation (On Raspbian Jessie)
        pkg-config libgl1-mesa-dev libgles2-mesa-dev \
        python-setuptools libgstreamer1.0-dev git-core \
        gstreamer1.0-plugins-{bad,base,good,ugly} \
-       gstreamer1.0-{omx,alsa} python-dev cython
+       gstreamer1.0-{omx,alsa} python-dev libmtdev-dev \
+       xclip
+
+#. Install a new enough version of Cython::
+
+    sudo pip install -I Cython==0.23
 
 
 #. Install Kivy globally on your system::
@@ -36,7 +41,7 @@ Manual installation (On Raspbian Jessie)
     
 
 Manual installation (On Raspbian Wheezy)
----------------------------------------
+----------------------------------------
 
 #. Add APT sources for Gstreamer 1.0 in `/etc/apt/sources.list`::
 
@@ -113,8 +118,7 @@ HDMI, use::
 
     KIVY_BCM_DISPMANX_ID=2 python main.py
 
-Check the :doc:`guide/environment` documentation to see all the possible
-value.
+Check :ref:`environment` to see all the possible values.
 
 Using Official RPi touch display
 --------------------------------

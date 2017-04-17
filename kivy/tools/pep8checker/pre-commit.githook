@@ -17,7 +17,8 @@
         chmod +x .git/hooks/pre-commit
 '''
 
-import sys, os
+import os
+import sys
 from os.path import dirname, abspath, sep, join
 from subprocess import call, Popen, PIPE
 
@@ -26,7 +27,8 @@ kivydir = sep.join(curdir.split(sep)[:-2])
 srcdir = join(kivydir, 'kivy')
 script = join(srcdir, 'tools', 'pep8checker', 'pep8kivy.py')
 try:
-    with open(script): pass
+    with open(script):
+        pass
 except IOError:
     # if this not the kivy project, find the script file in the kivy project
     os.environ['KIVY_NO_CONSOLELOG'] = '1'
@@ -35,8 +37,8 @@ except IOError:
     srcdir = ''
 
 # Only check the files that were staged
-#proc = Popen(['git', 'diff', '--cached', '--name-only', 'HEAD'], stdout=PIPE)
-#targets = [join(kivydir, target) for target in proc.stdout]
+# proc = Popen(['git', 'diff', '--cached', '--name-only', 'HEAD'], stdout=PIPE)
+# targets = [join(kivydir, target) for target in proc.stdout]
 
 # Correction: only check the files that were staged, but do not include
 # deleted files.
@@ -70,7 +72,6 @@ retval = call([sys.executable, script, srcdir] + targets)
 call(['git', 'stash', 'pop', '--quiet'])
 
 if retval:
-    # There are styleguide violations
-    print("Error:", retval, "styleguide violation(s) encountered!")
+    # There are style guide violations
     print("Your commit has been aborted. Please fix the violations and retry.")
-    sys.exit(retval)
+    sys.exit(1)

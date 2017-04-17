@@ -8,10 +8,15 @@ reStructuredText renderer
 easy-to-read, what-you-see-is-what-you-get plaintext markup syntax and parser
 system.
 
+.. note::
+
+    This widget requires the ``docutils`` package to run. Install it with
+    ``pip`` or include it as one of your deployment requirements.
+
 .. warning::
 
-    This widget is highly experimental. The whole styling and
-    implementation are not stable until this warning has been removed.
+    This widget is highly experimental. The styling and implementation should
+    not be considered stable until this warning has been removed.
 
 Usage with Text
 ---------------
@@ -39,11 +44,11 @@ The rendering will output:
 Usage with Source
 -----------------
 
-You can also render a rst file using the :attr:`RstDocument.source` property::
+You can also render a rst file using the :attr:`~RstDocument.source` property::
 
     document = RstDocument(source='index.rst')
 
-You can reference other documents with the role ``:doc:``. For example, in the
+You can reference other documents using the role ``:doc:``. For example, in the
 document ``index.rst`` you can write::
 
     Go to my next document: :doc:`moreinfo.rst`
@@ -653,11 +658,11 @@ class RstDocument(ScrollView):
         # get the anchor coordinate inside widget space
         ax += node.x
         ay = node.top - ay
-        #ay += node.y
+        # ay += node.y
 
         # what's the current coordinate for us?
         sx, sy = self.scatter.x, self.scatter.top
-        #ax, ay = self.scatter.to_parent(ax, ay)
+        # ax, ay = self.scatter.to_parent(ax, ay)
 
         ay -= self.height
 
@@ -855,7 +860,7 @@ class _Visitor(nodes.NodeVisitor):
             label = RstTitle(section=self.section, document=self.root)
             self.current.add_widget(label)
             self.push(label)
-            #assert(self.text == '')
+            # assert(self.text == '')
 
         elif cls is nodes.Text:
             if self.do_strip_text:
@@ -1179,6 +1184,7 @@ class _Visitor(nodes.NodeVisitor):
         return '[color=%s]%s[/color]' % (
             self.root.colors.get(name, self.root.colors['paragraph']),
             text)
+
 
 if __name__ == '__main__':
     from kivy.base import runTouchApp

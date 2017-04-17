@@ -52,7 +52,8 @@ class RoundedRectangleWidget(Widget):
 
             # With different radiuses:
             RoundedRectangle(
-                pos=(425, 275), radius=[(10, 20), (20, 30), (30, 40), (40, 50)])
+                pos=(425, 275),
+                radius=[(10, 20), (20, 30), (30, 40), (40, 50)])
 
             # Default ellipses
             Color(*WHITE)
@@ -146,6 +147,7 @@ Widget:
         kvrect = Builder.load_string(kv)
         widget.add_widget(kvrect)
         return widget
+
 
 if __name__ == '__main__':
     DrawRoundedRectanglesApp().run()

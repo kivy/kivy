@@ -12,7 +12,7 @@ PAPER		=
 
 fasthtml: SPHINXOPTS += -j4
 
-# platform indepnt path separator
+# platform independent path separator
 # only system calls need to use $(P), b/c on win system calls have issues with /
 ifdef ComSpec
 	PATHSEP2=\\
@@ -39,8 +39,8 @@ else
 	_TESTS = _TEST
 endif
 
-AUTOBUILD_STAMP_BASE = autobuild.py-done-with-
-AUTOBUILD_STAMP      = $(AUTOBUILD_STAMP_BASE)$(PYTHON)
+# Created in autobuild.py
+AUTOBUILD_STAMP = "autobuild.py-done"
 
 .PHONY: help clean html web pickle htmlhelp latex changes linkcheck gettext
 
@@ -71,28 +71,19 @@ ifdef ComSpec
 	-rmdir /s /q build
 else
 	-rm -rf build/*
-	-rm $(AUTOBUILD_STAMP_BASE)*
+	-rm $(AUTOBUILD_STAMP)*
 endif
 
 fasthtml: html
 
 html:
 	$(MKDIR) build$(P)html build$(P)doctrees
-ifeq ("$(wildcard $(AUTOBUILD_STAMP))","")
-	$(PYTHON) autobuild.py silenced=$(ENDUSER_BUILD)
-	touch $(AUTOBUILD_STAMP)
-endif
-	$(PYTHON) gallery.py
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS$(_TESTS)) build/html
 	@echo
 	@echo "Build finished. The HTML pages are in build/html."
 
 gettext:
 	$(MKDIR) build$(P)html build$(P)doctrees_gettext
-ifeq ("$(wildcard $(AUTOBUILD_STAMP))","")
-	$(PYTHON) autobuild.py silenced=$(ENDUSER_BUILD)
-	touch $(AUTOBUILD_STAMP)
-endif
 	$(SPHINXBUILD) -b gettext $(ALLSPHINXOPTSGT$(_TESTS)) build/gettext
 	@echo
 	@echo "Build finished. The Gettext pages are in build/gettext."
@@ -100,10 +91,6 @@ endif
 
 pickle:
 	$(MKDIR) build$(P)pickle build$(P)doctrees
-ifeq ("$(wildcard $(AUTOBUILD_STAMP))","")
-	$(PYTHON) autobuild.py silenced=$(ENDUSER_BUILD)
-	touch $(AUTOBUILD_STAMP)
-endif
 	$(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS$(_TESTS)) build/pickle
 	@echo
 	@echo "Build finished; now you can process the pickle files or run"
@@ -114,10 +101,6 @@ web: pickle
 
 htmlhelp:
 	$(MKDIR) build$(P)htmlhelp build$(P)doctrees
-ifeq ("$(wildcard $(AUTOBUILD_STAMP))","")
-	$(PYTHON) autobuild.py silenced=$(ENDUSER_BUILD)
-	touch $(AUTOBUILD_STAMP)
-endif
 	$(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS$(_TESTS)) build/htmlhelp
 	@echo
 	@echo "Build finished; now you can run HTML Help Workshop with the" \
@@ -125,10 +108,6 @@ endif
 
 latex:
 	$(MKDIR) build$(P)latex build$(P)doctrees
-ifeq ("$(wildcard $(AUTOBUILD_STAMP))","")
-	$(PYTHON) autobuild.py silenced=$(ENDUSER_BUILD)
-	touch $(AUTOBUILD_STAMP)
-endif
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS$(_TESTS)) build/latex
 	@echo
 	@echo "Build finished; the LaTeX files are in build/latex."
@@ -142,7 +121,7 @@ pdf: latex
 ifneq ("$(wildcard build$(P)latex$(P)Kivy.pdf)","")
 	@echo
 	@echo "Build finished; the PDF file(s) are in build/latex."
-	@echo "You can savely ignore the errors which might appeared above!"
+	@echo "You can safely ignore the errors which might appeared above!"
 else
 	@echo
 	@echo "Build failed; there is no PDF file(s) in build/latex."
@@ -156,30 +135,18 @@ ps: latex
 
 man:
 	$(MKDIR) build$(P)man build$(P)doctrees
-ifeq ("$(wildcard $(AUTOBUILD_STAMP))","")
-	$(PYTHON) autobuild.py silenced=$(ENDUSER_BUILD)
-	touch $(AUTOBUILD_STAMP)
-endif
 	$(SPHINXBUILD) -b man $(ALLSPHINXOPTS$(_TESTS)) build/man
 	@echo
 	@echo "Build finished. The manual pages are in build/man."
 
 changes:
 	$(MKDIR) build$(P)changes build$(P)doctrees
-ifeq ("$(wildcard $(AUTOBUILD_STAMP))","")
-	$(PYTHON) autobuild.py silenced=$(ENDUSER_BUILD)
-	touch $(AUTOBUILD_STAMP)
-endif
 	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS$(_TESTS)) build/changes
 	@echo
 	@echo "The overview file is in build/changes."
 
 linkcheck:
 	$(MKDIR) build$(P)linkcheck build$(P)doctrees
-ifeq ("$(wildcard $(AUTOBUILD_STAMP))","")
-	$(PYTHON) autobuild.py silenced=$(ENDUSER_BUILD)
-	touch $(AUTOBUILD_STAMP)
-endif
 	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS$(_TESTS)) build/linkcheck
 	@echo
 	@echo "Link check complete; look for any errors in the above output " \

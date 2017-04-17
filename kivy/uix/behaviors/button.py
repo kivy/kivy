@@ -47,6 +47,7 @@ See :class:`~kivy.uix.behaviors.ButtonBehavior` for details.
 __all__ = ('ButtonBehavior', )
 
 from kivy.clock import Clock
+from kivy.config import Config
 from kivy.properties import OptionProperty, ObjectProperty, \
     BooleanProperty, NumericProperty
 from time import time
@@ -88,23 +89,14 @@ class ButtonBehavior(object):
     defaults to `None`.
     '''
 
-    MIN_STATE_TIME = 0.035
-    '''The minimum period of time which the widget must remain in the
-    `'down'` state.
-
-    ..warning::
-        This is deprecated, and will be removed in the next major release.
-        Use :attr:`min_state_time` instead.
-
-    :attr:`MIN_STATE_TIME` is a float and defaults to 0.035.'''
-
-    min_state_time = NumericProperty(MIN_STATE_TIME)
+    min_state_time = NumericProperty(0)
     '''The minimum period of time which the widget must remain in the
     `'down'` state.
 
     .. versionadded:: 1.9.1
 
-    :attr:`min_state_time` is a float and defaults to 0.035.
+    :attr:`min_state_time` is a float and defaults to 0.035. This value is
+    taken from :class:`~kivy.config.Config`.
     '''
 
     always_release = BooleanProperty(False)
@@ -113,7 +105,7 @@ class ButtonBehavior(object):
 
     .. versionadded:: 1.9.0
 
-    .. versionchanged:: 1.9.2
+    .. versionchanged:: 1.10.0
         The default value is now False.
 
     :attr:`always_release` is a :class:`~kivy.properties.BooleanProperty` and
@@ -123,8 +115,9 @@ class ButtonBehavior(object):
     def __init__(self, **kwargs):
         self.register_event_type('on_press')
         self.register_event_type('on_release')
-        # remove this when MIN_STATE_TIME is removed
-        self.min_state_time = kwargs.get('min_state_time', self.MIN_STATE_TIME)
+        if 'min_state_time' not in kwargs:
+            self.min_state_time = float(Config.get('graphics',
+                                                   'min_state_time'))
         super(ButtonBehavior, self).__init__(**kwargs)
         self.__state_event = None
         self.__touch_time = None
@@ -172,9 +165,9 @@ class ButtonBehavior(object):
         touch.ungrab(self)
         self.last_touch = touch
 
-        if (not self.always_release
-                and not self.collide_point(*touch.pos)):
-            self.state = 'normal'
+        if (not self.always_release and
+                not self.collide_point(*touch.pos)):
+            self._do_release()
             return
 
         touchtime = time() - self.__touch_time

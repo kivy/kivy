@@ -18,6 +18,7 @@ import kivy.lang.builder  # imported as absolute to avoid circular import
 from kivy.logger import Logger
 from kivy.cache import Cache
 from kivy import require
+from kivy.resources import resource_find
 from kivy.utils import rgba
 import kivy.metrics as Metrics
 
@@ -352,7 +353,7 @@ class ParserRule(object):
             raise ParserException(self.ctx, self.line,
                                   'Invalid template (must be inside [])')
         item_content = name[1:-1]
-        if not '@' in item_content:
+        if '@' not in item_content:
             raise ParserException(self.ctx, self.line,
                                   'Invalid template name (missing @)')
         template_name, template_root_cls = item_content.split('@')
@@ -408,7 +409,7 @@ class Parser(object):
                     Logger.exception('')
                     raise ParserException(self, ln, 'Invalid directive syntax')
                 try:
-                    value = eval(value)
+                    value = eval(value, global_idmap)
                 except:
                     Logger.exception('')
                     raise ParserException(self, ln, 'Invalid value')
@@ -422,32 +423,34 @@ class Parser(object):
                     force_load = True
 
                 if ref[-3:] != '.kv':
-                    Logger.warn('WARNING: {0} does not have a valid Kivy'
+                    Logger.warn('Lang: {0} does not have a valid Kivy'
                                 'Language extension (.kv)'.format(ref))
                     break
                 if ref in __KV_INCLUDES__:
-                    if not os.path.isfile(ref):
+                    if not os.path.isfile(resource_find(ref) or ref):
                         raise ParserException(self, ln,
-                            'Invalid or unknown file: {0}'.format(ref))
+                                              'Invalid or unknown file: {0}'
+                                              .format(ref))
                     if not force_load:
-                        Logger.warn('WARNING: {0} has already been included!'
+                        Logger.warn('Lang: {0} has already been included!'
                                     .format(ref))
-                        break
+                        continue
                     else:
-                        Logger.debug('Reloading {0} because include was forced.'
-                                    .format(ref))
+                        Logger.debug('Lang: Reloading {0} ' +
+                                     'because include was forced.'
+                                     .format(ref))
                         kivy.lang.builder.Builder.unload_file(ref)
                         kivy.lang.builder.Builder.load_file(ref)
                         continue
-                Logger.debug('Including file: {0}'.format(0))
+                Logger.debug('Lang: Including file: {0}'.format(0))
                 __KV_INCLUDES__.append(ref)
                 kivy.lang.builder.Builder.load_file(ref)
             elif cmd[:7] == 'import ':
                 package = cmd[7:].strip()
-                l = package.split()
-                if len(l) != 2:
+                z = package.split()
+                if len(z) != 2:
                     raise ParserException(self, ln, 'Invalid import syntax')
-                alias, package = l
+                alias, package = z
                 try:
                     if package not in sys.modules:
                         try:
@@ -562,17 +565,17 @@ class Parser(object):
                 if not len(x[0]):
                     raise ParserException(self, ln, 'Identifier missing')
                 if (len(x) == 2 and len(x[1]) and
-                    not x[1].lstrip().startswith('#')):
+                        not x[1].lstrip().startswith('#')):
                     raise ParserException(self, ln,
                                           'Invalid data after declaration')
-                name = x[0]
+                name = x[0].rstrip()
                 # if it's not a root rule, then we got some restriction
                 # aka, a valid name, without point or everything else
                 if count != 0:
                     if False in [ord(z) in Parser.PROP_RANGE for z in name]:
                         raise ParserException(self, ln, 'Invalid class name')
 
-                current_object = ParserRule(self, ln, x[0], rlevel)
+                current_object = ParserRule(self, ln, name, rlevel)
                 current_property = None
                 objects.append(current_object)
 
@@ -584,7 +587,7 @@ class Parser(object):
 
                 # It's a class, add to the current object as a children
                 current_property = None
-                name = x[0]
+                name = x[0].rstrip()
                 ignore_prev = name[0] == '-'
                 if ignore_prev:
                     name = name[1:]
@@ -714,7 +717,7 @@ class ParserSelectorName(ParserSelector):
     def match(self, widget):
         parents = ParserSelectorName.parents
         cls = widget.__class__
-        if not cls in parents:
+        if cls not in parents:
             classes = [x.__name__.lower() for x in
                        [cls] + list(self.get_bases(cls))]
             parents[cls] = classes

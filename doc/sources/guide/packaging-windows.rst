@@ -32,44 +32,50 @@ following examples need to be slightly modified. See :ref:`overwrite-win-hook`.
 Packaging a simple app
 ----------------------
 
-For this example, we'll package the **touchtracer** example project and embed a custom icon.
-The location of the kivy examples is, when using the wheels, installed to ``python\\share\\kivy-examples``
-and when using the github source code installed as ``kivy\\examples``. We'll just refer to the full
-path leading to the examples as ``examples-path``. The touchtracer example is in
+For this example, we'll package the **touchtracer** example project and embed
+a custom icon. The location of the kivy examples is, when using the wheels,
+installed to ``python\\share\\kivy-examples`` and when using the github source
+code installed as ``kivy\\examples``. We'll just refer to the full path leading
+to the examples as ``examples-path``. The touchtracer example is in
 ``examples-path\\demo\\touchtracer`` and the main file is named ``main.py``.
 
-#. Open your command line shell and ensure that python is on the path (i.e. ``python`` works).
-#. Create a folder into which the packaged app will be created. For example create a ``TouchApp``
-   folder and `change to that directory <http://www.computerhope.com/cdhlp.htm>`_ with e.g.
-   ``cd TouchApp``. Then type::
+#. Open your command line shell and ensure that python is on the path (i.e.
+   ``python`` works).
+#. Create a folder into which the packaged app will be created. For example
+   create a ``TouchApp`` folder and `change to that directory
+   <http://www.computerhope.com/cdhlp.htm>`_ with e.g. ``cd TouchApp``.
+   Then type::
 
     python -m PyInstaller --name touchtracer examples-path\demo\touchtracer\main.py
 
-   You can also add an `icon.ico` file to the application folder in order to create an icon
-   for the executable. If you don't have a .ico file available, you can convert your
-   `icon.png` file to ico using the web app `ConvertICO <http://www.convertico.com>`_.
-   Save the `icon.ico` in the touchtracer directory and type::
+   You can also add an `icon.ico` file to the application folder in order to
+   create an icon for the executable. If you don't have a .ico file available,
+   you can convert your `icon.png` file to ico using the web app
+   `ConvertICO <http://www.convertico.com>`_. Save the `icon.ico` in the
+   touchtracer directory and type::
 
     python -m PyInstaller --name touchtracer --icon examples-path\demo\touchtracer\icon.ico examples-path\demo\touchtracer\main.py
 
    For more options, please consult the
    `PyInstaller Manual <http://pythonhosted.org/PyInstaller/>`_.
 
-#. The spec file will be ``touchtracer.spec`` located in ``TouchApp``. Now we need to
-   edit the spec file to add the dependencies hooks to correctly build the exe.
-   Open the spec file with your favorite editor and add these lines at the
-   beginning of the spec (assuming sdl2 is used, the default now)::
+#. The spec file will be ``touchtracer.spec`` located in ``TouchApp``. Now we
+   need to edit the spec file to add the dependencies hooks to correctly build
+   the exe. Open the spec file with your favorite editor and add these lines
+   at the beginning of the spec (assuming sdl2 is used, the default now)::
 
     from kivy.deps import sdl2, glew
 
    Then, find ``COLLECT()`` and add the data for touchtracer
    (`touchtracer.kv`, `particle.png`, ...): Change the line to add a ``Tree()``
    object, e.g. ``Tree('examples-path\\demo\\touchtracer\\')``. This Tree will
-   search and add every file found in the touchtracer directory to your final package.
+   search and add every file found in the touchtracer directory to your final
+   package.
 
    To add the dependencies, before the first keyword argument in COLLECT add a
-   Tree object for every path of the dependecies. E.g.
-   ``*[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)]`` so it'll look something like::
+   Tree object for every path of the dependencies. E.g.
+   ``*[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)]`` so it'll look
+   something like::
 
     coll = COLLECT(exe, Tree('examples-path\\demo\\touchtracer\\'),
                    a.binaries,
@@ -89,10 +95,11 @@ path leading to the examples as ``examples-path``. The touchtracer example is in
 Packaging a video app with gstreamer
 ------------------------------------
 
-Following we'll slightly modify the example above to package a app that uses gstreamer
-for video. We'll use the ``videoplayer`` example found at ``examples-path\widgets\videoplayer.py``.
-Create a folder somewhere called ``VideoPlayer`` and on the command line change your current
-directory to that folder and do::
+Following we'll slightly modify the example above to package a app that uses
+gstreamer for video. We'll use the ``videoplayer`` example found at
+``examples-path\widgets\videoplayer.py``. Create a folder somewhere called
+``VideoPlayer`` and on the command line change your current directory to that
+folder and do::
 
     python -m PyInstaller --name gstvideo examples-path\widgets\videoplayer.py
 
@@ -101,8 +108,9 @@ gstreamer dependency as well::
 
     from kivy.deps import sdl2, glew, gstreamer
 
-and add the ``Tree()`` to include the video files, e.g. ``Tree('examples-path\\widgets')``
-as well as the gstreamer dependencies so it should look something like::
+and add the ``Tree()`` to include the video files, e.g.
+``Tree('examples-path\\widgets')`` as well as the gstreamer dependencies so it
+should look something like::
 
     coll = COLLECT(exe, Tree('examples-path\\widgets'),
                    a.binaries,
@@ -122,9 +130,9 @@ which when run will play a video.
 
 .. note::
 
-    If you're using Pygame and need PyGame in your packaging app, you'll have to add the
-    following code to your spec file due to kivy issue #1638. After the imports add the
-    following::
+    If you're using Pygame and need PyGame in your packaging app, you'll have
+    to add the following code to your spec file due to kivy issue #1638. After
+    the imports add the following::
 
         def getResource(identifier, *args, **kwargs):
             if identifier == 'pygame_icon.tiff':
@@ -141,42 +149,47 @@ Overwriting the default hook
 ============================
 
 Including/excluding video and audio and reducing app size
--------------------------------------------------------
+---------------------------------------------------------
 
-PyInstaller includes a hook for kivy that by default adds **all** the core modules
-used by kivy, e.g. audio, video, spelling etc (you still need to package
-the gstreamer dlls manually with ``Tree()`` - see the example above) and their
-dependencies. If the hook is not installed or to reduce app size some of these
-modules may be excluded, e.g. if no audio/video is used, with a alternative hook.
+PyInstaller includes a hook for kivy that by default adds **all** the core
+modules used by kivy, e.g. audio, video, spelling etc (you still need to
+package the gstreamer dlls manually with ``Tree()`` - see the example above)
+and their dependencies. If the hook is not installed or to reduce app size some
+of these modules may be excluded, e.g. if no audio/video is used, with
+an alternative hook.
 
 Kivy provides the alternate hook at
-:func:`~kivy.tools.packaging.pyinstaller_hooks.hookspath`. In addition, if and only
-if PyInstaller doesn't have the default hooks
-:func:`~kivy.tools.packaging.pyinstaller_hooks.runtime_hooks` must also be provided.
-When overwriting the hook, the latter one typically is not required to be overwritten.
+:func:`~kivy.tools.packaging.pyinstaller_hooks.hookspath`. In addition, if and
+only if PyInstaller doesn't have the default hooks
+:func:`~kivy.tools.packaging.pyinstaller_hooks.runtime_hooks` must also be
+provided. When overwriting the hook, the latter one typically is not required
+to be overwritten.
 
 The alternate :func:`~kivy.tools.packaging.pyinstaller_hooks.hookspath` hook
-does not include any of the kivy providers. To add them, they have to be added with
+does not include any of the kivy providers. To add them, they have to be added
+with
 :func:`~kivy.tools.packaging.pyinstaller_hooks.get_deps_minimal` or
 :func:`~kivy.tools.packaging.pyinstaller_hooks.get_deps_all`. See
 their documentation and :mod:`~kivy.tools.packaging.pyinstaller_hooks` for more
-details. But essentially, :func:`~kivy.tools.packaging.pyinstaller_hooks.get_deps_all`
-add all the providers like in the default hook while
-:func:`~kivy.tools.packaging.pyinstaller_hooks.get_deps_minimal` only adds those
-that are loaded when the app is run. Each method provides a list of hidden kivy imports
-and excluded imports that can be passed on to ``Analysis``.
+details. But essentially,
+:func:`~kivy.tools.packaging.pyinstaller_hooks.get_deps_all` add all the
+providers like in the default hook while
+:func:`~kivy.tools.packaging.pyinstaller_hooks.get_deps_minimal` only adds
+those that are loaded when the app is run. Each method provides a list of
+hidden kivy imports and excluded imports that can be passed on to ``Analysis``.
 
-One can also generate a alternate hook which literally lists every kivy provider
-module and those not required can be commented out. See
+One can also generate a alternate hook which literally lists every kivy
+provider module and those not required can be commented out. See
 :mod:`~kivy.tools.packaging.pyinstaller_hooks`.
 
 To use the the alternate hooks with the examples above modify as following to
 add the hooks with ``hookspath()`` and ``runtime_hooks`` (if required)
 and ``**get_deps_minimal()`` or ``**get_deps_all()`` to specify the providers.
 
-For example, add the import statement
-``from kivy.tools.packaging.pyinstaller_hooks import  get_deps_minimal,
-get_deps_all, hookspath, runtime_hooks``
+For example, add the import statement::
+
+ from kivy.tools.packaging.pyinstaller_hooks import get_deps_minimal, get_deps_all, hookspath, runtime_hooks
+
 and then modify ``Analysis`` as follows::
 
     a = Analysis(['examples-path\\demo\\touchtracer\\main.py'],
@@ -206,7 +219,7 @@ video in this example) with
 :func:`~kivy.tools.packaging.pyinstaller_hooks.get_deps_minimal`.
 
 Alternate installations
-----------------------
+-----------------------
 
 The previous examples used e.g.
 ``*[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins + gstreamer.dep_bins)],``

@@ -54,14 +54,14 @@ class FactoryBuild(Command):
                     if module.startswith(ignore):
                         ignore = True
                         break
-                if ignore is True:
-                    #print('<<< ignored (ignore list)')
+                if ignore:
+                    # print('<<< ignored (ignore list)')
                     continue
 
                 # special case, core providers
                 if root.startswith('kivy.core.'):
                     if not root.endswith('__init__.py'):
-                        #print('<<< ignored (not a __init__.py)')
+                        # print('<<< ignored (not a __init__.py)')
                         continue
 
                 print('>>>', module, '::', end=' ')

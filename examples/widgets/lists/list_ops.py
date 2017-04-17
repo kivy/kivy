@@ -101,8 +101,8 @@ class SelectionMonitor(Widget):
         self.sel_count_6 = len(adapter.selection)
 
 
-letters_dict = \
-    {l: {'text': l, 'is_selected': False} for l in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'}
+letters_dict = {
+    l: {'text': l, 'is_selected': False} for l in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'}
 
 listview_selection_buttons = {}
 

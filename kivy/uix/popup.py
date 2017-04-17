@@ -78,6 +78,7 @@ popup from closing by explictly returning True from your callback::
 
 __all__ = ('Popup', 'PopupException')
 
+from kivy.core.text import DEFAULT_FONT
 from kivy.uix.modalview import ModalView
 from kivy.properties import (StringProperty, ObjectProperty, OptionProperty,
                              NumericProperty, ListProperty)
@@ -118,8 +119,8 @@ class Popup(ModalView):
     defaults to '14sp'.
     '''
 
-    title_align = OptionProperty('left',
-                                 options=['left', 'center', 'right', 'justify'])
+    title_align = OptionProperty(
+        'left', options=['left', 'center', 'right', 'justify'])
     '''Horizontal alignment of the title.
 
     .. versionadded:: 1.9.0
@@ -128,13 +129,14 @@ class Popup(ModalView):
     defaults to 'left'. Available options are left, center, right and justify.
     '''
 
-    title_font = StringProperty('Roboto')
+    title_font = StringProperty(DEFAULT_FONT)
     '''Font used to render the title text.
 
     .. versionadded:: 1.9.0
 
     :attr:`title_font` is a :class:`~kivy.properties.StringProperty` and
-    defaults to 'Roboto'.
+    defaults to 'Roboto'. This value is taken
+    from :class:`~kivy.config.Config`.
     '''
 
     content = ObjectProperty(None)

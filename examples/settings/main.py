@@ -93,7 +93,7 @@ class MyApp(App):
             elif key == 'font_size':
                 self.root.ids.label.font_size = float(value)
 
-    def close_settings(self, settings):
+    def close_settings(self, settings=None):
         """
         The settings panel has been closed.
         """
@@ -117,5 +117,6 @@ class MySettingsWithTabbedPanel(SettingsWithTabbedPanel):
         Logger.info(
             "main.py: MySettingsWithTabbedPanel.on_config_change: "
             "{0}, {1}, {2}, {3}".format(config, section, key, value))
+
 
 MyApp().run()

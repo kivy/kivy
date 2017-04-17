@@ -2,17 +2,24 @@
 PageLayout
 ==========
 
+.. image:: images/pagelayout.gif
+    :align: right
+
 The :class:`PageLayout` class is used to create a simple multi-page
 layout, in a way that allows easy flipping from one page to another using
 borders.
 
-:class:`PageLayout` does not currently honor
-:attr:`~kivy.uix.widget.Widget.size_hint` or
+:class:`PageLayout` does not currently honor the
+:attr:`~kivy.uix.widget.Widget.size_hint`,
+:attr:`~kivy.uix.widget.Widget.size_hint_min`,
+:attr:`~kivy.uix.widget.Widget.size_hint_max`, or
 :attr:`~kivy.uix.widget.Widget.pos_hint` properties.
 
 .. versionadded:: 1.8.0
 
-Example::
+Example:
+
+.. code-block:: kv
 
     PageLayout:
         Button:
@@ -85,7 +92,6 @@ class PageLayout(Layout):
         right = self.right
         width = self.width - border
         for i, c in enumerate(reversed(self.children)):
-            not i or i == l_children
 
             if i < p:
                 x = x_parent
@@ -113,8 +119,11 @@ class PageLayout(Layout):
                 d=.5, t='in_quad').start(c)
 
     def on_touch_down(self, touch):
-        if (self.disabled or not self.collide_point(*touch.pos) or
-            not self.children):
+        if (
+            self.disabled or
+            not self.collide_point(*touch.pos) or
+            not self.children
+        ):
             return
 
         page = self.children[-self.page - 1]
@@ -198,7 +207,9 @@ class PageLayout(Layout):
                 self._trigger_layout()
 
             touch.ungrab(self)
-        return self.children[-self.page + 1].on_touch_up(touch)
+
+        if len(self.children) > 1:
+            return self.children[-self.page + 1].on_touch_up(touch)
 
 
 if __name__ == '__main__':

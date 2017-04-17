@@ -126,9 +126,9 @@ class MotionEvent(MotionEventBase):
     '''Abstract class that represents an input event (touch or non-touch).
 
     :Parameters:
-        `id` : str
+        `id`: str
             unique ID of the MotionEvent
-        `args` : list
+        `args`: list
             list of parameters, passed to the depack() function
     '''
 

@@ -13,5 +13,3 @@ Packaging your application
     packaging-osx
     packaging-ios
     packaging-ios-prerequisites
-    packaging-ios-compile
-

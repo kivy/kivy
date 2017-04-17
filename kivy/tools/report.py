@@ -9,9 +9,21 @@ for help during the debugging process.
 
 import os
 import sys
+import platform as plf
 from time import ctime
-from configparser import ConfigParser
-from io import StringIO
+
+try:
+    # PY3
+    from configparser import ConfigParser
+except ImportError:
+    # PY2
+    from ConfigParser import ConfigParser
+
+try:
+    from StringIO import StringIO
+    input = raw_input
+except ImportError:
+    from io import StringIO
 
 import kivy
 
@@ -81,8 +93,9 @@ def send_report(dict_report):
 # Start output debugging
 # ----------------------------------------------------------
 
+
 title('Global')
-report.append('OS platform     : %s' % sys.platform)
+report.append('OS platform     : %s | %s' % (plf.platform(), plf.machine()))
 report.append('Python EXE      : %s' % sys.executable)
 report.append('Python Version  : %s' % sys.version)
 report.append('Python API      : %s' % sys.api_version)
@@ -98,7 +111,11 @@ from kivy.core.window import Window
 report.append('GL Vendor: %s' % gl.glGetString(gl.GL_VENDOR))
 report.append('GL Renderer: %s' % gl.glGetString(gl.GL_RENDERER))
 report.append('GL Version: %s' % gl.glGetString(gl.GL_VERSION))
-ext = gl.glGetString(gl.GL_EXTENSIONS)
+ext = None
+try:
+    gl.glGetString(gl.GL_EXTENSIONS)
+except AttributeError:
+    pass
 if ext is None:
     report.append('GL Extensions: %s' % ext)
 else:
@@ -129,23 +146,23 @@ title('Libraries')
 
 def testimport(libname):
     try:
-        l = __import__(libname)
-        report.append('%-20s exist at %s' % (libname, l.__file__))
+        lib = __import__(libname)
+        report.append('%-20s exist at %s' % (libname, lib.__file__))
     except ImportError:
         report.append('%-20s is missing' % libname)
 
-for x in (
-    'gst',
-    'pygame',
-    'pygame.midi',
-    'pyglet',
-    'videocapture',
-    'squirtle',
-    'PIL',
-    'opencv',
-    'opencv.cv',
-    'opencv.highgui',
-    'cython'):
+
+for x in ('gst',
+          'pygame',
+          'pygame.midi',
+          'squirtle',
+          'PIL',
+          'sdl2',
+          'glew',
+          'opencv',
+          'opencv.cv',
+          'opencv.highgui',
+          'cython'):
     testimport(x)
 report_dict['Libraries'] = report
 report = []
@@ -193,6 +210,7 @@ print()
 print()
 
 try:
+    print('The report will be sent as an anonymous gist.')
     reply = input(
         'Do you accept to send report to https://gist.github.com/ (Y/n) : ')
 except EOFError:

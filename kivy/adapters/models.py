@@ -4,6 +4,10 @@ SelectableDataItem
 
 .. versionadded:: 1.5
 
+.. note::
+
+    The feature has been deprecated.
+
 .. warning::
 
     This code is still experimental, and its API is subject to change in a
@@ -23,9 +27,9 @@ and selection system and which work with views such as a
 :class:`~kivy.uix.listview.ListView`. A boolean *is_selected*
 property a requirement.
 
-The default operation of the selection system is to not propogate selection in
+The default operation of the selection system is to not propagate selection in
 views such as ListView to the underlying data: selection is by default a
-view-only operation. However, in some cases, it is useful to propogate
+view-only operation. However, in some cases, it is useful to propagate
 selection to the actual data items.
 
 You may, of course, build your own Python data model system as the backend for
@@ -45,12 +49,15 @@ It is easy to build such a class with plain Python.
 
 __all__ = ('SelectableDataItem', )
 
+from kivy.utils import deprecated
+
 
 class SelectableDataItem(object):
     '''
     A mixin class containing requirements for selection operations.
     '''
 
+    @deprecated
     def __init__(self, is_selected=False):
         super(SelectableDataItem, self).__init__()
 

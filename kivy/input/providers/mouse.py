@@ -211,8 +211,8 @@ class MouseMotionEventProvider(MotionEventProvider):
             # if the multitouch_on_demenad feature is not enable
             # (because in that case, we wait to see if multitouch_sim
             # is True or not before doing the multitouch)
-            create_flag = ((not self.disable_multitouch)
-                and (not self.multitouch_on_demenad))
+            create_flag = ((not self.disable_multitouch) and
+                (not self.multitouch_on_demenad))
             cur.update_graphics(EventLoop.window, create_flag)
         self.waiting_event.append(('begin', cur))
         return cur
@@ -286,6 +286,7 @@ class MouseMotionEventProvider(MotionEventProvider):
                 dispatch_fn(*event)
         except IndexError:
             pass
+
 
 # registers
 MotionEventFactory.register('mouse', MouseMotionEventProvider)

@@ -26,5 +26,6 @@ class LabelMipmapTest(App):
         s.add_widget(l2)
         return s
 
+
 if __name__ == '__main__':
     LabelMipmapTest().run()

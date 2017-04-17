@@ -59,4 +59,5 @@ TouchWidget:
         keep_ratio: False
 ''')
 
+
 runTouchApp(root)

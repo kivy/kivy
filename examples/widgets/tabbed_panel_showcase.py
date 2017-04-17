@@ -56,7 +56,7 @@ Builder.load_string('''
 <PanelLeft>
     size_hint: (.45, .45)
     pos_hint: {'center_x': .25, 'y': .55}
-    #replace the default tab with our custom tab class
+    # replace the default tab with our custom tab class
     default_tab_cls: sh.__class__
     do_default_tab: True
     default_tab_content: default_content.__self__
@@ -69,13 +69,9 @@ Builder.load_string('''
                 "Tabs in \\'%s\\' position" %root.tab_pos))
         Image:
             id: tab_2_content
-            pos:self.parent.pos
-            size: self.parent.size
             source: 'data/images/defaulttheme-0.png'
         Image:
             id: tab_3_content
-            pos:self.parent.pos
-            size: self.parent.size
             source: 'data/images/image-loading.gif'
     StandingHeader:
         id: sh
@@ -117,7 +113,7 @@ Builder.load_string('''
     pos_hint: {'center_x': .75, 'y': .55}
     # replace the default tab with our custom tab
     default_tab: def_tab
-    #allow variable tab width
+    # allow variable tab width
     tab_width: None
     FloatLayout:
         RstDocument:
@@ -127,13 +123,9 @@ Builder.load_string('''
                 "- Tabs in \\'%s\\' position" %root.tab_pos))
         Image:
             id: tab_2_content
-            pos:self.parent.pos
-            size: self.parent.size
             source: 'data/images/defaulttheme-0.png'
         BoxLayout:
             id: tab_3_content
-            pos:self.parent.pos
-            size: self.parent.size
             BubbleButton:
                 text: 'Press to add new tab'
                 on_release: root.add_header()
@@ -205,19 +197,15 @@ Builder.load_string('''
                 "4. Tabs in \\'%s\\' position" %root.tab_pos))
         Image:
             id: tab_2_content
-            pos:self.parent.pos
-            size: self.parent.size
             source: 'data/images/defaulttheme-0.png'
         VideoPlayer:
             id: tab_3_content
-            pos:self.parent.pos
-            size: self.parent.size
-            source: 'softboy.mpg'
+            source: 'cityCC0.mpg'
     TabbedPanelHeader:
         id: def_tab
         content:default_content.__self__
         border: 0, 0, 0, 0
-        background_down: 'softboy.png'
+        background_down: 'cityCC0.png'
         background_normal:'sequenced_images/data/images/info.png'
     TabbedPanelHeader:
         id: tph
@@ -228,7 +216,7 @@ Builder.load_string('''
             orientation: 'vertical'
             Image:
                 source: 'sequenced_images/data/images/info.png'\
-                    if tph.state == 'normal' else 'softboy.png'
+                    if tph.state == 'normal' else 'cityCC0.png'
             Label:
                 text: 'text & img'
     TabbedPanelHeader:
@@ -246,7 +234,7 @@ Builder.load_string('''
             Image:
                 id: img
                 source: 'sequenced_images/data/images/info.png'\
-                    if my_header.state == 'normal' else 'softboy.png'
+                    if my_header.state == 'normal' else 'cityCC0.png'
                 size: my_header.size
                 allow_stretch: True
                 keep_ratio: False
@@ -255,7 +243,7 @@ Builder.load_string('''
 
 class Tp(TabbedPanel):
 
-    #override tab switching method to animate on tab switch
+    # override tab switching method to animate on tab switch
     def switch_to(self, header):
         anim = Animation(opacity=0, d=.24, t='in_out_quad')
 
@@ -323,6 +311,7 @@ class TestTabApp(App):
 
     def build(self):
         return TabShowcase()
+
 
 if __name__ == '__main__':
     TestTabApp().run()

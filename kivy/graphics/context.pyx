@@ -14,7 +14,7 @@ module documentation. These are based on
 
 __all__ = ('Context',)
 
-include "config.pxi"
+include "../include/config.pxi"
 
 from cpython.array cimport array
 import gc
@@ -25,11 +25,9 @@ from kivy.graphics.texture cimport Texture, TextureRegion
 from kivy.graphics.vbo cimport VBO, VertexBatch
 from kivy.logger import Logger
 from kivy.clock import Clock
-from kivy.graphics.c_opengl cimport *
-IF USE_OPENGL_MOCK == 1:
-    from kivy.graphics.c_opengl_mock cimport *
-IF USE_OPENGL_DEBUG == 1:
-    from kivy.graphics.c_opengl_debug cimport *
+
+from kivy.graphics.cgl cimport *
+
 from kivy.weakmethod import WeakMethod
 from time import time
 from kivy.cache import Cache
@@ -193,7 +191,7 @@ cdef class Context:
         self.flush()
 
         # First step, prevent double loading by setting everything to -1
-        # We do this because texture might be loaded in seperate texture at first,
+        # We do this because texture might be loaded in separate texture at first,
         # then merged from the cache cause of the same source
         Logger.debug('Context: Reload textures')
         cdef list l = self.l_texture[:]
@@ -262,7 +260,7 @@ cdef class Context:
                 continue
             callback()(self)
 
-        glFinish()
+        cgl.glFinish()
         dt = time() - start
         Logger.info('Context: Reloading done in %2.4fs' % dt)
 
@@ -281,38 +279,38 @@ cdef class Context:
         if len(self.lr_vbo):
             Logger.trace('Context: releasing %d vbos' % len(self.lr_vbo))
             arr = self.lr_vbo
-            glDeleteBuffers(<GLsizei>len(self.lr_vbo), arr.data.as_uints)
+            cgl.glDeleteBuffers(<GLsizei>len(self.lr_vbo), arr.data.as_uints)
             del self.lr_vbo[:]
         if len(self.lr_texture):
             Logger.trace('Context: releasing %d textures: %r' % (
                 len(self.lr_texture), self.lr_texture))
             arr = self.lr_texture
-            glDeleteTextures(<GLsizei>len(self.lr_texture), arr.data.as_uints)
+            cgl.glDeleteTextures(<GLsizei>len(self.lr_texture), arr.data.as_uints)
             del self.lr_texture[:]
         if len(self.lr_fbo_fb):
             Logger.trace('Context: releasing %d framebuffer fbos' % len(self.lr_fbo_fb))
             arr = self.lr_fbo_fb
-            glDeleteFramebuffers(<GLsizei>len(self.lr_fbo_fb), arr.data.as_uints)
+            cgl.glDeleteFramebuffers(<GLsizei>len(self.lr_fbo_fb), arr.data.as_uints)
             del self.lr_fbo_fb[:]
         if len(self.lr_fbo_rb):
             Logger.trace('Context: releasing %d renderbuffer fbos' % len(self.lr_fbo_fb))
             arr = self.lr_fbo_rb
-            glDeleteRenderbuffers(<GLsizei>len(self.lr_fbo_rb), arr.data.as_uints)
+            cgl.glDeleteRenderbuffers(<GLsizei>len(self.lr_fbo_rb), arr.data.as_uints)
             del self.lr_fbo_rb[:]
         if len(self.lr_shadersource):
             Logger.trace('Context: releasing %d shader sources' % len(self.lr_shadersource))
             arr = self.lr_shadersource
             for i in self.lr_shadersource:
-                glDeleteShader(i)
+                cgl.glDeleteShader(i)
             del self.lr_shadersource[:]
         if len(self.lr_shader):
             Logger.trace('Context: releasing %d shaders' % len(self.lr_shader))
             for program, vs_id, fs_id in self.lr_shader:
                 if vs_id != -1:
-                    glDetachShader(program, vs_id)
+                    cgl.glDetachShader(program, vs_id)
                 if fs_id != -1:
-                    glDetachShader(program, fs_id)
-                glDeleteProgram(program)
+                    cgl.glDetachShader(program, fs_id)
+                cgl.glDeleteProgram(program)
             del self.lr_shader[:]
 
 
@@ -321,4 +319,3 @@ cpdef Context get_context():
     if context is None:
         context = Context()
     return context
-

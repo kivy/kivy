@@ -27,8 +27,10 @@ kivy/core/text/text_layout.pyd
 kivy/graphics/*.c
 kivy/graphics/*.cpp
 kivy/graphics/*.pyd
-kivy/graphics/config.h
-kivy/graphics/config.pxi
+kivy/graphics/cgl_backend/*.c
+kivy/graphics/cgl_backend/*.pyd
+kivy/include/config.h
+kivy/include/config.pxi
 kivy/lib/gstplayer/_gstplayer.c
 kivy/core/camera/camera_avfoundation.c
 kivy/tests/build
@@ -48,6 +50,7 @@ htmlcov
 kivy/deps/*
 !kivy/deps/__init__.py
 kivy.deps*
+kivy/version.py
 
 MANIFEST
 

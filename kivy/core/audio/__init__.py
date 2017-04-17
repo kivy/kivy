@@ -29,12 +29,13 @@ keep this in mind when debugging or running in a
 `REPL <https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop>`_
 (Read-eval-print loop).
 
+.. versionchanged:: 1.10.0
+    The pygst and gi providers have been removed.
+
 .. versionchanged:: 1.8.0
-    There are now 2 distinct Gstreamer implementations: one using Gi/Gst working
-    for both Python 2+3 with Gstreamer 1.0, and one using PyGST working
-    only for Python 2 + Gstreamer 0.10.
-    If you have issue with GStreamer, have a look at
-    :ref:`gstreamer-compatibility`
+    There are now 2 distinct Gstreamer implementations: one using Gi/Gst
+    working for both Python 2+3 with Gstreamer 1.0, and one using PyGST
+    working only for Python 2 + Gstreamer 0.10.
 
 .. note::
 
@@ -52,9 +53,11 @@ from kivy.core import core_register_libs
 from kivy.compat import PY2
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, NumericProperty, OptionProperty, \
-    AliasProperty, BooleanProperty
+    AliasProperty, BooleanProperty, BoundedNumericProperty
 from kivy.utils import platform
 from kivy.setupconfig import USE_SDL2
+
+from sys import float_info
 
 
 class SoundLoader:
@@ -93,9 +96,9 @@ class Sound(EventDispatcher):
     Use SoundLoader to load a sound.
 
     :Events:
-        `on_play` : None
+        `on_play`: None
             Fired when the sound is played.
-        `on_stop` : None
+        `on_stop`: None
             Fired when the sound is stopped.
     '''
 
@@ -115,6 +118,16 @@ class Sound(EventDispatcher):
     .. versionadded:: 1.3.0
 
     :attr:`volume` is a :class:`~kivy.properties.NumericProperty` and defaults
+    to 1.
+    '''
+
+    pitch = BoundedNumericProperty(1., min=float_info.epsilon)
+    '''Pitch of a sound. 2 is an octave higher, .5 one below. This is only
+    implemented for SDL2 audio provider yet.
+
+    .. versionadded:: 1.10.0
+
+    :attr:`pitch` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 1.
     '''
 
@@ -194,7 +207,12 @@ class Sound(EventDispatcher):
         self.dispatch('on_stop')
 
     def seek(self, position):
-        '''Go to the <position> (in seconds).'''
+        '''Go to the <position> (in seconds).
+
+        .. note::
+            Most sound providers cannot seek when the audio is stopped.
+            Play then seek.
+        '''
         pass
 
     def on_play(self):
@@ -209,14 +227,11 @@ class Sound(EventDispatcher):
 audio_libs = []
 if platform in ('macosx', 'ios'):
     audio_libs += [('avplayer', 'audio_avplayer')]
-# from now on, prefer our gstplayer instead of gi/pygst.
 try:
     from kivy.lib.gstplayer import GstPlayer  # NOQA
     audio_libs += [('gstplayer', 'audio_gstplayer')]
 except ImportError:
-    #audio_libs += [('gi', 'audio_gi')]
-    if PY2:
-        audio_libs += [('pygst', 'audio_pygst')]
+    pass
 audio_libs += [('ffpyplayer', 'audio_ffpyplayer')]
 if USE_SDL2:
     audio_libs += [('sdl2', 'audio_sdl2')]

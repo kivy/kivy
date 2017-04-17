@@ -4,6 +4,10 @@ Adapter
 
 .. versionadded:: 1.5
 
+.. note::
+
+    The feature has been deprecated.
+
 .. warning::
 
     This code is still experimental, and its API is subject to change in a
@@ -46,6 +50,7 @@ from kivy.lang import Builder
 from kivy.adapters.args_converters import list_item_args_converter
 from kivy.factory import Factory
 from kivy.compat import string_types
+from kivy.utils import deprecated
 
 
 class Adapter(EventDispatcher):
@@ -87,8 +92,8 @@ class Adapter(EventDispatcher):
     '''
     A kv template for instantiating a given view item (Use this or cls).
 
-    :attr:`template` is an :class:`~kivy.properties.ObjectProperty` and defaults
-    to None.
+    :attr:`template` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
     '''
 
     args_converter = ObjectProperty(None)
@@ -103,6 +108,7 @@ class Adapter(EventDispatcher):
     defaults to None.
     '''
 
+    @deprecated
     def __init__(self, **kwargs):
 
         if 'data' not in kwargs:

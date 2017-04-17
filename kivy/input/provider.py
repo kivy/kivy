@@ -2,7 +2,7 @@
 Motion Event Provider
 =====================
 
-Abstract class for the implemention of a
+Abstract class for the implementation of a
 :class:`~kivy.input.motionevent.MotionEvent`
 provider. The implementation must support the
 :meth:`~MotionEventProvider.start`, :meth:`~MotionEventProvider.stop` and

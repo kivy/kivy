@@ -12,14 +12,10 @@ __all__ = ('Instruction', 'InstructionGroup',
            'Canvas', 'CanvasBase',
            'RenderContext', 'Callback')
 
-include "config.pxi"
+include "../include/config.pxi"
 include "opcodes.pxi"
 
-from c_opengl cimport *
-IF USE_OPENGL_MOCK == 1:
-    from kivy.graphics.c_opengl_mock cimport *
-IF USE_OPENGL_DEBUG == 1:
-    from c_opengl_debug cimport *
+from kivy.graphics.cgl cimport *
 from kivy.compat import PY2
 from kivy.logger import Logger
 from kivy.graphics.context cimport get_context, Context
@@ -34,11 +30,13 @@ cdef void reset_gl_context():
     global _need_reset_gl, _active_texture
     _need_reset_gl = 0
     _active_texture = 0
-    glEnable(GL_BLEND)
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE)
-    glActiveTexture(GL_TEXTURE0)
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+    cgl.glEnable(GL_BLEND)
+    cgl.glDisable(GL_DEPTH_TEST)
+    cgl.glEnable(GL_STENCIL_TEST)
+    cgl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    cgl.glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE)
+    cgl.glActiveTexture(GL_TEXTURE0)
+    cgl.glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 
 
 cdef class Instruction(ObjectWithUid):
@@ -63,7 +61,7 @@ cdef class Instruction(ObjectWithUid):
         return 0
 
     IF DEBUG:
-        cdef int flag_update(self, int do_parent=1, list _instrs=None) except -1:
+        cpdef flag_update(self, int do_parent=1, list _instrs=None):
             cdef list instrs = _instrs if _instrs else []
             if _instrs and self in _instrs:
                 raise RuntimeError('Encountered instruction group render loop: %r in %r' % (self, _instrs,))
@@ -72,7 +70,7 @@ cdef class Instruction(ObjectWithUid):
                 self.parent.flag_update(do_parent=1, _instrs=instrs)
             self.flags |= GI_NEEDS_UPDATE
     ELSE:
-        cdef void flag_update(self, int do_parent=1):
+        cpdef flag_update(self, int do_parent=1):
             if do_parent == 1 and self.parent is not None:
                 self.parent.flag_update()
             self.flags |= GI_NEEDS_UPDATE
@@ -341,7 +339,9 @@ cdef class VertexInstruction(Instruction):
             with self.canvas:
                 Rectangle(source='mylogo.png', pos=self.pos, size=self.size)
 
-        Here's the equivalent in Kivy language::
+        Here's the equivalent in Kivy language:
+
+        .. code-block:: kv
 
             <MyWidget>:
                 canvas:
@@ -370,7 +370,7 @@ cdef class VertexInstruction(Instruction):
         can be negative, and would represent the 'flipped' texture. By default,
         the tex_coords are::
 
-            [u, v, u + w, v, u + w, y + h, u, y + h]
+            [u, v, u + w, v, u + w, v + h, u, v + h]
 
         You can pass your own texture coordinates if you want to achieve fancy
         effects.
@@ -476,29 +476,29 @@ cdef class Callback(Instruction):
         cdef Shader shader
         cdef int i
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
+        cgl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+        cgl.glBindBuffer(GL_ARRAY_BUFFER, 0)
 
         if self.func(self):
             self.flag_update_done()
 
         if self._reset_context:
             # FIXME do that in a proper way
-            glDisable(GL_DEPTH_TEST)
-            glDisable(GL_CULL_FACE)
-            glDisable(GL_SCISSOR_TEST)
-            glEnable(GL_BLEND)
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-            glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE)
-            glUseProgram(0)
+            cgl.glDisable(GL_DEPTH_TEST)
+            cgl.glDisable(GL_CULL_FACE)
+            cgl.glDisable(GL_SCISSOR_TEST)
+            cgl.glEnable(GL_BLEND)
+            cgl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+            cgl.glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE)
+            cgl.glUseProgram(0)
 
             # FIXME don't use 10. use max texture available from gl conf
             for i in xrange(10):
-                glActiveTexture(GL_TEXTURE0 + i)
-                glBindTexture(GL_TEXTURE_2D, 0)
-                glDisableVertexAttribArray(i)
-                glBindBuffer(GL_ARRAY_BUFFER, 0)
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+                cgl.glActiveTexture(GL_TEXTURE0 + i)
+                cgl.glBindTexture(GL_TEXTURE_2D, 0)
+                cgl.glDisableVertexAttribArray(i)
+                cgl.glBindBuffer(GL_ARRAY_BUFFER, 0)
+                cgl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
             # reset all the vertexformat in all shaders
             ctx = get_context()
@@ -699,7 +699,7 @@ cdef class Canvas(CanvasBase):
 
 # Active Canvas and getActiveCanvas function is used
 # by instructions, so they know which canvas to add
-# tehmselves to
+# themselves to
 cdef CanvasBase ACTIVE_CANVAS = None
 
 cdef CanvasBase getActiveCanvas():
@@ -707,7 +707,7 @@ cdef CanvasBase getActiveCanvas():
     return ACTIVE_CANVAS
 
 # Canvas Stack, for internal use so canvas can be bound
-# inside other canvas, and restroed when other canvas is done
+# inside other canvas, and restored when other canvas is done
 cdef list CANVAS_STACK = list()
 
 cdef pushActiveCanvas(CanvasBase c):
@@ -831,7 +831,7 @@ cdef class RenderContext(Canvas):
         self.bind_texture[index] = texture
         if _active_texture != index:
             _active_texture = index
-            glActiveTexture(GL_TEXTURE0 + index)
+            cgl.glActiveTexture(GL_TEXTURE0 + index)
         texture.bind()
         self.flag_update()
 
@@ -952,4 +952,3 @@ cdef popActiveContext():
     ACTIVE_CONTEXT = CONTEXT_STACK.pop()
     if ACTIVE_CONTEXT:
         ACTIVE_CONTEXT.enter()
-

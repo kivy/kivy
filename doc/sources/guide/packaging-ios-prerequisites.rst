@@ -26,7 +26,7 @@ guide for more information.
 Homebrew
 --------
 
-We use the `Homebrew <http://brew.sh/>`_ package mananger for OSX to install
+We use the `Homebrew <http://brew.sh/>`_ package manager for OSX to install
 some of the dependencies and tools used by Kivy. It's a really helpful tool
 and is an Open Source project hosted on
 `Github <https://github.com/Homebrew/homebrew>`_.
@@ -52,7 +52,7 @@ For further help, please refer to the
 `Homebrew wiki <https://github.com/Homebrew/homebrew/wiki>`_.
 
 The last, final and desperate step to get things working might be to remove
-Homebrew altogether, get the lastest version, install that and then re-install
+Homebrew altogether, get the latest version, install that and then re-install
 the dependencies.
 
     `How to Uninstall and Remove Homebrew for Mac OSX

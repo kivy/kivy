@@ -1,7 +1,68 @@
 .. _installation_osx:
 
 Installation on OS X
-======================
+====================
+
+.. note::
+
+    This guide describes multiple ways for setting up Kivy. Installing
+    with Homebrew and pip is recommended for general use.
+
+Using Homebrew with pip
+-----------------------
+
+You can install Kivy with Homebrew and pip using the following steps:
+
+    1. Install the requirements using `homebrew <http://brew.sh>`_::
+
+        $ brew install sdl2 sdl2_image sdl2_ttf sdl2_mixer gstreamer
+
+    2. Install cython 0.23 and kivy using pip
+       (make sure to set the env variable USE_OSX_FRAMEWORKS=0, command varies by shell)::
+
+        $ pip install -I Cython==0.23
+        $ USE_OSX_FRAMEWORKS=0 pip install kivy
+
+    - To install the development version, use this in the second step::
+
+        $ USE_OSX_FRAMEWORKS=0 pip install https://github.com/kivy/kivy/archive/master.zip
+
+Using MacPorts with pip
+-----------------------
+
+.. note::
+
+    You will have to manually install gstreamer support if you wish to
+    support video playback in your Kivy App. The latest port documents show the
+    following `py-gst-python port <https://trac.macports.org/ticket/44813>`_.
+
+You can install Kivy with Macports and pip using the following steps:
+
+    1. Install `Macports <https://www.macports.org>`_
+
+    2. Install and set Python 3.4 as the default::
+
+        $ port install python34
+        $ port select --set python python34
+
+    3. Install and set pip as the default::
+
+        $ port install pip-34
+        $ port select --set pip pip-34
+
+    4. Install the requirements using `Macports <https://www.macports.org>`_::
+
+        $ port install libsdl2 libsdl2_image libsdl2_ttf libsdl2_mixer
+
+    5. Install cython 0.23 and kivy using pip
+       (make sure to set the env variable USE_OSX_FRAMEWORKS=0, command varies by shell)::
+
+        $ pip install -I Cython==0.23
+        $ USE_OSX_FRAMEWORKS=0 pip install kivy
+
+    - To install the development version, use this in the second step::
+
+        $ USE_OSX_FRAMEWORKS=0 pip install https://github.com/kivy/kivy/archive/master.zip
 
 Using The Kivy.app
 ------------------
@@ -13,16 +74,15 @@ Using The Kivy.app
     components yourself. We suggest using
     `homebrew <http://brew.sh>`_ to do that.
 
-For OS X 10.7 and later, we provide a Kivy.app with all dependencies
-bundled. Download it from our `Download Page <http://kivy.org/#download>`_.
-It comes as a .7z file that contains:
-
-    * Kivy.app
+For OS X 10.7 and later, we provide packages with all dependencies
+bundled in a virtual environment, including a Python 3 interpreter for
+Kivy3.app. These bundles are primarily used for rapid prototyping,
+and currently serve as containers for packaging Kivy apps with Buildozer.
 
 To install Kivy, you must:
 
-    1. Download the latest version from http://kivy.org/#download
-       Kivy2.7z is using using Python 2 (System Python), Kivy3.7z (Python 3)
+    1. Navigate to the latest Kivy release at
+       https://kivy.org/downloads/ and download `Kivy-*-osx-python*.7z`.
     2. Extract it using an archive program like `Keka <http://www.kekaosx.com/>`_.
     3. Copy the Kivy2.app or Kivy3.app as Kivy.app to /Applications.
        Paste the following line in the terminal::
@@ -66,7 +126,7 @@ The garden lib will be only available when you activate this env::
     deactivate
 
 To install binary files
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Just copy the binary to the /Applications/Kivy.app/Contents/Resources/venv/bin/ directory.
 
@@ -117,18 +177,3 @@ after you have dragged the Kivy.app into the Applications folder. To test if it 
        of executing a command like the following::
 
            $ kivy yourapplication.py
-
-
-Using pip
----------
-
-Alternatively you can install Kivy using the following steps:
-
-    1. Install the requirements using `homebrew <http://brew.sh>`_::
-
-        $ brew install sdl2 sdl2_image sdl2_ttf sdl2_mixer gstreamer
-
-    2. Install cython 0.23 and kivy using pip::
-
-        $ pip install -I Cython==0.23
-        $ USE_OSX_FRAMEWORKS=0 pip install kivy

@@ -30,7 +30,7 @@ class InputPostprocDejitter(object):
         `jitter_distance`: float
             A float in range 0-1.
         `jitter_ignore_devices`: string
-            A comma-seperated list of device identifiers that
+            A comma-separated list of device identifiers that
             should not be processed by dejitter (because they're
             very precise already).
     '''
@@ -58,7 +58,8 @@ class InputPostprocDejitter(object):
             if etype == 'begin':
                 self.last_touches[touch.id] = touch.spos
             if etype == 'end':
-                del self.last_touches[touch.id]
+                if touch.id in self.last_touches:
+                    del self.last_touches[touch.id]
             if etype != 'update':
                 processed.append((etype, touch))
                 continue

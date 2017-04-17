@@ -21,14 +21,11 @@ Path control
 
 .. versionadded:: 1.0.7
 
-You can control the default directories where config files, modules,
-extensions, and kivy data are located.
+You can control the default directories where config files, modules
+and kivy data are located.
 
 KIVY_DATA_DIR
     Location of the Kivy data, defaults to `<kivy path>/data`
-
-KIVY_EXTS_DIR
-    Location of the Kivy extensions, defaults to `<kivy path>/extensions`
 
 KIVY_MODULES_DIR
     Location of the Kivy modules, defaults to `<kivy path>/modules`
@@ -65,7 +62,7 @@ KIVY_USE_DEFAULTCONFIG
     If this name is found in environ, Kivy will not read the user config file.
 
 KIVY_NO_CONFIG
-    If set, no configuration file will be read or writen to. This also applies
+    If set, no configuration file will be read or written to. This also applies
     to the user configuration directory.
 
 KIVY_NO_FILELOG
@@ -105,12 +102,12 @@ KIVY_TEXT
 KIVY_VIDEO
     Implementation to use for rendering video
 
-    Values: pygst, gstplayer, pyglet, ffpyplayer, null
+    Values: gstplayer, ffpyplayer, ffmpeg, null
 
 KIVY_AUDIO
     Implementation to use for playing audio
 
-    Values: sdl2, gstplayer, pygst, ffpyplayer, pygame
+    Values: sdl2, gstplayer, ffpyplayer, pygame, avplayer
 
 KIVY_IMAGE
     Implementation to use for reading image
@@ -120,7 +117,7 @@ KIVY_IMAGE
 KIVY_CAMERA
     Implementation to use for reading camera
 
-    Values: videocapture, avfoundation, pygst, opencv
+    Values: avfoundation, android, opencv
 
 KIVY_SPELLING
     Implementation to use for spelling
@@ -153,6 +150,15 @@ KIVY_METRICS_FONTSCALE
 
 Graphics
 --------
+
+KIVY_GL_BACKEND
+    The OpenGL backend to use. See :mod:`~kivy.graphics.cgl`.
+
+KIVY_GL_DEBUG
+    Whether to log OpenGL calls. See :mod:`~kivy.graphics.cgl`.
+
+KIVY_GRAPHICS
+    Whether to use OpenGL ES2. See :mod:`~kivy.graphics.cgl`.
 
 KIVY_GLES_LIMITS
     Whether the GLES2 restrictions are enforced (the default, or if set to

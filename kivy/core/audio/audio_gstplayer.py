@@ -5,8 +5,8 @@ Audio Gstplayer
 .. versionadded:: 1.8.0
 
 Implementation of a VideoBase with Kivy :class:`~kivy.lib.gstplayer.GstPlayer`
-This player is the prefered player, using Gstreamer 1.0, working on both Python
-2 and 3.
+This player is the preferred player, using Gstreamer 1.0, working on both
+Python 2 and 3.
 '''
 
 from kivy.lib.gstplayer import GstPlayer, get_gst_version
@@ -38,7 +38,7 @@ class SoundGstplayer(Sound):
 
     @staticmethod
     def extensions():
-        return ('wav', 'ogg', 'mp3', 'm4a', 'flac')
+        return ('wav', 'ogg', 'mp3', 'm4a', 'flac', 'mp4')
 
     def __init__(self, **kwargs):
         self.player = None
@@ -93,8 +93,9 @@ class SoundGstplayer(Sound):
         uri = self.filename
         if not uri:
             return
-        if not '://' in uri:
+        if '://' not in uri:
             uri = 'file:' + pathname2url(realpath(uri))
         return uri
+
 
 SoundLoader.register(SoundGstplayer)

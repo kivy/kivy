@@ -4,7 +4,7 @@ Interactive launcher
 
 .. versionadded:: 1.3.0
 
-.. versionchanged:: 1.9.2
+.. versionchanged:: 1.10.0
     The interactive launcher has been deprecated.
 
 The :class:`InteractiveLauncher` provides a user-friendly python shell
@@ -22,7 +22,7 @@ Creating an InteractiveLauncher
 -------------------------------
 
 Take your existing subclass of :class:`App` (this can be production code) and
-pass an instance to the :class:`InteractiveLauncher` constructor.::
+pass an instance to the :class:`InteractiveLauncher` constructor. ::
 
     from kivy.interactive import InteractiveLauncher
     from kivy.app import App
@@ -52,7 +52,7 @@ Interactive Development
 IPython provides a fast way to learn the Kivy API. The :class:`App` instance
 and all of it's attributes, including methods and the entire widget tree,
 can be quickly listed by using the '.' operator and pressing 'tab'. Try this
-code in an Ipython shell.::
+code in an Ipython shell. ::
 
     from kivy.interactive import InteractiveLauncher
     from kivy.app import App
@@ -148,7 +148,7 @@ TODO
 Unit tests, examples, and a better explanation of which methods are safe in a
 running application would be nice. All three would be excellent.
 
-Could be re-written with a context-manager style i.e.::
+Could be re-written with a context-manager style i.e. ::
 
     with safe:
         foo()
@@ -215,7 +215,7 @@ class SafeMembrane(object):
     # methods that make calls against _ref and threadsafe whenever data will be
     # written to or if a method will be called. SafeMembrane instances should
     # be unwrapped whenever passing them into the thread
-    #use type() to determine if an object is a SafeMembrane while debugging
+    # use type() to determine if an object is a SafeMembrane while debugging
     def __repr__(self):
         return self._ref.__repr__()
 
@@ -242,8 +242,8 @@ class SafeMembrane(object):
         return SafeMembrane(r)
 
     def __setattr__(self, attr, val, osa=object.__setattr__):
-        if (attr == '_ref'
-                or hasattr(type(self), attr) and not attr.startswith('__')):
+        if (attr == '_ref' or
+                hasattr(type(self), attr) and not attr.startswith('__')):
             osa(self, attr, val)
         else:
             self.safeIn()
@@ -322,14 +322,14 @@ class InteractiveLauncher(SafeMembrane):
 
     def run(self):
         self.thread.start()
-        #Proxy behavior starts after this is set. Before this point, attaching
-        #widgets etc can only be done through the Launcher's app attribute
+        # Proxy behavior starts after this is set. Before this point, attaching
+        # widgets etc can only be done through the Launcher's app attribute
         self._ref = self.app
 
     def stop(self):
         EventLoop.quit = True
         self.thread.join()
 
-    #Act like the app instance even before _ref is set
+    # Act like the app instance even before _ref is set
     def __repr__(self):
         return self.app.__repr__()

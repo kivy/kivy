@@ -4,6 +4,10 @@ DictAdapter
 
 .. versionadded:: 1.5
 
+.. note::
+
+    The feature has been deprecated.
+
 .. warning::
 
     This code is still experimental, and its API is subject to change in a
@@ -74,7 +78,7 @@ class DictAdapter(ListAdapter):
     def initialize_sorted_keys(self, *args, **kwargs):
         stale_sorted_keys = False
         for key in self.sorted_keys:
-            if not key in self.data:
+            if key not in self.data:
                 stale_sorted_keys = True
                 break
         else:

@@ -55,7 +55,7 @@ class FboFloatLayout(FloatLayout):
         super(FboFloatLayout, self).__init__(**kwargs)
 
     def add_widget(self, *largs):
-        # trick to attach graphics instructino to fbo instead of canvas
+        # trick to attach graphics instruction to fbo instead of canvas
         canvas = self.canvas
         self.canvas = self.fbo
         ret = super(FboFloatLayout, self).add_widget(*largs)
@@ -90,7 +90,7 @@ if __name__ == '__main__':
             # test with FboFloatLayout or FloatLayout
             # comment/uncomment to test it
             root = FboFloatLayout()
-            #root = FloatLayout()
+            # root = FloatLayout()
 
             # this part of creation can be slow. try to optimize the loop a
             # little bit.

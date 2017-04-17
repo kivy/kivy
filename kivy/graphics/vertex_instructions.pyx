@@ -55,18 +55,15 @@ __all__ = ('Triangle', 'Quad', 'Rectangle', 'RoundedRectangle', 'BorderImage', '
            'Line', 'Point', 'Mesh', 'GraphicException', 'Bezier', 'SmoothLine')
 
 
-include "config.pxi"
+include "../include/config.pxi"
 include "common.pxi"
+include "memory.pxi"
 
 from os import environ
 from kivy.graphics.vbo cimport *
 from kivy.graphics.vertex cimport *
 from kivy.graphics.instructions cimport *
-from kivy.graphics.c_opengl cimport *
-IF USE_OPENGL_MOCK == 1:
-    from kivy.graphics.c_opengl_mock cimport *
-IF USE_OPENGL_DEBUG == 1:
-    from kivy.graphics.c_opengl_debug cimport *
+from kivy.graphics.cgl cimport *
 from kivy.logger import Logger
 from kivy.graphics.texture cimport Texture
 from kivy.utils import platform
@@ -114,7 +111,7 @@ cdef class Bezier(VertexInstruction):
         VertexInstruction.__init__(self, **kwargs)
         v = kwargs.get('points')
         self.points = v if v is not None else [0, 0, 0, 0, 0, 0, 0, 0]
-        self._segments = kwargs.get('segments') or 10
+        self._segments = kwargs.get('segments') or 180
         self._loop = kwargs.get('loop') or False
         if self._loop:
             self.points.extend(self.points[:2])
@@ -288,7 +285,7 @@ cdef class StripMesh(VertexInstruction):
 
         if vcount == 0 or icount < 3:
             return 0
-        if self.icount + icount > 65533:  # (optim of) self.icount + icount - 2 > 65535
+        if self.icount + icount > 65533:  # (optimization of) self.icount + icount - 2 > 65535
             return 0
 
         if self.icount > 0:
@@ -346,9 +343,9 @@ cdef class Mesh(VertexInstruction):
     .. versionadded:: 1.1.0
 
     :Parameters:
-        `vertices`: list
+        `vertices`: iterable
             List of vertices in the format (x1, y1, u1, v1, x2, y2, u2, v2...).
-        `indices`: list
+        `indices`: iterable
             List of indices in the format (i1, i2, i3...).
         `mode`: str
             Mode of the vbo. Check :attr:`mode` for more information. Defaults to
@@ -370,6 +367,21 @@ cdef class Mesh(VertexInstruction):
                 attribute vec2 v_tc;
 
             in glsl's vertex shader.
+
+    .. versionchanged:: 1.8.1
+        Before, `vertices` and `indices` would always be converted to a list,
+        now, they are only converted to a list if they do not implement the
+        buffer interface. So e.g. numpy arrays, python arrays etc. are used
+        in place, without creating any additional copies. However, the
+        buffers cannot be readonly (even though they are not changed, due to
+        a cython limitation) and must be contiguous in memory.
+
+    .. note::
+        When passing a memoryview or a instance that implements the buffer
+        interface, `vertices` should be a buffer of floats (`'f'` code in
+        python array) and `indices` should be a buffer of unsigned short (`'H'`
+        code in python array). Arrays in other formats will still have to be
+        converted internally, negating any potential gain.
     '''
 
     def __init__(self, **kwargs):
@@ -416,37 +428,29 @@ cdef class Mesh(VertexInstruction):
     cdef void build(self):
         if self.is_built:
             return
-        cdef int i
-        cdef long vcount = len(self._vertices)
-        cdef long icount = len(self._indices)
-        cdef float *vertices = NULL
-        cdef unsigned short *indices = NULL
-        cdef list lvertices = self._vertices
-        cdef list lindices = self._indices
         cdef vsize = self.batch.vbo.vertex_format.vsize
 
-        if vcount == 0 or icount == 0:
+        # if user updated the list, but didn't do self.indices = ... then
+        # we'd not know about it, so ensure _indices/_indices is up to date
+        if len(self._vertices) != self.vcount:
+            self._vertices, self._fvertices = _ensure_float_view(self._vertices,
+                &self._pvertices)
+            self.vcount = len(self._vertices)
+
+        if len(self._indices) != self.icount:
+            if len(self._indices) > 65535:
+                raise GraphicException('Cannot upload more than 65535 indices'
+                                       '(OpenGL ES 2 limitation)')
+            self._indices, self._lindices = _ensure_ushort_view(self._indices,
+                &self._pindices)
+            self.icount = len(self._indices)
+
+        if self.vcount == 0 or self.icount == 0:
             self.batch.clear_data()
             return
 
-        vertices = <float *>malloc(vcount * sizeof(float))
-        if vertices == NULL:
-            raise MemoryError('vertices')
-
-        indices = <unsigned short *>malloc(icount * sizeof(unsigned short))
-        if indices == NULL:
-            free(vertices)
-            raise MemoryError('indices')
-
-        for i in xrange(vcount):
-            vertices[i] = lvertices[i]
-        for i in xrange(icount):
-            indices[i] = lindices[i]
-
-        self.batch.set_data(vertices, <int>(vcount / vsize), indices, <int>icount)
-
-        free(vertices)
-        free(indices)
+        self.batch.set_data(&self._pvertices[0], <int>(self.vcount / vsize),
+                            &self._pindices[0], <int>self.icount)
 
     property vertices:
         '''List of x, y, u, v coordinates used to construct the Mesh. Right now,
@@ -456,7 +460,9 @@ cdef class Mesh(VertexInstruction):
         def __get__(self):
             return self._vertices
         def __set__(self, value):
-            self._vertices = list(value)
+            self._vertices, self._fvertices = _ensure_float_view(value,
+                &self._pvertices)
+            self.vcount = len(self._vertices)
             self.flag_update()
 
     property indices:
@@ -470,7 +476,9 @@ cdef class Mesh(VertexInstruction):
                 raise GraphicException(
                     'Cannot upload more than 65535 indices (OpenGL ES 2'
                     ' limitation - consider setting KIVY_GLES_LIMITS)')
-            self._indices = list(value)
+            self._indices, self._lindices = _ensure_ushort_view(value,
+                &self._pindices)
+            self.icount = len(self._indices)
             self.flag_update()
 
     property mode:
@@ -479,7 +487,7 @@ cdef class Mesh(VertexInstruction):
         'triangle_fan'.
         '''
         def __get__(self):
-            self.batch.get_mode()
+            return self.batch.get_mode()
         def __set__(self, mode):
             self.batch.set_mode(mode)
 
@@ -840,7 +848,7 @@ cdef class BorderImage(Rectangle):
 
     :Parameters:
         `border`: list
-            Border information in the format (top, right, bottom, left).
+            Border information in the format (bottom, right, top, left).
             Each value is in pixels.
 
         `auto_scale`: bool
@@ -848,7 +856,7 @@ cdef class BorderImage(Rectangle):
 
             If the BorderImage's size is less than the sum of it's
             borders, horizontally or vertically, and this property is
-            set to True, the borders will be rescaled to accomodate for
+            set to True, the borders will be rescaled to accommodate for
             the smaller size.
 
     '''
@@ -875,7 +883,7 @@ cdef class BorderImage(Rectangle):
         w = self.w
         h = self.h
 
-        # width and heigth of texture in pixels, and tex coord space
+        # width and height of texture in pixels, and tex coord space
         cdef float tw, th, tcw, tch
         cdef float *tc = self._tex_coords
         cdef float tc0, tc1, tc2, tc7
@@ -968,7 +976,7 @@ cdef class BorderImage(Rectangle):
             15, 14,  7,     7,  8, 15,  # top middle
             10, 15,  8,     8,  9, 10,  # top left
             11, 12, 15,    15, 10, 11,  # center left
-            12, 13, 14,    14, 15, 12]  # center middel
+            12, 13, 14,    14, 15, 12]  # center middle
 
         self.batch.set_data(<vertex_t *>vertices, 16, indices, 54)
 
@@ -1034,7 +1042,7 @@ cdef class Ellipse(Rectangle):
         cdef int i, angle_dir
         cdef float angle_start, angle_end, angle_range
         cdef float x, y, angle, rx, ry, ttx, tty, tx, ty, tw, th
-        cdef float cx, cy, tangetial_factor, radial_factor, fx, fy
+        cdef float cx, cy, tangential_factor, radial_factor, fx, fy
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
         cdef int count = self._segments
@@ -1083,7 +1091,7 @@ cdef class Ellipse(Rectangle):
 
         # super fast ellipse drawing
         # credit goes to: http://slabode.exofire.net/circle_draw.shtml
-        tangetial_factor = tan(angle_range)
+        tangential_factor = tan(angle_range)
         radial_factor = cos(angle_range)
 
         # Calculate the coordinates for a circle with radius 0.5 about
@@ -1107,8 +1115,8 @@ cdef class Ellipse(Rectangle):
 
             fx = -y
             fy = x
-            x += fx * tangetial_factor
-            y += fy * tangetial_factor
+            x += fx * tangential_factor
+            y += fy * tangential_factor
             x *= radial_factor
             y *= radial_factor
 
@@ -1295,7 +1303,7 @@ cdef class RoundedRectangle(Rectangle):
 
         index = 1  # vertex index from 1 to count
         for corner in xrange(4):
-            # start angle for the corner. end is 90 degress lesser (clockwise)
+            # start angle for the corner. end is 90 degrees lesser (clockwise)
             angle = 180 - 90 * corner
 
             # coefficients to enable/disable multiplication by width/height

@@ -28,59 +28,52 @@ matrix:
       env: RUN=unit PY=3
       os: osx
 
+before_install:
+  # https://github.com/travis-ci/travis-ci/issues/6307
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then rvm get head; fi
+
 install:
   - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
-        if [ "${RUN}" != "pep8" ]; then
-          yes | sudo add-apt-repository ppa:zoogie/sdl2-snapshots;
-          yes | sudo add-apt-repository ppa:gstreamer-developers/ppa;
-          sudo apt-get update;
-          sudo apt-get -y install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libsdl2-mixer-dev;
-          sudo apt-get -y install libgstreamer1.0-dev gstreamer1.0-alsa gstreamer1.0-plugins-base;
-          sudo apt-get -y install python-dev libsmpeg-dev libswscale-dev libavformat-dev libavcodec-dev libjpeg-dev libtiff4-dev libX11-dev libmtdev-dev;
-          sudo apt-get -y install python-setuptools build-essential libgl1-mesa-dev libgles2-mesa-dev;
-          sudo apt-get -y install xvfb pulseaudio;
-          pip install --upgrade cython pillow nose coveralls;
-        fi;
-        if [ "${RUN}" == "docs" ]; then
-          sudo apt-get -y install texlive-full;
-          pip install --upgrade sphinxcontrib-blockdiag sphinxcontrib-seqdiag sphinxcontrib-actdiag sphinxcontrib-nwdiag;
-        fi;
+      if [ "${RUN}" != "pep8" ]; then
+        yes | sudo add-apt-repository ppa:zoogie/sdl2-snapshots;
+        yes | sudo add-apt-repository ppa:gstreamer-developers/ppa;
+        sudo apt-get update;
+        sudo apt-get -y install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libsdl2-mixer-dev;
+        sudo apt-get -y install libgstreamer1.0-dev gstreamer1.0-alsa gstreamer1.0-plugins-base;
+        sudo apt-get -y install python-dev libsmpeg-dev libswscale-dev libavformat-dev libavcodec-dev libjpeg-dev libtiff4-dev libX11-dev libmtdev-dev;
+        sudo apt-get -y install python-setuptools build-essential libgl1-mesa-dev libgles2-mesa-dev;
+        sudo apt-get -y install xvfb pulseaudio;
+        pip install --upgrade cython pillow nose coveralls;
+      fi;
+      if [ "${RUN}" == "docs" ]; then
+        pip install --upgrade sphinxcontrib-blockdiag sphinxcontrib-seqdiag sphinxcontrib-actdiag sphinxcontrib-nwdiag;
+      fi;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
-      curl -O -L https://github.com/tatsuhiro-t/aria2/releases/download/release-1.19.3/aria2-1.19.3-osx-darwin.dmg;
-      hdiutil attach aria2-1.19.3-osx-darwin.dmg;
-      sudo installer -package "/Volumes/aria2 1.19.3 Intel/aria2.pkg" -target /;
+      curl -O -L https://github.com/aria2/aria2/releases/download/release-1.29.0/aria2-1.29.0-osx-darwin.dmg;
+      hdiutil attach aria2-1.29.0-osx-darwin.dmg;
+      sudo installer -package "/Volumes/aria2 1.29.0 Intel/aria2.pkg" -target /;
 
-      curl -O -L https://www.libsdl.org/release/SDL2-2.0.4.dmg;
+      curl -O -L https://www.libsdl.org/release/SDL2-2.0.5.dmg;
       curl -O -L https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.1.dmg;
       curl -O -L https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-2.0.1.dmg;
-      curl -O -L https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.13.dmg;
-      /usr/local/aria2/bin/aria2c -x 10 http://gstreamer.freedesktop.org/data/pkg/osx/1.7.1/gstreamer-1.0-1.7.1-x86_64.pkg;
-      /usr/local/aria2/bin/aria2c -x 10 http://gstreamer.freedesktop.org/data/pkg/osx/1.7.1/gstreamer-1.0-devel-1.7.1-x86_64.pkg;
-      curl -O -L http://www.sveinbjorn.org/files/software/platypus.zip;
-      curl -O -L http://www.kekaosx.com/release/Keka-1.0.4-intel.dmg;
-      hdiutil attach Keka-1.0.4-intel.dmg;
-      hdiutil attach SDL2-2.0.4.dmg;
+      curl -O -L https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.14.dmg;
+      /usr/local/aria2/bin/aria2c -x 10 https://gstreamer.freedesktop.org/data/pkg/osx/1.10.2/gstreamer-1.0-1.10.2-x86_64.pkg;
+      /usr/local/aria2/bin/aria2c -x 10 https://gstreamer.freedesktop.org/data/pkg/osx/1.10.2/gstreamer-1.0-devel-1.10.2-x86_64.pkg;
+
+      hdiutil attach SDL2-2.0.5.dmg;
       sudo cp -a /Volumes/SDL2/SDL2.framework /Library/Frameworks/;
       hdiutil attach SDL2_image-2.0.1.dmg;
       sudo cp -a /Volumes/SDL2_image/SDL2_image.framework /Library/Frameworks/;
-      hdiutil attach SDL2_ttf-2.0.13.dmg;
+      hdiutil attach SDL2_ttf-2.0.14.dmg;
       sudo cp -a /Volumes/SDL2_ttf/SDL2_ttf.framework /Library/Frameworks/;
       hdiutil attach SDL2_mixer-2.0.1.dmg;
       sudo cp -a /Volumes/SDL2_mixer/SDL2_mixer.framework /Library/Frameworks/;
-      sudo installer -package gstreamer-1.0-1.7.1-x86_64.pkg -target /;
-      sudo installer -package gstreamer-1.0-devel-1.7.1-x86_64.pkg -target /;
-      unzip platypus.zip;
-      mkdir -p /usr/local/bin;
-      mkdir -p /usr/local/share/platypus;
-      mkdir -p /usr/local/man/platypus;
-      cp Platypus-5.0/Platypus.app/Contents/Resources/platypus_clt /usr/local/bin/platypus;
-      cp Platypus-5.0/Platypus.app/Contents/Resources/ScriptExec /usr/local/share/platypus/ScriptExec;
-      cp Platypus-5.0/Platypus.app/Contents/Resources/MainMenu.nib /usr/local/share/platypus/MainMenu.nib;
-      chmod -R 755 /usr/local/share/platypus;
+      sudo installer -package gstreamer-1.0-1.10.2-x86_64.pkg -target /;
+      sudo installer -package gstreamer-1.0-devel-1.10.2-x86_64.pkg -target /;
       if [ "${PY}" == "3" ]; then
-         curl -O -L https://www.python.org/ftp/python/3.5.1/python-3.5.1-macosx10.6.pkg;
-         sudo installer -package python-3.5.1-macosx10.6.pkg -target /;
+         curl -O -L https://www.python.org/ftp/python/3.5.2/python-3.5.2-macosx10.6.pkg;
+         sudo installer -package python-3.5.2-macosx10.6.pkg -target /;
          pip3 install --upgrade --user cython pillow nose mock;
       else
          pip install --upgrade --user cython pillow nose mock;
@@ -97,70 +90,50 @@ before_script:
       export CC=clang;
       export CXX=clang;
       export FFLAGS=-ff2c;
-      export USE_OPENGL_MOCK=1;
+      export KIVY_GL_BACKEND=mock;
     fi;
 
 script:
   - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
-        set -v;
-        if [ "${RUN}" == "unit" ]; then
-          make;
-          make test;
-        fi;
-        if [ "${COVERALLS}" == "true" ] && [ "${TRAVIS_BRANCH}" == "master" ]; then
-          coveralls;
-        fi;
-        if [ "${RUN}" == "pep8" ]; then
-          make style;
-        fi;
-        if [ "${RUN}" == "docs" ]; then
-          make html;
-          make pdf;
-        fi;
+      set -ex;
+      if [ "${RUN}" == "unit" ]; then
+        make;
+        make test;
+      fi;
+      if [ "${COVERALLS}" == "true" ] && [ "${TRAVIS_BRANCH}" == "master" ]; then
+        coveralls;
+      fi;
+      if [ "${RUN}" == "pep8" ]; then
+        make style;
+      fi;
+      if [ "${RUN}" == "docs" ]; then
+        make html;
+      fi;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
+      set -ex;
       if [ "${PY}" == "3" ]; then
-         python3 setup.py build_ext --inplace;
-         python3 -m nose.core kivy/tests;
+        python3 setup.py build_ext --inplace;
+        python3 -m nose.core kivy/tests;
       else
-         make;
-         make test;
+        make;
+        make test;
       fi;
     fi;
 
 
 after_success:
-  # - if [ "${TRAVIS_OS_NAME}" == "osx" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
-  #     openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
-  #     chmod 600 ~/.ssh/id_rsa;
-  #     echo -e "Host kivy.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
-  #     git clone https://github.com/kivy/kivy-sdk-packager;
-  #     cd kivy-sdk-packager/osx;
-  #     if [ "${PY}" == "3" ]; then
-  #       yes | ./create-osx-bundle.sh python3 master > output.txt;
-  #       mv Kivy.app Kivy3.app;
-  #       /Volumes/Keka/Keka.app/Contents/Resources/keka7z a Kivy3.7z Kivy3.app;
-  #       rsync --delete --force -r -e ssh ./Kivy3.7z kivy@kivy.org:~/kivy.org/downloads/tests/Kivy3.7z;
-  #     else
-  #       ./create-osx-bundle.sh python2 master > output.txt;
-  #       mv Kivy.app Kivy2.app;
-  #       /Volumes/Keka/Keka.app/Contents/Resources/keka7z a Kivy2.7z Kivy2.app;
-  #       rsync --delete --force -r -e ssh ./Kivy2.7z kivy@kivy.org:~/kivy.org/downloads/tests/Kivy2.7z;
-  #     fi;
-  #   fi;
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" == "docs" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ] && [ "${TRAVIS_BRANCH}" == "master" ]; then
       openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
       chmod 600 ~/.ssh/id_rsa;
-      echo -e "Host kivy.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
-      rsync --delete --force -r -e ssh ./doc/build/html/ kivy@kivy.org:~/kivy.org/docs/api-trunk/;
-      mv ./doc/build/latex/Kivy.pdf ./doc/build/latex/Kivy-latest.pdf;
-      rsync -e ssh ./doc/build/latex/Kivy-latest.pdf kivy@kivy.org:~/kivy.org/docs/pdf/Kivy-latest.pdf;
+      echo -e "Host 159.203.106.198\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
+      rsync --delete --force -r -e "ssh -p 2457" ./doc/build/html/ root@159.203.106.198:/web/docs/;
     fi;
 
 notifications:
   webhooks:
     urls:
-      - http://kivy.org:5000/travisevent
+      - https://kivy.org:5000/travisevent
     on_success: always
     on_failure: always
     on_start: always

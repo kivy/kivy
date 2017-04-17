@@ -1,6 +1,13 @@
 $(document).ready(function () {
-	var height = $(document).height();
-	$('#content').css('min-height', function(){ return height; });
+	// get real height of all elements inside div#content
+	function getRealHeight() {
+		var realHeight = 0;
+		$("#content").children().each(function(){
+			realHeight = realHeight + $(this).outerHeight(true);
+		});
+		return realHeight;
+	}
+	$('#content').css('min-height', getRealHeight());
 
 	var bodyshortcut = false;
 	function ensure_bodyshortcut() {
@@ -88,6 +95,7 @@ $(document).ready(function () {
 			$('div.body dl.api-level > dd ul').hide();
 			$(this).removeClass('showed');
 			$(this).html('Show Descriptions &dArr;');
+			$('#content').css('min-height',getRealHeight());
 			$.cookie('kivy.toggledesc', 'true');
 		} else {
 			$('div.body dl.api-level > dd p').show();
@@ -96,6 +104,7 @@ $(document).ready(function () {
 			$('div.body dl.api-level > dd ul').show();
 			$(this).addClass('showed');
 			$(this).html('Hide Descriptions &uArr;');
+			$('#content').css('min-height',getRealHeight());
 			$.cookie('kivy.toggledesc', 'false');
 		}
 	});

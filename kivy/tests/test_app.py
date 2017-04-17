@@ -26,4 +26,3 @@ class AppTest(unittest.TestCase):
         data_dir = a.user_data_dir
         if not os.path.exists(data_dir):
             raise Exception("user_data_dir didnt exists")
-

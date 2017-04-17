@@ -116,7 +116,7 @@ class GestureContainer(EventDispatcher):
         self._vectors = None
 
         # Key is touch.uid; value is a kivy.graphics.Line(); it's used even
-        # if line_width is 0 (ie not actually drawn anywhere)
+        # if line_width is 0 (i.e. not actually drawn anywhere)
         self._strokes = {}
 
         # Make sure the bbox is up to date with the first touch position
@@ -129,7 +129,8 @@ class GestureContainer(EventDispatcher):
         and end of a stroke and if `update_bbox` is called. If you are going
         to analyze a gesture mid-stroke, you may need to set the `no_cache`
         argument to True.'''
-        if self._cache_time == self._update_time and not kwargs.get('no_cache'):
+        if self._cache_time == self._update_time and \
+                not kwargs.get('no_cache'):
             return self._vectors
 
         vecs = []
@@ -273,7 +274,7 @@ class GestureSurface(FloatLayout):
 
     :Events:
         `on_gesture_start` :class:`GestureContainer`
-            Fired when a new gesture is initiated on the surface, ie the
+            Fired when a new gesture is initiated on the surface, i.e. the
             first on_touch_down that does not collide with an existing
             gesture on the surface.
 
@@ -359,10 +360,10 @@ class GestureSurface(FloatLayout):
     def on_touch_move(self, touch):
         '''When a touch moves, we add a point to the line on the canvas so the
         path is updated. We must also check if the new point collides with the
-        bouonding box of another gesture - if so, they should be merged.'''
+        bounding box of another gesture - if so, they should be merged.'''
         if touch.grab_current is not self:
             return
-        if not self.collide_point(touch.y, touch.y):
+        if not self.collide_point(touch.x, touch.y):
             return
 
         # Retrieve the GestureContainer object that handles this touch, and
@@ -402,16 +403,17 @@ class GestureSurface(FloatLayout):
 
         # dispatch later only if we have a window
         elif self.temporal_window > 0:
-            Clock.schedule_once(self._complete_dispatcher, self.temporal_window)
+            Clock.schedule_once(self._complete_dispatcher,
+                                    self.temporal_window)
 
 # -----------------------------------------------------------------------------
 # Gesture related methods
 # -----------------------------------------------------------------------------
     def init_gesture(self, touch):
-        '''Create a new gesture from touch, ie it's the first on
+        '''Create a new gesture from touch, i.e. it's the first on
         surface, or was not close enough to any existing gesture (yet)'''
         col = self.color
-        if self.use_random_color is True:
+        if self.use_random_color:
             col = hsv_to_rgb(random(), 1., 1.)
 
         g = GestureContainer(touch, max_strokes=self.max_strokes, color=col)
@@ -433,11 +435,11 @@ class GestureSurface(FloatLayout):
         return g
 
     def init_stroke(self, g, touch):
-        l = [touch.x, touch.y]
+        points = [touch.x, touch.y]
         col = g.color
 
         new_line = Line(
-            points=l,
+            points=points,
             width=self.line_width,
             group=g.id)
         g._strokes[str(touch.uid)] = new_line

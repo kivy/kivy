@@ -228,9 +228,9 @@ class ColorWheel(Widget):
         if touch.grab_current is not self:
             return
         r = self._get_touch_r(touch.pos)
-        goal_sv_idx = (touch.ud['orig_sv_idx']
-                       - int((r - touch.ud['anchor_r'])
-                             / (float(self._radius) / self._piece_divisions)))
+        goal_sv_idx = (touch.ud['orig_sv_idx'] -
+                       int((r - touch.ud['anchor_r']) /
+                            (float(self._radius) / self._piece_divisions)))
 
         if (
             goal_sv_idx != self.sv_idx and
@@ -254,14 +254,14 @@ class ColorWheel(Widget):
                 if self.sv_idx > touch.ud['orig_sv_idx']:
                     Clock.schedule_once(
                         self.inertial_incr_sv_idx,
-                        (Clock.get_time() - touch.ud['orig_time'])
-                        / (self.sv_idx - touch.ud['orig_sv_idx']))
+                        (Clock.get_time() - touch.ud['orig_time']) /
+                        (self.sv_idx - touch.ud['orig_sv_idx']))
 
                 if self.sv_idx < touch.ud['orig_sv_idx']:
                     Clock.schedule_once(
                         self.inertial_decr_sv_idx,
-                        (Clock.get_time() - touch.ud['orig_time'])
-                        / (self.sv_idx - touch.ud['orig_sv_idx']))
+                        (Clock.get_time() - touch.ud['orig_time']) /
+                        (self.sv_idx - touch.ud['orig_sv_idx']))
 
                 self._pinch_flag = False
                 return
@@ -296,7 +296,7 @@ class ColorWheel(Widget):
 
 class _ColorArc(InstructionGroup):
     def __init__(self, r_min, r_max, theta_min, theta_max,
-                 color=(0, 0, 1, 1), origin = (0, 0), **kwargs):
+                 color=(0, 0, 1, 1), origin=(0, 0), **kwargs):
         super(_ColorArc, self).__init__(**kwargs)
         self.origin = origin
         self.r_min = r_min
@@ -409,6 +409,8 @@ class ColorPicker(RelativeLayout):
     defaults to None.
     '''
 
+    _update_clr_ev = _update_hex_ev = None
+
     # now used only internally.
     foreground_color = ListProperty((1, 1, 1, 1))
 
@@ -426,8 +428,10 @@ class ColorPicker(RelativeLayout):
 
     def _trigger_update_clr(self, mode, clr_idx, text):
         self._upd_clr_list = mode, clr_idx, text
-        Clock.unschedule(self._update_clr)
-        Clock.schedule_once(self._update_clr)
+        ev = self._update_clr_ev
+        if ev is None:
+            ev = self._update_clr_ev = Clock.create_trigger(self._update_clr)
+        ev()
 
     def _update_clr(self, dt):
         mode, clr_idx, text = self._upd_clr_list
@@ -447,8 +451,10 @@ class ColorPicker(RelativeLayout):
 
     def _trigger_update_hex(self, text):
         self._upd_hex_list = text
-        Clock.unschedule(self._update_hex)
-        Clock.schedule_once(self._update_hex)
+        ev = self._update_hex_ev
+        if ev is None:
+            ev = self._update_hex_ev = Clock.create_trigger(self._update_hex)
+        ev()
 
     def __init__(self, **kwargs):
         self._updating_clr = False

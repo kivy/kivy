@@ -88,5 +88,6 @@ class SettingsApp(App):
         else:
             super(SettingsApp, self).close_settings()
 
+
 if __name__ == '__main__':
     SettingsApp().run()

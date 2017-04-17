@@ -1,4 +1,4 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 #
 #    this program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -27,8 +27,8 @@ http://www.java2s.com/Open-Source/Python/Network/\
         emesene/emesene-1.6.2/pygif/pygif.py.htm'''
 
 
-#TODO issues to fix
-#optimize for speed  #partially done#  a lot of room for improvement
+# TODO issues to fix
+# optimize for speed  #partially done#  a lot of room for improvement
 import struct
 from array import array
 
@@ -73,7 +73,7 @@ class ImageLoaderGIF(ImageLoaderBase):
                 else im_palette
             have_transparent_color = img.has_transparent_color
             transparent_color = img.transparent_color
-            #draw_method_restore_previous =  1 \
+            # draw_method_restore_previous =  1 \
             #    if img.draw_method == 'restore previous' else 0
             draw_method_replace = 1 \
                 if ((img.draw_method == 'replace') or
@@ -90,7 +90,7 @@ class ImageLoaderGIF(ImageLoaderBase):
                 img_height = ls_height
                 img_width = ls_width
                 left = top = 0
-            #reverse top to bottom and left to right
+            # reverse top to bottom and left to right
             tmp_top = (ls_height - (img_height + top))
             img_width_plus_left = (img_width + left)
             ls_width_multiply_4 = ls_width * 4
@@ -103,8 +103,8 @@ class ImageLoaderGIF(ImageLoaderBase):
                 rgba_pos = (tmp_top * ls_width_multiply_4) + (left_multiply_4)
                 tmp_top += 1
                 while i < img_width_plus_left:
-                    #this should now display corrupted gif's
-                    #instead of crashing on gif's not decoded properly
+                    # this should now display corrupted gif's
+                    # instead of crashing on gif's not decoded properly
                     try:
                         (r, g, b) = palette[pixels[x + i]]
                     except:
@@ -116,17 +116,17 @@ class ImageLoaderGIF(ImageLoaderBase):
                         if have_transparent_color:
                             if transparent_color == pixels[x + i]:
                                 if draw_method_replace:
-                                    #transparent pixel draw method replace
+                                    # transparent pixel draw method replace
                                     pixel_map[rgba_pos + 3] = 0
                                     rgba_pos += 4
                                     i += 1
                                     continue
-                                #transparent pixel draw method combine
+                                # transparent pixel draw method combine
                                 rgba_pos += 4
                                 i += 1
                                 continue
-                           # this pixel isn't transparent
-                        #doesn't have transparent color
+                            # this pixel isn't transparent
+                        # doesn't have transparent color
                         (pixel_map[rgba_pos], pixel_map[rgba_pos + 1],
                                 pixel_map[rgba_pos + 2]) = (r, g, b)
                         pixel_map[rgba_pos + 3] = 255
@@ -154,9 +154,9 @@ class Gif(object):
 
     # struct format strings
 
-    #17,18:
+    # 17,18:
     FMT_HEADER = '<6sHHBBB'
-    #20:
+    # 20:
     FMT_IMGDESC = '<HHHHB'
 
     IMAGE_SEPARATOR = 0x2C
@@ -274,7 +274,7 @@ class ImageDescriptor(object):
         self.local_color_table_flag = self.flags[7]
         self.interlace_flag = self.flags[6]
         self.sort_flag = self.flags[5]
-        #-- flags 4 and 3 are reserved
+        # -- flags 4 and 3 are reserved
         self.local_color_table_size = 2 ** (pack_bits(self.flags[:3]) + 1)
         if self.local_color_table_flag:
             if Debug:
@@ -310,8 +310,8 @@ class GifDecoder(Gif):
         # start reading from the beggining of the file
         self.pointer = 0
 
-        #17. Header.
-        #18. Logical Screen Descriptor.
+        # 17. Header.
+        # 18. Logical Screen Descriptor.
         data = self.pops(Gif.FMT_HEADER, self.data)
 
         self.header = data[0]
@@ -322,15 +322,15 @@ class GifDecoder(Gif):
 
         # flags field
         self.flags = get_bits(data[3])
-        #1 bit
+        # 1 bit
         self.color_table_flag = self.flags[7]
         self.sort_flag = self.flags[3]
-        #3 bit
+        # 3 bit
         self.color_resolution = pack_bits(self.flags[4:7])  # 7 not included
-        #3 bit
+        # 3 bit
         self.global_color_table_size = 2 ** (pack_bits(self.flags[:3]) + 1)
 
-        #19. Global Color Table.
+        # 19. Global Color Table.
         if self.color_table_flag:
             size = (self.global_color_table_size) * 3
             self.palette = self.get_color_table(size)
@@ -360,7 +360,7 @@ class GifDecoder(Gif):
             except:
                 nextbyte = 0x3b  # force end
 
-            #20. Image Descriptor
+            # 20. Image Descriptor
             if nextbyte == Gif_IMAGE_SEPARATOR:
                 descriptor = self_pops(Gif_FMT_IMGDESC, self_data)
                 image = self_new_image(descriptor)
@@ -370,11 +370,11 @@ class GifDecoder(Gif):
                 image.codesize = self_pops('<B', self_data)[0]
                 image.lzwcode = b''
                 image_lzwcode = image.lzwcode
-                ###TODO too many corner casses for gifs:(
-                table_size = image.local_color_table_size\
-                    if image.local_color_table_flag and \
-                    self.global_color_table_size < image.local_color_table_size\
-                    else self.global_color_table_size
+                # TODO too many corner cases for gifs:(
+                table_size = (image.local_color_table_size
+                    if image.local_color_table_flag and
+                    self.global_color_table_size < image.local_color_table_size
+                    else self.global_color_table_size)
 
                 while True:
                     try:
@@ -578,6 +578,7 @@ def pack_bits(bits):
             packed += 2 ** level
         level += 1
     return packed
+
 
 # register
 ImageLoader.register(ImageLoaderGIF)

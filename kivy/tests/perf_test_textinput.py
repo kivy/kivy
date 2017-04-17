@@ -76,17 +76,18 @@ class PerfApp(App, FloatLayout):
         self.lt = len_text = len(text_input.text)
         target = len_text - (210 * 9)
         self.tot_time = 0
+        ev = None
 
         def dlt(*l):
             if len(text_input.text) <= target:
-                Clock.unschedule(dlt)
+                ev.cancel()
                 print('Done!')
                 m_len = len(text_input._lines)
                 print('deleted 210 characters 9 times')
                 import resource
                 print('mem usage after test')
-                print(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-                    / 1024, 'MB')
+                print(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss /
+                    1024, 'MB')
                 print('total lines in text input:', m_len)
                 print('--------------------------------------')
                 print('total time elapsed:', self.tot_time)
@@ -98,8 +99,9 @@ class PerfApp(App, FloatLayout):
             self.lt -= 210
             text_input.scroll_y -= 100
             self.tot_time += l[0]
-            Clock.schedule_once(dlt)
-        Clock.schedule_once(dlt)
+            ev()
+        ev = Clock.create_trigger(dlt)
+        ev()
 
     def stress_insert(self, *largs):
         self.test_done = False
@@ -110,18 +112,19 @@ class PerfApp(App, FloatLayout):
             text_input.selection_to)
         len_text = len(text_input._lines)
         self.tot_time = 0
+        ev = None
 
         def pste(*l):
             if len(text_input._lines) >= (len_text) * 9:
-                Clock.unschedule(pste)
+                ev.cancel()
                 print('Done!')
                 m_len = len(text_input._lines)
                 print('pasted', len_text, 'lines',
                     round((m_len - len_text) / len_text), 'times')
                 import resource
                 print('mem usage after test')
-                print(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-                    / 1024, 'MB')
+                print(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss /
+                    1024, 'MB')
                 print('total lines in text input:', m_len)
                 print('--------------------------------------')
                 print('total time elapsed:', self.tot_time)
@@ -130,23 +133,25 @@ class PerfApp(App, FloatLayout):
                 return
             self.tot_time += l[0]
             text_input._paste()
-            Clock.schedule_once(pste)
-        Clock.schedule_once(pste)
+            ev()
+        ev = Clock.create_trigger(pste)
+        ev()
 
     def stress_selection(self, *largs):
         self.test_done = False
         text_input = self.text_input
         self.tot_time = 0
         old_selection_from = text_input.selection_from - 210
+        ev = None
 
         def pste(*l):
             if text_input.selection_from >= old_selection_from:
-                Clock.unschedule(pste)
+                ev.cancel()
                 print('Done!')
                 import resource
                 print('mem usage after test')
-                print(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-                    / 1024, 'MB')
+                print(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss /
+                    1024, 'MB')
                 print('--------------------------------------')
                 print('total time elapsed:', self.tot_time)
                 print('--------------------------------------')
@@ -154,12 +159,14 @@ class PerfApp(App, FloatLayout):
                 return
             text_input.select_text(text_input.selection_from - 1,
                 text_input.selection_to)
-            Clock.schedule_once(pste)
-        Clock.schedule_once(pste)
+            ev()
+        ev = Clock.create_trigger(pste)
+        ev()
 
     def start_test(self, *largs):
         self.but.text = 'test started'
         self.slider.max = len(self.tests)
+        ev = None
 
         def test(*l):
             if self.test_done:
@@ -179,9 +186,9 @@ class PerfApp(App, FloatLayout):
                     print('===================')
                     print('All Tests Completed')
                     print('===================')
-                    Clock.unschedule(test)
+                    ev.cancel()
 
-        Clock.schedule_interval(test, 1)
+        ev = Clock.schedule_interval(test, 1)
 
 
 if __name__ in ('__main__', ):

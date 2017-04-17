@@ -98,4 +98,3 @@ class InputPostprocCalibration(object):
             event.sy = event.sy * params['yratio'] + params['yoffset']
             event.ud['calibration:frame'] = frame
         return events
-

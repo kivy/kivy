@@ -18,17 +18,13 @@ Objects in OpenGL.
 
 __all__ = ('VBO', 'VertexBatch', 'VertexFormat')
 
-include "config.pxi"
+include "../include/config.pxi"
 include "common.pxi"
 include "gl_debug_logger.pxi"
 
 from os import environ
 from kivy.graphics.buffer cimport Buffer
-from kivy.graphics.c_opengl cimport *
-IF USE_OPENGL_MOCK == 1:
-    from kivy.graphics.c_opengl_mock cimport *
-IF USE_OPENGL_DEBUG == 1:
-    from kivy.graphics.c_opengl_debug cimport *
+from kivy.graphics.cgl cimport *
 from kivy.graphics.vertex cimport *
 from kivy.logger import Logger
 from kivy.graphics.context cimport Context, get_context
@@ -72,7 +68,7 @@ cdef class VBO:
     cdef void update_buffer(self):
         # generate VBO if not done yet
         if self.flags & V_NEEDGEN:
-            glGenBuffers(1, &self.id)
+            cgl.glGenBuffers(1, &self.id)
             log_gl_error('VBO.update_buffer-glGenBuffers')
             self.flags &= ~V_NEEDGEN
             self.flags |= V_HAVEID
@@ -80,18 +76,18 @@ cdef class VBO:
         # if the size doesn't match, we need to reupload the whole data
         if self.vbo_size < self.data.size():
             self.vbo_size = self.data.size()
-            glBindBuffer(GL_ARRAY_BUFFER, self.id)
+            cgl.glBindBuffer(GL_ARRAY_BUFFER, self.id)
             log_gl_error('VBO.update_buffer-glBindBuffer')
-            glBufferData(GL_ARRAY_BUFFER, self.vbo_size, self.data.pointer(), 
+            cgl.glBufferData(GL_ARRAY_BUFFER, self.vbo_size, self.data.pointer(),
                 self.usage)
             log_gl_error('VBO.update_buffer-glBufferData')
             self.flags &= ~V_NEEDUPLOAD
 
         # if size match, update only what is needed
         elif self.flags & V_NEEDUPLOAD:
-            glBindBuffer(GL_ARRAY_BUFFER, self.id)
+            cgl.glBindBuffer(GL_ARRAY_BUFFER, self.id)
             log_gl_error('VBO.update_buffer-glBindBuffer')
-            glBufferSubData(GL_ARRAY_BUFFER, 0, self.data.size(), 
+            cgl.glBufferSubData(GL_ARRAY_BUFFER, 0, self.data.size(),
                 self.data.pointer())
             log_gl_error('VBO.update_buffer-glBufferSubData')
             self.flags &= ~V_NEEDUPLOAD
@@ -101,23 +97,23 @@ cdef class VBO:
         cdef vertex_attr_t *attr
         cdef int offset = 0, i
         self.update_buffer()
-        glBindBuffer(GL_ARRAY_BUFFER, self.id)
+        cgl.glBindBuffer(GL_ARRAY_BUFFER, self.id)
         log_gl_error('VBO.bind-glBindBuffer')
         shader.bind_vertex_format(self.vertex_format)
         for i in xrange(self.format_count):
             attr = &self.format[i]
             if attr.per_vertex == 0:
                 continue
-            glVertexAttribPointer(attr.index, attr.size, attr.type,
+            cgl.glVertexAttribPointer(attr.index, attr.size, attr.type,
                     GL_FALSE, <GLsizei>self.format_size, <GLvoid*><long>offset)
             log_gl_error('VBO.bind-glVertexAttribPointer')
             offset += attr.bytesize
 
     cdef void unbind(self):
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
+        cgl.glBindBuffer(GL_ARRAY_BUFFER, 0)
         log_gl_error('VBO.unbind-glBindBuffer')
 
-    cdef void add_vertex_data(self, void *v, unsigned short* indices, 
+    cdef void add_vertex_data(self, void *v, unsigned short* indices,
         int count):
         self.flags |= V_NEEDUPLOAD
         self.data.add(v, indices, count)
@@ -209,22 +205,22 @@ cdef class VertexBatch:
 
         # create when needed
         if self.flags & V_NEEDGEN:
-            glGenBuffers(1, &self.id)
+            cgl.glGenBuffers(1, &self.id)
             self.flags &= ~V_NEEDGEN
             self.flags |= V_HAVEID
 
         # bind to the current id
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.id)
+        cgl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.id)
         log_gl_error('VertexBatch.draw-glBindBuffer')
 
         # cache indices in a gpu buffer too
         if self.flags & V_NEEDUPLOAD:
             if self.elements_size == self.elements.size():
-                glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, self.elements_size,
+                cgl.glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, self.elements_size,
                     self.elements.pointer())
                 log_gl_error('VertexBatch.draw-glBufferSubData')
             else:
-                glBufferData(GL_ELEMENT_ARRAY_BUFFER, self.elements.size(),
+                cgl.glBufferData(GL_ELEMENT_ARRAY_BUFFER, self.elements.size(),
                     self.elements.pointer(), self.usage)
                 self.elements_size = self.elements.size()
                 log_gl_error('VertexBatch.draw-glBufferData')
@@ -233,7 +229,7 @@ cdef class VertexBatch:
         self.vbo.bind()
 
         # draw the elements pointed by indices in ELEMENT ARRAY BUFFER.
-        glDrawElements(self.mode, count, GL_UNSIGNED_SHORT, NULL)
+        cgl.glDrawElements(self.mode, count, GL_UNSIGNED_SHORT, NULL)
         log_gl_error('VertexBatch.draw-glDrawElements')
 
     cdef void set_mode(self, str mode):

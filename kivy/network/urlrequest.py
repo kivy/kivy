@@ -1,6 +1,6 @@
 '''
-Url Request
-===========
+UrlRequest
+==========
 
 .. versionadded:: 1.0.8
 
@@ -29,22 +29,20 @@ to the request will be accessible as the parameter called "result" on
 the callback function of the on_success event.
 
 
-Example of fetching weather in Paris::
+Example of fetching JSON::
 
-    def got_weather(req, results):
-        for key, value in results['weather'][0].items():
-            print(key, ': ', value)
+    def got_json(req, result):
+        for key, value in result['headers'].items():
+            print('{}: {}'.format(key, value))
 
-    req = UrlRequest(
-        'http://api.openweathermap.org/data/2.5/weather?q=Paris,fr',
-        got_weather)
+    req = UrlRequest('https://httpbin.org/headers', got_json)
 
 Example of Posting data (adapted from httplib example)::
 
     import urllib
 
     def bug_posted(req, result):
-        print('Our bug is posted !')
+        print('Our bug is posted!')
         print(result)
 
     params = urllib.urlencode({'@number': 12524, '@type': 'issue',
@@ -114,7 +112,7 @@ class UrlRequest(Thread):
         Parameter `ca_file` added.
         Parameter `verify` added.
 
-    .. versionchanged:: 1.9.2
+    .. versionchanged:: 1.10.0
 
         Parameters `proxy_host`, `proxy_port` and `proxy_headers` added.
 
@@ -363,7 +361,7 @@ class UrlRequest(Thread):
             else:
                 bytes_so_far, result = get_chunks()
 
-            # ensure that restults are dispatched for the last chunk,
+            # ensure that results are dispatched for the last chunk,
             # avoid trigger
             if report_progress:
                 q(('progress', resp, (bytes_so_far, total_size)))
@@ -406,6 +404,8 @@ class UrlRequest(Thread):
         if content_type is not None:
             ct = content_type.split(';')[0]
             if ct == 'application/json':
+                if isinstance(result, bytes):
+                    result = result.decode('utf-8')
                 try:
                     return loads(result)
                 except:
@@ -557,7 +557,7 @@ if __name__ == '__main__':
         pprint('Got an error:')
         pprint(error)
 
-    req = UrlRequest('http://en.wikipedia.org/w/api.php?format'
+    req = UrlRequest('https://en.wikipedia.org/w/api.php?format'
         '=json&action=query&titles=Kivy&prop=revisions&rvprop=content',
         on_success, on_error)
     while not req.is_finished:

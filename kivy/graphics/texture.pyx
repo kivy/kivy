@@ -13,7 +13,7 @@ hardware,
 some OpenGL capabilities might not be available (BGRA support, NPOT support,
 etc.)
 
-You cannot instanciate this class yourself. You must use the function
+You cannot instantiate this class yourself. You must use the function
 :meth:`Texture.create` to create a new texture::
 
     texture = Texture.create(size=(640, 480))
@@ -46,7 +46,7 @@ You can create your own data and blit it to the texture using
 
 For example, to blit immutable bytes data::
 
-    # create a 64x64 texture, defaults to rgb / ubyte
+    # create a 64x64 texture, defaults to rgba / ubyte
     texture = Texture.create(size=(64, 64))
 
     # create 64x64 rgb tab, and fill with values from 0 to 255
@@ -139,7 +139,7 @@ Texture atlas
 -------------
 
 A texture atlas is a single texture that contains many images.
-If you want to seperate the original texture into many single ones, you don't
+If you want to separate the original texture into many single ones, you don't
 need to. You can get a region of the original texture. That will return the
 original texture with custom texture coordinates::
 
@@ -219,7 +219,7 @@ This way, you can use the same method for initialization and reloading.
 
 __all__ = ('Texture', 'TextureRegion')
 
-include "config.pxi"
+include "../include/config.pxi"
 include "common.pxi"
 include "opengl_utils_def.pxi"
 include "img_tools.pxi"
@@ -231,12 +231,9 @@ from kivy.utils import platform
 from kivy.weakmethod import WeakMethod
 from kivy.graphics.context cimport get_context
 
-from kivy.graphics.c_opengl cimport *
-IF USE_OPENGL_MOCK == 1:
-    from kivy.graphics.c_opengl_mock cimport *
-IF USE_OPENGL_DEBUG == 1:
-    from kivy.graphics.c_opengl_debug cimport *
-from kivy.graphics.opengl_utils cimport *
+cimport kivy.graphics.cgl as cgldef
+from kivy.graphics.cgl cimport *
+from kivy.graphics.opengl_utils cimport gl_has_capability, gl_get_version_major
 
 cdef int gles_limts = int(environ.get(
     'KIVY_GLES_LIMITS', int(platform not in ('win', 'macosx', 'linux'))))
@@ -457,13 +454,13 @@ cdef inline void _gl_prepare_pixels_upload(int width) nogil:
     '''Set the best pixel alignment for the current width.
     '''
     if not (width & 0x7):
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 8)
+        cgl.glPixelStorei(GL_UNPACK_ALIGNMENT, 8)
     elif not (width & 0x3):
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 4)
+        cgl.glPixelStorei(GL_UNPACK_ALIGNMENT, 4)
     elif not (width & 0x1):
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 2)
+        cgl.glPixelStorei(GL_UNPACK_ALIGNMENT, 2)
     else:
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+        cgl.glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 
 
 
@@ -482,7 +479,7 @@ cdef Texture _texture_create(int width, int height, colorfmt, bufferfmt,
     if not _is_pow2(width) or not _is_pow2(height):
         make_npot = 1
 
-    IF not USE_OPENGL_ES2:
+    if not cgldef.kivy_opengl_es2:
         if gl_get_version_major() < 3:
             mipmap = 0
 
@@ -534,11 +531,11 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False,
             Size of the texture.
         `colorfmt`: str, defaults to 'rgba'
             Color format of the texture. Can be 'rgba' or 'rgb',
-            'luminance' or 'luminance_alpha'. On desktop, additionnal values are
+            'luminance' or 'luminance_alpha'. On desktop, additional values are
             available: 'red', 'rg'.
         `icolorfmt`: str, defaults to the value of `colorfmt`
             Internal format storage of the texture. Can be 'rgba' or 'rgb',
-            'luminance' or 'luminance_alpha'. On desktop, additionnal values are
+            'luminance' or 'luminance_alpha'. On desktop, additional values are
             available: 'r8', 'rg8', 'rgba8'.
         `bufferfmt`: str, defaults to 'ubyte'
             Internal buffer format of the texture. Can be 'ubyte', 'ushort',
@@ -587,7 +584,7 @@ def texture_create_from_data(im, mipmap=False):
     if im.have_mipmap:
         mipmap = True
 
-    IF not USE_OPENGL_ES2:
+    if not cgldef.kivy_opengl_es2:
         if gl_get_version_major() < 3:
             mipmap = False
 
@@ -714,7 +711,7 @@ cdef class Texture:
                 _gl_prepare_pixels_upload(self._width)
 
                 # do the initial upload with fake data
-                glTexImage2D(self._target, 0, iglfmt, self._width, self._height,
+                cgl.glTexImage2D(self._target, 0, iglfmt, self._width, self._height,
                         0, glfmt, iglbufferfmt, data)
 
                 # free the data !
@@ -722,7 +719,7 @@ cdef class Texture:
 
                 # create mipmap if needed
                 if self._mipmap and is_npot == 0:
-                    glGenerateMipmap(self._target)
+                    cgl.glGenerateMipmap(self._target)
             else:
                 dataerr = 1
 
@@ -766,16 +763,16 @@ cdef class Texture:
 
         # if we have no change to apply, just bind and exit
         if not self.flags:
-            glBindTexture(self._target, self._id)
+            cgl.glBindTexture(self._target, self._id)
             log_gl_error('Texture.bind-glBindTexture')
             return
 
         if self.flags & TI_NEED_GEN:
             self.flags &= ~TI_NEED_GEN
-            glGenTextures(1, &self._id)
+            cgl.glGenTextures(1, &self._id)
             log_gl_error('Texture.bind-glGenTextures')
 
-        glBindTexture(self._target, self._id)
+        cgl.glBindTexture(self._target, self._id)
         log_gl_error('Texture.bind-glBindTexture')
 
         if self.flags & TI_NEED_ALLOCATE:
@@ -791,21 +788,21 @@ cdef class Texture:
         if self.flags & TI_MIN_FILTER:
             self.flags &= ~TI_MIN_FILTER
             value = _str_to_gl_texture_min_filter(self._min_filter)
-            glTexParameteri(self._target, GL_TEXTURE_MIN_FILTER, value)
+            cgl.glTexParameteri(self._target, GL_TEXTURE_MIN_FILTER, value)
             log_gl_error('Texture.bind-glTexParameteri (GL_TEXTURE_MIN_FILTER)')
 
         if self.flags & TI_MAG_FILTER:
             self.flags &= ~TI_MAG_FILTER
             value = _str_to_gl_texture_mag_filter(self._mag_filter)
-            glTexParameteri(self._target, GL_TEXTURE_MAG_FILTER, value)
+            cgl.glTexParameteri(self._target, GL_TEXTURE_MAG_FILTER, value)
             log_gl_error('Texture.bind-glTexParameteri (GL_TEXTURE_MAG_FILTER')
 
         if self.flags & TI_WRAP:
             self.flags &= ~TI_WRAP
             value = _str_to_gl_texture_wrap(self._wrap)
-            glTexParameteri(self._target, GL_TEXTURE_WRAP_S, value)
+            cgl.glTexParameteri(self._target, GL_TEXTURE_WRAP_S, value)
             log_gl_error('Texture.bind-glTexParameteri (GL_TEXTURE_WRAP_S)')
-            glTexParameteri(self._target, GL_TEXTURE_WRAP_T, value)
+            cgl.glTexParameteri(self._target, GL_TEXTURE_WRAP_T, value)
             log_gl_error('Texture.bind-glTexParameteri (GL_TEXTURE_WRAP_T')
 
     cdef void set_min_filter(self, x):
@@ -853,7 +850,7 @@ cdef class Texture:
             called in order to update the texture.
 
         :Parameters:
-            `pbuffer` : bytes, or a class that implements the buffer interface\
+            `pbuffer`: bytes, or a class that implements the buffer interface\
  (including memoryview).
                 A buffer containing the image data. It can be either a bytes
                 object or a instance of a class that implements the python
@@ -862,14 +859,14 @@ cdef class Texture:
                 be contiguous, have only one dimension and must not be
                 readonly, even though the data is not modified, due to a cython
                 limitation. See module description for usage details.
-            `size` : tuple, defaults to texture size
+            `size`: tuple, defaults to texture size
                 Size of the image (width, height)
-            `colorfmt` : str, defaults to 'rgb'
+            `colorfmt`: str, defaults to 'rgb'
                 Image format, can be one of 'rgb', 'rgba', 'bgr', 'bgra',
                 'luminance' or 'luminance_alpha'.
-            `pos` : tuple, defaults to (0, 0)
+            `pos`: tuple, defaults to (0, 0)
                 Position to blit in the texture.
-            `bufferfmt` : str, defaults to 'ubyte'
+            `bufferfmt`: str, defaults to 'ubyte'
                 Type of the data buffer, can be one of 'ubyte', 'ushort',
                 'uint', 'byte', 'short', 'int' or 'float'.
             `mipmap_level`: int, defaults to 0
@@ -982,11 +979,11 @@ cdef class Texture:
 
             if need_unpack:
                 # native unpack supported, use it.
-                glPixelStorei(GL_UNPACK_ROW_LENGTH, rowlength / bytes_per_pixels)
+                cgl.glPixelStorei(GL_UNPACK_ROW_LENGTH, rowlength / bytes_per_pixels)
                 if y != 0:
-                    glPixelStorei(GL_UNPACK_SKIP_ROWS, y)
+                    cgl.glPixelStorei(GL_UNPACK_SKIP_ROWS, y)
                 if x != 0:
-                    glPixelStorei(GL_UNPACK_SKIP_PIXELS, x)
+                    cgl.glPixelStorei(GL_UNPACK_SKIP_PIXELS, x)
                 _gl_prepare_pixels_upload(rowlength)
 
             elif require_subimage:
@@ -1004,25 +1001,25 @@ cdef class Texture:
                 _gl_prepare_pixels_upload(w)
 
             if is_compressed:
-                glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-                glCompressedTexImage2D(target, _mipmap_level, glfmt, w, h, 0,
+                cgl.glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+                cgl.glCompressedTexImage2D(target, _mipmap_level, glfmt, w, h, 0,
                         <GLsizei>datasize, cdata)
             elif is_allocated:
-                glTexSubImage2D(target, _mipmap_level, x, y, w, h, glfmt,
+                cgl.glTexSubImage2D(target, _mipmap_level, x, y, w, h, glfmt,
                     glbufferfmt, cdata)
             else:
-                glTexImage2D(target, _mipmap_level, iglfmt, w, h, 0, glfmt,
+                cgl.glTexImage2D(target, _mipmap_level, iglfmt, w, h, 0, glfmt,
                     glbufferfmt, cdata)
-                
+
             if _mipmap_generation:
-                glGenerateMipmap(target)
+                cgl.glGenerateMipmap(target)
 
             if need_unpack:
-                glPixelStorei(GL_UNPACK_ROW_LENGTH, 0)
+                cgl.glPixelStorei(GL_UNPACK_ROW_LENGTH, 0)
                 if y != 0:
-                    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0)
+                    cgl.glPixelStorei(GL_UNPACK_SKIP_ROWS, 0)
                 if x != 0:
-                    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0)
+                    cgl.glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0)
             elif require_subimage:
                 if cpdata != NULL:
                     free(cpdata)
@@ -1351,4 +1348,3 @@ cdef class TextureRegion(Texture):
             fbo.draw()
             self.flip_vertical()
             return fbo.pixels
-

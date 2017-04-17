@@ -18,15 +18,15 @@ source.include_exts = py,png,jpg,kv,atlas
 # (list) Source files to exclude (let empty to not excluding anything)
 #source.exclude_exts = spec
 
-# (str) Application versionning (method 1)
+# (str) Application versioning (method 1)
 version.regex = __version__ = '(.*)'
 version.filename = %(source.dir)s/main.py
 
-# (str) Application versionning (method 2)
+# (str) Application versioning (method 2)
 # version = 1.2.0
 
 # (list) Application requirements
-requirements = kivy
+requirements = kivy,android,pil
 
 # (str) Presplash of the application
 #presplash.filename = %(source.dir)s/data/presplash.png

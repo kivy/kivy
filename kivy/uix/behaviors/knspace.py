@@ -195,7 +195,7 @@ their children also use different namespaces. Consequently, the
 pretty and complex widgets of each instance will have different text.
 
 Further, because both the namespace :class:`~kivy.properties.ObjectProperty`
-references, and :atrr:`KNSpaceBehavior.knspace` have `rebind=True`, the
+references, and :attr:`KNSpaceBehavior.knspace` have `rebind=True`, the
 text of the `MyComplexWidget` label is rebound to match the text of
 `MyPrettyWidget` when either the root's namespace changes or when the
 `root.knspace.pretty` property changes, as expected.
@@ -203,7 +203,7 @@ text of the `MyComplexWidget` label is rebound to match the text of
 Forking a namespace
 -------------------
 
-Forking a namespace provides the opportunity to create a new namesapce
+Forking a namespace provides the opportunity to create a new namespace
 from a parent namespace so that the forked namespace will contain everything
 in the origin namespace, but the origin namespace will not have access to
 anything added to the forked namespace.
@@ -299,7 +299,16 @@ class KNSpace(EventDispatcher):
     '''
     __has_applied = None
 
-    def __init__(self, parent=None, **kwargs):
+    keep_ref = False
+    '''Whether a direct reference should be kept to the stored objects.
+    If ``True``, we use the direct object, otherwise we use
+    :attr:`~kivy.uix.widget.proxy_ref` when present.
+
+    Defaults to False.
+    '''
+
+    def __init__(self, parent=None, keep_ref=False, **kwargs):
+        self.keep_ref = keep_ref
         super(KNSpace, self).__init__(**kwargs)
         self.parent = parent
         self.__has_applied = set(self.properties().keys())
@@ -315,16 +324,19 @@ class KNSpace(EventDispatcher):
                     **{name:
                        ObjectProperty(None, rebind=True, allownone=True)}
                 )
-                value = getattr(value, 'proxy_ref', value)
+                if not self.keep_ref:
+                    value = getattr(value, 'proxy_ref', value)
                 has_applied.add(name)
                 super(KNSpace, self).__setattr__(name, value)
         elif name not in has_applied:
             self.apply_property(**{name: prop})
             has_applied.add(name)
-            value = getattr(value, 'proxy_ref', value)
+            if not self.keep_ref:
+                value = getattr(value, 'proxy_ref', value)
             super(KNSpace, self).__setattr__(name, value)
         else:
-            value = getattr(value, 'proxy_ref', value)
+            if not self.keep_ref:
+                value = getattr(value, 'proxy_ref', value)
             super(KNSpace, self).__setattr__(name, value)
 
     def __getattribute__(self, name):
@@ -345,7 +357,11 @@ class KNSpace(EventDispatcher):
         parent = super(KNSpace, self).__getattribute__('parent')
         if parent is None:
             return None
-        return getattr(parent, name)
+
+        try:
+            return getattr(parent, name)  # if parent doesn't have it
+        except AttributeError:
+            return None
 
     def property(self, name, quiet=False):
         # needs to overwrite EventDispatcher.property so kv lang will work
@@ -480,7 +496,7 @@ class KNSpaceBehavior(object):
             if knspace:
                 value = knspace.fork()
             else:
-                raise ValueError('Cannot fork with no namesapce')
+                raise ValueError('Cannot fork with no namespace')
 
         for obj, prop_name, uid in self.__callbacks or []:
             obj.unbind_uid(prop_name, uid)
@@ -570,5 +586,6 @@ class KNSpaceBehavior(object):
     `name` is the given name of this instance. See :attr:`knspace` and the
     module description for more details.
     '''
+
 
 knspace = KNSpace()

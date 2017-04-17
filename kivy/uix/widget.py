@@ -34,7 +34,7 @@ This widget class was designed with a couple of principles in mind:
   If a simple AABB is not sufficient, you can override the method to
   perform the collision checks with more complex shapes, e.g. a polygon.
   You can also check if a widget collides with another widget with
-  :meth:`Widget.collide_widget`.
+  :meth:`~Widget.collide_widget`.
 
 
 We also have some default values and behaviors that you should be aware of:
@@ -52,9 +52,9 @@ We also have some default values and behaviors that you should be aware of:
 * The default size_hint is (1, 1). If the parent is a :class:`Layout`, then the
   widget size will be the parent layout's size.
 
-* :meth:`Widget.on_touch_down`, :meth:`Widget.on_touch_move`,
-  :meth:`Widget.on_touch_up` don't do any sort of collisions. If you want to
-  know if the touch is inside your widget, use :meth:`Widget.collide_point`.
+* :meth:`~Widget.on_touch_down`, :meth:`~Widget.on_touch_move`,
+  :meth:`~Widget.on_touch_up` don't do any sort of collisions. If you want to
+  know if the touch is inside your widget, use :meth:`~Widget.collide_point`.
 
 Using Properties
 ----------------
@@ -118,29 +118,55 @@ Widget touch event bubbling
 ---------------------------
 
 When you catch touch events between multiple widgets, you often
-need to be aware of the order in which these events are propogated. In Kivy,
-events bubble up from the most recently added widget and then backwards through
-its children (from the most recently added back to the first child). This order
-is the same for the `on_touch_move` and `on_touch_up` events.
+need to be aware of the order in which these events are propagated. In Kivy,
+events bubble up from the first child upwards through the other children.
+If a widget has children, the event is passed through its children before
+being passed on to the widget after it.
 
-If you want to reverse this order, you can raise events in the children before
-the parent by using the `super` command. For example:
+As the :meth:`~kivy.uix.widget.Widget.on_touch_up` method inserts widgets at
+index 0 by default, this means the event goes from the most recently added
+widget back to the first one added. Consider the following:
 
 .. code-block:: python
 
-    class MyWidget(Widget):
-        def on_touch_down(self, touch):
-            super(MyWidget, self).on_touch_down(touch)
-            # Do stuff here
+    box = BoxLayout()
+    box.add_widget(Label(text="a"))
+    box.add_widget(Label(text="b"))
+    box.add_widget(Label(text="c"))
 
-In general, this would seldom be the best approach as every event bubbles all
-the way through event time and there is no way of determining if it has been
-handled. In order to stop this event bubbling, one of these methods must
-return `True`. At this point, Kivy assumes the event has been handled and the
-propogation stops.
+The label with text "c" gets the event first, "b" second and "a" last. You can
+reverse this order by manually specifying the index:
 
-This means that the recommended approach is to let the event bubble naturally
-but swallow the event if it has been handled. For example:
+.. code-block:: python
+
+    box = BoxLayout()
+    box.add_widget(Label(text="a"), index=0)
+    box.add_widget(Label(text="b"), index=1)
+    box.add_widget(Label(text="c"), index=2)
+
+Now the order would be "a", "b" then "c". One thing to keep in mind when using
+kv is that declaring a widget uses the
+:meth:`~kivy.uix.widget.Widget.add_widget` method for insertion. Hence, using
+
+.. code-block:: kv
+
+    BoxLayout:
+        MyLabel:
+            text: "a"
+        MyLabel:
+            text: "b"
+        MyLabel:
+            text: "c"
+
+would result in the event order "c", "b" then "a" as "c" was actually the last
+added widget. It thus has index 0, "b" index 1 and "a" index 2. Effectively,
+the child order is the reverse of its listed order.
+
+This ordering is the same for the :meth:`~kivy.uix.widget.Widget.on_touch_move`
+and :meth:`~kivy.uix.widget.Widget.on_touch_up` events.
+
+In order to stop this event bubbling, a method can return `True`. This tells
+Kivy the event has been handled and the event propagation stops. For example:
 
 .. code-block:: python
 
@@ -150,23 +176,22 @@ but swallow the event if it has been handled. For example:
                 # Do stuff here and kill the event
                 return True
             else:
-                # Continue normal event bubbling
                 return super(MyWidget, self).on_touch_down(touch)
 
 This approach gives you good control over exactly how events are dispatched
 and managed. Sometimes, however, you may wish to let the event be completely
-propogated before taking action. You can use the
+propagated before taking action. You can use the
 :class:`~kivy.clock.Clock` to help you here:
 
 .. code-block:: python
 
-    class MyLabel(Label):
+    class MyWidget(Label):
         def on_touch_down(self, touch, after=False):
             if after:
                 print "Fired after the event has been dispatched!"
             else:
                 Clock.schedule_once(lambda dt: self.on_touch_down(touch, True))
-                return super(MyLabel, self).on_touch_down(touch)
+                return super(MyWidget, self).on_touch_down(touch)
 
 Usage of :attr:`Widget.center`, :attr:`Widget.right`, and :attr:`Widget.top`
 ----------------------------------------------------------------------------
@@ -361,9 +386,9 @@ class Widget(WidgetBase):
 
         :Parameters:
             `x`: numeric
-                x position of the point (in window coordinates)
+                x position of the point (in parent coordinates)
             `y`: numeric
-                y position of the point (in window coordinates)
+                y position of the point (in parent coordinates)
 
         :Returns:
             A bool. True if the point is inside the bounding box, False
@@ -383,7 +408,7 @@ class Widget(WidgetBase):
 
         :Parameters:
             `wid`: :class:`Widget` class
-                Widget to collide with.
+                Widget to test collision with.
 
         :Returns:
             bool. True if the other widget collides with this widget, False
@@ -421,8 +446,8 @@ class Widget(WidgetBase):
                 :mod:`~kivy.uix.relativelayout` for a discussion on
                 coordinate systems.
 
-        :Returns:
-            bool. If True, the dispatching of the touch event will stop.
+        :Returns: bool
+            If True, the dispatching of the touch event will stop.
             If False, the event will continue to be dispatched to the rest
             of the widget tree.
         '''
@@ -470,9 +495,9 @@ class Widget(WidgetBase):
             `index`: int, defaults to 0
                 Index to insert the widget in the list. Notice that the default
                 of 0 means the widget is inserted at the beginning of the list
-                and will thus appear under the other widgets. For a full
-                discussion on the index and widget hierarchy, please see the
-                :doc:`Widgets Programming Guide <guide/widgets>`.
+                and will thus be drawn on top of other sibling widgets. For a
+                full discussion of the index and widget hierarchy, please see
+                the :doc:`Widgets Programming Guide <guide/widgets>`.
 
                 .. versionadded:: 1.0.5
             `canvas`: str, defaults to None
@@ -521,7 +546,7 @@ class Widget(WidgetBase):
             children = self.children
             if index >= len(children):
                 index = len(children)
-                next_index = 0
+                next_index = canvas.indexof(children[-1].canvas)
             else:
                 next_child = children[index]
                 next_index = canvas.indexof(next_child.canvas)
@@ -590,8 +615,8 @@ class Widget(WidgetBase):
             The image includes only this widget and its children. If you want
             to include widgets elsewhere in the tree, you must call
             :meth:`~Widget.export_to_png` from their common parent, or use
-            :meth:`~kivy.core.window.WindowBase.screenshot` to capture the whole
-            window.
+            :meth:`~kivy.core.window.WindowBase.screenshot` to capture the
+            whole window.
 
         .. note::
 
@@ -603,7 +628,8 @@ class Widget(WidgetBase):
 
         if self.parent is not None:
             canvas_parent_index = self.parent.canvas.indexof(self.canvas)
-            self.parent.canvas.remove(self.canvas)
+            if canvas_parent_index > -1:
+                self.parent.canvas.remove(self.canvas)
 
         fbo = Fbo(size=self.size, with_stencilbuffer=True)
 
@@ -618,7 +644,7 @@ class Widget(WidgetBase):
         fbo.texture.save(filename, flipped=False)
         fbo.remove(self.canvas)
 
-        if self.parent is not None:
+        if self.parent is not None and canvas_parent_index > -1:
             self.parent.canvas.insert(canvas_parent_index, self.canvas)
 
         return True
@@ -1024,7 +1050,7 @@ class Widget(WidgetBase):
     what you are doing.
     '''
 
-    parent = ObjectProperty(None, allownone=True)
+    parent = ObjectProperty(None, allownone=True, rebind=True)
     '''Parent of this widget. The parent of a widget is set when the widget
     is added to another widget and unset when the widget is removed from its
     parent.
@@ -1034,8 +1060,8 @@ class Widget(WidgetBase):
     '''
 
     size_hint_x = NumericProperty(1, allownone=True)
-    '''X size hint. Represents how much space the widget should use in the
-    direction of the X axis relative to its parent's width.
+    '''x size hint. Represents how much space the widget should use in the
+    direction of the x axis relative to its parent's width.
     Only the :class:`~kivy.uix.layout.Layout` and
     :class:`~kivy.core.window.Window` classes make use of the hint.
 
@@ -1060,7 +1086,7 @@ class Widget(WidgetBase):
     '''
 
     size_hint_y = NumericProperty(1, allownone=True)
-    '''Y size hint.
+    '''y size hint.
 
     :attr:`size_hint_y` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1.
@@ -1099,6 +1125,86 @@ class Widget(WidgetBase):
 
     :attr:`pos_hint` is an :class:`~kivy.properties.ObjectProperty`
     containing a dict.
+    '''
+
+    size_hint_min_x = NumericProperty(None, allownone=True)
+    '''When not None, the x-direction minimum size (in pixels,
+    like :attr:`width`) when :attr:`size_hint_x` is also not None.
+
+    When :attr:`size_hint_x` is not None, it is the minimum width that the
+    widget will be set due to the :attr:`size_hint_x`. I.e. when a smaller size
+    would be set, :attr:`size_hint_min_x` is the value used instead for the
+    widget width. When None, or when :attr:`size_hint_x` is None,
+    :attr:`size_hint_min_x` doesn't do anything.
+
+    Only the :class:`~kivy.uix.layout.Layout` and
+    :class:`~kivy.core.window.Window` classes make use of the hint.
+
+    :attr:`size_hint_min_x` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to None.
+
+    .. versionadded:: 1.10.0
+    '''
+
+    size_hint_min_y = NumericProperty(None, allownone=True)
+    '''When not None, the y-direction minimum size (in pixels,
+    like :attr:`height`) when :attr:`size_hint_y` is also not None.
+
+    When :attr:`size_hint_y` is not None, it is the minimum height that the
+    widget will be set due to the :attr:`size_hint_y`. I.e. when a smaller size
+    would be set, :attr:`size_hint_min_y` is the value used instead for the
+    widget height. When None, or when :attr:`size_hint_y` is None,
+    :attr:`size_hint_min_y` doesn't do anything.
+
+    Only the :class:`~kivy.uix.layout.Layout` and
+    :class:`~kivy.core.window.Window` classes make use of the hint.
+
+    :attr:`size_hint_min_y` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to None.
+
+    .. versionadded:: 1.10.0
+    '''
+
+    size_hint_min = ReferenceListProperty(size_hint_min_x, size_hint_min_y)
+    '''Minimum size when using :attr:`size_hint`.
+
+    :attr:`size_hint_min` is a :class:`~kivy.properties.ReferenceListProperty`
+    of (:attr:`size_hint_min_x`, :attr:`size_hint_min_y`) properties.
+
+    .. versionadded:: 1.10.0
+    '''
+
+    size_hint_max_x = NumericProperty(None, allownone=True)
+    '''When not None, the x-direction maximum size (in pixels,
+    like :attr:`width`) when :attr:`size_hint_x` is also not None.
+
+    Similar to :attr:`size_hint_min_x`, except that it sets the maximum width.
+
+    :attr:`size_hint_max_x` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to None.
+
+    .. versionadded:: 1.10.0
+    '''
+
+    size_hint_max_y = NumericProperty(None, allownone=True)
+    '''When not None, the y-direction maximum size (in pixels,
+    like :attr:`height`) when :attr:`size_hint_y` is also not None.
+
+    Similar to :attr:`size_hint_min_y`, except that it sets the maximum height.
+
+    :attr:`size_hint_max_y` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to None.
+
+    .. versionadded:: 1.10.0
+    '''
+
+    size_hint_max = ReferenceListProperty(size_hint_max_x, size_hint_max_y)
+    '''Maximum size when using :attr:`size_hint`.
+
+    :attr:`size_hint_max` is a :class:`~kivy.properties.ReferenceListProperty`
+    of (:attr:`size_hint_max_x`, :attr:`size_hint_max_y`) properties.
+
+    .. versionadded:: 1.10.0
     '''
 
     ids = DictProperty({})

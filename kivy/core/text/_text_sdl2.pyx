@@ -50,9 +50,14 @@ cdef class _SurfaceContainer:
     def render(self, container, text, x, y):
         cdef TTF_Font *font = _get_font(container)
         cdef SDL_Color c
+        cdef SDL_Color oc
         cdef SDL_Surface *st
+        cdef SDL_Surface *fgst
         cdef SDL_Rect r
+        cdef SDL_Rect fgr
         cdef list color = list(container.options['color'])
+        cdef list outline_color = list(container.options['outline_color'])
+        outline_width = container.options['outline_width']
         if font == NULL:
             return
         c.r = <int>(color[0] * 255)
@@ -74,21 +79,48 @@ cdef class _SurfaceContainer:
             if TTF_GetFontHinting(font) != TTF_HINTING_NONE:
                 TTF_SetFontHinting(font, TTF_HINTING_NONE)
 
-        kerning = container.options['font_kerning']
-        if kerning is True:
+        if container.options['font_kerning']:
             if TTF_GetFontKerning(font) == 0:
                 TTF_SetFontKerning(font, 1)
-        elif kerning is False:
+        else:
             if TTF_GetFontKerning(font) != 0:
                 TTF_SetFontKerning(font, 0)
 
-        st = (
-            TTF_RenderUTF8_Blended(font, <char *>bytes_text, c)
-            if container.options['font_blended']
-            else TTF_RenderUTF8_Solid(font, <char *>bytes_text, c)
-            )
+        if outline_width:
+            TTF_SetFontOutline(font, outline_width)
+            oc.r = <int>(outline_color[0] * 255)
+            oc.g = <int>(outline_color[1] * 255)
+            oc.b = <int>(outline_color[2] * 255)
+            st = (
+                TTF_RenderUTF8_Blended(font, <char *>bytes_text, oc)
+                if container.options['font_blended']
+                else TTF_RenderUTF8_Solid(font, <char *>bytes_text, oc)
+                )
+            TTF_SetFontOutline(font, 0)
+        else:
+            st = (
+                TTF_RenderUTF8_Blended(font, <char *>bytes_text, c)
+                if container.options['font_blended']
+                else TTF_RenderUTF8_Solid(font, <char *>bytes_text, c)
+                )
         if st == NULL:
             return
+        if outline_width:
+            fgst = (
+                TTF_RenderUTF8_Blended(font, <char *>bytes_text, c)
+                if container.options['font_blended']
+                else TTF_RenderUTF8_Solid(font, <char *>bytes_text, c)
+                )
+            if fgst == NULL:
+                return
+            fgr.x = outline_width
+            fgr.y = outline_width
+            fgr.w = fgst.w
+            fgr.h = fgst.h
+            SDL_SetSurfaceBlendMode(fgst, SDL_BLENDMODE_BLEND)
+            SDL_BlitSurface(fgst, NULL, st, &fgr)
+            SDL_FreeSurface(fgst)
+
         r.x = x
         r.y = y
         r.w = st.w
@@ -161,12 +193,17 @@ cdef TTF_Font *_get_font(self):
 def _get_extents(container, text):
     cdef TTF_Font *font = _get_font(container)
     cdef int w, h
+    outline_width = container.options['outline_width']
     if font == NULL:
         return 0, 0
     if not PY2:
         text = text.encode('utf-8')
     bytes_text = <bytes>text
+    if outline_width:
+        TTF_SetFontOutline(font, outline_width)
     TTF_SizeUTF8(font, <char *>bytes_text, &w, &h)
+    if outline_width:
+        TTF_SetFontOutline(font, 0)
     return w, h
 
 def _get_fontdescent(container):

@@ -12,12 +12,13 @@ The initial version was written by::
 
 All the initial work credits go to him! Thank you :)
 
-This version is written without using ctypes because Kivy doesn't have ctypes
-support on android. We use structs instead.
+This version uses structs instead of ctypes.
 
 
 DDS Format
 ----------
+
+::
 
     [DDS ][SurfaceDesc][Data]
 

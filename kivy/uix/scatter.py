@@ -2,6 +2,9 @@
 Scatter
 =======
 
+.. image:: images/scatter.gif
+    :align: right
+
 :class:`Scatter` is used to build interactive widgets that can be translated,
 rotated and scaled with two or more fingers on a multitouch system.
 
@@ -564,7 +567,8 @@ class Scatter(Widget):
         input.
 
         :Parameters:
-            `touch`: the touch object which triggered the transformation.
+            `touch`:
+                The touch object which triggered the transformation.
 
         .. versionadded:: 1.8.0
         '''
@@ -576,7 +580,8 @@ class Scatter(Widget):
         front of the parent (only if :attr:`auto_bring_to_front` is True)
 
         :Parameters:
-            `touch`: the touch object which brought the scatter to front.
+            `touch`:
+                The touch object which brought the scatter to front.
 
         .. versionadded:: 1.9.0
         '''

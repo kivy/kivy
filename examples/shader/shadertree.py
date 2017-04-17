@@ -3,11 +3,11 @@ Tree shader
 ===========
 
 This example is an experimentation to show how we can use shader for a tree
-subset. Here, we made a ShaderTreeWidget, different than the ShaderWidget in the
-plasma.py example.
+subset. Here, we made a ShaderTreeWidget, different than the ShaderWidget
+in the plasma.py example.
 
-The ShaderTree widget create a Frambuffer, render his children on it, and render
-the Framebuffer with a specific Shader.
+The ShaderTree widget create a Frambuffer, render his children on it, and
+render the Framebuffer with a specific Shader.
 With this way, you can apply cool effect on your widgets :)
 
 '''
@@ -128,7 +128,8 @@ class ShaderWidget(FloatLayout):
         # We'll update our glsl variables in a clock
         Clock.schedule_interval(self.update_glsl, 0)
 
-        # Don't forget to set the texture property to the texture of framebuffer
+        # Don't forget to set the texture property to the texture
+        # of framebuffer
         self.texture = self.fbo.texture
 
     def update_glsl(self, *largs):
@@ -195,10 +196,12 @@ class ShaderTreeApp(App):
 
         def change(*largs):
             sw.fs = available_shaders[self.shader_index]
-            self.shader_index = (self.shader_index + 1) % len(available_shaders)
+            self.shader_index = ((self.shader_index + 1) %
+                                 len(available_shaders))
         btn.bind(on_release=change)
         root.add_widget(btn)
         return root
+
 
 if __name__ == '__main__':
     ShaderTreeApp().run()

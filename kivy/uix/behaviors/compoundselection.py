@@ -44,19 +44,33 @@ to :meth:`select_with_touch` to pass on the touch events::
     from kivy.uix.behaviors.compoundselection import CompoundSelectionBehavior
     from kivy.uix.button import Button
     from kivy.uix.gridlayout import GridLayout
+    from kivy.uix.behaviors import FocusBehavior
     from kivy.core.window import Window
     from kivy.app import App
 
 
-    class SelectableGrid(CompoundSelectionBehavior, GridLayout):
-        def __init__(self, **kwargs):
-            """ Use the initialize method to bind to the keyboard to enable
-            keyboard interaction e.g. using shift and control for multi-select.
+    class SelectableGrid(FocusBehavior, CompoundSelectionBehavior, GridLayout):
+
+        def keyboard_on_key_down(self, window, keycode, text, modifiers):
+            """Based on FocusBehavior that provides automatic keyboard
+            access, key presses will be used to select children.
             """
-            super(CompoundSelectionBehavior, self).__init__(**kwargs)
-            keyboard = Window.request_keyboard(None, self)
-            keyboard.bind(on_key_down=self.select_with_key_down,
-                          on_key_up=self.select_with_key_up)
+            if super(SelectableGrid, self).keyboard_on_key_down(
+                window, keycode, text, modifiers):
+                return True
+            if self.select_with_key_down(window, keycode, text, modifiers):
+                return True
+            return False
+
+        def keyboard_on_key_up(self, window, keycode):
+            """Based on FocusBehavior that provides automatic keyboard
+            access, key release will be used to select children.
+            """
+            if super(SelectableGrid, self).keyboard_on_key_up(window, keycode):
+                return True
+            if self.select_with_key_up(window, keycode):
+                return True
+            return False
 
         def add_widget(self, widget):
             """ Override the adding of widgets so we can bind and catch their
@@ -74,7 +88,8 @@ to :meth:`select_with_touch` to pass on the touch events::
         def button_touch_up(self, button, touch):
             """ Use collision detection to de-select buttons when the touch
             occurs outside their area and *touch_multiselect* is not True. """
-            if not (button.collide_point(*touch.pos) or self.touch_multiselect):
+            if not (button.collide_point(*touch.pos) or
+                    self.touch_multiselect):
                 self.deselect_node(button)
 
         def select_node(self, node):
@@ -110,9 +125,17 @@ to :meth:`select_with_touch` to pass on the touch events::
 
 __all__ = ('CompoundSelectionBehavior', )
 
-from kivy.properties import NumericProperty, BooleanProperty, ListProperty
 from time import time
-import string
+from os import environ
+
+from kivy.config import Config
+from kivy.properties import NumericProperty, BooleanProperty, ListProperty
+
+
+if 'KIVY_DOC' not in environ:
+    _is_desktop = Config.getboolean('kivy', 'desktop')
+else:
+    _is_desktop = False
 
 
 class CompoundSelectionBehavior(object):
@@ -169,6 +192,16 @@ class CompoundSelectionBehavior(object):
     defaults to False.
     '''
 
+    touch_deselect_last = BooleanProperty(not _is_desktop)
+    '''Determines whether the last selected node can be deselected when
+    :attr:`multiselect` or :attr:`touch_multiselect` is False.
+
+    .. versionadded:: 1.10.0
+
+    :attr:`touch_deselect_last` is a :class:`~kivy.properties.BooleanProperty`
+    and defaults to True on mobile, False on desktop platforms.
+    '''
+
     keyboard_select = BooleanProperty(True)
     '''Determines whether the keyboard can be used for selection. If False,
     keyboard inputs will be ignored.
@@ -197,8 +230,8 @@ class CompoundSelectionBehavior(object):
 
     right_count = NumericProperty(1)
     '''Determines by how much the selected node is moved up or down, relative
-    to the position of the last selected node, when the right (or left) arrow on
-    the keyboard is pressed.
+    to the position of the last selected node, when the right (or left) arrow
+    on the keyboard is pressed.
 
     :attr:`right_count` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1.
@@ -216,7 +249,17 @@ class CompoundSelectionBehavior(object):
     nodes_order_reversed = BooleanProperty(True)
     ''' (Internal) Indicates whether the order of the nodes as displayed top-
     down is reversed compared to their order in :meth:`get_selectable_nodes`
-    (e.g. how the children property is reversed compared to how it's displayed).
+    (e.g. how the children property is reversed compared to how
+    it's displayed).
+    '''
+
+    text_entry_timeout = NumericProperty(1.)
+    '''When typing characters in rapid sucession (i.e. the time difference since
+    the last character is less than :attr:`text_entry_timeout`), the keys get
+    concatenated and the combined text is passed as the key argument of
+    :meth:`goto_node`.
+
+    .. versionadded:: 1.10.0
     '''
 
     _anchor = None  # the last anchor node selected (e.g. shift relative node)
@@ -229,12 +272,12 @@ class CompoundSelectionBehavior(object):
     # holds str used to find node, e.g. if word is typed. passed to goto_node
     _word_filter = ''
     _last_key_time = 0  # time since last press, for finding whole strs in node
-    _printable = set(string.printable)
     _key_list = []  # keys that are already pressed, to not press continuously
     _offset_counts = {}  # cache of counts for faster access
 
     def __init__(self, **kwargs):
         super(CompoundSelectionBehavior, self).__init__(**kwargs)
+        self._key_list = []
 
         def ensure_single_select(*l):
             if (not self.multiselect) and len(self.selected_nodes) > 1:
@@ -257,7 +300,7 @@ class CompoundSelectionBehavior(object):
 
         :Parameters:
             `node`
-                The node that recieved the touch. Can be None for a scroll
+                The node that received the touch. Can be None for a scroll
                 type touch.
             `touch`
                 Optionally, the touch. Defaults to None.
@@ -271,7 +314,7 @@ class CompoundSelectionBehavior(object):
 
         if touch and 'button' in touch.profile and touch.button in\
             ('scrollup', 'scrolldown', 'scrollleft', 'scrollright'):
-            node_src, idx_src = self._reslove_last_node()
+            node_src, idx_src = self._resolve_last_node()
             node, idx = self.goto_node(touch.button, node_src, idx_src)
             if node == node_src:
                 return False
@@ -289,10 +332,12 @@ class CompoundSelectionBehavior(object):
             if multiselect:
                 self.deselect_node(node)
             else:
+                selected_node_count = len(self.selected_nodes)
                 self.clear_selection()
-                self.select_node(node)
+                if not self.touch_deselect_last or selected_node_count > 1:
+                    self.select_node(node)
         elif range_select:
-            # keep anchor only if not multislect (ctrl-type selection)
+            # keep anchor only if not multiselect (ctrl-type selection)
             self._select_range(multiselect, not multiselect, node, 0)
         else:   # it's not selected at this point
             if not multiselect:
@@ -318,30 +363,50 @@ class CompoundSelectionBehavior(object):
             return False
         keys = self._key_list
         multi = self.multiselect
-        node_src, idx_src = self._reslove_last_node()
+        node_src, idx_src = self._resolve_last_node()
+        text = scancode[1]
 
-        if scancode[1] == 'shift':
+        if text == 'shift':
             self._shift_down = True
-        elif scancode[1] in ('ctrl', 'lctrl', 'rctrl'):
+        elif text in ('ctrl', 'lctrl', 'rctrl'):
             self._ctrl_down = True
-        elif (multi and 'ctrl' in modifiers and scancode[1] in ('a', 'A')
-              and scancode[1] not in keys):
+        elif (multi and 'ctrl' in modifiers and text in ('a', 'A') and
+              text not in keys):
             sister_nodes = self.get_selectable_nodes()
             select = self.select_node
             for node in sister_nodes:
                 select(node)
-            keys.append(scancode[1])
+            keys.append(text)
         else:
-            if scancode[1] in self._printable:
-                if time() - self._last_key_time <= 1.:
-                    self._word_filter += scancode[1]
+            s = text
+            if len(text) > 1:
+                d = {'divide': '/', 'mul': '*', 'substract': '-', 'add': '+',
+                     'decimal': '.'}
+                if text.startswith('numpad'):
+                    s = text[6:]
+                    if len(s) > 1:
+                        if s in d:
+                            s = d[s]
+                        else:
+                            s = None
                 else:
-                    self._word_filter = scancode[1]
+                    s = None
+
+            if s is not None:
+                if s not in keys:  # don't keep adding while holding down
+                    if time() - self._last_key_time <= self.text_entry_timeout:
+                        self._word_filter += s
+                    else:
+                        self._word_filter = s
+                    keys.append(s)
+
                 self._last_key_time = time()
                 node, idx = self.goto_node(self._word_filter, node_src,
                                            idx_src)
             else:
-                node, idx = self.goto_node(scancode[1], node_src, idx_src)
+                self._word_filter = ''
+                node, idx = self.goto_node(text, node_src, idx_src)
+
             if node == node_src:
                 return False
 
@@ -353,6 +418,7 @@ class CompoundSelectionBehavior(object):
                     self.clear_selection()
                 self.select_node(node)
             return True
+        self._word_filter = ''
         return False
 
     def select_with_key_up(self, keyboard, scancode, **kwargs):
@@ -388,7 +454,7 @@ class CompoundSelectionBehavior(object):
         'down': uc, 'right': rc, 'left': -rc, 'scrollup': sc,
         'scrolldown': -sc, 'scrollright': -sc, 'scrollleft': sc}
 
-    def _reslove_last_node(self):
+    def _resolve_last_node(self):
         # for offset selection, we have a anchor, and we select everything
         # between anchor and added offset relative to last node
         sister_nodes = self.get_selectable_nodes()
@@ -587,6 +653,9 @@ class CompoundSelectionBehavior(object):
             is overwritten.
         '''
         nodes = self.selected_nodes
+        if node in nodes:
+            return False
+
         if (not self.multiselect) and len(nodes):
             self.clear_selection()
         if node not in nodes:

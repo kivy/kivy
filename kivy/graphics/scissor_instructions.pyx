@@ -7,14 +7,17 @@ Scissor Instructions
 
 Scissor instructions clip your drawing area into a rectangular region.
 
-- class:`ScissorPush`: Begins clipping, sets the bounds of the clip space
-- class:`ScissorPop`: Ends clipping
+- :class:`ScissorPush`: Begins clipping, sets the bounds of the clip space
+- :class:`ScissorPop`: Ends clipping
+
 The area provided to clip is in screenspace pixels and must be provided as
 integer values not floats.
 
 The following code will draw a circle ontop of our widget while clipping
 the circle so it does not expand beyond the widget borders.
+
 .. code-block:: python
+
     with self.canvas.after:
         #If our widget is inside another widget that modified the coordinates
         #spacing (such as ScrollView) we will want to convert to Window coords
@@ -30,14 +33,10 @@ the circle so it does not expand beyond the widget borders.
             pos=self.center)
         ScissorPop()
 '''
-include "config.pxi"
+include "../include/config.pxi"
 include "opcodes.pxi"
 
-from kivy.graphics.c_opengl cimport *
-IF USE_OPENGL_MOCK == 1:
-    from kivy.graphics.c_opengl_mock cimport *
-IF USE_OPENGL_DEBUG == 1:
-    from kivy.graphics.c_opengl_debug cimport *
+from kivy.graphics.cgl cimport *
 from kivy.graphics.instructions cimport Instruction
 
 cdef class Rect:
@@ -181,15 +180,15 @@ cdef class ScissorPush(Instruction):
         cdef Rect back
         if scissor_stack.empty:
             scissor_stack.push(rect)
-            glEnable(GL_SCISSOR_TEST)
-            glScissor(self._x, self._y, self._width, self._height)
+            cgl.glEnable(GL_SCISSOR_TEST)
+            cgl.glScissor(self._x, self._y, self._width, self._height)
         else:
             new_scissor_rect = Rect(rect._x, rect._y,
                 rect._width, rect._height)
             back = scissor_stack.back
             new_scissor_rect.intersect(back)
             scissor_stack.push(new_scissor_rect)
-            glScissor(new_scissor_rect._x, new_scissor_rect._y,
+            cgl.glScissor(new_scissor_rect._x, new_scissor_rect._y,
                 new_scissor_rect._width, new_scissor_rect._height)
 
 cdef class ScissorPop(Instruction):
@@ -201,8 +200,8 @@ cdef class ScissorPop(Instruction):
         scissor_stack.pop()
         cdef Rect new_scissor_rect
         if scissor_stack.empty:
-            glDisable(GL_SCISSOR_TEST)
+            cgl.glDisable(GL_SCISSOR_TEST)
         else:
             new_scissor_rect = scissor_stack.back
-            glScissor(new_scissor_rect._x, new_scissor_rect._y,
+            cgl.glScissor(new_scissor_rect._x, new_scissor_rect._y,
                 new_scissor_rect._width, new_scissor_rect._height)

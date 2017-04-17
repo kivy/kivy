@@ -17,7 +17,7 @@ the video is loaded (when the texture is created)::
     def on_position_change(instance, value):
         print('The position in the video is', value)
     def on_duration_change(instance, value):
-        print('The duration of the video is', video)
+        print('The duration of the video is', value)
     video = Video(source='PandaSneezes.avi')
     video.bind(position=on_position_change,
                duration=on_duration_change)
@@ -127,6 +127,8 @@ class Video(Image):
     to {}.
     '''
 
+    _video_load_event = None
+
     def __init__(self, **kwargs):
         self._video = None
         super(Video, self).__init__(**kwargs)
@@ -152,8 +154,11 @@ class Video(Image):
         self._video.seek(percent)
 
     def _trigger_video_load(self, *largs):
-        Clock.unschedule(self._do_video_load)
-        Clock.schedule_once(self._do_video_load, -1)
+        ev = self._video_load_event
+        if ev is None:
+            ev = self._video_load_event = Clock.schedule_once(
+                self._do_video_load, -1)
+        ev()
 
     def _do_video_load(self, *largs):
         if CoreVideo is None:
@@ -166,7 +171,7 @@ class Video(Image):
         else:
             filename = self.source
             # Check if filename is not url
-            if not '://' in filename:
+            if '://' not in filename:
                 filename = resource_find(filename)
             self._video = CoreVideo(filename=filename, **self.options)
             self._video.volume = self.volume
@@ -230,6 +235,7 @@ class Video(Image):
             self._video.stop()
             self._video.unload()
             self._video = None
+
 
 if __name__ == '__main__':
     from kivy.app import App
