@@ -2,7 +2,7 @@
 Touch Ripple
 ============
 
-.. versionadded:: 1.9.2
+.. versionadded:: 1.10.0
 
 This module contains `mixin <https://en.wikipedia.org/wiki/Mixin>`_ classes
 to add a touch ripple visual effect known from `Google Material Design
