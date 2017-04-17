@@ -605,11 +605,19 @@ cdef class StringProperty(Property):
     :Parameters:
         `defaultvalue`: string, defaults to ''
             Specifies the default value of the property.
+        `none_is_empty`: bool, defaults to True
+            Convert None to an empty string '' if None is not an allowed value.
 
     '''
 
     def __init__(self, defaultvalue='', **kw):
+        self._none_is_empty = kw.get('none_is_empty', True)
         super(StringProperty, self).__init__(defaultvalue, **kw)
+
+    cdef convert(self, EventDispatcher obj, x):
+        if x is None and self._none_is_empty and not self.allownone:
+            return ''
+        return x
 
     cdef compare_value(self, a, b):
         return a == b

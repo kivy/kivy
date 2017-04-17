@@ -45,7 +45,7 @@ cdef class NumericProperty(Property):
     cdef float parse_list(self, EventDispatcher obj, value, ext)
 
 cdef class StringProperty(Property):
-    pass
+    cdef bint _none_is_empty
 
 cdef class ListProperty(Property):
     pass
