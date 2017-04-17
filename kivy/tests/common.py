@@ -45,7 +45,7 @@ class GraphicUnitTest(_base):
         results_dir = join(dirname(__file__), 'results')
         if not exists(results_dir):
             log.warning('No result directory found, cancel test.')
-            return
+            os.mkdir(results_dir)
         self.test_counter = 0
         self.results_dir = results_dir
         self.test_failed = False
@@ -98,6 +98,12 @@ class GraphicUnitTest(_base):
         # log.debug('framecount %d' % self.framecount)
         self.framecount -= 1
         if self.framecount > 0:
+            return
+
+        # don't create screenshots if on Travis
+        from os import environ
+        if 'TRAVIS_OS_NAME' in environ:
+            EventLoop.stop()
             return
 
         reffn = None
