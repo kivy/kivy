@@ -212,7 +212,11 @@ class Animation(EventDispatcher):
     def stop(self, widget):
         '''Stop the animation previously applied to a widget, triggering the
         `on_complete` event.'''
-        props = self._widgets.pop(widget.uid, None)
+        try:
+            uid = widget.uid
+        except:
+            return
+        props = self._widgets.pop(uid, None)
         if props:
             self.dispatch('on_complete', widget)
         self.cancel(widget)
@@ -224,7 +228,11 @@ class Animation(EventDispatcher):
 
         .. versionadded:: 1.4.0
         '''
-        self._widgets.pop(widget.uid, None)
+        try:
+            uid = widget.uid
+        except:
+            return
+        self._widgets.pop(uid, None)
         self._clock_uninstall()
         if not self._widgets:
             self._unregister()
@@ -279,10 +287,16 @@ class Animation(EventDispatcher):
             Animation._instances.remove(self)
 
     def _initialize(self, widget):
-        d = self._widgets[widget.uid] = {
+        try:
+            uid = widget.uid
+        except:
+            return
+
+        d = self._widgets[uid] = {
             'widget': widget,
             'properties': {},
-            'time': None}
+            'time': None
+        }
 
         # get current values
         p = d['properties']
@@ -422,7 +436,11 @@ class Sequence(Animation):
     def stop(self, widget):
         self.anim1.stop(widget)
         self.anim2.stop(widget)
-        props = self._widgets.pop(widget.uid, None)
+        try:
+            uid = widget.uid
+        except:
+            return
+        props = self._widgets.pop(uid, None)
         if props:
             self.dispatch('on_complete', widget)
         super(Sequence, self).cancel(widget)
@@ -506,7 +524,11 @@ class Parallel(Animation):
     def stop(self, widget):
         self.anim1.stop(widget)
         self.anim2.stop(widget)
-        props = self._widgets.pop(widget.uid, None)
+        try:
+            uid = widget.uid
+        except:
+            return
+        props = self._widgets.pop(uid, None)
         if props:
             self.dispatch('on_complete', widget)
         super(Parallel, self).cancel(widget)
