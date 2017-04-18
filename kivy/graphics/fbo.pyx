@@ -107,6 +107,9 @@ cdef class Fbo(RenderContext):
             If True, the framebuffer will be allocated with a stencil buffer.
         `texture`: :class:`~kivy.graphics.texture.Texture`, defaults to None
             If None, a default texture will be created.
+            If the provided texture is flipped (i.e. if it was loaded
+            from an image file), then all drawing on the FBO will also
+            be flipped.
 
     .. note::
         Using both of ``with_stencilbuffer`` and ``with_depthbuffer`` is not
