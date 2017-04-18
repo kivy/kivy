@@ -573,11 +573,15 @@ class WindowSDL(WindowBase):
                     # ignore the key, it has been released
                     self._update_modifiers(mod)
 
+                # convert numpad numeric keycodes to number keycodes
+                temp_key = key - 208 if key in range(256, 265) else key
+
                 # if mod in self._meta_keys:
-                if (key not in self._modifiers and
-                        key not in self.command_keys.keys()):
+                if (temp_key not in self._modifiers and
+                        temp_key not in self.command_keys.keys() and
+                        temp_key not in self.key_map.values()):
                     try:
-                        kstr_chr = unichr(key)
+                        kstr_chr = unichr(temp_key)
                         try:
                             # On android, there is no 'encoding' attribute.
                             # On other platforms, if stdout is redirected,
