@@ -689,8 +689,16 @@ class TextInput(FocusBehavior, Widget):
                 int_pat = self._insert_int_patu
 
             if mode == 'int':
+                if self.text != '':
+                    if self.text[0] == '-':
+                        pass
+                    substring = re.sub('-', '', substring)
                 substring = re.sub(int_pat, chr(''), substring)
             elif mode == 'float':
+                if self.text != '':
+                    if self.text[0] == '-':
+                        pass
+                    substring = re.sub('-', '', substring)
                 if '.' in self.text:
                     substring = re.sub(int_pat, chr(''), substring)
                 else:
@@ -2477,8 +2485,8 @@ class TextInput(FocusBehavior, Widget):
     _lines = ListProperty([])
     _hint_text_lines = ListProperty([])
     _editable = BooleanProperty(True)
-    _insert_int_patu = re.compile(u'[^0-9]')
-    _insert_int_patb = re.compile(b'[^0-9]')
+    _insert_int_patu = re.compile(u'[^0-9\\-]')
+    _insert_int_patb = re.compile(b'[^0-9\\-]')
 
     readonly = BooleanProperty(False)
     '''If True, the user will not be able to change the content of a textinput.
