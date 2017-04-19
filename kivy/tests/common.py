@@ -100,9 +100,10 @@ class GraphicUnitTest(_base):
         if self.framecount > 0:
             return
 
-        # don't create screenshots if on Travis
+        # don't create screenshots if a specific var is in env
+        ignore = ['TRAVIS_OS_NAME', 'APPVEYOR_BUILD_FOLDER']
         from os import environ
-        if 'TRAVIS_OS_NAME' in environ:
+        if any(i in environ for i in ignore):
             EventLoop.stop()
             return
 
