@@ -1,8 +1,6 @@
 from kivy.tests.common import GraphicUnitTest
 
-from kivy.app import App
 from kivy.uix.widget import Widget
-from kivy.core.window import Window
 from kivy.graphics import Fbo, Color, Rectangle
 
 
@@ -35,7 +33,7 @@ class FboTest(Widget):
 
 class FBOPy2Py3TestCase(GraphicUnitTest):
     def test_fbo_get_pixel_color(self):
-        fbow = FboTest(size=Window.size)
+        fbow = FboTest()
         self.render(fbow)
         render_error = 2
         values = (
