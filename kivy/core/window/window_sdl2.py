@@ -90,6 +90,7 @@ SDLK_F12 = 1073741893
 SDLK_F13 = 1073741894
 SDLK_F14 = 1073741895
 SDLK_F15 = 1073741896
+SDLK_APPLICATION = 1073741925
 
 
 class SDL2MotionEvent(MotionEvent):
@@ -176,7 +177,7 @@ class WindowSDL(WindowBase):
                         SDLK_KP_2: 258, SDLK_KP_3: 259, SDLK_KP_4: 260,
                         SDLK_KP_5: 261, SDLK_KP_6: 262, SDLK_KP_7: 263,
                         SDLK_KP_8: 264, SDLK_KP_9: 265, SDLK_LMETA: 309,
-                        SDLK_RMETA: 310}
+                        SDLK_RMETA: 310, SDLK_APPLICATION: 319}
         if platform == 'ios':
             # XXX ios keyboard suck, when backspace is hit, the delete
             # keycode is sent. fix it.

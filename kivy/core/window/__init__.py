@@ -67,6 +67,7 @@ class Keyboard(EventDispatcher):
         'pagedown': 281, 'end': 279, 'home': 278, 'left': 276, 'up':
         273, 'right': 275, 'down': 274, 'insert': 277, 'delete': 127,
         'numlock': 300, 'print': 144, 'screenlock': 145, 'pause': 19,
+        'menu': 319,
 
         # a-z keys
         'a': 97, 'b': 98, 'c': 99, 'd': 100, 'e': 101, 'f': 102, 'g': 103,
