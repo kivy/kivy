@@ -59,6 +59,7 @@ class VideoGstplayer(VideoBase):
         Clock.schedule_once(self._do_eos, 0)
 
     def load(self):
+        self._filename = self._filename.encode('utf8')
         Logger.debug('VideoGstplayer: Load <{}>'.format(self._filename))
         uri = self._get_uri()
         wk_self = ref(self)
