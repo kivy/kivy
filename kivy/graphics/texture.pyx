@@ -37,6 +37,10 @@ You can use your texture in almost all vertex instructions with the
 your texture in kv lang, you can save it in an
 :class:`~kivy.properties.ObjectProperty` inside your widget.
 
+.. note::
+
+    The values of the texture size need to be a multiple of 8.
+
 
 Blitting custom data
 --------------------
