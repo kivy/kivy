@@ -1,0 +1,20 @@
+#:kivy 1.0.8
+
+<CarouselImage2>:
+	canvas.after:
+		Color:
+			rgba: (1, 1, 1, root.opacity) if os.split(root.source)[1] == 'png' else (1, 1, 1, 0)
+		Rectangle:
+			source:'play.png'
+			size: (20,20)
+			pos: root.center[0] - self.size[0] * 0.5, root.center[1] - self.size[1] * 0.5
+
+
+<ImageCarousel>:
+	canvas.:
+		Color:
+			rgba: (1, 1, 1, 1)
+		Rectangle:
+			source:'whitesquare.png'
+			size:self.size
+			pos:self.pos
