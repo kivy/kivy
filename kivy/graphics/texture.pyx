@@ -581,8 +581,11 @@ def texture_create_from_data(im, mipmap=False):
         allocate = 0
 
     # if imagedata have more than one image, activate mipmap
-    if im.have_mipmap:
-        mipmap = True
+    try:
+        if im.have_mipmap:
+            mipmap = True
+    except Exception:
+        pass
 
     if not cgldef.kivy_opengl_es2:
         if gl_get_version_major() < 3:
