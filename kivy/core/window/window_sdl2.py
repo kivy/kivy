@@ -699,7 +699,7 @@ class WindowSDL(WindowBase):
             if mods & (KMOD_RMETA | KMOD_LMETA):
                 modifiers.add('meta')
         if key is not None:
-            if key in (self.key_map[SDLK_SHIFTL], self.key_map[SDLK_SHIFTL]):
+            if key in (self.key_map[SDLK_SHIFTL], self.key_map[SDLK_SHIFTR]):
                 modifiers.add('shift')
             if key in (self.key_map[SDLK_LALT], self.key_map[SDLK_RALT]):
                 modifiers.add('alt')
