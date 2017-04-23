@@ -219,8 +219,9 @@ Consider the following example:
             # however it's provided here to make things clear
             size_hint: 1, 1
 
-Now load kivy catalog by typing the following, but replacing $KIVYDIR with the
-directory of your installation::
+Now load kivy catalog by typing the following, but replacing $KIVYDIR
+with the directory of your installation (discoverable via
+:py:mod:`os.path.dirname(kivy.__file__)`)::
 
     cd $KIVYDIR/examples/demo/kivycatalog
     python main.py
