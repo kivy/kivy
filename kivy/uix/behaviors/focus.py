@@ -466,7 +466,7 @@ class FocusBehavior(object):
             # if we hit a focusable, walk through focus_xxx
             while getattr(current, focus_dir) is not None:
                 current = getattr(current, focus_dir)
-                if current is self or current is StopIteration:
+                if current is self and current is StopIteration:
                     return None  # make sure we don't loop forever
                 if current.is_focusable and not current.disabled:
                     return current
