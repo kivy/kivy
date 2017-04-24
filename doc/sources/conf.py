@@ -202,7 +202,9 @@ latex_additional_files = ['kivystyle.sty',
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
-latex_use_parts = True
+# DEPRECATED! later_use_parts = True
+# see sphinx.builder.latex.validate_config_values
+latex_toplevel_sectioning = 'part'
 
 # Additional stuff for the LaTeX preamble.
 # latex_preamble = ''

@@ -17,9 +17,9 @@ location** and not to site-packages, please see :ref:`alternate-win`.
 
     For Python < 3.5 we use the MinGW compiler. However, for Python 3.5 on
     Windows we currently only support the microsoft MSVC compiler
-    because of the following MinGW
-    `issue <http://bugs.python.org/issue4709>`_. Generally this should make
-    no difference when using precompiled wheels.
+    because of the following Python
+    `issue 4709 <http://bugs.python.org/issue4709>`_ about MinGW.
+    Generally this should make no difference when using precompiled wheels.
 
 .. warning::
 
@@ -323,7 +323,7 @@ Making Python available anywhere
 There are two methods for launching python on your ``*.py`` files.
 
 Double-click method
-~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^
 
 If you only have one Python installed, you can associate all ``*.py`` files
 with your python, if it isn't already, and then run it by double clicking. Or
@@ -342,7 +342,7 @@ you can only do it once if you want to be able to choose each time:
 #. You are done. Open the file.
 
 Send-to method
-~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^
 
 You can launch a .py file with our Python using the Send-to menu:
 

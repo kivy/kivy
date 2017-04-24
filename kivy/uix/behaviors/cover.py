@@ -15,7 +15,7 @@ documentation.
 Example
 -------
 
-The following examples add cover behavior to an image::
+The following examples add cover behavior to an image:
 
 In python:
 
