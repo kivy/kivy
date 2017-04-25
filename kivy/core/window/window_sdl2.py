@@ -15,21 +15,22 @@ TODO:
 
 __all__ = ('WindowSDL2', )
 
-from os.path import join
 import sys
+from collections import deque
+from os.path import join
+
 from kivy import kivy_data_dir
-from kivy.logger import Logger
 from kivy.base import EventLoop, ExceptionManager, stopTouchApp
 from kivy.clock import Clock
+from kivy.compat import unichr
 from kivy.config import Config
 from kivy.core.window import WindowBase
 from kivy.core.window._window_sdl2 import _WindowSDL2Storage
-from kivy.input.provider import MotionEventProvider
 from kivy.input.motionevent import MotionEvent
+from kivy.input.provider import MotionEventProvider
+from kivy.logger import Logger
 from kivy.resources import resource_find
 from kivy.utils import platform, deprecated
-from kivy.compat import unichr
-from collections import deque
 
 KMOD_LCTRL = 64
 KMOD_RCTRL = 128
@@ -178,6 +179,12 @@ class WindowSDL(WindowBase):
                         SDLK_KP_5: 261, SDLK_KP_6: 262, SDLK_KP_7: 263,
                         SDLK_KP_8: 264, SDLK_KP_9: 265, SDLK_LMETA: 309,
                         SDLK_RMETA: 310, SDLK_APPLICATION: 319}
+        # convert numpad keycodes to appropriate text keycodes
+        self.convert_key_map = {
+            256: 48, 257: 49, 258: 50, 259: 51, 260: 52, 261: 53,
+            262: 54, 263: 55, 264: 56, 265: 57, 266: 46, 267: 47,
+            268: 42, 269: 45, 270: 43,
+        }
         if platform == 'ios':
             # XXX ios keyboard suck, when backspace is hit, the delete
             # keycode is sent. fix it.
@@ -574,8 +581,10 @@ class WindowSDL(WindowBase):
                     # ignore the key, it has been released
                     self._update_modifiers(mod)
 
-                # convert numpad numeric keycodes to number keycodes
-                temp_key = key - 208 if key in range(256, 265) else key
+                try:
+                    temp_key = self.convert_key_map[key]
+                except KeyError:
+                    temp_key = key
 
                 # if mod in self._meta_keys:
                 if (temp_key not in self._modifiers and
