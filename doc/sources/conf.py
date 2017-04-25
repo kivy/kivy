@@ -69,6 +69,7 @@ base = 'autobuild.py-done'
 if not os.path.exists(os.path.join(os.path.dirname(base_dir), base)):
     import autobuild
 import gallery
+gallery.write_all_rst_pages()
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
