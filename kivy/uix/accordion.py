@@ -312,8 +312,10 @@ class AccordionItem(FloatLayout):
         c.clear_widgets()
         instance = Builder.template(self.title_template,
                                     title=self.title,
-                                    item=self,
-                                    **self.title_args)
+                                    item=self)
+        for k, v in self.title_args.items():
+            if hasattr(instance, k):
+                setattr(instance, k, v)
         c.add_widget(instance)
 
 
