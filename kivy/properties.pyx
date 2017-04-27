@@ -116,11 +116,11 @@ substitute::
 Keyword arguments and __init__()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When working with inheritance, namely with `__init__()` of an object that
-inherits from :class:`~kivy.event.EventDispatcher` or more advanced Kivy
-classes such as :class:`~kivy.uix.widget.Widget`s, the properties protect
-you from Python 3 object error when passing kwargs to the `object` instance
-through a `super()` call::
+When working with inheritance, namely with the `__init__()` of an object that
+inherits from :class:`~kivy.event.EventDispatcher` e.g. a
+:class:`~kivy.uix.widget.Widget`, the properties protect
+you from a Python 3 object error. This error occurs when passing kwargs to the
+`object` instance through a `super()` call::
 
     class MyClass(EventDispatcher):
         def __init__(self, **kwargs):
@@ -134,17 +134,24 @@ in Python 3 with::
 
     TypeError: object.__init__() takes no parameters
 
-Logically, to fix that you'd either put `my_string` directly to the
-`__init__()` definition as a required or as an optional keyword argument
-with a default value::
+Logically, to fix that you'd either put `my_string` directly in the
+`__init__()` definition as a required argument or as an optional keyword
+argument with a default value i.e.::
+
+    class MyClass(EventDispatcher):
+        def __init__(self, my_string, **kwargs):
+            super(MyClass, self).__init__(**kwargs)
+            self.my_string = my_string
+
+or::
 
     class MyClass(EventDispatcher):
         def __init__(self, my_string='default', **kwargs):
             super(MyClass, self).__init__(**kwargs)
             self.my_string = my_string
 
-or you'd pop the key-value pair from the `kwargs` dictionary with
-`kwargs.pop('my_string')` before calling `super()`::
+Alternatively, you could pop the key-value pair from the `kwargs` dictionary
+before calling `super()`::
 
     class MyClass(EventDispatcher):
         def __init__(self, **kwargs):
@@ -152,8 +159,8 @@ or you'd pop the key-value pair from the `kwargs` dictionary with
             super(MyClass, self).__init__(**kwargs)
 
 Kivy properties are more flexible and do the required `kwargs.pop()`
-behavior in the background automatically, within the `super()` call
-to :class:`~kivy.event.EventDispatcher`, to prevent this distraction::
+in the background automatically (within the `super()` call
+to :class:`~kivy.event.EventDispatcher`) to prevent this distraction::
 
     class MyClass(EventDispatcher):
         my_string = StringProperty('default')
