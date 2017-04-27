@@ -113,6 +113,54 @@ substitute::
     bnp = BoundedNumericProperty(0, min=-500, max=500,
         errorhandler=lambda x: 500 if x > 500 else -500)
 
+Keyword arguments and __init__()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When working with inheritance, namely with `__init__()` of an object that
+inherits from :class:`~kivy.event.EventDispatcher` or more advanced Kivy
+classes such as :class:`~kivy.uix.widget.Widget`s, the properties protect
+you from Python 3 object error when passing kwargs to the `object` instance
+through a `super()` call::
+
+    class MyClass(EventDispatcher):
+        def __init__(self, **kwargs):
+            super(MyClass, self).__init__(**kwargs)
+            self.my_string = kwargs.get('my_string')
+
+    print(MyClass(my_string='value').my_string)
+
+While this error is silenced in Python 2, it will stop the application
+in Python 3 with::
+
+    TypeError: object.__init__() takes no parameters
+
+Logically, to fix that you'd either put `my_string` directly to the
+`__init__()` definition as a required or as an optional keyword argument
+with a default value::
+
+    class MyClass(EventDispatcher):
+        def __init__(self, my_string='default', **kwargs):
+            super(MyClass, self).__init__(**kwargs)
+            self.my_string = my_string
+
+or you'd pop the key-value pair from the `kwargs` dictionary with
+`kwargs.pop('my_string')` before calling `super()`::
+
+    class MyClass(EventDispatcher):
+        def __init__(self, **kwargs):
+            self.my_string = kwargs.pop('my_string')
+            super(MyClass, self).__init__(**kwargs)
+
+Kivy properties are more flexible and do the required `kwargs.pop()`
+behavior in the background automatically, within the `super()` call
+to :class:`~kivy.event.EventDispatcher`, to prevent this distraction::
+
+    class MyClass(EventDispatcher):
+        my_string = StringProperty('default')
+        def __init__(self, **kwargs):
+            super(MyClass, self).__init__(**kwargs)
+
+    print(MyClass(my_string='value').my_string)
 
 Conclusion
 ~~~~~~~~~~
