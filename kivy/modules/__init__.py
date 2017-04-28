@@ -271,8 +271,13 @@ class ModuleBase:
         for module in self.list():
             if 'module' not in self.mods[module]:
                 self.import_module(module)
+
+            # ignore modules without docstring
+            if not self.mods[module]['module'].__doc__:
+                continue
+
             text = self.mods[module]['module'].__doc__.strip("\n ")
-            print('%-12s: %s' % (module, text))
+            print('\n%-12s: %s' % (module, text))
         print()
 
 
