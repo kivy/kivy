@@ -153,7 +153,9 @@ class ModuleBase:
                 module = sys.modules[name]
             except ImportError:
                 Logger.exception('Modules: unable to import <%s>' % name)
-                raise
+                # protect against missing module dependency crash
+                self.mods[name]['module'] = None
+                return
         # basic check on module
         if not hasattr(module, 'start'):
             Logger.warning('Modules: Module <%s> missing start() function' %
