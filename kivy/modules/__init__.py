@@ -267,10 +267,9 @@ class ModuleBase:
             self.mods[name]['module'].configure(config)
 
     def usage_list(self):
-        print()
         print('Available modules')
         print('=================')
-        for module in self.list():
+        for module in sorted(self.list()):
             if 'module' not in self.mods[module]:
                 self.import_module(module)
 
@@ -279,8 +278,15 @@ class ModuleBase:
                 continue
 
             text = self.mods[module]['module'].__doc__.strip("\n ")
+            text = text.split('\n')
+            # make sure we don't get IndexError along the way
+            # then pretty format the header
+            if len(text) > 2:
+                if text[1].startswith('='):
+                    # '\n%-12s: %s' -> 12 spaces + ": "
+                    text[1] = '=' * (14 + len(text[1]))
+            text = '\n'.join(text)
             print('\n%-12s: %s' % (module, text))
-        print()
 
 
 Modules = ModuleBase()
