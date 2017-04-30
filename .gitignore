@@ -52,6 +52,14 @@ kivy/deps/*
 kivy.deps*
 kivy/version.py
 
+bin/
+include/
+lib/
+local/
+man/
+pip-selfcheck.json
+share/
+
 MANIFEST
 
 kivy/core/image/img_imageio.c
