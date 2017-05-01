@@ -6,11 +6,11 @@ Controlling the environment
 Many environment variables are available to control the initialization and
 behavior of Kivy.
 
-For example, for restricting text rendering to PIL implementation::
+For example, in order to restrict text rendering to the PIL implementation::
 
     $ KIVY_TEXT=pil python main.py
 
-Environment variable can be set before importing kivy::
+Environment variables should be set before importing kivy::
 
     import os
     os.environ['KIVY_TEXT'] = 'pil'
@@ -21,17 +21,14 @@ Path control
 
 .. versionadded:: 1.0.7
 
-You can control the default directories where config files, modules,
-extensions, and kivy data are located.
+You can control the default directories where config files, modules
+and kivy data are located.
 
 KIVY_DATA_DIR
-    Location of the Kivy data, default to `<kivy path>/data`
-
-KIVY_EXTS_DIR
-    Location of the Kivy extensions, default to `<kivy path>/extensions`
+    Location of the Kivy data, defaults to `<kivy path>/data`
 
 KIVY_MODULES_DIR
-    Location of the Kivy modules, default to `<kivy path>/modules`
+    Location of the Kivy modules, defaults to `<kivy path>/modules`
 
 KIVY_HOME
     Location of the Kivy home. This directory is used for local configuration,
@@ -54,8 +51,8 @@ KIVY_SDL2_PATH
 
     .. warning::
 
-        Must be used during the compilation of Kivy. It is not required for the
-        execution.
+        This path is required for the compilation of Kivy. It is not
+        required for program execution.
 
 
 Configuration
@@ -65,14 +62,14 @@ KIVY_USE_DEFAULTCONFIG
     If this name is found in environ, Kivy will not read the user config file.
 
 KIVY_NO_CONFIG
-    If set, no configuration file will be read or write, and no user
-    configuration directory too.
+    If set, no configuration file will be read or written to. This also applies
+    to the user configuration directory.
 
 KIVY_NO_FILELOG
-    If set, logs will be not print on a file
+    If set, logs will be not print to a file
 
 KIVY_NO_CONSOLELOG
-    If set, logs will be not print on the console
+    If set, logs will be not print to the console
 
 KIVY_NO_ARGS
     If set, the argument passed in command line will not be parsed and used by Kivy.
@@ -105,12 +102,12 @@ KIVY_TEXT
 KIVY_VIDEO
     Implementation to use for rendering video
 
-    Values: pygst, gstplayer, pyglet, ffpyplayer, null
+    Values: gstplayer, ffpyplayer, ffmpeg, null
 
 KIVY_AUDIO
     Implementation to use for playing audio
 
-    Values: sdl2, gstplayer, pygst, ffpyplayer, pygame
+    Values: sdl2, gstplayer, ffpyplayer, pygame, avplayer
 
 KIVY_IMAGE
     Implementation to use for reading image
@@ -120,7 +117,7 @@ KIVY_IMAGE
 KIVY_CAMERA
     Implementation to use for reading camera
 
-    Values: videocapture, avfoundation, pygst, opencv
+    Values: avfoundation, android, opencv
 
 KIVY_SPELLING
     Implementation to use for spelling
@@ -153,6 +150,15 @@ KIVY_METRICS_FONTSCALE
 
 Graphics
 --------
+
+KIVY_GL_BACKEND
+    The OpenGL backend to use. See :mod:`~kivy.graphics.cgl`.
+
+KIVY_GL_DEBUG
+    Whether to log OpenGL calls. See :mod:`~kivy.graphics.cgl`.
+
+KIVY_GRAPHICS
+    Whether to use OpenGL ES2. See :mod:`~kivy.graphics.cgl`.
 
 KIVY_GLES_LIMITS
     Whether the GLES2 restrictions are enforced (the default, or if set to

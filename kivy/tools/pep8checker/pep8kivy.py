@@ -1,17 +1,21 @@
 import sys
 from os import walk
-from os.path import isdir, join, abspath, dirname
-import pep8
-import time
+from os.path import isdir, join, normpath
 
-htmlmode = False
+import pep8
+
 
 pep8_ignores = (
     'E125',  # continuation line does not
              # distinguish itself from next logical line
     'E126',  # continuation line over-indented for hanging indent
     'E127',  # continuation line over-indented for visual indent
-    'E128')  # continuation line under-indented for visual indent
+    'E128',  # continuation line under-indented for visual indent
+    'E402',  # module level import not at top of file
+    'E741',  # ambiguous variable name
+    'E731',  # do not assign a lambda expression, use a def
+)
+
 
 class KivyStyleChecker(pep8.Checker):
 
@@ -19,29 +23,19 @@ class KivyStyleChecker(pep8.Checker):
         pep8.Checker.__init__(self, filename, ignore=pep8_ignores)
 
     def report_error(self, line_number, offset, text, check):
-        if htmlmode is False:
-            return pep8.Checker.report_error(self,
-                line_number, offset, text, check)
-
-        # html generation
-        print('<tr><td>{0}</td><td>{1}</td></tr>'.format(line_number, text))
+        return pep8.Checker.report_error(
+            self, line_number, offset, text, check)
 
 
 if __name__ == '__main__':
 
     def usage():
-        print('Usage: python pep8kivy.py [-html] <file_or_folder_to_check>*')
+        print('Usage: python pep8kivy.py <file_or_folder_to_check>*')
         print('Folders will be checked recursively.')
         sys.exit(1)
 
     if len(sys.argv) < 2:
         usage()
-    if sys.argv[1] == '-html':
-        if len(sys.argv) < 3:
-            usage()
-        else:
-            htmlmode = True
-            targets = sys.argv[-1].split()
     elif sys.argv == 2:
         targets = sys.argv[-1]
     else:
@@ -57,22 +51,30 @@ if __name__ == '__main__':
         return checker.check_all()
 
     errors = 0
-    exclude_dirs = ['/lib', '/coverage', '/pep8', '/doc']
-    exclude_files = ['kivy/gesture.py', 'osx/build.py', 'win32/build.py',
-                     'kivy/tools/stub-gl-debug.py',
-                     'kivy/modules/webdebugger.py',
-                     'kivy/modules/_webdebugger.py']
+
+    exclude_dirs = [
+        'kivy/lib',
+        'kivy/deps',
+        'kivy/tools/pep8checker',
+        'coverage',
+        'doc'
+    ]
+    exclude_dirs = [normpath(i) for i in exclude_dirs]
+    exclude_files = [
+        'kivy/gesture.py',
+        'kivy/tools/stub-gl-debug.py',
+        'kivy/modules/webdebugger.py',
+        'kivy/modules/_webdebugger.py'
+    ]
+    exclude_files = [normpath(i) for i in exclude_files]
+
     for target in targets:
         if isdir(target):
-            if htmlmode:
-                path = join(dirname(abspath(__file__)), 'pep8base.html')
-                print(open(path, 'r').read())
-                print('''<p>Generated: %s</p><table>''' % (time.strftime('%c')))
-
             for dirpath, dirnames, filenames in walk(target):
                 cont = False
+                dpath = normpath(dirpath)
                 for pat in exclude_dirs:
-                    if pat in dirpath:
+                    if dpath.startswith(pat):
                         cont = True
                         break
                 if cont:
@@ -88,13 +90,7 @@ if __name__ == '__main__':
                     if cont:
                         continue
 
-                    if htmlmode:
-                        print('<tr><th colspan="2">%s</td></tr>' \
-                             % complete_filename)
                     errors += check(complete_filename)
-
-            if htmlmode:
-                print('</div></div></table></body></html>')
 
         else:
             # Got a single file to check
@@ -105,5 +101,6 @@ if __name__ == '__main__':
                 if target.endswith('.py'):
                     errors += check(target)
 
-    # If errors is 0 we return with 0. That's just fine.
-    sys.exit(errors)
+    if errors:
+        print("Error: {} style guide violation(s) encountered.".format(errors))
+        sys.exit(1)

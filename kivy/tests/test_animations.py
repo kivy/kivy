@@ -4,11 +4,13 @@ Animations tests
 '''
 
 import unittest
+import gc
 from time import time, sleep
 from kivy.animation import Animation, AnimationTransition
 from kivy.uix.widget import Widget
 from kivy.clock import Clock
 from kivy.graphics import Scale
+from kivy.weakproxy import WeakProxy
 
 
 class AnimationTestCase(unittest.TestCase):
@@ -19,8 +21,12 @@ class AnimationTestCase(unittest.TestCase):
             Clock.tick()
 
     def setUp(self):
+        self.assertEqual(len(Animation._instances), 0)
         self.a = Animation(x=100, d=1, t='out_bounce')
         self.w = Widget()
+
+    def tearDown(self):
+        self.assertEqual(len(Animation._instances), 0)
 
     def test_start_animation(self):
         self.a.start(self.w)
@@ -71,6 +77,7 @@ class AnimationTestCase(unittest.TestCase):
         anim = Animation(x=100)
         anim.start(widget.proxy_ref)
         del widget
+        gc.collect()
         try:
             self.sleep(1.)
         except ReferenceError:
@@ -86,9 +93,23 @@ class SequentialAnimationTestCase(unittest.TestCase):
             Clock.tick()
 
     def setUp(self):
+        self.assertEqual(len(Animation._instances), 0)
         self.a = Animation(x=100, d=1, t='out_bounce')
         self.a += Animation(x=0, d=1, t='out_bounce')
         self.w = Widget()
+
+    def tearDown(self):
+        self.assertEqual(len(Animation._instances), 0)
+
+    def test_cancel_all(self):
+        self.a.start(self.w)
+        self.sleep(.5)
+        Animation.cancel_all(self.w)
+
+    def test_cancel_all_2(self):
+        self.a.start(self.w)
+        self.sleep(.5)
+        Animation.cancel_all(self.w, 'x')
 
     def test_stop_all(self):
         self.a.start(self.w)

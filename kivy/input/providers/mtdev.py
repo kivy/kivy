@@ -47,8 +47,14 @@ class MTDMotionEvent(MotionEvent):
 
     def depack(self, args):
         self.is_touch = True
-        self.sx = args['x']
-        self.sy = args['y']
+        if 'x' in args:
+            self.sx = args['x']
+        else:
+            self.sx = -1
+        if 'y' in args:
+            self.sy = args['y']
+        else:
+            self.sy = -1
         self.profile = ['pos']
         if 'size_w' in args and 'size_h' in args:
             self.shape = ShapeRect()
@@ -63,6 +69,7 @@ class MTDMotionEvent(MotionEvent):
     def __str__(self):
         i, sx, sy, d = (self.id, self.sx, self.sy, self.device)
         return '<MTDMotionEvent id=%d pos=(%f, %f) device=%s>' % (i, sx, sy, d)
+
 
 if 'KIVY_DOC' in os.environ:
 
@@ -89,7 +96,7 @@ else:
                    'min_position_y', 'max_position_y',
                    'min_pressure', 'max_pressure',
                    'min_touch_major', 'max_touch_major',
-                   'min_touch_minor', 'min_touch_major',
+                   'min_touch_minor', 'max_touch_minor',
                    'invert_x', 'invert_y',
                    'rotation')
 
@@ -187,8 +194,8 @@ else:
 
             def process(points):
                 for args in points:
-                    # this can happen if we have a touch going on already at the
-                    # start of the app
+                    # this can happen if we have a touch going on already at
+                    # the start of the app
                     if 'id' not in args:
                         continue
                     tid = args['id']
@@ -216,7 +223,16 @@ else:
             # open mtdev device
             _fn = input_fn
             _slot = 0
-            _device = Device(_fn)
+            try:
+                _device = Device(_fn)
+            except OSError as e:
+                if e.errno == 13:  # Permission denied
+                    Logger.warn(
+                        'MTD: Unable to open device "{0}". Please ensure you'
+                        ' have the appropriate permissions.'.format(_fn))
+                    return
+                else:
+                    raise
             _changes = set()
 
             # prepare some vars to get limit of some component
@@ -276,7 +292,7 @@ else:
                         continue
 
                     # fill the slot
-                    if not _slot in l_points:
+                    if _slot not in l_points:
                         l_points[_slot] = dict()
                     point = l_points[_slot]
                     ev_value = data.value

@@ -23,6 +23,6 @@ class BlehApp(App):
             root.add_widget(wid)
         return root
 
+
 if __name__ == '__main__':
     BlehApp().run()
-

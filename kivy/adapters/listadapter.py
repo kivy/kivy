@@ -4,6 +4,10 @@ ListAdapter
 
 .. versionadded:: 1.5
 
+.. note::
+
+    The feature has been deprecated.
+
 .. warning::
 
     This code is still experimental, and its API is subject to change in a
@@ -31,7 +35,7 @@ A :class:`~kivy.adapters.dictadapter.DictAdapter` is a subclass of a
 :attr:`~ListAdapter.on_selection_change` event when selection changes.
 
 .. versionchanged:: 1.6.0
-    Added data = ListProperty([]), which was proably inadvertently deleted at
+    Added data = ListProperty([]), which was probably inadvertently deleted at
     some point. This means that whenever data changes an update will fire,
     instead of having to reset the data object (Adapter has data defined as
     an ObjectProperty, so we need to reset it here to ListProperty). See also
@@ -57,7 +61,7 @@ class ListAdapter(Adapter, EventDispatcher):
     '''
     A base class for adapters interfacing with lists, dictionaries or other
     collection type data, adding selection, view creation and management
-    functonality.
+    functionality.
     '''
 
     data = ListProperty([])
@@ -115,8 +119,8 @@ class ListAdapter(Adapter, EventDispatcher):
 
     Consider a shopping list application for shopping for fruits at the
     market. The app allows for the selection of fruits to buy for each day of
-    the week, presenting seven lists: one for each day of the week. Each list is
-    loaded with all the available fruits, but the selection for each is a
+    the week, presenting seven lists: one for each day of the week. Each list
+    is loaded with all the available fruits, but the selection for each is a
     subset. There is only one set of fruit data shared between the lists, so
     it would not make sense to propagate selection to the data because
     selection in any of the seven lists would clash and mix with that of the
@@ -248,8 +252,8 @@ class ListAdapter(Adapter, EventDispatcher):
                 if item['is_selected']:
                     self.handle_selection(view_instance)
             elif hasattr(item, 'is_selected'):
-                if (inspect.isfunction(item.is_selected)
-                        or inspect.ismethod(item.is_selected)):
+                if (inspect.isfunction(item.is_selected) or
+                        inspect.ismethod(item.is_selected)):
                     if item.is_selected():
                         self.handle_selection(view_instance)
                 else:
@@ -274,8 +278,8 @@ class ListAdapter(Adapter, EventDispatcher):
         :Parameters:
             adapter: :class:`~ListAdapter` or subclass
                 The instance of the list adapter where the selection changed.
-                Use the adapters :attr:`selection` property to see what has been
-                selected.
+                Use the adapters :attr:`selection` property to see what has
+                been selected.
         '''
         pass
 
@@ -299,7 +303,14 @@ class ListAdapter(Adapter, EventDispatcher):
                 else:
                     self.select_item_view(view)
         else:
-            self.deselect_item_view(view)
+            if len(self.selection) == 1 and not self.allow_empty_selection:
+                # Maintain selection rather than always defaulting to first
+                # item. This probably invalidates the next if section, but I
+                # am unable to test all corner cases out, and leaving it in
+                # does not hurt anything.
+                pass
+            else:
+                self.deselect_item_view(view)
             if self.selection_mode != 'none':
                 # If the deselection makes selection empty, the following call
                 # will check allows_empty_selection, and if False, will
@@ -324,8 +335,8 @@ class ListAdapter(Adapter, EventDispatcher):
         elif type(item) == dict:
             item['is_selected'] = value
         elif hasattr(item, 'is_selected'):
-            if (inspect.isfunction(item.is_selected)
-                    or inspect.ismethod(item.is_selected)):
+            if (inspect.isfunction(item.is_selected) or
+                    inspect.ismethod(item.is_selected)):
                 item.is_selected()
             else:
                 item.is_selected = value
@@ -338,11 +349,12 @@ class ListAdapter(Adapter, EventDispatcher):
         # [TODO] sibling selection for composite items
         #        Needed? Or handled from parent?
         #        (avoid circular, redundant selection)
-        #if hasattr(view, 'parent') and hasattr(view.parent, 'children'):
-         #siblings = [child for child in view.parent.children if child != view]
-         #for sibling in siblings:
-             #if hasattr(sibling, 'select'):
-                 #sibling.select()
+        # if hasattr(view, 'parent') and hasattr(view.parent, 'children'):
+        #     siblings = [child for child in view.parent.children \
+        #                 if child != view]
+        #     for sibling in siblings:
+        #         if hasattr(sibling, 'select'):
+        #             sibling.select()
 
         if self.propagate_selection_to_data:
             data_item = self.get_data_item(view.index)
@@ -374,11 +386,12 @@ class ListAdapter(Adapter, EventDispatcher):
         # [TODO] sibling deselection for composite items
         #        Needed? Or handled from parent?
         #        (avoid circular, redundant selection)
-        #if hasattr(view, 'parent') and hasattr(view.parent, 'children'):
-         #siblings = [child for child in view.parent.children if child != view]
-         #for sibling in siblings:
-             #if hasattr(sibling, 'deselect'):
-                 #sibling.deselect()
+        # if hasattr(view, 'parent') and hasattr(view.parent, 'children'):
+        #     siblings = [child for child in view.parent.children \
+        #                 if child != view]
+        #     for sibling in siblings:
+        #         if hasattr(sibling, 'deselect'):
+        #             sibling.deselect()
 
         if self.propagate_selection_to_data:
             item = self.get_data_item(view.index)

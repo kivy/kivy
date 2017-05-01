@@ -3,7 +3,7 @@ Lines Extended Demo
 ===================
 
 This demonstrates how to use the extended line drawing routines such
-as circles, elipses, and rectangles. You should see a static image of
+as circles, ellipses, and rectangles. You should see a static image of
 labelled shapes on the screen.
 '''
 
@@ -177,6 +177,7 @@ class LineExtendedApp(App):
         root.add_widget(LineRectangle())
         root.add_widget(LineBezier())
         return root
+
 
 if __name__ == '__main__':
     LineExtendedApp().run()

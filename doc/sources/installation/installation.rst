@@ -5,7 +5,7 @@ Installation
 
 We try not to reinvent the wheel, but to bring something innovative to the
 market. As a consequence, we're focused on our own code and use pre-existing,
-high-quality third-party libraries where possible.
+high quality third-party libraries where possible.
 To support the full, rich set of features that Kivy offers, several other libraries are
 required. If you do not use a specific feature (e.g. video playback), you
 don't need the corresponding dependency.
@@ -26,7 +26,7 @@ be available. For these, we recommend `SDL2 <https://www.libsdl.org/download-2.0
 Other optional libraries (mutually independent) are:
 
     * `OpenCV 2.0 <http://sourceforge.net/projects/opencvlibrary/>`_ -- Camera input.
-    * `PIL <http://www.pythonware.com/products/pil/index.htm>`_ -- Image and text display.
+    * `Pillow <https://python-pillow.github.io/>`_ -- Image and text display.
     * `PyEnchant <https://pythonhosted.org/pyenchant/>`_ -- Spelling correction.
 
 
@@ -53,7 +53,6 @@ Please refer to the installation instructions for your specific platform:
     installation-linux
     installation-android
     installation-rpi
-    troubleshooting-osx
 
 
 .. _installation_devel:
@@ -72,7 +71,10 @@ in a way that allows for easy development. For that, please see our
 Installing Dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-To install Kivy's dependencies, follow the guide below for your platform.
+To install Kivy's dependencies, follow the guide below for your platform. You
+might also need these packages for the RST and lexing components::
+
+    $ sudo pip install pygments docutils
 
 Ubuntu
 ++++++
@@ -101,41 +103,41 @@ supported version from pypi:
 OS X
 ++++
 
-Without using brew you can install the dependencies for kivy
-manually copy pasting the following commands onto a terminal::
+Without using brew you can install the dependencies for kivy by
+manually pasting the following commands in a terminal::
 
-    curl -O -L https://www.libsdl.org/tmp/release/SDL2-2.0.4.dmg
-    curl -O -L https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.0.dmg
-    curl -O -L https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-2.0.0.dmg
-    curl -O -L https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.12.dmg
-    curl -O -L http://gstreamer.freedesktop.org/data/pkg/osx/1.6.2/gstreamer-1.0-1.6.2-x86_64.pkg
-    curl -O -L http://gstreamer.freedesktop.org/data/pkg/osx/1.6.2/gstreamer-1.0-devel-1.6.2-x86_64.pkg
+    curl -O -L https://www.libsdl.org/release/SDL2-2.0.4.dmg
+    curl -O -L https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.1.dmg
+    curl -O -L https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-2.0.1.dmg
+    curl -O -L https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.13.dmg
+    curl -O -L http://gstreamer.freedesktop.org/data/pkg/osx/1.7.1/gstreamer-1.0-1.7.1-x86_64.pkg
+    curl -O -L http://gstreamer.freedesktop.org/data/pkg/osx/1.7.1/gstreamer-1.0-devel-1.7.1-x86_64.pkg
     hdiutil attach SDL2-2.0.4.dmg
     sudo cp -a /Volumes/SDL2/SDL2.framework /Library/Frameworks/
 
-This should ask you for you for your root password,  provide it and then copy paste
-the following lines onto your terminal::
+This should ask you for your root password, provide it and then paste
+the following lines in your terminal::
 
-    hdiutil attach SDL2_image-2.0.0.dmg
+    hdiutil attach SDL2_image-2.0.1.dmg
     sudo cp -a /Volumes/SDL2_image/SDL2_image.framework /Library/Frameworks/
-    hdiutil attach SDL2_ttf-2.0.12.dmg
+    hdiutil attach SDL2_ttf-2.0.13.dmg
     sudo cp -a /Volumes/SDL2_ttf/SDL2_ttf.framework /Library/Frameworks/
-    hdiutil attach SDL2_mixer-2.0.0.dmg
+    hdiutil attach SDL2_mixer-2.0.1.dmg
     sudo cp -a /Volumes/SDL2_mixer/SDL2_mixer.framework /Library/Frameworks/
-    sudo installer -package gstreamer-1.0-1.6.2-x86_64.pkg -target /
-    sudo installer -package gstreamer-1.0-devel-1.6.2-x86_64.pkg -target /
+    sudo installer -package gstreamer-1.0-1.7.1-x86_64.pkg -target /
+    sudo installer -package gstreamer-1.0-devel-1.7.1-x86_64.pkg -target /
     pip install --upgrade --user cython pillow
 
 Now that you have all the dependencies for kivy, you need to make sure
-you have command line tools installed::
+you have the command line tools installed::
 
     xcode-select --install
 
-Goto a apropriate dir like::
+Go to an appropriate dir like::
 
     mkdir ~/code
     cd ~/code
-    
+
 You can now install kivy itself::
 
     git clone http://github.com/kivy/kivy
@@ -143,26 +145,28 @@ You can now install kivy itself::
     make
 
 This should compile kivy, to make it accessible in your python env
-just point your PYTHONPATH to this dir.
+just point your PYTHONPATH to this dir::
 
     export PYTHONPATH=~/code/kivy:$PYTHONPATH
 
-To check if kivy is installed type the following command in your 
+To check if kivy is installed, type the following command in your
 terminal::
 
     python -c "import kivy"
 
-It should give you the a output something like the following::
+It should give you an output similar to the following::
 
     $ python -c "import kivy"
     [INFO   ] [Logger      ] Record log in /Users/quanon/.kivy/logs/kivy_15-12-31_21.txt
-    [INFO   ] [Screen      ] Apply screen settings for Motolora Droid 2
+    [INFO   ] [Screen      ] Apply screen settings for Motorola Droid 2
     [INFO   ] [Screen      ] size=480x854 dpi=240 density=1.5 orientation=portrait
     [INFO   ] [Kivy        ] v1.9.1-stable
-    [INFO   ] [Python      ] v2.7.10 (default, Oct 23 2015, 18:05:06) 
+    [INFO   ] [Python      ] v2.7.10 (default, Oct 23 2015, 18:05:06)
     [GCC 4.2.1 Compatible Apple LLVM 7.0.0 (clang-700.0.59.5)]
 
-If using brew method to install kivy then
+OSX HomeBrew
+++++++++++++
+If you prefer to use homebrew:
 install the requirements using `homebrew <http://brew.sh>`_::
 
      $ brew install sdl2 sdl2_image sdl2_ttf sdl2_mixer gstreamer
@@ -178,7 +182,7 @@ Installing Kivy for Development
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now that you've installed all the required dependencies, it's time to
-download and compile a development version of Kivy::
+download and compile a development version of Kivy:
 
 Download Kivy from GitHub::
 
@@ -215,7 +219,7 @@ also run (as admin, e.g. with sudo)::
     $ python setup.py install
 
 If you want to contribute code (patches, new features) to the Kivy
-code base, please read :ref:`contributing`.
+codebase, please read :ref:`contributing`.
 
 Running the test suite
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -223,8 +227,8 @@ Running the test suite
 To help detect issues and behaviour changes in Kivy, a set of unittests are
 provided. A good thing to do is to run them just after your Kivy installation, and
 every time you intend to push a change. If you think something was broken
-in Kivy, perhaps a test will show this? If not, it might be a good time to write
-one .)
+in Kivy, perhaps a test will show this. (If not, it might be a good time to write
+one.)
 
 Kivy tests are based on nosetest, which you can install from your package
 manager or using pip::
@@ -239,7 +243,7 @@ Uninstalling Kivy
 ~~~~~~~~~~~~~~~~~
 
 If you are mixing multiple Kivy installations, you might be confused about where each Kivy version is
-located.  Please note that you might need to follow these steps multiple times if you have multiple
+located. Please note that you might need to follow these steps multiple times if you have multiple
 Kivy versions installed in the Python library path.
 To find your current installed version, you can use the command line::
 

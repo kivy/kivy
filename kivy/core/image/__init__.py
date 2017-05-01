@@ -38,6 +38,9 @@ will be used only for caching)::
     im = CoreImage(data, ext="png", filename="image.png")
 
 '''
+import re
+from base64 import b64decode
+import imghdr
 
 __all__ = ('Image', 'ImageLoader', 'ImageData')
 
@@ -313,7 +316,7 @@ class ImageLoader(object):
 
         Returns an Image with a list of type ImageData stored in Image._data
         '''
-        # read zip in menory for faster access
+        # read zip in memory for faster access
         _file = BytesIO(open(filename, 'rb').read())
         # read all images inside the zip
         z = zipfile.ZipFile(_file)
@@ -324,13 +327,13 @@ class ImageLoader(object):
         image = None
         for zfilename in znamelist:
             try:
-                #read file and store it in mem with fileIO struct around it
+                # read file and store it in mem with fileIO struct around it
                 tmpfile = BytesIO(z.read(zfilename))
                 ext = zfilename.split('.')[-1].lower()
                 im = None
                 for loader in ImageLoader.loaders:
-                    if (ext not in loader.extensions()
-                        or not loader.can_load_memory()):
+                    if (ext not in loader.extensions() or
+                            not loader.can_load_memory()):
                         continue
                     Logger.debug('Image%s: Load <%s> from <%s>' %
                                  (loader.__name__[11:], zfilename, filename))
@@ -346,7 +349,7 @@ class ImageLoader(object):
                     # overwritten
                     image_data.append(im._data[0])
                     image = im
-                #else: if not image file skip to next
+                # else: if not image file skip to next
             except:
                 Logger.warning('Image: Unable to load image'
                                '<%s> in zip <%s> trying to continue...'
@@ -422,6 +425,8 @@ class ImageLoader(object):
             return ImageLoader.zip_loader(filename)
         else:
             im = None
+            # Get actual image format instead of extension if possible
+            ext = imghdr.what(filename) or ext
             for loader in ImageLoader.loaders:
                 if ext not in loader.extensions():
                     continue
@@ -449,24 +454,33 @@ class Image(EventDispatcher):
         added.
 
     :Parameters:
-        `arg` : can be a string (str), Texture or Image object.
-            A string is interpreted as a path to the image to be loaded.
-            You can also provide a texture object or an already existing
-            image object. In the latter case, a real copy of the given
-            image object will be returned.
-        `keep_data` : bool, defaults to False.
+        `arg`: can be a string (str), Texture, BytesIO or Image object
+            A string path to the image file or data URI to be loaded; or a
+            Texture object, which will be wrapped in an Image object; or a
+            BytesIO object containing raw image data; or an already existing
+            image object, in which case, a real copy of the given image object
+            will be returned.
+        `keep_data`: bool, defaults to False
             Keep the image data when the texture is created.
-        `scale` : float, defaults to 1.0
+        `scale`: float, defaults to 1.0
             Scale of the image.
-        `mipmap` : bool, defaults to False
+        `mipmap`: bool, defaults to False
             Create mipmap for the texture.
         `anim_delay`: float, defaults to .25
             Delay in seconds between each animation frame. Lower values means
             faster animation.
+        `ext`: str, only with BytesIO `arg`
+            File extension to use in determining how to load raw image data.
+        `filename`: str, only with BytesIO `arg`
+            Filename to use in the image cache for raw image data.
     '''
 
     copy_attributes = ('_size', '_filename', '_texture', '_image',
                        '_mipmap', '_nocache')
+
+    data_uri_re = re.compile(r'^data:image/([^;,]*)(;[^,]*)?,(.*)$')
+
+    _anim_ev = None
 
     def __init__(self, arg, **kwargs):
         # this event should be fired on animation of sequenced img's
@@ -509,7 +523,19 @@ class Image(EventDispatcher):
                 filename = '__inline__'
             self.load_memory(arg, ext, filename)
         elif isinstance(arg, string_types):
-            self.filename = arg
+            groups = self.data_uri_re.findall(arg)
+            if groups:
+                self._nocache = True
+                imtype, optstr, data = groups[0]
+                options = [o for o in optstr.split(';') if o]
+                ext = imtype
+                isb64 = 'base64' in options
+                if data:
+                    if isb64:
+                        data = b64decode(data)
+                    self.load_memory(BytesIO(data), ext)
+            else:
+                self.filename = arg
         else:
             raise Exception('Unable to load image type {0!r}'.format(arg))
 
@@ -573,9 +599,13 @@ class Image(EventDispatcher):
 
         '''
         # stop animation
-        Clock.unschedule(self._anim)
-        if allow_anim and self._anim_available:
-            Clock.schedule_interval(self._anim, self.anim_delay)
+        if self._anim_ev is not None:
+            self._anim_ev.cancel()
+            self._anim_ev = None
+
+        if allow_anim and self._anim_available and self._anim_delay >= 0:
+            self._anim_ev = Clock.schedule_interval(self._anim,
+                                                    self.anim_delay)
             self._anim()
 
     def _get_anim_delay(self):
@@ -586,9 +616,13 @@ class Image(EventDispatcher):
             return
         self._anim_delay = x
         if self._anim_available:
-            Clock.unschedule(self._anim)
+            if self._anim_ev is not None:
+                self._anim_ev.cancel()
+                self._anim_ev = None
+
             if self._anim_delay >= 0:
-                Clock.schedule_interval(self._anim, self._anim_delay)
+                self._anim_ev = Clock.schedule_interval(self._anim,
+                                                        self._anim_delay)
 
     anim_delay = property(_get_anim_delay, _set_anim_delay)
     '''Delay between each animation frame. A lower value means faster
@@ -636,9 +670,9 @@ class Image(EventDispatcher):
         '''Load an image
 
         :Parameters:
-            `filename` : str
+            `filename`: str
                 Filename of the image.
-            `keep_data` : bool, defaults to False
+            `keep_data`: bool, defaults to False
                 Keep the image data when the texture is created.
         '''
         kwargs.setdefault('keep_data', False)
@@ -770,11 +804,11 @@ class Image(EventDispatcher):
 
         The filename should have the '.png' extension because the texture data
         read from the GPU is in the RGBA format. '.jpg' might work but has not
-        been heavilly tested so some providers might break when using it.
+        been heavily tested so some providers might break when using it.
         Any other extensions are not officially supported.
 
         The flipped parameter flips the saved image vertically, and
-        defaults to True.
+        defaults to False.
 
         Example::
 
@@ -806,7 +840,7 @@ class Image(EventDispatcher):
             # we might have a ImageData object to use
             data = self.image._data[0]
             if data.data is not None:
-                if data.fmt not in ('rgba', 'rgb'):
+                if data.fmt in ('rgba', 'rgb'):
                     # fast path, use the "raw" data when keep_data is used
                     size = data.width, data.height
                     pixels = data.data
@@ -845,14 +879,14 @@ class Image(EventDispatcher):
                 color = m.read_pixel(150, 150)
 
         :Parameters:
-            `x` : int
+            `x`: int
                 Local x coordinate of the pixel in question.
-            `y` : int
+            `y`: int
                 Local y coordinate of the pixel in question.
         '''
         data = self.image._data[0]
 
-        # can't use this fonction without ImageData
+        # can't use this function without ImageData
         if data.data is None:
             raise EOFError('Image data is missing, make sure that image is'
                            'loaded with keep_data=True keyword.')
@@ -901,7 +935,7 @@ image_libs += [
 libs_loaded = core_register_libs('image', image_libs)
 
 from os import environ
-if not 'KIVY_DOC' in environ and not libs_loaded:
+if 'KIVY_DOC' not in environ and not libs_loaded:
     import sys
 
     Logger.critical('App: Unable to get any Image provider, abort.')

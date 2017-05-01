@@ -18,11 +18,12 @@ __all__ = ('intersection', 'difference', 'strtotuple',
            'is_color_transparent', 'hex_colormap', 'colormap', 'boundary',
            'deprecated', 'SafeList',
            'interpolate', 'QueryDict',
-           'platform', 'escape_markup', 'reify')
+           'platform', 'escape_markup', 'reify', 'rgba')
 
 from os import environ
 from sys import platform as _sys_platform
 from re import match, split
+from kivy.compat import string_types
 
 
 def boundary(value, minvalue, maxvalue):
@@ -87,6 +88,27 @@ def strtotuple(s):
     return r
 
 
+def rgba(s, *args):
+    '''Return a Kivy color (4 value from 0-1 range) from either a hex string or
+    a list of 0-255 values.
+
+    .. versionadded:: 1.10.0
+    '''
+    if isinstance(s, string_types):
+        return get_color_from_hex(s)
+    elif isinstance(s, (list, tuple)):
+        s = map(lambda x: x / 255., s)
+        if len(s) == 3:
+            return list(s) + [1]
+        return s
+    elif isinstance(s, (int, float)):
+        s = map(lambda x: x / 255., [s] + list(args))
+        if len(s) == 3:
+            return list(s) + [1]
+        return s
+    raise Exception('Invalid value (not a string / list / tuple)')
+
+
 def get_color_from_hex(s):
     '''Transform a hex string color to a kivy
     :class:`~kivy.graphics.Color`.
@@ -118,7 +140,7 @@ def get_random_color(alpha=1.0):
     '''Returns a random color (4 tuple).
 
     :Parameters:
-        `alpha` : float, defaults to 1.0
+        `alpha`: float, defaults to 1.0
             If alpha == 'random', a random alpha value is generated.
     '''
     from random import random
@@ -135,6 +157,7 @@ def is_color_transparent(c):
     if float(c[3]) == 0.:
         return True
     return False
+
 
 hex_colormap = {
     'aliceblue': '#f0f8ff',
@@ -342,15 +365,15 @@ class SafeList(list):
 class QueryDict(dict):
     '''QueryDict is a dict() that can be queried with dot.
 
-    .. versionadded:: 1.0.4
-
-  ::
+    ::
 
         d = QueryDict()
         # create a key named toto, with the value 1
         d.toto = 1
         # it's the same as
         d['toto'] = 1
+
+    .. versionadded:: 1.0.4
     '''
 
     def __getattr__(self, attr):
@@ -390,80 +413,40 @@ def format_bytes_to_human(size, precision=2):
         size /= 1024.0
 
 
-class Platform(object):
-    # refactored to class to allow module function to be replaced
-    # with module variable
-
-    def __init__(self):
-        self._platform_ios = None
-        self._platform_android = None
-
-    @deprecated
-    def __call__(self):
-        return self._get_platform()
-
-    def __eq__(self, other):
-        return other == self._get_platform()
-
-    def __ne__(self, other):
-        return other != self._get_platform()
-
-    def __str__(self):
-        return self._get_platform()
-
-    def __repr__(self):
-        return 'platform name: \'{platform}\' from: \n{instance}'.format(
-            platform=self._get_platform(),
-            instance=super(Platform, self).__repr__()
-        )
-
-    def __hash__(self):
-        return self._get_platform().__hash__()
-
-    def _get_platform(self):
-        if self._platform_android is None:
-            # ANDROID_ARGUMENT and ANDROID_PRIVATE are 2 environment variables
-            # from python-for-android project
-            self._platform_android = 'ANDROID_ARGUMENT' in environ
-
-        if self._platform_ios is None:
-            self._platform_ios = (environ.get('KIVY_BUILD', '') == 'ios')
-
-        # On android, _sys_platform return 'linux2', so prefer to check the
-        # import of Android module than trying to rely on _sys_platform.
-        if self._platform_android is True:
-            return 'android'
-        elif self._platform_ios is True:
-            return 'ios'
-        elif _sys_platform in ('win32', 'cygwin'):
-            return 'win'
-        elif _sys_platform == 'darwin':
-            return 'macosx'
-        elif _sys_platform[:5] == 'linux':
-            return 'linux'
-        elif _sys_platform.startswith('freebsd'):
-            return 'linux'
-        return 'unknown'
+def _get_platform():
+    # On Android sys.platform returns 'linux2', so prefer to check the
+    # presence of python-for-android environment variables (ANDROID_ARGUMENT
+    # or ANDROID_PRIVATE).
+    if 'ANDROID_ARGUMENT' in environ:
+        return 'android'
+    elif environ.get('KIVY_BUILD', '') == 'ios':
+        return 'ios'
+    elif _sys_platform in ('win32', 'cygwin'):
+        return 'win'
+    elif _sys_platform == 'darwin':
+        return 'macosx'
+    elif _sys_platform.startswith('linux'):
+        return 'linux'
+    elif _sys_platform.startswith('freebsd'):
+        return 'linux'
+    return 'unknown'
 
 
-platform = Platform()
+platform = _get_platform()
 '''
-platform is a string describing the current Operating System. It is one
-of: *win*, *linux*, *android*, *macosx*, *ios* or *unknown*.
+A string identifying the current operating system. It is one
+of: `'win'`, `'linux'`, `'android'`, `'macosx'`, `'ios'` or `'unknown'`.
 You can use it as follows::
 
-    from kivy import platform
+    from kivy.utils import platform
     if platform == 'linux':
         do_linux_things()
-    if platform() == 'linux': # triggers deprecation warning
-        do_more_linux_things()
 
 .. versionadded:: 1.3.0
 
 .. versionchanged:: 1.8.0
 
-    platform is now a variable instead of a  function.
-
+    platform is now a variable instead of a function.
 '''
 
 

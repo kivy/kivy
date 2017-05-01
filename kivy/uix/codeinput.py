@@ -6,6 +6,9 @@ Code Input
 
 .. image:: images/codeinput.jpg
 
+.. note::
+
+    This widget requires ``pygments`` package to run. Install it with ``pip``.
 
 The :class:`CodeInput` provides a box of editable highlighted text like the one
 shown in the image.
@@ -179,7 +182,7 @@ class CodeInput(CodeNavigationBehavior, TextInput):
             ntext = ''.join((u'[color=', str(self.text_color), u']',
                              ntext, u'[/color]'))
             ntext = ntext.replace(u'\n', u'')
-            # remove possibles extra highlight options
+            # remove possible extra highlight options
             ntext = ntext.replace(u'[u]', '').replace(u'[/u]', '')
             return ntext
         except IndexError:

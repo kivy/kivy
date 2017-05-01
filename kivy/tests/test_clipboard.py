@@ -28,7 +28,7 @@ class ClipboardTestCase(unittest.TestCase):
     def test_clipboard_copy(self):
         clippy = self._clippy
         try:
-            clippy.copy("Hello World")
+            clippy.copy(u"Hello World")
         except:
             self.fail(
                 'Can not get put data to clipboard')

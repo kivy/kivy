@@ -24,11 +24,12 @@ class CustomPopup(Popup):
 
 class TestApp(App):
     def build(self):
-        b = Button(on_press=self.show_popup)
+        b = Button(on_press=self.show_popup, text="Show Popup")
         return b
 
     def show_popup(self, b):
         p = CustomPopup()
         p.open()
+
 
 TestApp().run()

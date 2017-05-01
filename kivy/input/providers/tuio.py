@@ -188,10 +188,10 @@ class TuioMotionEventProvider(MotionEventProvider):
             alives = args[1:]
             to_delete = []
             for id in self.touches[oscpath]:
-                if not id in alives:
+                if id not in alives:
                     # touch up
                     touch = self.touches[oscpath][id]
-                    if not touch in to_delete:
+                    if touch not in to_delete:
                         to_delete.append(touch)
 
             for touch in to_delete:

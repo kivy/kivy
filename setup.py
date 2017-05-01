@@ -1,18 +1,25 @@
 #
-# Kivy - Crossplatform NUI toolkit
-# http://kivy.org/
+# Kivy - Cross-platform UI framework
+# https://kivy.org/
 #
 from __future__ import print_function
 
 import sys
+build_examples = False
+if "--build_examples" in sys.argv:
+    build_examples = True
+    sys.argv.remove("--build_examples")
 
 from copy import deepcopy
 import os
-from os.path import join, dirname, sep, exists, basename, isdir, abspath
-from os import walk, environ, makedirs, listdir
+from os.path import join, dirname, sep, exists, basename, isdir
+from os import walk, environ
 from distutils.version import LooseVersion
+from distutils.sysconfig import get_python_inc
 from collections import OrderedDict
 from time import sleep
+from subprocess import check_output, CalledProcessError
+from datetime import datetime
 
 if environ.get('KIVY_USE_SETUPTOOLS'):
     from setuptools import setup, Extension
@@ -32,7 +39,33 @@ if PY3:  # fix error with py3's LooseVersion comparisons
     LooseVersion.__eq__ = ver_equal
 
 
-MIN_CYTHON_STRING = '0.20'
+def get_version(filename='kivy/version.py'):
+    VERSION = kivy.__version__
+    DATE = datetime.utcnow().strftime('%Y%m%d')
+    try:
+        GIT_REVISION = check_output(
+            ['git', 'rev-parse', 'HEAD']
+        ).strip().decode('ascii')
+    except CalledProcessError:
+        GIT_REVISION = "Unknown"
+
+    cnt = (
+        "# THIS FILE IS GENERATED FROM KIVY SETUP.PY\n"
+        "__version__ = '%(version)s'\n"
+        "__hash__ = '%(hash)s'\n"
+        "__date__ = '%(date)s'\n"
+    )
+
+    with open(filename, 'w') as f:
+        f.write(cnt % {
+            'version': VERSION,
+            'hash': GIT_REVISION,
+            'date': DATE
+        })
+    return VERSION
+
+
+MIN_CYTHON_STRING = '0.23'
 MIN_CYTHON_VERSION = LooseVersion(MIN_CYTHON_STRING)
 MAX_CYTHON_STRING = '0.23'
 MAX_CYTHON_VERSION = LooseVersion(MAX_CYTHON_STRING)
@@ -45,7 +78,7 @@ def getoutput(cmd, env=None):
                          stderr=subprocess.PIPE, env=env)
     p.wait()
     if p.returncode:  # if not returncode == 0
-        print('WARNING: A problem occured while running {0} (code {1})\n'
+        print('WARNING: A problem occurred while running {0} (code {1})\n'
               .format(cmd, p.returncode))
         stderr_content = p.stderr.read()
         if stderr_content:
@@ -57,7 +90,7 @@ def getoutput(cmd, env=None):
 def pkgconfig(*packages, **kw):
     flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
     lenviron = None
-    pconfig = join(dirname(sys.executable), 'libs', 'pkgconfig')
+    pconfig = join(sys.prefix, 'libs', 'pkgconfig')
 
     if isdir(pconfig):
         lenviron = environ.copy()
@@ -106,8 +139,7 @@ c_options['use_rpi'] = platform == 'rpi'
 c_options['use_mali'] = platform == 'mali'
 c_options['use_egl'] = False
 c_options['use_opengl_es2'] = None
-c_options['use_opengl_debug'] = False
-c_options['use_glew'] = False
+c_options['use_opengl_mock'] = environ.get('READTHEDOCS', None) == 'True'
 c_options['use_sdl2'] = None
 c_options['use_ios'] = False
 c_options['use_mesagl'] = False
@@ -124,6 +156,7 @@ for key in list(c_options.keys()):
         value = bool(int(environ[ukey]))
         print('Environ change {0} -> {1}'.format(key, value))
         c_options[key] = value
+
 
 # -----------------------------------------------------------------------------
 # Cython check
@@ -176,8 +209,10 @@ cython_unsupported = '''\
            cython_unsupported_append)
 
 have_cython = False
+skip_cython = False
 if platform in ('ios', 'android'):
     print('\nCython check avoided.')
+    skip_cython = True
 else:
     try:
         # check for cython
@@ -197,7 +232,7 @@ else:
             print(cython_max)
             sleep(1)
     except ImportError:
-        print('\nCython is missing, its required for compiling kivy !\n\n')
+        print("\nCython is missing, it's required for compiling kivy !\n\n")
         raise
 
 if not have_cython:
@@ -222,8 +257,8 @@ class KivyBuildExt(build_ext):
 
     def build_extensions(self):
         # build files
-        config_h_fn = ('graphics', 'config.h')
-        config_pxi_fn = ('graphics', 'config.pxi')
+        config_h_fn = ('include', 'config.h')
+        config_pxi_fn = ('include', 'config.pxi')
         config_py_fn = ('setupconfig.py', )
 
         # generate headers
@@ -249,11 +284,11 @@ class KivyBuildExt(build_ext):
             config_py += '{0} = {1}\n'.format(opt, value)
         debug = bool(self.debug)
         print(' * debug = {0}'.format(debug))
-        config_h += \
-            '#if __USE_GLEW && defined(_WIN32)\n#   define GLEW_BUILD\n#endif'
 
         config_pxi += 'DEF DEBUG = {0}\n'.format(debug)
         config_py += 'DEBUG = {0}\n'.format(debug)
+        config_pxi += 'DEF PLATFORM = "{0}"\n'.format(platform)
+        config_py += 'PLATFORM = "{0}"\n'.format(platform)
         for fn, content in (
                 (config_h_fn, config_h), (config_pxi_fn, config_pxi),
                 (config_py_fn, config_py)):
@@ -285,7 +320,8 @@ class KivyBuildExt(build_ext):
 
 def _check_and_fix_sdl2_mixer(f_path):
     print("Check if SDL2_mixer smpeg2 have an @executable_path")
-    rpath_from = "@executable_path/../Frameworks/SDL2.framework/Versions/A/SDL2"
+    rpath_from = ("@executable_path/../Frameworks/SDL2.framework"
+                  "/Versions/A/SDL2")
     rpath_to = "@rpath/../../../../SDL2.framework/Versions/A/SDL2"
     smpeg2_path = ("{}/Versions/A/Frameworks/smpeg2.framework"
                    "/Versions/A/smpeg2").format(f_path)
@@ -309,6 +345,7 @@ def _check_and_fix_sdl2_mixer(f_path):
         print("WARNING: You'll never see this message again.")
     else:
         print("WARNING: Unable to apply the changes, sorry.")
+
 
 # -----------------------------------------------------------------------------
 # extract version (simulate doc generation, kivy will be not imported)
@@ -338,36 +375,9 @@ except ImportError:
 # Detect which opengl version headers to use
 if platform in ('android', 'darwin', 'ios', 'rpi', 'mali'):
     c_options['use_opengl_es2'] = True
-elif platform == 'win32':
-    print('Windows platform detected, force GLEW usage.')
-    c_options['use_glew'] = True
-    c_options['use_opengl_es2'] = False
-else:
-    if c_options['use_opengl_es2'] is None:
-        GLES = environ.get('GRAPHICS') == 'GLES'
-        OPENGL = environ.get('GRAPHICS') == 'OPENGL'
-        if GLES:
-            c_options['use_opengl_es2'] = True
-        elif OPENGL:
-            c_options['use_opengl_es2'] = False
-        else:
-            # auto detection of GLES headers
-            default_header_dirs = ['/usr/include', join(
-                environ.get('LOCALBASE', '/usr/local'), 'include')]
-            c_options['use_opengl_es2'] = False
-            for hdir in default_header_dirs:
-                filename = join(hdir, 'GLES2', 'gl2.h')
-                if exists(filename):
-                    c_options['use_opengl_es2'] = True
-                    print('NOTE: Found GLES 2.0 headers at {0}'.format(
-                        filename))
-                    break
-            if not c_options['use_opengl_es2']:
-                print('NOTE: Not found GLES 2.0 headers at: {}'.format(
-                    default_header_dirs))
-                print(
-                    '      Please contact us if your distribution '
-                    'uses an alternative path for the headers.')
+elif c_options['use_opengl_es2'] is None:
+    c_options['use_opengl_es2'] = \
+        environ.get('KIVY_GRAPHICS', '').lower() == 'gles'
 
 print('Using this graphics system: {}'.format(
     ['OpenGL', 'OpenGL ES 2'][int(c_options['use_opengl_es2'] or False)]))
@@ -510,7 +520,8 @@ def merge(d1, *args):
 def determine_base_flags():
     flags = {
         'libraries': [],
-        'include_dirs': [],
+        'include_dirs': [join(src_path, 'kivy', 'include')],
+        'library_dirs': [],
         'extra_link_args': [],
         'extra_compile_args': []}
     if c_options['use_ios']:
@@ -523,7 +534,7 @@ def determine_base_flags():
     elif platform.startswith('freebsd'):
         flags['include_dirs'] += [join(
             environ.get('LOCALBASE', '/usr/local'), 'include')]
-        flags['extra_link_args'] += ['-L', join(
+        flags['library_dirs'] += [join(
             environ.get('LOCALBASE', '/usr/local'), 'lib')]
     elif platform == 'darwin':
         v = os.uname()
@@ -534,24 +545,31 @@ def determine_base_flags():
             xcode_dev = getoutput('xcode-select -p').splitlines()[0]
             sdk_mac_ver = '.'.join(_platform.mac_ver()[0].split('.')[:2])
             print('Xcode detected at {}, and using OS X{} sdk'.format(
-                    xcode_dev, sdk_mac_ver))
+                xcode_dev, sdk_mac_ver))
             sysroot = join(
-                    xcode_dev.decode('utf-8'),
-                    'Platforms/MacOSX.platform/Developer/SDKs',
-                    'MacOSX{}.sdk'.format(sdk_mac_ver),
-                    'System/Library/Frameworks')
+                xcode_dev.decode('utf-8'),
+                'Platforms/MacOSX.platform/Developer/SDKs',
+                'MacOSX{}.sdk'.format(sdk_mac_ver),
+                'System/Library/Frameworks')
         else:
             sysroot = ('/System/Library/Frameworks/'
                        'ApplicationServices.framework/Frameworks')
         flags['extra_compile_args'] += ['-F%s' % sysroot]
         flags['extra_link_args'] += ['-F%s' % sysroot]
+    elif platform == 'win32':
+        flags['include_dirs'] += [get_python_inc(prefix=sys.prefix)]
+        flags['library_dirs'] += [join(sys.prefix, "libs")]
     return flags
 
 
 def determine_gl_flags():
-    flags = {'libraries': []}
+    kivy_graphics_include = join(src_path, 'kivy', 'include')
+    flags = {'include_dirs': [kivy_graphics_include], 'libraries': []}
+    base_flags = {'include_dirs': [kivy_graphics_include], 'libraries': []}
+    if c_options['use_opengl_mock']:
+        return flags, base_flags
     if platform == 'win32':
-        flags['libraries'] = ['opengl32']
+        flags['libraries'] = ['opengl32', 'glew32']
     elif platform == 'ios':
         flags['libraries'] = ['GLESv2']
         flags['extra_link_args'] = ['-framework', 'OpenGLES']
@@ -562,11 +580,11 @@ def determine_gl_flags():
         flags['libraries'] = ['GL']
     elif platform.startswith('openbsd'):
         flags['include_dirs'] = ['/usr/X11R6/include']
-        flags['extra_link_args'] = ['-L', '/usr/X11R6/lib']
+        flags['library_dirs'] = ['/usr/X11R6/lib']
         flags['libraries'] = ['GL']
     elif platform == 'android':
         flags['include_dirs'] = [join(ndkplatform, 'usr', 'include')]
-        flags['extra_link_args'] = ['-L', join(ndkplatform, 'usr', 'lib')]
+        flags['library_dirs'] = [join(ndkplatform, 'usr', 'lib')]
         flags['libraries'] = ['GLESv2']
     elif platform == 'rpi':
         flags['include_dirs'] = [
@@ -583,12 +601,7 @@ def determine_gl_flags():
         c_options['use_egl'] = True
     else:
         flags['libraries'] = ['GL']
-    if c_options['use_glew']:
-        if platform == 'win32':
-            flags['libraries'] += ['glew32']
-        else:
-            flags['libraries'] += ['GLEW']
-    return flags
+    return flags, base_flags
 
 
 def determine_sdl2():
@@ -608,18 +621,20 @@ def determine_sdl2():
     sdl2_paths = sdl2_path.split(split_chr) if sdl2_path else []
 
     if not sdl2_paths:
-        sdl_inc = join(dirname(sys.executable), 'include', 'SDL2')
+        sdl_inc = join(sys.prefix, 'include', 'SDL2')
         if isdir(sdl_inc):
             sdl2_paths = [sdl_inc]
         sdl2_paths.extend(['/usr/local/include/SDL2', '/usr/include/SDL2'])
 
     flags['include_dirs'] = sdl2_paths
-
     flags['extra_link_args'] = []
     flags['extra_compile_args'] = []
-    flags['extra_link_args'] += (
-        ['-L' + p for p in sdl2_paths] if sdl2_paths else
-        ['-L/usr/local/lib/'])
+    flags['library_dirs'] = (
+        sdl2_paths if sdl2_paths else
+        ['/usr/local/lib/'])
+
+    if sdl2_flags:
+        flags = merge(flags, sdl2_flags)
 
     # ensure headers for all the SDL2 and sub libraries are available
     libs_to_check = ['SDL', 'SDL_mixer', 'SDL_ttf', 'SDL_image']
@@ -645,91 +660,99 @@ def determine_sdl2():
 
 
 base_flags = determine_base_flags()
-gl_flags = determine_gl_flags()
+gl_flags, gl_flags_base = determine_gl_flags()
 
 # -----------------------------------------------------------------------------
 # sources to compile
 # all the dependencies have been found manually with:
 # grep -inr -E '(cimport|include)' kivy/graphics/context_instructions.{pxd,pyx}
 graphics_dependencies = {
-    'gl_redirect.h': ['common_subset.h'],
-    'c_opengl.pxd': ['config.pxi', 'gl_redirect.h'],
+    'gl_redirect.h': ['common_subset.h', 'gl_mock.h'],
     'buffer.pyx': ['common.pxi'],
-    'context.pxd': [
-        'instructions.pxd', 'texture.pxd', 'vbo.pxd',
-        'c_opengl.pxd', 'c_opengl_debug.pxd'],
-    'c_opengl_debug.pyx': ['common.pxi', 'c_opengl.pxd'],
+    'context.pxd': ['instructions.pxd', 'texture.pxd', 'vbo.pxd', 'cgl.pxd'],
+    'cgl.pxd': ['common.pxi', 'config.pxi', 'gl_redirect.h'],
     'compiler.pxd': ['instructions.pxd'],
     'compiler.pyx': ['context_instructions.pxd'],
+    'cgl.pyx': ['cgl.pxd'],
+    'cgl_mock.pyx': ['cgl.pxd'],
+    'cgl_sdl2.pyx': ['cgl.pxd'],
+    'cgl_gl.pyx': ['cgl.pxd'],
+    'cgl_glew.pyx': ['cgl.pxd'],
     'context_instructions.pxd': [
         'transformation.pxd', 'instructions.pxd', 'texture.pxd'],
-    'fbo.pxd': ['c_opengl.pxd', 'instructions.pxd', 'texture.pxd'],
+    'fbo.pxd': ['cgl.pxd', 'instructions.pxd', 'texture.pxd'],
     'fbo.pyx': [
-        'config.pxi', 'opcodes.pxi', 'transformation.pxd', 'context.pxd',
-        'c_opengl_debug.pxd'],
+        'config.pxi', 'opcodes.pxi', 'transformation.pxd', 'context.pxd'],
     'gl_instructions.pyx': [
-        'config.pxi', 'opcodes.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd',
-        'instructions.pxd'],
+        'config.pxi', 'opcodes.pxi', 'cgl.pxd', 'instructions.pxd'],
     'instructions.pxd': [
         'vbo.pxd', 'context_instructions.pxd', 'compiler.pxd', 'shader.pxd',
         'texture.pxd', '../_event.pxd'],
     'instructions.pyx': [
-        'config.pxi', 'opcodes.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd',
+        'config.pxi', 'opcodes.pxi', 'cgl.pxd',
         'context.pxd', 'common.pxi', 'vertex.pxd', 'transformation.pxd'],
     'opengl.pyx': [
-        'config.pxi', 'common.pxi', 'c_opengl.pxd', 'gl_redirect.h'],
-    'opengl_utils.pyx': ['opengl_utils_def.pxi', 'c_opengl.pxd'],
-    'shader.pxd': ['c_opengl.pxd', 'transformation.pxd', 'vertex.pxd'],
+        'config.pxi', 'common.pxi', 'cgl.pxd', 'gl_redirect.h'],
+    'opengl_utils.pyx': [
+        'opengl_utils_def.pxi', 'cgl.pxd', ],
+    'shader.pxd': ['cgl.pxd', 'transformation.pxd', 'vertex.pxd'],
     'shader.pyx': [
-        'config.pxi', 'common.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd',
-        'vertex.pxd', 'transformation.pxd', 'context.pxd'],
+        'config.pxi', 'common.pxi', 'cgl.pxd',
+        'vertex.pxd', 'transformation.pxd', 'context.pxd',
+        'gl_debug_logger.pxi'],
     'stencil_instructions.pxd': ['instructions.pxd'],
     'stencil_instructions.pyx': [
-        'config.pxi', 'opcodes.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd'],
+        'config.pxi', 'opcodes.pxi', 'cgl.pxd',
+        'gl_debug_logger.pxi'],
     'scissor_instructions.pyx': [
-        'config.pxi', 'opcodes.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd'],
+        'config.pxi', 'opcodes.pxi', 'cgl.pxd'],
     'svg.pyx': ['config.pxi', 'common.pxi', 'texture.pxd', 'instructions.pxd',
                 'vertex_instructions.pxd', 'tesselator.pxd'],
-    'texture.pxd': ['c_opengl.pxd'],
+    'texture.pxd': ['cgl.pxd'],
     'texture.pyx': [
         'config.pxi', 'common.pxi', 'opengl_utils_def.pxi', 'context.pxd',
-        'c_opengl.pxd', 'c_opengl_debug.pxd', 'opengl_utils.pxd',
-        'img_tools.pxi'],
-    'vbo.pxd': ['buffer.pxd', 'c_opengl.pxd', 'vertex.pxd'],
+        'cgl.pxd', 'opengl_utils.pxd',
+        'img_tools.pxi', 'gl_debug_logger.pxi'],
+    'vbo.pxd': ['buffer.pxd', 'cgl.pxd', 'vertex.pxd'],
     'vbo.pyx': [
-        'config.pxi', 'common.pxi', 'c_opengl_debug.pxd', 'context.pxd',
-        'instructions.pxd', 'shader.pxd'],
-    'vertex.pxd': ['c_opengl.pxd'],
+        'config.pxi', 'common.pxi', 'context.pxd',
+        'instructions.pxd', 'shader.pxd', 'gl_debug_logger.pxi'],
+    'vertex.pxd': ['cgl.pxd'],
     'vertex.pyx': ['config.pxi', 'common.pxi'],
     'vertex_instructions.pyx': [
         'config.pxi', 'common.pxi', 'vbo.pxd', 'vertex.pxd',
         'instructions.pxd', 'vertex_instructions.pxd',
-        'c_opengl.pxd', 'c_opengl_debug.pxd', 'texture.pxd',
-        'vertex_instructions_line.pxi'],
+        'cgl.pxd', 'texture.pxd', 'vertex_instructions_line.pxi'],
     'vertex_instructions_line.pxi': ['stencil_instructions.pxd']}
 
 sources = {
     '_event.pyx': merge(base_flags, {'depends': ['properties.pxd']}),
+    '_clock.pyx': {},
     'weakproxy.pyx': {},
     'properties.pyx': merge(base_flags, {'depends': ['_event.pxd']}),
-    'graphics/buffer.pyx': base_flags,
-    'graphics/context.pyx': merge(base_flags, gl_flags),
-    'graphics/c_opengl_debug.pyx': merge(base_flags, gl_flags),
-    'graphics/compiler.pyx': merge(base_flags, gl_flags),
-    'graphics/context_instructions.pyx': merge(base_flags, gl_flags),
-    'graphics/fbo.pyx': merge(base_flags, gl_flags),
-    'graphics/gl_instructions.pyx': merge(base_flags, gl_flags),
-    'graphics/instructions.pyx': merge(base_flags, gl_flags),
-    'graphics/opengl.pyx': merge(base_flags, gl_flags),
-    'graphics/opengl_utils.pyx': merge(base_flags, gl_flags),
-    'graphics/shader.pyx': merge(base_flags, gl_flags),
-    'graphics/stencil_instructions.pyx': merge(base_flags, gl_flags),
-    'graphics/scissor_instructions.pyx': merge(base_flags, gl_flags),
-    'graphics/texture.pyx': merge(base_flags, gl_flags),
-    'graphics/transformation.pyx': merge(base_flags, gl_flags),
-    'graphics/vbo.pyx': merge(base_flags, gl_flags),
-    'graphics/vertex.pyx': merge(base_flags, gl_flags),
-    'graphics/vertex_instructions.pyx': merge(base_flags, gl_flags),
+    'graphics/buffer.pyx': merge(base_flags, gl_flags_base),
+    'graphics/context.pyx': merge(base_flags, gl_flags_base),
+    'graphics/compiler.pyx': merge(base_flags, gl_flags_base),
+    'graphics/context_instructions.pyx': merge(base_flags, gl_flags_base),
+    'graphics/fbo.pyx': merge(base_flags, gl_flags_base),
+    'graphics/gl_instructions.pyx': merge(base_flags, gl_flags_base),
+    'graphics/instructions.pyx': merge(base_flags, gl_flags_base),
+    'graphics/opengl.pyx': merge(base_flags, gl_flags_base),
+    'graphics/opengl_utils.pyx': merge(base_flags, gl_flags_base),
+    'graphics/shader.pyx': merge(base_flags, gl_flags_base),
+    'graphics/stencil_instructions.pyx': merge(base_flags, gl_flags_base),
+    'graphics/scissor_instructions.pyx': merge(base_flags, gl_flags_base),
+    'graphics/texture.pyx': merge(base_flags, gl_flags_base),
+    'graphics/transformation.pyx': merge(base_flags, gl_flags_base),
+    'graphics/vbo.pyx': merge(base_flags, gl_flags_base),
+    'graphics/vertex.pyx': merge(base_flags, gl_flags_base),
+    'graphics/vertex_instructions.pyx': merge(base_flags, gl_flags_base),
+    'graphics/cgl.pyx': merge(base_flags, gl_flags_base),
+    'graphics/cgl_backend/cgl_mock.pyx': merge(base_flags, gl_flags_base),
+    'graphics/cgl_backend/cgl_gl.pyx': merge(base_flags, gl_flags),
+    'graphics/cgl_backend/cgl_glew.pyx': merge(base_flags, gl_flags),
+    'graphics/cgl_backend/cgl_sdl2.pyx': merge(base_flags, gl_flags_base),
+    'graphics/cgl_backend/cgl_debug.pyx': merge(base_flags, gl_flags_base),
     'core/text/text_layout.pyx': base_flags,
     'graphics/tesselator.pyx': merge(base_flags, {
         'include_dirs': ['kivy/lib/libtess2/Include'],
@@ -743,20 +766,23 @@ sources = {
             'lib/libtess2/Source/tess.c'
         ]
     }),
-    'graphics/svg.pyx': merge(base_flags, gl_flags)
+    'graphics/svg.pyx': merge(base_flags, gl_flags_base)
 }
 
-if c_options['use_sdl2']:
+if c_options["use_sdl2"]:
     sdl2_flags = determine_sdl2()
-    if sdl2_flags:
-        sdl2_depends = {'depends': ['lib/sdl2.pxi']}
-        for source_file in ('core/window/_window_sdl2.pyx',
-                            'core/image/_img_sdl2.pyx',
-                            'core/text/_text_sdl2.pyx',
-                            'core/audio/audio_sdl2.pyx',
-                            'core/clipboard/_clipboard_sdl2.pyx'):
-            sources[source_file] = merge(
-                base_flags, gl_flags, sdl2_flags, sdl2_depends)
+
+if c_options['use_sdl2'] and sdl2_flags:
+    sources['graphics/cgl_backend/cgl_sdl2.pyx'] = merge(
+        sources['graphics/cgl_backend/cgl_sdl2.pyx'], sdl2_flags)
+    sdl2_depends = {'depends': ['lib/sdl2.pxi']}
+    for source_file in ('core/window/_window_sdl2.pyx',
+                        'core/image/_img_sdl2.pyx',
+                        'core/text/_text_sdl2.pyx',
+                        'core/audio/audio_sdl2.pyx',
+                        'core/clipboard/_clipboard_sdl2.pyx'):
+        sources[source_file] = merge(
+            base_flags, sdl2_flags, sdl2_depends)
 
 if platform in ('darwin', 'ios'):
     # activate ImageIO provider for our core image
@@ -790,9 +816,9 @@ if c_options['use_avfoundation']:
 
 if c_options['use_rpi']:
     sources['lib/vidcore_lite/egl.pyx'] = merge(
-            base_flags, gl_flags)
+        base_flags, gl_flags)
     sources['lib/vidcore_lite/bcm.pyx'] = merge(
-            base_flags, gl_flags)
+        base_flags, gl_flags)
 
 if c_options['use_x11']:
     libs = ['Xrender', 'X11']
@@ -806,7 +832,7 @@ if c_options['use_x11']:
             # cause keytab is included in core, and core is included in
             # window_x11
             #
-            #'depends': [
+            # 'depends': [
             #    'core/window/window_x11_keytab.c',
             #    'core/window/window_x11_core.c'],
             'libraries': libs})
@@ -863,15 +889,18 @@ def get_extensions_from_sources(sources):
             module_name, [pyx] + f_depends + c_depends, **flags_clean))
     return ext_modules
 
+
 ext_modules = get_extensions_from_sources(sources)
+
 
 # -----------------------------------------------------------------------------
 # automatically detect data files
+split_examples = int(environ.get('KIVY_SPLIT_EXAMPLES', '0'))
 data_file_prefix = 'share/kivy-'
 examples = {}
 examples_allowed_ext = ('readme', 'py', 'wav', 'png', 'jpg', 'svg', 'json',
                         'avi', 'gif', 'txt', 'ttf', 'obj', 'mtl', 'kv', 'mpg',
-                        'glsl')
+                        'glsl', 'zip')
 for root, subFolders, files in walk('examples'):
     for fn in files:
         ext = fn.split('.')[-1].lower()
@@ -893,126 +922,143 @@ if isdir(binary_deps_path):
 
 # -----------------------------------------------------------------------------
 # setup !
-setup(
-    name='Kivy',
-    version=kivy.__version__,
-    author='Kivy Team and other contributors',
-    author_email='kivy-dev@googlegroups.com',
-    url='http://kivy.org',
-    license='MIT',
-    description=(
-        'A software library for rapid development of '
-        'hardware-accelerated multitouch applications.'),
-    ext_modules=ext_modules,
-    cmdclass=cmdclass,
-    packages=[
-        'kivy',
-        'kivy.adapters',
-        'kivy.core',
-        'kivy.core.audio',
-        'kivy.core.camera',
-        'kivy.core.clipboard',
-        'kivy.core.image',
-        'kivy.core.gl',
-        'kivy.core.spelling',
-        'kivy.core.text',
-        'kivy.core.video',
-        'kivy.core.window',
-        'kivy.deps',
-        'kivy.effects',
-        'kivy.ext',
-        'kivy.graphics',
-        'kivy.garden',
-        'kivy.input',
-        'kivy.input.postproc',
-        'kivy.input.providers',
-        'kivy.lib',
-        'kivy.lib.osc',
-        'kivy.lib.gstplayer',
-        'kivy.lib.vidcore_lite',
-        'kivy.modules',
-        'kivy.network',
-        'kivy.storage',
-        'kivy.tests',
-        'kivy.tools',
-        'kivy.tools.packaging',
-        'kivy.tools.packaging.pyinstaller_hooks',
-        'kivy.tools.highlight',
-        'kivy.extras',
-        'kivy.tools.extensions',
-        'kivy.uix',
-        'kivy.uix.behaviors', ],
-    package_dir={'kivy': 'kivy'},
-    package_data={'kivy': [
-        '*.pxd',
-        '*.pxi',
-        'core/text/*.pxd',
-        'core/text/*.pxi',
-        'graphics/*.pxd',
-        'graphics/*.pxi',
-        'graphics/*.h',
-        'lib/vidcore_lite/*.pxd',
-        'lib/vidcore_lite/*.pxi',
-        'data/*.kv',
-        'data/*.json',
-        'data/fonts/*.ttf',
-        'data/images/*.png',
-        'data/images/*.jpg',
-        'data/images/*.gif',
-        'data/images/*.atlas',
-        'data/keyboards/*.json',
-        'data/logo/*.png',
-        'data/glsl/*.png',
-        'data/glsl/*.vs',
-        'data/glsl/*.fs',
-        'tests/*.zip',
-        'tests/*.kv',
-        'tests/*.png',
-        'tests/*.ttf',
-        'tests/*.ogg',
-        'tools/highlight/*.vim',
-        'tools/highlight/*.el',
-        'tools/packaging/README.txt',
-        'tools/packaging/win32/kivy.bat',
-        'tools/packaging/win32/kivyenv.sh',
-        'tools/packaging/win32/README.txt',
-        'tools/packaging/osx/Info.plist',
-        'tools/packaging/osx/InfoPlist.strings',
-        'tools/gles_compat/*.h',
-        'tools/packaging/osx/kivy.sh'] + binary_deps},
-    data_files=list(examples.items()),
-    classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: MacOS X',
-        'Environment :: Win32 (MS Windows)',
-        'Environment :: X11 Applications',
-        'Intended Audience :: Developers',
-        'Intended Audience :: End Users/Desktop',
-        'Intended Audience :: Information Technology',
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: MIT License',
-        'Natural Language :: English',
-        'Operating System :: MacOS :: MacOS X',
-        'Operating System :: Microsoft :: Windows',
-        'Operating System :: POSIX :: BSD :: FreeBSD',
-        'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Topic :: Artistic Software',
-        'Topic :: Games/Entertainment',
-        'Topic :: Multimedia :: Graphics :: 3D Rendering',
-        'Topic :: Multimedia :: Graphics :: Capture :: Digital Camera',
-        'Topic :: Multimedia :: Graphics :: Presentation',
-        'Topic :: Multimedia :: Graphics :: Viewers',
-        'Topic :: Multimedia :: Sound/Audio :: Players :: MP3',
-        'Topic :: Multimedia :: Video :: Display',
-        'Topic :: Scientific/Engineering :: Human Machine Interfaces',
-        'Topic :: Scientific/Engineering :: Visualization',
-        'Topic :: Software Development :: Libraries :: Application Frameworks',
-        'Topic :: Software Development :: User Interfaces'],
-    dependency_links=[
-        'https://github.com/kivy-garden/garden/archive/master.zip'],
-    install_requires=['Kivy-Garden>=0.1.4'],
-    setup_requires=['cython>=' + MIN_CYTHON_STRING])
+if not build_examples:
+    setup(
+        name='Kivy',
+        version=get_version(),
+        author='Kivy Team and other contributors',
+        author_email='kivy-dev@googlegroups.com',
+        url='http://kivy.org',
+        license='MIT',
+        description=(
+            'A software library for rapid development of '
+            'hardware-accelerated multitouch applications.'),
+        ext_modules=ext_modules,
+        cmdclass=cmdclass,
+        packages=[
+            'kivy',
+            'kivy.adapters',
+            'kivy.core',
+            'kivy.core.audio',
+            'kivy.core.camera',
+            'kivy.core.clipboard',
+            'kivy.core.image',
+            'kivy.core.gl',
+            'kivy.core.spelling',
+            'kivy.core.text',
+            'kivy.core.video',
+            'kivy.core.window',
+            'kivy.deps',
+            'kivy.effects',
+            'kivy.graphics',
+            'kivy.graphics.cgl_backend',
+            'kivy.garden',
+            'kivy.input',
+            'kivy.input.postproc',
+            'kivy.input.providers',
+            'kivy.lang',
+            'kivy.lib',
+            'kivy.lib.osc',
+            'kivy.lib.gstplayer',
+            'kivy.lib.vidcore_lite',
+            'kivy.modules',
+            'kivy.network',
+            'kivy.storage',
+            'kivy.tests',
+            'kivy.tools',
+            'kivy.tools.packaging',
+            'kivy.tools.packaging.pyinstaller_hooks',
+            'kivy.tools.highlight',
+            'kivy.extras',
+            'kivy.uix',
+            'kivy.uix.behaviors',
+            'kivy.uix.recycleview',
+        ],
+        package_dir={'kivy': 'kivy'},
+        package_data={'kivy': [
+            '*.pxd',
+            '*.pxi',
+            'core/text/*.pxd',
+            'core/text/*.pxi',
+            'graphics/*.pxd',
+            'graphics/*.pxi',
+            'graphics/*.h',
+            'include/*',
+            'lib/vidcore_lite/*.pxd',
+            'lib/vidcore_lite/*.pxi',
+            'data/*.kv',
+            'data/*.json',
+            'data/fonts/*.ttf',
+            'data/images/*.png',
+            'data/images/*.jpg',
+            'data/images/*.gif',
+            'data/images/*.atlas',
+            'data/keyboards/*.json',
+            'data/logo/*.png',
+            'data/glsl/*.png',
+            'data/glsl/*.vs',
+            'data/glsl/*.fs',
+            'tests/*.zip',
+            'tests/*.kv',
+            'tests/*.png',
+            'tests/*.ttf',
+            'tests/*.ogg',
+            'tools/highlight/*.vim',
+            'tools/highlight/*.el',
+            'tools/packaging/README.txt',
+            'tools/packaging/win32/kivy.bat',
+            'tools/packaging/win32/kivyenv.sh',
+            'tools/packaging/win32/README.txt',
+            'tools/packaging/osx/Info.plist',
+            'tools/packaging/osx/InfoPlist.strings',
+            'tools/gles_compat/*.h',
+            'tools/packaging/osx/kivy.sh'] + binary_deps},
+        data_files=[] if split_examples else list(examples.items()),
+        classifiers=[
+            'Development Status :: 5 - Production/Stable',
+            'Environment :: MacOS X',
+            'Environment :: Win32 (MS Windows)',
+            'Environment :: X11 Applications',
+            'Intended Audience :: Developers',
+            'Intended Audience :: End Users/Desktop',
+            'Intended Audience :: Information Technology',
+            'Intended Audience :: Science/Research',
+            'License :: OSI Approved :: MIT License',
+            'Natural Language :: English',
+            'Operating System :: MacOS :: MacOS X',
+            'Operating System :: Microsoft :: Windows',
+            'Operating System :: POSIX :: BSD :: FreeBSD',
+            'Operating System :: POSIX :: Linux',
+            'Programming Language :: Python :: 2.7',
+            'Programming Language :: Python :: 3.3',
+            'Programming Language :: Python :: 3.4',
+            'Programming Language :: Python :: 3.5',
+            'Topic :: Artistic Software',
+            'Topic :: Games/Entertainment',
+            'Topic :: Multimedia :: Graphics :: 3D Rendering',
+            'Topic :: Multimedia :: Graphics :: Capture :: Digital Camera',
+            'Topic :: Multimedia :: Graphics :: Presentation',
+            'Topic :: Multimedia :: Graphics :: Viewers',
+            'Topic :: Multimedia :: Sound/Audio :: Players :: MP3',
+            'Topic :: Multimedia :: Video :: Display',
+            'Topic :: Scientific/Engineering :: Human Machine Interfaces',
+            'Topic :: Scientific/Engineering :: Visualization',
+            ('Topic :: Software Development :: Libraries :: '
+             'Application Frameworks'),
+            'Topic :: Software Development :: User Interfaces'],
+        dependency_links=[
+            'https://github.com/kivy-garden/garden/archive/master.zip'],
+        install_requires=['Kivy-Garden>=0.1.4', 'docutils', 'pygments'],
+        setup_requires=[
+            'cython>=' + MIN_CYTHON_STRING
+        ] if not skip_cython else [])
+else:
+    setup(
+        name='Kivy-examples',
+        version=get_version(),
+        author='Kivy Team and other contributors',
+        author_email='kivy-dev@googlegroups.com',
+        url='http://kivy.org',
+        license='MIT',
+        description=('Kivy examples.'),
+        data_files=list(examples.items()))

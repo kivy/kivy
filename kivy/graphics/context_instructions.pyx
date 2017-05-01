@@ -21,6 +21,7 @@ __all__ = ('Color', 'BindTexture', 'PushMatrix', 'PopMatrix',
            'Rotate', 'Scale', 'Translate', 'MatrixInstruction',
            'gl_init_resources')
 
+from kivy.compat import PY2
 from kivy.graphics.instructions cimport *
 from kivy.graphics.transformation cimport *
 
@@ -202,7 +203,9 @@ cdef class Color(ContextInstruction):
 
         c = Color(b=0.5)  # sets the blue component only
 
-    In kv lang you can set the color properties directly::
+    In kv lang you can set the color properties directly:
+
+    .. code-block:: kv
 
         <Rule>:
             canvas:
@@ -403,7 +406,10 @@ cdef class LoadIdentity(ContextInstruction):
         'projection_mat'.
         '''
         def __get__(self):
-            return self.context_state.keys()[0]
+            if PY2:
+                return self.context_state.keys()[0]
+            else:
+                return list(self.context_state.keys())[0]
         def __set__(self, value):
             self.context_state = {value: Matrix()}
 
@@ -563,7 +569,7 @@ cdef class Transform(MatrixInstruction):
         self.transform( Matrix().translate(tx, ty, tz) )
 
     cpdef rotate(self, float angle, float ax, float ay, float az):
-        '''Rotate the transformation by matrix by *angle* degress around the
+        '''Rotate the transformation by matrix by *angle* degrees around the
         axis defined by the vector ax, ay, az.
         '''
         self.transform( Matrix().rotate(angle, ax, ay, az) )
@@ -582,7 +588,7 @@ cdef class Transform(MatrixInstruction):
 cdef class Rotate(Transform):
     '''Rotate the coordinate space by applying a rotation transformation
     on the modelview matrix. You can set the properties of the instructions
-    afterwards with e.g.::
+    afterwards with e.g. ::
 
         rot.angle = 90
         rot.axis = (0, 0, 1)
@@ -690,7 +696,7 @@ cdef class Scale(Transform):
 
     .. deprecated:: 1.6.0
         Deprecated single scale property in favor of x, y, z, xyz axis
-        independant scaled factors.
+        independent scaled factors.
     '''
     def __init__(self, *args, **kwargs):
         cdef double x, y, z
@@ -739,8 +745,8 @@ cdef class Scale(Transform):
                     "y, z, etc properties to get scale factor based on axis.")
                 return self._x
             else:
-                raise Exception("trying to access deprectaed property" +\
-                    " 'scale' on Scale instruction with non unifrom scaling!")
+                raise Exception("trying to access deprecated property" +\
+                    " 'scale' on Scale instruction with non uniform scaling!")
 
         def __set__(self, s):
             Logger.warning("scale property is deprecated, use xyz, x, " +\

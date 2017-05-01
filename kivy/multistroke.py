@@ -60,7 +60,7 @@ various aspects of the recognition process ::
         print("A search is starting with %d tasks" % (pt.tasks))
 
     def search_stop(gdb, pt):
-        # This will call max() on the result dictonary, so it's best to store
+        # This will call max() on the result dictionary, so it's best to store
         # it instead of calling it 3 times consecutively
         best = pt.best
         print("Search ended (%s). Best is %s (score %f, distance %f)" % (
@@ -201,7 +201,7 @@ class Recognizer(EventDispatcher):
 
                     gdb = Recognizer()
 
-                    # Will match all names that start with a captial N
+                    # Will match all names that start with a capital N
                     # (ie Next, New, N, Nebraska etc, but not "n" or "next")
                     gdb.filter(name='N')
 
@@ -226,10 +226,11 @@ class Recognizer(EventDispatcher):
                     # Min priority 50, max 100
                     gdb.filter(priority=[50, 100])
 
-                When this option is used, :attr:`Recognizer.db` is automatically
-                sorted according to priority, incurring extra cost. You can use
-                `force_priority_sort` to override this behavior if your gestures
-                are already sorted according to priority.
+                When this option is used, :attr:`Recognizer.db` is
+                automatically sorted according to priority, incurring extra
+                cost. You can use `force_priority_sort` to override this
+                behavior if your gestures are already sorted according to
+                priority.
 
             `orientation_sensitive`
                 Limits the returned list to gestures that are
@@ -358,7 +359,9 @@ class Recognizer(EventDispatcher):
         '''
         if not strokes:
             return False
-        self.db.append(MultistrokeGesture(name=name, strokes=strokes, **kwargs))
+        self.db.append(
+            MultistrokeGesture(name=name, strokes=strokes, **kwargs)
+        )
         return True
 
     def parse_gesture(self, data):
@@ -696,7 +699,7 @@ class ProgressTracker(EventDispatcher):
             `stop`
                 Was stopped by the user (:meth:`stop` called)
             `timeout`
-                A timeout occured (specified as `timeout=` to recognize())
+                A timeout occurred (specified as `timeout=` to recognize())
             `goodscore`
                 The search was stopped early because a gesture with a high
                 enough score was found (specified as `goodscore=` to
@@ -884,7 +887,7 @@ class MultistrokeGesture(object):
         Returns the Cosine distance between the stroke paths.
 
         `numpoints` will prepare both the UnistrokeTemplate and Candidate path
-        to n points (when neccessary), you probably don't want to do this.
+        to n points (when necessary), you probably don't want to do this.
         '''
         n = numpoints
         if n is None or n < 2:
@@ -906,8 +909,9 @@ class MultistrokeGesture(object):
         # If you put the below directly into math.acos(), you will get a domain
         # error when a=1.0 and angle=0.0 (ie math_cos(angle)=1.0). It seems to
         # be because float representation of 1.0*1.0 is >1.0 (ie 1.00000...001)
-        # and this is problematic for math.acos(). If you try math.acos(1.0*1.0)
-        # in interpreter it does not happen, only with exact match at runtime
+        # and this is problematic for math.acos().
+        # If you try math.acos(1.0*1.0) in interpreter it does not happen,
+        # only with exact match at runtime
         result = a * math_cos(angle) + b * math_sin(angle)
 
         # FIXME: I'm sure there is a better way to do it but..
@@ -951,7 +955,7 @@ class MultistrokeGesture(object):
             # Handle a theoretical case where a MultistrokeGesture is composed
             # manually and the orientation_sensitive flag is True, and contains
             # a UnistrokeTemplate that has orientation_sensitive=False (or vice
-            # versa). This would cause KeyError - requesing nonexistant vector.
+            # versa). This would cause KeyError - requesting nonexistant vector
             if tpl.orientation_sens:
                 if skip_bounded:
                     continue
@@ -1093,7 +1097,7 @@ class UnistrokeTemplate(object):
 
     .. Note::
         You will get an exception if you set a skip-flag and then attempt to
-        retrieve those vectorsa.
+        retrieve those vectors.
     '''
     def __init__(self, name, points=None, **kwargs):
         self.name = name
@@ -1197,7 +1201,7 @@ class Candidate(object):
         self.db = {}
         self.strokes = []
 
-        if not strokes is None:
+        if strokes is not None:
             self.strokes = strokes
 
     def add_stroke(self, stroke):
@@ -1249,9 +1253,9 @@ class Candidate(object):
 
     def prepare(self, numpoints=None):
         '''Prepare the Candidate vectors. self.strokes is combined to a single
-        unistroke (connected end-to-end), resampled to :attr:`numpoints` points,
-        and then the vectors are calculated and stored in self.db (for use by
-        `get_distance` and `get_angle_similarity`)'''
+        unistroke (connected end-to-end), resampled to :attr:`numpoints`
+        points, and then the vectors are calculated and stored in self.db (for
+        use by `get_distance` and `get_angle_similarity`)'''
         n = numpoints and numpoints or self.numpoints
 
         # Inlined combine_strokes() for performance
@@ -1351,7 +1355,9 @@ def scale_dim(points, size, oneDratio):
     bbox_x, bbox_y, bbox_w, bbox_h = bounding_box(points)
 
     if bbox_h == 0 or bbox_w == 0:
-        raise MultistrokeError('scale_dim() called with invalid points')
+        raise MultistrokeError(
+            'scale_dim() called with invalid points: h:{}, w:{}'
+            .format(bbox_h, bbox_w))
 
     # 1D or 2D gesture test
     uniformly = min(bbox_w / bbox_h, bbox_h / bbox_w) <= oneDratio
@@ -1448,7 +1454,7 @@ def bounding_box(points):
         if py > maxy:
             maxy = py
 
-    return (minx, miny, maxx - minx, maxy - miny)
+    return (minx, miny, maxx - minx + 1, maxy - miny + 1)
 
 
 def path_length(points):

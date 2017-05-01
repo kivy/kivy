@@ -32,5 +32,6 @@ class SvgApp(App):
             svg.scale = 5.
             svg.center = Window.center
 
+
 if __name__ == '__main__':
     SvgApp().run()

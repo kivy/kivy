@@ -3,12 +3,11 @@
 Emacs Behavior
 ==============
 
-.. versionadded:: 1.9.2
-
-This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ allows you to add
+The :class:`~kivy.uix.behaviors.emacs.EmacsBehavior`
+`mixin <https://en.wikipedia.org/wiki/Mixin>`_ allows you to add
 `Emacs <https://www.gnu.org/software/emacs/>`_ keyboard shortcuts for basic
 movement and editing to the :class:`~kivy.uix.textinput.TextInput` widget.
-The shortcuts currently available are listed below::
+The shortcuts currently available are listed below:
 
 Emacs shortcuts
 ---------------
@@ -35,6 +34,9 @@ Control + y     Paste selection
     cursor to the end of the line, but the inspector will open as well).
 '''
 
+from kivy.properties import StringProperty
+
+
 __all__ = ('EmacsBehavior', )
 
 
@@ -42,6 +44,24 @@ class EmacsBehavior(object):
     '''
     A `mixin <https://en.wikipedia.org/wiki/Mixin>`_ that enables Emacs-style
     keyboard shortcuts for the :class:`~kivy.uix.textinput.TextInput` widget.
+    Please see the :mod:`Emacs behaviors module <kivy.uix.behaviors.emacs>`
+    documentation for more information.
+
+    .. versionadded:: 1.9.1
+    '''
+
+    key_bindings = StringProperty('emacs')
+    '''String name which determines the type of key bindings to use with the
+    :class:`~kivy.uix.textinput.TextInput`. This allows Emacs key bindings to
+    be enabled/disabled programmatically for widgets that inherit from
+    :class:`EmacsBehavior`. If the value is not ``'emacs'``, Emacs bindings
+    will be disabled. Use ``'default'`` for switching to the default key
+    bindings of TextInput.
+
+    :attr:`key_bindings` is a :class:`~kivy.properties.StringProperty`
+    and defaults to ``'emacs'``.
+
+    .. versionadded:: 1.10.0
     '''
 
     def __init__(self, **kwargs):
@@ -73,13 +93,14 @@ class EmacsBehavior(object):
         mod = modifiers[0] if modifiers else None
         is_emacs_shortcut = False
 
-        if key in range(256):
+        if key in range(256) and self.key_bindings == 'emacs':
             is_emacs_shortcut = ((mod == 'ctrl' and
                                   chr(key) in self.bindings['ctrl'].keys()) or
                                  (mod == 'alt' and
                                   chr(key) in self.bindings['alt'].keys()))
         if is_emacs_shortcut:
-            emacs_shortcut = self.bindings[mod][chr(key)]  # Look up mod and key
+            # Look up mod and key
+            emacs_shortcut = self.bindings[mod][chr(key)]
             emacs_shortcut()
         else:
             super(EmacsBehavior, self).keyboard_on_key_down(window, keycode,
@@ -94,8 +115,8 @@ class EmacsBehavior(object):
         self.do_cursor_movement('cursor_right', control=True)
         end_index = self.cursor_index()
         if start_index != end_index:
-            ss = self.text[start_index:end_index]
-            self._set_unredo_delsel(start_index, end_index, ss, from_undo=False)
+            s = self.text[start_index:end_index]
+            self._set_unredo_delsel(start_index, end_index, s, from_undo=False)
             self.text = self.text[:start_index] + self.text[end_index:]
             self._set_cursor(pos=start_cursor)
 
@@ -108,7 +129,7 @@ class EmacsBehavior(object):
         end_cursor = self.cursor
         end_index = self.cursor_index()
         if start_index != end_index:
-            ss = self.text[end_index:start_index]
-            self._set_unredo_delsel(end_index, start_index, ss, from_undo=False)
+            s = self.text[end_index:start_index]
+            self._set_unredo_delsel(end_index, start_index, s, from_undo=False)
             self.text = self.text[:end_index] + self.text[start_index:]
             self._set_cursor(pos=end_cursor)

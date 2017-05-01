@@ -3,14 +3,13 @@ from kivy.extras.highlight import KivyLexer
 from kivy.uix.spinner import Spinner, SpinnerOption
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.codeinput import CodeInput
+from kivy.uix.behaviors import EmacsBehavior
 from kivy.uix.popup import Popup
 from kivy.properties import ListProperty
 from kivy.core.window import Window
 from kivy.core.text import LabelBase
 from pygments import lexers
-
 import codecs
-import glob
 import os
 
 example_text = '''
@@ -57,6 +56,26 @@ public static byte toUnsignedByte(int intVal) {
     s.parentNode.insertBefore(po, s);
   })();
 </script>
+----------------------Emacs key bindings---------------------
+This CodeInput inherits from EmacsBehavior, so you can use Emacs key bindings
+if you want! To try out Emacs key bindings, set the "Key bindings" option to
+"Emacs". Experiment with the shortcuts below on some of the text in this window
+(just be careful not to delete the cheat sheet before you have made note of the
+commands!)
+
+Shortcut           Description
+--------           -----------
+Control + a        Move cursor to the beginning of the line
+Control + e        Move cursor to the end of the line
+Control + f        Move cursor one character to the right
+Control + b        Move cursor one character to the left
+Alt + f            Move cursor to the end of the word to the right
+Alt + b            Move cursor to the start of the word to the left
+Alt + Backspace    Delete text left of the cursor to the beginning of word
+Alt + d            Delete text right of the cursor to the end of the word
+Alt + w            Copy selection
+Control + w        Cut selection
+Control + y        Paste selection
 '''
 
 
@@ -87,6 +106,14 @@ class SaveDialog(Popup):
 
     def cancel(self):
         self.dismiss()
+
+
+class CodeInputWithBindings(EmacsBehavior, CodeInput):
+    '''CodeInput with keybindings.
+    To add more bindings, add the behavior before CodeInput in the class
+    definition.
+    '''
+    pass
 
 
 class CodeInputTest(App):
@@ -122,18 +149,24 @@ class CodeInputTest(App):
             text='File',
             values=('Open', 'SaveAs', 'Save', 'Close'))
         mnu_file.bind(text=self._file_menu_selected)
+        key_bindings = Spinner(
+            text='Key bindings',
+            values=('Default key bindings', 'Emacs key bindings'))
+        key_bindings.bind(text=self._bindings_selected)
 
         menu.add_widget(mnu_file)
         menu.add_widget(fnt_size)
         menu.add_widget(fnt_name)
         menu.add_widget(languages)
+        menu.add_widget(key_bindings)
         b.add_widget(menu)
 
-        self.codeinput = CodeInput(
-
+        self.codeinput = CodeInputWithBindings(
             lexer=KivyLexer(),
             font_size=12,
-            text=example_text)
+            text=example_text,
+            key_bindings='default',
+        )
 
         b.add_widget(self.codeinput)
 
@@ -169,6 +202,10 @@ class CodeInputTest(App):
                 self.codeinput.text = ''
                 Window.title = 'untitled'
 
+    def _bindings_selected(self, instance, value):
+        value = value.split(' ')[0]
+        self.codeinput.key_bindings = value.lower()
+
     def on_files(self, instance, values):
         if not values[0]:
             return
@@ -176,12 +213,13 @@ class CodeInputTest(App):
         self.codeinput.text = _file.read()
         _file.close()
 
-    def change_lang(self, instance, l):
-        if l == 'KvLexer':
+    def change_lang(self, instance, z):
+        if z == 'KvLexer':
             lx = KivyLexer()
         else:
-            lx = lexers.get_lexer_by_name(lexers.LEXERS[l][2][0])
+            lx = lexers.get_lexer_by_name(lexers.LEXERS[z][2][0])
         self.codeinput.lexer = lx
+
 
 if __name__ == '__main__':
     CodeInputTest().run()

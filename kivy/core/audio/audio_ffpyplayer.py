@@ -2,7 +2,7 @@
 FFmpeg based audio player
 =========================
 
-To use, you need to install ffpyplyaer and have a compiled ffmpeg shared
+To use, you need to install ffpyplayer and have a compiled ffmpeg shared
 library.
 
     https://github.com/matham/ffpyplayer
@@ -48,8 +48,7 @@ __all__ = ('SoundFFPy', )
 try:
     import ffpyplayer
     from ffpyplayer.player import MediaPlayer
-    from ffpyplayer.tools import set_log_callback, loglevels,\
-        get_log_callback, formats_in
+    from ffpyplayer.tools import set_log_callback, get_log_callback, formats_in
 except:
     raise
 
@@ -60,7 +59,11 @@ from kivy.core.audio import Sound, SoundLoader
 from kivy.weakmethod import WeakMethod
 import time
 
-Logger.info('SoundFFPy: Using ffpyplayer {}'.format(ffpyplayer.version))
+try:
+    Logger.info(
+        'SoundFFPy: Using ffpyplayer {}'.format(ffpyplayer.__version__))
+except:
+    Logger.info('SoundFFPy: Using ffpyplayer {}'.format(ffpyplayer.version))
 
 
 logger_func = {'quiet': Logger.critical, 'panic': Logger.critical,
@@ -87,7 +90,6 @@ class SoundFFPy(Sound):
         self._log_callback_set = False
         self._state = ''
         self.state = 'stop'
-        self._callback_ref = WeakMethod(self._player_callback)
 
         if not get_log_callback():
             set_log_callback(_log_callback)
@@ -115,7 +117,7 @@ class SoundFFPy(Sound):
         self.unload()
         ff_opts = {'vn': True, 'sn': True}  # only audio
         self._ffplayer = MediaPlayer(self.source,
-                                     callback=self._callback_ref,
+                                     callback=self._player_callback,
                                      loglevel='info', ff_opts=ff_opts)
         player = self._ffplayer
         player.set_volume(self.volume)
@@ -124,8 +126,8 @@ class SoundFFPy(Sound):
         # wait until loaded or failed, shouldn't take long, but just to make
         # sure metadata is available.
         s = time.clock()
-        while ((not player.get_metadata()['duration'])
-               and not self.quitted and time.clock() - s < 10.):
+        while ((not player.get_metadata()['duration']) and
+               not self.quitted and time.clock() - s < 10.):
             time.sleep(0.005)
 
     def unload(self):
@@ -177,5 +179,6 @@ class SoundFFPy(Sound):
             self.stop()
         else:
             self.seek(0.)
+
 
 SoundLoader.register(SoundFFPy)

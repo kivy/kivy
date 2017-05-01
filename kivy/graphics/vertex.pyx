@@ -1,17 +1,18 @@
 
 __all__ = ('VertexFormat', 'VertexFormatException')
 
-include "config.pxi"
+include "../include/config.pxi"
 include "common.pxi"
 
-from kivy.graphics.c_opengl cimport GL_FLOAT, GLfloat
+from kivy.graphics.cgl cimport GL_FLOAT, GLfloat
+
 
 class VertexFormatException(Exception):
     pass
 
 
 cdef class VertexFormat:
-    '''VertexFormat is used to describe the layout of the vertex data stored 
+    '''VertexFormat is used to describe the layout of the vertex data stored
     in vertex arrays/vbo's.
 
     .. versionadded:: 1.6.0
@@ -62,4 +63,3 @@ cdef class VertexFormat:
             index += 1
             self.vsize += attr.size
             self.vbytesize += attr.bytesize
-

@@ -47,7 +47,7 @@ For example, let's use a JsonStore::
         print('tshirtmans index key is', item[0])
         print('his key value pairs are', str(item[1]))
 
-Because the data is persistant, you can check later to see if the key exists::
+Because the data is persistent, you can check later to see if the key exists::
 
     from kivy.storage.jsonstore import JsonStore
 
@@ -123,7 +123,6 @@ The storage API emulates the container type for the synchronous API::
 
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
-from functools import partial
 
 
 class AbstractStore(EventDispatcher):
@@ -344,6 +343,7 @@ class AbstractStore(EventDispatcher):
     def store_clear(self):
         for key in self.store_keys():
             self.store_delete(key)
+        self.store_sync()
 
     def store_get_async(self, key, callback):
         try:

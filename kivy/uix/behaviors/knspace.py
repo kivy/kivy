@@ -8,8 +8,9 @@ Kivy Namespaces
     This code is still experimental, and its API is subject to change in a
     future version.
 
-Provides namespace functionality for Kivy objects. It allows kivy objects
-to be named and then accessed using the namespace.
+The :class:`KNSpaceBehavior` `mixin <https://en.wikipedia.org/wiki/Mixin>`_
+class provides namespace functionality for Kivy objects. It allows kivy objects
+to be named and then accessed using namespaces.
 
 :class:`KNSpace` instances are the namespaces that store the named objects
 in Kivy :class:`~kivy.properties.ObjectProperty` instances.
@@ -18,11 +19,10 @@ object is named, the name will automatically be added to the associated
 namespace and will point to a :attr:`~kivy.uix.widget.proxy_ref` of the
 derived object.
 
-
 Basic examples
 --------------
 
-By default, there's only a single namespace; the :attr:`knspace` namespace. The
+By default, there's only a single namespace: the :attr:`knspace` namespace. The
 simplest example is adding a widget to the namespace:
 
 .. code-block:: python
@@ -31,8 +31,8 @@ simplest example is adding a widget to the namespace:
     widget = Widget()
     knspace.my_widget = widget
 
-This adds an kivy :class:`~kivy.properties.ObjectProperty` with `rebind=True`
-and `allownone=True` to the :attr:`knspace` namespace with property name
+This adds a kivy :class:`~kivy.properties.ObjectProperty` with `rebind=True`
+and `allownone=True` to the :attr:`knspace` namespace with a property name
 `my_widget`. And the property now also points to this widget.
 
 This can be done automatically with:
@@ -68,7 +68,7 @@ also change to point to the new widget. E.g.:
 Setting the namespace
 ---------------------
 
-One can also create their own namespace rather than using the default
+One can also create ones own namespace rather than using the default
 :attr:`knspace` by directly setting :attr:`KNSpaceBehavior.knspace`:
 
 .. code-block:: python
@@ -83,7 +83,7 @@ One can also create their own namespace rather than using the default
 Initially, `my_widget` is added to the default namespace, but when the widget's
 namespace is changed to `my_new_namespace`, the reference to `my_widget` is
 moved to that namespace. We could have also of course first set the namespace
-to `my_new_namespace` and then named the widget as `my_widget`, thereby
+to `my_new_namespace` and then have named the widget `my_widget`, thereby
 avoiding the initial assignment to the default namespace.
 
 Similarly, in kv:
@@ -100,7 +100,7 @@ Inheriting the namespace
 ------------------------
 
 In the previous example, we directly set the namespace we wished to use.
-In the following example we inherit it from our parent, so we only have to set
+In the following example, we inherit it from the parent, so we only have to set
 it once:
 
 .. code-block:: kv
@@ -128,7 +128,7 @@ namespace in its parent and parent's parent and so on until it find one to
 use. If none are found, it uses the default :attr:`knspace`.
 
 When `MyComplexWidget` is created, it still used the default namespace.
-However, when we assigned to the root widget its new_namespace, all its
+However, when we assigned the root widget its new namespace, all its
 children switched to using that new namespace as well. So `new_knspace` now
 contains `label1` and `label2` as well as `my_complex`.
 
@@ -195,15 +195,15 @@ their children also use different namespaces. Consequently, the
 pretty and complex widgets of each instance will have different text.
 
 Further, because both the namespace :class:`~kivy.properties.ObjectProperty`
-references, and :atrr:`KNSpaceBehavior.knspace` have `rebind=True`, the
-text of the `MyComplexWidget` label is rebind to match the text of
+references, and :attr:`KNSpaceBehavior.knspace` have `rebind=True`, the
+text of the `MyComplexWidget` label is rebound to match the text of
 `MyPrettyWidget` when either the root's namespace changes or when the
 `root.knspace.pretty` property changes, as expected.
 
 Forking a namespace
 -------------------
 
-Forking a namespace provides the opportunity to create a new namesapce
+Forking a namespace provides the opportunity to create a new namespace
 from a parent namespace so that the forked namespace will contain everything
 in the origin namespace, but the origin namespace will not have access to
 anything added to the forked namespace.
@@ -299,7 +299,16 @@ class KNSpace(EventDispatcher):
     '''
     __has_applied = None
 
-    def __init__(self, parent=None, **kwargs):
+    keep_ref = False
+    '''Whether a direct reference should be kept to the stored objects.
+    If ``True``, we use the direct object, otherwise we use
+    :attr:`~kivy.uix.widget.proxy_ref` when present.
+
+    Defaults to False.
+    '''
+
+    def __init__(self, parent=None, keep_ref=False, **kwargs):
+        self.keep_ref = keep_ref
         super(KNSpace, self).__init__(**kwargs)
         self.parent = parent
         self.__has_applied = set(self.properties().keys())
@@ -315,16 +324,19 @@ class KNSpace(EventDispatcher):
                     **{name:
                        ObjectProperty(None, rebind=True, allownone=True)}
                 )
-                value = getattr(value, 'proxy_ref', value)
+                if not self.keep_ref:
+                    value = getattr(value, 'proxy_ref', value)
                 has_applied.add(name)
                 super(KNSpace, self).__setattr__(name, value)
         elif name not in has_applied:
             self.apply_property(**{name: prop})
             has_applied.add(name)
-            value = getattr(value, 'proxy_ref', value)
+            if not self.keep_ref:
+                value = getattr(value, 'proxy_ref', value)
             super(KNSpace, self).__setattr__(name, value)
         else:
-            value = getattr(value, 'proxy_ref', value)
+            if not self.keep_ref:
+                value = getattr(value, 'proxy_ref', value)
             super(KNSpace, self).__setattr__(name, value)
 
     def __getattribute__(self, name):
@@ -345,7 +357,11 @@ class KNSpace(EventDispatcher):
         parent = super(KNSpace, self).__getattribute__('parent')
         if parent is None:
             return None
-        return getattr(parent, name)
+
+        try:
+            return getattr(parent, name)  # if parent doesn't have it
+        except AttributeError:
+            return None
 
     def property(self, name, quiet=False):
         # needs to overwrite EventDispatcher.property so kv lang will work
@@ -379,11 +395,12 @@ class KNSpace(EventDispatcher):
 
 
 class KNSpaceBehavior(object):
-    '''Inheriting from this class allows naming of the inherited object, which
-    is then added to the associated namespace :attr:`knspace` and accessible
+    '''Inheriting from this class allows naming of the inherited objects, which
+    are then added to the associated namespace :attr:`knspace` and accessible
     through it.
 
-    See :mod:`~kivy.uix.behaviors.knspace` for details.
+    Please see the :mod:`knspace behaviors module <kivy.uix.behaviors.knspace>`
+    documentation for more information.
     '''
 
     _knspace = ObjectProperty(None, allownone=True)
@@ -479,7 +496,7 @@ class KNSpaceBehavior(object):
             if knspace:
                 value = knspace.fork()
             else:
-                raise ValueError('Cannot fork with no namesapce')
+                raise ValueError('Cannot fork with no namespace')
 
         for obj, prop_name, uid in self.__callbacks or []:
             obj.unbind_uid(prop_name, uid)
@@ -569,5 +586,6 @@ class KNSpaceBehavior(object):
     `name` is the given name of this instance. See :attr:`knspace` and the
     module description for more details.
     '''
+
 
 knspace = KNSpace()

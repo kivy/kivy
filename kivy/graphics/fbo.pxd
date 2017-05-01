@@ -1,6 +1,6 @@
-from c_opengl cimport *
-from instructions cimport RenderContext, Canvas
-from texture cimport Texture
+from kivy.graphics.cgl cimport GLuint, GLint
+from kivy.graphics.instructions cimport RenderContext, Canvas
+from kivy.graphics.texture cimport Texture
 
 cdef class Fbo(RenderContext):
     cdef int _width

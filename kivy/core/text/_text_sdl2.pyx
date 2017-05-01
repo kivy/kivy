@@ -50,24 +50,83 @@ cdef class _SurfaceContainer:
     def render(self, container, text, x, y):
         cdef TTF_Font *font = _get_font(container)
         cdef SDL_Color c
+        cdef SDL_Color oc
         cdef SDL_Surface *st
+        cdef SDL_Surface *fgst
         cdef SDL_Rect r
+        cdef SDL_Rect fgr
         cdef list color = list(container.options['color'])
+        cdef list outline_color = list(container.options['outline_color'])
+        outline_width = container.options['outline_width']
         if font == NULL:
             return
         c.r = <int>(color[0] * 255)
         c.g = <int>(color[1] * 255)
         c.b = <int>(color[2] * 255)
         bytes_text = <bytes>text.encode('utf-8')
-        st = TTF_RenderUTF8_Blended(font, <char *>bytes_text, c)
+
+        hinting = container.options['font_hinting']
+        if hinting == 'normal':
+            if TTF_GetFontHinting(font) != TTF_HINTING_NORMAL:
+                TTF_SetFontHinting(font, TTF_HINTING_NORMAL)
+        elif hinting == 'light':
+            if TTF_GetFontHinting(font) != TTF_HINTING_LIGHT:
+                TTF_SetFontHinting(font, TTF_HINTING_LIGHT)
+        elif hinting == 'mono':
+            if TTF_GetFontHinting(font) != TTF_HINTING_MONO:
+                TTF_SetFontHinting(font, TTF_HINTING_MONO)
+        elif hinting is None:
+            if TTF_GetFontHinting(font) != TTF_HINTING_NONE:
+                TTF_SetFontHinting(font, TTF_HINTING_NONE)
+
+        if container.options['font_kerning']:
+            if TTF_GetFontKerning(font) == 0:
+                TTF_SetFontKerning(font, 1)
+        else:
+            if TTF_GetFontKerning(font) != 0:
+                TTF_SetFontKerning(font, 0)
+
+        if outline_width:
+            TTF_SetFontOutline(font, outline_width)
+            oc.r = <int>(outline_color[0] * 255)
+            oc.g = <int>(outline_color[1] * 255)
+            oc.b = <int>(outline_color[2] * 255)
+            st = (
+                TTF_RenderUTF8_Blended(font, <char *>bytes_text, oc)
+                if container.options['font_blended']
+                else TTF_RenderUTF8_Solid(font, <char *>bytes_text, oc)
+                )
+            TTF_SetFontOutline(font, 0)
+        else:
+            st = (
+                TTF_RenderUTF8_Blended(font, <char *>bytes_text, c)
+                if container.options['font_blended']
+                else TTF_RenderUTF8_Solid(font, <char *>bytes_text, c)
+                )
         if st == NULL:
             return
+        if outline_width:
+            fgst = (
+                TTF_RenderUTF8_Blended(font, <char *>bytes_text, c)
+                if container.options['font_blended']
+                else TTF_RenderUTF8_Solid(font, <char *>bytes_text, c)
+                )
+            if fgst == NULL:
+                return
+            fgr.x = outline_width
+            fgr.y = outline_width
+            fgr.w = fgst.w
+            fgr.h = fgst.h
+            SDL_SetSurfaceBlendMode(fgst, SDL_BLENDMODE_BLEND)
+            SDL_BlitSurface(fgst, NULL, st, &fgr)
+            SDL_FreeSurface(fgst)
+
         r.x = x
         r.y = y
         r.w = st.w
         r.h = st.h
-        SDL_SetSurfaceAlphaMod(st, 0xff);
-        SDL_SetSurfaceBlendMode(st, SDL_BLENDMODE_NONE);
+        SDL_SetSurfaceAlphaMod(st, <int>(color[3] * 255))
+        SDL_SetSurfaceBlendMode(st, SDL_BLENDMODE_NONE)
         SDL_BlitSurface(st, NULL, self.surface, &r)
         SDL_FreeSurface(st)
 
@@ -102,12 +161,19 @@ cdef TTF_Font *_get_font(self):
         # try to open the fount if it has an extension
         fontobject = TTF_OpenFont(bytes_fontname,
                                   int(self.options['font_size']))
-
     # fallback to search a system font
     if fontobject == NULL:
         s_error = (<bytes>SDL_GetError()).encode('utf-8')
         print(s_error)
         assert(0)
+
+    # set underline and strikethrough style
+    style = TTF_STYLE_NORMAL
+    if self.options['underline']:
+        style = style | TTF_STYLE_UNDERLINE
+    if self.options['strikethrough']:
+        style = style | TTF_STYLE_STRIKETHROUGH
+    TTF_SetFontStyle(fontobject, style)
 
     sdl2_cache[fontid] = ttfc = _TTFContainer()
     ttfc.font = fontobject
@@ -127,12 +193,17 @@ cdef TTF_Font *_get_font(self):
 def _get_extents(container, text):
     cdef TTF_Font *font = _get_font(container)
     cdef int w, h
+    outline_width = container.options['outline_width']
     if font == NULL:
         return 0, 0
     if not PY2:
         text = text.encode('utf-8')
     bytes_text = <bytes>text
+    if outline_width:
+        TTF_SetFontOutline(font, outline_width)
     TTF_SizeUTF8(font, <char *>bytes_text, &w, &h)
+    if outline_width:
+        TTF_SetFontOutline(font, 0)
     return w, h
 
 def _get_fontdescent(container):

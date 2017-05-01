@@ -4,10 +4,13 @@ List Item View Argument Converters
 
 .. versionadded:: 1.5
 
+.. note::
+
+    The feature has been deprecated.
 
 The default list item args converter for list adapters is a function (shown
-below) that takes a row index and a string. It returns a dict with the string as
-the *text* item, along with two properties suited for simple text items with
+below) that takes a row index and a string. It returns a dict with the string
+as the *text* item, along with two properties suited for simple text items with
 a height of 25.
 
 Simple Usage
@@ -24,10 +27,10 @@ Advanced Usage
 --------------
 
 Typically, having the argument converter perform a simple mapping suffices.
-There are times, however, when more complex manipulation is required. When using
-a :class:`~kivy.uix.listview.CompositeListItem`, it is possible to specify
-a list of cls dictionaries. This allows you so compose a single view item
-out of multiple classes, each of which can recieve their own class constructor
+There are times, however, when more complex manipulation is required. When
+using :class:`~kivy.uix.listview.CompositeListItem`, it is possible to specify
+a list of cls dictionaries. This allows you to compose a single view item
+out of multiple classes, each of which can receive their own class constructor
 arguments via the *kwargs* keyword::
 
     args_converter = lambda row_index, rec: \\
@@ -37,14 +40,14 @@ arguments via the *kwargs* keyword::
              'cls_dicts': [{'cls': ListItemButton,
                             'kwargs': {'text': rec['text']}},
                            {'cls': ListItemLabel,
-                            'kwargs': {'text': "Middle-{0}".format(rec['text']),
+                            'kwargs': {'text': rec['text'],
                                        'is_representing_cls': True}},
                            {'cls': ListItemButton,
                             'kwargs': {'text': rec['text']}}]}
 
 Please see the `list_composite.py <https://github.com/\
-kivy/kivy/tree/master/examples/widgets/lists/list_composite.py>`_ for a complete
-example.
+kivy/kivy/tree/master/examples/widgets/lists/list_composite.py>`_ for a
+complete example.
 
 '''
 list_item_args_converter = lambda row_index, x: {'text': x,

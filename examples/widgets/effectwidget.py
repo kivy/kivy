@@ -6,10 +6,6 @@ Currently highly experimental.
 
 from kivy.app import App
 from kivy.uix.effectwidget import EffectWidget
-from kivy.uix.image import Image
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.scatter import Scatter
-from kivy.uix.button import Button
 from kivy.uix.spinner import Spinner
 from kivy.uix.boxlayout import BoxLayout
 from kivy.lang import Builder

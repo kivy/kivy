@@ -24,32 +24,30 @@ for packaging. Otherwise the latest build from kivy.org using Kivy
 master will be downloaded and used.
 
 If you want to package for python 3.x.x simply download the package
-named Kivy3.7z from the download sectoin of Kivy.org and extract it
-to Kivy.app in /Applications.
-
-Then run.
+named Kivy3.7z from the download section of kivy.org and extract it
+to Kivy.app in /Applications, then run::
 
     buildozer osx debug
 
-Once the app is packaged, you might want to remove extra un needed
-packages like gstreamer framework etc from it if you don't use video.
-Same logic implies for other things you do not use, just reduce
-the package to it's minimal state that is needed for the app to run.
+Once the app is packaged, you might want to remove unneeded
+packages like gstreamer, if you don't need video support.
+Same logic applies for other things you do not use, just reduce
+the package to its minimal state that is needed for the app to run.
 
-As a example we are including the showcase example packaged using
-this method for both python 2(9.xMB) and 3(15.xMB), you can find the
-packages here 
+As an example we are including the showcase example packaged using
+this method for both Python 2 (9.xMB) and 3 (15.xMB), you can find the
+packages here:
 https://drive.google.com/drive/folders/0B1WO07-OL50_alFzSXJUajBFdnc .
 
 That's it. Enjoy!
 
-buildozer right now uses the Kivy sdk method to package your app.
+Buildozer right now uses the Kivy SDK to package your app.
 If you want to control more details about your app than buildozer
-currently offers then you can use the following method `using Kivy SDK`
-mentioned below.
+currently offers then you can use the SDK directly, as detailed in the
+section below.
 
-Using Kivy SDK
---------------
+Using the Kivy SDK
+------------------
 
 Since version 1.9.0, Kivy is released for the OS X platform in a
 self-contained, portable distribution.
@@ -89,18 +87,19 @@ GStreamer.
 Installing modules
 ~~~~~~~~~~~~~~~~~~
 
-Kivy package on osx uses its own virtual env that is activated when you run your app using `kivy` command.
+Kivy package on osx uses its own virtual env that is activated when you run
+your app using `kivy` command.
 To install any module you need to install the module like so::
 
     $ kivy -m pip install <modulename>
 
 Where are the modules/files installed?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Inside the relocatable venv within the app at::
+Inside the portable venv within the app at::
 
     Kivy.app/Contents/Resources/venv/
 
-If you install a module that install's a binary for example like kivy-garden
+If you install a module that installs a binary for example like kivy-garden
 That binary will be only available from the venv above, as in after you do::
 
     kivy -m pip install kivy-garden
@@ -112,14 +111,14 @@ The garden lib will be only available when you activate this env.
     deactivate
 
 To install binary files
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Just copy the binary to the Kivy.app/Contents/Resources/venv/bin/ directory.
 
-To Include other frameworks
+To include other frameworks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kivy.app comes with SDL2 and Gstreamer frameworks provided.
-To Include frameworks other than the ones provided do the following::
+To include frameworks other than the ones provided do the following::
 
     git clone http://github.com/tito/osxrelocator
     export PYTHONPATH=~/path/to/osxrelocator
@@ -130,12 +129,12 @@ To Include frameworks other than the ones provided do the following::
 Do not forget to replace <Framework_name> with your framework.
 This tool `osxrelocator` essentially changes the path for the
 libs in the framework such that they are relative to the executable
-within the .app. Making the Framework relocatable with the .app.
+within the .app, making the Framework portable with the .app.
 
 
 Shrinking the app size
 ^^^^^^^^^^^^^^^^^^^^^^
-The app has of considerable size right now, however the unneeded parts can be
+The app has a considerable size right now, however the unneeded parts can be
 removed from the package.
 
 For example if you don't use GStreamer, simply remove it from
@@ -159,32 +158,33 @@ To make a DMG of your app use the following command::
     osx> ./create-osx-dmg.sh YourApp.app
 
 Note the lack of `/` at the end.
-This should give you a compressed dmg that will further shrink the size of your distributed app.
+This should give you a compressed dmg that will further shrink the size of your
+distributed app.
 
 
 .. _osx_pyinstaller:
 
 
-Using Pyinstaller without brew
-------------------------------
-First install Kivy and it's dependencies without using homebrew as mentioned here
-http://kivy.org/docs/installation/installation.html#development-version
+Using PyInstaller without Homebrew
+----------------------------------
+First install Kivy and its dependencies without using Homebrew as mentioned here
+http://kivy.org/docs/installation/installation.html#development-version.
 
-Once you have kivy and it's deps installed then you need to install pyinstaller
+Once you have kivy and its deps installed, you need to install PyInstaller.
 
-let's assume we use a folder like `testpackaging`::
+Let's assume we use a folder like `testpackaging`::
 
     cd testpackaging
     git clone http://github.com/pyinstaller/pyinstaller
-    
-create a file named as touchtracer.spec in this directory and paste the following
-into it editing ::
+
+Create a file named touchtracer.spec in this directory and add the following
+code to it::
 
     # -*- mode: python -*-
-    
+
     block_cipher = None
     from kivy.tools.packaging.pyinstaller_hooks import get_deps_all, hookspath, runtime_hooks
-    
+
     a = Analysis(['/path/to/yout/folder/containing/examples/demo/touchtracer/main.py'],
                  pathex=['/path/to/yout/folder/containing/testpackaging'],
                  binaries=None,
@@ -217,7 +217,7 @@ into it editing ::
                  icon=None,
              bundle_identifier=None)
 
-Change the paths ::
+Change the paths with your relevant paths::
 
     a = Analysis(['/path/to/yout/folder/containing/examples/demo/touchtracer/main.py'],
                 pathex=['/path/to/yout/folder/containing/testpackaging'],
@@ -225,60 +225,52 @@ Change the paths ::
     ...
     coll = COLLECT(exe, Tree('../kivy/examples/demo/touchtracer/'),
 
-By your relevant paths, then run the following command::
+Then run the following command::
 
     pyinstaller/pyinstaller.py touchtracer.spec
 
 Replace `touchtracer` with your app where appropriate.
-This will give you a <yourapp>.app in dist/ folder.
-    
-    
+This will give you a <yourapp>.app in the dist/ folder.
+
+
 Using PyInstaller and Homebrew
 ------------------------------
 .. note::
     Package your app on the oldest OS X version you want to support.
 
 Complete guide
-^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~
 #. Install `Homebrew <http://brew.sh>`_
 #. Install Python::
 
     $ brew install python
 
    .. note::
-     To use Python 3, ``brew install python3`` and replace ``pip`` with ``pip3``
-     in the guide below.
+     To use Python 3, ``brew install python3`` and replace ``pip`` with
+     ``pip3`` in the guide below.
 
-#. (Re)install your dependencies with ``--build-bottle`` to make sure they can be
-   used on other machines::
+#. (Re)install your dependencies with ``--build-bottle`` to make sure they can
+   be used on other machines::
 
     $ brew reinstall --build-bottle sdl2 sdl2_image sdl2_ttf sdl2_mixer
 
    .. note::
-       If your project depends on GStreamer or other additional libraries (re)install
-       them with ``--build-bottle`` as described `below <additional libraries_>`_.
+       If your project depends on GStreamer or other additional libraries
+       (re)install them with ``--build-bottle`` as described
+       `below <additional libraries_>`_.
 
 #. Install Cython and Kivy::
 
-    $ pip install -I Cython==0.21.2
-    $ USE_OSX_FRAMEWORKS=0 pip install git+https://github.com/kivy/kivy.git@1.9.0
+    $ pip install -I Cython==0.23
+    $ USE_OSX_FRAMEWORKS=0 pip install -U kivy
 
-#. Install the development version of PyInstaller which includes fixes for the
-   GStreamer hooks::
+#. Install PyInstaller::
 
-    $ pip install git+https://github.com/pyinstaller/pyinstaller.git@develop
-
-#. Export the ``HOOKSPATH`` environment variable::
-
-    $ export HOOKSPATH=`python -c "
-    import imp, os
-    print(os.path.join(imp.find_module('kivy')[1], 'tools/packaging/pyinstaller_hooks'))"`
+    $ pip install -U pyinstaller
 
 #. Package your app using the path to your main.py::
 
     $ pyinstaller -y --clean --windowed --name touchtracer \
-      --additional-hooks-dir $HOOKSPATH \
-      --runtime-hook $HOOKSPATH/rt-hook-kivy.py \
       --exclude-module _tkinter \
       --exclude-module Tkinter \
       --exclude-module enchant \
@@ -286,19 +278,20 @@ Complete guide
       /usr/local/share/kivy-examples/demo/touchtracer/main.py
 
    .. note::
-     This will not yet copy additional image or sound files. You would need to adapt the
-     created ``.spec`` file for that.
+     This will not yet copy additional image or sound files. You would need to
+     adapt the created ``.spec`` file for that.
 
 
 Editing the spec file
-^^^^^^^^^^^^^^^^^^^^^
-The specs file is named `touchtracer.spec` and is located in the directory where you ran
-the pyinstaller command.
+~~~~~~~~~~~~~~~~~~~~~
+The specs file is named `touchtracer.spec` and is located in the directory
+where you ran the pyinstaller command.
 
 You need to change the `COLLECT()` call to add the data of touchtracer
 (`touchtracer.kv`, `particle.png`, ...). Change the line to add a Tree()
 object. This Tree will search and add every file found in the touchtracer
-directory to your final package. Your COLLECT section should look something like this::
+directory to your final package. Your COLLECT section should look something
+like this::
 
 
     coll = COLLECT(exe, Tree('/usr/local/share/kivy-examples/demo/touchtracer/'),
@@ -309,11 +302,11 @@ directory to your final package. Your COLLECT section should look something like
                    upx=True,
                    name='touchtracer')
 
-This will add the required hooks so that PyInstaller gets the required Kivy files.
-We are done. Your spec is ready to be executed.
+This will add the required hooks so that PyInstaller gets the required Kivy
+files. We are done. Your spec is ready to be executed.
 
 Build the spec and create a DMG
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #. Open a console.
 #. Go to the PyInstaller directory, and build the spec::
@@ -330,30 +323,19 @@ Build the spec and create a DMG
 
 
 Additional Libraries
-^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~
 GStreamer
-"""""""""
+^^^^^^^^^
 If your project depends on GStreamer::
 
     $ brew reinstall --build-bottle gstreamer gst-plugins-{base,good,bad,ugly}
 
 .. note::
-    If your Project needs Ogg Vorbis support be sure to add the ``--with-libvorbis``
-    option to the command above.
+    If your Project needs Ogg Vorbis support be sure to add the
+    ``--with-libvorbis`` option to the command above.
 
-If you are using Python from Homebrew you currently also need the following step until `this pull request <https://github.com/Homebrew/homebrew/pull/46097>`_ gets merged::
+If you are using Python from Homebrew you will also need the following step
+until `this pull request <https://github.com/Homebrew/homebrew/pull/46097>`_
+gets merged::
 
     $ brew reinstall --with-python --build-bottle https://github.com/cbenhagen/homebrew/raw/patch-3/Library/Formula/gst-python.rb
-
-
-SDL 2 HEAD for ``Window.on_dropfile`` support
-"""""""""""""""""""""""""""""""""""""""""""""
-
-You can install the newest SDL 2 library which supports ``on_dropfile`` with::
-
-    $ brew reinstall --build-bottle --HEAD sdl2
-
-Or you build 2.0.3 with the following patches (untested):
-
-- https://hg.libsdl.org/SDL/rev/2cc90bb31777
-- https://hg.libsdl.org/SDL/rev/63c4d6f1f85f

@@ -13,7 +13,7 @@ except:
 from kivy.utils import (boundary, escape_markup, format_bytes_to_human,
         is_color_transparent, SafeList, get_random_color, get_hex_from_color,
         get_color_from_hex, strtotuple, QueryDict, intersection, difference,
-        interpolate, Platform, deprecated, reify)
+        interpolate, _get_platform, deprecated, reify)
 from kivy import utils
 
 
@@ -185,28 +185,21 @@ class UtilsTest(unittest.TestCase):
         return b
 
     def test_reify(self):
-        first = self.fib_100   # slow. self.fib_100 is a reify object making
-                               # the lazy call.
+        # slow. self.fib_100 is a reify object making the lazy call.
+        first = self.fib_100
         second = self.fib_100  # fast, self.fib_100 is a long.
         assert first == second
 
-    def test_Platform(self):
-        # Those calls do not have specific intent, no assertions
-        pf = Platform
-        pf()  # __call__ deprecated
-        hash(pf)
-        repr(pf)
-
     def test_Platform_android(self):
         with patch.dict('os.environ', {'ANDROID_ARGUMENT': ''}):
-            pf = Platform()
+            pf = _get_platform()
             self.assertTrue(pf == 'android')
         self.assertNotIn('ANDROID_ARGUMENT', os.environ)
 
     def test_Platform_ios(self):
         with patch.dict('os.environ', {'KIVY_BUILD': 'ios'}):
-            pf = Platform()
-            self.assertEqual(str(pf), 'ios')
+            pf = _get_platform()
+            self.assertEqual(pf, 'ios')
         self.assertNotIn('KIVY_BUILD', os.environ)
 
     def test_Platform_win32(self):
@@ -229,11 +222,10 @@ class UtilsTest(unittest.TestCase):
 
     def _test_platforms(self, input, testval):
         utils._sys_platform = input
-        pf = Platform()
+        pf = _get_platform()
         self.assertTrue(pf == testval)
-        #with patch('kivy.utils._sys_platform') as m:
-        #    m.__str__.return_value = input
-        #    m.__eq__ = lambda x, y: str(x) == y
-        #    pf = Platform()
-        #    self.assertTrue(str(pf) == testval)
-
+        # with patch('kivy.utils._sys_platform') as m:
+        #     m.__str__.return_value = input
+        #     m.__eq__ = lambda x, y: str(x) == y
+        #     pf = _get_platform()
+        #     self.assertTrue(str(pf) == testval)

@@ -169,9 +169,9 @@ user in order to adapt or reload your UI. You can then overload the
             if config is self.config:
                 token = (section, key)
                 if token == ('section1', 'key1'):
-                    print('Our key1 have been changed to', value)
+                    print('Our key1 has been changed to', value)
                 elif token == ('section1', 'key2'):
-                    print('Our key2 have been changed to', value)
+                    print('Our key2 has been changed to', value)
 
 The Kivy configuration panel is added by default to the settings
 instance. If you don't want this panel, you can declare your Application as
@@ -284,9 +284,9 @@ The currently implemented Pause mechanism is:
        System due to the user switching to another application, a phone
        shutdown or any other reason.
     #. :meth:`App.on_pause` is called:
-    #. If False is returned (default case), then :meth:`App.on_stop` is
-       called.
-    #. Otherwise the application will sleep until the OS resumes our App
+    #. If False is returned, then :meth:`App.on_stop` is called.
+    #. If True is returned (default case), the application will sleep until
+       the OS resumes our App.
     #. When the app is resumed, :meth:`App.on_resume` is called.
     #. If our app memory has been reclaimed by the OS, then nothing will be
        called.
@@ -366,8 +366,8 @@ class App(EventDispatcher):
     .. versionadded:: 1.0.5
 
     .. versionchanged:: 1.8.0
-        `title` is now a :class:`~kivy.properties.StringProperty`. Don't set the
-        title in the class as previously stated in the documentation.
+        `title` is now a :class:`~kivy.properties.StringProperty`. Don't
+        set the title in the class as previously stated in the documentation.
 
     .. note::
 
@@ -385,8 +385,8 @@ class App(EventDispatcher):
 
     icon = StringProperty(None)
     '''Icon of your application.
-    The icon can be located in the same directory as your main file. You can set
-    this as follows::
+    The icon can be located in the same directory as your main file. You can
+    set this as follows::
 
         class MyApp(App):
             def build(self):
@@ -435,8 +435,8 @@ class App(EventDispatcher):
 
     :attr:`~App.settings_cls` is an :class:`~kivy.properties.ObjectProperty`
     and defaults to :class:`~kivy.uix.settings.SettingsWithSpinner` which
-    displays settings panels with a spinner to switch between them. If you set a
-    string, the :class:`~kivy.factory.Factory` will be used to resolve the
+    displays settings panels with a spinner to switch between them. If you set
+    a string, the :class:`~kivy.factory.Factory` will be used to resolve the
     class.
 
     '''
@@ -639,7 +639,7 @@ class App(EventDispatcher):
         system-wide, the user might not have write-access to the
         application directory. If you want to store user settings, you
         should overload this method and change the default behavior to
-        save the configuration file in the user directory.::
+        save the configuration file in the user directory. ::
 
             class TestApp(App):
                 def get_application_config(self):
@@ -752,14 +752,14 @@ class App(EventDispatcher):
         This function implements these conventions. The <app_name> directory
         is created when the property is called, unless it already exists.
 
-        On iOS, `~/Documents<app_name>` is returned (which is inside the
+        On iOS, `~/Documents/<app_name>` is returned (which is inside the
         app's sandbox).
 
         On Android, `/sdcard/<app_name>` is returned.
 
         On Windows, `%APPDATA%/<app_name>` is returned.
 
-        On Mac OSX, `~/Library/Application Support/<app_name>` is returned.
+        On OS X, `~/Library/Application Support/<app_name>` is returned.
 
         On Linux, `$XDG_CONFIG_HOME/<app_name>` is returned.
         '''
@@ -838,8 +838,9 @@ class App(EventDispatcher):
         stopTouchApp()
 
         # Clear the window children
-        for child in self._app_window.children:
-            self._app_window.remove_widget(child)
+        if self._app_window:
+            for child in self._app_window.children:
+                self._app_window.remove_widget(child)
 
     def on_start(self):
         '''Event handler for the `on_start` event which is fired after
@@ -858,17 +859,19 @@ class App(EventDispatcher):
     def on_pause(self):
         '''Event handler called when Pause mode is requested. You should
         return True if your app can go into Pause mode, otherwise
-        return False and your application will be stopped (the default).
+        return False and your application will be stopped.
 
         You cannot control when the application is going to go into this mode.
         It's determined by the Operating System and mostly used for mobile
         devices (android/ios) and for resizing.
 
-        The default return value is False.
+        The default return value is True.
 
         .. versionadded:: 1.1.0
+        .. versionchanged:: 1.10.0
+            The default return value is now True.
         '''
-        return False
+        return True
 
     def on_resume(self):
         '''Event handler called when your application is resuming from
@@ -1043,4 +1046,3 @@ class App(EventDispatcher):
     def on_icon(self, instance, icon):
         if self._app_window:
             self._app_window.set_icon(self.get_application_icon())
-

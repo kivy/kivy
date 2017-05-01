@@ -40,6 +40,9 @@ Getting started
 #. Start the Virtual machine and follow the instructions in the readme file
    on the desktop.
 
+#. Go to https://github.com/kivy/buildozer#buildozer-virtual-machine to
+   see the current issues with the VM.
+
 Building the APK
 ----------------
 
@@ -62,6 +65,10 @@ Hints and tips
     'Auto-mount' options) to copy the built APK to the host machine so it can
     form part of your normal dev environment. A simple script can easily
     automate the build and copy/move process.
+
+    Currently, VirtualBox doesn't allow symlink anymore in a shared folder.
+    Adjust your buildozer.spec to build outside the shared folder.
+    Also, ensure the `kivy` user is in the `vboxsf` group.
 
 #. Copy and paste
 
@@ -87,3 +94,7 @@ Hints and tips
 
     If this occurs, please check the amount of free memory in the Kivy VM and
     increase the amount of RAM allocated to it if required.
+
+#. No space left
+
+    Read the section about resizing the VM at https://github.com/kivy/buildozer#buildozer-virtual-machine

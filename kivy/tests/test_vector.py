@@ -109,13 +109,13 @@ class VectorTestCase(unittest.TestCase):
 
     def test_truediv_twovectors(self):
         finalVector = truediv(Vector(6, 6), Vector(2., 2.))
-        self.assertEqual(finalVector.x, 3.)
-        self.assertEqual(finalVector.y, 3.)
+        self.assertAlmostEqual(finalVector.x, 3.)
+        self.assertAlmostEqual(finalVector.y, 3.)
 
     def test_truediv_scalar(self):
         finalVector = truediv(Vector(6, 6), 2.)
-        self.assertEqual(finalVector.x, 3.)
-        self.assertEqual(finalVector.y, 3.)
+        self.assertAlmostEqual(finalVector.x, 3.)
+        self.assertAlmostEqual(finalVector.y, 3.)
 
     def test_div_inplace(self):
         finalVector = Vector(6, 6)
@@ -174,8 +174,8 @@ class VectorTestCase(unittest.TestCase):
 
     def test_normalize(self):
         vector = Vector(88, 33).normalize()
-        self.assertEqual(vector.x, 0.93632917756904444)
-        self.assertEqual(vector.y, 0.3511234415883917)
+        self.assertAlmostEqual(vector.x, 0.93632917756904444)
+        self.assertAlmostEqual(vector.y, 0.3511234415883917)
         self.assertAlmostEqual(vector.length(), 1.0)
 
     def test_normalize_zerovector(self):
@@ -190,13 +190,13 @@ class VectorTestCase(unittest.TestCase):
 
     def test_angle(self):
         result = Vector(100, 0).angle((0, 100))
-        self.assertEqual(result, -90.0)
+        self.assertAlmostEqual(result, -90.0)
 
     def test_rotate(self):
         v = Vector(100, 0)
         v = v.rotate(45)
-        self.assertEqual(v.x, 70.710678118654755)
-        self.assertEqual(v.y, 70.710678118654741)
+        self.assertAlmostEqual(v.x, 70.710678118654755)
+        self.assertAlmostEqual(v.y, 70.710678118654741)
 
     def test_(self):
         a = (98, 28)
@@ -204,8 +204,8 @@ class VectorTestCase(unittest.TestCase):
         c = (10, -5)
         d = (20, 88)
         result = Vector.line_intersection(a, b, c, d)
-        self.assertEqual(result.x, 15.25931928687196)
-        self.assertEqual(result.y, 43.911669367909241)
+        self.assertAlmostEqual(result.x, 15.25931928687196)
+        self.assertAlmostEqual(result.y, 43.911669367909241)
 
     def test_inbbox(self):
         bmin = (0, 0)

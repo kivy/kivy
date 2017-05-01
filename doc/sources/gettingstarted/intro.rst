@@ -17,7 +17,7 @@ If you need more background on the Python language, you might be interested in
 these tutorials:
 
 * `The Official Python Tutorial <http://docs.python.org/tutorial/>`_
-* `Learn Python in 10 minutes <http://www.korokithakis.net/tutorials/python/>`_
+* `Learn Python in 10 minutes <https://www.stavros.io/tutorials/python/>`_
 * `Learn Python the hard way <http://learnpythonthehardway.org/>`_
 
 Using Kivy on your computer, you can create apps that run on:

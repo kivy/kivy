@@ -68,7 +68,7 @@ class ShowcaseApp(App):
         self.screen_names = self.available_screens
         curdir = dirname(__file__)
         self.available_screens = [join(curdir, 'data', 'screens',
-            '{}.kv'.format(fn)) for fn in self.available_screens]
+            '{}.kv'.format(fn).lower()) for fn in self.available_screens]
         self.go_next_screen()
 
     def on_pause(self):
@@ -114,12 +114,12 @@ class ShowcaseApp(App):
     def load_screen(self, index):
         if index in self.screens:
             return self.screens[index]
-        screen = Builder.load_file(self.available_screens[index].lower())
+        screen = Builder.load_file(self.available_screens[index])
         self.screens[index] = screen
         return screen
 
     def read_sourcecode(self):
-        fn = self.available_screens[self.index].lower()
+        fn = self.available_screens[self.index]
         with open(fn) as fd:
             return fd.read()
 
@@ -233,6 +233,7 @@ Button:
 
     def _update_clock(self, dt):
         self.time = time()
+
 
 if __name__ == '__main__':
     ShowcaseApp().run()

@@ -85,4 +85,3 @@ class LangComplexTestCase(unittest.TestCase):
         self.assertEquals(a.refwid.children[0].title, 'valid')
         self.assertTrue(isinstance(a.refwid2, TestWidget2))
         self.assertEquals(a.refwid2.source, 'valid.png')
-
