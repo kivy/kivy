@@ -304,7 +304,9 @@ class KivyBuildExt(build_ext):
         if c != 'msvc':
             for e in self.extensions:
                 e.extra_link_args += ['-lm']
-
+                if PY3:
+                    e.extra_link_args += ['-lpython3.5m']
+                
         build_ext.build_extensions(self)
 
     def update_if_changed(self, fn, content):
