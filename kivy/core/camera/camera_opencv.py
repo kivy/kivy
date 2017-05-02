@@ -99,7 +99,7 @@ class CameraOpenCV(CameraBase):
             # always get a frame).
             self._resolution = (int(frame.width), int(frame.height))
             # get fps
-            self.fps = cv.GetCaptureProperty(self._device, cv.CV_CAP_PROP_FPS)
+            fps = cv.GetCaptureProperty(self._device, cv.CV_CAP_PROP_FPS)
 
         elif self.opencvMajorVersion == 2 or self.opencvMajorVersion == 3:
             # create the device
@@ -116,10 +116,10 @@ class CameraOpenCV(CameraBase):
             # http://stackoverflow.com/questions/32468371/video-capture-propid-parameters-in-opencv # noqa
             self._resolution = (int(frame.shape[1]), int(frame.shape[0]))
             # get fps
-            self.fps = self._device.get(PROPERTY_FPS)
+            fps = self._device.get(PROPERTY_FPS)
 
-        if self.fps <= 0:
-            self.fps = 1 / 30.
+        # The event interval is the inverse of the frame rate.
+        self.fps = 1 / float(fps if fps > 0 else 30)
 
         if not self.stopped:
             self.start()
