@@ -423,7 +423,7 @@ class Parser(object):
                     force_load = True
 
                 # if #:include [force] "path with quotes around"
-                if ref.startswith('"') or ref.startswith("'"):
+                if ref[0] == ref[-1] and ref[0] in ('"', "'"):
                     ref = ref.strip("'").strip('"')
 
                 if ref[-3:] != '.kv':
