@@ -424,7 +424,7 @@ class Parser(object):
 
                 # if #:include [force] "path with quotes around"
                 if ref[0] == ref[-1] and ref[0] in ('"', "'"):
-                    ref = ref.strip("'").strip('"')
+                    ref = ref[1:-1]
 
                 if ref[-3:] != '.kv':
                     Logger.warn('Lang: {0} does not have a valid Kivy'
