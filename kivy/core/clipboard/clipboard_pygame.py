@@ -54,4 +54,3 @@ class ClipboardPygame(ClipboardBase):
                     types.append(mime)
             self._types = types
         return self._types
-
