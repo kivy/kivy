@@ -253,7 +253,7 @@ class Image(Widget):
             if self._coreimage is not None:
                 self._coreimage.unbind(on_texture=self._on_tex_change)
             try:
-                if PY2:
+                if PY2 and isinstance(filename, str):
                     filename = filename.decode('utf-8')
                 self._coreimage = ci = CoreImage(filename, mipmap=mipmap,
                                                  anim_delay=self.anim_delay,
