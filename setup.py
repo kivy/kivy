@@ -433,7 +433,11 @@ sdl2_flags = {}
 if c_options['use_sdl2'] or (
         platform not in ('android',) and c_options['use_sdl2'] is None):
 
-    if c_options['use_osx_frameworks'] and platform == 'darwin':
+    if platform == 'darwin' and environ.get('KIVY_SDL2_PATH', None):
+    	# paths and link flags will be configured in determine_sdl2()
+        c_options['use_sdl2'] = True
+
+    elif c_options['use_osx_frameworks'] and platform == 'darwin':
         # check the existence of frameworks
         sdl2_valid = True
         sdl2_flags = {
