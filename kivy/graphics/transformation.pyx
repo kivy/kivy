@@ -612,6 +612,20 @@ cdef class Matrix:
 
         return (winx, winy, winz)
 
+    def transform(self, double x, double y):
+        '''Return a transformed point by applying this Matrix's tranformation.
+
+        :Parameters:
+            `point`: 2D point to tranform
+
+        .. versionadded: 2.0.0
+        '''
+
+        cdef double *m = <double *>self.mat
+        transformed_point = (x * m[0] + y * m[4] + m[12],
+                            x * m[1] + y * m[5] + m[13])
+        return transformed_point
+
     def __str__(self):
         cdef double *m = <double *>self.mat
         return '[[ %f %f %f %f ]\n[ %f %f %f %f ]\n' \
