@@ -429,9 +429,6 @@ if platform not in ('ios', 'android') and (c_options['use_gstreamer']
         if 'libraries' in gst_flags:
             print('GStreamer found via pkg-config')
             c_options['use_gstreamer'] = True
-        else:
-            print('GStreamer not found via pkg-config, disabling.')
-            c_options['use_gstreamer'] = False
 
 
 # detect SDL2, only on desktop and iOS, or android if explicitly enabled
@@ -479,9 +476,6 @@ if c_options['use_sdl2'] or (
         if 'libraries' in sdl2_flags:
             print('SDL2 found via pkg-config')
             c_options['use_sdl2'] = True
-        else:
-            print('SDL2 not found via pkg-config, disabling.')
-            c_options['use_sdl2'] = False
 
 
 # -----------------------------------------------------------------------------
