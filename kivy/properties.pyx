@@ -618,7 +618,7 @@ cdef class NumericProperty(Property):
         if x is None:
             return x
         tp = type(x)
-        if tp is int or tp is float or tp is long:
+        if tp is int or tp is float or tp is long or tp is double:
             return x
         if tp is tuple or tp is list:
             if len(x) != 2:
