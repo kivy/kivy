@@ -2524,7 +2524,7 @@ class TextInput(FocusBehavior, Widget):
     .. versionadded:: 1.8.0
 
     :attr:`keyboard_suggestions` is a :class:`~kivy.properties.BooleanProperty`
-    defaults to True.
+    and defaults to True.
     '''
 
     cursor_blink = BooleanProperty(False)
