@@ -1,0 +1,6 @@
+title=Native Vlc Player
+author=Ihor Bobalo
+orientation=sensor
+modules=kivy vlc
+permissions=INTERNET
+meta-data=surface.transparent=1 surface.depth=16 android.background_color=0
