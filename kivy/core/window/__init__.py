@@ -207,6 +207,8 @@ class WindowBase(EventDispatcher):
             Make the window fullscreen. Check the
             :mod:`~kivy.config` documentation for a
             more detailed explanation on the values.
+        `no_taskbar`: str, one of ('0', '1')
+            Make the application not visible in the taskbar
         `width`: int
             Width of the window.
         `height`: int
@@ -673,6 +675,7 @@ class WindowBase(EventDispatcher):
         return w, h
 
     borderless = BooleanProperty(False)
+    no_taskbar = BooleanProperty(False)
     '''When set to True, this property removes the window border/decoration.
     Check the :mod:`~kivy.config` documentation for a more detailed
     explanation on the values.
@@ -834,6 +837,9 @@ class WindowBase(EventDispatcher):
         # set the default window parameter according to the configuration
         if 'borderless' not in kwargs:
             kwargs['borderless'] = Config.getboolean('graphics', 'borderless')
+        if 'no_taskbar' not in kwargs:
+            kwargs['no_taskbar'] = Config.getboolean('graphics', 'no_taskbar')
+
         if 'fullscreen' not in kwargs:
             fullscreen = Config.get('graphics', 'fullscreen')
             if fullscreen not in ('auto', 'fake'):
@@ -915,13 +921,13 @@ class WindowBase(EventDispatcher):
 
     def _bind_create_window(self):
         for prop in (
-                'fullscreen', 'borderless', 'position', 'top',
+                'fullscreen', 'no_taskbar' ,'borderless', 'position', 'top',
                 'left', '_size', 'system_size'):
             self.bind(**{prop: self.trigger_create_window})
 
     def _unbind_create_window(self):
         for prop in (
-                'fullscreen', 'borderless', 'position', 'top',
+                'fullscreen', 'no_taskbar', 'borderless', 'position', 'top',
                 'left', '_size', 'system_size'):
             self.unbind(**{prop: self.trigger_create_window})
 

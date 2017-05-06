@@ -65,6 +65,8 @@ cdef class _WindowSDL2Storage:
         ELSE:
             if resizable:
                 self.win_flags |= SDL_WINDOW_RESIZABLE
+            if no_taskbar:
+                self.win_flags |= SDL_WINDOW_SKIP_TASKBAR
             if borderless:
                 self.win_flags |= SDL_WINDOW_BORDERLESS
             if fullscreen == 'auto':
