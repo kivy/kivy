@@ -4,8 +4,7 @@ List View
 
 .. versionadded:: 1.5
 
-.. note::
-
+.. deprecated:: 1.10.0
     ListView has been deprecated, use
     :class:`~kivy.uix.recycleview.RecycleView` instead.
 
