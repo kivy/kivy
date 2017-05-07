@@ -294,7 +294,7 @@ class LabelBase(object):
             return LabelBase._fonts_dirs
 
         fdirs = []
-        if platform == 'linux':
+        if platform == 'linux' or platform == 'freebsd':
             fdirs = [
                 '/usr/share/fonts', '/usr/local/share/fonts',
                 os.path.expanduser('~/.fonts'),
