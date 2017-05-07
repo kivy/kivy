@@ -2,8 +2,7 @@
 SelectableView
 ==============
 
-.. note::
-
+.. deprecated:: 1.10.0
     The feature has been deprecated.
 
 This module houses the :class:`SelectableView` mixin class. This is used by

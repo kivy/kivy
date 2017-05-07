@@ -4,8 +4,7 @@ ListAdapter
 
 .. versionadded:: 1.5
 
-.. note::
-
+.. deprecated:: 1.10.0
     The feature has been deprecated.
 
 .. warning::
@@ -55,6 +54,7 @@ from kivy.properties import BooleanProperty
 from kivy.properties import OptionProperty
 from kivy.properties import NumericProperty
 from kivy.lang import Builder
+from kivy.utils import deprecated
 
 
 class ListAdapter(Adapter, EventDispatcher):
@@ -181,6 +181,7 @@ class ListAdapter(Adapter, EventDispatcher):
 
     __events__ = ('on_selection_change', )
 
+    @deprecated
     def __init__(self, **kwargs):
         super(ListAdapter, self).__init__(**kwargs)
 
