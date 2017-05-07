@@ -131,7 +131,6 @@ class TreeViewNode(object):
     def __init__(self, **kwargs):
         if self.__class__ is TreeViewNode:
             raise TreeViewException('You cannot use directly TreeViewNode.')
-        super(TreeViewNode, self).__init__(**kwargs)
 
     is_leaf = BooleanProperty(True)
     '''Boolean to indicate whether this node is a leaf or not. Used to adjust
