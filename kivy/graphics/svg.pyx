@@ -194,7 +194,13 @@ cdef class Matrix(object):
                 self.mat[4] = float(a)
                 self.mat[5] = float(b)
             elif string.startswith('scale('):
-                a, b = parse_list(string[6:-1])
+                value = parse_list(string[6:-1])
+                if len(value) == 1:
+                    a = b = value[0]
+                elif len(value) == 2:
+                    a, b = value
+                else:
+                    print("SVG: unknown how to parse: {!r}".format(value))
                 self.mat[0] = float(a)
                 self.mat[3] = float(b)
         elif string is not None:
@@ -460,7 +466,7 @@ cdef class Svg(RenderContext):
             finally:
                 fd.close()
 
-    cdef void reload(self):
+    cdef void reload(self) except *:
             # parse tree
             start = time()
             self.parse_tree(self.tree)
