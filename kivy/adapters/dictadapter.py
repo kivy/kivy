@@ -104,6 +104,20 @@ class DictAdapter(ListAdapter):
             return None
         return self.data[self.sorted_keys[index]]
 
+    def select_key_list(self, key_list, extend=True):
+        '''The select call is made for the items corresponding to the dict keys
+            in the provided key_list.
+
+        Arguments:
+
+            key_list: the list of keys specifying which item views are to become
+            the new selection, or which item views to add to the existing selection
+
+            extend: boolean for whether or not to extend the existing list
+        '''
+        index_list = [self.sorted_keys.index(key) for key in key_list if key in self.sorted_keys]
+        self.select_index_list(index_list, extend)
+
     # [TODO] Also make methods for scroll_to_sel_start, scroll_to_sel_end,
     #        scroll_to_sel_middle.
 
