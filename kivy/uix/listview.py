@@ -961,7 +961,7 @@ class ListView(AbstractView, EventDispatcher):
                 index += 1
                 if item_view is None:
                     continue
-                sizes[index] = item_view.height
+                sizes[index-1] = item_view.height
                 container.add_widget(item_view)
         else:
             available_height = self.height
