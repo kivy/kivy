@@ -15,7 +15,7 @@ location** and not to site-packages, please see :ref:`alternate-win`.
 
 .. note::
 
-    For Python < 3.5 we use the MinGW compiler. However, for Python 3.5 on
+    For Python < 3.5 we use the MinGW compiler. However, for Python 3.5+ on
     Windows we currently only support the MSVC compiler
     because of the following Python
     `issue 4709 <http://bugs.python.org/issue4709>`_ about MinGW.
@@ -47,14 +47,20 @@ install.
    For Python 3.5 only we additionally offer angle which can be used instead of glew
    and can be installed with::
 
-    python -m pip install kivy.deps.angle
+     python -m pip install kivy.deps.angle
 
 #. Install kivy::
 
      python -m pip install kivy
 
+#. (Optionally) Install the kivy examples::
+
+     python -m pip install kivy_examples
+     
+   The examples are installed in the share directory under the root directory where python is installed.
+
 That's it. You should now be able to ``import kivy`` in python or run a basic
-example::
+example if you installed the kivy examples::
 
     python share\kivy-examples\demo\showcase\main.py
 
