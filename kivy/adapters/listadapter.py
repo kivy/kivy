@@ -372,10 +372,14 @@ class ListAdapter(Adapter, EventDispatcher):
             extend: boolean for whether or not to extend the existing list
         '''
         if not extend:
-            self.selection = []
+            for selected_view in reversed(self.selection):
+                self.deselect_item_view(selected_view)
 
         for view in view_list:
             self.handle_selection(view, hold_dispatch=True)
+
+        if self.selection_mode != 'none':
+            self.check_for_empty_selection()
 
         self.dispatch('on_selection_change')
 
