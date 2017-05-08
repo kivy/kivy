@@ -38,6 +38,9 @@ cdef class Texture:
 
     cpdef flip_vertical(self)
     cpdef flip_horizontal(self)
+    cpdef rotate_90_deg(self)
+    cpdef rotate_180_deg(self)
+    cpdef rotate_270_deg(self)
     cpdef get_region(self, x, y, width, height)
     cpdef bind(self)
 
