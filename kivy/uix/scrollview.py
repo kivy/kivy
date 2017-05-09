@@ -609,7 +609,6 @@ class ScrollView(StencilView):
 
     def on_scroll_start(self, touch, check_children=True):
         touch.grab(self)
-        
         if check_children:
             touch.push()
             touch.apply_transform_2d(self.to_local)
