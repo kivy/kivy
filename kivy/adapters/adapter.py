@@ -4,8 +4,7 @@ Adapter
 
 .. versionadded:: 1.5
 
-.. note::
-
+.. deprecated:: 1.10.0
     The feature has been deprecated.
 
 .. warning::

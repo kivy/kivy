@@ -4,8 +4,7 @@ List Item View Argument Converters
 
 .. versionadded:: 1.5
 
-.. note::
-
+.. deprecated:: 1.10.0
     The feature has been deprecated.
 
 The default list item args converter for list adapters is a function (shown

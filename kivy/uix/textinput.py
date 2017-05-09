@@ -2547,10 +2547,6 @@ class TextInput(FocusBehavior, Widget):
         cr = boundary(pos[1], 0, len(l) - 1)
         cc = boundary(pos[0], 0, len(l[cr]))
         cursor = cc, cr
-        if self._cursor == cursor:
-            return
-
-        self._cursor = cursor
 
         # adjust scrollview to ensure that the cursor will be always inside our
         # viewport.
@@ -2580,6 +2576,10 @@ class TextInput(FocusBehavior, Widget):
             sy = offsety
         self.scroll_y = sy
 
+        if self._cursor == cursor:
+            return
+
+        self._cursor = cursor
         return True
 
     cursor = AliasProperty(_get_cursor, _set_cursor)
