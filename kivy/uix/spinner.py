@@ -40,9 +40,11 @@ __all__ = ('Spinner', 'SpinnerOption')
 
 from kivy.compat import string_types
 from kivy.factory import Factory
-from kivy.properties import ListProperty, ObjectProperty, BooleanProperty
+from kivy.properties import ListProperty, ObjectProperty, BooleanProperty, \
+    ReferenceListProperty, NumericProperty, DictProperty
 from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
+from kivy.clock import Clock
 
 
 class SpinnerOption(Button):
@@ -97,6 +99,16 @@ class Spinner(Button):
 
     '''
 
+    option_defaults = DictProperty({})
+    '''A dictionary of attribute/values that will be passed to each
+    :attr:`option_cls` as it's created.
+
+    :attr:`option_defaults` is an :class:`~kivy.properties.DictProperty` and
+    defaults to the empty dictionary.
+
+    .. versionadded:: 1.9.2
+    '''
+
     dropdown_cls = ObjectProperty(DropDown)
     '''Class used to display the dropdown list when the Spinner is pressed.
 
@@ -129,9 +141,42 @@ class Spinner(Button):
     defaults to False.
     '''
 
+    maximum_option_width = NumericProperty(0)
+    '''Automatically computed maximum width of all of the option items.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`maximum_option_width` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to 0. It is read only.
+    '''
+
+    maximum_option_height = NumericProperty(0)
+    '''Automatically computed maximum height of all of the option items.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`maximum_option_height` is a
+    :class:`~kivy.properties.NumericProperty` and defaults to 0. It is read
+    only.
+    '''
+
+    maximum_option_size = ReferenceListProperty(
+        maximum_option_width, maximum_option_height)
+    '''Automatically computed maximum size of all of the option items.
+
+    .. versionadded:: 1.9.2
+
+    :attr:`maximum_option_size` is a
+    :class:`~kivy.properties.ReferenceListProperty` of
+    (:attr:`maximum_option_width`, :attr:`maximum_option_height`) properties.
+    It is read only.
+    '''
+
     def __init__(self, **kwargs):
         self._dropdown = None
         super(Spinner, self).__init__(**kwargs)
+        self._update_max_size_trigger = Clock.create_trigger(
+            self._update_max_size, -1)
         fbind = self.fbind
         build_dropdown = self._build_dropdown
         fbind('on_release', self._toggle_dropdown)
@@ -174,21 +219,41 @@ class Spinner(Button):
         dp = self._dropdown
         cls = self.option_cls
         values = self.values
+        option_defaults = self.option_defaults
         text_autoupdate = self.text_autoupdate
+
         if isinstance(cls, string_types):
             cls = Factory.get(cls)
+
         dp.clear_widgets()
+
         for value in values:
-            item = cls(text=value)
+            item = cls(text=value, **option_defaults)
             item.height = self.height if self.sync_height else item.height
-            item.bind(on_release=lambda option: dp.select(option.text))
+            item.bind(on_release=lambda option: dp.select(option.text),
+                      size=self._update_max_size_trigger)
             dp.add_widget(item)
+        self._update_max_size_trigger()
+
         if text_autoupdate:
             if values:
                 if not self.text or self.text not in values:
                     self.text = values[0]
             else:
                 self.text = ''
+
+    def _update_max_size(self, *largs):
+        dp = self._dropdown
+        if dp is None:
+            return
+        dp = getattr(dp, 'container', dp)  # so that it works with dropdown
+
+        children = dp.children
+        w = h = 0
+        for c in children:
+            w = max(w, c.width)
+            h = max(h, c.height)
+        self.maximum_option_size = w, h
 
     def _toggle_dropdown(self, *largs):
         if self.values:
