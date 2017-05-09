@@ -3,6 +3,12 @@
 The Kivy Android Virtual Machine
 ================================
 
+.. warning::
+
+   The VM is old and not maintained, we do not reccomend it to be used and is
+   not likely to work. See :ref:`packaging_android` for the reccomended
+   approach to build apks.
+
 Introduction
 ------------
 
