@@ -600,7 +600,6 @@ class ScrollView(StencilView):
     def on_touch_down(self, touch):
         if self.dispatch('on_scroll_start', touch):
             self._touch = touch
-            touch.grab(self)
             return True
 
     def _touch_in_handle(self, pos, size, touch):
@@ -609,6 +608,7 @@ class ScrollView(StencilView):
         return x <= touch.x <= x + width and y <= touch.y <= y + height
 
     def on_scroll_start(self, touch, check_children=True):
+        touch.grab(self)
         if check_children:
             touch.push()
             touch.apply_transform_2d(self.to_local)
