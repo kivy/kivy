@@ -839,6 +839,7 @@ class _Visitor(nodes.NodeVisitor):
         self.text_have_anchor = False
         self.section = 0
         self.do_strip_text = False
+        self.substitution = {}
         nodes.NodeVisitor.__init__(self, *largs)
 
     def push(self, widget):
@@ -856,6 +857,14 @@ class _Visitor(nodes.NodeVisitor):
         elif cls is nodes.section:
             self.section += 1
 
+        elif cls is nodes.substitution_definition:
+            name = node.attributes['names'][0]
+            self.substitution[name] = node.children[0]
+
+        elif cls is nodes.substitution_reference:
+            node = self.substitution[node.attributes['refname']]
+            self.text += node
+
         elif cls is nodes.title:
             label = RstTitle(section=self.section, document=self.root)
             self.current.add_widget(label)
@@ -863,6 +872,15 @@ class _Visitor(nodes.NodeVisitor):
             # assert(self.text == '')
 
         elif cls is nodes.Text:
+            # check if parent isn't a special directive
+            if hasattr(node, 'parent'):
+                if node.parent.tagname == 'substitution_definition':
+                    # .. |ref| replace:: something
+                    return
+                elif node.parent.tagname == 'substitution_reference':
+                    # |ref|
+                    return
+
             if self.do_strip_text:
                 node = node.replace('\n', ' ')
                 node = node.replace('  ', ' ')
