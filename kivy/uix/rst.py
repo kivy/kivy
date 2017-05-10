@@ -83,6 +83,7 @@ from docutils.parsers.rst import roles
 from docutils import nodes, frontend, utils
 from docutils.parsers.rst import Directive, directives
 from docutils.parsers.rst.roles import set_classes
+import webbrowser
 
 
 #
@@ -645,9 +646,14 @@ class RstDocument(ScrollView):
         # search into all the nodes containing anchors
         ax = ay = None
         for node in self.anchors_widgets:
-            if ref in node.anchors:
-                ax, ay = node.anchors[ref]
-                break
+            try:
+                if ref in node.anchors:
+                    ax, ay = node.anchors[ref]
+                    break
+            except AttributeError:
+                if ref in node.attributes['names']:
+                    self.goto_web(node)
+                    return
 
         # not found, stop here
         if ax is None:
@@ -672,6 +678,10 @@ class RstDocument(ScrollView):
 
     def add_anchors(self, node):
         self.anchors_widgets.append(node)
+
+    def goto_web(self, node):
+        uri = node.attributes['refuri']
+        webbrowser.open(uri)
 
 
 class RstTitle(Label):
@@ -1027,6 +1037,7 @@ class _Visitor(nodes.NodeVisitor):
                 name = node['names'][0]
             self.text += '[anchor=%s]' % name
             self.text_have_anchor = True
+            self.root.add_anchors(node)
 
         elif cls is role_doc:
             self.doc_index = len(self.text)
