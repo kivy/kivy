@@ -1082,6 +1082,10 @@ class WindowBase(EventDispatcher):
         '''Set the opacity for a window'''
         pass
 
+    def get_window_opacity(self):
+        '''Get the opacity for a window'''
+        pass
+
     def _update_childsize(self, instance, value):
         self.update_childsize([instance])
 
