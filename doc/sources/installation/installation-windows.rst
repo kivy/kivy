@@ -188,7 +188,7 @@ command line as `well <http://rogerdudler.github.io/git-guide/>`_ as
 installed.
 
 Walking the path! To add your python to the path, simply open your command line
-and then us the ``cd`` command to change the current directory to where python
+and then use the ``cd`` command to change the current directory to where python
 is installed, e.g. ``cd C:\Python27``. Alternatively if you only have one
 python version installed, permanently add the python directory to the path for
 `cmd <http://www.computerhope.com/issues/ch000549.htm>`_ or
