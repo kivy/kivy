@@ -392,6 +392,12 @@ class WindowSDL(WindowBase):
     def _set_window_pos(self, x, y):
         self._win.set_window_pos(x, y)
 
+    def set_window_opacity(self, opacity):
+        return self._win.set_window_opacity(opacity)
+
+    def get_window_opacity(self):
+        return self._win.get_window_opacity()
+
     def _set_cursor_state(self, value):
         self._win._set_cursor_state(value)
 

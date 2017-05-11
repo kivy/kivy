@@ -1078,6 +1078,10 @@ class WindowBase(EventDispatcher):
         '''Flip between buffers'''
         pass
 
+    def set_window_opacity(self, opacity):
+        '''Set the opacity for a window'''
+        pass
+
     def _update_childsize(self, instance, value):
         self.update_childsize([instance])
 

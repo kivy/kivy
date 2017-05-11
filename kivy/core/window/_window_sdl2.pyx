@@ -419,6 +419,14 @@ cdef class _WindowSDL2Storage:
     def flip(self):
         SDL_GL_SwapWindow(self.win)
 
+    def set_window_opacity(self, opacity):
+        return SDL_SetWindowOpacity(self.win, opacity)
+
+    def get_window_opacity(self):
+        cdef float opacity
+        SDL_GetWindowOpacity(self.win, &opacity)
+        return opacity
+
     def save_bytes_in_png(self, filename, data, int width, int height):
 
         cdef SDL_Surface *surface = SDL_CreateRGBSurfaceFrom(
