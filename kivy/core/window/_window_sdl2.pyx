@@ -420,7 +420,7 @@ cdef class _WindowSDL2Storage:
         SDL_GL_SwapWindow(self.win)
 
     def set_window_opacity(self, opacity):
-        return SDL_SetWindowOpacity(self.win, opacity)
+        SDL_SetWindowOpacity(self.win, opacity)
 
     def get_window_opacity(self):
         cdef float opacity

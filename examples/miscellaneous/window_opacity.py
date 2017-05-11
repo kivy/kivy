@@ -44,12 +44,12 @@ class WindowOpacity(BoxLayout):
         self.opacity_change(self.ids['opacity_slider'].value)
 
     def opacity_change(self, value):
-        Window.set_window_opacity(value)
+        Window.opacity = value
         self.ids['set_opacity_label'].text = 'Opacity: ' + '%.2f' % value
 
     def get_window_opacity(self):
         self.ids['get_opacity_label'].text = \
-            'Opacity: ' + '%.2f' % Window.get_window_opacity()
+            'Opacity: ' + '%.2f' % Window.opacity
 
 
 class WindowOpacityApp(App):

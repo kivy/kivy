@@ -755,6 +755,18 @@ class WindowBase(EventDispatcher):
         pos = self._get_window_pos()
         self._set_window_pos(pos[0], value)
 
+    def _get_window_opacity(self):
+        pass
+
+    def _set_window_opacity(self, opacity):
+        pass
+
+    def _get_opacity(self):
+        return self._get_window_opacity()
+
+    def _set_opacity(self, opacity):
+        self._set_window_opacity(opacity=opacity)
+
     top = AliasProperty(_get_top, _set_top)
     '''Top position of the window.
 
@@ -781,6 +793,17 @@ class WindowBase(EventDispatcher):
 
     :attr:`left` is an :class:`~kivy.properties.AliasProperty` and defaults to
     position set in :class:`~kivy.config.Config`.
+    '''
+
+    opacity = AliasProperty(_get_opacity, _set_opacity)
+    '''Opacity for a window.
+
+    .. note:: It's an SDL2 property with value between 0.0(transparent),
+     1.0(opaque).
+
+    .. versionadded:: 1.10.1
+
+    :attr:`opacity` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     @property
@@ -1076,14 +1099,6 @@ class WindowBase(EventDispatcher):
 
     def flip(self):
         '''Flip between buffers'''
-        pass
-
-    def set_window_opacity(self, opacity):
-        '''Set the opacity for a window'''
-        pass
-
-    def get_window_opacity(self):
-        '''Get the opacity for a window'''
         pass
 
     def _update_childsize(self, instance, value):
