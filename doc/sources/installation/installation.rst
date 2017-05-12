@@ -28,6 +28,7 @@ Other optional libraries (mutually independent) are:
     * `OpenCV 2.0 <http://sourceforge.net/projects/opencvlibrary/>`_ -- Camera input.
     * `Pillow <https://python-pillow.github.io/>`_ -- Image and text display.
     * `PyEnchant <https://pythonhosted.org/pyenchant/>`_ -- Spelling correction.
+    * `Pygame <https://www.pygame.org/news>`_ -- Window display
 
 
 That said, **DON'T PANIC**!
