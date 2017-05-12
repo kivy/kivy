@@ -219,7 +219,7 @@ class RegularShape(BaseShape):
 
         # draw Mesh shape from generated poly points
         with self.canvas:
-            Color(rgba=(*color, 0.6))
+            Color(rgba=(color[0], color[1], color[2], 0.6))
             self.shape = Mesh(
                 pos=self.pos,
                 vertices=vertices,
@@ -301,7 +301,7 @@ class MeshShape(BaseShape):
 
         # draw Mesh shape from generated poly points
         with self.canvas:
-            Color(rgba=(*color, 0.6))
+            Color(rgba=(color[0], color[1], color[2], 0.6))
             self.shape = Mesh(
                 pos=self.pos,
                 vertices=vertices,
