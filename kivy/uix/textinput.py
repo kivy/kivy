@@ -671,7 +671,7 @@ class TextInput(FocusBehavior, Widget):
         '''Insert new text at the current cursor position. Override this
         function in order to pre-process text for input validation.
         '''
-        if self.readonly or not substring:
+        if self.readonly or not substring or not self._lines:
             return
 
         if isinstance(substring, bytes):
@@ -2524,7 +2524,7 @@ class TextInput(FocusBehavior, Widget):
     .. versionadded:: 1.8.0
 
     :attr:`keyboard_suggestions` is a :class:`~kivy.properties.BooleanProperty`
-    defaults to True.
+    and defaults to True.
     '''
 
     cursor_blink = BooleanProperty(False)
@@ -2547,10 +2547,6 @@ class TextInput(FocusBehavior, Widget):
         cr = boundary(pos[1], 0, len(l) - 1)
         cc = boundary(pos[0], 0, len(l[cr]))
         cursor = cc, cr
-        if self._cursor == cursor:
-            return
-
-        self._cursor = cursor
 
         # adjust scrollview to ensure that the cursor will be always inside our
         # viewport.
@@ -2580,6 +2576,10 @@ class TextInput(FocusBehavior, Widget):
             sy = offsety
         self.scroll_y = sy
 
+        if self._cursor == cursor:
+            return
+
+        self._cursor = cursor
         return True
 
     cursor = AliasProperty(_get_cursor, _set_cursor)

@@ -4,8 +4,7 @@ Adapters
 
 .. versionadded:: 1.5.0
 
-.. note::
-
+.. deprecated:: 1.10.0
     The feature has been deprecated.
 
 An adapter is a mediating controller-type class that processes and presents

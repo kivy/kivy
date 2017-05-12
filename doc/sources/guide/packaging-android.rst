@@ -7,8 +7,7 @@ Create a package for Android
 You can create a package for android using the `python-for-android
 <https://github.com/kivy/python-for-android>`_ project. This page explains how
 to download and use it directly on your own machine (see
-:ref:`Packaging your application into APK`), use the prebuilt
-:ref:`Kivy Android VM <kivy_android_vm>` image, or
+:ref:`Packaging your application into APK`) or
 use the :ref:`buildozer` tool to automate the entire process. You can also see
 :ref:`Packaging your application for Kivy Launcher` to run kivy
 programs without compiling them.
