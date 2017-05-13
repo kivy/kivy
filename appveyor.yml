@@ -201,12 +201,12 @@ build_script:
       secure-file\tools\secure-file -decrypt C:\projects\kivy\kivy\tools\appveyor\id_rsa.enc -secret "$env:KEY_WITH_NO_TEETH"
       Check-Error
 
-      $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
-
       C:\msys64\usr\bin\bash --login C:\projects\kivy\kivy\tools\appveyor\kivy-upload.sh
       Check-Error
 
     }
+on_finish:
+  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 test_script:
 - ps: >-
     function Check-Error
