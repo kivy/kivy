@@ -3,6 +3,7 @@ os: Visual Studio 2015
 environment:
   WHEEL_DIR: C:\kivy_wheels
   KIVY_BUILD_DIR: C:\kivy_build
+  DO_WHEEL: True
   RDP_TEETH:
     secure: khsOLQ69HTMzwRStbBIfQA==
   KEY_WITH_NO_TEETH:
@@ -124,7 +125,7 @@ build_script:
     }
 
 
-    $DO_WHEEL = "True"
+    $DO_WHEEL = $env:DO_WHEEL
 
     # Set new wheel name, keep default if release (tag)
     # release: Kivy-X.Y.Z-cpAB-cpABm-ARCH.whl (Kivy_examples-X.Y.Z-py2.py3-none-any.whl)
@@ -200,10 +201,10 @@ build_script:
       secure-file\tools\secure-file -decrypt C:\projects\kivy\kivy\tools\appveyor\id_rsa.enc -secret "$env:KEY_WITH_NO_TEETH"
       Check-Error
 
+      $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+
       C:\msys64\usr\bin\bash --login C:\projects\kivy\kivy\tools\appveyor\kivy-upload.sh
       Check-Error
-
-      $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
     }
 test_script:
