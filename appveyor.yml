@@ -52,6 +52,7 @@ build_script:
       }
     }
 
+    iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
     echo "Bitness=$env:BITTNESS, scheduled=$env:APPVEYOR_SCHEDULED_BUILD, forced=$env:APPVEYOR_FORCED_BUILD, rebuild=$env:APPVEYOR_RE_BUILD, tagged=$env:APPVEYOR_REPO_TAG"
 
