@@ -24,11 +24,11 @@ If the instance is NULL, the cache may have trashed it because you've
 not used the label for 5 seconds and you've reach the limit.
 '''
 
-__all__ = ('Cache', )
-
 from os import environ
 from kivy.logger import Logger
 from kivy.clock import Clock
+
+__all__ = ('Cache', )
 
 
 class Cache(object):
@@ -76,18 +76,21 @@ class Cache(object):
                 If None, no timeout is applied.
         '''
         # check whether obj should not be cached first
-        if getattr(obj, '_no_cache', False):
+        if getattr(obj, '_nocache', False):
             return
         try:
             cat = Cache._categories[category]
         except KeyError:
-            Logger.warning('Cache: category <%s> not exist' % category)
+            Logger.warning('Cache: category <%s> does not exist' % category)
             return
+
         timeout = timeout or cat['timeout']
-        # FIXME: activate purge when limit is hit
-        # limit = cat['limit']
-        # if limit is not None and len(Cache._objects[category]) >= limit:
-        #    Cache._purge_oldest(category)
+
+        limit = cat['limit']
+
+        if limit is not None and len(Cache._objects[category]) >= limit:
+            Cache._purge_oldest(category)
+
         Cache._objects[category][key] = {
             'object': obj,
             'timeout': timeout,
@@ -169,21 +172,23 @@ class Cache(object):
     def _purge_oldest(category, maxpurge=1):
         print('PURGE', category)
         import heapq
+        time = Clock.get_time()
         heap_list = []
         for key in Cache._objects[category]:
             obj = Cache._objects[category][key]
-            if obj['lastaccess'] == obj['timestamp']:
+            if obj['lastaccess'] == obj['timestamp'] == time:
                 continue
             heapq.heappush(heap_list, (obj['lastaccess'], key))
             print('<<<', obj['lastaccess'])
         n = 0
-        while n < maxpurge:
+        while n <= maxpurge:
             try:
+                n += 1
                 lastaccess, key = heapq.heappop(heap_list)
-                print('=>', key, lastaccess, Clock.get_time())
+                print(n, '=>', key, lastaccess, Clock.get_time())
             except Exception:
                 return
-            del Cache._objects[category][key]
+            Cache.remove(category, key)
 
     @staticmethod
     def _purge_by_timeout(dt):
@@ -216,7 +221,7 @@ class Cache(object):
                     continue
 
                 if curtime - lastaccess > timeout:
-                    del Cache._objects[category][key]
+                    Cache.remove(category, key)
 
     @staticmethod
     def print_usage():
