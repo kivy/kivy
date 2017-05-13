@@ -16,6 +16,8 @@ environment:
   USE_GSTREAMER: 1
   KIVY_USE_SETUPTOOLS: 1
   KIVY_SPLIT_EXAMPLES: 1
+  MSYSTEM: MINGW64
+  CHERE_INVOKING: 1
   matrix:
   - PYVER: 27
     BITTNESS: 86
@@ -44,6 +46,7 @@ environment:
 install:
 - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-desktop.ps1'))
 build_script:
+- nuget install secure-file -ExcludeVersion
 - ps: >-
     function Check-Error
 
@@ -198,8 +201,15 @@ build_script:
         Check-Error
       }
 
-      C:\Python27\python.exe C:\projects\kivy-sdk-packager\win\gdrive.py upload "$env:GDRIVE_KIVY_UPLOAD_ID" "$env:WHEEL_DIR\*"
+      C:\msys64\usr\bin\pacman --noconfirm --sync --refresh --refresh --sysupgrade --sysupgrade
       Check-Error
+
+      secure-file\tools\secure-file -decrypt path-to\encrypted-filename.ext.enc -secret %my_secret%
+      Check-Error
+
+      C:\msys64\usr\bin\bash --login kivy-upload.sh
+      Check-Error
+
 
       C:\Python27\python.exe C:\projects\kivy-sdk-packager\win\gdrive.py delete_older "$env:GDRIVE_KIVY_UPLOAD_ID" "15"
       Check-Error
