@@ -201,7 +201,7 @@ build_script:
         Check-Error
       }
 
-      secure-file\tools\secure-file -decrypt C:\projects\kivy\kivy\tools\appveyor\id_rsa.enc -secret %KEY_WITH_NO_TEETH%
+      secure-file\tools\secure-file -decrypt C:\projects\kivy\kivy\tools\appveyor\id_rsa.enc -secret "$env:KEY_WITH_NO_TEETH"
       Check-Error
 
       C:\msys64\usr\bin\bash --login C:\projects\kivy\kivy\tools\appveyor\kivy-upload.sh
