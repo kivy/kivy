@@ -1,4 +1,4 @@
 pacman -S --noconfirm git rsync
 echo -e "Host 159.203.106.198\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 cp $(cygpath -u "C:\projects\kivy\kivy\tools\appveyor\id_rsa.enc") ~/.ssh/id_rsa.enc
-rsync -azvh -n -e "ssh -p 2458 StrictHostKeyChecking=no" "$(cygpath -u '$WHEEL_DIR')" root@159.203.106.198:/web/downloads/appveyor/kivy
+rsync -azvh -n -e "ssh -p 2458 -o StrictHostKeyChecking=no" "$(cygpath -u '$WHEEL_DIR')" root@159.203.106.198:/web/downloads/appveyor/kivy
