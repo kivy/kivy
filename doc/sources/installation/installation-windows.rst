@@ -94,23 +94,23 @@ Nightly wheel installation
 --------------------------
 
 .. |cp27_win32| replace:: Python 2.7, 32bit
-.. _cp27_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp27-cp27m-win32.whl
+.. _cp27_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp27-cp27m-win32.whl
 .. |cp34_win32| replace:: Python 3.4, 32bit
-.. _cp34_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp34-cp34m-win32.whl
+.. _cp34_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp34-cp34m-win32.whl
 .. |cp27_amd64| replace:: Python 2.7, 64bit
-.. _cp27_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp27-cp27m-win_amd64.whl
+.. _cp27_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp27-cp27m-win_amd64.whl
 .. |cp34_amd64| replace:: Python 3.4, 64bit
-.. _cp34_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp34-cp34m-win_amd64.whl
+.. _cp34_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp34-cp34m-win_amd64.whl
 .. |cp35_win32| replace:: Python 3.5, 32bit
-.. _cp35_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp35-cp35m-win32.whl
+.. _cp35_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp35-cp35m-win32.whl
 .. |cp35_amd64| replace:: Python 3.5, 64bit
-.. _cp35_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp35-cp35m-win_amd64.whl
+.. _cp35_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp35-cp35m-win_amd64.whl
 .. |cp36_win32| replace:: Python 3.6, 32bit
-.. _cp36_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp36-cp36m-win32.whl
+.. _cp36_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp36-cp36m-win32.whl
 .. |cp36_amd64| replace:: Python 3.6, 64bit
-.. _cp36_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp36-cp36m-win_amd64.whl
+.. _cp36_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp36-cp36m-win_amd64.whl
 .. |examples_whl| replace:: Kivy examples
-.. _examples_whl: https://kivy.org/downloads/appveyor/kivy/Kivy_examples-1.9.2.dev0-py2.py3-none-any.whl
+.. _examples_whl: https://kivy.org/downloads/appveyor/kivy/Kivy_examples-1.10.1.dev0-py2.py3-none-any.whl
 
 .. warning::
 
