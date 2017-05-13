@@ -4,4 +4,4 @@ if [ ! -d "/home/appveyor/.ssh" ]; then
 fi
 echo -e "Host 159.203.106.198\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 cp $(cygpath -u "C:\projects\kivy\kivy\tools\appveyor\id_rsa") ~/.ssh/id_rsa
-rsync -avh -n -e "ssh -p 2458" "/c/kivy_wheels/" root@159.203.106.198:/web/downloads/appveyor/kivy
+rsync -avh -e "ssh -p 2458" "/c/kivy_wheels/" root@159.203.106.198:/web/downloads/appveyor/kivy
