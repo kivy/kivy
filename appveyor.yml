@@ -4,8 +4,6 @@ environment:
   WHEEL_DIR: C:\kivy_wheels
   KIVY_BUILD_DIR: C:\kivy_build
   DO_WHEEL: True
-  RDP_TEETH:
-    secure: khsOLQ69HTMzwRStbBIfQA==
   KEY_WITH_NO_TEETH:
     secure: 7cS7xjpCL/VH5jIIGSf13camkiu1enMh5hO0UsBgmRlBXyKk3t/7HB79ofyJKgDb
   USE_SDL2: 1
@@ -52,8 +50,6 @@ build_script:
         throw "Failed with exit code $LastExitCode"
       }
     }
-
-    iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
     echo "Bitness=$env:BITTNESS, scheduled=$env:APPVEYOR_SCHEDULED_BUILD, forced=$env:APPVEYOR_FORCED_BUILD, rebuild=$env:APPVEYOR_RE_BUILD, tagged=$env:APPVEYOR_REPO_TAG"
 
@@ -205,8 +201,6 @@ build_script:
       Check-Error
 
     }
-on_finish:
-  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 test_script:
 - ps: >-
     function Check-Error
