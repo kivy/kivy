@@ -128,7 +128,7 @@ Shift + <dir>   Start a text selection. Dir can be Up, Down, Left or
                 Right
 Control + c     Copy selection
 Control + x     Cut selection
-Control + p     Paste selection
+Control + v     Paste clipboard content
 Control + a     Select all the content
 Control + z     undo
 Control + r     redo
@@ -2402,7 +2402,7 @@ class TextInput(FocusBehavior, Widget):
                     self._cut(self.selection_text)
                 elif key == ord('c'):  # copy selection
                     self.copy()
-                elif key == ord('v'):  # paste selection
+                elif key == ord('v'):  # paste clipboard content
                     self.paste()
                 elif key == ord('a'):  # select all
                     self.select_all()
