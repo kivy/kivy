@@ -1231,16 +1231,16 @@ cdef class RoundedRectangle(Rectangle):
 
     :Parameters:
         `segments`: int, defaults to 10
-            Define how many segments are needed for drawing the round corner.
+            Define how many segments are needed for drawing the rounded corner.
             The drawing will be smoother if you have many segments.
         `radius`: list, defaults to [(10.0, 10.0), (10.0, 10.0), (10.0, 10.0), (10.0, 10.0)]
-            Specifies the radiuses of the round corners clockwise:
+            Specifies the radii used for the rounded corners clockwise:
             top-left, top-right, bottom-right, bottom-left.
             Elements of the list can be numbers or tuples of two numbers to specify different x,y dimensions.
-            One value will define all corner dimensions to that value.
-            Four values will define dimensions for each corner separately.
-            Higher number of values will be truncated to four.
-            The first value will be used for all corners, if there is fewer than four values.
+            One value will define all corner radii to be of this value.
+            Four values will define each corner radius separately.
+            Higher numbers of values will be truncated to four.
+            The first value will be used for all corners if there are fewer than four values.
     '''
 
     cdef object _segments  # number of segments for each corner
