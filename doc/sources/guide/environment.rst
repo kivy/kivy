@@ -195,3 +195,5 @@ KIVY_BCM_DISPMANX_ID
 
 KIVY_BCM_DISPMANX_LAYER
     Change the default Raspberry Pi dispmanx layer. Default value is 0.
+ 
+    .. versionadded:: 1.10.1
