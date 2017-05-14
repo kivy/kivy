@@ -1305,7 +1305,7 @@ cdef class RoundedRectangle(Rectangle):
                 # int/float: a -> (a,a)
                 result.append((value, value))
 
-            # some strange type came - skip it. next value will be used or radiuses will be set to first
+            # some strange type came - skip it. next value will be used or radii will be set to first
             else:
                 Logger.trace("GRoundedRectangle: '{}' object can\'t be used to specify radius. "
                              "Skipping...".format(radius.__class__.__name__))
@@ -1313,7 +1313,7 @@ cdef class RoundedRectangle(Rectangle):
         if not result:
             raise GraphicException("Invalid radius value, must be list of tuples/numerics")
 
-        # set all radiuses to first if there aren't four of them
+        # set all radii to first if there aren't four of them
         if len(result) < 4:
             return result[:1] * 4
         else:
@@ -1355,7 +1355,7 @@ cdef class RoundedRectangle(Rectangle):
         half_w = self.w / 2
         half_h = self.h / 2
 
-        # split radiuses by coordinate and make them <= half_size
+        # split radii by coordinate and make them <= half_size
         xradius = [min(r[0], half_w) for r in self._radius]
         yradius = [min(r[1], half_h) for r in self._radius]
 
@@ -1524,7 +1524,7 @@ cdef class RoundedRectangle(Rectangle):
             self.flag_update()
 
     property radius:
-        '''Corner radiuses of the rounded rectangle, defaults to [10,].
+        '''Corner radii of the rounded rectangle, defaults to [10,].
         '''
         def __get__(self):
             return self._radius
