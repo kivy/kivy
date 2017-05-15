@@ -252,7 +252,7 @@ class Slider(Widget):
     """Whether the touch collides with the whole body of the widget
     or with the slider button part only.
 
-    .. versionadded 1.10.1
+    .. versionadded:: 1.10.1
 
     :attr:`sensitivity` is a :class:`~kivy.properties.OptionProperty`
     and defaults to 'all'.
