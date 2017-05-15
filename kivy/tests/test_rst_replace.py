@@ -29,7 +29,7 @@ class RstSubstitutionTestCase(GraphicUnitTest):
         # [anchor=] and [ref=] might change in the future
         compare_text = (
             u'[color=202020ff][anchor=hop]'
-            u'ä   is '
+            u'\xe4 \xA0 is '
             u'[ref=None][color=ce5c00ff]replaced[/color][/ref]'
             u'[/color]'
         )
