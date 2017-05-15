@@ -39,33 +39,38 @@ class SliderMoveTestCase(GraphicUnitTest):
         win = EventLoop.window
         layout = BoxLayout(orientation='vertical')
 
-        h1 = 0.75 * win.height
-        h2 = 0.625 * win.height
-        h3 = 0.25 * win.height
-        h4 = 0.125 * win.height
-        wh = win.width / 2.0
-        w1 = 0.1 * wh
-        dt = 2
-
-        # default pos, new pos, slider ID
-        points = [
-            [w1, h1, wh, h1, 'handle'],  # handle
-            [w1, h2, wh, h2, 'handle'],  # handle
-            [w1, h3, wh, h3, 'all'],     # all
-            [w1, h4, wh, h4, 'all'],     # all
-        ]
-
         s_handle = TestSliderHandle()
         s_all = TestSliderAll()
         layout.add_widget(s_handle)
         layout.add_widget(s_all)
         win.add_widget(layout)
 
+        # get widgets ready
+        EventLoop.idle()
+
+        cur1 = s_handle.children[0]
+        cur2 = s_all.children[0]
+
+        h1 = cur1.to_window(*cur1.center)[1]
+        h2 = h1 - s_handle.cursor_height
+        h3 = cur2.to_window(*cur2.center)[1]
+        h4 = h3 - s_all.cursor_height
+
+        w1 = cur1.to_window(*cur1.center)[0]
+        w2 = cur2.to_window(*cur2.center)[0]
+        wh = win.width / 2.0
+        dt = 2
+
+        # default pos, new pos, slider ID
+        points = [
+            [w1, h1, wh, h1, 'handle'],  # handle
+            [w1, h2, wh, h2, 'handle'],  # handle
+            [w2, h3, wh, h3, 'all'],     # all
+            [w2, h4, wh, h4, 'all'],     # all
+        ]
+
         for point in points:
             x, y, nx, ny, id = point
-
-            # get widgets ready
-            EventLoop.idle()
 
             # custom touch
             touch = UTMotionEvent("unittest", 1, {
