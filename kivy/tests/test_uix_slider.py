@@ -63,10 +63,10 @@ class SliderMoveTestCase(GraphicUnitTest):
 
         # default pos, new pos, slider ID
         points = [
-            [w1, h1, wh, h1, 'handle'],  # handle
-            [w1, h2, wh, h2, 'handle'],  # handle
-            [w2, h3, wh, h3, 'all'],     # all
-            [w2, h4, wh, h4, 'all'],     # all
+            [w1, h1, wh, h1, 'handle'],
+            [w1, h2, wh, h2, 'handle'],
+            [w2, h3, wh, h3, 'all'],
+            [w2, h4, wh, h4, 'all'],
         ]
 
         for point in points:
