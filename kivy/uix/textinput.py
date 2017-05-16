@@ -2172,7 +2172,10 @@ class TextInput(FocusBehavior, Widget):
         # Tokenize a text string from some delimiters
         if text is None:
             return
-        delimiters = u' ,\'".;:\n\r\t'
+        try:
+            delimiters = u' ,\'".;:\n\r\t'
+        except UnicodeDecodeError:
+            delimiters = ' ,\'".;:\n\r\t'
         oldindex = 0
         for index, char in enumerate(text):
             if char not in delimiters:
