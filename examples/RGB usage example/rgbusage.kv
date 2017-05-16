@@ -1,0 +1,43 @@
+#:import hex kivy.utils.get_color_from_hex
+<Root>:
+    orientation: 'vertical'
+    canvas:
+        Color:
+            rgba:1,1,1,1
+        Rectangle:
+            pos:self.pos
+            size:self.size
+    BoxLayout:
+        Label:
+            canvas.before:
+                Color:
+                    rgb:205.0/255,220.0/255,57.0/255
+                Rectangle:
+                    pos:self.pos
+                    size:self.size
+            text:"rgb: 205.0/255,220.0/255,57.0/255"
+        Label:
+            canvas.before:
+                Color:
+                    rgba:205.0/255,220.0/255,57.0/255,0.8
+                Rectangle:
+                    pos:self.pos
+                    size:self.size
+            text:"rgba:205.0/255,220.0/255,57.0/255,0.8"
+    BoxLayout:
+        Label:
+            canvas.before:
+                Color:
+                    hsv:66.0/360,0.741,0.863  #conversion from rgb to hsv is required
+                Rectangle:
+                    pos:self.pos
+                    size:self.size
+            text:"hsv:66.0/360,0.741,0.863"
+        Label:
+            canvas.before:
+                Color:
+                    rgba:hex('#CDDC39')
+                Rectangle:
+                    pos:self.pos
+                    size:self.size
+            text:"rgba:hex('#CDDC39')"
