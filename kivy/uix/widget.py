@@ -587,6 +587,28 @@ class Widget(WidgetBase):
             self.canvas.before.remove(widget.canvas)
         widget.parent = None
 
+    def remove_edge(self, newest=True):
+        '''Remove the newest or the oldest added widget from the children
+        of this widget.
+
+        :Parameters:
+            `newest`: bool
+                Select the newest or the oldest widget.
+
+    .. code-block:: python
+
+        >>> from kivy.uix.button import Button
+        >>> root = Widget()
+        >>> root.add_widget(Button())
+        >>> root.add_widget(Button(text='Bye!'))
+        >>> root.remove_edge()  # removes ^
+        '''
+        try:
+            child = self.children[0] if newest else self.children[-1]
+            self.remove_widget(child)
+        except IndexError:
+            pass
+
     def clear_widgets(self, children=None):
         '''
         Remove all (or the specified) :attr:`~Widget.children` of this widget.
