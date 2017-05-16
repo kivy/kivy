@@ -691,6 +691,7 @@ class TextInput(FocusBehavior, Widget):
             if mode == 'int':
                 substring = re.sub(int_pat, chr(''), substring)
             elif mode == 'float':
+                substring = re.sub(',', '.', substring)
                 if '.' in self.text:
                     substring = re.sub(int_pat, chr(''), substring)
                 else:
