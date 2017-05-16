@@ -229,6 +229,21 @@ class AccordionItem(FloatLayout):
     'atlas://data/images/defaulttheme/button_disabled_pressed'.
     '''
 
+    color = ListProperty([1, 1, 1, 1])
+    '''Title tint color, in the format (r, g, b, a).
+    .. versionadded:: 1.9.2
+    :attr:`color` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [1, 1, 1, 1].
+    '''
+
+    disabled_color = ListProperty([1, 1, 1, .3])
+    '''The tint color of the title when the widget is disabled, in
+    the (r, g, b, a) format.
+    .. versionadded:: 1.9.2
+    :attr:`disabled_color` is a :class:`~kivy.properties.ListProperty`
+    and defaults to [1, 1, 1, .3].
+    '''
+
     orientation = OptionProperty('vertical', options=(
         'horizontal', 'vertical'))
     '''Link to the :attr:`Accordion.orientation` property.
@@ -313,6 +328,8 @@ class AccordionItem(FloatLayout):
         instance = Builder.template(self.title_template,
                                     title=self.title,
                                     item=self,
+                                    color=self.color,
+                                    disabled_color=self.disabled_color,
                                     **self.title_args)
         c.add_widget(instance)
 
@@ -442,7 +459,11 @@ if __name__ == '__main__':
 
     acc = Accordion()
     for x in range(10):
-        item = AccordionItem(title='Title %d' % x)
+        if x % 2:
+            item = AccordionItem(title='Title %d' % x,
+                                 color=[.6, .6, .6, 1])
+        else:
+            item = AccordionItem(title='Title %d' % x)
         if x == 0:
             item.add_widget(Button(text='Content %d' % x))
         elif x == 1:
