@@ -1,0 +1,115 @@
+#:import dp kivy.metrics.dp
+#:import Clock kivy.clock.Clock
+
+<Area>:
+    BoxLayout:
+        size_hint_y: root.formbar_height
+
+        ScrollView:
+            size_hint_x: 0.9
+            GridLayout:
+                id: formbar
+                size_hint_x: None
+                width: self.minimum_width
+                rows: 1
+
+        Button:
+            text: 'Create!'
+            size_hint_x: 0.1
+            pos_hint: {'center_x': 0.5, 'y': 0}
+            on_release: root.create_form()
+
+<FormItem>:
+    size_hint_x: None
+    width: dp(100)
+
+<Form>:
+    size_hint: [None, None]
+    size: [400, 350]
+    do_rotation: False
+    auto_dismiss: False
+
+    BoxLayout:
+        id: body
+        size: root.size
+        orientation: 'vertical'
+        canvas:
+            Color:
+                rgb: (0.1, 0.1, 0.1)
+
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+            Color:
+                rgb: (0.3, 0.3, 0.3)
+
+            Rectangle:
+                size: [0.98 * s for s in self.size]
+                pos:
+                    [self.pos[0] + self.size[0] * 0.01,
+                    self.pos[1] + self.size[1] * 0.01]
+
+        BoxLayout:
+            size_hint: [0.98, None]
+            size_hint_min_y: 0.1
+            pos_hint: {'x': 0.01}
+            height: dp(30)
+
+            canvas:
+                Color:
+                    rgb: (0.1, 0.1, 0.1)
+
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+
+            Label:
+                size_hint_x: 0.8
+                text: root.title
+
+            BoxLayout:
+                size_hint_x: 0.2
+
+                Button:
+                    text: '_'
+                    on_release: root.minimize()
+
+                Button:
+                    text: 'O'
+                    on_release: root.maximize()
+
+                Button:
+                    text: 'X'
+                    on_release: root.close()
+
+        BoxLayout:
+            id: container
+            size_hint: [0.98, 0.98]
+            pos_hint: {'x': 0.01}
+
+            canvas:
+                Color:
+                    rgb: (0.3, 0.3, 0.3)
+
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+
+        BoxLayout:
+            size_hint_y: None
+            size_hint_min_y: 0.1
+            height: dp(30)
+
+            canvas:
+                Color:
+                    rgb: (0.1, 0.1, 0.1)
+
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+
+            Label:
+                id: bottom
+                text: 'Bottom'
+                on_text: Clock.schedule_once(root.flush_ping, 3)
