@@ -2923,6 +2923,26 @@ class TextInput(FocusBehavior, Widget):
         return text
 
     def _set_text(self, text):
+        mode = self.input_filter
+        if mode is not None:
+            if text is bytes:
+                int_pat = self._insert_int_patb
+            else:
+                int_pat = self._insert_int_patu
+
+            if mode == 'int':
+                text = re.sub(int_pat, '', text)
+            elif mode == 'float':
+                if '.' not in text:
+                    text = re.sub(int_pat, '', text)
+                else:
+                    text = '.'.join([re.sub(int_pat, '', k) for k
+                                          in text.split('.', 1)])
+            else:
+                text = mode(text, from_undo=False)
+            if not text:
+                return
+
         if isinstance(text, bytes):
             text = text.decode('utf8')
 
