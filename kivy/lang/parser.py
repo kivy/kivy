@@ -515,12 +515,29 @@ class Parser(object):
            Comments need to be on a single line and not at the end of a line.
            i.e. a comment line's first non-whitespace character must be a #.
         '''
+        mult_com = False
         # extract directives
         for ln, line in lines[:]:
             stripped = line.strip()
             if stripped[:2] == '#:':
                 self.directives.append((ln, stripped[2:]))
-            if stripped[:1] == '#':
+            if mult_com or '###' in stripped:
+                lines.remove((ln, line))
+                begin = stripped.find('###') + 1
+                end = stripped.find('###', begin + 2) + 1
+
+                if begin and mult_com:
+                    # end of multiline com found
+                    mult_com = False
+                    continue
+
+                if end:
+                    # end of multiline com in single line
+                    mult_com = False
+                    continue
+                mult_com = True
+
+            elif stripped[:1] == '#':
                 lines.remove((ln, line))
             if not stripped:
                 lines.remove((ln, line))
