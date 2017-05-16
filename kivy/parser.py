@@ -150,5 +150,13 @@ def parse_float4(text):
     return value
 
 
-parse_int = int
-parse_float = float
+def parse_int(text):
+    '''An alias of `int()`.
+    '''
+    return int(text)
+
+
+def parse_float(text):
+    '''An alias of `float()`.
+    '''
+    return float(text)
