@@ -210,6 +210,8 @@ class WindowSDL(WindowBase):
             if not app:
                 Logger.info('WindowSDL: No running App found, exit.')
                 stopTouchApp()
+                # self.close() is missing ?
+                # see discussion: https://github.com/kivy/kivy/pull/4927
                 return 0
 
             if not app.dispatch('on_pause'):
