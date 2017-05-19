@@ -1381,7 +1381,7 @@ class TextInput(FocusBehavior, Widget):
         if self.readonly:
             return True
 
-        return False
+        return True
 
     def on_touch_move(self, touch):
         if touch.grab_current is not self:
