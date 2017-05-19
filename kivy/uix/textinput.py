@@ -1378,6 +1378,9 @@ class TextInput(FocusBehavior, Widget):
             self.insert_text(CutBuffer.get_cutbuffer())
             return True
 
+        if self.readonly:
+            return True
+
         return False
 
     def on_touch_move(self, touch):
