@@ -97,7 +97,7 @@ from kivy.graphics.vertex_instructions import Bezier, BorderImage, Ellipse, \
     GraphicException, Line, Mesh, Point, Quad, Rectangle, RoundedRectangle, \
     Triangle, SmoothLine
 from kivy.graphics.stencil_instructions import StencilPop, StencilPush, \
-    StencilUse, StencilUnUse
+    StencilUse, StencilUnUse, ScissorPush, ScissorPop
 from kivy.graphics.gl_instructions import ClearColor, ClearBuffers
 from kivy.graphics.fbo import Fbo
 from kivy.graphics.scissor_instructions import ScissorPush, ScissorPop
