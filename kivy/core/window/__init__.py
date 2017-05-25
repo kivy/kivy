@@ -1243,7 +1243,10 @@ class WindowBase(EventDispatcher):
 
         smode = self.softinput_mode
         target = self._system_keyboard.target
-        targettop = max(0, target.to_window(0, target.y)[1]) if target else 0
+        if target and 'to_window' in dir(target):
+            targettop = max(0, target.to_window(0, target.y)[1])
+        else:
+            targettop = 0
         kheight = self._kheight
 
         w2, h2 = w / 2., h / 2.
