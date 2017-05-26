@@ -22,6 +22,7 @@ documentation for further details.
 import os
 from ctypes import cdll, Structure, c_ulong, c_int, c_ushort, \
                    c_void_p, pointer, POINTER, byref
+from kivy.logger import Logger
 
 # load library
 if 'KIVY_DOC' not in os.environ:
@@ -140,7 +141,13 @@ class Device:
         self._fd = -1
         self._device = mtdev()
 
-        self._fd = os.open(filename, os.O_NONBLOCK | os.O_RDONLY)
+        try:
+            self._fd = os.open(filename, os.O_NONBLOCK | os.O_RDONLY)
+        except OSError, err:
+            Logger.debug("kivy/lib/mtdev.py: Unable to open {0}, {1}".format(
+                filename, err))
+            return
+
         ret = mtdev_open(pointer(self._device), self._fd)
         if ret != 0:
             os.close(self._fd)
