@@ -139,10 +139,12 @@ class RecycleDataAdapter(EventDispatcher):
     with this instance.
     '''
 
-    # internals
-    views = {}  # current displayed items
-    # items whose attrs, except for pos/size is still accurate
-    dirty_views = defaultdict(dict)
+    def __init__(self):
+        super(RecycleDataAdapter, self).__init__()
+        # internals
+        self.views = {}  # current displayed items
+        # items whose attrs, except for pos/size is still accurate
+        self.dirty_views = defaultdict(dict)
 
     _sizing_attrs = {
         'size', 'width', 'height', 'size_hint', 'size_hint_x', 'size_hint_y',
