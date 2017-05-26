@@ -29,6 +29,7 @@ __all__ = ('RedisStore', )
 
 import os
 from json import loads, dumps
+from kivy.compat import iteritems
 from kivy.properties import StringProperty
 from kivy.storage import AbstractStore
 
@@ -73,7 +74,7 @@ class RedisStore(AbstractStore):
         key = self.prefix + '.d.' + key
         pipe = self.r.pipeline()
         pipe.delete(key)
-        for k, v in values.iteritems():
+        for k, v in iteritems(values):
             pipe.hset(key, k, dumps(v))
         pipe.execute()
         return True
