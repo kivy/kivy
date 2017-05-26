@@ -70,7 +70,6 @@ from kivy.graphics.cgl cimport *
 from kivy.graphics.vertex cimport vertex_attr_t
 from kivy.graphics.transformation cimport Matrix
 from kivy.graphics.context cimport get_context
-from kivy.compat import iteritems
 from kivy.logger import Logger
 from kivy.cache import Cache
 from kivy import kivy_shader_dir
@@ -214,7 +213,7 @@ cdef class Shader:
         '''
         cgl.glUseProgram(self.program)
         log_gl_error('Shader.use-glUseProgram')
-        for k, v in iteritems(self.uniform_values):
+        for k, v in self.uniform_values.iteritems():
             self.upload_uniform(k, v)
         if cgl_get_backend_name() == 'glew':
             # XXX Very very weird bug. On virtualbox / win7 / glew, if we don't call

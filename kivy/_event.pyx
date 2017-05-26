@@ -30,7 +30,7 @@ from libc.string cimport memset
 from functools import partial
 from collections import defaultdict
 from kivy.weakmethod import WeakMethod
-from kivy.compat import string_types, iteritems
+from kivy.compat import string_types
 from kivy.properties cimport (Property, PropertyStorage, ObjectProperty,
     NumericProperty, StringProperty, ListProperty, DictProperty,
     BooleanProperty)
@@ -426,7 +426,7 @@ cdef class EventDispatcher(ObjectWithUid):
         cdef EventObservers observers
         cdef PropertyStorage ps
 
-        for key, value in iteritems(kwargs):
+        for key, value in kwargs.iteritems():
             assert callable(value), '{!r} is not callable'.format(value)
             if key[:3] == 'on_':
                 observers = self.__event_stack.get(key)
@@ -455,7 +455,7 @@ cdef class EventDispatcher(ObjectWithUid):
         cdef EventObservers observers
         cdef PropertyStorage ps
 
-        for key, value in iteritems(kwargs):
+        for key, value in kwargs.iteritems():
             if key[:3] == 'on_':
                 observers = self.__event_stack.get(key)
                 if observers is None:
