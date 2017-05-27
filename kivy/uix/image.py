@@ -332,7 +332,7 @@ class AsyncImage(Image):
         on how to handle events around asynchronous image loading.
     '''
 
-    __events__ = ('on_error', 'on_complete')
+    __events__ = ('on_error', 'on_load')
 
     def __init__(self, **kwargs):
         self._coreimage = None
@@ -359,6 +359,9 @@ class AsyncImage(Image):
                 nocache=self.nocache, mipmap=self.mipmap,
                 anim_delay=self.anim_delay)
 
+            # 1st _on_source_load, then on_load
+            # (executing is reversed)
+            image.bind(on_load=self.on_load)
             image.bind(on_load=self._on_source_load)
             image.bind(on_error=self._on_source_error)
             image.bind(on_texture=self._on_tex_change)
@@ -369,7 +372,6 @@ class AsyncImage(Image):
         if not image:
             return
         self.texture = image.texture
-        self.dispatch('on_complete')
 
     def _on_source_error(self, instance, error=None):
         self.dispatch('on_error', error)
@@ -377,7 +379,7 @@ class AsyncImage(Image):
     def on_error(self, error):
         pass
 
-    def on_complete(self):
+    def on_load(self, *args):
         pass
 
     def is_uri(self, filename):
