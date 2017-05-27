@@ -851,8 +851,15 @@ class _Visitor(nodes.NodeVisitor):
 
     def dispatch_visit(self, node):
         cls = node.__class__
+        # cls contains the sane selector, but then the node
+        # is opened and if it contains e.g. a comment or ref,
+        # it has a specific tagname that we need to check for
+        # when we handle the plain text with nodes.Text
         if cls is nodes.document:
             self.push(self.root.content)
+
+        elif cls is nodes.comment:
+            return
 
         elif cls is nodes.section:
             self.section += 1
@@ -879,6 +886,9 @@ class _Visitor(nodes.NodeVisitor):
                     return
                 elif node.parent.tagname == 'substitution_reference':
                     # |ref|
+                    return
+                elif node.parent.tagname == 'comment':
+                    # .. COMMENT
                     return
 
             if self.do_strip_text:
