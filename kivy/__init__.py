@@ -213,7 +213,7 @@ def kivy_usage():
 #: Global settings options for kivy
 kivy_options = {
     'window': ('egl_rpi', 'sdl2', 'pygame', 'sdl', 'x11'),
-    'text': ('pil', 'sdl2', 'pygame', 'sdlttf'),
+    'text': ('pil', 'sdl2', 'pygame', 'sdlttf','harfbuzz'),
     'video': (
         'gstplayer', 'ffmpeg', 'ffpyplayer', 'null'),
     'audio': (
