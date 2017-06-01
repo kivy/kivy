@@ -1,14 +1,25 @@
 '''
-Audio example
-=============
+Audio Playback Demonstration
+=============================
 
-This example plays sounds of different formats. You should see a grid of
-buttons labelled with filenames. Clicking on the buttons will play, or
-restart, each sound. Not all sound formats will play on all platforms.
+This demonstration plays sounds of different formats. You should see a grid of
+buttons labelled with file names. Clicking on the buttons will play, or
+restart, each sound. You can play multiple sounds at once, but not all sound
+formats will play on all platforms. The slider on the left controls volume.
 
-All the sounds are from the http://woolyss.com/chipmusic-samples.php
+Chip sounds are from http://woolyss.com/chipmusic-samples.php
 "THE FREESOUND PROJECT", Under Creative Commons Sampling Plus 1.0 License.
+Piano sounds are from https://archive.org/details/Piano_804, Internet Archive,
+placed into the public domain.  Beethoven sounds are from
+https://archive.org/details/SymphonyNo.5, Internet Archive, placed into the
+public domain.   Some free format conversions done by
+http://www.online-convert.com.
 
+The Beethoven files, which are 4.3M (ogg) and 84M (wav), can be useful for
+debugging troubles with large files. You can download them from
+https://github.com/merriam/big_audio_files/blob/master/Beethoven_long_ogg.ogg
+and
+https://github.com/merriam/big_audio_files/blob/master/Beethoven_long_wav.wav.
 '''
 
 import kivy
@@ -21,17 +32,23 @@ from kivy.core.audio import SoundLoader
 from kivy.properties import StringProperty, ObjectProperty, NumericProperty
 from glob import glob
 from os.path import dirname, join, basename
+from kivy.logger import Logger
 
+extensions = '*.aac *.aiff *.flac *.m4a *.mp3 *.ogg *.opus *.wav *.wma'.split()
 
 class AudioButton(Button):
-
     filename = StringProperty(None)
     sound = ObjectProperty(None, allownone=True)
     volume = NumericProperty(1.0)
 
     def on_press(self):
+        """ load and play on press, restarting if playing. """
         if self.sound is None:
             self.sound = SoundLoader.load(self.filename)
+            if self.sound is None:
+                Logger.error("audio-main.py: unable to get SoundLoader for %s",
+                             self.filename)
+                return
         # stop the sound if it's currently playing
         if self.sound.status != 'stop':
             self.sound.stop()
@@ -55,17 +72,18 @@ class AudioBackground(BoxLayout):
 
 
 class AudioApp(App):
-
     def build(self):
-
         root = AudioBackground(spacing=5)
-        for fn in glob(join(dirname(__file__), '*.wav')):
+        filenames = []
+        for extension in extensions:
+            filenames.extend(glob(join(dirname(__file__), extension)))
+        for fn in sorted(filenames):
             btn = AudioButton(
-                text=basename(fn[:-4]).replace('_', ' '), filename=fn,
+                text=basename(fn[:-4]).replace('_', ' ').strip('.'),
+                filename=fn,
                 size_hint=(None, None), halign='center',
-                size=(128, 128), text_size=(118, None))
+                size=(128, 64), text_size=(118, None))
             root.ids.sl.add_widget(btn)
-
         return root
 
     def release_audio(self):
