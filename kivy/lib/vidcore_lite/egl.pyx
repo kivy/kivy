@@ -1,4 +1,3 @@
-
 from libc.stdlib cimport malloc, free
 from bcm cimport DISPMANX_ELEMENT_HANDLE_T, ElementHandle
 cimport bcm
@@ -15,6 +14,7 @@ cdef extern from "/opt/vc/include/EGL/egl.h":
     ctypedef void *EGLDisplay
     ctypedef void *EGLSurface
     ctypedef void *EGLClientBuffer
+    ctypedef void *GLeglImageOES
 
     ctypedef struct EGL_DISPMANX_WINDOW_T:
         DISPMANX_ELEMENT_HANDLE_T element
@@ -72,6 +72,17 @@ cdef extern from "/opt/vc/include/EGL/egl.h":
     EGLBoolean eglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
     EGLBoolean eglCopyBuffers(EGLDisplay dpy, EGLSurface surface,
               EGLNativePixmapType target)
+
+
+cdef extern from "/opt/vc/include/EGL/eglext.h":
+    ctypedef void *EGLImageKHR
+
+    EGLImageKHR eglCreateImageKHR (EGLDisplay dpy, EGLContext ctx,
+               EGLenum target, EGLClientBuffer buffer, EGLint *attrib_list)
+    void glEGLImageTargetTexture2DOES (EGLenum target, GLeglImageOES image)
+    EGLBoolean eglDestroyImageKHR (EGLDisplay dpy, EGLImageKHR image)
+
+
 
 class _constants:
     EGL_VERSION_1_0 = 1 #
@@ -260,6 +271,9 @@ class _constants:
     EGL_MATCH_NATIVE_PIXMAP	=	0x3041	#/* Pseudo-attribute (not queryable) */
     EGL_CONFORMANT	=		0x3042
 
+    GL_TEXTURE_EXTERNAL_OES     =       0x8D65
+    EGL_IMAGE_BRCM_MULTIMEDIA   =       0x99930B2
+
 EGL_FALSE = _constants.EGL_FALSE
 
 global _context_reg
@@ -285,6 +299,19 @@ _config_reg = {}
 
 cdef class Config:
     cdef EGLConfig _eglconfig
+
+global _imagekhr_reg
+_imagekhr_reg = {}
+
+cdef class ImageKHR:
+    cdef EGLImageKHR _eglimagekhr
+
+global _clientbuffer_reg
+_clientbuffer_reg = {}
+
+cdef class ClientBuffer:
+    cdef EGLClientBuffer _eglclientbuffer
+
 
 
 class EGLError(Exception):
@@ -593,6 +620,30 @@ def WaitNative(EGLint engine):
 def SwapBuffers(Display dpy, Surface surf):
     if eglSwapBuffers(dpy._egldisplay, surf._eglsurface) == EGL_FALSE:
         raise_egl_error()
+
+def CreateImageKHR(buffer):
+    cdef:
+        EGLImageKHR img
+
+    img = eglCreateImageKHR (<EGLDisplay><int>eglGetDisplay(<EGLNativeDisplayType><int>_constants.EGL_DEFAULT_DISPLAY),
+                             <EGLContext><int>(_constants.EGL_NO_CONTEXT),
+                             <EGLenum><int>(_constants.EGL_IMAGE_BRCM_MULTIMEDIA),
+                             <EGLClientBuffer><int>buffer,
+                             NULL)
+
+    py_img = ImageKHR()
+    py_img._eglimagekhr = img
+    _imagekhr_reg[<int>img] = py_img
+
+    return py_img
+
+def ImageTargetTexture2DOES (EGLenum target, ImageKHR imagekhr):
+    glEGLImageTargetTexture2DOES (<EGLenum><int>_constants.GL_TEXTURE_EXTERNAL_OES, imagekhr._eglimagekhr)
+
+def DestroyImageKHR (ImageKHR imagekhr):
+    eglDestroyImageKHR (<EGLDisplay><int>eglGetDisplay(<EGLNativeDisplayType><int>_constants.EGL_DEFAULT_DISPLAY), imagekhr._eglimagekhr)
+
+    del _imagekhr_reg[<int>(imagekhr._eglimagekhr)]
 
 
 #### Don't know what a NativePixmapType is or how to make one ###
