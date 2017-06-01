@@ -975,7 +975,7 @@ class _Visitor(nodes.NodeVisitor):
             # e.g. "C:/my path" -> "C:/mypath"
             uri = node['uri']
             align = node.get('align', 'center')
-            image_size=[
+            image_size = [
                 node.get('width'),
                 node.get('height')
             ]
