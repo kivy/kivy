@@ -854,6 +854,9 @@ class _Visitor(nodes.NodeVisitor):
         if cls is nodes.document:
             self.push(self.root.content)
 
+        elif cls is nodes.comment:
+            return
+
         elif cls is nodes.section:
             self.section += 1
 
@@ -879,6 +882,9 @@ class _Visitor(nodes.NodeVisitor):
                     return
                 elif node.parent.tagname == 'substitution_reference':
                     # |ref|
+                    return
+                elif node.parent.tagname == 'comment':
+                    # .. COMMENT
                     return
 
             if self.do_strip_text:
@@ -965,17 +971,38 @@ class _Visitor(nodes.NodeVisitor):
             assert(self.text == '')
 
         elif cls is nodes.image:
+            # docutils parser breaks path with spaces
+            # e.g. "C:/my path" -> "C:/mypath"
             uri = node['uri']
+            align = node.get('align', 'center')
+            image_size = [
+                node.get('width'),
+                node.get('height')
+            ]
+
+            # use user's size if defined
+            def set_size(img, size):
+                img.size = [
+                    size[0] or img.width,
+                    size[1] or img.height
+                ]
+
             if uri.startswith('/') and self.root.document_root:
                 uri = join(self.root.document_root, uri[1:])
+
             if uri.startswith('http://') or uri.startswith('https://'):
                 image = RstAsyncImage(source=uri)
+                image.bind(on_load=lambda *a: set_size(image, image_size))
             else:
                 image = RstImage(source=uri)
+                set_size(image, image_size)
 
-            align = node.get('align', 'center')
-            root = AnchorLayout(size_hint_y=None, anchor_x=align,
-                                height=image.height)
+            root = AnchorLayout(
+                size_hint_y=None,
+                anchor_x=align,
+                height=image.height
+            )
+
             image.bind(height=root.setter('height'))
             root.add_widget(image)
             self.current.add_widget(root)
