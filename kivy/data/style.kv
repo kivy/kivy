@@ -587,6 +587,8 @@
     size_hint_x: None if not root.inside_group else 1
     width: [dp(48) if (root.icon and not root.inside_group) else max(dp(48), (self.texture_size[0] + dp(32))), self.size_hint_x][0]
     color: self.color[:3] + [0 if (root.icon and not root.inside_group) else 1]
+    padding_x: dp(8)
+    minimum_width: self.texture_size[0]
 
     Image:
         allow_stretch: True
