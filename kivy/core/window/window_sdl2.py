@@ -586,6 +586,8 @@ class WindowSDL(WindowBase):
                             kstr = kstr_chr
                         except UnicodeError:
                             pass
+                        except AttributeError:
+                            kstr = kstr_chr
                     except ValueError:
                         pass
                 # if 'shift' in self._modifiers and key\
