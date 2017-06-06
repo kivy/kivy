@@ -1334,22 +1334,22 @@ class TextInput(FocusBehavior, Widget):
             if scroll_type == 'down':
                 if self.multiline:
                     if self.scroll_y <= 0:
-                        return
+                        return True
                     self.scroll_y -= self.line_height
                 else:
                     if self.scroll_x <= 0:
-                        return
+                        return True
                     self.scroll_x -= self.line_height
             if scroll_type == 'up':
                 if self.multiline:
                     if (self._lines_rects[-1].pos[1] > self.y +
                             self.line_height):
-                        return
+                        return True
                     self.scroll_y += self.line_height
                 else:
                     if (self.scroll_x + self.width >=
                             self._lines_rects[-1].texture.size[0]):
-                        return
+                        return True
                     self.scroll_x += self.line_height
 
         touch.grab(self)
@@ -1378,7 +1378,7 @@ class TextInput(FocusBehavior, Widget):
             self.insert_text(CutBuffer.get_cutbuffer())
             return True
 
-        return False
+        return True
 
     def on_touch_move(self, touch):
         if touch.grab_current is not self:
