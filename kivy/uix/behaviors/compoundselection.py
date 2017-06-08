@@ -488,6 +488,23 @@ class CompoundSelectionBehavior(object):
         select = self.select_node
         sister_nodes = self.get_selectable_nodes()
         end = len(sister_nodes) - 1
+        if self._anchor not in self.selected_nodes:
+            if self._last_node_idx < self._anchor_idx:
+                for item in sister_nodes[self._anchor_idx:
+                                        self._last_node_idx - 1:-1]:
+                    if item in self.selected_nodes:
+                        self._anchor = item
+                        self._anchor_idx = self.get_index_of_node(
+                                                    item, sister_nodes)
+                        break
+            else:
+                for item in sister_nodes[self._anchor_idx:
+                                        self._last_node_idx + 1]:
+                    if item in self.selected_nodes:
+                        self._anchor = item
+                        self._anchor_idx = self.get_index_of_node(
+                                                    item, sister_nodes)
+                        break
         last_node = self._anchor
         last_idx = self._anchor_idx
 
@@ -507,12 +524,14 @@ class CompoundSelectionBehavior(object):
             except ValueError:
                 return
 
-        if last_idx > idx:
-            last_idx, idx = idx, last_idx
         if not multiselect:
             self.clear_selection()
-        for item in sister_nodes[last_idx:idx + 1]:
-            select(item)
+        if last_idx < idx:
+            for item in sister_nodes[last_idx:idx + 1]:
+                select(item)
+        else:
+            for item in sister_nodes[idx:last_idx + 1]:
+                select(item)
 
         if keep_anchor:
             self._anchor = last_node
