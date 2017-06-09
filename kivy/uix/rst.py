@@ -840,7 +840,6 @@ class _ToctreeVisitor(nodes.NodeVisitor):
             self.push(section)
         elif cls is nodes.title:
             self.text = ''
-
         elif cls is nodes.Text:
             self.text += node
 
@@ -868,6 +867,8 @@ class _Visitor(nodes.NodeVisitor):
 
         # store refblock here while building
         self.foot_refblock = None
+
+        # store order for autonum/sym footnotes+refs
         self.footnotes = {
             'autonum': 0,
             'autosym': 0,
@@ -948,10 +949,6 @@ class _Visitor(nodes.NodeVisitor):
 
     def dispatch_visit(self, node):
         cls = node.__class__
-        # cls contains the sane selector, but then the node
-        # is opened and if it contains e.g. a comment or ref,
-        # it has a specific tagname that we need to check for
-        # when we handle the plain text with nodes.Text
         if cls is nodes.document:
             self.push(self.root.content)
             self.brute_refs(node)
@@ -1094,15 +1091,6 @@ class _Visitor(nodes.NodeVisitor):
             )
             self.text += text
             self.text_have_anchor = True
-#            self.set_text(self.current, 'link')
-#            self.root.add_anchors(self.current)
-
-        elif cls is nodes.citation_reference:
-            return
-            raise NotImplementedError()
-            table = RstTable(cols=0)
-            self.current.add_widget(table)
-            self.push(table)
 
         elif cls is nodes.title:
             label = RstTitle(section=self.section, document=self.root)
@@ -1352,7 +1340,6 @@ class _Visitor(nodes.NodeVisitor):
 
         elif cls is nodes.paragraph:
             self.do_strip_text = False
-
             assert(isinstance(self.current, RstParagraph))
             self.set_text(self.current, 'paragraph')
             self.pop()
@@ -1430,7 +1417,6 @@ class _Visitor(nodes.NodeVisitor):
         elif cls is nodes.footnote:
             self.pop()
             self.set_text(self.current, 'link')
-            return
 
         elif cls is nodes.footnote_reference:
             # close opened footnote [x]
