@@ -8,6 +8,7 @@ OpenCV Camera: Implement CameraBase with OpenCV
 
 __all__ = ('CameraOpenCV')
 
+import time
 from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
@@ -48,12 +49,33 @@ except ImportError:
     except ImportError:
         raise
 
-
 class CameraOpenCV(CameraBase):
     '''
     Implementation of CameraBase using OpenCV
     '''
     _update_ev = None
+
+    @staticmethod
+    def measure_frame_rate(video_capture, frame_sample_size):
+        '''
+        Measure the frame rate of an OpenCV video capture.
+        :param video_capture: A video capture.
+        :param frame_sample_size: The number of frames to sample in order to
+                                  measure the video capture's frame rate.
+        :return: The measured frame rate.
+        :raises RuntimeError: The specified number of frames cannot be read from
+                              the video capture.
+        '''
+        frame_count = 0
+        start = time.time()
+        while frame_count != frame_sample_size and video_capture.grab():
+            frame_count += 1
+        if frame_count == frame_sample_size:
+            return frame_count / (time.time() - start)
+        else:
+            raise RuntimeError(('OpenCV: Unable to measure the frame rate, '
+                                'grabbed only {} out of {} frames.').format(
+                                    frame_count, frame_sample_size))
 
     def __init__(self, **kwargs):
         # we will need it, because constants have
@@ -71,15 +93,12 @@ class CameraOpenCV(CameraBase):
         if self.opencvMajorVersion == 3:
             PROPERTY_WIDTH = cv2.CAP_PROP_FRAME_WIDTH
             PROPERTY_HEIGHT = cv2.CAP_PROP_FRAME_HEIGHT
-            PROPERTY_FPS = cv2.CAP_PROP_FPS
         elif self.opencvMajorVersion == 2:
             PROPERTY_WIDTH = cv2.cv.CV_CAP_PROP_FRAME_WIDTH
             PROPERTY_HEIGHT = cv2.cv.CV_CAP_PROP_FRAME_HEIGHT
-            PROPERTY_FPS = cv2.cv.CV_CAP_PROP_FPS
         elif self.opencvMajorVersion == 1:
             PROPERTY_WIDTH = cv.CV_CAP_PROP_FRAME_WIDTH
             PROPERTY_HEIGHT = cv.CV_CAP_PROP_FRAME_HEIGHT
-            PROPERTY_FPS = cv.CV_CAP_PROP_FPS
 
         Logger.debug('Using opencv ver.' + str(self.opencvMajorVersion))
 
@@ -98,9 +117,6 @@ class CameraOpenCV(CameraBase):
             # recursion with self.init_camera (but slowly as we'd have to
             # always get a frame).
             self._resolution = (int(frame.width), int(frame.height))
-            # get fps
-            fps = cv.GetCaptureProperty(self._device, cv.CV_CAP_PROP_FPS)
-
         elif self.opencvMajorVersion == 2 or self.opencvMajorVersion == 3:
             # create the device
             self._device = cv2.VideoCapture(self._index)
@@ -111,15 +127,18 @@ class CameraOpenCV(CameraBase):
                              self.resolution[1])
             # and get frame to check if it's ok
             ret, frame = self._device.read()
-
             # source:
             # http://stackoverflow.com/questions/32468371/video-capture-propid-parameters-in-opencv # noqa
             self._resolution = (int(frame.shape[1]), int(frame.shape[0]))
-            # get fps
-            fps = self._device.get(PROPERTY_FPS)
 
-        # The event interval is the inverse of the frame rate.
-        self.fps = 1 / float(fps if fps > 0 else 30)
+        # get fps
+        # @note The frame rate property is unreliable for a camera.
+        fps = self.measure_frame_rate(self._device, self._frame_sample_size)
+        Logger.info(("Camera {}'s frame rate is {} frames/sec based on a "
+                     "sample of {} frames.").format(
+                        self._index, fps, self._frame_sample_size))
+        # The event interval is the inverse of the camera's frame rate.
+        self.fps = 1 / fps
 
         if not self.stopped:
             self.start()
