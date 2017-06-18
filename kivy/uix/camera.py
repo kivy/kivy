@@ -29,8 +29,8 @@ __all__ = ('Camera', )
 
 from kivy.uix.image import Image
 from kivy.core.camera import Camera as CoreCamera
-from kivy.properties import NumericProperty, ListProperty, \
-    BooleanProperty
+from kivy.properties import (BooleanProperty, BoundedNumericProperty,
+                             ListProperty, NumericProperty)
 
 
 class Camera(Image):
@@ -79,6 +79,17 @@ class Camera(Image):
     to [-1, -1].
     '''
 
+    # source:
+    # https://www.learnopencv.com/how-to-find-frame-rate-or-frames-per-second-fps-in-opencv-python-cpp/
+    frame_sample_size = BoundedNumericProperty(120, min=1)
+    '''Number of frames to sample in order to measure the camera's frame rate.
+    Choose a large number for greater accuracy and a small number for a shorter 
+    delay.
+    
+    :attr:`frame_sample_size` is a :class:
+    ~kivy.properties.BoundedNumericProperty` and defaults to 120.
+    '''
+
     def __init__(self, **kwargs):
         self._camera = None
         super(Camera, self).__init__(**kwargs)
@@ -100,7 +111,8 @@ class Camera(Image):
         if self.resolution[0] < 0 or self.resolution[1] < 0:
             return
         self._camera = CoreCamera(index=self.index,
-                                  resolution=self.resolution, stopped=True)
+                                  resolution=self.resolution, stopped=True,
+                                  frame_sample_size=self.frame_sample_size)
         self._camera.bind(on_load=self._camera_loaded)
         if self.play:
             self._camera.start()

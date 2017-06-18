@@ -9,6 +9,7 @@ OpenCV Camera: Implement CameraBase with OpenCV
 __all__ = ('CameraOpenCV')
 
 import time
+from collections import Counter
 from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
@@ -67,15 +68,22 @@ class CameraOpenCV(CameraBase):
                               the video capture.
         '''
         frame_count = 0
-        start = time.time()
-        while frame_count != frame_sample_size and video_capture.grab():
+        durations = Counter()
+        while frame_count != frame_sample_size:
+            start = time.time()
+            if not video_capture.grab():
+                break
             frame_count += 1
-        if frame_count == frame_sample_size:
-            return frame_count / (time.time() - start)
-        else:
+            durations[time.time() - start] += 1
+        if frame_count != frame_sample_size:
             raise RuntimeError(('OpenCV: Unable to measure the frame rate, '
                                 'grabbed only {} out of {} frames.').format(
-                                    frame_count, frame_sample_size))
+                frame_count, frame_sample_size))
+        most_common = durations.most_common()
+        high = most_common[0][-1]
+        matching = [d for d, c in most_common if c == high]
+        average_duration = sum(matching) / len(matching)
+        return 1 / average_duration
 
     def __init__(self, **kwargs):
         # we will need it, because constants have
@@ -133,9 +141,10 @@ class CameraOpenCV(CameraBase):
 
         # get fps
         # @note The frame rate property is unreliable for a camera.
-        fps = self.measure_frame_rate(self._device, self._frame_sample_size)
-        Logger.info(("Camera {}'s frame rate is {} frames/sec based on a "
-                     "sample of {} frames.").format(
+        fps = round(self.measure_frame_rate(self._device,
+                                            self._frame_sample_size))
+        Logger.info(("Camera {}'s frame rate is {} frames/sec based on {} "
+                     "sample frames.").format(
                         self._index, fps, self._frame_sample_size))
         # The event interval is the inverse of the camera's frame rate.
         self.fps = 1 / fps
