@@ -714,7 +714,8 @@ class WindowSDL(WindowBase):
 
     def release_keyboard(self, *largs):
         super(WindowSDL, self).release_keyboard(*largs)
-        self._win.hide_keyboard()
+        if self._system_keyboard.widget:
+            self._win.hide_keyboard()
         self._sdl_keyboard = None
         return True
 
