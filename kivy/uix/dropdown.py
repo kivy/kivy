@@ -242,6 +242,7 @@ class DropDown(ScrollView):
 
         self.attach_to = widget
         widget.bind(pos=self._reposition, size=self._reposition)
+        self.fbind('size', self._reposition)
         self._reposition()
         # attach ourself to the main window
         self._win.add_widget(self)
@@ -263,10 +264,12 @@ class DropDown(ScrollView):
             self.attach_to.unbind(pos=self._reposition, size=self._reposition)
             self.attach_to = None
         self.dispatch('on_dismiss')
+        self.funbind('size', self._reposition)
 
-        self._win.unbind(
-            on_key_down=self.on_key_down,
-            size=self._reposition)
+        if self._win:
+            self._win.unbind(
+                on_key_down=self.on_key_down,
+                size=self._reposition)
 
     def on_dismiss(self):
         pass
