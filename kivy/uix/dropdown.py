@@ -213,10 +213,6 @@ class DropDown(ScrollView):
         if c is not None:
             super(DropDown, self).add_widget(c)
             self.on_container(self, c)
-        Window.bind(
-            on_key_down=self.on_key_down,
-            size=self._reposition)
-        self.fbind('size', self._reposition)
 
     def on_key_down(self, instance, key, scancode, codepoint, modifiers):
         if key == 27 and self.get_parent_window():
@@ -247,9 +243,11 @@ class DropDown(ScrollView):
         self.attach_to = widget
         widget.bind(pos=self._reposition, size=self._reposition)
         self._reposition()
-
         # attach ourself to the main window
         self._win.add_widget(self)
+        self._win.bind(
+            on_key_down=self.on_key_down,
+            size=self._reposition)
 
     def dismiss(self, *largs):
         '''Remove the dropdown widget from the window and detach it from
@@ -265,6 +263,10 @@ class DropDown(ScrollView):
             self.attach_to.unbind(pos=self._reposition, size=self._reposition)
             self.attach_to = None
         self.dispatch('on_dismiss')
+
+        self._win.unbind(
+            on_key_down=self.on_key_down,
+            size=self._reposition)
 
     def on_dismiss(self):
         pass
