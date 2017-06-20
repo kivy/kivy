@@ -3,7 +3,7 @@ os: Visual Studio 2015
 environment:
   WHEEL_DIR: C:\kivy_wheels
   KIVY_BUILD_DIR: C:\kivy_build
-  DO_WHEEL: False
+  DO_WHEEL: True
   KEY_WITH_NO_TEETH:
     secure: 7cS7xjpCL/VH5jIIGSf13camkiu1enMh5hO0UsBgmRlBXyKk3t/7HB79ofyJKgDb
   USE_SDL2: 1
