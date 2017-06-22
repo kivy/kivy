@@ -1019,7 +1019,7 @@ if not build_examples:
             'tools/packaging/osx/InfoPlist.strings',
             'tools/packaging/osx/kivy.sh',
             'tools/pep8checker/*',
-            'tools/theming/*',
+            'tools/theming/defaulttheme/*',
         ] + binary_deps},
         data_files=[] if split_examples else list(examples.items()),
         classifiers=[
