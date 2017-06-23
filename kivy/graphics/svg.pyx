@@ -371,10 +371,10 @@ cdef class Svg(RenderContext):
         self.height = 0
         self.line_width = 0.25
 
-        if color is None:
-            self.current_color = None
-        else:
-            self.current_color = kv_color_to_int_color(color)
+        # if color is None:
+        #     self.current_color = [0, 0, 0, 255]
+        # else:
+        #     self.current_color = kv_color_to_int_color(color)
 
         self.bezier_points = bezier_points
         self.circle_points = circle_points
@@ -523,8 +523,8 @@ cdef class Svg(RenderContext):
             if 'stroke-width' in sdict:
                 self.line_width = parse_float(sdict['stroke-width'])
 
-        if self.fill is None:
-            self.fill = [0, 0, 0, 255]
+        # if self.fill is None:
+        #     self.fill = [0, 0, 0, 0]  # empty fill shouldn't hide what's behind!
         if self.stroke is None:
             self.stroke = [0, 0, 0, 0]
         if isinstance(self.stroke, list):
@@ -963,14 +963,14 @@ cdef class Svg(RenderContext):
             tess.tesselate()
             tris = tess.vertices
 
-        # Add the stroke for the first subpath, and the fill for all
-        # subpaths.
-        self.paths.append((
-            self.path[0] if self.stroke else None,
-            self.stroke,
-            tris,
-            self.fill,
-            self.transform))
+            # Add the stroke for the first subpath, and the fill for all
+            # subpaths.
+            self.paths.append((
+                self.path[0] if self.stroke else None,
+                self.stroke,
+                tris,
+                self.fill,
+                self.transform))
 
         # Finally, add the stroke for second and subsequent subpaths
         if self.stroke and len(self.path) > 1:
