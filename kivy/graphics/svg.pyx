@@ -502,6 +502,7 @@ cdef class Svg(RenderContext):
         self.opacity *= float(e.get('opacity', 1))
         fill_opacity = float(e.get('fill-opacity', 1))
         stroke_opacity = float(e.get('stroke-opacity', 1))
+        self.line_width = float(e.get('stroke-width', self.line_width))
 
         oldtransform = self.transform
         for t in self.parse_transform(e.get('transform')):
