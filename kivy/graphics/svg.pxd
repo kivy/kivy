@@ -55,6 +55,7 @@ cdef class Svg(RenderContext):
     cdef double last_cy
     cdef Texture line_texture
     cdef StripMesh last_mesh
+    cdef bint closed
 
     cdef void reload(self) except *
     cdef parse_tree(self, tree)

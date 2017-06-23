@@ -802,8 +802,9 @@ cdef class Svg(RenderContext):
     cdef void close_path(self):
         #self.loop.append(self.loop[0])
         #self.loop.append(self.loop[1])
-        self.path.append(self.loop)
-        self.loop = array('f', [])
+        # self.path.append(self.loop)
+        # self.loop = array('f', [])
+        self.closed = True
 
     cdef void set_position(self, float x, float y, int absolute=1):
         if absolute:
@@ -1055,7 +1056,7 @@ cdef class Svg(RenderContext):
         if not isinstance(fill, str):
             r, g, b, a = fill
 
-        for index in range(count):
+        for index in range(count - (1 if not self.closed else 0)):
             i = index * 2
             ax = path[i]
             ay = path[i + 1]
