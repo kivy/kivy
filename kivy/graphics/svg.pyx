@@ -745,20 +745,19 @@ cdef class Svg(RenderContext):
 
                 self.arc_to(rx, ry, rotation, arc, sweep, x, y)
 
-            else:
-                Logger.warning('Svg: unimplemented command {}'.format(command))
-
-            '''
             elif command == 'Q':
-                control = float(elements.pop()) + float(elements.pop()) * 1j
-                end = float(elements.pop()) + float(elements.pop()) * 1j
+                cx = float(elements.pop())
+                cy = float(elements.pop())
+                x = float(elements.pop())
+                y = float(elements.pop())
 
                 if not absolute:
-                    control += current_pos
-                    end += current_pos
+                    cx += self.x
+                    cy += self.y
+                    x += self.x
+                    y += self.y
 
-                segments.append(path.QuadraticBezier(current_pos, control, end))
-                current_pos = end
+                self.quadratic_bezier_curve_to(cx, cy, x, y)
 
             elif command == 'T':
                 # Smooth curve. Control point is the "reflection" of
@@ -768,22 +767,26 @@ cdef class Svg(RenderContext):
                     # If there is no previous command or if the previous command
                     # was not an Q, q, T or t, assume the first control point is
                     # coincident with the current point.
-                    control = current_pos
+                    cx = self.x
+                    cy = self.y
                 else:
                     # The control point is assumed to be the reflection of
                     # the control point on the previous command relative
                     # to the current point.
-                    control = current_pos + current_pos - segments[-1].control2
+                    cx = self.x + self.x - cx
+                    cy = self.y + self.y - cy
 
-                end = float(elements.pop()) + float(elements.pop()) * 1j
+                x = float(elements.pop())
+                y = float(elements.pop())
 
                 if not absolute:
-                    control += current_pos
-                    end += current_pos
+                    x += self.x
+                    y += self.y
 
-                segments.append(path.QuadraticBezier(current_pos, control, end))
-                current_pos = end
-            '''
+                self.quadratic_bezier_curve_to(cx, cy, x, y)
+
+            else:
+                Logger.warning('Svg: unimplemented command {}'.format(command))
 
         self.end_path()
 
@@ -854,6 +857,48 @@ cdef class Svg(RenderContext):
             self.set_position(cp * rx * ct - sp * ry * st + cx,
                     sp * rx * ct + cp * ry * st + cy)
 
+
+    @cython.boundscheck(False)
+    cdef void quadratic_bezier_curve_to(self, float cx, float cy, float x, float y):
+        cdef int bp_count = self.bezier_points + 1
+        cdef int i, count, ilast
+        cdef float t, t0, t1, t2, px = 0, py = 0
+        cdef list bc
+        cdef array.array loop
+        cdef float* f_loop
+        cdef float[:] f_bc
+
+        if self.bezier_coefficients is None:
+            self.bezier_coefficients = view.array(
+                    shape=(bp_count * 3, ),
+                    itemsize=sizeof(float),
+                    format="f")
+            f_bc = self.bezier_coefficients
+            for i in range(bp_count):
+                t = float(i) / self.bezier_points
+                t0 = (1 - t) ** 2
+                t1 = 2 * t * (1 - t)
+                t2 = t ** 2
+                f_bc[i * 3] = t0
+                f_bc[i * 3 + 1] = t1
+                f_bc[i * 3 + 2] = t2
+        else:
+            f_bc = self.bezier_coefficients
+
+        self.last_cx = cx
+        self.last_cy = cy
+        count = bp_count * 2
+        ilast = len(self.loop)
+        array.resize(self.loop, ilast + count)
+        f_loop = self.loop.data.as_floats
+        for i in range(bp_count):
+            t0 = f_bc[i * 3]
+            t1 = f_bc[i * 3 + 1]
+            t2 = f_bc[i * 3 + 2]
+            f_loop[ilast + i * 2] = px = t0 * self.x + t1 * cx + t2 * x
+            f_loop[ilast + i * 2 + 1] = py = t0 * self.y + t1 * cy + t2 * y
+
+        self.x, self.y = px, py
 
     @cython.boundscheck(False)
     cdef void curve_to(self, float x1, float y1, float x2, float y2,

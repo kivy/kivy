@@ -66,6 +66,7 @@ cdef class Svg(RenderContext):
     cdef void set_position(self, float x, float y, int absolute=*)
     cdef arc_to(self, float rx, float ry, float phi, float large_arc,
             float sweep, float x, float y)
+    cdef void quadratic_bezier_curve_to(self, float cx, float cy, float x, float y)
     cdef void curve_to(self, float x1, float y1, float x2, float y2,
             float x, float y)
     cdef void end_path(self)
