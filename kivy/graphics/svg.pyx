@@ -497,7 +497,7 @@ cdef class Svg(RenderContext):
             self.parse_element(e)
 
     cdef parse_element(self, e):
-        self.fill = parse_color(e.get('fill'), self.current_color)
+        self.fill = parse_color(e.get('fill', 'black'), self.current_color)
         self.stroke = parse_color(e.get('stroke'), self.current_color)
         oldopacity = self.opacity
         self.opacity *= float(e.get('opacity', 1))
@@ -523,8 +523,6 @@ cdef class Svg(RenderContext):
             if 'stroke-width' in sdict:
                 self.line_width = parse_float(sdict['stroke-width'])
 
-        # if self.fill is None:
-        #     self.fill = [0, 0, 0, 0]  # empty fill shouldn't hide what's behind!
         if self.stroke is None:
             self.stroke = [0, 0, 0, 0]
         if isinstance(self.stroke, list):
