@@ -519,6 +519,8 @@ cdef class Svg(RenderContext):
                 self.stroke = parse_color(sdict['stroke'], self.current_color)
             if 'stroke-opacity' in sdict:
                 stroke_opacity *= float(sdict['stroke-opacity'])
+            if 'stroke-width' in sdict:
+                self.line_width = parse_float(sdict['stroke-width'])
 
         if self.fill is None:
             self.fill = [0, 0, 0, 255]
