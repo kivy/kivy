@@ -137,7 +137,7 @@ cdef dict parse_style(string):
     for item in string.split(';'):
         if ':' in item:
             key, value = item.split(':', 1)
-            sdict[key] = value
+            sdict[key] = value.strip()
     return sdict
 
 cdef list kv_color_to_int_color(color):
