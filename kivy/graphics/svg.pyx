@@ -39,6 +39,8 @@ from cython cimport view
 from time import time
 from kivy.utils import hex_colormap
 from kivy.properties import NUMERIC_FORMATS, dpi2px
+from string import hexdigits
+from kivy.core.window import Window
 
 cdef dict colormap = hex_colormap
 
@@ -109,6 +111,16 @@ cdef inline float angle(float ux, float uy, float vx, float vy):
     a = acos((ux * vx + uy * vy) / sqrt((ux ** 2 + uy ** 2) * (vx ** 2 + vy ** 2)))
     sgn = 1 if ux * vy > uy * vx else -1
     return sgn * a
+
+cdef float parse_width(txt, float vbox_width):
+    if txt.endswith('%'):
+        return vbox_width * float(txt[:-1]) / 100.
+    return parse_float(txt)
+
+cdef float parse_height(txt, float vbox_height):
+    if txt.endswith('%'):
+        return vbox_height * float(txt[:-1]) / 100.
+    return parse_float(txt)
 
 cdef float parse_float(txt):
     if not txt:
@@ -370,6 +382,10 @@ cdef class Svg(RenderContext):
         self.width = 0
         self.height = 0
         self.line_width = 0.25
+        self.vbox_x = 0.
+        self.vbox_y = 0.
+        self.vbox_width = 0.
+        self.vbox_height = 0.
 
         # if color is None:
         #     self.current_color = [0, 0, 0, 255]
@@ -483,9 +499,17 @@ cdef class Svg(RenderContext):
         self.paths = []
         self.width = parse_float(root.get('width'))
         self.height = parse_float(root.get('height'))
+
+        view_box = parse_list(root.get('viewBox', '0 0 100% 100%'))
+        self.vbox_x = parse_float(view_box[0])
+        self.vbox_y = parse_float(view_box[1])
+        self.vbox_width = parse_width(view_box[2], Window.width)
+        self.vbox_height = parse_height(view_box[3], Window.height)
+
         if self.height:
             self.transform = Matrix([1, 0, 0, -1, 0, self.height])
         else:
+            # XXX parse_width/height
             x, y, w, h = [parse_float(x) for x in
                     parse_list(root.get('viewBox'))]
             self.transform = Matrix([1, 0, 0, -1, -x, h + y])
@@ -539,11 +563,11 @@ cdef class Svg(RenderContext):
             x = 0
             y = 0
             if 'x' in e.keys():
-                x = parse_float(e.get('x'))
+                x = parse_width(e.get('x'), self.vbox_width)
             if 'y' in e.keys():
-                y = parse_float(e.get('y'))
-            h = parse_float(e.get('height'))
-            w = parse_float(e.get('width'))
+                y = parse_height(e.get('y'), self.vbox_height)
+            h = parse_width(e.get('height'), self.vbox_width)
+            w = parse_height(e.get('width'), self.vbox_height)
             self.new_path()
             self.set_position(x, y)
             self.set_position(x + w, y)
@@ -560,25 +584,25 @@ cdef class Svg(RenderContext):
             self.new_path()
             while pathdata:
                 self.set_position(
-                    parse_float(pathdata.pop()),
-                    parse_float(pathdata.pop()))
+                    parse_width(pathdata.pop(), self.vbox_width),
+                    parse_height(pathdata.pop(), self.vbox_height))
             if e.tag.endswith('polygon'):
                 self.close_path()
             self.end_path()
 
         elif e.tag.endswith('line'):
-            x1 = parse_float(e.get('x1'))
-            y1 = parse_float(e.get('y1'))
-            x2 = parse_float(e.get('x2'))
-            y2 = parse_float(e.get('y2'))
+            x1 = parse_height(e.get('x1'), self.vbox_width)
+            y1 = parse_width(e.get('y1'), self.vbox_height)
+            x2 = parse_height(e.get('x2'), self.vbox_width)
+            y2 = parse_width(e.get('y2'), self.vbox_height)
             self.new_path()
             self.set_position(x1, y1)
             self.set_position(x2, y2)
             self.end_path()
 
         elif e.tag.endswith('circle'):
-            cx = parse_float(e.get('cx'))
-            cy = parse_float(e.get('cy'))
+            cx = parse_width(e.get('cx'), self.vbox_width)
+            cy = parse_height(e.get('cy'), self.vbox_height)
             r = parse_float(e.get('r'))
             self.new_path()
             for i in xrange(self.circle_points):
@@ -588,10 +612,10 @@ cdef class Svg(RenderContext):
             self.end_path()
 
         elif e.tag.endswith('ellipse'):
-            cx = parse_float(e.get('cx'))
-            cy = parse_float(e.get('cy'))
-            rx = parse_float(e.get('rx'))
-            ry = parse_float(e.get('ry'))
+            cx = parse_width(e.get('cx'), self.vbox_width)
+            cy = parse_height(e.get('cy'), self.vbox_height)
+            rx = parse_width(e.get('rx'), self.vbox_width)
+            ry = parse_height(e.get('ry'), self.vbox_height)
             self.new_path()
             for i in xrange(self.circle_points):
                 theta = 2 * i * pi / self.circle_points
@@ -652,8 +676,8 @@ cdef class Svg(RenderContext):
                     self.path.append(self.loop)
                     self.loop = array('f', [])
 
-                x = parse_float(elements.pop())
-                y = parse_float(elements.pop())
+                x = parse_width(elements.pop(), self.vbox_width)
+                y = parse_height(elements.pop(), self.vbox_height)
                 self.set_position(x, y, absolute)
 
                 # Implicit moveto commands are treated as lineto commands.
@@ -665,31 +689,31 @@ cdef class Svg(RenderContext):
                 self.close_path()
 
             elif command == 'L':
-                x = parse_float(elements.pop())
-                y = parse_float(elements.pop())
+                x = parse_width(elements.pop(), self.vbox_width)
+                y = parse_height(elements.pop(), self.vbox_height)
                 self.set_position(x, y, absolute)
 
             elif command == 'H':
-                x = parse_float(elements.pop())
+                x = parse_width(elements.pop(), self.vbox_width)
                 if absolute:
                     self.set_position(x, self.y)
                 else:
                     self.set_position(self.x + x, self.y)
 
             elif command == 'V':
-                y = parse_float(elements.pop())
+                y = parse_height(elements.pop(), self.vbox_height)
                 if absolute:
                     self.set_position(self.x, y)
                 else:
                     self.set_position(self.x, self.y + y)
 
             elif command == 'C':
-                c1x = parse_float(elements.pop())
-                c1y = parse_float(elements.pop())
-                c2x = parse_float(elements.pop())
-                c2y = parse_float(elements.pop())
-                endx = parse_float(elements.pop())
-                endy = parse_float(elements.pop())
+                c1x = parse_width(elements.pop(), self.vbox_width)
+                c1y = parse_height(elements.pop(), self.vbox_height)
+                c2x = parse_width(elements.pop(), self.vbox_width)
+                c2y = parse_height(elements.pop(), self.vbox_height)
+                endx = parse_width(elements.pop(), self.vbox_width)
+                endy = parse_height(elements.pop(), self.vbox_height)
 
                 if not absolute:
                     c1x += self.x
@@ -718,10 +742,10 @@ cdef class Svg(RenderContext):
                     c1x = self.last_cx
                     c1y = self.last_cy
 
-                c2x = parse_float(elements.pop())
-                c2y = parse_float(elements.pop())
-                endx = parse_float(elements.pop())
-                endy = parse_float(elements.pop())
+                c2x = parse_width(elements.pop(), self.vbox_width)
+                c2y = parse_height(elements.pop(), self.vbox_height)
+                endx = parse_width(elements.pop(), self.vbox_width)
+                endy = parse_height(elements.pop(), self.vbox_height)
 
                 if not absolute:
                     c2x += self.x
@@ -737,8 +761,8 @@ cdef class Svg(RenderContext):
                 rotation = float(elements.pop())
                 arc = float(elements.pop())
                 sweep = float(elements.pop())
-                x = parse_float(elements.pop())
-                y = parse_float(elements.pop())
+                x = parse_width(elements.pop(), self.vbox_width)
+                y = parse_height(elements.pop(), self.vbox_height)
 
                 if not absolute:
                     x += self.x
@@ -747,10 +771,10 @@ cdef class Svg(RenderContext):
                 self.arc_to(rx, ry, rotation, arc, sweep, x, y)
 
             elif command == 'Q':
-                cx = parse_float(elements.pop())
-                cy = parse_float(elements.pop())
-                x = parse_float(elements.pop())
-                y = parse_float(elements.pop())
+                cx = parse_width(elements.pop(), self.vbox_width)
+                cy = parse_height(elements.pop(), self.vbox_height)
+                x = parse_width(elements.pop(), self.vbox_width)
+                y = parse_height(elements.pop(), self.vbox_height)
 
                 if not absolute:
                     cx += self.x
@@ -777,8 +801,8 @@ cdef class Svg(RenderContext):
                     cx = self.x + self.x - cx
                     cy = self.y + self.y - cy
 
-                x = parse_float(elements.pop())
-                y = parse_float(elements.pop())
+                x = parse_width(elements.pop(), self.vbox_width)
+                y = parse_height(elements.pop(), self.vbox_height)
 
                 if not absolute:
                     x += self.x
