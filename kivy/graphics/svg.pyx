@@ -577,12 +577,38 @@ cdef class Svg(RenderContext):
                 y = parse_height(e.get('y'), self.vbox_height)
             h = parse_width(e.get('height'), self.vbox_width)
             w = parse_height(e.get('width'), self.vbox_height)
+            rx = parse_width(e.get('rx', '0'), self.vbox_width)
+            ry = parse_height(e.get('ry', '0'), self.vbox_height)
+
+            if rx:
+                if not ry:
+                    ry = rx
+
+                rx = min(rx, w / 2.)
+                ry = min(ry, h / 2.)
+
             self.new_path()
-            self.set_position(x, y)
-            self.set_position(x + w, y)
-            self.set_position(x + w, y + h)
-            self.set_position(x, y + h)
-            self.set_position(x, y)
+            self.set_position(x + rx, y)
+            self.set_position(x + w - rx, y)
+            # top-right angle
+            if rx:
+                self.arc_to(rx, ry, 0, 0, 1, x + w, y + ry)
+
+            self.set_position(x + w, y + h - ry)
+            # bottom-right angle
+            if rx:
+                self.arc_to(rx, ry, 0, 0, 1, x + w - rx, y + h)
+
+            self.set_position(x + rx, y + h)
+            # bottom-left angle
+            if rx:
+                self.arc_to(rx, ry, 0, 0, 1, x, y + h - ry)
+
+            self.set_position(x, y + ry)
+            # top-left angle
+            if rx:
+                self.arc_to(rx, ry, 0, 0, 1, x + rx, y)
+
             self.end_path()
 
         elif e.tag.endswith('polyline') or e.tag.endswith('polygon'):
