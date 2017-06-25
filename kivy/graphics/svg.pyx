@@ -390,7 +390,7 @@ cdef class Svg(RenderContext):
         self.paths = []
         self.width = 0
         self.height = 0
-        self.line_width = 0.25
+        self.line_width = 1.0
         self.vbox_x = 0.
         self.vbox_y = 0.
         self.vbox_width = 0.
@@ -536,6 +536,7 @@ cdef class Svg(RenderContext):
         self.opacity *= float(e.get('opacity', 1))
         fill_opacity = float(e.get('fill-opacity', 1))
         stroke_opacity = float(e.get('stroke-opacity', 1))
+        old_line_width = self.line_width
         self.line_width = float(e.get('stroke-width', self.line_width))
 
         oldtransform = self.transform
@@ -669,6 +670,7 @@ cdef class Svg(RenderContext):
 
         self.transform = oldtransform
         self.opacity = oldopacity
+        self.line_width = old_line_width
 
     cdef list parse_transform(self, transform_def):
         if isinstance(transform_def, str):
