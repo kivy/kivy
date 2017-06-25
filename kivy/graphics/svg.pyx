@@ -601,36 +601,38 @@ cdef class Svg(RenderContext):
             rx = parse_width(e.get('rx', '0'), self.vbox_width)
             ry = parse_height(e.get('ry', '0'), self.vbox_height)
 
-            if rx:
-                if not ry:
-                    ry = rx
+            if rx and not ry:
+                ry = rx
+            if ry and not rx:
+                rx = ry
 
-                rx = min(rx, w / 2.)
-                ry = min(ry, h / 2.)
+            rx = min(rx, w / 2.)
+            ry = min(ry, h / 2.)
 
-            self.new_path()
-            self.set_position(x + rx, y)
-            self.set_position(x + w - rx, y)
-            # top-right angle
-            if rx:
-                self.arc_to(rx, ry, 0, 0, 1, x + w, y + ry)
+            if min(w, h) > 0:
+                self.new_path()
+                self.set_position(x + rx, y)
+                self.set_position(x + w - rx, y)
+                # top-right angle
+                if rx:
+                    self.arc_to(rx, ry, 0, 0, 1, x + w, y + ry)
 
-            self.set_position(x + w, y + h - ry)
-            # bottom-right angle
-            if rx:
-                self.arc_to(rx, ry, 0, 0, 1, x + w - rx, y + h)
+                self.set_position(x + w, y + h - ry)
+                # bottom-right angle
+                if rx:
+                    self.arc_to(rx, ry, 0, 0, 1, x + w - rx, y + h)
 
-            self.set_position(x + rx, y + h)
-            # bottom-left angle
-            if rx:
-                self.arc_to(rx, ry, 0, 0, 1, x, y + h - ry)
+                self.set_position(x + rx, y + h)
+                # bottom-left angle
+                if rx:
+                    self.arc_to(rx, ry, 0, 0, 1, x, y + h - ry)
 
-            self.set_position(x, y + ry)
-            # top-left angle
-            if rx:
-                self.arc_to(rx, ry, 0, 0, 1, x + rx, y)
+                self.set_position(x, y + ry)
+                # top-left angle
+                if rx:
+                    self.arc_to(rx, ry, 0, 0, 1, x + rx, y)
 
-            self.end_path()
+                self.end_path()
 
         elif e.tag.endswith('polyline') or e.tag.endswith('polygon'):
             pathdata = e.get('points')
@@ -651,33 +653,37 @@ cdef class Svg(RenderContext):
             y1 = parse_width(e.get('y1'), self.vbox_height)
             x2 = parse_height(e.get('x2'), self.vbox_width)
             y2 = parse_width(e.get('y2'), self.vbox_height)
-            self.new_path()
-            self.set_position(x1, y1)
-            self.set_position(x2, y2)
-            self.end_path()
+            # XXX fix condition when round/square cappings are added
+            if (x1 != x2 or y1 != y2):
+                self.new_path()
+                self.set_position(x1, y1)
+                self.set_position(x2, y2)
+                self.end_path()
 
         elif e.tag.endswith('circle'):
             cx = parse_width(e.get('cx'), self.vbox_width)
             cy = parse_height(e.get('cy'), self.vbox_height)
             r = parse_float(e.get('r'))
-            self.new_path()
-            for i in xrange(self.circle_points):
-                theta = 2 * i * pi / self.circle_points
-                self.set_position(cx + r * cos(theta), cy + r * sin(theta))
-            self.close_path()
-            self.end_path()
+            if r > 0:
+                self.new_path()
+                for i in xrange(self.circle_points):
+                    theta = 2 * i * pi / self.circle_points
+                    self.set_position(cx + r * cos(theta), cy + r * sin(theta))
+                self.close_path()
+                self.end_path()
 
         elif e.tag.endswith('ellipse'):
             cx = parse_width(e.get('cx'), self.vbox_width)
             cy = parse_height(e.get('cy'), self.vbox_height)
             rx = parse_width(e.get('rx'), self.vbox_width)
             ry = parse_height(e.get('ry'), self.vbox_height)
-            self.new_path()
-            for i in xrange(self.circle_points):
-                theta = 2 * i * pi / self.circle_points
-                self.set_position(cx + rx * cos(theta), cy + ry * sin(theta))
-            self.close_path()
-            self.end_path()
+            if min(rx, ry) > 0:
+                self.new_path()
+                for i in xrange(self.circle_points):
+                    theta = 2 * i * pi / self.circle_points
+                    self.set_position(cx + rx * cos(theta), cy + ry * sin(theta))
+                self.close_path()
+                self.end_path()
 
         elif e.tag.endswith('linearGradient'):
             self.gradients[e.get('id')] = LinearGradient(e, self)
