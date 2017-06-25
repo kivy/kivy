@@ -677,7 +677,6 @@ cdef class Svg(RenderContext):
                     raise ValueError("Unallowed implicit command in %s, position %s" % (
                         pathdef, len(pathdef.split()) - len(elements)))
 
-
             if command == 'M':
                 # Moveto command. This is like "picking up the pen", so
                 # start a new loop.
