@@ -75,5 +75,5 @@ cdef class Svg(RenderContext):
     cdef void push_mesh(self, float[:] path, fill, Matrix transform, mode)
     cdef void push_strip_mesh(self, float *vertices, int vindex, int count,
                               int mode=*)
-    cdef void push_line_mesh(self, float[:] path, fill, Matrix transform)
+    cdef void push_line_mesh(self, float[:] path, fill, Matrix transform, float width)
     cdef void render(self)

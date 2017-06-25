@@ -985,24 +985,26 @@ cdef class Svg(RenderContext):
             tess.tesselate()
             tris = tess.vertices
 
-            # Add the stroke for the first subpath, and the fill for all
-            # subpaths.
-            self.paths.append((
-                self.path[0] if self.stroke else None,
-                self.stroke,
-                tris,
-                self.fill,
-                self.transform))
+        # Add the stroke for the first subpath, and the fill for all
+        # subpaths.
+        for loop in self.path:
+            if self.stroke:
+                self.paths.append((
+                    loop,
+                    self.stroke,
+                    tris,
+                    self.fill,
+                    self.transform,
+                    self.line_width))
 
-        # Finally, add the stroke for second and subsequent subpaths
-        if self.stroke and len(self.path) > 1:
-            for loop in self.path[1:]:
+            if self.fill:
                 self.paths.append((
                     loop,
                     self.stroke,
                     None,
                     None,
-                    self.transform))
+                    self.transform,
+                    0.))
         self.path = []
 
     @cython.boundscheck(False)
@@ -1062,14 +1064,13 @@ cdef class Svg(RenderContext):
         self.last_mesh = StripMesh(fmt=VERTEX_FORMAT)
         self.last_mesh.add_triangle_strip(vertices, vindex, count, mode)
 
-    cdef void push_line_mesh(self, float[:] path, fill, Matrix transform):
+    cdef void push_line_mesh(self, float[:] path, fill, Matrix transform, float width):
         # Tentative to use smooth line, doesn't work completly yet.
         # Caps and joint are missing
         cdef int index, vindex = 0, odd = 0, i
         cdef float ax, ay, bx, _by, r = 0, g = 0, b = 0, a = 0
         cdef int count = len(path) / 2
         cdef float *vertices = NULL
-        cdef float width = self.line_width
         vindex = 0
 
         vertices = <float *>malloc(sizeof(float) * count * 32)
@@ -1139,13 +1140,43 @@ cdef class Svg(RenderContext):
             vertices[vindex + 25] = y3
             vindex += 32
 
+        # if self.closed:
+        #     vindex = vcount - 4
+        #     i0 = vindex
+        #     i1 = vindex + 1
+        #     i2 = vindex + 2
+        #     i3 = vindex + 3
+        #     i4 = 0
+        #     i5 = 1
+        #     i6 = 2
+        #     i7 = 3
+        #     tindices[0] = i0
+        #     tindices[1] = i2
+        #     tindices[2] = i6
+        #     tindices[3] = i0
+        #     tindices[4] = i6
+        #     tindices[5] = i4
+        #     tindices[6] = i1
+        #     tindices[7] = i0
+        #     tindices[8] = i4
+        #     tindices[9] = i1
+        #     tindices[10] = i4
+        #     tindices[11] = i5
+        #     tindices[12] = i3
+        #     tindices[13] = i1
+        #     tindices[14] = i5
+        #     tindices[15] = i3
+        #     tindices[16] = i5
+        #     tindices[17] = i7
+        #     tindices = tindices + 18
+
         self.push_strip_mesh(vertices, vindex, (vindex / 32) * 4, 1)
         free(vertices)
 
     cdef void render(self):
-        for path, stroke, tris, fill, transform in self.paths:
+        for path, stroke, tris, fill, transform, width in self.paths:
             if tris:
                 for item in tris:
                     self.push_mesh(item, fill, transform, 'triangle_strip')
             if path:
-                self.push_line_mesh(path, stroke, transform)
+                self.push_line_mesh(path, stroke, transform, width)
