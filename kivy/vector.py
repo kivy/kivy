@@ -251,7 +251,7 @@ class Vector(list):
         14.035668847618199
 
         '''
-        return math.sqrt((self[0] - to[0]) ** 2 + (self[1] - to[1]) ** 2)
+        return ((self[0] - to[0]) ** 2 + (self[1] - to[1]) ** 2) ** .5
 
     def distance2(self, to):
         '''Returns the distance between two points squared.
