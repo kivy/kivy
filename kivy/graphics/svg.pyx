@@ -550,7 +550,10 @@ cdef class Svg(RenderContext):
             self.parse_element(e)
 
     cdef parse_element(self, e):
-        self.fill = parse_color(e.get('fill', 'black'), self.current_color)
+        old_fill = self.fill
+        if 'fill' in e:
+            self.fill = parse_color(e.get('fill'), self.current_color)
+
         self.stroke = parse_color(e.get('stroke'), self.current_color)
         oldopacity = self.opacity
         self.opacity *= <float>float(e.get('opacity', 1))
@@ -697,6 +700,7 @@ cdef class Svg(RenderContext):
         self.transform = oldtransform
         self.opacity = oldopacity
         self.line_width = old_line_width
+        self.fill = old_fill
 
     cdef list parse_transform(self, transform_def):
         if isinstance(transform_def, str):
