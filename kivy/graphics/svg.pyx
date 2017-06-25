@@ -748,8 +748,8 @@ cdef class Svg(RenderContext):
                     # The first control point is assumed to be the reflection of
                     # the second control point on the previous command relative
                     # to the current point.
-                    c1x = self.last_cx
-                    c1y = self.last_cy
+                    c1x = self.x + self.x - self.last_cx
+                    c1y = self.y + self.y - self.last_cy
 
                 c2x = parse_width(elements.pop(), self.vbox_width)
                 c2y = parse_height(elements.pop(), self.vbox_height)
@@ -763,6 +763,10 @@ cdef class Svg(RenderContext):
                     endy += self.y
 
                 self.curve_to(c1x, c1y, c2x, c2y, endx, endy)
+                # if we have multiple sets of coords, we want to use the
+                # last control point, not new position, as next control
+                # point
+                last_command = 'S'
 
             elif command == 'A':
                 rx = float(elements.pop())
