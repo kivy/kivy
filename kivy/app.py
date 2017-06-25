@@ -307,14 +307,13 @@ Here is a simple example of how on_pause() should be used::
 
     Both `on_pause` and `on_stop` must save important data because after
     `on_pause` is called, `on_resume` may not be called at all.
-
 '''
 
 __all__ = ('App', )
 
 import os
 from inspect import getfile
-from os.path import dirname, join, exists, sep, expanduser, isfile
+from os.path import dirname, join, exists, sep, expanduser, isfile, abspath
 from kivy.config import ConfigParser
 from kivy.base import runTouchApp, stopTouchApp
 from kivy.compat import string_types
@@ -626,13 +625,21 @@ class App(EventDispatcher):
             defaultpath parameter for desktop OS's (not applicable to iOS
             and Android.)
 
+        .. versionchanged:: 1.10.1
+            Android Application config path is changed to the the path
+            provided by Context.getFilesDir() + '/app/.<appname>.ini'.
+            By default no `WRITE_EXTERNAL_STORAGE` permission is required now.
+
         Return the filename of your application configuration. Depending
         on the platform, the application file will be stored in
         different locations:
 
-            - on iOS: <appdir>/Documents/.<appname>.ini
-            - on Android: /sdcard/.<appname>.ini
-            - otherwise: <appdir>/<appname>.ini
+            - on iOS: `<appdir>/Documents/.<appname>.ini`
+            - on Android: `Context.getFilesDir() + '/app/.<appname>.ini'`
+
+              for example `/data/data/<app dir>/files/app/.<appname>.ini`
+
+            - otherwise: `<appdir>/<appname>.ini`
 
         When you are distributing your application on Desktops, please
         note that if the application is meant to be installed
@@ -654,7 +661,10 @@ class App(EventDispatcher):
         '''
 
         if platform == 'android':
-            defaultpath = '/sdcard/.%(appname)s.ini'
+            defaultpath = join(
+                dirname(abspath(sys.executable)),
+                '.%(appname)s.ini'
+            )
         elif platform == 'ios':
             defaultpath = '~/Documents/%(appname)s.ini'
         elif platform == 'win':
