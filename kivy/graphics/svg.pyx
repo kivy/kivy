@@ -163,29 +163,38 @@ cdef parse_color(c, current_color=None):
         g = int(c[2:4], 16)
         b = int(c[4:6], 16)
         a = 255
-    elif len(c) == 8:
-        r = int(c[0:2], 16)
-        g = int(c[2:4], 16)
-        b = int(c[4:6], 16)
-        a = int(c[6:8], 16)
-    elif len(c) == 6:
-        r = int(c[0:2], 16)
-        g = int(c[2:4], 16)
-        b = int(c[4:6], 16)
+    elif c.startswith('rgba('):
+        r, g, b, a = [int(x) for x in c[4:-1].split(',')]
+
+    elif c.startswith('rgb('):
+        r, g, b = [int(x) for x in c[4:-1].split(',')]
         a = 255
-    elif len(c) == 4:
-        r = int(c[0], 16) * 17
-        g = int(c[1], 16) * 17
-        b = int(c[2], 16) * 17
-        a = int(c[3], 16) * 17
-    elif len(c) == 3:
-        r = int(c[0], 16) * 17
-        g = int(c[1], 16) * 17
-        b = int(c[2], 16) * 17
-        a = 255
+
+    elif all(x in hexdigits for x in c):
+        if len(c) == 8:
+            r = int(c[0:2], 16)
+            g = int(c[2:4], 16)
+            b = int(c[4:6], 16)
+            a = int(c[6:8], 16)
+        elif len(c) == 6:
+            r = int(c[0:2], 16)
+            g = int(c[2:4], 16)
+            b = int(c[4:6], 16)
+            a = 255
+        elif len(c) == 4:
+            r = int(c[0], 16) * 17
+            g = int(c[1], 16) * 17
+            b = int(c[2], 16) * 17
+            a = int(c[3], 16) * 17
+        elif len(c) == 3:
+            r = int(c[0], 16) * 17
+            g = int(c[1], 16) * 17
+            b = int(c[2], 16) * 17
+            a = 255
+        else:
+            raise Exception('Invalid color format {}'.format(c))
     else:
-        # ...
-        raise Exception('Invalid color format {}'.format(c))
+        raise Exception('Unknown color {}'.format(c))
     return [r, g, b, a]
 
 cdef class Matrix(object):
