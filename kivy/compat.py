@@ -7,9 +7,11 @@ to aid in writing Python 2/3 compatibile code.
 '''
 
 __all__ = ('PY2', 'clock', 'string_types', 'queue', 'iterkeys',
-           'itervalues', 'iteritems', 'isclose')
+           'itervalues', 'iteritems', 'isclose', 'async_coroutine',
+           'aiter_compat')
 
 import sys
+import functools
 import time
 from math import isinf, fabs
 try:
@@ -20,6 +22,31 @@ try:
     from math import isclose
 except ImportError:
     isclose = None
+
+async_coroutine = None
+'''If asyncio exists, it is the asyncio.coroutine decorator,
+otherwise it returns a decorator that does nothing.
+'''
+try:
+    from asyncio import coroutine as async_coroutine
+except ImportError:
+    def async_coroutine(func):
+        return func
+
+aiter_compat = None
+'''A decorator for ``__aiter__` for backwards compat with python < 3.5.2.
+See https://docs.python.org/3/reference/datamodel.html#asynchronous-iterators.
+'''
+if sys.version_info < (3, 5, 2):
+    def aiter_compat(func):
+        @functools.wraps(func)
+        @async_coroutine
+        def wrapper(self):
+            return func(self)
+        return wrapper
+else:
+    def aiter_compat(func):
+        return func
 
 PY2 = sys.version_info[0] == 2
 '''True if this version of python is 2.x.'''
