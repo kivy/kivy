@@ -197,6 +197,8 @@ cdef parse_color(c, current_color=None):
             a = 255
         else:
             raise Exception('Invalid color format {}'.format(c))
+    elif c == 'inherit':
+        return 'inherit'
     else:
         raise Exception('Unknown color {}'.format(c))
     return [r, g, b, a]
@@ -551,10 +553,17 @@ cdef class Svg(RenderContext):
 
     cdef parse_element(self, e):
         old_fill = self.fill
-        if 'fill' in e:
+        if 'fill' in e.attrib:
             self.fill = parse_color(e.get('fill'), self.current_color)
+        if self.fill == 'inherit':
+            self.fill = old_fill
 
-        self.stroke = parse_color(e.get('stroke'), self.current_color)
+        old_stroke = self.stroke
+        if 'stroke' in e.attrib:
+            self.stroke = parse_color(e.get('stroke'), self.current_color)
+        if self.stroke == 'inherit':
+            self.stroke = old_stroke
+
         oldopacity = self.opacity
         self.opacity *= <float>float(e.get('opacity', 1))
         fill_opacity = <float>float(e.get('fill-opacity', 1))
@@ -700,6 +709,7 @@ cdef class Svg(RenderContext):
         self.transform = oldtransform
         self.opacity = oldopacity
         self.line_width = old_line_width
+        self.stroke = old_stroke
         self.fill = old_fill
 
     cdef list parse_transform(self, transform_def):
