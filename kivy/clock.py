@@ -343,6 +343,17 @@ overwrites the config selection. Its possible values are as follows:
   independently; normal events are fps limited while free events are not - is
   used.
 
+Async clock support
+-----------------------
+
+.. versionadded:: 1.10.1
+
+Experimental async support has been added in 1.11.0. The Clock now has an
+:meth:`ClockBaseBehavior.async_tick` and :meth:`ClockBaseBehavior.async_idle`
+method which is used by the kivy EventLoop when the kivy EventLoop is
+executed in a asynchronous manner. When used, the kivy clock does not
+block while idling.
+
 '''
 
 __all__ = (
@@ -357,7 +368,7 @@ from functools import wraps, partial
 from kivy.context import register_context
 from kivy.config import Config
 from kivy.logger import Logger
-from kivy.compat import clock as _default_time, PY2
+from kivy.compat import clock as _default_time, PY2, async_coroutine
 import time
 from kivy._clock import CyClockBase, ClockEvent, FreeClockEvent, \
     CyClockBaseFree
@@ -366,6 +377,10 @@ try:
 except ImportError:  # https://bugs.python.org/issue3770
     from threading import Event as MultiprocessingEvent
 from threading import Event as ThreadingEvent
+try:
+    import asyncio
+except ImportError:
+    asyncio = None
 
 # some reading: http://gameprogrammingpatterns.com/game-loop.html
 
@@ -546,12 +561,18 @@ class ClockBaseBehavior(object):
         '''Advance the clock to the next step. Must be called every frame.
         The default clock has a tick() function called by the core Kivy
         framework.'''
+        self.pre_idle()
+        ts = self.time()
+        self.post_idle(ts, self.idle())
 
+    def pre_idle(self):
+        '''Called before :meth:`idle` by :meth:`tick`.
+        '''
         self._release_references()
 
-        ts = self.time()
-        current = self.idle()
-
+    def post_idle(self, ts, current):
+        '''Called after :meth:`idle` by :meth:`tick`.
+        '''
         # tick the current time
         self._frames += 1
         self._fps_counter += 1
@@ -581,6 +602,41 @@ class ClockBaseBehavior(object):
         self._process_events()
 
         return self._dt
+
+    @async_coroutine
+    def async_idle(self):
+        '''(internal) async version of :meth:`idle`.
+        '''
+        fps = self._max_fps
+        if fps > 0:
+            min_sleep = self.get_resolution()
+            undershoot = 4 / 5. * min_sleep
+            ready = self._check_ready
+
+            slept = False
+            done, sleeptime = ready(fps, min_sleep, undershoot)
+            while not done:
+                slept = True
+                yield from asyncio.sleep(sleeptime)
+                done, sleeptime = ready(fps, min_sleep, undershoot)
+
+            if not slept:
+                yield from asyncio.sleep(0)
+        else:
+            yield from asyncio.sleep(0)
+
+        current = self.time()
+        self._dt = current - self._last_tick
+        self._last_tick = current
+        return current
+
+    @async_coroutine
+    def async_tick(self):
+        '''async version of :meth:`tick`. '''
+        self.pre_idle()
+        ts = self.time()
+        current = yield from self.async_idle()
+        self.post_idle(ts, current)
 
     def tick_draw(self):
         '''Tick the drawing counter.
@@ -624,17 +680,26 @@ class ClockBaseInterruptBehavior(ClockBaseBehavior):
 
     interupt_next_only = False
     _event = None
+    _async_event = None
     _get_min_timeout_func = None
 
     def __init__(self, interupt_next_only=False, **kwargs):
         super(ClockBaseInterruptBehavior, self).__init__(**kwargs)
         self._event = MultiprocessingEvent() if PY2 else ThreadingEvent()
+        if asyncio:
+            self._async_event = asyncio.Event()
         self.interupt_next_only = interupt_next_only
         self._get_min_timeout_func = self.get_min_timeout
 
     def usleep(self, microseconds):
         self._event.clear()
         self._event.wait(microseconds / 1000000.)
+
+    @async_coroutine
+    def async_usleep(self, microseconds):
+        self._async_event.clear()
+        yield from asyncio.wait_for(
+            self._async_event.wait(), microseconds / 1000000.)
 
     def on_schedule(self, event):
         fps = self._max_fps
@@ -647,6 +712,8 @@ class ClockBaseInterruptBehavior(ClockBaseBehavior):
                 (self.time() - self._last_tick) +  # elapsed time
                 4 / 5. * self.get_resolution()):  # resolution fudge factor
             self._event.set()
+            if self._async_event:
+                self._async_event.set()
 
     def idle(self):
         fps = self._max_fps
@@ -654,7 +721,7 @@ class ClockBaseInterruptBehavior(ClockBaseBehavior):
         resolution = self.get_resolution()
         if fps > 0:
             done, sleeptime = self._check_ready(
-                fps, resolution, 4 / 5. * resolution)
+                fps, resolution, 4 / 5. * resolution, event)
             if not done:
                 event.wait(sleeptime)
 
@@ -669,8 +736,34 @@ class ClockBaseInterruptBehavior(ClockBaseBehavior):
         # the `self._last_tick = current` bytecode.
         return current
 
-    def _check_ready(self, fps, min_sleep, undershoot):
-        if self._event.is_set():
+    @async_coroutine
+    def async_idle(self):
+        fps = self._max_fps
+        event = self._async_event
+        resolution = self.get_resolution()
+        if fps > 0:
+            done, sleeptime = self._check_ready(
+                fps, resolution, 4 / 5. * resolution, event)
+            if not done:
+                yield from asyncio.wait_for(event.wait(), sleeptime)
+            else:
+                yield from asyncio.sleep(0)
+        else:
+            yield from asyncio.sleep(0)
+
+        current = self.time()
+        self._dt = current - self._last_tick
+        self._last_tick = current
+        event.clear()
+        # anything scheduled from now on, if scheduled for the upcoming frame
+        # will cause a timeout of the event on the next idle due to on_schedule
+        # `self._last_tick = current` must happen before clear, otherwise the
+        # on_schedule computation is wrong when exec between the clear and
+        # the `self._last_tick = current` bytecode.
+        return current
+
+    def _check_ready(self, fps, min_sleep, undershoot, event):
+        if event.is_set():
             return True, 0
 
         t = self._get_min_timeout_func()
@@ -769,6 +862,53 @@ class ClockBaseFreeInterruptOnly(
                     event.wait(sleeptime - undershoot)
                 current = self.time()
                 sleeptime = 1 / fps - (current - self._last_tick)
+
+        self._dt = current - self._last_tick
+        self._last_tick = current
+        event.clear()  # this needs to stay after _last_tick
+        return current
+
+    @async_coroutine
+    def async_idle(self):
+        fps = self._max_fps
+        current = self.time()
+        event = self._async_event
+        if fps > 0:
+            min_sleep = self.get_resolution()
+            usleep = self.usleep
+            undershoot = 4 / 5. * min_sleep
+            min_t = self.get_min_free_timeout
+            interupt_next_only = self.interupt_next_only
+
+            sleeptime = 1 / fps - (current - self._last_tick)
+            slept = False
+            while sleeptime - undershoot > min_sleep:
+                if event.is_set():
+                    do_free = True
+                else:
+                    t = min_t()
+                    if not t:
+                        do_free = True
+                    elif interupt_next_only:
+                        do_free = False
+                    else:
+                        sleeptime = min(sleeptime, t - current)
+                        do_free = sleeptime - undershoot <= min_sleep
+
+                if do_free:
+                    event.clear()
+                    self._process_free_events(current)
+                else:
+                    slept = True
+                    yield from asyncio.wait_for(
+                        event.wait(), sleeptime - undershoot)
+                current = self.time()
+                sleeptime = 1 / fps - (current - self._last_tick)
+
+            if not slept:
+                yield from asyncio.sleep(0)
+        else:
+            yield from asyncio.sleep(0)
 
         self._dt = current - self._last_tick
         self._last_tick = current
