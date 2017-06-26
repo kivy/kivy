@@ -264,7 +264,8 @@ class Scatter(Widget):
                              anchor=self.to_local(*self.center))
     rotation = AliasProperty(_get_rotation, _set_rotation, bind=(
         'x', 'y', 'transform'))
-    '''Rotation value of the scatter.
+    '''Rotation value of the scatter in degrees moving in a counterclockwise
+    direction.
 
     :attr:`rotation` is an :class:`~kivy.properties.AliasProperty` and defaults
     to 0.0.
