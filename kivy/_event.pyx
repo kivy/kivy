@@ -11,7 +11,7 @@ handlers.
     :class:`~kivy.uix.widget.Widget` to the :class:`EventDispatcher`.
 '''
 
-__all__ = ('EventDispatcher', 'ObjectWithUid', 'Observable')
+__all__ = ('EventDispatcher', 'ObjectWithUid', 'Observable', 'AsyncBindQueue')
 
 from libc.stdlib cimport malloc, free
 from libc.string cimport memset
@@ -20,6 +20,7 @@ from functools import partial
 from collections import defaultdict
 from kivy.weakmethod import WeakMethod
 from kivy.compat import string_types
+from kivy.utils import AsyncCallbackQueue
 from kivy.properties cimport (Property, PropertyStorage, ObjectProperty,
     NumericProperty, StringProperty, ListProperty, DictProperty,
     BooleanProperty)
@@ -36,6 +37,80 @@ def _get_bases(cls):
         yield base
         for cbase in _get_bases(base):
             yield cbase
+
+
+class AsyncBindQueue(AsyncCallbackQueue):
+    '''A class for asynchronously observing kivy properties and events.
+
+    Creates an async iterator which for every iteration waits and
+    returns the property or event value for every time the property changes
+    or the event is dispatched.
+
+    The returned value is identical to the list of values passed to a function
+    bound to the event or property with bind. So at minimum it's a one element
+    (for events) or two element (for properties, instance and value) list.
+
+    :Parameters:
+
+        `bound_obj`: :class:`EventDispatcher`
+            The :class:`EventDispatcher` instance that contains the property
+            or event being observed.
+        `bound_name`: str
+            The property or event name to observe.
+        `current`: bool
+            Whether the iterator should return the current value on its
+            first class (True) or wait for the first event/property dispatch
+            before having a value (False). Defaults to True.
+
+    E.g.::
+
+        async for x, y in AsyncBindQueue(
+            bound_obj=widget, bound_name='size', convert=lambda x: x[1]):
+            print(value)
+
+    Or::
+
+        async for touch in AsyncBindQueue(
+            bound_obj=widget, bound_name='on_touch_down',
+            convert=lambda x: x[0]):
+            print(value)
+
+    .. versionadded:: 1.10.1
+    '''
+
+    bound_obj = None
+
+    bound_name = ''
+
+    bound_uid = 0
+
+    def __init__(self, bound_obj, bound_name, current=True, **kwargs):
+        super(AsyncBindQueue, self).__init__(**kwargs)
+        self.bound_name = bound_name
+        self.bound_obj = bound_obj
+
+        uid = self.bound_uid = bound_obj.fbind(bound_name, self.callback)
+        if not uid:
+            raise ValueError(
+                '{} is not a recognized property or event of {}'
+                ''.format(bound_name, bound_obj))
+
+        if current and not bound_obj.is_event_type(bound_name):
+            args = bound_obj, getattr(bound_obj, bound_name)
+
+            f = self.filter
+            if not f or f(args):
+                convert = self.convert
+                if convert:
+                    args = convert(args)
+                self.callback_result.append(args)
+
+    def stop(self):
+        super(AsyncBindQueue, self).stop()
+        if self.bound_uid:
+            self.bound_obj.unbind_uid(self.bound_name, self.bound_uid)
+            self.bound_uid = 0
+            self.bound_obj = None
 
 
 cdef class ObjectWithUid(object):
@@ -887,6 +962,18 @@ cdef class EventDispatcher(ObjectWithUid):
             prop.link_deps(self, name)
             self.__properties[name] = prop
             setattr(self.__class__, name, prop)
+
+    def async_bind(self, bound_name, current=True, loop=None, filter=None,
+            convert=None):
+        '''A convenience method that returns a :class:`AsyncBindQueue` instance
+        initialized with the function parameters. :class:`AsyncBindQueue`
+        can also be instantiated directly.
+
+        .. versionadded:: 1.10.1
+        '''
+        return AsyncBindQueue(
+            bound_obj=self, bound_name=bound_name, current=current, loop=loop,
+            convert=convert, filter=filter)
 
     property proxy_ref:
         '''Default implementation of proxy_ref, returns self.
