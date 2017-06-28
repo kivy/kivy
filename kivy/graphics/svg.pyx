@@ -210,6 +210,8 @@ cdef class Matrix(object):
     def __init__(self, string=None):
         cdef float f
         cdef int i
+        cdef Matrix m
+
         self.mat[0] = self.mat[3] = 1.
         if isinstance(string, str):
             if string.startswith('matrix('):
@@ -217,10 +219,13 @@ cdef class Matrix(object):
                 for sf in parse_list(string[7:-1]):
                     self.mat[i] = <float>float(sf)
                     i += 1
+
             elif string.startswith('translate('):
-                a, b = parse_list(string[10:-1])
-                self.mat[4] = <float>float(a)
-                self.mat[5] = <float>float(b)
+                values = parse_list(string[10:-1])
+                self.mat[4] = <float>float(values[0])
+                if len(values) > 1:
+                    self.mat[5] = <float>float(values[1])
+
             elif string.startswith('scale('):
                 value = parse_list(string[6:-1])
                 if len(value) == 1:
@@ -229,8 +234,54 @@ cdef class Matrix(object):
                     a, b = value
                 else:
                     print("SVG: unknown how to parse: {!r}".format(value))
-                self.mat[0] = <float>float(a)
-                self.mat[3] = <float>float(b)
+                self.mat[0] = float(a)
+                self.mat[3] = float(b)
+
+            elif string.startswith('rotate('):
+                value = parse_list(string[len('rotate('):-1])
+                a = float(value[0]) * pi / 180
+                cx = 0
+                cy = 0
+                if len(value) > 1:
+                    cx = float(value[1])
+                    cy = float(value[2])
+
+                    # first translate to rotation point
+                    self.mat[4] = cx
+                    self.mat[5] = cy
+
+                    # multiply by a rotation matrix of the angre
+                    m = Matrix()
+                    m.mat[0] = cos(a)
+                    m.mat[1] = sin(a)
+                    m.mat[2] = -sin(a)
+                    m.mat[3] = cos(a)
+                    m = self * m
+                    for i in xrange(6):
+                        self.mat[i] = m.mat[i]
+
+                   # multiply again, to translate back
+                    m = Matrix()
+                    m.mat[4] = -cx
+                    m.mat[5] = -cy
+                    m = self * m
+                    for i in xrange(6):
+                        self.mat[i] = m.mat[i]
+
+                else:
+                    self.mat[0] = cos(a)
+                    self.mat[1] = sin(a)
+                    self.mat[2] = -sin(a)
+                    self.mat[3] = cos(a)
+
+            elif string.startswith('skewX('):
+                value = float(string[len('skewX('):-1]) * pi / 180
+                self.mat[2] = tan(value)
+
+            elif string.startswith('skewY('):
+                value = float(string[len('skewY('):-1]) * pi / 180
+                self.mat[1] = tan(value)
+
         elif string is not None:
             i = 0
             for f in string:
@@ -541,11 +592,9 @@ cdef class Svg(RenderContext):
             self.transform = Matrix([1, 0, 0, -1, 0, self.height])
         else:
             # XXX parse_width/height
-            x, y, w, h = [parse_float(x) for x in
-                    parse_list(root.get('viewBox'))]
-            self.transform = Matrix([1, 0, 0, -1, -x, h + y])
-            self.height = h
-            self.width = w
+            self.transform = Matrix([1, 0, 0, -1, -self.vbox_x, self.vbox_height + self.vbox_y])
+            self.height = self.vbox_height
+            self.width = self.vbox_width
 
         self.opacity = 1.0
         for e in root.getchildren():
