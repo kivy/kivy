@@ -15,6 +15,10 @@ from kivy.base import stopTouchApp, EventLoop, ExceptionManager
 from kivy.utils import platform
 from os import environ
 
+# force include the file
+cdef extern from "window_x11_core.c":
+    pass
+
 cdef extern from "X11/Xutil.h":
     int KeyPress
     int KeyRelease
