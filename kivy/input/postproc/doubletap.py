@@ -64,7 +64,6 @@ class InputPostprocDoubleTap(object):
                 continue
             touch.double_tap_distance = distance
             return touch
-        return None
 
     def process(self, events):
         if self.double_tap_distance == 0 or self.double_tap_time == 0:

@@ -96,14 +96,14 @@ class TuioMotionEventProvider(MotionEventProvider):
             Logger.error('Tuio: Format must be ip:port (eg. 127.0.0.1:3333)')
             err = 'Tuio: Current configuration is <%s>' % (str(','.join(args)))
             Logger.error(err)
-            return None
+            return
         ipport = args[0].split(':')
         if len(ipport) != 2:
             Logger.error('Tuio: Invalid configuration for TUIO provider')
             Logger.error('Tuio: Format must be ip:port (eg. 127.0.0.1:3333)')
             err = 'Tuio: Current configuration is <%s>' % (str(','.join(args)))
             Logger.error(err)
-            return None
+            return
         self.ip, self.port = args[0].split(':')
         self.port = int(self.port)
         self.handlers = {}
