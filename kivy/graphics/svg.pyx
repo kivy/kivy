@@ -251,19 +251,13 @@ cdef class Matrix(object):
                     self.mat[5] = cy
 
                     # multiply by a rotation matrix of the angre
-                    m = Matrix()
-                    m.mat[0] = cos(a)
-                    m.mat[1] = sin(a)
-                    m.mat[2] = -sin(a)
-                    m.mat[3] = cos(a)
+                    m = Matrix('rotate({})'.format(value[0]))
                     m = self * m
                     for i in xrange(6):
                         self.mat[i] = m.mat[i]
 
-                   # multiply again, to translate back
-                    m = Matrix()
-                    m.mat[4] = -cx
-                    m.mat[5] = -cy
+                    # multiply again, to translate back
+                    m = Matrix('translate({} {})'.format(-cx, -cy))
                     m = self * m
                     for i in xrange(6):
                         self.mat[i] = m.mat[i]
