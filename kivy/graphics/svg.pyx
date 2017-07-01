@@ -607,6 +607,10 @@ cdef class Svg(RenderContext):
     cdef parse_element(self, e):
         cdef array.array path
 
+        old_color = self.current_color
+        if 'color' in e.attrib:
+            self.current_color = parse_color(e.get('color'))
+
         old_fill = self.fill
         if 'fill' in e.attrib:
             self.fill = parse_color(e.get('fill'), self.current_color)
@@ -838,6 +842,7 @@ cdef class Svg(RenderContext):
         self.stroke = old_stroke
         self.fill = old_fill
         self.vbox_x, self.vbox_y, self.vbox_width, self.vbox_height = old_vbox
+        self.current_color = old_color
 
     cdef list parse_transform(self, transform_def):
         if isinstance(transform_def, str):
