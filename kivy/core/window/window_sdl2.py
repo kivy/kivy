@@ -396,7 +396,8 @@ class WindowSDL(WindowBase):
     def _is_shaped(self):
         return self._win.is_window_shaped()
 
-    def _set_shape(self, shape_image, mode='default', cutoff=False, color_key=None):
+    def _set_shape(self, shape_image, mode='default',
+                   cutoff=False, color_key=None):
         modes = ('default', 'binalpha', 'reversebinalpha', 'colorkey')
         color_key = color_key or (0, 0, 0, 1)
         if mode not in modes:
@@ -429,6 +430,7 @@ class WindowSDL(WindowBase):
 
     def _get_shaped_mode(self):
         return self._win.get_shaped_mode()
+
     def _set_shaped_mode(self, value):
         self._set_shape(
             shape_image=self.shape_image,
