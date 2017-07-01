@@ -93,4 +93,6 @@ class ShapedWindow(App):
 
         return Root()
 
-ShapedWindow().run()
+
+if __name__ == '__main__':
+    ShapedWindow().run()
