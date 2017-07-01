@@ -24,11 +24,14 @@ __all__ = ("Svg", )
 
 include "common.pxi"
 
+from os.path import dirname, join
 import re
 cimport cython
+from uuid import uuid4
 from xml.etree.cElementTree import parse
 from kivy.graphics.instructions cimport RenderContext
 from kivy.graphics.vertex_instructions cimport Mesh, StripMesh
+from kivy.graphics.stencil_instructions cimport StencilPush, StencilPop, StencilUse, StencilUnUse
 from kivy.graphics.tesselator cimport Tesselator
 from kivy.graphics.texture cimport Texture
 from kivy.graphics.vertex cimport VertexFormat
@@ -47,6 +50,11 @@ cdef dict colormap = hex_colormap
 DEF BEZIER_POINTS = 64 # 10
 DEF CIRCLE_POINTS = 64 # 24
 DEF TOLERANCE = 0.001
+
+DEF OP_FILL = 1
+DEF OP_STROKE = 2
+DEF OP_CLIP_PUSH = 3
+DEF OP_CLIP_POP = 4
 
 cdef str SVG_FS = '''
 #ifdef GL_ES
@@ -438,7 +446,7 @@ cdef class Svg(RenderContext):
                 use_parent_modelview=True)
 
         self.last_mesh = None
-        self.paths = []
+        self.operations = []
         self.width = 0
         self.height = 0
         self.line_width = 1.0
@@ -446,6 +454,7 @@ cdef class Svg(RenderContext):
         self.vbox_y = 0.
         self.vbox_width = 0.
         self.vbox_height = 0.
+        self.clip_path = ''
 
         # if color is None:
         #     self.current_color = [0, 0, 0, 255]
@@ -456,6 +465,7 @@ cdef class Svg(RenderContext):
         self.circle_points = circle_points
         self.bezier_coefficients = None
         self.gradients = GradientContainer()
+        self.clips = {}
         self.anchor_x = anchor_x
         self.anchor_y = anchor_y
         self.line_texture = Texture.create(
@@ -565,14 +575,14 @@ cdef class Svg(RenderContext):
             self.parse_tree(self.tree)
             end1 = time()
             with self:
-                self.render()
+                self.render(local_transform=None)
             end2 = time()
             Logger.debug("Svg: Parsed in {:.2f}s, rendered in {:.2f}s".format(
                     end1 - start, end2 - end1))
 
     cdef parse_tree(self, tree):
         root = tree._root
-        self.paths = []
+        self.operations = []
         self.width = parse_float(root.get('width'))
         self.height = parse_float(root.get('height'))
 
@@ -595,6 +605,8 @@ cdef class Svg(RenderContext):
             self.parse_element(e)
 
     cdef parse_element(self, e):
+        cdef array.array path
+
         old_fill = self.fill
         if 'fill' in e.attrib:
             self.fill = parse_color(e.get('fill'), self.current_color)
@@ -614,7 +626,25 @@ cdef class Svg(RenderContext):
         old_line_width = self.line_width
         self.line_width = <float>float(e.get('stroke-width', self.line_width))
 
+        old_vbox = self.vbox_x, self.vbox_y, self.vbox_width, self.vbox_height
         oldtransform = self.transform
+        clip_path = None
+
+        clip = e.get('clip-path')
+        if clip:
+            if clip[:5] == 'url(#':
+                clip = clip[5:-1]
+            if self.clips[clip][1] == 'objectBoundingBox':
+                x = parse_width(e.get('x', 0), self.vbox_width)
+                y = parse_width(e.get('y', 0), self.vbox_height)
+                w = parse_width(e.get('width', '100%'), self.vbox_width)
+                h = parse_width(e.get('height', '100%'), self.vbox_height)
+                transform = Matrix('translate({} {}) scale({} {})'.format(x, y, w, h))
+            else:
+                transform = Matrix()
+
+            self.operations.append((OP_CLIP_PUSH, (clip, transform)))
+
         for t in self.parse_transform(e.get('transform')):
             self.transform *= Matrix(t)
 
@@ -746,14 +776,68 @@ cdef class Svg(RenderContext):
         elif e.tag.endswith('radialGradient'):
             self.gradients[e.get('id')] = RadialGradient(e, self)
 
+        elif e.tag.endswith('clipPath'):
+            self.clip_path = clip_path = e.get('id')
+            d = e.get('d')
+
+            old_ops = self.operations
+            last_mesh = self.last_mesh
+            self.last_mesh = None
+
+            self.operations = []
+            if d:
+                self.parse_path(d)
+
+        elif e.tag.endswith('svg'):
+            x = parse_width(e.get('x', 0), self.vbox_width)
+            y = parse_height(e.get('y', 0), self.vbox_height)
+            w = parse_width(e.get('width', '100%'), self.vbox_width)
+            h = parse_height(e.get('height', '100%'), self.vbox_height)
+            self.transform *= Matrix('translate({} {})'.format(x, y))
+            self.vbox_x = x
+            self.vbox_y = y
+            self.vbox_width = w
+            self.vbox_height = h
+            if e.get('overflow', 'hidden') in ('hidden', 'scroll'):
+                # xxx create clip path the size of the viewbox and applies
+                # it immediatly
+                clip = uuid4().hex
+
+                # XXX probably overkill to use tesselator here
+                tess = Tesselator()
+                path = array('f', [x, y, x + w, y, x + w, y + h, x, y + h])
+                print "adding {} as implicit clip path".format(path)
+                tess.add_contour_data(path.data.as_voidptr, len(path) / 2)
+                tess.tesselate()
+                tris = tess.vertices
+                print "tris", [x for x in tris[0]]
+
+                self.clips[clip] = (
+                    [(OP_FILL, (tris, (255, 255, 255, 255), self.transform))],
+                    'userSpaceOnUse'
+                    )
+
+                self.clip_path = clip
+                self.operations.append((OP_CLIP_PUSH, (clip, Matrix())))
+
         for c in e.getchildren():
             self.parse_element(c)
+
+        if clip_path:
+            self.clips[clip_path] = self.operations, e.get('clipPathUnits', 'userSpaceOnUse')
+            self.operations = old_ops
+            self.last_mesh = last_mesh
+            self.clip_path = None
+
+        if clip:
+            self.operations.append((OP_CLIP_POP, (clip, self.transform)))
 
         self.transform = oldtransform
         self.opacity = oldopacity
         self.line_width = old_line_width
         self.stroke = old_stroke
         self.fill = old_fill
+        self.vbox_x, self.vbox_y, self.vbox_width, self.vbox_height = old_vbox
 
     cdef list parse_transform(self, transform_def):
         if isinstance(transform_def, str):
@@ -1099,7 +1183,7 @@ cdef class Svg(RenderContext):
         tris = None
         cdef Tesselator tess
         cdef array.array loop
-        if self.fill:
+        if self.fill or self.clip_path:
             tess = Tesselator()
             for loop in self.path:
                 tess.add_contour_data(loop.data.as_voidptr, <int>int(len(loop) / 2.))
@@ -1109,23 +1193,21 @@ cdef class Svg(RenderContext):
         # Add the stroke for the first subpath, and the fill for all
         # subpaths.
         for loop in self.path:
-            if self.stroke:
-                self.paths.append((
-                    loop,
-                    self.stroke,
-                    tris,
-                    self.fill,
-                    self.transform,
-                    self.line_width))
+            if self.stroke or self.clip_path:
+                self.operations.append(
+                    (OP_STROKE, (
+                        loop,
+                        self.stroke,
+                        self.transform,
+                        self.line_width)
+                    )
+                )
 
-            if self.fill:
-                self.paths.append((
-                    loop,
-                    self.stroke,
-                    None,
-                    None,
-                    self.transform,
-                    0.))
+            if self.fill or self.clip_path:
+                self.operations.append(
+                    (OP_FILL, (tris, self.fill, self.transform))
+                )
+
         self.path = []
 
     @cython.boundscheck(False)
@@ -1176,6 +1258,32 @@ cdef class Svg(RenderContext):
 
         self.push_strip_mesh(vertices, vindex, count)
         free(vertices)
+
+    cdef void push_clip(self, str clip_id, Matrix transform):
+        old_ops = self.operations
+        ops = self.clips[clip_id][0]
+        self.operations = ops
+        last_mesh = self.last_mesh
+        self.last_mesh = None
+
+        StencilPush()
+        self.render(local_transform=transform)
+        StencilUse()
+
+        self.operations = old_ops
+        self.last_mesh = last_mesh
+
+    cdef void pop_clip(self, str clip_id, Matrix transform):
+        old_ops = self.operations
+        self.operations = self.clips[clip_id][0]
+        self.last_mesh = None
+
+        StencilUnUse()
+        self.render(local_transform=transform)
+        StencilPop()
+
+        self.operations = old_ops
+        self.last_mesh = None
 
     cdef void push_strip_mesh(self, float *vertices, int vindex, int count,
             int mode=0):
@@ -1294,10 +1402,32 @@ cdef class Svg(RenderContext):
         self.push_strip_mesh(vertices, vindex, <int>int((vindex / 32.)) * 4, 1)
         free(vertices)
 
-    cdef void render(self):
-        for path, stroke, tris, fill, transform, width in self.paths:
-            if tris:
+    cdef void render(self, local_transform=None):
+        for op, args in self.operations:
+            if op == OP_FILL:
+                tris, fill, transform = args
+                if local_transform:
+                    transform = local_transform * transform
+
                 for item in tris:
                     self.push_mesh(item, fill, transform, 'triangle_strip')
-            if path:
+
+            elif op == OP_STROKE:
+                path, stroke, transform, width = args
+                if local_transform:
+                    transform = local_transform * transform
+
                 self.push_line_mesh(path, stroke, transform, width)
+
+            elif op == OP_CLIP_PUSH:
+                clip, transform = args
+                if local_transform:
+                    transform = local_transform * transform
+                self.push_clip(clip, transform)
+
+            elif op == OP_CLIP_POP:
+                clip, transform = args
+                if local_transform:
+                    transform = local_transform * transform
+                self.pop_clip(clip, transform)
+

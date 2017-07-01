@@ -33,7 +33,7 @@ cdef class Svg(RenderContext):
     cdef public double width
     cdef public double height
     cdef float line_width
-    cdef list paths
+    cdef list operations
     cdef object transform
     cdef object fill
     cdef object tree
@@ -48,6 +48,7 @@ cdef class Svg(RenderContext):
     cdef int bezier_points
     cdef int circle_points
     cdef public object gradients
+    cdef dict clips
     cdef view.array bezier_coefficients
     cdef float anchor_x
     cdef float anchor_y
@@ -58,6 +59,7 @@ cdef class Svg(RenderContext):
     cdef bint closed
     cdef float vbox_x, vbox_y, vbox_width, vbox_height
     cdef str _filename
+    cdef str clip_path
 
     cdef void reload(self) except *
     cdef parse_tree(self, tree)
@@ -73,8 +75,10 @@ cdef class Svg(RenderContext):
     cdef void curve_to(self, float x1, float y1, float x2, float y2,
             float x, float y)
     cdef void end_path(self)
+    cdef void push_clip(self, str, Matrix)
+    cdef void pop_clip(self, str, Matrix)
     cdef void push_mesh(self, float[:] path, fill, Matrix transform, mode)
     cdef void push_strip_mesh(self, float *vertices, int vindex, int count,
                               int mode=*)
     cdef void push_line_mesh(self, float[:] path, fill, Matrix transform, float width)
-    cdef void render(self)
+    cdef void render(self, object local_transform=?)
