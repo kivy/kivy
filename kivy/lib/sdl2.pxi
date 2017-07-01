@@ -89,7 +89,7 @@ cdef extern from "SDL.h":
         Uint8 r
         Uint8 g
         Uint8 b
-        Uint8 unused
+        Uint8 a
 
     cdef struct SDL_Palette:
         int ncolors
@@ -604,8 +604,43 @@ cdef extern from "SDL.h":
     Uint16 AUDIO_F32    #AUDIO_F32LSB
 
 cdef extern from "SDL_shape.h":
-    cdef SDL_Window * SDL_CreateShapedWindow(char *title, unsigned int x,
-            unsigned int y, unsigned int w, unsigned int h, Uint32 flags)
+    cdef SDL_Window * SDL_CreateShapedWindow(
+        char *title,
+        unsigned int x,
+        unsigned int y,
+        unsigned int w,
+        unsigned int h,
+        Uint32 flags
+    )
+
+    # properties, flags, etc
+    ctypedef enum WindowShapeMode:
+        ShapeModeDefault
+        ShapeModeBinarizeAlpha
+        ShapeModeReverseBinarizeAlpha
+        ShapeModeColorKey
+    ctypedef union SDL_WindowShapeParams:
+        Uint8 binarizationCutoff
+        SDL_Color colorKey
+    ctypedef struct SDL_WindowShapeMode:
+        WindowShapeMode mode
+        SDL_WindowShapeParams parameters
+
+    int SDL_NONSHAPEABLE_WINDOW
+    int SDL_INVALID_SHAPE_ARGUMENT
+    int SDL_WINDOW_LACKS_SHAPE
+
+    # set & get
+    cdef SDL_bool SDL_IsShapedWindow(SDL_Window * window)
+    int SDL_SetWindowShape(
+        SDL_Window * window,
+        SDL_Surface * shape,
+        SDL_WindowShapeMode * shape_mode
+    )
+    int SDL_GetShapedWindowMode(
+        SDL_Window * window,
+        SDL_WindowShapeMode * shape_mode
+    )
 
 cdef extern from "SDL_image.h":
     ctypedef enum IMG_InitFlags:
