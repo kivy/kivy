@@ -4,28 +4,32 @@ matrix:
     - sudo: required
       services:
         - docker
-      env: BITNESS=32
+      env:
+        BITNESS=32
+        DOCKER=True
     - sudo: required
       services:
         - docker
-      env: BITNESS=64
+      env:
+        BITNESS=64
+        DOCKER=True
 
 before_install:
   # https://github.com/travis-ci/travis-ci/issues/6307
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then rvm get head; fi
 
 install:
-  - if [ ${DOCKER_IMAGE} ] && [ "${BITNESS}" == "32" ]; then
+  - if [ ${DOCKER} ] && [ "${BITNESS}" == "32" ]; then
       docker build -f ./docker/Dockerfile-i686 -t co7_32:httpdv1.0 .;
       docker run -td -p 80:80 -v ${pwd} --name=co7_32 co7_32:httpdv1.0;
       docker ps;
     fi;
-  - if [ ${DOCKER_IMAGE} ] && [ "${BITNESS}" == "64" ]; then
+  - if [ ${DOCKER} ] && [ "${BITNESS}" == "64" ]; then
       docker build -f ./docker/Dockerfile-x86_64 -t co7_64:httpdv1.0 .;
       docker run -td -p 80:80 -v ${pwd} --name=co7_64 co7_64:httpdv1.0;
       docker ps;
     fi;
-  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ ! ${DOCKER_IMAGE} ]; then
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ ! ${DOCKER} ]; then
       if [ "${RUN}" != "pep8" ]; then
         yes | sudo add-apt-repository ppa:zoogie/sdl2-snapshots;
         yes | sudo add-apt-repository ppa:gstreamer-developers/ppa;
@@ -73,7 +77,7 @@ install:
     fi;
 
 before_script:
-  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" != "pep8" ] && [ ! ${DOCKER_IMAGE} ]; then
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" != "pep8" ] && [ ! ${DOCKER} ]; then
       export DISPLAY=:99.0;
       /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX;
       export PYTHONPATH=$PYTHONPATH:$(pwd);
@@ -86,7 +90,7 @@ before_script:
     fi;
 
 script:
-  - if [ ${DOCKER_IMAGE} ]; then
+  - if [ ${DOCKER} ]; then
       set -ex;
       sudo chmod +x travis/build_wheels.sh;
       docker pull multiarch/qemu-user-static:register;
@@ -94,7 +98,7 @@ script:
       docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build_wheels.sh;
       ls wheelhouse/;
     fi;
-  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ ! ${DOCKER_IMAGE} ]; then
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ ! ${DOCKER} ]; then
       set -ex;
       if [ "${RUN}" == "unit" ]; then
         make;
