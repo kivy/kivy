@@ -21,14 +21,14 @@ before_install:
 install:
   - if [ ${DOCKER} ] && [ "${BITNESS}" == "32" ]; then
       cd ./docker
-      docker build -f ./docker/Dockerfile-i686 -t co7_32:httpdv1.0 .;
+      docker build -f ./Dockerfile-i686 -t co7_32:httpdv1.0 .;
       docker run -td -p 80:80 -v ${pwd} --name=co7_32 co7_32:httpdv1.0;
       docker ps;
       cd ..
     fi;
   - if [ ${DOCKER} ] && [ "${BITNESS}" == "64" ]; then
       cd ./docker
-      docker build -f ./docker/Dockerfile-x86_64 -t co7_64:httpdv1.0 .;
+      docker build -f ./Dockerfile-x86_64 -t co7_64:httpdv1.0 .;
       docker run -td -p 80:80 -v ${pwd} --name=co7_64 co7_64:httpdv1.0;
       docker ps;
       cd ..
