@@ -1,5 +1,5 @@
-FROM phusion/centos-5-32
-MAINTAINER The ManyLinux project
+FROM centos:7
+MAINTAINER Kivy
 
 ENV LC_ALL=en_US.UTF-8
 ENV LANG=en_US.UTF-8

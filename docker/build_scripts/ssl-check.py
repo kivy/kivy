@@ -27,7 +27,7 @@ print("Connecting to %s should fail" % (BAD_SSL,))
 try:
     urlopen(BAD_SSL)
     # If we get here then we failed:
-    print("...it DIDN'T!!!!!11!!1one!")
+    print("...it DIDN'T!!!!!11!!1one!")  # wat?
     sys.exit(1)
 except EXC:
     print("...it did, yay.")

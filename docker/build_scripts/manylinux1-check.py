@@ -14,8 +14,8 @@ def is_manylinux1_compatible():
         # Fall through to heuristic check below
         pass
 
-    # Check glibc version. CentOS 5 uses glibc 2.5.
-    return have_compatible_glibc(2, 5)
+    # Check glibc version. -CentOS 5 uses glibc 2.5.- and we use centos7
+    return have_compatible_glibc(2, 12)#5)
 
 def have_compatible_glibc(major, minimum_minor):
     import ctypes
