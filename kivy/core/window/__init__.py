@@ -796,14 +796,16 @@ class WindowBase(EventDispatcher):
     '''
 
     opacity = AliasProperty(_get_opacity, _set_opacity)
-    '''Opacity for a window.
+    '''Opacity of the window. Accepts a value between 0.0 (transparent) and
+    1.0 (opaque).
 
-    .. note:: It's an SDL2 property with value between 0.0(transparent),
-     1.0(opaque).
+    .. note::
+        This feature requires the SDL2 window provider.
 
     .. versionadded:: 1.10.1
 
-    :attr:`opacity` is an :class:`~kivy.properties.AliasProperty`.
+    :attr:`opacity` is an :class:`~kivy.properties.AliasProperty` and defaults
+    to `1.0`.
     '''
 
     @property
