@@ -4,20 +4,22 @@ matrix:
     - sudo: required
       services:
         - docker
-      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
+      env: BITNESS=32
     - sudo: required
       services:
         - docker
-      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_i686
-           PRE_CMD=linux32
+      env: BITNESS=64
 
 before_install:
   # https://github.com/travis-ci/travis-ci/issues/6307
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then rvm get head; fi
 
 install:
-  - if [ ${DOCKER_IMAGE} ]; then
-      docker pull $DOCKER_IMAGE;
+  - if [ ${DOCKER_IMAGE} ] && [ "${BITNESS}" == "32" ]; then
+      docker build - < $(pwd)/docker/Dockerfile-i686
+    fi;
+  - if [ ${DOCKER_IMAGE} ] && [ "${BITNESS}" == "64" ]; then
+      docker build - < $(pwd)/docker/Dockerfile-x86_64
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ ! ${DOCKER_IMAGE} ]; then
       if [ "${RUN}" != "pep8" ]; then
