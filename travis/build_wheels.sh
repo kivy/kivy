@@ -60,7 +60,6 @@ yum install -y \
 # avformat
 # avcodec
 # mtdev
-# asound2
 # esd0
 # libudev-dev / udev-devel; udev itself is available
 # ibus-1.0
