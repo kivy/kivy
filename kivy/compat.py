@@ -70,6 +70,7 @@ class PY3CompatCls(object):
     '''
     pass
 
+
 PY2 = sys.version_info[0] == 2
 '''True if this version of python is 2.x.'''
 

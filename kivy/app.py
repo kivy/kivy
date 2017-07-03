@@ -314,7 +314,7 @@ Async app
 Experimental async support has been added.
 
 To run an async app the ``KIVY_EVENTLOOP`` environmental should be set
-to ``'async'``.  This will start an async loop when :func:`runTouchApp` or
+to ``'async'``. This will start an async loop when :func:`runTouchApp` or
 :meth:`App.run` are run and will then run the app in this event loop.
 To use the synchronous version set ``KIVY_EVENTLOOP`` to ``'default'``
 or leave it unset.

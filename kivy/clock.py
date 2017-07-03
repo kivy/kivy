@@ -388,14 +388,11 @@ if asyncio:
 else:
     from kivy.compat import PY3CompatCls
 
-
     class AsyncClockBaseBehavior(PY3CompatCls):
         pass
 
-
     class AsyncClockBaseFreeInterruptOnly(PY3CompatCls):
         pass
-
 
     class AsyncClockBaseInterruptBehavior(PY3CompatCls):
         pass

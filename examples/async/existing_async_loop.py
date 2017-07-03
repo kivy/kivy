@@ -38,6 +38,8 @@ class MyApp(App):
 
 
 app_done = False
+
+
 async def run_app():
     global app_done
     await MyApp().async_run()

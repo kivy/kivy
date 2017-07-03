@@ -104,7 +104,8 @@ class MyApp(App):
         print('single callback was {}'.format(dt))
 
     def on_start(self):
-        periodic_ev = Clock.schedule_interval(self.periodic_dental_callback, 2.5)
+        periodic_ev = Clock.schedule_interval(
+            self.periodic_dental_callback, 2.5)
         single_ev = Clock.schedule_once(self.single_yearly_callback, 2.5)
         cancel_ev = Clock.schedule_once(self.single_yearly_callback, 2.5)
 
@@ -113,9 +114,11 @@ class MyApp(App):
         loop.create_task(update_label2_from_label1(self.root))
         loop.create_task(watch_label1(self.root))
 
-        loop.create_task(watch_periodic_dental_callback(periodic_ev, self.root))
+        loop.create_task(
+            watch_periodic_dental_callback(periodic_ev, self.root))
         loop.create_task(watch_single_callback(single_ev, self.root))
         loop.create_task(watch_canceled_callback(cancel_ev))
+
 
 if __name__ == '__main__':
     MyApp().run()
