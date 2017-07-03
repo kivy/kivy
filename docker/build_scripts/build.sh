@@ -37,13 +37,6 @@ yum -y install wget curl
 # curl -sLO https://dl.fedoraproject.org/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
 cp $MY_DIR/epel-release-latest-7.noarch.rpm .
 
-# Dev toolset (for LLVM and other projects requiring C++11 support)
-curl -sLO http://people.centos.org/tru/devtools-2/devtools-2.repo
-check_sha256sum devtools-2.repo $DEVTOOLS_HASH
-mv devtools-2.repo /etc/yum.repos.d/devtools-2.repo
-rpm -Uvh --replacepkgs epel-release-7*.rpm
-rm -f epel-release-7*.rpm
-
 # Development tools and libraries
 yum -y install bzip2 make git patch unzip bison yasm diffutils \
     automake which file cmake28 \
