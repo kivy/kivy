@@ -388,7 +388,7 @@ class RecycleViewBehavior(object):
     The Layout manager responsible for positioning views within the
     :class:`RecycleView`.
 
-    layout_manager is an :class:`~kivy.uix.properties.AliasProperty` that gets
+    layout_manager is an :class:`~kivy.properties.AliasProperty` that gets
     and sets the layout_manger.
     """
 
