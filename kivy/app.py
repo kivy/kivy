@@ -333,8 +333,8 @@ import os
 from inspect import getfile
 from os.path import dirname, join, exists, sep, expanduser, isfile
 from kivy.config import ConfigParser
-from kivy.base import runTouchApp, stopTouchApp, async_runTouchApp
-from kivy.compat import string_types, async_coroutine
+from kivy.base import runTouchApp, stopTouchApp
+from kivy.compat import string_types
 from kivy.factory import Factory
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
@@ -344,9 +344,18 @@ from kivy.utils import platform as platform
 from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.setupconfig import USE_SDL2
+try:
+    import asyncio
+except ImportError:
+    asyncio = None
+
+if asyncio:
+    from kivy.app_async import AsyncApp
+else:
+    from kivy.compat import PY3CompatCls as AsyncApp
 
 
-class App(EventDispatcher):
+class App(AsyncApp, EventDispatcher):
     ''' Application class, see module documentation for more information.
 
     :Events:
@@ -844,17 +853,6 @@ class App(EventDispatcher):
         '''
         self._run_prepare()
         runTouchApp()
-        self.stop()
-
-    @async_coroutine
-    def async_run(self):
-        '''Identical to :meth:`run`, but is a coroutine and can be
-        scheduled in a running async event loop.
-
-        .. versionadded:: 1.10.1
-        '''
-        self._run_prepare()
-        yield from async_runTouchApp()
         self.stop()
 
     def stop(self, *largs):

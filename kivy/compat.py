@@ -8,7 +8,7 @@ to aid in writing Python 2/3 compatibile code.
 
 __all__ = ('PY2', 'clock', 'string_types', 'queue', 'iterkeys',
            'itervalues', 'iteritems', 'isclose', 'async_coroutine',
-           'aiter_compat')
+           'aiter_compat', 'PY3CompatCls')
 
 import sys
 import functools
@@ -47,6 +47,28 @@ if sys.version_info < (3, 5, 2):
 else:
     def aiter_compat(func):
         return func
+
+
+class PY3CompatCls(object):
+    '''A blank class which can be used in place of a python 3 specific class.
+
+    Typical usage is::
+
+        if PY2:
+            MyPy3Class = PY3CompatCls
+        else:
+            class MyPy3Class(object):
+                # py3 only stuff
+
+        # Later ...
+        class MyClass(MyPy3Class, OtherClass):
+            pass
+
+    It allows us to to have a class, e.g. ``MyClass`` be supported in both py2
+    and py3 while allowing additional py3 only features that are unavailable in
+    py2.
+    '''
+    pass
 
 PY2 = sys.version_info[0] == 2
 '''True if this version of python is 2.x.'''
