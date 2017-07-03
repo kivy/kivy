@@ -350,6 +350,7 @@ class AsyncImage(Image):
         if not source:
             if self._coreimage is not None:
                 self._coreimage.unbind(on_texture=self._on_tex_change)
+                self._coreimage.unbind(on_load=self._on_source_load)
             self.texture = None
             self._coreimage = None
         else:
