@@ -37,6 +37,8 @@ yum -y install wget curl
 # curl -sLO https://dl.fedoraproject.org/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
 cp $MY_DIR/epel-release-latest-7.noarch.rpm .
 
+yum -y groupinstall "Development Tools"
+
 # Development tools and libraries
 yum -y install bzip2 make git patch unzip bison yasm diffutils \
     automake which file cmake28 \
