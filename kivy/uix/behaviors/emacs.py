@@ -106,6 +106,12 @@ class EmacsBehavior(object):
             super(EmacsBehavior, self).keyboard_on_key_down(window, keycode,
                                                             text, modifiers)
 
+    def keyboard_on_textinput(self, window, text):
+        if (self._alt_l or self._alt_r):
+            if text in self.bindings['alt']:
+                return
+        super(EmacsBehavior, self).keyboard_on_textinput(window, text)
+
     def delete_word_right(self):
         '''Delete text right of the cursor to the end of the word'''
         if self._selection:
