@@ -375,14 +375,11 @@ class FocusBehavior(object):
         fbind('focus_previous', self._set_on_focus_previous)
 
     def _on_focusable(self, instance, value):
-        if not value and self.focus:
-            self.focus = False
-            self._unbind_keyboard()
-        elif self.disabled or not self.is_focusable:
+        if self.disabled or not self.is_focusable:
             self.focus = False
 
     def _on_focus(self, instance, value, *largs):
-        if self.is_focusable and self.keyboard_mode == 'auto':
+        if self.keyboard_mode == 'auto':
             if value:
                 self._bind_keyboard()
             else:
