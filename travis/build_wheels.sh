@@ -2,7 +2,20 @@
 
 yum list installed
 
-## get RPM
+# ##
+# note: if it all works, just backup all required AND installed RPMs somewhere
+#
+# yum install -y yum-utils
+# mkdir backup && cd backup
+# yumdownloader --resolve <package>
+# ##
+
+# add nux-desktop repo (for ffmpeg)
+sudo rpm --import http://li.nux.ro/download/nux/RPM-GPG-KEY-nux.ro
+sudo rpm -Uvh http://li.nux.ro/download/nux/dextop/el7/x86_64/nux-dextop-release-0-1.el7.nux.noarch.rpm
+yum repolist
+
+# get RPM
 yum check-update
 yum search pulseaudio
 
@@ -41,7 +54,7 @@ yum install -y \
     udev-devel \
     ibus-1.0-devel \
     fcitx-libs
-    
+
 
 # from Forge
 yum install -y \
@@ -61,12 +74,13 @@ for PY in $PYTHONS; do
     PYBIN="/opt/python/${PY}/bin"
     "${PYBIN}/pip" install --upgrade cython nose
     "${PYBIN}/pip" wheel /io/ -w wheelhouse/
+    ls -a wheelhouse/
 done
 
-# Bundle external shared libraries into the wheels
-for whl in wheelhouse/*.whl; do
-    auditwheel repair "$whl" -w /io/wheelhouse/
-done
+# # Bundle external shared libraries into the wheels
+# for whl in wheelhouse/*.whl; do
+    # auditwheel repair "$whl" -w /io/wheelhouse/
+# done
 
 # Install packages and test
 for PY in $PYTHONS; do
@@ -75,7 +89,10 @@ for PY in $PYTHONS; do
     (cd "$HOME"; "${PYBIN}/nosetests" kivy)
 done
 
-# Bundle external shared libraries into the wheels
-for whl in wheelhouse/*.whl; do
-    auditwheel repair "$whl" -w /io/wheelhouse/
-done
+echo =======================================================
+ls -a wheelhouse/
+
+# # Bundle external shared libraries into the wheels
+# for whl in wheelhouse/*.whl; do
+    # auditwheel repair "$whl" -w /io/wheelhouse/
+# done
