@@ -97,7 +97,7 @@ script:
   - if [ ${DOCKER} ]; then
       set -ex;
       sudo chmod +x travis/build_wheels.sh;
-      docker run co7_32 --rm -v `pwd`:/io /io/travis/build_wheels.sh;
+      docker run co7_64:httpdv1.0 --rm -v `pwd`:/io /io/travis/build_wheels.sh;
       ls wheelhouse/;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ ! ${DOCKER} ]; then
