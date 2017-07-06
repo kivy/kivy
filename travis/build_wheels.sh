@@ -88,6 +88,58 @@ yum install -y \
 # https://hg.libsdl.org/SDL/file/default/docs/README-linux.md#l18
 yum -y install libass libass-devel autoconf automake bzip2 cmake freetype-devel gcc gcc-c++ git libtool make mercurial pkgconfig zlib-devel enca-devel fontconfig-devel openssl openssl-devel
 
+
+# Make SDL2 packages
+SDL="SDL2-2.0.5"
+TTF="SDL_ttf-2.0.14"
+MIX="SDL_mixer-2.0.1"
+IMG="SDL_image-2.0.1"
+curl -sL https://www.libsdl.org/release/${SDL}.tar.gz > ${SDL}.tar.gz
+curl -sL https://www.libsdl.org/projects/SDL_image/release/${IMG}.tar.gz > ${IMG}.tar.gz
+curl -sL https://www.libsdl.org/projects/SDL_ttf/release/${TTF}.tar.gz > ${TTF}.tar.gz
+curl -sL https://www.libsdl.org/projects/SDL_mixer/release/${MIX}.tar.gz > ${MIX}.tar.gz
+
+# SDL2
+tar xzf ${SDL}.tar.gz
+cd $SDL
+./configure
+# --enable-png --disable-png-shared --enable-jpg --disable-jpg-shared
+make
+make install
+export KIVY_SDL2_PATH=$PWD
+cd ..
+
+# SDL image
+tar xzf ${IMG}.tar.gz
+cd $IMG
+./configure
+# --enable-png --disable-png-shared --enable-jpg --disable-jpg-shared
+make
+make install
+export KIVY_SDL2_PATH=$KIVY_SDL2_PATH:$PWD
+cd ..
+
+# SDL ttf
+tar xzf ${TTF}.tar.gz
+cd $TTF
+./configure
+make
+make install
+export KIVY_SDL2_PATH=$KIVY_SDL2_PATH:$PWD
+cd ..
+
+# SDL mixer
+tar xzf ${MIX}.tar.gz
+cd $MIX
+./configure --enable-music-mod --disable-music-mod-shared \
+            --enable-music-ogg  --disable-music-ogg-shared \
+            --enable-music-flac  --disable-music-flac-shared \
+            --enable-music-mp3  --disable-music-mp3-shared
+make
+make install
+cd ..
+# end SDL2
+
 PYTHONS="cp27-cp27mu cp34-cp34m cp35-cp35m cp36-cp36m"
 
 mkdir wheelhouse
