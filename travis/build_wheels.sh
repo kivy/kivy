@@ -12,6 +12,7 @@ yum list installed
 
 # orig folder
 export ORIG_FOLD=$(pwd)
+echo $ORIG_FOLD
 
 # add nux-desktop repo (for ffmpeg)
 rpm --import http://li.nux.ro/download/nux/RPM-GPG-KEY-nux.ro
@@ -153,8 +154,13 @@ yum -y install libass libass-devel autoconf automake bzip2 cmake freetype-devel 
 
 PYTHONS="cp27-cp27mu cp34-cp34m cp35-cp35m cp36-cp36m"
 
+
 mkdir wheelhouse
+echo $(pwd)
+ls $(pwd)/wheelhouse
+
 # Compile wheels
+echo "Building wheels:"
 for PY in $PYTHONS; do
     rm -rf /io/Setup /io/build/
     PYBIN="/opt/python/${PY}/bin"
@@ -167,10 +173,13 @@ done
     # auditwheel repair "$whl" -w /io/wheelhouse/
 # done
 
+
 # Install packages and test
+echo "Installing and testing:"
+ls $(pwd)/wheelhouse
 for PY in $PYTHONS; do
     PYBIN="/opt/python/${PY}/bin/"
-    "${PYBIN}/pip" install "Kivy-1.10.1.dev0-${PY}-linux_x86_64.whl" -f /wheelhouse
+    "${PYBIN}/pip" install "/wheelhouse/Kivy-1.10.1.dev0-${PY}-linux_x86_64.whl" --verbose
     cd $HOME
     "${PYBIN}/nosetests" kivy
     cd $ORIG_FOLD
