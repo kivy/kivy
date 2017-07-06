@@ -10,6 +10,9 @@ yum list installed
 # yumdownloader --resolve <package>
 # ##
 
+# orig folder
+export ORIG_FOLD=$(pwd)
+
 # add nux-desktop repo (for ffmpeg)
 sudo rpm --import http://li.nux.ro/download/nux/RPM-GPG-KEY-nux.ro
 sudo rpm -Uvh http://li.nux.ro/download/nux/dextop/el7/x86_64/nux-dextop-release-0-1.el7.nux.noarch.rpm
@@ -25,6 +28,26 @@ yum install -y \
     gcc-c++ \
     mesa-libGLU \
     mesa-libGLU-devel \
+    gstreamer \
+    gstreamer-devel \
+    gstreamer-plugins-bad-free \
+    gstreamer-plugins-bad-free-devel \
+    gstreamer-plugins-base \
+    gstreamer-plugins-base-devel \
+    gstreamer-plugins-base-tools \
+    gstreamer-plugins-good \
+    gstreamer-plugins-good-devel \
+    gstreamer-python \
+    gstreamer-python-devel \
+    gstreamer-tools \
+    gstreamer1 \
+    gstreamer1-devel \
+    gstreamer1-plugins-bad-free \
+    gstreamer1-plugins-bad-free-devel \
+    gstreamer1-plugins-base \
+    gstreamer1-plugins-base-devel \
+    gstreamer1-plugins-base-tools \
+    gstreamer1-plugins-good \
     gstreamer-plugins-good \
     gstreamer \
     gstreamer-python \
@@ -83,9 +106,11 @@ done
 
 # Install packages and test
 for PY in $PYTHONS; do
-    PYBIN="/opt/python/${PYBIN}/bin/"
+    PYBIN="/opt/python/${PY}/bin/"
     "${PYBIN}/pip" install . --no-index -f /io/wheelhouse
-    (cd "$HOME"; "${PYBIN}/nosetests" kivy)
+    cd $HOME
+    "${PYBIN}/nosetests" kivy
+    cd $ORIG_FOLD
 done
 
 # # Bundle external shared libraries into the wheels
