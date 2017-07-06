@@ -18,7 +18,7 @@ rpm --import http://li.nux.ro/download/nux/RPM-GPG-KEY-nux.ro
 rpm -Uvh http://li.nux.ro/download/nux/dextop/el7/x86_64/nux-dextop-release-0-1.el7.nux.noarch.rpm
 yum repolist
 
-# add EPEL repo (SDL2* packages)
+# add EPEL repo (SDL2* packages) https://centos.pkgs.org/7/epel-x86_64/
 wget http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-9.noarch.rpm
 rpm -Uvh epel-release*rpm
 
@@ -170,7 +170,7 @@ done
 # Install packages and test
 for PY in $PYTHONS; do
     PYBIN="/opt/python/${PY}/bin/"
-    "${PYBIN}/pip" install "Kivy-1.10.1.dev0-${PY}-linux_x86_64.whl" -f /io/wheelhouse
+    "${PYBIN}/pip" install "Kivy-1.10.1.dev0-${PY}-linux_x86_64.whl" -f /wheelhouse
     cd $HOME
     "${PYBIN}/nosetests" kivy
     cd $ORIG_FOLD
