@@ -14,8 +14,8 @@ yum list installed
 export ORIG_FOLD=$(pwd)
 
 # add nux-desktop repo (for ffmpeg)
-sudo rpm --import http://li.nux.ro/download/nux/RPM-GPG-KEY-nux.ro
-sudo rpm -Uvh http://li.nux.ro/download/nux/dextop/el7/x86_64/nux-dextop-release-0-1.el7.nux.noarch.rpm
+rpm --import http://li.nux.ro/download/nux/RPM-GPG-KEY-nux.ro
+rpm -Uvh http://li.nux.ro/download/nux/dextop/el7/x86_64/nux-dextop-release-0-1.el7.nux.noarch.rpm
 yum repolist
 
 # get RPM
