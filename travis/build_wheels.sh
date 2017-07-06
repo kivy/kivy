@@ -14,6 +14,10 @@ yum list installed
 export ORIG_FOLD=$(pwd)
 echo $ORIG_FOLD
 
+# enable display
+export DISPLAY=:99.0
+/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX;      
+
 # add nux-desktop repo (for ffmpeg)
 rpm --import http://li.nux.ro/download/nux/RPM-GPG-KEY-nux.ro
 rpm -Uvh http://li.nux.ro/download/nux/dextop/el7/x86_64/nux-dextop-release-0-1.el7.nux.noarch.rpm
