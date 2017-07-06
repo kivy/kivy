@@ -73,8 +73,7 @@ for PY in $PYTHONS; do
     rm -rf /io/Setup /io/build/
     PYBIN="/opt/python/${PY}/bin"
     "${PYBIN}/pip" install --upgrade cython nose
-    "${PYBIN}/pip" wheel /io/ -w wheelhouse/
-    ls -a wheelhouse/
+    "${PYBIN}/pip" wheel /io/ --wheel-dir wheelhouse/ --verbose
 done
 
 # # Bundle external shared libraries into the wheels
@@ -88,9 +87,6 @@ for PY in $PYTHONS; do
     "${PYBIN}/pip" install . --no-index -f /io/wheelhouse
     (cd "$HOME"; "${PYBIN}/nosetests" kivy)
 done
-
-echo =======================================================
-ls -a wheelhouse/
 
 # # Bundle external shared libraries into the wheels
 # for whl in wheelhouse/*.whl; do

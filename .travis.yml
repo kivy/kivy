@@ -98,7 +98,8 @@ script:
       set -ex;
       sudo chmod +x travis/build_wheels.sh;
       docker run --rm -v `pwd`:/io co7_64:httpdv1.0 /io/travis/build_wheels.sh;
-      ls wheelhouse/;
+      echo ======= WHEELS FOLDER =======;
+      ls ${pwd}/wheelhouse/;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ ! ${DOCKER} ]; then
       set -ex;
