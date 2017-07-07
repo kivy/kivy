@@ -172,6 +172,8 @@ for PY in $PYTHONS; do
     "${PYBIN}/pip" wheel /io/ --wheel-dir wheelhouse/ --verbose
 done
 
+cp ./travis/custom_policy.json /usr/local/lib/python3.6/site-packages/auditwheel/policy/policy.json
+
 # Bundle external shared libraries into the wheels
 for whl in wheelhouse/*.whl; do
     auditwheel repair "$whl" -w /io/wheelhouse/
