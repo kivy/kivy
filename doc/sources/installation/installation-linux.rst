@@ -198,6 +198,13 @@ In the following command use "python" and "python-dev" for Python 2, or "python3
         libavformat-dev \
         libavcodec-dev \
         zlib1g-dev
+        
+    # Install gstreamer for audio, video (optional)
+    sudo apt-get install -y \
+        libgstreamer1.0
+        gstreamer1.0-plugins-base
+        gstreamer1.0-plugins-good
+        
 
 **Note:**  Depending on your Linux version, you may receive error messages related to the "ffmpeg" package.
 In this scenario, use "libav-tools \" in place of "ffmpeg \" (above), or use a PPA (as shown below):
