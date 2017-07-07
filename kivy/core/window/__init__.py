@@ -571,8 +571,8 @@ class WindowBase(EventDispatcher):
 
     _keyboard_changed = BooleanProperty(False)
     _kheight = NumericProperty(0)
-
     _kanimation = None
+
     def _free_kanimation(self, *largs):
         WindowBase._kanimation = None
 
