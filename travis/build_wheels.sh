@@ -169,26 +169,30 @@ for PY in $PYTHONS; do
     rm -rf /io/Setup /io/build/
     PYBIN="/opt/python/${PY}/bin"
     "${PYBIN}/pip" install --upgrade cython nose
-    "${PYBIN}/pip" wheel /io/ --wheel-dir wheelhouse/ --verbose
+    "${PYBIN}/pip" wheel /io/ --wheel-dir wheelhouse/
 done
+#--verbose
 
-cp ./travis/custom_policy.json /usr/local/lib/python3.6/site-packages/auditwheel/policy/policy.json
+cp /io/travis/custom_policy.json /opt/_internal/cpython-3.6.0/lib/python3.6/site-packages/auditwheel/policy/policy.json
 
 # Bundle external shared libraries into the wheels
 for whl in wheelhouse/*.whl; do
+    echo "Show:"
+    auditwheel show "$whl"
+    echo "Repair:"
     auditwheel repair "$whl" -w /io/wheelhouse/
 done
 
 # Install packages and test
-echo "Installing and testing:"
-ls $(pwd)/wheelhouse
-for PY in $PYTHONS; do
-    PYBIN="/opt/python/${PY}/bin/"
-    "${PYBIN}/pip" install "/wheelhouse/Kivy-1.10.1.dev0-${PY}-linux_x86_64.whl" --verbose
-    cd $HOME
-    "${PYBIN}/nosetests" kivy
-    cd $ORIG_FOLD
-done
+# echo "Installing and testing:"
+# ls $(pwd)/wheelhouse
+# for PY in $PYTHONS; do
+    # PYBIN="/opt/python/${PY}/bin/"
+    # "${PYBIN}/pip" install "/wheelhouse/Kivy-1.10.1.dev0-${PY}-linux_x86_64.whl" --verbose
+    # cd $HOME
+    # "${PYBIN}/nosetests" kivy
+    # cd $ORIG_FOLD
+# done
 
 # # Bundle external shared libraries into the wheels
 # for whl in wheelhouse/*.whl; do
