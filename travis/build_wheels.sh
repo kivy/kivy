@@ -191,7 +191,7 @@ echo "Installing and testing:"
 ls $(pwd)/wheelhouse
 for PY in $PYTHONS; do
     PYBIN="/opt/python/${PY}/bin/"
-    "${PYBIN}/pip" install "/wheelhouse/Kivy-1.10.1.dev0-${PY}-manylinux1_x86_64.whl" --verbose
+    "${PYBIN}/pip" install "/io/wheelhouse/Kivy-1.10.1.dev0-${PY}-manylinux1_x86_64.whl" --verbose
     cd $HOME
     "${PYBIN}/nosetests" kivy
     cd $ORIG_FOLD
