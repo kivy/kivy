@@ -173,10 +173,13 @@ for PY in $PYTHONS; do
 done
 #--verbose
 
+# we HAVE TO change the policy...
+# or compile everything (even Mesa) by hand on CentOS 5.x
 cp /io/travis/custom_policy.json /opt/_internal/cpython-3.6.0/lib/python3.6/site-packages/auditwheel/policy/policy.json
 
 # Bundle external shared libraries into the wheels
-for whl in wheelhouse/*.whl; do
+# repair only Kivy wheel (pure py wheels such as Kivy_Garden kill the build)
+for whl in wheelhouse/Kivy-*.whl; do
     echo "Show:"
     auditwheel show "$whl"
     echo "Repair:"
@@ -188,7 +191,7 @@ done
 # ls $(pwd)/wheelhouse
 # for PY in $PYTHONS; do
     # PYBIN="/opt/python/${PY}/bin/"
-    # "${PYBIN}/pip" install "/wheelhouse/Kivy-1.10.1.dev0-${PY}-linux_x86_64.whl" --verbose
+    # "${PYBIN}/pip" install "/wheelhouse/Kivy-1.10.1.dev0-${PY}-manylinux1_x86_64.whl" --verbose
     # cd $HOME
     # "${PYBIN}/nosetests" kivy
     # cd $ORIG_FOLD
