@@ -14,9 +14,20 @@ yum list installed
 export ORIG_FOLD=$(pwd)
 echo $ORIG_FOLD
 
+# get start-stop-daemon from Debian's dpkg
+wget http://ftp.de.debian.org/debian/pool/main/d/dpkg/dpkg_1.14.25.tar.gz
+tar -xf dpkg_1.14.25.tar.gz
+cd dpkg-1.14.25/
+./configure >/dev/null
+make >/dev/null
+cd utils
+make install
+
+cd $ORIG_FOLD
+
 # enable display
 export DISPLAY=:99.0
-/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX;      
+/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX;
 
 # add nux-desktop repo (for ffmpeg)
 rpm --import http://li.nux.ro/download/nux/RPM-GPG-KEY-nux.ro
