@@ -190,6 +190,10 @@ for PY in $PYTHONS; do
     "${PYBIN}/pip" install "/io/wheelhouse/Kivy-1.10.1.dev0-${PY}-manylinux1_x86_64.whl" --verbose
 done
 
+echo "List from inside"
+ls -a /io/wheelhouse
+echo "---"
+
 # # ----------------------------------------
 # # get start-stop-daemon from Debian's dpkg
 # wget http://ftp.de.debian.org/debian/pool/main/d/dpkg/dpkg_1.14.25.tar.gz
