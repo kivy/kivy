@@ -14,21 +14,6 @@ yum list installed
 export ORIG_FOLD=$(pwd)
 echo $ORIG_FOLD
 
-# get start-stop-daemon from Debian's dpkg
-wget http://ftp.de.debian.org/debian/pool/main/d/dpkg/dpkg_1.14.25.tar.gz
-tar -xf dpkg_1.14.25.tar.gz
-cd dpkg-1.14.25/
-./configure >/dev/null
-make >/dev/null
-cd utils
-make install
-
-cd $ORIG_FOLD
-
-# enable display
-export DISPLAY=:99.0
-/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX;
-
 # add nux-desktop repo (for ffmpeg)
 rpm --import http://li.nux.ro/download/nux/RPM-GPG-KEY-nux.ro
 rpm -Uvh http://li.nux.ro/download/nux/dextop/el7/x86_64/nux-dextop-release-0-1.el7.nux.noarch.rpm
@@ -198,18 +183,34 @@ for whl in wheelhouse/Kivy-*.whl; do
 done
 
 # Install packages and test
-echo "Installing and testing:"
+echo "Installing wheels:"
 ls $(pwd)/wheelhouse
 for PY in $PYTHONS; do
     PYBIN="/opt/python/${PY}/bin/"
     "${PYBIN}/pip" install "/io/wheelhouse/Kivy-1.10.1.dev0-${PY}-manylinux1_x86_64.whl" --verbose
-    cd $HOME
-    "${PYBIN}/nosetests" kivy
-    cd $ORIG_FOLD
 done
 
-# most likely unnecessary
-# # Bundle external shared libraries into the wheels
-# for whl in wheelhouse/*.whl; do
-    # auditwheel repair "$whl" -w /io/wheelhouse/
+# # ----------------------------------------
+# # get start-stop-daemon from Debian's dpkg
+# wget http://ftp.de.debian.org/debian/pool/main/d/dpkg/dpkg_1.14.25.tar.gz
+# tar -xf dpkg_1.14.25.tar.gz
+# cd dpkg-1.14.25/
+# ./configure >/dev/null
+# make >/dev/null
+# cd utils
+# make install
+
+# cd $ORIG_FOLD
+
+# # enable display
+# export DISPLAY=:99.0
+# /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX;
+
+# echo "Testing wheels:"
+# ls $(pwd)/wheelhouse
+# for PY in $PYTHONS; do
+    # PYBIN="/opt/python/${PY}/bin/"
+    # cd $HOME
+    # "${PYBIN}/nosetests" kivy
+    # cd $ORIG_FOLD
 # done
