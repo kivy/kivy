@@ -207,9 +207,11 @@ echo "---"
 # cd $ORIG_FOLD
 
 # enable display
-export DISPLAY=:99.0
 #/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX;
 # for "daemon"
+yum install initscripts
+export DISPLAY=:99.0
+source /etc/init.d/functions
 source /etc/rc.d/init.d/functions
 daemon --pidfile /tmp/custom_xvfb_99.pid -- /usr/bin/Xvfb :99 -screen 0 1280x720x24 -ac +extension GLX
 
