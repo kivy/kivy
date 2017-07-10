@@ -206,15 +206,16 @@ echo "---"
 
 # cd $ORIG_FOLD
 
-# # enable display
-# export DISPLAY=:99.0
-# /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX;
+# enable display
+export DISPLAY=:99.0
+#/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX;
+daemon /usr/bin/Xvfb :99 -screen 0 1280x720x24 -ac +extension GLX
 
-# echo "Testing wheels:"
-# ls $(pwd)/wheelhouse
-# for PY in $PYTHONS; do
-    # PYBIN="/opt/python/${PY}/bin/"
-    # cd $HOME
-    # "${PYBIN}/nosetests" kivy
-    # cd $ORIG_FOLD
-# done
+echo "Testing wheels:"
+ls $(pwd)/wheelhouse
+for PY in $PYTHONS; do
+    PYBIN="/opt/python/${PY}/bin/"
+    cd $HOME
+    "${PYBIN}/nosetests" kivy
+    cd $ORIG_FOLD
+done
