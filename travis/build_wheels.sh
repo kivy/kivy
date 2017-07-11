@@ -191,20 +191,3 @@ for PY in $PYTHONS; do
     PYBIN="/opt/python/${PY}/bin/"
     "${PYBIN}/pip" install "/io/wheelhouse/Kivy-1.10.1.dev0-${PY}-manylinux1_x86_64.whl" --verbose
 done
-
-# enable display
-yum -y install initscripts
-export DISPLAY=:99.0
-dbus-uuidgen > /var/lib/dbus/machine-id
-source /etc/init.d/functions
-source /etc/rc.d/init.d/functions
-daemon /usr/bin/Xvfb :99 -screen 0 1280x720x24 -ac +extension GLX > /var/log/custom_xvfb_99.log 2>&1 &
-
-echo "Testing wheels:"
-ls -lah $(pwd)/wheelhouse
-for PY in $PYTHONS; do
-    PYBIN="/opt/python/${PY}/bin/"
-    cd $HOME
-    "${PYBIN}/nosetests" kivy
-    cd $ORIG_FOLD
-done

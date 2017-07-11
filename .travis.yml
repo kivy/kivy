@@ -25,6 +25,7 @@ install:
       docker run -td -p 80:80 --name=co7_32 co7_32:httpdv1.0;
       docker ps;
       cd ..;
+      pip install --upgrade nose;
     fi;
   - if [ ${DOCKER} ] && [ "${BITNESS}" == "64" ]; then
       cd ./docker;
@@ -32,6 +33,7 @@ install:
       docker run -td -p 80:80 --name=co7_64 co7_64:httpdv1.0;
       docker ps;
       cd ..;
+      pip install --upgrade nose;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ ! ${DOCKER} ]; then
       if [ "${RUN}" != "pep8" ]; then
@@ -81,7 +83,7 @@ install:
     fi;
 
 before_script:
-  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" != "pep8" ] && [ ! ${DOCKER} ]; then
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" != "pep8" ] || [ ${DOCKER} ]; then
       export DISPLAY=:99.0;
       /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX;
       export PYTHONPATH=$PYTHONPATH:$(pwd);
@@ -97,9 +99,11 @@ script:
   - if [ ${DOCKER} ]; then
       set -ex;
       sudo chmod +x travis/build_wheels.sh;
+      sudo chmod +x travis/test_wheels.sh;
       docker run --rm -v `pwd`:/io co7_64:httpdv1.0 /io/travis/build_wheels.sh;
       echo ======= WHEELS FOLDER =======;
       ls -lah ${pwd};
+      ./travis/test_wheels.sh;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ ! ${DOCKER} ]; then
       set -ex;
