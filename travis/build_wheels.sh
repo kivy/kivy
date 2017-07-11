@@ -211,6 +211,7 @@ echo "---"
 # for "daemon"
 yum -y install initscripts
 export DISPLAY=:99.0
+dbus-uuidgen > /var/lib/dbus/machine-id
 source /etc/init.d/functions
 source /etc/rc.d/init.d/functions
 daemon /usr/bin/Xvfb :99 -screen 0 1280x720x24 -ac +extension GLX > /var/log/custom_xvfb_99.log 2>&1 &
