@@ -187,6 +187,7 @@ done
 # Install packages and test
 echo "Installing wheels:"
 ls $(pwd)/wheelhouse
+echo "------------------"
 for PY in $PYTHONS; do
     PYBIN="/opt/python/${PY}/bin/"
     "${PYBIN}/pip" install "/io/wheelhouse/Kivy-1.10.1.dev0-${PY}-manylinux1_x86_64.whl" --verbose

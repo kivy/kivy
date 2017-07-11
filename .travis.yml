@@ -102,7 +102,7 @@ script:
       sudo chmod +x travis/test_wheels.sh;
       docker run --rm -v `pwd`:/io co7_64:httpdv1.0 /io/travis/build_wheels.sh;
       echo ======= WHEELS FOLDER =======;
-      ls -lah ${pwd}/wheelhouse;
+      ls -lah ./wheelhouse;
       ./travis/test_wheels.sh;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ ! ${DOCKER} ]; then
