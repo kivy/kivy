@@ -15,7 +15,6 @@ matrix:
         DOCKER=True
 
 before_install:
-  - uname -a;
   # https://github.com/travis-ci/travis-ci/issues/6307
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then rvm get head; fi
 
@@ -101,6 +100,11 @@ script:
       set -ex;
       sudo chmod +x travis/build_wheels.sh;
       sudo chmod +x travis/test_wheels.sh;
+      echo $(pwd);
+      echo $(pwd);
+      echo $(pwd);
+      echo $(pwd);
+      echo $(pwd);
       docker run --rm -v `pwd`:/io co7_64:httpdv1.0 /io/travis/build_wheels.sh;
       echo ======= WHEELS FOLDER =======;
       ls -lah ./wheelhouse;
