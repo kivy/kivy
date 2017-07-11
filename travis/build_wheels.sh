@@ -185,10 +185,11 @@ for whl in wheelhouse/Kivy-*.whl; do
 done
 
 # Install packages and test
-echo "Installing wheels:"
-ls $(pwd)/wheelhouse
-echo "------------------"
-for PY in $PYTHONS; do
-    PYBIN="/opt/python/${PY}/bin/"
-    "${PYBIN}/pip" install "/io/wheelhouse/Kivy-1.10.1.dev0-${PY}-manylinux1_x86_64.whl" --verbose
-done
+# note: --verbose shows nothing useful except some links to pypi
+# echo "Installing wheels:"
+# ls $(pwd)/wheelhouse
+# echo "------------------"
+# for PY in $PYTHONS; do
+    # PYBIN="/opt/python/${PY}/bin/"
+    # "${PYBIN}/pip" install "/io/wheelhouse/Kivy-1.10.1.dev0-${PY}-manylinux1_x86_64.whl"
+# done
