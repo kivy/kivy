@@ -2,9 +2,9 @@
 
 echo "Testing wheels:"
 pip install $(pwd)/wheelhouse/Kivy-1.10.1.dev0-cp27-cp27mu-manylinux1_x86_64.whl
-sudo apt-get -y install p7zip-full
+sudo apt-get -y install unzip
 mkdir $(pwd)/whl_folder
-7z x $(pwd)/wheelhouse/Kivy-1.10.1.dev0-cp27-cp27mu-manylinux1_x86_64.whl -o $(pwd)/whl_folder
+unzip $(pwd)/wheelhouse/Kivy-1.10.1.dev0-cp27-cp27mu-manylinux1_x86_64.whl -d $(pwd)/whl_folder
 echo "---"
 ls -lah $(pwd)/whl_folder/kivy/
 ls -lah $(pwd)/whl_folder/kivy/.libs
