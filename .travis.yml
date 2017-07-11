@@ -20,11 +20,11 @@ before_install:
 
 install:
   - if [ ${DOCKER} ] && [ "${BITNESS}" == "32" ]; then
-      echo $(pwd);
-      echo $(pwd);
-      echo $(pwd);
-      echo $(pwd);
-      echo $(pwd);
+      pwd;
+      pwd;
+      pwd;
+      pwd;
+      pwd;
       cd ./docker;
       docker build -f ./Dockerfile-i686 -t co7_32:httpdv1.0 .;
       docker run -td -p 80:80 --name=co7_32 co7_32:httpdv1.0;
