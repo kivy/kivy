@@ -25,14 +25,16 @@ rpm -Uvh epel-release*rpm
 
 # get RPM
 yum check-update
-yum search pulseaudio
-
 yum install -y \
     cmake \
     gcc \
     gcc-c++ \
     mesa-libGLU \
     mesa-libGLU-devel \
+    mesa-libGL \
+    mesa-libGL-devel \
+    mesa-libGLES \
+    mesa-libGLES-devel \
     python-devel \
     dbus-devel \
     xorg-x11-server-Xvfb \
@@ -190,25 +192,7 @@ for PY in $PYTHONS; do
     "${PYBIN}/pip" install "/io/wheelhouse/Kivy-1.10.1.dev0-${PY}-manylinux1_x86_64.whl" --verbose
 done
 
-echo "List from inside"
-ls -a /io/wheelhouse
-echo "---"
-
-# # ----------------------------------------
-# # get start-stop-daemon from Debian's dpkg
-# wget http://ftp.de.debian.org/debian/pool/main/d/dpkg/dpkg_1.14.25.tar.gz
-# tar -xf dpkg_1.14.25.tar.gz
-# cd dpkg-1.14.25/
-# ./configure >/dev/null
-# make >/dev/null
-# cd utils
-# make install
-
-# cd $ORIG_FOLD
-
 # enable display
-#/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX;
-# for "daemon"
 yum -y install initscripts
 export DISPLAY=:99.0
 dbus-uuidgen > /var/lib/dbus/machine-id
@@ -217,8 +201,7 @@ source /etc/rc.d/init.d/functions
 daemon /usr/bin/Xvfb :99 -screen 0 1280x720x24 -ac +extension GLX > /var/log/custom_xvfb_99.log 2>&1 &
 
 echo "Testing wheels:"
-cat /var/log/custom_svfb_99.log
-ls $(pwd)/wheelhouse
+ls -lah $(pwd)/wheelhouse
 for PY in $PYTHONS; do
     PYBIN="/opt/python/${PY}/bin/"
     cd $HOME
