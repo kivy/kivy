@@ -494,6 +494,10 @@ class WindowSDL(WindowBase):
             elif action == 'dropfile':
                 dropfile = args
                 self.dispatch('on_dropfile', dropfile[0])
+            elif action == 'dropbegin':
+                self.dispatch('on_dropbegin')
+            elif action == 'dropcomplete':
+                self.dispatch('on_dropcomplete')
             # video resize
             elif action == 'windowresized':
                 self._size = self._win.window_size

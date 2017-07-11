@@ -156,7 +156,6 @@ cdef class _WindowSDL2Storage:
 
         SDL_SetEventFilter(_event_filter, <void *>self)
 
-        SDL_EventState(SDL_DROPFILE, SDL_ENABLE)
         cdef int w, h
         SDL_GetWindowSize(self.win, &w, &h)
         return w, h
@@ -323,6 +322,10 @@ cdef class _WindowSDL2Storage:
             return ('quit', )
         elif event.type == SDL_DROPFILE:
             return ('dropfile', event.drop.file)
+        elif event.type == SDL_DROPBEGIN:
+            return ('dropbegin', )
+        elif event.type == SDL_DROPCOMPLETE:
+            return ('dropcomplete', )
         elif event.type == SDL_MOUSEMOTION:
             x = event.motion.x
             y = event.motion.y

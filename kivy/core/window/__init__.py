@@ -318,6 +318,24 @@ class WindowBase(EventDispatcher):
             You can listen to this one, and clean whatever you can.
 
             .. versionadded:: 1.9.0
+
+        `on_dropbegin`:
+            Fired when a new set of drops is beginning on the application.
+
+            .. note::
+
+               This event works with sdl2 window provider(>2.0.5).
+
+            .. versionadded:: 1.10.1
+
+        `on_dropcomplete`:
+            Fired when a current set of drops is now complete on the application.
+
+            .. note::
+
+               This event works with sdl2 window provider(>2.0.5).
+
+            .. versionadded:: 1.10.1
     '''
 
     __instance = None
@@ -802,7 +820,8 @@ class WindowBase(EventDispatcher):
         'on_key_down', 'on_key_up', 'on_textinput', 'on_dropfile',
         'on_request_close', 'on_cursor_enter', 'on_cursor_leave',
         'on_joy_axis', 'on_joy_hat', 'on_joy_ball',
-        'on_joy_button_down', 'on_joy_button_up', 'on_memorywarning')
+        'on_joy_button_down', 'on_joy_button_up', 'on_memorywarning',
+        'on_dropbegin', 'on_dropcomplete')
 
     def __new__(cls, **kwargs):
         if cls.__instance is None:
@@ -1558,6 +1577,28 @@ class WindowBase(EventDispatcher):
             (ios, android etc.)
 
         .. versionadded:: 1.2.0
+        '''
+        pass
+
+    def on_dropbegin(self):
+        '''Event called when a new set of drops is beginning on the application.
+
+        .. warning::
+
+            This event currently works with sdl2 window provider(>2.0.5).
+
+        .. versionadded:: 1.10.1
+        '''
+        pass
+
+    def on_dropcomplete(self):
+        '''Event called when a current set of drops is now complete on the application.
+
+        .. warning::
+
+            This event currently works with sdl2 window provider(>2.0.5).
+
+        .. versionadded:: 1.10.1
         '''
         pass
 
