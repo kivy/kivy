@@ -20,6 +20,11 @@ before_install:
 
 install:
   - if [ ${DOCKER} ] && [ "${BITNESS}" == "32" ]; then
+      echo $(pwd);
+      echo $(pwd);
+      echo $(pwd);
+      echo $(pwd);
+      echo $(pwd);
       cd ./docker;
       docker build -f ./Dockerfile-i686 -t co7_32:httpdv1.0 .;
       docker run -td -p 80:80 --name=co7_32 co7_32:httpdv1.0;
@@ -100,11 +105,6 @@ script:
       set -ex;
       sudo chmod +x travis/build_wheels.sh;
       sudo chmod +x travis/test_wheels.sh;
-      echo $(pwd);
-      echo $(pwd);
-      echo $(pwd);
-      echo $(pwd);
-      echo $(pwd);
       docker run --rm -v `pwd`:/io co7_64:httpdv1.0 /io/travis/build_wheels.sh;
       echo ======= WHEELS FOLDER =======;
       ls -lah ./wheelhouse;
