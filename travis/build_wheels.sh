@@ -214,8 +214,10 @@ export DISPLAY=:99.0
 source /etc/init.d/functions
 source /etc/rc.d/init.d/functions
 daemon /usr/bin/Xvfb :99 -screen 0 1280x720x24 -ac +extension GLX
+daemon /usr/bin/Xvfb :99 -screen 0 1280x720x24 -ac +extension GLX > /var/log/custom_xvfb_99.log 2>&1 &
 
 echo "Testing wheels:"
+cat /var/log/custom_svfb_99.log
 ls $(pwd)/wheelhouse
 for PY in $PYTHONS; do
     PYBIN="/opt/python/${PY}/bin/"
