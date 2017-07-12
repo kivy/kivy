@@ -25,12 +25,14 @@ __all__ = ("Svg", )
 include "common.pxi"
 
 from os.path import dirname, join
+from itertools import chain
 import re
 cimport cython
 from uuid import uuid4
 from xml.etree.cElementTree import parse
 from kivy.graphics.instructions cimport RenderContext
 from kivy.graphics.vertex_instructions cimport Mesh, StripMesh
+from kivy.graphics.context_instructions cimport BindTexture
 from kivy.graphics.stencil_instructions cimport StencilPush, StencilPop, StencilUse, StencilUnUse
 from kivy.graphics.tesselator cimport Tesselator
 from kivy.graphics.texture cimport Texture
@@ -44,6 +46,8 @@ from kivy.utils import hex_colormap
 from kivy.properties import NUMERIC_FORMATS, dpi2px
 from string import hexdigits
 from kivy.core.window import Window
+from kivy.vector import Vector
+from kivy.resources import resource_find
 
 cdef dict colormap = hex_colormap
 
@@ -56,39 +60,13 @@ DEF OP_STROKE = 2
 DEF OP_CLIP_PUSH = 3
 DEF OP_CLIP_POP = 4
 
-cdef str SVG_FS = '''
-#ifdef GL_ES
-    precision highp float;
-#endif
+cdef str SVG_FS, SVG_VS
 
-varying vec4 vertex_color;
-varying vec2 texcoord;
-uniform sampler2D texture0;
+with open(resource_find('data/glsl/svg_fs.glsl')) as f:
+        SVG_FS = f.read()
 
-void main (void) {
-    gl_FragColor = texture2D(texture0, texcoord) * (vertex_color / 255.);
-}
-'''
-
-cdef str SVG_VS = '''
-#ifdef GL_ES
-    precision highp float;
-#endif
-
-attribute vec2 v_pos;
-attribute vec2 v_tex;
-attribute vec4 v_color;
-uniform mat4 modelview_mat;
-uniform mat4 projection_mat;
-varying vec4 vertex_color;
-varying vec2 texcoord;
-
-void main (void) {
-    vertex_color = v_color;
-    gl_Position = projection_mat * modelview_mat * vec4(v_pos, 0.0, 1.0);
-    texcoord = v_tex;
-}
-'''
+with open(resource_find('data/glsl/svg_vs.glsl')) as f:
+        SVG_VS = f.read()
 
 cdef set COMMANDS = set('MmZzLlHhVvCcSsQqTtAa')
 cdef set UPPERCASE = set('MZLHVCSQTA')
@@ -106,7 +84,8 @@ cdef object RE_TRANSFORM = re.compile(
 cdef VertexFormat VERTEX_FORMAT = VertexFormat(
     (b'v_pos', 2, 'float'),
     (b'v_tex', 2, 'float'),
-    (b'v_color', 4, 'float'))
+    (b'v_color', 4, 'float'),
+    (b'v_gradient', 1, 'float'))
 
 def _tokenize_path(pathdef):
     for x in RE_COMMAND.split(pathdef):
@@ -290,6 +269,9 @@ cdef class Matrix(object):
                 self.mat[i] = f
                 i += 1
 
+    cpdef list to_floats(self):
+        return [float(self.mat[x]) for x in xrange(6)]
+
     cdef void transform(self, float ox, float oy, float *x, float *y):
         cdef double rx = self.mat[0] * ox + self.mat[2] * oy + self.mat[4]
         cdef double ry = self.mat[1] * ox + self.mat[3] * oy + self.mat[5]
@@ -343,7 +325,7 @@ class GradientContainer(dict):
 class Gradient(object):
     def __init__(self, element, svg):
         self.element = element
-        self.stops = {}
+        stops = {}
         for e in element.getiterator():
             if e.tag.endswith('stop'):
                 style = parse_style(e.get('style', ''))
@@ -353,10 +335,20 @@ class Gradient(object):
                 color[3] = int(float(e.get('stop-opacity', '1')) * 255)
                 if 'stop-opacity' in style:
                     color[3] = int(float(style['stop-opacity']) * 255)
-                self.stops[float(e.get('offset'))] = color
-        self.stops = sorted(self.stops.items())
+
+                stop = e.get('offset').strip()
+                if stop.endswith('%'):
+                    stop = float(stop[:-1]) / 100.
+                else:
+                    stop = float(stop)
+                stops[stop] = color
+        self.stops = sorted(stops.items())
         self.svg = svg
-        self.inv_transform = Matrix(element.get('gradientTransform')).inverse()
+
+        self.spread_method = element.get('spreadMethod', 'pad')
+        self.gradient_units = element.get('gradientUnits', 'objectBoundingBox')
+        self.gradient_transform = transform = Matrix(element.get('gradientTransform'))
+        self.inv_transform = transform.inverse()
 
         inherit = self.element.get('{http://www.w3.org/1999/xlink}href')
         parent = None
@@ -371,25 +363,65 @@ class Gradient(object):
         if not delay_params:
             self.get_params(parent)
 
-    def interp(self, float x, float y):
+    def to_floats(self):
+        t = self.gradient_transform
+        return [
+            {'pad': 1., 'repeat': 2., 'reflect': 3.}[self.spread_method],
+            {'userSpaceOnUse': 1., 'objectBoundingBox': 2.}[self.gradient_units],
+        ] + t.to_floats() + list(chain(*[
+            (s, r, g, b, a)
+            for (s, (r, g, b, a)) in self.stops
+        ])) + [-1.]  # -1 marks the end of the stop list
+
+    def interp(self, float x, float y, float w, float h):
         cdef Matrix m = self.inv_transform
         if not self.stops:
             return [255, 0, 255, 255]
+
         m.transform(x, y, &x, &y)
-        t = self.grad_value(x, y)
-        if t < self.stops[0][0]:
-            return self.stops[0][1]
-        for n, top in enumerate(self.stops[1:]):
-            bottom = self.stops[n]
+        m.transform(w, h, &w, &h)
+
+        if self.gradient_units == 'userSpaceOnUse':
+            # TODO
+            # https://www.w3.org/TR/SVG/pservers.html#LinearGradientElementGradientUnitsAttribute
+            m = Matrix('') * m
+
+        t = self.grad_value(x, y, w, h)
+        stops = self.stops
+        while not stops[0][0] < t < stops[-1][0]:
+            if self.spread_method == 'pad':
+                if t < stops[0][0]:
+                    return stops[0][1]
+                else:
+                    return stops[-1][1]
+
+            elif self.spread_method == 'repeat':
+                t = stops[0][0] + t % (stops[-1][0] - stops[0][0])
+
+            elif self.spread_method == 'reflect':
+                if t < stops[0][0]:
+                    n, r = divmod(t - stops[0][0], stops[-1][0] - stops[0][0])
+                else:
+                    n, r = divmod(t - stops[-1][0], stops[-1][0] - stops[0][0])
+
+                if n % 2:
+                    t = stops[0][0] + r
+                else:
+                    t = stops[-1][0] - r
+
+        for n, top in enumerate(stops[1:]):
             if t <= top[0]:
-                u = bottom[0]
+                u = stops[n][0]
                 v = top[0]
-                alpha = (t - u)/(v - u)
-                return [int(item[0] * (1 - alpha) + item[1] * alpha) for item in zip(bottom[1], top[1])]
-        return self.stops[-1][1]
+                alpha = (t - u) / (v - u)
+                return [
+                    int(item[0] * (1 - alpha) + item[1] * alpha)
+                    for item in zip(stops[n][1], top[1])
+                ]
+        return stops[-1][1]
 
     def get_params(self, parent):
-        for param in self.params:
+        for param, default in self.params.items():
             v = None
             if parent:
                 v = getattr(parent, param, None)
@@ -398,23 +430,92 @@ class Gradient(object):
                 v = <float>float(my_v)
             if v:
                 setattr(self, param, v)
+            else:
+                setattr(self, param, default)
 
     def tardy_gradient_parsed(self, gradient):
         self.get_params(gradient)
 
 
 class LinearGradient(Gradient):
-    params = ['x1', 'x2', 'y1', 'y2', 'stops']
+    params = {
+        'x1': '0%',
+        'x2': '100%',
+        'y1': '0%',
+        'y2': '0%',
+        # 'stops': []
+    }
 
-    def grad_value(self, x, y):
-        return ((x - self.x1)*(self.x2 - self.x1) + (y - self.y1)*(self.y2 - self.y1)) / ((self.x1 - self.x2)**2 + (self.y1 - self.y2)**2)
+    def to_floats(self):
+        # XXX this wom't work for absolute sizes
+        return super(LinearGradient, self).to_floats() + [
+            parse_width(self.x1, 1),
+            parse_height(self.y1, 1),
+            parse_width(self.x2, 1),
+            parse_height(self.y2, 1),
+        ]
+
 
 
 class RadialGradient(Gradient):
-    params = ['cx', 'cy', 'r', 'stops']
+    params = {
+        'cx': '50%',
+        'cy': '50%',
+        'r': '50%',
+        'fx': None,
+        'fy': None,
+        # 'stops': []
+    }
 
-    def grad_value(self, x, y):
-        return sqrt((x - self.cx) ** 2 + (y - self.cy) ** 2)/self.r
+    def to_floats(self):
+        # XXX need fixes for absolute sizes
+        w = h = 1.
+
+        r = self.r
+        if r.endswith('%'):
+            r = float(r[:-1])
+            relative = True
+        else:
+            r = float(r)
+            relative = False
+
+        cx = self.cx
+        if cx.endswith('%'):
+            cx = float(cx[:-1])
+        else:
+            cx = float(cx) / w
+
+        cy = self.cy
+        if cy.endswith('%'):
+            cy = float(cy[:-1])
+        else:
+            cy = float(cy) / h
+
+        fx = self.fx or self.cx
+        if fx.endswith('%'):
+            fx = float(fx[:-1])
+        else:
+            fx = float(fx) / w
+
+        fy = self.fy or self.cy
+        if fy.endswith('%'):
+            fy = float(fy[:-1])
+        else:
+            fy = float(fy) / h
+
+        if not relative:
+            cx = cx * w
+            cy = cy * h
+            fx = fy * w
+            fy = fy * h
+
+        return super(RadialGradient, self).to_floats() + [
+            cx,
+            cy,
+            r,
+            fx,
+            fy,
+        ]
 
 
 cdef class Svg(RenderContext):
@@ -455,6 +556,8 @@ cdef class Svg(RenderContext):
         self.vbox_width = 0.
         self.vbox_height = 0.
         self.clip_path = ''
+        self.gradient_texture = None
+        self.gradient_shader_map = {}
 
         # if color is None:
         #     self.current_color = [0, 0, 0, 255]
@@ -579,6 +682,39 @@ cdef class Svg(RenderContext):
             end2 = time()
             Logger.debug("Svg: Parsed in {:.2f}s, rendered in {:.2f}s".format(
                     end1 - start, end2 - end1))
+
+    cdef update_gradient_texture(self):
+        # naive way to concat data to a texture, can probably made a lot
+        # faster
+        data = []
+        for i, (k, g) in enumerate(self.gradients.items()):
+            data.append(g.to_floats())
+            self.gradient_shader_map[k] = i
+
+        l = max(len(x) for x in data)
+
+        for d in data:
+            while len(d) < l:
+                d.append(0.)
+
+        size = max(l, len(data))
+        data = list(chain(*data))
+
+        print data
+        # initialize the array with the buffer values
+        arr = array('f', data)
+        # now blit the array
+        self.gradient_texture = texture = Texture.create(
+            size=(size, size),
+            colorfmt='luminance',
+            bufferfmt='float'
+        )
+        texture.blit_buffer(
+            arr,
+            colorfmt='luminance',
+            bufferfmt='float')
+        BindTexture(texture=texture, index=2)
+        self['gradients_size'] = size, size
 
     cdef parse_tree(self, tree):
         root = tree._root
@@ -738,10 +874,10 @@ cdef class Svg(RenderContext):
             self.end_path()
 
         elif e.tag.endswith('line'):
-            x1 = parse_height(e.get('x1'), self.vbox_width)
-            y1 = parse_width(e.get('y1'), self.vbox_height)
-            x2 = parse_height(e.get('x2'), self.vbox_width)
-            y2 = parse_width(e.get('y2'), self.vbox_height)
+            x1 = parse_width(e.get('x1'), self.vbox_width)
+            y1 = parse_height(e.get('y1'), self.vbox_height)
+            x2 = parse_width(e.get('x2'), self.vbox_width)
+            y2 = parse_height(e.get('y2'), self.vbox_height)
             # XXX fix condition when round/square cappings are added
             if (x1 != x2 or y1 != y2):
                 self.new_path()
@@ -776,9 +912,11 @@ cdef class Svg(RenderContext):
 
         elif e.tag.endswith('linearGradient'):
             self.gradients[e.get('id')] = LinearGradient(e, self)
+            self.update_gradient_texture()
 
         elif e.tag.endswith('radialGradient'):
             self.gradients[e.get('id')] = RadialGradient(e, self)
+            self.update_gradient_texture()
 
         elif e.tag.endswith('clipPath'):
             self.clip_path = clip_path = e.get('id')
@@ -1224,27 +1362,27 @@ cdef class Svg(RenderContext):
         cdef Mesh mesh
 
         cdef int count = <int>int(len(path) / 2.)
-        vertices = <float *>malloc(sizeof(float) * count * 8)
+        vertices = <float *>malloc(sizeof(float) * count * VERTEX_FORMAT.vbytesize)
         if vertices == NULL:
             return
         vindex = 0
 
         if isinstance(fill, str):
-            gradient = self.gradients[fill]
             for index in range(count):
                 x = path[index * 2]
                 y = path[index * 2 + 1]
-                r, g, b, a = gradient.interp(x, y)
+                gradient = self.gradient_shader_map[fill]
                 transform.transform(x, y, &x, &y)
                 vertices[vindex] = x
                 vertices[vindex + 1] = y
                 vertices[vindex + 2] = 0
                 vertices[vindex + 3] = 0
-                vertices[vindex + 4] = r
-                vertices[vindex + 5] = g
-                vertices[vindex + 6] = b
-                vertices[vindex + 7] = a
-                vindex += 8
+                vertices[vindex + 4] = 1
+                vertices[vindex + 5] = 1
+                vertices[vindex + 6] = 1
+                vertices[vindex + 7] = 1
+                vertices[vindex + 8] = gradient
+                vindex += VERTEX_FORMAT.vbytesize
         else:
             r, g, b, a = fill
             for index in range(count):
@@ -1259,7 +1397,7 @@ cdef class Svg(RenderContext):
                 vertices[vindex + 5] = g
                 vertices[vindex + 6] = b
                 vertices[vindex + 7] = a
-                vindex += 8
+                vindex += VERTEX_FORMAT.vbytesize
 
         self.push_strip_mesh(vertices, vindex, count)
         free(vertices)
@@ -1307,7 +1445,7 @@ cdef class Svg(RenderContext):
         cdef float *vertices = NULL
         vindex = 0
 
-        vertices = <float *>malloc(sizeof(float) * count * 32)
+        vertices = <float *>malloc(sizeof(float) * count * VERTEX_FORMAT.vbytesize * 4)
         if vertices == NULL:
             return
 
@@ -1348,8 +1486,7 @@ cdef class Svg(RenderContext):
             y3 = _by + sin2
 
             if isinstance(fill, str):
-                g = self.gradients[fill]
-                r, g, b, a = g.interp(ax, ay)
+                gradient_id = self.gradient_shader_map[fill]
 
             vertices[vindex + 2] = vertices[vindex + 10] = \
                 vertices[vindex + 18] = vertices[vindex + 26] = 0
@@ -1363,6 +1500,8 @@ cdef class Svg(RenderContext):
                 vertices[vindex + 22] = vertices[vindex + 30] = b
             vertices[vindex + 7] = vertices[vindex + 15] = \
                 vertices[vindex + 23] = vertices[vindex + 31] = a
+            vertices[vindex + 8] = vertices[vindex + 16] = \
+                vertices[vindex + 24] = vertices[vindex + 32] = a
 
             vertices[vindex + 0] = <float>x1
             vertices[vindex + 1] = <float>y1
@@ -1372,7 +1511,7 @@ cdef class Svg(RenderContext):
             vertices[vindex + 17] = <float>y2
             vertices[vindex + 24] = <float>x3
             vertices[vindex + 25] = <float>y3
-            vindex += 32
+            vindex += VERTEX_FORMAT.vbytesize
 
         # if self.closed:
         #     vindex = vcount - 4

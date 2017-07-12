@@ -28,6 +28,7 @@ cdef class Matrix:
     cdef matrix_t mat
     cdef void transform(self, float ox, float oy, float *x, float *y)
     cpdef Matrix inverse(self)
+    cpdef list to_floats(self)
 
 cdef class Svg(RenderContext):
     cdef public double width
@@ -48,6 +49,7 @@ cdef class Svg(RenderContext):
     cdef int bezier_points
     cdef int circle_points
     cdef public object gradients
+    cdef public object gradient_texture
     cdef dict clips
     cdef view.array bezier_coefficients
     cdef float anchor_x
@@ -59,7 +61,9 @@ cdef class Svg(RenderContext):
     cdef bint closed
     cdef float vbox_x, vbox_y, vbox_width, vbox_height
     cdef str _filename
+    cdef list images
     cdef str clip_path
+    cdef dict gradient_shader_map
 
     cdef void reload(self) except *
     cdef parse_tree(self, tree)
@@ -80,5 +84,7 @@ cdef class Svg(RenderContext):
     cdef void push_mesh(self, float[:] path, fill, Matrix transform, mode)
     cdef void push_strip_mesh(self, float *vertices, int vindex, int count,
                               int mode=*)
+    cdef void push_image(self, float x, float y, float w, float h, str source, Matrix transform)
     cdef void push_line_mesh(self, float[:] path, fill, Matrix transform, float width)
     cdef void render(self, object local_transform=?)
+    cdef update_gradient_texture(self)
