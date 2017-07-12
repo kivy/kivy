@@ -15,7 +15,7 @@ matrix:
         DOCKER=True
 
 before_install:
-  - echo $(PYTHONPATH);
+  - echo $PYTHONPATH;
   # https://github.com/travis-ci/travis-ci/issues/6307
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then rvm get head; fi
 
@@ -92,7 +92,7 @@ before_script:
   - if [ ${DOCKER} ]; then
       export DISPLAY=:99.0;
       /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX;
-      echo $(PYTHONPATH);
+      echo $PYTHONPATH;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
       export CC=clang;
