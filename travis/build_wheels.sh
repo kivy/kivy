@@ -1,18 +1,15 @@
 #!/bin/bash
 
+echo "====================== DOCKER BUILD STARTS ======================";
+echo "====================== AVAILABLE  PACKAGES ======================";
 yum list installed
-
-# ##
-# note: if it all works, just backup all required AND installed RPMs somewhere
-#
-# yum install -y yum-utils
-# mkdir backup && cd backup
-# yumdownloader --resolve <package>
-# ##
 
 # orig folder
 export ORIG_FOLD=$(pwd)
 echo $ORIG_FOLD
+
+
+echo "====================== DOWNLADING NEW ONES ======================";
 
 # add nux-desktop repo (for ffmpeg)
 rpm --import http://li.nux.ro/download/nux/RPM-GPG-KEY-nux.ro
@@ -155,14 +152,12 @@ yum -y install libass libass-devel autoconf automake bzip2 cmake freetype-devel 
 # # end SDL2
 
 PYTHONS="cp27-cp27mu cp34-cp34m cp35-cp35m cp36-cp36m"
-
-
 mkdir wheelhouse
-echo $(pwd)
+pwd
 ls $(pwd)/wheelhouse
 
-# Compile wheels
-echo "Building wheels:"
+
+echo "====================== BUILDING NEW WHEELS ======================";
 for PY in $PYTHONS; do
     rm -rf /io/Setup /io/build/
     PYBIN="/opt/python/${PY}/bin"
@@ -171,6 +166,8 @@ for PY in $PYTHONS; do
 done
 #--verbose
 
+
+echo "====================== INCLUDING LIBRARIES ======================";
 # we HAVE TO change the policy...
 # or compile everything (even Mesa) by hand on CentOS 5.x
 cp /io/travis/custom_policy.json /opt/_internal/cpython-3.6.0/lib/python3.6/site-packages/auditwheel/policy/policy.json
@@ -184,12 +181,107 @@ for whl in wheelhouse/Kivy-*.whl; do
     auditwheel repair "$whl" -w /io/wheelhouse/
 done
 
-# Install packages and test
-# note: --verbose shows nothing useful except some links to pypi
-# echo "Installing wheels:"
-# ls $(pwd)/wheelhouse
-# echo "------------------"
-# for PY in $PYTHONS; do
-    # PYBIN="/opt/python/${PY}/bin/"
-    # "${PYBIN}/pip" install "/io/wheelhouse/Kivy-1.10.1.dev0-${PY}-manylinux1_x86_64.whl"
-# done
+# Docker doesn't allow creating a video device / display, therefore we need
+# to test outside of the container i.e. on Ubuntu, which is even better,
+# because there is no pre-installed stuff necessary for building the wheels
+# + it's a check if the wheels work on other distro(s).
+
+
+echo "====================== BACKING UP PACKAGES ======================";
+# ##
+# note: if it all works, just backup all required AND installed RPMs somewhere
+# in case of another EOL until ported to newer OS.
+# ##
+yum install -y yum-utils
+mkdir backup && cd backup
+yumdownloader --destdir . --resolve \
+    cmake \
+    gcc \
+    gcc-c++ \
+    mesa-libGLU \
+    mesa-libGLU-devel \
+    mesa-libGL \
+    mesa-libGL-devel \
+    mesa-libGLES \
+    mesa-libGLES-devel \
+    python-devel \
+    dbus-devel \
+    xorg-x11-server-Xvfb \
+    libXext-devel \
+    libXrandr-devel \
+    libXcursor-devel \
+    libXinerama-devel \
+    libXxf86vm-devel \
+    libXScrnSaver-devel \
+    libsamplerate-devel \
+    libjpeg-devel \
+    libtiff-devel \
+    libX11-devel \
+    libXi-devel \
+    libtool \
+    libedit \
+    pulseaudio \
+    pulseaudio-devel \
+    swscale-devel \
+    avformat-devel \
+    avcodev-devel \
+    mtdev-devel \
+    esd0-devel \
+    udev-devel \
+    ibus-1.0-devel \
+    fcitx-libs \
+    ffmpeg \
+    ffmpeg-devel \
+    smpeg-devel \
+    gstreamer \
+    gstreamer-devel \
+    gstreamer-plugins-bad-free \
+    gstreamer-plugins-bad-free-devel \
+    gstreamer-plugins-base \
+    gstreamer-plugins-base-devel \
+    gstreamer-plugins-base-tools \
+    gstreamer-plugins-good \
+    gstreamer-plugins-good-devel \
+    gstreamer-python \
+    gstreamer-python-devel \
+    gstreamer-tools \
+    gstreamer1 \
+    gstreamer1-devel \
+    gstreamer1-plugins-bad-free \
+    gstreamer1-plugins-bad-free-devel \
+    gstreamer1-plugins-base \
+    gstreamer1-plugins-base-devel \
+    gstreamer1-plugins-base-tools \
+    gstreamer1-plugins-good \
+    gstreamer-plugins-good \
+    gstreamer \
+    gstreamer-python \
+    SDL2 \
+    SDL2 \
+    SDL2_image \
+    SDL2_image-devel \
+    SDL2_mixer \
+    SDL2_mixer-devel \
+    SDL2_ttf \
+    SDL2_ttf-devel \
+    libass \
+    libass-devel \
+    autoconf \
+    automake \
+    bzip2 \
+    freetype-devel \
+    git \
+    make \
+    mercurial \
+    pkgconfig \
+    zlib-devel \
+    enca-devel \
+    fontconfig-devel \
+    openssl \
+    openssl-devel
+
+# show downloaded RPMs + details
+ls -lah .
+
+
+echo "====================== DOCKER BUILD  ENDED ======================";
