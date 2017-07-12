@@ -623,12 +623,13 @@ class WindowBase(EventDispatcher):
 
     keyboard_anim_args = {'t': 'in_out_quart', 'd': .5}
     '''The attributes for animating softkeyboard/IME.
-    `t` = `transition`, `d` = `duration`. Will have no effect on desktops.
+    `t` = `transition`, `d` = `duration`. This value will have no effect on
+    desktops.
 
     .. versionadded:: 1.10.0
 
-    :attr:`keyboard_anim_args` is a dict with values
-    't': 'in_out_quart', 'd': `.5`.
+    :attr:`keyboard_anim_args` is a dict and defaults to
+    {'t': 'in_out_quart', 'd': `.5`}.
     '''
 
     keyboard_padding = NumericProperty(0)
