@@ -767,7 +767,7 @@ class WindowBase(EventDispatcher):
     .. versionadded:: 1.9.1
 
     :attr:`top` is an :class:`~kivy.properties.AliasProperty` and defaults to
-    position set in :class:`~kivy.config.Config`.
+    the position set in :class:`~kivy.config.Config`.
     '''
 
     left = AliasProperty(_get_left, _set_left)
@@ -781,7 +781,7 @@ class WindowBase(EventDispatcher):
     .. versionadded:: 1.9.1
 
     :attr:`left` is an :class:`~kivy.properties.AliasProperty` and defaults to
-    position set in :class:`~kivy.config.Config`.
+    the position set in :class:`~kivy.config.Config`.
     '''
 
     @property
@@ -1337,7 +1337,7 @@ class WindowBase(EventDispatcher):
                     w.center_y = value * height
 
     def screenshot(self, name='screenshot{:04d}.png'):
-        '''Save the actual displayed image in a file
+        '''Save the actual displayed image to a file.
         '''
         i = 0
         path = None
@@ -1357,7 +1357,7 @@ class WindowBase(EventDispatcher):
         pass
 
     def on_close(self, *largs):
-        '''Event called when the window is closed'''
+        '''Event called when the window is closed.'''
         Modules.unregister_window(self)
         EventLoop.remove_event_listener(self)
 
