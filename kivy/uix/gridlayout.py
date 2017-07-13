@@ -321,7 +321,7 @@ class GridLayout(Layout):
         for index, value in items:
             cols[index] = max(value, cols[index])
 
-        items = (i for i in self.rows_minimum.items() if i[0] < len(cols))
+        items = (i for i in self.rows_minimum.items() if i[0] < len(rows))
         for index, value in items:
             rows[index] = max(value, rows[index])
         return True
