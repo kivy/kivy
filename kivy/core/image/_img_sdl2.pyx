@@ -42,53 +42,58 @@ def save(filename, w, h, fmt, pixels, flipped):
 cdef load_from_surface(SDL_Surface *image):
     cdef SDL_Surface *image2 = NULL
     cdef SDL_Surface *fimage = NULL
-    cdef SDL_PixelFormat pf
+    cdef int want_rgba = 0, target_fmt = 0, n = 0
     cdef bytes pixels
 
+    if image == NULL:
+        Logger.warn('ImageSDL2: load_from_surface() with NULL surface')
+        return None
+
+    # SDL 2.0.5 now has endian-agnostic 32-bit pixel formats like RGB24,
+    # but we can't count on that yet (RGB24 is available since 2.0)
+    if SDL_BYTEORDER == SDL_BIG_ENDIAN:
+        want_rgba = SDL_PIXELFORMAT_RGBA8888
+    else:
+        want_rgba = SDL_PIXELFORMAT_ABGR8888
+
+    # Determine if we need pixel format conversion
+    if image.format.format == want_rgba:
+        fmt = 'rgba'
+    elif image.format.format == SDL_PIXELFORMAT_RGB24:
+        fmt = 'rgb'
+    elif image.format.Amask:
+        fmt = 'rgba'
+        target_fmt = want_rgba
+    elif image.format.palette != NULL:
+        # We want RGB24 here, and rgba only if the palette has alpha
+        fmt = 'rgba'
+        target_fmt = want_rgba
+# FIXME: ... but this breaks compile, "SDL_Color has no member unused"
+#        for n in xrange(0, image.format.palette.ncolors):
+#            if image.format.palette.colors[n].a < 0xFF:
+#                fmt = 'rgba'
+#                target_fmt = want_rgba
+#                break
+    else:
+        fmt = 'rgb'
+        target_fmt = SDL_PIXELFORMAT_RGB24
+
+    # Convert if needed, and return a copy of the raw pixel data
     try:
-        if image == NULL:
-            return None
-
-        fmt = ''
-        if image.format.BytesPerPixel == 3:
-            fmt = 'rgb'
-        elif image.format.BytesPerPixel == 4:
-            fmt = 'rgba'
-
-        # FIXME the format might be 3 or 4, but it doesn't mean it's rgb/rgba.
-        # It could be argb, bgra etc. it needs to be detected correctly. I guess
-        # we could even let the original pass, bgra / argb support exists in
-        # some opengl card.
-
-        if fmt not in ('rgb', 'rgba'):
-            if fmt == 'rgb':
-                pf.format = SDL_PIXELFORMAT_BGR888
-                fmt = 'rgb'
-            else:
-                pf.format = SDL_PIXELFORMAT_ABGR8888
-                fmt = 'rgba'
-
-            image2 = SDL_ConvertSurfaceFormat(image, pf.format, 0)
+        fimage = image
+        if target_fmt != 0:
+            image2 = SDL_ConvertSurfaceFormat(image, target_fmt, 0)
             if image2 == NULL:
-                return
-
-            fimage = image2
-        else:
-            if (image.format.Rshift > image.format.Bshift):
-                memset(&pf, 0, sizeof(pf))
-                pf.BitsPerPixel = 32
-                pf.Rmask = 0x000000FF
-                pf.Gmask = 0x0000FF00
-                pf.Bmask = 0x00FF0000
-                pf.Amask = 0xFF000000
-                image2 = SDL_ConvertSurface(image, &pf, 0)
-                fimage = image2
+                Logger.warn('ImageSDL2: error converting {} to {}: {}'.format(
+                        SDL_GetPixelFormatName(image.format.format), 
+                        SDL_GetPixelFormatName(target_fmt), 
+                        SDL_GetError()))
+                return None
             else:
-                fimage = image
+                fimage = image2
 
         pixels = (<char *>fimage.pixels)[:fimage.pitch * fimage.h]
         return (fimage.w, fimage.h, fmt, pixels, fimage.pitch)
-
     finally:
         if image2:
             SDL_FreeSurface(image2)

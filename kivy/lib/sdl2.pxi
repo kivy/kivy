@@ -3,7 +3,6 @@
 #Permission to use this file is granted under the conditions of the Ignifuga Game Engine License
 #whose terms are available in the LICENSE file or at http://www.ignifuga.org/license
 
-
 cdef extern from "SDL_joystick.h":
     cdef struct SDL_Joystick
     cdef int SDL_HAT_CENTERED = 0x00
@@ -29,9 +28,9 @@ cdef extern from "SDL.h":
     ctypedef enum:
         SDL_PIXELFORMAT_ARGB8888
         SDL_PIXELFORMAT_RGBA8888
-        SDL_PIXELFORMAT_RGB888
         SDL_PIXELFORMAT_ABGR8888
-        SDL_PIXELFORMAT_BGR888
+        SDL_PIXELFORMAT_RGB24
+        SDL_PIXELFORMAT_BGR24
 
     ctypedef enum SDL_GLattr:
         SDL_GL_RED_SIZE
@@ -602,6 +601,11 @@ cdef extern from "SDL.h":
     Uint16 AUDIO_F32LSB #0x8120  /**< 32-bit floating point samples */
     Uint16 AUDIO_F32MSB #0x9120  /**< As above, but big-endian byte order */
     Uint16 AUDIO_F32    #AUDIO_F32LSB
+
+    # Endianness
+    Uint16 SDL_BYTEORDER
+    Uint16 SDL_LIL_ENDIAN
+    Uint16 SDL_BIG_ENDIAN
 
 cdef extern from "SDL_shape.h":
     cdef SDL_Window * SDL_CreateShapedWindow(char *title, unsigned int x,
