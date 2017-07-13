@@ -193,19 +193,22 @@ echo "====================== CREATING LIB WHEELS ======================"
 for whl in /io/wheelhouse/Kivy-*.whl; do
     # prepare the content
     mkdir sdl2_whl
+    mkdir sdl2_whl/kivy
+    mkdir sdl2_whl/kivy/deps
+    mkdir sdl2_whl/kivy/deps/sdl2
     unzip "$whl" -d whl_tmp
 
     # SDL2 + image + mixer + ttf
-    cp whl_tmp/kivy/deps/libSDL2* sdl2_whl
+    cp whl_tmp/kivy/deps/libSDL2* sdl2_whl/kivy/deps/sdl2
 
     # SDL2 deps
-    cp whl_tmp/kivy/deps/libfreetype* sdl2_whl
-    cp whl_tmp/kivy/deps/libjbig* sdl2_whl
-    cp whl_tmp/kivy/deps/libjpeg* sdl2_whl
-    cp whl_tmp/kivy/deps/libpng* sdl2_whl
-    cp whl_tmp/kivy/deps/libtiff* sdl2_whl
-    cp whl_tmp/kivy/deps/libwebp* sdl2_whl
-    cp whl_tmp/kivy/deps/libz* sdl2_whl
+    cp whl_tmp/kivy/deps/libfreetype* sdl2_whl/kivy/deps/sdl2
+    cp whl_tmp/kivy/deps/libjbig* sdl2_whl/kivy/deps/sdl2
+    cp whl_tmp/kivy/deps/libjpeg* sdl2_whl/kivy/deps/sdl2
+    cp whl_tmp/kivy/deps/libpng* sdl2_whl/kivy/deps/sdl2
+    cp whl_tmp/kivy/deps/libtiff* sdl2_whl/kivy/deps/sdl2
+    cp whl_tmp/kivy/deps/libwebp* sdl2_whl/kivy/deps/sdl2
+    cp whl_tmp/kivy/deps/libz* sdl2_whl/kivy/deps/sdl2
 
     # remove folder
     rm -rf whl_tmp
