@@ -177,7 +177,7 @@ for whl in libless_wheelhouse/Kivy-*.whl; do
     echo "Show:"
     auditwheel show "$whl"
     echo "Repair:"
-    auditwheel repair "$whl" -w /io/wheelhouse/
+    auditwheel repair "$whl" -w /io/wheelhouse/ --lib-sdir "deps"
 done;
 
 ls -lah /io/wheelhouse
@@ -196,23 +196,23 @@ for whl in /io/wheelhouse/Kivy-*.whl; do
     unzip "$whl" -d whl_tmp
 
     # SDL2 + image + mixer + ttf
-    cp whl_tmp/kivy/.libs/libSDL2* sdl2_whl
+    cp whl_tmp/kivy/deps/libSDL2* sdl2_whl
 
     # SDL2 deps
-    cp whl_tmp/kivy/.libs/libfreetype* sdl2_whl
-    cp whl_tmp/kivy/.libs/libjbig* sdl2_whl
-    cp whl_tmp/kivy/.libs/libjpeg* sdl2_whl
-    cp whl_tmp/kivy/.libs/libpng* sdl2_whl
-    cp whl_tmp/kivy/.libs/libtiff* sdl2_whl
-    cp whl_tmp/kivy/.libs/libwebp* sdl2_whl
-    cp whl_tmp/kivy/.libs/libz* sdl2_whl
+    cp whl_tmp/kivy/deps/libfreetype* sdl2_whl
+    cp whl_tmp/kivy/deps/libjbig* sdl2_whl
+    cp whl_tmp/kivy/deps/libjpeg* sdl2_whl
+    cp whl_tmp/kivy/deps/libpng* sdl2_whl
+    cp whl_tmp/kivy/deps/libtiff* sdl2_whl
+    cp whl_tmp/kivy/deps/libwebp* sdl2_whl
+    cp whl_tmp/kivy/deps/libz* sdl2_whl
 
     # remove folder
     rm -rf whl_tmp
 
 
     # create setup.py
-    python "/io/travis/libs_wheel.py" "$(pwd)/sdl2_whl" "kivy.libs.sdl2" "zlib"
+    python "/io/travis/libs_wheel.py" "$(pwd)/sdl2_whl" "kivy.deps.sdl2" "zlib"
 
     # create wheels for each Python version
     for PY in $PYTHONS; do
@@ -223,13 +223,13 @@ for whl in /io/wheelhouse/Kivy-*.whl; do
 
     # remove specific libs from now Kivy + basic libs only wheel
     zip -d "$whl" \
-        kivy/.libs/libSDL2* kivy/.libs/libfreetype* kivy/.libs/libjbig* \
-        kivy/.libs/libjpeg* kivy/.libs/libpng* kivy/.libs/libz* \
-        kivy/.libs/libtiff* kivy/.libs/libwebp*
+        kivy/deps/libSDL2* kivy/deps/libfreetype* kivy/deps/libjbig* \
+        kivy/deps/libjpeg* kivy/deps/libpng* kivy/deps/libz* \
+        kivy/deps/libtiff* kivy/deps/libwebp*
 
     # remove GStreamer
     zip -d "$whl" \
-    kivy/.libs/libgmodule* kivy/.libs/libgstreamer*
+    kivy/deps/libgmodule* kivy/deps/libgstreamer*
 
     # clean folders
     rm -rf sdl2_whl

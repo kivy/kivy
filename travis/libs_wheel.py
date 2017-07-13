@@ -15,7 +15,7 @@ print(os.listdir(folder))
 
 
 with open(join(dirname(file), 'setup.py.tmpl')) as f:
-    with open(join(folder, 'setup.py', 'w')) as s:
+    with open(join(folder, 'setup.py'), 'w') as s:
         s.write(f.read().format(
             libs,
             name,
