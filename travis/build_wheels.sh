@@ -1,7 +1,7 @@
 #!/bin/bash
 
-echo "====================== DOCKER BUILD STARTS ======================";
-echo "====================== AVAILABLE  PACKAGES ======================";
+echo "====================== DOCKER BUILD STARTS ======================"
+echo "====================== AVAILABLE  PACKAGES ======================"
 yum list installed
 
 # orig folder
@@ -9,7 +9,7 @@ export ORIG_FOLD=$(pwd)
 echo $ORIG_FOLD
 
 
-echo "====================== DOWNLADING NEW ONES ======================";
+echo "====================== DOWNLADING NEW ONES ======================"
 
 # add nux-desktop repo (for ffmpeg)
 rpm --import http://li.nux.ro/download/nux/RPM-GPG-KEY-nux.ro
@@ -157,7 +157,7 @@ pwd
 ls $(pwd)/wheelhouse
 
 
-echo "====================== BUILDING NEW WHEELS ======================";
+echo "====================== BUILDING NEW WHEELS ======================"
 for PY in $PYTHONS; do
     rm -rf /io/Setup /io/build/
     PYBIN="/opt/python/${PY}/bin"
@@ -167,7 +167,7 @@ done
 #--verbose
 
 
-echo "====================== INCLUDING LIBRARIES ======================";
+echo "====================== INCLUDING LIBRARIES ======================"
 # we HAVE TO change the policy...
 # or compile everything (even Mesa) by hand on CentOS 5.x
 cp /io/travis/custom_policy.json /opt/_internal/cpython-3.6.0/lib/python3.6/site-packages/auditwheel/policy/policy.json
@@ -187,7 +187,57 @@ done
 # + it's a check if the wheels work on other distro(s).
 
 
-echo "====================== BACKING UP PACKAGES ======================";
+echo "====================== CREATING LIB WHEELS ======================"
+# Move some libs out of the .whl archive and put them into separate wheels
+for whl in wheelhouse/Kivy-*.whl; do
+    # prepare the content
+    mkdir sdl2_whl
+    unzip "$whl" -d whl_tmp
+
+    # SDL2 + image + mixer + ttf
+    cp whl_tmp/kivy/.libs/libSDL2* sdl2_whl
+
+    # SDL2 deps
+    cp whl_tmp/kivy/.libs/libfreetype* sdl2_whl
+    cp whl_tmp/kivy/.libs/libjbig* sdl2_whl
+    cp whl_tmp/kivy/.libs/libjpeg* sdl2_whl
+    cp whl_tmp/kivy/.libs/libpng* sdl2_whl
+    cp whl_tmp/kivy/.libs/libtiff* sdl2_whl
+    cp whl_tmp/kivy/.libs/libwebp* sdl2_whl
+    cp whl_tmp/kivy/.libs/libz* sdl2_whl
+
+    # remove folder
+    rm -rf whl_tmp
+
+
+    # create setup.py
+    python "/io/travis/libs_wheel.py" "$(pwd)/sdl2_whl" "kivy.libs.sdl2" "zlib"
+
+    # create wheels for each Python version
+    for PY in $PYTHONS; do
+        PYBIN="/opt/python/${PY}/bin"
+        "${PYBIN}/pip" wheel sdl2_whl --wheel-dir wheelhouse/
+    done
+
+
+    # remove specific libs from now Kivy + basic libs only wheel
+    zip -d "$whl" \
+        kivy/.libs/libSDL2-2.0.so.0 kivy/.libs/libSDL2_image-2.0.so.0 \
+        kivy/.libs/libSDL2_mixer-2.0.so.0 kivy/.libs/libSDL2_ttf-2.0.so.0 \
+        kivy/.libs/libfreetype.so.6 kivy/.libs/libjbig.so.2.0 \
+        kivy/.libs/libjpeg.so.62 kivy/.libs/libpng15.so.15 \
+        kivy/.libs/libz.so.1 kivy/.libs/libtiff.so.5 kivy/.libs/libwebp.so.4
+
+    # remove GStreamer
+    zip -d "$whl" \
+    kivy/.libs/libgmodule-2.0.so.0 kivy/.libs/libgstreamer-1.0.so.0
+
+    # clean folders
+    rm -rf sdl2_whl
+done
+
+
+echo "====================== BACKING UP PACKAGES ======================"
 # ##
 # note: if it all works, just backup all required AND installed RPMs somewhere
 # in case of another EOL until ported to newer OS.
@@ -284,4 +334,4 @@ yumdownloader --destdir . --resolve \
 ls -lah .
 
 
-echo "====================== DOCKER BUILD  ENDED ======================";
+echo "====================== DOCKER BUILD  ENDED ======================"
