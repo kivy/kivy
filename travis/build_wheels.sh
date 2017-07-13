@@ -221,7 +221,7 @@ for whl in /io/wheelhouse/Kivy-*.whl; do
     # create wheels for each Python version
     for PY in $PYTHONS; do
         PYBIN="/opt/python/${PY}/bin"
-        "${PYBIN}/pip" wheel sdl2_whl --wheel-dir /io/wheelhouse/
+        "${PYBIN}/pip" wheel sdl2_whl/. --wheel-dir /io/wheelhouse/ --verbose
     done;
 
     # remove specific libs from now Kivy + basic libs only wheel
