@@ -65,15 +65,13 @@ cdef load_from_surface(SDL_Surface *image):
         fmt = 'rgba'
         target_fmt = want_rgba
     elif image.format.palette != NULL:
-        # We want RGB24 here, and rgba only if the palette has alpha
-        fmt = 'rgba'
-        target_fmt = want_rgba
-# FIXME: ... but this breaks compile, "SDL_Color has no member unused"
-#        for n in xrange(0, image.format.palette.ncolors):
-#            if image.format.palette.colors[n].a < 0xFF:
-#                fmt = 'rgba'
-#                target_fmt = want_rgba
-#                break
+        fmt = 'rgb'
+        target_fmt = SDL_PIXELFORMAT_RGB24
+        for n in xrange(0, image.format.palette.ncolors):
+            if image.format.palette.colors[n].a < 0xFF:
+                fmt = 'rgba'
+                target_fmt = want_rgba
+                break
     else:
         fmt = 'rgb'
         target_fmt = SDL_PIXELFORMAT_RGB24

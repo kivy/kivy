@@ -88,7 +88,7 @@ cdef extern from "SDL.h":
         Uint8 r
         Uint8 g
         Uint8 b
-        Uint8 unused
+        Uint8 a
 
     cdef struct SDL_Palette:
         int ncolors
