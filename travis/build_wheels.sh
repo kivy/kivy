@@ -152,9 +152,7 @@ yum -y install libass libass-devel autoconf automake bzip2 cmake freetype-devel 
 # # end SDL2
 
 PYTHONS="cp27-cp27mu cp34-cp34m cp35-cp35m cp36-cp36m"
-mkdir wheelhouse
-pwd
-ls $(pwd)/wheelhouse
+mkdir libless_wheelhouse
 
 
 echo "====================== BUILDING NEW WHEELS ======================"
@@ -162,10 +160,10 @@ for PY in $PYTHONS; do
     rm -rf /io/Setup /io/build/
     PYBIN="/opt/python/${PY}/bin"
     "${PYBIN}/pip" install --upgrade cython nose
-    "${PYBIN}/pip" wheel /io/ --wheel-dir wheelhouse/
-done
-#--verbose
-# "wheelhouse/" != "/io/wheelhouse", the IO folder contains repaired wheels!
+    "${PYBIN}/pip" wheel /io/ --wheel-dir libless_wheelhouse
+done;
+
+ls -lah libless_wheelhouse
 
 
 echo "====================== INCLUDING LIBRARIES ======================"
@@ -175,12 +173,14 @@ cp /io/travis/custom_policy.json /opt/_internal/cpython-3.6.0/lib/python3.6/site
 
 # Bundle external shared libraries into the wheels
 # repair only Kivy wheel (pure py wheels such as Kivy_Garden kill the build)
-for whl in wheelhouse/Kivy-*.whl; do
+for whl in libless_wheelhouse/Kivy-*.whl; do
     echo "Show:"
     auditwheel show "$whl"
     echo "Repair:"
     auditwheel repair "$whl" -w /io/wheelhouse/
-done
+done;
+
+ls -lah /io/wheelhouse
 
 # Docker doesn't allow creating a video device / display, therefore we need
 # to test outside of the container i.e. on Ubuntu, which is even better,
@@ -218,24 +218,24 @@ for whl in /io/wheelhouse/Kivy-*.whl; do
     for PY in $PYTHONS; do
         PYBIN="/opt/python/${PY}/bin"
         "${PYBIN}/pip" wheel sdl2_whl --wheel-dir /io/wheelhouse/
-    done
+    done;
 
 
     # remove specific libs from now Kivy + basic libs only wheel
     zip -d "$whl" \
-        kivy/.libs/libSDL2-2.0.so.0 kivy/.libs/libSDL2_image-2.0.so.0 \
-        kivy/.libs/libSDL2_mixer-2.0.so.0 kivy/.libs/libSDL2_ttf-2.0.so.0 \
-        kivy/.libs/libfreetype.so.6 kivy/.libs/libjbig.so.2.0 \
-        kivy/.libs/libjpeg.so.62 kivy/.libs/libpng15.so.15 \
-        kivy/.libs/libz.so.1 kivy/.libs/libtiff.so.5 kivy/.libs/libwebp.so.4
+        kivy/.libs/libSDL2* kivy/.libs/libfreetype* kivy/.libs/libjbig* \
+        kivy/.libs/libjpeg* kivy/.libs/libpng* kivy/.libs/libz* \
+        kivy/.libs/libtiff* kivy/.libs/libwebp*
 
     # remove GStreamer
     zip -d "$whl" \
-    kivy/.libs/libgmodule-2.0.so.0 kivy/.libs/libgstreamer-1.0.so.0
+    kivy/.libs/libgmodule* kivy/.libs/libgstreamer*
 
     # clean folders
     rm -rf sdl2_whl
-done
+done;
+
+ls -lah /io/wheelhouse
 
 
 echo "====================== BACKING UP PACKAGES ======================"
@@ -244,7 +244,7 @@ echo "====================== BACKING UP PACKAGES ======================"
 # in case of another EOL until ported to newer OS.
 # ##
 yum install -y yum-utils
-mkdir backup && cd backup
+mkdir backup && pushd backup
 yumdownloader --destdir . --resolve \
     cmake \
     gcc \
@@ -333,6 +333,7 @@ yumdownloader --destdir . --resolve \
 
 # show downloaded RPMs + details
 ls -lah .
+popd
 
 
 echo "====================== DOCKER BUILD  ENDED ======================"
