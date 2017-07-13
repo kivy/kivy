@@ -5,15 +5,17 @@ from os.path import join, dirname
 
 version = "0.0.1"
 file, folder, name, license = sys.argv
-libs = ',\n'.join([p for p in os.listdir(join(folder, 'deps')) if '.so' in p])
+libs = ',\n'.join([
+    p for p in os.listdir(join(folder, 'kivy', 'deps')) if '.so' in p
+])
 
 
 print('dirname:', dirname(file))
 print(os.listdir(dirname(file)))
 print('folder:', folder)
 print(os.listdir(folder))
-print('deps:', folder)
-print(os.listdir(join(folder, 'deps')))
+print('deps:', join(folder, 'kivy', 'deps'))
+print(os.listdir(join(folder, 'kivy', 'deps')))
 
 
 with open(join(dirname(file), 'setup.py.tmpl')) as f:
@@ -31,5 +33,5 @@ print('dirname:', dirname(file))
 print(os.listdir(dirname(file)))
 print('folder:', folder)
 print(os.listdir(folder))
-print('deps:', folder)
-print(os.listdir(join(folder, 'deps')))
+print('deps:', join(folder, 'kivy', 'deps'))
+print(os.listdir(join(folder, 'kivy', 'deps')))

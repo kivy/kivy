@@ -219,13 +219,10 @@ for whl in /io/wheelhouse/Kivy-*.whl; do
     python "/io/travis/libs_wheel.py" "$(pwd)/sdl2_whl" "kivy.deps.sdl2" "zlib"
 
     # create wheels for each Python version
-    pushd sdl2_whl
     for PY in $PYTHONS; do
         PYBIN="/opt/python/${PY}/bin"
-        "${PYBIN}/pip" wheel . --wheel-dir /io/wheelhouse/
+        "${PYBIN}/pip" wheel sdl2_whl --wheel-dir /io/wheelhouse/
     done;
-
-    popd
 
     # remove specific libs from now Kivy + basic libs only wheel
     zip -d "$whl" \
