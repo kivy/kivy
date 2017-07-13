@@ -196,19 +196,20 @@ for whl in /io/wheelhouse/Kivy-*.whl; do
     mkdir sdl2_whl/kivy
     mkdir sdl2_whl/kivy/deps
     mkdir sdl2_whl/kivy/deps/sdl2
+    touch sdl2_whl/kivy/deps/sdl2/__init__.py
     unzip "$whl" -d whl_tmp
 
     # SDL2 + image + mixer + ttf
-    cp whl_tmp/kivy/deps/libSDL2* sdl2_whl/kivy/deps/sdl2
+    cp whl_tmp/kivy/deps/libSDL2* sdl2_whl/kivy/deps
 
     # SDL2 deps
-    cp whl_tmp/kivy/deps/libfreetype* sdl2_whl/kivy/deps/sdl2
-    cp whl_tmp/kivy/deps/libjbig* sdl2_whl/kivy/deps/sdl2
-    cp whl_tmp/kivy/deps/libjpeg* sdl2_whl/kivy/deps/sdl2
-    cp whl_tmp/kivy/deps/libpng* sdl2_whl/kivy/deps/sdl2
-    cp whl_tmp/kivy/deps/libtiff* sdl2_whl/kivy/deps/sdl2
-    cp whl_tmp/kivy/deps/libwebp* sdl2_whl/kivy/deps/sdl2
-    cp whl_tmp/kivy/deps/libz* sdl2_whl/kivy/deps/sdl2
+    cp whl_tmp/kivy/deps/libfreetype* sdl2_whl/kivy/deps
+    cp whl_tmp/kivy/deps/libjbig* sdl2_whl/kivy/deps
+    cp whl_tmp/kivy/deps/libjpeg* sdl2_whl/kivy/deps
+    cp whl_tmp/kivy/deps/libpng* sdl2_whl/kivy/deps
+    cp whl_tmp/kivy/deps/libtiff* sdl2_whl/kivy/deps
+    cp whl_tmp/kivy/deps/libwebp* sdl2_whl/kivy/deps
+    cp whl_tmp/kivy/deps/libz* sdl2_whl/kivy/deps
 
     # remove folder
     rm -rf whl_tmp
