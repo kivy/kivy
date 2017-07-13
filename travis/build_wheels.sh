@@ -165,6 +165,7 @@ for PY in $PYTHONS; do
     "${PYBIN}/pip" wheel /io/ --wheel-dir wheelhouse/
 done
 #--verbose
+# "wheelhouse/" != "/io/wheelhouse", the IO folder contains repaired wheels!
 
 
 echo "====================== INCLUDING LIBRARIES ======================"
@@ -189,7 +190,7 @@ done
 
 echo "====================== CREATING LIB WHEELS ======================"
 # Move some libs out of the .whl archive and put them into separate wheels
-for whl in wheelhouse/Kivy-*.whl; do
+for whl in /io/wheelhouse/Kivy-*.whl; do
     # prepare the content
     mkdir sdl2_whl
     unzip "$whl" -d whl_tmp
@@ -216,7 +217,7 @@ for whl in wheelhouse/Kivy-*.whl; do
     # create wheels for each Python version
     for PY in $PYTHONS; do
         PYBIN="/opt/python/${PY}/bin"
-        "${PYBIN}/pip" wheel sdl2_whl --wheel-dir wheelhouse/
+        "${PYBIN}/pip" wheel sdl2_whl --wheel-dir /io/wheelhouse/
     done
 
 
