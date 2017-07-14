@@ -60,7 +60,6 @@ yum install -y \
     gstreamer1-devel \
     gstreamer1-plugins-base \
     gstreamer1-plugins-base-devel \
-    SDL2 \
     SDL2_image \
     SDL2_image-devel \
     SDL2_mixer \
@@ -68,6 +67,8 @@ yum install -y \
     SDL2_ttf \
     SDL2_ttf-devel \
     # maybe for future use
+    # SDL2 \
+    # SDL2-devel \
     # SDL2_net \
     # SDL2_net-devel \
 
@@ -78,24 +79,28 @@ yum -y install libass libass-devel autoconf automake bzip2 cmake freetype-devel 
 
 
 # # Make SDL2 packages
-# SDL="SDL2-2.0.5"
+SDL="SDL2-2.0.5"
 # TTF="SDL_ttf-2.0.14"
 # MIX="SDL_mixer-2.0.1"
 # IMG="SDL_image-2.0.1"
-# curl -sL https://www.libsdl.org/release/${SDL}.tar.gz > ${SDL}.tar.gz
+curl -sL https://www.libsdl.org/release/${SDL}.tar.gz > ${SDL}.tar.gz
 # curl -sL https://www.libsdl.org/projects/SDL_image/release/${IMG}.tar.gz > ${IMG}.tar.gz
 # curl -sL https://www.libsdl.org/projects/SDL_ttf/release/${TTF}.tar.gz > ${TTF}.tar.gz
 # curl -sL https://www.libsdl.org/projects/SDL_mixer/release/${MIX}.tar.gz > ${MIX}.tar.gz
 
-# # SDL2
-# tar xzf ${SDL}.tar.gz
-# cd $SDL
-# ./configure
-# # --enable-png --disable-png-shared --enable-jpg --disable-jpg-shared
-# make
-# make install
-# export KIVY_SDL2_PATH=$PWD
-# cd ..
+# SDL2
+tar xzf ${SDL}.tar.gz
+pushd $SDL
+# https://anonscm.debian.org/cgit/pkg-sdl/packages/libsdl2.git/tree/debian/rules
+./configure --disable-rpath --enable-sdl-dlopen --disable-loadso \
+            --disable-nas --disable-esd --disable-arts \
+            --disable-alsa-shared --disable-pulseaudio-shared \
+            --enable-ibus \
+            --disable-x11-shared --disable-video-directfb \
+            --enable-video-opengles --disable-video-wayland
+make -j4
+make install
+popd
 
 # # SDL image
 # tar xzf ${IMG}.tar.gz
@@ -300,6 +305,7 @@ ls -lah /io/wheelhouse
     # gstreamer1-plugins-base \
     # gstreamer1-plugins-base-devel \
     # SDL2 \
+    # SDL2-devel \
     # SDL2_image \
     # SDL2_image-devel \
     # SDL2_mixer \
