@@ -145,6 +145,12 @@ after_success:
       echo -e "Host 159.203.106.198\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
       rsync --delete --force -r -e "ssh -p 2457" ./doc/build/html/ root@159.203.106.198:/web/docs/;
     fi;
+  - if [ "${DOCKER}" ]; then
+      openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
+      chmod 600 ~/.ssh/id_rsa;
+      echo -e "Host 159.203.106.198\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
+      rsync -avh -e "ssh -p 2457" ./wheelhouse/ root@159.203.106.198:/web/downloads/travis/kivy;
+    fi;
 
 notifications:
   webhooks:
