@@ -5,12 +5,6 @@ matrix:
       services:
         - docker
       env:
-        BITNESS=32
-        DOCKER=True
-    - sudo: required
-      services:
-        - docker
-      env:
         BITNESS=64
         DOCKER=True
 
@@ -25,7 +19,7 @@ install:
       docker run -td -p 80:80 --name=co7_32 co7_32:httpdv1.0;
       docker ps;
       cd ..;
-      pip install --upgrade nose;
+      pip install --upgrade mock nose;
     fi;
   - if [ ${DOCKER} ] && [ "${BITNESS}" == "64" ]; then
       cd ./docker;
@@ -33,7 +27,7 @@ install:
       docker run -td -p 80:80 --name=co7_64 co7_64:httpdv1.0;
       docker ps;
       cd ..;
-      pip install --upgrade nose;
+      pip install --upgrade mock nose;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ ! ${DOCKER} ]; then
       if [ "${RUN}" != "pep8" ]; then
@@ -144,6 +138,12 @@ after_success:
       chmod 600 ~/.ssh/id_rsa;
       echo -e "Host 159.203.106.198\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
       rsync --delete --force -r -e "ssh -p 2457" ./doc/build/html/ root@159.203.106.198:/web/docs/;
+    fi;
+  - if [ "${DOCKER}" ]; then
+      openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
+      chmod 600 ~/.ssh/id_rsa;
+      echo -e "Host 159.203.106.198\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
+      rsync -avh -e "ssh -p 2457" ./wheelhouse/ root@159.203.106.198:/web/downloads/travis/kivy;
     fi;
 
 notifications:

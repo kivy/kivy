@@ -1,15 +1,11 @@
 #!/bin/bash
 
-echo "====================== DOCKER BUILD STARTS ======================";
-echo "====================== AVAILABLE  PACKAGES ======================";
+echo "====================== DOCKER BUILD STARTS ======================"
+echo "====================== AVAILABLE  PACKAGES ======================"
 yum list installed
 
-# orig folder
-export ORIG_FOLD=$(pwd)
-echo $ORIG_FOLD
 
-
-echo "====================== DOWNLADING NEW ONES ======================";
+echo "====================== DOWNLADING NEW ONES ======================"
 
 # add nux-desktop repo (for ffmpeg)
 rpm --import http://li.nux.ro/download/nux/RPM-GPG-KEY-nux.ro
@@ -61,30 +57,9 @@ yum install -y \
     ffmpeg \
     ffmpeg-devel \
     smpeg-devel \
-    gstreamer \
-    gstreamer-devel \
-    gstreamer-plugins-bad-free \
-    gstreamer-plugins-bad-free-devel \
-    gstreamer-plugins-base \
-    gstreamer-plugins-base-devel \
-    gstreamer-plugins-base-tools \
-    gstreamer-plugins-good \
-    gstreamer-plugins-good-devel \
-    gstreamer-python \
-    gstreamer-python-devel \
-    gstreamer-tools \
-    gstreamer1 \
     gstreamer1-devel \
-    gstreamer1-plugins-bad-free \
-    gstreamer1-plugins-bad-free-devel \
     gstreamer1-plugins-base \
     gstreamer1-plugins-base-devel \
-    gstreamer1-plugins-base-tools \
-    gstreamer1-plugins-good \
-    gstreamer-plugins-good \
-    gstreamer \
-    gstreamer-python \
-    SDL2 \
     SDL2 \
     SDL2_image \
     SDL2_image-devel \
@@ -95,6 +70,8 @@ yum install -y \
     # maybe for future use
     # SDL2_net \
     # SDL2_net-devel \
+
+# gstreamer1.0-alsa is in gstreamer1-plugins-base
 
 # https://hg.libsdl.org/SDL/file/default/docs/README-linux.md#l18
 yum -y install libass libass-devel autoconf automake bzip2 cmake freetype-devel gcc gcc-c++ git libtool make mercurial pkgconfig zlib-devel enca-devel fontconfig-devel openssl openssl-devel
@@ -152,34 +129,35 @@ yum -y install libass libass-devel autoconf automake bzip2 cmake freetype-devel 
 # # end SDL2
 
 PYTHONS="cp27-cp27mu cp34-cp34m cp35-cp35m cp36-cp36m"
-mkdir wheelhouse
-pwd
-ls $(pwd)/wheelhouse
+mkdir libless_wheelhouse
 
 
-echo "====================== BUILDING NEW WHEELS ======================";
+echo "====================== BUILDING NEW WHEELS ======================"
 for PY in $PYTHONS; do
     rm -rf /io/Setup /io/build/
     PYBIN="/opt/python/${PY}/bin"
     "${PYBIN}/pip" install --upgrade cython nose
-    "${PYBIN}/pip" wheel /io/ --wheel-dir wheelhouse/
-done
-#--verbose
+    "${PYBIN}/pip" wheel /io/ --wheel-dir libless_wheelhouse
+done;
+
+ls -lah libless_wheelhouse
 
 
-echo "====================== INCLUDING LIBRARIES ======================";
+echo "====================== INCLUDING LIBRARIES ======================"
 # we HAVE TO change the policy...
 # or compile everything (even Mesa) by hand on CentOS 5.x
 cp /io/travis/custom_policy.json /opt/_internal/cpython-3.6.0/lib/python3.6/site-packages/auditwheel/policy/policy.json
 
 # Bundle external shared libraries into the wheels
 # repair only Kivy wheel (pure py wheels such as Kivy_Garden kill the build)
-for whl in wheelhouse/Kivy-*.whl; do
+for whl in libless_wheelhouse/Kivy-*.whl; do
     echo "Show:"
     auditwheel show "$whl"
     echo "Repair:"
-    auditwheel repair "$whl" -w /io/wheelhouse/
-done
+    auditwheel repair "$whl" -w /io/wheelhouse/ --lib-sdir "deps"
+done;
+
+ls -lah /io/wheelhouse
 
 # Docker doesn't allow creating a video device / display, therefore we need
 # to test outside of the container i.e. on Ubuntu, which is even better,
@@ -187,101 +165,166 @@ done
 # + it's a check if the wheels work on other distro(s).
 
 
-echo "====================== BACKING UP PACKAGES ======================";
-# ##
-# note: if it all works, just backup all required AND installed RPMs somewhere
-# in case of another EOL until ported to newer OS.
-# ##
-yum install -y yum-utils
-mkdir backup && cd backup
-yumdownloader --destdir . --resolve \
-    cmake \
-    gcc \
-    gcc-c++ \
-    mesa-libGLU \
-    mesa-libGLU-devel \
-    mesa-libGL \
-    mesa-libGL-devel \
-    mesa-libGLES \
-    mesa-libGLES-devel \
-    python-devel \
-    dbus-devel \
-    xorg-x11-server-Xvfb \
-    libXext-devel \
-    libXrandr-devel \
-    libXcursor-devel \
-    libXinerama-devel \
-    libXxf86vm-devel \
-    libXScrnSaver-devel \
-    libsamplerate-devel \
-    libjpeg-devel \
-    libtiff-devel \
-    libX11-devel \
-    libXi-devel \
-    libtool \
-    libedit \
-    pulseaudio \
-    pulseaudio-devel \
-    swscale-devel \
-    avformat-devel \
-    avcodev-devel \
-    mtdev-devel \
-    esd0-devel \
-    udev-devel \
-    ibus-1.0-devel \
-    fcitx-libs \
-    ffmpeg \
-    ffmpeg-devel \
-    smpeg-devel \
-    gstreamer \
-    gstreamer-devel \
-    gstreamer-plugins-bad-free \
-    gstreamer-plugins-bad-free-devel \
-    gstreamer-plugins-base \
-    gstreamer-plugins-base-devel \
-    gstreamer-plugins-base-tools \
-    gstreamer-plugins-good \
-    gstreamer-plugins-good-devel \
-    gstreamer-python \
-    gstreamer-python-devel \
-    gstreamer-tools \
-    gstreamer1 \
-    gstreamer1-devel \
-    gstreamer1-plugins-bad-free \
-    gstreamer1-plugins-bad-free-devel \
-    gstreamer1-plugins-base \
-    gstreamer1-plugins-base-devel \
-    gstreamer1-plugins-base-tools \
-    gstreamer1-plugins-good \
-    gstreamer-plugins-good \
-    gstreamer \
-    gstreamer-python \
-    SDL2 \
-    SDL2 \
-    SDL2_image \
-    SDL2_image-devel \
-    SDL2_mixer \
-    SDL2_mixer-devel \
-    SDL2_ttf \
-    SDL2_ttf-devel \
-    libass \
-    libass-devel \
-    autoconf \
-    automake \
-    bzip2 \
-    freetype-devel \
-    git \
-    make \
-    mercurial \
-    pkgconfig \
-    zlib-devel \
-    enca-devel \
-    fontconfig-devel \
-    openssl \
-    openssl-devel
-
-# show downloaded RPMs + details
-ls -lah .
+echo "====================== CREATING LIB WHEELS ======================"
+# Move some libs out of the .whl archive and put them into separate wheels
+for whl in /io/wheelhouse/Kivy-*.whl; do
+    # prepare the content
+    unzip "$whl" -d whl_tmp
 
 
-echo "====================== DOCKER BUILD  ENDED ======================";
+    # SDL2 folder
+    mkdir sdl2_whl
+    mkdir sdl2_whl/kivy
+    mkdir sdl2_whl/kivy/deps
+    mkdir sdl2_whl/kivy/deps/sdl2
+    touch sdl2_whl/kivy/deps/sdl2/__init__.py
+
+    # SDL2 + image + mixer + ttf
+    cp whl_tmp/kivy/deps/libSDL2* sdl2_whl/kivy/deps
+
+    # SDL2 deps
+    cp whl_tmp/kivy/deps/libfreetype* sdl2_whl/kivy/deps
+    cp whl_tmp/kivy/deps/libjbig* sdl2_whl/kivy/deps
+    cp whl_tmp/kivy/deps/libjpeg* sdl2_whl/kivy/deps
+    cp whl_tmp/kivy/deps/libpng* sdl2_whl/kivy/deps
+    cp whl_tmp/kivy/deps/libtiff* sdl2_whl/kivy/deps
+    cp whl_tmp/kivy/deps/libwebp* sdl2_whl/kivy/deps
+    cp whl_tmp/kivy/deps/libz* sdl2_whl/kivy/deps
+
+
+    # GStreamer folder
+    mkdir gstreamer_whl
+    mkdir gstreamer_whl/kivy
+    mkdir gstreamer_whl/kivy/deps
+    mkdir gstreamer_whl/kivy/deps/gstreamer
+    touch gstreamer_whl/kivy/deps/gstreamer/__init__.py
+
+    # GStreamer
+    cp whl_tmp/kivy/deps/libgmodule* gstreamer_whl/kivy/deps
+    cp whl_tmp/kivy/deps/libgst* gstreamer_whl/kivy/deps
+
+    # remove folder
+    rm -rf whl_tmp
+
+
+    # create setup.py
+    python "/io/travis/libs_wheel.py" "$(pwd)/sdl2_whl" "kivy.deps.sdl2" "zlib"
+    python "/io/travis/libs_wheel.py" "$(pwd)/gstreamer_whl" "kivy.deps.gstreamer" "LGPL"
+
+    # create wheels for each Python version
+    pushd sdl2_whl
+
+    for PY in $PYTHONS; do
+        PYBIN="/opt/python/${PY}/bin"
+        "${PYBIN}/python" setup.py bdist_wheel -d /io/wheelhouse/
+    done;
+
+    popd
+
+    # create wheels for each Python version
+    pushd gstreamer_whl
+
+    for PY in $PYTHONS; do
+        PYBIN="/opt/python/${PY}/bin"
+        "${PYBIN}/python" setup.py bdist_wheel -d /io/wheelhouse/
+    done;
+
+    popd
+
+    # remove specific libs from now Kivy + basic libs only wheel
+    # remove SDL2
+    zip -d "$whl" \
+        kivy/deps/libSDL2* kivy/deps/libfreetype* kivy/deps/libjbig* \
+        kivy/deps/libjpeg* kivy/deps/libpng* kivy/deps/libz* \
+        kivy/deps/libtiff* kivy/deps/libwebp*
+
+    # remove GStreamer
+    zip -d "$whl" \
+    kivy/deps/libgmodule* kivy/deps/libgstreamer*
+
+    # clean folders
+    rm -rf sdl2_whl
+    rm -rf gstreamer_whl
+done;
+
+ls -lah /io/wheelhouse
+
+
+# echo "====================== BACKING UP PACKAGES ======================"
+# # ##
+# # note: if it all works, just backup all required AND installed RPMs somewhere
+# # in case of another EOL until ported to newer OS.
+# # ##
+# yum install -y yum-utils
+# mkdir backup && pushd backup
+# yumdownloader --destdir . --resolve \
+    # cmake \
+    # gcc \
+    # gcc-c++ \
+    # mesa-libGLU \
+    # mesa-libGLU-devel \
+    # mesa-libGL \
+    # mesa-libGL-devel \
+    # mesa-libGLES \
+    # mesa-libGLES-devel \
+    # python-devel \
+    # dbus-devel \
+    # xorg-x11-server-Xvfb \
+    # libXext-devel \
+    # libXrandr-devel \
+    # libXcursor-devel \
+    # libXinerama-devel \
+    # libXxf86vm-devel \
+    # libXScrnSaver-devel \
+    # libsamplerate-devel \
+    # libjpeg-devel \
+    # libtiff-devel \
+    # libX11-devel \
+    # libXi-devel \
+    # libtool \
+    # libedit \
+    # pulseaudio \
+    # pulseaudio-devel \
+    # swscale-devel \
+    # avformat-devel \
+    # avcodev-devel \
+    # mtdev-devel \
+    # esd0-devel \
+    # udev-devel \
+    # ibus-1.0-devel \
+    # fcitx-libs \
+    # ffmpeg \
+    # ffmpeg-devel \
+    # smpeg-devel \
+    # gstreamer1-devel \
+    # gstreamer1-plugins-base \
+    # gstreamer1-plugins-base-devel \
+    # SDL2 \
+    # SDL2_image \
+    # SDL2_image-devel \
+    # SDL2_mixer \
+    # SDL2_mixer-devel \
+    # SDL2_ttf \
+    # SDL2_ttf-devel \
+    # libass \
+    # libass-devel \
+    # autoconf \
+    # automake \
+    # bzip2 \
+    # freetype-devel \
+    # git \
+    # make \
+    # mercurial \
+    # pkgconfig \
+    # zlib-devel \
+    # enca-devel \
+    # fontconfig-devel \
+    # openssl \
+    # openssl-devel
+
+# # show downloaded RPMs + details
+# ls -lah .
+# popd
+
+
+echo "====================== DOCKER BUILD  ENDED ======================"

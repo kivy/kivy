@@ -1,0 +1,29 @@
+import os
+from setuptools import setup
+from setuptools.dist import Distribution
+
+
+class BinaryDistribution(Distribution):
+    def is_pure(self):
+        return False
+    def has_ext_modules(self):
+        return True
+
+
+data = (
+    {}
+)
+
+
+setup(
+    name='{}',
+    version='{}',
+    author='Kivy Crew',
+    author_email='kivy-dev@googlegroups.com',
+    description='Repackaged binary dependency of Kivy.',
+    url='http://kivy.org/',
+    license='{}',
+    distclass=BinaryDistribution,
+    packages=['{}', 'kivy.deps'],
+    package_data=data
+)
