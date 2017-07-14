@@ -4,10 +4,6 @@ echo "====================== DOCKER BUILD STARTS ======================"
 echo "====================== AVAILABLE  PACKAGES ======================"
 yum list installed
 
-# orig folder
-export ORIG_FOLD=$(pwd)
-echo $ORIG_FOLD
-
 
 echo "====================== DOWNLADING NEW ONES ======================"
 
@@ -220,7 +216,7 @@ for whl in /io/wheelhouse/Kivy-*.whl; do
 
     for PY in $PYTHONS; do
         PYBIN="/opt/python/${PY}/bin"
-        "${PYBIN}/python" setup.py bdist_wheel -d /io/wheelhouse/ --verbose
+        "${PYBIN}/python" setup.py bdist_wheel -d /io/wheelhouse/
     done;
 
     popd
@@ -230,7 +226,7 @@ for whl in /io/wheelhouse/Kivy-*.whl; do
 
     for PY in $PYTHONS; do
         PYBIN="/opt/python/${PY}/bin"
-        "${PYBIN}/python" setup.py bdist_wheel -d /io/wheelhouse/ --verbose
+        "${PYBIN}/python" setup.py bdist_wheel -d /io/wheelhouse/
     done;
 
     popd
@@ -254,81 +250,81 @@ done;
 ls -lah /io/wheelhouse
 
 
-echo "====================== BACKING UP PACKAGES ======================"
-# ##
-# note: if it all works, just backup all required AND installed RPMs somewhere
-# in case of another EOL until ported to newer OS.
-# ##
-yum install -y yum-utils
-mkdir backup && pushd backup
-yumdownloader --destdir . --resolve \
-    cmake \
-    gcc \
-    gcc-c++ \
-    mesa-libGLU \
-    mesa-libGLU-devel \
-    mesa-libGL \
-    mesa-libGL-devel \
-    mesa-libGLES \
-    mesa-libGLES-devel \
-    python-devel \
-    dbus-devel \
-    xorg-x11-server-Xvfb \
-    libXext-devel \
-    libXrandr-devel \
-    libXcursor-devel \
-    libXinerama-devel \
-    libXxf86vm-devel \
-    libXScrnSaver-devel \
-    libsamplerate-devel \
-    libjpeg-devel \
-    libtiff-devel \
-    libX11-devel \
-    libXi-devel \
-    libtool \
-    libedit \
-    pulseaudio \
-    pulseaudio-devel \
-    swscale-devel \
-    avformat-devel \
-    avcodev-devel \
-    mtdev-devel \
-    esd0-devel \
-    udev-devel \
-    ibus-1.0-devel \
-    fcitx-libs \
-    ffmpeg \
-    ffmpeg-devel \
-    smpeg-devel \
-    gstreamer1-devel \
-    gstreamer1-plugins-base \
-    gstreamer1-plugins-base-devel \
-    SDL2 \
-    SDL2_image \
-    SDL2_image-devel \
-    SDL2_mixer \
-    SDL2_mixer-devel \
-    SDL2_ttf \
-    SDL2_ttf-devel \
-    libass \
-    libass-devel \
-    autoconf \
-    automake \
-    bzip2 \
-    freetype-devel \
-    git \
-    make \
-    mercurial \
-    pkgconfig \
-    zlib-devel \
-    enca-devel \
-    fontconfig-devel \
-    openssl \
-    openssl-devel
+# echo "====================== BACKING UP PACKAGES ======================"
+# # ##
+# # note: if it all works, just backup all required AND installed RPMs somewhere
+# # in case of another EOL until ported to newer OS.
+# # ##
+# yum install -y yum-utils
+# mkdir backup && pushd backup
+# yumdownloader --destdir . --resolve \
+    # cmake \
+    # gcc \
+    # gcc-c++ \
+    # mesa-libGLU \
+    # mesa-libGLU-devel \
+    # mesa-libGL \
+    # mesa-libGL-devel \
+    # mesa-libGLES \
+    # mesa-libGLES-devel \
+    # python-devel \
+    # dbus-devel \
+    # xorg-x11-server-Xvfb \
+    # libXext-devel \
+    # libXrandr-devel \
+    # libXcursor-devel \
+    # libXinerama-devel \
+    # libXxf86vm-devel \
+    # libXScrnSaver-devel \
+    # libsamplerate-devel \
+    # libjpeg-devel \
+    # libtiff-devel \
+    # libX11-devel \
+    # libXi-devel \
+    # libtool \
+    # libedit \
+    # pulseaudio \
+    # pulseaudio-devel \
+    # swscale-devel \
+    # avformat-devel \
+    # avcodev-devel \
+    # mtdev-devel \
+    # esd0-devel \
+    # udev-devel \
+    # ibus-1.0-devel \
+    # fcitx-libs \
+    # ffmpeg \
+    # ffmpeg-devel \
+    # smpeg-devel \
+    # gstreamer1-devel \
+    # gstreamer1-plugins-base \
+    # gstreamer1-plugins-base-devel \
+    # SDL2 \
+    # SDL2_image \
+    # SDL2_image-devel \
+    # SDL2_mixer \
+    # SDL2_mixer-devel \
+    # SDL2_ttf \
+    # SDL2_ttf-devel \
+    # libass \
+    # libass-devel \
+    # autoconf \
+    # automake \
+    # bzip2 \
+    # freetype-devel \
+    # git \
+    # make \
+    # mercurial \
+    # pkgconfig \
+    # zlib-devel \
+    # enca-devel \
+    # fontconfig-devel \
+    # openssl \
+    # openssl-devel
 
-# show downloaded RPMs + details
-ls -lah .
-popd
+# # show downloaded RPMs + details
+# ls -lah .
+# popd
 
 
 echo "====================== DOCKER BUILD  ENDED ======================"
