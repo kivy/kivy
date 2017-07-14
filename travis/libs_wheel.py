@@ -9,6 +9,7 @@ folder = folder.replace('//', '/')
 libs = [
     p for p in os.listdir(join(folder, 'kivy', 'deps')) if '.so' in p
 ]
+
 package = {}
 package['kivy.deps'] = []
 for lib in libs:

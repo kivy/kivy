@@ -61,30 +61,9 @@ yum install -y \
     ffmpeg \
     ffmpeg-devel \
     smpeg-devel \
-    gstreamer \
-    gstreamer-devel \
-    gstreamer-plugins-bad-free \
-    gstreamer-plugins-bad-free-devel \
-    gstreamer-plugins-base \
-    gstreamer-plugins-base-devel \
-    gstreamer-plugins-base-tools \
-    gstreamer-plugins-good \
-    gstreamer-plugins-good-devel \
-    gstreamer-python \
-    gstreamer-python-devel \
-    gstreamer-tools \
-    gstreamer1 \
     gstreamer1-devel \
-    gstreamer1-plugins-bad-free \
-    gstreamer1-plugins-bad-free-devel \
     gstreamer1-plugins-base \
     gstreamer1-plugins-base-devel \
-    gstreamer1-plugins-base-tools \
-    gstreamer1-plugins-good \
-    gstreamer-plugins-good \
-    gstreamer \
-    gstreamer-python \
-    SDL2 \
     SDL2 \
     SDL2_image \
     SDL2_image-devel \
@@ -95,6 +74,8 @@ yum install -y \
     # maybe for future use
     # SDL2_net \
     # SDL2_net-devel \
+
+# gstreamer1.0-alsa is in gstreamer1-plugins-base
 
 # https://hg.libsdl.org/SDL/file/default/docs/README-linux.md#l18
 yum -y install libass libass-devel autoconf automake bzip2 cmake freetype-devel gcc gcc-c++ git libtool make mercurial pkgconfig zlib-devel enca-devel fontconfig-devel openssl openssl-devel
@@ -192,12 +173,15 @@ echo "====================== CREATING LIB WHEELS ======================"
 # Move some libs out of the .whl archive and put them into separate wheels
 for whl in /io/wheelhouse/Kivy-*.whl; do
     # prepare the content
+    unzip "$whl" -d whl_tmp
+
+
+    # SDL2 folder
     mkdir sdl2_whl
     mkdir sdl2_whl/kivy
     mkdir sdl2_whl/kivy/deps
     mkdir sdl2_whl/kivy/deps/sdl2
     touch sdl2_whl/kivy/deps/sdl2/__init__.py
-    unzip "$whl" -d whl_tmp
 
     # SDL2 + image + mixer + ttf
     cp whl_tmp/kivy/deps/libSDL2* sdl2_whl/kivy/deps
@@ -211,12 +195,25 @@ for whl in /io/wheelhouse/Kivy-*.whl; do
     cp whl_tmp/kivy/deps/libwebp* sdl2_whl/kivy/deps
     cp whl_tmp/kivy/deps/libz* sdl2_whl/kivy/deps
 
+
+    # GStreamer folder
+    mkdir gstreamer_whl
+    mkdir gstreamer_whl/kivy
+    mkdir gstreamer_whl/kivy/deps
+    mkdir gstreamer_whl/kivy/deps/gstreamer
+    touch gstreamer_whl/kivy/deps/gstreamer/__init__.py
+
+    # GStreamer
+    cp whl_tmp/kivy/deps/libgmodule* gstreamer_whl/kivy/deps
+    cp whl_tmp/kivy/deps/libgst* gstreamer_whl/kivy/deps
+
     # remove folder
     rm -rf whl_tmp
 
 
     # create setup.py
     python "/io/travis/libs_wheel.py" "$(pwd)/sdl2_whl" "kivy.deps.sdl2" "zlib"
+    python "/io/travis/libs_wheel.py" "$(pwd)/gstreamer_whl" "kivy.deps.gstreamer" "LGPL"
 
     # create wheels for each Python version
     pushd sdl2_whl
@@ -228,7 +225,18 @@ for whl in /io/wheelhouse/Kivy-*.whl; do
 
     popd
 
+    # create wheels for each Python version
+    pushd gstreamer_whl
+
+    for PY in $PYTHONS; do
+        PYBIN="/opt/python/${PY}/bin"
+        "${PYBIN}/python" setup.py bdist_wheel -d /io/wheelhouse/ --verbose
+    done;
+
+    popd
+
     # remove specific libs from now Kivy + basic libs only wheel
+    # remove SDL2
     zip -d "$whl" \
         kivy/deps/libSDL2* kivy/deps/libfreetype* kivy/deps/libjbig* \
         kivy/deps/libjpeg* kivy/deps/libpng* kivy/deps/libz* \
@@ -240,6 +248,7 @@ for whl in /io/wheelhouse/Kivy-*.whl; do
 
     # clean folders
     rm -rf sdl2_whl
+    rm -rf gstreamer_whl
 done;
 
 ls -lah /io/wheelhouse
@@ -291,30 +300,9 @@ yumdownloader --destdir . --resolve \
     ffmpeg \
     ffmpeg-devel \
     smpeg-devel \
-    gstreamer \
-    gstreamer-devel \
-    gstreamer-plugins-bad-free \
-    gstreamer-plugins-bad-free-devel \
-    gstreamer-plugins-base \
-    gstreamer-plugins-base-devel \
-    gstreamer-plugins-base-tools \
-    gstreamer-plugins-good \
-    gstreamer-plugins-good-devel \
-    gstreamer-python \
-    gstreamer-python-devel \
-    gstreamer-tools \
-    gstreamer1 \
     gstreamer1-devel \
-    gstreamer1-plugins-bad-free \
-    gstreamer1-plugins-bad-free-devel \
     gstreamer1-plugins-base \
     gstreamer1-plugins-base-devel \
-    gstreamer1-plugins-base-tools \
-    gstreamer1-plugins-good \
-    gstreamer-plugins-good \
-    gstreamer \
-    gstreamer-python \
-    SDL2 \
     SDL2 \
     SDL2_image \
     SDL2_image-devel \
