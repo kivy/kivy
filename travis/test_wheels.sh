@@ -6,6 +6,7 @@ echo "====================== INSTALL  AND  TEST  ======================"
 # note: this needs reformatting for a list of python versions, later
 pip install $(pwd)/wheelhouse/Kivy-1.10.1.dev0-cp27-cp27mu-manylinux1_x86_64.whl
 pip install $(pwd)/wheelhouse/kivy.deps.sdl2-0.0.1-cp27-cp27mu-*.whl
+pip install $(pwd)/wheelhouse/kivy.deps.gstreamer-0.0.1-cp27-cp27mu-*.whl
 
 # change folder, so that nose doens't detect cloned repo
 pushd /home/travis/
