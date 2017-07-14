@@ -9,7 +9,6 @@ ENV LD_LIBRARY_PATH /opt/rh/devtoolset-2/root/usr/lib64:/opt/rh/devtoolset-2/roo
 ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 
 COPY ./build_scripts /build_scripts
-RUN linux32 yum-config-manager --add-repo http://mirror.centos.org/centos/7/os/x86_64/Packages/
 RUN linux32 bash build_scripts/build.sh && rm -r build_scripts
 
 ENV SSL_CERT_FILE=/opt/_internal/certs.pem

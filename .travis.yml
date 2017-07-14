@@ -5,12 +5,6 @@ matrix:
       services:
         - docker
       env:
-        BITNESS=32
-        DOCKER=True
-    - sudo: required
-      services:
-        - docker
-      env:
         BITNESS=64
         DOCKER=True
 
