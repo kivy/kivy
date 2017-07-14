@@ -38,11 +38,13 @@ def save(filename, w, h, fmt, pixels, flipped):
     IMG_SavePNG(image, c_filename)
     SDL_FreeSurface(image)
 
-
+# NOTE: This must be kept up to date with ImageData supported formats. If you
+# add support for converting/uploading (for example) ARGB, you must ensure
+# that it is returned unmodified below to take advantage of it.
 cdef load_from_surface(SDL_Surface *image):
     cdef SDL_Surface *image2 = NULL
     cdef SDL_Surface *fimage = NULL
-    cdef int want_rgba = 0, target_fmt = 0, n = 0
+    cdef int want_rgba = 0, want_bgra = 0, target_fmt = 0, n = 0
     cdef bytes pixels
 
     if image == NULL:
@@ -53,14 +55,20 @@ cdef load_from_surface(SDL_Surface *image):
     # but we can't count on that yet (RGB24 is available since 2.0)
     if SDL_BYTEORDER == SDL_BIG_ENDIAN:
         want_rgba = SDL_PIXELFORMAT_RGBA8888
+        want_bgra = SDL_PIXELFORMAT_BGRA8888
     else:
         want_rgba = SDL_PIXELFORMAT_ABGR8888
+        want_bgra = SDL_PIXELFORMAT_ARGB8888
 
     # Determine if we need pixel format conversion
     if image.format.format == want_rgba:
         fmt = 'rgba'
+    elif image.format.format == want_bgra:
+        fmt = 'bgra'
     elif image.format.format == SDL_PIXELFORMAT_RGB24:
         fmt = 'rgb'
+    elif image.format.format == SDL_PIXELFORMAT_BGR24:
+        fmt = 'bgr'
     elif image.format.Amask:
         fmt = 'rgba'
         target_fmt = want_rgba
