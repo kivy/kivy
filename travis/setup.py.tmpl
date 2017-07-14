@@ -11,9 +11,9 @@ class BinaryDistribution(Distribution):
         return True
 
 
-data = [
+data = (
     {}
-]
+)
 
 
 setup(
@@ -25,6 +25,6 @@ setup(
     url='http://kivy.org/',
     license='{}',
     distclass=BinaryDistribution,
-    packages=['{}'],
-    data_files=data
+    packages=['{}', 'kivy.deps'],
+    package_data=data
 )
