@@ -153,6 +153,7 @@ pushd $SDL
             --prefix=/usr
 make -j4
 make install
+ldconfig -v
 popd
 
 # SDL image
@@ -166,6 +167,7 @@ pushd $IMG
             --prefix=/usr
 make
 make install
+ldconfig -v
 popd
 
 # SDL ttf
@@ -175,6 +177,7 @@ pushd $TTF
 ./configure --prefix=/usr
 make
 make install
+ldconfig -v
 popd
 
 # SDL mixer
@@ -202,6 +205,7 @@ pushd $MIX
             --prefix=/usr
 make
 make install
+ldconfig -v
 popd
 # end SDL2
 
