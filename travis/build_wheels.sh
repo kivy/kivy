@@ -216,12 +216,16 @@ mkdir libless_wheelhouse
 
 
 echo "====================== BUILDING NEW WHEELS ======================"
+export DOCKER_ROOT=$(pwd)
 for PY in $PYTHONS; do
     rm -rf /io/Setup /io/build/
     PYBIN="/opt/python/${PY}/bin"
     "${PYBIN}/pip" install --upgrade cython nose
+    pushd /io/
     PKG_CONFIG_PATH="/usr/local/lib/pkconfig":"/usr/lib/pkgconfig" \
-        "${PYBIN}/python" /io/setup.py bdist_wheel -d libless_wheelhouse
+        "${PYBIN}/python" setup.py bdist_wheel \
+        -d ${DOCKER_ROOT}/libless_wheelhouse
+    popd
 done;
 
 ls -lah libless_wheelhouse
