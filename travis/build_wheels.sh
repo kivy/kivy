@@ -217,6 +217,7 @@ mkdir libless_wheelhouse
 
 echo "====================== BUILDING NEW WHEELS ======================"
 export DOCKER_ROOT=$(pwd)
+export KIVY_USE_SETUPTOOLS=1
 for PY in $PYTHONS; do
     rm -rf /io/Setup /io/build/
     PYBIN="/opt/python/${PY}/bin"
