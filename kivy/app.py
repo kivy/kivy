@@ -173,6 +173,11 @@ user in order to adapt or reload your UI. You can then overload the
                 elif token == ('section1', 'key2'):
                     print('Our key2 has been changed to', value)
 
+.. note::
+
+    Despite the name, there is no on_config_change event. You must overload
+    the method in your App subclass.
+
 The Kivy configuration panel is added by default to the settings
 instance. If you don't want this panel, you can declare your Application as
 follows::
@@ -894,8 +899,9 @@ class App(EventDispatcher):
         return App._running_app
 
     def on_config_change(self, config, section, key, value):
-        '''Event handler fired when a configuration token has been changed by
-        the settings page.
+        '''This method is called when a configuration token is changed in the
+        settings page. Despite the name, there is no on_config_change event. 
+        You must overload this method in your App subclass.
         '''
         pass
 
