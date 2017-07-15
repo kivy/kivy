@@ -138,17 +138,8 @@ wget https://www.libsdl.org/projects/SDL_mixer/release/${MIX}.tar.gz
 tar xzf ${SDL}.tar.gz
 pushd $SDL
 # https://hg.libsdl.org/SDL/file/a0327860b8fb/debian/rules
-./configure --disable-rpath \
-            --enable-sdl-dlopen \
-            --disable-loadso \
-            --disable-nas \
-            --disable-esd \
-            --disable-arts \
-            --disable-alsa-shared \
-            --disable-pulseaudio-shared \
+./configure --enable-sdl-dlopen \
             --enable-ibus \
-            --disable-x11-shared \
-            --disable-video-directfb \
             --enable-video-opengles \
             --disable-video-wayland \
             --prefix=/usr
@@ -161,11 +152,7 @@ popd
 tar xzf ${IMG}.tar.gz
 pushd $IMG
 # https://hg.libsdl.org/SDL_image/file/6332f9425dcc/debian/rules
-./configure --disable-webp \
-            --disable-jpg-shared \
-            --disable-png-shared \
-            --disable-tif-shared \
-            --prefix=/usr
+./configure --prefix=/usr
 make
 make install
 ldconfig -v
@@ -197,12 +184,6 @@ pushd $MIX
             --enable-music-midi \
             --enable-music-midi-fluidsynth \
             --enable-music-midi-timidity \
-            --disable-music-flac-shared \
-            --disable-music-ogg-shared \
-            --disable-music-mp3-smpeg-shared \
-            --disable-music-mod-mikmod-shared \
-            --disable-music-mod-modplug-shared \
-            --disable-music-midi-fluidsynth-shared \
             --prefix=/usr
 make
 make install
@@ -254,9 +235,6 @@ ls -lah /io/wheelhouse
 
 
 echo "====================== CREATING LIB WHEELS ======================"
-# install RPATH changer
-yum install -y chrpath
-
 # Move some libs out of the .whl archive and put them into separate wheels
 for whl in /io/wheelhouse/Kivy-*.whl; do
     # prepare the content
