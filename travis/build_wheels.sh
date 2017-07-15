@@ -142,6 +142,7 @@ pushd $SDL
             --enable-ibus \
             --enable-video-opengles \
             --disable-video-wayland \
+            --disable-rpath \
             --prefix=/usr
 make -j4
 make install
@@ -152,7 +153,8 @@ popd
 tar xzf ${IMG}.tar.gz
 pushd $IMG
 # https://hg.libsdl.org/SDL_image/file/6332f9425dcc/debian/rules
-./configure --prefix=/usr
+./configure --disable-rpath \
+            --prefix=/usr
 make
 make install
 ldconfig -v
@@ -162,7 +164,8 @@ popd
 tar xzf ${TTF}.tar.gz
 pushd $TTF
 # https://hg.libsdl.org/SDL_ttf/file/3b93536d291a/debian/rules
-./configure --prefix=/usr
+./configure --disable-rpath \
+            --prefix=/usr
 make
 make install
 ldconfig -v
@@ -184,6 +187,7 @@ pushd $MIX
             --enable-music-midi \
             --enable-music-midi-fluidsynth \
             --enable-music-midi-timidity \
+            --disable-rpath \
             --prefix=/usr
 make
 make install
