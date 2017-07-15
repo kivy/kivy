@@ -254,6 +254,9 @@ ls -lah /io/wheelhouse
 
 
 echo "====================== CREATING LIB WHEELS ======================"
+# install RPATH changer
+yum install -y chrpath
+
 # Move some libs out of the .whl archive and put them into separate wheels
 for whl in /io/wheelhouse/Kivy-*.whl; do
     # prepare the content
