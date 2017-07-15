@@ -196,12 +196,14 @@ mkdir libless_wheelhouse
 
 echo "====================== BUILDING NEW WHEELS ======================"
 export KIVY_USE_SETUPTOOLS=1
+export USE_SDL2=1
+export USE_GSTREAMER=1
 for PY in $PYTHONS; do
     rm -rf /io/Setup /io/build/
     PYBIN="/opt/python/${PY}/bin"
     "${PYBIN}/pip" install --upgrade cython nose
     PKG_CONFIG_PATH="/usr/local/lib/pkconfig":"/usr/lib/pkgconfig" \
-        "${PYBIN}/pip" wheel /io/ --wheel-dir libless_wheelhouse
+        "${PYBIN}/pip" wheel /io/ --wheel-dir libless_wheelhouse --verbose
 done;
 
 ls -lah libless_wheelhouse
