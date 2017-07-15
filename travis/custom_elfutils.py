@@ -15,8 +15,13 @@ def elf_read_dt_needed(fn : str) -> List[str]:
         if section is None:
             raise ValueError('Could not find soname in %s' % fn)
 
-        if not hasttr(section, 'iter_tags'):
+        print(section)
+        if hasattr(section, '__dict__'):
+            print(vars(section))
+
+        if not hasattr(section, 'iter_tags'):
             return needed
+
         for t in section.iter_tags():
             if t.entry.d_tag == 'DT_NEEDED':
                 needed.append(t.needed)
