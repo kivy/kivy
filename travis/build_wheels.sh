@@ -124,6 +124,7 @@ yum install -y \
 
 
 # Make SDL2 packages
+# ldconfig to make the libraries visible!
 SDL="SDL2-2.0.5"
 IMG="SDL2_image-2.0.1"
 TTF="SDL2_ttf-2.0.14"
@@ -219,7 +220,8 @@ for PY in $PYTHONS; do
     rm -rf /io/Setup /io/build/
     PYBIN="/opt/python/${PY}/bin"
     "${PYBIN}/pip" install --upgrade cython nose
-    "${PYBIN}/pip" wheel /io/ --wheel-dir libless_wheelhouse
+    PKG_CONFIG_PATH="/usr/local/lib/pkconfig":"/usr/lib/pkgconfig" \
+        "${PYBIN}/python" /io/setup.py bdist_wheel -d libless_wheelhouse
 done;
 
 ls -lah libless_wheelhouse
