@@ -133,6 +133,27 @@ wget https://www.libsdl.org/projects/SDL_image/release/${IMG}.tar.gz
 wget https://www.libsdl.org/projects/SDL_ttf/release/${TTF}.tar.gz
 wget https://www.libsdl.org/projects/SDL_mixer/release/${MIX}.tar.gz
 
+# SDL2 (after IMG, TTF, MIX)
+tar xzf ${SDL}.tar.gz
+pushd $SDL
+# https://hg.libsdl.org/SDL/file/a0327860b8fb/debian/rules
+./configure --disable-rpath \
+            --enable-sdl-dlopen \
+            --disable-loadso \
+            --disable-nas \
+            --disable-esd \
+            --disable-arts \
+            --disable-alsa-shared \
+            --disable-pulseaudio-shared \
+            --enable-ibus \
+            --disable-x11-shared \
+            --disable-video-directfb \
+            --enable-video-opengles \
+            --disable-video-wayland
+make -j4
+make install
+popd
+
 # SDL image
 tar xzf ${IMG}.tar.gz
 pushd $IMG
@@ -177,27 +198,6 @@ pushd $MIX
             --disable-music-mod-modplug-shared \
             --disable-music-midi-fluidsynth-shared \
 make
-make install
-popd
-
-# SDL2 (after IMG, TTF, MIX)
-tar xzf ${SDL}.tar.gz
-pushd $SDL
-# https://hg.libsdl.org/SDL/file/a0327860b8fb/debian/rules
-./configure --disable-rpath \
-            --enable-sdl-dlopen \
-            --disable-loadso \
-            --disable-nas \
-            --disable-esd \
-            --disable-arts \
-            --disable-alsa-shared \
-            --disable-pulseaudio-shared \
-            --enable-ibus \
-            --disable-x11-shared \
-            --disable-video-directfb \
-            --enable-video-opengles \
-            --disable-video-wayland
-make -j4
 make install
 popd
 # end SDL2
