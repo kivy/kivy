@@ -149,7 +149,8 @@ pushd $SDL
             --disable-x11-shared \
             --disable-video-directfb \
             --enable-video-opengles \
-            --disable-video-wayland
+            --disable-video-wayland \
+            --prefix=/usr
 make -j4
 make install
 popd
@@ -161,7 +162,8 @@ pushd $IMG
 ./configure --disable-webp \
             --disable-jpg-shared \
             --disable-png-shared \
-            --disable-tif-shared
+            --disable-tif-shared \
+            --prefix=/usr
 make
 make install
 popd
@@ -170,7 +172,7 @@ popd
 tar xzf ${TTF}.tar.gz
 pushd $TTF
 # https://hg.libsdl.org/SDL_ttf/file/3b93536d291a/debian/rules
-./configure
+./configure --prefix=/usr
 make
 make install
 popd
@@ -197,6 +199,7 @@ pushd $MIX
             --disable-music-mod-mikmod-shared \
             --disable-music-mod-modplug-shared \
             --disable-music-midi-fluidsynth-shared \
+            --prefix=/usr
 make
 make install
 popd
