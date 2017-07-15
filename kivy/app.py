@@ -897,6 +897,9 @@ class App(EventDispatcher):
     def on_config_change(self, config, section, key, value):
         '''Event handler fired when a configuration token has been changed by
         the settings page.
+
+        .. versionchanged:: 1.10.1-dev
+           Added corresponding ``on_config_change`` event.
         '''
         pass
 
