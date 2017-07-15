@@ -238,7 +238,7 @@ echo "====================== INCLUDING LIBRARIES ======================"
 cp /io/travis/custom_policy.json /opt/_internal/cpython-3.6.0/lib/python3.6/site-packages/auditwheel/policy/policy.json
 
 # either I'm missing something, or there is a bug when DT_NEEDED is empty
-cp /io/travis/custom_elfutils.json /opt/_internal/cpython-3.6.0/lib/python3.6/site-packages/auditwheel/elfutils.py
+cp /io/travis/custom_elfutils.py /opt/_internal/cpython-3.6.0/lib/python3.6/site-packages/auditwheel/elfutils.py
 
 # Bundle external shared libraries into the wheels
 # repair only Kivy wheel (pure py wheels such as Kivy_Garden kill the build)
