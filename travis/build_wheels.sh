@@ -347,7 +347,6 @@ ls -lah /io/wheelhouse
 
 echo "====================== BACKING UP PACKAGES ======================"
 ls -lah /var/cache/yum
-ls -lah /var/cache/yum/i686
 ls -lah /var/cache/yum/x86_64
 # # ##
 # # note: if it all works, just backup all required AND installed RPMs somewhere
