@@ -386,6 +386,10 @@ class WindowSDL(WindowBase):
         self._win.flip()
         super(WindowSDL, self).flip()
 
+    def set_system_cursor(self, value):
+        result = self._win.set_system_cursor(value)
+        return result
+
     def _get_window_pos(self):
         return self._win.get_window_pos()
 

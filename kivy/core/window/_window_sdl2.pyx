@@ -164,6 +164,40 @@ cdef class _WindowSDL2Storage:
     def _set_cursor_state(self, value):
         SDL_ShowCursor(value)
 
+    def set_system_cursor(self, str name):
+        if name == 'arrow':
+            num = SDL_SYSTEM_CURSOR_ARROW
+        elif name == 'ibeam':
+            num = SDL_SYSTEM_CURSOR_IBEAM
+        elif name == 'wait':
+            num = SDL_SYSTEM_CURSOR_WAIT
+        elif name == 'crosshair':
+            num = SDL_SYSTEM_CURSOR_CROSSHAIR
+        elif name == 'wait_arrow':
+            SDL_SYSTEM_CURSOR_WAITARROW
+        elif name == 'size_nwse':
+            num = SDL_SYSTEM_CURSOR_SIZENWSE
+        elif name == 'size_nesw':
+            num = SDL_SYSTEM_CURSOR_SIZENESW
+        elif name == 'size_we':
+            num = SDL_SYSTEM_CURSOR_SIZEWE
+        elif name == 'size_ns':
+            num = SDL_SYSTEM_CURSOR_SIZENS
+        elif name == 'size_all':
+            num = SDL_SYSTEM_CURSOR_SIZEALL
+        elif name == 'no':
+            num = SDL_SYSTEM_CURSOR_NO
+        elif name == 'hand':
+            num = SDL_SYSTEM_CURSOR_HAND
+        else:
+            return False
+        new_cursor = SDL_CreateSystemCursor(num)
+        self.set_cursor(new_cursor)
+        return True
+
+    cdef void set_cursor(self, SDL_Cursor * cursor):
+        SDL_SetCursor(cursor)
+
     def raise_window(self):
         SDL_RaiseWindow(self.win)
 

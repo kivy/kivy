@@ -57,12 +57,25 @@ cdef extern from "SDL.h":
         SDL_GL_CONTEXT_FLAGS
         SDL_GL_CONTEXT_PROFILE_MASK
 
+    ctypedef enum SDL_SystemCursor:
+        SDL_SYSTEM_CURSOR_ARROW
+        SDL_SYSTEM_CURSOR_IBEAM
+        SDL_SYSTEM_CURSOR_WAIT
+        SDL_SYSTEM_CURSOR_CROSSHAIR
+        SDL_SYSTEM_CURSOR_WAITARROW
+        SDL_SYSTEM_CURSOR_SIZENWSE
+        SDL_SYSTEM_CURSOR_SIZENESW
+        SDL_SYSTEM_CURSOR_SIZEWE
+        SDL_SYSTEM_CURSOR_SIZENS
+        SDL_SYSTEM_CURSOR_SIZEALL
+        SDL_SYSTEM_CURSOR_NO
+        SDL_SYSTEM_CURSOR_HAND
+
     ctypedef enum SDL_BlendMode:
         SDL_BLENDMODE_NONE = 0x00000000
         SDL_BLENDMODE_BLEND = 0x00000001
         SDL_BLENDMODE_ADD = 0x00000002
         SDL_BLENDMODE_MOD = 0x00000004
-
 
     ctypedef enum SDL_TextureAccess:
         SDL_TEXTUREACCESS_STATIC
@@ -120,6 +133,8 @@ cdef extern from "SDL.h":
 
 
     cdef struct SDL_BlitMap
+
+    cdef struct SDL_Cursor
 
     cdef struct SDL_Surface:
         Uint32 flags
@@ -538,6 +553,8 @@ cdef extern from "SDL.h":
     cdef void SDL_SetWindowBordered(SDL_Window * window, SDL_bool bordered)
     cdef void SDL_ShowWindow(SDL_Window * window)
     cdef int SDL_ShowCursor(int toggle)
+    cdef void SDL_SetCursor(SDL_Cursor * cursor)
+    cdef SDL_Cursor* SDL_CreateSystemCursor(SDL_SystemCursor id)
     cdef void SDL_HideWindow(SDL_Window * window)
     cdef void SDL_RaiseWindow(SDL_Window * window)
     cdef void SDL_MaximizeWindow(SDL_Window * window)
