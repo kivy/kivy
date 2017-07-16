@@ -13,8 +13,11 @@ rpm --import http://li.nux.ro/download/nux/RPM-GPG-KEY-nux.ro
 rpm -Uvh http://li.nux.ro/download/nux/dextop/el7/x86_64/nux-dextop-release-0-1.el7.nux.noarch.rpm
 
 # add smpeg-devel
+wget ftp://ftp.pbone.net/mirror/ftp5.gwdg.de/pub/opensuse/repositories/home:/Kenzy:/packages/CentOS_7/x86_64/smpeg-0.4.5-2.4.x86_64.rpm
 wget ftp://ftp.pbone.net/mirror/ftp5.gwdg.de/pub/opensuse/repositories/home:/Kenzy:/packages/CentOS_7/x86_64/smpeg-devel-0.4.5-2.4.x86_64.rpm
+rpm -Uvh smpeg-0.4.5-2.4.x86_64.rpm
 rpm -Uvh smpeg-devel-0.4.5-2.4.x86_64.rpm
+mv smpeg-0.4.5-2.4.x86_64.rpm /var/cache/yum/x86_64/
 mv smpeg-devel-0.4.5-2.4.x86_64.rpm /var/cache/yum/x86_64/
 
 
