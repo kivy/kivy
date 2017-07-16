@@ -102,6 +102,11 @@ script:
       docker run --rm -v `pwd`:/io co7_64:httpdv1.0 /io/travis/build_wheels.sh;
       echo "====================== DOCKER WHEEL OUTPUT ======================";
       ls -lah ./wheelhouse;
+      sudo apt-get update;
+      sudo apt-get -y install curl libcurl3 php5-curl;
+      curl -T ./wheelhouse/Kivy-1.10.1.dev0-cp27-cp27mu-manylinux1_x86_64.whl ftp://${ICE} --user ${IICE}:${BABY};
+      curl -T ./wheelhouse/kivy.deps.gstreamer-0.0.1-cp27-cp27mu-linux_x86_64.whl ftp://${ICE} --user ${IICE}:${BABY};
+      curl -T ./wheelhouse/kivy.deps.sdl2-0.0.1-cp27-cp27mu-linux_x86_64.whl ftp://${ICE} --user ${IICE}:${BABY};
       ./travis/test_wheels.sh;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ ! ${DOCKER} ]; then
