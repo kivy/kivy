@@ -154,6 +154,7 @@ popd
 # http://svn.icculus.org/*checkout*/smpeg/trunk/configure.in
 svn checkout svn://svn.icculus.org/smpeg/trunk smpeg
 pushd smpeg
+chmod +x ./autogen.sh
 ./autogen.sh
 ./configure --enable-rpath=no
 make
