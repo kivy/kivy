@@ -199,13 +199,16 @@ make install
 ldconfig -v
 popd
 
-# add smpeg-devel (SDL1.2+ lib, requires SDL1.2+ installed)
-wget ftp://ftp.pbone.net/mirror/ftp5.gwdg.de/pub/opensuse/repositories/home:/Kenzy:/packages/CentOS_7/x86_64/smpeg-0.4.5-2.4.x86_64.rpm
-wget ftp://ftp.pbone.net/mirror/ftp5.gwdg.de/pub/opensuse/repositories/home:/Kenzy:/packages/CentOS_7/x86_64/smpeg-devel-0.4.5-2.4.x86_64.rpm
-rpm -Uvh smpeg-0.4.5-2.4.x86_64.rpm
-rpm -Uvh smpeg-devel-0.4.5-2.4.x86_64.rpm
-mv smpeg-0.4.5-2.4.x86_64.rpm /var/cache/yum/x86_64/
-mv smpeg-devel-0.4.5-2.4.x86_64.rpm /var/cache/yum/x86_64/
+# SMPEG
+# default config + disable RPATH
+# http://svn.icculus.org/*checkout*/smpeg/trunk/configure.in
+svn checkout svn://svn.icculus.org/smpeg/trunk smpeg
+pushd smpeg
+./configure --enable-rpath=no
+make
+make install
+ldconfig -v
+popd
 # end SDL2
 
 
