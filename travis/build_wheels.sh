@@ -149,6 +149,18 @@ make install
 ldconfig -v
 popd
 
+# SMPEG
+# default config + disable RPATH
+# http://svn.icculus.org/*checkout*/smpeg/trunk/configure.in
+svn checkout svn://svn.icculus.org/smpeg/trunk smpeg
+pushd smpeg
+source ./autogen.sh
+./configure --enable-rpath=no
+make
+make install
+ldconfig -v
+popd
+
 # SDL image
 tar xzf ${IMG}.tar.gz
 pushd $IMG
@@ -194,17 +206,6 @@ pushd $MIX
             --disable-music-ogg-shared \
             --disable-music-mp3-smpeg-shared \
             --disable-rpath
-make
-make install
-ldconfig -v
-popd
-
-# SMPEG
-# default config + disable RPATH
-# http://svn.icculus.org/*checkout*/smpeg/trunk/configure.in
-svn checkout svn://svn.icculus.org/smpeg/trunk smpeg
-pushd smpeg
-./configure --enable-rpath=no
 make
 make install
 ldconfig -v
