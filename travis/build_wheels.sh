@@ -154,7 +154,6 @@ popd
 # http://svn.icculus.org/*checkout*/smpeg/trunk/configure.in
 svn checkout svn://svn.icculus.org/smpeg/trunk smpeg
 pushd smpeg
-chmod +x ./autogen.sh
 ./autogen.sh
 ./configure --enable-rpath=no
 make
@@ -285,6 +284,7 @@ for whl in /io/wheelhouse/Kivy-*.whl; do
     cp whl_tmp/kivy/deps/libtiff* sdl2_whl/kivy/deps
     cp whl_tmp/kivy/deps/libvorbis* sdl2_whl/kivy/deps
     cp whl_tmp/kivy/deps/libwebp* sdl2_whl/kivy/deps
+    cp whl_tmp/kivy/deps/libz* sdl2_whl/kivy/deps
 
 
     # GStreamer folder
