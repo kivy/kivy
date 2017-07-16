@@ -152,7 +152,11 @@ popd
 tar xzf ${IMG}.tar.gz
 pushd $IMG
 # https://hg.libsdl.org/SDL_image/file/6332f9425dcc/debian/rules
-./configure --disable-rpath
+./configure --disable-webp \
+            --disable-jpg-shared \
+            --disable-png-shared \
+            --disable-tif-shared \
+            --disable-rpath
 make
 make install
 ldconfig -v
