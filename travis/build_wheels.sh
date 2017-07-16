@@ -11,7 +11,14 @@ echo "====================== DOWNLADING NEW ONES ======================"
 # http://li.nux.ro/download/nux/dextop/el7/x86_64/
 rpm --import http://li.nux.ro/download/nux/RPM-GPG-KEY-nux.ro
 rpm -Uvh http://li.nux.ro/download/nux/dextop/el7/x86_64/nux-dextop-release-0-1.el7.nux.noarch.rpm
-yum repolist
+
+# add smpeg-devel
+wget ftp://ftp.pbone.net/mirror/ftp5.gwdg.de/pub/opensuse/repositories/home:/Kenzy:/packages/CentOS_7/x86_64/smpeg-devel-0.4.5-2.4.x86_64.rpm
+rpm -Uvh smpeg-devel-0.4.5-2.4.x86_64.rpm
+mv smpeg-devel-0.4.5-2.4.x86_64.rpm /var/cache/yum/x86_64/
+
+
+yum repolist all
 
 # add EPEL repo (SDL2* packages) https://centos.pkgs.org/7/epel-x86_64/
 #wget http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-9.noarch.rpm
@@ -261,14 +268,16 @@ for whl in /io/wheelhouse/Kivy-*.whl; do
     # SDL2 + image + mixer + ttf
     cp whl_tmp/kivy/deps/libSDL2* sdl2_whl/kivy/deps
 
-    # SDL2 deps
+    # SDL2 deps (ttf + jpg + ogg/vorbis + png + tiff + webp)
     cp whl_tmp/kivy/deps/libfreetype* sdl2_whl/kivy/deps
     cp whl_tmp/kivy/deps/libjbig* sdl2_whl/kivy/deps
     cp whl_tmp/kivy/deps/libjpeg* sdl2_whl/kivy/deps
+    cp whl_tmp/kivy/deps/libogg* sdl2_whl/kivy/deps
     cp whl_tmp/kivy/deps/libpng* sdl2_whl/kivy/deps
+    cp whl_tmp/kivy/deps/libsmpeg* sdl2_whl/kivy/deps
     cp whl_tmp/kivy/deps/libtiff* sdl2_whl/kivy/deps
+    cp whl_tmp/kivy/deps/libvorbis* sdl2_whl/kivy/deps
     cp whl_tmp/kivy/deps/libwebp* sdl2_whl/kivy/deps
-    cp whl_tmp/kivy/deps/libz* sdl2_whl/kivy/deps
 
 
     # GStreamer folder
@@ -314,8 +323,9 @@ for whl in /io/wheelhouse/Kivy-*.whl; do
     # remove SDL2
     zip -d "$whl" \
         kivy/deps/libSDL2* kivy/deps/libfreetype* kivy/deps/libjbig* \
-        kivy/deps/libjpeg* kivy/deps/libpng* kivy/deps/libz* \
-        kivy/deps/libtiff* kivy/deps/libwebp*
+        kivy/deps/libjpeg* kivy/deps/libogg* kivy/deps/libpng* \
+        kivy/deps/libsmpeg* kivy/deps/libtiff* kivy/deps/libvorbis* \
+        kivy/deps/libwebp* kivy/deps/libz*
 
     # remove GStreamer
     zip -d "$whl" \
@@ -331,6 +341,8 @@ ls -lah /io/wheelhouse
 
 echo "====================== BACKING UP PACKAGES ======================"
 ls -lah /var/cache/yum
+ls -lah /var/cache/yum/i686
+ls -lah /var/cache/yum/x86_64
 # # ##
 # # note: if it all works, just backup all required AND installed RPMs somewhere
 # # in case of another EOL until ported to newer OS.
