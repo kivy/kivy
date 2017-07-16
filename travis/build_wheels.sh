@@ -188,6 +188,10 @@ pushd $MIX
             --enable-music-midi \
             --enable-music-midi-fluidsynth \
             --enable-music-midi-timidity \
+            --disable-music-flac-shared \
+            --disable-music-mod-modplug-shared \
+            --disable-music-ogg-shared \
+            --disable-music-mp3-smpeg-shared \
             --disable-rpath
 make
 make install
