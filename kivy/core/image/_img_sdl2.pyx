@@ -74,7 +74,7 @@ cdef load_from_surface(SDL_Surface *image):
     elif image.format.format == SDL_PIXELFORMAT_BGR24:
         if image.pitch == image.format.BytesPerPixel * image.w:
             fmt = 'bgr'
-    elif image.format.format.Amask == 0:
+    elif image.format.Amask == 0:
         # Only convert to 24bpp if it will be pitch-aligned
         if (image.w * 3) % 4 == 0:
             fmt = 'rgb'
