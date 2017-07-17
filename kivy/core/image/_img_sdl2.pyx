@@ -41,6 +41,7 @@ def save(filename, w, h, fmt, pixels, flipped):
 # NOTE: This must be kept up to date with ImageData supported formats. If you
 # add support for converting/uploading (for example) ARGB, you must ensure
 # that it is returned unmodified below to take advantage of it.
+# *** WARNING *** Only 32-bit pixel formats are guaranteed to be pitch-aligned
 cdef load_from_surface(SDL_Surface *image):
     cdef SDL_Surface *image2 = NULL
     cdef SDL_Surface *fimage = NULL
@@ -61,28 +62,28 @@ cdef load_from_surface(SDL_Surface *image):
         want_bgra = SDL_PIXELFORMAT_ARGB8888
 
     # Determine if we need pixel format conversion
+    fmt = ''
     if image.format.format == want_rgba:
         fmt = 'rgba'
     elif image.format.format == want_bgra:
         fmt = 'bgra'
     elif image.format.format == SDL_PIXELFORMAT_RGB24:
-        fmt = 'rgb'
+        # 24bpp formats can only be used directly if they are pitch-aligned
+        if image.pitch == image.format.BytesPerPixel * image.w:
+            fmt = 'rgb'
     elif image.format.format == SDL_PIXELFORMAT_BGR24:
-        fmt = 'bgr'
-    elif image.format.Amask:
+        if image.pitch == image.format.BytesPerPixel * image.w:
+            fmt = 'bgr'
+    elif image.format.format.Amask == 0:
+        # Only convert to 24bpp if it will be pitch-aligned
+        if (image.w * 3) % 4 == 0:
+            fmt = 'rgb'
+            target_fmt = SDL_PIXELFORMAT_RGB24
+
+    # Everything else has to be 32-bit rgba, even without alpha
+    if not fmt:
         fmt = 'rgba'
         target_fmt = want_rgba
-    elif image.format.palette != NULL:
-        fmt = 'rgb'
-        target_fmt = SDL_PIXELFORMAT_RGB24
-        for n in xrange(0, image.format.palette.ncolors):
-            if image.format.palette.colors[n].a < 0xFF:
-                fmt = 'rgba'
-                target_fmt = want_rgba
-                break
-    else:
-        fmt = 'rgb'
-        target_fmt = SDL_PIXELFORMAT_RGB24
 
     # Convert if needed, and return a copy of the raw pixel data
     try:
@@ -91,8 +92,8 @@ cdef load_from_surface(SDL_Surface *image):
             image2 = SDL_ConvertSurfaceFormat(image, target_fmt, 0)
             if image2 == NULL:
                 Logger.warn('ImageSDL2: error converting {} to {}: {}'.format(
-                        SDL_GetPixelFormatName(image.format.format), 
-                        SDL_GetPixelFormatName(target_fmt), 
+                        SDL_GetPixelFormatName(image.format.format),
+                        SDL_GetPixelFormatName(target_fmt),
                         SDL_GetError()))
                 return None
             else:
