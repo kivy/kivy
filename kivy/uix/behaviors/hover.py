@@ -4,7 +4,7 @@ Hover Behavior
 
 The :class:`~kivy.uix.behaviors.button.HoverBehavior`
 `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides
-:class:`~kivy.uix.button.Button` behavior. You can combine this class with
+mouse hover behavior. You can combine this class with
 other widgets, such as an :class:`~kivy.uix.button.Button`, to change
 background colors or display other effects when mouse cursor is on top
 of kivy widgets
