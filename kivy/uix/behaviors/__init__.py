@@ -90,3 +90,4 @@ from kivy.uix.behaviors.compoundselection import CompoundSelectionBehavior
 from kivy.uix.behaviors.codenavigation import CodeNavigationBehavior
 from kivy.uix.behaviors.emacs import EmacsBehavior
 from kivy.uix.behaviors.cover import CoverBehavior
+from kivy.uix.behaviors.hover import HoverBehavior
