@@ -41,7 +41,6 @@ def save(filename, w, h, fmt, pixels, flipped):
 # NOTE: This must be kept up to date with ImageData supported formats. If you
 # add support for converting/uploading (for example) ARGB, you must ensure
 # that it is returned unmodified below to take advantage of it.
-# *** WARNING *** Only 32-bit pixel formats are guaranteed to be pitch-aligned
 cdef load_from_surface(SDL_Surface *image):
     cdef SDL_Surface *image2 = NULL
     cdef SDL_Surface *fimage = NULL
@@ -61,29 +60,39 @@ cdef load_from_surface(SDL_Surface *image):
         want_rgba = SDL_PIXELFORMAT_ABGR8888
         want_bgra = SDL_PIXELFORMAT_ARGB8888
 
-    # Determine if we need pixel format conversion
+    # Output format - supported by ImageData. If the surface is already
+    # in a supported format, no conversion is done.
     fmt = ''
+
+    # 32-bit rgba and bgra can be used directly
     if image.format.format == want_rgba:
         fmt = 'rgba'
     elif image.format.format == want_bgra:
         fmt = 'bgra'
-    elif image.format.format == SDL_PIXELFORMAT_RGB24:
-        # 24bpp formats can only be used directly if they are pitch-aligned
-        if image.pitch == image.format.BytesPerPixel * image.w:
-            fmt = 'rgb'
-    elif image.format.format == SDL_PIXELFORMAT_BGR24:
-        if image.pitch == image.format.BytesPerPixel * image.w:
-            fmt = 'bgr'
-    elif image.format.Amask == 0:
-        # Only convert to 24bpp if it will be pitch-aligned
-        if (image.w * 3) % 4 == 0:
-            fmt = 'rgb'
-            target_fmt = SDL_PIXELFORMAT_RGB24
 
-    # Everything else has to be 32-bit rgba, even without alpha
-    if not fmt:
+    # Alpha mask or colorkey must be converted to rgba
+    elif image.format.Amask or SDL_GetColorKey(image, NULL) == 0:
         fmt = 'rgba'
         target_fmt = want_rgba
+
+    # Other 24bpp formats without colorkey can be used directly. 
+    elif image.format.format == SDL_PIXELFORMAT_RGB24:
+        fmt = 'rgb'
+    elif image.format.format == SDL_PIXELFORMAT_BGR24:
+        fmt = 'bgr'
+
+    # Palette with alpha is converted to rgba
+    elif image.format.palette != NULL:
+        for n in xrange(0, image.format.palette.ncolors):
+            if image.format.palette.colors[n].a < 0xFF:
+                fmt = 'rgba'
+                target_fmt = want_rgba
+                break
+
+    # Everything else is converted to RGB
+    if not fmt:
+        fmt = 'rgb'
+        target_fmt = SDL_PIXELFORMAT_RGB24
 
     # Convert if needed, and return a copy of the raw pixel data
     try:
