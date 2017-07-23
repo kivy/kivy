@@ -28,11 +28,12 @@ cdef extern from "SDL.h":
     int SDL_WINDOWPOS_UNDEFINED
 
     ctypedef enum:
+        SDL_PIXELFORMAT_BGRA8888
         SDL_PIXELFORMAT_ARGB8888
         SDL_PIXELFORMAT_RGBA8888
-        SDL_PIXELFORMAT_RGB888
         SDL_PIXELFORMAT_ABGR8888
-        SDL_PIXELFORMAT_BGR888
+        SDL_PIXELFORMAT_RGB24
+        SDL_PIXELFORMAT_BGR24
 
     ctypedef enum SDL_GLattr:
         SDL_GL_RED_SIZE
@@ -481,10 +482,9 @@ cdef extern from "SDL.h":
     cdef int SDL_SetTextureBlendMode(SDL_Texture * texture, SDL_BlendMode blendMode)
     cdef int SDL_GetTextureBlendMode(SDL_Texture * texture, SDL_BlendMode *blendMode)
     cdef SDL_Surface * SDL_CreateRGBSurfaceFrom(void *pixels, int width, int height, int depth, int pitch, Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
-    cdef SDL_Surface* SDL_ConvertSurface(SDL_Surface* src, SDL_PixelFormat* fmt, Uint32 flags)
-    cdef SDL_Surface* SDL_ConvertSurfaceFormat(SDL_Surface* src, Uint32
-            pixel_format, Uint32 flags)
+    cdef SDL_Surface* SDL_ConvertSurfaceFormat(SDL_Surface* src, Uint32 pixel_format, Uint32 flags) nogil
     cdef const char* SDL_GetPixelFormatName(Uint32 format)
+    cdef int SDL_GetColorKey(SDL_Surface *surface, Uint32 *key)
     cdef int SDL_Init(Uint32 flags)
     cdef void SDL_Quit()
     cdef int SDL_EnableUNICODE(int enable)
@@ -626,6 +626,11 @@ cdef extern from "SDL.h":
     Uint16 AUDIO_F32LSB #0x8120  /**< 32-bit floating point samples */
     Uint16 AUDIO_F32MSB #0x9120  /**< As above, but big-endian byte order */
     Uint16 AUDIO_F32    #AUDIO_F32LSB
+
+    # Endianness
+    Uint16 SDL_BYTEORDER
+    Uint16 SDL_LIL_ENDIAN
+    Uint16 SDL_BIG_ENDIAN
 
 cdef extern from "SDL_shape.h":
     cdef SDL_Window * SDL_CreateShapedWindow(
