@@ -1193,6 +1193,12 @@ class WindowBase(EventDispatcher):
                 self.dispatch('on_touch_up', me)
                 FocusBehavior._handle_post_on_touch_up(me)
 
+            elif not etype:
+                if 'cursor_movement' in me.profile:
+                    for w in self.children[:]:
+                        if w.dispatch('on_motion', me):
+                            return
+
     def on_touch_down(self, touch):
         '''Event called when a touch down event is initiated.
 

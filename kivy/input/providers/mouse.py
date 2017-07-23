@@ -162,6 +162,7 @@ class MouseMotionEventProvider(MotionEventProvider):
             return
         EventLoop.window.bind(
             on_mouse_move=self.on_mouse_motion,
+            on_mouse_pos=self.on_mouse_motion,
             on_mouse_down=self.on_mouse_press,
             on_mouse_up=self.on_mouse_release)
 
@@ -171,6 +172,7 @@ class MouseMotionEventProvider(MotionEventProvider):
             return
         EventLoop.window.unbind(
             on_mouse_move=self.on_mouse_motion,
+            on_mouse_pos=self.on_mouse_motion,
             on_mouse_down=self.on_mouse_press,
             on_mouse_up=self.on_mouse_release)
 
@@ -238,6 +240,14 @@ class MouseMotionEventProvider(MotionEventProvider):
             # alt just released ?
             is_double_tap = 'shift' in modifiers
             cur = self.create_touch(rx, ry, is_double_tap, True)
+        else:
+            id = 'mouse' + str(self.counter)
+            cur = MouseMotionEvent(self.device, id=id, args=[rx, ry])
+            cur.profile = ['pos', 'cursor_movement']
+            cur.is_touch = False
+            cur.move([rx, ry])
+            cur.update_graphics(win)
+            self.waiting_event.append(('', cur))
         return True
 
     def on_mouse_press(self, win, x, y, button, modifiers):
