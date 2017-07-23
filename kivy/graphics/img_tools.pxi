@@ -21,8 +21,8 @@ cdef inline convert_to_gl_format(data, fmt):
     cdef char [::1] view
     cdef int datasize
     cdef str ret_format
-    cdef int i, k
-    cdef char c
+    cdef int i
+    cdef char c, k
 
     # if native support of this format is available, use it
     if gl_has_texture_native_format(fmt):
