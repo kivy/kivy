@@ -22,7 +22,7 @@ Manual installation (On Raspbian Jessie)
 
 #. Install a new enough version of Cython::
 
-    sudo pip install -I Cython==0.23
+    sudo pip install -U |cython_install|
 
 
 #. Install Kivy globally on your system::
@@ -66,9 +66,9 @@ Manual installation (On Raspbian Wheezy)
     wget https://raw.github.com/pypa/pip/master/contrib/get-pip.py
     sudo python get-pip.py
 
-#. Install Cython from sources (debian package are outdated)::
+#. Install Cython from sources (debian packages are outdated)::
 
-    sudo pip install cython
+    sudo pip install -U cython
 
 #. Install Kivy globally on your system::
 
