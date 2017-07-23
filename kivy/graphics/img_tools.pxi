@@ -21,7 +21,7 @@ cdef inline convert_to_gl_format(data, fmt):
     cdef char [::1] view
     cdef int datasize
     cdef str ret_format
-    cdef int i
+    cdef int i, k
     cdef char c
 
     # if native support of this format is available, use it
@@ -67,6 +67,16 @@ cdef inline convert_to_gl_format(data, fmt):
                 dst_buffer[i] = dst_buffer[i + 2]
                 dst_buffer[i + 2] = c
 
+    # ARGB -> RGBA
+    elif fmt == 'argb':
+        ret_format = 'rgba'
+        memcpy(dst_buffer, &src_buffer[1], datasize-1)
+        k = src_buffer[0]
+        with nogil:
+            for i in range(0, datasize, 4):
+                c = dst_buffer[i+3]
+                dst_buffer[i+3] = k
+                k = c
     else:
         assert False, 'Non implemented texture conversion {}'.format(fmt)
 

@@ -222,7 +222,7 @@ cpdef int gl_has_texture_native_format(fmt):
 cpdef int gl_has_texture_conversion(fmt):
     '''Return 1 if the texture can be converted to a native format.
     '''
-    return fmt in ('bgr', 'bgra')
+    return fmt in ('bgr', 'bgra', 'argb')
 
 
 cpdef int gl_has_texture_format(fmt):
