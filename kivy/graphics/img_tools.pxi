@@ -77,6 +77,22 @@ cdef inline convert_to_gl_format(data, fmt):
                 c = dst_buffer[i+3]
                 dst_buffer[i+3] = c2
                 c2 = c
+
+    # ABGR -> RGBA
+    elif fmt == 'abgr':
+        ret_format = 'rgba'
+        memcpy(dst_buffer, &src_buffer[1], datasize-1)
+        c2 = src_buffer[0]
+        with nogil:
+            for i in range(0, datasize, 4):
+                c = dst_buffer[i+3]
+                dst_buffer[i+3] = c2
+                c2 = c
+
+                c = dst_buffer[i]
+                dst_buffer[i] = dst_buffer[i + 2]
+                dst_buffer[i + 2] = c
+
     else:
         assert False, 'Non implemented texture conversion {}'.format(fmt)
 
