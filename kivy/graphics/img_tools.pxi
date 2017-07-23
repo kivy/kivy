@@ -57,6 +57,7 @@ cdef inline convert_to_gl_format(data, fmt, width, height):
         if rowlen * height < datasize:
             # FIXME: warn/fail if pitch * height != datasize:
             pitchalign = pitch - rowlen
+            rowlen -= 1 # to match 0-based k below
 
         # note, this is the fastest copying method. copying element by element
         # from a memoryview is slower then copying the whole buffer and then
