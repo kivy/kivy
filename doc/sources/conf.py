@@ -218,6 +218,9 @@ latex_toplevel_sectioning = 'part'
 
 from kivy import setupconfig
 
+# if used in a code-block, the block has to be marked with
+# .. parse-literal::, otherwise it won't be replaced
+# !!! doesn't work for "::", ".. code::" or ".. code-block::"
 replacements = {
     'cython_install': 'Cython==' + setupconfig.CYTHON_MAX,
     'cython_note': (
