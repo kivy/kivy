@@ -221,7 +221,7 @@ Installation
 ------------
 
 
-::
+.. parsed-literal::
 
     # Make sure Pip, Virtualenv and Setuptools are updated
     sudo pip install --upgrade pip virtualenv setuptools
@@ -321,7 +321,7 @@ OpenSuse
 Installation
 ------------
 
-::
+.. parsed-literal::
 
     # Make sure Pip, Virtualenv and Setuptools are updated
     sudo pip install --upgrade pip virtualenv setuptools

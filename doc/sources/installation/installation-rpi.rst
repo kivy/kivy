@@ -20,9 +20,11 @@ Manual installation (On Raspbian Jessie)
        gstreamer1.0-{omx,alsa} python-dev libmtdev-dev \
        xclip
 
-#. Install a new enough version of Cython::
+#. Install a new enough version of Cython:
 
-    sudo pip install -U |cython_install|
+   .. parsed-literal::
+
+       sudo pip install -U |cython_install|
 
 
 #. Install Kivy globally on your system::
