@@ -313,7 +313,8 @@ __all__ = ('App', )
 
 import os
 from inspect import getfile
-from os.path import dirname, join, exists, sep, expanduser, isfile, abspath
+from shutil import copyfile
+from os.path import dirname, join, exists, sep, expanduser, isfile
 from kivy.config import ConfigParser
 from kivy.base import runTouchApp, stopTouchApp
 from kivy.compat import string_types
@@ -661,10 +662,25 @@ class App(EventDispatcher):
         '''
 
         if platform == 'android':
+            from jnius import autoclass
+            activity = autoclass('org.kivy.android.PythonActivity').mActivity
             defaultpath = join(
-                dirname(abspath(sys.executable)),
+                activity.getFilesDir().getAbsolutePath(),
+                'app',
                 '.%(appname)s.ini'
             )
+
+            old_path = '/sdcard/.%(appname)s.ini' % {'appname': self.name}
+            new_path = defaultpath % {'appname': self.name}
+
+            # if it's already moved, ignore whatever was on sdcard before
+            if exists(old_path) and not exists(new_path):
+                Logger.warning(
+                    'App: get_application_config sdcard path is deprecated, '
+                    'moving to the new one - %s.' % new_path
+                )
+                copyfile(old_path, new_path)
+
         elif platform == 'ios':
             defaultpath = '~/Documents/%(appname)s.ini'
         elif platform == 'win':
