@@ -679,6 +679,9 @@ class App(EventDispatcher):
                     'App: get_application_config sdcard path is deprecated, '
                     'moving to the new one - %s.' % new_path
                 )
+                if not exists(dirname(new_path)):
+                    # recursive mkdir, just in case
+                    os.makedirs(dirname(new_path))
                 copyfile(old_path, new_path)
 
         elif platform == 'ios':
