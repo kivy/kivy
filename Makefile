@@ -83,6 +83,10 @@ hook:
 	cp kivy/tools/pep8checker/pre-commit.githook .git/hooks/pre-commit
 	chmod +x .git/hooks/pre-commit
 
+testimages:
+	mkdir -p "${KIVY_DIR}tests/testimages"
+	-kivy/tools/create-testimages.sh "${KIVY_DIR}tests/testimages"
+
 test:
 	-rm -rf kivy/tests/build
 	$(NOSETESTS) kivy/tests
