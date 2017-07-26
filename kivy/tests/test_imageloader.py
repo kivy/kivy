@@ -3,7 +3,6 @@ import re
 import unittest
 from pprint import pprint
 from kivy.core.image import ImageLoader
-from kivy.core.image.img_sdl2 import ImageLoaderSDL2
 
 DEBUG = False
 ASSETDIR = 'testimages'
