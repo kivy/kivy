@@ -4,6 +4,9 @@ import unittest
 from pprint import pprint
 from kivy.core.image import ImageLoader
 
+# "make testimages" is required to enable this test
+# See kivy/tools/create-testimages.sh for more information
+
 DEBUG = False
 ASSETDIR = 'testimages'
 LOADERS = {x.__name__: x for x in ImageLoader.loaders}
@@ -48,7 +51,7 @@ def pattern_to_predictions(pat, alpha='FF'):
     # both variations for a 't' pixel
     pixelmaps = []
     if 't' in pat:
-        pixelmaps = ([dict(PIXELS, t=x) for x in (b'\x00' * 3, b'\xFF' * 3)])
+        pixelmaps = [dict(PIXELS, t=x) for x in (b'\x00' * 3, b'\xFF' * 3)]
     else:
         pixelmaps = [PIXELS]
 
@@ -146,7 +149,7 @@ class TestContext(object):
 class ImageLoaderTestCase(unittest.TestCase):
 
     # Matches generated file names
-    FILE_RE = re.compile('^(\d+)x(\d+)_'
+    FILE_RE = re.compile('^v0_(\d+)x(\d+)_'
                          '([wxrgbycpt]+)_'
                          '([0-9A-Fa-f]{2})_'
                          '([\w_]+)\.([a-z]+)$')
@@ -216,7 +219,7 @@ class ImageLoaderTestCase(unittest.TestCase):
         def debug():
             if not DEBUG:
                 return
-            print("    format: {}".format(fmt))
+            print("    format: {}x{} {}".format(w, h, fmt))
             print("     pitch: got {} (want {})".format(pitch, want_pitch))
             if pixels not in predictions:
                 print("     ERROR: Mismatch")
@@ -244,6 +247,17 @@ class ImageLoaderTestCase(unittest.TestCase):
         elif fd['require_alpha'] and not has_alpha(fmt):
             ctx.fail('Missing expected alpha channel')
             debug()
+        elif fd['w'] != w:
+            ctx.fail('Width mismatch, want {} got {}'
+                     .format(fd['w'], w))
+            debug()
+        elif fd['h'] != h:
+            ctx.fail('Height mismatch, want {} got {}'
+                     .format(fd['h'], h))
+            debug()
+        elif w != 1 and h != 1:
+            ctx.fail('v0 test protocol mandates w=1 or h=1')
+            debug()
         else:
             ctx.ok("Passed test as {}x{} {}".format(w, h, fmt))
 
@@ -256,7 +270,11 @@ class ImageLoaderTestCase(unittest.TestCase):
 
     def test_ImageLoaderPIL(self):
         loadercls = LOADERS.get('ImageLoaderPIL')
-        ctx = self._test_imageloader(loadercls)
+        # PIL fails with all magick SGI format files, skip test
+        if loadercls:
+            exts = list(loadercls.extensions())
+            exts.remove('sgi')
+            ctx = self._test_imageloader(loadercls, exts)
 
     def test_ImageLoaderPygame(self):
         loadercls = LOADERS.get('ImageLoaderPygame')
@@ -273,6 +291,17 @@ class ImageLoaderTestCase(unittest.TestCase):
     def test_ImageLoaderDDS(self):
         loadercls = LOADERS.get('ImageLoaderDDS')
         ctx = self._test_imageloader(loadercls)
+
+    def test_ImageLoaderTex(self):
+        loadercls = LOADERS.get('ImageLoaderTex')
+        ctx = self._test_imageloader(loadercls)
+
+    def test_missing_tests(self):
+        for loader in ImageLoader.loaders:
+            key = 'test_{}'.format(loader.__name__)
+            msg = "Missing ImageLoader test case: {}".format(key)
+            self.assertTrue(hasattr(self, key), msg)
+            self.assertTrue(callable(getattr(self, key)), msg)
 
 
 class ConverterTestCase(unittest.TestCase):

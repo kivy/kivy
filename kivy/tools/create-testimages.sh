@@ -12,13 +12,17 @@ Creates test images in many formats using ImageMagick 'convert'
 utility. The pixel values are encoded in the filename, so they
 can be reconstructed and verified.
 
-<W>x<H>_<pattern>_<alpha>_<format>_<info>.<extension>
+v0_<W>x<H>_<pattern>_<alpha>_<format>_<info>.<extension>
 
-  Example: "3x1_rgb_FF_PNG24_OPAQUE.png" is a 3x1 image with
+  Example: "v0_3x1_rgb_FF_PNG24_OPAQUE.png" is a 3x1 image with
   red, green and blue pixels. Alpha is FF, the ImageMagick
   format is PNG24. <info> is used to distinguish tests that
   use the same pattern but differ in other parameters
   (currently _OPAQUE, _BINARY and _ALPHA)
+
+  The leading 'v0_' indicates version 0 of the test protocol,
+  which is defined by this implementation. All v0 images are
+  either a single row or single column of pixels with values:
 
 Pattern legend:
 
@@ -81,14 +85,14 @@ make_images() {
     fi
 
     # Nx1
-    outfile="${len}x1_${pattern}_${alpha}_${format}${name}.${ext}"
+    outfile="v0_${len}x1_${pattern}_${alpha}_${format}${name}.${ext}"
     eval convert -size ${len}x1 xc:none -quality 100% -alpha on \
         $(draw_pattern "$pattern" "x" "$alpha") \
         "${format}:$destdir/$outfile"
 
     # 1xN - don't create duplicates for single pixel
     if [ $len -ne 1 ]; then
-        outfile="1x${len}_${pattern}_${alpha}_${format}${name}.${ext}"
+        outfile="v0_1x${len}_${pattern}_${alpha}_${format}${name}.${ext}"
         eval convert -size 1x${len} xc:none -quality 100% -alpha on \
             $(draw_pattern "$pattern" "y" "$alpha") \
             "${format}:$destdir/$outfile"
@@ -103,11 +107,6 @@ if [ "$#" -ne 1 ] || [ -z "$1" ]; then
     exit 1
 fi
 
-if [ ! -x "$(command -v convert)" ]; then
-    (2>&1 echo "Required ImageMagick 'convert' not found in path")
-    exit 2
-fi
-
 case $1 in
     -h|--help) usage; exit 1 ;;
 esac
@@ -120,6 +119,11 @@ elif [ ! -w "$1" ]; then
     exit 2
 fi
 destdir=$(cd "$1"; echo $(pwd))
+
+if [ ! -x "$(command -v convert)" ]; then
+    (2>&1 echo "Required ImageMagick 'convert' not found in path")
+    exit 3
+fi
 
 # Make a random pattern from given characters $1 at length $2
 # FIXME: portability?
