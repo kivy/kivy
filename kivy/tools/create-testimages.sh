@@ -5,6 +5,23 @@ FMT_OPAQUE="TIFF:tiff BMP:bmp BMP3:bmp PNG:png GIF87:gif CUR:cur"
 FMT_BINARY="BMP:bmp GIF:gif PNG8:png PNG24:png PNG48:png ICO:ico"
 FMT_ALPHA="PNG32:png PNG64:png TGA:tga SGI:sgi DPX:dpx"
 
+# FIXME: Magick output is not completely predictable. Some images
+# become gray+alpha, some palette, some bitonal, and it's not obvious
+# how/if this can be controlled better
+#FMT_BITONAL=""
+FMT_GRAY_OPAQUE=""
+FMT_GRAY_BINARY="PNG8:png"
+FMT_GRAY_ALPHA="PNG:png"
+
+# Pixel values used for different tests
+PIX_alpha="twxrgbcyp0123456789ABCDEF"
+PIX_opaque="wxrgbcyp0123456789ABCDEF"
+PIX_binary="twrgbcyp123456789ABCDEF"
+PIX_gray_opaque="0123456789ABCDEF"
+PIX_gray_binary="t123456789ABCDEF"
+PIX_gray_alpha="t0123456789ABCDEF"
+
+
 usage() { cat <<EOM
 Usage: $0 <target-directory>
 
@@ -30,8 +47,12 @@ Pattern legend:
   r: Red    (#f00)    g: Green (#0f0)   b: Blue   (#00f)
   y: Yellow (#ff0)    c: Cyan  (#0ff)   p: Purple (#f0f)
 
-  ** 't' and 'x' cannot be combined in the same pattern for
-     testing binary transparency (all black pixels become
+  0-9 A-F (uppercase) represent pixels with the given value
+          in all nibbles, so 3 = #333333, A = #AAAAA. Alpha
+          is global and not affected by the pixel values.
+
+  ** 't' cannot be combined with 'x' or '0' in the same pattern
+     for testing binary transparency (all black pixels become
      transparent for some formats, causing tests to fail).
 
 EOM
@@ -55,6 +76,9 @@ draw_pattern() {
             y) fill="#FFFF00${alpha}" ;;
             c) fill="#00FFFF${alpha}" ;;
             p) fill="#FF00FF${alpha}" ;;
+            0|1|2|3|4|5|6|7|8|9|A|B|C|D|E|F)
+                fill="#${char}${char}${char}${char}${char}${char}${alpha}"
+            ;;
             *) (>&2 echo "Error: Invalid pattern char: $char"); exit 100 ;;
         esac
         case $direction in
@@ -69,34 +93,63 @@ draw_pattern() {
 # format. Only use alpha != FF if you are actually testing alpha.
 make_images() {
     pattern=$1
-    format=$2
-    ext=$3
-    alpha=${4:-FF}
-    name=$5
     len=${#pattern}
 
-    if [ -z $pattern ] || [ -z $format ] || [ -z $ext ]; then
-        (>&2 echo "make_images() missing required arguments")
+    if [ -z $pattern ] || [ -z $TESTFMT ] || [ -z $TESTEXT ]; then
+        (>&2 echo "make_images() missing required arguments/environment")
         exit 101
     fi
-    if [ ${#alpha} != 2 ]; then
-        (>&2 echo "make_images() invalid alpha: $alpha")
+    if [ ${#TESTALPHA} != 2 ]; then
+        (>&2 echo "make_images() invalid TESTALPHA: $TESTALPHA")
         exit 102
     fi
 
     # Nx1
-    outfile="v0_${len}x1_${pattern}_${alpha}_${format}${name}.${ext}"
-    eval convert -size ${len}x1 xc:none -quality 100% -alpha on \
+    ending="${TESTALPHA}_${TESTFMT}_${TESTNAME}.${TESTEXT}"
+    outfile="v0_${len}x1_${pattern}_${ending}"
+    eval convert -size ${len}x1 xc:none -quality 100% $TESTARGS \
         $(draw_pattern "$pattern" "x" "$alpha") \
-        "${format}:$destdir/$outfile"
+        ${convert_args} \
+        "${TESTFMT}:$destdir/$outfile"
 
     # 1xN - don't create duplicates for single pixel
     if [ $len -ne 1 ]; then
-        outfile="v0_1x${len}_${pattern}_${alpha}_${format}${name}.${ext}"
-        eval convert -size 1x${len} xc:none -quality 100% -alpha on \
+        outfile="v0_1x${len}_${pattern}_${ending}"
+        eval convert -size 1x${len} xc:none -quality 100% $TESTARGS \
             $(draw_pattern "$pattern" "y" "$alpha") \
-            "${format}:$destdir/$outfile"
+            "${TESTFMT}:$destdir/$outfile"
     fi
+}
+
+# Make a random pattern from given characters $1 at length $2
+# FIXME: portability?
+mkpattern() {
+    < /dev/urandom LC_ALL=C tr -dc "$1" | head -c $2
+}
+
+# Makes simple permutations and random patterns, optionally with
+# prefix and postfix (args are pattern, prefix, postfix)
+permutepattern() {
+    if [ -z "$1" ]; then
+        (>&2 echo "permutepattern() missing required argument")
+        exit 200
+    fi
+
+    # Individual pixel values + poor permutation FIXME
+    for char in $(echo $1 | fold -w1); do
+        echo -n "$2${char}$3 "
+        if [ ! -z $p1 ]; then echo -n "$2${char}${p1}$3 "; fi
+# Uncomment for more data
+#        if [ ! -z $p2 ]; then echo -n "$2${char}${p1}${p2}$3 "; fi
+#        if [ ! -z $p3 ]; then echo -n "$2${char}${p1}${p2}${p3}$3 "; fi
+#        if [ ! -z $p4 ]; then echo -n "$2${char}${p1}${p2}${p3}${p4}$3 "; fi
+        p4=$p3 ; p3=$p2 ; p2=$p1 ; p1=$char
+    done
+
+    # Random
+    for i in $(seq 3 9) $(seq 14 17) $(seq 31 33); do
+        echo -n "$2$(mkpattern "$1" "$i")$3 "
+    done
 }
 
 # ------------------------------------------------------------
@@ -125,54 +178,85 @@ if [ ! -x "$(command -v convert)" ]; then
     exit 3
 fi
 
-# Make a random pattern from given characters $1 at length $2
-# FIXME: portability?
-mkpattern() {
-    < /dev/urandom LC_ALL=C tr -dc "$1" | head -c $2
+
+# - Opaque patterns only include solid colors, alpha is fixed at FF
+# - Binary patterns MUST include 't' pixels and MUST NOT include 'x' or 'F'
+# - Alpha can combine any pixel value and use alpha != FF
+PAT_opaque=$(permutepattern "$PIX_opaque")
+PAT_binary=$(permutepattern "$PIX_binary" "t")
+PAT_alpha="${PAT_binary} $(permutepattern "$PIX_alpha")"
+
+# Grayscale patterns use only grayscale pixel values + 't' and alpha,
+# ie #000 #111 #222 .. #EEE #FFF (0 1 2 .. E F in patterns)
+PAT_gray_opaque=$(permutepattern "$PIX_gray_opaque")
+PAT_gray_binary=$(permutepattern "$PIX_gray_binary" "t")
+PAT_gray_alpha="${PAT_gray_binary} $(permutepattern "$PIX_gray_alpha")"
+
+start() {
+    TESTNAME="$1"
+    TESTARGS="$2"
+    TESTALPHA="FF"
+    TESTFMT=""
+    TESTEXT=""
 }
 
-# Opaque patterns only include solid colors, alpha is fixed at FF
-PAT_opaque="w x r g b y c p wx cy cp xyx rgb rgbw rgbwx cyp cypw cypwx"
-for i in $(seq 2 9) $(seq 14 17) $(seq 31 33); do
-    new=$(mkpattern "wxrgbcyp" "$i")
-    PAT_opaque="${PAT_opaque} ${new}"
-done
+inform() {
+    echo "[${TESTNAME}] Creating ${TESTFMT} (.${TESTEXT}) test images..."
+}
+
+# OPAQUE / GRAY_OPAQUE
+start "OPAQUE" "-alpha off"
 for rawfmt in $FMT_OPAQUE $FMT_BINARY $FMT_ALPHA; do
-    fmt=${rawfmt%:*}
-    ext=${rawfmt#*:}
-    echo "[OPAQUE] Creating ${fmt} test images ..."
+    TESTFMT=${rawfmt%:*}; TESTEXT=${rawfmt#*:}; inform
     for pat in $PAT_opaque; do
-        make_images "$pat" "$fmt" "$ext" "FF" "_OPAQUE"
+        make_images "$pat"
     done
 done
 
-# Binary patterns MUST include 't' pixels and MUST NOT include 'x'
-PAT_binary="t tw tr tg tb tc ty tp tt twrt trgb trgbt tcypt rtg rttg rtttg"
-for i in $(seq 2 9) $(seq 14 17) $(seq 31 33); do
-    new=$(mkpattern "twrgbcyp" "$i")
-    PAT_binary="${PAT_binary} t${new}"
+start "GRAY_OPAQUE" "-alpha off -colorspace Gray"
+for rawfmt in $FMT_GRAY_OPAQUE $FMT_GRAY_BINARY $FMT_GRAY_ALPHA; do
+    TESTFMT=${rawfmt%:*}; TESTEXT=${rawfmt#*:}; inform
+    for pat in $PAT_gray_opaque; do
+        make_images "$pat"
+    done
 done
+
+# BINARY / GRAY_BINARY
+start "BINARY" "-alpha on"
 for rawfmt in $FMT_BINARY $FMT_ALPHA; do
-    fmt=${rawfmt%:*}
-    ext=${rawfmt#*:}
-    echo "[BINARY] Creating ${fmt} test images ..."
+    TESTFMT=${rawfmt%:*}; TESTEXT=${rawfmt#*:}; inform
     for pat in $PAT_binary; do
-        make_images "$pat" "$fmt" "$ext" "FF" "_BINARY"
+        make_images "$pat"
     done
 done
 
-# Reuse binary/opaque for alpha patterns. These are generated with the
-# same pixel values, but differeent (per-pixel) alpha. Also test
-# white, black and fully-transparent pixels in one pattern.
-PAT_alpha="${PAT_opaque} ${PAT_binary} twx wtx xwt xxttww"
+start "GRAY_BINARY" "-alpha on -colorspace Gray"
+for rawfmt in $FMT_GRAY_BINARY $FMT_GRAY_ALPHA; do
+    TESTFMT=${rawfmt%:*}; TESTEXT=${rawfmt#*:}; inform
+    for pat in $PAT_gray_binary; do
+        make_images "$pat"
+    done
+done
+
+# ALPHA / GRAY_ALPHA
+start "ALPHA" "-alpha on"
 for rawfmt in $FMT_ALPHA; do
-    fmt=${rawfmt%:*}
-    ext=${rawfmt#*:}
-    echo "[ALPHA] Creating ${fmt} test images ..."
+    TESTFMT=${rawfmt%:*}; TESTEXT=${rawfmt#*:}; inform
     for alpha in 7F F0; do
+        TESTALPHA=$alpha
         for pat in $PAT_alpha; do
-            make_images "$pat" "$fmt" "$ext" "$alpha" "_ALPHA"
+            make_images "$pat"
         done
     done
 done
 
+start "GRAY_ALPHA" "-alpha on -colorspace Gray"
+for rawfmt in $FMT_GRAY_ALPHA; do
+    TESTFMT=${rawfmt%:*}; TESTEXT=${rawfmt#*:}; inform
+    for alpha in 7F F0; do
+        TESTALPHA=$alpha
+        for pat in $PAT_gray_alpha; do
+            make_images "$pat"
+        done
+    done
+done

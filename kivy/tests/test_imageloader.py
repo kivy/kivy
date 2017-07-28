@@ -44,7 +44,13 @@ def pattern_to_predictions(pat, alpha='FF'):
     PIXELS = {
         'w': b'\xFF\xFF\xFF', 'x': b'\x00\x00\x00',  # 't' is below
         'r': b'\xFF\x00\x00', 'g': b'\x00\xFF\x00', 'b': b'\x00\x00\xFF',
-        'y': b'\xFF\xFF\x00', 'c': b'\x00\xFF\xFF', 'p': b'\xFF\x00\xFF'}
+        'y': b'\xFF\xFF\x00', 'c': b'\x00\xFF\xFF', 'p': b'\xFF\x00\xFF',
+        '0': b'\x00\x00\x00', '1': b'\x11\x11\x11', '2': b'\x22\x22\x22',
+        '3': b'\x33\x33\x33', '4': b'\x44\x44\x44', '5': b'\x55\x55\x55',
+        '6': b'\x66\x66\x66', '7': b'\x77\x77\x77', '8': b'\x88\x88\x88',
+        '9': b'\x99\x99\x99', 'A': b'\xAA\xAA\xAA', 'B': b'\xBB\xBB\xBB',
+        'C': b'\xCC\xCC\xCC', 'D': b'\xDD\xDD\xDD', 'E': b'\xEE\xEE\xEE',
+        'F': b'\xFF\xFF\xFF'}
 
     # Some loaders/formats/conversion processes can result in binary
     # transparency represented as white+a00 or black+a00 - we accept
@@ -150,7 +156,7 @@ class ImageLoaderTestCase(unittest.TestCase):
 
     # Matches generated file names
     FILE_RE = re.compile('^v0_(\d+)x(\d+)_'
-                         '([wxrgbycpt]+)_'
+                         '([wxrgbycptA-F0-9]+)_'
                          '([0-9A-Fa-f]{2})_'
                          '([\w_]+)\.([a-z]+)$')
 
