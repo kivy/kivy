@@ -63,21 +63,20 @@ EOM
 draw_pattern() {
     pattern=$1
     direction="${2:-x}"
-    alpha=${3:-FF}
     pos=0
     for char in $(echo $pattern | fold -w1); do
         case $char in
             t) fill="#00000000" ;;
-            w) fill="#FFFFFF${alpha}" ;;
-            x) fill="#000000${alpha}" ;;
-            r) fill="#FF0000${alpha}" ;;
-            g) fill="#00FF00${alpha}" ;;
-            b) fill="#0000FF${alpha}" ;;
-            y) fill="#FFFF00${alpha}" ;;
-            c) fill="#00FFFF${alpha}" ;;
-            p) fill="#FF00FF${alpha}" ;;
+            w) fill="#FFFFFF${TESTALPHA}" ;;
+            x) fill="#000000${TESTALPHA}" ;;
+            r) fill="#FF0000${TESTALPHA}" ;;
+            g) fill="#00FF00${TESTALPHA}" ;;
+            b) fill="#0000FF${TESTALPHA}" ;;
+            y) fill="#FFFF00${TESTALPHA}" ;;
+            c) fill="#00FFFF${TESTALPHA}" ;;
+            p) fill="#FF00FF${TESTALPHA}" ;;
             0|1|2|3|4|5|6|7|8|9|A|B|C|D|E|F)
-                fill="#${char}${char}${char}${char}${char}${char}${alpha}"
+                fill="#${char}${char}${char}${char}${char}${char}${TESTALPHA}"
             ;;
             *) (>&2 echo "Error: Invalid pattern char: $char"); exit 100 ;;
         esac
@@ -108,7 +107,7 @@ make_images() {
     ending="${TESTALPHA}_${TESTFMT}_${TESTNAME}.${TESTEXT}"
     outfile="v0_${len}x1_${pattern}_${ending}"
     eval convert -size ${len}x1 xc:none -quality 100% $TESTARGS \
-        $(draw_pattern "$pattern" "x" "$alpha") \
+        $(draw_pattern "$pattern" "x") \
         ${convert_args} \
         "${TESTFMT}:$destdir/$outfile"
 
@@ -116,7 +115,7 @@ make_images() {
     if [ $len -ne 1 ]; then
         outfile="v0_1x${len}_${pattern}_${ending}"
         eval convert -size 1x${len} xc:none -quality 100% $TESTARGS \
-            $(draw_pattern "$pattern" "y" "$alpha") \
+            $(draw_pattern "$pattern" "y") \
             "${TESTFMT}:$destdir/$outfile"
     fi
 }
