@@ -898,7 +898,7 @@ class App(EventDispatcher):
         '''Event handler fired when a configuration token has been changed by
         the settings page.
 
-        .. versionchanged:: 1.10.1-dev
+        .. versionchanged:: 1.10.1
            Added corresponding ``on_config_change`` event.
         '''
         pass
