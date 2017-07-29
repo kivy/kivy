@@ -162,9 +162,9 @@ class MouseMotionEventProvider(MotionEventProvider):
             return
         EventLoop.window.bind(
             on_mouse_move=self.on_mouse_motion,
-            on_mouse_pos=self.on_mouse_motion,
             on_mouse_down=self.on_mouse_press,
-            on_mouse_up=self.on_mouse_release)
+            on_mouse_up=self.on_mouse_release,
+            mouse_pos=self.on_mouse_pos)
 
     def stop(self):
         '''Stop the mouse provider'''
@@ -172,9 +172,9 @@ class MouseMotionEventProvider(MotionEventProvider):
             return
         EventLoop.window.unbind(
             on_mouse_move=self.on_mouse_motion,
-            on_mouse_pos=self.on_mouse_motion,
             on_mouse_down=self.on_mouse_press,
-            on_mouse_up=self.on_mouse_release)
+            on_mouse_up=self.on_mouse_release,
+            mouse_pos=self.on_mouse_pos)
 
     def test_activity(self):
         if not self.disable_on_activity:
@@ -200,7 +200,7 @@ class MouseMotionEventProvider(MotionEventProvider):
 
     def create_touch(self, rx, ry, is_double_tap, do_graphics, button):
         self.counter += 1
-        id = 'mouse' + str(self.counter)
+        id = 'mouse%s' % (self.counter)
         args = [rx, ry, button]
         if do_graphics:
             args += [not self.multitouch_on_demenad]
@@ -240,15 +240,16 @@ class MouseMotionEventProvider(MotionEventProvider):
             # alt just released ?
             is_double_tap = 'shift' in modifiers
             cur = self.create_touch(rx, ry, is_double_tap, True)
-        else:
-            id = 'mouse' + str(self.counter)
-            cur = MouseMotionEvent(self.device, id=id, args=[rx, ry])
-            cur.profile = ['pos', 'cursor_movement']
-            cur.is_touch = False
-            cur.move([rx, ry])
-            cur.update_graphics(win)
-            self.waiting_event.append(('', cur))
         return True
+
+    def on_mouse_pos(self, win, value):
+        width, height = EventLoop.window.system_size
+        rx = value[0] / float(width)
+        ry = value[1] / float(height)
+        id = 'mouse%s' % (self.counter)
+        cur = MouseMotionEvent(self.device, id=id, args=[rx, ry])
+        cur.profile = ['pos', 'cursor_movement']
+        self.waiting_event.append(('', cur))
 
     def on_mouse_press(self, win, x, y, button, modifiers):
         if self.test_activity():

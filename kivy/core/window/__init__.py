@@ -1194,8 +1194,8 @@ class WindowBase(EventDispatcher):
                 FocusBehavior._handle_post_on_touch_up(me)
 
             elif not etype:
-                if Config.getboolean('kivy', 'dispatch_cursor_movement'):
-                    if 'cursor_movement' in me.profile:
+                if 'cursor_movement' in me.profile:
+                    if Config.getboolean('kivy', 'dispatch_cursor_movement'):
                         for w in self.children[:]:
                             if w.dispatch('on_motion', me):
                                 return
