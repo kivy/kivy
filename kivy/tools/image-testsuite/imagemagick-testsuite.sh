@@ -1,7 +1,8 @@
 #!/usr/bin/env sh
 
 # ImageMagickFormat:extension
-FMT_OPAQUE="TIFF:tiff BMP:bmp BMP3:bmp PNG:png GIF87:gif CUR:cur"
+FMT_OPAQUE="TIFF:tiff BMP:bmp BMP3:bmp PNG:png GIF87:gif CUR:cur \
+            PPM:ppm FITS:fits RAS:ras"
 FMT_BINARY="BMP:bmp GIF:gif PNG8:png PNG24:png PNG48:png ICO:ico"
 FMT_ALPHA="PNG32:png PNG64:png TGA:tga SGI:sgi DPX:dpx"
 
@@ -9,14 +10,14 @@ FMT_ALPHA="PNG32:png PNG64:png TGA:tga SGI:sgi DPX:dpx"
 # become gray+alpha, some palette, some bitonal, and it's not obvious
 # how/if this can be controlled better
 #FMT_BITONAL=""
-FMT_GRAY_OPAQUE=""
+FMT_GRAY_OPAQUE="PGM:pgm FITS:fits RAS:ras"
 FMT_GRAY_BINARY="PNG8:png"
-FMT_GRAY_ALPHA="PNG:png"
+FMT_GRAY_ALPHA="PNG:png TGA:tga"
 
 # Pixel values used for different tests
-PIX_alpha="twxrgbcyp0123456789ABCDEF"
-PIX_opaque="wxrgbcyp0123456789ABCDEF"
-PIX_binary="twrgbcyp123456789ABCDEF"
+PIX_alpha="twxrgbcyp48A"
+PIX_opaque="wxrgbcyp48A"
+PIX_binary="twrgbcyp48A"
 PIX_gray_opaque="0123456789ABCDEF"
 PIX_gray_binary="t123456789ABCDEF"
 PIX_gray_alpha="t0123456789ABCDEF"
@@ -25,36 +26,12 @@ PIX_gray_alpha="t0123456789ABCDEF"
 usage() { cat <<EOM
 Usage: $0 <target-directory>
 
-Creates test images in many formats using ImageMagick 'convert'
-utility. The pixel values are encoded in the filename, so they
-can be reconstructed and verified.
+  Creates test images in many formats using ImageMagick 'convert'
+  utility. The pixel values are encoded in the filename, so they
+  can be reconstructed and verified independently. This system
+  is referred to as the image test protocol (version 0). 
 
-v0_<W>x<H>_<pattern>_<alpha>_<format>_<info>.<extension>
-
-  Example: "v0_3x1_rgb_FF_PNG24_OPAQUE.png" is a 3x1 image with
-  red, green and blue pixels. Alpha is FF, the ImageMagick
-  format is PNG24. <info> is used to distinguish tests that
-  use the same pattern but differ in other parameters
-  (currently _OPAQUE, _BINARY and _ALPHA)
-
-  The leading 'v0_' indicates version 0 of the test protocol,
-  which is defined by this implementation. All v0 images are
-  either a single row or single column of pixels with values:
-
-Pattern legend:
-
-  w: White  (#fff)    x: Black (#000)** t: Transp (#0000)**
-  r: Red    (#f00)    g: Green (#0f0)   b: Blue   (#00f)
-  y: Yellow (#ff0)    c: Cyan  (#0ff)   p: Purple (#f0f)
-
-  0-9 A-F (uppercase) represent pixels with the given value
-          in all nibbles, so 3 = #333333, A = #AAAAA. Alpha
-          is global and not affected by the pixel values.
-
-  ** 't' cannot be combined with 'x' or '0' in the same pattern
-     for testing binary transparency (all black pixels become
-     transparent for some formats, causing tests to fail).
-
+  More info: kivy/tools/image-testsuite/README.md
 EOM
 }
 
@@ -104,7 +81,7 @@ make_images() {
     fi
 
     # Nx1
-    ending="${TESTALPHA}_${TESTFMT}_${TESTNAME}.${TESTEXT}"
+    ending="${TESTALPHA}_${TESTFMT}_${TESTNAME}_magick.${TESTEXT}"
     outfile="v0_${len}x1_${pattern}_${ending}"
     eval convert -size ${len}x1 xc:none -quality 100% $TESTARGS \
         $(draw_pattern "$pattern" "x") \
@@ -179,7 +156,7 @@ fi
 
 
 # - Opaque patterns only include solid colors, alpha is fixed at FF
-# - Binary patterns MUST include 't' pixels and MUST NOT include 'x' or 'F'
+# - Binary patterns MUST include 't' pixels and MUST NOT include 'x' or '0'
 # - Alpha can combine any pixel value and use alpha != FF
 PAT_opaque=$(permutepattern "$PIX_opaque")
 PAT_binary=$(permutepattern "$PIX_binary" "t")
@@ -212,7 +189,7 @@ for rawfmt in $FMT_OPAQUE $FMT_BINARY $FMT_ALPHA; do
     done
 done
 
-start "GRAY_OPAQUE" "-alpha off -colorspace Gray"
+start "GRAY-OPAQUE" "-alpha off -colorspace Gray"
 for rawfmt in $FMT_GRAY_OPAQUE $FMT_GRAY_BINARY $FMT_GRAY_ALPHA; do
     TESTFMT=${rawfmt%:*}; TESTEXT=${rawfmt#*:}; inform
     for pat in $PAT_gray_opaque; do
@@ -229,7 +206,7 @@ for rawfmt in $FMT_BINARY $FMT_ALPHA; do
     done
 done
 
-start "GRAY_BINARY" "-alpha on -colorspace Gray"
+start "GRAY-BINARY" "-alpha on -colorspace Gray"
 for rawfmt in $FMT_GRAY_BINARY $FMT_GRAY_ALPHA; do
     TESTFMT=${rawfmt%:*}; TESTEXT=${rawfmt#*:}; inform
     for pat in $PAT_gray_binary; do
@@ -249,7 +226,7 @@ for rawfmt in $FMT_ALPHA; do
     done
 done
 
-start "GRAY_ALPHA" "-alpha on -colorspace Gray"
+start "GRAY-ALPHA" "-alpha on -colorspace Gray"
 for rawfmt in $FMT_GRAY_ALPHA; do
     TESTFMT=${rawfmt%:*}; TESTEXT=${rawfmt#*:}; inform
     for alpha in 7F F0; do

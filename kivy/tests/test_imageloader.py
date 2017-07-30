@@ -1,14 +1,15 @@
+# You need an image testsuite to run this, for information see:
+# kivy/tools/image-testsuite/README.md
+
 import os
 import re
+import sys
 import unittest
-from pprint import pprint
+from collections import defaultdict
 from kivy.core.image import ImageLoader
 
-# "make testimages" is required to enable this test
-# See kivy/tools/create-testimages.sh for more information
-
 DEBUG = False
-ASSETDIR = 'testimages'
+ASSETDIR = 'image-testsuite'
 LOADERS = {x.__name__: x for x in ImageLoader.loaders}
 
 if 'ImageLoaderPygame' not in LOADERS:
@@ -17,6 +18,24 @@ if 'ImageLoaderPygame' not in LOADERS:
         LOADERS['ImageLoaderPygame'] = ImageLoaderPygame
     except:
         pass
+
+# Kivy image test protocol v0: Pixel values
+v0_PIXELS = {  # NOTE: 't' is not included here, see match_prediction()
+    'w': [0xFF, 0xFF, 0xFF], 'x': [0x00, 0x00, 0x00], 'r': [0xFF, 0x00, 0x00],
+    'g': [0x00, 0xFF, 0x00], 'b': [0x00, 0x00, 0xFF], 'y': [0xFF, 0xFF, 0x00],
+    'c': [0x00, 0xFF, 0xFF], 'p': [0xFF, 0x00, 0xFF], '0': [0x00, 0x00, 0x00],
+    '1': [0x11, 0x11, 0x11], '2': [0x22, 0x22, 0x22], '3': [0x33, 0x33, 0x33],
+    '4': [0x44, 0x44, 0x44], '5': [0x55, 0x55, 0x55], '6': [0x66, 0x66, 0x66],
+    '7': [0x77, 0x77, 0x77], '8': [0x88, 0x88, 0x88], '9': [0x99, 0x99, 0x99],
+    'A': [0xAA, 0xAA, 0xAA], 'B': [0xBB, 0xBB, 0xBB], 'C': [0xCC, 0xCC, 0xCC],
+    'D': [0xDD, 0xDD, 0xDD], 'E': [0xEE, 0xEE, 0xEE], 'F': [0xFF, 0xFF, 0xFF]}
+
+# Kivy image test protocol v0: File name
+# width x height _ pattern _ alpha _ fmtinfo _ testname _ encoder . ext
+v0_FILE_RE = re.compile('^v0_(\d+)x(\d+)_' '([wxrgbycptA-F0-9]+)_'
+                        '([0-9a-fA-F]{2})_' '([a-zA-Z0-9\-]+)_'
+                        '([a-zA-Z0-9\-]+)_' '([a-zA-Z0-9\-]+)'
+                        '\.([a-z]+)$')
 
 
 def asset(*fn):
@@ -35,43 +54,20 @@ def bytes_per_pixel(fmt):
     raise Exception('bytes_per_pixel: unknown format {}'.format(fmt))
 
 
-# Generate RGBA pixel predictions from pattern + alpha. When testing
-# "1x3_rgb_FF" is processed here as pat='rgb' and alpha='FF'. Returns a list
-# of bytes objects representing accepted pixel data
-def pattern_to_predictions(pat, alpha='FF'):
-    assert len(alpha) == 2
-    assert len(pat) >= 1
-    PIXELS = {
-        'w': b'\xFF\xFF\xFF', 'x': b'\x00\x00\x00',  # 't' is below
-        'r': b'\xFF\x00\x00', 'g': b'\x00\xFF\x00', 'b': b'\x00\x00\xFF',
-        'y': b'\xFF\xFF\x00', 'c': b'\x00\xFF\xFF', 'p': b'\xFF\x00\xFF',
-        '0': b'\x00\x00\x00', '1': b'\x11\x11\x11', '2': b'\x22\x22\x22',
-        '3': b'\x33\x33\x33', '4': b'\x44\x44\x44', '5': b'\x55\x55\x55',
-        '6': b'\x66\x66\x66', '7': b'\x77\x77\x77', '8': b'\x88\x88\x88',
-        '9': b'\x99\x99\x99', 'A': b'\xAA\xAA\xAA', 'B': b'\xBB\xBB\xBB',
-        'C': b'\xCC\xCC\xCC', 'D': b'\xDD\xDD\xDD', 'E': b'\xEE\xEE\xEE',
-        'F': b'\xFF\xFF\xFF'}
-
-    # Some loaders/formats/conversion processes can result in binary
-    # transparency represented as white+a00 or black+a00 - we accept
-    # both variations for a 't' pixel
-    pixelmaps = []
-    if 't' in pat:
-        pixelmaps = [dict(PIXELS, t=x) for x in (b'\x00' * 3, b'\xFF' * 3)]
-    else:
-        pixelmaps = [PIXELS]
-
-    alphamap = lambda x: x == 't' and b'\x00' or bytearray.fromhex(alpha)
-    out = []
-    for pm in pixelmaps:
-        out.append(b''.join([bytes(pm.get(p) + alphamap(p)) for p in pat]))
-    return out
+def get_pixel_alpha(pix, fmt):
+    if fmt in ('rgba', 'bgra'):
+        return pix[3]
+    elif fmt in ('abgr', 'argb'):
+        return pix[0]
+    return 0xFF
 
 
 # Converts (predicted) rgba pixels to the format claimed by image loader
 def rgba_to(pix_in, target_fmt, w, h, pitch=None):
+    if not isinstance(pix_in, (bytes, bytearray)):
+        pix_in = bytearray(pix_in)
     assert w > 0 and h > 0, "Must specify w and h"
-    assert len(pix_in) == w * h * 4, "Invalid rgba pixel data"
+    assert len(pix_in) == w * h * 4, "Invalid rgba data {}".format(pix_in)
     assert target_fmt in ('rgba', 'bgra', 'argb', 'abgr', 'rgb', 'bgr')
 
     if target_fmt == 'rgba':
@@ -79,11 +75,11 @@ def rgba_to(pix_in, target_fmt, w, h, pitch=None):
 
     pixels = [pix_in[i:i + 4] for i in range(0, len(pix_in), 4)]
     if target_fmt == 'bgra':
-        return b''.join([p[:3][::-1] + p[3:] for p in pixels])
+        return b''.join([bytes(p[:3][::-1] + p[3:]) for p in pixels])
     elif target_fmt == 'abgr':
-        return b''.join([p[3:] + p[:3][::-1] for p in pixels])
+        return b''.join([bytes(p[3:] + p[:3][::-1]) for p in pixels])
     elif target_fmt == 'argb':
-        return b''.join([p[3:] + p[:3] for p in pixels])
+        return b''.join([bytes(p[3:] + p[:3]) for p in pixels])
 
     # rgb/bgr, default to 4 byte alignment
     if pitch is None:
@@ -93,54 +89,121 @@ def rgba_to(pix_in, target_fmt, w, h, pitch=None):
         pitch = 3 * w
 
     out = b''
-    padding = b'\0' * (pitch - w * 3)
+    padding = b'\x00' * (pitch - w * 3)
     for row in [pix_in[i:i + w * 4] for i in range(0, len(pix_in), w * 4)]:
         pixelrow = [row[i:i + 4] for i in range(0, len(row), 4)]
         if target_fmt == 'rgb':
-            out += b''.join([p[:3] for p in pixelrow])
+            out += b''.join([bytes(p[:3]) for p in pixelrow])
         elif target_fmt == 'bgr':
-            out += b''.join([p[:3][::-1] for p in pixelrow])
+            out += b''.join([bytes(p[:3][::-1]) for p in pixelrow])
         out += padding
-
     return out
+
+
+def match_prediction(pixels, fmt, fd, pitch):
+    assert len(fd['alpha']) == 2
+    assert len(fd['pattern']) > 0
+
+    bpp = bytes_per_pixel(fmt)
+    rowlen = fd['w'] * bpp
+    if pitch is None:
+        pitch = (rowlen + 3) & ~3
+    elif pitch == 0:
+        pitch = fd['w'] * bpp
+    pitchalign = pitch - rowlen
+
+    errors = []
+    fail = errors.append
+
+    if len(pixels) != pitch * fd['h']:
+        fail("Pitch errror: pitch {} * {} height != {} pixelbytes"
+             .format(pitch, fd['h'], len(pixels)))
+
+    ptr = 0
+    pixnum = 0
+    for char in fd['pattern']:
+        pix = list(bytearray(pixels[ptr:ptr + bpp]))
+#        print("PIXNUM {} ptr={} bpp={} : {}".format(pixnum, ptr, bpp, pix))
+        if len(pix) != bpp:
+            fail("Want {} bytes per pixel, got {}: {}"
+                 .format(bpp, len(pix), pix))
+            break
+
+        if char == 't':
+            if get_pixel_alpha(pix, fmt) != 0:
+                fail("pixel {} nonzero 't' pixel alpha {:02X}: {}".format(
+                      pixnum, get_pixel_alpha(pix, fmt), pix))
+        else:
+            srcpix = v0_PIXELS[char] + list(bytearray.fromhex(fd['alpha']))
+            predict = rgba_to(srcpix, fmt, 1, 1, pitch=0)
+            predict = list(bytearray(predict))
+            if not predict or not pix or predict != pix:
+                fail("pixel {} {} format mismatch: want {} ({}) -- got {}"
+                     .format(pixnum, fmt, predict, char, pix))
+
+        if pitchalign and (pixnum + 1) % fd['w'] == 0:
+            check = list(bytearray(pixels[ptr + bpp:ptr + bpp + pitchalign]))
+            if check != [0] * pitchalign:
+                fail("Want {} 0x00 pitch align pixnum={}, pos={} got: {}"
+                     .format(pitchalign, pixnum, ptr + bpp, check))
+            ptr += pitchalign
+        ptr += bpp
+        pixnum += 1
+
+    if ptr != len(pixels):
+        fail("Excess data: pixnum={} ptr={} bytes={}, bpp={} pitchalign={}"
+             .format(pixnum, ptr, len(pixels), bpp, pitchalign))
+    return (len(errors) == 0, errors)
 
 
 class TestContext(object):
     def __init__(self, loadercls):
         self.loadercls = loadercls
+        self._fd = None
         self._fn = None
         self._ok = 0
         self._skip = 0
         self._fail = 0
+        self._stats = defaultdict(dict)
+
+    @property
+    def stats(self):
+        return self._stats
 
     @property
     def results(self):
-        return (self._ok, self._skip, self._fail)
+        return (self._ok, self._skip, self._fail, self._stats)
 
-    def start(self, fn):
+    def start(self, fn, fd):
         assert not self._fn, "unexpected ctx.start(), already started"
+        assert isinstance(fd, dict)
         self._fn = fn
+        self._fd = fd
 
     def end(self, fn=None):
         assert not fn or self._fn == fn, "unexpected ctx.end(), fn mismatch"
         self._fn = None
+        self._fd = None
 
     def ok(self, info):
         assert self._fn, "unexpected ctx.ok(), fn=None"
         self._ok += 1
         self.dbg('PASS', info)
+        self._incstat('ok')
         self.end(self._fn)
 
     def skip(self, info):
         assert self._fn, "unexpected ctx.skip(), fn=None"
         self._skip += 1
         self.dbg('SKIP', info)
+        self._incstat('skip')
         self.end(self._fn)
 
     def fail(self, info):
         assert self._fn, "unexpected ctx.fail(), fn=None"
         self._fail += 1
         self.dbg('FAIL', info)
+        self._incstat('fail')
         self.end(self._fn)
 
     def dbg(self, msgtype, info):
@@ -149,36 +212,64 @@ class TestContext(object):
             print("{} {} {}: {}"
                   .format(self.loadercls.__name__, msgtype, self._fn, info))
 
+    def _incstat(self, s):
+        assert self._fd, "unexpected ctx._incstat(), fd=None"
+        fd = self._fd
+
+        def IS(key):
+            self._stats.setdefault(s, defaultdict(int))[key] += 1
+
+        IS('total')
+        IS('extension:{}'.format(fd['ext']))
+        IS('encoder:{}'.format(fd['encoder']))
+        IS('fmtinfo:{}'.format(fd['fmtinfo']))
+        IS('testname:{}'.format(fd['testname']))
+        IS('testname+ext:{}+{}'.format(fd['testname'], fd['ext']))
+        IS('encoder+ext:{}+{}'.format(fd['encoder'], fd['ext']))
+        IS('encoder+testname:{}+{}'.format(fd['encoder'], fd['testname']))
+        IS('fmtinfo+ext:{}+{}'.format(fd['fmtinfo'], fd['ext']))
+
 
 @unittest.skipIf(not os.path.isdir(asset(ASSETDIR)),
                  "Need 'make testimages' to run test")
 class ImageLoaderTestCase(unittest.TestCase):
-
-    # Matches generated file names
-    FILE_RE = re.compile('^v0_(\d+)x(\d+)_'
-                         '([wxrgbycptA-F0-9]+)_'
-                         '([0-9A-Fa-f]{2})_'
-                         '([\w_]+)\.([a-z]+)$')
-
     def setUp(self):
+        self._context = None
         self._prepare_images()
 
+    def tearDown(self):
+        if not DEBUG or not self._context:
+            return
+        ctx = self._context
+        il = ctx.loadercls.__name__
+        stats = ctx.stats
+        keys = set([k for x in stats.values() for k in x.keys()])
+        sg = stats.get
+        for k in sorted(keys):
+            ok, skip, fail = sg('ok', {}), sg('skip', {}), sg('fail', {})
+            print("REPORT {} {}: ok={}, skip={}, fail={}".format(
+                  il, k, ok.get(k, 0), skip.get(k, 0), fail.get(k, 0)))
+
     def _prepare_images(self):
+        if hasattr(self, '_image_files'):
+            return
         self._image_files = {}
         for filename in os.listdir(asset(ASSETDIR)):
-            matches = self.FILE_RE.match(filename)
+            matches = v0_FILE_RE.match(filename)
             if not matches:
                 continue
-            w, h, pat, alpha, info, ext = matches.groups()
+            w, h, pat, alpha, fmtinfo, tst, encoder, ext = matches.groups()
             self._image_files[filename] = {
+                'filename': filename,
                 'w': int(w),
                 'h': int(h),
-                'alpha': alpha,
-                'ext': ext,
-                'info': info,
                 'pattern': pat,
-                'predictions': pattern_to_predictions(pat, alpha),
-                'require_alpha': 'BINARY' in info or 'ALPHA' in info,
+                'alpha': alpha,
+                'fmtinfo': fmtinfo,
+                'testname': tst,
+                'encoder': encoder,
+                'ext': ext,
+                'require_alpha': 'BINARY' in tst or 'ALPHA' in tst,
             }
 
     def _test_imageloader(self, loadercls, extensions=None):
@@ -188,52 +279,45 @@ class ImageLoaderTestCase(unittest.TestCase):
             extensions = loadercls.extensions()
 
         ctx = TestContext(loadercls)
+        self._context = ctx
         for filename in sorted(self._image_files.keys()):
             filedata = self._image_files[filename]
 
             if filedata['ext'] not in extensions:
                 continue
             try:
-                ctx.start(filename)
+                ctx.start(filename, filedata)
                 result = loadercls(asset(ASSETDIR, filename), keep_data=True)
                 if not result:
                     raise Exception('invalid result')
             except:
                 ctx.skip('Error loading file, result=None')
                 continue
-            self._test_image(filedata, ctx, loadercls, filename, result)
+            self._test_image(filedata, ctx, loadercls, result)
             ctx.end()
 
-        ok, skip, fail = ctx.results
+        ok, skip, fail, stats = ctx.results
         if fail:
             self.fail('{}: {} passed, {} skipped, {} failed'
                       .format(loadercls.__name__, ok, skip, fail))
         return ctx
 
-    def _test_image(self, fd, ctx, loadercls, fn, imgdata):
+    def _test_image(self, fd, ctx, loadercls, imgdata):
         w, h, pixels, pitch = imgdata._data[0].get_mipmap(0)
         fmt = imgdata._data[0].fmt
 
         # required for FFPy memview
+        # FIXME: bytearray() for py2 compat, I can't be bothered to research
         if not isinstance(pixels, bytes):
             pixels = bytearray(pixels)
-
-        # Convert RGBA prediction to imageloaders returned format
-        predictions = [rgba_to(pix, fmt, fd['w'], fd['h'], pitch=pitch)
-                       for pix in fd['predictions']]
 
         def debug():
             if not DEBUG:
                 return
             print("    format: {}x{} {}".format(w, h, fmt))
-            print("     pitch: got {} (want {})".format(pitch, want_pitch))
-            if pixels not in predictions:
-                print("     ERROR: Mismatch")
-                for p in predictions:
-                    print(" predicted: {}".format(p))
-                print("       got: {}".format(bytearray(pixels)))
-            else:
-                print("        OK: Pixel data matches")
+            print("     pitch: got {}, want {}".format(pitch, want_pitch))
+            print("      want: {} in {}".format(fd['pattern'], fmt))
+            print("       got: {}".format(bytearray(pixels)))
 
         # Assume pitch 0 = unaligned
         want_pitch = (pitch == 0) and bytes_per_pixel(fmt) * w or pitch
@@ -247,8 +331,17 @@ class ImageLoaderTestCase(unittest.TestCase):
             ctx.dbg("PITCH", "fmt={}, pitch={}, expected {}"
                              .format(fmt, pitch, want_pitch))
 
-        if pixels not in predictions:
-            ctx.fail('Pixel data mismatch')
+        success, msgs = match_prediction(pixels, fmt, fd, pitch)
+        if not success:
+            if not msgs:
+                ctx.fail("Unknown error")
+            elif len(msgs) == 1:
+                ctx.fail(msgs[0])
+            else:
+                for m in msgs:
+                    ctx.dbg('PREDICT', m)
+                ctx.fail('{} errors, see debug output: {}'
+                         .format(len(msgs), msgs[-1]))
             debug()
         elif fd['require_alpha'] and not has_alpha(fmt):
             ctx.fail('Missing expected alpha channel')
@@ -266,6 +359,7 @@ class ImageLoaderTestCase(unittest.TestCase):
             debug()
         else:
             ctx.ok("Passed test as {}x{} {}".format(w, h, fmt))
+        sys.stdout.flush()
 
     def test_ImageLoaderSDL2(self):
         loadercls = LOADERS.get('ImageLoaderSDL2')
@@ -276,11 +370,7 @@ class ImageLoaderTestCase(unittest.TestCase):
 
     def test_ImageLoaderPIL(self):
         loadercls = LOADERS.get('ImageLoaderPIL')
-        # PIL fails with all magick SGI format files, skip test
-        if loadercls:
-            exts = list(loadercls.extensions())
-            exts.remove('sgi')
-            ctx = self._test_imageloader(loadercls, exts)
+        ctx = self._test_imageloader(loadercls)
 
     def test_ImageLoaderPygame(self):
         loadercls = LOADERS.get('ImageLoaderPygame')
