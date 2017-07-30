@@ -81,16 +81,16 @@ class CameraOpenCV(CameraBase):
                 break
             duration = time.time() - start
             Logger.debug('OpenCV: Captured frame {}/{} in {}s.'.format(
-                frame_count + 1, frame_sample_size, duration))
+                             frame_count + 1, frame_sample_size, duration))
             frame_count += 1
             rates[round(1 / duration)] += 1
         if frame_count != frame_sample_size:
             raise RuntimeError(('OpenCV: Unable to measure the frame rate, '
                                 'grabbed only {} out of {} frames.').format(
-                frame_count, frame_sample_size))
+                                   frame_count, frame_sample_size))
         rate_frequencies = rates.most_common()
         Logger.debug('OpenCV: Capture (fps, frequency)s are {!r}.'.format(
-            rate_frequencies))
+                         rate_frequencies))
         return Fraction(
             math.floor(
                 operator.div(
