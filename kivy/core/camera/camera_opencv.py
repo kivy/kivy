@@ -8,8 +8,12 @@ OpenCV Camera: Implement CameraBase with OpenCV
 
 __all__ = ('CameraOpenCV')
 
+import functools
+import math
+import operator
 import time
 from collections import Counter
+from fractions import Fraction
 from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
@@ -57,33 +61,44 @@ class CameraOpenCV(CameraBase):
     _update_ev = None
 
     @staticmethod
-    def measure_frame_rate(video_capture, frame_sample_size):
+    def measure_frame_rate(video_capture, frame_sample_size, threshold=2):
         '''
         Measure the frame rate of an OpenCV video capture.
         :param video_capture: A video capture.
         :param frame_sample_size: The number of frames to sample in order to
                                   measure the video capture's frame rate.
+        :param threshold: The minimum frequency of a relevant frame rate
+                          measurement.
         :return: The measured frame rate.
         :raises RuntimeError: The specified number of frames cannot be read from
                               the video capture.
         '''
         frame_count = 0
-        durations = Counter()
+        rates = Counter()
         while frame_count != frame_sample_size:
             start = time.time()
             if not video_capture.grab():
                 break
+            duration = time.time() - start
+            Logger.debug('OpenCV: Captured frame {}/{} in {}s.'.format(
+                frame_count + 1, frame_sample_size, duration))
             frame_count += 1
-            durations[time.time() - start] += 1
+            rates[round(1 / duration)] += 1
         if frame_count != frame_sample_size:
             raise RuntimeError(('OpenCV: Unable to measure the frame rate, '
                                 'grabbed only {} out of {} frames.').format(
                 frame_count, frame_sample_size))
-        most_common = durations.most_common()
-        high = most_common[0][-1]
-        matching = [d for d, c in most_common if c == high]
-        average_duration = sum(matching) / len(matching)
-        return 1 / average_duration
+        rate_frequencies = rates.most_common()
+        Logger.debug('OpenCV: Capture (fps, frequency)s are {!r}.'.format(
+            rate_frequencies))
+        return Fraction(
+            math.floor(
+                operator.div(
+                    *functools.reduce(
+                        lambda x, y: (x[0] + operator.mul(*y), x[1] + y[1])
+                                     if y[1] >= threshold else x,
+                        rate_frequencies,
+                        (0, 0)))))
 
     def __init__(self, **kwargs):
         # we will need it, because constants have
@@ -141,13 +156,13 @@ class CameraOpenCV(CameraBase):
 
         # get fps
         # @note The frame rate property is unreliable for a camera.
-        fps = round(self.measure_frame_rate(self._device,
-                                            self._frame_sample_size))
-        Logger.info(("Camera {}'s frame rate is {} frames/sec based on {} "
+        frame_rate = self.measure_frame_rate(self._device,
+                                             self._frame_sample_size)
+        Logger.info(("Camera {}'s frame rate is {}fps based on {} "
                      "sample frames.").format(
-                        self._index, fps, self._frame_sample_size))
+                        self._index, frame_rate, self._frame_sample_size))
         # The event interval is the inverse of the camera's frame rate.
-        self.fps = 1 / fps
+        self.fps = float(1 / frame_rate)
 
         if not self.stopped:
             self.start()
