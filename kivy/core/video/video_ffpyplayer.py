@@ -260,8 +260,6 @@ class VideoFFPy(VideoBase):
                     relative=False)
                 self._next_frame = None
 
-            t1 = time.time()
-
             # If player is paused, but frame outdated,
             # we need to unpause ffpyplayer to get actual frame.
             if self._next_frame is None and self._ffplayer.get_pause():
@@ -293,7 +291,6 @@ class VideoFFPy(VideoBase):
             else:
                 frame, val = ffplayer.get_frame()
 
-            t2 = time.time()
             if val == 'eof':
                 sleep(0.2)
                 if not did_dispatch_eof:
