@@ -113,7 +113,7 @@ in grayscale. So all grayscale formats must use 0-9A-F only, and optionally
   order problem.
 
 * `!!!`: In some cases, black color is used for binary transparency. So
-  if you use "0"`(or "x"), test_imageloader will expect #000000FF in RGBA,
+  if you use "0" (or "x"), test_imageloader will expect #000000FF in RGBA,
   but the pixel becomes transparent (a=00) and test fails. All BINARY tests
   **MUST** include at least one "t" pixel to ensure that the image is
   saved with an alpha channel.

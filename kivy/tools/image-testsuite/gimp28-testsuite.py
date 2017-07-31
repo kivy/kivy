@@ -262,6 +262,13 @@ def makepatterns(allow, include=None, exclude=None):
 
 
 def plugin_main(dirname, do_opaque, do_binary, do_alpha):
+    if not dirname:
+        pdb.gimp_message("No ouput directory selected, aborting")
+        return
+    if not os.path.isdir(dirname) or not os.access(dirname, os.W_OK):
+        pdb.gimp_message("Invalid / non-writeable output directory, aborting")
+        return
+
     tests = []
     tests.extend({
         0: ['OPAQUE', 'GRAY-OPAQUE'],
