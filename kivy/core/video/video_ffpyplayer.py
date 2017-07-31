@@ -260,23 +260,23 @@ class VideoFFPy(VideoBase):
                     relative=False)
                 self._next_frame = None
 
-            # If player is paused, but frame outdated,
-            # we need to unpause ffpyplayer to get actual frame.
-            if self._next_frame is None and self._ffplayer.get_pause():
-                self._ffplayer.set_volume(0)  # Try to do it silently.
+            # Get next frame if paused:
+            if self._next_frame is None and ffplayer.get_pause():
+                self._ffplayer.set_volume(0.0)  # Try to do it silently.
                 self._ffplayer.set_pause(False)
                 try:
-                    # We need to skip few frames to sure
-                    # frame is actual after seek:
-                    to_skip = 4
+                    to_skip = 6
                     while True:
                         frame, val = ffplayer.get_frame(show=False)
                         # Exit loop on invalid val:
                         if val in ('paused', 'eof'):
                             break
+                        # Exit loop on seek_queue updated:
+                        if seek_queue:
+                            break
                         # Wait for next frame:
                         if frame is None:
-                            sleep(1 / 30.)
+                            sleep(0.005)
                             continue
                         # Wait until we skipped enough frames:
                         to_skip -= 1
@@ -285,9 +285,9 @@ class VideoFFPy(VideoBase):
                     # Assuming last frame is actual, just get it:
                     frame, val = ffplayer.get_frame(force_refresh=True)
                 finally:
-                    self._ffplayer.set_pause(bool(self._state == 'paused'))
-                    self._ffplayer.set_volume(self._volume)
-            # In any other case just get next frame:
+                    ffplayer.set_pause(bool(self._state == 'paused'))
+                    ffplayer.set_volume(self._volume)
+            # Get next frame regular:
             else:
                 frame, val = ffplayer.get_frame()
 
