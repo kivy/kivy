@@ -304,7 +304,8 @@ class VideoFFPy(VideoBase):
         self._out_fmt = 'rgba'
         ff_opts = {
             'paused': True,
-            'out_fmt': self._out_fmt
+            'out_fmt': self._out_fmt,
+            'sn': True,
         }
         self._ffplayer = MediaPlayer(
                 self._filename, callback=self._player_callback,
