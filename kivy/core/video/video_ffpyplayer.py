@@ -258,7 +258,9 @@ class VideoFFPy(VideoBase):
                 del seek_queue[:len(vals)]
                 ffplayer.seek(
                     vals[-1] * ffplayer.get_metadata()['duration'],
-                    relative=False)
+                    relative=False,
+                    accurate=False
+                )
                 self._next_frame = None
 
             t1 = time.time()
