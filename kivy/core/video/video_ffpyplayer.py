@@ -262,8 +262,8 @@ class VideoFFPy(VideoBase):
 
             # Get next frame if paused:
             if self._next_frame is None and ffplayer.get_pause():
-                self._ffplayer.set_volume(0.0)  # Try to do it silently.
-                self._ffplayer.set_pause(False)
+                ffplayer.set_volume(0.0)  # Try to do it silently.
+                ffplayer.set_pause(False)
                 try:
                     to_skip = 6
                     while True:
