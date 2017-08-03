@@ -4,7 +4,7 @@ Generating the image test suite
 On Linux/unix systems, you can use the `imagemagick-testsuite.sh` script
 to create an image test suite using the `convert` command line utility. You
 must have ImageMagick installed ("apt install imagemagick" on debian
-derivatives). There is also a rule in the Makefile, `make testimages`.
+derivatives). There is also a rule in the Makefile, `make image-testsuite`.
 
 A more comprehensive test suite can be generated using Gimp (tested on
 version 2.8.18). To install the plugin, copy `gimp28-testsuite.py` to your

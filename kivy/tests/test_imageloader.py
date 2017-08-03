@@ -231,7 +231,7 @@ class TestContext(object):
 
 
 @unittest.skipIf(not os.path.isdir(asset(ASSETDIR)),
-                 "Need 'make testimages' to run test")
+                 "Need 'make image-testsuite' to run test")
 class ImageLoaderTestCase(unittest.TestCase):
     def setUp(self):
         self._context = None
