@@ -392,6 +392,10 @@ class ImageLoaderTestCase(unittest.TestCase):
         loadercls = LOADERS.get('ImageLoaderTex')
         ctx = self._test_imageloader(loadercls)
 
+    def test_ImageLoaderImageIO(self):
+        loadercls = LOADERS.get('ImageLoaderImageIO')
+        ctx = self._test_imageloader(loadercls)
+
     def test_missing_tests(self):
         for loader in ImageLoader.loaders:
             key = 'test_{}'.format(loader.__name__)
