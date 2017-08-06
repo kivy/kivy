@@ -811,10 +811,18 @@ if c_options['use_sdl2'] and sdl2_flags:
     for source_file in ('core/window/_window_sdl2.pyx',
                         'core/image/_img_sdl2.pyx',
                         'core/text/_text_sdl2.pyx',
+                        'core/text/_text_pango.pyx',
                         'core/audio/audio_sdl2.pyx',
                         'core/clipboard/_clipboard_sdl2.pyx'):
         sources[source_file] = merge(
             base_flags, sdl2_flags, sdl2_depends)
+
+pango_flags = pkgconfig('pangoft2')
+if pango_flags:
+    pango_depends = {'depends': ['lib/pangoft2.pxi',
+                                 'lib/pangoft2.h']}
+    sources['core/text/_text_pango.pyx'] = merge(
+            base_flags, pango_flags, pango_depends)
 
 if platform in ('darwin', 'ios'):
     # activate ImageIO provider for our core image
