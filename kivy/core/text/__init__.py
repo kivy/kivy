@@ -778,6 +778,9 @@ class LabelBase(object):
 
 # Load the appropriate provider
 label_libs = []
+if platform in ('linux', ):
+    label_libs += [('pango', 'text_pango', 'LabelPango')]
+
 if USE_SDL2:
     label_libs += [('sdl2', 'text_sdl2', 'LabelSDL2')]
 else:
