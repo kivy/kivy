@@ -104,7 +104,7 @@ cdef _get_context_container(kivylabel):
     cdef ContextContainer cc = ContextContainer()
 
     # Create blank FcConfig (fontconfig), and load the TTF file
-    cc.fc_config = FcConfigCreate()
+    cc.fc_config = FcInitLoadConfig()
     cdef bytes filename = options['font_name_r'].encode('UTF-8')
     if FcConfigAppFontAddFile(cc.fc_config, <FcChar8 *>filename) == FcFalse:
         Logger.warn("_text_pango: Error loadinging font '{}'".format(filename))
