@@ -197,6 +197,14 @@ cdef _render_context(ContextContainer cc, unsigned char *dstbuf,
     cdef unsigned long offset_fixed = x + (y * final_w)
     cdef unsigned long offset_yi = final_w - w
     cdef unsigned long maxpos = final_w * final_h
+
+    # Sanity check that we don't go out of bounds here, should not happen
+    if offset_fixed + ((h-1)*offset_yi) + ((h-1)*w) + w - 1 > maxpos:
+        Logger.warn('_text_pango: Ignoring out of bounds blit: final={}x{} '
+                    'x={} y={} w={} h={} maxpos={}'.format(
+                    final_w, final_h, x, y, w, h, maxpos))
+        return
+
     with nogil:
         # Prepare ft2 bitmap for pango's grayscale data
         FT_Bitmap_Init(&bitmap)
@@ -219,12 +227,6 @@ cdef _render_context(ContextContainer cc, unsigned char *dstbuf,
         for yi in range(0, h):
             offset = offset_fixed + (yi * offset_yi)
             yi_w = yi * w
-            if offset + yi_w + w - 1 > maxpos:
-                with gil:
-                    Logger.warn('_text_pango: OOB blit: yi={} final={}x{} '
-                                'x={} y={} w={} h={} maxpos={}'.format(
-                                yi, final_w, final_h, x, y, w, h, maxpos))
-                break
 
             # FIXME: Handle big endian - either use variable shifts here, or
             # return as abgr + handle elsewhere
@@ -232,10 +234,10 @@ cdef _render_context(ContextContainer cc, unsigned char *dstbuf,
                 grayidx = yi_w + xi
                 graysrc = (bitmap.buffer)[grayidx]
                 (<uint32_t *>dstbuf)[offset + grayidx] = (
-                    <int>(((textcolor[0] * graysrc) / 255)) |
-                    <int>(((textcolor[1] * graysrc) / 255) << 8) |
-                    <int>(((textcolor[2] * graysrc) / 255) << 16) |
-                    <int>(((textcolor[3] * graysrc) / 255) << 24) )
+                        (((textcolor[0] * graysrc) / 255)) |
+                        (((textcolor[1] * graysrc) / 255) << 8) |
+                        (((textcolor[2] * graysrc) / 255) << 16) |
+                        (((textcolor[3] * graysrc) / 255) << 24) )
         g_free(bitmap.buffer)
         # /nogil blit
 
