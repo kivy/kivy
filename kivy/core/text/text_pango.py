@@ -34,7 +34,7 @@ class LabelPango(LabelBase):
         if options['font_hinting'] in ('light', 'normal'):
             weight_attr = ' weight="{}"'.format(options['font_hinting'])
 
-        return b'<span font="{}"{}>{}</span>'.format(
+        return '<span font="{}"{}>{}</span>'.format(
                 int(self.options['font_size']),
                 weight_attr,
                 markup)
