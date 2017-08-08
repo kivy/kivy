@@ -62,6 +62,7 @@ cdef extern from "fontconfig/fontconfig.h" nogil:
     bint FcFalse
 
     FcConfig *FcConfigCreate()
+    FcConfig *FcInitLoadConfig()
     void FcConfigDestroy(FcConfig *config)
     FcConfig *FcConfigGetCurrent()
     FcBool FcConfigSetCurrent(FcConfig *config)
