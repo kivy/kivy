@@ -9,7 +9,7 @@ __all__ = ('LabelPango', )
 from kivy.compat import PY2
 from kivy.core.text import LabelBase
 from kivy.core.text._text_pango import (KivyPangoRenderer, kpango_get_extents,
-                                        kpango_get_ascent, kpango_get_descent)
+                                        kpango_get_metrics)
 
 
 class LabelPango(LabelBase):
@@ -48,10 +48,10 @@ class LabelPango(LabelBase):
         return (w, h)
 
     def get_ascent(self):
-        return kpango_get_ascent(self)
+        return kpango_get_metrics(self)[0]
 
     def get_descent(self):
-        return kpango_get_descent(self)
+        return kpango_get_metrics(self)[1]
 
     def _render_begin(self):
         self._rdr = KivyPangoRenderer(self._size[0], self._size[1])
