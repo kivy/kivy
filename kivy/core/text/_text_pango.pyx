@@ -183,7 +183,7 @@ cdef _get_context_container(kivylabel):
     pango_layout_set_font_description(cc.layout, cc.fontdesc)
 
     # FIXME: does this need to change w/label settings?
-    pango_layout_set_alignment(cc.layout, PANGO_ALIGN_LEFT)
+    #pango_layout_set_alignment(cc.layout, PANGO_ALIGN_LEFT)
     #pango_layout_set_spacing(cc.layout, n)
 
     _add_pango_cache(fontid, cc)
