@@ -191,6 +191,10 @@ cdef _get_context_container(kivylabel):
 
 
 # Renders the pango layout to a grayscale bitmap, and blits RGBA at x, y
+@cython.cdivision(True)
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.nonecheck(False)
 cdef _render_context(ContextContainer cc, unsigned char *dstbuf,
                      int x, int y, int final_w, int final_h,
                      unsigned char textcolor[]):
