@@ -45,7 +45,7 @@ cdef class ContextContainer:
     cdef PangoFontMap *fontmap
     cdef PangoFontDescription *fontdesc
     cdef PangoFontMetrics *metrics
-    cdef PangoLanguage *metrics_lang
+    cdef PangoLanguage *metrics_lang # do not free, see docs
     cdef PangoLayout *layout
     cdef FcConfig *fc_config
 
@@ -73,6 +73,8 @@ cdef inline _add_pango_cache(unicode fontid, ContextContainer cc):
     cdef unicode popid
     while len(kivy_pango_cache_order) >= 64:
         popid = kivy_pango_cache_order.pop(0)
+        # FIXME: I think this is safe? but leaving out for now
+        #kivy_pango_cache[popid].__dealloc__()
         del kivy_pango_cache[popid]
 
     kivy_pango_cache[fontid] = cc
@@ -267,16 +269,24 @@ cdef _render_context(ContextContainer cc, unsigned char *dstbuf,
 
 cdef class KivyPangoRenderer:
     # w, h is the final bitmap size, drawn by 1+ render() calls in *pixels
-    cdef int w, h, canary
+    cdef int w, h
+    cdef int canary, rdrcount
     cdef unsigned char *pixels
 
     def __cinit__(self, int w, int h):
-        self.canary = 1
         self.w = w
         self.h = h
+        self.canary = 0
+        self.rdrcount = 0
         self.pixels = <unsigned char *>PyMem_Malloc(w * h * 4)
         if self.pixels:
             memset(self.pixels, 0, w * h * 4)
+
+    # Free pixels if dealloc'd before get_ImageData(), this is just a failsafe,
+    # should not happen during normal operations.
+    def __dealloc__(self):
+        if not self.canary and self.pixels:
+            PyMem_Free(self.pixels)
 
     # Kivy's markup system breaks labels down to smaller chunks and render
     # separately. In that case, we get several calls to render() with misc
@@ -300,14 +310,16 @@ cdef class KivyPangoRenderer:
 
         # Finally render the layout and blit it to self.pixels
         _render_context(cc, self.pixels, x, y, self.w, self.h, textcolor)
-        self.canary = 0
+        self.rdrcount += 1
 
     # Return ImageData instance with the rendered pixels
     def get_ImageData(self):
         if not self.pixels:
             Logger.warn('_text_pango: get_ImageData() self.pixels == NULL')
             return
-
+        if not self.rdrcount:
+            Logger.warn('_text_pango: get_ImageData() without render() call')
+            return
         if self.canary:
             Logger.warn("_text_pango: Dead canary in get_ImageData()")
             return
