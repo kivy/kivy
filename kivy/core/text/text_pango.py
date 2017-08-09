@@ -17,7 +17,9 @@ class LabelPango(LabelBase):
     # This is a hack to avoid dealing with glib attrs to configure layout,
     # we just create markup out of the options and let pango set attrs
     def _pango_markup(self, text):
-        markup = text.replace('<', '&lt;').replace('>', '&gt;')
+        markup = (text.replace('&', '&amp;')
+                      .replace('<', '&lt;')
+                      .replace('>', '&gt;'))
         options = self.options
         tags = []
         if options['bold']:
