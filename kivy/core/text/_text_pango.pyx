@@ -198,7 +198,7 @@ cdef _get_context_container(kivylabel):
 cdef _render_context(ContextContainer cc, unsigned char *dstbuf,
                      int x, int y, int final_w, int final_h,
                      unsigned char textcolor[]):
-    if not dstbuf or final_w == 0 or final_h == 0 or x > final_w or y > final_h:
+    if not dstbuf or final_w <= 0 or final_h <= 0 or x > final_w or y > final_h:
         Logger.warn('_text_pango: Invalid blit: final={}x{} x={} y={}'
                     .format(final_w, final_h, x, y))
         return
@@ -206,7 +206,7 @@ cdef _render_context(ContextContainer cc, unsigned char *dstbuf,
     # Note, w/h refers to the current subimage size, final_w/h is end result
     cdef int w, h
     pango_layout_get_pixel_size(cc.layout, &w, &h)
-    if w == 0 or h == 0 or x + w > final_w or y + h > final_h:
+    if w <= 0 or h <= 0 or x + w > final_w or y + h > final_h:
         Logger.warn('_text_pango: Invalid blit: final={}x{} x={} y={} w={} h={}'
                     .format(final_w, final_h, x, y, w, h))
         return
