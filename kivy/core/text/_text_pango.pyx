@@ -44,12 +44,16 @@ cdef class ContextContainer:
     cdef PangoContext *context
     cdef PangoFontMap *fontmap
     cdef PangoFontDescription *fontdesc
+    cdef PangoFontMetrics *metrics
+    cdef PangoLanguage *metrics_lang
     cdef PangoLayout *layout
     cdef FcConfig *fc_config
 
     # Called explicitly on malloc fail to release as fast as possible
     # Note: calling a method from __dealloc__ can lead to revived object
     def __dealloc__(self):
+        if self.metrics:
+            pango_font_metrics_unref(self.metrics)
         if self.fontdesc:
             pango_font_description_free(self.fontdesc)
         if self.layout:
@@ -76,6 +80,11 @@ cdef inline _add_pango_cache(unicode fontid, ContextContainer cc):
 
 
 # NOTE: for future, this applies to font selection, irrelevant with one font
+# Or maybe it is relevant, it's not clear. The callback didn't execute with
+# null for data/destroy callback. I was planning on testing with flags
+# packed in a gpointer, but this is still on todo. If anyone knows more
+# about fontconfig and can clarify how this should be done, that'd be great
+
 #cdef _configure_pattern_destroy_data(gpointer data):
 #    print("_configure_pattern_destroy_data()!")
 
@@ -143,6 +152,16 @@ cdef _get_context_container(kivylabel):
     cdef PangoDirection text_dir = kivy_pango_text_direction.get(
             options.get('text_direction', 'neutral'), PANGO_DIRECTION_NEUTRAL)
     pango_context_set_base_dir(cc.context, text_dir)
+
+    # FIXME: pango_language_from_string(kivylabel.text_language)
+    # FIXME: cc.metrics_pango_scale needed?
+    cc.metrics_lang = pango_language_get_default()
+    cc.metrics = pango_context_get_metrics(cc.context, cc.fontdesc,
+                                           pango_language_get_default())
+    if not cc.metrics:
+        Logger.warn("_text_pango: Could not get context metrics")
+        cc.__dealloc__()
+        return
 
     # Create layout from context
     cc.layout = pango_layout_new(cc.context)
@@ -311,33 +330,26 @@ def kpango_get_extents(kivylabel, text):
     return w, h
 
 
-def kpango_get_ascent(kivylabel):
+def kpango_get_metrics(kivylabel):
     cdef ContextContainer cc = _get_context_container(kivylabel)
     if not cc:
-        Logger.warn('_text_pango: Could not get container for ascent: {}'
+        Logger.warn('_text_pango: Could not get container for metrics: {}'
                     .format(kivylabel.options['font_name_r']))
-        return 0
+        return (0, 0)
 
     # FIXME: pango_language_from_string(kivylabel.text_language)
-    cdef PangoFontMetrics *fm = pango_context_get_metrics(
-                    cc.context, cc.fontdesc, pango_language_get_default())
-    try:
-        return <double>(pango_font_metrics_get_ascent(fm) / PANGO_SCALE)
-    finally:
-        pango_font_metrics_unref(fm)
+    cdef PangoLanguage *lang = pango_language_get_default()
+    if lang != cc.metrics_lang:
+        if cc.metrics:
+            pango_font_metrics_unref(cc.metrics)
+        cc.metrics = pango_context_get_metrics(cc.context, cc.fontdesc, lang)
+        if cc.metrics:
+            cc.metrics_lang = lang
 
-
-def kpango_get_descent(kivylabel):
-    cdef ContextContainer cc = _get_context_container(kivylabel)
-    if not cc:
-        Logger.warn('_text_pango: Could not get container for decent: {}'
+    if not cc.metrics:
+        Logger.warn('_text_pango: Could not get context metrics: {}'
                     .format(kivylabel.options['font_name_r']))
-        return 0
+        return (0, 0)
 
-    # FIXME: pango_language_from_string(kivylabel.text_language)
-    cdef PangoFontMetrics *fm = pango_context_get_metrics(
-                    cc.context, cc.fontdesc, pango_language_get_default())
-    try:
-        return <double>(pango_font_metrics_get_descent(fm) / PANGO_SCALE)
-    finally:
-        pango_font_metrics_unref(fm)
+    return (<double>(pango_font_metrics_get_ascent(cc.metrics) / PANGO_SCALE),
+            <double>(pango_font_metrics_get_descent(cc.metrics) / PANGO_SCALE))
