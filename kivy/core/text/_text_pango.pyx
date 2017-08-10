@@ -286,6 +286,7 @@ cdef class KivyPangoRenderer:
     # should not happen during normal operations.
     def __dealloc__(self):
         if not self.canary and self.pixels:
+            Logger.warn("_text_pango: Dead canary in __dealloc__()")
             PyMem_Free(self.pixels)
 
     # Kivy's markup system breaks labels down to smaller chunks and render
