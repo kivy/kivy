@@ -227,7 +227,7 @@ class DropDown(ScrollView):
         if value is not None:
             self.container.bind(minimum_size=self._reposition)
 
-    def open(self, widget):
+    def open(self, widget=None):
         '''Open the dropdown list and attach it to a specific widget.
         Depending on the position of the widget within the window and
         the height of the dropdown, the dropdown might be above or below
@@ -236,6 +236,10 @@ class DropDown(ScrollView):
         # ensure we are not already attached
         if self.attach_to is not None:
             self.dismiss()
+
+        # automatically attach to parent if no attach_to given
+        if widget is None and self.parent is not None:
+            widget = self.parent
 
         # we will attach ourself to the main window, so ensure the
         # widget we are looking for have a window
