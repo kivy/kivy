@@ -429,6 +429,8 @@ cdef class _WindowSDL2Storage:
 
         cdef SDL_Surface *flipped_surface = flipVert(surface)
         IMG_SavePNG(flipped_surface, real_filename)
+        SDL_FreeSurface(surface)
+        SDL_FreeSurface(flipped_surface)
 
     def grab_mouse(self, grab):
         SDL_SetWindowGrab(self.win, SDL_TRUE if grab else SDL_FALSE)
