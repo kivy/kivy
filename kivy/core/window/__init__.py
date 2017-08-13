@@ -732,6 +732,19 @@ class WindowBase(EventDispatcher):
     def _set_cursor_state(self, value):
         pass
 
+    def set_system_cursor(self, cursor_name):
+        '''Set cursor to a SDL_SystemCursor
+        available cursors are: 'arrow', 'ibeam', 'wait', 'crosshair',
+        'wait_arrow', 'size_nwse', 'size_nesw', 'size_we', 'size_ns',
+        'size_all', 'no', 'hand'
+
+        .. versionadded:: 1.10.1
+
+        .. note::
+            This feature requires the SDL2 window provider.
+        '''
+        pass
+
     def _get_window_pos(self):
         pass
 
