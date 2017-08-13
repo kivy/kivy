@@ -2,6 +2,7 @@
 from libc.stdlib cimport malloc, free
 from bcm cimport DISPMANX_ELEMENT_HANDLE_T, ElementHandle
 cimport bcm
+import bcm
 
 cdef extern from "/opt/vc/include/EGL/egl.h":
     ctypedef int EGLint ###maybe wrong
