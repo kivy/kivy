@@ -37,21 +37,12 @@ Debian  (Jessie or newer)
 
 #. Add one of the PPAs to your sources.list in apt manually or via Synaptic
 
-    * Jessie/Testing:
+    :stable builds:
+        deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu xenial main
+    :daily builds:
+        deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu xenial main
 
-        :stable builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu trusty main
-        :daily builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu trusty main
-
-    * Sid/Unstable:
-
-        :stable builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu utopic main
-        :daily builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu utopic main
-
-        **Notice**: Wheezy is not supported - You'll need to upgrade to Jessie at least!
+    **Notice**: Wheezy is not supported - You'll need to upgrade to Jessie at least!
 
 #. Add the GPG key to your apt keyring by executing
 
