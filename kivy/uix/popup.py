@@ -58,6 +58,31 @@ can directly bind the function to an action, e.g. to a button's on_press::
     # open the popup
     popup.open()
 
+Same thing in KV language only with :class:`Factory`:
+
+.. code-block:: kv
+
+    #:import Factory kivy.factory.Factory
+    <MyPopup@Popup>:
+        auto_dismiss: False
+        Button:
+            text: 'Close me!'
+            on_release: root.dismiss()
+
+    Button:
+        text: 'Open popup'
+        on_release: Factory.MyPopup().open()
+
+.. note::
+
+    Popup is a special widget. Don't try to add it as a child to any other
+    widget. If you do, Popup will be handled like an ordinary widget and
+    won't be created hidden in the background.
+
+    .. code-block:: kv
+
+        BoxLayout:
+            MyPopup:  # bad!
 
 Popup Events
 ------------
