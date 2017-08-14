@@ -733,15 +733,48 @@ class WindowBase(EventDispatcher):
         pass
 
     def set_system_cursor(self, cursor_name):
-        '''Set cursor to a SDL_SystemCursor
-        available cursors are: 'arrow', 'ibeam', 'wait', 'crosshair',
-        'wait_arrow', 'size_nwse', 'size_nesw', 'size_we', 'size_ns',
-        'size_all', 'no', 'hand'
+        '''Set type of a mouse cursor in the Window.
+
+        It can be one of 'arrow', 'ibeam', 'wait', 'crosshair', 'wait_arrow',
+        'size_nwse', 'size_nesw', 'size_we', 'size_ns', 'size_all', 'no', or
+        'hand'.
+
+        On some platforms there might not be a specific cursor supported and
+        such an option falls back to one of the substitutable alternatives:
+
+        +------------+-----------+------------+-----------+---------------+
+        |            | Windows   | MacOS      | Linux X11 | Linux Wayland |
+        +============+===========+============+===========+===============+
+        | arrow      | arrow     | arrow      | arrow     | arrow         |
+        +------------+-----------+------------+-----------+---------------+
+        | ibeam      | ibeam     | ibeam      | ibeam     | ibeam         |
+        +------------+-----------+------------+-----------+---------------+
+        | wait       | wait      | arrow      | wait      | wait          |
+        +------------+-----------+------------+-----------+---------------+
+        | crosshair  | crosshair | crosshair  | crosshair | hand          |
+        +------------+-----------+------------+-----------+---------------+
+        | wait_arrow | arrow     | arrow      | wait      | wait          |
+        +------------+-----------+------------+-----------+---------------+
+        | size_nwse  | size_nwse | size_all   | size_all  | hand          |
+        +------------+-----------+------------+-----------+---------------+
+        | size_nesw  | size_nesw | size_all   | size_all  | hand          |
+        +------------+-----------+------------+-----------+---------------+
+        | size_we    | size_we   | size_we    | size_we   | hand          |
+        +------------+-----------+------------+-----------+---------------+
+        | size_ns    | size_ns   | size_ns    | size_ns   | hand          |
+        +------------+-----------+------------+-----------+---------------+
+        | size_all   | size_all  | size_all   | size_all  | hand          |
+        +------------+-----------+------------+-----------+---------------+
+        | no         | no        | no         | no        | ibeam         |
+        +------------+-----------+------------+-----------+---------------+
+        | hand       | hand      | hand       | hand      | hand          |
+        +------------+-----------+------------+-----------+---------------+
 
         .. versionadded:: 1.10.1
 
         .. note::
-            This feature requires the SDL2 window provider.
+            This feature requires the SDL2 window provider and is currently
+            only supported on desktop platforms.
         '''
         pass
 
