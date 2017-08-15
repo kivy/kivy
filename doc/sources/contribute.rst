@@ -119,7 +119,7 @@ used git or a similar DVCS (or even any VCS) before, we strongly suggest you
 take a look at the great documentation that is available for git online.
 The `Git Community Book <http://book.git-scm.com/>`_ or the
 `Git Videos <https://git-scm.com/videos>`_ are both great ways to learn git.
-Trust us when we say that git is a great tool. It may seem daunting at first,
+Trust us when we say that git is a great tool. It may seem daunting at first, 
 but after a while you'll (hopefully) love it as much as we do. Teaching you git,
 however, is well beyond the scope of this document.
 
@@ -207,8 +207,8 @@ get instant karma. Congratulations, you're a hero!
 Documentation Contributions
 ---------------------------
 
-Documentation contributions generally follow the same workflow as code contributions, 
-but are just a bit more lax.
+Documentation contributions generally follow the same workflow as code
+contributions, but are just a bit more lax.
 
     #. Following the instructions above,
 

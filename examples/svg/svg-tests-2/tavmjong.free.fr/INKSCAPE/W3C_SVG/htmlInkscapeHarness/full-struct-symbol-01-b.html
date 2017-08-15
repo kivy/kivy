@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <!DOCTYPE html PUBLIC  "-//W3C//DTD XHTML 1.0 Transitional//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+ <meta name="keywords" content="W3C SVG 1.1 Test Suite testsuite mobile"/>
+ <meta name="description" content="W3C SVG 1.1 Test Suite"/>
+ <title>
+SVG 1.1 test:struct-symbol-01-b </title>
+ <style type="text/css">
+ <!--
+ body { font-family: "Lucida Grande", verdana, helvetica, sans-serif; line-height: 1.3; text-align: left; margin-top: 0; margin-bottom: 0 }
+						<td align="center" colspan="3" class="pageTitle">
+ .pageSubTitle  { color: blue; font-size: 200%; font-weight: bold }
+ .openChapter { color: blue; line-height: 1.3; font-weight: bold }
+ .openSection { color: blue; line-height: 125%; font-weight: bold }
+ .info { color: black; line-height: 1.2; font-size: 90%; }
+ p { margin-top:0; margin-bottom:0; padding-top:0; padding-bottom:0 }
+ .linkbar { text-align: center; margin: 1em 1em 0.25em 1em;}
+ blockquote { margin-top:0; margin-bottom:0; padding-top:0; padding-bottom:0 }
+ .opscript {margin-left: 3%; margin-right: 3%; }
+ .opscript p { margin-top: 0.7em}
+ .navbar {background: black; color: white; font-weight: bold}
+ -->
+ </style>
+ </head>
+ <body class="bodytext">
+
+	<div class="linkbar"> 
+<p>
+<a href="full-struct-symbol-01-b.html">Full version</a>, <a href="basic-struct-symbol-01-b.html">Basic version</a></p>
+<p>Specification link: <a target="spec" href="http://www.w3.org/TR/SVG11/struct.html#SymbolElement">5.5 The 'symbol' element</a></p>
+ <p>
+				<a href="full-struct-image-05-b.html">struct-image-05-b ←</a> 
+				<a href="full-index.html">index</a>
+				<a href="full-struct-use-05-b.html">→ struct-use-05-b</a>
+						</p></div>
+
+	<table align="center" border="0" cellspacing="0" cellpadding="10">
+		<tr>
+			<td align="center" colspan="4">
+				<table border="0" cellpadding="8">
+					<tr>
+						<td align="center" colspan="3" class="pageTitle">
+							<h1>struct-symbol-01-b</h1>
+						</td>
+					</tr>
+					<tr  class="navbar">
+						<td align="center">
+							SVG Image
+						</td>
+						<td align="center">
+							INKSCAPE Image
+						</td>
+						<td align="center">
+							PNG Image
+						</td>
+					</tr>
+					<tr>
+						<td align="right">
+   	    		  			<object data="../svggen/struct-symbol-01-b.svg" width="480" height="360" type="image/svg+xml"/>
+						</td>
+						<td align="left">
+							<img alt="raster image of struct-symbol-01-b.png" src="../ink/struct-symbol-01-b.png" width="480" height="360"/>
+						</td>
+						<td align="left">
+							<img alt="raster image of struct-symbol-01-b.png" src="../png/full-struct-symbol-01-b.png" width="480" height="360"/>
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</table>
+
+               
+<div class="opscript">
+			<p>
+				The purpose of the symbol test case is to create some symbols and then 
+				have them rendered when instantiated by the use element.  This file 
+				contains 3 symbol definitions.  Only two are ever rendered.  There 
+				is a viewport defined to be 0,0,1000,1000 on the svg element.  Each 
+				symbol has is own viewport of the same dimensions.  The symbols are 
+				scaled when they are instantiated by the use element,  The first set 
+				of symbols is 4 squares, red and yellow in color they should appear 
+				in the lower right of the view arranged in a checkerboard fashion.  
+				The second symbol to be used is an image which should appear in the 
+				upper left of the view area.  The symbol that is not used and should 
+				not be rendered is a large black rectangle.  If the symbols don't 
+				appear, there is something askew with the use statement, if they 
+				appear but either overlap each other or in some way aren't in the 
+				correct positions they have not honored either their viewport or 
+				were not scaled when placed by the use element in the area defined by 
+				it.  If everything is black then perhaps a symbol was rendered that 
+				should not have been.
+			</p>
+			<p>
+				The rendered picture should match the reference image, except for possible
+				variations in the labelling text (per CSS2 rules).  
+			</p>
+			<p>
+				The test uses the 'rect' element, as well as basic fill (solid primary colors), 
+				stroke (black 1-pixel lines), font-family (Arial) and font-size properties.
+			</p>
+
+		</div>
+<div class="linkbar"> <p>
+				<a href="full-struct-image-05-b.html">struct-image-05-b ←</a>
+				<a href="full-index.html">index</a>
+				<a href="full-struct-use-05-b.html">→ struct-use-05-b</a>
+						</p></div>
+</body>
+</html>

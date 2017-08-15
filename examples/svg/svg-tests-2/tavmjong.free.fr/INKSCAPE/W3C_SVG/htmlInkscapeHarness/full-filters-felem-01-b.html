@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <!DOCTYPE html PUBLIC  "-//W3C//DTD XHTML 1.0 Transitional//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+ <meta name="keywords" content="W3C SVG 1.1 Test Suite testsuite mobile"/>
+ <meta name="description" content="W3C SVG 1.1 Test Suite"/>
+ <title>
+SVG 1.1 test:filters-felem-01-b </title>
+ <style type="text/css">
+ <!--
+ body { font-family: "Lucida Grande", verdana, helvetica, sans-serif; line-height: 1.3; text-align: left; margin-top: 0; margin-bottom: 0 }
+						<td align="center" colspan="3" class="pageTitle">
+ .pageSubTitle  { color: blue; font-size: 200%; font-weight: bold }
+ .openChapter { color: blue; line-height: 1.3; font-weight: bold }
+ .openSection { color: blue; line-height: 125%; font-weight: bold }
+ .info { color: black; line-height: 1.2; font-size: 90%; }
+ p { margin-top:0; margin-bottom:0; padding-top:0; padding-bottom:0 }
+ .linkbar { text-align: center; margin: 1em 1em 0.25em 1em;}
+ blockquote { margin-top:0; margin-bottom:0; padding-top:0; padding-bottom:0 }
+ .opscript {margin-left: 3%; margin-right: 3%; }
+ .opscript p { margin-top: 0.7em}
+ .navbar {background: black; color: white; font-weight: bold}
+ -->
+ </style>
+ </head>
+ <body class="bodytext">
+
+	<div class="linkbar"> 
+<p>
+<a href="full-filters-felem-01-b.html">Full version</a>, <a href="basic-filters-felem-01-b.html">Basic version</a></p>
+<p>Specification link: <a target="spec" href="http://www.w3.org/TR/SVG11/filters.html#FilterElement">15.3 The 'filter' element</a></p>
+ <p>
+				<a href="full-filters-example-01-b.html">filters-example-01-b ←</a> 
+				<a href="full-index.html">index</a>
+				<a href="full-filters-gauss-01-b.html">→ filters-gauss-01-b</a>
+						</p></div>
+
+	<table align="center" border="0" cellspacing="0" cellpadding="10">
+		<tr>
+			<td align="center" colspan="4">
+				<table border="0" cellpadding="8">
+					<tr>
+						<td align="center" colspan="3" class="pageTitle">
+							<h1>filters-felem-01-b</h1>
+						</td>
+					</tr>
+					<tr  class="navbar">
+						<td align="center">
+							SVG Image
+						</td>
+						<td align="center">
+							INKSCAPE Image
+						</td>
+						<td align="center">
+							PNG Image
+						</td>
+					</tr>
+					<tr>
+						<td align="right">
+   	    		  			<object data="../svggen/filters-felem-01-b.svg" width="480" height="360" type="image/svg+xml"/>
+						</td>
+						<td align="left">
+							<img alt="raster image of filters-felem-01-b.png" src="../ink/filters-felem-01-b.png" width="480" height="360"/>
+						</td>
+						<td align="left">
+							<img alt="raster image of filters-felem-01-b.png" src="../png/full-filters-felem-01-b.png" width="480" height="360"/>
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</table>
+
+               
+<div class="opscript">
+      <p>
+				Test which verifies null filters and filter regions.
+			</p>
+      <p>
+       Four subtests each consist of a small red circle overdrawn with a larger black circle. Filters are applied to three of the black circles, hiding them and showing the red circle. The correct rendering is a black circle at top left and red circles in the other three cases.</p>
+
+ <p>The topleft subtest has no filter applied to the black circle, so the black circle is visible and the red one is not. The top right subtest applies a filter to the black circle, but there is no corresponding filter element. Thus, a null filter is applied and the black circle is not shown, allowing the red circle to be seen.
+			</p>
+      <p>The bottom left subtest applies an empty filter element with the default filterRegion, and the bottom right subtest applies an empty filter with a non-default filterRegion. In both cases where empty filters are applied, the result of the filter is a transparent black offscreen, thus showing the red circle underneath.</p>
+
+		</div>
+<div class="linkbar"> <p>
+				<a href="full-filters-example-01-b.html">filters-example-01-b ←</a>
+				<a href="full-index.html">index</a>
+				<a href="full-filters-gauss-01-b.html">→ filters-gauss-01-b</a>
+						</p></div>
+</body>
+</html>

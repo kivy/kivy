@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--======================================================================-->
+<!--=  Copyright 2000 World Wide Web Consortium, (Massachusetts          =-->
+<!--=  Institute of Technology, Institut National de Recherche en        =-->
+<!--=  Informatique et en Automatique, Keio University). All Rights      =-->
+<!--=  Reserved. See http://www.w3.org/Consortium/Legal/.                =-->
+<!--======================================================================-->
+<!-- =====================================================================-->
+<!--                                                                      -->
+<!-- struct-cond-03-t.svg                                                -->
+<!--                                                                      -->
+<!-- Author : Vincent Hardy,  16-Oct-2003                                 --><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1 Tiny//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-tiny.dtd">
+
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="tiny" id="svg-root" width="100%" height="100%" viewBox="0 0 480 360">
+    <title id="test-title">struct-cond-03-t.svg</title>
+    <desc id="test-desc">Tests proper handling of &lt;switch&gt; element
+                         with requiredFeature attribute.</desc>
+
+    <!--======================================================================-->
+    <!--Content of Test Case follows...                  =====================-->
+    <!--======================================================================-->
+    <g id="test-body-content">
+        <switch>
+            <g requiredFeatures="http://www.w3.org/TR/SVG11/feature#SVGDOM">
+                <rect x="30" y="20" width="420" height="130" fill="#F00"/>
+                <text x="240" y="100" font-size="20" text-anchor="middle">This viewer does more than SVG Tiny</text>
+            </g>
+            <g>
+                <rect x="30" y="20" width="420" height="130" fill="#0F0"/>
+            </g>
+        </switch>
+
+        <switch transform="translate(0, 140)">
+            <g requiredFeatures="http://www.w3.org/TR/SVG11/feature#BasicText">
+                <rect x="30" y="20" width="420" height="130" fill="#0F0"/>
+            </g>
+            <g>
+                <rect x="30" y="20" width="420" height="130" fill="#F00"/>
+                <text x="240" y="100" font-size="20" text-anchor="middle">This is not an SVG Tiny Viewer</text>
+            </g>
+        </switch>
+    </g>
+
+    <text id="revision" x="10" y="340" font-size="40" stroke="none" fill="black">$Revision: 1.9 $</text>
+    <rect id="test-frame" x="1" y="1" width="478" height="358" fill="none" stroke="#000000"/>
+
+</svg>

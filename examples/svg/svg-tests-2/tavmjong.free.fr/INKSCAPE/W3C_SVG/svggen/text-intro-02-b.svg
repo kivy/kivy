@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1 Basic//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-basic.dtd"
+[
+	<!ENTITY % svgExt "| SVGTestCase">
+	<!ELEMENT SVGTestCase (OperatorScript)>
+	<!ATTLIST SVGTestCase
+	xmlns CDATA #REQUIRED
+>
+	<!ELEMENT OperatorScript (Paragraph)*>
+	<!ATTLIST OperatorScript
+	version CDATA #IMPLIED
+		testname CDATA #IMPLIED
+>
+	<!ELEMENT Paragraph (#PCDATA)>
+]>
+<!--======================================================================-->
+<!--=  Copyright 2000 World Wide Web Consortium, (Massachusetts          =-->
+<!--=  Institute of Technology, Institut National de Recherche en        =-->
+<!--=  Informatique et en Automatique, Keio University). All Rights      =-->
+<!--=  Reserved. See http://www.w3.org/Consortium/Legal/.                =-->
+<!--======================================================================-->
+<!-- ===================================================================== -->
+<!--                                                                       -->
+<!-- text-i18n-BE-09.svg                                                   -->
+<!-- renamed for 1.1 suite to text-intro-02-b.svg                          -->
+<!--                                                                       -->
+<!-- Test various aspects of internationalized text, including             -->
+<!-- left-to-right, right-to-left, and the                                 -->
+<!-- following properties: 'writing-mode',                                 -->
+<!-- 'direction' and 'unicode-bidi'.                                       -->
+<!--                                                                       -->
+<!-- Author : Jon Ferraiolo 06-Aug-2000                                    -->
+<!-- 1.1 revision by Vincent Hardy                                         -->
+<!--                                                                       -->
+<!-- History:                                                              -->
+<!--  06-Aug-2000, JF: Serial#1 created.                                   -->
+<!--  19-Aug-2000, LH: fix missing </g>.                                   -->
+<!--                                                                       -->
+<!-- ===================================================================== -->
+<!--======================================================================-->
+<!--= Note. After October 2000, revision history is kept as CVS 'commit' =-->
+<!--= log messages, and therefore is no longer in the preceding preamble.=-->
+<!--======================================================================-->
+<svg version="1.1" baseProfile="basic" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="svg-root" width="100%" height="100%" viewBox="0 0 480 360">
+	<title id="test-title">text-intro-02-b</title>
+	<desc id="test-desc">Test various aspects of internationalized text, including left-to-right and right-to-left text, and the following properties:  'direction' and 'unicode-bidi'.</desc>
+	<!--======================================================================-->
+	<!--Content of Test Case follows...                  =====================-->
+	<!--======================================================================-->
+	<g id="test-body-content">
+		<text font-family="Arial" font-size="17" fill="red" x="10" y="40">unicode-bidi="bidi-override" direction="ltr".</text>
+		<g font-size="18"  font-family="'Arial Unicode MS', 'LucidaSansUnicode','MS-Gothic'">
+			<text x="10" y="80" unicode-bidi="bidi-override" direction="ltr">Text "אני יכול לאכול זכוכית וזה לא מזיק לי" is in Hebrew</text>
+ 			</g>
+		<text font-family="Arial" font-size="17" fill="red" x="10" y="140">unicode-bidi="bidi-override" direction="rtl".</text>
+					<g font-size="18"  font-family="'Arial Unicode MS', 'LucidaSansUnicode','MS-Gothic'">
+			<text x="10" y="180" unicode-bidi="bidi-override" direction="rtl">Text "אני יכול לאכול זכוכית וזה לא מזיק לי" is in Hebrew</text>
+		</g>
+				<text font-family="Arial" font-size="17" fill="red" x="10" y="240">unicode-bidi="normal" direction="ltr".</text>
+					<g font-size="18"  font-family="'Arial Unicode MS', 'LucidaSansUnicode','MS-Gothic'">
+			<text x="10" y="280" unicode-bidi="normal"  direction="rtl">Text "אני יכול לאכול זכוכית וזה לא מזיק לי" is in Hebrew</text>
+		</g>
+	</g>
+	<text id="revision" x="10" y="340" font-size="40" stroke="none" fill="black">$Revision: 1.9 $</text>
+	<rect id="test-frame" x="1" y="1" width="478" height="358" fill="none" stroke="#000000"/>
+</svg>

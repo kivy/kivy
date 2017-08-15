@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <!DOCTYPE html PUBLIC  "-//W3C//DTD XHTML 1.0 Transitional//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+ <meta name="keywords" content="W3C SVG 1.1 Test Suite testsuite mobile"/>
+ <meta name="description" content="W3C SVG 1.1 Test Suite"/>
+ <title>
+SVG 1.1 test:linking-uri-02-b </title>
+ <style type="text/css">
+ <!--
+ body { font-family: "Lucida Grande", verdana, helvetica, sans-serif; line-height: 1.3; text-align: left; margin-top: 0; margin-bottom: 0 }
+						<td align="center" colspan="3" class="pageTitle">
+ .pageSubTitle  { color: blue; font-size: 200%; font-weight: bold }
+ .openChapter { color: blue; line-height: 1.3; font-weight: bold }
+ .openSection { color: blue; line-height: 125%; font-weight: bold }
+ .info { color: black; line-height: 1.2; font-size: 90%; }
+ p { margin-top:0; margin-bottom:0; padding-top:0; padding-bottom:0 }
+ .linkbar { text-align: center; margin: 1em 1em 0.25em 1em;}
+ blockquote { margin-top:0; margin-bottom:0; padding-top:0; padding-bottom:0 }
+ .opscript {margin-left: 3%; margin-right: 3%; }
+ .opscript p { margin-top: 0.7em}
+ .navbar {background: black; color: white; font-weight: bold}
+ -->
+ </style>
+ </head>
+ <body class="bodytext">
+
+	<div class="linkbar"> 
+<p>
+<a href="full-linking-uri-02-b.html">Full version</a>, <a href="basic-linking-uri-02-b.html">Basic version</a></p>
+<p>Specification link: <a target="spec" href="http://www.w3.org/TR/SVG11/linking.html#LinksIntoSVG">17.2 Linking into SVG content: URI fragments and SVG views</a></p>
+ <p>
+				<a href="full-linking-uri-01-b.html">linking-uri-01-b ←</a> 
+				<a href="full-index.html">index</a>
+				<a href="full-masking-mask-01-b.html">→ masking-mask-01-b</a>
+						</p></div>
+
+	<table align="center" border="0" cellspacing="0" cellpadding="10">
+		<tr>
+			<td align="center" colspan="4">
+				<table border="0" cellpadding="8">
+					<tr>
+						<td align="center" colspan="3" class="pageTitle">
+							<h1>linking-uri-02-b</h1>
+						</td>
+					</tr>
+					<tr  class="navbar">
+						<td align="center">
+							SVG Image
+						</td>
+						<td align="center">
+							INKSCAPE Image
+						</td>
+						<td align="center">
+							PNG Image
+						</td>
+					</tr>
+					<tr>
+						<td align="right">
+   	    		  			<object data="../svggen/linking-uri-02-b.svg" width="480" height="360" type="image/svg+xml"/>
+						</td>
+						<td align="left">
+							<img alt="raster image of linking-uri-02-b.png" src="../ink/linking-uri-02-b.png" width="480" height="360"/>
+						</td>
+						<td align="left">
+							<img alt="raster image of linking-uri-02-b.png" src="../png/full-linking-uri-02-b.png" width="480" height="360"/>
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</table>
+
+               
+<div class="opscript">
+            <p>
+                Verify the capability to handle links to 'view' elements, and the
+                permissible attributes on those elements.  All of the links in this
+                test case are external, i.e., to 'view' elements in another the SVG file.
+                That file is linking-uri-01-b.svg. 
+                This test is one of a pair, with linking-view-BE-04, which is substantially
+                identical except that its links are all internal, targeting the same 'view'
+                elements as the corresponding links in this test case,
+                i.e., they are external).
+            </p>
+            <p>
+                In the four quadrants of the initial picture are four graphical objects.  
+                Clockwise from upper right, they are
+                a red rectangle, blue ellipse, green polygon (pentagon), and yellow
+                circle.  Each is labelled and tightly boxes with a rectangular frame.
+                These are identical to their counterparts in linking-uri-01-b.svg, in which
+                file each has an associated 'view' element, with attributes
+                per the labels in the initial picture.
+            </p>
+            <p>
+                In the center is a gray box with four lines of text, each of which says
+                "Go to" followed by Rectangle, Ellipse, Polygon, and Circle, respectively.
+                Each of these is contained within an 'a' element, whose xlink:href names
+                the respective 'view' element of the respective graphical object.
+            </p>
+            <p>
+                Activating the Rectangle link should cause the whole of linking-uri-01-b.svg to be
+                displayed, which is visually similar similar to linking-uri-02-b.svg.  Its
+                'view' element has no attributes (other than id), so the correct view in 
+                the frame is of the parent 'svg' element, which is the whole picture.
+            </p>
+            <p>
+                Assuming that a "back" action has been requested, activating the Ellipse link 
+                should cause the initial picture to be replaced in the
+                frame by the whole ellipse element, uniformly scaled, with its boxing rect
+                just inside the frame.
+            </p>
+            <p>
+                Assuming that a "back" action has
+                been requested, activating the Polygon link should cause the initial 
+                picture to remain unchanged within the frame, except that the polygon is
+                "highlighted" (the meaning of highlighted is not further specified).
+            </p>
+            <p>
+                Assuming that a "back" action has been requested, 
+                activating the Circle link should cause the initial picture to be replaced in the
+                frame by the whole whole element, non-uniformly scaled so that it is stretched
+                horizontally into an ellipse, with its boxing rect just inside the frame.
+            </p>
+            <p>
+                There are several reference images associated with this test case.  The first
+                illustrates the correct initial state of the rendered SVG file, which should
+                also be the correct picture after the Rectangle link is executed.
+                The second, third, and fourth illustrate the correct images as described
+                above after respectively the Ellipse, Polygon, and Circle links are activated.
+                (Note.  This harness does not yet provide access to multiple PNGs; the PNG for the
+                initial view is shown.)	
+            </p>
+            <p>
+                The test uses the 'rect', 'circle', 'ellipse', and 'polygon' elements, 
+                as well as basic fill (solid simple colors), 
+                stroke (black and colored 1-pixel lines), font-family (Arial) and font-size properties.
+            </p>
+
+		</div>
+<div class="linkbar"> <p>
+				<a href="full-linking-uri-01-b.html">linking-uri-01-b ←</a>
+				<a href="full-index.html">index</a>
+				<a href="full-masking-mask-01-b.html">→ masking-mask-01-b</a>
+						</p></div>
+</body>
+</html>

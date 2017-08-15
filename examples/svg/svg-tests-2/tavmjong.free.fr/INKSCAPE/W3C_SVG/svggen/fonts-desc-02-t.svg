@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- =====================================================================-->
+<!-- fonts-fontface-01-t.svg                                              -->
+<!--                                                                      -->
+<!-- Test the CSS2 font-maching algorithm against a set of SVG fonts.     -->
+<!--                                                                      -->
+<!-- Author : Craig Northway                                              -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1 Tiny//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-tiny.dtd">
+
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="tiny" id="svg-root" width="100%" height="100%" viewBox="0 0 480 360">
+    <g id="test-body-content">
+        <defs >
+            <font horiz-adv-x="500">
+                <font-face font-family="SVGFont1"
+                    units-per-em="1000" ascent="800" descent="200" alphabetic="200" />
+                <missing-glyph horiz-adv-x="500"
+                    d="M0 0L500 0L500 1000L0 1000M50 50L50 950L450 950L450 50Z"/>
+                <glyph unicode=" " glyph-name="space"/>
+                <glyph unicode="a" glyph-name="square" d="M0 250L500 250L500 750L0 750Z"/>
+            </font>
+
+            <font horiz-adv-x="500">
+                <font-face font-family="SVGFont1" font-variant="small-caps"
+                    units-per-em="1000" ascent="800" descent="200" alphabetic="200" />
+                <missing-glyph horiz-adv-x="500"
+                    d="M0 0L500 0L500 1000L0 1000M50 50L50 950L450 950L450 50Z"/>
+                <glyph unicode=" " glyph-name="space"/>
+                <glyph unicode="a" glyph-name="upward-triangle" d="M0 0L500 0L250 900Z"/>
+            </font>
+
+
+            <font horiz-adv-x="500">
+                <font-face font-family="SVGFont2" font-variant="small-caps"
+                    units-per-em="1000" ascent="800" descent="200" alphabetic="200" />
+                <missing-glyph horiz-adv-x="500"
+                    d="M0 0L500 0L500 1000L0 1000M50 50L50 950L450 950L450 50Z"/>
+                <glyph unicode=" " glyph-name="space"/>
+                <glyph unicode="a" glyph-name="upward-triangle" d="M0 0L500 0L250 900Z"/>
+            </font>
+
+            <font horiz-adv-x="500">
+                <font-face font-family="SVGFont2"
+                    units-per-em="1000" ascent="800" descent="200" alphabetic="200" />
+                <missing-glyph horiz-adv-x="500"
+                    d="M0 0L500 0L500 1000L0 1000M50 50L50 950L450 950L450 50Z"/>
+                <glyph unicode=" " glyph-name="space"/>
+                <glyph unicode="a" glyph-name="square" d="M0 250L500 250L500 750L0 750Z"/>
+            </font>
+
+
+            <font horiz-adv-x="500">
+                <font-face font-family="SVGFont4" font-variant="normal"
+                    units-per-em="1000" ascent="800" descent="200" alphabetic="200" />
+                <missing-glyph horiz-adv-x="500"
+                    d="M0 0L500 0L500 1000L0 1000M50 50L50 950L450 950L450 50Z"/>
+                <glyph unicode=" " glyph-name="space"/>
+                <glyph unicode="a" glyph-name="square" d="M0 250L500 250L500 750L0 750Z"/>
+            </font>
+
+            <font horiz-adv-x="500">
+                <font-face font-family="SVGFont5" font-variant="small-caps"
+                    units-per-em="1000" ascent="800" descent="200" alphabetic="200" />
+                <missing-glyph horiz-adv-x="500"
+                    d="M0 0L500 0L500 1000L0 1000M50 50L50 950L450 950L450 50Z"/>
+                <glyph unicode=" " glyph-name="space"/>
+                <glyph unicode="a" glyph-name="diamond"
+                    d="M0 500L250 250L500 500L250 750Z"/>
+            </font>
+
+        </defs>
+        
+	<g font-size="30">
+        <!-- This should produce a square followed by a triangle  -->
+        <text x="50" y="50" font-family="SVGFont1">a</text>
+        <text x="100" y="50" font-family="SVGFont1" font-variant="small-caps">a</text>
+
+        <!-- This should produce a square followed by a triangle  -->
+        <text x="50" y="100" font-family="SVGFont2">a</text>
+        <text x="100" y="100" font-family="SVGFont2" font-variant="small-caps">a</text>
+
+        <!-- This should produce a square, diamond, square, diamond. -->
+        <text x="50" y="150" font-family="SVGFont5,SVGFont4" font-variant="normal">a</text>
+        <text x="100" y="150" font-family="SVGFont5,SVGFont4" font-variant="small-caps">a</text>
+        <text x="150" y="150" font-family="SVGFont4,SVGFont5" font-variant="normal">a</text>
+        <text x="200" y="150" font-family="SVGFont4,SVGFont5" font-variant="small-caps">a</text>
+
+        <!--
+            This should produce a square, 'a', 'a', diamond. Or a small-caps version of the 'A'
+            instead of the first lower-case 'a' if synethesis is supported
+        -->
+        <text x="50" y="200" font-family="SVGFont4" font-variant="normal">a</text>
+        <text x="100" y="200" font-family="SVGFont4" font-variant="small-caps">a</text>
+        <text x="150" y="200" font-family="SVGFont5" font-variant="normal">a</text>
+        <text x="200" y="200" font-family="SVGFont5" font-variant="small-caps">a</text> 
+	</g>    
+    </g>
+    <text id="revision" x="10" y="340" font-size="40" stroke="none" fill="black">$Revision: 1.4 $</text>
+    <rect id="test-frame" x="1" y="1" width="478" height="358" fill="none" stroke="#000000"/>
+</svg>

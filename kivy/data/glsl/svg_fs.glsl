@@ -1,33 +1,64 @@
+// #version 130
 #ifdef GL_ES
     precision highp float;
 #endif
 
 varying vec4 vertex_color;
 varying vec2 texcoord;
+varying vec2 coord;
 varying float gradient;
+varying float gradient_param1;
+varying float gradient_param2;
+varying float gradient_param3;
+varying float gradient_param4;
+varying float gradient_param5;
+
+
 uniform sampler2D texture0;
 uniform sampler2D gradients;
 uniform vec2 gradients_size;
+uniform float time;
 
-#define LINEAR 1.
-#define RADIAL 2.
+#define LINEAR 0
+#define RADIAL 1
 
-#define PAD 1.
-#define REPEAT 2.
-#define REFLECT 3.
+#define PAD 1
+#define REPEAT 2
+#define REFLECT 3
 
-float linear_gradient(vec2 pos, vec2 a, vec2 b) {
+#define USER_SPACE 1
+#define OBJECT_BBOX 2
+
+float linear_gradient(vec2 pos) {
+    // w = 1. / (texcoord.x / pos.x);
+    // h = 1. / (texcoord.y / pos.y);
+
+    float x1 = gradient_param1;
+    float x2 = gradient_param2;
+    float y1 = gradient_param3;
+    float y2 = gradient_param4;
+
+    // return pos.x;
     return (
-        (pos.x - a.x) * (b.x - a.x) +
-        (pos.y - a.y) * (b.y - a.y)
+        (pos.x - x1) * (x2 - x1) +
+        (pos.y - y1) * (y2 - y1)
     ) / (
-        (a.x - b.x) * (a.x - b.x) +
-        (a.y - b.y) * (a.y - b.y)
+        (x1 - x2) * (x2 - x1) +
+        (y1 - y2) * (y2 - y1)
     );
 }
 
-float radial_gradient(vec2 pos, vec2 radius, vec2 center, vec2 focale) {
-    vec2 d = focale - pos;
+float radial_gradient(vec2 pos) {
+    float cx = gradient_param1;
+    float cy = gradient_param2;
+    float r = gradient_param3;
+    float fx = gradient_param4;
+    float fy = gradient_param5;
+
+    vec2 d = vec2(fx, fy) - pos;
+    vec2 center = vec2(cx, cy);
+    vec2 radius = vec2(r, r);
+
     float l = length(d);
     center /= l;
     radius /= l;
@@ -47,75 +78,66 @@ float radial_gradient(vec2 pos, vec2 radius, vec2 center, vec2 focale) {
 }
 
 float g(int index){
-    return texture2D(gradients, vec2(gradient, float(index)) / gradients_size).r;
+    return texture2D(
+        gradients, // coord / gradients_size
+        vec2(
+            float(index),
+            gradient
+        ) / gradients_size
+    ).r;
 }
 
-vec4 interp(vec2 pos) {
-    int i = 0;
-    float type = g(i++);
+int ig(int index) {
+    return int(g(index) * 255.);
+}
+
+vec4 interp() {
     mat3 transform;
     vec4 col1, col2;
     float t;
-    float spread = g(i++);
-    float units = g(i++);
+    vec2 p;
 
-    for (int n=0; n < 3; n++)
-        for (int m=0; m < 3; m++)
+    int i = 0;
+    int type = ig(i++);
+    // return texture2D(gradients, texcoord);
+    // return vec4(0., 0., float(type), 1.);
+
+    int spread = ig(i++);
+    int units = ig(i++);
+
+    // return vec4(float(spread), float(units), 0., 1.);
+    // initiate transformation matrix
+    for (int m=0; m < 2; m++)
+        for (int n=0; n < 3; n++)
             transform[n][m] = g(i++);
 
+    // 3rd line of the matrix is zeroed
+    for (int n=0; n < 3; n++)
+        transform[n][2] = 0.;
 
+    // TODO apply transform and unit conversion if needed
+
+    // return vec4(coord.x, 0., 0., 1.);
     if (type == LINEAR) {
-        float x1 = g(i++);
-        float y1 = g(i++);
-        float x2 = g(i++);
-        float y2 = g(i++);
-
-        // XXX apply transform and unit conversion if needed
-        t = linear_gradient(pos, vec2(x1, y1), vec2(x2, y2));
+        t = linear_gradient(coord);
+        // return vec4(1., 1., 0., 1.);
     }
 
     else if (type == RADIAL) {
-        float cx = g(i++);
-        float cy = g(i++);
-        float r = g(i++);
-        float fx = g(i++);
-        float fy = g(i++);
-
-        // XXX apply transform and unit conversion if needed
-        t = radial_gradient(pos, vec2(r, r), vec2(cx, cy), vec2(fx, fy));
+        t = radial_gradient(coord);
+        // return vec4(0., 1., 0., 1.);
+    } else {
+        // show that something is wrong
+        return vec4(1., 0., 0., 1.);
     }
 
+    return vec4(t, 0., 0., 1);
+
+    int stops = int(g(i++) * 255.);
     float first_stop = g(i);
-    float last_stop = -1.;
+    float last_stop = g(i + 5 * stops);
 
-    int saved_i = i;
-    col2 = vec4(
-        g(i),
-        g(i + 1),
-        g(i + 2),
-        g(i + 3)
-    );
-
-    while (true) {
-        float s = g(i++);
-
-        // negative value mark the end of the stops, since it's
-        // illegal to have a negative stop value
-        if (s < 0.)
-            break;
-
-        col1.r = g(i++);
-        col1.g = g(i++);
-        col1.b = g(i++);
-        col1.a = g(i++);
-
-        if (0. <= last_stop && last_stop <= t && t <= s)
-            return mix(col1, col2, (t - last_stop) / (s - last_stop));
-
-        last_stop = s;
-    }
-
-    // now we have first and last stop value, and spread, we can fix t if needed
+    // now we have first and last stop value, and spread, we can fix it if needed
     if (!(first_stop < t && t < last_stop)) {
         if (spread == PAD)
             t = min(1., t);
@@ -132,14 +154,8 @@ vec4 interp(vec2 pos) {
      }
 
     // repeat the search process with a corrected t
-    i = saved_i;
-    while (true) {
+    for (int i_s=0; i_s < stops; i_s++) {
         float s = g(i++);
-
-        // negative value mark the end of the stops, since it's
-        // illegal to have a negative stop value
-        if (s < 0.)
-            break;
 
         col2 = col1;
         col1.r = g(i++);
@@ -160,12 +176,19 @@ vec4 interp(vec2 pos) {
 }
 
 void main (void) {
-/*
-    if (gradient != 0.)
-        gl_FragColor = texture2D(texture0, texcoord) * interp(texcoord);
+    if (gradient >= 1.) {
+        // debug gradient ids, only good up to 4 ids, requires #version 130
+        // int gid = int(gradient - 1.);
+        // float xxr, xxg, xxb;
+        // xxr = float(gid & 4);
+        // xxg = float(gid & 2);
+        // xxb = float(gid & 1);
+        // gl_FragColor = vec4(xxr, xxg, xxb, 1.);
 
-    else
-*/
+        // check that the texture is correctly uploaded
+        // gl_FragColor = texture2D(gradients, coord / (gradients_size);
+        gl_FragColor = interp();
+    } else
         gl_FragColor = texture2D(texture0, texcoord) * (vertex_color / 255.);
 }
 

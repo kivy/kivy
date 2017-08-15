@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <!DOCTYPE html PUBLIC  "-//W3C//DTD XHTML 1.0 Transitional//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+ <meta name="keywords" content="W3C SVG 1.1 Test Suite testsuite mobile"/>
+ <meta name="description" content="W3C SVG 1.1 Test Suite"/>
+ <title>
+SVG 1.1 test:text-tselect-02-f </title>
+ <style type="text/css">
+ <!--
+ body { font-family: "Lucida Grande", verdana, helvetica, sans-serif; line-height: 1.3; text-align: left; margin-top: 0; margin-bottom: 0 }
+						<td align="center" colspan="3" class="pageTitle">
+ .pageSubTitle  { color: blue; font-size: 200%; font-weight: bold }
+ .openChapter { color: blue; line-height: 1.3; font-weight: bold }
+ .openSection { color: blue; line-height: 125%; font-weight: bold }
+ .info { color: black; line-height: 1.2; font-size: 90%; }
+ p { margin-top:0; margin-bottom:0; padding-top:0; padding-bottom:0 }
+ .linkbar { text-align: center; margin: 1em 1em 0.25em 1em;}
+ blockquote { margin-top:0; margin-bottom:0; padding-top:0; padding-bottom:0 }
+ .opscript {margin-left: 3%; margin-right: 3%; }
+ .opscript p { margin-top: 0.7em}
+ .navbar {background: black; color: white; font-weight: bold}
+ -->
+ </style>
+ </head>
+ <body class="bodytext">
+
+	<div class="linkbar"> 
+<p>Specification link: <a target="spec" href="http://www.w3.org/TR/SVG11/text.html#TextSelection">10.16 Text selection and clipboard operations</a></p>
+ <p>
+				<a href="full-styling-css-04-f.html">styling-css-04-f ←</a> 
+				<a href="full-index.html">index</a>
+				<a href="full-color-prop-01-b.html">→ color-prop-01-b </a>
+						</p></div>
+
+	<table align="center" border="0" cellspacing="0" cellpadding="10">
+		<tr>
+			<td align="center" colspan="4">
+				<table border="0" cellpadding="8">
+					<tr>
+						<td align="center" colspan="3" class="pageTitle">
+							<h1>text-tselect-02-f</h1>
+						</td>
+					</tr>
+					<tr  class="navbar">
+						<td align="center">
+							SVG Image
+						</td>
+						<td align="center">
+							INKSCAPE Image
+						</td>
+						<td align="center">
+							PNG Image
+						</td>
+					</tr>
+					<tr>
+						<td align="right">
+   	    		  			<object data="../svggen/text-tselect-02-f.svg" width="480" height="360" type="image/svg+xml"/>
+						</td>
+						<td align="left">
+							<img alt="raster image of text-tselect-02-f.png" src="../ink/text-tselect-02-f.png" width="480" height="360"/>
+						</td>
+						<td align="left">
+							<img alt="raster image of text-tselect-02-f.png" src="../png/full-text-tselect-02-f.png" width="480" height="360"/>
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</table>
+
+               
+<div class="opscript">
+      <p>
+        This test demonstrates text selection of bidirectional text. 
+		The initial result should be that the first 9 characters in logical order 
+		starting from logical position 0 are selected. Visually the selection is 
+		discontigous and these substrings must be selected (listed in visual order):
+      </p>
+	  <p>
+		"abc"
+	  </p>
+	  <p>
+		the space between "c" and "&#1493;"
+	  </p>
+	  <p>
+		"1"
+	  </p>
+	  <p>
+		the space between "3" and "&#1490;"
+	  </p>
+	  <p>
+		"&#1488;&#1489;&#1490;"
+	  </p>
+	  <p>
+		If only the substrings listed above were selected then the test has passed.
+	  </p>
+	  <p>
+		A user agent that allows selecting text in logical order would have generated the same selection
+		as in this testcase if the user started the selection on the character "a" and ended it on the 
+		character "1".
+		
+		A user agent that allows selecting text in visual order would not have a discontigous selection
+		if the user started the selection on the character "a" and ended it on the character "1". The copied
+		text would be discontigous instead in this case. 
+		
+		Note that the SVG DOM method requires logical order text selection, so for both types of user agents 
+		this testcase must look the same.
+	  </p>
+	  <p>
+		The testcase also shows what happens when the selection is modified via DOM (click the buttons below
+		the bidi-text). Compliant viewers must throw an exception when the first parameter handed 
+		to SVGTextContentElement.selectSubString is out-of-range.
+		That means the variable 'startIndex' must always be in the range 0 &lt;= startIndex &lt;= 18.
+		It can be noted that the parameter 'numChars' is not restricted in this way.
+	  </p>
+	  <p>
+		Note that the color of the text selection is UA dependent and not defined in the SVG specification.
+	  </p>
+
+		</div>
+<div class="linkbar"> <p>
+				<a href="full-styling-css-04-f.html">styling-css-04-f ←</a>
+				<a href="full-index.html">index</a>
+				<a href="full-animate-elem-22-b.html">→ animate-elem-22-b</a>
+						</p></div>
+</body>
+</html>

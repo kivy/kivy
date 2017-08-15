@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--======================================================================-->
+<!--=  Copyright 2000 World Wide Web Consortium, (Massachusetts          =-->
+<!--=  Institute of Technology, Institut National de Recherche en        =-->
+<!--=  Informatique et en Automatique, Keio University). All Rights      =-->
+<!--=  Reserved. See http://www.w3.org/Consortium/Legal/.                =-->
+<!--======================================================================-->
+<!-- NOTE:  CVS will automatically update the                             -->
+<!--        "$RCSfile: struct-frag-05-t.svg,v $" and "$Revision: 1.13 $"         -->
+<!--        fields in the file.                                           -->
+<!--        There is no need to update this information.                  -->
+<!-- =====================================================================-->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1 Tiny//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-tiny.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="tiny" id="svg-root" width="100%" height="100%" viewBox="0 0 480 360">
+  <title id="test-title">$RCSfile: struct-frag-05-t.svg,v $</title>
+  <!--======================================================================-->
+  <!--Content of Test Case follows...                  =====================-->
+  <!--======================================================================-->
+  <g id="test-body-content">
+    <g xmlns:s="http://www.w3.org/2000/svg" xmlns="http://www.example.org/notsvg">
+      <s:circle cx="240" cy="180" r="120" fill="#FF6"/>
+      <circle cx="240" cy="180" r="140" fill="#369"/>
+    </g>
+    <text x="240" y="100" text-anchor="middle" font-size="40" fill="#369">
+      <toto:a dahut:href="../images/linkingToc-t.svg" xmlns:toto="http://www.w3.org/2000/svg" 
+      xmlns:dahut="http://www.w3.org/1999/xlink">Valid</toto:a>
+    </text>
+    <text x="240" y="250" text-anchor="middle" font-size="40" fill="#C33">
+      <a xlink:href="../images/linkingToc-t.svg" xmlns="http://example.org/notsvg" 
+      xmlns:xlink="http://example.org/notxlink">Invalid</a>
+    </text>
+  </g>
+  <text id="revision" x="10" y="340" font-size="40" stroke="none" fill="black">$Revision: 1.13 $</text>
+  <rect id="test-frame" x="1" y="1" width="478" height="358" fill="none" stroke="#000000"/>
+</svg>

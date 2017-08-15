@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <!DOCTYPE html PUBLIC  "-//W3C//DTD XHTML 1.0 Transitional//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+ <meta name="keywords" content="W3C SVG 1.1 Test Suite testsuite mobile"/>
+ <meta name="description" content="W3C SVG 1.1 Test Suite"/>
+ <title>
+SVG 1.1 test:text-text-01-b </title>
+ <style type="text/css">
+ <!--
+ body { font-family: "Lucida Grande", verdana, helvetica, sans-serif; line-height: 1.3; text-align: left; margin-top: 0; margin-bottom: 0 }
+						<td align="center" colspan="3" class="pageTitle">
+ .pageSubTitle  { color: blue; font-size: 200%; font-weight: bold }
+ .openChapter { color: blue; line-height: 1.3; font-weight: bold }
+ .openSection { color: blue; line-height: 125%; font-weight: bold }
+ .info { color: black; line-height: 1.2; font-size: 90%; }
+ p { margin-top:0; margin-bottom:0; padding-top:0; padding-bottom:0 }
+ .linkbar { text-align: center; margin: 1em 1em 0.25em 1em;}
+ blockquote { margin-top:0; margin-bottom:0; padding-top:0; padding-bottom:0 }
+ .opscript {margin-left: 3%; margin-right: 3%; }
+ .opscript p { margin-top: 0.7em}
+ .navbar {background: black; color: white; font-weight: bold}
+ -->
+ </style>
+ </head>
+ <body class="bodytext">
+
+	<div class="linkbar"> 
+<p>
+<a href="full-text-text-01-b.html">Full version</a>, <a href="basic-text-text-01-b.html">Basic version</a></p>
+<p>Specification link: <a target="spec" href="http://www.w3.org/TR/SVG11/text.html#TextElement">10.4 The 'text' element</a></p>
+ <p>
+				<a href="full-text-spacing-01-b.html">text-spacing-01-b ←</a> 
+				<a href="full-index.html">index</a>
+				<a href="full-text-text-03-b.html">→ text-text-03-b</a>
+						</p></div>
+
+	<table align="center" border="0" cellspacing="0" cellpadding="10">
+		<tr>
+			<td align="center" colspan="4">
+				<table border="0" cellpadding="8">
+					<tr>
+						<td align="center" colspan="3" class="pageTitle">
+							<h1>text-text-01-b</h1>
+						</td>
+					</tr>
+					<tr  class="navbar">
+						<td align="center">
+							SVG Image
+						</td>
+						<td align="center">
+							INKSCAPE Image
+						</td>
+						<td align="center">
+							PNG Image
+						</td>
+					</tr>
+					<tr>
+						<td align="right">
+   	    		  			<object data="../svggen/text-text-01-b.svg" width="480" height="360" type="image/svg+xml"/>
+						</td>
+						<td align="left">
+							<img alt="raster image of text-text-01-b.png" src="../ink/text-text-01-b.png" width="480" height="360"/>
+						</td>
+						<td align="left">
+							<img alt="raster image of text-text-01-b.png" src="../png/full-text-text-01-b.png" width="480" height="360"/>
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</table>
+
+               
+<div class="opscript">
+<p>
+				Test viewer capibility to handle basic use of 'textLength' 
+				and 'lengthAdjust' attributes.
+</p>
+<p>
+				There are four pairs of sub-tests.  Each pair of sub-tests consists
+				of the same two strings:  "Line to Stretch" on the left, and "this is
+				a line to squeeze" on the right.
+</p>
+<p>
+				The first (topmost) pair contains no occurrences of the textLength and
+				lengthAdjust attributes in the 'text' elements.  
+				The red reference line under each of the top
+				two strings indicates the approximate length of the strings.  Since
+				the lengths are not constrained by the 'textLength' attribute, small
+				variations of the lengths are permissible.
+</p>
+<p>
+				The remaining three pairs each applies 'textLength' attributes to the
+				strings.  In the leftmost sub-test of each pair, the 'textLength' value
+				will cause a stretching of the string of approximately 25% over the
+				"normal" length.  In the rightmost sub-test of each pair, the 'textLength' value
+				will cause a squeezing of the string of approximately 20% under the
+				"normal" length for the string.
+</p>
+<p>
+				In each of the sub-tests with an application of 'textLength', the
+				red reference lines indicate the exact extent of the rendered text.
+				The rendered text should fit snugly just within the ticks at the end of
+				the red lines.
+</p>
+<p>
+				The second pair from the top contains 'textLength' but no 'lengthAdjust'
+				attributes.  In this case, the effect should be as if the value "spacing"
+				were specified.  Only the inter-character advancement and inter-word spacing 
+				should change.  The aspect ratio of the glyphs should be unaffected.  The
+				reference image illustrates one valid way to achieve this, by a 
+				uniform increase or decrease of inter-character advancement.
+</p>
+<p>
+				The third pair from the top explicitly sets 'lengthAdjust' value
+				to "spacing".  Therefore it should be rendered identically to the second pair.
+</p>
+<p>
+				The fourth (bottommost) sub-test pair explicitly sets 'lengthAdjust' value
+				to "spacingAndGlyphs".  The advancements between characters and words, as well as 
+				the glyph aspect ratios should be affected.  
+				The reference image illustrates one valid way to achieve 
+				this, by a uniform expansion or compression of the string as a whole.
+				This effect is equivalent to application of a "scale(xfactor, 1.0)" transformation
+				to the 'text' elements.
+</p>
+<p>
+				The rendered picture should match the reference image, except as noted above.
+				In particular, the 'textLength' constraint must be satisfied precisely,
+				and the basic rules associated with the "spacing" and "spacingAndGlyphs" values
+				of 'lengthAdjust' must be met, but the precise algorithm for meeting all
+				of the required contraints is otherwise unspecified.
+</p>
+<p>
+				The test also uses the 'transform' attribute, the 'rect' element, 
+				as well as basic fill (solid primary colors), 
+				stroke (black 1-pixel lines), font-family (Arial) 
+				and font-size properties.
+</p>
+
+		</div>
+<div class="linkbar"> <p>
+				<a href="full-text-spacing-01-b.html">text-spacing-01-b ←</a>
+				<a href="full-index.html">index</a>
+				<a href="full-text-text-03-b.html">→ text-text-03-b</a>
+						</p></div>
+</body>
+</html>

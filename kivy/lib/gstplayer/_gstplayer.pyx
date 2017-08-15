@@ -1,6 +1,7 @@
 from libcpp cimport bool
 from weakref import ref
 import atexit
+from cython cimport view as cyview
 
 cdef extern from 'gst/gst.h':
     ctypedef void *GstPipeline
@@ -128,6 +129,14 @@ cdef void _on_appsink_sample(
         char *data, int datasize) with gil:
     cdef GstPlayer player = <GstPlayer>c_player
     cdef bytes buf = data[:datasize]
+    # cdef cyview.array buf = cyview.array(
+    #     shape=(datasize, ),
+    #     itemsize=sizeof(char),
+    #     format='B',
+    #     mode='c',
+    #     allocate_buffer=False
+    # )
+    # buf.data = <char*> data
     if player.sample_cb:
         player.sample_cb(width, height, buf)
 

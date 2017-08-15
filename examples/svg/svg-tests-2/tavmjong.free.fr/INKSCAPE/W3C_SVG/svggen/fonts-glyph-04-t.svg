@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- =====================================================================-->
+<!-- fonts-glyph-04-t.svg                                                 -->
+<!--                                                                      -->
+<!-- Test the glyph selection rules. See the recent discussion on         -->
+<!-- that topic in the mailing list archives.                             -->
+<!--                                                                      -->
+<!-- Author : craign@cisra.canon.com.au                                   --><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1 Tiny//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-tiny.dtd">
+
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="tiny" id="svg-root" width="100%" height="100%" viewBox="0 0 480 360">
+  <g>
+    <defs>
+      <font horiz-adv-x="500">
+        <font-face font-family="SVGFont1" units-per-em="1000" ascent="800" descent="200" alphabetic="200"/>
+        <glyph unicode="f" glyph-name="upward-triangle" d="M0 0L500 0L250 900Z"/>
+        <glyph unicode="ffl" glyph-name="square" d="M0 250L500 250L500 750L0 750Z"/>
+      </font>
+      <font horiz-adv-x="500">
+        <font-face font-family="SVGFont2" units-per-em="1000" ascent="800" descent="200" alphabetic="200"/>
+        <glyph unicode="ffl" glyph-name="square 2" d="M0 250L500 250L500 750L0 750Z"/>
+        <glyph unicode="f" glyph-name="upward-triangle 2" d="M0 0L500 0L250 900Z"/>
+      </font>
+    </defs>
+    <text x="100" y="100" font-size="50" font-family="SVGFont1">ffl</text>
+    <text x="100" y="200" font-size="50" font-family="SVGFont2">ffl</text>
+  </g>
+  <text id="revision" x="10" y="340" font-size="40" stroke="none" fill="black">$Revision: 1.10 $</text>
+  <rect id="test-frame" x="1" y="1" width="478" height="358" fill="none" stroke="#000000"/>
+</svg>

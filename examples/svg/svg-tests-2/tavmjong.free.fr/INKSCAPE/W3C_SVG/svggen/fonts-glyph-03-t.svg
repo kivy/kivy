@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- =====================================================================-->
+<!-- fonts-glyph-03-t.svg                                                 -->
+<!--                                                                      -->
+<!-- Test on the lang attribute. Validate that if the lang attribute is   -->
+<!-- set to a value that does not match the specification's matching      -->
+<!-- criteria, then the glyph will not be used.                           -->
+<!--                                                                      -->
+<!-- Author : craign@cisra.canon.com.au                                   --><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1 Tiny//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-tiny.dtd">
+
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="tiny" id="svg-root" width="100%" height="100%" viewBox="0 0 480 360">
+  <g id="test-body-content">
+    <defs>
+      <font horiz-adv-x="500">
+        <font-face font-family="SVGFont" units-per-em="1000" ascent="800" descent="200" alphabetic="200"/>
+        <missing-glyph horiz-adv-x="500" d="M0 0L500 0L500 1000L0 1000M50 50L50 950L450 950L450 50Z"/>
+        <glyph unicode=" " glyph-name="space"/>
+        <glyph unicode="a" glyph-name="upward-triangle" lang="en" d="M0 0L500 0L250 900Z"/>
+        <glyph unicode="a" glyph-name="square" lang="fr" d="M0 250L500 250L500 750L0 750Z"/>
+      </font>
+    </defs>
+    <g font-family="SVGFont" font-size="50">
+      <!-- Should produce an upward pointing triangle -->
+      <text x="50" y="50" xml:lang="en">a</text>
+      <!-- Should produce a square -->
+      <text x="50" y="120" xml:lang="fr">a</text>
+      <!-- Should also produce a square -->
+      <text x="50" y="190" xml:lang="fr-ca">a</text>
+      <!-- Should fall back to another font -->
+      <text x="50" y="260" xml:lang="de">a</text>
+    </g>
+  </g>
+  <text id="revision" x="10" y="340" font-size="40" stroke="none" fill="black">$Revision: 1.10 $</text>
+  <rect id="test-frame" x="1" y="1" width="478" height="358" fill="none" stroke="#000000"/>
+</svg>

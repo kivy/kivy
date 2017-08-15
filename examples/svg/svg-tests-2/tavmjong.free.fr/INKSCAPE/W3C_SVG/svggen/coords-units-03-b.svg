@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1 Basic//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-basic.dtd">
+
+<!--======================================================================-->
+<!--=  Copyright 2000 World Wide Web Consortium, (Massachusetts          =-->
+<!--=  Institute of Technology, Institut National de Recherche en        =-->
+<!--=  Informatique et en Automatique, Keio University). All Rights      =-->
+<!--=  Reserved. See http://www.w3.org/Consortium/Legal/.                =-->
+<!--======================================================================-->
+<!-- ===================================================================== -->
+<!--                                                                       -->
+<!-- coords-units-BE-01.svg                                                -->
+<!-- renamed for 1.1 suite to coords-units-03-f.svg                         -->
+<!-- renamed for 1.1 basic profile suite to coords-units-03-b.svg          -->
+<!--                                                                       -->
+<!-- Author : Vincent Hardy                                                -->
+<!-- Modified for svg 1.1 by Ola Andersson, 07-Mar-2002                    -->
+<!-- Modified for svg 1.1 basic profile by Luc Minnebo, 05-July-2002       -->     
+<!--                                                                       -->
+<!-- History:                                                              -->
+<!--  24-Feb-2000, VH:  created                                            -->
+<!--  27-Feb-2000, LH:  minor adjustments to TC name, ser#3.               -->
+<!--  02-Mar-2000, LH:  fix names, legend,  ser#4.                         -->
+<!--  09-Mar-2000, LH:  fix framing rect,  ser#5.                          -->
+<!--  24-Apr-2000, LH:  remove text-anchor,  ser#6.                        -->
+<!--  18-May-2000 - LH=" remove last 3 'px' tests per WG decision" fix      -->
+<!--                    bad CSS property; ser#7.                           -->
+<!--  03-Aug-2000, LH=" update DOCTYPE for CR DTD, 20000802" ser# .         -->
+<!--  16-Aug-2000, LH="rename" ser#8.                                      -->
+<!--  29-Sep-2000, VH="  removed px unit specifier in transform" ser#9.     -->
+<!--                                                                       -->
+<!-- ===================================================================== -->
+<!--======================================================================-->
+<!--= Note. After October 2000, revision history is kept as CVS 'commit' =-->
+<!--= log messages, and therefore is no longer in the preceding preamble.=-->
+<!--======================================================================-->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"  id="svg-root" width="100%" height="100%" viewBox="0 0 480 360" version="1.1" baseProfile="basic">
+   <title id="test-title">coords-units-03-b</title>
+   <desc id="test-desc">Validates simple initial viewport size and basic units handling.</desc>
+   <!--======================================================================-->
+   <!--Content of Test Case follows...                  =====================-->
+   <!--======================================================================-->
+   <g id="test-body-content">
+      <g id="viewport-initial-size-test">
+         <!-- ====================================================================== -->
+         <!-- First fill a rectangle that is bigger than the defined viewport ====== -->
+         <!-- ====================================================================== -->
+         <rect x="0px" y="0px" width="2000px" height="2000px" fill="red" />
+         <!-- ====================================================================== -->
+         <!-- This second rectangle should cover the previous one, so none of the == -->
+         <!-- red should show if the initial viewport has the requested size      == -->
+         <!-- ====================================================================== -->
+         <rect x="0px" y="0px" width="480px" height="360px" fill="white" />
+      </g>
+      <!-- viewport-initial-size-test -->
+      <!-- Title -->
+      <text x="125" y="20" fill="black" font-size="12" font-family="Arial" >Initial viewport and CSS units test</text>
+      <g id="units-test" fill="black" font-size="10pt"  transform="translate(0, 60)">
+         <!-- ====================================================================== -->
+         <!-- Now, draw rectangles using the various unit specifiers                 -->
+         <!-- ====================================================================== -->
+         <!-- User Space -->
+         <text x="20" y="18">200</text>
+         <text x="230" y="20">User space units (no specifier)</text>
+         <rect x="20" y="20" width="200" height="1"/>
+         <!-- ================== -->
+         <!-- Relative CSS Units -->
+         <!-- ================== -->
+         <!-- Pixels : Should correspond to User Space, because the initial user -->
+         <!-- coordinate is such that one user space unit equals one pixel in    -->
+         <!-- viewport.                                                          -->
+         <text x="20" y="38">200 px</text>
+         <text x="230" y="40">Pixels (px)</text>
+         <rect x="20" y="40" width="200px" height="1"/>
+         <!-- Font size (em). Should be equal to 200pt because current font's    -->
+         <!-- point size is 10pt                                                 -->
+         <text x="20" y="58">20 em = 200 px (font-size=10px)</text>
+         <text x="230" y="60">Relative to font size (em)</text>
+         <g font-size="10px" >
+            <rect x="20" y="60" width="20em" height="1"/>
+         </g>
+         <!-- X-Height (ex). With a 10px font-size, x-height is about 5px, so  -->
+         <!-- ex units would be about 200px                                    -->
+         <text x="20" y="78">40 ex</text>
+         <text x="230" y="80">Relative to font x-height (ex)</text>
+         <g font-size="10px" >
+            <rect x="20" y="80" width="40ex" height="1"/>
+         </g>
+         <!-- ========================= -->
+         <!-- Percentage                -->
+         <!-- ========================= -->
+         <!-- 1% = 4.8px because viewport is 480px -->
+         <text x="20" y="98">41.67% = 200 px</text>
+         <text x="230" y="100">Percentage (%)</text>
+         <rect x="20" y="100" width="41.67%" height="1"/>
+         <!-- ========================= -->
+         <!-- Absolute Length CSS Units -->
+         <!-- ========================= -->
+         <!-- Inches (should be the same length as following (cm) rect)          -->
+         <text x="20" y="118">1 in</text>
+         <text x="230" y="120">Inches (in)</text>
+         <rect x="20" y="120" width="1in" height="1"/>
+         <!-- Centimeters(should be the same length as previous (in) rect)       -->
+         <!-- 1in = 2.54cm -->
+         <text x="20" y="138">2.54 cm = 1 in</text>
+         <text x="230" y="140">Centimeters (cm)</text>
+         <rect x="20" y="140" width="2.54cm" height="1"/>
+         <!-- Millimeters (should be the same length as previous (cm) rect)      -->
+         <!-- 10mm = 1cm -->
+         <text x="20" y="158">25.4 mm = 1 in</text>
+         <text x="230" y="160">Millimeters (mm)</text>
+         <rect x="20" y="160" width="25.4mm" height="1"/>
+         <!-- Points (should be the same length as (in) rect                     -->
+         <!-- 1pt = 1/72 in -->
+         <text x="20" y="178">72pt = 1 in</text>
+         <text x="230" y="180">Points (pt)</text>
+         <rect x="20" y="180" width="72pt" height="1"/>
+         <!-- Picas (should be the same length as previous (pt) rect)            -->
+         <!-- 1pc = 12pt -->
+         <text x="20" y="198">6pc = 1 in</text>
+         <text x="230" y="200">Picas (pc)</text>
+         <rect x="20" y="200" width="6pc" height="1"/>
+      </g>
+      <!-- units-test -->
+   </g>
+	<text id="revision" x="10" y="340" font-size="40" stroke="none" fill="black">$Revision: 1.4 $</text>
+	<rect id="test-frame" x="1" y="1" width="478" height="358" fill="none" stroke="#000000"/>
+</svg>
+

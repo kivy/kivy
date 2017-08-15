@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1 Tiny//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-tiny.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="full" id="svg-root" width="100%" height="100%" viewBox="0 0 480 360">
+<!--======================================================================-->
+<!--=  Copyright 2000 World Wide Web Consortium, (Massachusetts          =-->
+<!--=  Institute of Technology, Institut National de Recherche en        =-->
+<!--=  Informatique et en Automatique, Keio University). All Rights      =-->
+<!--=  Reserved. See http://www.w3.org/Consortium/Legal/.                =-->
+<!--======================================================================-->
+<!-- ===================================================================== -->
+<!--                                                                       -->
+<!-- masking-mask-04-f.svg                                                  -->
+<!--                                                                       -->
+<!-- Tests the impact of strokes within clipPath and mask                  -->
+<!--                                                                       -->
+<!-- Author : Corel SVG Viewer QA team  01-05-2003                         -->
+<!-- Revised by: Benoit Bezaire															-->
+<!--                                                                       -->
+<!--======================================================================-->
+
+
+  <title id="test-title">masking-mask-04-f.svg</title>
+  <desc id="test-desc">Tests the impact of strokes within clipPath and mask</desc>
+
+  <!--======================================================================-->
+  <!--Content of Test Case follows...                  =====================-->
+  <!--======================================================================-->
+  <text font-size="18" x="240" y="35" text-anchor="middle">Testing stroke inclusion for 'clip-path' and 'mask'</text>
+
+  <defs>
+    <clipPath id="one">
+      <circle cx="0.3" cy="0.5" r="0.2" stroke-width="0.15" fill="#FFFFFF" stroke="red"/>
+      <circle cx="0.7" cy="0.5" r="0.2" stroke-width="0.15" fill="#FFFFFF" stroke="none"/>
+    </clipPath>
+  </defs>
+
+  <rect x="150" y="0" width="200" height="200" fill="darkblue" clip-path="url(#one)"/>
+
+  <defs>
+    <mask id="two" maskUnits="objectBoundingBox" maskContentUnits="objectBoundingBox">
+      <circle cx="0.3" cy="0.5" r="0.2" stroke-width="0.15" fill="blue" stroke="red"/>
+      <circle cx="0.7" cy="0.5" r="0.2" stroke-width="0.15" fill="blue" stroke="none"/>
+    </mask>
+  </defs>
+
+  <rect x="150" y="150" width="200" height="200" fill="darkblue" mask="url(#two)"/>
+  <text x="50" y="260">With a 'mask':</text>
+
+
+  <text id="revision" x="10" y="340" font-size="40" stroke="none" fill="black">$Revision: 1.7 $</text>
+  <rect id="test-frame" x="1" y="1" width="478" height="358" fill="none" stroke="#000000"/>
+</svg>

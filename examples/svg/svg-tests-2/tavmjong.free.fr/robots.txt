@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /INKSCAPE/MANUAL_ARCHIVE
+Allow: /
+

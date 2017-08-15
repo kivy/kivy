@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1 Basic//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-basic-flat.dtd">
+<!--========================================================================-->
+  <!--=  Copyright 2006 World Wide Web Consortium, (Massachusetts          =-->
+  <!--=  Institute of Technology, European Research Consortium for         =-->
+  <!--=  Informatics and Mathematics (ERCIM), Keio University).            =-->
+  <!--=  All Rights Reserved.                                              =-->
+  <!--=  See http://www.w3.org/Consortium/Legal/.                          =-->
+<!--========================================================================-->
+  <!-- NOTE:  CVS will automatically update the                             -->
+  <!--        "$RCSfile: pservers-grad-17-b.svg,v $" and "$Revision: 1.4 $"         -->
+  <!--        fields in the file.                                           -->
+  <!--        There is no need to update this information.                  -->
+  <!-- =====================================================================-->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="basic" id="svg-root" 
+	width="100%" height="100%" viewBox="0 0 480 360">
+  <title id="test-title">$RCSfile: pservers-grad-17-b.svg,v $</title>
+  <g id="test-body-content">
+	<defs>
+		<linearGradient id="grad">
+			<stop offset="0" stop-color="black" />
+			<stop offset="1" stop-color="white" />
+		</linearGradient>
+	</defs>
+	
+	<g transform="translate(50, 100) scale(0.3)" stroke="#f00">
+		<rect x="0" y="-60" width="480" height="480" fill="none" stroke="black"/>
+		<line x1="0" y1="180" x2="480" y2="180"	stroke="url(#grad)" stroke-width="20"/>
+		<line x1="0" y1="180" x2="480" y2="180" stroke="url(#grad)" stroke-width="20" transform="rotate(45 240 180)"/>
+		<line x1="0" y1="180" x2="480" y2="180" stroke="url(#grad)" stroke-width="20" transform="rotate(90 240 180)"/>
+		<line x1="410" y1="10" x2="70" y2="350" stroke="url(#grad)" stroke-width="20"/>		
+	</g>
+	<text x="120" y="250" text-anchor="middle">Using lines</text>
+	
+	<g transform="translate(280,100) scale(0.3)" fill="#f00">
+		<rect x="0" y="-60" width="480" height="480" fill="none" stroke="black"/>
+		<rect x="0" y="170" width="480" height="20" fill="black"/>
+		<rect x="0" y="170" width="480" height="20" fill="black" transform="rotate(45 240 180)"/>
+		<rect x="0" y="170" width="480" height="20" fill="black" transform="rotate(90 240 180)"/>
+		<rect x="0" y="170" width="480" height="20" fill="url(#grad)" transform="rotate(315 240 180)"/>
+	</g>
+	<text x="350" y="250" text-anchor="middle">Using rects</text>
+  </g>
+  <text id="revision" x="10" y="340" font-size="40" stroke="none" fill="black">$Revision: 1.4 $</text>
+  <rect id="test-frame" x="1" y="1" width="478" height="358" fill="none" stroke="#000000"/>
+</svg>

@@ -4,7 +4,7 @@ __all__ = ('VertexFormat', 'VertexFormatException')
 include "../include/config.pxi"
 include "common.pxi"
 
-from kivy.graphics.cgl cimport GL_FLOAT, GLfloat
+from kivy.graphics.cgl cimport GL_FLOAT, GLfloat, GL_INT, GLint
 
 
 class VertexFormatException(Exception):
@@ -56,6 +56,9 @@ cdef class VertexFormat:
             if tp == 'float':
                 attr.type = GL_FLOAT
                 attr.bytesize = sizeof(GLfloat) * size
+            elif tp == 'int':
+                attr.type = GL_INT
+                attr.bytesize = sizeof(GLint) * size
             else:
                 raise VertexFormatException('Unknown format type %r' % tp)
 

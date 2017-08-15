@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <!DOCTYPE html PUBLIC  "-//W3C//DTD XHTML 1.0 Transitional//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+ <meta name="keywords" content="W3C SVG 1.1 Test Suite testsuite mobile"/>
+ <meta name="description" content="W3C SVG 1.1 Test Suite"/>
+ <title>
+SVG 1.1 test:linking-a-04-t </title>
+ <style type="text/css">
+ <!--
+ body { font-family: "Lucida Grande", verdana, helvetica, sans-serif; line-height: 1.3; text-align: left; margin-top: 0; margin-bottom: 0 }
+						<td align="center" colspan="3" class="pageTitle">
+ .pageSubTitle  { color: blue; font-size: 200%; font-weight: bold }
+ .openChapter { color: blue; line-height: 1.3; font-weight: bold }
+ .openSection { color: blue; line-height: 125%; font-weight: bold }
+ .info { color: black; line-height: 1.2; font-size: 90%; }
+ p { margin-top:0; margin-bottom:0; padding-top:0; padding-bottom:0 }
+ .linkbar { text-align: center; margin: 1em 1em 0.25em 1em;}
+ blockquote { margin-top:0; margin-bottom:0; padding-top:0; padding-bottom:0 }
+ .opscript {margin-left: 3%; margin-right: 3%; }
+ .opscript p { margin-top: 0.7em}
+ .navbar {background: black; color: white; font-weight: bold}
+ -->
+ </style>
+ </head>
+ <body class="bodytext">
+
+	<div class="linkbar"> 
+<p>
+<a href="full-linking-a-04-t.html">Full version</a>, <a href="basic-linking-a-04-t.html">Basic version</a>, <a href="tiny-linking-a-04-t.html">Tiny version</a></p>
+<p>Specification link: <a target="spec" href="http://www.w3.org/TR/SVG11/linking.html#Links">17.1 Links out of SVG content: the 'a' element</a></p>
+ <p>
+				<a href="full-interact-zoom-01-t.html">interact-zoom-01-t ←</a> 
+				<a href="full-index.html">index</a>
+				<a href="full-linking-a-05-t.html">→ linking-a-05-t</a>
+						</p></div>
+
+	<table align="center" border="0" cellspacing="0" cellpadding="10">
+		<tr>
+			<td align="center" colspan="4">
+				<table border="0" cellpadding="8">
+					<tr>
+						<td align="center" colspan="3" class="pageTitle">
+							<h1>linking-a-04-t</h1>
+						</td>
+					</tr>
+					<tr  class="navbar">
+						<td align="center">
+							SVG Image
+						</td>
+						<td align="center">
+							INKSCAPE Image
+						</td>
+						<td align="center">
+							PNG Image
+						</td>
+					</tr>
+					<tr>
+						<td align="right">
+   	    		  			<object data="../svggen/linking-a-04-t.svg" width="480" height="360" type="image/svg+xml"/>
+						</td>
+						<td align="left">
+							<img alt="raster image of linking-a-04-t.png" src="../ink/linking-a-04-t.png" width="480" height="360"/>
+						</td>
+						<td align="left">
+							<img alt="raster image of linking-a-04-t.png" src="../png/full-linking-a-04-t.png" width="480" height="360"/>
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</table>
+
+               
+<div class="opscript">
+		    <p>
+                Verify the capability to handle basic links out of SVG content
+                using the 'a' element, with the xlink:href attributes.  
+                There are three subtests, in each of which one
+                of three colored arrows comprise the content of an 'a' element.  The
+                link destination is expressed by "xlink:href=".  
+                The initial view of this test contains the three arrows, a colored
+                circle, labelling text, and the usual template legend and frame.
+            </p>
+            <p>
+                The top-most (yellow) arrow links to an external SVG file, which is 
+                local (in the same directory).  The target file contains SVG 'text' elements
+                which comprise a TOC and brief description of all of the test files 
+                for Linking.  Upon clicking the first arrow, the image of the linkingToc-t.svg
+                file should replace the initial view of this test case in the viewer frame.
+            </p>
+            <p>
+                The middle (green) arrow links to an object in this SVG test file, the yellow
+                circle (id="internal-circle") immediately to its right, using "#circle-object"
+                as the value of of the xlink:href attribute.  
+                There should be no change to the viewer frame upon clicking this arrow.
+            </p>
+            <p>
+                The bottom-most (blue) arrow links to remote non-SVG content, the W3C home page
+                using xlink:href attribute value "http://www.w3.org".  For viewers in a Web
+                browser environment, the W3C home page should replace the initial view
+                of this test case in the browser/viewer frame.  For other viewers (e.g.,
+                interactive but SVG-only standalone viewers), the result is undefined, but could 
+                include such actions as a diagnostic "Error parsing..." message.
+            </p>
+            <p>
+                There are several reference images associated with this test case.  The first
+                illustrates the correct "start" or initial state of the rendered SVG file.
+                The second illustrates the correct image after the first link is activated
+                (to the linkingToc.svg file).  The third (for browser-environment viewers)
+                should match the current image of the W3C home page, as viewed with a 
+                conventional browser.  (Note.  This harness does not yet 
+                provide access to multiple PNGs; the first, initial-state PNG is shown.)	
+            </p>
+            <p>
+                The test uses the 'rect' and 'polygon' elements, as well as basic fill (solid simple colors), 
+                stroke (black and colored wide and 1-pixel lines), font-family (Arial) and font-size properties.
+            </p>
+
+		</div>
+<div class="linkbar"> <p>
+				<a href="full-interact-zoom-01-t.html">interact-zoom-01-t ←</a>
+				<a href="full-index.html">index</a>
+				<a href="full-linking-a-05-t.html">→ linking-a-05-t</a>
+						</p></div>
+</body>
+</html>

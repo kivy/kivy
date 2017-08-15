@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1 Basic//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-basic.dtd">
+<!--======================================================================-->
+<!--=  Copyright 2000 World Wide Web Consortium, (Massachusetts          =-->
+<!--=  Institute of Technology, Institut National de Recherche en        =-->
+<!--=  Informatique et en Automatique, Keio University). All Rights      =-->
+<!--=  Reserved. See http://www.w3.org/Consortium/Legal/.                =-->
+<!--======================================================================-->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="svg-root" width="100%" height="100%" viewBox="0 0 480 360" version="1.1" baseProfile="basic">
+  <title id="test-title">filters-felem-01-b</title>
+  <desc id="test-desc">Test which verifies null filters and filter regions.</desc>
+  <!--======================================================================-->
+  <!--Content of Test Case follows...                  =====================-->
+  <!--======================================================================-->
+  <g id="test-body-content">
+    <defs>
+      <filter id="null"/>
+      <filter id="nullreg" filterUnits="objectBoundingBox" x="40%" y="40%" width="20%" height="20%"/>
+    </defs>
+    <g>
+      <circle r="30" fill="red" cx="130" cy="60"/>
+      <circle r="40" fill="black" cx="130" cy="60"/>
+      <text font-size="20" x="130" y="130" text-anchor="middle">No filter</text>
+    </g>
+    <g>
+      <circle r="30" fill="red" cx="130" cy="210"/>
+      <circle r="40" fill="black" cx="130" cy="210" filter="url(#null)"/>
+      <text font-size="20" x="130" y="280" text-anchor="middle">Null filter</text>
+    </g>
+    <g>
+      <circle r="30" fill="red" cx="330" cy="60"/>
+      <circle r="40" fill="black" cx="330" cy="60" filter="url(#notthere)"/>
+      <text font-size="20" x="330" y="130" text-anchor="middle">Non-existant filter</text>
+    </g>
+    <g>
+      <circle r="30" fill="red" cx="330" cy="210"/>
+      <circle r="40" fill="black" cx="330" cy="210" filter="url(#nullreg)"/>
+      <text font-size="20" x="330" y="280" text-anchor="middle">Null with small region filter</text>
+    </g>
+  </g>
+  <text id="revision" x="10" y="340" font-size="40" stroke="none" fill="black">$Revision: 1.13 $</text>
+  <rect id="test-frame" x="1" y="1" width="478" height="358" fill="none" stroke="#000000"/>
+</svg>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1 Tiny//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-tiny.dtd">
+<!--======================================================================-->
+<!--=  Copyright 2000 World Wide Web Consortium, (Massachusetts          =-->
+<!--=  Institute of Technology, Institut National de Recherche en        =-->
+<!--=  Informatique et en Automatique, Keio University). All Rights      =-->
+<!--=  Reserved. See http://www.w3.org/Consortium/Legal/.                =-->
+<!--======================================================================-->
+<!-- ===================================================================== -->
+<!-- paint-inherit-BE-06.svg                                               -->
+<!-- renamed for 1.1 suite to painting-fill-04-t.svg                                -->
+<!-- Author : Tim Thompson 8/04/00                                         -->
+<!--          1.1 revision by Rick Graham                                  -->
+<!--======================================================================-->
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="svg-root" baseProfile="tiny"  width="100%" height="100%" viewBox="0 0 480 360">
+	<title id="test-title">painting-fill-04-t.svg</title>
+	<desc id="test-desc">Test inheritance of painting properties.</desc>
+	<!--======================================================================-->
+	<!--Content of Test Case follows...                  =====================-->
+	<!--======================================================================-->
+	<g id="test-body-content">
+		<g id="G1" fill="blue" stroke="red" stroke-width="5" transform="translate(120,30)">
+			<rect x="0" y="0" width="90" height="70"/>
+			<rect x="100" y="0" width="90" height="70"/>
+			<rect x="0" y="80" width="90" height="70" fill="yellow" stroke-width="2"/>
+			<rect x="100" y="80" width="90" height="70" stroke="yellow"/>
+			<g id="G2" fill="yellow">
+				<rect x="0" y="160" width="90" height="70"/>
+				<rect x="100" y="160" width="90" height="70"/>
+			</g>
+		</g>
+	</g>
+	<text id="revision" x="10" y="340" font-size="40" stroke="none" fill="black">$Revision: 1.8 $</text>
+	<rect id="test-frame" x="1" y="1" width="478" height="358" fill="none" stroke="#000000"/>
+</svg>

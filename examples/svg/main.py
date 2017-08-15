@@ -11,6 +11,7 @@ from kivy.lang import Builder
 Builder.load_string("""
 <SvgWidget>:
     do_rotation: False
+
 <FloatLayout>:
     canvas.before:
         Color:
@@ -42,7 +43,7 @@ class SvgApp(App):
         for filename in filenames:
             svg = SvgWidget(filename, size_hint=(None, None))
             self.root.add_widget(svg)
-            svg.scale = 5.
+            # svg.scale = 5.
             svg.center = Window.center
 
 

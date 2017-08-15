@@ -46,6 +46,8 @@ from kivy.utils import hex_colormap
 from kivy.properties import NUMERIC_FORMATS, dpi2px
 from string import hexdigits
 from kivy.core.window import Window
+from kivy.core.image import Image as CoreImage
+from kivy.resources import resource_add_path
 from kivy.vector import Vector
 from kivy.resources import resource_find
 
@@ -59,14 +61,17 @@ DEF OP_FILL = 1
 DEF OP_STROKE = 2
 DEF OP_CLIP_PUSH = 3
 DEF OP_CLIP_POP = 4
+DEF OP_IMG = 5
 
 cdef str SVG_FS, SVG_VS
 
 with open(resource_find('data/glsl/svg_fs.glsl')) as f:
         SVG_FS = f.read()
 
+
 with open(resource_find('data/glsl/svg_vs.glsl')) as f:
         SVG_VS = f.read()
+
 
 cdef set COMMANDS = set('MmZzLlHhVvCcSsQqTtAa')
 cdef set UPPERCASE = set('MZLHVCSQTA')
@@ -81,11 +86,19 @@ cdef object RE_POLYLINE = re.compile(
 cdef object RE_TRANSFORM = re.compile(
     r'[a-zA-Z]+\([^)]*\)')
 
+
 cdef VertexFormat VERTEX_FORMAT = VertexFormat(
     (b'v_pos', 2, 'float'),
     (b'v_tex', 2, 'float'),
     (b'v_color', 4, 'float'),
-    (b'v_gradient', 1, 'float'))
+    (b'v_gradient', 1, 'float'),
+    (b'v_gradient_param1', 1, 'float'),
+    (b'v_gradient_param2', 1, 'float'),
+    (b'v_gradient_param3', 1, 'float'),
+    (b'v_gradient_param4', 1, 'float'),
+    (b'v_gradient_param5', 1, 'float'),
+)
+
 
 def _tokenize_path(pathdef):
     for x in RE_COMMAND.split(pathdef):
@@ -99,25 +112,39 @@ cdef inline double angle(double ux, double uy, double vx, double vy):
     sgn = 1 if ux * vy > uy * vx else -1
     return sgn * a
 
+
 cdef float parse_width(txt, float vbox_width):
+    if isinstance(txt, (float, int)):
+        return txt
+
     if txt.endswith('%'):
         return <float>(vbox_width * txt[:-1] / 100.)
     return parse_float(txt)
 
+
 cdef float parse_height(txt, float vbox_height):
+    if isinstance(txt, (float, int)):
+        return txt
+
     if txt.endswith('%'):
         return <float>(vbox_height * txt[:-1] / 100.)
     return parse_float(txt)
 
+
 cdef float parse_float(txt):
+    if isinstance(txt, (float, int)):
+        return txt
+
     if not txt:
         return 0.
     if txt[-2:] in NUMERIC_FORMATS:
         return dpi2px(txt[:-2], txt[-2:])
     return <float>float(txt)
 
+
 cdef list parse_list(string):
     return re.findall(RE_LIST, string)
+
 
 cdef dict parse_style(string):
     cdef dict sdict = {}
@@ -127,6 +154,7 @@ cdef dict parse_style(string):
             sdict[key] = value.strip()
     return sdict
 
+
 cdef list kv_color_to_int_color(color):
     c = [int(255*x) for x in color]
     return c if len(c) == 4 else c + [255]
@@ -134,6 +162,12 @@ cdef list kv_color_to_int_color(color):
 cdef int_color_to_kv_color(color):
     c = [int(x)/255.0 for x in color]
     return c if len(c) == 4 else c + [255]
+
+cdef c_int(txt):
+    if txt.endswith('%'):
+        return int(255 * float(txt[:-1]) / 100.)
+    else:
+        return int(txt)
 
 cdef parse_color(c, current_color=None):
     cdef int r, g, b, a
@@ -155,10 +189,10 @@ cdef parse_color(c, current_color=None):
         b = int(c[4:6], 16)
         a = 255
     elif c.startswith('rgba('):
-        r, g, b, a = [int(x) for x in c[4:-1].split(',')]
+        r, g, b, a = [c_int(x) for x in c[4:-1].split(',')]
 
     elif c.startswith('rgb('):
-        r, g, b = [int(x) for x in c[4:-1].split(',')]
+        r, g, b = [c_int(x) for x in c[4:-1].split(',')]
         a = 255
 
     elif all(x in hexdigits for x in c):
@@ -189,6 +223,7 @@ cdef parse_color(c, current_color=None):
     else:
         raise Exception('Unknown color {}'.format(c))
     return [r, g, b, a]
+
 
 cdef class Matrix(object):
     def __cinit__(self):
@@ -270,7 +305,7 @@ cdef class Matrix(object):
                 i += 1
 
     cpdef list to_floats(self):
-        return [float(self.mat[x]) for x in xrange(6)]
+        return [float(self.mat[x]) / 255. for x in xrange(6)]
 
     cdef void transform(self, float ox, float oy, float *x, float *y):
         cdef double rx = self.mat[0] * ox + self.mat[2] * oy + self.mat[4]
@@ -332,15 +367,11 @@ class Gradient(object):
                 color = parse_color(e.get('stop-color'), svg.current_color)
                 if 'stop-color' in style:
                     color = parse_color(style['stop-color'], svg.current_color)
-                color[3] = int(float(e.get('stop-opacity', '1')) * 255)
+                color[3] = int(parse_width(e.get('stop-opacity', '1'), 1.) * 255)
                 if 'stop-opacity' in style:
-                    color[3] = int(float(style['stop-opacity']) * 255)
+                    color[3] = int(parse_width(style['stop-opacity'], 1.) * 255)
 
-                stop = e.get('offset').strip()
-                if stop.endswith('%'):
-                    stop = float(stop[:-1]) / 100.
-                else:
-                    stop = float(stop)
+                stop = parse_width(e.get('offset').strip(), 1.)
                 stops[stop] = color
         self.stops = sorted(stops.items())
         self.svg = svg
@@ -364,14 +395,22 @@ class Gradient(object):
             self.get_params(parent)
 
     def to_floats(self):
-        t = self.gradient_transform
-        return [
-            {'pad': 1., 'repeat': 2., 'reflect': 3.}[self.spread_method],
-            {'userSpaceOnUse': 1., 'objectBoundingBox': 2.}[self.gradient_units],
-        ] + t.to_floats() + list(chain(*[
-            (s, r, g, b, a)
-            for (s, (r, g, b, a)) in self.stops
-        ])) + [-1.]  # -1 marks the end of the stop list
+        return (
+            [
+                self.get_type_float(),
+                {'pad': 1, 'repeat': 2, 'reflect': 3}[self.spread_method] / 255.,
+                {'userSpaceOnUse': 1, 'objectBoundingBox': 2}[self.gradient_units] / 255.,
+            ] +
+            self.gradient_transform.to_floats() +
+            self.get_params_floats() +
+            [len(self.stops) / 255.] +
+            list(
+                chain(*[
+                    (s, r, g, b, a)
+                    for (s, (r, g, b, a)) in self.stops
+                ])
+            )
+        )
 
     def interp(self, float x, float y, float w, float h):
         cdef Matrix m = self.inv_transform
@@ -421,6 +460,13 @@ class Gradient(object):
         return stops[-1][1]
 
     def get_params(self, parent):
+        # XXX we should check if the parent itself has a parent that has
+        # still not been defined, and delay to after all parents got
+        # their inheritence sorted
+        print "get params called"
+        if parent and not self.stops:
+            self.stops = parent.stops
+
         for param, default in self.params.items():
             v = None
             if parent:
@@ -435,6 +481,7 @@ class Gradient(object):
 
     def tardy_gradient_parsed(self, gradient):
         self.get_params(gradient)
+        self.svg.update_gradient_texture()
 
 
 class LinearGradient(Gradient):
@@ -446,15 +493,38 @@ class LinearGradient(Gradient):
         # 'stops': []
     }
 
-    def to_floats(self):
+    def get_params_floats(self):
         # XXX this wom't work for absolute sizes
-        return super(LinearGradient, self).to_floats() + [
-            parse_width(self.x1, 1),
-            parse_height(self.y1, 1),
-            parse_width(self.x2, 1),
-            parse_height(self.y2, 1),
+        # XXX seems not to be precise enough -> use full rgba format
+        # instead of luminance?
+        return [
+            parse_width(self.x1, 1.) / 255.,
+            parse_height(self.y1, 1.) / 255.,
+            parse_width(self.x2, 1.) / 255.,
+            parse_height(self.y2, 1.) / 255.,
         ]
 
+    def get_type_float(self):
+        return 0 / 255.
+
+    def get_gradient_pos(self, x, y, w, h):
+        return (
+            parse_width(self.x1, w),
+            parse_width(self.x2, w),
+            parse_height(self.y1, h),
+            parse_height(self.y2, h)
+        )
+
+    def grad_value(self, x, y, w, h):
+        x1, x2, y1, y2 = self.get_gradient_pos(x, y, w, h)
+
+        return (
+            (x - x1) * (x2 - x1) +
+            (y - y1) * (y2 - y1)
+        ) / (
+            (x1 - x2) ** 2 +
+            (y1 - y2) ** 2
+        )
 
 
 class RadialGradient(Gradient):
@@ -467,7 +537,7 @@ class RadialGradient(Gradient):
         # 'stops': []
     }
 
-    def to_floats(self):
+    def get_params_floats(self):
         # XXX need fixes for absolute sizes
         w = h = 1.
 
@@ -509,13 +579,82 @@ class RadialGradient(Gradient):
             fx = fy * w
             fy = fy * h
 
-        return super(RadialGradient, self).to_floats() + [
-            cx,
-            cy,
-            r,
-            fx,
-            fy,
-        ]
+        return [cx / 255., cy / 255., r / 255., fx / 255., fy]
+
+    def get_type_float(self):
+            return 1 / 255.
+
+    def get_gradient_pos(self, x, y, w, h):
+        r = self.r
+        if r.endswith('%'):
+            r = float(r[:-1])
+            relative = True
+        else:
+            r = float(r)
+            relative = False
+
+        cx = self.cx
+        if cx.endswith('%'):
+            cx = float(cx[:-1])
+        else:
+            cx = float(cx) / w
+
+        cy = self.cy
+        if cy.endswith('%'):
+            cy = float(cy[:-1])
+        else:
+            cy = float(cy) / h
+
+        fx = self.fx or self.cx
+        if fx.endswith('%'):
+            fx = float(fx[:-1])
+        else:
+            fx = float(fx) / w
+
+        fy = self.fy or self.cy
+        if fy.endswith('%'):
+            fy = float(fy[:-1])
+        else:
+            fy = float(fy) / h
+
+        if not relative:
+            cx = cx * w
+            cy = cy * h
+            fx = fy * w
+            fy = fy * h
+
+        else:
+            x /= w
+            y /= h
+
+        return (
+            cx, cy, r, fx, fy, x, y
+        )
+
+    def grad_value(self, x, y, w, h):
+        # since radius can be either an absolute value or a percent
+        # we make all calculation normalized to size if it's a percent
+        cx, cy, r, fx, fy, x, y = self.get_gradient_pos(x, y, w, h)
+        f = Vector(fx, fy)
+        p = Vector(x, y)
+        d = f - p
+        c = Vector(cx, cy) + f
+        l = d.length()
+
+        d /= l
+        c /= l
+        r /= l
+
+        cd = c.dot(Vector(-d.y, d.x))
+        cl = sqrt(r * r - cd * cd) + c.dot(d);
+
+        a_cl = 1. / cl;
+
+        # special case for when focale point is outside of radius
+        if a_cl < 0.:
+            a_cl = 1.;
+
+        return min(1.0, a_cl)
 
 
 cdef class Svg(RenderContext):
@@ -555,6 +694,7 @@ cdef class Svg(RenderContext):
         self.vbox_y = 0.
         self.vbox_width = 0.
         self.vbox_height = 0.
+        self.images = []
         self.clip_path = ''
         self.gradient_texture = None
         self.gradient_shader_map = {}
@@ -689,38 +829,53 @@ cdef class Svg(RenderContext):
         data = []
         for i, (k, g) in enumerate(self.gradients.items()):
             data.append(g.to_floats())
-            self.gradient_shader_map[k] = i
+            print [x * 255 for x in data[-1]]
+            # start from 1, becaus e0 indicates no gradient
+            self.gradient_shader_map[k] = i + 1
+        print self.gradient_shader_map
 
         l = max(len(x) for x in data)
+        size = max(l, len(data))
+
+        while data < l:
+            data.append([])
 
         for d in data:
-            while len(d) < l:
+            while len(d) < size:
                 d.append(0.)
+            print d
 
-        size = max(l, len(data))
         data = list(chain(*data))
 
-        print data
         # initialize the array with the buffer values
         arr = array('f', data)
         # now blit the array
         self.gradient_texture = texture = Texture.create(
             size=(size, size),
             colorfmt='luminance',
-            bufferfmt='float'
+            bufferfmt='float',
         )
+        texture.min_filter='nearest'
+        texture.mag_filter='nearest'
+
+        # texture.save('before.png')
         texture.blit_buffer(
             arr,
             colorfmt='luminance',
             bufferfmt='float')
-        BindTexture(texture=texture, index=2)
-        self['gradients_size'] = size, size
+        texture.save('after.png')
+        texture.wrap = 'repeat'
+        BindTexture(texture=texture, index=1)
+        self['gradients'] = 1
+        self['time'] = time()
+
+        self['gradients_size'] = float(size), float(size)
 
     cdef parse_tree(self, tree):
         root = tree._root
         self.operations = []
-        self.width = parse_float(root.get('width'))
-        self.height = parse_float(root.get('height'))
+        self.width = parse_width(root.get('width'), Window.width)
+        self.height = parse_height(root.get('height'), Window.height)
 
         view_box = parse_list(root.get('viewBox', '0 0 100% 100%'))
         self.vbox_x = parse_float(view_box[0])
@@ -859,6 +1014,20 @@ cdef class Svg(RenderContext):
 
                 self.end_path()
 
+        elif e.tag.endswith('image'):
+            x = 0
+            y = 0
+            if 'x' in e.keys():
+                x = parse_float(e.get('x'))
+            if 'y' in e.keys():
+                y = parse_float(e.get('y'))
+            h = parse_float(e.get('height'))
+            w = parse_float(e.get('width'))
+            source = e.get('{http://www.w3.org/1999/xlink}href', '')
+            # print e.attrib
+            # print dirname(self._filename), e.get('xlink:href', ''), source
+            self.operations.append((OP_IMG, (x, y, w, h, source, self.transform)))
+
         elif e.tag.endswith('polyline') or e.tag.endswith('polygon'):
             pathdata = e.get('points')
             pathdata = re.findall(RE_POLYLINE, pathdata)
@@ -948,11 +1117,11 @@ cdef class Svg(RenderContext):
                 # XXX probably overkill to use tesselator here
                 tess = Tesselator()
                 path = array('f', [x, y, x + w, y, x + w, y + h, x, y + h])
-                print "adding {} as implicit clip path".format(path)
+                # print "adding {} as implicit clip path".format(path)
                 tess.add_contour_data(path.data.as_voidptr, len(path) / 2)
                 tess.tesselate()
                 tris = tess.vertices
-                print "tris", [x for x in tris[0]]
+                # print "tris", [x for x in tris[0]]
 
                 self.clips[clip] = (
                     [(OP_FILL, (tris, (255, 255, 255, 255), self.transform))],
@@ -1205,7 +1374,7 @@ cdef class Svg(RenderContext):
         x_ = cp * dx + sp * dy
         y_ = -sp * dx + cp * dy
         r2 = (((rx * ry)**2 - (rx * y_)**2 - (ry * x_)**2)/
-	      ((rx * y_)**2 + (ry * x_)**2))
+              ((rx * y_)**2 + (ry * x_)**2))
         if r2 < 0: r2 = 0
         r = sqrt(r2)
         if large_arc == sweep:
@@ -1358,38 +1527,87 @@ cdef class Svg(RenderContext):
         cdef float *vertices
         cdef int index, vindex
         cdef float *f_tris
-        cdef float x, y, r, g, b, a
+        cdef float x, y, r, g, b, a, w, h, xmin, ymin
         cdef Mesh mesh
 
         cdef int count = <int>int(len(path) / 2.)
         vertices = <float *>malloc(sizeof(float) * count * VERTEX_FORMAT.vbytesize)
+        # vertices = <float *>malloc(sizeof(float) * count * VERTEX_FORMAT.vsize)
         if vertices == NULL:
             return
         vindex = 0
 
         if isinstance(fill, str):
+            xmin = xmax = path[0]
+            ymin = ymax = path[1]
+            for i, v in enumerate(path):
+                if i % 2:
+                    xmin = min(xmin, v)
+                    xmax = max(xmax, v)
+                else:
+                    ymin = min(ymin, v)
+                    ymax = max(ymax, v)
+
+            w = xmax - xmin
+            h = ymax - ymin
+
+            gradient_id = self.gradient_shader_map[fill] / 255.
+            gradient = self.gradients[fill]
+            transform.transform(xmin, ymin, &xmin, &ymin)
+            transform.transform(w, h, &w, &h)
+
+            gradient_params = [0, 0, 0, 0, 0]
+            # XXX at least one of these is wrong, check
+            # unljits/transform
+            if gradient.gradient_units == 'objectBoundingBox':
+                if isinstance(gradient, LinearGradient):
+                    x1, x2, y1, y2 = gradient.get_gradient_pos(xmin, ymin, w, h)
+                    print(x1, y1, x2, y2)
+                    gradient_params = x1, x2, y1, y2, 0
+                else:
+                    cx, cy, r, fx, fy, x, y = gradient.get_gradient_pos(xmin, ymin, w, h)
+                    print(cx, cy, r, fx, fy, x, y)
+                    gradient_params = cx, cy, r, fx, fy
+            else:
+                if isinstance(gradient, LinearGradient):
+                    x1, x2, y1, y2 = gradient.get_gradient_pos(xmin, ymin, w, h)
+                    print(x1, y1, x2, y2)
+                    gradient_params = x1, x2, y1, y2, 0
+                else:
+                    cx, cy, r, fx, fy, x, y = gradient.get_gradient_pos(xmin, ymin, w, h)
+                    print(cx, cy, r, fx, fy, x, y)
+                    gradient_params = cx, cy, r, fx, fy
+
+            # gradient = self.gradients[fill]
             for index in range(count):
                 x = path[index * 2]
                 y = path[index * 2 + 1]
-                gradient = self.gradient_shader_map[fill]
-                transform.transform(x, y, &x, &y)
-                vertices[vindex] = x
+                vertices[vindex + 0] = x
                 vertices[vindex + 1] = y
-                vertices[vindex + 2] = 0
-                vertices[vindex + 3] = 0
-                vertices[vindex + 4] = 1
-                vertices[vindex + 5] = 1
-                vertices[vindex + 6] = 1
-                vertices[vindex + 7] = 1
-                vertices[vindex + 8] = gradient
-                vindex += VERTEX_FORMAT.vbytesize
+                vertices[vindex + 2] = x / w
+                vertices[vindex + 3] = y / h
+                vertices[vindex + 4] = 0
+                vertices[vindex + 5] = 0
+                vertices[vindex + 6] = 0
+                vertices[vindex + 7] = 0
+                vertices[vindex + 8] = gradient_id
+                print gradient.gradient_units, gradient.__class__.__name__
+
+                # NOTE gradient params, maybe could be uniforms?
+                for i in range(9, 14):
+                    vertices[vindex + i] = gradient_params[i]
+                vindex += VERTEX_FORMAT.vsize
         else:
-            r, g, b, a = fill
+            if fill is None:
+                r = g = b = a = 0
+            else:
+                r, g, b, a = fill
             for index in range(count):
                 x = path[index * 2]
                 y = path[index * 2 + 1]
                 transform.transform(x, y, &x, &y)
-                vertices[vindex] = x
+                # XXX memoryview?
+                vertices[vindex + 0] = x
                 vertices[vindex + 1] = y
                 vertices[vindex + 2] = 0
                 vertices[vindex + 3] = 0
@@ -1397,7 +1615,13 @@ cdef class Svg(RenderContext):
                 vertices[vindex + 5] = g
                 vertices[vindex + 6] = b
                 vertices[vindex + 7] = a
-                vindex += VERTEX_FORMAT.vbytesize
+                vertices[vindex + 8] = 0.
+                vertices[vindex + 9] = 0.
+                vertices[vindex + 10] = 0.
+                vertices[vindex + 11] = 0.
+                vertices[vindex + 11] = 0.
+
+                vindex += VERTEX_FORMAT.vsize
 
         self.push_strip_mesh(vertices, vindex, count)
         free(vertices)
@@ -1428,6 +1652,79 @@ cdef class Svg(RenderContext):
         self.operations = old_ops
         self.last_mesh = None
 
+    cdef void push_image(self, float x, float y, float w, float h, str source, Matrix transform):
+        # XXX needs to be ported to the new vertex format
+        # cut the last mesh because any new drawing should be on top of
+        # the image
+        cdef float x2 = x + w, y2 = y + h
+        cdef float *vertices = NULL
+        vertices = <float *>malloc(sizeof(float) * 4 * VERTEX_FORMAT.vsize)
+        if vertices == NULL:
+            return
+
+        # Color(1, 1, 1, 1, mode='rgba')
+        self.last_mesh = r = StripMesh(fmt=VERTEX_FORMAT)
+        r.source = source
+        # r.texture = CoreImage(source).texture
+
+        transform.transform(x, y, &x, &y)
+        transform.transform(x2, y2, &x2, &y2)
+
+        # do a N motion through the rectangle to map texture
+        # bottom left corner
+        vertices[0] = x
+        vertices[1] = y
+        vertices[2] = 0.
+        vertices[3] = 1.
+        # color = 1, 1, 1, 1
+        vertices[4] = 1.
+        vertices[5] = 1.
+        vertices[6] = 1.
+        vertices[7] = 1.
+        vertices[8] = 0
+
+        # top-left corner
+        vertices[9] = x
+        vertices[10] = y2
+        vertices[11] = 0.
+        vertices[12] = 0.
+        # color = 1, 1, 1, 1
+        vertices[13] = 1.
+        vertices[14] = 1.
+        vertices[15] = 1.
+        vertices[16] = 1.
+        vertices[17] = 0
+
+        # bottom-right corner
+        vertices[18] = x2
+        vertices[19] = y
+        vertices[20] = 1.
+        vertices[21] = 1.
+        # color = 1, 1, 1, 1
+        vertices[22] = 1.
+        vertices[23] = 1.
+        vertices[24] = 1.
+        vertices[25] = 1.
+        vertices[26] = 0
+
+        # top-right corner
+        vertices[27] = x2
+        vertices[28] = y2
+        vertices[29] = 1.
+        vertices[30] = 0.
+        # color = 1, 1, 1, 1
+        vertices[31] = 1.
+        vertices[32] = 1.
+        vertices[33] = 1.
+        vertices[34] = 1.
+        vertices[35] = 0
+
+        self.push_strip_mesh(vertices, 4 * VERTEX_FORMAT.vsize, 4)
+        free(vertices)
+        # don't reuse this stripmesh for next computation, it has a
+        # texture
+        self.last_mesh = None
+
     cdef void push_strip_mesh(self, float *vertices, int vindex, int count,
             int mode=0):
         if self.last_mesh:
@@ -1443,14 +1740,29 @@ cdef class Svg(RenderContext):
         cdef float ax, ay, bx, _by, r = 0, g = 0, b = 0, a = 0
         cdef int count = <int>int(len(path) / 2.)
         cdef float *vertices = NULL
+        cdef int S = VERTEX_FORMAT.vsize
         vindex = 0
 
-        vertices = <float *>malloc(sizeof(float) * count * VERTEX_FORMAT.vbytesize * 4)
+        vertices = <float *>malloc(sizeof(float) * count * S * 4)
         if vertices == NULL:
             return
 
         if not isinstance(fill, str):
             r, g, b, a = fill
+
+        if isinstance(fill, str):
+            xmin = xmax = path[0]
+            ymin = ymax = path[1]
+            for i, v in enumerate(path):
+                if i % 2:
+                    xmin = min(xmin, v)
+                    xmax = max(xmax, v)
+                else:
+                    ymin = min(ymin, v)
+                    ymax = max(ymax, v)
+
+            w = xmax - xmin
+            h = ymax - ymin
 
         for index in range(count - 1):
             i = index * 2
@@ -1486,32 +1798,56 @@ cdef class Svg(RenderContext):
             y3 = _by + sin2
 
             if isinstance(fill, str):
-                gradient_id = self.gradient_shader_map[fill]
+                # g = self.gradients[fill]
+                # r, g, b, a = g.interp(ax, ay, w, h)
+                gradient_id = self.gradient_shader_map[fill] / 255.
+            else:
+                gradient_id = 0.
 
-            vertices[vindex + 2] = vertices[vindex + 10] = \
-                vertices[vindex + 18] = vertices[vindex + 26] = 0
-            vertices[vindex + 3] = vertices[vindex + 11] = \
-                vertices[vindex + 19] = vertices[vindex + 27] = 0
-            vertices[vindex + 4] = vertices[vindex + 12] = \
-                vertices[vindex + 20] = vertices[vindex + 28] = r
-            vertices[vindex + 5] = vertices[vindex + 13] = \
-                vertices[vindex + 21] = vertices[vindex + 29] = g
-            vertices[vindex + 6] = vertices[vindex + 14] = \
-                vertices[vindex + 22] = vertices[vindex + 30] = b
-            vertices[vindex + 7] = vertices[vindex + 15] = \
-                vertices[vindex + 23] = vertices[vindex + 31] = a
-            vertices[vindex + 8] = vertices[vindex + 16] = \
-                vertices[vindex + 24] = vertices[vindex + 32] = a
+            vertices[vindex + 0 * S + 2] = \
+            vertices[vindex + 1 * S + 2] = \
+            vertices[vindex + 2 * S + 2] = \
+            vertices[vindex + 3 * S + 2] = 0
 
-            vertices[vindex + 0] = <float>x1
-            vertices[vindex + 1] = <float>y1
-            vertices[vindex + 8] = <float>x4
-            vertices[vindex + 9] = <float>y4
-            vertices[vindex + 16] = <float>x2
-            vertices[vindex + 17] = <float>y2
-            vertices[vindex + 24] = <float>x3
-            vertices[vindex + 25] = <float>y3
-            vindex += VERTEX_FORMAT.vbytesize
+            vertices[vindex + 0 * S + 3] = \
+            vertices[vindex + 1 * S + 3] = \
+            vertices[vindex + 2 * S + 3] = \
+            vertices[vindex + 3 * S + 3] = 0
+
+            vertices[vindex + 0 * S + 4] = \
+            vertices[vindex + 1 * S + 4] = \
+            vertices[vindex + 2 * S + 4] = \
+            vertices[vindex + 3 * S + 4] = r
+
+            vertices[vindex + 0 * S + 5] = \
+            vertices[vindex + 1 * S + 5] = \
+            vertices[vindex + 2 * S + 5] = \
+            vertices[vindex + 3 * S + 5] = g
+
+            vertices[vindex + 0 * S + 6] = \
+            vertices[vindex + 1 * S + 6] = \
+            vertices[vindex + 2 * S + 6] = \
+            vertices[vindex + 3 * S + 6] = b
+
+            vertices[vindex + 0 * S + 7] = \
+            vertices[vindex + 1 * S + 7] = \
+            vertices[vindex + 2 * S + 7] = \
+            vertices[vindex + 3 * S + 7] = a
+
+            vertices[vindex + 0 * S + 8] = \
+            vertices[vindex + 1 * S + 8] = \
+            vertices[vindex + 2 * S + 8] = \
+            vertices[vindex + 3 * S + 8] = gradient_id
+
+            vertices[vindex + 0 * S + 0] = <float>x1
+            vertices[vindex + 0 * S + 1] = <float>y1
+            vertices[vindex + 1 * S + 0] = <float>x4
+            vertices[vindex + 1 * S + 1] = <float>y4
+            vertices[vindex + 2 * S + 0] = <float>x2
+            vertices[vindex + 2 * S + 1] = <float>y2
+            vertices[vindex + 3 * S + 0] = <float>x3
+            vertices[vindex + 3 * S + 1] = <float>y3
+            vindex += 4 * S
 
         # if self.closed:
         #     vindex = vcount - 4
@@ -1543,7 +1879,7 @@ cdef class Svg(RenderContext):
         #     tindices[17] = i7
         #     tindices = tindices + 18
 
-        self.push_strip_mesh(vertices, vindex, <int>int((vindex / 32.)) * 4, 1)
+        self.push_strip_mesh(vertices, vindex, <int>int(vindex / S), 1)
         free(vertices)
 
     cdef void render(self, local_transform=None):
@@ -1575,3 +1911,8 @@ cdef class Svg(RenderContext):
                     transform = local_transform * transform
                 self.pop_clip(clip, transform)
 
+            elif op == OP_IMG:
+                x, y, w, h, source, transform = args
+                if local_transform:
+                    transform = local_transform * transform
+                self.push_image(x, y, w, h, source, transform)

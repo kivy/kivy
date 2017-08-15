@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1 Basic//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-basic.dtd">   
+<!--======================================================================-->
+<!--=  Copyright 2000 World Wide Web Consortium, (Massachusetts          =-->
+<!--=  Institute of Technology, Institut National de Recherche en        =-->
+<!--=  Informatique et en Automatique, Keio University). All Rights      =-->
+<!--=  Reserved. See http://www.w3.org/Consortium/Legal/.                =-->
+<!--======================================================================-->
+<!-- ===================================================================== -->
+<!--                                                                       -->
+<!-- text-textLength-BE-17-patch.svg                                       -->
+<!-- renamed for 1.1 suite to text-text-01-b.svg                                -->
+<!--                                                                       -->
+<!-- Basic test of 'textLength' and 'lengthAdjust' attributes.             -->
+<!--                                                                       -->
+<!-- Author : Lofton Henderson, 29-aug-2000.                               -->
+<!--          1.1 revision by Rick Graham                                  -->
+<!-- Revised for SVGT/B : Mathias Larsson Carlander Aug/20/2002               -->
+<!--                                                                       -->
+<!-- History:                                                              -->
+<!--  29-aug-2000, LH: Serial#1 created.                                   -->
+<!--                                                                       -->
+<!-- ===================================================================== -->
+<!--======================================================================-->
+<!--= Note. After October 2000, revision history is kept as CVS 'commit' =-->
+<!--= log messages, and therefore is no longer in the preceding preamble.=-->
+<!--======================================================================-->
+<svg version="1.1" baseProfile="basic" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="svg-root" width="100%" height="100%" viewBox="0 0 160 120">
+	<title id="test-title">text-text-01-b.svg</title>
+	<desc id="test-desc">Basic test of 'textLength' and 'lengthAdjust' attributes.</desc>
+	<!--======================================================================-->
+	<!--Content of Test Case follows...                  =====================-->
+	<!--======================================================================-->
+	<g id="test-body-content">
+		<text x="14" y="10" font-family="Arial" font-size="10" fill="black">Basic test of 'textLength' </text>
+		<text x="10" y="20" font-family="Arial" font-size="10" fill="black">and 'lengthAdjust' attributes.</text>
+		<!-- Test cases 1&2: all defaults -->
+		<g id="test-1-2">
+			<!-- The text lines -->
+			<g font-family="Arial" font-size="8" fill="blue">
+				<text x="3" y="30">Line to Stretch</text>
+				<text x="75" y="30">this is a line to squeeze</text>
+			</g>
+			<!-- Length reference lines -->
+			<!-- (half ticks here only, as these lengths can validly vary slightly) -->
+			<g stroke="red">
+				<line x1="2" y1="32" x2="56" y2="32"/>
+				<!--      <line x1="39" y1="70" x2="39" y2="84" /> -->
+				<line x1="2" y1="32" x2="2" y2="36"/>
+				<!--      <line x1="145" y1="70" x2="145" y2="84" /> -->
+				<line x1="56" y1="32" x2="56" y2="36"/>
+				<line x1="74" y1="32" x2="158" y2="32"/>
+				<!--      <line x1="244" y1="70" x2="244" y2="84" /> -->
+				<line x1="74" y1="32" x2="74" y2="36"/>
+				<!--      <line x1="412" y1="70" x2="412" y2="84" /> -->
+				<line x1="158" y1="32" x2="158" y2="36"/>
+			</g>
+			<!-- Labels -->
+			<g font-family="Arial" font-size="6" fill="black">
+				<text x="6" y="38">textLength: default</text>
+				<text x="6" y="44">lengthAdjust: default</text>
+				<text x="76" y="38">textLength: default</text>
+				<text x="76" y="44">lengthAdjust: default</text>
+			</g>
+		</g>
+		<!-- Test cases 3&4: define textLength, default lengthAdjust-->
+		<g id="test-3-4" transform="translate(0,22)">
+			<!-- The text lines -->
+			<g font-family="Arial" font-size="8" fill="blue">
+				<text x="3" y="30" textLength="65">Line to Stretch</text>
+				<text x="75" y="30" textLength="65">this is a line to squeeze</text>
+			</g>
+			<!-- Length reference lines -->
+			<g stroke="red">
+				<line x1="2" y1="32" x2="69" y2="32"/>
+				<line x1="2" y1="32" x2="2" y2="36"/>
+				<line x1="69" y1="32" x2="69" y2="36"/>
+				<line x1="74" y1="32" x2="141" y2="32"/>
+				<line x1="74" y1="32" x2="74" y2="36"/>
+				<line x1="141" y1="32" x2="141" y2="36"/>
+			</g>
+			<!-- Labels -->
+			<g font-family="Arial" font-size="6" fill="black">
+				<text x="6" y="38">textLength: 25% longer</text>
+				<text x="6" y="44">lengthAdjust: default</text>
+				<text x="76" y="38">textLength: 15% shorter</text>
+				<text x="76" y="44">lengthAdjust: default</text>
+			</g>
+		</g>
+		<!-- Test cases 5&6: define textLength, lengthAdjust=spacing -->
+		<g id="test-5-6" transform="translate(0,44)">
+			<!-- The text lines -->
+			<g font-family="Arial" font-size="8" fill="blue">
+				<text x="3" y="30" textLength="65" lengthAdjust="spacing">Line to Stretch</text>
+				<text x="75" y="30" textLength="65" lengthAdjust="spacing">this is a line to squeeze</text>
+			</g>
+			<!-- Length reference lines -->
+			<g stroke="red">
+				<line x1="2" y1="32" x2="69" y2="32"/>
+				<line x1="2" y1="32" x2="2" y2="36"/>
+				<line x1="69" y1="32" x2="69" y2="36"/>
+				<line x1="74" y1="32" x2="141" y2="32"/>
+				<line x1="74" y1="32" x2="74" y2="36"/>
+				<line x1="141" y1="32" x2="141" y2="36"/>
+			</g>
+			<!-- Labels -->
+			<g font-family="Arial" font-size="6" fill="black">
+				<text x="3" y="38">textLength: 25% longer</text>
+				<text x="3" y="44">lengthAdjust: spacing</text>
+				<text x="76" y="38">textLength: 15% shorter</text>
+				<text x="76" y="44">lengthAdjust: spacing</text>
+			</g>
+		</g>
+		<!-- Test cases 7&8: define textLength, lengthAdjust=spacingAndGlyphs -->
+		<g id="test-7-8" transform="translate(0,66)">
+			<!-- The text lines -->
+			<g font-family="Arial" font-size="8" fill="blue">
+				<text x="3" y="30" textLength="65" lengthAdjust="spacingAndGlyphs">Line to Stretch</text>
+				<text x="75" y="30" textLength="65" lengthAdjust="spacingAndGlyphs">this is a line to squeeze</text>
+			</g>
+			<!-- Length reference lines -->
+			<g stroke="red">
+				<line x1="2" y1="32" x2="69" y2="32"/>
+				<line x1="2" y1="32" x2="2" y2="36"/>
+				<line x1="69" y1="32" x2="69" y2="36"/>
+				<line x1="74" y1="32" x2="141" y2="32"/>
+				<line x1="74" y1="32" x2="74" y2="36"/>
+				<line x1="141" y1="32" x2="141" y2="36"/>
+			</g>
+			<!-- Labels -->
+			<g font-family="Arial" font-size="6" fill="black">
+				<text x="6" y="38">textLength: 25% longer</text>
+				<text x="6" y="44">lengthAdjust: sAG</text>
+				<text x="76" y="38">textLength: 20% shorter</text>
+				<text x="76" y="44">lengthAdjust: sAG</text>
+			</g>
+		</g>
+	</g>
+<text id="revision" x="5" y="117" font-size="8" stroke="none" fill="black">$Revision: 1.7 $</text>
+	<rect id="test-frame" x="1" y="1" width="158" height="118" fill="none" stroke="#000000"/>
+</svg>
