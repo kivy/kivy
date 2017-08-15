@@ -145,6 +145,7 @@ c_options['use_ios'] = False
 c_options['use_mesagl'] = False
 c_options['use_x11'] = False
 c_options['use_gstreamer'] = None
+c_options['use_curl'] = None
 c_options['use_avfoundation'] = platform == 'darwin'
 c_options['use_osx_frameworks'] = platform == 'darwin'
 c_options['debug_gl'] = False
@@ -430,6 +431,16 @@ if platform not in ('ios', 'android') and (c_options['use_gstreamer']
             print('GStreamer found via pkg-config')
             c_options['use_gstreamer'] = True
 
+# detect curl
+if c_options['use_curl'] in (None, True):
+    curl_valid = False
+    if not curl_valid:
+        curl_flags = pkgconfig('libcurl')
+        if 'libraries' in curl_flags:
+            print('CURL found via pkg-config')
+            c_options['use_curl'] = True
+
+
 
 # detect SDL2, only on desktop and iOS, or android if explicitly enabled
 # works if we forced the options or in autodetection
@@ -673,6 +684,7 @@ gl_flags, gl_flags_base = determine_gl_flags()
 # all the dependencies have been found manually with:
 # grep -inr -E '(cimport|include)' kivy/graphics/context_instructions.{pxd,pyx}
 graphics_dependencies = {
+    'gl_redirect.h': ['common_subset.h'],
     'buffer.pyx': ['common.pxi'],
     'context.pxd': ['instructions.pxd', 'texture.pxd', 'vbo.pxd', 'cgl.pxd'],
     'cgl.pxd': ['common.pxi', 'config.pxi', 'gl_redirect.h'],
@@ -846,6 +858,10 @@ if c_options['use_gstreamer']:
     sources['lib/gstplayer/_gstplayer.pyx'] = merge(
         base_flags, gst_flags, {
             'depends': ['lib/gstplayer/_gstplayer.h']})
+
+if c_options['use_curl']:
+    sources['network/curl.pyx'] = merge(
+        base_flags, sdl2_flags, curl_flags)
 
 
 # -----------------------------------------------------------------------------
