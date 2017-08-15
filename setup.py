@@ -867,7 +867,23 @@ def resolve_dependencies(fn, depends):
     deps = []
     get_dependencies(fn, deps)
     get_dependencies(fn.replace('.pyx', '.pxd'), deps)
-    return [expand(src_path, 'graphics', x) for x in deps]
+
+    deps_final = []
+    paths_to_test = ['graphics', 'include']
+    for dep in deps:
+        found = False
+        for path in paths_to_test:
+            filename = expand(src_path, path, dep)
+            if exists(filename):
+                deps_final.append(filename)
+                found = True
+                break
+        if not found:
+            print('ERROR: Dependency for {} not resolved: {}'.format(
+                fn, dep
+            ))
+
+    return deps_final
 
 
 def get_extensions_from_sources(sources):
