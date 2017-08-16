@@ -486,8 +486,8 @@ cdef extern from "SDL.h":
     cdef Uint8 SDL_EventState(Uint32 type, int state)
     cdef int SDL_PollEvent(SDL_Event * event) nogil
     cdef void SDL_SetEventFilter(SDL_EventFilter *filter, void* userdata)
-    cdef SDL_RWops * SDL_RWFromFile(char *file, char *mode)
-    cdef SDL_RWops * SDL_RWFromMem(void *mem, int size)
+    cdef SDL_RWops * SDL_RWFromFile(char *file, char *mode) nogil
+    cdef SDL_RWops * SDL_RWFromMem(void *mem, int size) nogil
     cdef SDL_RWops * SDL_RWFromConstMem(void *mem, int size)
     cdef void SDL_FreeRW(SDL_RWops *area)
     cdef int SDL_GetRendererInfo(SDL_Renderer *renderer, SDL_RendererInfo *info)
@@ -659,7 +659,7 @@ cdef extern from "SDL_shape.h":
         SDL_WindowShapeMode * shape_mode
     )
 
-cdef extern from "SDL_image.h":
+cdef extern from "SDL_image.h" nogil:
     ctypedef enum IMG_InitFlags:
         IMG_INIT_JPG
         IMG_INIT_PNG
