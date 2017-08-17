@@ -450,11 +450,10 @@ class WindowSDL(WindowBase):
                 x, y = self._fix_mouse_pos(x, y)
                 self._mouse_x = x
                 self._mouse_y = y
-                # don't dispatch motion if no button are pressed
-                if len(self._mouse_buttons_down) == 0:
-                    continue
-                self._mouse_meta = self.modifiers
-                self.dispatch('on_mouse_move', x, y, self.modifiers)
+                # dispatch motion only when a button is pressed
+                if self._mouse_buttons_down:
+                    self._mouse_meta = self.modifiers
+                    self.dispatch('on_mouse_move', x, y, self.modifiers)
 
             elif action in ('mousebuttondown', 'mousebuttonup'):
                 x, y, button = args

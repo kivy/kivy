@@ -316,7 +316,7 @@ class Widget(WidgetBase):
     '''
 
     __metaclass__ = WidgetMetaclass
-    __events__ = ('on_touch_down', 'on_touch_move', 'on_touch_up')
+    __events__ = ('on_touch_down', 'on_touch_move', 'on_touch_up', 'on_motion')
     _proxy_ref = None
 
     def __init__(self, **kwargs):
@@ -477,6 +477,13 @@ class Widget(WidgetBase):
             return
         for child in self.children[:]:
             if child.dispatch('on_touch_up', touch):
+                return True
+
+    def on_motion(self, touch):
+        if self.disabled:
+            return
+        for w in self.children[:]:
+            if w.dispatch('on_motion', touch):
                 return True
 
     def on_disabled(self, instance, value):

@@ -80,7 +80,8 @@ offers:
 
 __all__ = ('ButtonBehavior', 'ToggleButtonBehavior', 'DragBehavior',
            'FocusBehavior', 'CompoundSelectionBehavior',
-           'CodeNavigationBehavior', 'EmacsBehavior', 'CoverBehavior')
+           'CodeNavigationBehavior', 'EmacsBehavior', 'CoverBehavior',
+           'HoverBehavior')
 
 from kivy.uix.behaviors.button import ButtonBehavior
 from kivy.uix.behaviors.togglebutton import ToggleButtonBehavior
@@ -90,3 +91,4 @@ from kivy.uix.behaviors.compoundselection import CompoundSelectionBehavior
 from kivy.uix.behaviors.codenavigation import CodeNavigationBehavior
 from kivy.uix.behaviors.emacs import EmacsBehavior
 from kivy.uix.behaviors.cover import CoverBehavior
+from kivy.uix.behaviors.hover import HoverBehavior
