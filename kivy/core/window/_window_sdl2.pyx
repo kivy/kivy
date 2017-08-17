@@ -2,6 +2,7 @@ include "../../../kivy/lib/sdl2.pxi"
 include "../../include/config.pxi"
 
 from libc.string cimport memcpy
+from libc.stdint cimport uintptr_t
 from os import environ
 from kivy.config import Config
 from kivy.logger import Logger
@@ -28,6 +29,9 @@ cdef class _WindowSDL2Storage:
         self.surface = NULL
         self.win_flags = 0
         self.event_filter = None
+    
+    def get_sdl2_window_pointer(self):
+        return <uintptr_t>self.win
 
     def set_event_filter(self, event_filter):
         self.event_filter = event_filter

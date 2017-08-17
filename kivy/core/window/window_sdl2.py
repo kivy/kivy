@@ -236,6 +236,9 @@ class WindowSDL(WindowBase):
                 app.dispatch('on_resume')
 
         return 0
+    
+    def get_sdl2_window_pointer(self):
+        return self._win.get_sdl2_window_pointer()
 
     def create_window(self, *largs):
         if self._fake_fullscreen:
