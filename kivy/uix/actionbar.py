@@ -338,17 +338,20 @@ class ActionGroup(ActionItem, Spinner):
 
     def _build_dropdown(self, *largs):
         if self._dropdown:
-            self._dropdown.unbind(on_dismiss=self._toggle_dropdown)
+            self._dropdown.unbind(on_dismiss=self._dismissed)
             self._dropdown.dismiss()
             self._dropdown = None
         self._dropdown = self.dropdown_cls()
-        self._dropdown.bind(on_dismiss=self._toggle_dropdown)
+        self._dropdown.bind(on_dismiss=self._dismissed)
 
     def _update_dropdown(self, *largs):
         pass
 
+    def _dismissed(self, *largs):
+        self.is_open = False
+
     def _toggle_dropdown(self, *largs):
-        self.is_open = not self.is_open
+        self.is_open = True
         ddn = self._dropdown
         ddn.size_hint_x = None
         if not ddn.container:
