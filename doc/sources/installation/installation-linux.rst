@@ -37,21 +37,12 @@ Debian  (Jessie or newer)
 
 #. Add one of the PPAs to your sources.list in apt manually or via Synaptic
 
-    * Jessie/Testing:
+    :stable builds:
+        deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu xenial main
+    :daily builds:
+        deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu xenial main
 
-        :stable builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu trusty main
-        :daily builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu trusty main
-
-    * Sid/Unstable:
-
-        :stable builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu utopic main
-        :daily builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu utopic main
-
-        **Notice**: Wheezy is not supported - You'll need to upgrade to Jessie at least!
+    **Notice**: Wheezy is not supported - You'll need to upgrade to Jessie at least!
 
 #. Add the GPG key to your apt keyring by executing
 
@@ -167,6 +158,7 @@ Kivy       Cython
 1.8        0.20.2
 1.9        0.21.2
 1.9.1      0.23
+1.10.1     0.25
 ========   =============
 
 
@@ -220,7 +212,7 @@ Installation
 ------------
 
 
-::
+.. parsed-literal::
 
     # Make sure Pip, Virtualenv and Setuptools are updated
     sudo pip install --upgrade pip virtualenv setuptools
@@ -238,7 +230,7 @@ Installation
     . kivyinstall/bin/activate
 
     # Use correct Cython version here
-    pip install Cython==0.23
+    pip install |cython_install|
 
     # Install stable version of Kivy into the virtualenv
     pip install kivy
@@ -320,7 +312,7 @@ OpenSuse
 Installation
 ------------
 
-::
+.. parsed-literal::
 
     # Make sure Pip, Virtualenv and Setuptools are updated
     sudo pip install --upgrade pip virtualenv setuptools
@@ -339,7 +331,7 @@ Installation
 
     pip install numpy
 
-    pip install Cython==0.23
+    pip install |cython_install|
 
     # If you want to install pygame backend instead of sdl2
     # you can install pygame using command below and enforce using

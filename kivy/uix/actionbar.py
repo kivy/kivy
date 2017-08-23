@@ -491,7 +491,8 @@ class ActionView(BoxLayout):
         super(ActionView, self).remove_widget(widget)
         if isinstance(widget, ActionOverflow):
             for item in widget.list_action_item:
-                self._list_action_items.remove(item)
+                if item in self._list_action_items:
+                    self._list_action_items.remove(item)
 
         if widget in self._list_action_items:
             self._list_action_items.remove(widget)
