@@ -5,16 +5,16 @@ import kivy.network.curl as curl
 
 counter = 0
 
-def on_complete(url, status_code, data):
+def on_complete(result):
     global counter
     counter += 1
-    print("on_complete", counter, url, status_code, data[:10])
+    print("on_complete", result.url, result.error)
 
 
-def on_complete_image(url, image, error=None):
+def on_complete_image(result):
     global counter
     counter += 1
-    print("on_complete_image", url, image, error)
+    print("on_complete_image", result.url, result.error, result.image)
 
 curl.download("http://txzone.net", on_complete)
 curl.download_image("https://dummyimage.com/600x400/000/fff", on_complete_image)

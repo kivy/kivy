@@ -1,13 +1,17 @@
 """
 Asynchronous downloader using libcurl
 works also to preload image in background
+
+TODO:
+- make it work under msvc (http://forum.blackvoxel.com/index.php?topic=84.0)
+
 """
 
 include "../lib/sdl2.pxi"
 
 from libc.stdio cimport printf, FILE, fopen, fwrite, fclose
-from libc.stdlib cimport calloc, free, realloc
-from libc.string cimport memset, strdup, memcpy
+from libc.stdlib cimport malloc, calloc, free, realloc
+from libc.string cimport memset, strdup, memcpy, strlen
 from cpython.ref cimport PyObject, Py_XINCREF, Py_XDECREF
 from posix.unistd cimport access, F_OK
 from libcpp cimport bool
@@ -26,12 +30,17 @@ cdef extern from "curl/curl.h" nogil:
         CURLOPT_WRITEDATA
         CURLOPT_FOLLOWLOCATION
         CURLOPT_HTTPHEADER
+        CURLOPT_HEADERFUNCTION
+        CURLOPT_HEADERDATA
+
     enum CURLSHcode:
         CURLSHE_OK
     struct CURL:
         pass
     struct curl_slist:
-        pass
+        curl_slist *next
+        char *data
+
     int CURLcode
     CURL *curl_easy_init()
     CURLSHcode curl_easy_setopt(CURL *, CURLoption, ...)
@@ -70,6 +79,7 @@ ctypedef struct dl_queue_data:
     int size
     void *callback
     curl_slist *headers
+    curl_slist *resp_headers
 
     # image loading if wanted
     int preload_image
@@ -163,6 +173,8 @@ cdef void dl_queue_data_clean(dl_queue_data **data):
         free(data[0].data)
     if data[0].headers != NULL:
         curl_slist_free_all(data[0].headers)
+    if data[0].resp_headers != NULL:
+        curl_slist_free_all(data[0].resp_headers)
     if data[0].callback != NULL:
         Py_XDECREF(<PyObject *>data[0].callback)
     free(data[0])
@@ -172,7 +184,7 @@ cdef size_t write_data(void *ptr, size_t size, size_t nmemb, dl_queue_data *data
     cdef:
         size_t index = data.size
         size_t n = (size * nmemb)
-        char* tmp;
+        char* tmp
     data.size += (size * nmemb)
     tmp = <char *>realloc(data.data, data.size + 1)
 
@@ -185,6 +197,20 @@ cdef size_t write_data(void *ptr, size_t size, size_t nmemb, dl_queue_data *data
 
     memcpy((data.data + index), ptr, n)
     data.data[data.size] = '\0'
+    return size * nmemb
+
+
+cdef size_t write_header(void *ptr, size_t size, size_t nmemb, dl_queue_data *data):
+    cdef char *tmp
+
+    tmp = <char *>malloc(size * nmemb + 1)
+    memcpy(tmp, ptr, size * nmemb)
+    tmp[size * nmemb] = '\0'
+
+    data.resp_headers = curl_slist_append(
+        data.resp_headers, tmp)
+
+    free(tmp)
     return size * nmemb
 
 
@@ -217,6 +243,8 @@ cdef int dl_run_job(void *arg) nogil:
             curl_easy_setopt(curl, CURLOPT_URL, data.url)
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data)
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, data)
+            curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, write_header)
+            curl_easy_setopt(curl, CURLOPT_HEADERDATA, data)
             curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, <void *><long>1L)
             # curl_easy_setopt(curl, CURLOPT_VERBOSE, <void *><long>1L)
             if data.headers != NULL:
@@ -365,6 +393,61 @@ def download_image(*args, **kwargs):
 
 from kivy.core.image import Image as CoreImage
 from kivy.core.image import ImageLoaderBase, ImageData
+from kivy.clock import Clock
+import json
+
+
+class HTTPError(Exception):
+    pass
+
+
+class CurlResult(object):
+    #: Url of the request
+    url = None
+
+    #: If image is preloaded, it will contain the image information
+    image = None
+
+    #: If the data was requested, it will contain the data
+    data = None
+
+    #: If an error happen, it will contain the error message
+    error = None
+
+    #: HTTP Status code
+    status_code = None
+
+    #: Reason
+    reason = None
+
+    #: Response headers
+    headers = {}
+
+    #: Json data if available
+    _json = None
+
+    def raise_for_status(self):
+        reason = None
+        http_error_msg = None
+        if 400 <= self.status_code < 500:
+            http_error_msg = u'%s Client Error: %s for url: %s' % (self.status_code, reason, self.url)
+        elif 500 <= self.status_code < 600:
+            http_error_msg = u'%s Server Error: %s for url: %s' % (self.status_code, reason, self.url)
+        if http_error_msg:
+            exc = HTTPError(http_error_msg)
+            exc.response = self
+            raise exc
+
+    def json(self):
+        if self.headers.get("content-type") != "application/json":
+            raise Exception("Not a application/json response")
+        if self._json is None:
+            self._json = json.loads(self.data)
+        return self._json
+
+    def __repr__(self):
+        return "<CurlResult url={!r}>".format(self.url)
+
 
 
 class ImageLoaderMemory(ImageLoaderBase):
@@ -378,10 +461,13 @@ class ImageLoaderMemory(ImageLoaderBase):
         return self._data
 
 
-def process():
-    cdef dl_queue_data *data
-    cdef bytes b_data = None
-    cdef object callback
+def process(*args):
+    cdef:
+        dl_queue_data *data
+        bytes b_data = None
+        object callback
+        curl_slist *item
+
     while True:
         data = <dl_queue_data *>dl_queue_dequeue(&result_ctx)
         if data == NULL:
@@ -391,6 +477,24 @@ def process():
         if not callback:
             continue
 
+        result = CurlResult()
+        result.url = data.url
+        result.status_code = data.status_code
+
+        # pre processing http headers
+        item = data.resp_headers
+        while item != NULL:
+            b_data = item.data[:strlen(item.data)].strip()
+            if b_data.startswith("HTTP/"):
+                result.reason = b_data.split(b" ", 3)[-1]
+            elif b_data:
+                key, value = b_data.split(b":", 1)
+                key = key.strip().lower()
+                value = value.strip()
+                result.headers[key] = value
+            item = item.next
+
+
         if data.preload_image:
             # send back an image
             # FIXME: optimization would be to prevent any conversion
@@ -398,22 +502,32 @@ def process():
             # So using the load_from_surface will disapear somehow to have
             # a fully C version that doesn't require python.
             if data.image == NULL:
-                callback(data.url, None, error=data.image_error)
+                result.error = data.image_error
             else:
-                result = load_from_surface(data.image)
-                loader = ImageLoaderMemory(data.url, result)
-                image = CoreImage(loader)
-                callback(data.url, image)
+                image = load_from_surface(data.image)
+                loader = ImageLoaderMemory(data.url, image)
+                result.image = CoreImage(loader)
         else:
             # send back the data
             if data.size > 0:
                 b_data = data.data[:data.size]
-            callback(data.url, data.status_code, b_data)
+                result.data = b_data
 
+        callback(result)
         dl_queue_data_clean(&data)
 
 
+def install():
+    uninstall()
+    Clock.schedule_interval(process, 0)
+
+
+def uninstall():
+    Clock.unschedule(process)
+
+
 def stop():
+    uninstall()
     SDL_AtomicSet(&dl_done, 1)
     SDL_SemPost(dl_sem)
     SDL_DestroySemaphore(dl_sem)

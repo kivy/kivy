@@ -22,6 +22,7 @@ examples/*/bin
 examples/*/.buildozer
 kivy/*.c
 kivy/*.pyd
+kivy/network/*.c
 kivy/core/text/text_layout.c
 kivy/core/text/text_layout.pyd
 kivy/graphics/*.c
