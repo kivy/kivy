@@ -31,7 +31,7 @@ class ClipboardBase(object):
         '''Get the current data in clipboard, using the mimetype if possible.
         You not use this method directly. Use :meth:`paste` instead.
         '''
-        return None
+        pass
 
     def put(self, data, mimetype):
         '''Put data on the clipboard, and attach a mimetype.

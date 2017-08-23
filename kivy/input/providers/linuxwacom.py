@@ -147,7 +147,7 @@ else:
             if not args:
                 Logger.error('LinuxWacom: No filename given in config')
                 Logger.error('LinuxWacom: Use /dev/input/event0 for example')
-                return None
+                return
 
             # read filename
             self.input_fn = args[0]

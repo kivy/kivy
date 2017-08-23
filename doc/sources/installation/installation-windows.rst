@@ -15,11 +15,11 @@ location** and not to site-packages, please see :ref:`alternate-win`.
 
 .. note::
 
-    For Python < 3.5 we use the MinGW compiler. However, for Python 3.5 on
-    Windows we currently only support the microsoft MSVC compiler
-    because of the following MinGW
-    `issue <http://bugs.python.org/issue4709>`_. Generally this should make
-    no difference when using precompiled wheels.
+    For Python < 3.5 we use the MinGW compiler. However, for Python 3.5+ on
+    Windows we currently only support the MSVC compiler
+    because of the following Python
+    `issue 4709 <http://bugs.python.org/issue4709>`_ about MinGW.
+    Generally this should make no difference when using precompiled wheels.
 
 To use Kivy you need `Python <https://www.python.org/downloads/windows/>`_.
 Multiple versions of Python can be installed side by side, but Kivy needs to
@@ -47,14 +47,20 @@ install.
    For Python 3.5 only we additionally offer angle which can be used instead of glew
    and can be installed with::
 
-    python -m pip install kivy.deps.angle
+     python -m pip install kivy.deps.angle
 
 #. Install kivy::
 
      python -m pip install kivy
 
+#. (Optionally) Install the kivy examples::
+
+     python -m pip install kivy_examples
+     
+   The examples are installed in the share directory under the root directory where python is installed.
+
 That's it. You should now be able to ``import kivy`` in python or run a basic
-example::
+example if you installed the kivy examples::
 
     python share\kivy-examples\demo\showcase\main.py
 
@@ -88,23 +94,23 @@ Nightly wheel installation
 --------------------------
 
 .. |cp27_win32| replace:: Python 2.7, 32bit
-.. _cp27_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp27-cp27m-win32.whl
+.. _cp27_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp27-cp27m-win32.whl
 .. |cp34_win32| replace:: Python 3.4, 32bit
-.. _cp34_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp34-cp34m-win32.whl
+.. _cp34_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp34-cp34m-win32.whl
 .. |cp27_amd64| replace:: Python 2.7, 64bit
-.. _cp27_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp27-cp27m-win_amd64.whl
+.. _cp27_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp27-cp27m-win_amd64.whl
 .. |cp34_amd64| replace:: Python 3.4, 64bit
-.. _cp34_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp34-cp34m-win_amd64.whl
+.. _cp34_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp34-cp34m-win_amd64.whl
 .. |cp35_win32| replace:: Python 3.5, 32bit
-.. _cp35_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp35-cp35m-win32.whl
+.. _cp35_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp35-cp35m-win32.whl
 .. |cp35_amd64| replace:: Python 3.5, 64bit
-.. _cp35_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp35-cp35m-win_amd64.whl
+.. _cp35_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp35-cp35m-win_amd64.whl
 .. |cp36_win32| replace:: Python 3.6, 32bit
-.. _cp36_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp36-cp36m-win32.whl
+.. _cp36_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp36-cp36m-win32.whl
 .. |cp36_amd64| replace:: Python 3.6, 64bit
-.. _cp36_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp36-cp36m-win_amd64.whl
+.. _cp36_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp36-cp36m-win_amd64.whl
 .. |examples_whl| replace:: Kivy examples
-.. _examples_whl: https://kivy.org/downloads/appveyor/kivy/Kivy_examples-1.9.2.dev0-py2.py3-none-any.whl
+.. _examples_whl: https://kivy.org/downloads/appveyor/kivy/Kivy_examples-1.10.1.dev0-py2.py3-none-any.whl
 
 .. warning::
 
@@ -182,7 +188,7 @@ command line as `well <http://rogerdudler.github.io/git-guide/>`_ as
 installed.
 
 Walking the path! To add your python to the path, simply open your command line
-and then us the ``cd`` command to change the current directory to where python
+and then use the ``cd`` command to change the current directory to where python
 is installed, e.g. ``cd C:\Python27``. Alternatively if you only have one
 python version installed, permanently add the python directory to the path for
 `cmd <http://www.computerhope.com/issues/ch000549.htm>`_ or
@@ -317,7 +323,7 @@ Making Python available anywhere
 There are two methods for launching python on your ``*.py`` files.
 
 Double-click method
-~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^
 
 If you only have one Python installed, you can associate all ``*.py`` files
 with your python, if it isn't already, and then run it by double clicking. Or
@@ -336,7 +342,7 @@ you can only do it once if you want to be able to choose each time:
 #. You are done. Open the file.
 
 Send-to method
-~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^
 
 You can launch a .py file with our Python using the Send-to menu:
 

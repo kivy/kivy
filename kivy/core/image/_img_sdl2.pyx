@@ -28,11 +28,31 @@ def save(filename, w, h, fmt, pixels, flipped):
     cdef bytes c_filename = filename.encode('utf-8')
     cdef int pitch
     pitch = w * 4
-    cdef char *c_pixels = pixels
 
+    cdef int lng, top, bot
+    cdef list rng
     if flipped:
-        Logger.warn(
-            'ImageSDL2: saving flipped textures not supported; image will be flipped')
+        # if flipped upside down
+        # switch bytes(array) to list
+        pixels = list(pixels)
+        lng = len(pixels)
+        rng = list(range(0, lng, pitch))
+
+        while len(rng):
+            try:
+                top = rng.pop(0)
+                bot = rng.pop()
+            except IndexError:
+                # odd height, single line remains, no swap
+                break
+            temp = pixels[top:top + pitch]
+            pixels[top:top + pitch] = pixels[bot:bot + pitch]
+            pixels[bot:bot + pitch] = temp
+
+        # return to bytes(array) for sdl
+        pixels = bytes(bytearray(pixels))
+
+    cdef char *c_pixels = pixels
     cdef SDL_Surface *image = SDL_CreateRGBSurfaceFrom(c_pixels, w, h, 32, pitch, 0x00000000ff, 0x0000ff00, 0x00ff0000, 0xff000000)
 
     IMG_SavePNG(image, c_filename)

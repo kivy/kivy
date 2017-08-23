@@ -21,6 +21,7 @@ __all__ = ('Color', 'BindTexture', 'PushMatrix', 'PopMatrix',
            'Rotate', 'Scale', 'Translate', 'MatrixInstruction',
            'gl_init_resources')
 
+from kivy.compat import PY2
 from kivy.graphics.instructions cimport *
 from kivy.graphics.transformation cimport *
 
@@ -405,7 +406,10 @@ cdef class LoadIdentity(ContextInstruction):
         'projection_mat'.
         '''
         def __get__(self):
-            return self.context_state.keys()[0]
+            if PY2:
+                return self.context_state.keys()[0]
+            else:
+                return list(self.context_state.keys())[0]
         def __set__(self, value):
             self.context_state = {value: Matrix()}
 

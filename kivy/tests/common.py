@@ -45,7 +45,7 @@ class GraphicUnitTest(_base):
         results_dir = join(dirname(__file__), 'results')
         if not exists(results_dir):
             log.warning('No result directory found, cancel test.')
-            return
+            os.mkdir(results_dir)
         self.test_counter = 0
         self.results_dir = results_dir
         self.test_failed = False
@@ -100,6 +100,13 @@ class GraphicUnitTest(_base):
         if self.framecount > 0:
             return
 
+        # don't create screenshots if a specific var is in env
+        ignore = ['TRAVIS_OS_NAME', 'APPVEYOR_BUILD_FOLDER']
+        from os import environ
+        if any(i in environ for i in ignore):
+            EventLoop.stop()
+            return
+
         reffn = None
         match = False
         try:
@@ -145,11 +152,11 @@ class GraphicUnitTest(_base):
                 else:
                     log.info('Image discarded')
             else:
-                import pygame
-                s1 = pygame.image.load(tmpfn)
-                s2 = pygame.image.load(reffn)
-                sd1 = pygame.image.tostring(s1, 'RGB')
-                sd2 = pygame.image.tostring(s2, 'RGB')
+                from kivy.core.image import Image as CoreImage
+                s1 = CoreImage(tmpfn, keep_data=True)
+                sd1 = s1.image._data[0].data
+                s2 = CoreImage(reffn, keep_data=True)
+                sd2 = s2.image._data[0].data
                 if sd1 != sd2:
                     log.critical(
                         '%s at render() #%d, images are different.' % (

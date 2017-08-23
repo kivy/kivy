@@ -12,10 +12,12 @@ import os
 import re
 from os.path import sep
 from os.path import join as slash  # just like that name better
+from os.path import dirname, abspath
 from kivy.logger import Logger
 import textwrap
 
-base_dir = '..'  # from here to the kivy top
+# from here to the kivy top
+base_dir = dirname(dirname(abspath(__file__)))
 examples_dir = slash(base_dir, 'examples')
 screenshots_dir = slash(base_dir, 'doc/sources/images/examples')
 generation_dir = slash(base_dir, 'doc/sources/examples')

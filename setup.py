@@ -67,7 +67,7 @@ def get_version(filename='kivy/version.py'):
 
 MIN_CYTHON_STRING = '0.23'
 MIN_CYTHON_VERSION = LooseVersion(MIN_CYTHON_STRING)
-MAX_CYTHON_STRING = '0.23'
+MAX_CYTHON_STRING = '0.25.2'
 MAX_CYTHON_VERSION = LooseVersion(MAX_CYTHON_STRING)
 CYTHON_UNSUPPORTED = ()
 
@@ -402,13 +402,16 @@ elif platform == 'darwin':
 # works if we forced the options or in autodetection
 if platform not in ('ios', 'android') and (c_options['use_gstreamer']
                                            in (None, True)):
+    gstreamer_valid = False
     if c_options['use_osx_frameworks'] and platform == 'darwin':
         # check the existence of frameworks
         f_path = '/Library/Frameworks/GStreamer.framework'
         if not exists(f_path):
             c_options['use_gstreamer'] = False
-            print('Missing GStreamer framework {}'.format(f_path))
+            print('GStreamer framework not found, fallback on pkg-config')
         else:
+            print('GStreamer framework found')
+            gstreamer_valid = True
             c_options['use_gstreamer'] = True
             gst_flags = {
                 'extra_link_args': [
@@ -420,10 +423,11 @@ if platform not in ('ios', 'android') and (c_options['use_gstreamer']
                     '-framework', 'GStreamer'],
                 'include_dirs': [join(f_path, 'Headers')]}
 
-    else:
+    if not gstreamer_valid:
         # use pkg-config approach instead
         gst_flags = pkgconfig('gstreamer-1.0')
         if 'libraries' in gst_flags:
+            print('GStreamer found via pkg-config')
             c_options['use_gstreamer'] = True
 
 
@@ -433,6 +437,7 @@ sdl2_flags = {}
 if c_options['use_sdl2'] or (
         platform not in ('android',) and c_options['use_sdl2'] is None):
 
+    sdl2_valid = False
     if c_options['use_osx_frameworks'] and platform == 'darwin':
         # check the existence of frameworks
         sdl2_valid = True
@@ -460,15 +465,16 @@ if c_options['use_sdl2'] or (
 
         if not sdl2_valid:
             c_options['use_sdl2'] = False
-            print('Deactivate SDL2 compilation due to missing frameworks')
+            print('SDL2 frameworks not found, fallback on pkg-config')
         else:
             c_options['use_sdl2'] = True
             print('Activate SDL2 compilation')
 
-    elif platform != "ios":
+    if not sdl2_valid and platform != "ios":
         # use pkg-config approach instead
         sdl2_flags = pkgconfig('sdl2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer')
         if 'libraries' in sdl2_flags:
+            print('SDL2 found via pkg-config')
             c_options['use_sdl2'] = True
 
 
@@ -667,7 +673,6 @@ gl_flags, gl_flags_base = determine_gl_flags()
 # all the dependencies have been found manually with:
 # grep -inr -E '(cimport|include)' kivy/graphics/context_instructions.{pxd,pyx}
 graphics_dependencies = {
-    'gl_redirect.h': ['common_subset.h', 'gl_mock.h'],
     'buffer.pyx': ['common.pxi'],
     'context.pxd': ['instructions.pxd', 'texture.pxd', 'vbo.pxd', 'cgl.pxd'],
     'cgl.pxd': ['common.pxi', 'config.pxi', 'gl_redirect.h'],
@@ -861,7 +866,23 @@ def resolve_dependencies(fn, depends):
     deps = []
     get_dependencies(fn, deps)
     get_dependencies(fn.replace('.pyx', '.pxd'), deps)
-    return [expand(src_path, 'graphics', x) for x in deps]
+
+    deps_final = []
+    paths_to_test = ['graphics', 'include']
+    for dep in deps:
+        found = False
+        for path in paths_to_test:
+            filename = expand(src_path, path, dep)
+            if exists(filename):
+                deps_final.append(filename)
+                found = True
+                break
+        if not found:
+            print('ERROR: Dependency for {} not resolved: {}'.format(
+                fn, dep
+            ))
+
+    return deps_final
 
 
 def get_extensions_from_sources(sources):
@@ -1003,16 +1024,18 @@ if not build_examples:
             'tests/*.png',
             'tests/*.ttf',
             'tests/*.ogg',
-            'tools/highlight/*.vim',
-            'tools/highlight/*.el',
+            'tools/gles_compat/*',
+            'tools/highlight/*',
             'tools/packaging/README.txt',
             'tools/packaging/win32/kivy.bat',
             'tools/packaging/win32/kivyenv.sh',
             'tools/packaging/win32/README.txt',
             'tools/packaging/osx/Info.plist',
             'tools/packaging/osx/InfoPlist.strings',
-            'tools/gles_compat/*.h',
-            'tools/packaging/osx/kivy.sh'] + binary_deps},
+            'tools/packaging/osx/kivy.sh',
+            'tools/pep8checker/*',
+            'tools/theming/defaulttheme/*',
+        ] + binary_deps},
         data_files=[] if split_examples else list(examples.items()),
         classifiers=[
             'Development Status :: 5 - Production/Stable',

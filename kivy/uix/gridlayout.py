@@ -317,10 +317,12 @@ class GridLayout(Layout):
         self._rows_sh_max = [None] * current_rows
 
         # update minimum size from the dicts
-        # FIXME index might be outside the bounds ?
-        for index, value in self.cols_minimum.items():
+        items = (i for i in self.cols_minimum.items() if i[0] < len(cols))
+        for index, value in items:
             cols[index] = max(value, cols[index])
-        for index, value in self.rows_minimum.items():
+
+        items = (i for i in self.rows_minimum.items() if i[0] < len(rows))
+        for index, value in items:
             rows[index] = max(value, rows[index])
         return True
 

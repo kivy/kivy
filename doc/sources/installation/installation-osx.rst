@@ -15,17 +15,16 @@ You can install Kivy with Homebrew and pip using the following steps:
 
     1. Install the requirements using `homebrew <http://brew.sh>`_::
 
-        $ brew install sdl2 sdl2_image sdl2_ttf sdl2_mixer gstreamer
+        $ brew install pkg-config sdl2 sdl2_image sdl2_ttf sdl2_mixer gstreamer
 
-    2. Install cython 0.23 and kivy using pip
-       (make sure to set the env variable USE_OSX_FRAMEWORKS=0, command varies by shell)::
+    2. Install Cython and Kivy using pip::
 
-        $ pip install -I Cython==0.23
-        $ USE_OSX_FRAMEWORKS=0 pip install kivy
+        $ pip install -U Cython
+        $ pip install kivy
 
     - To install the development version, use this in the second step::
 
-        $ USE_OSX_FRAMEWORKS=0 pip install https://github.com/kivy/kivy/archive/master.zip
+        $ pip install https://github.com/kivy/kivy/archive/master.zip
 
 Using MacPorts with pip
 -----------------------
@@ -54,11 +53,10 @@ You can install Kivy with Macports and pip using the following steps:
 
         $ port install libsdl2 libsdl2_image libsdl2_ttf libsdl2_mixer
 
-    5. Install cython 0.23 and kivy using pip
-       (make sure to set the env variable USE_OSX_FRAMEWORKS=0, command varies by shell)::
+    5. Install Cython and Kivy using pip::
 
-        $ pip install -I Cython==0.23
-        $ USE_OSX_FRAMEWORKS=0 pip install kivy
+        $ pip install -U Cython
+        $ pip install kivy
 
     - To install the development version, use this in the second step::
 

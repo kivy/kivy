@@ -559,7 +559,7 @@ class WindowBase(EventDispatcher):
     +----------------+-------------------------------------------------------+
 
     :attr:`softinput_mode` is an :class:`~kivy.properties.OptionProperty` and
-    defaults to `None`.
+    defaults to ``.
 
     .. note:: The `resize` option does not currently work with SDL2 on Android.
 
@@ -623,12 +623,13 @@ class WindowBase(EventDispatcher):
 
     keyboard_anim_args = {'t': 'in_out_quart', 'd': .5}
     '''The attributes for animating softkeyboard/IME.
-    `t` = `transition`, `d` = `duration`. Will have no effect on desktops.
+    `t` = `transition`, `d` = `duration`. This value will have no effect on
+    desktops.
 
     .. versionadded:: 1.10.0
 
-    :attr:`keyboard_anim_args` is a dict with values
-    't': 'in_out_quart', 'd': `.5`.
+    :attr:`keyboard_anim_args` is a dict and defaults to
+    {'t': 'in_out_quart', 'd': `.5`}.
     '''
 
     keyboard_padding = NumericProperty(0)
@@ -731,6 +732,52 @@ class WindowBase(EventDispatcher):
     def _set_cursor_state(self, value):
         pass
 
+    def set_system_cursor(self, cursor_name):
+        '''Set type of a mouse cursor in the Window.
+
+        It can be one of 'arrow', 'ibeam', 'wait', 'crosshair', 'wait_arrow',
+        'size_nwse', 'size_nesw', 'size_we', 'size_ns', 'size_all', 'no', or
+        'hand'.
+
+        On some platforms there might not be a specific cursor supported and
+        such an option falls back to one of the substitutable alternatives:
+
+        +------------+-----------+------------+-----------+---------------+
+        |            | Windows   | MacOS      | Linux X11 | Linux Wayland |
+        +============+===========+============+===========+===============+
+        | arrow      | arrow     | arrow      | arrow     | arrow         |
+        +------------+-----------+------------+-----------+---------------+
+        | ibeam      | ibeam     | ibeam      | ibeam     | ibeam         |
+        +------------+-----------+------------+-----------+---------------+
+        | wait       | wait      | arrow      | wait      | wait          |
+        +------------+-----------+------------+-----------+---------------+
+        | crosshair  | crosshair | crosshair  | crosshair | hand          |
+        +------------+-----------+------------+-----------+---------------+
+        | wait_arrow | arrow     | arrow      | wait      | wait          |
+        +------------+-----------+------------+-----------+---------------+
+        | size_nwse  | size_nwse | size_all   | size_all  | hand          |
+        +------------+-----------+------------+-----------+---------------+
+        | size_nesw  | size_nesw | size_all   | size_all  | hand          |
+        +------------+-----------+------------+-----------+---------------+
+        | size_we    | size_we   | size_we    | size_we   | hand          |
+        +------------+-----------+------------+-----------+---------------+
+        | size_ns    | size_ns   | size_ns    | size_ns   | hand          |
+        +------------+-----------+------------+-----------+---------------+
+        | size_all   | size_all  | size_all   | size_all  | hand          |
+        +------------+-----------+------------+-----------+---------------+
+        | no         | no        | no         | no        | ibeam         |
+        +------------+-----------+------------+-----------+---------------+
+        | hand       | hand      | hand       | hand      | hand          |
+        +------------+-----------+------------+-----------+---------------+
+
+        .. versionadded:: 1.10.1
+
+        .. note::
+            This feature requires the SDL2 window provider and is currently
+            only supported on desktop platforms.
+        '''
+        pass
+
     def _get_window_pos(self):
         pass
 
@@ -766,7 +813,7 @@ class WindowBase(EventDispatcher):
     .. versionadded:: 1.9.1
 
     :attr:`top` is an :class:`~kivy.properties.AliasProperty` and defaults to
-    position set in :class:`~kivy.config.Config`.
+    the position set in :class:`~kivy.config.Config`.
     '''
 
     left = AliasProperty(_get_left, _set_left)
@@ -780,7 +827,7 @@ class WindowBase(EventDispatcher):
     .. versionadded:: 1.9.1
 
     :attr:`left` is an :class:`~kivy.properties.AliasProperty` and defaults to
-    position set in :class:`~kivy.config.Config`.
+    the position set in :class:`~kivy.config.Config`.
     '''
 
     @property
@@ -869,8 +916,11 @@ class WindowBase(EventDispatcher):
             self._left = Config.getint('graphics', 'left')
         kwargs['_size'] = (kwargs.pop('width'), kwargs.pop('height'))
         if 'show_cursor' not in kwargs:
-            kwargs['show_cursor'] = Config.getboolean('graphics',
-                                                      'show_cursor')
+            kwargs['show_cursor'] = Config.getboolean(
+                'graphics', 'show_cursor'
+            )
+        if 'shape_image' not in kwargs:
+            kwargs['shape_image'] = Config.get('kivy', 'window_shape')
 
         super(WindowBase, self).__init__(**kwargs)
 
@@ -1015,6 +1065,91 @@ class WindowBase(EventDispatcher):
     def close(self):
         '''Close the window'''
         pass
+
+    shape_image = StringProperty('')
+    '''An image for the window shape (only works for sdl2 window provider).
+
+    .. warning:: The image size has to be the same like the window's size!
+
+    .. versionadded:: 1.10.1
+
+    :attr:`shape_image` is a :class:`~kivy.properties.StringProperty` and
+    defaults to 'data/images/defaultshape.png'. This value is taken from
+    :class:`~kivy.config.Config`.
+    '''
+
+    def on_shape_image(self, instane, value):
+        if self.initialized:
+            self._set_shape(
+                shape_image=value, mode=self.shape_mode,
+                cutoff=self.shape_cutoff, color_key=self.shape_color_key
+            )
+
+    shape_cutoff = BooleanProperty(True)
+    '''The window :attr:`shape_image` cutoff property (only works for sdl2
+    window provider).
+
+    .. versionadded:: 1.10.1
+
+    :attr:`shape_cutoff` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
+    '''
+
+    def on_shape_cutoff(self, instane, value):
+        self._set_shape(
+            shape_image=self.shape_image, mode=self.shape_mode,
+            cutoff=value, color_key=self.shape_color_key
+        )
+
+    def _get_shaped(self):
+        return self._is_shaped()
+
+    shaped = AliasProperty(_get_shaped, None)
+    '''Read only property to check if the window is shapable or not (only works
+    for sdl2 window provider).
+
+    .. versionadded:: 1.10.1
+
+    :attr:`shaped` is an :class:`~kivy.properties.AliasProperty`.
+    '''
+
+    def _get_shape_mode(self):
+        mode = self._get_shaped_mode()['mode']
+        modes = ('default', 'binalpha', 'reversebinalpha', 'colorkey')
+        return modes[mode]
+
+    def _set_shape_mode(self, value):
+        self._set_shaped_mode(value)
+
+    shape_mode = AliasProperty(_get_shape_mode, _set_shape_mode)
+    '''Window mode for shaping (only works for sdl2 window provider).
+
+    - can be RGB only
+       - `default` - does nothing special
+       - `colorkey` - hides a color of the :attr:`shape_color_key`
+    - has to contain alpha channel
+       - `binalpha` - hides an alpha channel of the :attr:`shape_image`
+       - `reversebinalpha` - shows only the alpha of the :attr:`shape_image`
+
+    .. versionadded:: 1.10.1
+
+    :attr:`shape_mode` is an :class:`~kivy.properties.AliasProperty`.
+    '''
+
+    shape_color_key = ListProperty([1, 1, 1, 1])
+    '''Color key of the shaped window - sets which color will be hidden from
+    the window :attr:`shape_image` (only works for sdl2 window provider).
+
+    .. versionadded:: 1.10.1
+
+    :attr:`shape_color_key` is a :class:`~kivy.properties.ListProperty`
+    instance and defaults to [1, 1, 1, 1].
+    '''
+    def on_shape_color_key(self, instane, value):
+        self._set_shape(
+            shape_image=self.shape_image, mode=self.shape_mode,
+            cutoff=self.shape_cutoff, color_key=value
+        )
 
     def create_window(self, *largs):
         '''Will create the main window and configure it.
@@ -1336,7 +1471,7 @@ class WindowBase(EventDispatcher):
                     w.center_y = value * height
 
     def screenshot(self, name='screenshot{:04d}.png'):
-        '''Save the actual displayed image in a file
+        '''Save the actual displayed image to a file.
         '''
         i = 0
         path = None
@@ -1356,7 +1491,7 @@ class WindowBase(EventDispatcher):
         pass
 
     def on_close(self, *largs):
-        '''Event called when the window is closed'''
+        '''Event called when the window is closed.'''
         Modules.unregister_window(self)
         EventLoop.remove_event_listener(self)
 
@@ -1444,43 +1579,43 @@ class WindowBase(EventDispatcher):
         pass
 
     def on_mouse_down(self, x, y, button, modifiers):
-        '''Event called when the mouse is used (pressed/released)'''
+        '''Event called when the mouse is used (pressed/released).'''
         pass
 
     def on_mouse_move(self, x, y, modifiers):
-        '''Event called when the mouse is moved with buttons pressed'''
+        '''Event called when the mouse is moved with buttons pressed.'''
         pass
 
     def on_mouse_up(self, x, y, button, modifiers):
-        '''Event called when the mouse is moved with buttons pressed'''
+        '''Event called when the mouse is moved with buttons pressed.'''
         pass
 
     def on_joy_axis(self, stickid, axisid, value):
-        '''Event called when a joystick has a stick or other axis moved
+        '''Event called when a joystick has a stick or other axis moved.
 
         .. versionadded:: 1.9.0'''
         pass
 
     def on_joy_hat(self, stickid, hatid, value):
-        '''Event called when a joystick has a hat/dpad moved
+        '''Event called when a joystick has a hat/dpad moved.
 
         .. versionadded:: 1.9.0'''
         pass
 
     def on_joy_ball(self, stickid, ballid, value):
-        '''Event called when a joystick has a ball moved
+        '''Event called when a joystick has a ball moved.
 
         .. versionadded:: 1.9.0'''
         pass
 
     def on_joy_button_down(self, stickid, buttonid):
-        '''Event called when a joystick has a button pressed
+        '''Event called when a joystick has a button pressed.
 
         .. versionadded:: 1.9.0'''
         pass
 
     def on_joy_button_up(self, stickid, buttonid):
-        '''Event called when a joystick has a button released
+        '''Event called when a joystick has a button released.
 
         .. versionadded:: 1.9.0'''
         pass
@@ -1529,7 +1664,7 @@ class WindowBase(EventDispatcher):
 
     def on_key_up(self, key, scancode=None, codepoint=None,
                   modifier=None, **kwargs):
-        '''Event called when a key is released (same arguments as on_keyboard)
+        '''Event called when a key is released (same arguments as on_keyboard).
         '''
         if 'unicode' in kwargs:
             Logger.warning("The use of the unicode parameter is deprecated, "
@@ -1564,9 +1699,9 @@ class WindowBase(EventDispatcher):
     def on_memorywarning(self):
         '''Event called when the platform have memory issue.
         Your goal is to clear the cache in your app as much as you can,
-        release unused widget, etc.
+        release unused widgets, do garbage collection etc.
 
-        Currently, this event is fired only from SDL2 provider, for
+        Currently, this event is fired only from the SDL2 provider, for
         iOS and Android.
 
         .. versionadded:: 1.9.0

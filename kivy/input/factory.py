@@ -33,4 +33,3 @@ class MotionEventFactory:
         '''Get a provider class from the provider id'''
         if name in MotionEventFactory.__providers__:
             return MotionEventFactory.__providers__[name]
-        return None

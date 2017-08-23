@@ -51,6 +51,7 @@ import kivy.modules.touchring
 import kivy.modules.inspector
 import kivy.modules.recorder
 import kivy.modules.screen
+import kivy.modules.joycursor
 import kivy.storage
 import kivy.storage.dictstore
 import kivy.storage.jsonstore

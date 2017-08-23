@@ -111,7 +111,7 @@ else:
             if not args:
                 Logger.error('MTD: No filename pass to MTD configuration')
                 Logger.error('MTD: Use /dev/input/event0 for example')
-                return None
+                return
 
             # read filename
             self.input_fn = args[0]

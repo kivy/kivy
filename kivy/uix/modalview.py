@@ -187,7 +187,6 @@ class ModalView(AnchorLayout):
         a = Animation(_anim_alpha=1., d=self._anim_duration)
         a.bind(on_complete=lambda *x: self.dispatch('on_open'))
         a.start(self)
-        return
 
     def dismiss(self, *largs, **kwargs):
         '''Close the view if it is open. If you really want to close the
@@ -214,7 +213,6 @@ class ModalView(AnchorLayout):
         else:
             self._anim_alpha = 0
             self._real_remove_widget()
-        return
 
     def _align_center(self, *l):
         if self._window:

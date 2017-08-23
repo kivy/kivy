@@ -253,7 +253,7 @@ class Image(Widget):
             if self._coreimage is not None:
                 self._coreimage.unbind(on_texture=self._on_tex_change)
             try:
-                if PY2:
+                if PY2 and isinstance(filename, str):
                     filename = filename.decode('utf-8')
                 self._coreimage = ci = CoreImage(filename, mipmap=mipmap,
                                                  anim_delay=self.anim_delay,
@@ -332,7 +332,7 @@ class AsyncImage(Image):
         on how to handle events around asynchronous image loading.
     '''
 
-    __events__ = ('on_error', )
+    __events__ = ('on_error', 'on_load')
 
     def __init__(self, **kwargs):
         self._coreimage = None
@@ -350,6 +350,7 @@ class AsyncImage(Image):
         if not source:
             if self._coreimage is not None:
                 self._coreimage.unbind(on_texture=self._on_tex_change)
+                self._coreimage.unbind(on_load=self._on_source_load)
             self.texture = None
             self._coreimage = None
         else:
@@ -369,11 +370,15 @@ class AsyncImage(Image):
         if not image:
             return
         self.texture = image.texture
+        self.dispatch('on_load')
 
     def _on_source_error(self, instance, error=None):
         self.dispatch('on_error', error)
 
     def on_error(self, error):
+        pass
+
+    def on_load(self, *args):
         pass
 
     def is_uri(self, filename):
