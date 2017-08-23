@@ -237,6 +237,11 @@ class DropDown(ScrollView):
         if self.attach_to is not None:
             self.dismiss()
 
+        # no parent or widget given, cannot open the dropdown
+        if widget is None and self.parent is None:
+            raise DropDownException(
+                'Cannot open a dropdown list on a hidden widget or without a parent')
+
         # automatically attach to parent if no attach_to given
         if widget is None and self.parent is not None:
             widget = self.parent
@@ -253,7 +258,8 @@ class DropDown(ScrollView):
         self._reposition()
 
         # attach ourself to the main window
-        self._win.add_widget(self)
+        if self.parent is None:
+            self._win.add_widget(self)
 
     def dismiss(self, *largs):
         '''Remove the dropdown widget from the window and detach it from
@@ -380,7 +386,8 @@ if __name__ == '__main__':
             item = Button(text='hello %d' % i, size_hint_y=None, height=44)
             item.bind(on_release=lambda btn: dp.select(btn.text))
             dp.add_widget(item)
-        dp.open(button)
+        button.add_widget(dp)
+        dp.open()
 
     def touch_move(instance, touch):
         instance.center = touch.pos
