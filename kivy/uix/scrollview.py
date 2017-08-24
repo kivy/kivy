@@ -126,6 +126,7 @@ All the effects are located in the :mod:`kivy.effects`.
 
 __all__ = ('ScrollView', )
 
+import weakref
 from functools import partial
 from kivy.animation import Animation
 from kivy.compat import string_types
@@ -135,6 +136,7 @@ from kivy.factory import Factory
 from kivy.uix.stencilview import StencilView
 from kivy.metrics import sp, dp
 from kivy.effects.dampedscroll import DampedScrollEffect
+from kivy.effects.scroll import ScrollEffect
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
     ObjectProperty, ListProperty, ReferenceListProperty, OptionProperty
 from kivy.uix.behaviors import FocusBehavior
@@ -241,6 +243,19 @@ class ScrollView(StencilView):
 
     :attr:`do_scroll_y` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
+    '''
+
+    scroll_nested = BooleanProperty(False)
+    '''Enable elegant nested scroll views.
+    Setting this value to true will send overscroll data to parent
+    scrollview to process. The parent scroll view must have this attribute
+    set to False to catch overscroll behaviour, otherwise inelegant
+    scrolling may occur. If this is set to True, another ScrollView in the
+    parent stack must have this value set to False. In the stack between
+    the parent and nested scrollviews you cannot have a RelativeLayout.
+
+    :attr:`scroll_nested` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
     '''
 
     def _get_do_scroll(self):
@@ -439,6 +454,7 @@ class ScrollView(StencilView):
     _effect_y_start_height = None
     _update_effect_bounds_ev = None
     _bind_inactive_bar_color_ev = None
+    _check_scroll_move_children = True
 
     def _set_viewport_size(self, instance, value):
         self.viewport_size = value
@@ -496,6 +512,7 @@ class ScrollView(StencilView):
         fbind('size', trigger_update_from_scroll)
         fbind('scroll_y', self._update_effect_bounds)
         fbind('scroll_x', self._update_effect_bounds)
+        fbind('scroll_nested', self._update_scroll_nested)
 
         update_effect_widget()
         update_effect_x_bounds()
@@ -598,8 +615,8 @@ class ScrollView(StencilView):
         return ret
 
     def on_touch_down(self, touch):
+        # Create a list to contain referenced nested scroll views
         touch.ud['sv.list'] = []
-        touch.ud['sv.root'] = self._get_uid()
         if self.dispatch('on_scroll_start', touch):
             self._touch = touch
             return True
@@ -612,12 +629,12 @@ class ScrollView(StencilView):
     def on_scroll_start(self, touch, check_children=True):
         touch.grab(self)
         if check_children:
+            touch.ud['sv.list'].append(weakref.ref(self.__self__))
             touch.push()
             touch.apply_transform_2d(self.to_local)
-
             if self.dispatch_children('on_scroll_start', touch):
                 touch.pop()
-                return True
+                return not self.scroll_nested
             touch.pop()
 
         if not self.collide_point(*touch.pos):
@@ -700,17 +717,17 @@ class ScrollView(StencilView):
         # this touch.
         self._touch = touch
         uid = self._get_uid()
+
         ud[uid] = {
             'mode': 'unknown',
             'dx': 0,
             'dy': 0,
-            'overscroll_x': 0,
-            'overscroll_y': 0,
             'user_stopped': in_bar,
             'frames': Clock.frames,
             'time': touch.time_start}
 
-        ud['sv.list'].append(uid)
+        touch.ud['sv.touch_direction'] = 'unknown'
+        touch.ud['sv.stop_handled'] = False
 
         if self.do_scroll_x and self.effect_x and not ud['in_bar_x']:
             self._effect_x_start_width = self.width
@@ -724,14 +741,9 @@ class ScrollView(StencilView):
         if not in_bar:
             Clock.schedule_once(self._change_touch_mode,
                                 self.scroll_timeout / 1000.)
-
-        if touch.ud['sv.root'] not in touch.ud['sv.list']:
-            return False
-        else:
-            return True
+        return True
 
     def on_touch_move(self, touch):
-
         if self._touch is not touch:
             # touch is in parent
             touch.push()
@@ -745,17 +757,7 @@ class ScrollView(StencilView):
         if touch.ud.get(self._get_uid()) is None:
             return super(ScrollView, self).on_touch_move(touch)
 
-        # Put in code here to determine x or y
-        uid = self._get_uid()
-        if self.do_scroll_x and self.do_scroll_y:
-            touch.ud['direction'] = 'xy'
-
-        else:
-            ratio = abs(touch.ud[uid]['dy']) / abs(touch.ud[uid]['dx']) if touch.ud[uid]['dx'] != 0 else 1000
-            touch.ud['direction'] = 'x' if ratio < 1 else 'y'
-
         touch.ud['sv.handled'] = {'x': False, 'y': False}
-
         if self.dispatch('on_scroll_move', touch):
             return True
 
@@ -763,13 +765,67 @@ class ScrollView(StencilView):
         if self._get_uid('svavoid') in touch.ud:
             return False
 
-        touch.push()
-        touch.apply_transform_2d(self.to_local)
-        if self.dispatch_children('on_scroll_move', touch):
+        self_weakref = weakref.ref(self.__self__)
+        if self.scroll_nested and self_weakref in touch.ud['sv.list']:
+
+            touch.push()
+            touch.apply_transform_2d(self.to_local)
+            touch.apply_transform_2d(self.to_window)
+
+            tx = touch.x
+            ty = touch.y
+            _x = touch.ud.get('sv.last_x', 0)
+            _y = touch.ud.get('sv.last_y', 0)
+
+            touch.ud['sv.last_x'] = tx
+            touch.ud['sv.last_y'] = ty
             touch.pop()
-            return True
-        touch.pop()
-        rv = False
+
+            if touch.ud['sv.touch_direction'] != 'unknown' and \
+                touch.ud['sv.touch_direction'] == 'x' and \
+                abs(tx - _x) > .1:
+                if self.do_scroll_x:
+                    vp = self._viewport
+                    sh = vp.width - self.width
+                    sc = abs(self.effect_x.scroll / float(sh))
+                    if sc == 1 and tx - _x < 0:
+                        # X Going out of Bounds
+                        return self._throw_touch(touch)
+                    if sc == 0 and tx - _x > 0:
+                        # X Going out of Bounds
+                        return self._throw_touch(touch)
+                else:
+                    # No self X Scroll, but meaning to scroll X
+                    # Throw to parent.
+                    return self._throw_touch(touch)
+
+            if touch.ud['sv.touch_direction'] != 'unknown' and \
+                touch.ud['sv.touch_direction'] == 'y' and \
+                abs(ty - _y) > .1:
+                if self.do_scroll_y:
+                    vp = self._viewport
+                    sh = vp.height - self.height
+                    sc = abs(self.effect_y.scroll / float(sh))
+                    if sc == 1 and ty - _y < 0:
+                        # Y Going out of Bounds
+                        return self._throw_touch(touch)
+                    if sc == 0 and ty - _y > 0:
+                        # Y Going out of Bounds
+                        return self._throw_touch(touch)
+                else:
+                    # No self Y Scroll, but meaning to scroll Y
+                    # Throw to parent.
+                    return self._throw_touch(touch)
+
+        if self._check_scroll_move_children:
+            touch.push()
+            touch.apply_transform_2d(self.to_local)
+            if self.dispatch_children('on_scroll_move', touch):
+                touch.pop()
+                return True
+            touch.pop()
+
+        rv = True
 
         # By default this touch can be used to defocus currently focused
         # widget, like any touch outside of ScrollView.
@@ -793,13 +849,23 @@ class ScrollView(StencilView):
                 return
             ud['dx'] += abs(touch.dx)
             ud['dy'] += abs(touch.dy)
+            if not (touch.ud['sv.touch_direction'] == 'x' or
+                    touch.ud['sv.touch_direction'] == 'y') and \
+                    abs(touch.dx) + abs(touch.dy) > 0:
+                touch.ud['sv.touch_direction'] = 'x' if \
+                    abs(touch.dx) > abs(touch.dy) else 'y'
             if ((ud['dx'] > self.scroll_distance and self.do_scroll_x) or
                     (ud['dy'] > self.scroll_distance and self.do_scroll_y)):
                 ud['mode'] = 'scroll'
 
         if ud['mode'] == 'scroll':
+            if not (touch.ud['sv.touch_direction'] == 'x' or
+                    touch.ud['sv.touch_direction'] == 'y') and \
+                    abs(touch.dx) + abs(touch.dy) > 0:
+                touch.ud['sv.touch_direction'] = 'x' if \
+                    abs(touch.dx) > abs(touch.dy) else 'y'
             if not touch.ud['sv.handled']['x'] and self.do_scroll_x \
-                    and self.effect_x and (touch.ud.get('direction', '') == 'x' or touch.ud.get('direction', '') == 'xy'):
+                    and self.effect_x:
                 width = self.width
                 if touch.ud.get('in_bar_x', False):
                     dx = touch.dx / float(width - width * self.hbar[1])
@@ -815,7 +881,7 @@ class ScrollView(StencilView):
                 # Touch resulted in scroll should not defocus focused widget
                 touch.ud['sv.can_defocus'] = False
             if not touch.ud['sv.handled']['y'] and self.do_scroll_y \
-                    and self.effect_y and (touch.ud.get('direction', '') == 'y' or touch.ud.get('direction', '') == 'xy'):
+                    and self.effect_y:
                 height = self.height
                 if touch.ud.get('in_bar_y', False):
                     dy = touch.dy / float(height - height * self.vbar[1])
@@ -823,9 +889,7 @@ class ScrollView(StencilView):
                     self._trigger_update_from_scroll()
                 else:
                     if self.scroll_type != ['bars']:
-
                         self.effect_y.update(touch.y)
-
                 if self.scroll_y < 0 or self.scroll_y > 1:
                     rv = False
                 else:
@@ -835,14 +899,6 @@ class ScrollView(StencilView):
             ud['dt'] = touch.time_update - ud['time']
             ud['time'] = touch.time_update
             ud['user_stopped'] = True
-
-        if touch.ud.get('direction', '') == 'x' and self.do_scroll_x and touch.ud['sv.handled']['x'] and touch.ud['sv.handled']['y']:
-            rv = True
-        if touch.ud.get('direction', '') == 'y'  and self.do_scroll_y and touch.ud['sv.handled']['y'] and touch.ud['sv.handled']['x']:
-            rv = True
-
-        # if not rv:
-        #     touch.apply_transform_2d(self.to_parent)
         return rv
 
     def on_touch_up(self, touch):
@@ -862,14 +918,12 @@ class ScrollView(StencilView):
             if not touch.ud.get('sv.can_defocus', True):
                 # Focused widget should stay focused
                 FocusBehavior.ignored_touch.append(touch)
-
             return True
 
     def on_scroll_stop(self, touch, check_children=True):
-
         self._touch = None
 
-        if check_children:
+        if check_children and self._check_scroll_move_children:
             touch.push()
             touch.apply_transform_2d(self.to_local)
             if self.dispatch_children('on_scroll_stop', touch):
@@ -877,6 +931,8 @@ class ScrollView(StencilView):
                 return True
             touch.pop()
 
+        if touch.ud.get('sv.stop_handled', False):
+            return True
         if self._get_uid('svavoid') in touch.ud:
             return
         if self._get_uid() not in touch.ud:
@@ -887,17 +943,17 @@ class ScrollView(StencilView):
         ud = touch.ud[uid]
         if self.do_scroll_x and self.effect_x:
             if not touch.ud.get('in_bar_x', False) and\
-                    self.scroll_type != ['bars'] and (touch.ud.get('direction', '') == 'xy' or touch.ud.get('direction', '') == 'x'):
-
+                    self.scroll_type != ['bars']:
                 self.effect_x.stop(touch.x)
         if self.do_scroll_y and self.effect_y and\
                 self.scroll_type != ['bars']:
-            if not touch.ud.get('in_bar_y', False) and (touch.ud.get('direction', '') == 'xy' or touch.ud.get('direction', '') == 'y'):
+            if not touch.ud.get('in_bar_y', False):
                 self.effect_y.stop(touch.y)
-
         if ud['mode'] == 'unknown':
-            # If the touch is a quick swipe in any direction, then not supposed to be a click
-            # If it's a small swipe, then chances are a click
+            # If the touch is a quick swipe in any direction, mode will be unknown.
+            # If dx or dy is large then not supposed to be a click, and scroll instead.
+            # If dx and/or dy smaller than the scroll_distance then should be a click
+
             if ud.get('dx') + ud.get('dy') < self.scroll_distance:
                 # we must do the click at least..
                 # only send the click if it was not a click to stop
@@ -912,16 +968,12 @@ class ScrollView(StencilView):
                 self._update_effect_bounds)
         ev()
 
+        touch.ud['sv.stop_handled'] = True
         # if we do mouse scrolling, always accept it
         if 'button' in touch.profile and touch.button.startswith('scroll'):
             return True
 
-        uid = self._get_uid()
-        if uid in touch.ud['sv.list']:
-            touch.ud['sv.list'].remove(uid)
-            if len(touch.ud['sv.list']) == 0:
-                return True
-        return False
+        return self._get_uid() in touch.ud
 
     def scroll_to(self, widget, padding=10, animate=True):
         '''Scrolls the viewport to ensure that the given widget is visible,
@@ -1097,12 +1149,9 @@ class ScrollView(StencilView):
         if uid not in touch.ud:
             self._touch = False
             return
-        for uid in touch.ud['sv.list']:
-            ud = touch.ud[uid]
-            if ud['mode'] != 'unknown' or ud['user_stopped']:
-                return
-
-
+        ud = touch.ud[uid]
+        if ud['mode'] != 'unknown' or ud['user_stopped']:
+            return
         diff_frames = Clock.frames - ud['frames']
 
         # in order to be able to scroll on very slow devices, let at least 3
@@ -1122,15 +1171,17 @@ class ScrollView(StencilView):
         # non-used direction: if you have an horizontal scrollview, a
         # vertical gesture will not "stop" the scroll view to look for an
         # horizontal gesture, until the timeout is done.
-        # and touch.dx + touch.dy == 0:
-        touch.ungrab(self)
-        self._touch = None
-        # touch is in window coords
-        touch.push()
-        touch.apply_transform_2d(self.to_widget)
-        touch.apply_transform_2d(self.to_parent)
-        self.simulate_touch_down(touch)
-        touch.pop()
+        if touch.ud[self._get_uid()].get('dx', 0) + \
+            touch.ud[self._get_uid()].get('dy', 0) == 0:
+
+            touch.ungrab(self)
+            self._touch = None
+            # touch is in window coords
+            touch.push()
+            touch.apply_transform_2d(self.to_widget)
+            touch.apply_transform_2d(self.to_parent)
+            self.simulate_touch_down(touch)
+            touch.pop()
         return
 
     def _do_touch_up(self, touch, *largs):
@@ -1153,6 +1204,41 @@ class ScrollView(StencilView):
             touch.pop()
         touch.grab_current = None
 
+    def _update_scroll_nested(self, instance, value):
+        if self.scroll_nested:
+
+            self.effect_cls = ScrollEffect
+            effect_cls = self.effect_cls
+            if isinstance(effect_cls, string_types):
+                effect_cls = Factory.get(effect_cls)
+            if self.effect_x is None and effect_cls is not None:
+                self.effect_x = effect_cls(target_widget=self._viewport)
+            if self.effect_y is None and effect_cls is not None:
+                self.effect_y = effect_cls(target_widget=self._viewport)
+
+    def _throw_touch(self, touch):
+        touch.ungrab(self)
+        rv = False
+        if len(touch.ud['sv.list']) > 1:
+            touch.ud['sv.list'].pop()
+            touch.push()
+            rv = touch.ud['sv.list'][-1]()._parent_catch_touch(touch)
+            if rv:
+                touch.ud[self._get_uid()]['user_stopped'] = True
+            touch.pop()
+        return rv
+
+    def _parent_catch_touch(self, touch):
+        rv = False
+        touch.push()
+        touch.apply_transform_2d(self.to_parent)
+        self._touch = None
+        if self.on_scroll_start(touch, check_children=False):
+            self._touch = touch
+            rv = True
+        self._check_scroll_move_children = False
+        touch.pop()
+        return rv
 
 if __name__ == '__main__':
     from kivy.app import App
