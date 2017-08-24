@@ -112,6 +112,7 @@ cdef class _SurfaceContainer:
                 else TTF_RenderUTF8_Solid(font, <char *>bytes_text, c)
                 )
             if fgst == NULL:
+                SDL_FreeSurface(st)
                 return
             fgr.x = outline_width
             fgr.y = outline_width

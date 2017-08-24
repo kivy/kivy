@@ -61,8 +61,7 @@ settings. Here is an example::
             "title": "Fullscreen",
             "desc": "Set the window in windowed or fullscreen",
             "section": "graphics",
-            "key": "fullscreen",
-            "true": "auto"
+            "key": "fullscreen"
         }
     ]
 

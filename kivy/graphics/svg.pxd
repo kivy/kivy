@@ -56,8 +56,9 @@ cdef class Svg(RenderContext):
     cdef Texture line_texture
     cdef StripMesh last_mesh
 
+    cdef void reload(self) except *
     cdef parse_tree(self, tree)
-    cdef parse_element(seld, e)
+    cdef parse_element(self, e)
     cdef list parse_transform(self, transform_def)
     cdef parse_path(self, pathdef)
     cdef void new_path(self)

@@ -224,7 +224,7 @@ class Layout(Widget):
         # magically equals the amount of the widgets that were made larger
         # so we're all good
         margin = oversize_amt - undersize_amt
-        if isclose(oversize_amt, undersize_amt):
+        if isclose(oversize_amt, undersize_amt, abs_tol=1e-15):
             return
 
         # we need to redistribute the margin among all widgets

@@ -645,7 +645,7 @@ class ScrollView(StencilView):
              'top': self.top - touch.y - self.bar_margin,
              'left': touch.x - self.x - self.bar_margin,
              'right': self.right - touch.x - self.bar_margin}
-        #
+
         ud['in_bar_x'] = (scroll_bar and width_scrollable and
                              (0 <= d[self.bar_pos_x] <= self.bar_width))
         ud['in_bar_y'] = (scroll_bar and height_scrollable and

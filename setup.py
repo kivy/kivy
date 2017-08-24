@@ -673,7 +673,6 @@ gl_flags, gl_flags_base = determine_gl_flags()
 # all the dependencies have been found manually with:
 # grep -inr -E '(cimport|include)' kivy/graphics/context_instructions.{pxd,pyx}
 graphics_dependencies = {
-    'gl_redirect.h': ['common_subset.h', 'gl_mock.h'],
     'buffer.pyx': ['common.pxi'],
     'context.pxd': ['instructions.pxd', 'texture.pxd', 'vbo.pxd', 'cgl.pxd'],
     'cgl.pxd': ['common.pxi', 'config.pxi', 'gl_redirect.h'],
@@ -867,7 +866,23 @@ def resolve_dependencies(fn, depends):
     deps = []
     get_dependencies(fn, deps)
     get_dependencies(fn.replace('.pyx', '.pxd'), deps)
-    return [expand(src_path, 'graphics', x) for x in deps]
+
+    deps_final = []
+    paths_to_test = ['graphics', 'include']
+    for dep in deps:
+        found = False
+        for path in paths_to_test:
+            filename = expand(src_path, path, dep)
+            if exists(filename):
+                deps_final.append(filename)
+                found = True
+                break
+        if not found:
+            print('ERROR: Dependency for {} not resolved: {}'.format(
+                fn, dep
+            ))
+
+    return deps_final
 
 
 def get_extensions_from_sources(sources):
@@ -1009,16 +1024,18 @@ if not build_examples:
             'tests/*.png',
             'tests/*.ttf',
             'tests/*.ogg',
-            'tools/highlight/*.vim',
-            'tools/highlight/*.el',
+            'tools/gles_compat/*',
+            'tools/highlight/*',
             'tools/packaging/README.txt',
             'tools/packaging/win32/kivy.bat',
             'tools/packaging/win32/kivyenv.sh',
             'tools/packaging/win32/README.txt',
             'tools/packaging/osx/Info.plist',
             'tools/packaging/osx/InfoPlist.strings',
-            'tools/gles_compat/*.h',
-            'tools/packaging/osx/kivy.sh'] + binary_deps},
+            'tools/packaging/osx/kivy.sh',
+            'tools/pep8checker/*',
+            'tools/theming/defaulttheme/*',
+        ] + binary_deps},
         data_files=[] if split_examples else list(examples.items()),
         classifiers=[
             'Development Status :: 5 - Production/Stable',

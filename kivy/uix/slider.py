@@ -248,6 +248,16 @@ class Slider(Widget):
     and defaults to 3dp.
     """
 
+    sensitivity = OptionProperty('all', options=('all', 'handle'))
+    """Whether the touch collides with the whole body of the widget
+    or with the slider button part only.
+
+    .. versionadded:: 1.10.1
+
+    :attr:`sensitivity` is a :class:`~kivy.properties.OptionProperty`
+    and defaults to 'all'.
+    """
+
     # The following two methods constrain the slider's value
     # to range(min,max). Otherwise it may happen that self.value < self.min
     # at init.
@@ -357,6 +367,9 @@ class Slider(Widget):
                     self.value = max(
                         self.min,
                         self.value - (self.max - self.min) / 20)
+        elif self.sensitivity == 'handle':
+            if self.children[0].collide_point(*touch.pos):
+                touch.grab(self)
         else:
             touch.grab(self)
             self.value_pos = touch.pos

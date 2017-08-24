@@ -520,7 +520,7 @@ class TreeView(Widget):
 
     .. versionadded:: 1.0.9
 
-    :attr:`minimum_width` is a :class:`kivy.properties.NumericProperty` and
+    :attr:`minimum_width` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
@@ -529,7 +529,7 @@ class TreeView(Widget):
 
     .. versionadded:: 1.0.9
 
-    :attr:`minimum_height` is a :class:`kivy.properties.NumericProperty` and
+    :attr:`minimum_height` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
