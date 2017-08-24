@@ -80,6 +80,15 @@ class TouchPoint(UTMotionEvent):
 class Test(GraphicUnitTest):
     framecount = 0
 
+    def move_frames(self, t):
+        for i in range(t):
+            EventLoop.idle()
+
+    def clean_garbage(self, *args):
+        for child in self._win.children[:]:
+            self._win.remove_widget(child)
+        self.move_frames(5)
+
     def check_dropdown(self, present=True):
         any_list = [
             isinstance(child, DropDown)
@@ -108,12 +117,13 @@ class Test(GraphicUnitTest):
         # then click away
         # - Group 1 DropDown disappears
         self._win = EventLoop.window
+        self.clean_garbage()
         root = Builder.load_string(KV)
         self.render(root)
         self.assertLess(len(self._win.children), 2)
         group2 = root.ids.group2
         group1 = root.ids.group1
-        EventLoop.idle()
+        self.move_frames(5)
 
         # no DropDown present yet
         self.check_dropdown(present=False)
@@ -139,11 +149,9 @@ class Test(GraphicUnitTest):
             # click away
             TouchPoint(0, 0)
 
-            # wait for closed active Group DropDown to disappear
-            EventLoop.idle()
-
+            # wait for closed Group DropDown to disappear
             # go to the next frame after the DropDown disappeared
-            EventLoop.idle()
+            self.move_frames(5)
 
             # no DropDown is open
             self.assertNotEqual(gdd, self._win.children[0])
@@ -161,12 +169,13 @@ class Test(GraphicUnitTest):
         # click away
         # - no DropDown is opened
         self._win = EventLoop.window
+        self.clean_garbage()
         root = Builder.load_string(KV)
         self.render(root)
         self.assertLess(len(self._win.children), 2)
         group2 = root.ids.group2
         group1 = root.ids.group1
-        EventLoop.idle()
+        self.move_frames(5)
 
         # no DropDown present yet
         self.check_dropdown(present=False)
@@ -191,10 +200,8 @@ class Test(GraphicUnitTest):
 
         # wait for closed Group 2 DropDown to disappear
         # and for Group 1 DropDown to appear (there are 2 DDs now)
-        EventLoop.idle()
-
         # go to the next frame after the DropDown disappeared
-        EventLoop.idle()
+        self.move_frames(5)
 
         # Group 1 DropDown != value in WeakProxy (Group 2 DD)
         self.assertNotEqual(g2dd, self._win.children[0])
@@ -205,11 +212,9 @@ class Test(GraphicUnitTest):
         # click away from ActionBar
         TouchPoint(0, 0)
 
-        # wait for closed DropDown to disappear
-        EventLoop.idle()
-
+        # wait for closed Group DropDown to disappear
         # go to the next frame after the DropDown disappeared
-        EventLoop.idle()
+        self.move_frames(5)
 
         # no DropDown present in Window
         self.check_dropdown(present=False)
@@ -228,6 +233,7 @@ class Test(GraphicUnitTest):
         # then click on Group 1 DropDown button
         # - DropDown disappears
         self._win = EventLoop.window
+        self.clean_garbage()
         root = Builder.load_string(KV)
         self.render(root)
         self.assertLess(len(self._win.children), 2)
@@ -235,7 +241,7 @@ class Test(GraphicUnitTest):
         group2button = root.ids.group2button
         group1 = root.ids.group1
         group1button = root.ids.group1button
-        EventLoop.idle()
+        self.move_frames(5)
 
         # no DropDown present yet
         self.check_dropdown(present=False)
@@ -268,11 +274,9 @@ class Test(GraphicUnitTest):
                 root, active.text[0::6] + 'button'
             ))
 
-            # wait for closed active Group DropDown to disappear
-            EventLoop.idle()
-
+            # wait for closed Group DropDown to disappear
             # go to the next frame after the DropDown disappeared
-            EventLoop.idle()
+            self.move_frames(5)
 
             # no DropDown is open
             self.assertNotEqual(gdd, self._win.children[0])
@@ -289,6 +293,7 @@ class Test(GraphicUnitTest):
         # - DropDown disappears
         # repeat
         self._win = EventLoop.window
+        self.clean_garbage()
         root = Builder.load_string(KV)
         self.render(root)
         self.assertLess(len(self._win.children), 2)
@@ -296,7 +301,7 @@ class Test(GraphicUnitTest):
         group2button = root.ids.group2button
         group1 = root.ids.group1
         group1button = root.ids.group1button
-        EventLoop.idle()
+        self.move_frames(5)
 
         # no DropDown present yet
         self.check_dropdown(present=False)
@@ -323,12 +328,10 @@ class Test(GraphicUnitTest):
                 TouchPoint(*button.to_window(*button.center))
 
                 # wait for closed Group DropDown to disappear
-                EventLoop.idle()
-
                 # go to the next frame after the DropDown disappeared
-                EventLoop.idle()
+                self.move_frames(5)
 
-                # Group 1 DropDown != value in WeakProxy (Group 2 DD)
+                # no DropDown is open
                 self.assertNotEqual(gdd, self._win.children[0])
                 self.assertFalse(group.is_open)
                 self.check_dropdown(present=False)
