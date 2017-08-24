@@ -1,9 +1,5 @@
-import unittest
+from kivy.tests.common import GraphicUnitTest
 
-from functools import partial
-
-from kivy.app import App
-from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.base import EventLoop
 from kivy.weakproxy import WeakProxy
@@ -11,7 +7,7 @@ from kivy.uix.dropdown import DropDown
 from kivy.input.motionevent import MotionEvent
 
 
-KV = Builder.load_string('''
+KV = '''
 # +/- copied from ActionBar example + edited for the test
 FloatLayout:
     ActionBar:
@@ -36,7 +32,7 @@ FloatLayout:
                     id: group1button
                     text: 'Btn3'
                     on_release:
-                        setattr(app, 'g1button', True)
+                        setattr(root, 'g1button', True)
                 ActionButton:
                     text: 'Btn4'
             ActionGroup:
@@ -47,17 +43,12 @@ FloatLayout:
                     id: group2button
                     text: 'Btn5'
                     on_release:
-                        setattr(app, 'g2button', True)
+                        setattr(root, 'g2button', True)
                 ActionButton:
                     text: 'Btn6'
                 ActionButton:
                     text: 'Btn7'
-''')
-
-
-class My(App):
-    def build(self):
-        return KV
+'''
 
 
 class UTMotionEvent(MotionEvent):
@@ -86,10 +77,13 @@ class TouchPoint(UTMotionEvent):
         EventLoop.idle()
 
 
-class Test(unittest.TestCase):
+class Test(GraphicUnitTest):
+    framecount = 0
+
     def check_dropdown(self, present=True):
         any_list = [
-            'DropDown' in repr(child) for child in self._win.children
+            isinstance(child, DropDown)
+            for child in self._win.children
         ]
 
         # mustn't allow more than one DropDown opened!
@@ -104,7 +98,7 @@ class Test(unittest.TestCase):
         print('DropDown either missing, or isn\'t supposed to be there')
         self.assertTrue(False)
 
-    def run_test_1_openclose(self, app, *args):
+    def test_1_openclose(self, *args):
         # click on Group 2 to open its DropDown
         # - DropDown shows up
         # then click away
@@ -113,8 +107,12 @@ class Test(unittest.TestCase):
         # - DropDown shows up
         # then click away
         # - Group 1 DropDown disappears
-        group2 = app.root.ids.group2
-        group1 = app.root.ids.group1
+        self._win = EventLoop.window
+        root = Builder.load_string(KV)
+        self.render(root)
+        self.assertLess(len(self._win.children), 2)
+        group2 = root.ids.group2
+        group1 = root.ids.group1
         EventLoop.idle()
 
         # no DropDown present yet
@@ -153,16 +151,21 @@ class Test(unittest.TestCase):
             self.check_dropdown(present=False)
             self.assertFalse(active.is_open)
             self.assertFalse(passive.is_open)
+        self._win.remove_widget(root)
 
-    def run_test_2_switch(self, app, *args):
+    def test_2_switch(self, *args):
         # click on Group 2 to open its DropDown
         # - DropDown shows up
         # then click on Group 1 to open its DropDown
         # - Group 2 DropDown disappears, Group 1 DropDown shows up
         # click away
         # - no DropDown is opened
-        group2 = app.root.ids.group2
-        group1 = app.root.ids.group1
+        self._win = EventLoop.window
+        root = Builder.load_string(KV)
+        self.render(root)
+        self.assertLess(len(self._win.children), 2)
+        group2 = root.ids.group2
+        group1 = root.ids.group1
         EventLoop.idle()
 
         # no DropDown present yet
@@ -213,8 +216,9 @@ class Test(unittest.TestCase):
         self.assertFalse(group2.is_open)
         self.assertFalse(group1.is_open)
         self.assertNotIn(g2dd, self._win.children)
+        self._win.remove_widget(root)
 
-    def run_test_3_openpress(self, app, *args):
+    def test_3_openpress(self, *args):
         # click on Group 2 to open its DropDown
         # - DropDown shows up
         # then click on Group 2 DropDown button
@@ -223,10 +227,14 @@ class Test(unittest.TestCase):
         # - DropDown shows up
         # then click on Group 1 DropDown button
         # - DropDown disappears
-        group2 = app.root.ids.group2
-        group2button = app.root.ids.group2button
-        group1 = app.root.ids.group1
-        group1button = app.root.ids.group1button
+        self._win = EventLoop.window
+        root = Builder.load_string(KV)
+        self.render(root)
+        self.assertLess(len(self._win.children), 2)
+        group2 = root.ids.group2
+        group2button = root.ids.group2button
+        group1 = root.ids.group1
+        group1button = root.ids.group1button
         EventLoop.idle()
 
         # no DropDown present yet
@@ -257,7 +265,7 @@ class Test(unittest.TestCase):
             # click on active Group DropDown Button (needed to_window)
             TouchPoint(*button.to_window(*button.center))
             self.assertTrue(getattr(
-                app, active.text[0::6] + 'button'
+                root, active.text[0::6] + 'button'
             ))
 
             # wait for closed active Group DropDown to disappear
@@ -272,17 +280,22 @@ class Test(unittest.TestCase):
             self.assertFalse(active.is_open)
             self.assertFalse(passive.is_open)
             self.check_dropdown(present=False)
+        self._win.remove_widget(root)
 
-    def run_test_4_openmulti(self, app, *args):
+    def test_4_openmulti(self, *args):
         # click on Group to open its DropDown
         # - DropDown shows up
         # then click on Group DropDown button
         # - DropDown disappears
         # repeat
-        group2 = app.root.ids.group2
-        group2button = app.root.ids.group2button
-        group1 = app.root.ids.group1
-        group1button = app.root.ids.group1button
+        self._win = EventLoop.window
+        root = Builder.load_string(KV)
+        self.render(root)
+        self.assertLess(len(self._win.children), 2)
+        group2 = root.ids.group2
+        group2button = root.ids.group2button
+        group1 = root.ids.group1
+        group1button = root.ids.group1button
         EventLoop.idle()
 
         # no DropDown present yet
@@ -306,7 +319,7 @@ class Test(unittest.TestCase):
                 self.assertEqual(gdd, self._win.children[0])
                 self.assertTrue(group.is_open)
 
-                # click on Group DropDown Button (FIX!!!!!)
+                # click on Group DropDown Button
                 TouchPoint(*button.to_window(*button.center))
 
                 # wait for closed Group DropDown to disappear
@@ -319,20 +332,9 @@ class Test(unittest.TestCase):
                 self.assertNotEqual(gdd, self._win.children[0])
                 self.assertFalse(group.is_open)
                 self.check_dropdown(present=False)
+        self._win.remove_widget(root)
 
-    def run_test_example(self, app, *args):
-        self._win = EventLoop.window
-        self.run_test_1_openclose(app)
-        self.run_test_2_switch(app)
-        self.run_test_3_openpress(app)
-        self.run_test_4_openmulti(app)
-        app.stop()
-
-    def test_example(self):
-        app = My()
-        p = partial(self.run_test_example, app)
-        Clock.schedule_once(p, 0)
-        app.run()
 
 if __name__ == '__main__':
+    import unittest
     unittest.main()
