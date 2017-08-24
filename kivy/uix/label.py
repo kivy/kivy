@@ -573,7 +573,7 @@ class Label(Widget):
                             'justify'])
     '''Horizontal alignment of the text.
 
-    :attr:`halign` is an :class:`~kivy.properties.OptionProperty` and
+    :attr:`halign` is a :class:`~kivy.properties.OptionProperty` and
     defaults to 'left'. Available options are : left, center, right and
     justify.
 
@@ -592,7 +592,7 @@ class Label(Widget):
                             options=['bottom', 'middle', 'center', 'top'])
     '''Vertical alignment of the text.
 
-    :attr:`valign` is an :class:`~kivy.properties.OptionProperty` and defaults
+    :attr:`valign` is a :class:`~kivy.properties.OptionProperty` and defaults
     to 'bottom'. Available options are : `'bottom'`,
     `'middle'` (or `'center'`) and `'top'`.
 
@@ -675,7 +675,7 @@ class Label(Widget):
             l.texture_update()
             # l.texture is good now.
 
-    :attr:`texture` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    :attr:`texture` is a :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
     '''
 
@@ -792,7 +792,7 @@ class Label(Widget):
 
     .. versionadded:: 1.9.0
 
-    :attr:`unicode_errors` is an :class:`~kivy.properties.OptionProperty` and
+    :attr:`unicode_errors` is a :class:`~kivy.properties.OptionProperty` and
     defaults to `'replace'`.
     '''
 
@@ -912,7 +912,7 @@ class Label(Widget):
 
     .. versionadded:: 1.10.0
 
-    :attr:`font_hinting` is an :class:`~kivy.properties.OptionProperty` and
+    :attr:`font_hinting` is a :class:`~kivy.properties.OptionProperty` and
     defaults to `'normal'`.
     '''
 
