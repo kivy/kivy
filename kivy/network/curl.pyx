@@ -9,12 +9,19 @@ TODO:
 
 include "../lib/sdl2.pxi"
 
+# Cython import
 from libc.stdio cimport printf, FILE, fopen, fwrite, fclose
 from libc.stdlib cimport malloc, calloc, free, realloc
 from libc.string cimport memset, strdup, memcpy, strlen
 from cpython.ref cimport PyObject, Py_XINCREF, Py_XDECREF
 from posix.unistd cimport access, F_OK
 from libcpp cimport bool
+
+# Python import
+from kivy.core.image import Image as CoreImage
+from kivy.core.image import ImageLoaderBase, ImageData
+from kivy.clock import Clock
+import json
 
 
 cdef extern from * nogil:
@@ -266,7 +273,7 @@ cdef int dl_run_job(void *arg) nogil:
             if rw:
                 data.image = IMG_Load_RW(rw, 1)
                 if data.image == NULL:
-                    data.image_error = IMG_GetError()
+                    data.image_error = <char *>IMG_GetError()
                 if data.data != NULL:
                     free(data.data)
                 data.data = NULL
@@ -356,7 +363,183 @@ cdef load_from_surface(SDL_Surface *image):
             SDL_FreeSurface(image2)
 
 
-def download(url, on_complete, headers=None, cache_fn=None, preload_image=False):
+class ImageLoaderMemory(ImageLoaderBase):
+    # Internal loader for data loaded from SDL2
+    def __init__(self, filename, data, **kwargs):
+        w, h, fmt, pixels, rowlength = data
+        self._data = [ImageData(
+            w, h, fmt, pixels, source=filename, rowlength=rowlength)]
+        super(ImageLoaderMemory, self).__init__(filename, **kwargs)
+
+    def load(self, kwargs):
+        return self._data
+
+#
+# API
+#
+
+class HTTPError(Exception):
+    """HTTP Error that can be sent when :method:`CurlResult.raise_for_status`
+    is raising an exception
+    """
+    pass
+
+
+cdef class CurlResult(object):
+    """Object containing a result from a request.
+    """
+    cdef dl_queue_data *_data
+
+    def __cinit__(self):
+        self._data = NULL
+
+    def __init__(self):
+        self._headers = None
+        self._json = None
+        self._image = None
+
+    def __dealloc__(self):
+        if self._data != NULL:
+            dl_queue_data_clean(&self._data)
+
+    @property
+    def image(self):
+        """Return the CoreImage associated to the url
+        Only if preload_image was used
+        """
+        if self._image is not None:
+            return self._image
+
+        if not self._data.preload_image:
+            raise Exception("Preload image not used")
+
+        # send back an image
+        # FIXME: optimization would be to prevent any conversion
+        # here, but rather in the thread, if anything has to be done.
+        # So using the load_from_surface will disapear somehow to have
+        # a fully C version that doesn't require python.
+        image = load_from_surface(self._data.image)
+        loader = ImageLoaderMemory(self._data.url, image)
+        self._image = CoreImage(loader)
+        return self._image
+
+
+    @property
+    def url(self):
+        """Return the url of the result
+        """
+        return self._data.url
+
+    @property
+    def error(self):
+        """Error message if anything wrong happened
+        """
+        if self._data.image_error != NULL:
+            return self._data.image_error
+
+    @property
+    def status_code(self):
+        """HTTP Status Code
+        """
+        return self._data.status_code
+
+    @property
+    def headers(self):
+        """HTTP Response headers
+        """
+        self._parse_headers()
+        return self._headers
+
+    @property
+    def reason(self):
+        """HTTP Reason
+        """
+        self._parse_headers()
+        return self._reason
+
+    @property
+    def data(self):
+        """HTTP Data from the request
+        """
+        cdef bytes b_data
+        if self._data.size > 0:
+            b_data = self._data.data[:self.data.size]
+            return b_data
+
+    def _parse_headers(self):
+        cdef curl_slist *item
+        cdef bytes b_data
+        if self._headers is not None:
+            return
+        self._headers = {}
+        item = self._data.resp_headers
+        while item != NULL:
+            b_data = item.data[:strlen(item.data)].strip()
+            if b_data.startswith("HTTP/"):
+                self._reason = b_data.split(b" ", 3)[-1]
+            elif b_data:
+                key, value = b_data.split(b":", 1)
+                key = key.strip().lower()
+                value = value.strip()
+                self._headers[key] = value
+            item = item.next
+
+    def raise_for_status(self):
+        """If the HTTP status code was wrong (within 400-599),
+        it will raise an :class:`HTTPError` exception
+        """
+        reason = None
+        http_error_msg = None
+        if 400 <= self.status_code < 500:
+            http_error_msg = u'%s Client Error: %s for url: %s' % (self.status_code, reason, self.url)
+        elif 500 <= self.status_code < 600:
+            http_error_msg = u'%s Server Error: %s for url: %s' % (self.status_code, reason, self.url)
+        if http_error_msg:
+            exc = HTTPError(http_error_msg)
+            exc.response = self
+            raise exc
+
+    def json(self):
+        """If the content-type is an application/json, then the data will be
+        interpreted and returned
+        """
+        if self.headers.get("content-type") != "application/json":
+            raise Exception("Not a application/json response")
+        if self._json is None:
+            self._json = json.loads(self.data)
+        return self._json
+
+    def __repr__(self):
+        return "<CurlResult url={!r}>".format(self.url)
+
+
+def request(url, callback, headers=None, cache_fn=None, preload_image=False):
+    """Execute an HTTP Request asynchronously.
+    The result will be dispatched only when :func:`process` is called
+
+    :Parameters:
+        `url`: str
+            URL to fetch
+        `callback`: callable with one argument
+            The callback function will receive the :class:`CurlResult` when
+            the request is done.
+        `headers`: dict
+            Dictionnary of all HTTP headers to pass in the request.
+            Defaults to None.
+        `preload_image`: bool
+            If an image is passed in URL, it will be downloaded
+            then preloaded via SDL2 to reduce the load on the main thread
+            Defaults to False
+        `cache_fn`: str
+            A basic cache system can be used to save the result of the
+            request to the disk. It must be a valid filename in an existing
+            directory. If the request succedded, the data will be saved to
+            the cache.
+            If a later request indicate the same cache_fn, and the cache
+            exists, it will be used instead of downloading the data
+            from the url.
+    ```
+    """
     cdef:
         dl_queue_data *data = <dl_queue_data *>calloc(1, sizeof(dl_queue_data))
         char *c_url = url
@@ -377,8 +560,8 @@ def download(url, on_complete, headers=None, cache_fn=None, preload_image=False)
             data.headers = curl_slist_append(
                 data.headers, c_header)
 
-    if on_complete:
-        data.callback = <void *>on_complete
+    if callback:
+        data.callback = <void *>callback
         Py_XINCREF(<PyObject *>data.callback)
 
     dl_ensure_init()
@@ -387,82 +570,21 @@ def download(url, on_complete, headers=None, cache_fn=None, preload_image=False)
 
 
 def download_image(*args, **kwargs):
+    """A wrapper around :func:`request` that set `preload_image` to True
+    """
     kwargs["preload_image"] = True
-    download(*args, **kwargs)
-
-
-from kivy.core.image import Image as CoreImage
-from kivy.core.image import ImageLoaderBase, ImageData
-from kivy.clock import Clock
-import json
-
-
-class HTTPError(Exception):
-    pass
-
-
-class CurlResult(object):
-    #: Url of the request
-    url = None
-
-    #: If image is preloaded, it will contain the image information
-    image = None
-
-    #: If the data was requested, it will contain the data
-    data = None
-
-    #: If an error happen, it will contain the error message
-    error = None
-
-    #: HTTP Status code
-    status_code = None
-
-    #: Reason
-    reason = None
-
-    #: Response headers
-    headers = {}
-
-    #: Json data if available
-    _json = None
-
-    def raise_for_status(self):
-        reason = None
-        http_error_msg = None
-        if 400 <= self.status_code < 500:
-            http_error_msg = u'%s Client Error: %s for url: %s' % (self.status_code, reason, self.url)
-        elif 500 <= self.status_code < 600:
-            http_error_msg = u'%s Server Error: %s for url: %s' % (self.status_code, reason, self.url)
-        if http_error_msg:
-            exc = HTTPError(http_error_msg)
-            exc.response = self
-            raise exc
-
-    def json(self):
-        if self.headers.get("content-type") != "application/json":
-            raise Exception("Not a application/json response")
-        if self._json is None:
-            self._json = json.loads(self.data)
-        return self._json
-
-    def __repr__(self):
-        return "<CurlResult url={!r}>".format(self.url)
-
-
-
-class ImageLoaderMemory(ImageLoaderBase):
-    def __init__(self, filename, data, **kwargs):
-        w, h, fmt, pixels, rowlength = data
-        self._data = [ImageData(
-            w, h, fmt, pixels, source=filename, rowlength=rowlength)]
-        super(ImageLoaderMemory, self).__init__(filename, **kwargs)
-
-    def load(self, kwargs):
-        return self._data
+    request(*args, **kwargs)
 
 
 def process(*args):
+    """Process results. It must be called as must as possible in order
+    to process the results from the download threads.
+
+    You can also use :func:`install` to install the process into the Kivy
+    Clock.
+    """
     cdef:
+        CurlResult result
         dl_queue_data *data
         bytes b_data = None
         object callback
@@ -478,55 +600,27 @@ def process(*args):
             continue
 
         result = CurlResult()
-        result.url = data.url
-        result.status_code = data.status_code
-
-        # pre processing http headers
-        item = data.resp_headers
-        while item != NULL:
-            b_data = item.data[:strlen(item.data)].strip()
-            if b_data.startswith("HTTP/"):
-                result.reason = b_data.split(b" ", 3)[-1]
-            elif b_data:
-                key, value = b_data.split(b":", 1)
-                key = key.strip().lower()
-                value = value.strip()
-                result.headers[key] = value
-            item = item.next
-
-
-        if data.preload_image:
-            # send back an image
-            # FIXME: optimization would be to prevent any conversion
-            # here, but rather in the thread, if anything has to be done.
-            # So using the load_from_surface will disapear somehow to have
-            # a fully C version that doesn't require python.
-            if data.image == NULL:
-                result.error = data.image_error
-            else:
-                image = load_from_surface(data.image)
-                loader = ImageLoaderMemory(data.url, image)
-                result.image = CoreImage(loader)
-        else:
-            # send back the data
-            if data.size > 0:
-                b_data = data.data[:data.size]
-                result.data = b_data
-
+        result._data = data
         callback(result)
-        dl_queue_data_clean(&data)
 
 
 def install():
+    """Install a scheduler in the Kivy clock to call :func:`process`
+    """
     uninstall()
     Clock.schedule_interval(process, 0)
 
 
 def uninstall():
+    """Uninstall the scheduler that call :func:`process` from the Kivy clock
+    """
     Clock.unschedule(process)
 
 
 def stop():
+    """Stop any threads working in the background.
+    Any ongoing results or request will be stopped.
+    """
     uninstall()
     SDL_AtomicSet(&dl_done, 1)
     SDL_SemPost(dl_sem)
