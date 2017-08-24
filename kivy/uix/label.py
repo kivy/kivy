@@ -573,7 +573,7 @@ class Label(Widget):
                             'justify'])
     '''Horizontal alignment of the text.
 
-    :attr:`halign` is n :class:`~kivy.properties.OptionProperty` and
+    :attr:`halign` is a :class:`~kivy.properties.OptionProperty` and
     defaults to 'left'. Available options are : left, center, right and
     justify.
 
@@ -592,7 +592,7 @@ class Label(Widget):
                             options=['bottom', 'middle', 'center', 'top'])
     '''Vertical alignment of the text.
 
-    :attr:`valign` is an :class:`~kivy.properties.OptionProperty` and defaults
+    :attr:`valign` is a :class:`~kivy.properties.OptionProperty` and defaults
     to 'bottom'. Available options are : `'bottom'`,
     `'middle'` (or `'center'`) and `'top'`.
 
