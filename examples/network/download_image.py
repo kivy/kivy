@@ -16,7 +16,7 @@ def on_complete_image(result):
     counter += 1
     print("on_complete_image", result.url, result.error, result.image)
 
-curl.download("http://txzone.net", on_complete)
+curl.request("http://txzone.net", on_complete)
 curl.download_image("https://dummyimage.com/600x400/000/fff", on_complete_image)
 
 while True:

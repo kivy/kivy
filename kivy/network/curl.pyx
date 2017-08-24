@@ -388,7 +388,12 @@ class HTTPError(Exception):
 cdef class CurlResult(object):
     """Object containing a result from a request.
     """
-    cdef dl_queue_data *_data
+    cdef:
+        dl_queue_data *_data
+        dict _headers
+        object _json
+        object _image
+        bytes _reason
 
     def __cinit__(self):
         self._data = NULL
@@ -397,6 +402,7 @@ cdef class CurlResult(object):
         self._headers = None
         self._json = None
         self._image = None
+        self._reason = None
 
     def __dealloc__(self):
         if self._data != NULL:
@@ -463,7 +469,7 @@ cdef class CurlResult(object):
         """
         cdef bytes b_data
         if self._data.size > 0:
-            b_data = self._data.data[:self.data.size]
+            b_data = self._data.data[:self._data.size]
             return b_data
 
     def _parse_headers(self):

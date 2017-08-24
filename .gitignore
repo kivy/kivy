@@ -11,6 +11,7 @@ Kivy-*.dist-info
 *.swp
 *.DS_Store
 *.kpf
+examples/*/cache/*
 build/*
 doc/build
 doc/autobuild.py-done*

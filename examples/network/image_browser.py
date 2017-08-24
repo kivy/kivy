@@ -27,6 +27,7 @@ if not exists(CACHE_DIR):
 
 Builder.load_string("""
 <AsyncCurlImage>:
+    allow_stretch: True
 
 <ImageList>:
     RecycleView:
@@ -56,7 +57,7 @@ class AsyncCurlImage(Image):
             self.animate()
             return
         self.opacity = 0
-        curl.download(
+        curl.download_image(
             url, self.on_url_downloaded, cache_fn=cache_fn, preload_image=True)
 
     def on_url_downloaded(self, result):
@@ -70,14 +71,14 @@ class AsyncCurlImage(Image):
     def animate(self):
         if self._anim is not None:
             self._anim.stop_all(self)
-        self._anim = Animation(opacity=1., d=.25)
+        self._anim = Animation(opacity=1., d=.1)
         self._anim.start(self)
 
 
 class ImageList(RelativeLayout):
     def load(self):
         self.images = []
-        curl.download(URL_POI, self._on_poi_callback)
+        curl.request(URL_POI, self._on_poi_callback)
 
     def _on_poi_callback(self, result):
         result.raise_for_status()
