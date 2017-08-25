@@ -10,9 +10,10 @@ thread by preventing the GIL to be locked in another threads, or even
 prevent completely Python threads and so GIL switch between threads.
 
 Features:
-  - Asynchronously download HTTP URL
-  - Preload image
-  - Basic caching support
+
+- Asynchronously download HTTP URL
+- Preload image
+- Basic caching support
 
 
 .. todo::
@@ -43,6 +44,8 @@ to have your callback called within your application:
 Request an URL and get the data
 -------------------------------
 
+::
+
     from kivy.network import curl
     curl.install()
 
@@ -59,6 +62,8 @@ Download an image
 TIP: check for the `AsyncCurlImage` in the
 `kivy/examples/network/image_browser.py` to have an idea about how to use
 it within an Image widget.
+
+::
 
     from kivy.network import curl
     curl.install()
@@ -591,7 +596,6 @@ def request(url, callback, headers=None, cache_fn=None, preload_image=False):
             If a later request indicate the same cache_fn, and the cache
             exists, it will be used instead of downloading the data
             from the url.
-    ```
     """
     cdef:
         dl_queue_data *data = <dl_queue_data *>calloc(1, sizeof(dl_queue_data))
