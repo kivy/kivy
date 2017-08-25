@@ -12,7 +12,7 @@ cdef extern from "SDL_joystick.h":
     cdef int SDL_HAT_DOWN = 0x04
     cdef int SDL_HAT_LEFT = 0x08
 
-cdef extern from "SDL.h":
+cdef extern from "SDL.h" nogil:
     ctypedef unsigned char Uint8
     ctypedef unsigned long Uint32
     ctypedef signed long Sint32
@@ -451,14 +451,14 @@ cdef extern from "SDL.h":
     cdef void SDL_DestroyRenderer (SDL_Renderer * renderer)
     cdef SDL_Texture * SDL_CreateTexture(SDL_Renderer * renderer, Uint32 format, int access, int w, int h)
     cdef SDL_Texture * SDL_CreateTextureFromSurface(SDL_Renderer * renderer, SDL_Surface * surface)
-    cdef SDL_Surface * SDL_CreateRGBSurface(Uint32 flags, int width, int height, int depth, Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask) nogil
+    cdef SDL_Surface * SDL_CreateRGBSurface(Uint32 flags, int width, int height, int depth, Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
     cdef int SDL_RenderCopy(SDL_Renderer * renderer, SDL_Texture * texture, SDL_Rect * srcrect, SDL_Rect * dstrect)
     cdef int SDL_RenderCopyEx(SDL_Renderer * renderer, SDL_Texture * texture, SDL_Rect * srcrect, SDL_Rect * dstrect, double angle, SDL_Point *center, SDL_RendererFlip flip)
     cdef void SDL_RenderPresent(SDL_Renderer * renderer)
     cdef SDL_bool SDL_RenderTargetSupported(SDL_Renderer *renderer)
     cdef int SDL_SetRenderTarget(SDL_Renderer *renderer, SDL_Texture *texture)
     cdef void SDL_DestroyTexture(SDL_Texture * texture)
-    cdef void SDL_FreeSurface(SDL_Surface * surface) nogil
+    cdef void SDL_FreeSurface(SDL_Surface * surface)
     cdef int SDL_SetSurfaceBlendMode(SDL_Surface * surface, int blendMode)
     cdef int SDL_SetSurfaceAlphaMod(SDL_Surface * surface, char alpha)
     cdef int SDL_UpperBlit (SDL_Surface * src, SDL_Rect * srcrect, SDL_Surface * dst, SDL_Rect * dstrect)
@@ -482,12 +482,12 @@ cdef extern from "SDL.h":
     cdef void SDL_Quit()
     cdef int SDL_EnableUNICODE(int enable)
     cdef Uint32 SDL_GetTicks()
-    cdef void SDL_Delay(Uint32 ms) nogil
+    cdef void SDL_Delay(Uint32 ms)
     cdef Uint8 SDL_EventState(Uint32 type, int state)
-    cdef int SDL_PollEvent(SDL_Event * event) nogil
+    cdef int SDL_PollEvent(SDL_Event * event)
     cdef void SDL_SetEventFilter(SDL_EventFilter *filter, void* userdata)
-    cdef SDL_RWops * SDL_RWFromFile(char *file, char *mode) nogil
-    cdef SDL_RWops * SDL_RWFromMem(void *mem, int size) nogil
+    cdef SDL_RWops * SDL_RWFromFile(char *file, char *mode)
+    cdef SDL_RWops * SDL_RWFromMem(void *mem, int size)
     cdef SDL_RWops * SDL_RWFromConstMem(void *mem, int size)
     cdef void SDL_FreeRW(SDL_RWops *area)
     cdef int SDL_GetRendererInfo(SDL_Renderer *renderer, SDL_RendererInfo *info)
@@ -503,19 +503,19 @@ cdef extern from "SDL.h":
     cdef int SDL_GetNumVideoDisplays()
     cdef int SDL_GetNumDisplayModes(int displayIndex)
     cdef int SDL_GetDisplayMode(int displayIndex, int index, SDL_DisplayMode * mode)
-    cdef SDL_bool SDL_HasIntersection(SDL_Rect * A, SDL_Rect * B) nogil
-    cdef SDL_bool SDL_IntersectRect(SDL_Rect * A, SDL_Rect * B, SDL_Rect * result) nogil
-    cdef void SDL_UnionRect(SDL_Rect * A, SDL_Rect * B, SDL_Rect * result) nogil
-    cdef Uint64 SDL_GetPerformanceCounter() nogil
-    cdef Uint64 SDL_GetPerformanceFrequency() nogil
+    cdef SDL_bool SDL_HasIntersection(SDL_Rect * A, SDL_Rect * B)
+    cdef SDL_bool SDL_IntersectRect(SDL_Rect * A, SDL_Rect * B, SDL_Rect * result)
+    cdef void SDL_UnionRect(SDL_Rect * A, SDL_Rect * B, SDL_Rect * result)
+    cdef Uint64 SDL_GetPerformanceCounter()
+    cdef Uint64 SDL_GetPerformanceFrequency()
     cdef int SDL_GL_SetAttribute(SDL_GLattr attr, int value)
     cdef int SDL_GetNumRenderDrivers()
     cdef int SDL_GetRenderDriverInfo(int index, SDL_RendererInfo* info)
     cdef int SDL_GL_BindTexture(SDL_Texture *texture, float *texw, float *texh)
     cdef int SDL_GL_UnbindTexture(SDL_Texture *texture)
     cdef int SDL_RenderReadPixels(SDL_Renderer * renderer, SDL_Rect * rect, Uint32 format, void *pixels, int pitch) nogil
-    cdef int SDL_PushEvent(SDL_Event * event) nogil
-    cdef int SDL_WaitEvent(SDL_Event * event) nogil
+    cdef int SDL_PushEvent(SDL_Event * event)
+    cdef int SDL_WaitEvent(SDL_Event * event)
 
     cdef void SDL_SetClipboardText(char * text)
     cdef const char * SDL_GetClipboardText()
@@ -603,6 +603,25 @@ cdef extern from "SDL.h":
     cdef SDL_bool SDL_HasScreenKeyboardSupport()
     cdef SDL_bool SDL_IsScreenKeyboardShown(SDL_Window *window)
     cdef void SDL_GL_GetDrawableSize(SDL_Window *window, int *w, int *h)
+
+    ctypedef struct SDL_Thread
+    ctypedef struct SDL_mutex
+    ctypedef int SDL_atomic_t
+    ctypedef struct SDL_sem
+
+    ctypedef long SDL_threadID
+    ctypedef int (*SDL_ThreadFunction)(void *data)
+    SDL_Thread *SDL_CreateThread(SDL_ThreadFunction fn, char *name, void *data)
+    void SDL_DetachThread(SDL_Thread *thread)
+    SDL_threadID SDL_GetThreadID(SDL_Thread *thread)
+    void SDL_WaitThread(SDL_Thread *thread, int *status)
+
+    int SDL_AtomicGet(SDL_atomic_t *)
+    int SDL_AtomicSet(SDL_atomic_t *, int v)
+    int SDL_SemWait(SDL_sem *)
+    int SDL_SemPost(SDL_sem *)
+    SDL_sem *SDL_CreateSemaphore(int)
+    void SDL_DestroySemaphore(SDL_sem *)
 
     # Sound audio formats
     Uint16 AUDIO_U8     #0x0008  /**< Unsigned 8-bit samples */

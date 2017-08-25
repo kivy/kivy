@@ -1,9 +1,75 @@
 """
 Asynchronous downloader using libcurl
-works also to preload image in background
+=====================================
 
-TODO:
-- make it work under msvc (http://forum.blackvoxel.com/index.php?topic=84.0)
+This network downloader is using pure C threads and libcurl for
+downloading data from HTTP without pressuring the Python GIL.
+
+The goal was to prevent micro lag on the Kivy UI running in the main
+thread by preventing the GIL to be locked in another threads, or even
+prevent completely Python threads and so GIL switch between threads.
+
+Features:
+  - Asynchronously download HTTP URL
+  - Preload image
+  - Basic caching support
+
+
+.. todo::
+
+  - make it work under msvc (http://forum.blackvoxel.com/index.php?topic=84.0)
+  - unittests
+
+
+Basic usage
+-----------
+
+You have 2 ways to execute a download:
+
+- use :func:`request` to download a resource at a specific URL
+- use :func:`download_image` to download a resource and preload the
+  image, if the request succedded and the image format is known
+
+The download will be done in background, and the threads will emit a
+result in a queue. You need to process as much as possible the queue
+to have your callback called within your application:
+
+- use :func:`install` to install a Kivy clock scheduler that will
+  process the result every tick (you can :func:`uninstall` it at
+  any times)
+- or call yourself :func:`process` when you need too.
+
+
+Request an URL and get the data
+-------------------------------
+
+    from kivy.network import curl
+    curl.install()
+
+    def on_complete(result):
+        result.raise_for_status()
+        print("Data: {!r}".format(result.data))
+
+    curl.request("https://kivy.org", on_complete)
+
+
+Download an image
+-----------------
+
+TIP: check for the `AsyncCurlImage` in the
+`kivy/examples/network/image_browser.py` to have an idea about how to use
+it within an Image widget.
+
+    from kivy.network import curl
+    curl.install()
+
+    def on_complete(result):
+        result.raise_for_status()
+        print("Image is: {!r}", result.image)
+        print("Texture is: {!r}", result.image.texture)
+
+    url = "https://dummyimage.com/600x400/000/fff"
+    curl.download_image(url, on_complete)
 
 """
 
@@ -57,27 +123,6 @@ cdef extern from "curl/curl.h" nogil:
     void curl_slist_free_all(curl_slist *)
 
 
-cdef extern from "SDL2/SDL.h" nogil:
-    ctypedef struct SDL_Thread
-    ctypedef struct SDL_mutex
-    ctypedef int SDL_atomic_t
-    ctypedef struct SDL_sem
-
-    ctypedef long SDL_threadID
-    ctypedef int (*SDL_ThreadFunction)(void *data)
-    SDL_Thread *SDL_CreateThread(SDL_ThreadFunction fn, char *name, void *data)
-    void SDL_DetachThread(SDL_Thread *thread)
-    SDL_threadID SDL_GetThreadID(SDL_Thread *thread)
-    void SDL_WaitThread(SDL_Thread *thread, int *status)
-
-    int SDL_AtomicGet(SDL_atomic_t *)
-    int SDL_AtomicSet(SDL_atomic_t *, int v)
-    int SDL_SemWait(SDL_sem *)
-    int SDL_SemPost(SDL_sem *)
-    SDL_sem *SDL_CreateSemaphore(int)
-    void SDL_DestroySemaphore(SDL_sem *)
-
-
 ctypedef struct dl_queue_data:
     # http request
     int status_code
@@ -97,34 +142,34 @@ ctypedef struct dl_queue_data:
     char *cache_fn
 
 
-ctypedef struct dl_queue_node:
+ctypedef struct queue_node:
     void *data
-    dl_queue_node *next
+    queue_node *next
 
 
-ctypedef struct dl_queue_ctx:
-    dl_queue_node *head
-    dl_queue_node *tail
+ctypedef struct queue_ctx:
+    queue_node *head
+    queue_node *tail
 
 
-cdef dl_queue_ctx dl_ctx
-cdef dl_queue_ctx result_ctx
-cdef dl_queue_ctx thread_ctx
+cdef queue_ctx ctx_download
+cdef queue_ctx ctx_result
+cdef queue_ctx ctx_thread
 cdef int dl_running = 0
 cdef int dl_stop = 0
 cdef SDL_sem *dl_sem
 cdef SDL_atomic_t dl_done
 
 
-cdef void dl_queue_init(dl_queue_ctx *ctx) nogil:
-    cdef dl_queue_node *node = <dl_queue_node *>calloc(1, sizeof(dl_queue_node))
-    memset(ctx, 0, sizeof(dl_queue_ctx))
+cdef void queue_init(queue_ctx *ctx) nogil:
+    cdef queue_node *node = <queue_node *>calloc(1, sizeof(queue_node))
+    memset(ctx, 0, sizeof(queue_ctx))
     ctx.head = ctx.tail = node
 
 
-cdef void dl_queue_clean(dl_queue_ctx *ctx) nogil:
-    cdef dl_queue_node *node
-    cdef dl_queue_node *tmp
+cdef void queue_clean(queue_ctx *ctx) nogil:
+    cdef queue_node *node
+    cdef queue_node *tmp
     if ctx.tail != NULL or ctx.head != NULL:
         node = ctx.head
         while node != ctx.tail:
@@ -132,12 +177,12 @@ cdef void dl_queue_clean(dl_queue_ctx *ctx) nogil:
             free(node)
             node = tmp
         free(ctx.head)
-        memset(ctx, 0, sizeof(dl_queue_ctx))
+        memset(ctx, 0, sizeof(queue_ctx))
 
 
-cdef int dl_queue_enqueue(dl_queue_ctx *ctx, void *data) nogil:
-    cdef dl_queue_node *p
-    cdef dl_queue_node *node = <dl_queue_node *>calloc(1, sizeof(dl_queue_node))
+cdef int queue_append_last(queue_ctx *ctx, void *data) nogil:
+    cdef queue_node *p
+    cdef queue_node *node = <queue_node *>calloc(1, sizeof(queue_node))
     if node == NULL:
         return -1
 
@@ -151,9 +196,9 @@ cdef int dl_queue_enqueue(dl_queue_ctx *ctx, void *data) nogil:
     return 0
 
 
-cdef void *dl_queue_dequeue(dl_queue_ctx *ctx) nogil:
+cdef void *queue_pop_first(queue_ctx *ctx) nogil:
     cdef void *ret = NULL
-    cdef dl_queue_node *p
+    cdef queue_node *p
     while True:
         p = ctx.head
         if p == NULL:
@@ -170,7 +215,7 @@ cdef void *dl_queue_dequeue(dl_queue_ctx *ctx) nogil:
     return ret
 
 
-cdef void dl_queue_data_clean(dl_queue_data **data):
+cdef void dl_queue_node_free(dl_queue_data **data):
     if data is NULL:
         return
     free(data[0].url)
@@ -187,7 +232,7 @@ cdef void dl_queue_data_clean(dl_queue_data **data):
     free(data[0])
 
 
-cdef size_t write_data(void *ptr, size_t size, size_t nmemb, dl_queue_data *data):
+cdef size_t _curl_write_data(void *ptr, size_t size, size_t nmemb, dl_queue_data *data):
     cdef:
         size_t index = data.size
         size_t n = (size * nmemb)
@@ -207,7 +252,7 @@ cdef size_t write_data(void *ptr, size_t size, size_t nmemb, dl_queue_data *data
     return size * nmemb
 
 
-cdef size_t write_header(void *ptr, size_t size, size_t nmemb, dl_queue_data *data):
+cdef size_t _curl_write_header(void *ptr, size_t size, size_t nmemb, dl_queue_data *data):
     cdef char *tmp
 
     tmp = <char *>malloc(size * nmemb + 1)
@@ -236,7 +281,7 @@ cdef int dl_run_job(void *arg) nogil:
 
     while SDL_AtomicGet(&dl_done) == 0:
         SDL_SemWait(dl_sem)
-        data = <dl_queue_data *>dl_queue_dequeue(&dl_ctx)
+        data = <dl_queue_data *>queue_pop_first(&ctx_download)
         if data == NULL:
             continue
 
@@ -248,9 +293,9 @@ cdef int dl_run_job(void *arg) nogil:
         if require_download:
             # download from url
             curl_easy_setopt(curl, CURLOPT_URL, data.url)
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data)
+            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, _curl_write_data)
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, data)
-            curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, write_header)
+            curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, _curl_write_header)
             curl_easy_setopt(curl, CURLOPT_HEADERDATA, data)
             curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, <void *><long>1L)
             # curl_easy_setopt(curl, CURLOPT_VERBOSE, <void *><long>1L)
@@ -278,30 +323,32 @@ cdef int dl_run_job(void *arg) nogil:
                     free(data.data)
                 data.data = NULL
 
-        dl_queue_enqueue(&result_ctx, data)
+        queue_append_last(&ctx_result, data)
 
     curl_easy_cleanup(curl)
     return 0
 
 
-cpdef void dl_init(int num_threads) nogil:
+cdef void dl_init(int num_threads) nogil:
+    # prepare the queue and background threads
     cdef SDL_Thread *thread
     cdef int index
     global dl_sem, dl_running
-    dl_queue_init(&dl_ctx)
-    dl_queue_init(&result_ctx)
-    dl_queue_init(&thread_ctx)
+    queue_init(&ctx_download)
+    queue_init(&ctx_result)
+    queue_init(&ctx_thread)
     SDL_AtomicSet(&dl_done, 0)
     dl_sem = SDL_CreateSemaphore(0)
 
     for index in range(num_threads):
         thread = SDL_CreateThread(dl_run_job, "curl", NULL)
-        dl_queue_enqueue(&thread_ctx, thread)
+        queue_append_last(&ctx_thread, thread)
 
     dl_running = 1
 
 
 cdef void dl_ensure_init() nogil:
+    # ensure the download threads are ready
     if dl_running:
         return
     dl_init(4)
@@ -406,7 +453,7 @@ cdef class CurlResult(object):
 
     def __dealloc__(self):
         if self._data != NULL:
-            dl_queue_data_clean(&self._data)
+            dl_queue_node_free(&self._data)
 
     @property
     def image(self):
@@ -571,7 +618,7 @@ def request(url, callback, headers=None, cache_fn=None, preload_image=False):
         Py_XINCREF(<PyObject *>data.callback)
 
     dl_ensure_init()
-    dl_queue_enqueue(&dl_ctx, data)
+    queue_append_last(&ctx_download, data)
     SDL_SemPost(dl_sem)
 
 
@@ -597,7 +644,7 @@ def process(*args):
         curl_slist *item
 
     while True:
-        data = <dl_queue_data *>dl_queue_dequeue(&result_ctx)
+        data = <dl_queue_data *>queue_pop_first(&ctx_result)
         if data == NULL:
             break
 
