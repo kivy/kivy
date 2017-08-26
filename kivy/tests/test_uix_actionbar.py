@@ -77,7 +77,7 @@ class TouchPoint(UTMotionEvent):
         EventLoop.idle()
 
 
-class Test(GraphicUnitTest):
+class ActionBarTestCase(GraphicUnitTest):
     framecount = 0
 
     def move_frames(self, t):
