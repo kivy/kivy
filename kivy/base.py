@@ -51,7 +51,7 @@ class ExceptionHandler(object):
 
     def handle_exception(self, exception):
         '''Handle one exception, defaults to returning
-        `ExceptionManager.STOP`.
+        `ExceptionManager.RAISE`.
         '''
         return ExceptionManager.RAISE
 
