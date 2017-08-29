@@ -1,38 +1,44 @@
+" ~/.vim/after/syntax/kivy.vim
+"
 " Vim syntax file
 " Language:	Kivy
-" Maintainer:	George Sebastian <11george.s@gmail.com>
-" Last Change:	2011 May 1
+" Maintainer:	Gabriel Pettier <gabriel.pettier@gmail.com>
+" Last Change:	2017 august 26
 
-" For version 5.x: Clear all syntax items.
-" For version 6.x: Quit when a syntax file was already loaded.
-if version < 600
-  syntax clear
-elseif exists("b:current_syntax")
-  finish
-endif
-
-syn match kivyPreProc       /#:.*/
-syn match kivyComment       /#.*/
-syn match kivyRule          /<\I\i*\(,\s*\I\i*\)*>:/
-syn match kivyAttribute     /\<\I\i*\>/ nextgroup=kivyValue
+syntax clear
 
 syn include @pyth $VIMRUNTIME/syntax/python.vim
-syn region kivyValue start=":" end=/$/  contains=@pyth skipwhite
 
-syn region kivyAttribute matchgroup=kivyIdent start=/[\a_][\a\d_]*:/ end=/$/ contains=@pyth skipwhite
+syn match kivyComment       /#.*\n/ display contains=pythonTodo,Spell
+syn match kivyPreProc       /^#:.*/
+syn match kivyAttribute     /\I\i*/ nextgroup=kivyValue
+syn match kivyBind          /on_\I\i*:/ nextgroup=kivyValue
+syn match kivyRule          /<-*\I\i*\([,@]s*\I\i*\)*>:/
+syn match kivyRootRule      /^\I\i*:$/
+syn match kivyInstruction   /^\s\+\u\i*:/ nextgroup=kivyValue
+syn match kivyWidget        /^\s\+\u\i*:/
 
-if version >= 508 || !exists("did_python_syn_inits")
-  if version <= 508
-    let did_python_syn_inits = 1
-    command -nargs=+ HiLink hi link <args>
-  else
-    command -nargs=+ HiLink hi def link <args>
-  endif
+syn region kivyAttribute start=/^\z(\s\+\)\l\+:\n\1\s\{4}/ skip=/^\z1\s\{4}.*$/ end=/^$/ contains=@pyth
 
-    HiLink kivyPreproc      PreProc
-    HiLink kivyComment      Comment
-    HiLink kivyRule         Function
-    HiLink kivyIdent        Statement
-    HiLink kivyAttribute    Label
-  delcommand HiLink
-endif
+syn region kivyBind start=/^\z(\s\+\)on_\i\+:\n\1\s\{4}/ skip=/^\z1\s\{4}.*$/ end=/^$/ contains=@pyth
+syn region kivyBind start=/^\z(\s\+\)on_\i\+:\n\1\s\{4}/ skip="^$\|^\z1\s{4}" end="^\z1\I"me=e-9999 contains=@pyth
+syn region kivyBind start=/on_\i\+:\s/ end=/$/ contains=@pyth
+
+syn match kivyValue /\(id\s*\)\@<!:\s*.*$/ contains=@pyth skipwhite
+syn match kivyId   /\(id:\s*\)\@<=\w\+/
+
+syn match kivyCanvas         /^\s*canvas.*:$/ nextgroup=kivyInstruction
+syn region kivyCanvas        start=/^\z(\s*\)canvas.*:$/ skip="^$\|^\z1\s{4}" end="^\z1\I"me=e-9999 contains=kivyInstruction,kivyValue
+
+hi def link kivyPreproc      PreProc
+hi def link kivyComment      Comment
+hi def link kivyRule         Type
+hi def link kivyRootRule     Function
+hi def link kivyAttribute    Label
+hi def link kivyBind         Function
+hi def link kivyWidget       Function
+hi def link kivyCanvas       special
+hi def link kivyInstruction  Statement
+
+hi KivyId cterm=underline
+hi KivyPreproc cterm=bold

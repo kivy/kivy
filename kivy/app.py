@@ -692,13 +692,15 @@ class App(EventDispatcher):
             config = ConfigParser(name='app')
         self.config = config
         self.build_config(config)
+        # if no sections are created, that's mean the user don't have
+        # configuration.
+        if len(config.sections()) == 0:
+            return
         # ok, the user have some sections, read the default file if exist
         # or write it !
         filename = self.get_application_config()
-        if not filename:
-            if config.sections():
-                return config
-            return
+        if filename is None:
+            return config
         Logger.debug('App: Loading configuration <{0}>'.format(filename))
         if exists(filename):
             try:
