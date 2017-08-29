@@ -215,7 +215,7 @@ kivy_options = {
     'window': ('egl_rpi', 'sdl2', 'pygame', 'sdl', 'x11'),
     'text': ('pil', 'sdl2', 'pygame', 'sdlttf'),
     'video': (
-        'gstplayer', 'ffmpeg', 'ffpyplayer', 'null'),
+        'gstglplayer', 'gstplayer', 'ffmpeg', 'ffpyplayer', 'null'),
     'audio': (
         'gstplayer', 'pygame', 'ffpyplayer', 'sdl2',
         'avplayer'),

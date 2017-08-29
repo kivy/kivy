@@ -145,6 +145,7 @@ c_options['use_ios'] = False
 c_options['use_mesagl'] = False
 c_options['use_x11'] = False
 c_options['use_gstreamer'] = None
+c_options['use_gstreamer_gl'] = False
 c_options['use_avfoundation'] = platform == 'darwin'
 c_options['use_osx_frameworks'] = platform == 'darwin'
 c_options['debug_gl'] = False
@@ -477,6 +478,30 @@ if c_options['use_sdl2'] or (
             print('SDL2 found via pkg-config')
             c_options['use_sdl2'] = True
 
+
+if platform == 'linux' and c_options['use_sdl2']:
+    gst_app_flags = pkgconfig('gstreamer-app-1.0')
+    gst_gl_flags = pkgconfig('gstreamer-gl-1.0')
+    if 'libraries' in gst_app_flags and 'libraries' in gst_gl_flags:
+        c_options['use_gstreamer_gl'] = True
+
+if platform == 'linux' and c_options['use_sdl2']:
+    gst_app_flags = pkgconfig('gstreamer-app-1.0')
+    gst_gl_flags = pkgconfig('gstreamer-gl-1.0')
+    if 'libraries' in gst_app_flags and 'libraries' in gst_gl_flags:
+        c_options['use_gstreamer_gl'] = True
+
+if platform == 'linux' and c_options['use_sdl2']:
+    gst_app_flags = pkgconfig('gstreamer-app-1.0')
+    gst_gl_flags = pkgconfig('gstreamer-gl-1.0')
+    if 'libraries' in gst_app_flags and 'libraries' in gst_gl_flags:
+        c_options['use_gstreamer_gl'] = True
+
+if platform == 'linux' and c_options['use_sdl2']:
+    gst_app_flags = pkgconfig('gstreamer-app-1.0')
+    gst_gl_flags = pkgconfig('gstreamer-gl-1.0')
+    if 'libraries' in gst_app_flags and 'libraries' in gst_gl_flags:
+        c_options['use_gstreamer_gl'] = True
 
 # -----------------------------------------------------------------------------
 # declare flags
@@ -847,6 +872,15 @@ if c_options['use_gstreamer']:
         base_flags, gst_flags, {
             'depends': ['lib/gstplayer/_gstplayer.h']})
 
+if c_options['use_gstreamer_gl']:
+    sources['lib/gstglplayer/_gstglplayer.pyx'] = merge(
+        base_flags, gst_flags, gst_app_flags, gst_gl_flags,
+        sdl2_flags, sdl2_depends, {
+            'depends': [
+                'lib/gstglplayer/_gstglplayer.h',
+                'lib/gstglplayer/_gstgl.c',
+                'lib/gstglplayer/_gstgl.h']})
+
 
 # -----------------------------------------------------------------------------
 # extension modules
@@ -981,6 +1015,7 @@ if not build_examples:
             'kivy.lib',
             'kivy.lib.osc',
             'kivy.lib.gstplayer',
+            'kivy.lib.gstglplayer',
             'kivy.lib.vidcore_lite',
             'kivy.modules',
             'kivy.network',

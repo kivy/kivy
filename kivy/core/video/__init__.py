@@ -205,10 +205,17 @@ class VideoBase(EventDispatcher):
 # Load the appropriate provider
 video_providers = []
 try:
+    from kivy.lib.gstglplayer import GstGLPlayer
+    video_providers += [('gstglplayer', 'video_gstglplayer', 'VideoGstGLplayer')]
+except ImportError:
+    pass
+
+try:
     from kivy.lib.gstplayer import GstPlayer  # NOQA
     video_providers += [('gstplayer', 'video_gstplayer', 'VideoGstplayer')]
 except ImportError:
     pass
+
 video_providers += [
     ('ffmpeg', 'video_ffmpeg', 'VideoFFMpeg'),
     ('ffpyplayer', 'video_ffpyplayer', 'VideoFFPy'),
