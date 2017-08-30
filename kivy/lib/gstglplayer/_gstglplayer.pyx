@@ -7,6 +7,7 @@ from kivy.core.window import Window
 from kivy.core.window.window_sdl2 import WindowSDL
 
 from libc.stdint cimport uintptr_t
+from libc.stdlib cimport malloc
 from libcpp cimport bool
 from weakref import ref
 import atexit
@@ -21,6 +22,7 @@ cdef extern from '<glib.h>':
     ctypedef long int gulong
     ctypedef int gboolean
     ctypedef void (*GDestroyNotify)(gpointer data)
+    void g_print(const_gchar *format)
 
 cdef extern from '<glib-object.h>':
     ctypedef void *GValue
@@ -149,15 +151,16 @@ DEF GST_USE_UNSTABLE_API = 1
 cdef extern from '_gstgl.h':
     void gst_gl_init (SDL_Window *window)
     void gst_gl_set_bus_cb (GstBus *bus)
-    void gst_gl_stop_pipeline (GstPipeline *pipeline)
+    void gst_gl_stop_pipeline (GstPipeline *pipeline) nogil
     
-    unsigned int get_texture_id_from_buffer (GstBuffer *buf)    
-        
+    guint get_texture_id_from_buffer (GstBuffer *buf, guint width, guint height)
+
 cdef extern from '_gstglplayer.h':
     void g_object_set_void(GstElement *element, char *name, void *value)
     void g_object_set_double(GstElement *element, char *name, double value) nogil
     void g_object_set_caps(GstElement *element, char *value)
     void g_object_set_int(GstElement *element, char *name, int value)
+    void dump_dot_file(GstPipeline *pipeline, const_gchar *filename)
     gulong c_appsink_set_sample_callback(GstElement *appsink,
             appcallback_t callback, void *userdata)
     void c_appsink_pull_preroll(GstElement *appsink,
@@ -193,27 +196,26 @@ cdef void _on_appsink_destroyed(gpointer data):
     pass
 
 cdef void _on_appsink_eos(GstAppSink *appsink, void *user_data):
+    g_print('on_appsink_eos')
     cdef GstGLPlayer player = <object>user_data
     if player.eos_cb:
         player.eos_cb()        
 
 cdef GstFlowReturn _on_appsink_preroll(GstAppSink *appsink, void *user_data):
+    g_print('on_appsink_preroll')
     cdef GstGLPlayer player = <object>user_data
     cdef GstSample *sample
     
-    print('appsink preroll cb')
-
     sample = gst_app_sink_pull_preroll(appsink)
     if sample: player.process_sample(sample)            
 
     return GST_FLOW_OK
 
 cdef GstFlowReturn _on_appsink_sample(GstAppSink *appsink, void *user_data):
+    g_print('on_appsink_sample')
     cdef GstGLPlayer player = <object>user_data
     cdef GstSample *sample
     
-    print('appsink sample cb')
-
     sample = gst_app_sink_pull_sample(appsink)
     if sample: player.process_sample(sample)            
 
@@ -280,7 +282,6 @@ cdef class GstGLPlayer:
     def __cinit__(self, *args, **kwargs):
         self.pipeline = self.playbin = self.appsink = self.outbin = self.glupload = self.fakesink = NULL
         self.bus = NULL
-        self.hid_sample = self.hid_message = 0
 
     def __init__(self, uri, texture_cb=None, eos_cb=None, message_cb=None):    
         super(GstGLPlayer, self).__init__()
@@ -314,7 +315,7 @@ cdef class GstGLPlayer:
         cdef bytes py_uri
         cdef GstPad *sinkpad
         cdef GstPad *ghost_sinkpad
-        cdef GstAppSinkCallbacks *callbacks
+        cdef GstAppSinkCallbacks *callbacks = <GstAppSinkCallbacks *>malloc(sizeof(GstAppSinkCallbacks))
                 
         # if already loaded before, clean everything.
         if self.pipeline != NULL:
@@ -401,28 +402,29 @@ cdef class GstGLPlayer:
         cdef GstCaps *caps
         cdef GstStructure *struct
         
-        print('process_sample')
-        
         if self.texture_cb:
-            buf = gst_sample_get_buffer(sample)
-            texture = get_texture_id_from_buffer(buf)
-            
             caps = gst_sample_get_caps(sample)
             struct = gst_caps_get_structure(caps, 0)
             width = g_value_get_int(gst_structure_get_value(struct, 'width'))
             height = g_value_get_int(gst_structure_get_value(struct, 'height'))
         
+            buf = gst_sample_get_buffer(sample)
+            texture = get_texture_id_from_buffer(buf, width, height)
+            
             self.texture_cb(width, height, texture)
         
     def play(self):
         if self.pipeline != NULL:
             with nogil:
                 gst_element_set_state(self.pipeline, GST_STATE_PLAYING)
+            
+            dump_dot_file(self.pipeline, 'gstgl_pipeline')
+            dump_dot_file(self.outbin, 'gstgl_outbin')
 
     def stop(self):
         if self.pipeline != NULL:
             with nogil:
-                gst_element_set_state(self.pipeline, GST_STATE_NULL)
+                gst_gl_stop_pipeline(self.pipeline)
                 gst_element_set_state(self.pipeline, GST_STATE_READY)
 
     def pause(self):
@@ -433,10 +435,6 @@ cdef class GstGLPlayer:
     def unload(self):
         cdef GstState current_state, pending_state
 
-        if self.appsink != NULL and self.hid_sample != 0:
-            c_signal_disconnect(self.appsink, self.hid_sample)
-            self.hid_sample = 0
-
         if self.bus != NULL and self.hid_message != 0:
             c_signal_disconnect(<GstElement *>self.bus, self.hid_message)
             self.hid_message = 0
@@ -446,7 +444,7 @@ cdef class GstGLPlayer:
             # state is set to NULL, we need to query it. We also put a 5s
             # timeout for safety, but normally, nobody should hit it.
             with nogil:
-                gst_element_set_state(self.pipeline, GST_STATE_NULL)
+                gst_gl_stop_pipeline(self.pipeline)
                 gst_element_get_state(self.pipeline, &current_state,
                         &pending_state, <GstClockTime>5e9)
             gst_object_unref(self.pipeline)

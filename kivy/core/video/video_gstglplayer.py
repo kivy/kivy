@@ -43,6 +43,7 @@ class VideoGstGLplayer(VideoBase):
         self.player = None
 
         self._texture_store = {}
+        self._next_texture = None
         
         # Very ugly hack to get texture target property, needed by Texture's default constructor.
         # The value it references isn't availible any other way, needs to be exposed to Python TODO
@@ -98,12 +99,15 @@ class VideoGstGLplayer(VideoBase):
             self.player.set_volume(self._volume)
 
     def _update(self, dt):
-        # VideoBase schedules this to be called every 1/30th of a second, regardless of source video FPS.
-        # Ignoring it for now, TODO fix for all providers or something
-        pass
+        if self._next_texture:
+            self._texture = self._next_texture
+            self._next_texture = None
+            
+            self.dispatch('on_frame')            
 
     def _update_texture(self, width, height, tex_id):
-        print('update_texture!')
+        print('update_texture!', width, height, tex_id)
+
         texture = self._texture_store.get(tex_id)
         if not texture or not texture.size[0] == width or not texture.size[1] == height:
             texture = Texture(width, height, self._texture_target, colorfmt = 'rgba', texid = tex_id)
@@ -116,8 +120,7 @@ class VideoGstGLplayer(VideoBase):
                 self.dispatch('on_load')
                 self._on_load_called = True
         
-        self._texture = texture
-        self.dispatch('on_frame')
+        self._next_texture = texture
 
     def _get_uri(self):
         uri = self.filename

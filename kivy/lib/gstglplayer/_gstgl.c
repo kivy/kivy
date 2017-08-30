@@ -11,32 +11,40 @@
 
 gboolean context_created = FALSE;
 
+static SDL_Window *sdl_window;
+static SDL_GLContext *sdl_gl_context;
+
 static Display *x11_display;
 static Window x11_window;
-static GLXContext sdl_gl_context;
+static GLXContext x11_gl_context;
 
 static GstGLDisplay *gst_gl_display;
 static GstGLContext *gst_gl_context;
 
-void gst_gl_init (SDL_Window *sdl_window) {
+void gst_gl_init (SDL_Window *_sdl_window) {
     if (!context_created) {
+        sdl_window = _sdl_window;
+        sdl_gl_context = SDL_GL_GetCurrentContext();
+
         SDL_SysWMinfo info;
         SDL_VERSION (&info.version);
         SDL_GetWindowWMInfo (sdl_window, &info);
         
         x11_display = info.info.x11.display;
         x11_window = info.info.x11.window;
-        sdl_gl_context = glXGetCurrentContext();
+        x11_gl_context = glXGetCurrentContext();
 
         gst_gl_display = (GstGLDisplay *)gst_gl_display_x11_new_with_display (x11_display);
         
-        glXMakeCurrent(x11_display, None, 0);
+//        glXMakeCurrent(x11_display, None, 0);
+        SDL_GL_MakeCurrent(sdl_window, NULL);
             
         gst_gl_context = gst_gl_context_new_wrapped (
-            gst_gl_display, (guintptr) sdl_gl_context, gst_gl_platform_from_string ("glx"), GST_GL_API_OPENGL
+            gst_gl_display, (guintptr) x11_gl_context, gst_gl_platform_from_string ("glx"), GST_GL_API_OPENGL
         );
         
-        glXMakeCurrent(x11_display, x11_window, sdl_gl_context);
+//        glXMakeCurrent(x11_display, x11_window, x11_gl_context);
+        SDL_GL_MakeCurrent(sdl_window, sdl_gl_context);
         
         context_created = TRUE;
     }
@@ -77,28 +85,32 @@ void gst_gl_set_bus_cb (GstBus *bus) {
 
 void gst_gl_stop_pipeline (GstPipeline *pipeline) {
     GST_OBJECT_LOCK(GST_OBJECT (gst_gl_display));
-    glXMakeCurrent (x11_display, x11_window, sdl_gl_context);
+    SDL_GL_MakeCurrent(sdl_window, sdl_gl_context);
     
     gst_element_set_state (GST_ELEMENT (pipeline), GST_STATE_NULL);
-    
+
     glXMakeCurrent (x11_display, None, 0);
+    
     GST_OBJECT_UNLOCK(GST_OBJECT (gst_gl_display));
 }
 
 unsigned int
-get_texture_id_from_buffer (GstBuffer *buf)
+get_texture_id_from_buffer (GstBuffer *buf, guint width, guint height)
 {
-  GstMapInfo mapinfo;
-  unsigned int texture = 0;
-
-  if (!gst_buffer_map (buf, &mapinfo, GST_MAP_READ | GST_MAP_GL)) {
+  GstVideoFrame v_frame;
+  GstVideoInfo v_info;
+  guint texture = 0;
+  
+  gst_video_info_set_format (&v_info, GST_VIDEO_FORMAT_RGBA, width, height);
+  
+  if (!gst_video_frame_map (&v_frame, &v_info, buf, GST_MAP_READ | GST_MAP_GL)) {
     g_warning ("Failed to map the video buffer");
     return texture;
   }
 
-  texture = (unsigned int) mapinfo.data[0];
+  texture = *(guint *) v_frame.data[0];
 
-  gst_buffer_unmap (buf, &mapinfo);
+  gst_video_frame_unmap (&v_frame);
 
   return texture;
 }
