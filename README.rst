@@ -1,35 +1,45 @@
-Kivy
-====
+.. |logo| image:: https://git.io/v58b2
 
-<img align="right" height="256" src="https://raw.githubusercontent.com/kivy/kivy/master/kivy/data/logo/kivy-icon-256.png"/>
+|logo| Kivy
+===========
 
-Innovative user interfaces made easy.
+*Innovative user interfaces made easy.*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Kivy is an open source, cross-platform [Python](https://www.python.org)
-framework for the development of applications that make use of innovative,
-multi-touch user interfaces.
-The aim is to allow for quick and easy interaction design and rapid prototyping
-whilst making your code reusable and deployable.
+Kivy is an open source, cross-platform Python framework for the development of
+applications that make use of innovative, multi-touch user interfaces. The aim
+is to allow for quick and easy interaction design and rapid prototyping whilst
+making your code reusable and deployable.
 
-Kivy is written in Python and [Cython](http://cython.org/), based on OpenGL ES
-2, supports various input devices and has an extensive widget library. With the
-same codebase, you can target Windows, OS X, Linux, Android and iOS. All Kivy
-widgets are built with multitouch support.
+Kivy is written in Python and Cython, based on OpenGL ES 2, supports various
+input devices and has an extensive widget library. With the same codebase, you
+can target Windows, OS X, Linux, Android and iOS. All Kivy widgets are built
+with multitouch support.
 
 Kivy is MIT licensed, actively developed by a great community and is supported
-by many projects managed by the [Kivy Organization](https://kivy.org/#organization).
+by many projects managed by the `Kivy Organization
+<https://kivy.org/#organization>`_.
 
-[![Coverage Status](https://coveralls.io/repos/kivy/kivy/badge.svg?branch=master)](https://coveralls.io/r/kivy/kivy?branch=master)
-[![Build Status](https://travis-ci.org/kivy/kivy.svg?branch=master)](https://travis-ci.org/kivy/kivy)
-[![Build status](https://ci.appveyor.com/api/projects/status/sqc46n4a3bq2gj1s/branch/master?svg=true)](https://ci.appveyor.com/project/KivyOrg/kivy/branch/master)
-[![Bountysource](https://www.bountysource.com/badge/tracker?tracker_id=42681)](https://www.bountysource.com/trackers/42681-kivy?utm_source=42681&utm_medium=shield&utm_campaign=TRACKER_BADGE)
+.. |coverage| image:: https://coveralls.io/repos/kivy/kivy/badge.svg?branch=master
+   :target: https://coveralls.io/r/kivy/kivy?branch=master
+
+.. |travis| image:: https://travis-ci.org/kivy/kivy.svg?branch=master
+   :target: https://travis-ci.org/kivy/kivy
+
+.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/sqc46n4a3bq2gj1s/branch/master?svg=true
+   :target: https://ci.appveyor.com/project/KivyOrg/kivy/branch/master
+
+.. |bounty| image:: https://www.bountysource.com/badge/tracker?tracker_id=42681
+   :target: https://www.bountysource.com/trackers/42681-kivy?utm_source=42681&utm_medium=shield&utm_campaign=TRACKER_BADGE
+
+|coverage| |travis| |appveyor| |bounty|
 
 Installation, Documentation and Examples
 ----------------------------------------
 
 Extensive installation instructions as well as tutorials and general
 documentation, including an API reference, can be found at https://kivy.org/docs.
-A [PDF version](https://media.readthedocs.org/pdf/kivy/latest/kivy.pdf) is also available.
+A `PDF version <https://media.readthedocs.org/pdf/kivy/latest/kivy.pdf>`_ is also available.
 
 Kivy ships with many examples which can be found in the `examples` folder.
 
@@ -45,13 +55,13 @@ We also have an IRC channel:
 
 * Server  : irc.freenode.net
 * Port    : 6667, 6697 (SSL only)
-* Channel : #kivy
+* Channel : `#kivy <https://webchat.freenode.net/?nick=kvuser.&channels=kivy&uio=d4>`_
 
 Contributing
 ------------
 
 We love pull requests and discussing novel ideas. Check out our
-[contribution guide](https://kivy.org/docs/contribute.html) and
+`contribution guide <https://kivy.org/docs/contribute.html>`_ and
 feel free to improve Kivy.
 
 The following mailing list and IRC channel are used exclusively for
@@ -64,28 +74,28 @@ IRC channel:
 
 * Server  : irc.freenode.net
 * Port    : 6667, 6697 (SSL only)
-* Channel : #kivy-dev
+* Channel : `#kivy-dev <https://webchat.freenode.net/?nick=kvuser.&channels=kivy-dev&uio=d4>`_
 
 Sister projects
 ---------------
 
-- [Buildozer](https://github.com/kivy/buildozer): generic Python packager
+- `Buildozer <https://github.com/kivy/buildozer>`_: generic Python packager
   for Android and iOS.
-- [Plyer](https://github.com/kivy/plyer): platform-independent Python wrapper
+- `Plyer <https://github.com/kivy/plyer>`_: platform-independent Python wrapper
   for platform-dependent APIs.
-- [Pyjnius](https://github.com/kivy/pyjnius): dynamic access to the Java/Android
+- `Pyjnius <https://github.com/kivy/pyjnius>`_: dynamic access to the Java/Android
   API from Python.
-- [Pyobjus](https://github.com/kivy/pyobjus): dynamic access to the
+- `Pyobjus <https://github.com/kivy/pyobjus>`_: dynamic access to the
   Objective-C/iOS API from Python.
-- [Python for Android](https://github.com/kivy/python-for-android): toolchain
+- `Python for Android <https://github.com/kivy/python-for-android>`_: toolchain
   for building and packaging Python applications for Android.
-- [Kivy iOS](https://github.com/kivy/kivy-ios): toolchain for building and
+- `Kivy iOS <https://github.com/kivy/kivy-ios>`_: toolchain for building and
   packaging Kivy applications for iOS.
-- [Audiostream](https://github.com/kivy/audiostream): library for direct access
+- `Audiostream <https://github.com/kivy/audiostream>`_: library for direct access
   to the microphone and speaker.
-- [Kivy Designer](https://github.com/kivy/kivy-designer): UI designer for Kivy.
-- [KivEnt](https://github.com/kivy/kivent): entity-based game engine for Kivy.
-- [Garden](https://github.com/kivy-garden): widgets and libraries created and
+- `Kivy Designer <https://github.com/kivy/kivy-designer>`_: UI designer for Kivy.
+- `KivEnt <https://github.com/kivy/kivent>`_: entity-based game engine for Kivy.
+- `Garden <https://github.com/kivy-garden>`_: widgets and libraries created and
   maintained by users.
 
 Licenses
@@ -95,9 +105,9 @@ Licenses
   LICENSE file.
 - The provided fonts Roboto and Roboto Mono are licensed and
   distributed under the terms of the
-  [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+  `Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>`_.
   The DejaVuSans (used for the virtual keyboard) license can be viewed
-  [here](https://github.com/dejavu-fonts/dejavu-fonts/blob/master/LICENSE).
+  `here <https://github.com/dejavu-fonts/dejavu-fonts/blob/master/LICENSE>`_.
 - The current UI design has been adapted from Moblintouch theme's SVGs
   and is licensed under the terms of the
-  [LGPLv2.1](https://www.gnu.org/licenses/old-licenses/lgpl-2.1).
+  `LGPLv2.1 <https://www.gnu.org/licenses/old-licenses/lgpl-2.1>`_.
