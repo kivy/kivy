@@ -600,7 +600,7 @@ def determine_gl_flags():
         flags['library_dirs'] = ['/opt/vc/lib']
         from platform import linux_distribution
         dist = linux_distribution()
-        if if dist[0] == 'debian' and float(dist[1]) >= 9.1:
+        if dist[0] == 'debian' and float(dist[1]) >= 9.1:
             flags['libraries'] = ['bcm_host', 'brcmEGL', 'brcmGLESv2']
         else:
             flags['libraries'] = ['bcm_host', 'EGL', 'GLESv2']
