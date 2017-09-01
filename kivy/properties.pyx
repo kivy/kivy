@@ -272,7 +272,6 @@ __all__ = ('Property',
 include "include/config.pxi"
 
 
-from weakref import ref
 from kivy.compat import string_types
 from kivy.config import ConfigParser
 from functools import partial
@@ -280,6 +279,7 @@ from kivy.clock import Clock
 from kivy.weakmethod import WeakMethod
 from kivy.logger import Logger
 from kivy.utils import get_color_from_hex
+from cpython.weakref cimport PyWeakref_Check, PyWeakref_GetObject, PyWeakref_NewRef
 
 
 cdef float g_dpi = -1
@@ -375,6 +375,7 @@ cdef class Property:
         self.errorvalue = None
         self.errorhandler = None
         self.errorvalue_set = 0
+        self.rebind = 0
 
 
     def __init__(self, defaultvalue, **kw):
@@ -482,9 +483,9 @@ cdef class Property:
             return self
         return self.get(obj)
 
-    cdef compare_value(self, a, b):
+    cdef int compare_value(self, a, b):
         try:
-            return bool(a == b)
+            return a == b
         except Exception as e:
             Logger.warn(
                 'Property: Value comparison failed for {} with "{}". Consider setting '
@@ -603,7 +604,7 @@ cdef class NumericProperty(Property):
         storage.numeric_fmt = 'px'
         Property.init_storage(self, obj, storage)
 
-    cdef compare_value(self, a, b):
+    cdef int compare_value(self, a, b):
         return a == b
 
     cdef check(self, EventDispatcher obj, value):
@@ -666,7 +667,7 @@ cdef class StringProperty(Property):
     def __init__(self, defaultvalue='', **kw):
         super(StringProperty, self).__init__(defaultvalue, **kw)
 
-    cdef compare_value(self, a, b):
+    cdef int compare_value(self, a, b):
         return a == b
 
     cdef check(self, EventDispatcher obj, value):
@@ -677,86 +678,103 @@ cdef class StringProperty(Property):
                 obj.__class__.__name__,
                 self.name))
 
-cdef inline void observable_list_dispatch(object self):
-    cdef Property prop = self.prop
+cdef inline void observable_list_dispatch(ObservableList self):
     obj = self.obj()
     if obj is not None:
-        prop.dispatch(obj)
+        self.prop.dispatch(obj)
 
 
-class ObservableList(list):
+cdef class ObservableList(list):
     # Internal class to observe changes inside a native python list.
     def __init__(self, *largs):
         self.prop = largs[0]
-        self.obj = ref(largs[1])
-        self.last_op = '', None
+        self.obj = <object>PyWeakref_NewRef(largs[1], None)
+        self.last_op_command = ''
+        self.last_op_value = None
         super(ObservableList, self).__init__(*largs[2:])
 
     def __setitem__(self, key, value):
         list.__setitem__(self, key, value)
-        self.last_op = '__setitem__', key
+        self.last_op_command = '__setitem__'
+        self.last_op_value = key
         observable_list_dispatch(self)
 
     def __delitem__(self, key):
         list.__delitem__(self, key)
-        self.last_op = '__delitem__', key
+        self.last_op_command = '__delitem__'
+        self.last_op_value = key
         observable_list_dispatch(self)
 
     def __setslice__(self, b, c, v):
         list.__setslice__(self, b, c, v)
-        self.last_op = '__setslice__', (b, c)
+        self.last_op_command = '__setslice__'
+        self.last_op_value = (b, c)
         observable_list_dispatch(self)
 
     def __delslice__(self, b, c):
         list.__delslice__(self, b, c)
-        self.last_op = '__delslice__', (b, c)
+        self.last_op_command = '__delslice__'
+        self.last_op_value = (b, c)
         observable_list_dispatch(self)
 
-    def __iadd__(self, *largs):
-        list.__iadd__(self, *largs)
-        self.last_op = '__iadd__', None
+    def __iadd__(self, other):
+        list.__iadd__(self, other)
+        self.last_op_command = '__iadd__'
+        self.last_op_value = other
         observable_list_dispatch(self)
 
     def __imul__(self, b):
         list.__imul__(self, b)
-        self.last_op = '__imul__'. b
+        self.last_op_command = '__imul__'
+        self.last_op_value = b
         observable_list_dispatch(self)
 
     def append(self, *largs):
         list.append(self, *largs)
-        self.last_op = 'append', None
+        self.last_op_command = 'append'
+        self.last_op_value = None
         observable_list_dispatch(self)
 
     def remove(self, *largs):
         list.remove(self, *largs)
-        self.last_op = 'remove', None
+        self.last_op_command = 'remove'
+        self.last_op_value = None
         observable_list_dispatch(self)
 
     def insert(self, i, x):
         list.insert(self, i, x)
-        self.last_op = 'insert', i
+        self.last_op_command = 'insert'
+        self.last_op_value = i
         observable_list_dispatch(self)
 
     def pop(self, *largs):
         cdef object result = list.pop(self, *largs)
-        self.last_op = 'pop', largs
+        self.last_op_command = 'pop'
+        self.last_op_value = largs
         observable_list_dispatch(self)
         return result
 
     def extend(self, *largs):
         list.extend(self, *largs)
-        self.last_op = 'extend', None
+        self.last_op_command = 'extend'
+        self.last_op_value = None
         observable_list_dispatch(self)
 
     def sort(self, *largs):
         list.sort(self, *largs)
-        self.last_op = 'sort', None
+        self.last_op_command = 'sort'
+        self.last_op_value = None
         observable_list_dispatch(self)
 
     def reverse(self, *largs):
         list.reverse(self, *largs)
-        self.last_op = 'reverse', None
+        self.last_op_command = 'reverse'
+        self.last_op_value = None
         observable_list_dispatch(self)
+
+    property last_op:
+        def __get__(self):
+            return (self.last_op_command, self.last_op_value)
 
 
 cdef class ListProperty(Property):
@@ -814,35 +832,37 @@ cdef class ListProperty(Property):
         value = ObservableList(self, obj, value)
         Property.set(self, obj, value)
 
-cdef inline void observable_dict_dispatch(object self):
-    cdef Property prop = self.prop
-    prop.dispatch(self.obj)
+
+cdef inline void observable_dict_dispatch(ObservableDict self):
+    self.prop.dispatch(self.obj)
 
 
-class ObservableDict(dict):
+cdef class ObservableDict(dict):
     # Internal class to observe changes inside a native python dict.
     def __init__(self, *largs):
         self.prop = largs[0]
         self.obj = largs[1]
         super(ObservableDict, self).__init__(*largs[2:])
 
-    def _weak_return(self, item):
-        if isinstance(item, ref):
-            return item()
+    cdef object _weak_return(self, object item):
+        if PyWeakref_Check(item):
+            return <object>PyWeakref_GetObject(item)
         return item
 
     def __getattr__(self, attr):
         try:
-            return self._weak_return(self.__getitem__(attr))
+            return self._weak_return(self[attr])
         except KeyError:
             return self._weak_return(
                             super(ObservableDict, self).__getattr__(attr))
 
     def __setattr__(self, attr, value):
-        if attr in ('prop', 'obj'):
-            super(ObservableDict, self).__setattr__(attr, value)
-            return
-        self.__setitem__(attr, value)
+        if attr == "prop":
+            self.prop = value
+        elif attr == "obj":
+            self.obj = value
+        else:
+            self.__setitem__(attr, value)
 
     def __setitem__(self, key, value):
         dict.__setitem__(self, key, value)
@@ -1134,7 +1154,7 @@ cdef class BoundedNumericProperty(Property):
         if ps.bnum_use_max == 2:
             return ps.bnum_f_max
 
-    cdef compare_value(self, a, b):
+    cdef int compare_value(self, a, b):
         return a == b
 
     cdef check(self, EventDispatcher obj, value):
@@ -1520,7 +1540,7 @@ cdef class VariableListProperty(Property):
         cdef PropertyStorage ps = obj.__storage[self._name]
         ps.value = ObservableList(self, obj, ps.value)
 
-    cdef compare_value(self, a, b):
+    cdef int compare_value(self, a, b):
         return a == b
 
     cdef check(self, EventDispatcher obj, value):
@@ -1769,7 +1789,7 @@ cdef class ConfigParserProperty(Property):
         # initialize the config objects
         cdef PropertyStorage ps
         Property.link_deps(self, obj, name)
-        self.obj = ref(obj)
+        self.obj = <object>PyWeakref_NewRef(obj, None)
 
         # if the parser already exists, get it now
         if self.config is None:

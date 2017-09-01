@@ -8,13 +8,13 @@ cdef class Observable(ObjectWithUid):
     cdef object __fbind_mapping
     cdef object bound_uid
 
-
 cdef class EventDispatcher(ObjectWithUid):
     cdef dict __event_stack
     cdef dict __properties
     cdef dict __storage
     cdef object __weakref__
     cdef public set _kwargs_applied_init
+    cdef object _proxy_ref
     cpdef dict properties(self)
 
 

@@ -14,19 +14,18 @@ from types import CodeType
 from functools import partial
 from collections import OrderedDict, defaultdict
 
-import kivy.lang.builder  # imported as absolute to avoid circular import
 from kivy.logger import Logger
 from kivy.cache import Cache
 from kivy import require
 from kivy.resources import resource_find
 from kivy.utils import rgba
+from kivy.lang._speed import _handlers, global_idmap
 import kivy.metrics as Metrics
 
 __all__ = ('Parser', 'ParserException')
 
 
 trace = Logger.trace
-global_idmap = {}
 
 # register cache for creating new classtype (template)
 Cache.register('kv.lang')
@@ -44,10 +43,6 @@ lang_key = re.compile('([a-zA-Z_]+)')
 lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
 lang_tr = re.compile('(_\()')
 lang_cls_split_pat = re.compile(', *')
-
-# all the widget handlers, used to correctly unbind all the callbacks then the
-# widget is deleted
-_handlers = defaultdict(partial(defaultdict, list))
 
 
 class ProxyApp(object):
