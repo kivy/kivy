@@ -2,9 +2,12 @@
 Toggle button
 =============
 
-The :class:`ToggleButton` widget acts like a checkbox. When you touch/click it,
-the state toggles between 'normal' and 'down' (as opposed to a :class:`Button`
-that is only 'down' as long as it is pressed).
+.. image:: images/togglebutton.jpg
+    :align: right
+
+The :class:`ToggleButton` widget acts like a checkbox. When you touch or click
+it, the state toggles between 'normal' and 'down' (as opposed to a
+:class:`Button` that is only 'down' as long as it is pressed).
 
 Toggle buttons can also be grouped to make radio buttons - only one button in
 a group can be in a 'down' state. The group name can be a string or any other
