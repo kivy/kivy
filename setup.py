@@ -598,7 +598,12 @@ def determine_gl_flags():
             '/opt/vc/include/interface/vcos/pthreads',
             '/opt/vc/include/interface/vmcs_host/linux']
         flags['library_dirs'] = ['/opt/vc/lib']
-        flags['libraries'] = ['bcm_host', 'EGL', 'GLESv2']
+        from platform import linux_distribution
+        dist = linux_distribution()
+        if if dist[0] == 'debian' and float(dist[1]) >= 9.1:
+            flags['libraries'] = ['bcm_host', 'brcmEGL', 'brcmGLESv2']
+        else:
+            flags['libraries'] = ['bcm_host', 'EGL', 'GLESv2']
     elif platform == 'mali':
         flags['include_dirs'] = ['/usr/include/']
         flags['library_dirs'] = ['/usr/lib/arm-linux-gnueabihf']
