@@ -245,19 +245,6 @@ class ScrollView(StencilView):
     defaults to True.
     '''
 
-    scroll_nested = BooleanProperty(False)
-    '''Enable elegant nested scroll views.
-    Setting this value to true will send overscroll data to parent
-    scrollview to process. The parent scroll view must have this attribute
-    set to False to catch overscroll behaviour, otherwise inelegant
-    scrolling may occur. If this is set to True, another ScrollView in the
-    parent stack must have this value set to False. In the stack between
-    the parent and nested scrollviews you cannot have a RelativeLayout.
-
-    :attr:`scroll_nested` is a :class:`~kivy.properties.BooleanProperty` and
-    defaults to False.
-    '''
-
     def _get_do_scroll(self):
         return (self.do_scroll_x, self.do_scroll_y)
 
@@ -455,6 +442,41 @@ class ScrollView(StencilView):
     _update_effect_bounds_ev = None
     _bind_inactive_bar_color_ev = None
     _check_scroll_move_children = True
+    _scroll_nested = BooleanProperty(False)
+
+    def _get_handle_y_pos(self):
+        if self.bar_pos_y == 'right':
+            px = (self.right - self.bar_width - self.bar_margin)
+        else:
+            px = (self.x + self.bar_margin)
+        py = self.y + self.height * self.vbar[0]
+        return px, py
+
+    def _get_handle_y_size(self):
+        return min(self.bar_width, self.width), self.height * self.vbar[1]
+
+    def _get_handle_x_pos(self):
+        if self.bar_pos_x == 'bottom':
+            py = (self.y + self.bar_margin)
+        else:
+            py = (self.top - self.bar_margin - self.bar_width)
+        px = self.x + self.width * self.hbar[0]
+        return px, py
+
+    def _get_handle_x_size(self):
+        return self.width * self.hbar[1], min(self.bar_width, self.height)
+
+    _handle_y_pos = AliasProperty(_get_handle_y_pos, None, bind=(
+        'right', 'bar_width', 'bar_margin', 'x', 'y', 'height', 'vbar'))
+
+    _handle_y_size = AliasProperty(_get_handle_y_size, None, bind=(
+        'bar_width', 'width', 'height', 'vbar'))
+
+    _handle_x_pos = AliasProperty(_get_handle_x_pos, None, bind=(
+        'top', 'bar_width', 'bar_margin', 'x', 'y', 'width', 'hbar'))
+
+    _handle_x_size = AliasProperty(_get_handle_x_size, None, bind=(
+        'bar_width', 'width', 'height', 'hbar'))
 
     def _set_viewport_size(self, instance, value):
         self.viewport_size = value
@@ -464,7 +486,8 @@ class ScrollView(StencilView):
             value.bind(size=self._set_viewport_size)
             self.viewport_size = value.size
 
-    __events__ = ('on_scroll_start', 'on_scroll_move', 'on_scroll_stop')
+    __events__ = ('on_scroll_start', 'on_scroll_move', 'on_scroll_stop',
+                  'on_scroll_check_nested_children')
 
     def __init__(self, **kwargs):
         self._touch = None
@@ -485,6 +508,7 @@ class ScrollView(StencilView):
         self.register_event_type('on_scroll_start')
         self.register_event_type('on_scroll_move')
         self.register_event_type('on_scroll_stop')
+        self.register_event_type('on_scroll_check_nested_children')
 
         # now add the viewport canvas to our canvas
         self.canvas.add(self.canvas_viewport)
@@ -512,7 +536,7 @@ class ScrollView(StencilView):
         fbind('size', trigger_update_from_scroll)
         fbind('scroll_y', self._update_effect_bounds)
         fbind('scroll_x', self._update_effect_bounds)
-        fbind('scroll_nested', self._update_scroll_nested)
+        fbind('_scroll_nested', self._update_scroll_nested)
 
         update_effect_widget()
         update_effect_x_bounds()
@@ -617,6 +641,8 @@ class ScrollView(StencilView):
     def on_touch_down(self, touch):
         # Create a list to contain referenced nested scroll views
         touch.ud['sv.list'] = []
+        self.dispatch('on_scroll_check_nested_children', touch)
+
         if self.dispatch('on_scroll_start', touch):
             self._touch = touch
             return True
@@ -629,12 +655,11 @@ class ScrollView(StencilView):
     def on_scroll_start(self, touch, check_children=True):
         touch.grab(self)
         if check_children:
-            touch.ud['sv.list'].append(weakref.ref(self.__self__))
             touch.push()
             touch.apply_transform_2d(self.to_local)
             if self.dispatch_children('on_scroll_start', touch):
                 touch.pop()
-                return not self.scroll_nested
+                return not self._scroll_nested
             touch.pop()
 
         if not self.collide_point(*touch.pos):
@@ -766,8 +791,7 @@ class ScrollView(StencilView):
             return False
 
         self_weakref = weakref.ref(self.__self__)
-        if self.scroll_nested and self_weakref in touch.ud['sv.list']:
-
+        if self._scroll_nested and self_weakref in touch.ud['sv.list']:
             touch.push()
             touch.apply_transform_2d(self.to_local)
             touch.apply_transform_2d(self.to_window)
@@ -780,42 +804,49 @@ class ScrollView(StencilView):
             touch.ud['sv.last_x'] = tx
             touch.ud['sv.last_y'] = ty
             touch.pop()
-
-            if touch.ud['sv.touch_direction'] != 'unknown' and \
-                touch.ud['sv.touch_direction'] == 'x' and \
-                abs(tx - _x) > .1:
+            if self.scroll_type != ['bars']  and \
+               touch.ud['sv.touch_direction'] != 'unknown' and \
+               touch.ud['sv.touch_direction'] == 'x' and \
+               abs(tx - _x) > .1:
                 if self.do_scroll_x:
                     vp = self._viewport
                     sh = vp.width - self.width
                     sc = abs(self.effect_x.scroll / float(sh))
                     if sc == 1 and tx - _x < 0:
                         # X Going out of Bounds
-                        return self._throw_touch(touch)
+                        if self._throw_touch(touch):
+                            return True
                     if sc == 0 and tx - _x > 0:
                         # X Going out of Bounds
-                        return self._throw_touch(touch)
+                        if self._throw_touch(touch):
+                            return True
                 else:
                     # No self X Scroll, but meaning to scroll X
                     # Throw to parent.
-                    return self._throw_touch(touch)
+                    if self._throw_touch(touch):
+                        return True
 
-            if touch.ud['sv.touch_direction'] != 'unknown' and \
-                touch.ud['sv.touch_direction'] == 'y' and \
-                abs(ty - _y) > .1:
+            if self.scroll_type != ['bars'] and \
+               touch.ud['sv.touch_direction'] != 'unknown' and \
+               touch.ud['sv.touch_direction'] == 'y' and \
+               abs(ty - _y) > .1:
                 if self.do_scroll_y:
                     vp = self._viewport
                     sh = vp.height - self.height
                     sc = abs(self.effect_y.scroll / float(sh))
                     if sc == 1 and ty - _y < 0:
                         # Y Going out of Bounds
-                        return self._throw_touch(touch)
+                        if self._throw_touch(touch):
+                            return True
                     if sc == 0 and ty - _y > 0:
                         # Y Going out of Bounds
-                        return self._throw_touch(touch)
+                        if self._throw_touch(touch):
+                            return True
                 else:
                     # No self Y Scroll, but meaning to scroll Y
                     # Throw to parent.
-                    return self._throw_touch(touch)
+                    if self._throw_touch(touch):
+                        return True
 
         if self._check_scroll_move_children:
             touch.push()
@@ -849,6 +880,7 @@ class ScrollView(StencilView):
                 return
             ud['dx'] += abs(touch.dx)
             ud['dy'] += abs(touch.dy)
+
             if not (touch.ud['sv.touch_direction'] == 'x' or
                     touch.ud['sv.touch_direction'] == 'y') and \
                     abs(touch.dx) + abs(touch.dy) > 0:
@@ -862,6 +894,7 @@ class ScrollView(StencilView):
             if not (touch.ud['sv.touch_direction'] == 'x' or
                     touch.ud['sv.touch_direction'] == 'y') and \
                     abs(touch.dx) + abs(touch.dy) > 0:
+
                 touch.ud['sv.touch_direction'] = 'x' if \
                     abs(touch.dx) > abs(touch.dy) else 'y'
             if not touch.ud['sv.handled']['x'] and self.do_scroll_x \
@@ -899,6 +932,7 @@ class ScrollView(StencilView):
             ud['dt'] = touch.time_update - ud['time']
             ud['time'] = touch.time_update
             ud['user_stopped'] = True
+
         return rv
 
     def on_touch_up(self, touch):
@@ -1171,6 +1205,7 @@ class ScrollView(StencilView):
         # non-used direction: if you have an horizontal scrollview, a
         # vertical gesture will not "stop" the scroll view to look for an
         # horizontal gesture, until the timeout is done.
+        # and touch.dx + touch.dy == 0:
         if touch.ud[self._get_uid()].get('dx', 0) + \
             touch.ud[self._get_uid()].get('dy', 0) == 0:
 
@@ -1205,8 +1240,7 @@ class ScrollView(StencilView):
         touch.grab_current = None
 
     def _update_scroll_nested(self, instance, value):
-        if self.scroll_nested:
-
+        if self._scroll_nested:
             self.effect_cls = ScrollEffect
             effect_cls = self.effect_cls
             if isinstance(effect_cls, string_types):
@@ -1225,11 +1259,17 @@ class ScrollView(StencilView):
             rv = touch.ud['sv.list'][-1]()._parent_catch_touch(touch)
             if rv:
                 touch.ud[self._get_uid()]['user_stopped'] = True
+            else:
+                touch.grab(self)
             touch.pop()
         return rv
 
     def _parent_catch_touch(self, touch):
         rv = False
+
+        if self.scroll_type == ['bars']:
+            return False
+
         touch.push()
         touch.apply_transform_2d(self.to_parent)
         self._touch = None
@@ -1239,6 +1279,22 @@ class ScrollView(StencilView):
         self._check_scroll_move_children = False
         touch.pop()
         return rv
+
+    def on_scroll_check_nested_children(self, touch):
+        # Add in weakref self to sv.list
+        if len(touch.ud['sv.list']) == 0:
+            # This is the root scrollview
+            touch.ud['sv.list'].append(weakref.ref(self.__self__))
+        else:
+            # This is a nested scrollview
+            touch.ud['sv.list'].append(weakref.ref(self.__self__))
+            self._scroll_nested = True
+            self._update_effect_bounds()
+
+        if self.dispatch_children('on_scroll_check_nested_children', touch):
+            return True
+        else:
+            return False
 
 if __name__ == '__main__':
     from kivy.app import App
