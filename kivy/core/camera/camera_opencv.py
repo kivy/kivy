@@ -6,7 +6,7 @@ OpenCV Camera: Implement CameraBase with OpenCV
 # TODO: make usage of thread or multiprocess
 #
 
-__all__ = ('CameraOpenCV')
+__all__ = ('CameraOpenCV', )
 
 import functools
 import math
@@ -54,6 +54,7 @@ except ImportError:
     except ImportError:
         raise
 
+
 class CameraOpenCV(CameraBase):
     '''
     Implementation of CameraBase using OpenCV
@@ -70,8 +71,8 @@ class CameraOpenCV(CameraBase):
         :param threshold: The minimum frequency of a relevant frame rate
                           measurement.
         :return: The measured frame rate.
-        :raises RuntimeError: The specified number of frames cannot be read from
-                              the video capture.
+        :raises RuntimeError: The specified number of frames cannot be read
+                              from the video capture.
         '''
         frame_count = 0
         rates = Counter()
@@ -81,22 +82,22 @@ class CameraOpenCV(CameraBase):
                 break
             duration = time.time() - start
             Logger.debug('OpenCV: Captured frame {}/{} in {}s.'.format(
-                             frame_count + 1, frame_sample_size, duration))
+                frame_count + 1, frame_sample_size, duration))
             frame_count += 1
             rates[round(1 / duration)] += 1
         if frame_count != frame_sample_size:
             raise RuntimeError(('OpenCV: Unable to measure the frame rate, '
                                 'grabbed only {} out of {} frames.').format(
-                                   frame_count, frame_sample_size))
+                frame_count, frame_sample_size))
         rate_frequencies = rates.most_common()
         Logger.debug('OpenCV: Capture (fps, frequency)s are {!r}.'.format(
-                         rate_frequencies))
+            rate_frequencies))
         return Fraction(
             math.floor(
                 operator.div(
                     *functools.reduce(
                         lambda x, y: (x[0] + operator.mul(*y), x[1] + y[1])
-                                     if y[1] >= threshold else x,
+                        if y[1] >= threshold else x,
                         rate_frequencies,
                         (0, 0)))))
 
@@ -160,7 +161,7 @@ class CameraOpenCV(CameraBase):
                                              self._frame_sample_size)
         Logger.info(("Camera {}'s frame rate is {}fps based on {} "
                      "sample frames.").format(
-                        self._index, frame_rate, self._frame_sample_size))
+            self._index, frame_rate, self._frame_sample_size))
         # The event interval is the inverse of the camera's frame rate.
         self.fps = float(1 / frame_rate)
 

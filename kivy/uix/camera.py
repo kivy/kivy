@@ -83,9 +83,9 @@ class Camera(Image):
     # https://www.learnopencv.com/how-to-find-frame-rate-or-frames-per-second-fps-in-opencv-python-cpp/
     frame_sample_size = BoundedNumericProperty(120, min=1)
     '''Number of frames to sample in order to measure the camera's frame rate.
-    Choose a large number for greater accuracy and a small number for a shorter 
+    Choose a large number for greater accuracy and a small number for a shorter
     delay.
-    
+
     :attr:`frame_sample_size` is a :class:
     ~kivy.properties.BoundedNumericProperty` and defaults to 120.
     '''
