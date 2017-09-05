@@ -15,6 +15,7 @@ import unittest
 import logging
 import os
 from kivy.graphics.cgl import cgl_get_backend_name
+from kivy.input.motionevent import MotionEvent
 log = logging.getLogger('unittest')
 
 _base = object
@@ -288,13 +289,78 @@ class GraphicUnitTest(_base):
         '''Render the new frames and:
 
         * tick the Clock
-
         * dispatch input from all registered providers
-
         * flush all the canvas operations
-
         * redraw Window canvas if necessary
         '''
         from kivy.base import EventLoop
         for i in range(count):
             EventLoop.idle()
+
+
+class UnitTestTouch(MotionEvent):
+    '''Custom MotionEvent representing a single touch. Similar to `on_touch_*`
+    methods from the Widget class, this one introduces:
+
+    * touch_down
+    * touch_move
+    * touch_up
+
+    Create a new touch with::
+
+        touch = UnitTestTouch(x, y)
+
+    then you press it on the default position with::
+
+        touch.touch_down()
+
+    or move it or even release with these simple calls::
+
+        touch.touch_move(new_x, new_y)
+        touch.touch_up()
+    '''
+
+    def __init__(self, x, y):
+        '''Create a MotionEvent instance with X and Y of the first
+        position a touch is at.
+        '''
+
+        from kivy.base import EventLoop
+        self.eventloop = EventLoop
+        win = EventLoop.window
+
+        super(UnitTestTouch, self).__init__(
+            # device, (tuio) id, args
+            "UnitTestTouch", 99, {
+                "x": x / float(win.width),
+                "y": y / float(win.height),
+            }
+        )
+
+    def touch_down(self, *args):
+        self.eventloop.post_dispatch_input("begin", self)
+
+    def touch_move(self, x, y):
+        win = self.eventloop.window
+        self.move({
+            "x": x / float(win.width),
+            "y": y / float(win.height)
+        })
+        self.eventloop.post_dispatch_input("update", self)
+
+    def touch_up(self, *args):
+        self.eventloop.post_dispatch_input("end", self)
+
+    def depack(self, args):
+        # set MotionEvent to touch
+        self.is_touch = True
+
+        # set sx/sy properties to ratio (e.g. X / win.width)
+        self.sx = args['x']
+        self.sy = args['y']
+
+        # set profile to accept x, y and pos properties
+        self.profile = ['pos']
+
+        # run depack after we set the values
+        super(UnitTestTouch, self).depack(args)
