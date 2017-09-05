@@ -21,6 +21,8 @@ _base = object
 if 'mock' != cgl_get_backend_name():
     _base = unittest.TestCase
 
+make_screenshots = os.environ.get('KIVY_UNITTEST_SCREENSHOTS')
+
 
 class GraphicUnitTest(_base):
 
@@ -100,10 +102,8 @@ class GraphicUnitTest(_base):
         if self.framecount > 0:
             return
 
-        # don't create screenshots if a specific var is in env
-        ignore = ['TRAVIS_OS_NAME', 'APPVEYOR_BUILD_FOLDER']
-        from os import environ
-        if any(i in environ for i in ignore):
+        # don't create screenshots if not requested manually
+        if not make_screenshots:
             EventLoop.stop()
             return
 
