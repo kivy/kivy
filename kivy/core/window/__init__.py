@@ -1195,7 +1195,8 @@ class WindowBase(EventDispatcher):
 
             elif not etype:
                 if 'cursor_movement' in me.profile:
-                    if Config.getboolean('kivy', 'dispatch_cursor_movement'):
+                    if Config.getboolean('postproc',
+                                         'dispatch_cursor_movement'):
                         for w in self.children[:]:
                             if w.dispatch('on_motion', me):
                                 return

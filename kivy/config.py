@@ -843,7 +843,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault('kivy', 'log_maxfiles', '100')
 
         elif version == 19:
-            Config.setdefault('kivy', 'dispatch_cursor_movement', '0')
+            Config.setdefault('postproc', 'dispatch_cursor_movement', '0')
 
         # elif version == 1:
         #    # add here the command for upgrading from configuration 0 to 1
