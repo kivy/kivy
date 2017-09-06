@@ -601,7 +601,7 @@ def determine_gl_flags():
         brcm_lib_files = (
             '/opt/vc/lib/libbrcmEGL.so',
             '/opt/vc/lib/libbrcmGLESv2.so')
-        if all((exists(lib) for lib in brcm_lib_files))):
+        if all((exists(lib) for lib in brcm_lib_files)):
             print(
                 'Found brcmEGL and brcmGLES library files'
                 'for rpi platform at /opt/vc/lib/')
