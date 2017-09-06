@@ -964,9 +964,9 @@ class ScreenManager(FloatLayout):
     '''
 
     def __init__(self, **kwargs):
+        self.transition = SlideTransition()
         super(ScreenManager, self).__init__(**kwargs)
         self.fbind('pos', self._update_pos)
-        self.transition = SlideTransition()
 
     def _screen_name_changed(self, screen, name):
         self.property('screen_names').dispatch(self)
