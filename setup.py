@@ -655,6 +655,8 @@ def determine_sdl2():
     if sdl2_flags:
         flags = merge(flags, sdl2_flags)
 
+    if sdl2_flags:
+        flags = merge(flags, sdl2_flags)
     # ensure headers for all the SDL2 and sub libraries are available
     libs_to_check = ['SDL', 'SDL_mixer', 'SDL_ttf', 'SDL_image']
     can_compile = True
