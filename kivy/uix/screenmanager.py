@@ -964,7 +964,8 @@ class ScreenManager(FloatLayout):
     '''
 
     def __init__(self, **kwargs):
-        self.transition = SlideTransition()
+        if 'transition' not in kwargs:
+            self.transition = SlideTransition()
         super(ScreenManager, self).__init__(**kwargs)
         self.fbind('pos', self._update_pos)
 
