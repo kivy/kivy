@@ -598,12 +598,20 @@ def determine_gl_flags():
             '/opt/vc/include/interface/vcos/pthreads',
             '/opt/vc/include/interface/vmcs_host/linux']
         flags['library_dirs'] = ['/opt/vc/lib']
-        from platform import linux_distribution
-        dist = linux_distribution()
-        if dist[0] == 'debian' and float(dist[1]) >= 9.1:
-            flags['libraries'] = ['bcm_host', 'brcmEGL', 'brcmGLESv2']
+        brcm_lib_files = (
+            '/opt/vc/lib/libbrcmEGL.so',
+            '/opt/vc/lib/libbrcmGLESv2.so')
+        if all(exists(lib for lib in brcm_lib_files)):
+            print(
+                'Found brcmEGL and brcmGLES library files'
+                'for rpi platform at /opt/vc/lib/')
+            gl_libs = ['brcmEGL', 'brcmGLESv2']
         else:
-            flags['libraries'] = ['bcm_host', 'EGL', 'GLESv2']
+            print(
+                'Failed to find brcmEGL and brcmGLESv2 library files'
+                'for rpi platform, falling back to EGL and GLESv2.')
+            gl_libs = ['EGL', 'GLESv2']
+        flags['libraries'] = ['bcm_host'] + gl_libs
     elif platform == 'mali':
         flags['include_dirs'] = ['/usr/include/']
         flags['library_dirs'] = ['/usr/lib/arm-linux-gnueabihf']
