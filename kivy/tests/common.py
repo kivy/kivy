@@ -46,7 +46,7 @@ class GraphicUnitTest(_base):
         '''
         from os.path import join, dirname, exists
         results_dir = join(dirname(__file__), 'results')
-        if not exists(results_dir):
+        if make_screenshots and not exists(results_dir):
             log.warning('No result directory found, cancel test.')
             os.mkdir(results_dir)
         self.test_counter = 0
