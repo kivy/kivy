@@ -39,6 +39,11 @@ if PY3:  # fix error with py3's LooseVersion comparisons
     LooseVersion.__eq__ = ver_equal
 
 
+def get_description():
+    with open(join(dirname(__file__), 'README.rst')) as fileh:
+        return fileh.read()
+
+
 def get_version(filename='kivy/version.py'):
     VERSION = kivy.__version__
     DATE = datetime.utcnow().strftime('%Y%m%d')
@@ -954,6 +959,7 @@ if not build_examples:
         description=(
             'A software library for rapid development of '
             'hardware-accelerated multitouch applications.'),
+        long_description=get_description(),
         ext_modules=ext_modules,
         cmdclass=cmdclass,
         packages=[
@@ -1084,4 +1090,5 @@ else:
         url='http://kivy.org',
         license='MIT',
         description=('Kivy examples.'),
+        long_description=get_description(),
         data_files=list(examples.items()))
