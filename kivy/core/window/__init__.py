@@ -1114,9 +1114,12 @@ class WindowBase(EventDispatcher):
     '''
 
     def _get_shape_mode(self):
-        mode = self._get_shaped_mode()['mode']
+        if not self.shaped:
+            return ''
+
+        i = self._get_shaped_mode()['mode']
         modes = ('default', 'binalpha', 'reversebinalpha', 'colorkey')
-        return modes[mode]
+        return modes[i]
 
     def _set_shape_mode(self, value):
         self._set_shaped_mode(value)
