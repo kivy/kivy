@@ -189,6 +189,9 @@ class Scatter(Widget):
     You can put children outside the bounding box of the scatter and still be
     able to touch them.
 
+    :attr:`do_collide_after_children` is a
+    :class:`~kivy.properties.BooleanProperty` and defaults to False.
+
     .. versionadded:: 1.3.0
     '''
 
