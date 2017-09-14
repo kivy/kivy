@@ -227,6 +227,23 @@ class LangTestCase(unittest.TestCase):
         wid.binded_func['on_press']()
         self.assertEquals(wid.a, 1)
 
+    def test_property_trailingspace(self):
+        Builder = self.import_builder()
+        Builder.load_string('''
+<TestClass>:
+    text : 'original'
+    on_press : self.text = 'changed'
+''')
+        wid = TestClass()
+        Builder.apply(wid)
+
+        self.assertTrue('on_press' in wid.binded_func)
+        self.assertEquals(wid.text, 'original')
+
+        # call the on_press and check the result
+        wid.binded_func['on_press']()
+        self.assertEquals(wid.text, 'changed')
+
     def test_kv_python_init(self):
         from kivy.factory import Factory
         from kivy.lang import Builder
@@ -269,3 +286,7 @@ class LangTestCase(unittest.TestCase):
         self.assertIsNone(wid.obj)
         Builder.apply_rules(wid, 'TestClassCustom')
         self.assertEqual(wid.obj, 42)
+
+
+if __name__ == '__main__':
+    unittest.main()
