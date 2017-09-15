@@ -9,7 +9,7 @@ a json file.
 __all__ = ('JsonStore', )
 
 
-from os.path import exists
+from os.path import exists, abspath, dirname
 from kivy.compat import iteritems
 from kivy.storage import AbstractStore
 from json import loads, dump
@@ -29,6 +29,12 @@ class JsonStore(AbstractStore):
 
     def store_load(self):
         if not exists(self.filename):
+            folder = abspath(dirname(self.filename))
+            if not exists(folder):
+                raise IOError(
+                    "The folder '{}' doesn't exist!"
+                    "".format(folder)
+                )
             return
         with open(self.filename) as fd:
             data = fd.read()
@@ -40,7 +46,11 @@ class JsonStore(AbstractStore):
         if not self._is_changed:
             return
         with open(self.filename, 'w') as fd:
-            dump(self._data, fd, indent=self.indent, sort_keys=self.sort_keys)
+            dump(
+                self._data, fd,
+                indent=self.indent,
+                sort_keys=self.sort_keys
+            )
         self._is_changed = False
 
     def store_exists(self, key):
