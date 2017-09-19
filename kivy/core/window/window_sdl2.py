@@ -545,6 +545,7 @@ class WindowSDL(WindowBase):
 
             elif action == 'dropfile':
                 dropfile = args
+                print('WE GOT A DROPFILE ACTION')
                 self.dispatch('on_dropfile', dropfile[0])
             # video resize
             elif action == 'windowresized':
