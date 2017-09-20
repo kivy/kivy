@@ -465,7 +465,15 @@ class WindowSDL(WindowBase):
             self._win.wait_event()
             if not self._pause_loop:
                 break
-            self._win.poll()
+            event = self._win.poll()
+            if event is None:
+                continue
+            # As dropfile is send was the app is still in pause.loop
+            # we need to dispatch it
+            action, args = event[0], event[1:]
+            if action == 'dropfile':
+                dropfile = args
+                self.dispatch('on_dropfile', dropfile[0])
 
         while True:
             event = self._win.poll()
@@ -545,7 +553,6 @@ class WindowSDL(WindowBase):
 
             elif action == 'dropfile':
                 dropfile = args
-                print('WE GOT A DROPFILE ACTION')
                 self.dispatch('on_dropfile', dropfile[0])
             # video resize
             elif action == 'windowresized':
