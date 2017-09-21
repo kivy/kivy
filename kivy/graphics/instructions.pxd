@@ -94,7 +94,7 @@ cdef class Canvas(CanvasBase):
     cdef float _opacity
     cdef CanvasBase _before
     cdef CanvasBase _after
-    cdef void reload(self)
+    cdef void reload(self) except *
     cpdef clear(self)
     cpdef add(self, Instruction c)
     cpdef remove(self, Instruction c)
