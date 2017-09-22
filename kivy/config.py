@@ -370,8 +370,8 @@ class ConfigParser(PythonConfigParser, object):
     .. versionadded:: 1.0.7
     '''
 
-    def __init__(self, name=''):
-        PythonConfigParser.__init__(self)
+    def __init__(self, name='', **kwargs):
+        PythonConfigParser.__init__(self, **kwargs)
         self._sections = OrderedDict()
         self.filename = None
         self._callbacks = []
