@@ -680,32 +680,17 @@ class TextInput(FocusBehavior, Widget):
         if self.replace_crlf:
             substring = substring.replace(u'\r\n', u'\n')
 
-        mode = self.input_filter
-        if mode is not None:
-            chr = type(substring)
-            if chr is bytes:
-                int_pat = self._insert_int_patb
-            else:
-                int_pat = self._insert_int_patu
-
-            if mode == 'int':
-                substring = re.sub(int_pat, chr(''), substring)
-            elif mode == 'float':
-                if '.' in self.text:
-                    substring = re.sub(int_pat, chr(''), substring)
-                else:
-                    substring = '.'.join([re.sub(int_pat, chr(''), k) for k
-                                          in substring.split(chr('.'), 1)])
-            else:
-                substring = mode(substring, from_undo)
-            if not substring:
-                return
-
         self._hide_handles(EventLoop.window)
 
         if not from_undo and self.multiline and self.auto_indent \
                 and substring == u'\n':
             substring = self._auto_indent(substring)
+
+        mode = self.input_filter
+        if mode not in (None, 'int', 'float'):
+            substring = mode(substring, from_undo)
+            if not substring:
+                return
 
         cc, cr = self.cursor
         sci = self.cursor_index
@@ -713,6 +698,14 @@ class TextInput(FocusBehavior, Widget):
         text = self._lines[cr]
         len_str = len(substring)
         new_text = text[:cc] + substring + text[cc:]
+        if mode is not None:
+            if mode == 'int':
+                if not re.match(self._insert_int_pat, new_text):
+                    return
+            elif mode == 'float':
+                if not re.match(self._insert_float_pat, new_text):
+                    return
+
         self._set_line_text(cr, new_text)
 
         wrap = (self._get_text_width(
@@ -2477,8 +2470,8 @@ class TextInput(FocusBehavior, Widget):
     _lines = ListProperty([])
     _hint_text_lines = ListProperty([])
     _editable = BooleanProperty(True)
-    _insert_int_patu = re.compile(u'[^0-9]')
-    _insert_int_patb = re.compile(b'[^0-9]')
+    _insert_int_pat = re.compile(u'^-?[0-9]*$')
+    _insert_float_pat = re.compile(u'^-?[0-9]*\\.?[0-9]*$')
 
     readonly = BooleanProperty(False)
     '''If True, the user will not be able to change the content of a textinput.
