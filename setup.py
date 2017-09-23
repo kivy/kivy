@@ -46,7 +46,11 @@ def get_version(filename='kivy/version.py'):
         GIT_REVISION = check_output(
             ['git', 'rev-parse', 'HEAD']
         ).strip().decode('ascii')
-    except (CalledProcessError, FileNotFoundError):
+    except (CalledProcessError, OSError, IOError) as e:
+        # CalledProcessError has no errno
+        errno = getattr(e, 'errno', None)
+        if errno != 2 and 'CalledProcessError' not in repr(e):
+            raise
         GIT_REVISION = "Unknown"
 
     cnt = (
