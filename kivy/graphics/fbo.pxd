@@ -27,4 +27,4 @@ cdef class Fbo(RenderContext):
     cdef int apply(self) except -1
     cdef void raise_exception(self, str message, int status=?)
     cdef str resolve_status(self, int status)
-    cdef void reload(self)
+    cdef void reload(self) except *
