@@ -95,7 +95,7 @@ cdef class Instruction(ObjectWithUid):
     cdef void set_parent(self, Instruction parent):
         self.parent = parent
 
-    cdef void reload(self):
+    cdef void reload(self) except *:
         self.flags |= GI_NEEDS_UPDATE
         self.flags &= ~GI_NO_APPLY_ONCE
         self.flags &= ~GI_IGNORE
