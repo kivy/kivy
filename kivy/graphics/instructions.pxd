@@ -33,7 +33,7 @@ cdef class Instruction(ObjectWithUid):
         cpdef flag_update(self, int do_parent=?)
     cdef void flag_update_done(self)
     cdef void set_parent(self, Instruction parent)
-    cdef void reload(self)
+    cdef void reload(self) except *
 
     cdef void radd(self, InstructionGroup ig)
     cdef void rinsert(self, InstructionGroup ig, int index)
@@ -44,7 +44,7 @@ cdef class InstructionGroup(Instruction):
     cdef InstructionGroup compiled_children
     cdef GraphicsCompiler compiler
     cdef void build(self)
-    cdef void reload(self)
+    cdef void reload(self) except *
     cpdef add(self, Instruction c)
     cpdef insert(self, int index, Instruction c)
     cpdef remove(self, Instruction c)
@@ -94,7 +94,7 @@ cdef class Canvas(CanvasBase):
     cdef float _opacity
     cdef CanvasBase _before
     cdef CanvasBase _after
-    cdef void reload(self)
+    cdef void reload(self) except *
     cpdef clear(self)
     cpdef add(self, Instruction c)
     cpdef remove(self, Instruction c)
@@ -122,6 +122,6 @@ cdef class RenderContext(Canvas):
     cdef int leave(self) except -1
     cdef int apply(self) except -1
     cpdef draw(self)
-    cdef void reload(self)
+    cdef void reload(self) except *
 
 cdef RenderContext getActiveContext()
