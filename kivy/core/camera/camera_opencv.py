@@ -119,7 +119,7 @@ class CameraOpenCV(CameraBase):
             self.fps = self._device.get(PROPERTY_FPS)
 
         if self.fps <= 0:
-            self.fps = 1 / 30.
+            self.fps = 30
 
         if not self.stopped:
             self.start()
@@ -149,7 +149,7 @@ class CameraOpenCV(CameraBase):
         super(CameraOpenCV, self).start()
         if self._update_ev is not None:
             self._update_ev.cancel()
-        self._update_ev = Clock.schedule_interval(self._update, self.fps)
+        self._update_ev = Clock.schedule_interval(self._update, 1. / self.fps)
 
     def stop(self):
         super(CameraOpenCV, self).stop()
