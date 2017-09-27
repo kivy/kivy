@@ -211,8 +211,10 @@ class MouseMotionEventProvider(MotionEventProvider):
             # if the multitouch_on_demenad feature is not enable
             # (because in that case, we wait to see if multitouch_sim
             # is True or not before doing the multitouch)
-            create_flag = ((not self.disable_multitouch) and
-                (not self.multitouch_on_demenad))
+            create_flag = (
+                (not self.disable_multitouch) and
+                (not self.multitouch_on_demenad)
+            )
             cur.update_graphics(EventLoop.window, create_flag)
         self.waiting_event.append(('begin', cur))
         return cur
@@ -268,11 +270,19 @@ class MouseMotionEventProvider(MotionEventProvider):
 
         cur = self.current_drag
         if cur:
-            if (button in (
-                    'left', 'scrollup', 'scrolldown', 'scrollleft',
-                    'scrollright') and not ('ctrl' in modifiers)
-                or (self.disable_multitouch or 'multitouch_sim' not in
-                    cur.profile or not cur.multitouch_sim)):
+            not_right = button in (
+                'left',
+                'scrollup', 'scrolldown',
+                'scrollleft', 'scrollright'
+            )
+            not_ctrl = not ('ctrl' in modifiers)
+            not_multi = (
+                self.disable_multitouch or
+                'multitouch_sim' not in cur.profile or
+                not cur.multitouch_sim
+            )
+
+            if (not_right and not_ctrl or not_multi):
                 self.remove_touch(cur)
                 self.current_drag = None
             else:
