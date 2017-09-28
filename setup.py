@@ -623,7 +623,7 @@ def determine_gl_flags():
         c_options['use_x11'] = True
         c_options['use_egl'] = True
     else:
-        flags['libraries'] = ['GL']
+        flags['libraries'] = ['GL', 'GLX']
     return flags, base_flags
 
 
