@@ -15,10 +15,11 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         return win.height - y
 
     def mouse_init(self, on_demand=False, disabled=False, scatter=False):
+        # prepare MouseMotionEventProvider
+        # and widget it interacts with
         from kivy.base import EventLoop
         from kivy.uix.button import Button
         from kivy.uix.scatter import Scatter
-        from kivy.graphics import Color, Rectangle
 
         eventloop = EventLoop
         win = eventloop.window
@@ -45,6 +46,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         return (eventloop, win, mouse, wid)
 
     def multitouch_dot_touch(self, button, **kwargs):
+        # touch -> dot appears -> touch again -> dot disappears
         eventloop, win, mouse, wid = self.mouse_init(**kwargs)
 
         # register mouse provider
@@ -194,6 +196,8 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         eventloop.remove_input_provider(mouse)
 
     def multitouch_dot_move(self, button, **kwargs):
+        # touch -> dot appears -> move touch -> dot moves
+        # -> release touch -> touch & dot disappear
         eventloop, win, mouse, wid = self.mouse_init(**kwargs)
 
         # register mouse provider
