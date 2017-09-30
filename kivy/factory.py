@@ -136,7 +136,11 @@ class FactoryBase(object):
         # No class to return, import the module
         if cls is None:
             if item['module']:
-                module = __import__(name=item['module'], fromlist='.')
+                module = __import__(
+                    name=item['module'],
+                    fromlist='*',
+                    level=0  # force absolute
+                )
                 if not hasattr(module, name):
                     raise FactoryException(
                         'No class named <%s> in module <%s>' % (
