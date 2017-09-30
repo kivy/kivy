@@ -5,6 +5,7 @@ Storage tests
 
 import unittest
 from os.path import abspath, dirname, join
+import errno
 import os
 
 
@@ -125,8 +126,9 @@ class StorageTestCase(unittest.TestCase):
             '__i_dont_exist__',
             'test.' + ext
         )
-        with self.assertRaises(IOError):
+        with self.assertRaises(IOError) as context:
             store = store_cls(path)
+        self.assertEqual(context.exception.errno, errno.ENOENT)
 
 
 if __name__ == '__main__':
