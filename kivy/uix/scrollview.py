@@ -451,6 +451,8 @@ class ScrollView(StencilView):
     __events__ = ('on_scroll_start', 'on_scroll_move', 'on_scroll_stop')
 
     def __init__(self, **kwargs):
+        self.is_bar_scrolling = [False, False]
+        self.touch_in_between_scroll = [False, False]
         self._touch = None
         self._trigger_update_from_scroll = Clock.create_trigger(
             self.update_from_scroll, -1)
@@ -551,7 +553,12 @@ class ScrollView(StencilView):
         vp = self._viewport
         if not vp or not self.effect_x:
             return
-
+        if (self.effect_x.velocity == 0 and
+                self.touch_in_between_scroll[0]):
+            self.is_bar_scrolling[0] = False
+            self.touch_in_between_scroll[0] = False
+        if self.touch_in_between_scroll[0]:
+            return
         if self.effect_x.is_manual:
             sw = vp.width - self._effect_x_start_width
         else:
@@ -565,6 +572,12 @@ class ScrollView(StencilView):
     def _update_effect_y(self, *args):
         vp = self._viewport
         if not vp or not self.effect_y:
+            return
+        if (self.effect_y.velocity == 0 and
+                self.touch_in_between_scroll[1]):
+            self.is_bar_scrolling[1] = False
+            self.touch_in_between_scroll[1] = False
+        if self.touch_in_between_scroll[1]:
             return
         if self.effect_y.is_manual:
             sh = vp.height - self._effect_y_start_height
@@ -688,10 +701,16 @@ class ScrollView(StencilView):
                     self._touch_in_handle(
                         self._handle_y_pos, self._handle_y_size, touch)):
                 self.scroll_y = (touch.y - self.y) / self.height
+                if self.is_bar_scrolling[1]:
+                    self.touch_in_between_scroll[1] = True
+                    self._trigger_update_from_scroll()
             elif (ud['in_bar_x'] and not
                     self._touch_in_handle(
                         self._handle_x_pos, self._handle_x_size, touch)):
                 self.scroll_x = (touch.x - self.x) / self.width
+                if self.is_bar_scrolling[0]:
+                    self.touch_in_between_scroll[0] = True
+                    self._trigger_update_from_scroll()
 
         # no mouse scrolling, so the user is going to drag the scrollview with
         # this touch.
@@ -776,6 +795,10 @@ class ScrollView(StencilView):
             if ((ud['dx'] > self.scroll_distance and self.do_scroll_x) or
                     (ud['dy'] > self.scroll_distance and self.do_scroll_y)):
                 ud['mode'] = 'scroll'
+                if (ud['dx'] > self.scroll_distance):
+                    self.is_bar_scrolling[0] = True
+                if (ud['dy'] > self.scroll_distance):
+                    self.is_bar_scrolling[1] = True
 
         if ud['mode'] == 'scroll':
             if not touch.ud['sv.handled']['x'] and self.do_scroll_x \
@@ -816,8 +839,8 @@ class ScrollView(StencilView):
         return rv
 
     def on_touch_up(self, touch):
-        uid = self._get_uid('svavoid')
-        if self._touch is not touch and uid not in touch.ud:
+        if (self._touch is not touch and
+                self._get_uid('svavoid') not in touch.ud):
             # touch is in parents
             touch.push()
             touch.apply_transform_2d(self.to_local)
@@ -1012,6 +1035,9 @@ class ScrollView(StencilView):
         ev()
 
     def _bind_inactive_bar_color(self, *l):
+        if (self.touch_in_between_scroll[0] or
+                self.touch_in_between_scroll[1]):
+            return
         self.funbind('bar_color', self._change_bar_color)
         self.fbind('bar_inactive_color', self._change_bar_color)
         Animation(
