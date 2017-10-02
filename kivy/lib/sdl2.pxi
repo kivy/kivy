@@ -4,7 +4,7 @@
 #whose terms are available in the LICENSE file or at http://www.ignifuga.org/license
 
 
-cdef extern from "SDL_joystick.h":
+cdef extern from "SDL2/SDL_joystick.h":
     cdef struct SDL_Joystick
     cdef int SDL_HAT_CENTERED = 0x00
     cdef int SDL_HAT_UP = 0x01
@@ -12,7 +12,7 @@ cdef extern from "SDL_joystick.h":
     cdef int SDL_HAT_DOWN = 0x04
     cdef int SDL_HAT_LEFT = 0x08
 
-cdef extern from "SDL.h":
+cdef extern from "SDL2/SDL.h":
     ctypedef unsigned char Uint8
     ctypedef unsigned long Uint32
     ctypedef signed long Sint32
@@ -620,7 +620,7 @@ cdef extern from "SDL.h":
     Uint16 AUDIO_F32MSB #0x9120  /**< As above, but big-endian byte order */
     Uint16 AUDIO_F32    #AUDIO_F32LSB
 
-cdef extern from "SDL_shape.h":
+cdef extern from "SDL2/SDL_shape.h":
     cdef SDL_Window * SDL_CreateShapedWindow(
         char *title,
         unsigned int x,
@@ -659,7 +659,7 @@ cdef extern from "SDL_shape.h":
         SDL_WindowShapeMode * shape_mode
     )
 
-cdef extern from "SDL_image.h":
+cdef extern from "SDL2/SDL_image.h":
     ctypedef enum IMG_InitFlags:
         IMG_INIT_JPG
         IMG_INIT_PNG
@@ -673,7 +673,7 @@ cdef extern from "SDL_image.h":
     cdef int *IMG_SavePNG(SDL_Surface *src, char *file)
 
 
-cdef extern from "SDL_ttf.h":
+cdef extern from "SDL2/SDL_ttf.h":
     ctypedef struct TTF_Font
     cdef int TTF_Init()
     cdef TTF_Font *  TTF_OpenFont( char *file, int ptsize)
@@ -828,7 +828,7 @@ cdef extern from "SDL_ttf.h":
     # Get the kerning size of two glyphs */
     cdef int TTF_GetFontKerningSize(TTF_Font *font, int prev_index, int index)
 
-cdef extern from "SDL_audio.h":
+cdef extern from "SDL2/SDL_audio.h":
     cdef int AUDIO_S16SYS
     ctypedef struct SDL_AudioFilter:
         pass
@@ -855,7 +855,7 @@ cdef extern from "SDL_audio.h":
     )
     cdef int SDL_ConvertAudio(SDL_AudioCVT *cvt)
 
-cdef extern from "SDL_mixer.h":
+cdef extern from "SDL2/SDL_mixer.h":
     cdef struct Mix_Chunk:
         int allocated
         Uint8 *abuf
