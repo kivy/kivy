@@ -575,7 +575,7 @@ def determine_base_flags():
 def determine_gl_flags():
     kivy_graphics_include = join(src_path, 'kivy', 'include')
     flags = {'include_dirs': [kivy_graphics_include], 'libraries': []}
-    base_flags = {'include_dirs': [kivy_graphics_include], 'libraries': []}
+    base_flags = {'include_dirs': [kivy_graphics_include], 'libraries': ['GL', 'GLX', 'X11']}
     if c_options['use_opengl_mock']:
         return flags, base_flags
     if platform == 'win32':
