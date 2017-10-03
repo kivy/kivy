@@ -22,10 +22,33 @@ cdef extern from "gl_redirect.h":
     ctypedef signed long int    GLintptr
     ctypedef signed long int    GLsizeiptr
 
+    # X11
     cdef struct _XDisplay:
         pass
 
     ctypedef _XDisplay Display
+
+    cdef struct XVisualInfo:
+        pass
+
+    ctypedef int XID
+    ctypedef XID Bool
+    ctypedef XID Window
+    ctypedef XID Drawable
+    ctypedef XID Pixmap
+
+    # GLX
+    cdef struct __GLXFBConfigRec:
+        pass
+
+    ctypedef __GLXFBConfigRec GLXFBConfig
+
+    cdef struct __GLXcontextRec:
+        pass
+
+    ctypedef __GLXcontextRec *GLXContext
+    ctypedef XID GLXPixmap
+    ctypedef XID GLXDrawable
 
     int GL_DEPTH_BUFFER_BIT
     int GL_STENCIL_BUFFER_BIT
