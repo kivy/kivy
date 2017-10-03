@@ -454,6 +454,14 @@ int x11_idle(void) {
 	return updateTheMessageQueue();
 }
 
+Display *x11_get_display(void) {
+	return Xdisplay;
+}
+
+Window x11_get_window(void) {
+	return window_handle;
+}
+
 #include "window_x11_keytab.c"
 
 long x11_keycode_to_keysym(unsigned int keycode, int shiftDown) {

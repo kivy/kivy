@@ -15,6 +15,10 @@ from kivy.base import stopTouchApp, EventLoop, ExceptionManager
 from kivy.utils import platform
 from os import environ
 
+from libc.stdint cimport uintptr_t
+
+from kivy.graphics.cgl cimport Display, Window
+
 # force include the file
 cdef extern from "window_x11_core.c":
     pass
@@ -64,6 +68,8 @@ cdef extern void x11_set_title(char *title)
 cdef extern int x11_idle()
 cdef extern int x11_get_width()
 cdef extern int x11_get_height()
+cdef extern Display *x11_get_display()
+cdef extern Window x11_get_window()
 
 ctypedef int (*event_cb_t)(XEvent *event)
 cdef extern void x11_set_event_callback(event_cb_t callback)
@@ -258,4 +264,10 @@ class WindowX11(WindowBase):
                 return True
         super(WindowX11, self).on_keyboard(key, scancode,
             codepoint=codepoint, modifier=modifier)
+
+    def get_xdisplay(self):
+        return <uintptr_t>x11_get_display()
+
+    def get_xwindow(self):
+        return <uintptr_t>x11_get_window()
 
