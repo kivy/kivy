@@ -581,8 +581,9 @@ def texture_create_from_pixmap(pixmap, size):
     texture.mag_filter = 'linear'
 
     texture.bind()
-    bindTexImage(pixmap)
+    glxpixmap = bindTexImage(pixmap)
     texture.flip_vertical()
+    texture._pixmap = glxpixmap
 
     return texture
 
@@ -660,6 +661,7 @@ cdef class Texture:
         self._source        = source
         self._nofree        = 0
         self._callback      = callback
+        self._pixmap        = None
 
         if texid == 0:
             self.flags |= TI_NEED_GEN
@@ -706,6 +708,10 @@ cdef class Texture:
             if cb.is_dead() or cb() is callback:
                 self.observers.remove(cb)
                 continue
+
+    def release_pixmap(self):
+        if self._pixmap:
+            releaseTexImage(self._pixmap)
 
     cdef void allocate(self):
         cdef int iglfmt, glfmt, iglbufferfmt, datasize, dataerr = 0
