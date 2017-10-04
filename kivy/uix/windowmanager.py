@@ -130,3 +130,30 @@ class BaseWindowManager(EventDispatcher):
 
     def on_configure_request(self, event):
         pass
+
+class CompositingWindowManager(BaseWindowManager):
+    required_extensions = ['Composite']
+
+    def check_extensions(self, extensions):
+        for extension in extensions:
+            if self.display.has_extension(extension):
+                Logger.info('WindowMgr: has extension {}'.format(extension))
+            else:
+                Logger.error('WindowMgr: no support for extension {}'.format(extension))
+
+    def setup_wm(self, *args):
+        self.check_extensions(self.required_extensions)
+
+        super(CompositingWindowManager, self).setup_wm()
+        self.root_win.composite_redirect_subwindows(RedirectAutomatic)
+        self.overlay_window = self.root_win.composite_get_overlay_window().overlay_window
+        self.display.sync()
+
+        app = App.get_running_app()
+        for window in self.root_win.query_tree().children:
+            if window.id == KivyWindow.get_xwindow():
+                Logger.info('WindowMgr: Found kivy window')
+                window.reparent(self.overlay_window, x=0, y=0)
+                window.map()
+                self.display.sync()
+                break
