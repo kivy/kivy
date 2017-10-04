@@ -19,6 +19,7 @@ from kivy.clock import Clock
 from kivy.core.window import Window as KivyWindow
 
 import select
+import sys
 
 try:
     import Xlib.display
@@ -29,6 +30,11 @@ try:
 except ModuleNotFoundError:
     Logger.warning('WindowMgr: Unable to import Xlib, please install it with "pip install python-xlib"')
 
+SUPPORTED_WINDOW_PROVIDERS = ['WindowX11']
+
+if KivyWindow.__class__.__name__ not in SUPPORTED_WINDOW_PROVIDERS:
+    Logger.error('WindowMgr: Unsupported window provider')
+    sys.exit(1)
 
 class XWindow(Widget):
     texture = ObjectProperty(None)
