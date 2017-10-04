@@ -91,6 +91,11 @@ cdef extern from "SDL.h":
         SDL_FALSE = 0
         SDL_TRUE = 1
 
+    cdef struct SDL_version:
+        Uint8 major
+        Uint8 minor
+        Uint8 patch
+
     cdef struct SDL_Rect:
         int x, y
         int w, h
@@ -447,6 +452,7 @@ cdef extern from "SDL.h":
     cdef int SDL_INIT_EVENTS         = 0x00004000
     cdef int SDL_INIT_NOPARACHUTE    = 0x00100000  # Don't catch fatal signals */
 
+    cdef void SDL_GetVersion(SDL_version * ver)
     cdef SDL_Renderer * SDL_CreateRenderer(SDL_Window * window, int index, Uint32 flags)
     cdef void SDL_DestroyRenderer (SDL_Renderer * renderer)
     cdef SDL_Texture * SDL_CreateTexture(SDL_Renderer * renderer, Uint32 format, int access, int w, int h)
@@ -967,3 +973,51 @@ cdef extern from "SDL_mixer.h":
     cdef Mix_Chunk *  Mix_GetChunk(int channel)
     cdef void  Mix_CloseAudio()
     cdef char * Mix_GetError()
+
+include '../core/window/window_attrs.pxi'
+cdef extern from "SDL_syswm.h":
+    cdef enum SDL_SYSWM_TYPE:
+        SDL_SYSWM_UNKNOWN
+        SDL_SYSWM_WINDOWS
+        SDL_SYSWM_X11
+        SDL_SYSWM_DIRECTFB
+        SDL_SYSWM_COCOA
+        SDL_SYSWM_UIKIT
+        SDL_SYSWM_WAYLAND
+        SDL_SYSWM_MIR
+        SDL_SYSWM_WINRT
+        SDL_SYSWM_ANDROID
+        SDL_SYSWM_VIVANTE
+        SDL_SYSWM_OS2
+
+    IF UNAME_SYSNAME == 'Windows':
+        cdef struct _wm_info_win:
+            HWND window
+            HDC hdc
+            HINSTANCE hinstance
+
+    IF UNAME_SYSNAME == 'Linux':
+        cdef struct _wm_info_wl:
+            wl_display *display
+            wl_surface *surface
+            wl_shell_surface *shell_surface
+
+        cdef struct _wm_info_x11:
+            Display *display
+            Window window
+
+    IF UNAME_SYSNAME == 'Windows':
+        cdef union _wm_info:
+            _wm_info_win win
+
+    IF UNAME_SYSNAME == 'Linux':
+        cdef union _wm_info:
+            _wm_info_wl wl
+            _wm_info_x11 x11
+
+    cdef struct SDL_SysWMinfo:
+        SDL_version version
+        SDL_SYSWM_TYPE subsystem
+        _wm_info info
+
+    cdef SDL_bool SDL_GetWindowWMInfo(SDL_Window *window, SDL_SysWMinfo *info)
