@@ -9,6 +9,7 @@ exemptLabels:
   - pinned
   - important
   - regression
+  - bounty
 # Label to use when marking as stale
 staleLabel: stale
 # Comment to post when marking as stale. Set to `false` to disable
