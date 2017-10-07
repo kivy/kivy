@@ -11,6 +11,7 @@ exemptLabels:
   - regression
   - bounty
   - triaged
+  - confirmed
   - PR
 # Label to use when marking as stale
 staleLabel: stale
