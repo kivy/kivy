@@ -245,6 +245,31 @@ class UrlRequest(Thread):
         if self in g_requests:
             g_requests.remove(self)
 
+    def _parse_url(self, url):
+        parse = urlparse(url)
+        port = parse.port
+
+        # append user + pass to hostname if specified
+        if parse.username and parse.password:
+            host = '@'.join([
+                ':'.join([
+                    parse.username or '',
+                    parse.password or ''
+                ]),
+                parse.hostname
+            ])
+
+        elif parse.username and not parse.password:
+            host = '@'.join([
+                parse.username,
+                parse.hostname
+            ])
+
+        elif not parse.username and not parse.password:
+            host = parse.hostname
+
+        return host, port, parse
+
     def _fetch_url(self, url, body, headers, q):
         # Parse and fetch the current url
         trigger = self._trigger_result
@@ -264,17 +289,10 @@ class UrlRequest(Thread):
                 id(self), headers))
 
         # parse url
-        parse = urlparse(url)
+        host, port, parse = self._parse_url(url)
 
         # translate scheme to connection class
         cls = self.get_connection_for_scheme(parse.scheme)
-
-        # correctly determine host/port
-        port = None
-        host = parse.netloc.split(':')
-        if len(host) > 1:
-            port = int(host[1])
-        host = host[0]
 
         # reconstruct path to pass on the request
         path = parse.path
