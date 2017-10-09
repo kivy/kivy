@@ -36,7 +36,7 @@ Complete guide
 
 #. Install Cython and Kivy::
 
-    $ pip install -I Cython==0.23
+    $ pip install -U Cython
     $ pip install -U kivy
 
 #. Install PyInstaller::
