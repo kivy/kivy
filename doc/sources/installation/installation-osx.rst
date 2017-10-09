@@ -66,6 +66,10 @@ Using The Kivy.app
 ------------------
 
 .. note::
+    Kivy.app is not available for download at the moment. For details,
+    see `this <https://github.com/kivy/kivy/issues/5211>`_ issue.
+
+.. note::
 
     This method has only been tested on OS X 10.7 and above (64-bit).
     For versions prior to 10.7 or 10.7 32-bit, you have to install the

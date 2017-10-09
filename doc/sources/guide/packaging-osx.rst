@@ -233,6 +233,10 @@ Using the Kivy SDK
 ------------------
 
 .. note::
+    Kivy.app is not available for download at the moment. For details,
+    see `this <https://github.com/kivy/kivy/issues/5211>`_ issue.
+
+.. note::
     Packaging Kivy applications with the following method must be done inside
     OS X, 32-bit platforms are no longer supported.
 
