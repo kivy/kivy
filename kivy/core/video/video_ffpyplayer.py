@@ -252,16 +252,18 @@ class VideoFFPy(VideoBase):
         self._change_state('playing')
 
         while not self._ffplayer_need_quit:
+            seek_happened = False
             if seek_queue:
                 vals = seek_queue[:]
                 del seek_queue[:len(vals)]
                 ffplayer.seek(
                     vals[-1] * ffplayer.get_metadata()['duration'],
                     relative=False)
+                seek_happened = True
                 self._next_frame = None
 
             # Get next frame if paused:
-            if self._next_frame is None and ffplayer.get_pause():
+            if seek_happened and ffplayer.get_pause():
                 ffplayer.set_volume(0.0)  # Try to do it silently.
                 ffplayer.set_pause(False)
                 try:
