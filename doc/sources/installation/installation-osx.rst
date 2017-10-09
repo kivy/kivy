@@ -60,7 +60,7 @@ You can install Kivy with Macports and pip using the following steps:
 
     - To install the development version, use this in the second step::
 
-        $ USE_OSX_FRAMEWORKS=0 pip install https://github.com/kivy/kivy/archive/master.zip
+        $ pip install https://github.com/kivy/kivy/archive/master.zip
 
 Using The Kivy.app
 ------------------
