@@ -267,6 +267,8 @@ class VideoFFPy(VideoBase):
                 ffplayer.set_volume(0.0)  # Try to do it silently.
                 ffplayer.set_pause(False)
                 try:
+                    # We don't know concrete number of frames to skip,
+                    # this number worked fine on couple of tested videos:
                     to_skip = 6
                     while True:
                         frame, val = ffplayer.get_frame(show=False)
