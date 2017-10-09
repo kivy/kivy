@@ -180,9 +180,9 @@ else:
                 elif key == 'provider':
                     self.provider = value
                 elif key == 'use_regex':
-                    self.use_regex = bool(value)
+                    self.use_regex = bool(int(value))
                 elif key == 'select_all':
-                    self.select_all = bool(value)
+                    self.select_all = bool(int(value))
                 elif key == 'param':
                     self.args.append(value)
                 else:
