@@ -56,6 +56,7 @@ If you want a synchronous request, you can call the wait() method.
 
 '''
 
+from base64 import b64encode
 from collections import deque
 from threading import Thread
 from json import loads
@@ -247,28 +248,22 @@ class UrlRequest(Thread):
 
     def _parse_url(self, url):
         parse = urlparse(url)
+        host = parse.hostname
         port = parse.port
+        userpass = None
 
         # append user + pass to hostname if specified
         if parse.username and parse.password:
-            host = '@'.join([
-                ':'.join([
-                    parse.username or '',
-                    parse.password or ''
-                ]),
-                parse.hostname
-            ])
+            userpass = {
+                "Authorization": "Basic {}".format(b64encode(
+                    "{}:{}".format(
+                        parse.username,
+                        parse.password
+                    ).encode('utf-8')
+                ).decode('utf-8'))
+            }
 
-        elif parse.username and not parse.password:
-            host = '@'.join([
-                parse.username,
-                parse.hostname
-            ])
-
-        elif not parse.username and not parse.password:
-            host = parse.hostname
-
-        return host, port, parse
+        return host, port, userpass, parse
 
     def _fetch_url(self, url, body, headers, q):
         # Parse and fetch the current url
@@ -289,7 +284,12 @@ class UrlRequest(Thread):
                 id(self), headers))
 
         # parse url
-        host, port, parse = self._parse_url(url)
+        host, port, userpass, parse = self._parse_url(url)
+        if userpass and not headers:
+            headers = userpass
+        elif userpass and headers:
+            key = list(userpass.keys())[0]
+            headers[key] = userpass[key]
 
         # translate scheme to connection class
         cls = self.get_connection_for_scheme(parse.scheme)
