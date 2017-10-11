@@ -570,10 +570,8 @@ class WindowSDL(WindowBase):
             elif action in ('keydown', 'keyup'):
                 mod, key, scancode, kstr = args
 
-                try:
+                if key in self.key_map:
                     key = self.key_map[key]
-                except KeyError:
-                    pass
 
                 if action == 'keydown':
                     self._update_modifiers(mod, key)
@@ -581,9 +579,9 @@ class WindowSDL(WindowBase):
                     # ignore the key, it has been released
                     self._update_modifiers(mod)
 
-                try:
+                if key in self.convert_key_map:
                     temp_key = self.convert_key_map[key]
-                except KeyError:
+                else:
                     temp_key = key
 
                 # if mod in self._meta_keys:
