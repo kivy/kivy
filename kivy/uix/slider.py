@@ -250,12 +250,12 @@ class Slider(Widget):
 
     sensitivity = OptionProperty('all', options=('all', 'handle'))
     """Whether the touch collides with the whole body of the widget
-    or with the slider button part only.
+    or with the slider handle part only.
 
     .. versionadded:: 1.10.1
 
     :attr:`sensitivity` is a :class:`~kivy.properties.OptionProperty`
-    and defaults to 'all'.
+    and defaults to 'all'. Can take a value of 'all' or 'handle'.
     """
 
     # The following two methods constrain the slider's value
