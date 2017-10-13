@@ -255,8 +255,9 @@ class VideoFFPy(VideoBase):
         while not self._ffplayer_need_quit:
             seek_happened = False
             if seek_queue:
-                percent, precise = seek_queue[-1]
-                del seek_queue[:]
+                vals = seek_queue[:]
+                del seek_queue[:len(vals)]
+                percent, precise = vals[-1]
                 ffplayer.seek(
                     percent * ffplayer.get_metadata()['duration'],
                     relative=False,
