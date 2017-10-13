@@ -174,7 +174,7 @@ class VideoBase(EventDispatcher):
         '''
         pass
 
-    def seek(self, percent):
+    def seek(self, percent, precise=True):
         '''Move on percent position'''
         pass
 

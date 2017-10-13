@@ -257,9 +257,12 @@ class VideoFFPy(VideoBase):
             if seek_queue:
                 vals = seek_queue[:]
                 del seek_queue[:len(vals)]
+                percent, precise = vals[-1]
                 ffplayer.seek(
-                    vals[-1] * ffplayer.get_metadata()['duration'],
-                    relative=False)
+                    percent * ffplayer.get_metadata()['duration'],
+                    relative=False,
+                    accurate=precise
+                )
                 seek_happened = True
                 self._next_frame = None
 
@@ -313,10 +316,10 @@ class VideoFFPy(VideoBase):
                     val = val if val else (1 / 30.)
                 sleep(val)
 
-    def seek(self, percent):
+    def seek(self, percent, precise=True):
         if self._ffplayer is None:
             return
-        self._seek_queue.append(percent)
+        self._seek_queue.append((percent, precise,))
 
     def stop(self):
         self.unload()
