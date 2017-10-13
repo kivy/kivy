@@ -46,7 +46,11 @@ def get_version(filename='kivy/version.py'):
         GIT_REVISION = check_output(
             ['git', 'rev-parse', 'HEAD']
         ).strip().decode('ascii')
-    except CalledProcessError:
+    except (CalledProcessError, OSError, IOError) as e:
+        # CalledProcessError has no errno
+        errno = getattr(e, 'errno', None)
+        if errno != 2 and 'CalledProcessError' not in repr(e):
+            raise
         GIT_REVISION = "Unknown"
 
     cnt = (
@@ -598,7 +602,20 @@ def determine_gl_flags():
             '/opt/vc/include/interface/vcos/pthreads',
             '/opt/vc/include/interface/vmcs_host/linux']
         flags['library_dirs'] = ['/opt/vc/lib']
-        flags['libraries'] = ['bcm_host', 'EGL', 'GLESv2']
+        brcm_lib_files = (
+            '/opt/vc/lib/libbrcmEGL.so',
+            '/opt/vc/lib/libbrcmGLESv2.so')
+        if all((exists(lib) for lib in brcm_lib_files)):
+            print(
+                'Found brcmEGL and brcmGLES library files'
+                'for rpi platform at /opt/vc/lib/')
+            gl_libs = ['brcmEGL', 'brcmGLESv2']
+        else:
+            print(
+                'Failed to find brcmEGL and brcmGLESv2 library files'
+                'for rpi platform, falling back to EGL and GLESv2.')
+            gl_libs = ['EGL', 'GLESv2']
+        flags['libraries'] = ['bcm_host'] + gl_libs
     elif platform == 'mali':
         flags['include_dirs'] = ['/usr/include/']
         flags['library_dirs'] = ['/usr/lib/arm-linux-gnueabihf']
@@ -673,7 +690,6 @@ gl_flags, gl_flags_base = determine_gl_flags()
 # all the dependencies have been found manually with:
 # grep -inr -E '(cimport|include)' kivy/graphics/context_instructions.{pxd,pyx}
 graphics_dependencies = {
-    'gl_redirect.h': ['common_subset.h', 'gl_mock.h'],
     'buffer.pyx': ['common.pxi'],
     'context.pxd': ['instructions.pxd', 'texture.pxd', 'vbo.pxd', 'cgl.pxd'],
     'cgl.pxd': ['common.pxi', 'config.pxi', 'gl_redirect.h'],
@@ -867,7 +883,23 @@ def resolve_dependencies(fn, depends):
     deps = []
     get_dependencies(fn, deps)
     get_dependencies(fn.replace('.pyx', '.pxd'), deps)
-    return [expand(src_path, 'graphics', x) for x in deps]
+
+    deps_final = []
+    paths_to_test = ['graphics', 'include']
+    for dep in deps:
+        found = False
+        for path in paths_to_test:
+            filename = expand(src_path, path, dep)
+            if exists(filename):
+                deps_final.append(filename)
+                found = True
+                break
+        if not found:
+            print('ERROR: Dependency for {} not resolved: {}'.format(
+                fn, dep
+            ))
+
+    return deps_final
 
 
 def get_extensions_from_sources(sources):

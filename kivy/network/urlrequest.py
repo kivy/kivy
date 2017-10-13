@@ -56,6 +56,7 @@ If you want a synchronous request, you can call the wait() method.
 
 '''
 
+from base64 import b64encode
 from collections import deque
 from threading import Thread
 from json import loads
@@ -245,6 +246,25 @@ class UrlRequest(Thread):
         if self in g_requests:
             g_requests.remove(self)
 
+    def _parse_url(self, url):
+        parse = urlparse(url)
+        host = parse.hostname
+        port = parse.port
+        userpass = None
+
+        # append user + pass to hostname if specified
+        if parse.username and parse.password:
+            userpass = {
+                "Authorization": "Basic {}".format(b64encode(
+                    "{}:{}".format(
+                        parse.username,
+                        parse.password
+                    ).encode('utf-8')
+                ).decode('utf-8'))
+            }
+
+        return host, port, userpass, parse
+
     def _fetch_url(self, url, body, headers, q):
         # Parse and fetch the current url
         trigger = self._trigger_result
@@ -264,17 +284,15 @@ class UrlRequest(Thread):
                 id(self), headers))
 
         # parse url
-        parse = urlparse(url)
+        host, port, userpass, parse = self._parse_url(url)
+        if userpass and not headers:
+            headers = userpass
+        elif userpass and headers:
+            key = list(userpass.keys())[0]
+            headers[key] = userpass[key]
 
         # translate scheme to connection class
         cls = self.get_connection_for_scheme(parse.scheme)
-
-        # correctly determine host/port
-        port = None
-        host = parse.netloc.split(':')
-        if len(host) > 1:
-            port = int(host[1])
-        host = host[0]
 
         # reconstruct path to pass on the request
         path = parse.path

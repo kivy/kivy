@@ -139,7 +139,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         self.alt_touch = None
         self.disable_on_activity = False
         self.disable_multitouch = False
-        self.multitouch_on_demenad = False
+        self.multitouch_on_demand = False
 
         # split arguments
         args = args.split(',')
@@ -152,7 +152,7 @@ class MouseMotionEventProvider(MotionEventProvider):
             elif arg == 'disable_multitouch':
                 self.disable_multitouch = True
             elif arg == 'multitouch_on_demand':
-                self.multitouch_on_demenad = True
+                self.multitouch_on_demand = True
             else:
                 Logger.error('Mouse: unknown parameter <%s>' % arg)
 
@@ -201,18 +201,20 @@ class MouseMotionEventProvider(MotionEventProvider):
         id = 'mouse' + str(self.counter)
         args = [rx, ry, button]
         if do_graphics:
-            args += [not self.multitouch_on_demenad]
+            args += [not self.multitouch_on_demand]
         self.current_drag = cur = MouseMotionEvent(self.device, id=id,
                                                    args=args)
         cur.is_double_tap = is_double_tap
         self.touches[id] = cur
         if do_graphics:
             # only draw red circle if multitouch is not disabled, and
-            # if the multitouch_on_demenad feature is not enable
+            # if the multitouch_on_demand feature is not enable
             # (because in that case, we wait to see if multitouch_sim
             # is True or not before doing the multitouch)
-            create_flag = ((not self.disable_multitouch) and
-                (not self.multitouch_on_demenad))
+            create_flag = (
+                (not self.disable_multitouch) and
+                (not self.multitouch_on_demand)
+            )
             cur.update_graphics(EventLoop.window, create_flag)
         self.waiting_event.append(('begin', cur))
         return cur
@@ -267,12 +269,25 @@ class MouseMotionEventProvider(MotionEventProvider):
             self.current_drag = None
 
         cur = self.current_drag
-        if (cur and (self.disable_multitouch or 'multitouch_sim' not in
-                     cur.profile or not cur.multitouch_sim)) or\
-            (button in ('left', 'scrollup', 'scrolldown', 'scrollleft',
-                        'scrollright') and cur and not ('ctrl' in modifiers)):
-            self.remove_touch(cur)
-            self.current_drag = None
+        if cur:
+            not_right = button in (
+                'left',
+                'scrollup', 'scrolldown',
+                'scrollleft', 'scrollright'
+            )
+            not_ctrl = not ('ctrl' in modifiers)
+            not_multi = (
+                self.disable_multitouch or
+                'multitouch_sim' not in cur.profile or
+                not cur.multitouch_sim
+            )
+
+            if (not_right and not_ctrl or not_multi):
+                self.remove_touch(cur)
+                self.current_drag = None
+            else:
+                cur.update_graphics(EventLoop.window, True)
+
         if self.alt_touch:
             self.remove_touch(self.alt_touch)
             self.alt_touch = None

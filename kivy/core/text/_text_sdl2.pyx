@@ -8,7 +8,6 @@ TODO:
 
 include '../../lib/sdl2.pxi'
 
-from libc.string cimport memset
 from kivy.core.image import ImageData
 from kivy.compat import PY2
 
@@ -40,7 +39,6 @@ cdef class _SurfaceContainer:
         self.surface = SDL_CreateRGBSurface(0,
             w, h, 32,
             0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000)
-        memset(self.surface.pixels, 0, w * h * 4)
 
     def __dealloc__(self):
         if self.surface != NULL:
@@ -112,6 +110,7 @@ cdef class _SurfaceContainer:
                 else TTF_RenderUTF8_Solid(font, <char *>bytes_text, c)
                 )
             if fgst == NULL:
+                SDL_FreeSurface(st)
                 return
             fgr.x = outline_width
             fgr.y = outline_width

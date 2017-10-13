@@ -189,6 +189,9 @@ class Scatter(Widget):
     You can put children outside the bounding box of the scatter and still be
     able to touch them.
 
+    :attr:`do_collide_after_children` is a
+    :class:`~kivy.properties.BooleanProperty` and defaults to False.
+
     .. versionadded:: 1.3.0
     '''
 
@@ -509,9 +512,6 @@ class Scatter(Widget):
         touch.push()
         touch.apply_transform_2d(self.to_local)
         if super(Scatter, self).on_touch_down(touch):
-            # ensure children don't have to do it themselves
-            if 'multitouch_sim' in touch.profile:
-                touch.multitouch_sim = True
             touch.pop()
             self._bring_to_front(touch)
             return True

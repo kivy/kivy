@@ -2,7 +2,7 @@
 import unittest
 
 
-class AnimationTestCase(unittest.TestCase):
+class VideoTestCase(unittest.TestCase):
 
     def test_video_unload(self):
         # fix issue https://github.com/kivy/kivy/issues/2275

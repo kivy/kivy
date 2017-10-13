@@ -171,8 +171,7 @@ class Video(Image):
     def _do_video_load(self, *largs):
         if CoreVideo is None:
             return
-        if self._video:
-            self._video.stop()
+        self.unload()
         if not self.source:
             self._video = None
             self.texture = None
@@ -243,6 +242,7 @@ class Video(Image):
             self._video.stop()
             self._video.unload()
             self._video = None
+        self.loaded = False
 
 
 if __name__ == '__main__':

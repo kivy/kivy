@@ -121,7 +121,7 @@ class LayoutSelectionBehavior(CompoundSelectionBehavior):
         If the view is a instance of
         :class:`~kivy.uix.recycleview.views.RecycleDataViewBehavior`, its
         :meth:`~kivy.uix.recycleview.views.RecycleDataViewBehavior.\
-apply_selection` method will be called everything the view needs to refresh
+apply_selection` method will be called every time the view needs to refresh
         the selection state. Otherwise, the this method is responsible
         for applying the selection.
 

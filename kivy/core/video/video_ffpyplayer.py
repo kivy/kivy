@@ -253,6 +253,7 @@ class VideoFFPy(VideoBase):
         self._change_state('playing')
 
         while not self._ffplayer_need_quit:
+            seek_happened = False
             if seek_queue:
                 percent, precise = seek_queue[-1]
                 del seek_queue[:]
@@ -261,11 +262,42 @@ class VideoFFPy(VideoBase):
                     relative=False,
                     accurate=precise
                 )
+                seek_happened = True
                 self._next_frame = None
 
-            t1 = time.time()
-            frame, val = ffplayer.get_frame()
-            t2 = time.time()
+            # Get next frame if paused:
+            if seek_happened and ffplayer.get_pause():
+                ffplayer.set_volume(0.0)  # Try to do it silently.
+                ffplayer.set_pause(False)
+                try:
+                    # We don't know concrete number of frames to skip,
+                    # this number worked fine on couple of tested videos:
+                    to_skip = 6
+                    while True:
+                        frame, val = ffplayer.get_frame(show=False)
+                        # Exit loop on invalid val:
+                        if val in ('paused', 'eof'):
+                            break
+                        # Exit loop on seek_queue updated:
+                        if seek_queue:
+                            break
+                        # Wait for next frame:
+                        if frame is None:
+                            sleep(0.005)
+                            continue
+                        # Wait until we skipped enough frames:
+                        to_skip -= 1
+                        if to_skip == 0:
+                            break
+                    # Assuming last frame is actual, just get it:
+                    frame, val = ffplayer.get_frame(force_refresh=True)
+                finally:
+                    ffplayer.set_pause(bool(self._state == 'paused'))
+                    ffplayer.set_volume(self._volume)
+            # Get next frame regular:
+            else:
+                frame, val = ffplayer.get_frame()
+
             if val == 'eof':
                 sleep(0.2)
                 if not did_dispatch_eof:
@@ -306,7 +338,8 @@ class VideoFFPy(VideoBase):
         self._out_fmt = 'rgba'
         ff_opts = {
             'paused': True,
-            'out_fmt': self._out_fmt
+            'out_fmt': self._out_fmt,
+            'sn': True,
         }
         self._ffplayer = MediaPlayer(
                 self._filename, callback=self._player_callback,

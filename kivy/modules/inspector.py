@@ -388,7 +388,7 @@ class Inspector(FloatLayout):
         # modalviews before others
         win_children = self.win.children
         children = chain(
-            (c for c in reversed(win_children) if isinstance(c, ModalView)),
+            (c for c in win_children if isinstance(c, ModalView)),
             (c for c in reversed(win_children) if not isinstance(c, ModalView))
         )
         for child in children:

@@ -288,7 +288,7 @@ cdef float g_fontscale = -1
 
 NUMERIC_FORMATS = ('in', 'px', 'dp', 'sp', 'pt', 'cm', 'mm')
 
-cpdef float dpi2px(value, ext):
+cpdef float dpi2px(value, ext) except *:
     # 1in = 2.54cm = 25.4mm = 72pt = 12pc
     global g_dpi, g_density, g_fontscale
     if g_dpi == -1:
@@ -633,13 +633,13 @@ cdef class NumericProperty(Property):
                 obj.__class__.__name__,
                 self.name, x))
 
-    cdef float parse_str(self, EventDispatcher obj, value):
+    cdef float parse_str(self, EventDispatcher obj, value) except *:
         if value[-2:] in NUMERIC_FORMATS:
             return self.parse_list(obj, value[:-2], value[-2:])
         else:
             return float(value)
 
-    cdef float parse_list(self, EventDispatcher obj, value, ext):
+    cdef float parse_list(self, EventDispatcher obj, value, ext) except *:
         cdef PropertyStorage ps = obj.__storage[self._name]
         ps.numeric_fmt = ext
         return dpi2px(value, ext)
@@ -1599,10 +1599,10 @@ cdef class VariableListProperty(Property):
                 obj.__class__.__name__,
                 self.name, x))
 
-    cdef float parse_str(self, EventDispatcher obj, value):
+    cdef float parse_str(self, EventDispatcher obj, value) except *:
         return self.parse_list(obj, value[:-2], value[-2:])
 
-    cdef float parse_list(self, EventDispatcher obj, value, ext):
+    cdef float parse_list(self, EventDispatcher obj, value, ext) except *:
         return dpi2px(value, ext)
 
 
