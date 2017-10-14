@@ -26,6 +26,7 @@ make_screenshots = os.environ.get('KIVY_UNITTEST_SCREENSHOTS')
 
 
 class GraphicUnitTest(_base):
+    framecount = 0
 
     def render(self, root, framecount=1):
         '''Call rendering process using the `root` widget.
@@ -99,7 +100,9 @@ class GraphicUnitTest(_base):
 
         # don't save screenshot until we have enough frames.
         # log.debug('framecount %d' % self.framecount)
-        self.framecount -= 1
+        # ! check if there is 'framecount', otherwise just
+        # ! assume zero e.g. if handling runTouchApp manually
+        self.framecount = getattr(self, 'framecount', 0) - 1
         if self.framecount > 0:
             return
 
