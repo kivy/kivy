@@ -33,7 +33,8 @@ Here is an example of auto creation::
 By default, ProbeSysfs module will enumerate hardware from the /sys/class/input
 device, and configure hardware with ABS_MT_POSITION_X capability. But for
 example, the wacom screen doesn't support this capability. You can prevent this
-behavior by putting select_all=1 in your config line.
+behavior by putting select_all=1 in your config line. Add use_mouse=1 to also
+include touchscreen hardware that offers core pointer functionality.
 '''
 
 __all__ = ('ProbeSysfsHardwareProbe', )
@@ -160,6 +161,7 @@ else:
             self.match = None
             self.input_path = '/sys/class/input'
             self.select_all = True if _is_rpi else False
+            self.use_mouse = False
             self.use_regex = False
             self.args = []
 
@@ -180,9 +182,11 @@ else:
                 elif key == 'provider':
                     self.provider = value
                 elif key == 'use_regex':
-                    self.use_regex = bool(value)
+                    self.use_regex = bool(int(value))
                 elif key == 'select_all':
-                    self.select_all = bool(value)
+                    self.select_all = bool(int(value))
+                elif key == 'use_mouse':
+                    self.use_mouse = bool(int(value))
                 elif key == 'param':
                     self.args.append(value)
                 else:
@@ -192,8 +196,9 @@ else:
             self.probe()
 
         def should_use_mouse(self):
-            return not any(p for p in EventLoop.input_providers
-                           if isinstance(p, MouseMotionEventProvider))
+            return (self.use_mouse or
+                    not any(p for p in EventLoop.input_providers
+                            if isinstance(p, MouseMotionEventProvider)))
 
         def probe(self):
             global EventLoop
