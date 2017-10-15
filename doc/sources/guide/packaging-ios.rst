@@ -24,7 +24,7 @@ those dependencies::
     brew install autoconf automake libtool pkg-config
     brew link libtool
     sudo easy_install pip
-    sudo pip install cython==0.23
+    sudo pip install Cython==0.26.1
 
 For more detail, see :ref:`IOS Prerequisites <packaging_ios_prerequisites>`.
 Just ensure that everything is ok before starting the second step!

@@ -36,11 +36,11 @@ Manual installation (On Raspbian Jessie)
 
     git clone https://github.com/kivy/kivy
     cd kivy
-    
+
     make
     echo "export PYTHONPATH=$(pwd):\$PYTHONPATH" >> ~/.profile
     source ~/.profile
-    
+
 
 Manual installation (On Raspbian Wheezy)
 ----------------------------------------
@@ -70,7 +70,7 @@ Manual installation (On Raspbian Wheezy)
 
 #. Install Cython from sources (debian packages are outdated)::
 
-    sudo pip install -U cython
+    sudo pip install Cython==0.26.1
 
 #. Install Kivy globally on your system::
 
@@ -80,7 +80,7 @@ Manual installation (On Raspbian Wheezy)
 
     git clone https://github.com/kivy/kivy
     cd kivy
-    
+
     make
     echo "export PYTHONPATH=$(pwd):\$PYTHONPATH" >> ~/.profile
     source ~/.profile
