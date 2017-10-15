@@ -30,9 +30,16 @@ class TestSliderAll(Slider):
 class SliderMoveTestCase(GraphicUnitTest):
     framecount = 0
 
-    # debug with
-    # def tearDown(self, *a): pass
-    # def setUp(self): pass
+    def setUp(self):
+        from os import environ
+        environ['KIVY_UNITTEST_NOBUILDERTRACE'] = '1'
+        environ['KIVY_UNITTEST_NOPARSERTRACE'] = '1'
+        super(self.__class__, self).setUp()
+
+    def tearDown(self):
+        from os import environ
+        del environ['KIVY_UNITTEST_NOBUILDERTRACE']
+        del environ['KIVY_UNITTEST_NOPARSERTRACE']
 
     def test_slider_move(self):
         EventLoop.ensure_window()

@@ -66,12 +66,12 @@ def custom_callback(__kvlang__, idmap, *largs, **kwargs):
 
 def call_fn(args, instance, v):
     element, key, value, rule, idmap = args
-    if __debug__:
+    if __debug__ and not environ.get('KIVY_UNITTEST_NOBUILDERTRACE'):
         trace('Lang: call_fn %s, key=%s, value=%r, %r' % (
             element, key, value, rule.value))
     rule.count += 1
     e_value = eval(value, idmap)
-    if __debug__:
+    if __debug__ and not environ.get('KIVY_UNITTEST_NOBUILDERTRACE'):
         trace('Lang: call_fn => value=%r' % (e_value, ))
     setattr(element, key, e_value)
 
@@ -283,7 +283,7 @@ class BuilderBase(object):
                 widget inside the definition.
         '''
         filename = resource_find(filename) or filename
-        if __debug__:
+        if __debug__ and not environ.get('KIVY_UNITTEST_NOBUILDERTRACE'):
             trace('Lang: load file %s' % filename)
         with open(filename, 'r') as fd:
             kwargs['filename'] = filename
@@ -427,7 +427,7 @@ class BuilderBase(object):
         constant rules that overwrite a value initialized in python.
         '''
         rules = self.match_rule_name(rule_name)
-        if __debug__:
+        if __debug__ and not environ.get('KIVY_UNITTEST_NOBUILDERTRACE'):
             trace('Lang: Found %d rules for %s' % (len(rules), rule_name))
         if not rules:
             return
@@ -443,7 +443,7 @@ class BuilderBase(object):
         constant rules that overwrite a value initialized in python.
         '''
         rules = self.match(widget)
-        if __debug__:
+        if __debug__ and not environ.get('KIVY_UNITTEST_NOBUILDERTRACE'):
             trace('Lang: Found %d rules for %s' % (len(rules), widget))
         if not rules:
             return

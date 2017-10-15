@@ -84,6 +84,17 @@ class ActionBarTestCase(GraphicUnitTest):
         for i in range(t):
             EventLoop.idle()
 
+    def setUp(self):
+        from os import environ
+        environ['KIVY_UNITTEST_NOBUILDERTRACE'] = '1'
+        environ['KIVY_UNITTEST_NOPARSERTRACE'] = '1'
+        super(self.__class__, self).setUp()
+
+    def tearDown(self):
+        from os import environ
+        del environ['KIVY_UNITTEST_NOBUILDERTRACE']
+        del environ['KIVY_UNITTEST_NOPARSERTRACE']
+
     def clean_garbage(self, *args):
         for child in self._win.children[:]:
             self._win.remove_widget(child)
