@@ -8,12 +8,12 @@ OpenCV Camera: Implement CameraBase with OpenCV
 
 __all__ = ('CameraOpenCV', )
 
+from collections import Counter
+from fractions import Fraction
 import functools
 import math
 import operator
 import time
-from collections import Counter
-from fractions import Fraction
 from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
@@ -117,12 +117,15 @@ class CameraOpenCV(CameraBase):
         if self.opencvMajorVersion == 3:
             PROPERTY_WIDTH = cv2.CAP_PROP_FRAME_WIDTH
             PROPERTY_HEIGHT = cv2.CAP_PROP_FRAME_HEIGHT
+            PROPERTY_FPS = cv2.CAP_PROP_FPS
         elif self.opencvMajorVersion == 2:
             PROPERTY_WIDTH = cv2.cv.CV_CAP_PROP_FRAME_WIDTH
             PROPERTY_HEIGHT = cv2.cv.CV_CAP_PROP_FRAME_HEIGHT
+            PROPERTY_FPS = cv2.cv.CV_CAP_PROP_FPS
         elif self.opencvMajorVersion == 1:
             PROPERTY_WIDTH = cv.CV_CAP_PROP_FRAME_WIDTH
             PROPERTY_HEIGHT = cv.CV_CAP_PROP_FRAME_HEIGHT
+            PROPERTY_FPS = cv.CV_CAP_PROP_FPS
 
         Logger.debug('Using opencv ver.' + str(self.opencvMajorVersion))
 
@@ -141,6 +144,7 @@ class CameraOpenCV(CameraBase):
             # recursion with self.init_camera (but slowly as we'd have to
             # always get a frame).
             self._resolution = (int(frame.width), int(frame.height))
+            get_frame_rate = cv.GetCaptureProperty
         elif self.opencvMajorVersion == 2 or self.opencvMajorVersion == 3:
             # create the device
             self._device = cv2.VideoCapture(self._index)
@@ -154,14 +158,18 @@ class CameraOpenCV(CameraBase):
             # source:
             # http://stackoverflow.com/questions/32468371/video-capture-propid-parameters-in-opencv # noqa
             self._resolution = (int(frame.shape[1]), int(frame.shape[0]))
-
+            get_frame_rate = lambda device, property: device.get(property)
         # get fps
-        # @note The frame rate property is unreliable for a camera.
-        frame_rate = self.measure_frame_rate(self._device,
-                                             self._frame_sample_size)
-        Logger.info(("Camera {}'s frame rate is {}fps based on {} "
-                     "sample frames.").format(
-            self._index, frame_rate, self._frame_sample_size))
+        if self._frame_sample_size:
+            frame_rate = self.measure_frame_rate(self._device,
+                                                 self._frame_sample_size)
+            Logger.info("Camera {}'s frame rate is {}fps based on {} "
+                        "sample frames.".format(
+                self._index, frame_rate, self._frame_sample_size))
+        else:
+            frame_rate = Fraction(get_frame_rate(self._device, PROPERTY_FPS))
+            Logger.info("Camera {}'s frame rate is {}fps according to its "
+                        "driver.".format(self._index, frame_rate))
         # The event interval is the inverse of the camera's frame rate.
         self.fps = float(1 / frame_rate)
 
