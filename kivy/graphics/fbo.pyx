@@ -360,7 +360,7 @@ cdef class Fbo(RenderContext):
             self.flag_update_done()
         return 0
 
-    cdef void reload(self):
+    cdef void reload(self) except *:
         # recreate the framebuffer, without deleting it. the deletion is not
         # handled by us.
         self.create_fbo()

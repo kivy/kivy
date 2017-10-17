@@ -95,7 +95,7 @@ cdef class Instruction(ObjectWithUid):
     cdef void set_parent(self, Instruction parent):
         self.parent = parent
 
-    cdef void reload(self):
+    cdef void reload(self) except *:
         self.flags |= GI_NEEDS_UPDATE
         self.flags &= ~GI_NO_APPLY_ONCE
         self.flags &= ~GI_IGNORE
@@ -223,7 +223,7 @@ cdef class InstructionGroup(Instruction):
         cdef Instruction c
         return [c for c in self.children if c.group == groupname]
 
-    cdef void reload(self):
+    cdef void reload(self) except *:
         Instruction.reload(self)
         cdef Instruction c
         for c in self.children:
@@ -574,7 +574,7 @@ cdef class Canvas(CanvasBase):
         self._before = None
         self._after = None
 
-    cdef void reload(self):
+    cdef void reload(self) except *:
         return
         '''
         # XXX ensure it's not needed anymore.
@@ -868,7 +868,7 @@ cdef class RenderContext(Canvas):
 
         return 0
 
-    cdef void reload(self):
+    cdef void reload(self) except *:
         pushActiveContext(self)
         reset_gl_context()
         Canvas.reload(self)
