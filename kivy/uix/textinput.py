@@ -30,7 +30,7 @@ To create a multiline :class:`TextInput` (the 'enter' key adds a new line)::
 
 To create a singleline :class:`TextInput`, set the :class:`TextInput.multiline`
 property to False (the 'enter' key will defocus the TextInput and emit an
-'on_text_validate' event)::
+:meth:`TextInput.on_text_validate` event)::
 
     def on_enter(instance, value):
         print('User pressed enter in', instance)
@@ -705,7 +705,6 @@ class TextInput(FocusBehavior, Widget):
             elif mode == 'float':
                 if not re.match(self._insert_float_pat, new_text):
                     return
-
         self._set_line_text(cr, new_text)
 
         wrap = (self._get_text_width(
@@ -2291,7 +2290,8 @@ class TextInput(FocusBehavior, Widget):
                 self.insert_text(u'\n')
             else:
                 self.dispatch('on_text_validate')
-                self.focus = False
+                if self.text_validate_unfocus:
+                    self.focus = False
         elif internal_action == 'escape':
             self.focus = False
         if internal_action != 'escape':
@@ -2480,6 +2480,18 @@ class TextInput(FocusBehavior, Widget):
 
     :attr:`readonly` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
+    '''
+
+    text_validate_unfocus = BooleanProperty(True)
+    '''If True, the :meth:`TextInput.on_text_validate` event will unfocus the
+    widget, therefore make it stop listening to the keyboard. When disabled,
+    the :meth:`TextInput.on_text_validate` event can be fired multiple times
+    as the result of TextInput keeping the focus enabled.
+
+    .. versionadded:: 1.10.1
+
+    :attr:`text_validate_unfocus` is
+    a :class:`~kivy.properties.BooleanProperty` and defaults to True.
     '''
 
     multiline = BooleanProperty(True)
