@@ -1767,11 +1767,13 @@ class TextInput(FocusBehavior, Widget):
 
     def _do_blink_cursor(self, dt):
         # Callback for blinking the cursor.
-        self.cursor_blink = not self.cursor_blink
+        self._cursor_blink = not self._cursor_blink
 
     def _reset_cursor_blink(self, *args):
+        if not self.cursor_blink:
+            return
         self._do_blink_cursor_ev.cancel()
-        self.cursor_blink = 0
+        self._cursor_blink = False
         self._do_blink_cursor_ev()
 
     def on_cursor(self, instance, value):
@@ -2496,6 +2498,7 @@ class TextInput(FocusBehavior, Widget):
     _editable = BooleanProperty(True)
     _insert_int_pat = re.compile(u'^-?[0-9]*$')
     _insert_float_pat = re.compile(u'^-?[0-9]*\\.?[0-9]*$')
+    _cursor_blink = BooleanProperty(False)
 
     readonly = BooleanProperty(False)
     '''If True, the user will not be able to change the content of a textinput.
@@ -2556,13 +2559,12 @@ class TextInput(FocusBehavior, Widget):
     and defaults to True.
     '''
 
-    cursor_blink = BooleanProperty(False)
-    '''This property is used to blink the cursor graphic. The value of
-    :attr:`cursor_blink` is automatically computed. Setting a value on it will
-    have no impact.
+    cursor_blink = BooleanProperty(True)
+    '''This property is used to set whether the graphic cursor should blink
+    or not.
 
     :attr:`cursor_blink` is a :class:`~kivy.properties.BooleanProperty` and
-    defaults to False.
+    defaults to True.
     '''
 
     def _get_cursor(self):
