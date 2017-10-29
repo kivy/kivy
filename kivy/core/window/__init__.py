@@ -1134,6 +1134,14 @@ class WindowBase(EventDispatcher):
        - `binalpha` - hides an alpha channel of the :attr:`shape_image`
        - `reversebinalpha` - shows only the alpha of the :attr:`shape_image`
 
+    .. note::
+        Before actually setting the mode make sure the Window has the same
+        size like the :attr:`shape_image`, preferably via Config before
+        the Window is actually created.
+
+        If the :attr:`shape_image` isn't set, the default one will be used
+        and the mode might not take the desired visual effect.
+
     .. versionadded:: 1.10.1
 
     :attr:`shape_mode` is an :class:`~kivy.properties.AliasProperty`.
