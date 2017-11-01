@@ -4,13 +4,20 @@ PIL: PIL image loader
 
 __all__ = ('ImageLoaderPIL', )
 
-try:
-    from PIL import Image as PILImage
-except:
-    import Image as PILImage
-
+import Image as PILImage
 from kivy.logger import Logger
 from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
+
+try:
+    # Pillow
+    PILImage.frombytes
+    PILImage.Image.tobytes
+except AttributeError:
+    # PIL
+    # monkey patch frombytes and tobytes methods, refs:
+    # https://github.com/kivy/kivy/issues/5460
+    PILImage.frombytes = PILImage.frombuffer
+    PILImage.Image.tobytes = PILImage.Image.tostring
 
 
 class ImageLoaderPIL(ImageLoaderBase):
