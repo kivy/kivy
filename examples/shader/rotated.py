@@ -2,7 +2,8 @@
 Rotated Shader
 =============
 
-This shader example is a modified version of plasma.py that shows how to rotate areas of fragment shaders bounded by vertex_instructions.
+This shader example is a modified version of plasma.py that shows how to
+rotate areas of fragment shaders bounded by vertex_instructions.
 '''
 from kivy.app import App
 from kivy.clock import Clock
