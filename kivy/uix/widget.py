@@ -634,7 +634,7 @@ class Widget(WidgetBase):
         fbo = Fbo(size=self.size, with_stencilbuffer=True)
 
         with fbo:
-            ClearColor(0, 0, 0, 1)
+            ClearColor(0, 0, 0, 0)
             ClearBuffers()
             Scale(1, -1, 1)
             Translate(-self.x, -self.y - self.height, 0)
