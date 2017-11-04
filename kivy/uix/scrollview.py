@@ -438,7 +438,7 @@ class ScrollView(StencilView):
 
     .. versionadded:: 1.8.0
 
-    :attr:`scroll_type` is a :class:`~kivy.properties.OptionProperty` and
+    :attr:`scroll_type` is an :class:`~kivy.properties.OptionProperty` and
     defaults to ['content'].
     '''
 
