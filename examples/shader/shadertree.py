@@ -12,15 +12,13 @@ With this way, you can apply cool effect on your widgets :)
 
 '''
 
-from kivy.app import App
 from kivy.clock import Clock
+from kivy.app import App
+from kivy.uix.floatlayout import FloatLayout
+from kivy.core.window import Window  # side effects needed by Shader
+from kivy.properties import StringProperty, ObjectProperty
 from kivy.graphics import (RenderContext, Fbo, Color, ClearColor, ClearBuffers,
         Rectangle)
-from kivy.properties import StringProperty, ObjectProperty
-from kivy.uix.floatlayout import FloatLayout
-
-# imported for side effects needed by Shader
-import kivy.core.window
 
 import itertools
 
