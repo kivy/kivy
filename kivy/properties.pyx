@@ -835,6 +835,8 @@ class ObservableDict(dict):
         try:
             return self._weak_return(self.__getitem__(attr))
         except KeyError:
+            if not hasattr(super(ObservableDict, self), '__getattr__'):
+                raise KeyError(attr)
             return self._weak_return(
                             super(ObservableDict, self).__getattr__(attr))
 
