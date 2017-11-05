@@ -1197,6 +1197,8 @@ class WindowBase(EventDispatcher):
             self.render_context = RenderContext()
             self.canvas = Canvas()
             self.render_context.add(self.canvas)
+            if self.shaped:
+                self.shape_mode = 'default'
 
         else:
             # if we get initialized more than once, then reload opengl state
