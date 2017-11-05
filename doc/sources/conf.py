@@ -224,10 +224,10 @@ from kivy import setupconfig
 replacements = {
     'cython_install': 'Cython==' + setupconfig.CYTHON_MAX,
     'cython_note': (
-        'This version of **Kivy requires at least Cython version {0}**, '
-        'and has been tested through {1}. Later versions may work, '
+        'Kivy {0} **requires at least Cython version {1}**, '
+        'and has been tested through {2}. Later versions may work, '
         'but as they have not been tested there is no guarantee.'
-    ).format(setupconfig.CYTHON_MIN, setupconfig.CYTHON_MAX)
+    ).format(version, setupconfig.CYTHON_MIN, setupconfig.CYTHON_MAX)
 }
 
 if setupconfig.CYTHON_BAD:
