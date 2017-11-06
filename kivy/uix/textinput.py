@@ -2286,7 +2286,10 @@ class TextInput(FocusBehavior, Widget):
         elif internal_action == 'backspace':
             self.do_backspace()
         elif internal_action == 'enter':
-            if self.multiline:
+            if self.multiline and self._selection:
+                self.delete_selection()
+                self.insert_text(u'\n')
+            elif self.multiline:
                 self.insert_text(u'\n')
             else:
                 self.dispatch('on_text_validate')
