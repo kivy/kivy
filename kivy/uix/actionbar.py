@@ -211,14 +211,14 @@ class ActionPrevious(BoxLayout, ActionItem):
        defaults to ''.
     '''
 
-    title_markup = BooleanProperty(False)
+    markup = BooleanProperty(False)
     '''If True, the text will be rendered using the
        :class:`~kivy.core.text.markup.MarkupLabel`: you can change the
        style of the text using tags. Check the
        :doc:`api-kivy.core.text.markup` documentation for more
        information.
 
-       :attr:`title_markup` is a :class:`~kivy.properties.BooleanProperty` and
+       :attr:`markup` is a :class:`~kivy.properties.BooleanProperty` and
        defaults to False.
     '''
 
