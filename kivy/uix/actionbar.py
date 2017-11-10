@@ -211,6 +211,17 @@ class ActionPrevious(BoxLayout, ActionItem):
        defaults to ''.
     '''
 
+    markup = BooleanProperty(False)
+    '''If True, the text will be rendered using the
+       :class:`~kivy.core.text.markup.MarkupLabel`: you can change the
+       style of the text using tags. Check the
+       :doc:`api-kivy.core.text.markup` documentation for more
+       information.
+
+       :attr:`markup` is a :class:`~kivy.properties.BooleanProperty` and
+       defaults to False.
+    '''
+
     def __init__(self, **kwargs):
         self.register_event_type('on_press')
         self.register_event_type('on_release')
