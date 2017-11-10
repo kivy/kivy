@@ -534,8 +534,9 @@ class WindowBase(EventDispatcher):
     :attr:`rotation` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
-    softinput_mode = OptionProperty('', options=(
-        '', 'below_target', 'pan', 'scale', 'resize'))
+    softinput_mode = OptionProperty(
+        '', options=('', 'below_target', 'pan', 'scale', 'resize')
+    )
     '''This specifies the behavior of window contents on display of the soft
     keyboard on mobile platforms. It can be one of '', 'pan', 'scale',
     'resize' or 'below_target'. Their effects are listed below.
@@ -559,7 +560,7 @@ class WindowBase(EventDispatcher):
     +----------------+-------------------------------------------------------+
 
     :attr:`softinput_mode` is an :class:`~kivy.properties.OptionProperty` and
-    defaults to ``.
+    defaults to ''.
 
     .. note:: The `resize` option does not currently work with SDL2 on Android.
 
