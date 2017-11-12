@@ -2249,7 +2249,8 @@ class TextInput(FocusBehavior, Widget):
         displayed_str, internal_str, internal_action, scale = key
 
         # handle deletion
-        if self._selection and internal_action in (None, 'del', 'backspace', 'enter'):
+        if (self._selection and
+                internal_action in (None, 'del', 'backspace', 'enter')):
             self.delete_selection()
         elif internal_action == 'del':
             # Move cursor one char to the right. If that was successful,
