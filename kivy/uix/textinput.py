@@ -2297,8 +2297,6 @@ class TextInput(FocusBehavior, Widget):
         elif internal_action == 'escape':
             self.focus = False
 
-
-
     def _key_up(self, key, repeat=False):
         displayed_str, internal_str, internal_action, scale = key
         if internal_action in ('shift', 'shift_L', 'shift_R'):
