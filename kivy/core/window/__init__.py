@@ -1421,6 +1421,9 @@ class WindowBase(EventDispatcher):
         w2, h2 = w / 2., h / 2.
         modelview_mat = modelview_mat.multiply(Matrix().translate(-w2, -h2, 0))
         self.render_context['modelview_mat'] = modelview_mat
+        frag_modelview_mat = Matrix()
+        frag_modelview_mat.set(flat=modelview_mat.get())
+        self.render_context['frag_modelview_mat'] = frag_modelview_mat
 
         # redraw canvas
         self.canvas.ask_update()

@@ -109,6 +109,7 @@ cdef class RenderContext(Canvas):
     cdef dict bind_texture
     cdef int _use_parent_projection
     cdef int _use_parent_modelview
+    cdef int _use_parent_frag_modelview
 
     cdef void set_texture(self, int index, Texture texture)
     cdef void set_state(self, str name, value, int apply_now=?)
