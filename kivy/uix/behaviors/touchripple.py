@@ -2,7 +2,11 @@
 Touch Ripple
 ============
 
-.. versionadded:: 1.10.0
+.. versionadded:: 1.10.1
+
+.. warning::
+    This code is still experimental, and its API is subject to change in a
+    future version.
 
 This module contains `mixin <https://en.wikipedia.org/wiki/Mixin>`_ classes
 to add a touch ripple visual effect known from `Google Material Design
@@ -21,17 +25,9 @@ animation instead of default press/release visualization.
 '''
 from kivy.animation import Animation
 from kivy.clock import Clock
-from kivy.graphics import CanvasBase
-from kivy.graphics import Color
-from kivy.graphics import Ellipse
-from kivy.graphics import ScissorPush
-from kivy.graphics import ScissorPop
-from kivy.properties import BooleanProperty
-from kivy.properties import ListProperty
-from kivy.properties import NumericProperty
-from kivy.properties import ObjectProperty
-from kivy.properties import StringProperty
-from kivy.uix.behaviors import ButtonBehavior
+from kivy.graphics import CanvasBase, Color, Ellipse, ScissorPush, ScissorPop
+from kivy.properties import BooleanProperty, ListProperty, NumericProperty, \
+    ObjectProperty, StringProperty
 from kivy.uix.relativelayout import RelativeLayout
 
 
@@ -307,6 +303,13 @@ class TouchRippleButtonBehavior(TouchRippleBehavior):
             self.dispatch('on_release')
         Clock.schedule_once(defer_release, self.ripple_duration_out)
         return True
+
+    def on_disabled(self, instance, value):
+        # ensure ripple animation completes if disabled gets set to True
+        if value:
+            self.ripple_fade()
+        return super(TouchRippleButtonBehavior, self).on_disabled(
+            instance, value)
 
     def on_press(self):
         pass
