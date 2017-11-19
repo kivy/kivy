@@ -2251,7 +2251,8 @@ class TextInput(FocusBehavior, Widget):
         # handle deletion
         if (self._selection and
                 internal_action in (None, 'del', 'backspace', 'enter')):
-            self.delete_selection()
+            if internal_action != 'enter' or self.multiline:
+                self.delete_selection()
         elif internal_action == 'del':
             # Move cursor one char to the right. If that was successful,
             # do a backspace (effectively deleting char right of cursor)
