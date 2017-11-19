@@ -141,7 +141,7 @@ Control + r     redo
 '''
 
 
-__all__ = ('TextInput', )
+__all__ = ('TextInput',)
 
 
 import re
@@ -1135,29 +1135,28 @@ class TextInput(FocusBehavior, Widget):
         elif action == 'cursor_pgdown':
             row = min(row + pgmove_speed, len(self._lines) - 1)
             col = min(len(self._lines[row]), col)
-        elif self._selection and self._selection_finished:
-            if action == 'cursor_left' or action == 'cursor_right':
-                selection_lines = self.selection_text.split('\n')
-                if len(selection_lines) == 0:
-                    col = self._selection_from
-                elif self._selection_from < self._selection_to:
-                    selection_to = self._selection_to
-                    while self._selection_from != selection_to:
-                        selection_to -= 1
-                        if col:
-                            col -= 1
-                        else:
-                            row -= 1
-                            col = len(self._lines[row])
+        elif (self._selection and self._selection_finished and
+                self._selection_from < self._selection_to and
+                action == 'cursor_left'):
+            current_selection_to = self._selection_to
+            while self._selection_from != current_selection_to:
+                current_selection_to -= 1
+                if col:
+                    col -= 1
                 else:
-                    selection_to = self._selection_to
-                    while self._selection_from != selection_to:
-                        selection_to += 1
-                        if len(self._lines[row]) > col:
-                            col += 1
-                        else:
-                            row += 1
-                            col = 0
+                    row -= 1
+                    col = len(self._lines[row])
+        elif (self._selection and self._selection_finished and
+                self._selection_from > self._selection_to and
+                action == 'cursor_right'):
+            current_selection_to = self._selection_to
+            while self._selection_from != current_selection_to:
+                current_selection_to += 1
+                if len(self._lines[row]) > col:
+                    col += 1
+                else:
+                    row += 1
+                    col = 0
 
         elif action == 'cursor_left':
             if not self.password and control:
@@ -2274,7 +2273,7 @@ class TextInput(FocusBehavior, Widget):
 
         # handle deletion
         if (self._selection and
-                internal_action in (None, 'del', 'backspace', 'enter')):
+                    internal_action in (None, 'del', 'backspace', 'enter')):
             if internal_action != 'enter' or self.multiline:
                 self.delete_selection()
         elif internal_action == 'del':
