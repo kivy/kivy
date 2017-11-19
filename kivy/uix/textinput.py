@@ -2273,7 +2273,7 @@ class TextInput(FocusBehavior, Widget):
 
         # handle deletion
         if (self._selection and
-                    internal_action in (None, 'del', 'backspace', 'enter')):
+                internal_action in (None, 'del', 'backspace', 'enter')):
             if internal_action != 'enter' or self.multiline:
                 self.delete_selection()
         elif internal_action == 'del':
