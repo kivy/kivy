@@ -115,6 +115,12 @@ For Ubuntu 16.04::
       python-gst0.10 python-enchant gstreamer0.10-plugins-good python-dev \
       build-essential python-pip libgl1-mesa-dev libgles2-mesa-dev zlib1g-dev
 
+For Ubuntu 17.10::
+
+    $ sudo apt-get install python-setuptools python-pygame python-opengl \
+      python-enchant python-dev build-essential python-pip libgl1-mesa-dev \
+      libgles2-mesa-dev zlib1g-dev
+
 Kivy requires a recent version of Cython, so it's better to use the latest
 supported version from pypi:
 
