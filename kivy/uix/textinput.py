@@ -140,7 +140,9 @@ Control + r     redo
 
 '''
 
-__all__ = ('TextInput',)
+
+__all__ = ('TextInput', )
+
 
 import re
 import sys
@@ -212,9 +214,7 @@ if 'KIVY_DOC' not in environ:
                 textinput._trigger_refresh_text()
                 textinput._refresh_hint_text()
 
-
     from kivy.graphics.context import get_context
-
     get_context().add_reload_observer(_textinput_clear_cache, True)
 
 
@@ -361,7 +361,7 @@ class TextInputCutCopyPaste(Bubble):
                     widget_list.append(self.but_paste)
             elif parent.readonly:
                 # show only copy for read only text input
-                widget_list = (self.but_copy,)
+                widget_list = (self.but_copy, )
             else:
                 # normal mode
                 widget_list = (self.but_cut, self.but_copy, self.but_paste)
@@ -383,7 +383,7 @@ class TextInputCutCopyPaste(Bubble):
             self.mode = ''
             anim = Animation(opacity=0, d=.333)
             anim.bind(on_complete=lambda *args:
-            self.on_parent(self, self.parent))
+                      self.on_parent(self, self.parent))
             anim.start(self.but_selectall)
             return
 
@@ -717,8 +717,8 @@ class TextInput(FocusBehavior, Widget):
             # Allows for faster typing of text when the amount of text in
             # TextInput gets large.
 
-            start, finish, lines, \
-            lineflags, len_lines = self._get_line_from_cursor(cr, new_text)
+            start, finish, lines,\
+                lineflags, len_lines = self._get_line_from_cursor(cr, new_text)
             # calling trigger here could lead to wrong cursor positioning
             # and repeating of text when keys are added rapidly in a automated
             # fashion. From Android Keyboard for example.
@@ -870,7 +870,7 @@ class TextInput(FocusBehavior, Widget):
             self._set_line_text(cr, new_text)
 
         # refresh just the current line instead of the whole text
-        start, finish, lines, lineflags, len_lines = \
+        start, finish, lines, lineflags, len_lines =\
             self._get_line_from_cursor(start, new_text)
         # avoid trigger refresh, leads to issue with
         # keys/text send rapidly through code.
@@ -1067,7 +1067,6 @@ class TextInput(FocusBehavior, Widget):
             def cb(dt):
                 self.select_text(*sel)
                 self._selection_callback = None
-
             self._selection_callback = Clock.schedule_once(cb)
 
     def do_cursor_movement(self, action, control=False, alt=False):
@@ -1100,7 +1099,7 @@ class TextInput(FocusBehavior, Widget):
         if not self._lines:
             return
         pgmove_speed = int(self.height /
-                           (self.line_height + self.line_spacing) - 1)
+            (self.line_height + self.line_spacing) - 1)
         col, row = self.cursor
         if action == 'cursor_up':
             if self.multiline and control:
@@ -1137,7 +1136,8 @@ class TextInput(FocusBehavior, Widget):
             row = min(row + pgmove_speed, len(self._lines) - 1)
             col = min(len(self._lines[row]), col)
         elif (self._selection and self._selection_finished and
-                      self._selection_from < self._selection_to and action == 'cursor_left'):
+                self._selection_from < self._selection_to and
+                action == 'cursor_left'):
             current_selection_to = self._selection_to
             while self._selection_from != current_selection_to:
                 current_selection_to -= 1
@@ -1147,7 +1147,8 @@ class TextInput(FocusBehavior, Widget):
                     row -= 1
                     col = len(self._lines[row])
         elif (self._selection and self._selection_finished and
-                          self._selection_from > self._selection_to and action == 'cursor_right'):
+                self._selection_from > self._selection_to and
+                action == 'cursor_right'):
             current_selection_to = self._selection_to
             while self._selection_from != current_selection_to:
                 current_selection_to += 1
@@ -1197,8 +1198,8 @@ class TextInput(FocusBehavior, Widget):
         _label_cached = self._label_cached
         for i in range(0, len(l[cy])):
             if _get_text_width(l[cy][:i], _tab_width, _label_cached) + \
-                            _get_text_width(l[cy][i], _tab_width, _label_cached) * 0.6 + \
-                    padding_left > cx + scrl_x:
+                  _get_text_width(l[cy][i], _tab_width, _label_cached) * 0.6 +\
+                  padding_left > cx + scrl_x:
                 cx = i
                 break
         return cx, cy
@@ -1234,8 +1235,8 @@ class TextInput(FocusBehavior, Widget):
         self.cursor = cursor = self.get_cursor_from_index(a)
         start = cursor
         finish = self.get_cursor_from_index(b)
-        cur_line = self._lines[start[1]][:start[0]] + \
-                   self._lines[finish[1]][finish[0]:]
+        cur_line = self._lines[start[1]][:start[0]] +\
+            self._lines[finish[1]][finish[0]:]
         lines, lineflags = self._split_smart(cur_line)
         len_lines = len(lines)
         if start[1] == finish[1]:
@@ -1357,7 +1358,7 @@ class TextInput(FocusBehavior, Widget):
             if scroll_type == 'up':
                 if self.multiline:
                     if (self._lines_rects[-1].pos[1] > self.y +
-                        self.line_height):
+                            self.line_height):
                         return True
                     self.scroll_y += self.line_height
                 else:
@@ -1388,7 +1389,7 @@ class TextInput(FocusBehavior, Widget):
             self._update_selection()
 
         if CutBuffer and 'button' in touch.profile and \
-                        touch.button == 'middle':
+                touch.button == 'middle':
             self.insert_text(CutBuffer.get_cutbuffer())
             return True
 
@@ -1633,7 +1634,7 @@ class TextInput(FocusBehavior, Widget):
             if bubble_pos[1] > (win_size[1] - bubble_size[1]):
                 # bubble above window height
                 bubble_pos = (win_size[0] - bubble_hw,
-                              (t_pos[1]) - (lh + ls + inch(.25)))
+                             (t_pos[1]) - (lh + ls + inch(.25)))
                 bubble.arrow_pos = 'top_right'
             else:
                 bubble_pos = (win_size[0] - bubble_hw, bubble_pos[1])
@@ -1642,7 +1643,7 @@ class TextInput(FocusBehavior, Widget):
             if bubble_pos[1] > (win_size[1] - bubble_size[1]):
                 # bubble above window height
                 bubble_pos = (bubble_pos[0],
-                              (t_pos[1]) - (lh + ls + inch(.25)))
+                             (t_pos[1]) - (lh + ls + inch(.25)))
                 bubble.arrow_pos = 'top_mid'
             else:
                 bubble.arrow_pos = 'bottom_mid'
@@ -1782,7 +1783,7 @@ class TextInput(FocusBehavior, Widget):
 
     def _delete_line(self, idx):
         # Delete current line, and fix cursor position
-        assert (idx < len(self._lines))
+        assert(idx < len(self._lines))
         self._lines_flags.pop(idx)
         self._lines_labels.pop(idx)
         self._lines.pop(idx)
@@ -1882,39 +1883,39 @@ class TextInput(FocusBehavior, Widget):
 
     def _insert_lines(self, start, finish, len_lines, _lines_flags,
                       _lines, _lines_labels, _line_rects):
-        self_lines_flags = self._lines_flags
-        _lins_flags = []
-        _lins_flags.extend(self_lines_flags[:start])
-        if len_lines:
-            # if not inserting at first line then
-            if start:
-                # make sure line flags restored for first line
-                # _split_smart assumes first line to be not a new line
-                _lines_flags[0] = self_lines_flags[start]
-            _lins_flags.extend(_lines_flags)
-        _lins_flags.extend(self_lines_flags[finish:])
-        self._lines_flags = _lins_flags
+            self_lines_flags = self._lines_flags
+            _lins_flags = []
+            _lins_flags.extend(self_lines_flags[:start])
+            if len_lines:
+                # if not inserting at first line then
+                if start:
+                    # make sure line flags restored for first line
+                    # _split_smart assumes first line to be not a new line
+                    _lines_flags[0] = self_lines_flags[start]
+                _lins_flags.extend(_lines_flags)
+            _lins_flags.extend(self_lines_flags[finish:])
+            self._lines_flags = _lins_flags
 
-        _lins_lbls = []
-        _lins_lbls.extend(self._lines_labels[:start])
-        if len_lines:
-            _lins_lbls.extend(_lines_labels)
-        _lins_lbls.extend(self._lines_labels[finish:])
-        self._lines_labels = _lins_lbls
+            _lins_lbls = []
+            _lins_lbls.extend(self._lines_labels[:start])
+            if len_lines:
+                _lins_lbls.extend(_lines_labels)
+            _lins_lbls.extend(self._lines_labels[finish:])
+            self._lines_labels = _lins_lbls
 
-        _lins_rcts = []
-        _lins_rcts.extend(self._lines_rects[:start])
-        if len_lines:
-            _lins_rcts.extend(_line_rects)
-        _lins_rcts.extend(self._lines_rects[finish:])
-        self._lines_rects = _lins_rcts
+            _lins_rcts = []
+            _lins_rcts.extend(self._lines_rects[:start])
+            if len_lines:
+                _lins_rcts.extend(_line_rects)
+            _lins_rcts.extend(self._lines_rects[finish:])
+            self._lines_rects = _lins_rcts
 
-        _lins = []
-        _lins.extend(self._lines[:start])
-        if len_lines:
-            _lins.extend(_lines)
-        _lins.extend(self._lines[finish:])
-        self._lines = _lins
+            _lins = []
+            _lins.extend(self._lines[:start])
+            if len_lines:
+                _lins.extend(_lines)
+            _lins.extend(self._lines[finish:])
+            self._lines = _lins
 
     def _trigger_update_graphics(self, *largs):
         self._update_graphics_ev.cancel()
@@ -1943,7 +1944,7 @@ class TextInput(FocusBehavior, Widget):
 
         # draw labels
         if not self._lines or (
-                    not self._lines[0] and len(self._lines) == 1):
+                not self._lines[0] and len(self._lines) == 1):
             rects = self._hint_text_rects
             labels = self._hint_text_labels
             lines = self._hint_text_lines
@@ -2066,9 +2067,9 @@ class TextInput(FocusBehavior, Widget):
         self._position_handles('both')
 
     def _draw_selection(self, *largs):
-        pos, size, line_num, (s1c, s1r), (s2c, s2r), \
-        _lines, _get_text_width, tab_width, _label_cached, width, \
-        padding_left, padding_right, x, canvas_add, selection_color = largs
+        pos, size, line_num, (s1c, s1r), (s2c, s2r),\
+            _lines, _get_text_width, tab_width, _label_cached, width,\
+            padding_left, padding_right, x, canvas_add, selection_color = largs
         # Draw the current selection on the widget.
         if line_num < s1r or line_num > s2r:
             return
@@ -2347,7 +2348,7 @@ class TextInput(FocusBehavior, Widget):
         is_interesting_key = key in (list(self.interesting_keys.keys()) + [27])
 
         if not self.write_tab and super(TextInput,
-                                        self).keyboard_on_key_down(window, keycode, text, modifiers):
+            self).keyboard_on_key_down(window, keycode, text, modifiers):
             return True
 
         if not self._editable:
@@ -2428,7 +2429,7 @@ class TextInput(FocusBehavior, Widget):
                     self.do_redo()
             else:
                 if EventLoop.window.__class__.__module__ == \
-                        'kivy.core.window.window_sdl2':
+                    'kivy.core.window.window_sdl2':
                     if not (text == ' ' and platform == 'android'):
                         return
                 if self._selection:
@@ -2622,7 +2623,7 @@ class TextInput(FocusBehavior, Widget):
     def _get_cursor_col(self):
         return self._cursor[0]
 
-    cursor_col = AliasProperty(_get_cursor_col, None, bind=('cursor',))
+    cursor_col = AliasProperty(_get_cursor_col, None, bind=('cursor', ))
     '''Current column of the cursor.
 
     :attr:`cursor_col` is an :class:`~kivy.properties.AliasProperty` to
@@ -2632,7 +2633,7 @@ class TextInput(FocusBehavior, Widget):
     def _get_cursor_row(self):
         return self._cursor[1]
 
-    cursor_row = AliasProperty(_get_cursor_row, None, bind=('cursor',))
+    cursor_row = AliasProperty(_get_cursor_row, None, bind=('cursor', ))
     '''Current row of the cursor.
 
     :attr:`cursor_row` is an :class:`~kivy.properties.AliasProperty` to
@@ -2944,7 +2945,7 @@ class TextInput(FocusBehavior, Widget):
             lf.append(1)
 
         text = u''.join([(u'\n' if (lf[i] & FL_IS_LINEBREAK) else u'') + l[i]
-                         for i in range(len_l)])
+                        for i in range(len_l)])
 
         if encode and not isinstance(text, bytes):
             text = text.encode('utf8')
@@ -2963,7 +2964,7 @@ class TextInput(FocusBehavior, Widget):
         self._refresh_text(text)
         self.cursor = self.get_cursor_from_index(len(text))
 
-    text = AliasProperty(_get_text, _set_text, bind=('_lines',))
+    text = AliasProperty(_get_text, _set_text, bind=('_lines', ))
     '''Text of the widget.
 
     Creation of a simple hello world::
@@ -3017,7 +3018,7 @@ class TextInput(FocusBehavior, Widget):
         return self._hint_text
 
     hint_text = AliasProperty(
-        _get_hint_text, _set_hint_text, bind=('_hint_text',))
+        _get_hint_text, _set_hint_text, bind=('_hint_text', ))
     '''Hint text of the widget, shown if text is ''.
 
     .. versionadded:: 1.6.0
@@ -3175,9 +3176,10 @@ if __name__ == '__main__':
     from kivy.uix.boxlayout import BoxLayout
     from kivy.lang import Builder
 
-
     class TextInputApp(App):
+
         def build(self):
+
             Builder.load_string('''
 <TextInput>
     on_text:
@@ -3194,6 +3196,5 @@ if __name__ == '__main__':
                                    size_hint=(1, None), height=30)
             root.add_widget(textinput2)
             return root
-
 
     TextInputApp().run()
