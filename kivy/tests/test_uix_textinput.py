@@ -248,6 +248,47 @@ class TextInputGraphicTest(GraphicUnitTest):
         self.assertFalse(ti.focus)
         self.assertEqual(ti.text, text)
 
+    def test_no_shift_cursor_arrow_on_selection(self):
+        text = 'some_random_text'
+        ti = TextInput(multiline=False, text=text)
+        ti.focus = True
+
+        self.render(ti)
+        self.assertTrue(ti.focus)
+
+        # assert cursor is here:
+        self.assertEqual(ti.cursor, (len(text), 0))
+
+        steps_skip = 2
+        steps_select = 4
+
+        for _ in range(steps_skip):
+            ti._key_down(
+                (None, None, 'cursor_left', 1),
+                repeat=False
+            )
+        # cursor at the place of ^
+        # some_random_te^xt
+
+        # push selection
+        ti._key_down((None, None, 'shift', 1), repeat=False)
+        for _ in range(steps_select):
+            ti._key_down(
+                (None, None, 'cursor_left', 1),
+                repeat=False
+            )
+
+        # pop selection
+        ti._key_up((None, None, 'shift', 1), repeat=False)
+
+        # cursor at the place of ^, selection between * chars
+        # some_rando*^m_te*xt
+
+        ti._key_down(
+            (None, None, 'cursor_right', 1),
+            repeat=False
+        )
+        self.assertEqual(ti.cursor, (len(text) - steps_skip, 0))
 
 
 if __name__ == '__main__':
