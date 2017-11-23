@@ -177,6 +177,151 @@ class TextInputGraphicTest(GraphicUnitTest):
             self.assertEqual(ti.text, txt)
             ti._key_down((None, None, 'cursor_end', 1), repeat=False)
 
+    def test_del(self):
+        text = 'some_random_text'
+        ti = TextInput(multiline=False, text=text)
+        ti.focus = True
+
+        self.render(ti)
+        self.assertTrue(ti.focus)
+
+        # assert cursor is here:
+        self.assertEqual(ti.cursor, (len(text), 0))
+
+        steps_skip = 2
+        steps_select = 4
+        del_key = 'del'
+
+        for _ in range(steps_skip):
+            ti._key_down(
+                (None, None, 'cursor_left', 1),
+                repeat=False
+            )
+        # cursor at the place of ^
+        # some_random_te^xt
+
+        # push selection
+        ti._key_down((None, None, 'shift', 1), repeat=False)
+        for _ in range(steps_select):
+            ti._key_down(
+                (None, None, 'cursor_left', 1),
+                repeat=False
+            )
+
+        # pop selection
+        ti._key_up((None, None, 'shift', 1), repeat=False)
+
+        # cursor at the place of ^, selection between * chars
+        # some_rando*^m_te*xt
+
+        self.assertEqual(
+            ti.cursor, (len(text[:-steps_select - steps_skip]), 0)
+        )
+        self.assertEqual(ti.text, text)
+
+        ti._key_down(
+            (None, None, del_key, 1),
+            repeat=False
+        )
+        # cursor now at: some_rando^xt
+        self.assertEqual(ti.text, 'some_randoxt')
+
+        ti._key_down(
+            (None, None, del_key, 1),
+            repeat=False
+        )
+        self.assertEqual(ti.text, 'some_randot')
+
+    def test_escape(self):
+        text = 'some_random_text'
+        escape_key = 'escape'
+        ti = TextInput(multiline=False, text=text)
+        ti.focus = True
+
+        self.render(ti)
+        self.assertTrue(ti.focus)
+
+        ti._key_down(
+            (None, None, escape_key, 1),
+            repeat=False
+        )
+        self.assertFalse(ti.focus)
+        self.assertEqual(ti.text, text)
+
+    def test_no_shift_cursor_arrow_on_selection(self):
+        text = 'some_random_text'
+        ti = TextInput(multiline=False, text=text)
+        ti.focus = True
+
+        self.render(ti)
+        self.assertTrue(ti.focus)
+
+        # assert cursor is here:
+        self.assertEqual(ti.cursor, (len(text), 0))
+
+        steps_skip = 2
+        steps_select = 4
+
+        for _ in range(steps_skip):
+            ti._key_down(
+                (None, None, 'cursor_left', 1),
+                repeat=False
+            )
+        # cursor at the place of ^
+        # some_random_te^xt
+
+        # push selection
+        ti._key_down((None, None, 'shift', 1), repeat=False)
+        for _ in range(steps_select):
+            ti._key_down(
+                (None, None, 'cursor_left', 1),
+                repeat=False
+            )
+
+        # pop selection
+        ti._key_up((None, None, 'shift', 1), repeat=False)
+
+        # cursor at the place of ^, selection between * chars
+        # some_rando*^m_te*xt
+
+        ti._key_down(
+            (None, None, 'cursor_right', 1),
+            repeat=False
+        )
+        self.assertEqual(ti.cursor, (len(text) - steps_skip, 0))
+
+    def test_cursor_movement_control(self):
+        text = "these are\nmany words"
+        ti = TextInput(multiline=True, text=text)
+
+        ti.focus = True
+
+        self.render(ti)
+        self.assertTrue(ti.focus)
+
+        # assert cursor is here:
+        self.assertEqual(
+            ti.cursor, (
+                len(text.split('\n')[-1]),
+                len(text.split('\n')) - 1
+            )
+        )
+
+        options = (
+                ('cursor_left', (5, 1)),
+                ('cursor_left', (0, 1)),
+                ('cursor_left', (6, 0)),
+                ('cursor_right', (9, 0)),
+                ('cursor_right', (4, 1)))
+
+        for key, pos in options:
+            ti._key_down((None, None, 'ctrl_L', 1), repeat=False)
+            ti._key_down((None, None, key, 1), repeat=False)
+
+            self.assertEqual(ti.cursor, pos)
+
+            ti._key_up((None, None, 'ctrl_L', 1), repeat=False)
+
 
 if __name__ == '__main__':
     import unittest

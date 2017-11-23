@@ -1121,6 +1121,43 @@ class TextInput(FocusBehavior, Widget):
             else:
                 row = min(row + 1, len(self._lines) - 1)
                 col = min(len(self._lines[row]), col)
+        elif action == 'cursor_home':
+            col = 0
+            if control:
+                row = 0
+        elif action == 'cursor_end':
+            if control:
+                row = len(self._lines) - 1
+            col = len(self._lines[row])
+        elif action == 'cursor_pgup':
+            row = max(0, row - pgmove_speed)
+            col = min(len(self._lines[row]), col)
+        elif action == 'cursor_pgdown':
+            row = min(row + pgmove_speed, len(self._lines) - 1)
+            col = min(len(self._lines[row]), col)
+        elif (self._selection and self._selection_finished and
+                self._selection_from < self._selection_to and
+                action == 'cursor_left'):
+            current_selection_to = self._selection_to
+            while self._selection_from != current_selection_to:
+                current_selection_to -= 1
+                if col:
+                    col -= 1
+                else:
+                    row -= 1
+                    col = len(self._lines[row])
+        elif (self._selection and self._selection_finished and
+                self._selection_from > self._selection_to and
+                action == 'cursor_right'):
+            current_selection_to = self._selection_to
+            while self._selection_from != current_selection_to:
+                current_selection_to += 1
+                if len(self._lines[row]) > col:
+                    col += 1
+                else:
+                    row += 1
+                    col = 0
+
         elif action == 'cursor_left':
             if not self.password and control:
                 col, row = self._move_cursor_word_left()
@@ -1141,20 +1178,6 @@ class TextInput(FocusBehavior, Widget):
                         row += 1
                 else:
                     col, row = col + 1, row
-        elif action == 'cursor_home':
-            col = 0
-            if control:
-                row = 0
-        elif action == 'cursor_end':
-            if control:
-                row = len(self._lines) - 1
-            col = len(self._lines[row])
-        elif action == 'cursor_pgup':
-            row = max(0, row - pgmove_speed)
-            col = min(len(self._lines[row]), col)
-        elif action == 'cursor_pgdown':
-            row = min(row + pgmove_speed, len(self._lines) - 1)
-            col = min(len(self._lines[row]), col)
         self.cursor = (col, row)
 
     def get_cursor_from_xy(self, x, y):
