@@ -9,7 +9,6 @@ import os
 import re
 import sys
 import traceback
-from os import environ
 from re import sub, findall
 from types import CodeType
 from functools import partial
@@ -303,7 +302,7 @@ class ParserRule(object):
 
     def _build_rule(self):
         name = self.name
-        if __debug__ and not environ.get('KIVY_UNITTEST_NOPARSERTRACE'):
+        if __debug__:
             trace('Builder: build rule for %s' % name)
         if name[0] != '<' or name[-1] != '>':
             raise ParserException(self.ctx, self.line,
@@ -348,7 +347,7 @@ class ParserRule(object):
 
     def _build_template(self):
         name = self.name
-        if __debug__ and not environ.get('KIVY_UNITTEST_NOPARSERTRACE'):
+        if __debug__:
             trace('Builder: build template for %s' % name)
         if name[0] != '[' or name[-1] != ']':
             raise ParserException(self.ctx, self.line,
@@ -396,7 +395,7 @@ class Parser(object):
         global __KV_INCLUDES__
         for ln, cmd in self.directives:
             cmd = cmd.strip()
-            if __debug__ and not environ.get('KIVY_UNITTEST_NOPARSERTRACE'):
+            if __debug__:
                 trace('Parser: got directive <%s>' % cmd)
             if cmd[:5] == 'kivy ':
                 version = cmd[5:].strip()
@@ -489,7 +488,7 @@ class Parser(object):
         lines = list(zip(list(range(num_lines)), lines))
         self.sourcecode = lines[:]
 
-        if __debug__ and not environ.get('KIVY_UNITTEST_NOPARSERTRACE'):
+        if __debug__:
             trace('Parser: parsing %d lines' % num_lines)
 
         # Strip all comments
