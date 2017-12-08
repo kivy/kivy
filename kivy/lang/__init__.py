@@ -192,7 +192,7 @@ widget, and not the widget itself. The widget itself can be accessed
 with `id.__self__` (`btn1.__self__` in this case).
 
 When the kv file is processed, weakrefs to all the widgets tagged with ids are
-added to the root widgets `ids` dictionary. In other words, following on from
+added to the root widget's `ids` dictionary. In other words, following on from
 the example above, the buttons state could also be accessed as follows:
 
 .. code-block:: python
