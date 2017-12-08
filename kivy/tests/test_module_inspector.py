@@ -1,7 +1,6 @@
 from kivy.tests.common import GraphicUnitTest, UnitTestTouch
 
 from kivy.base import EventLoop
-from kivy.lang import Builder
 from kivy.modules import inspector
 from kivy.factory import Factory
 
@@ -79,7 +78,7 @@ class InspectorTestCase(GraphicUnitTest):
         self.clean_garbage()
 
         # build the widget tree & add Window as the main EL
-        self.root = Builder.load_string(KV)
+        self.root = self.builder.Builder.load_string(KV)
         self.render(self.root)
         self.assertLess(len(self._win.children), 2)
 
@@ -117,7 +116,7 @@ class InspectorTestCase(GraphicUnitTest):
         self.clean_garbage()
 
         # build the widget tree & add Window as the main EL
-        self.root = Builder.load_string(KV)
+        self.root = self.builder.Builder.load_string(KV)
         self.render(self.root)
         self.assertLess(len(self._win.children), 2)
 
@@ -157,7 +156,7 @@ class InspectorTestCase(GraphicUnitTest):
         self.clean_garbage()
 
         # build the widget tree & add Window as the main EL
-        self.root = Builder.load_string(KV)
+        self.root = self.builder.Builder.load_string(KV)
         self.render(self.root)
         self.assertLess(len(self._win.children), 2)
 
@@ -216,7 +215,7 @@ class InspectorTestCase(GraphicUnitTest):
         self.clean_garbage()
 
         # build the widget tree & add Window as the main EL
-        self.root = Builder.load_string(KV)
+        self.root = self.builder.Builder.load_string(KV)
         self.render(self.root)
         self.assertLess(len(self._win.children), 2)
 
@@ -298,7 +297,7 @@ class InspectorTestCase(GraphicUnitTest):
         self.clean_garbage()
 
         # build the widget tree & add Window as the main EL
-        self.root = Builder.load_string(KV)
+        self.root = self.builder.Builder.load_string(KV)
         self.render(self.root)
         self.assertLess(len(self._win.children), 2)
 
