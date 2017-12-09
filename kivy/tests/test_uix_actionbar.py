@@ -80,20 +80,26 @@ class TouchPoint(UTMotionEvent):
 class ActionBarTestCase(GraphicUnitTest):
     framecount = 0
 
+    def setUp(self):
+        # kill KV lang logging (too long test)
+        import kivy.lang.builder as builder
+
+        if not hasattr(self, '_trace'):
+            self._trace = builder.trace
+
+        self.builder = builder
+        builder.trace = lambda *_, **__: None
+        super(ActionBarTestCase, self).setUp()
+
+    def tearDown(self):
+        # add the logging back
+        import kivy.lang.builder as builder
+        builder.trace = self._trace
+        super(ActionBarTestCase, self).tearDown()
+
     def move_frames(self, t):
         for i in range(t):
             EventLoop.idle()
-
-    def setUp(self):
-        from os import environ
-        environ['KIVY_UNITTEST_NOBUILDERTRACE'] = '1'
-        environ['KIVY_UNITTEST_NOPARSERTRACE'] = '1'
-        super(self.__class__, self).setUp()
-
-    def tearDown(self):
-        from os import environ
-        del environ['KIVY_UNITTEST_NOBUILDERTRACE']
-        del environ['KIVY_UNITTEST_NOPARSERTRACE']
 
     def clean_garbage(self, *args):
         for child in self._win.children[:]:
