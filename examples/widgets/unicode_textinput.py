@@ -4,10 +4,12 @@ from kivy.app import App
 from kivy.lang import Builder
 from kivy.properties import StringProperty, ObjectProperty
 from kivy.core.text import Label as CoreLabel
+from kivy.utils import reify
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.spinner import SpinnerOption
 from kivy.uix.popup import Popup
+
 import os
 
 
@@ -63,7 +65,7 @@ Builder.load_string('''
         size: root.size
         pos: root.pos
         BoxLayout:
-            orientation: "vertical"
+            orientation: 'vertical'
             size_hint: .2, 1
             Button:
                 size_hint: 1, .2
@@ -91,11 +93,11 @@ Builder.load_string('''
                     if _platform == 'linux' else '/system/fonts'
                     if _platform == 'android' else os.path.expanduser
                     ('/System/Library/Fonts') if _platform == 'macosx'
-                    else os.environ['WINDIR'] + "\Fonts\")
+                    else os.environ['WINDIR'] + '\Fonts\')
             Label:
                 text: 'BookMarks'
         BoxLayout:
-            orientation: "vertical"
+            orientation: 'vertical'
             FileChooserListView:
                 id: filechooser
                 filters: ['*.ttf']
@@ -103,10 +105,10 @@ Builder.load_string('''
                 size_hint_y: None
                 height: 30
                 Button:
-                    text: "cancel"
+                    text: 'cancel'
                     on_release: root.cancel()
                 Button:
-                    text: "load"
+                    text: 'load'
                     on_release: filechooser.selection != [] and root.load\
 (filechooser.path, filechooser.selection)
 ''')
@@ -124,7 +126,7 @@ class LoadDialog(FloatLayout):
 class Unicode_TextInput(BoxLayout):
 
     txt_input = ObjectProperty(None)
-    unicode_string = StringProperty("""Latin-1 supplement: éé çç ßß
+    unicode_string = StringProperty('''Latin-1 supplement: éé çç ßß
 
 List of major languages taken from Google Translate
 ____________________________________________________
@@ -181,7 +183,8 @@ Persian:        روباه قهوه ای سریع روی سگ تنبل قدیم�
 Polish:         Szybki brązowy lis przeskoczył nad leniwym psem życia.
 Portugese:      A ligeira raposa marrom ataca o cão preguiçoso de idade.
 Romanian:       Rapidă maro vulpea sare peste cainele lenes vechi.
-Russian:       Быстрый коричневый лис перепрыгивает через ленивый старый пес.
+Russian:        Быстрая коричневая лисица перепрыгивает ленивого 
+                старого пса.
 Serniam:        Брза смеђа лисица прескаче лењог пса старог.
 Slovak:         Rýchla hnedá líška skáče cez lenivého starého psa.
 Slovenian:      Kožuščku hudobnega nad leni starega psa.
@@ -197,7 +200,7 @@ Ukranian:       Швидкий коричневий лис перестрибу�
 Urdu:           فوری بھوری لومڑی سست بوڑھے کتے پر کودتا.
 Vietnamese:     Các con cáo nâu nhanh chóng nhảy qua con chó lười biếng cũ.
 Welsh:          Mae'r cyflym frown llwynog neidio dros y ci hen ddiog.
-Yiddish:        דער גיך ברוין פוקס דזשאַמפּס איבער די פויל אַלט הונט.""")
+Yiddish:        דער גיך ברוין פוקס דזשאַמפּס איבער די פויל אַלט הונט.''')
 
     def dismiss_popup(self):
         self._popup.dismiss()
@@ -210,12 +213,9 @@ Yiddish:        דער גיך ברוין פוקס דזשאַמפּס איבער 
 
     def show_load(self):
         content = LoadDialog(load=self.load, cancel=self.dismiss_popup)
-        self._popup = Popup(title="load file", content=content,
+        self._popup = Popup(title='load file', content=content,
             size_hint=(0.9, 0.9))
         self._popup.open()
-
-
-from kivy.utils import reify
 
 
 class unicode_app(App):
@@ -225,22 +225,19 @@ class unicode_app(App):
 
     @reify
     def get_font_list(self):
-        '''Get a list of all the fonts available on this system.
-        '''
+        """Get a list of all the fonts available on this system.
+        """
 
         fonts_path = CoreLabel.get_system_fonts_dir()
         flist = []
 
         for fdir in fonts_path:
             for fpath in sorted(os.listdir(fdir)):
-                if '.' not in fpath:
-                    continue
-                font, ext = fpath.rsplit('.')
-                if ext == 'ttf':
-                    flist.append(font)
+                if fpath.endswith('.ttf'):
+                    flist.append(fpath[:-4])
+
         return sorted(flist)
 
 
 if __name__ == '__main__':
-
     unicode_app().run()
