@@ -218,7 +218,7 @@ Yiddish:        דער גיך ברוין פוקס דזשאַמפּס איבער 
         self._popup.open()
 
 
-class unicode_app(App):
+class UnicodeApp(App):
 
     def build(self):
         return Unicode_TextInput()
@@ -240,4 +240,4 @@ class unicode_app(App):
 
 
 if __name__ == '__main__':
-    unicode_app().run()
+    UnicodeApp().run()
