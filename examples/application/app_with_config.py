@@ -23,8 +23,14 @@ FloatLayout:
 
 
 class ConfigApp(App):
-    number = ConfigParserProperty(0, 'general', 'number', 'app', val_type=float)
-    text = ConfigParserProperty('', 'general', 'text', 'app', val_type=str)
+    number = ConfigParserProperty(
+        0, 'general', 'number',
+        'app', val_type=float
+    )
+    text = ConfigParserProperty(
+        '', 'general', 'text',
+        'app', val_type=str
+    )
 
     def build_config(self, config):
         config.setdefaults(
