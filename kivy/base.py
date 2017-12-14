@@ -515,6 +515,8 @@ def runTouchApp(widget=None, slave=False):
             EventLoop.mainloop()
         elif opt == 'async':
             EventLoop.async_run()
+        elif opt == 'trio':
+            EventLoop.async_trio_run()
     finally:
         stopTouchApp()
 

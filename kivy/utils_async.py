@@ -4,6 +4,14 @@
 
 from kivy.compat import async_coroutine, aiter_compat
 import asyncio
+import os
+from collections import deque
+
+if os.environ.get('KIVY_EVENTLOOP', 'default') == 'trio':
+    import trio
+    async_lib = trio
+else:
+    async_lib = asyncio
 
 
 class AsyncCallbackQueue(object):
@@ -33,7 +41,7 @@ class AsyncCallbackQueue(object):
 
     callback_result = []
 
-    future = None
+    event = None
 
     loop = None
 
@@ -43,12 +51,14 @@ class AsyncCallbackQueue(object):
 
     convert = None
 
-    def __init__(self, loop=None, filter=None, convert=None, **kwargs):
+    def __init__(self, loop=None, filter=None, convert=None, maxlen=None,
+                 **kwargs):
         super(AsyncCallbackQueue, self).__init__(**kwargs)
         self.filter = filter
         self.convert = convert
-        self.callback_result = []
+        self.callback_result = deque(maxlen=maxlen)
         self.loop = loop or asyncio.get_event_loop()
+        self.event = async_lib.Event()
 
     def __del__(self):
         self.stop()
@@ -59,13 +69,13 @@ class AsyncCallbackQueue(object):
 
     @async_coroutine
     def __anext__(self):
+        self.event.clear()
         while not self.callback_result and not self.quit:
-            self.future = future = self.loop.create_future()
-            yield from future
-            self.future = None
+            yield from self.event.wait()
+            self.event.clear()
 
         if self.callback_result:
-            return self.callback_result.pop(0)
+            return self.callback_result.popleft()
         raise StopAsyncIteration
 
     def callback(self, *args):
@@ -78,15 +88,10 @@ class AsyncCallbackQueue(object):
             args = convert(args)
 
         self.callback_result.append(args)
-        if self.future:
-            self.future.set_result(True)
-            self.future = None
+        self.event.set()
 
     def stop(self):
         '''Stops the iterator and cleans up.
         '''
         self.quit = True
-
-        if self.future:
-            self.future.set_result(False)
-            self.future = None
+        self.event.set()

@@ -68,6 +68,10 @@ class AsyncEventLoopBase(object):
         loop.run_until_complete(self.async_mainloop())
         loop.close()
 
+    def async_trio_run(self):
+        import trio
+        trio.run(self.async_mainloop)
+
 
 @async_coroutine
 def async_runTouchApp(widget=None, slave=False):

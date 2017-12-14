@@ -382,6 +382,7 @@ try:
 except ImportError:
     asyncio = None
 
+_use_trio = environ.get('KIVY_EVENTLOOP', 'default')
 if asyncio:
     from kivy.clock_async import AsyncClockBaseBehavior, \
         AsyncClockBaseFreeInterruptOnly, AsyncClockBaseInterruptBehavior
@@ -668,7 +669,11 @@ class ClockBaseInterruptBehavior(
         super(ClockBaseInterruptBehavior, self).__init__(**kwargs)
         self._event = MultiprocessingEvent() if PY2 else ThreadingEvent()
         if asyncio:
-            self._async_event = asyncio.Event()
+            if _use_trio:
+                import trio
+                self._async_event = trio.Event()
+            else:
+                self._async_event = asyncio.Event()
         self.interupt_next_only = interupt_next_only
         self._get_min_timeout_func = self.get_min_timeout
 
