@@ -669,7 +669,6 @@ In myapp.py:
 .. code-block:: python
 
     class MyWidget(Button):
-
         new_background = StringProperty('my_background.png')
 
 and in my.kv:
