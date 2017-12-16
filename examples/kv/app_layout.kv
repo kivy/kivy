@@ -1,10 +1,16 @@
 BoxLayout:
-    Button:
-        id: bswitch
+    BoxLayout:
+        orientation: 'vertical'
+        ToggleButton:
+            id: bswitch
+        ToggleButton:
+            id: bswitch2
 
     BoxLayout:
-
-        orientation: 'vertical' if bswitch.state == 'down' else 'horizontal'
+        orientation:
+            '{}{}'.format(
+            'vertical' if bswitch.state == 'down' else 'horizontal',
+            '-reverse' if bswitch2.state == 'down' else '')
 
         Button:
             id: btn1

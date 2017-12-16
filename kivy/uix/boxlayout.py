@@ -91,11 +91,19 @@ class BoxLayout(Layout):
     '''
 
     orientation = OptionProperty('horizontal', options=(
-        'horizontal', 'vertical'))
+        'horizontal', 'vertical', 'horizontal-reverse',
+        'vertical-reverse'))
     '''Orientation of the layout.
 
-    :attr:`orientation` is an :class:`~kivy.properties.OptionProperty` and
-    defaults to 'horizontal'. Can be 'vertical' or 'horizontal'.
+    :attr:`orientation` is an :class:`~kivy.properties.OptionProperty`
+    and defaults to 'horizontal'. Can be 'vertical', 'vertical-reverse',
+    'horizontal' or 'horizontal-reverse'.
+
+    .. versionchanged:: 1.11.0
+
+    :attr:`orientation` now allows 'horizontal-reverse' and
+    'vertical-reverse' which will behave like 'horizontal' and
+    'vertical' but with the opposite direction in layout.
     '''
 
     minimum_width = NumericProperty(0)
@@ -154,7 +162,7 @@ class BoxLayout(Layout):
         hint = [None] * len_children
         # min size from all the None hint, and from those with sh_min
         minimum_size_bounded = 0
-        if orientation == 'horizontal':
+        if orientation in ('horizontal', 'horizontal-reverse'):
             minimum_size_y = 0
             minimum_size_none = padding_x + spacing * (len_children - 1)
 
@@ -208,7 +216,7 @@ class BoxLayout(Layout):
         selfx = self.x
         selfy = self.y
 
-        if orientation == 'horizontal':
+        if orientation in ('horizontal', 'horizontal-reverse'):
             stretch_space = max(0.0, self.width - minimum_size_none)
             dim = 0
         else:
@@ -238,8 +246,12 @@ class BoxLayout(Layout):
                     (val[3][dim] for val in sizes),
                     (elem[4][dim] for elem in sizes), hint)
 
-        if orientation == 'horizontal':
-            x = padding_left + selfx
+        if orientation in ('horizontal', 'horizontal-reverse'):
+            reverse = orientation == 'horizontal-reverse'
+            if reverse:
+                x = selfx + self.width - padding_right
+            else:
+                x = padding_left + selfx
             size_y = self.height - padding_y
             for i, (sh, ((w, h), (_, shh), pos_hint, _, _)) in enumerate(
                     zip(reversed(hint), reversed(sizes))):
@@ -259,11 +271,20 @@ class BoxLayout(Layout):
                     elif key == 'center_y':
                         cy += posy - (h / 2.)
 
-                yield len_children - i - 1, x, cy, w, h
-                x += w + spacing
+                if reverse:
+                    x -= w
+                    yield len_children - i - 1, x, cy, w, h
+                    x -= spacing
+                else:
+                    yield len_children - i - 1, x, cy, w, h
+                    x += w + spacing
 
         else:
-            y = padding_bottom + selfy
+            reverse = orientation == 'vertical-reverse'
+            if reverse:
+                y = selfy + self.height - padding_top
+            else:
+                y = padding_bottom + selfy
             size_x = self.width - padding_x
             for i, (sh, ((w, h), (shw, _), pos_hint, _, _)) in enumerate(
                     zip(hint, sizes)):
@@ -283,8 +304,13 @@ class BoxLayout(Layout):
                     elif key == 'center_x':
                         cx += posx - (w / 2.)
 
-                yield i, cx, y, w, h
-                y += h + spacing
+                if reverse:
+                    y -= h
+                    yield i, cx, y, w, h
+                    y -= spacing
+                else:
+                    yield i, cx, y, w, h
+                    y += h + spacing
 
     def do_layout(self, *largs):
         children = self.children
