@@ -315,6 +315,10 @@ class Widget(WidgetBase):
         callbacks to properties or events, as in the Kv language.
     '''
 
+    _disabled_count = NumericProperty(0)
+    '''internal, used to keep track of the current disabled state
+    '''
+
     __metaclass__ = WidgetMetaclass
     __events__ = ('on_touch_down', 'on_touch_move', 'on_touch_up')
     _proxy_ref = None
@@ -328,6 +332,7 @@ class Widget(WidgetBase):
             self._context = get_current_context()
 
         no_builder = '__no_builder' in kwargs
+        self._disabled_value = False
         if no_builder:
             del kwargs['__no_builder']
         on_args = {k: v for k, v in kwargs.items() if k[:3] == 'on_'}
@@ -479,10 +484,6 @@ class Widget(WidgetBase):
             if child.dispatch('on_touch_up', touch):
                 return True
 
-    def on_disabled(self, instance, value):
-        for child in self.children:
-            child.disabled = value
-
     #
     # Tree management
     #
@@ -532,8 +533,7 @@ class Widget(WidgetBase):
                                   % (widget, parent))
         widget.parent = parent = self
         # Child will be disabled if added to a disabled parent.
-        if parent.disabled:
-            widget.disabled = True
+        widget._disabled_count = self._disabled_count
 
         canvas = self.canvas.before if canvas == 'before' else \
             self.canvas.after if canvas == 'after' else self.canvas
@@ -1305,7 +1305,33 @@ class Widget(WidgetBase):
     See :class:`~kivy.graphics.Canvas` for more information about the usage.
     '''
 
-    disabled = BooleanProperty(False)
+    def get_disabled(self):
+        return self._disabled_count > 0
+
+    def set_disabled(self, value):
+        if value != self._disabled_value:
+            self._disabled_value = value
+            if value:
+                self.inc_disabled()
+            else:
+                self.dec_disabled()
+
+    def inc_disabled(self):
+        self._disabled_count += 1
+        for c in self.children:
+            c.inc_disabled()
+
+    def dec_disabled(self):
+        self._disabled_count -= 1
+        for c in self.children:
+            c.dec_disabled()
+
+    disabled = AliasProperty(
+        get_disabled,
+        set_disabled,
+        force_dispatch=True,
+        bind=['_disabled_count'],
+    )
     '''Indicates whether this widget can interact with input or not.
 
     .. note::
@@ -1319,4 +1345,9 @@ class Widget(WidgetBase):
 
     :attr:`disabled` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
+
+    .. versionchanged:: 1.10.1
+    :attr:`disabled` is now an :class:`~kivy.properties.AliasProperty`
+    which allows to remember the previous disabled state when a parent's
+    disabled state is changed.
     '''
