@@ -1,0 +1,19 @@
+include 'window_attrs.pxi'
+
+from libc.stdint cimport uintptr_t
+
+IF UNAME_SYSNAME == 'Linux':
+    cdef class WindowInfoWayland:
+        cdef wl_display *display
+        cdef wl_surface *surface
+        cdef wl_shell_surface *shell_surface
+
+    cdef class WindowInfoX11:
+        cdef Display *display
+        cdef Window window
+
+IF UNAME_SYSNAME == 'Windows':
+    cdef class WindowInfoWindows:
+        cdef HWND hwnd
+        cdef HDC hdc
+        cdef HINSTANCE hinstance

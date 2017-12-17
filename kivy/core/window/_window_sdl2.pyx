@@ -10,6 +10,12 @@ from kivy.graphics.cgl import cgl_get_backend_name
 
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 
+IF UNAME_SYSNAME == 'Linux':
+    from window_info cimport WindowInfoX11, WindowInfoWayland
+
+IF UNAME_SYSNAME == 'Windows':
+    from window_info cimport WindowInfoWindows
+
 cdef int _event_filter(void *userdata, SDL_Event *event) with gil:
     return (<_WindowSDL2Storage>userdata).cb_event_filter(event)
 
@@ -332,6 +338,38 @@ cdef class _WindowSDL2Storage:
 
     def set_window_pos(self, x, y):
         SDL_SetWindowPosition(self.win, x, y)
+
+    def get_window_info(self):
+        cdef SDL_SysWMinfo wm_info
+        SDL_GetVersion(&wm_info.version)
+        cdef SDL_bool success = SDL_GetWindowWMInfo(self.win, &wm_info)
+
+        if not success:
+            return
+
+        IF UNAME_SYSNAME == 'Linux':
+            cdef WindowInfoWayland wayland_info
+            cdef WindowInfoX11 x11_info
+
+            if wm_info.subsystem == SDL_SYSWM_TYPE.SDL_SYSWM_WAYLAND:
+                wayland_info = WindowInfoWayland()
+                wayland_info.display = wm_info.info.wl.display
+                wayland_info.surface = wm_info.info.wl.surface
+                wayland_info.shell_surface = wm_info.info.wl.shell_surface
+                return wayland_info
+            elif wm_info.subsystem == SDL_SYSWM_TYPE.SDL_SYSWM_X11:
+                x11_info = WindowInfoX11()
+                x11_info.display = wm_info.info.x11.display
+                x11_info.window = wm_info.info.x11.window
+                return x11_info
+        IF UNAME_SYSNAME == 'Windows':
+            cdef WindowInfoWindows windows_info
+
+            if wm_info.subsystem == SDL_SYSWM_TYPE.SDL_SYSWM_WINDOWS:
+                windows_info = WindowInfoWindows()
+                windows_info.hwnd = wm_info.info.win.hwnd
+                windows_info.hdc = wm_info.info.win.hdc
+                windows_info.hinstance = wm_info.info.win.hinstance
 
     # Transparent Window background
     def is_window_shaped(self):
