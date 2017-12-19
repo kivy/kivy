@@ -231,7 +231,7 @@
             rgba: 1, 1, 1, int(not self.is_leaf)
         Rectangle:
             source: 'atlas://data/images/defaulttheme/tree_%s' % ('opened' if self.is_open else 'closed')
-            size: 16, 16
+            size: self.height / 2.0, self.height / 2.0
             pos: self.x - 20, self.center_y - 8
     canvas.after:
         Color:
@@ -669,6 +669,7 @@
         text: root.title
         text_size: self.size
         color: root.color
+        markup: root.markup
         shorten: True
         shorten_from: 'right'
         halign: 'left'

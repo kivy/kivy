@@ -10,6 +10,20 @@ improvements, advertisement & advocating, testing, graphics contributions and
 many other ideas. Just talk to us if you want to help, and we will help you
 help us.
 
+Code of Conduct
+---------------
+
+In the interest of fostering an open and welcoming community, we as
+contributors and maintainers need to ensure participation in our project and our
+sister projects is a harassment-free and postive experience for everyone.
+
+As such, it is vital that all interaction is conducted in a manner conveying
+respect, open-mindedness and gratitude. For a more comprehensive discussion of
+these guidelines, please refer to the `Contributor Covenant
+<https://www.contributor-covenant.org/version/1/4/code-of-conduct.html>`_. This
+document provides an accurate description of what is expected of you, both as a
+core developer or a first time contributor.
+
 Feedback
 --------
 

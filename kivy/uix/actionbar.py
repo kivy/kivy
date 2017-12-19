@@ -211,6 +211,17 @@ class ActionPrevious(BoxLayout, ActionItem):
        defaults to ''.
     '''
 
+    markup = BooleanProperty(False)
+    '''If True, the text will be rendered using the
+       :class:`~kivy.core.text.markup.MarkupLabel`: you can change the
+       style of the text using tags. Check the
+       :doc:`api-kivy.core.text.markup` documentation for more
+       information.
+
+       :attr:`markup` is a :class:`~kivy.properties.BooleanProperty` and
+       defaults to False.
+    '''
+
     def __init__(self, **kwargs):
         self.register_event_type('on_press')
         self.register_event_type('on_release')
@@ -522,7 +533,8 @@ class ActionView(BoxLayout):
     def on_use_separator(self, instance, value):
         for group in self._list_action_group:
             group.use_separator = value
-        self.overflow_group.use_separator = value
+        if self.overflow_group:
+            self.overflow_group.use_separator = value
 
     def remove_widget(self, widget):
         super(ActionView, self).remove_widget(widget)

@@ -19,7 +19,7 @@ You can install Kivy with Homebrew and pip using the following steps:
 
     2. Install Cython and Kivy using pip::
 
-        $ pip install -U Cython
+        $ pip install Cython==0.26.1
         $ pip install kivy
 
     - To install the development version, use this in the second step::
@@ -55,7 +55,7 @@ You can install Kivy with Macports and pip using the following steps:
 
     5. Install Cython and Kivy using pip::
 
-        $ pip install -U Cython
+        $ pip install Cython==0.26.1
         $ pip install kivy
 
     - To install the development version, use this in the second step::

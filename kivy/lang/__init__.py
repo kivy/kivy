@@ -192,7 +192,7 @@ widget, and not the widget itself. The widget itself can be accessed
 with `id.__self__` (`btn1.__self__` in this case).
 
 When the kv file is processed, weakrefs to all the widgets tagged with ids are
-added to the root widgets `ids` dictionary. In other words, following on from
+added to the root widget's `ids` dictionary. In other words, following on from
 the example above, the buttons state could also be accessed as follows:
 
 .. code-block:: python
@@ -221,9 +221,8 @@ span a single line, cannot be extended to multiple lines using newline
 escaping, and must return a value. An example of a valid expression is
 ``text: self.state and ('up' if self.state == 'normal' else 'down')``.
 
-In the latter case, multiple single line statements are valid including
-multi-line statements that escape their newline, as long as they don't
-add an indentation level.
+In the latter case, multiple single line statements are valid, including
+those that escape their newline, as long as they don't add an indentation level.
 
 Examples of valid statements are:
 
@@ -670,7 +669,6 @@ In myapp.py:
 .. code-block:: python
 
     class MyWidget(Button):
-
         new_background = StringProperty('my_background.png')
 
 and in my.kv:

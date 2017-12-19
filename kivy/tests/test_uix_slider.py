@@ -31,15 +31,21 @@ class SliderMoveTestCase(GraphicUnitTest):
     framecount = 0
 
     def setUp(self):
-        from os import environ
-        environ['KIVY_UNITTEST_NOBUILDERTRACE'] = '1'
-        environ['KIVY_UNITTEST_NOPARSERTRACE'] = '1'
-        super(self.__class__, self).setUp()
+        # kill KV lang logging (too long test)
+        import kivy.lang.builder as builder
+
+        if not hasattr(self, '_trace'):
+            self._trace = builder.trace
+
+        self.builder = builder
+        builder.trace = lambda *_, **__: None
+        super(SliderMoveTestCase, self).setUp()
 
     def tearDown(self):
-        from os import environ
-        del environ['KIVY_UNITTEST_NOBUILDERTRACE']
-        del environ['KIVY_UNITTEST_NOPARSERTRACE']
+        # add the logging back
+        import kivy.lang.builder as builder
+        builder.trace = self._trace
+        super(SliderMoveTestCase, self).tearDown()
 
     def test_slider_move(self):
         EventLoop.ensure_window()
