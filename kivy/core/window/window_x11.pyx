@@ -15,6 +15,10 @@ from kivy.base import stopTouchApp, EventLoop, ExceptionManager
 from kivy.utils import platform
 from os import environ
 
+from libc.stdint cimport uintptr_t
+
+from kivy.graphics.cgl cimport Display, Window
+
 # force include the file
 cdef extern from "window_x11_core.c":
     pass
@@ -64,6 +68,8 @@ cdef extern void x11_set_title(char *title)
 cdef extern int x11_idle()
 cdef extern int x11_get_width()
 cdef extern int x11_get_height()
+cdef extern Display *x11_get_display()
+cdef extern Window x11_get_window()
 
 ctypedef int (*event_cb_t)(XEvent *event)
 cdef extern void x11_set_event_callback(event_cb_t callback)
@@ -195,9 +201,14 @@ class WindowX11(WindowBase):
         if 'KIVY_WINDOW_X11_CWOR' in environ:
             CWOR = True
 
+        if isinstance(self.title, bytes):
+            title = self.title
+        else:
+            title = self.title.encode('utf-8')
+
         if x11_create_window(size[0], size[1], pos[0], pos[1],
                 resizable, fullscreen, border, above, CWOR,
-                <char *><bytes>self.title) < 0:
+                <char *><bytes>title) < 0:
             Logger.critical('WinX11: Unable to create the window')
             return
 
@@ -232,7 +243,12 @@ class WindowX11(WindowBase):
         super(WindowX11, self).flip()
 
     def on_title(self, *kwargs):
-        x11_set_title(<char *><bytes>self.title)
+        if isinstance(self.title, bytes):
+            title = self.title
+        else:
+            title = self.title.encode('utf-8')
+
+        x11_set_title(<char *><bytes>title)
 
     def on_keyboard(self, key,
         scancode=None, codepoint=None, modifier=None, **kwargs):
@@ -248,4 +264,10 @@ class WindowX11(WindowBase):
                 return True
         super(WindowX11, self).on_keyboard(key, scancode,
             codepoint=codepoint, modifier=modifier)
+
+    def get_xdisplay(self):
+        return <uintptr_t>x11_get_display()
+
+    def get_xwindow(self):
+        return <uintptr_t>x11_get_window()
 

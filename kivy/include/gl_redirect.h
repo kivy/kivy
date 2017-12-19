@@ -62,7 +62,9 @@
 #		else
 #			define GL_GLEXT_PROTOTYPES
 #			include <GL/gl.h>
+#           include <GL/glx.h>
 #			include <GL/glext.h>
+#           include <GL/glxext.h>
 #		endif
 #		define GL_SHADER_BINARY_FORMATS					0x8DF8
 #		define GL_RGB565								0x8D62

@@ -563,6 +563,29 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False,
     return _texture_create(width, height, colorfmt, bufferfmt, mipmap,
             allocate, callback, icolorfmt)
 
+from libc.stdint cimport uintptr_t
+from kivy.graphics.tfp cimport bindTexImage, releaseTexImage
+def texture_create_from_pixmap(pixmap, size):
+    cdef GLuint target = GL_TEXTURE_2D
+    cdef int allocate = 0, mipmap = 0
+    callback = None
+    colorfmt = 'rgba'
+    bufferfmt = 'ubyte'
+    icolorfmt = colorfmt
+
+    cdef Texture texture = Texture(size[0], size[1], target,
+          colorfmt=colorfmt, bufferfmt=bufferfmt, mipmap=mipmap,
+          callback=callback, icolorfmt=icolorfmt)
+
+    texture.min_filter = 'linear'
+    texture.mag_filter = 'linear'
+
+    texture.bind()
+    glxpixmap = bindTexImage(pixmap)
+    texture.flip_vertical()
+    texture._pixmap = glxpixmap
+
+    return texture
 
 def texture_create_from_data(im, mipmap=False):
     '''Create a texture from an ImageData class.
@@ -613,6 +636,7 @@ cdef class Texture:
     '''
     create = staticmethod(texture_create)
     create_from_data = staticmethod(texture_create_from_data)
+    create_from_pixmap = staticmethod(texture_create_from_pixmap)
 
     def __init__(self, width, height, target, texid=0, colorfmt='rgb',
             bufferfmt='ubyte', mipmap=False, source=None, callback=None,
@@ -637,6 +661,7 @@ cdef class Texture:
         self._source        = source
         self._nofree        = 0
         self._callback      = callback
+        self._pixmap        = None
 
         if texid == 0:
             self.flags |= TI_NEED_GEN
@@ -683,6 +708,10 @@ cdef class Texture:
             if cb.is_dead() or cb() is callback:
                 self.observers.remove(cb)
                 continue
+
+    def release_pixmap(self):
+        if self._pixmap:
+            releaseTexImage(self._pixmap)
 
     cdef void allocate(self):
         cdef int iglfmt, glfmt, iglbufferfmt, datasize, dataerr = 0

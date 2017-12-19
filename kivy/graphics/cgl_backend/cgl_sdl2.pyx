@@ -150,3 +150,4 @@ def init_backend():
         cgl.glVertexAttrib4f = <GLVERTEXATTRIB4FPTR>SDL_GL_GetProcAddress("glVertexAttrib4f")
         cgl.glVertexAttribPointer = <GLVERTEXATTRIBPOINTERPTR>SDL_GL_GetProcAddress("glVertexAttribPointer")
         cgl.glViewport = <GLVIEWPORTPTR>SDL_GL_GetProcAddress("glViewport")
+

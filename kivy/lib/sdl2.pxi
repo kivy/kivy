@@ -4,7 +4,7 @@
 #whose terms are available in the LICENSE file or at http://www.ignifuga.org/license
 
 
-cdef extern from "SDL_joystick.h":
+cdef extern from "SDL2/SDL_joystick.h":
     cdef struct SDL_Joystick
     cdef int SDL_HAT_CENTERED = 0x00
     cdef int SDL_HAT_UP = 0x01
@@ -12,7 +12,7 @@ cdef extern from "SDL_joystick.h":
     cdef int SDL_HAT_DOWN = 0x04
     cdef int SDL_HAT_LEFT = 0x08
 
-cdef extern from "SDL.h":
+cdef extern from "SDL2/SDL.h":
     ctypedef unsigned char Uint8
     ctypedef unsigned long Uint32
     ctypedef signed long Sint32
@@ -90,6 +90,11 @@ cdef extern from "SDL.h":
     ctypedef enum SDL_bool:
         SDL_FALSE = 0
         SDL_TRUE = 1
+
+    cdef struct SDL_version:
+        Uint8 major
+        Uint8 minor
+        Uint8 patch
 
     cdef struct SDL_Rect:
         int x, y
@@ -447,6 +452,7 @@ cdef extern from "SDL.h":
     cdef int SDL_INIT_EVENTS         = 0x00004000
     cdef int SDL_INIT_NOPARACHUTE    = 0x00100000  # Don't catch fatal signals */
 
+    cdef void SDL_GetVersion(SDL_version * ver)
     cdef SDL_Renderer * SDL_CreateRenderer(SDL_Window * window, int index, Uint32 flags)
     cdef void SDL_DestroyRenderer (SDL_Renderer * renderer)
     cdef SDL_Texture * SDL_CreateTexture(SDL_Renderer * renderer, Uint32 format, int access, int w, int h)
@@ -620,7 +626,7 @@ cdef extern from "SDL.h":
     Uint16 AUDIO_F32MSB #0x9120  /**< As above, but big-endian byte order */
     Uint16 AUDIO_F32    #AUDIO_F32LSB
 
-cdef extern from "SDL_shape.h":
+cdef extern from "SDL2/SDL_shape.h":
     cdef SDL_Window * SDL_CreateShapedWindow(
         char *title,
         unsigned int x,
@@ -659,7 +665,7 @@ cdef extern from "SDL_shape.h":
         SDL_WindowShapeMode * shape_mode
     )
 
-cdef extern from "SDL_image.h":
+cdef extern from "SDL2/SDL_image.h":
     ctypedef enum IMG_InitFlags:
         IMG_INIT_JPG
         IMG_INIT_PNG
@@ -673,7 +679,7 @@ cdef extern from "SDL_image.h":
     cdef int *IMG_SavePNG(SDL_Surface *src, char *file)
 
 
-cdef extern from "SDL_ttf.h":
+cdef extern from "SDL2/SDL_ttf.h":
     ctypedef struct TTF_Font
     cdef int TTF_Init()
     cdef TTF_Font *  TTF_OpenFont( char *file, int ptsize)
@@ -828,7 +834,7 @@ cdef extern from "SDL_ttf.h":
     # Get the kerning size of two glyphs */
     cdef int TTF_GetFontKerningSize(TTF_Font *font, int prev_index, int index)
 
-cdef extern from "SDL_audio.h":
+cdef extern from "SDL2/SDL_audio.h":
     cdef int AUDIO_S16SYS
     ctypedef struct SDL_AudioFilter:
         pass
@@ -855,7 +861,7 @@ cdef extern from "SDL_audio.h":
     )
     cdef int SDL_ConvertAudio(SDL_AudioCVT *cvt)
 
-cdef extern from "SDL_mixer.h":
+cdef extern from "SDL2/SDL_mixer.h":
     cdef struct Mix_Chunk:
         int allocated
         Uint8 *abuf
@@ -967,3 +973,34 @@ cdef extern from "SDL_mixer.h":
     cdef Mix_Chunk *  Mix_GetChunk(int channel)
     cdef void  Mix_CloseAudio()
     cdef char * Mix_GetError()
+
+from kivy.graphics.cgl cimport Display, Window
+
+cdef extern from "SDL2/SDL_syswm.h":
+    cdef enum SDL_SYSWM_TYPE:
+        SDL_SYSWM_UNKNOWN
+        SDL_SYSWM_WINDOWS
+        SDL_SYSWM_X11
+        SDL_SYSWM_DIRECTFB
+        SDL_SYSWM_COCOA
+        SDL_SYSWM_UIKIT
+        SDL_SYSWM_WAYLAND
+        SDL_SYSWM_MIR
+        SDL_SYSWM_WINRT
+        SDL_SYSWM_ANDROID
+        SDL_SYSWM_VIVANTE
+        SDL_SYSWM_OS2
+
+    cdef struct _wm_info_x11:
+        Display *display
+        Window window
+
+    cdef union _wm_info:
+        _wm_info_x11 x11
+
+    cdef struct SDL_SysWMinfo:
+        SDL_version version
+        SDL_SYSWM_TYPE subsystem
+        _wm_info info
+
+    cdef SDL_bool SDL_GetWindowWMInfo(SDL_Window *window, SDL_SysWMinfo *info)

@@ -43,7 +43,13 @@ from cgl cimport GLES2_Context
 import importlib
 from kivy.logger import Logger
 
+cdef extern from "gl_redirect.h":
+    void *glXGetProcAddress(GLubyte *)
+
 cdef GLES2_Context g_cgl
+cdef GLX_Context g_glx
+g_cgl.glx = &g_glx
+
 cdef GLES2_Context *cgl = &g_cgl
 cdef object cgl_name = None
 cdef int kivy_opengl_es2 = USE_OPENGL_ES2 or environ.get('KIVY_GRAPHICS', '').lower() == 'gles'
@@ -71,10 +77,16 @@ cdef void cgl_set_context(GLES2_Context* ctx):
     global cgl
     cgl = ctx
 
+cdef void glx_init() except *:
+    cgl.glx.glXBindTexImageEXT = <PFNGLXBINDTEXIMAGEEXTPROC>glXGetProcAddress("glXBindTexImageEXT")
+    cgl.glx.glXReleaseTexImageEXT = <PFNGLXRELEASETEXIMAGEEXTPROC>glXGetProcAddress("glXReleaseTexImageEXT")
 
 cdef void cgl_init() except *:
     Logger.info('GL: Using the "{}" graphics system'.format(
         'OpenGL ES 2' if kivy_opengl_es2 else 'OpenGL'))
+
+    glx_init()
+
     global cgl_name
     cgl_name = backend = cgl_get_backend_name()
 
@@ -356,3 +368,6 @@ cdef void log_cgl_funcs() except *:
         Logger.debug('GL: glVertexAttribPointer is not available')
     if cgl.glViewport == NULL:
         Logger.debug('GL: glViewport is not available')
+    # GLX
+    if cgl.glx.glXBindTexImageEXT == NULL or cgl.glx.glXReleaseTexImageEXT == NULL:
+        Logger.debug('GLX: GLX_EXT_texture_from_pixmap is not available')

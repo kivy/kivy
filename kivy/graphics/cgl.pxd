@@ -22,6 +22,33 @@ cdef extern from "gl_redirect.h":
     ctypedef signed long int    GLintptr
     ctypedef signed long int    GLsizeiptr
 
+    # X11
+    cdef struct _XDisplay:
+        pass
+
+    ctypedef _XDisplay Display
+
+    cdef struct XVisualInfo:
+        pass
+
+    ctypedef int XID
+    ctypedef XID Bool
+    ctypedef XID Window
+    ctypedef XID Drawable
+    ctypedef XID Pixmap
+
+    # GLX
+    cdef struct __GLXFBConfigRec:
+        pass
+
+    ctypedef __GLXFBConfigRec GLXFBConfig
+
+    cdef struct __GLXcontextRec:
+        pass
+
+    ctypedef __GLXcontextRec *GLXContext
+    ctypedef XID GLXPixmap
+    ctypedef XID GLXDrawable
 
     int GL_DEPTH_BUFFER_BIT
     int GL_STENCIL_BUFFER_BIT
@@ -378,6 +405,7 @@ cdef extern from "gl_redirect.h":
 
     int GL_FRAMEBUFFER_UNDEFINED_OES
 
+# GL
 ctypedef const GLubyte* (__stdcall *GLGETSTRINGPTR)(GLenum) nogil
 ctypedef GLboolean (__stdcall *GLISBUFFERPTR)(GLuint buffer) nogil
 ctypedef GLboolean (__stdcall *GLISENABLEDPTR)(GLenum cap) nogil
@@ -507,6 +535,14 @@ ctypedef void (__stdcall *GLVERTEXATTRIB3FPTR)(GLuint indx, GLfloat x, GLfloat y
 ctypedef void (__stdcall *GLVERTEXATTRIB4FPTR)(GLuint indx, GLfloat x, GLfloat y, GLfloat z, GLfloat w) nogil
 ctypedef void (__stdcall *GLVERTEXATTRIBPOINTERPTR)(GLuint, GLint, GLenum, GLboolean, GLsizei, const void *) nogil
 ctypedef void (__stdcall *GLVIEWPORTPTR)(GLint, GLint, GLsizei, GLsizei) nogil
+
+# GLX
+ctypedef void (*PFNGLXBINDTEXIMAGEEXTPROC)(Display *, GLXDrawable, const int, int *) nogil
+ctypedef void (*PFNGLXRELEASETEXIMAGEEXTPROC)(Display *, GLXDrawable, const int) nogil
+
+ctypedef struct GLX_Context:
+    void (*glXBindTexImageEXT)(Display *, GLXDrawable, const int, int *)
+    void (*glXReleaseTexImageEXT)(Display *, GLXDrawable, const int)
 
 ctypedef struct GLES2_Context:
     const GLubyte* (__stdcall *glGetString)(GLenum) nogil
@@ -638,6 +674,8 @@ ctypedef struct GLES2_Context:
     void (__stdcall *glVertexAttrib4f)(GLuint indx, GLfloat x, GLfloat y, GLfloat z, GLfloat w) nogil
     void (__stdcall *glVertexAttribPointer)(GLuint, GLint, GLenum, GLboolean, GLsizei, const void *) nogil
     void (__stdcall *glViewport)(GLint, GLint, GLsizei, GLsizei) nogil
+
+    GLX_Context *glx
 
 cdef GLES2_Context *cgl
 cdef int kivy_opengl_es2
