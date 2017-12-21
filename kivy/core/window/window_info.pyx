@@ -1,4 +1,6 @@
-IF UNAME_SYSNAME == 'Linux':
+include "../../include/config.pxi"
+
+IF USE_WAYLAND:
     cdef class WindowInfoWayland:
         @property
         def display(self):
@@ -13,6 +15,7 @@ IF UNAME_SYSNAME == 'Linux':
             return <uintptr_t>self.shell_surface
 
 
+IF USE_X11:
     cdef class WindowInfoX11:
         @property
         def display(self):

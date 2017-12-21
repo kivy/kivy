@@ -3,6 +3,7 @@
 #Permission to use this file is granted under the conditions of the Ignifuga Game Engine License
 #whose terms are available in the LICENSE file or at http://www.ignifuga.org/license
 
+include "../include/config.pxi"
 
 cdef extern from "SDL_joystick.h":
     cdef struct SDL_Joystick
@@ -995,25 +996,31 @@ cdef extern from "SDL_syswm.h":
             HWND window
             HDC hdc
             HINSTANCE hinstance
+    ELSE:
+        cdef struct _wm_info_win:
+            int dummy
 
-    IF UNAME_SYSNAME == 'Linux':
+    IF USE_WAYLAND:
         cdef struct _wm_info_wl:
             wl_display *display
             wl_surface *surface
             wl_shell_surface *shell_surface
+    ELSE:
+        cdef struct _wm_info_wl:
+            int dummy
 
+    IF USE_X11:
         cdef struct _wm_info_x11:
             Display *display
             Window window
+    ELSE:
+       cdef struct _wm_info_x11:
+           int dummy
 
-    IF UNAME_SYSNAME == 'Windows':
-        cdef union _wm_info:
-            _wm_info_win win
-
-    IF UNAME_SYSNAME == 'Linux':
-        cdef union _wm_info:
-            _wm_info_wl wl
-            _wm_info_x11 x11
+    cdef union _wm_info:
+        _wm_info_win win
+        _wm_info_wl wl
+        _wm_info_x11 x11
 
     cdef struct SDL_SysWMinfo:
         SDL_version version

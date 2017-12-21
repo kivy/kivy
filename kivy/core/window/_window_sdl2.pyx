@@ -10,8 +10,11 @@ from kivy.graphics.cgl import cgl_get_backend_name
 
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 
-IF UNAME_SYSNAME == 'Linux':
-    from window_info cimport WindowInfoX11, WindowInfoWayland
+IF USE_WAYLAND:
+    from window_info cimport WindowInfoWayland
+
+IF USE_X11:
+    from window_info cimport WindowInfoX11
 
 IF UNAME_SYSNAME == 'Windows':
     from window_info cimport WindowInfoWindows
@@ -347,9 +350,8 @@ cdef class _WindowSDL2Storage:
         if not success:
             return
 
-        IF UNAME_SYSNAME == 'Linux':
+        IF USE_WAYLAND:
             cdef WindowInfoWayland wayland_info
-            cdef WindowInfoX11 x11_info
 
             if wm_info.subsystem == SDL_SYSWM_TYPE.SDL_SYSWM_WAYLAND:
                 wayland_info = WindowInfoWayland()
@@ -357,11 +359,16 @@ cdef class _WindowSDL2Storage:
                 wayland_info.surface = wm_info.info.wl.surface
                 wayland_info.shell_surface = wm_info.info.wl.shell_surface
                 return wayland_info
-            elif wm_info.subsystem == SDL_SYSWM_TYPE.SDL_SYSWM_X11:
+
+        IF USE_X11:
+            cdef WindowInfoX11 x11_info
+
+            if wm_info.subsystem == SDL_SYSWM_TYPE.SDL_SYSWM_X11:
                 x11_info = WindowInfoX11()
                 x11_info.display = wm_info.info.x11.display
                 x11_info.window = wm_info.info.x11.window
                 return x11_info
+
         IF UNAME_SYSNAME == 'Windows':
             cdef WindowInfoWindows windows_info
 

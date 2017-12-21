@@ -1,22 +1,6 @@
-IF UNAME_SYSNAME == 'Windows':
-    cdef extern from "WinNT.h":
-        ctypedef void *HANDLE
+include "../../include/config.pxi"
 
-    cdef extern from "WinDef.h":
-        ctypedef HANDLE HWND
-        ctypedef HANDLE HDC
-        ctypedef HANDLE HINSTANCE
-
-IF UNAME_SYSNAME == 'Linux':
-    cdef extern from "X11/Xlib.h":
-        cdef struct _XDisplay:
-            pass
-
-        ctypedef _XDisplay Display
-
-        ctypedef int XID
-        ctypedef XID Window
-
+IF USE_WAYLAND:
     cdef extern from "wayland-client-protocol.h":
         cdef struct wl_display:
             pass
@@ -27,4 +11,21 @@ IF UNAME_SYSNAME == 'Linux':
         cdef struct wl_shell_surface:
             pass
 
+IF USE_X11:
+    cdef extern from "X11/Xlib.h":
+        cdef struct _XDisplay:
+            pass
 
+        ctypedef _XDisplay Display
+
+        ctypedef int XID
+        ctypedef XID Window
+
+IF UNAME_SYSNAME == 'Windows':
+    cdef extern from "WinNT.h":
+        ctypedef void *HANDLE
+
+    cdef extern from "WinDef.h":
+        ctypedef HANDLE HWND
+        ctypedef HANDLE HDC
+        ctypedef HANDLE HINSTANCE
