@@ -22,10 +22,9 @@ IF USE_X11:
         ctypedef XID Window
 
 IF UNAME_SYSNAME == 'Windows':
-    cdef extern from "WinNT.h":
+    cdef extern from "windows.h":
         ctypedef void *HANDLE
 
-    cdef extern from "WinDef.h":
         ctypedef HANDLE HWND
         ctypedef HANDLE HDC
         ctypedef HANDLE HINSTANCE
