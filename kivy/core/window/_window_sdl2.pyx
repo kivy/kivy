@@ -374,7 +374,7 @@ cdef class _WindowSDL2Storage:
 
             if wm_info.subsystem == SDL_SYSWM_TYPE.SDL_SYSWM_WINDOWS:
                 windows_info = WindowInfoWindows()
-                windows_info.hwnd = wm_info.info.win.hwnd
+                windows_info.window = wm_info.info.win.window
                 windows_info.hdc = wm_info.info.win.hdc
                 windows_info.hinstance = wm_info.info.win.hinstance
 

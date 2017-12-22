@@ -15,6 +15,6 @@ IF USE_X11:
 
 IF UNAME_SYSNAME == 'Windows':
     cdef class WindowInfoWindows:
-        cdef HWND hwnd
+        cdef HWND window
         cdef HDC hdc
         cdef HINSTANCE hinstance
