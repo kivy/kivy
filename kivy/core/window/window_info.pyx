@@ -34,7 +34,3 @@ IF UNAME_SYSNAME == 'Windows':
         @property
         def hdc(self):
             return <uintptr_t>self.hdc
-
-        @property
-        def hinstance(self):
-            return <uintptr_t>self.hinstance

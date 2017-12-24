@@ -995,7 +995,6 @@ cdef extern from "SDL_syswm.h":
         cdef struct _wm_info_win:
             HWND window
             HDC hdc
-            HINSTANCE hinstance
     ELSE:
         cdef struct _wm_info_win:
             int dummy

@@ -17,4 +17,3 @@ IF UNAME_SYSNAME == 'Windows':
     cdef class WindowInfoWindows:
         cdef HWND window
         cdef HDC hdc
-        cdef HINSTANCE hinstance
