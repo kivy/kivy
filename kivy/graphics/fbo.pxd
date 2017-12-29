@@ -15,6 +15,7 @@ cdef class Fbo(RenderContext):
     cdef GLint _viewport[4]
     cdef Texture _texture
     cdef int _is_bound
+    cdef object _stencil_state
     cdef list observers
 
     cpdef clear_buffer(self)
