@@ -189,7 +189,7 @@ Class definitions may contain ids which can be used as a keywords:::
 Please note that the `id` will not be available in the widget instance:
 it is used exclusively for external references. `id` is a weakref to the
 widget, and not the widget itself. The widget itself can be accessed
-with `id.__self__` (`btn1.__self__` in this case).
+with `<id>.__self__` (`btn1.__self__` in this case).
 
 When the kv file is processed, weakrefs to all the widgets tagged with ids are
 added to the root widget's `ids` dictionary. In other words, following on from
