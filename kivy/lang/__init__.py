@@ -139,7 +139,7 @@ return the root widget defined in your kv file/string. They will also add any
 class and template definitions to the :class:`~kivy.factory.Factory` for later
 usage.
 
-Value Expressions, on_property Expressions, ids and Reserved Keywords
+Value Expressions, on_property Expressions, ids, and Reserved Keywords
 ---------------------------------------------------------------------
 
 When you specify a property's value, the value is evaluated as a Python
