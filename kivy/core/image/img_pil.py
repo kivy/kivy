@@ -4,7 +4,12 @@ PIL: PIL image loader
 
 __all__ = ('ImageLoaderPIL', )
 
-import Image as PILImage
+try:
+    import Image as PILImage
+except ImportError:
+    # for python3 
+    from PIL import Image as PILImage
+
 from kivy.logger import Logger
 from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 
