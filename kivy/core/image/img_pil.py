@@ -7,7 +7,7 @@ __all__ = ('ImageLoaderPIL', )
 try:
     import Image as PILImage
 except ImportError:
-    # for python3 
+    # for python3
     from PIL import Image as PILImage
 
 from kivy.logger import Logger

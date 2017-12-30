@@ -222,7 +222,8 @@ escaping, and must return a value. An example of a valid expression is
 ``text: self.state and ('up' if self.state == 'normal' else 'down')``.
 
 In the latter case, multiple single line statements are valid, including
-those that escape their newline, as long as they don't add an indentation level.
+those that escape their newline, as long as they don't add an indentation
+level.
 
 Examples of valid statements are:
 
