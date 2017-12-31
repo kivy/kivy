@@ -151,6 +151,7 @@ c_options['use_sdl2'] = None
 c_options['use_ios'] = False
 c_options['use_mesagl'] = False
 c_options['use_x11'] = False
+c_options['use_wayland'] = False
 c_options['use_gstreamer'] = None
 c_options['use_avfoundation'] = platform == 'darwin'
 c_options['use_osx_frameworks'] = platform == 'darwin'
@@ -779,6 +780,7 @@ sources = {
     'graphics/cgl_backend/cgl_sdl2.pyx': merge(base_flags, gl_flags_base),
     'graphics/cgl_backend/cgl_debug.pyx': merge(base_flags, gl_flags_base),
     'core/text/text_layout.pyx': base_flags,
+    'core/window/window_info.pyx': base_flags,
     'graphics/tesselator.pyx': merge(base_flags, {
         'include_dirs': ['kivy/lib/libtess2/Include'],
         'c_depends': [
@@ -1021,6 +1023,8 @@ if not build_examples:
             '*.pxi',
             'core/text/*.pxd',
             'core/text/*.pxi',
+            'core/window/*.pxi',
+            'core/window/*.pxd',
             'graphics/*.pxd',
             'graphics/*.pxi',
             'graphics/*.h',
