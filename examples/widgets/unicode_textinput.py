@@ -234,7 +234,7 @@ class unicode_app(App):
         for fdir in fonts_path:
             for fpath in sorted(os.listdir(fdir)):
                 if fpath.endswith('.ttf'):
-                    flist.append(font[:-4])
+                    flist.append(fpath[:-4])
 
         return sorted(flist)
 
