@@ -1765,13 +1765,24 @@ class TextInput(FocusBehavior, Widget):
         Cache_append('textinput.width', cid, width)
         return width
 
+    def on_cursor_blink(self, instance, value):
+        # trigger blink event reset to switch blinking while focused
+        self._reset_cursor_blink()
+
     def _do_blink_cursor(self, dt):
+        if not self.cursor_blink:
+            # ignore event if not triggered,
+            # stop if cursor_blink value changed right now
+            if self._do_blink_cursor_ev.is_triggered:
+                self._do_blink_cursor_ev.cancel()
+            # don't blink, make cursor visible
+            self._cursor_blink = False
+            return
+
         # Callback for blinking the cursor.
         self._cursor_blink = not self._cursor_blink
 
     def _reset_cursor_blink(self, *args):
-        if not self.cursor_blink:
-            return
         self._do_blink_cursor_ev.cancel()
         self._cursor_blink = False
         self._do_blink_cursor_ev()
