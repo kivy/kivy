@@ -315,10 +315,6 @@ class Widget(WidgetBase):
         callbacks to properties or events, as in the Kv language.
     '''
 
-    _disabled_count = NumericProperty(0)
-    '''internal, used to keep track of the current disabled state
-    '''
-
     __metaclass__ = WidgetMetaclass
     __events__ = ('on_touch_down', 'on_touch_move', 'on_touch_up')
     _proxy_ref = None
@@ -338,6 +334,8 @@ class Widget(WidgetBase):
         on_args = {k: v for k, v in kwargs.items() if k[:3] == 'on_'}
         for key in on_args:
             del kwargs[key]
+
+        self._disabled_count = 0
 
         super(Widget, self).__init__(**kwargs)
 
@@ -1318,20 +1316,19 @@ class Widget(WidgetBase):
 
     def inc_disabled(self):
         self._disabled_count += 1
+        if self._disabled_count == 1:
+            self.property('disabled').dispatch(self)
         for c in self.children:
             c.inc_disabled()
 
     def dec_disabled(self):
         self._disabled_count -= 1
+        if self._disabled_count == 0:
+            self.property('disabled').dispatch(self)
         for c in self.children:
             c.dec_disabled()
 
-    disabled = AliasProperty(
-        get_disabled,
-        set_disabled,
-        force_dispatch=True,
-        bind=['_disabled_count'],
-    )
+    disabled = AliasProperty(get_disabled, set_disabled)
     '''Indicates whether this widget can interact with input or not.
 
     .. note::
