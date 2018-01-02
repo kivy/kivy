@@ -2574,6 +2574,12 @@ class TextInput(FocusBehavior, Widget):
     '''This property is used to set whether the graphic cursor should blink
     or not.
 
+    .. versionchanged:: 1.10.1
+        `cursor_blink` has been refactored to enable switching the blinking
+        on/off and the previous behavior has been moved to a private
+        `_cursor_blink` property. The previous default value `False` has been
+        changed to `True`.
+
     :attr:`cursor_blink` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
     '''
