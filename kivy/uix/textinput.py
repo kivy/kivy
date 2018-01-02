@@ -1765,13 +1765,26 @@ class TextInput(FocusBehavior, Widget):
         Cache_append('textinput.width', cid, width)
         return width
 
+    def on_cursor_blink(self, instance, value):
+        # trigger blink event reset to switch blinking while focused
+        self._reset_cursor_blink()
+
     def _do_blink_cursor(self, dt):
+        if not self.cursor_blink:
+            # ignore event if not triggered,
+            # stop if cursor_blink value changed right now
+            if self._do_blink_cursor_ev.is_triggered:
+                self._do_blink_cursor_ev.cancel()
+            # don't blink, make cursor visible
+            self._cursor_blink = False
+            return
+
         # Callback for blinking the cursor.
-        self.cursor_blink = not self.cursor_blink
+        self._cursor_blink = not self._cursor_blink
 
     def _reset_cursor_blink(self, *args):
         self._do_blink_cursor_ev.cancel()
-        self.cursor_blink = 0
+        self._cursor_blink = False
         self._do_blink_cursor_ev()
 
     def on_cursor(self, instance, value):
@@ -2496,6 +2509,7 @@ class TextInput(FocusBehavior, Widget):
     _editable = BooleanProperty(True)
     _insert_int_pat = re.compile(u'^-?[0-9]*$')
     _insert_float_pat = re.compile(u'^-?[0-9]*\\.?[0-9]*$')
+    _cursor_blink = BooleanProperty(False)
 
     readonly = BooleanProperty(False)
     '''If True, the user will not be able to change the content of a textinput.
@@ -2556,13 +2570,18 @@ class TextInput(FocusBehavior, Widget):
     and defaults to True.
     '''
 
-    cursor_blink = BooleanProperty(False)
-    '''This property is used to blink the cursor graphic. The value of
-    :attr:`cursor_blink` is automatically computed. Setting a value on it will
-    have no impact.
+    cursor_blink = BooleanProperty(True)
+    '''This property is used to set whether the graphic cursor should blink
+    or not.
+
+    .. versionchanged:: 1.10.1
+        `cursor_blink` has been refactored to enable switching the blinking
+        on/off and the previous behavior has been moved to a private
+        `_cursor_blink` property. The previous default value `False` has been
+        changed to `True`.
 
     :attr:`cursor_blink` is a :class:`~kivy.properties.BooleanProperty` and
-    defaults to False.
+    defaults to True.
     '''
 
     def _get_cursor(self):
