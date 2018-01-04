@@ -3,7 +3,7 @@
 subscriptions:
   - events:
       # Events which trigger notifications
-      labeled: API-break
+      labeled: api-break
     # Issue used for posting notifications
     issue: 5560
     # Comment to post on the notification thread. Optional placeholders: {label},
