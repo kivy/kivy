@@ -585,7 +585,7 @@ class EffectFbo(Fbo):
     attempts to set a new shader. See :meth:`set_fs`.
     '''
     def __init__(self, *args, **kwargs):
-        kwargs.setdefaults("with_stencilbuffer", True)
+        kwargs.setdefault("with_stencilbuffer", True)
         super(EffectFbo, self).__init__(*args, **kwargs)
         self.texture_rectangle = None
 
