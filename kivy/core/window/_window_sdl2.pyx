@@ -623,6 +623,9 @@ cdef class _WindowSDL2Storage:
         elif event.type == SDL_TEXTINPUT:
             s = event.text.text.decode('utf-8')
             return ('textinput', s)
+        elif event.type == SDL_TEXTEDITING:
+            s = event.edit.text.decode('utf-8')
+            return ('textedit', s)
         else:
             #    print('receive unknown sdl window event', event.type)
             pass
