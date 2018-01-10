@@ -163,7 +163,7 @@ class ModalView(AnchorLayout):
             window = Window
         return window
 
-    def open(self, *largs):
+    def open(self, *largs, **kwargs):
         '''Show the view window from the :attr:`attach_to` widget. If set, it
         will attach to the nearest window. If the widget is not attached to any
         window, the view will attach to the global
@@ -184,9 +184,13 @@ class ModalView(AnchorLayout):
         self.center = self._window.center
         self.fbind('center', self._align_center)
         self.fbind('size', self._align_center)
-        a = Animation(_anim_alpha=1., d=self._anim_duration)
-        a.bind(on_complete=lambda *x: self.dispatch('on_open'))
-        a.start(self)
+        if kwargs.get('animation', True):
+            a = Animation(_anim_alpha=1., d=self._anim_duration)
+            a.bind(on_complete=lambda *x: self.dispatch('on_open'))
+            a.start(self)
+        else:
+            self._anim_alpha=1.
+            self.dispatch('on_open')
 
     def dismiss(self, *largs, **kwargs):
         '''Close the view if it is open. If you really want to close the
