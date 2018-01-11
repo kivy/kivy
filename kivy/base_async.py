@@ -2,21 +2,18 @@
 ===========================================
 '''
 
-from kivy.compat import async_coroutine
 from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.lang import Builder
-import asyncio
 
 
 class AsyncEventLoopBase(object):
 
-    @async_coroutine
-    def async_mainloop(self):
+    async def async_mainloop(self):
         from kivy.base import ExceptionManager, stopTouchApp
         while not self.quit and self.status == 'started':
             try:
-                yield from self.async_idle()
+                await self.async_idle()
                 if self.window:
                     self.window.mainloop()
             except BaseException as inst:
@@ -28,14 +25,13 @@ class AsyncEventLoopBase(object):
                 else:
                     pass
 
-    @async_coroutine
-    def async_idle(self):
+    async def async_idle(self):
         '''Identical to :meth:`idle`, but instead used when running
         within an async event loop.
         '''
 
         # update dt
-        yield from Clock.async_tick()
+        await Clock.async_tick()
 
         # read and dispatch input from providers
         self.dispatch_input()
@@ -63,18 +59,8 @@ class AsyncEventLoopBase(object):
 
         return self.quit
 
-    def async_run(self):
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(self.async_mainloop())
-        loop.close()
 
-    def async_trio_run(self):
-        import trio
-        trio.run(self.async_mainloop)
-
-
-@async_coroutine
-def async_runTouchApp(widget=None, slave=False):
+async def async_runTouchApp(widget=None, slave=False):
     '''Identical to :func:`runTouchApp` but instead is a coroutine
     that can be run in an existing async event loop.
 
@@ -88,6 +74,6 @@ def async_runTouchApp(widget=None, slave=False):
         return
 
     try:
-        yield from EventLoop.async_mainloop()
+        await EventLoop.async_mainloop()
     finally:
         stopTouchApp()

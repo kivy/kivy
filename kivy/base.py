@@ -30,13 +30,8 @@ from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.context import register_context
 try:
-    import asyncio
-except ImportError:
-    asyncio = None
-
-if asyncio:
     from kivy.base_async import AsyncEventLoopBase, async_runTouchApp
-else:
+except SyntaxError:
     from kivy.compat import PY3CompatCls as AsyncEventLoopBase
     async_runTouchApp = None
 
@@ -509,14 +504,8 @@ def runTouchApp(widget=None, slave=False):
     if slave:
         return
 
-    opt = os.environ.get('KIVY_EVENTLOOP', 'default')
     try:
-        if opt == 'default':
-            EventLoop.mainloop()
-        elif opt == 'async':
-            EventLoop.async_run()
-        elif opt == 'trio':
-            EventLoop.async_trio_run()
+        EventLoop.mainloop()
     finally:
         stopTouchApp()
 

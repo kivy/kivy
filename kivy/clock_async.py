@@ -2,27 +2,24 @@
 ===========================================
 '''
 
-from kivy.compat import async_coroutine
-import asyncio
 import os
 
 if os.environ.get('KIVY_EVENTLOOP', 'default') == 'trio':
     import trio
     _async_lib = trio
 
-    @async_coroutine
-    def wait_for(coro, t):
+    async def wait_for(coro, t):
         with trio.move_on_after(t):
-            yield from coro
+            await coro
 else:
+    import asyncio
     _async_lib = asyncio
     wait_for = asyncio.wait_for
 
 
 class AsyncClockBaseBehavior(object):
 
-    @async_coroutine
-    def async_idle(self):
+    async def async_idle(self):
         '''(internal) async version of :meth:`idle`.
         '''
         fps = self._max_fps
@@ -35,37 +32,34 @@ class AsyncClockBaseBehavior(object):
             done, sleeptime = ready(fps, min_sleep, undershoot)
             while not done:
                 slept = True
-                yield from _async_lib.sleep(sleeptime)
+                await _async_lib.sleep(sleeptime)
                 done, sleeptime = ready(fps, min_sleep, undershoot)
 
             if not slept:
-                yield from _async_lib.sleep(0)
+                await _async_lib.sleep(0)
         else:
-            yield from _async_lib.sleep(0)
+            await _async_lib.sleep(0)
 
         current = self.time()
         self._dt = current - self._last_tick
         self._last_tick = current
         return current
 
-    @async_coroutine
-    def async_tick(self):
+    async def async_tick(self):
         '''async version of :meth:`tick`. '''
         self.pre_idle()
         ts = self.time()
-        current = yield from self.async_idle()
+        current = await self.async_idle()
         self.post_idle(ts, current)
 
 
 class AsyncClockBaseInterruptBehavior(object):
 
-    @async_coroutine
-    def async_usleep(self, microseconds):
+    async def async_usleep(self, microseconds):
         self._async_event.clear()
-        yield from wait_for(self._async_event.wait(), microseconds / 1000000.)
+        await wait_for(self._async_event.wait(), microseconds / 1000000.)
 
-    @async_coroutine
-    def async_idle(self):
+    async def async_idle(self):
         fps = self._max_fps
         event = self._async_event
         resolution = self.get_resolution()
@@ -73,11 +67,11 @@ class AsyncClockBaseInterruptBehavior(object):
             done, sleeptime = self._check_ready(
                 fps, resolution, 4 / 5. * resolution, event)
             if not done:
-                yield from wait_for(event.wait(), sleeptime)
+                await wait_for(event.wait(), sleeptime)
             else:
-                yield from _async_lib.sleep(0)
+                await _async_lib.sleep(0)
         else:
-            yield from _async_lib.sleep(0)
+            await _async_lib.sleep(0)
 
         current = self.time()
         self._dt = current - self._last_tick
@@ -93,8 +87,7 @@ class AsyncClockBaseInterruptBehavior(object):
 
 class AsyncClockBaseFreeInterruptOnly(object):
 
-    @async_coroutine
-    def async_idle(self):
+    async def async_idle(self):
         fps = self._max_fps
         current = self.time()
         event = self._async_event
@@ -125,14 +118,14 @@ class AsyncClockBaseFreeInterruptOnly(object):
                     self._process_free_events(current)
                 else:
                     slept = True
-                    yield from wait_for(event.wait(), sleeptime - undershoot)
+                    await wait_for(event.wait(), sleeptime - undershoot)
                 current = self.time()
                 sleeptime = 1 / fps - (current - self._last_tick)
 
             if not slept:
-                yield from _async_lib.sleep(0)
+                await _async_lib.sleep(0)
         else:
-            yield from _async_lib.sleep(0)
+            await _async_lib.sleep(0)
 
         self._dt = current - self._last_tick
         self._last_tick = current

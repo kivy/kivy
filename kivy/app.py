@@ -333,7 +333,7 @@ import os
 from inspect import getfile
 from os.path import dirname, join, exists, sep, expanduser, isfile
 from kivy.config import ConfigParser
-from kivy.base import runTouchApp, stopTouchApp
+from kivy.base import runTouchApp, async_runTouchApp, stopTouchApp
 from kivy.compat import string_types
 from kivy.factory import Factory
 from kivy.logger import Logger
@@ -345,13 +345,8 @@ from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.setupconfig import USE_SDL2
 try:
-    import asyncio
-except ImportError:
-    asyncio = None
-
-if asyncio:
     from kivy.app_async import AsyncApp
-else:
+except SyntaxError:
     from kivy.compat import PY3CompatCls as AsyncApp
 
 

@@ -963,8 +963,7 @@ cdef class EventDispatcher(ObjectWithUid):
             self.__properties[name] = prop
             setattr(self.__class__, name, prop)
 
-    def async_bind(self, bound_name, current=True, loop=None, filter=None,
-            convert=None):
+    def async_bind(self, bound_name, current=True, **kwargs):
         '''A convenience method that returns a :class:`AsyncBindQueue` instance
         initialized with the function parameters. :class:`AsyncBindQueue`
         can also be instantiated directly.
@@ -972,8 +971,7 @@ cdef class EventDispatcher(ObjectWithUid):
         .. versionadded:: 1.10.1
         '''
         return AsyncBindQueue(
-            bound_obj=self, bound_name=bound_name, current=current, loop=loop,
-            convert=convert, filter=filter)
+            bound_obj=self, bound_name=bound_name, current=current, **kwargs)
 
     property proxy_ref:
         '''Default implementation of proxy_ref, returns self.

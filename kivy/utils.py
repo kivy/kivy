@@ -18,21 +18,18 @@ __all__ = ('intersection', 'difference', 'strtotuple',
            'is_color_transparent', 'hex_colormap', 'colormap', 'boundary',
            'deprecated', 'SafeList',
            'interpolate', 'QueryDict',
-           'platform', 'escape_markup', 'reify', 'rgba', 'AsyncCallbackQueue')
+           'platform', 'escape_markup', 'reify', 'rgba', 'AsyncCallbackQueue',
+           'trio_run_in_kivy_thread')
 
 from os import environ
 from sys import platform as _sys_platform
 from re import match, split
 from kivy.compat import string_types
 try:
-    import asyncio
-except ImportError:
-    asyncio = None
-
-if asyncio:
-    from kivy.utils_async import AsyncCallbackQueue
-else:
+    from kivy.utils_async import AsyncCallbackQueue, trio_run_in_kivy_thread
+except SyntaxError:
     from kivy.compat import PY3CompatCls as AsyncCallbackQueue
+    trio_run_in_kivy_thread = None
 
 
 def boundary(value, minvalue, maxvalue):

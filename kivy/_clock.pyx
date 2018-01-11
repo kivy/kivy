@@ -1,7 +1,6 @@
 
 
-__all__ = ('ClockEvent', 'CyClockBase', 'FreeClockEvent', 'CyClockBaseFree',
-           'AsyncClockQueue')
+__all__ = ('ClockEvent', 'CyClockBase', 'FreeClockEvent', 'CyClockBaseFree')
 
 
 cdef extern from "float.h":
@@ -10,27 +9,6 @@ cdef extern from "float.h":
 from kivy.weakmethod import WeakMethod
 from kivy.logger import Logger
 from threading import Lock
-from kivy.utils import AsyncCallbackQueue
-
-
-class AsyncClockQueue(AsyncCallbackQueue):
-    '''A class for asynchronously observing kivy Clock callbacks.
-    '''
-
-    event = None
-
-    def __init__(self, event, **kwargs):
-        super(AsyncClockQueue, self).__init__(**kwargs)
-        self.event = event
-
-    def stop(self):
-        super(AsyncClockQueue, self).stop()
-        if self.event:
-            try:
-                self.event.async_queues.remove(self)
-            except KeyError:
-                pass
-            self.event = None
 
 
 cdef class ClockEvent(object):
@@ -62,7 +40,6 @@ cdef class ClockEvent(object):
         self.timeout = timeout
         self._last_dt = starttime
         self._dt = 0.
-        self.async_queues = []
 
         if trigger:
             self._is_triggered = True
@@ -96,37 +73,6 @@ cdef class ClockEvent(object):
             self.clock.on_schedule(self)
 
         self.clock._lock_release()
-
-    def async_event(self, loop=None, filter=None, convert=None):
-        '''Returns a :class:`AsyncClockQueue` instance and forwards
-        the function's keywords to the instance.
-
-        One can then use the async iterator returned to wait on the callback
-        asynchronously. The iterator returns ``dt`` as a one element tuple every time
-        the callback is executed by the kivy Clock. If the event is :meth:`cancel`
-        then the iterator ends.
-
-        Therefore, when scheduled as a single callback, the iterator will generate
-        a single value when it is executed, unless canceled. When scheduling on a
-        interval, the iterator will return a dt every time.
-
-        The rule is, after a :meth:`async_event` call, a call to :meth:`cancel` will
-        terminate the iterator after it finishes passing the existing callback values,
-        even if the event was not scheduled.
-
-        One situation to be aware of is if :meth:`async_event` is called after
-        the callback has been executed but before the callback was removed and canceled
-        by the kivy clock, in that case the iterator will return empty. Similarly,
-        if after calling :meth:`async_event` the event is never scheduled, the
-        iterator will wait forever.
-
-        .. versionadded:: 1.10.1
-        '''
-        async_queue = AsyncClockQueue(event=self, loop=loop, filter=filter, convert=convert)
-        self.clock._lock_acquire()
-        self.async_queues.append(async_queue)
-        self.clock._lock_release()
-        return async_queue
 
     cpdef get_callback(self):
         '''Returns the callback associated with the event. Callbacks get stored
@@ -184,9 +130,6 @@ cdef class ClockEvent(object):
                     self.next.prev = self.prev
             self.prev = self.next = None
 
-        if self.async_queues:
-            for queue in self.async_queues:
-                queue.stop()
         self.clock._lock_release()
 
     cpdef release(self):
@@ -213,12 +156,6 @@ cdef class ClockEvent(object):
             self.cancel()
             return self.loop
 
-        dt = self._dt
-        # has to happen before the cancel
-        if self.async_queues:
-            for queue in self.async_queues:
-                queue.callback(dt)
-
         # if it's a trigger, allow to retrigger inside the callback
         # we have to remove event here, otherwise, if we remove later, the user
         # might have canceled in the callback and then re-triggered. That'd
@@ -227,7 +164,7 @@ cdef class ClockEvent(object):
             self.cancel()
 
         # call the callback
-        ret = callback(dt)
+        ret = callback(self._dt)
 
         # if the user returns False explicitly, remove the event
         if self.loop and ret is False:

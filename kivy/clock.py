@@ -368,7 +368,7 @@ from functools import wraps, partial
 from kivy.context import register_context
 from kivy.config import Config
 from kivy.logger import Logger
-from kivy.compat import clock as _default_time, PY2, async_coroutine
+from kivy.compat import clock as _default_time, PY2
 import time
 from kivy._clock import CyClockBase, ClockEvent, FreeClockEvent, \
     CyClockBaseFree
@@ -377,16 +377,20 @@ try:
 except ImportError:  # https://bugs.python.org/issue3770
     from threading import Event as MultiprocessingEvent
 from threading import Event as ThreadingEvent
-try:
-    import asyncio
-except ImportError:
-    asyncio = None
 
-_use_trio = environ.get('KIVY_EVENTLOOP', 'default')
-if asyncio:
+async_event = None
+try:
     from kivy.clock_async import AsyncClockBaseBehavior, \
         AsyncClockBaseFreeInterruptOnly, AsyncClockBaseInterruptBehavior
-else:
+
+    _async_lib = environ.get('KIVY_EVENTLOOP', 'default')
+    if _async_lib == 'trio':
+        import trio
+        async_event = trio.Event
+    elif _async_lib == 'async':
+        import asyncio
+        async_event = asyncio.Event
+except SyntaxError:
     from kivy.compat import PY3CompatCls
 
     class AsyncClockBaseBehavior(PY3CompatCls):
@@ -668,12 +672,8 @@ class ClockBaseInterruptBehavior(
     def __init__(self, interupt_next_only=False, **kwargs):
         super(ClockBaseInterruptBehavior, self).__init__(**kwargs)
         self._event = MultiprocessingEvent() if PY2 else ThreadingEvent()
-        if asyncio:
-            if _use_trio:
-                import trio
-                self._async_event = trio.Event()
-            else:
-                self._async_event = asyncio.Event()
+        if async_event is not None:
+            self._async_event = async_event()
         self.interupt_next_only = interupt_next_only
         self._get_min_timeout_func = self.get_min_timeout
 
