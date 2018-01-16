@@ -195,9 +195,11 @@ class WindowX11(WindowBase):
         if 'KIVY_WINDOW_X11_CWOR' in environ:
             CWOR = True
 
+        title = self.title if isinstance(self.title, bytes) \
+                else self.title.encode('utf-8')
         if x11_create_window(size[0], size[1], pos[0], pos[1],
                 resizable, fullscreen, border, above, CWOR,
-                <char *><bytes>self.title) < 0:
+                <char *><bytes>title) < 0:
             Logger.critical('WinX11: Unable to create the window')
             return
 
@@ -232,7 +234,10 @@ class WindowX11(WindowBase):
         super(WindowX11, self).flip()
 
     def on_title(self, *kwargs):
-        x11_set_title(<char *><bytes>self.title)
+        title = self.title if isinstance(self.title, bytes) \
+            else self.title.encode('utf-8')
+
+        x11_set_title(<char *><bytes>title)
 
     def on_keyboard(self, key,
         scancode=None, codepoint=None, modifier=None, **kwargs):
