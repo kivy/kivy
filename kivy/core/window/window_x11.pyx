@@ -15,6 +15,10 @@ from kivy.base import stopTouchApp, EventLoop, ExceptionManager
 from kivy.utils import platform
 from os import environ
 
+from window_info cimport WindowInfoX11
+
+include "window_attrs.pxi"
+
 # force include the file
 cdef extern from "window_x11_core.c":
     pass
@@ -62,6 +66,8 @@ cdef extern int x11_create_window(int width, int height, int x, int y, \
 cdef extern void x11_gl_swap()
 cdef extern void x11_set_title(char *title)
 cdef extern int x11_idle()
+cdef extern Display *x11_get_display()
+cdef extern Window x11_get_window()
 cdef extern int x11_get_width()
 cdef extern int x11_get_height()
 
@@ -210,6 +216,12 @@ class WindowX11(WindowBase):
         self.system_size = size
         super(WindowX11, self).create_window()
         self._unbind_create_window()
+
+    def get_window_info(self):
+        cdef WindowInfoX11 window_info = WindowInfoX11()
+        window_info.display = x11_get_display()
+        window_info.window = x11_get_window()
+        return window_info
 
     def mainloop(self):
         while not EventLoop.quit and EventLoop.status == 'started':
