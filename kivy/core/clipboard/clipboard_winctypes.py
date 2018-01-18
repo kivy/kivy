@@ -58,17 +58,12 @@ class ClipboardWindows(ClipboardBase):
         user32.EmptyClipboard()
         hCd = GlobalAlloc(0, len(text) * ctypes.sizeof(ctypes.c_wchar))
 
-        # ignore null character if >= 3.6.3
+        # ignore null character if >= 3.6.3, 3.5.4
         # ! change in CPython internals !
-        msvcrt.wcscpy_s(
-            c_wchar_p(hCd),
-            len(text),
-            c_wchar_p(
-                text[:-1]
-                if sys.version_info >= (3, 6, 3)
-                else text
-            )
-        )
+        ver = sys.version_info
+        if ver >= (3, 6, 3) or ver >= (3, 5, 4):
+            pytext = text[:-1]
+        msvcrt.wcscpy_s(c_wchar_p(hCd), len(text), c_wchar_p(pytext))
         SetClipboardData(CF_UNICODETEXT, hCd)
         user32.CloseClipboard()
 
