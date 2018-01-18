@@ -168,6 +168,12 @@ class ModalView(AnchorLayout):
         will attach to the nearest window. If the widget is not attached to any
         window, the view will attach to the global
         :class:`~kivy.core.window.Window`.
+
+        When the view is opened, it will be faded in with an animation. If you
+        don't want the animation, use::
+
+            view.open(animation=False)
+
         '''
         if self._window is not None:
             Logger.warning('ModalView: you can only open once.')
