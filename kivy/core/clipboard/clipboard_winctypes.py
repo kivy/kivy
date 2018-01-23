@@ -4,7 +4,6 @@ Clipboard windows: an implementation of the Clipboard using ctypes.
 
 __all__ = ('ClipboardWindows', )
 
-import sys
 from kivy.utils import platform
 from kivy.core.clipboard import ClipboardBase
 
@@ -58,12 +57,8 @@ class ClipboardWindows(ClipboardBase):
         user32.EmptyClipboard()
         hCd = GlobalAlloc(0, len(text) * ctypes.sizeof(ctypes.c_wchar))
 
-        # ignore null character if >= 3.6.3, 3.5.4
-        # ! change in CPython internals !
-        ver = sys.version_info
-        if ver >= (3, 6, 3) or ver >= (3, 5, 4):
-            pytext = text[:-1]
-        msvcrt.wcscpy_s(c_wchar_p(hCd), len(text), c_wchar_p(pytext))
+        # ignore null character for strSource pointer
+        msvcrt.wcscpy_s(c_wchar_p(hCd), len(text), c_wchar_p(text[:-1]))
         SetClipboardData(CF_UNICODETEXT, hCd)
         user32.CloseClipboard()
 
