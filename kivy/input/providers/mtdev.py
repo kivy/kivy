@@ -220,7 +220,8 @@ else:
                     queue.append((action, touch))
 
             def normalize(value, vmin, vmax):
-                return (value - vmin) / float(vmax - vmin)
+                divisor = float(vmax - vmin) if vmax > vmin else 1
+                return (value - vmin) / divisor
 
             # open mtdev device
             _fn = input_fn
