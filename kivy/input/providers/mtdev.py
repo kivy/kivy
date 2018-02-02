@@ -220,8 +220,10 @@ else:
                     queue.append((action, touch))
 
             def normalize(value, vmin, vmax):
-                divisor = float(vmax - vmin) if vmax > vmin else 1
-                return (value - vmin) / divisor
+                try:
+                    return (value - vmin) / float(vmax - vmin)
+                except ZeroDivisionError:  # it's both in py2 and py3
+                    return (value - vmin)
 
             # open mtdev device
             _fn = input_fn
