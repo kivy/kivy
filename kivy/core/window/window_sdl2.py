@@ -669,10 +669,6 @@ class WindowSDL(WindowBase):
                 text = args[0]
                 self.dispatch('on_textinput', text)
 
-            elif action == 'textedit':
-                text = args[0]
-                self.dispatch('on_textedit', text)
-
             # unhandled event !
             else:
                 Logger.trace('WindowSDL: Unhandled event %s' % str(event))

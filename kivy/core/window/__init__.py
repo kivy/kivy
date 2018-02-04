@@ -321,13 +321,6 @@ class WindowBase(EventDispatcher):
             You can listen to this one, and clean whatever you can.
 
             .. versionadded:: 1.9.0
-
-        `on_textedit(self, text)`:
-            Fired when inputting with IME.
-            The string inputting with IME is set as the parameter of
-            this event.
-
-            .. versionadded:: 1.10.1
     '''
 
     __instance = None
@@ -867,8 +860,7 @@ class WindowBase(EventDispatcher):
         'on_key_down', 'on_key_up', 'on_textinput', 'on_dropfile',
         'on_request_close', 'on_cursor_enter', 'on_cursor_leave',
         'on_joy_axis', 'on_joy_hat', 'on_joy_ball',
-        'on_joy_button_down', 'on_joy_button_up', 'on_memorywarning',
-        'on_textedit')
+        'on_joy_button_down', 'on_joy_button_up', 'on_memorywarning')
 
     def __new__(cls, **kwargs):
         if cls.__instance is None:
@@ -1738,15 +1730,6 @@ class WindowBase(EventDispatcher):
         iOS and Android.
 
         .. versionadded:: 1.9.0
-        '''
-        pass
-
-    def on_textedit(self, text):
-        '''Event called when inputting with IME.
-        The string inputting with IME is set as the parameter of
-        this event.
-
-        .. versionadded:: 1.10.1
         '''
         pass
 
