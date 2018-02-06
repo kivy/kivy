@@ -117,7 +117,7 @@ example, this can be accomplished like so::
             Button:
                 text: 'Quit'
 
-    <SettingScreen>:
+    <SettingsScreen>:
         BoxLayout:
             Button:
                 text: 'My settings button'
