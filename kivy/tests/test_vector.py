@@ -214,3 +214,43 @@ class VectorTestCase(unittest.TestCase):
         self.assertTrue(result)
         result = Vector.in_bbox((647, -10), bmin, bmax)
         self.assertFalse(result)
+
+    def test_intersection_roundingerror(self):
+        # ref #2983, #5568
+
+        v1 = (25.0, 200.0)
+        v2 = (25.0, 400.0)
+        v3 = (36.75, 300.0)
+        result = [25.0, 300.0]
+
+        def almost(a, b):
+            # 300.0 sometimes is 299.9.. or 300.1.. however
+            # we just want to know that it's really close
+            self.assertIsNotNone(a)
+            self.assertIsNotNone(b)
+            self.assertAlmostEqual(a[0], b[0], places=0)
+            self.assertAlmostEqual(a[1], b[1], places=0)
+
+        for i in range(1, 100):
+            st = "6.4" + "9" * i
+            v = (float(st), 300.0)
+            almost(result, Vector.segment_intersection(v1, v2, v3, v))
+
+        for i in range(1, 100):
+            st = "6.1" + "1" * i
+            v = (float(st), 300.0)
+            almost(result, Vector.segment_intersection(v1, v2, v3, v))
+
+        for i in range(1, 100):
+            st = "6.4" + "4" * i
+            v = (float(st), 300.0)
+            almost(result, Vector.segment_intersection(v1, v2, v3, v))
+
+        for i in range(1, 100):
+            st = "300.4" + "9" * i
+            v = (6.5, float(st))
+            almost(result, Vector.segment_intersection(v1, v2, v3, v))
+
+
+if __name__ == '__main__':
+    unittest.main()
