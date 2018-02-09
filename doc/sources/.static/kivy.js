@@ -279,10 +279,7 @@ $(document).ready(function () {
 			var ywindow = jwindow.scrollTop();
 			var ymintop = initial_offset.top;
 			var a = ywindow + jwindow.height();
-			if ( ywindow > b ) {
-				var current = $('li.toctree-l1.current').position().top;
-				divscroll.css('position', 'fixed').css('top', -current);
-			} else {
+			if ( ywindow <= b ) {
 				divscroll.css('position', 'relative').css('top', 0);
 			}
 		}
