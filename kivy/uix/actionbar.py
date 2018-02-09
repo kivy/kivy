@@ -87,10 +87,11 @@ class ActionItem(object):
     '''
 
     important = BooleanProperty(False)
-    '''Determines if an ActionItem is important or not.
+    '''Determines if an ActionItem is important or not. If an item is important
+    and space is limited, this item will be displayed in preference to others.
 
-       :attr:`important` is a :class:`~kivy.properties.BooleanProperty` and
-       defaults to False.
+    :attr:`important` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
     '''
 
     inside_group = BooleanProperty(False)
@@ -149,6 +150,9 @@ class ActionButton(Button, ActionItem):
     icon = StringProperty(None, allownone=True)
     '''Source image to use when the Button is part of the ActionBar. If the
     Button is in a group, the text will be preferred.
+
+    :attr:`icon` is a :class:`~kivy.properties.StringProperty` and defaults
+    to None.
     '''
 
 
@@ -167,7 +171,6 @@ class ActionPrevious(BoxLayout, ActionItem):
 
     app_icon = StringProperty(window_icon)
     '''Application icon for the ActionView.
-
        :attr:`app_icon` is a :class:`~kivy.properties.StringProperty`
        and defaults to the window icon if set, otherwise
        'data/logo/kivy-icon-32.png'.
