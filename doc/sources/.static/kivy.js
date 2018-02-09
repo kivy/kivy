@@ -270,22 +270,6 @@ $(document).ready(function () {
 		});
 
 	} else {
-		var divscroll = $('div.sphinxsidebar');
-		var initial_offset = divscroll.offset();
-		var jwindow = $(window);
-		var b = divscroll.position().top + divscroll.height();
-
-		function update_sidebar() {
-			var ywindow = jwindow.scrollTop();
-			var ymintop = initial_offset.top;
-			var a = ywindow + jwindow.height();
-			if ( ywindow <= b ) {
-				divscroll.css('position', 'relative').css('top', 0);
-			}
-		}
-
-		$(window).scroll(update_sidebar).bind('resize', update_sidebar);
-		update_sidebar();
 
 		if ($('.toc > ul > li> ul').length < 1)
 			$('.toc').hide();
