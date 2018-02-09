@@ -161,68 +161,89 @@ class ActionPrevious(BoxLayout, ActionItem):
     '''
 
     with_previous = BooleanProperty(True)
-    '''Specifies whether clicking on ActionPrevious will load the previous
-       screen or not. If True, the previous_icon will be shown otherwise it
-       will not.
+    '''
+    Specifies whether clicking on ActionPrevious will load the previous
+    screen or not. If True, the previous_icon will be shown otherwise it
+    will not.
 
-       :attr:`with_previous` is a :class:`~kivy.properties.BooleanProperty` and
-       defaults to True.
+    :attr:`with_previous` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
     '''
 
     app_icon = StringProperty(window_icon)
     '''Application icon for the ActionView.
+
        :attr:`app_icon` is a :class:`~kivy.properties.StringProperty`
        and defaults to the window icon if set, otherwise
        'data/logo/kivy-icon-32.png'.
     '''
 
     app_icon_width = NumericProperty(0)
-    '''Width of app_icon image.
+    '''
+    Width of app_icon image.
+
+    :attr:`app_icon_width` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.
     '''
 
     app_icon_height = NumericProperty(0)
-    '''Height of app_icon image.
+    '''
+    Height of app_icon image.
+
+    :attr:`app_icon_height` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to 0.
     '''
 
     color = ListProperty([1, 1, 1, 1])
-    '''Text color, in the format (r, g, b, a)
+    '''
+    Text color, in the format (r, g, b, a)
 
-       :attr:`color` is a :class:`~kivy.properties.ListProperty` and defaults
-       to [1, 1, 1, 1].
+    :attr:`color` is a :class:`~kivy.properties.ListProperty` and defaults
+    to [1, 1, 1, 1].
     '''
 
     previous_image = StringProperty(
         'atlas://data/images/defaulttheme/previous_normal')
-    '''Image for the 'previous' ActionButtons default graphical representation.
+    '''
+    Image for the 'previous' ActionButtons default graphical representation.
 
-       :attr:`previous_image` is a :class:`~kivy.properties.StringProperty` and
-       defaults to 'atlas://data/images/defaulttheme/previous_normal'.
+    :attr:`previous_image` is a :class:`~kivy.properties.StringProperty` and
+    defaults to 'atlas://data/images/defaulttheme/previous_normal'.
     '''
 
     previous_image_width = NumericProperty(0)
-    '''Width of previous_image image.
+    '''
+    Width of previous_image image.
+
+    :attr:`width` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.
     '''
 
     previous_image_height = NumericProperty(0)
-    '''Height of previous_image image.
+    '''
+    Height of previous_image image.
+
+    :attr:`app_icon_width` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.
     '''
 
     title = StringProperty('')
-    '''Title for ActionView.
+    '''
+    Title for ActionView.
 
-       :attr:`title` is a :class:`~kivy.properties.StringProperty` and
-       defaults to ''.
+    :attr:`title` is a :class:`~kivy.properties.StringProperty` and
+    defaults to ''.
     '''
 
     markup = BooleanProperty(False)
-    '''If True, the text will be rendered using the
-       :class:`~kivy.core.text.markup.MarkupLabel`: you can change the
-       style of the text using tags. Check the
-       :doc:`api-kivy.core.text.markup` documentation for more
-       information.
+    '''
+    If True, the text will be rendered using the
+    :class:`~kivy.core.text.markup.MarkupLabel`: you can change the style of
+    the text using tags. Check the :doc:`api-kivy.core.text.markup`
+    documentation for more information.
 
-       :attr:`markup` is a :class:`~kivy.properties.BooleanProperty` and
-       defaults to False.
+    :attr:`markup` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
     '''
 
     def __init__(self, **kwargs):
