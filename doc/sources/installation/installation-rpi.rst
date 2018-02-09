@@ -18,7 +18,7 @@ Manual installation (On Raspbian Jessie/Stretch)
        python-setuptools libgstreamer1.0-dev git-core \
        gstreamer1.0-plugins-{bad,base,good,ugly} \
        gstreamer1.0-{omx,alsa} python-dev libmtdev-dev \
-       xclip
+       xclip xsel
 
 #. Install a new enough version of Cython:
 

@@ -111,6 +111,11 @@ Gentoo
    `gstreamer: Standard flag, kivy will be able to use audio/video streaming libraries.`
    `spell: Standard flag, provide enchant to use spelling in kivy apps.`
 
+Other
+-----
+
+For other distros, we recommend installing via pip as shown below.
+
 
 Installation in a Virtual Environment
 =====================================
