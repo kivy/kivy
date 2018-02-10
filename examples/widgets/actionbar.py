@@ -14,7 +14,7 @@ ActionBar:
             icon: 'atlas://data/images/defaulttheme/audio-volume-high'
         ActionButton:
             important: True
-            text: 'Btn1'
+            text: 'Important'
         ActionButton:
             text: 'Btn2'
         ActionButton:
