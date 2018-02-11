@@ -43,7 +43,7 @@ install:
         sudo apt-get -y install python-dev libsmpeg-dev libswscale-dev libavformat-dev libavcodec-dev libjpeg-dev libtiff4-dev libX11-dev libmtdev-dev;
         sudo apt-get -y install python-setuptools build-essential libgl1-mesa-dev libgles2-mesa-dev;
         sudo apt-get -y install xvfb pulseaudio;
-        pip install --upgrade cython pillow nose coveralls;
+        pip install --upgrade cython==0.26.1 pillow nose coveralls;
       fi;
       if [ "${RUN}" == "docs" ]; then
         pip install --upgrade sphinxcontrib-blockdiag sphinxcontrib-seqdiag sphinxcontrib-actdiag sphinxcontrib-nwdiag;
@@ -74,9 +74,9 @@ install:
       if [ "${PY}" == "3" ]; then
          curl -O -L https://www.python.org/ftp/python/3.5.2/python-3.5.2-macosx10.6.pkg;
          sudo installer -package python-3.5.2-macosx10.6.pkg -target /;
-         pip3 install --upgrade --user cython pillow nose mock;
+         pip3 install --upgrade --user cython==0.26.1 pillow nose mock;
       else
-         pip install --upgrade --user cython pillow nose mock;
+         pip install --upgrade --user cython==0.26.1 pillow nose mock;
       fi;
     fi;
 
