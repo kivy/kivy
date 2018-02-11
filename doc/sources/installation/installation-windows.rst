@@ -44,6 +44,11 @@ install.
      python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew
      python -m pip install kivy.deps.gstreamer
 
+   .. note::
+
+       If you encounter a `MemoryError` while installing, add after
+       `pip install` an option `--no-cache-dir`.
+
    For Python 3.5 only we additionally offer angle which can be used instead of glew
    and can be installed with::
 

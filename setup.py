@@ -71,9 +71,12 @@ def get_version(filename='kivy/version.py'):
 
 MIN_CYTHON_STRING = '0.23'
 MIN_CYTHON_VERSION = LooseVersion(MIN_CYTHON_STRING)
-MAX_CYTHON_STRING = '0.25.2'
+MAX_CYTHON_STRING = '0.27.3'
 MAX_CYTHON_VERSION = LooseVersion(MAX_CYTHON_STRING)
-CYTHON_UNSUPPORTED = ()
+CYTHON_UNSUPPORTED = (
+    # ref https://github.com/cython/cython/issues/1968
+    '0.27', '0.27.2'
+)
 
 
 def getoutput(cmd, env=None):
@@ -148,6 +151,7 @@ c_options['use_sdl2'] = None
 c_options['use_ios'] = False
 c_options['use_mesagl'] = False
 c_options['use_x11'] = False
+c_options['use_wayland'] = False
 c_options['use_gstreamer'] = None
 c_options['use_avfoundation'] = platform == 'darwin'
 c_options['use_osx_frameworks'] = platform == 'darwin'
@@ -776,6 +780,7 @@ sources = {
     'graphics/cgl_backend/cgl_sdl2.pyx': merge(base_flags, gl_flags_base),
     'graphics/cgl_backend/cgl_debug.pyx': merge(base_flags, gl_flags_base),
     'core/text/text_layout.pyx': base_flags,
+    'core/window/window_info.pyx': base_flags,
     'graphics/tesselator.pyx': merge(base_flags, {
         'include_dirs': ['kivy/lib/libtess2/Include'],
         'c_depends': [
@@ -1018,6 +1023,8 @@ if not build_examples:
             '*.pxi',
             'core/text/*.pxd',
             'core/text/*.pxi',
+            'core/window/*.pxi',
+            'core/window/*.pxd',
             'graphics/*.pxd',
             'graphics/*.pxi',
             'graphics/*.h',
@@ -1073,6 +1080,7 @@ if not build_examples:
             'Programming Language :: Python :: 3.3',
             'Programming Language :: Python :: 3.4',
             'Programming Language :: Python :: 3.5',
+            'Programming Language :: Python :: 3.6',
             'Topic :: Artistic Software',
             'Topic :: Games/Entertainment',
             'Topic :: Multimedia :: Graphics :: 3D Rendering',

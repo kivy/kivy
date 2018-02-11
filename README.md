@@ -43,9 +43,10 @@ If you need assistance, you can ask for help on our mailing list:
 
 We also have an IRC channel:
 
-* Server  : irc.freenode.net
-* Port    : 6667, 6697 (SSL only)
-* Channel : #kivy
+* Server     : irc.freenode.net
+* Port       : 6667, 6697 (SSL only)
+* Channel    : #kivy
+* Web client : [WebChat](https://webchat.freenode.net/?nick=kvuser.&channels=kivy&uio=d4)
 
 Contributing
 ------------
@@ -62,9 +63,10 @@ discussions about developing the Kivy framework and its sister projects:
 
 IRC channel:
 
-* Server  : irc.freenode.net
-* Port    : 6667, 6697 (SSL only)
-* Channel : #kivy-dev
+* Server     : irc.freenode.net
+* Port       : 6667, 6697 (SSL only)
+* Channel    : #kivy-dev
+* Web client : [WebChat](https://webchat.freenode.net/?nick=kvuser.&channels=kivy-dev&uio=d4)
 
 Sister projects
 ---------------

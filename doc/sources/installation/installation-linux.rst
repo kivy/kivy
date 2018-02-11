@@ -94,31 +94,6 @@ OpenSuSE
 #. If you would like access to the examples, please select **python-Kivy-examples** in the upcoming installation wizard.
 
 
-Fedora
-------
-
-#. Adding the repository via the terminal:
-
-    **Fedora 18** ::
-
-        $ sudo yum-config-manager  --add-repo=http://download.opensuse.org\
-        /repositories/home:/thopiekar:/kivy/Fedora_18/home:thopiekar:kivy.repo
-
-    **Fedora 17** ::
-
-        $ sudo yum-config-manager --add-repo=http://download.opensuse.org\
-        /repositories/home:/thopiekar:/kivy/Fedora_17/home:thopiekar:kivy.repo
-
-    **Fedora 16** ::
-
-        $ sudo yum-config-manager --add-repo=http://download.opensuse.org\
-        /repositories/home:/thopiekar:/kivy/Fedora_16/home:thopiekar:kivy.repo
-
-#. Use your preferred package-manager to refresh your packagelists
-
-#. Install **python-Kivy** and optionally the examples, as found in **python-Kivy-examples**
-
-
 Gentoo
 ------
 
@@ -135,6 +110,11 @@ Gentoo
    `garden: Install garden tool to manage user maintained widgets.`
    `gstreamer: Standard flag, kivy will be able to use audio/video streaming libraries.`
    `spell: Standard flag, provide enchant to use spelling in kivy apps.`
+
+Other
+-----
+
+For other distros, we recommend installing via pip as shown below.
 
 
 Installation in a Virtual Environment

@@ -204,11 +204,11 @@ Available configuration tokens
     `kivy_clock`: one of `default`, `interrupt`, `free_all`, `free_only`
         The clock type to use with kivy. See :mod:`kivy.clock`.
 
-    `default_font`: list, defaults to ['Roboto',
-    'data/fonts/Roboto-Regular.ttf', 'data/fonts/Roboto-Italic.ttf',
-    'data/fonts/Roboto-Bold.ttf', 'data/fonts/Roboto-BoldItalic.ttf']
-
-        Default font used for widgets displaying any text.
+    `default_font`: list
+        Default fonts used for widgets displaying any text. It defaults to
+        ['Roboto', 'data/fonts/Roboto-Regular.ttf',
+        'data/fonts/Roboto-Italic.ttf', 'data/fonts/Roboto-Bold.ttf',
+        'data/fonts/Roboto-BoldItalic.ttf'].
 
     `allow_screensaver`: int, one of 0 or 1, defaults to 1
         Allow the device to show a screen saver, or to go to sleep

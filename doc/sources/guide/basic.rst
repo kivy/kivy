@@ -205,7 +205,7 @@ at line 9::
 
     class LoginScreen(GridLayout):
 
-At line 12 in the class LoginScreen, we overload the method
+At line 12 in the class LoginScreen, we override the method
 :meth:`~kivy.widget.Widget.__init__` so as to add widgets and to define their
 behavior::
 

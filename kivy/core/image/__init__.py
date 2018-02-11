@@ -462,8 +462,6 @@ class Image(EventDispatcher):
             will be returned.
         `keep_data`: bool, defaults to False
             Keep the image data when the texture is created.
-        `scale`: float, defaults to 1.0
-            Scale of the image.
         `mipmap`: bool, defaults to False
             Create mipmap for the texture.
         `anim_delay`: float, defaults to .25

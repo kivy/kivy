@@ -1,0 +1,44 @@
+# Configuration for probot-stale - https://github.com/probot/stale
+
+# Number of days of inactivity before an Issue or Pull Request becomes stale
+daysUntilStale: 365
+# Number of days of inactivity before a stale Issue or Pull Request is closed
+daysUntilClose: 60
+# Issues or Pull Requests with these labels will never be considered stale. Set to `[]` to disable
+exemptLabels:
+  - pinned
+  - important
+  - regression
+  - bounty
+  - triaged
+  - confirmed
+  - PR
+# Label to use when marking as stale
+staleLabel: stale
+# Comment to post when marking as stale. Set to `false` to disable
+markComment: >
+  Thanks for your contribution!
+   
+  This issue has been automatically marked as stale because it has not had
+  recent activity. It will be closed if no further activity occurs
+  in the next 14 days.
+   
+  If you would like this issue to remain open:
+   
+   1. Verify that you can still reproduce the issue with the latest development version of Kivy
+   1. Comment that the issue is still reproducible and include:
+      * What version of Kivy you reproduced the issue on
+      * What OS and version you reproduced the issue on
+      * What steps you followed to reproduce the issue (if missing or incomplete)
+      * A [minimal working example](https://en.wikipedia.org/wiki/Minimal_Working_Example) which reproduces the issue (if missing or incomplete)
+      * Full runtime logs
+   
+  Issues that are labeled as confirmed or triaged will not be automatically
+  marked as stale. For a full list of exempt labels,
+  see the [config](https://github.com/kivy/kivy/blob/master/.github/stale.yml).
+# Comment to post when removing the stale label. Set to `false` to disable
+unmarkComment: false
+# Comment to post when closing a stale Issue or Pull Request. Set to `false` to disable
+closeComment: false
+# Limit to only `issues` or `pulls`
+only: issues

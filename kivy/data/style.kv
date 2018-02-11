@@ -184,7 +184,10 @@
             size: self.size
             source: self.background_active if self.focus else (self.background_disabled_normal if self.disabled else self.background_normal)
         Color:
-            rgba: (self.cursor_color if self.focus and not self.cursor_blink else (0, 0, 0, 0))
+            rgba:
+                (self.cursor_color
+                if self.focus and not self._cursor_blink
+                else (0, 0, 0, 0))
         Rectangle:
             pos: [int(x) for x in self.cursor_pos]
             size: root.cursor_width, -self.line_height
@@ -231,7 +234,7 @@
             rgba: 1, 1, 1, int(not self.is_leaf)
         Rectangle:
             source: 'atlas://data/images/defaulttheme/tree_%s' % ('opened' if self.is_open else 'closed')
-            size: 16, 16
+            size: self.height / 2.0, self.height / 2.0
             pos: self.x - 20, self.center_y - 8
     canvas.after:
         Color:
@@ -669,6 +672,7 @@
         text: root.title
         text_size: self.size
         color: root.color
+        markup: root.markup
         shorten: True
         shorten_from: 'right'
         halign: 'left'

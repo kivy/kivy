@@ -36,8 +36,8 @@ Complete guide
 
 #. Install Cython and Kivy::
 
-    $ pip install -I Cython==0.23
-    $ USE_OSX_FRAMEWORKS=0 pip install -U kivy
+    $ pip install Cython==0.26.1
+    $ pip install -U kivy
 
 #. Install PyInstaller::
 
@@ -231,6 +231,10 @@ section below.
 
 Using the Kivy SDK
 ------------------
+
+.. note::
+    Kivy.app is not available for download at the moment. For details,
+    see `this <https://github.com/kivy/kivy/issues/5211>`_ issue.
 
 .. note::
     Packaging Kivy applications with the following method must be done inside

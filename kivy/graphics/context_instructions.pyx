@@ -402,8 +402,8 @@ cdef class LoadIdentity(ContextInstruction):
         self.stack = kwargs.get('stack', 'modelview_mat')
 
     property stack:
-        '''Name of the matrix stack to use. Can be 'modelview_mat' or
-        'projection_mat'.
+        '''Name of the matrix stack to use. Can be 'modelview_mat',
+        'projection_mat' or 'frag_modelview_mat'.
         '''
         def __get__(self):
             if PY2:
@@ -422,8 +422,8 @@ cdef class PushMatrix(ContextInstruction):
         self.stack = kwargs.get('stack', 'modelview_mat')
 
     property stack:
-        '''Name of the matrix stack to use. Can be 'modelview_mat' or
-        'projection_mat'.
+        '''Name of the matrix stack to use. Can be 'modelview_mat',
+        'projection_mat' or 'frag_modelview_mat'.
 
         .. versionadded:: 1.6.0
         '''
@@ -442,8 +442,8 @@ cdef class PopMatrix(ContextInstruction):
         self.stack = kwargs.get('stack', 'modelview_mat')
 
     property stack:
-        '''Name of the matrix stack to use. Can be 'modelview_mat' or
-        'projection_mat'.
+        '''Name of the matrix stack to use. Can be 'modelview_mat',
+        'projection_mat' or 'frag_modelview_mat'.
 
         .. versionadded:: 1.6.0
         '''
@@ -472,7 +472,7 @@ cdef class ApplyContextMatrix(ContextInstruction):
 
     property target_stack:
         '''Name of the matrix stack to use as a target.
-        Can be 'modelview_mat' or 'projection_mat'.
+        Can be 'modelview_mat', 'projection_mat' or 'frag_modelview_mat'.
 
         .. versionadded:: 1.6.0
         '''
@@ -483,7 +483,7 @@ cdef class ApplyContextMatrix(ContextInstruction):
 
     property source_stack:
         '''Name of the matrix stack to use as a source.
-        Can be 'modelview_mat' or 'projection_mat'.
+        Can be 'modelview_mat', 'projection_mat' or 'frag_modelview_mat'.
 
         .. versionadded:: 1.6.0
         '''
@@ -538,8 +538,8 @@ cdef class MatrixInstruction(ContextInstruction):
             self.flag_update()
 
     property stack:
-        '''Name of the matrix stack to use. Can be 'modelview_mat' or
-        'projection_mat'.
+        '''Name of the matrix stack to use. Can be 'modelview_mat',
+        'projection_mat' or 'frag_modelview_mat'.
 
         .. versionadded:: 1.6.0
         '''

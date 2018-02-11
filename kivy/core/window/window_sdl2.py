@@ -188,6 +188,9 @@ class WindowSDL(WindowBase):
 
         self.bind(allow_screensaver=self._set_allow_screensaver)
 
+    def get_window_info(self):
+        return self._win.get_window_info()
+
     def _set_minimum_size(self, *args):
         minimum_width = self.minimum_width
         minimum_height = self.minimum_height
@@ -465,7 +468,15 @@ class WindowSDL(WindowBase):
             self._win.wait_event()
             if not self._pause_loop:
                 break
-            self._win.poll()
+            event = self._win.poll()
+            if event is None:
+                continue
+            # As dropfile is send was the app is still in pause.loop
+            # we need to dispatch it
+            action, args = event[0], event[1:]
+            if action == 'dropfile':
+                dropfile = args
+                self.dispatch('on_dropfile', dropfile[0])
 
         while True:
             event = self._win.poll()

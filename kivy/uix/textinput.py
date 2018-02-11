@@ -30,7 +30,7 @@ To create a multiline :class:`TextInput` (the 'enter' key adds a new line)::
 
 To create a singleline :class:`TextInput`, set the :class:`TextInput.multiline`
 property to False (the 'enter' key will defocus the TextInput and emit an
-'on_text_validate' event)::
+:meth:`TextInput.on_text_validate` event)::
 
     def on_enter(instance, value):
         print('User pressed enter in', instance)
@@ -705,7 +705,6 @@ class TextInput(FocusBehavior, Widget):
             elif mode == 'float':
                 if not re.match(self._insert_float_pat, new_text):
                     return
-
         self._set_line_text(cr, new_text)
 
         wrap = (self._get_text_width(
@@ -1122,6 +1121,43 @@ class TextInput(FocusBehavior, Widget):
             else:
                 row = min(row + 1, len(self._lines) - 1)
                 col = min(len(self._lines[row]), col)
+        elif action == 'cursor_home':
+            col = 0
+            if control:
+                row = 0
+        elif action == 'cursor_end':
+            if control:
+                row = len(self._lines) - 1
+            col = len(self._lines[row])
+        elif action == 'cursor_pgup':
+            row = max(0, row - pgmove_speed)
+            col = min(len(self._lines[row]), col)
+        elif action == 'cursor_pgdown':
+            row = min(row + pgmove_speed, len(self._lines) - 1)
+            col = min(len(self._lines[row]), col)
+        elif (self._selection and self._selection_finished and
+                self._selection_from < self._selection_to and
+                action == 'cursor_left'):
+            current_selection_to = self._selection_to
+            while self._selection_from != current_selection_to:
+                current_selection_to -= 1
+                if col:
+                    col -= 1
+                else:
+                    row -= 1
+                    col = len(self._lines[row])
+        elif (self._selection and self._selection_finished and
+                self._selection_from > self._selection_to and
+                action == 'cursor_right'):
+            current_selection_to = self._selection_to
+            while self._selection_from != current_selection_to:
+                current_selection_to += 1
+                if len(self._lines[row]) > col:
+                    col += 1
+                else:
+                    row += 1
+                    col = 0
+
         elif action == 'cursor_left':
             if not self.password and control:
                 col, row = self._move_cursor_word_left()
@@ -1142,20 +1178,6 @@ class TextInput(FocusBehavior, Widget):
                         row += 1
                 else:
                     col, row = col + 1, row
-        elif action == 'cursor_home':
-            col = 0
-            if control:
-                row = 0
-        elif action == 'cursor_end':
-            if control:
-                row = len(self._lines) - 1
-            col = len(self._lines[row])
-        elif action == 'cursor_pgup':
-            row = max(0, row - pgmove_speed)
-            col = min(len(self._lines[row]), col)
-        elif action == 'cursor_pgdown':
-            row = min(row + pgmove_speed, len(self._lines) - 1)
-            col = min(len(self._lines[row]), col)
         self.cursor = (col, row)
 
     def get_cursor_from_xy(self, x, y):
@@ -1743,13 +1765,26 @@ class TextInput(FocusBehavior, Widget):
         Cache_append('textinput.width', cid, width)
         return width
 
+    def on_cursor_blink(self, instance, value):
+        # trigger blink event reset to switch blinking while focused
+        self._reset_cursor_blink()
+
     def _do_blink_cursor(self, dt):
+        if not self.cursor_blink:
+            # ignore event if not triggered,
+            # stop if cursor_blink value changed right now
+            if self._do_blink_cursor_ev.is_triggered:
+                self._do_blink_cursor_ev.cancel()
+            # don't blink, make cursor visible
+            self._cursor_blink = False
+            return
+
         # Callback for blinking the cursor.
-        self.cursor_blink = not self.cursor_blink
+        self._cursor_blink = not self._cursor_blink
 
     def _reset_cursor_blink(self, *args):
         self._do_blink_cursor_ev.cancel()
-        self.cursor_blink = 0
+        self._cursor_blink = False
         self._do_blink_cursor_ev()
 
     def on_cursor(self, instance, value):
@@ -2248,9 +2283,24 @@ class TextInput(FocusBehavior, Widget):
 
     def _key_down(self, key, repeat=False):
         displayed_str, internal_str, internal_action, scale = key
-        if internal_action is None:
-            if self._selection:
+
+        # handle deletion
+        if (self._selection and
+                internal_action in (None, 'del', 'backspace', 'enter')):
+            if internal_action != 'enter' or self.multiline:
                 self.delete_selection()
+        elif internal_action == 'del':
+            # Move cursor one char to the right. If that was successful,
+            # do a backspace (effectively deleting char right of cursor)
+            cursor = self.cursor
+            self.do_cursor_movement('cursor_right')
+            if cursor != self.cursor:
+                self.do_backspace(mode='del')
+        elif internal_action == 'backspace':
+            self.do_backspace()
+
+        # handle action keys and text insertion
+        if internal_action is None:
             self.insert_text(displayed_str)
         elif internal_action in ('shift', 'shift_L', 'shift_R'):
             if not self._selection:
@@ -2275,28 +2325,15 @@ class TextInput(FocusBehavior, Widget):
                 self._update_selection()
             else:
                 self.cancel_selection()
-        elif self._selection and internal_action in ('del', 'backspace'):
-            self.delete_selection()
-        elif internal_action == 'del':
-            # Move cursor one char to the right. If that was successful,
-            # do a backspace (effectively deleting char right of cursor)
-            cursor = self.cursor
-            self.do_cursor_movement('cursor_right')
-            if cursor != self.cursor:
-                self.do_backspace(mode='del')
-        elif internal_action == 'backspace':
-            self.do_backspace()
         elif internal_action == 'enter':
             if self.multiline:
                 self.insert_text(u'\n')
             else:
                 self.dispatch('on_text_validate')
-                self.focus = False
+                if self.text_validate_unfocus:
+                    self.focus = False
         elif internal_action == 'escape':
             self.focus = False
-        if internal_action != 'escape':
-            # self._recalc_size()
-            pass
 
     def _key_up(self, key, repeat=False):
         displayed_str, internal_str, internal_action, scale = key
@@ -2472,6 +2509,7 @@ class TextInput(FocusBehavior, Widget):
     _editable = BooleanProperty(True)
     _insert_int_pat = re.compile(u'^-?[0-9]*$')
     _insert_float_pat = re.compile(u'^-?[0-9]*\\.?[0-9]*$')
+    _cursor_blink = BooleanProperty(False)
 
     readonly = BooleanProperty(False)
     '''If True, the user will not be able to change the content of a textinput.
@@ -2480,6 +2518,18 @@ class TextInput(FocusBehavior, Widget):
 
     :attr:`readonly` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
+    '''
+
+    text_validate_unfocus = BooleanProperty(True)
+    '''If True, the :meth:`TextInput.on_text_validate` event will unfocus the
+    widget, therefore make it stop listening to the keyboard. When disabled,
+    the :meth:`TextInput.on_text_validate` event can be fired multiple times
+    as the result of TextInput keeping the focus enabled.
+
+    .. versionadded:: 1.10.1
+
+    :attr:`text_validate_unfocus` is
+    a :class:`~kivy.properties.BooleanProperty` and defaults to True.
     '''
 
     multiline = BooleanProperty(True)
@@ -2520,13 +2570,18 @@ class TextInput(FocusBehavior, Widget):
     and defaults to True.
     '''
 
-    cursor_blink = BooleanProperty(False)
-    '''This property is used to blink the cursor graphic. The value of
-    :attr:`cursor_blink` is automatically computed. Setting a value on it will
-    have no impact.
+    cursor_blink = BooleanProperty(True)
+    '''This property is used to set whether the graphic cursor should blink
+    or not.
+
+    .. versionchanged:: 1.10.1
+        `cursor_blink` has been refactored to enable switching the blinking
+        on/off and the previous behavior has been moved to a private
+        `_cursor_blink` property. The previous default value `False` has been
+        changed to `True`.
 
     :attr:`cursor_blink` is a :class:`~kivy.properties.BooleanProperty` and
-    defaults to False.
+    defaults to True.
     '''
 
     def _get_cursor(self):

@@ -438,6 +438,14 @@ void x11_gl_swap(void) {
 	#endif
 }
 
+Display *x11_get_display(void) {
+	return Xdisplay;
+}
+
+Window x11_get_window(void) {
+	return window_handle;
+}
+
 void x11_set_title(char *title){
 	XStoreName(Xdisplay, window_handle, title);
 }

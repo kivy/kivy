@@ -10,6 +10,15 @@ from kivy.graphics.cgl import cgl_get_backend_name
 
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 
+IF USE_WAYLAND:
+    from window_info cimport WindowInfoWayland
+
+IF USE_X11:
+    from window_info cimport WindowInfoX11
+
+IF UNAME_SYSNAME == 'Windows':
+    from window_info cimport WindowInfoWindows
+
 cdef int _event_filter(void *userdata, SDL_Event *event) with gil:
     return (<_WindowSDL2Storage>userdata).cb_event_filter(event)
 
@@ -333,6 +342,41 @@ cdef class _WindowSDL2Storage:
     def set_window_pos(self, x, y):
         SDL_SetWindowPosition(self.win, x, y)
 
+    def get_window_info(self):
+        cdef SDL_SysWMinfo wm_info
+        SDL_GetVersion(&wm_info.version)
+        cdef SDL_bool success = SDL_GetWindowWMInfo(self.win, &wm_info)
+
+        if not success:
+            return
+
+        IF USE_WAYLAND:
+            cdef WindowInfoWayland wayland_info
+
+            if wm_info.subsystem == SDL_SYSWM_TYPE.SDL_SYSWM_WAYLAND:
+                wayland_info = WindowInfoWayland()
+                wayland_info.display = wm_info.info.wl.display
+                wayland_info.surface = wm_info.info.wl.surface
+                wayland_info.shell_surface = wm_info.info.wl.shell_surface
+                return wayland_info
+
+        IF USE_X11:
+            cdef WindowInfoX11 x11_info
+
+            if wm_info.subsystem == SDL_SYSWM_TYPE.SDL_SYSWM_X11:
+                x11_info = WindowInfoX11()
+                x11_info.display = wm_info.info.x11.display
+                x11_info.window = wm_info.info.x11.window
+                return x11_info
+
+        IF UNAME_SYSNAME == 'Windows':
+            cdef WindowInfoWindows windows_info
+
+            if wm_info.subsystem == SDL_SYSWM_TYPE.SDL_SYSWM_WINDOWS:
+                windows_info = WindowInfoWindows()
+                windows_info.window = wm_info.info.win.window
+                windows_info.hdc = wm_info.info.win.hdc
+
     # Transparent Window background
     def is_window_shaped(self):
         return SDL_IsShapedWindow(self.win)
@@ -579,6 +623,9 @@ cdef class _WindowSDL2Storage:
         elif event.type == SDL_TEXTINPUT:
             s = event.text.text.decode('utf-8')
             return ('textinput', s)
+        elif event.type == SDL_TEXTEDITING:
+            s = event.edit.text.decode('utf-8')
+            return ('textedit', s)
         else:
             #    print('receive unknown sdl window event', event.type)
             pass

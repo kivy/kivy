@@ -131,6 +131,9 @@ class Keyboard(EventDispatcher):
         #: VKeyboard widget, if allowed by the configuration
         self.widget = kwargs.get('widget', None)
 
+    def get_window_info():
+        pass
+
     def on_key_down(self, keycode, text, modifiers):
         pass
 
@@ -534,8 +537,9 @@ class WindowBase(EventDispatcher):
     :attr:`rotation` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
-    softinput_mode = OptionProperty('', options=(
-        '', 'below_target', 'pan', 'scale', 'resize'))
+    softinput_mode = OptionProperty(
+        '', options=('', 'below_target', 'pan', 'scale', 'resize')
+    )
     '''This specifies the behavior of window contents on display of the soft
     keyboard on mobile platforms. It can be one of '', 'pan', 'scale',
     'resize' or 'below_target'. Their effects are listed below.
@@ -559,7 +563,7 @@ class WindowBase(EventDispatcher):
     +----------------+-------------------------------------------------------+
 
     :attr:`softinput_mode` is an :class:`~kivy.properties.OptionProperty` and
-    defaults to ``.
+    defaults to ''.
 
     .. note:: The `resize` option does not currently work with SDL2 on Android.
 
@@ -571,6 +575,10 @@ class WindowBase(EventDispatcher):
 
     _keyboard_changed = BooleanProperty(False)
     _kheight = NumericProperty(0)
+    _kanimation = None
+
+    def _free_kanimation(self, *largs):
+        WindowBase._kanimation = None
 
     def _animate_content(self):
         '''Animate content to IME height.
@@ -579,10 +587,13 @@ class WindowBase(EventDispatcher):
         global Animation
         if not Animation:
             from kivy.animation import Animation
-        Animation.cancel_all(self)
-        Animation(
+        if WindowBase._kanimation:
+            WindowBase._kanimation.cancel(self)
+        WindowBase._kanimation = kanim = Animation(
             _kheight=self.keyboard_height + self.keyboard_padding,
-            d=kargs['d'], t=kargs['t']).start(self)
+            d=kargs['d'], t=kargs['t'])
+        kanim.bind(on_complete=self._free_kanimation)
+        kanim.start(self)
 
     def _upd_kbd_height(self, *kargs):
         self._keyboard_changed = not self._keyboard_changed
@@ -1134,6 +1145,14 @@ class WindowBase(EventDispatcher):
        - `binalpha` - hides an alpha channel of the :attr:`shape_image`
        - `reversebinalpha` - shows only the alpha of the :attr:`shape_image`
 
+    .. note::
+        Before actually setting the mode make sure the Window has the same
+        size like the :attr:`shape_image`, preferably via Config before
+        the Window is actually created.
+
+        If the :attr:`shape_image` isn't set, the default one will be used
+        and the mode might not take the desired visual effect.
+
     .. versionadded:: 1.10.1
 
     :attr:`shape_mode` is an :class:`~kivy.properties.AliasProperty`.
@@ -1412,6 +1431,9 @@ class WindowBase(EventDispatcher):
         w2, h2 = w / 2., h / 2.
         modelview_mat = modelview_mat.multiply(Matrix().translate(-w2, -h2, 0))
         self.render_context['modelview_mat'] = modelview_mat
+        frag_modelview_mat = Matrix()
+        frag_modelview_mat.set(flat=modelview_mat.get())
+        self.render_context['frag_modelview_mat'] = frag_modelview_mat
 
         # redraw canvas
         self.canvas.ask_update()

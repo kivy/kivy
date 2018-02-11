@@ -117,7 +117,7 @@ example, this can be accomplished like so::
             Button:
                 text: 'Quit'
 
-    <SettingScreen>:
+    <SettingsScreen>:
         BoxLayout:
             Button:
                 text: 'My settings button'
@@ -469,7 +469,7 @@ class ShaderTransition(TransitionBase):
     and defaults to [0, 0, 0, 1].'''
 
     def make_screen_fbo(self, screen):
-        fbo = Fbo(size=screen.size)
+        fbo = Fbo(size=screen.size, with_stencilbuffer=True)
         with fbo:
             ClearColor(*self.clearcolor)
             ClearBuffers()

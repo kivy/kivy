@@ -139,19 +139,27 @@ class Video(Image):
         if self.source:
             self._trigger_video_load()
 
-    def seek(self, percent):
-        '''Change the position to a percentage of duration. Percentage
-        must be a value between 0-1.
+    def seek(self, percent, precise=True):
+        '''Change the position to a percentage of duration.
+
+        :Parameters:
+            `percent`: float or int
+                Position to seek, must be between 0-1.
+            `precise`: bool, defaults to True
+                Precise seeking is slower, but seeks to exact requested
+                percent.
 
         .. warning::
-
-            Calling seek() before the video is loaded has no impact.
+            Calling seek() before the video is loaded has no effect.
 
         .. versionadded:: 1.2.0
+
+        .. versionchanged:: 1.10.1
+            The `precise` keyword argument has been added.
         '''
         if self._video is None:
             raise Exception('Video not loaded.')
-        self._video.seek(percent)
+        self._video.seek(percent, precise=precise)
 
     def _trigger_video_load(self, *largs):
         ev = self._video_load_event
@@ -163,8 +171,7 @@ class Video(Image):
     def _do_video_load(self, *largs):
         if CoreVideo is None:
             return
-        if self._video:
-            self._video.stop()
+        self.unload()
         if not self.source:
             self._video = None
             self.texture = None
@@ -235,6 +242,7 @@ class Video(Image):
             self._video.stop()
             self._video.unload()
             self._video = None
+        self.loaded = False
 
 
 if __name__ == '__main__':
