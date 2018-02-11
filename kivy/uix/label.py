@@ -140,7 +140,7 @@ escape them. We created a simple syntax::
 
 Then you can write::
 
-    "[size=24]Hello &bl;World&bt;[/size]"
+    "[size=24]Hello &bl;World&br;[/size]"
 
 Interactive zone in text
 ------------------------
