@@ -121,7 +121,7 @@ class ActionItem(object):
     background_down = StringProperty(
         'atlas://data/images/defaulttheme/action_item_down')
     '''
-    Background image of the ActionItem used for default graphical
+    Background image of the ActionItem used for the default graphical
     representation when an ActionItem is pressed.
 
     :attr:`background_down` is a :class:`~kivy.properties.StringProperty`
@@ -766,11 +766,16 @@ class ContextualActionView(ActionView):
 
 class ActionBar(BoxLayout):
     '''
-    ActionBar, see the module documentation for more information.
+    ActionBar class, which acts as the main container for an
+    :class:`ActionView` instance. The ActionBar determines the overall
+    styling aspects of the bar. :class:`ActionItem`\s are not added to
+    this class directly, but to the contained :class:`ActionView` instance.
 
     :Events:
         `on_previous`
             Fired when action_previous of action_view is pressed.
+
+    Please see the module documentation for more information.
     '''
 
     action_view = ObjectProperty(None)
