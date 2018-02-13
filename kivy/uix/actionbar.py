@@ -8,8 +8,9 @@ Action Bar
     :align: right
 
 The ActionBar widget is like Android's `ActionBar
-<http://developer.android.com/guide/topics/ui/actionbar.html>`_
-, where items are stacked horizontally.
+<http://developer.android.com/guide/topics/ui/actionbar.html>`_, where items
+are stacked horizontally. When the area becomes to small, widgets are moved
+into the :class:`ActionOverflow` area.
 
 An :class:`ActionBar` contains an :class:`ActionView` with various
 :class:`ContextualActionViews <kivy.uix.actionbar.ContextualActionView>`.
@@ -21,9 +22,10 @@ an :class:`ActionButton`, an :class:`ActionToggleButton`, an
 
 An :class:`ActionGroup` is used to display :class:`ActionItems <ActionItem>`
 in a group. An :class:`ActionView` will always display an :class:`ActionGroup`
-after other :class:`ActionItems <ActionItem>`.
-An :class:`ActionView` will contain an :class:`ActionOverflow`.
-A :class:`ContextualActionView` is a subclass of an :class:`ActionView`.
+after other :class:`ActionItems <ActionItem>`. An :class:`ActionView` contains
+an :class:`ActionOverflow`, but this is only made visible when required i.e.
+the available area is too small to fit all the widgets. A
+:class:`ContextualActionView` is a subclass of an:class:`ActionView`.
 
 .. versionchanged:: 1.10.1
     :class:`ActionGroup` core rewritten from :class:`Spinner` to pure
