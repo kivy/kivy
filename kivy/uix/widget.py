@@ -605,16 +605,28 @@ class Widget(WidgetBase):
             remove_widget(child)
 
     def swap_widget(self, a, b):
-        '''Swaps a child widget for another widget. This avoids transitioning
-        the parent property via None when possible. Note that the `children`
-        property of this class still emits all events.
+        '''Swap our child widget `a` for another widget `b`, and avoid
+        transitioning the parent property via None when possible. `a` must
+        already have been added as a child, `b` can be a child of any widget
+        (or not have a parent). If `b` is already our child, the result is to
+        swap their index (and thus canvas drawing order/z-order, position, or
+        other behavior depending on the container widget's type).
+
+        .. note::
+
+            The :attr:`children` properties will emit events for all add/remove
+            operations during a swap. Only the transition via None for `a` and
+            `b`'s :attr:`parent` properties are suppressed.
 
         :Parameters:
             `a`: :class:`Widget`
-                Widget to swap out; this must be an existing child widget.
+                Widget to swap out; this instance must already be in
+                :attr:`children` list.
             `b`: :class:`Widget`
                 Widget to replace `a`. If it has an existing parent, it
-                will be removed from it.
+                will be removed from it and inserted at `a`'s index in our
+                :attr:`children` list (`a` will be inserted in `b`'s parent,
+                at its previous index).
 
         .. versionadded:: 1.10.1
         '''
