@@ -526,7 +526,7 @@ class Widget(WidgetBase):
                 'Widget instances cannot be added to themselves.')
         parent = widget.parent
         # Check if the widget is already a child of another widget.
-        if parent:
+        if parent and not hasattr(widget, '_kivy_hostile_swap_flag'):
             raise WidgetException('Cannot add %r, it already has a parent %r'
                                   % (widget, parent))
         widget.parent = parent = self
@@ -583,7 +583,9 @@ class Widget(WidgetBase):
             self.canvas.after.remove(widget.canvas)
         elif widget.canvas in self.canvas.before.children:
             self.canvas.before.remove(widget.canvas)
-        widget.parent = None
+        # swap_widget hack to avoid parent transition via None
+        if not hasattr(widget, '_kivy_hostile_swap_flag'):
+            widget.parent = None
 
     def clear_widgets(self, children=None):
         '''
@@ -601,6 +603,53 @@ class Widget(WidgetBase):
         remove_widget = self.remove_widget
         for child in children[:]:
             remove_widget(child)
+
+    def swap_widget(self, a, b):
+        '''Swaps a child widget for another widget. This avoids transitioning
+        the parent property via None when possible. Note that the `children`
+        property of this class still emits all events.
+
+        :Parameters:
+            `a`: :class:`Widget`
+                Widget to swap out; this must be an existing child widget.
+            `b`: :class:`Widget`
+                Widget to replace `a`. If it has an existing parent, it
+                will be removed from it.
+
+        .. versionadded:: 1.10.1
+        '''
+        if a is b:
+            return
+        children = self.children
+        cidx = self.children.index
+        a_is_my_child, a_idx = a in children and (1, cidx(a)) or (0, None)
+        b_is_my_child, b_idx = b in children and (1, cidx(b)) or (0, None)
+        if not a_is_my_child:
+            raise WidgetException(
+                'swap_widget() "a" widget %r is not in self.children.' % (a, ))
+        add_widget = self.add_widget
+        remove_widget = self.remove_widget
+        # If b has no parent, just do plain remove/add
+        b_parent = b.parent
+        if not b_parent:
+            remove_widget(a)
+            add_widget(b, index=a_idx)
+            return
+        # b has a parent, raise the flag for add_widget/remove_widget
+        a._kivy_hostile_swap_flag = True
+        b._kivy_hostile_swap_flag = True
+        remove_widget(a)
+        if b_is_my_child:
+            add_widget(a, index=b_idx)
+            remove_widget(b)
+            add_widget(b, index=a_idx)
+        else:
+            extern_b_idx = b_parent.children.index(b)
+            b_parent.remove_widget(b)
+            b_parent.add_widget(a, index=extern_b_idx)
+            add_widget(b, index=a_idx)
+        del a._kivy_hostile_swap_flag
+        del b._kivy_hostile_swap_flag
 
     def export_to_png(self, filename, *args):
         '''Saves an image of the widget and its children in png format at the
