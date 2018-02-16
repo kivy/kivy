@@ -621,7 +621,7 @@ class Widget(WidgetBase):
         if a is b:
             return
         children = self.children
-        cidx = self.children.index
+        cidx = children.index
         a_is_my_child, a_idx = a in children and (1, cidx(a)) or (0, None)
         b_is_my_child, b_idx = b in children and (1, cidx(b)) or (0, None)
         if not a_is_my_child:
