@@ -663,6 +663,30 @@ class Widget(WidgetBase):
         del a._kivy_hostile_swap_flag
         del b._kivy_hostile_swap_flag
 
+    def move_widget(self, widget, index=0):
+        '''Moves child widget to the given index in :attr:`children`. This
+        is the same as removing and adding the widget at the given index,
+        but avoids transitioning the child's :attr:`parent` property via
+        None.
+
+        :Parameters:
+            `widget`: :class:`Widget`
+                Widget to move; this instance must already be in
+                :attr:`children` list.
+            `index`: int, defaults to 0
+                Target index in :attr:`children` list (0 is "bring to front",
+                len(self.children) is "send to back")
+
+        .. versionadded:: 1.10.1
+        '''
+        if widget.parent is not self:
+            raise WidgetException("move_widget() %r is not my child." % (
+                                  widget, ))
+        widget._kivy_hostile_swap_flag = True
+        self.remove_widget(widget)
+        self.add_widget(widget, index=index)
+        del widget._kivy_hostile_swap_flag
+
     def export_to_png(self, filename, *args):
         '''Saves an image of the widget and its children in png format at the
         specified filename. Works by removing the widget canvas from its
