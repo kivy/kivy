@@ -656,7 +656,14 @@ class Widget(WidgetBase):
             remove_widget(b)
             add_widget(b, index=a_idx)
         else:
-            extern_b_idx = b_parent.children.index(b)
+            # Some widgets may override the API and assign themselves
+            # as parent, but keep the widget outside of the hierarchy.
+            # FIXME: need to investigate how this should be handled
+            # and documented.
+            try:
+                extern_b_idx = b_parent.children.index(b)
+            except ValueError:
+                extern_b_idx = None
             b_parent.remove_widget(b)
             b_parent.add_widget(a, index=extern_b_idx)
             add_widget(b, index=a_idx)
