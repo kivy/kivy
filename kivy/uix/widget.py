@@ -318,6 +318,7 @@ class Widget(WidgetBase):
     __metaclass__ = WidgetMetaclass
     __events__ = ('on_touch_down', 'on_touch_move', 'on_touch_up')
     _proxy_ref = None
+    _active_widget_swaps = set()
 
     def __init__(self, **kwargs):
         # Before doing anything, ensure the windows exist.
@@ -526,7 +527,7 @@ class Widget(WidgetBase):
                 'Widget instances cannot be added to themselves.')
         parent = widget.parent
         # Check if the widget is already a child of another widget.
-        if parent and not hasattr(widget, '_kivy_hostile_swap_flag'):
+        if parent and widget not in Widget._active_widget_swaps:
             raise WidgetException('Cannot add %r, it already has a parent %r'
                                   % (widget, parent))
         widget.parent = parent = self
@@ -584,7 +585,7 @@ class Widget(WidgetBase):
         elif widget.canvas in self.canvas.before.children:
             self.canvas.before.remove(widget.canvas)
         # swap_widget hack to avoid parent transition via None
-        if not hasattr(widget, '_kivy_hostile_swap_flag'):
+        if widget not in Widget._active_widget_swaps:
             widget.parent = None
 
     def clear_widgets(self, children=None):
@@ -648,8 +649,8 @@ class Widget(WidgetBase):
             add_widget(b, index=a_idx)
             return
         # b has a parent, raise the flag for add_widget/remove_widget
-        a._kivy_hostile_swap_flag = True
-        b._kivy_hostile_swap_flag = True
+        _swaps = Widget._active_widget_swaps
+        _swaps.update((a, b))
         remove_widget(a)
         if b_is_my_child:
             add_widget(a, index=b_idx)
@@ -667,8 +668,7 @@ class Widget(WidgetBase):
             b_parent.remove_widget(b)
             b_parent.add_widget(a, index=extern_b_idx)
             add_widget(b, index=a_idx)
-        del a._kivy_hostile_swap_flag
-        del b._kivy_hostile_swap_flag
+        _swaps.discard((a, b))
 
     def move_widget(self, widget, index=0):
         '''Moves child widget to the given index in :attr:`children`. This
@@ -689,10 +689,11 @@ class Widget(WidgetBase):
         if widget.parent is not self:
             raise WidgetException("move_widget() %r is not my child." % (
                                   widget, ))
-        widget._kivy_hostile_swap_flag = True
+        _swaps = Widget._active_widget_swaps
+        _swaps.update((widget, ))
         self.remove_widget(widget)
         self.add_widget(widget, index=index)
-        del widget._kivy_hostile_swap_flag
+        _swaps.discard((widget, ))
 
     def export_to_png(self, filename, *args):
         '''Saves an image of the widget and its children in png format at the
