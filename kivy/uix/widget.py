@@ -670,8 +670,8 @@ class Widget(WidgetBase):
             add_widget(b, index=a_idx)
         _swaps.discard((a, b))
 
-    def move_widget(self, widget, index=0):
-        '''Moves child widget to the given index in :attr:`children`. This
+    def set_widget_index(self, widget, index=0):
+        '''Moves child `widget` to the given index in :attr:`children`. This
         is the same as removing and adding the widget at the given index,
         but avoids transitioning the child's :attr:`parent` property via
         None.
