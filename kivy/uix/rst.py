@@ -902,7 +902,7 @@ class _Visitor(nodes.NodeVisitor):
     def brute_refs(self, node):
         # get foot/cit refs manually because the output from
         # docutils' parser doesn't contain any of these:
-        # node's refid, refname, backref, ...  and/or are just ''/[]
+        # node's refid, refname, backref, ... and/or are just ''/[]
 
         def get_refs(condition, backref=False):
             # backref=True is used in nodes.footnote

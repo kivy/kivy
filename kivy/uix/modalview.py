@@ -195,7 +195,7 @@ class ModalView(AnchorLayout):
             a.bind(on_complete=lambda *x: self.dispatch('on_open'))
             a.start(self)
         else:
-            self._anim_alpha=1.
+            self._anim_alpha = 1.
             self.dispatch('on_open')
 
     def dismiss(self, *largs, **kwargs):
