@@ -49,8 +49,8 @@ install.
        If you encounter a `MemoryError` while installing, add after
        `pip install` an option `--no-cache-dir`.
 
-   For Python 3.5 only we additionally offer angle which can be used instead of glew
-   and can be installed with::
+   For Python 3.5+, you can also use the angle backend instead of glew. This
+   can be installed with::
 
      python -m pip install kivy.deps.angle
 
