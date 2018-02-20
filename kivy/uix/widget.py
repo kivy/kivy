@@ -668,7 +668,9 @@ class Widget(WidgetBase):
             b_parent.remove_widget(b)
             b_parent.add_widget(a, index=extern_b_idx)
             add_widget(b, index=a_idx)
-        _swaps.discard((a, b))
+        remove = _swaps.remove
+        remove(a)
+        remove(b)
 
     def set_widget_index(self, widget, index=0):
         '''Moves child `widget` to the given index in :attr:`children`. This
@@ -693,7 +695,7 @@ class Widget(WidgetBase):
         _swaps.update((widget, ))
         self.remove_widget(widget)
         self.add_widget(widget, index=index)
-        _swaps.discard((widget, ))
+        _swaps.remove(widget)
 
     def export_to_png(self, filename, *args):
         '''Saves an image of the widget and its children in png format at the
