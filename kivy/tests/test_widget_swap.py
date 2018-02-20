@@ -37,22 +37,22 @@ class SwapWidgetTestCase(unittest.TestCase):
         self._simple_test(p1, p2, c1, c2)
 
     def _simple_test(self, parent1, parent2, child1, child2):
-        parent1.add_widget(child1) # p1++, c1++
+        parent1.add_widget(child1)  # p1++, c1++
         self.assertEqual(child1._counter, 1)
         self.assertEqual(parent1._counter, 1)
-        parent1.remove_widget(child1) # p1++, c1++
+        parent1.remove_widget(child1)  # p1++, c1++
         self.assertEqual(child1._counter, 2)
         self.assertEqual(parent1._counter, 2)
 
-        parent1.add_widget(child1) # p1++, c1++
+        parent1.add_widget(child1)  # p1++, c1++
         self.assertEqual(child1._counter, 3)
         self.assertEqual(parent1._counter, 3)
 
-        parent2.add_widget(child2) # p2++, c2++
+        parent2.add_widget(child2)  # p2++, c2++
         self.assertEqual(child2._counter, 1)
         self.assertEqual(parent2._counter, 1)
 
-        parent1.swap_widget(child1, child2) # p1+=2, p2+=2, c1++, c2++
+        parent1.swap_widget(child1, child2)  # p1+=2, p2+=2, c1++, c2++
         self.assertEqual(child1._counter, 4)
         self.assertEqual(child2._counter, 2)
         self.assertEqual(parent1._counter, 5)
@@ -64,11 +64,11 @@ class SwapWidgetTestCase(unittest.TestCase):
         self.assertEqual(child2._counter, 2)
 
     def test_swap_widget_extern(self):
-        self._mimick = mimick = {} # mimicks callback order per child
+        self._mimick = mimick = {}  # mimicks callback order per child
         parents = [F.BoxLayout(), F.FloatLayout(), F.GridLayout(cols=2),
                    F.PageLayout(), F.RelativeLayout(), F.StackLayout(),
                    F.Widget()]
-        n = 17 # children per parent
+        n = 17  # children per parent
         for parent in parents:
             parent.bind(children=counter)
             mimick[parent] = 0
@@ -131,4 +131,3 @@ class SwapWidgetTestCase(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
