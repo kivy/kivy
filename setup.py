@@ -1019,6 +1019,7 @@ if not build_examples:
         ],
         package_dir={'kivy': 'kivy'},
         package_data={'kivy': [
+            'setupconfig.py'
             '*.pxd',
             '*.pxi',
             'core/text/*.pxd',
