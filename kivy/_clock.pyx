@@ -8,7 +8,7 @@ cdef extern from "float.h":
 
 from kivy.weakmethod import WeakMethod
 from kivy.logger import Logger
-from threading import Lock
+from threading import RLock
 
 
 cdef class ClockEvent(object):
@@ -202,7 +202,7 @@ cdef class CyClockBase(object):
         self._last_event = None
         self._next_event = None
         self._cap_event = None
-        self._lock = Lock()
+        self._lock = RLock()
         self._lock_acquire = self._lock.acquire
         self._lock_release = self._lock.release
 
