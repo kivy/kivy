@@ -59,7 +59,7 @@ if use_multiprocessing:
         try:
             while True:
                 message = thread.queue.get_nowait()
-                thread.addressManager.handle(message)
+                thread.addressManager.handle(*message)
         except:
             pass
 
@@ -96,7 +96,7 @@ else:
         h = thread.addressManager.handle
 
         while q:
-            h(q.popleft())
+            h(*q.popleft())
 
     class _OSCServer(Thread):
         def __init__(self, **kwargs):
@@ -113,9 +113,12 @@ else:
 
 def init() :
     '''instantiates address manager and outsocket as globals
+        returns local port of outsocket for bidirectional communication
     '''
     global outSocket
     outSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    outSocket.bind(('0.0.0.0', 0))
+    return outSocket.getsockname()[1]
 
 
 def bind(oscid, func, oscaddress):
@@ -194,7 +197,16 @@ class OSCServer(_OSCServer):
     def run(self):
         self.haveSocket = False
         # create socket
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        if(
+            self.ipAddr in ('127.0.0.1', '0.0.0.0') and
+            self.port == outSocket.getsockname()[1]
+        ):
+            # Allow re-use of outSocket port for bidirectional communication
+            self.socket = outSocket
+            self.socket.settimeout(0.5)
+            self.haveSocket = True
+        else:
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
         # fix trouble if python leave without cleaning well the socket
         # not needed under windows, he can reuse addr even if the socket
@@ -216,6 +228,7 @@ class OSCServer(_OSCServer):
                 if error == errno.EADDRINUSE:
                     Logger.error('OSC: Address %s:%i already in use, retry in 2 second' % (self.ipAddr, self.port))
                 else:
+                    Logger.error('OSC: Error %d: %s', error, message)
                     self.haveSocket = False
 
                 # sleep 2 second before retry
@@ -225,7 +238,7 @@ class OSCServer(_OSCServer):
 
         while self.isRunning:
             try:
-                message = self.socket.recv(65535)
+                message = self.socket.recvfrom(65535)
                 self._queue_message(message)
             except Exception as e:
                 if type(e) == socket.timeout:
