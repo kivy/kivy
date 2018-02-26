@@ -1240,6 +1240,13 @@ class WindowBase(EventDispatcher):
 
     def add_widget(self, widget, canvas=None):
         '''Add a widget to a window'''
+        if widget.parent:
+            from kivy.uix.widget import WidgetException
+            raise WidgetException(
+                'Cannot add %r to window, it already has a parent %r' %
+                (widget, widget.parent)
+            )
+
         widget.parent = self
         self.children.insert(0, widget)
         canvas = self.canvas.before if canvas == 'before' else \
