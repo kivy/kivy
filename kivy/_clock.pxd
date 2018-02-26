@@ -84,6 +84,7 @@ cdef class CyClockBase(object):
 
     cpdef get_resolution(self)
     cpdef create_trigger(self, callback, timeout=*, interval=*)
+    cpdef schedule_del_safe(self, callback)
     cpdef schedule_once(self, callback, timeout=*)
     cpdef schedule_interval(self, callback, timeout)
     cpdef unschedule(self, callback, all=*)
