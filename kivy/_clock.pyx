@@ -252,6 +252,15 @@ cdef class CyClockBase(object):
     cpdef schedule_del_safe(self, callback):
         '''Schedule a callback. Might be called from GC and cannot be cancelled.
 
+        It's unsafe to call various kinds of code, such as code with a lock,
+        from a `__del__` or `__dealloc__` methods. Since Kivy's Clock uses a
+        lock, it's generally unsafe to call from these methods. Instead,
+        use this method, which is thread safe and `__del__` or `__dealloc__`
+        safe, to schedule the callback in the kivy thread. It'll be executed
+        in order after the normal events are processed.
+
+        The callback takes no parameters and cannot be canceled.
+
         .. versionadded:: 1.11.0
         '''
         self._del_queue.append(callback)
@@ -410,8 +419,9 @@ cdef class CyClockBase(object):
         self._next_event = self._cap_event = None
         self._lock_release()
 
-        while self._del_queue:
-            callback = self._del_queue.pop()
+        callbacks = self._del_queue[:]
+        del self._del_queue[:len(callbacks)]
+        for callback in callbacks:
             callback()
 
     cpdef _process_events_before_frame(self):

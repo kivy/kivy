@@ -22,6 +22,7 @@ cdef class ClockEvent(object):
     '''
     cdef public double _last_dt
     cdef public double _dt
+    cdef public list _del_queue
 
     cpdef get_callback(self)
     cpdef cancel(self)
