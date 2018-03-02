@@ -205,6 +205,7 @@ cdef class CyClockBase(object):
         self._lock = Lock()
         self._lock_acquire = self._lock.acquire
         self._lock_release = self._lock.release
+        self._del_queue = []
 
     cpdef get_resolution(self):
         '''Returns the minimum resolution the clock has. It's a function of
@@ -247,6 +248,22 @@ cdef class CyClockBase(object):
         cdef ClockEvent ev = ClockEvent(self, interval, callback, timeout, 0)
         ev.release()
         return ev
+
+    cpdef schedule_del_safe(self, callback):
+        '''Schedule a callback. Might be called from GC and cannot be cancelled.
+
+        It's unsafe to call various kinds of code, such as code with a lock,
+        from a `__del__` or `__dealloc__` methods. Since Kivy's Clock uses a
+        lock, it's generally unsafe to call from these methods. Instead,
+        use this method, which is thread safe and `__del__` or `__dealloc__`
+        safe, to schedule the callback in the kivy thread. It'll be executed
+        in order after the normal events are processed.
+
+        The callback takes no parameters and cannot be canceled.
+
+        .. versionadded:: 1.11.0
+        '''
+        self._del_queue.append(callback)
 
     cpdef schedule_once(self, callback, timeout=0):
         '''Schedule an event in <timeout> seconds. If <timeout> is unspecified
@@ -401,6 +418,11 @@ cdef class CyClockBase(object):
 
         self._next_event = self._cap_event = None
         self._lock_release()
+
+        callbacks = self._del_queue[:]
+        del self._del_queue[:len(callbacks)]
+        for callback in callbacks:
+            callback()
 
     cpdef _process_events_before_frame(self):
         cdef ClockEvent event
