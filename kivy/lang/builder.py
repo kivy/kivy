@@ -290,6 +290,11 @@ class BuilderBase(object):
         filename = resource_find(filename) or filename
         if __debug__:
             trace('Lang: load file %s' % filename)
+
+        if PY2:
+            import io
+            open = io.open
+
         if encoding is None:
             encoding_given = False
             encoding = 'utf-8'
@@ -310,11 +315,15 @@ class BuilderBase(object):
                 'this may cause text differences when the project '
                 'is run in other systems'.format(filename)
             )
+            encoding = sys.getdefaultencoding()
             with open(filename, 'r') as fd:
                 data = fd.read()
 
             # remove bom ?
             if PY2:
+                # restore data to non-unicode text, as expected in Python 2.
+                data = data.encode(encoding)
+
                 if data.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
                     raise ValueError('Unsupported UTF16 for kv files.')
                 if data.startswith((codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE)):
