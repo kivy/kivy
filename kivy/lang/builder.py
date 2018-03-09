@@ -273,7 +273,7 @@ class BuilderBase(object):
         self.rules = []
         self.rulectx = {}
 
-    def load_file(self, filename, **kwargs):
+    def load_file(self, filename, encoding=None, **kwargs):
         '''Insert a file into the language builder and return the root widget
         (if defined) of the kv file.
 
@@ -281,13 +281,37 @@ class BuilderBase(object):
             `rulesonly`: bool, defaults to False
                 If True, the Builder will raise an exception if you have a root
                 widget inside the definition.
+
+            `encoding`: File charcter encoding. Defaults to utf-8,
+                if not given, and utf-8 yields an encoding error, attempts
+                loading the file as the native system encoding as
+                given by `sys.getdefaultencoding()`
         '''
         filename = resource_find(filename) or filename
         if __debug__:
             trace('Lang: load file %s' % filename)
-        with open(filename, 'r') as fd:
-            kwargs['filename'] = filename
-            data = fd.read()
+        if encoding is None:
+            encoding_given = False
+            encoding = 'utf-8'
+        else:
+            encoding_given = True
+
+        kwargs['filename'] = filename
+        try:
+            with open(filename, 'r', encoding=encoding) as fd:
+                data = fd.read()
+        except UnicodeDecodeError:
+            if encoding_given:
+                # Don't try to guess encoding if it was passed explicitly
+                raise
+            Logger.warning(
+                'File "{0}" failed to open with  "utf-8" codec. '
+                'Trying native system encoding now. Note that '
+                'this may cause text differences when the project '
+                'is run in other systems'.format(filename)
+            )
+            with open(filename, 'r') as fd:
+                data = fd.read()
 
             # remove bom ?
             if PY2:
