@@ -785,7 +785,7 @@ class ActionBar(BoxLayout):
     action_view of the ActionBar.
 
     :attr:`action_view` is an :class:`~kivy.properties.ObjectProperty` and
-    defaults to an instance of ActionView.
+    defaults to None or the last ActionView instance added to the ActionBar.
     '''
 
     background_color = ListProperty([1, 1, 1, 1])
