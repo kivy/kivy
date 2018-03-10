@@ -86,7 +86,7 @@ class ActionItem(object):
 
     pack_width = AliasProperty(get_pack_width, bind=('minimum_width', 'width'))
     '''
-    (read-only) The actual width to use when packing the item. Equal to the
+    (read-only) The actual width to use when packing the items. Equal to the
     greater of minimum_width and width.
 
     :attr:`pack_width` is an :class:`~kivy.properties.AliasProperty`.
@@ -176,9 +176,9 @@ class ActionPrevious(BoxLayout, ActionItem):
 
     with_previous = BooleanProperty(True)
     '''
-    Specifies whether clicking on ActionPrevious will load the previous
-    screen or not. If True, the previous_icon will be shown otherwise it
-    will not.
+    Specifies whether the previous_icon will be shown or not. Note that it is
+    up to the user to implement the desired behavior using the *on_press* or
+    similar events.
 
     :attr:`with_previous` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
