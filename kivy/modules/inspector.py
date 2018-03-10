@@ -378,8 +378,7 @@ class Inspector(FloatLayout):
         if self.avoid_bring_to_top:
             return
         self.avoid_bring_to_top = True
-        if self.parent:
-            self.parent.remove_widget(self)
+        win.remove_widget(self)
         win.add_widget(self)
         self.avoid_bring_to_top = False
 
