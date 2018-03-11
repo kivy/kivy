@@ -63,6 +63,7 @@ class InspectorTestCase(GraphicUnitTest):
     def tearDown(self):
         # add the logging back
         import kivy.lang.builder as builder
+        builder.Builder.unload_file("InspectorTestCase.KV")
         builder.trace = self._trace
         super(InspectorTestCase, self).tearDown()
 
@@ -78,7 +79,8 @@ class InspectorTestCase(GraphicUnitTest):
         self.clean_garbage()
 
         # build the widget tree & add Window as the main EL
-        self.root = self.builder.Builder.load_string(KV)
+        self.root = self.builder.Builder.load_string(
+            KV, filename="InspectorTestCase.KV")
         self.render(self.root)
         self.assertLess(len(self._win.children), 2)
 
@@ -116,7 +118,8 @@ class InspectorTestCase(GraphicUnitTest):
         self.clean_garbage()
 
         # build the widget tree & add Window as the main EL
-        self.root = self.builder.Builder.load_string(KV)
+        self.root = self.builder.Builder.load_string(
+            KV, filename="InspectorTestCase.KV")
         self.render(self.root)
         self.assertLess(len(self._win.children), 2)
 
@@ -156,7 +159,8 @@ class InspectorTestCase(GraphicUnitTest):
         self.clean_garbage()
 
         # build the widget tree & add Window as the main EL
-        self.root = self.builder.Builder.load_string(KV)
+        self.root = self.builder.Builder.load_string(
+            KV, filename="InspectorTestCase.KV")
         self.render(self.root)
         self.assertLess(len(self._win.children), 2)
 
@@ -215,7 +219,8 @@ class InspectorTestCase(GraphicUnitTest):
         self.clean_garbage()
 
         # build the widget tree & add Window as the main EL
-        self.root = self.builder.Builder.load_string(KV)
+        self.root = self.builder.Builder.load_string(
+            KV, filename="InspectorTestCase.KV")
         self.render(self.root)
         self.assertLess(len(self._win.children), 2)
 
@@ -297,7 +302,8 @@ class InspectorTestCase(GraphicUnitTest):
         self.clean_garbage()
 
         # build the widget tree & add Window as the main EL
-        self.root = self.builder.Builder.load_string(KV)
+        self.root = self.builder.Builder.load_string(
+            KV, filename="InspectorTestCase.KV")
         self.render(self.root)
         self.assertLess(len(self._win.children), 2)
 
