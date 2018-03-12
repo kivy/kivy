@@ -79,7 +79,7 @@ install:
          sudo installer -package python-3.5.2-macosx10.6.pkg -target /;
          pip3 install --upgrade --user cython pillow nose mock;
       else
-         sudo easy_install pip
+         sudo easy_install pip;
          pip install --upgrade --user cython pillow nose mock;
       fi;
     fi;
