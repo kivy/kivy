@@ -249,7 +249,7 @@ class LabelBase(object):
                 else:
                     fonts.append(font)
             else:
-                fonts.append(fonts[-1])  # add regular font to list again
+                fonts.append(fonts[0])  # add regular font to list again
 
         LabelBase._fonts[name] = tuple(fonts)
 
