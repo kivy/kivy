@@ -49,7 +49,6 @@ cdef class ContextContainer:
     cdef PangoLayout *layout
     cdef FcConfig *fc_config
 
-    # Called explicitly on malloc fail to release as fast as possible
     # Note: calling a method from __dealloc__ can lead to revived object
     def __dealloc__(self):
         if self.metrics:
@@ -73,8 +72,6 @@ cdef inline _add_pango_cache(unicode fontid, ContextContainer cc):
     cdef unicode popid
     while len(kivy_pango_cache_order) >= 64:
         popid = kivy_pango_cache_order.pop(0)
-        # FIXME: I think this is safe? but leaving out for now
-        #kivy_pango_cache[popid].__dealloc__()
         del kivy_pango_cache[popid]
 
     kivy_pango_cache[fontid] = cc
@@ -119,14 +116,12 @@ cdef _get_context_container(kivylabel):
     cdef bytes filename = options['font_name_r'].encode('UTF-8')
     if FcConfigAppFontAddFile(cc.fc_config, <FcChar8 *>filename) == FcFalse:
         Logger.warn("_text_pango: Error loadinging font '{}'".format(filename))
-        cc.__dealloc__()
         return
 
     # Create a blank font map and assign the config from above (one TTF file)
     cc.fontmap = pango_ft2_font_map_new()
     if not cc.fontmap:
         Logger.warn("_text_pango: Could not create new font map")
-        cc.__dealloc__()
         return
     pango_fc_font_map_set_config(PANGO_FC_FONT_MAP(cc.fontmap), cc.fc_config)
 
@@ -145,7 +140,6 @@ cdef _get_context_container(kivylabel):
     cc.context = pango_font_map_create_context(cc.fontmap)
     if not cc.context:
         Logger.warn("_text_pango: Could not create pango context")
-        cc.__dealloc__()
         return
 
     # Configure the context's base direction. If user specified something
@@ -162,14 +156,12 @@ cdef _get_context_container(kivylabel):
                                            pango_language_get_default())
     if not cc.metrics:
         Logger.warn("_text_pango: Could not get context metrics")
-        cc.__dealloc__()
         return
 
     # Create layout from context
     cc.layout = pango_layout_new(cc.context)
     if not cc.layout:
         Logger.warn("_text_pango: Could not create pango layout")
-        cc.__dealloc__()
         return
 
     # If autodir is false, the context's base direction is used (set above)
