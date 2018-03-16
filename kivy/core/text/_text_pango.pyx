@@ -27,8 +27,9 @@ from kivy.core.image import ImageData
 cdef dict kivy_pango_cache = {}
 cdef list kivy_pango_cache_order = []
 
-# Map text direction to pango constant, neutral means we don't specify
-# direction.
+# Map text direction to pango constant, auto resets context direction to
+# weak_ltr and enabled pango auto_dir. It doesn't make sense to specify
+# neutral as a desired text direction.
 cdef dict kivy_pango_text_direction = {
     'ltr': PANGO_DIRECTION_LTR,
     'rtl': PANGO_DIRECTION_RTL,
