@@ -63,6 +63,7 @@ cdef extern from "fontconfig/fontconfig.h" nogil:
 
     FcConfig *FcConfigCreate()
     FcConfig *FcInitLoadConfig()
+    FcConfig *FcInitLoadConfigAndFonts()
     void FcConfigDestroy(FcConfig *config)
     FcConfig *FcConfigGetCurrent()
     FcBool FcConfigSetCurrent(FcConfig *config)
@@ -120,6 +121,7 @@ cdef extern from "pango/pango-context.h" nogil:
         pass
 
     void pango_context_set_base_dir(PangoContext *context, PangoDirection direction)
+    PangoDirection pango_context_get_base_dir(PangoContext *context)
     PangoFontMetrics *pango_context_get_metrics(PangoContext *context, const PangoFontDescription *desc, PangoLanguage *language)
 
 

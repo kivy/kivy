@@ -29,15 +29,17 @@ class LabelPango(LabelBase):
         if options['strikethrough']:
             markup = '<s>{}</s>'.format(markup)
 
-        span_attrs = ''
+        spanattrs = ''
         if options['font_features']:
-            span_attrs += ' font_features="{}"'.format(options['font_features'])
+            spanattrs += ' font_features="{}"'.format(options['font_features'])
         if options['text_language']:
-            span_attrs += ' lang="{}"'.format(options['text_language'])
+            spanattrs += ' lang="{}"'.format(options['text_language'])
 
-        return '<span font_size="{}"{}>{}</span>'.format(
+        # NOTE: This uses 'font' to specify a partial font description,
+        # avoids having to specify in 1024th points.
+        return '<span font="{}"{}>{}</span>'.format(
                 int(self.options['font_size']),
-                span_attrs,
+                spanattrs,
                 markup)
 
     def get_extents(self, text):
