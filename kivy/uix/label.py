@@ -472,17 +472,18 @@ class Label(Widget):
     '''
 
     text_language = StringProperty(None, allownone=True)
-    '''Specify the language of the text, None will use the default value from
-    Config. This is an RFC-3066 format language tag as a string, for example
-    "en_US", "zh_CN", "fr" or "ja". This can impact font selection.
+    '''Specify the language of the text, if None Pango will use locale to
+    determine the language. This is an RFC-3066 format language tag (as a
+    string), for example "en_US", "zh_CN", "fr" or "ja". This can impact
+    font selection and metrics.
 
     .. note::
         This feature requires the Pango text provider.
 
     .. versionadded:: 1.10.1
 
-    :attr:`text_direction` is an :class:`~kivy.properties.StringProperty` and
-    defaults to `auto`.
+    :attr:`text_language` is an :class:`~kivy.properties.StringProperty` and
+    defaults to None.
     '''
 
     font_name = StringProperty(DEFAULT_FONT)
