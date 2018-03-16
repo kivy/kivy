@@ -47,7 +47,7 @@ from kivy.core import core_select_lib
 from kivy.core.text.text_layout import layout_text, LayoutWord
 from kivy.resources import resource_find, resource_add_path
 from kivy.compat import PY2
-from kivy.setupconfig import USE_SDL2
+from kivy.setupconfig import USE_SDL2, USE_PANGOFT2
 
 
 if 'KIVY_DOC' not in os.environ:
@@ -793,7 +793,7 @@ class LabelBase(object):
 
 # Load the appropriate provider
 label_libs = []
-if platform in ('linux', ):
+if USE_PANGOFT2:
     label_libs += [('pango', 'text_pango', 'LabelPango')]
 
 if USE_SDL2:
