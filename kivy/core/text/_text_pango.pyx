@@ -188,7 +188,6 @@ cdef _get_context_container(kivylabel):
 @cython.cdivision(True)
 @cython.boundscheck(False)
 @cython.wraparound(False)
-@cython.nonecheck(False)
 cdef _render_context(ContextContainer cc, unsigned char *dstbuf,
                      int x, int y, int final_w, int final_h,
                      unsigned char textcolor[]):
