@@ -270,7 +270,8 @@ class Label(Widget):
                         'line_height', 'max_lines', 'strip', 'shorten_from',
                         'split_str', 'ellipsis_options', 'unicode_errors',
                         'markup', 'font_hinting', 'font_kerning',
-                        'font_blended')
+                        'font_blended', 'font_features', 'text_direction',
+                        'text_language')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
