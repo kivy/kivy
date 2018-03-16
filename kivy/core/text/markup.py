@@ -4,6 +4,10 @@ Text Markup
 
 .. versionadded:: 1.1.0
 
+.. versionchanged:: 1.10.1
+
+    Added `font_features`, `text_direction` and `text_language` (Pango only)
+
 We provide a simple text-markup for inline text styling. The syntax look the
 same as the `BBCode <http://en.wikipedia.org/wiki/BBCode>`_.
 
@@ -39,6 +43,15 @@ The following tags are available:
     Display the text at a subscript position relative to the text before it.
 ``[sup][/sup]``
     Display the text at a superscript position relative to the text before it.
+``[font_features=<str>][/font_features]``
+    Use font features (CSS format). Pango only.
+``[text_direction=<str>][/text_direction]``
+    Specify text direction; one of `auto`, `ltr`, `rtl`, `weak_ltr`
+    or `weak_rtl`. Pango only.
+``[text_language=<str>][/text_language]``
+    Specify text language, RFC-3066 language tag as string (such as `en_US`,
+    `ja`, `de`). The text language can affect ascent/descent and font
+    selection. Pango only.
 
 If you need to escape the markup from the current text, use
 :func:`kivy.utils.escape_markup`.
@@ -206,6 +219,24 @@ class MarkupLabel(MarkupLabelBase):
             elif item == '[/font]':
                 spop('font_name')
                 self.resolve_font_name()
+            elif item[:15] == '[font_features=':
+                feats = item[15:-1]
+                spush('font_features')
+                options['font_features'] = feats
+            elif item == '[/font_features]':
+                spop('font_features')
+            elif item[:16] == '[text_direction=':
+                direction = item[16:-1]
+                spush('text_direction')
+                options['text_direction'] = direction
+            elif item == '[/text_direction]':
+                spop('text_direction')
+            elif item[:15] == '[text_language=':
+                lang = item[15:-1]
+                spush('text_language')
+                options['text_language'] = lang
+            elif item == '[/text_language]':
+                spop('text_language')
             elif item[:5] == '[sub]':
                 spush('font_size')
                 spush('script')
