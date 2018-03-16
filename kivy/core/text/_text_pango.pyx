@@ -27,14 +27,13 @@ from kivy.core.image import ImageData
 cdef dict kivy_pango_cache = {}
 cdef list kivy_pango_cache_order = []
 
-# Map text direction to pango constant - neutral is considered auto, anything
-# else will call pango_layout_set_auto_dir(the_layout, FALSE)
+# Map text direction to pango constant, neutral means we don't specify
+# direction.
 cdef dict kivy_pango_text_direction = {
     'ltr': PANGO_DIRECTION_LTR,
     'rtl': PANGO_DIRECTION_RTL,
     'weak_ltr': PANGO_DIRECTION_WEAK_LTR,
     'weak_rtl': PANGO_DIRECTION_WEAK_RTL,
-    'neutral': PANGO_DIRECTION_NEUTRAL,
     'auto': PANGO_DIRECTION_NEUTRAL}
 
 
@@ -144,16 +143,16 @@ cdef _get_context_container(kivylabel):
 
     # Configure the context's base direction. If user specified something
     # explicit, force it. Otherwise (auto/neutral), let pango decide.
-    # FIXME: add text_direction externally so it's available.
     cdef PangoDirection text_dir = kivy_pango_text_direction.get(
-            options.get('text_direction', 'neutral'), PANGO_DIRECTION_NEUTRAL)
-    pango_context_set_base_dir(cc.context, text_dir)
+            options.get('text_direction', 'auto'), PANGO_DIRECTION_NEUTRAL)
 
-    # FIXME: pango_language_from_string(kivylabel.text_language)
     # FIXME: cc.metrics_pango_scale needed?
-    cc.metrics_lang = pango_language_get_default()
+    if kivylabel.text_language:
+        cc.metrics_lang = pango_language_from_string(kivylabel.text_language)
+    else:
+        cc.metrics_lang = pango_language_get_default()
     cc.metrics = pango_context_get_metrics(cc.context, cc.fontdesc,
-                                           pango_language_get_default())
+                                           cc.metrics_lang)
     if not cc.metrics:
         Logger.warn("_text_pango: Could not get context metrics")
         return
@@ -164,11 +163,12 @@ cdef _get_context_container(kivylabel):
         Logger.warn("_text_pango: Could not create pango layout")
         return
 
-    # If autodir is false, the context's base direction is used (set above)
     if text_dir == PANGO_DIRECTION_NEUTRAL:
         pango_layout_set_auto_dir(cc.layout, TRUE)
     else:
+        # If autodir is false, the context's base direction is used
         pango_layout_set_auto_dir(cc.layout, FALSE)
+        pango_context_set_base_dir(cc.context, text_dir)
 
     # The actual font size is specified in pango markup, and the
     # actual font is whatever TTF is loaded in this context. This
@@ -345,8 +345,13 @@ def kpango_get_metrics(kivylabel):
                     .format(kivylabel.options['font_name_r']))
         return (0, 0)
 
-    # FIXME: pango_language_from_string(kivylabel.text_language)
-    cdef PangoLanguage *lang = pango_language_get_default()
+    # The language we are measuring is not necessarily the same as the
+    # one we have cached, or the locale could have changed.
+    cdef PangoLanguage *lang;
+    if kivylabel.text_language:
+        lang = pango_language_from_string(kivylabel.text_language)
+    else:
+        lang = pango_language_get_default()
     if lang != cc.metrics_lang:
         if cc.metrics:
             pango_font_metrics_unref(cc.metrics)
