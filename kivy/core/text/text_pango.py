@@ -31,13 +31,13 @@ class LabelPango(LabelBase):
 
         span_attrs = ''
         if options['font_features']:
-            span_attrs += 'font_features="{}" '.format(options['font_features'])
+            span_attrs += ' font_features="{}"'.format(options['font_features'])
         if options['text_language']:
-            span_attrs += 'lang="{}" '.format(options['text_language'])
+            span_attrs += ' lang="{}"'.format(options['text_language'])
 
         return '<span font_size="{}"{}>{}</span>'.format(
                 int(self.options['font_size']),
-                span_attr,
+                span_attrs,
                 markup)
 
     def get_extents(self, text):
