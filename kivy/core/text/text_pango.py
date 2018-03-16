@@ -28,17 +28,16 @@ class LabelPango(LabelBase):
             markup = '<u>{}</u>'.format(markup)
         if options['strikethrough']:
             markup = '<s>{}</s>'.format(markup)
-        if options['font_hinting'] == 'mono':
-            markup = '<tt>{}</tt>'.format(markup)
 
-        # FIXME: does this do the right thing? .. don't see much w/roboto
-        weight_attr = ''
-        if options['font_hinting'] in ('light', 'normal'):
-            weight_attr = ' weight="{}"'.format(options['font_hinting'])
+        span_attrs = ''
+        if options['font_features']:
+            span_attrs += 'font_features="{}" '.format(options['font_features'])
+        if options['text_language']:
+            span_attrs += 'lang="{}" '.format(options['text_language'])
 
-        return '<span font="{}"{}>{}</span>'.format(
+        return '<span font_size="{}"{}>{}</span>'.format(
                 int(self.options['font_size']),
-                weight_attr,
+                span_attr,
                 markup)
 
     def get_extents(self, text):
