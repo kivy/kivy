@@ -147,8 +147,8 @@ cdef _get_context_container(kivylabel):
             options.get('text_direction', 'auto'), PANGO_DIRECTION_NEUTRAL)
 
     # FIXME: cc.metrics_pango_scale needed?
-    if kivylabel.text_language:
-        cc.metrics_lang = pango_language_from_string(kivylabel.text_language)
+    if options['text_language']:
+        cc.metrics_lang = pango_language_from_string(options['text_language'])
     else:
         cc.metrics_lang = pango_language_get_default()
     cc.metrics = pango_context_get_metrics(cc.context, cc.fontdesc,
