@@ -452,6 +452,38 @@ class Label(Widget):
     defaults to (None, None), meaning no size restriction by default.
     '''
 
+    # FIXME: Verify the weak_ltr/rtl impact, not 100% sure this is accurate
+    text_direction = OptionProperty('auto',
+                     options=['auto', 'ltr', 'rtl', 'weak_rtl', 'weak_ltr'])
+    '''Specify text direction, this is normally auto-detected by Pango. Valid
+    options are "auto", "ltr" (left to right), "rtl" (right to left) plus
+    "weak_ltr" and "weak_rtl". All characters have either a strong or neutral
+    direction specified; specifying "weak_rtl" or "weak_ltr" will impact
+    characters that are neutral.
+
+    .. note::
+        This feature requires the Pango text provider.
+
+    .. versionadded:: 1.10.1
+
+    :attr:`text_direction` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to `auto`.
+    '''
+
+    text_language = StringProperty(None, allownone=True)
+    '''Specify the language of the text, None will use the default value from
+    Config. This is an RFC-3066 format language tag as a string, for example
+    "en_US", "zh_CN", "fr" or "ja". This can impact font selection.
+
+    .. note::
+        This feature requires the Pango text provider.
+
+    .. versionadded:: 1.10.1
+
+    :attr:`text_direction` is an :class:`~kivy.properties.StringProperty` and
+    defaults to `auto`.
+    '''
+
     font_name = StringProperty(DEFAULT_FONT)
     '''Filename of the font to use. The path can be absolute or relative.
     Relative paths are resolved by the :func:`~kivy.resources.resource_find`
@@ -480,6 +512,19 @@ class Label(Widget):
 
     :attr:`font_size` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 15sp.
+    '''
+
+    font_features = StringProperty()
+    '''OpenType font features, in CSS format. This is passed straight
+    through to Pango.
+
+    .. note::
+        This feature requires the Pango text provider.
+
+    .. versionadded:: 1.10.1
+
+    :attr:`font_features` is a :class:`~kivy.properties.StringProperty` and
+    defaults to an empty string.
     '''
 
     line_height = NumericProperty(1.0)
@@ -910,6 +955,9 @@ class Label(Widget):
     .. note::
         This feature requires the SDL2 text provider.
 
+    .. note::
+        For Pango text provider, use attr:`font_features`:
+
     .. versionadded:: 1.10.0
 
     :attr:`font_hinting` is an :class:`~kivy.properties.OptionProperty` and
@@ -921,6 +969,9 @@ class Label(Widget):
 
     .. note::
         This feature requires the SDL2 text provider.
+
+    .. note::
+        For Pango text provider, use attr:`font_features`:
 
     .. versionadded:: 1.10.0
 

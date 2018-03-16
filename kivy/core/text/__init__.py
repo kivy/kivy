@@ -127,6 +127,16 @@ class LabelBase(object):
             Width in pixels for the outline.
         `outline_color`: tuple, defaults to (0, 0, 0)
             Color of the outline.
+        `font_features`: str, defaults to None
+            OpenType font features in CSS format (Pango only)
+        `text_direction`: str, defaults to 'auto'
+            Text direction, one of `'auto'`, `'ltr'`, `'rtl'`, `'weak_ltr'`,
+            or `'weak_rtl'` (Pango only)
+        `text_language`: str, defaults to None (user locale)
+            RFC-3066 format language tag as a string (Pango only)
+
+    .. versionchanged:: 1.10.1
+        `font_features`, `text_direction` and `text_language` were added.
 
     .. versionchanged:: 1.10.0
         `outline_width` and `outline_color` were added.
@@ -175,6 +185,7 @@ class LabelBase(object):
         unicode_errors='replace',
         font_hinting='normal', font_kerning=True, font_blended=True,
         outline_width=None, outline_color=None,
+        font_features=None, text_direction='auto', text_language=None,
         **kwargs):
 
         # Include system fonts_dir in resource paths.
@@ -192,15 +203,19 @@ class LabelBase(object):
                    'font_hinting': font_hinting,
                    'font_kerning': font_kerning,
                    'font_blended': font_blended,
-                   'outline_width': outline_width}
+                   'outline_width': outline_width,
+                   'font_features': font_features,
+                   'text_direction': text_direction,
+                   'text_language': text_language}
 
+        kwargs_get = kwargs.get
         options['color'] = color or (1, 1, 1, 1)
         options['outline_color'] = outline_color or (0, 0, 0)
-        options['padding'] = kwargs.get('padding', (0, 0))
+        options['padding'] = kwargs_get('padding', (0, 0))
         if not isinstance(options['padding'], (list, tuple)):
             options['padding'] = (options['padding'], options['padding'])
-        options['padding_x'] = kwargs.get('padding_x', options['padding'][0])
-        options['padding_y'] = kwargs.get('padding_y', options['padding'][1])
+        options['padding_x'] = kwargs_get('padding_x', options['padding'][0])
+        options['padding_y'] = kwargs_get('padding_y', options['padding'][1])
 
         if 'size' in kwargs:
             options['text_size'] = kwargs['size']
