@@ -194,21 +194,23 @@ cdef _get_context_container(kivylabel):
 @cython.cdivision(True)
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef _render_context(ContextContainer cc, unsigned char *dstbuf,
+cdef void _render_context(ContextContainer cc, unsigned char *dstbuf,
                      int x, int y, int final_w, int final_h,
-                     unsigned char textcolor[]):
+                     unsigned char textcolor[]) nogil:
     if not dstbuf or final_w <= 0 or final_h <= 0 or x > final_w or y > final_h:
-        Logger.warn('_text_pango: Invalid blit: final={}x{} x={} y={}'
-                    .format(final_w, final_h, x, y))
-        return
+        with gil:
+            Logger.warn('_text_pango: Invalid blit: final={}x{} x={} y={}'
+                        .format(final_w, final_h, x, y))
+            return
 
     # Note, w/h refers to the current subimage size, final_w/h is end result
     cdef int w, h
     pango_layout_get_pixel_size(cc.layout, &w, &h)
     if w <= 0 or h <= 0 or x + w > final_w or y + h > final_h:
-        Logger.warn('_text_pango: Invalid blit: final={}x{} x={} y={} w={} h={}'
-                    .format(final_w, final_h, x, y, w, h))
-        return
+        with gil:
+            Logger.warn('_text_pango: Invalid blit: final={}x{} x={} y={} w={} h={}'
+                        .format(final_w, final_h, x, y, w, h))
+            return
 
     cdef FT_Bitmap bitmap
     cdef int xi, yi
@@ -222,46 +224,46 @@ cdef _render_context(ContextContainer cc, unsigned char *dstbuf,
 
     # Sanity check that we don't go out of bounds here, should not happen
     if offset_fixed + ((h-1)*offset_yi) + ((h-1)*w) + w - 1 > maxpos:
-        Logger.warn('_text_pango: Ignoring out of bounds blit: final={}x{} '
-                    'x={} y={} w={} h={} maxpos={}'.format(
-                    final_w, final_h, x, y, w, h, maxpos))
-        return
+        with gil:
+            Logger.warn('_text_pango: Ignoring out of bounds blit: final={}x{} '
+                        'x={} y={} w={} h={} maxpos={}'.format(
+                        final_w, final_h, x, y, w, h, maxpos))
+            return
 
-    with nogil:
-        # Prepare ft2 bitmap for pango's grayscale data
-        FT_Bitmap_Init(&bitmap)
-        bitmap.width = w
-        bitmap.rows = h
-        bitmap.pitch = w # 1-byte grayscale
-        bitmap.pixel_mode = FT_PIXEL_MODE_GRAY # no BGRA in pango (ft2 has it)
-        bitmap.num_grays = 256
-        bitmap.buffer = <unsigned char *>g_malloc0(w * h)
-        if not bitmap.buffer:
-            with gil:
-                Logger.warn('_text_pango: Could not malloc FT_Bitmap.buffer')
-                return
+    # Prepare ft2 bitmap for pango's grayscale data
+    FT_Bitmap_Init(&bitmap)
+    bitmap.width = w
+    bitmap.rows = h
+    bitmap.pitch = w # 1-byte grayscale
+    bitmap.pixel_mode = FT_PIXEL_MODE_GRAY # no BGRA in pango (ft2 has it)
+    bitmap.num_grays = 256
+    bitmap.buffer = <unsigned char *>g_malloc0(w * h)
+    if not bitmap.buffer:
+        with gil:
+            Logger.warn('_text_pango: Could not malloc FT_Bitmap.buffer')
+            return
 
-        # Render the layout as 1 byte per pixel grayscale bitmap
-        # FIXME: does render_layout_subpixel() do us any good?
-        pango_ft2_render_layout(&bitmap, cc.layout, 0, 0)
+    # Render the layout as 1 byte per pixel grayscale bitmap
+    # FIXME: does render_layout_subpixel() do us any good?
+    pango_ft2_render_layout(&bitmap, cc.layout, 0, 0)
 
-        # Blit the bitmap as RGBA at x, y in dstbuf (w/h is the ft2 bitmap)
-        for yi in range(0, h):
-            offset = offset_fixed + (yi * offset_yi)
-            yi_w = yi * w
+    # Blit the bitmap as RGBA at x, y in dstbuf (w/h is the ft2 bitmap)
+    for yi in range(0, h):
+        offset = offset_fixed + (yi * offset_yi)
+        yi_w = yi * w
 
-            # FIXME: Handle big endian - either use variable shifts here, or
-            # return as abgr + handle elsewhere
-            for xi in range(0, w):
-                grayidx = yi_w + xi
-                graysrc = (bitmap.buffer)[grayidx]
-                (<uint32_t *>dstbuf)[offset + grayidx] = (
-                        (((textcolor[0] * graysrc) / 255)) |
-                        (((textcolor[1] * graysrc) / 255) << 8) |
-                        (((textcolor[2] * graysrc) / 255) << 16) |
-                        (((textcolor[3] * graysrc) / 255) << 24) )
-        g_free(bitmap.buffer)
-        # /nogil blit
+        # FIXME: Handle big endian - either use variable shifts here, or
+        # return as abgr + handle elsewhere
+        for xi in range(0, w):
+            grayidx = yi_w + xi
+            graysrc = (bitmap.buffer)[grayidx]
+            (<uint32_t *>dstbuf)[offset + grayidx] = (
+                    (((textcolor[0] * graysrc) / 255)) |
+                    (((textcolor[1] * graysrc) / 255) << 8) |
+                    (((textcolor[2] * graysrc) / 255) << 16) |
+                    (((textcolor[3] * graysrc) / 255) << 24) )
+    g_free(bitmap.buffer)
+    # /nogil _render_context()
 
 
 cdef class KivyPangoRenderer:
