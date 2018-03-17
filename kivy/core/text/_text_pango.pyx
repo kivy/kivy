@@ -66,7 +66,7 @@ cdef class ContextContainer:
 
 
 # Add a contextcontainer to cache + keep max 64 open fonts
-cdef inline _add_pango_cache(unicode fontid, ContextContainer cc):
+cdef inline _add_context_to_cache(unicode fontid, ContextContainer cc):
     global kivy_pango_cache, kivy_pango_cache_order
 
     cdef unicode popid
@@ -143,7 +143,7 @@ cdef _get_context_container(kivylabel):
     cc.fc_config = FcInitLoadConfig()
     cdef bytes filename = options['font_name_r'].encode('UTF-8')
     if FcConfigAppFontAddFile(cc.fc_config, <FcChar8 *>filename) == FcFalse:
-        Logger.warn("_text_pango: Error loadinging font '{}'".format(filename))
+        Logger.warn("_text_pango: Error loading font '{}'".format(filename))
         return
 
     # Create a blank font map and assign the config from above (one TTF file)
@@ -186,7 +186,7 @@ cdef _get_context_container(kivylabel):
     #pango_layout_set_alignment(cc.layout, PANGO_ALIGN_LEFT)
     #pango_layout_set_spacing(cc.layout, n)
     _set_context_options(cc, options)
-    _add_pango_cache(fontid, cc)
+    _add_context_to_cache(fontid, cc)
     return cc
 
 
