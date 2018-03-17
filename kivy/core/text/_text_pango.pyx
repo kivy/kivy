@@ -78,6 +78,34 @@ cdef inline _add_pango_cache(unicode fontid, ContextContainer cc):
     kivy_pango_cache_order.append(fontid)
 
 
+# Configure the context with options from kivylabel
+cdef _set_context_options(ContextContainer cc, dict options):
+    global kivy_pango_text_direction
+    cdef PangoDirection text_dir = kivy_pango_text_direction.get(
+            options.get('text_direction', 'auto'), PANGO_DIRECTION_NEUTRAL)
+    if text_dir == PANGO_DIRECTION_NEUTRAL:
+        pango_layout_set_auto_dir(cc.layout, TRUE)
+        pango_context_set_base_dir(cc.context, PANGO_DIRECTION_WEAK_LTR)
+    else:
+        # If autodir is false, the context's base direction is used
+        pango_layout_set_auto_dir(cc.layout, FALSE)
+        pango_context_set_base_dir(cc.context, text_dir)
+
+    # The language tag is not necessarily the same as the
+    # one we have cached, or the locale could have changed.
+    cdef PangoLanguage *lang;
+    if options['text_language']:
+        lang = pango_language_from_string(options['text_language'])
+    else:
+        lang = pango_language_get_default()
+    if lang != cc.metrics_lang:
+        if cc.metrics:
+            pango_font_metrics_unref(cc.metrics)
+        cc.metrics = pango_context_get_metrics(cc.context, cc.fontdesc, lang)
+        if cc.metrics:
+            cc.metrics_lang = lang
+
+
 # NOTE: for future, this applies to font selection, irrelevant with one font
 # Or maybe it is relevant, it's not clear. The callback didn't execute with
 # null for data/destroy callback. I was planning on testing with flags
@@ -142,17 +170,6 @@ cdef _get_context_container(kivylabel):
         Logger.warn("_text_pango: Could not create pango context")
         return
 
-    # FIXME: cc.metrics_pango_scale needed?
-    if options['text_language']:
-        cc.metrics_lang = pango_language_from_string(options['text_language'])
-    else:
-        cc.metrics_lang = pango_language_get_default()
-    cc.metrics = pango_context_get_metrics(cc.context, cc.fontdesc,
-                                           cc.metrics_lang)
-    if not cc.metrics:
-        Logger.warn("_text_pango: Could not get context metrics")
-        return
-
     # Create layout from context
     cc.layout = pango_layout_new(cc.context)
     if not cc.layout:
@@ -168,7 +185,7 @@ cdef _get_context_container(kivylabel):
     # FIXME: does this need to change w/label settings?
     #pango_layout_set_alignment(cc.layout, PANGO_ALIGN_LEFT)
     #pango_layout_set_spacing(cc.layout, n)
-
+    _set_context_options(cc, options)
     _add_pango_cache(fontid, cc)
     return cc
 
@@ -280,11 +297,7 @@ cdef class KivyPangoRenderer:
         if not cc:
             Logger.warn('_text_pango: Could not get context container, aborting')
             return
-
-        # Set text direction
-        cdef PangoDirection text_dir = kivy_pango_text_direction.get(
-                kivylabel.options.get('text_direction', 'auto'), PANGO_DIRECTION_NEUTRAL)
-        _set_context_text_direction(cc, text_dir)
+        _set_context_options(cc, kivylabel.options)
 
         # Set markup, this could use kivylabel.options + attrs
         markup = <bytes>text.encode('UTF-8')
@@ -318,18 +331,6 @@ cdef class KivyPangoRenderer:
             PyMem_Free(self.pixels)
 
 
-# Configure the context's base direction. If user specified something
-# explicit, force it. Otherwise (auto/neutral), let pango decide.
-cdef _set_context_text_direction(ContextContainer cc, PangoDirection text_dir):
-    if text_dir == PANGO_DIRECTION_NEUTRAL:
-        pango_layout_set_auto_dir(cc.layout, TRUE)
-        pango_context_set_base_dir(cc.context, PANGO_DIRECTION_WEAK_LTR)
-    else:
-        # If autodir is false, the context's base direction is used
-        pango_layout_set_auto_dir(cc.layout, FALSE)
-        pango_context_set_base_dir(cc.context, text_dir)
-
-
 def kpango_get_extents(kivylabel, text):
     cdef dict options = kivylabel.options
     cdef ContextContainer cc = _get_context_container(kivylabel)
@@ -339,14 +340,10 @@ def kpango_get_extents(kivylabel, text):
                     .format(options['font_name_r']))
         return 0, 0
 
-    # Set text direction
-    cdef PangoDirection text_dir = kivy_pango_text_direction.get(
-            options.get('text_direction', 'auto'), PANGO_DIRECTION_NEUTRAL)
-    _set_context_text_direction(cc, text_dir)
-    # Set markup
+    _set_context_options(cc, options)
+
     markup = <bytes>text.encode('UTF-8')
     pango_layout_set_markup(cc.layout, markup, len(markup))
-    # Return result
     pango_layout_get_pixel_size(cc.layout, &w, &h)
     return w, h
 
@@ -359,24 +356,7 @@ def kpango_get_metrics(kivylabel):
                     .format(kivylabel.options['font_name_r']))
         return (0, 0)
 
-    # Set text direction
-    cdef PangoDirection text_dir = kivy_pango_text_direction.get(
-            options.get('text_direction', 'auto'), PANGO_DIRECTION_NEUTRAL)
-    _set_context_text_direction(cc, text_dir)
-
-    # The language we are measuring is not necessarily the same as the
-    # one we have cached, or the locale could have changed.
-    cdef PangoLanguage *lang;
-    if kivylabel.text_language:
-        lang = pango_language_from_string(options['text_language'])
-    else:
-        lang = pango_language_get_default()
-    if lang != cc.metrics_lang:
-        if cc.metrics:
-            pango_font_metrics_unref(cc.metrics)
-        cc.metrics = pango_context_get_metrics(cc.context, cc.fontdesc, lang)
-        if cc.metrics:
-            cc.metrics_lang = lang
+    _set_context_options(cc, options)
 
     if not cc.metrics:
         Logger.warn('_text_pango: Could not get context metrics: {}'
