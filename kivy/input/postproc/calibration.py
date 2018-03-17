@@ -51,7 +51,14 @@ class InputPostprocCalibration(object):
             Value to add to X
         `yoffset`: float
             Value to add to Y
-
+        'auto': str
+            if true, then the touch is transformed from screen-relative
+            to window-relative The value is used as an indication of
+            screen size, e.g for fullHD.
+            auto=1920x1080
+            if present, this setting overrides all the others.
+            This assumes the input device exactly covers the display
+            area, if they are different, the computations will be wrong.
     '''
 
     def __init__(self):
@@ -68,6 +75,10 @@ class InputPostprocCalibration(object):
                 if not param:
                     continue
                 key, value = param.split('=', 1)
+                if key == 'auto':
+                    width, height = [float(x) for x in value.split('x')]
+                    params['auto'] = width, height
+                    break
                 if key not in ('xoffset', 'yoffset', 'xratio', 'yratio'):
                     Logger.error(
                         'Calibration: invalid key provided: {}'.format(key))
@@ -94,7 +105,26 @@ class InputPostprocCalibration(object):
             elif event.ud['calibration:frame'] == frame:
                 continue
             params = self.devices[event.device]
-            event.sx = event.sx * params['xratio'] + params['xoffset']
-            event.sy = event.sy * params['yratio'] + params['yoffset']
+            if 'auto' in params:
+                event.sx, event.sy = self.auto_calibrate(
+                    event.sx, event.sy, params['auto'])
+            else:
+                event.sx = event.sx * params['xratio'] + params['xoffset']
+                event.sy = event.sy * params['yratio'] + params['yoffset']
             event.ud['calibration:frame'] = frame
         return events
+
+    def auto_calibrate(self, sx, sy, size):
+        from kivy.core.window import Window as W
+        WIDTH, HEIGHT = size
+
+        xratio = WIDTH / W.width
+        yratio = HEIGHT / W.height
+
+        xoffset = - W.left / W.width
+        yoffset = - (HEIGHT - W.top - W.height) / W.height
+
+        sx = sx * xratio + xoffset
+        sy = sy * yratio + yoffset
+
+        return sx, sy
