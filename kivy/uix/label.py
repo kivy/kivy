@@ -130,6 +130,18 @@ The following tags are available:
     Display the text at a subscript position relative to the text before it.
 ``[sup][/sup]``
     Display the text at a superscript position relative to the text before it.
+``[font_features=<str>][/font_features]``
+    OpenType font features, in CSS format, this is passed straight
+    through to Pango. The effects of requesting a feature depends on loaded
+    fonts, library versions, etc. Pango only
+``[text_direction=<str>][/text_direction]``
+    Specify text direction; one of `auto`, `ltr`, `rtl`, `weak_ltr`
+    or `weak_rtl`. Pango only.
+``[text_language=<str>][/text_language]``
+    Language of the text, this is an RFC-3066 format language tag (as a string),
+    for example "en_US", "zh_CN", "fr" or "ja". This can impact font selection
+    and metrics. Use the string "None" to revert to locale detection.
+    Pango only.
 
 If you want to render the markup text with a [ or ] or & character, you need to
 escape them. We created a simple syntax::
@@ -454,9 +466,15 @@ class Label(Widget):
     '''
 
     # FIXME: Verify the weak_ltr/rtl impact, not 100% sure this is accurate
+    # FIXME: Pango detects this for each chunk of text we render in auto,
+    #        but Kivy doesn't know anything about it. I think the correct
+    #        fix may be to remove auto, and default to weak_ltr like Pango.
+    #        This would make it easier to control alignment externally,
+    #        and avoid the need for calling into Cython to determine the
+    #        direction before rendering (which does the detection again)
     text_direction = OptionProperty('auto',
                      options=['auto', 'ltr', 'rtl', 'weak_rtl', 'weak_ltr'])
-    '''Specify text direction, this is normally auto-detected by Pango. Valid
+    '''Text direction, this is normally auto-detected by Pango. Valid
     options are "auto", "ltr" (left to right), "rtl" (right to left) plus
     "weak_ltr" and "weak_rtl". All characters have either a strong or neutral
     direction specified; specifying "weak_rtl" or "weak_ltr" will impact
@@ -472,10 +490,10 @@ class Label(Widget):
     '''
 
     text_language = StringProperty(None, allownone=True)
-    '''Specify the language of the text, if None Pango will use locale to
-    determine the language. This is an RFC-3066 format language tag (as a
-    string), for example "en_US", "zh_CN", "fr" or "ja". This can impact
-    font selection and metrics.
+    '''Language of the text, if None Pango will determine it from locale.
+    This is an RFC-3066 format language tag (as a string), for example
+    "en_US", "zh_CN", "fr" or "ja". This can impact font selection and
+    metrics.
 
     .. note::
         This feature requires the Pango text provider.
@@ -517,8 +535,11 @@ class Label(Widget):
     '''
 
     font_features = StringProperty()
-    '''OpenType font features, in CSS format. This is passed straight
-    through to Pango.
+    '''OpenType font features, in CSS format, this is passed straight
+    through to Pango. The effects of requesting a feature depends on loaded
+    fonts, library versions, etc. For a complete list of features, see:
+
+    https://en.wikipedia.org/wiki/List_of_typographic_features
 
     .. note::
         This feature requires the Pango text provider.

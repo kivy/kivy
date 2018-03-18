@@ -43,15 +43,18 @@ The following tags are available:
     Display the text at a subscript position relative to the text before it.
 ``[sup][/sup]``
     Display the text at a superscript position relative to the text before it.
-``[font_features=<str>][/font_features]``
-    Use font features (CSS format). Pango only.
+`[font_features=<str>][/font_features]``
+    OpenType font features, in CSS format, this is passed straight
+    through to Pango. The effects of requesting a feature depends on loaded
+    fonts, library versions, etc. Pango only
 ``[text_direction=<str>][/text_direction]``
     Specify text direction; one of `auto`, `ltr`, `rtl`, `weak_ltr`
     or `weak_rtl`. Pango only.
 ``[text_language=<str>][/text_language]``
-    Specify text language, RFC-3066 language tag as string (such as `en_US`,
-    `ja`, `de`). The text language can affect ascent/descent and font
-    selection. Pango only.
+    Language of the text, this is an RFC-3066 format language tag (as a string),
+    for example "en_US", "zh_CN", "fr" or "ja". This can impact font selection
+    and metrics. Use the string "None" to revert to locale detection.
+    Pango only.
 
 If you need to escape the markup from the current text, use
 :func:`kivy.utils.escape_markup`.
@@ -234,7 +237,7 @@ class MarkupLabel(MarkupLabelBase):
             elif item[:15] == '[text_language=':
                 lang = item[15:-1]
                 spush('text_language')
-                options['text_language'] = lang
+                options['text_language'] = lang.lower() != 'none' and lang or None
             elif item == '[/text_language]':
                 spop('text_language')
             elif item[:5] == '[sub]':
