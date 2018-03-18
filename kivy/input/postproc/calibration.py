@@ -92,6 +92,7 @@ class InputPostprocCalibration(object):
 
         self.frame += 1
         frame = self.frame
+        to_remove = []
         for etype, event in events:
             # frame-based logic below doesn't account for
             # end events having been already processed
@@ -108,10 +109,16 @@ class InputPostprocCalibration(object):
             if 'auto' in params:
                 event.sx, event.sy = self.auto_calibrate(
                     event.sx, event.sy, params['auto'])
+                if not (0 <= event.sx <= 1 and 0 <= event.sy <= 1):
+                    to_remove.append((etype, event))
             else:
                 event.sx = event.sx * params['xratio'] + params['xoffset']
                 event.sy = event.sy * params['yratio'] + params['yoffset']
             event.ud['calibration:frame'] = frame
+
+        for event in to_remove:
+            events.remove(event)
+
         return events
 
     def auto_calibrate(self, sx, sy, size):
