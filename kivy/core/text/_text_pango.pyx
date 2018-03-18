@@ -41,18 +41,21 @@ cdef dict kivy_pango_text_direction = {
 # Fontconfig and pango structures (one per loaded font). Can't use
 # ctypedef struct here, because that won't fit in the cache dict
 cdef class ContextContainer:
+    cdef FcConfig *fc_config
+    cdef PangoLayout *layout
     cdef PangoContext *context
     cdef PangoFontMap *fontmap
     cdef PangoFontDescription *fontdesc
-    cdef PangoFontMetrics *metrics
-    cdef PangoLanguage *metrics_lang # do not free, see docs
-    cdef PangoLayout *layout
-    cdef FcConfig *fc_config
+
+    # lang + metric_font_size determine validity of ascent/descent.
+    # (lang is also used to set a text attribute)
+    cdef PangoLanguage *lang # do not free, see docs
+    cdef int metrics_font_size
+    cdef double ascent
+    cdef double descent
 
     # Note: calling a method from __dealloc__ can lead to revived object
     def __dealloc__(self):
-        if self.metrics:
-            pango_font_metrics_unref(self.metrics)
         if self.fontdesc:
             pango_font_description_free(self.fontdesc)
         if self.layout:
@@ -77,10 +80,52 @@ cdef inline _add_context_to_cache(unicode fontid, ContextContainer cc):
     kivy_pango_cache[fontid] = cc
     kivy_pango_cache_order.append(fontid)
 
+# Get PangoLanguage from options
+cdef PangoLanguage *_get_kivylabel_options_text_language(dict options):
+    txtlang = options['text_language']
+    if txtlang:
+        if not isinstance(txtlang, bytes):
+            txtlang = txtlang.encode('UTF-8')
+        return pango_language_from_string(txtlang)
+    return pango_language_get_default()
+
 
 # Configure the context with options from kivylabel
 cdef _set_context_options(ContextContainer cc, dict options):
     global kivy_pango_text_direction
+    cdef int font_size = int(options['font_size'] * PANGO_SCALE)
+
+    # Underline, strikethrough, OpenType Font features (...) are not part of font
+    # description. I'm not 100% sure how this fits together, but apparently none
+    # of this impact metrics?
+    # FIXME: do we even need a font description??? I'm not sure if metrics will
+    #        be correct without it.
+    cdef PangoAttrList *attrs = pango_attr_list_new()
+    pango_attr_list_insert(attrs, pango_attr_size_new(font_size))
+    pango_font_description_set_size(cc.fontdesc, font_size)
+
+    if options['bold']:
+        pango_attr_list_insert(attrs, pango_attr_weight_new(PANGO_WEIGHT_BOLD))
+        pango_font_description_set_weight(cc.fontdesc, PANGO_WEIGHT_BOLD)
+    else:
+        pango_font_description_set_weight(cc.fontdesc, PANGO_WEIGHT_NORMAL)
+
+    if options['italic']:
+        pango_attr_list_insert(attrs, pango_attr_style_new(PANGO_STYLE_ITALIC))
+        pango_font_description_set_style(cc.fontdesc, PANGO_STYLE_ITALIC)
+    else:
+        pango_font_description_set_style(cc.fontdesc, PANGO_STYLE_NORMAL)
+
+    if options['underline']:
+        pango_attr_list_insert(attrs, pango_attr_underline_new(PANGO_UNDERLINE_SINGLE))
+    if options['strikethrough']:
+        pango_attr_list_insert(attrs, pango_attr_strikethrough_new(1))
+
+    if options['font_features']:
+        features = bytes(options['font_features'], encoding='UTF-8')
+        pango_attr_list_insert(attrs, pango_attr_font_features_new(features))
+
+    # Text direction
     cdef PangoDirection text_dir = kivy_pango_text_direction.get(
             options.get('text_direction', 'auto'), PANGO_DIRECTION_NEUTRAL)
     if text_dir == PANGO_DIRECTION_NEUTRAL:
@@ -93,17 +138,28 @@ cdef _set_context_options(ContextContainer cc, dict options):
 
     # The language tag is not necessarily the same as the
     # one we have cached, or the locale could have changed.
-    cdef PangoLanguage *lang;
-    if options['text_language']:
-        lang = pango_language_from_string(options['text_language'])
-    else:
-        lang = pango_language_get_default()
-    if lang != cc.metrics_lang:
-        if cc.metrics:
-            pango_font_metrics_unref(cc.metrics)
-        cc.metrics = pango_context_get_metrics(cc.context, cc.fontdesc, lang)
-        if cc.metrics:
-            cc.metrics_lang = lang
+    cdef PangoLanguage *new_lang = _get_kivylabel_options_text_language(options)
+    cdef PangoFontMetrics *metrics
+    if new_lang != cc.lang or font_size != cc.metrics_font_size:
+        cc.lang = new_lang
+        cc.metrics_font_size = font_size
+        # Get font metrics
+        metrics = pango_context_get_metrics(cc.context, cc.fontdesc, cc.lang)
+        if metrics:
+            cc.ascent = <double>(pango_font_metrics_get_ascent(metrics) / PANGO_SCALE)
+            cc.descent = <double>(pango_font_metrics_get_descent(metrics) / PANGO_SCALE)
+            pango_font_metrics_unref(metrics)
+        else:
+            Logger.warn('_text_pango: Could not get font metrics: {}'
+                        .format(options['font_name_r']))
+
+    # Finalize
+    pango_attr_list_insert(attrs, pango_attr_language_new(cc.lang))
+    pango_layout_set_font_description(cc.layout, cc.fontdesc)
+    pango_layout_set_attributes(cc.layout, attrs)
+    # Layout keeps a ref to attributes now
+    pango_attr_list_unref(attrs)
+    pango_layout_context_changed(cc.layout)
 
 
 # NOTE: for future, this applies to font selection, irrelevant with one font
@@ -164,27 +220,26 @@ cdef _get_context_container(kivylabel):
     #                cc.callback_data_ptr,
     #                &_configure_pattern_destroy_data)
 
-    # Finally create our pango context from the fontmap
+    # Create pango context from the fontmap
     cc.context = pango_font_map_create_context(cc.fontmap)
     if not cc.context:
         Logger.warn("_text_pango: Could not create pango context")
         return
 
-    # Create layout from context
+    # Create pango layout from context
     cc.layout = pango_layout_new(cc.context)
     if not cc.layout:
         Logger.warn("_text_pango: Could not create pango layout")
         return
 
-    # The actual font size is specified in pango markup, and the
-    # actual font is whatever TTF is loaded in this context. This
-    # may not be needed at all.
-    cc.fontdesc = pango_font_description_from_string("Arial")
-    pango_layout_set_font_description(cc.layout, cc.fontdesc)
+    # We use the context's font description, because it makes it easy
+    # to get the metrics with pango_context_get_metrics(). It's possible
+    # we could do this with PangoLayoutLine instead. The font description
+    # is updated each time the font is used.
+    # FIXME: OpenType font features are not part of font description. Do
+    #        they not matter for metrics? This needs research/confirmation.
+    cc.fontdesc = pango_font_description_new()
 
-    # FIXME: does this need to change w/label settings?
-    #pango_layout_set_alignment(cc.layout, PANGO_ALIGN_LEFT)
-    #pango_layout_set_spacing(cc.layout, n)
     _set_context_options(cc, options)
     _add_context_to_cache(fontid, cc)
     return cc
@@ -299,18 +354,31 @@ cdef class KivyPangoRenderer:
         if not cc:
             Logger.warn('_text_pango: Could not get context container, aborting')
             return
+
         _set_context_options(cc, kivylabel.options)
 
-        # Set markup, this could use kivylabel.options + attrs
-        markup = <bytes>text.encode('UTF-8')
-        pango_layout_set_markup(cc.layout, markup, len(markup))
+        if isinstance(text, bytes):
+            utf = text
+        else:
+            utf = <bytes>text.encode('UTF-8')
+        pango_layout_set_text(cc.layout, utf, len(utf))
 
-        # Kivy normalized text color -> 0-255 rgba
+        # Kivy normalized text color -> 0-255 rgba for nogil
         cdef unsigned char textcolor[4]
-        textcolor[:] = [ min(255, int(c * 255)) for c in kivylabel.options['color'] ]
+        color = kivylabel.options['color']
+        textcolor[0] = min(255, int(color[0] * 255))
+        textcolor[1] = min(255, int(color[1] * 255))
+        textcolor[2] = min(255, int(color[2] * 255))
+        if len(color) > 3:
+            textcolor[3] = min(255, int(color[3] * 255))
+        else:
+            textcolor[3] = 1
 
         # Finally render the layout and blit it to self.pixels
-        _render_context(cc, self.pixels, x, y, self.w, self.h, textcolor)
+        cdef int xx = x
+        cdef int yy = y
+        with nogil:
+            _render_context(cc, self.pixels, xx, yy, self.w, self.h, textcolor)
         self.rdrcount += 1
 
     # Return ImageData instance with the rendered pixels
@@ -334,9 +402,10 @@ cdef class KivyPangoRenderer:
 
 
 def kpango_get_extents(kivylabel, text):
+    if not text:
+        return 0, 0
     cdef dict options = kivylabel.options
     cdef ContextContainer cc = _get_context_container(kivylabel)
-    cdef int w, h
     if not cc:
         Logger.warn('_text_pango: Could not get container for extents: {}'
                     .format(options['font_name_r']))
@@ -344,26 +413,44 @@ def kpango_get_extents(kivylabel, text):
 
     _set_context_options(cc, options)
 
-    markup = <bytes>text.encode('UTF-8')
-    pango_layout_set_markup(cc.layout, markup, len(markup))
+    if isinstance(text, bytes):
+        utf = text
+    else:
+        utf = <bytes>text.encode('UTF-8')
+    pango_layout_set_text(cc.layout, utf, len(utf))
+
+    cdef int w, h
     pango_layout_get_pixel_size(cc.layout, &w, &h)
     return w, h
 
 
-def kpango_get_metrics(kivylabel):
+# FIXME: does weight/style need to invalidate ascent/descent?
+def kpango_get_ascent(kivylabel):
     cdef dict options = kivylabel.options
     cdef ContextContainer cc = _get_context_container(kivylabel)
     if not cc:
-        Logger.warn('_text_pango: Could not get container for metrics: {}'
-                    .format(kivylabel.options['font_name_r']))
-        return (0, 0)
-
-    _set_context_options(cc, options)
-
-    if not cc.metrics:
-        Logger.warn('_text_pango: Could not get context metrics: {}'
+        Logger.warn('_text_pango: Could not get container for ascent: {}'
                     .format(options['font_name_r']))
-        return (0, 0)
+        return 0
 
-    return (<double>(pango_font_metrics_get_ascent(cc.metrics) / PANGO_SCALE),
-            <double>(pango_font_metrics_get_descent(cc.metrics) / PANGO_SCALE))
+    cdef PangoLanguage *new_lang = _get_kivylabel_options_text_language(options)
+    cdef int new_font_size = int(options['font_size'] * PANGO_SCALE)
+    if new_lang != cc.lang or new_font_size != cc.metrics_font_size:
+        _set_context_options(cc, options)
+    return cc.ascent
+
+
+# FIXME: does weight/style need to invalidate ascent/descent?
+def kpango_get_descent(kivylabel):
+    cdef dict options = kivylabel.options
+    cdef ContextContainer cc = _get_context_container(kivylabel)
+    if not cc:
+        Logger.warn('_text_pango: Could not get container for descent: {}'
+                    .format(options['font_name_r']))
+        return 0
+
+    cdef PangoLanguage *new_lang = _get_kivylabel_options_text_language(options)
+    cdef int new_font_size = int(options['font_size'] * PANGO_SCALE)
+    if new_lang != cc.lang or new_font_size != cc.metrics_font_size:
+        _set_context_options(cc, options)
+    return cc.descent
