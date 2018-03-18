@@ -286,7 +286,18 @@ cdef void _render_context(ContextContainer cc, unsigned char *dstbuf,
             return
 
     # Prepare ft2 bitmap for pango's grayscale data
-    FT_Bitmap_Init(&bitmap)
+    # In ft2 2.5 and older, function is called FT_Bitmap_New
+    if FREETYPE_MAJOR == 2:
+        if FREETYPE_MINOR <= 5:
+            FT_Bitmap_New(&bitmap)
+        else:
+            FT_Bitmap_Init(&bitmap)
+    else:
+        with gil:
+            Logger.warn('_text_pango: Unsupported FreeType library version. '
+                        'Abort rendering.')
+            return
+
     bitmap.width = w
     bitmap.rows = h
     bitmap.pitch = w # 1-byte grayscale

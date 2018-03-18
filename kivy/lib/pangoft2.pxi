@@ -18,6 +18,10 @@ cdef extern from "glib.h" nogil:
 
 # https://www.freetype.org/freetype2/docs/reference/ft2-index.html
 cdef extern from "../../lib/pangoft2.h" nogil:
+    int FREETYPE_MAJOR
+    int FREETYPE_MINOR
+    int FREETYPE_PATCH
+
     ctypedef struct FT_Library:
         pass
 
@@ -42,7 +46,8 @@ cdef extern from "../../lib/pangoft2.h" nogil:
         unsigned char palette_mode
         void* palette
 
-    void FT_Bitmap_Init(FT_Bitmap *bitmap)
+    void FT_Bitmap_New(FT_Bitmap *bitmap) # <= v2.5
+    void FT_Bitmap_Init(FT_Bitmap *bitmap) # >= v2.6
     void FT_Bitmap_Done(FT_Library library, FT_Bitmap *bitmap)
 
 
