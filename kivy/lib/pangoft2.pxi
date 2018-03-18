@@ -1,5 +1,6 @@
 cdef extern from "glib.h" nogil:
     ctypedef void *gpointer
+    ctypedef char gchar
     ctypedef int gint
     ctypedef unsigned int guint
     ctypedef unsigned long gsize
@@ -93,6 +94,81 @@ cdef extern from "pango/pango-types.h" nogil:
     unsigned int PANGO_SCALE
 
 
+# https://developer.gnome.org/pango/stable/pango-Text-Attributes.html
+cdef extern from "pango/pango-attributes.h" nogil:
+    guint PANGO_ATTR_INDEX_FROM_TEXT_BEGINNING
+    guint PANGO_ATTR_INDEX_TO_TEXT_END
+
+    ctypedef struct PangoAttrList:
+        pass
+    ctypedef struct PangoAttrIterator:
+        pass
+    ctypedef struct PangoAttribute:
+        pass
+    ctypedef struct PangoAttrClass:
+        pass
+    ctypedef struct PangoAttrString:
+        pass
+    ctypedef struct PangoAttrLanguage:
+        pass
+    ctypedef struct PangoAttrInt:
+        pass
+    ctypedef struct PangoAttrSize:
+        pass
+    ctypedef struct PangoAttrFloat:
+        pass
+    ctypedef struct PangoAttrColor:
+        pass
+    ctypedef struct PangoAttrFontDesc:
+        pass
+    ctypedef struct PangoAttrShape:
+        pass
+    ctypedef struct PangoAttrFontFeatures:
+        pass
+    ctypedef enum PangoStyle:
+        PANGO_STYLE_NORMAL
+        PANGO_STYLE_OBLIQUE
+        PANGO_STYLE_ITALIC
+    ctypedef enum PangoWeight:
+        PANGO_WEIGHT_THIN
+        PANGO_WEIGHT_ULTRALIGHT
+        PANGO_WEIGHT_LIGHT
+        PANGO_WEIGHT_SEMILIGHT
+        PANGO_WEIGHT_BOOK
+        PANGO_WEIGHT_NORMAL
+        PANGO_WEIGHT_MEDIUM
+        PANGO_WEIGHT_SEMIBOLD
+        PANGO_WEIGHT_BOLD
+        PANGO_WEIGHT_ULTRABOLD
+        PANGO_WEIGHT_HEAVY
+        PANGO_WEIGHT_ULTRAHEAVY
+    ctypedef enum PangoUnderline:
+        PANGO_UNDERLINE_NONE
+        PANGO_UNDERLINE_SINGLE
+        PANGO_UNDERLINE_DOUBLE
+        PANGO_UNDERLINE_LOW
+        PANGO_UNDERLINE_ERROR
+
+    PangoAttrList *pango_attr_list_new()
+    PangoAttrList *pango_attr_list_ref(PangoAttrList *list)
+    void pango_attr_list_unref(PangoAttrList *list)
+    void pango_attr_list_insert(PangoAttrList  *list, PangoAttribute *attr)
+    void pango_attr_list_insert_before(PangoAttrList  *list, PangoAttribute *attr)
+
+    PangoAttribute *pango_attr_language_new(PangoLanguage *language)
+    PangoAttribute *pango_attr_family_new(const char *family)
+    PangoAttribute *pango_attr_size_new(int size)
+    PangoAttribute *pango_attr_size_new_absolute(int size) # v1.8+
+    PangoAttribute *pango_attr_style_new(PangoStyle style)
+    PangoAttribute *pango_attr_weight_new(PangoWeight weight)
+#    PangoAttribute *pango_attr_variant_new(PangoVariant variant)
+#    PangoAttribute *pango_attr_stretch_new(PangoStretch stretch)
+    PangoAttribute *pango_attr_font_desc_new(const PangoFontDescription *desc)
+    PangoAttribute *pango_attr_underline_new(PangoUnderline underline)
+    PangoAttribute *pango_attr_strikethrough_new(gboolean strikethrough)
+    PangoAttribute *pango_attr_font_features_new(const gchar *features)
+
+
 # https://developer.gnome.org/pango/stable/pango-Scripts-and-Languages.html
 cdef extern from "pango/pango-language.h" nogil:
     ctypedef struct PangoLanguage:
@@ -100,6 +176,7 @@ cdef extern from "pango/pango-language.h" nogil:
 
     PangoLanguage *pango_language_get_default()
     PangoLanguage *pango_language_from_string(const char *language)
+    const char *pango_language_to_string(PangoLanguage *language)
 
 
 # https://developer.gnome.org/pango/stable/pango-FreeType-Fonts-and-Rendering.html
@@ -146,14 +223,26 @@ cdef extern from "pango/pango-font.h" nogil:
     ctypedef struct PangoFontMetrics:
         pass
 
+    PangoFontMap *pango_ft2_font_map_new()
+    PangoContext *pango_font_map_create_context(PangoFontMap *fontmap)
+    PangoFontDescription* pango_font_description_new()
     PangoFontDescription* pango_font_description_from_string(const char *string)
     void pango_font_description_free(PangoFontDescription *desc)
-#    void pango_font_description_set_size(PangoFontDescription *desc, gint size)
-    PangoContext *pango_font_map_create_context(PangoFontMap *fontmap)
-    PangoFontMap *pango_ft2_font_map_new()
     int pango_font_metrics_get_ascent(PangoFontMetrics *metrics)
     int pango_font_metrics_get_descent(PangoFontMetrics *metrics)
     void pango_font_metrics_unref(PangoFontMetrics *metrics)
+    # Font descriptions:
+    void pango_font_description_set_family(PangoFontDescription *desc, const char *family)
+    const char *pango_font_description_get_family(PangoFontDescription *desc)
+
+    void pango_font_description_set_size(PangoFontDescription *desc, gint size)
+    gint pango_font_description_get_size(PangoFontDescription *desc)
+
+    void pango_font_description_set_weight(PangoFontDescription *desc, PangoWeight weight)
+    PangoWeight pango_font_description_get_weight(PangoFontDescription *desc)
+
+    void pango_font_description_set_style(PangoFontDescription *desc, PangoStyle style)
+    PangoStyle pango_font_description_get_style(PangoFontDescription *desc)
 
 
 # https://developer.gnome.org/pango/stable/PangoFcFontMap.html
@@ -176,6 +265,7 @@ cdef extern from "pango/pango-layout.h" nogil:
         PANGO_ALIGN_RIGHT
 
     PangoLayout *pango_layout_new(PangoContext *context)
+    void pango_layout_context_changed(PangoLayout *layout)
     void pango_layout_get_pixel_size(PangoLayout *layout, int *width, int *height)
     void pango_layout_get_size(PangoLayout *layout, int *width, int *height)
     void pango_layout_set_alignment(PangoLayout *layout, PangoAlignment alignment)
@@ -186,4 +276,4 @@ cdef extern from "pango/pango-layout.h" nogil:
     void pango_layout_set_width(PangoLayout *layout, int width)
     void pango_layout_set_height(PangoLayout *layout, int height)
     void pango_layout_set_spacing(PangoLayout *layout, int spacing)
-
+    void pango_layout_set_attributes(PangoLayout *layout, PangoAttrList *attrs)
