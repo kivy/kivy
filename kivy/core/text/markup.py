@@ -46,7 +46,7 @@ The following tags are available:
 `[font_features=<str>][/font_features]``
     OpenType font features, in CSS format, this is passed straight
     through to Pango. The effects of requesting a feature depends on loaded
-    fonts, library versions, etc. Pango only
+    fonts, library versions, etc. Pango only, requires v1.38 or later.
 ``[text_direction=<str>][/text_direction]``
     Specify text direction; one of `auto`, `ltr`, `rtl`, `weak_ltr`
     or `weak_rtl`. Pango only.
