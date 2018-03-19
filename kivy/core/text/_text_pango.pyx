@@ -101,8 +101,13 @@ cdef _set_context_options(ContextContainer cc, dict options):
     # FIXME: do we even need a font description??? I'm not sure if metrics will
     #        be correct without it.
     cdef PangoAttrList *attrs = pango_attr_list_new()
-    pango_attr_list_insert(attrs, pango_attr_size_new(font_size))
-    pango_font_description_set_size(cc.fontdesc, font_size)
+
+    if PANGO_VERSION_CHECK(1, 8, 0):
+        pango_attr_list_insert(attrs, pango_attr_size_new_absolute(font_size))
+        pango_font_description_set_absolute_size(cc.fontdesc, font_size)
+    else:
+        pango_attr_list_insert(attrs, pango_attr_size_new(font_size))
+        pango_font_description_set_size(cc.fontdesc, font_size)
 
     if options['bold']:
         pango_attr_list_insert(attrs, pango_attr_weight_new(PANGO_WEIGHT_BOLD))
@@ -121,7 +126,7 @@ cdef _set_context_options(ContextContainer cc, dict options):
     if options['strikethrough']:
         pango_attr_list_insert(attrs, pango_attr_strikethrough_new(1))
 
-    if options['font_features']:
+    if PANGO_VERSION_CHECK(1, 38, 0) and options['font_features']:
         features = bytes(options['font_features'], encoding='UTF-8')
         pango_attr_list_insert(attrs, pango_attr_font_features_new(features))
 

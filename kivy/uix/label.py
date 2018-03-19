@@ -133,7 +133,7 @@ The following tags are available:
 ``[font_features=<str>][/font_features]``
     OpenType font features, in CSS format, this is passed straight
     through to Pango. The effects of requesting a feature depends on loaded
-    fonts, library versions, etc. Pango only
+    fonts, library versions, etc. Pango only, requires v1.38 or later.
 ``[text_direction=<str>][/text_direction]``
     Specify text direction; one of `auto`, `ltr`, `rtl`, `weak_ltr`
     or `weak_rtl`. Pango only.
@@ -542,7 +542,8 @@ class Label(Widget):
     https://en.wikipedia.org/wiki/List_of_typographic_features
 
     .. note::
-        This feature requires the Pango text provider.
+        This feature requires the Pango text provider, and Pango library
+        v1.38 or later.
 
     .. versionadded:: 1.10.1
 
@@ -978,9 +979,6 @@ class Label(Widget):
     .. note::
         This feature requires the SDL2 text provider.
 
-    .. note::
-        For Pango text provider, use attr:`font_features`:
-
     .. versionadded:: 1.10.0
 
     :attr:`font_hinting` is an :class:`~kivy.properties.OptionProperty` and
@@ -992,9 +990,6 @@ class Label(Widget):
 
     .. note::
         This feature requires the SDL2 text provider.
-
-    .. note::
-        For Pango text provider, use attr:`font_features`:
 
     .. versionadded:: 1.10.0
 

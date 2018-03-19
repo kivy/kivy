@@ -89,6 +89,10 @@ cdef extern from "fontconfig/fontconfig.h" nogil:
 #    FcBool FcPatternAddRange (FcPattern *p, const char *object, const FcRange *r)
 
 
+cdef extern from "pango/pango-utils.h":
+    int PANGO_VERSION_CHECK(int major, int minor, int micro)
+
+
 # https://developer.gnome.org/pango/stable/pango-Glyph-Storage.html
 cdef extern from "pango/pango-types.h" nogil:
 #    ctypedef struct PangoRectangle:
@@ -171,7 +175,7 @@ cdef extern from "pango/pango-attributes.h" nogil:
     PangoAttribute *pango_attr_font_desc_new(const PangoFontDescription *desc)
     PangoAttribute *pango_attr_underline_new(PangoUnderline underline)
     PangoAttribute *pango_attr_strikethrough_new(gboolean strikethrough)
-    PangoAttribute *pango_attr_font_features_new(const gchar *features)
+    PangoAttribute *pango_attr_font_features_new(const gchar *features) # v1.38+
 
 
 # https://developer.gnome.org/pango/stable/pango-Scripts-and-Languages.html
@@ -241,6 +245,7 @@ cdef extern from "pango/pango-font.h" nogil:
     const char *pango_font_description_get_family(PangoFontDescription *desc)
 
     void pango_font_description_set_size(PangoFontDescription *desc, gint size)
+    void pango_font_description_set_absolute_size(PangoFontDescription *desc, gint size) # v1.8+
     gint pango_font_description_get_size(PangoFontDescription *desc)
 
     void pango_font_description_set_weight(PangoFontDescription *desc, PangoWeight weight)
