@@ -480,6 +480,10 @@ class Sequence(Animation):
     def on_anim2_progress(self, instance, widget, progress):
         self.dispatch('on_progress', widget, .5 + progress / 2.)
 
+    def have_properties_to_animate(self, widget):
+        return (self.anim1.have_properties_to_animate(widget) or
+                self.anim2.have_properties_to_animate(widget))
+
 
 class Parallel(Animation):
 
@@ -527,6 +531,10 @@ class Parallel(Animation):
         self._widgets[widget.uid]['complete'] += 1
         if self._widgets[widget.uid]['complete'] == 2:
             self.stop(widget)
+
+    def have_properties_to_animate(self, widget):
+        return (self.anim1.have_properties_to_animate(widget) or
+                self.anim2.have_properties_to_animate(widget))
 
 
 class AnimationTransition(object):
