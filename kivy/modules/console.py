@@ -900,7 +900,7 @@ class Console(RelativeLayout):
         return ret
 
     def on_window_children(self, win, children):
-        if self.avoid_bring_to_top or self not in children:
+        if self.avoid_bring_to_top or not self.activated:
             return
         self.avoid_bring_to_top = True
         win.remove_widget(self)
