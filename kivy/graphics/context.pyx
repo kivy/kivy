@@ -111,13 +111,14 @@ cdef class Context:
     cdef void dealloc_fbo(self, Fbo fbo):
         cdef array arr_fb
         cdef array arr_rb
+        cdef int gl_id
         if fbo.buffer_id != 0:
             arr_fb = self.lr_fbo_fb
             arr_fb.append(fbo.buffer_id)
             self.trigger_gl_dealloc()
-        if fbo.depthbuffer_id != 0:
+        if fbo.depthbuffer_id != 0 or fbo.stencilbuffer_id != 0:
             arr_rb = self.lr_fbo_rb
-            arr_rb.append(fbo.depthbuffer_id)
+            arr_rb.append(fbo.depthbuffer_id or fbo.stencilbuffer_id)
             # no need to trigger, depthbuffer required absolutely a buffer.
 
     def add_reload_observer(self, callback, before=False):
