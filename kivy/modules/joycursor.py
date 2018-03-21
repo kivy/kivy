@@ -120,7 +120,7 @@ class JoyCursor(Widget):
     def on_window_children(self, win, *args):
         # pull JoyCursor to the front when added
         # as a child directly to the window.
-        if self.avoid_bring_to_top or not self.activated:
+        if self.avoid_bring_to_top or self not in children:
             return
         self.avoid_bring_to_top = True
         win.remove_widget(self)
