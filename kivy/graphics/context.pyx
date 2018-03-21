@@ -111,7 +111,6 @@ cdef class Context:
     cdef void dealloc_fbo(self, Fbo fbo):
         cdef array arr_fb
         cdef array arr_rb
-        cdef int gl_id
         if fbo.buffer_id != 0:
             arr_fb = self.lr_fbo_fb
             arr_fb.append(fbo.buffer_id)
