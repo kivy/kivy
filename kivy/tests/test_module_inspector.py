@@ -263,7 +263,7 @@ class InspectorTestCase(GraphicUnitTest):
         self.assertIsInstance(ins.widget, Factory.Button)
         self.assertIsInstance(ins.widget.parent, Factory.FirstModal)
         # check with new Popup instance if the properties match
-        # temp_popup = Factory.FirstModal()
+        temp_popup = Factory.FirstModal()
         # temp_popup_exp = temp_popup.ids.firstmodal.text
         # self.assertEqual(ins.widget.text, temp_popup_exp)
         # # data in properties
