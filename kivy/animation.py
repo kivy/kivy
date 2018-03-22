@@ -403,10 +403,16 @@ class Sequence(Animation):
         self.anim1 = anim1
         self.anim2 = anim2
 
-        self.anim1.bind(on_start=self.on_anim1_start,
-                        on_progress=self.on_anim1_progress)
-        self.anim2.bind(on_complete=self.on_anim2_complete,
-                        on_progress=self.on_anim2_progress)
+        self.anim1_bind_kwargs = {
+            'on_start': self.on_anim1_start,
+            'on_progress': self.on_anim1_progress,
+            'on_complete': self.on_anim1_complete,
+        }
+        self.anim2_bind_kwargs = {
+            # 'on_start': self.on_anim2_start,
+            'on_progress': self.on_anim2_progress,
+            'on_complete': self.on_anim2_complete,
+        }
 
     @property
     def duration(self):
@@ -416,10 +422,12 @@ class Sequence(Animation):
         self.stop(widget)
         self._widgets[widget.uid] = True
         self._register()
+        self.anim1.bind(**self.anim1_bind_kwargs)
         self.anim1.start(widget)
-        self.anim1.bind(on_complete=self.on_anim1_complete)
 
     def stop(self, widget):
+        self.anim1.unbind(**self.anim1_bind_kwargs)
+        self.anim2.unbind(**self.anim2_bind_kwargs)
         self.anim1.stop(widget)
         self.anim2.stop(widget)
         props = self._widgets.pop(widget.uid, None)
@@ -435,6 +443,8 @@ class Sequence(Animation):
             self.stop(widget)
 
     def cancel(self, widget):
+        self.anim1.unbind(**self.anim1_bind_kwargs)
+        self.anim2.unbind(**self.anim2_bind_kwargs)
         self.anim1.cancel(widget)
         self.anim2.cancel(widget)
         super(Sequence, self).cancel(widget)
@@ -459,7 +469,8 @@ class Sequence(Animation):
         self.dispatch('on_start', widget)
 
     def on_anim1_complete(self, instance, widget):
-        self.anim1.unbind(on_complete=self.on_anim1_complete)
+        self.anim1.unbind(**self.anim1_bind_kwargs)
+        self.anim2.bind(**self.anim2_bind_kwargs)
         self.anim2.start(widget)
 
     def on_anim1_progress(self, instance, widget, progress):
@@ -470,9 +481,10 @@ class Sequence(Animation):
 
         .. versionadded:: 1.7.1
         '''
+        self.anim2.unbind(**self.anim2_bind_kwargs)
         if self.repeat:
+            self.anim1.bind(**self.anim1_bind_kwargs)
             self.anim1.start(widget)
-            self.anim1.bind(on_complete=self.on_anim1_complete)
         else:
             self.dispatch('on_complete', widget)
             self.cancel(widget)
@@ -492,15 +504,14 @@ class Parallel(Animation):
         self.anim1 = anim1
         self.anim2 = anim2
 
-        self.anim1.bind(on_complete=self.on_anim_complete)
-        self.anim2.bind(on_complete=self.on_anim_complete)
-
     @property
     def duration(self):
         return max(self.anim1.duration, self.anim2.duration)
 
     def start(self, widget):
         self.stop(widget)
+        self.anim1.bind(on_complete=self.on_anim_complete)
+        self.anim2.bind(on_complete=self.on_anim_complete)
         self.anim1.start(widget)
         self.anim2.start(widget)
         self._widgets[widget.uid] = {'complete': 0}
@@ -523,11 +534,14 @@ class Parallel(Animation):
             self.stop(widget)
 
     def cancel(self, widget):
+        self.anim1.unbind(on_complete=self.on_anim_complete)
+        self.anim2.unbind(on_complete=self.on_anim_complete)
         self.anim1.cancel(widget)
         self.anim2.cancel(widget)
         super(Parallel, self).cancel(widget)
 
     def on_anim_complete(self, instance, widget):
+        instance.unbind(on_complete=self.on_anim_complete)
         self._widgets[widget.uid]['complete'] += 1
         if self._widgets[widget.uid]['complete'] == 2:
             self.stop(widget)
