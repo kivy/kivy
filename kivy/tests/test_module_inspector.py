@@ -212,88 +212,88 @@ class InspectorTestCase(GraphicUnitTest):
         self.assertLess(len(self._win.children), 2)
         self.render(self.root)
 
-    def test_widget_popup(self, *args):
-        EventLoop.ensure_window()
-        self._win = EventLoop.window
+    # def test_widget_popup(self, *args):
+    #     EventLoop.ensure_window()
+    #     self._win = EventLoop.window
 
-        self.clean_garbage()
+    #     self.clean_garbage()
 
-        # build the widget tree & add Window as the main EL
-        self.root = self.builder.Builder.load_string(
-            KV, filename="InspectorTestCase.KV")
-        self.render(self.root)
-        self.assertLess(len(self._win.children), 2)
+    #     # build the widget tree & add Window as the main EL
+    #     self.root = self.builder.Builder.load_string(
+    #         KV, filename="InspectorTestCase.KV")
+    #     self.render(self.root)
+    #     self.assertLess(len(self._win.children), 2)
 
-        # checked widget
-        popup = self.root.ids.popup
-        popup_exp = self.root.ids.popup.text
+    #     # checked widget
+    #     popup = self.root.ids.popup
+    #     popup_exp = self.root.ids.popup.text
 
-        # activate inspector with root as ctx
-        inspector.start(self._win, self.root)
-        self.advance_frames(1)
+    #     # activate inspector with root as ctx
+    #     inspector.start(self._win, self.root)
+    #     self.advance_frames(1)
 
-        # pull the Inspector drawer from bottom,
-        # but don't inspect yet!
-        ins = self.root.inspector
-        ins.inspect_enabled = False
-        ins.activated = True
-        self.assertTrue(ins.at_bottom)
+    #     # pull the Inspector drawer from bottom,
+    #     # but don't inspect yet!
+    #     ins = self.root.inspector
+    #     ins.inspect_enabled = False
+    #     ins.activated = True
+    #     self.assertTrue(ins.at_bottom)
 
-        # touch button center to open the popup
-        touch = UnitTestTouch(*popup.center)
-        touch.touch_down()
-        touch.touch_up()
-        self.advance_frames(1)
+    #     # touch button center to open the popup
+    #     touch = UnitTestTouch(*popup.center)
+    #     touch.touch_down()
+    #     touch.touch_up()
+    #     self.advance_frames(1)
 
-        # start inspecting
-        ins.inspect_enabled = True
-        self.advance_frames(1)
+    #     # start inspecting
+    #     ins.inspect_enabled = True
+    #     self.advance_frames(1)
 
-        # inspect FirstModal's button
-        touch.touch_down()
-        touch.touch_up()
-        self.advance_frames(1)
+    #     # inspect FirstModal's button
+    #     touch.touch_down()
+    #     touch.touch_up()
+    #     self.advance_frames(1)
 
-        # open Inspector properties
-        ins.show_widget_info()
-        self.advance_frames(2)
+    #     # open Inspector properties
+    #     ins.show_widget_info()
+    #     self.advance_frames(2)
 
-        # check if the popup is selected
-        # stored instance
-        self.assertIsInstance(ins.widget, Factory.Button)
-        self.assertIsInstance(ins.widget.parent, Factory.FirstModal)
-        # check with new Popup instance if the properties match
-        temp_popup = Factory.FirstModal()
-        temp_popup_exp = temp_popup.ids.firstmodal.text
-        self.assertEqual(ins.widget.text, temp_popup_exp)
-        # data in properties
-        for node in ins.treeview.iterate_all_nodes():
-            lkey = getattr(node.ids, 'lkey', None)
-            if not lkey:
-                continue
-            if lkey.text == 'text':
-                ltext = node.ids.ltext
-                # slice because the string is displayed with quotes
-                self.assertEqual(ltext.text[1:-1], temp_popup_exp)
-                break
-        del temp_popup
+    #     # check if the popup is selected
+    #     # stored instance
+    #     self.assertIsInstance(ins.widget, Factory.Button)
+    #     self.assertIsInstance(ins.widget.parent, Factory.FirstModal)
+    #     # check with new Popup instance if the properties match
+    #     temp_popup = Factory.FirstModal()
+    #     temp_popup_exp = temp_popup.ids.firstmodal.text
+    #     self.assertEqual(ins.widget.text, temp_popup_exp)
+    #     # data in properties
+    #     for node in ins.treeview.iterate_all_nodes():
+    #         lkey = getattr(node.ids, 'lkey', None)
+    #         if not lkey:
+    #             continue
+    #         if lkey.text == 'text':
+    #             ltext = node.ids.ltext
+    #             # slice because the string is displayed with quotes
+    #             self.assertEqual(ltext.text[1:-1], temp_popup_exp)
+    #             break
+    #     del temp_popup
 
-        # close popup
-        ins.inspect_enabled = False
-        touch = UnitTestTouch(0, 0)
-        touch.touch_down()
-        touch.touch_up()
-        self.advance_frames(10)
+    #     # close popup
+    #     ins.inspect_enabled = False
+    #     touch = UnitTestTouch(0, 0)
+    #     touch.touch_down()
+    #     touch.touch_up()
+    #     self.advance_frames(10)
 
-        # close Inspector
-        ins.activated = False
-        self.render(self.root)
-        self.advance_frames(10)
+    #     # close Inspector
+    #     ins.activated = False
+    #     self.render(self.root)
+    #     self.advance_frames(10)
 
-        # stop Inspector completely
-        inspector.stop(self._win, self.root)
-        self.assertLess(len(self._win.children), 2)
-        self.render(self.root)
+    #     # stop Inspector completely
+    #     inspector.stop(self._win, self.root)
+    #     self.assertLess(len(self._win.children), 2)
+    #     self.render(self.root)
 
     def test_widget_multipopup(self, *args):
         EventLoop.ensure_window()
