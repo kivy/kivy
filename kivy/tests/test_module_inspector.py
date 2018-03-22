@@ -235,7 +235,7 @@ class InspectorTestCase(GraphicUnitTest):
         # pull the Inspector drawer from bottom,
         # but don't inspect yet!
         ins = self.root.inspector
-        ins.inspect_enabled = False
+        # ins.inspect_enabled = False
         ins.activated = True
         self.assertTrue(ins.at_bottom)
 
@@ -264,19 +264,19 @@ class InspectorTestCase(GraphicUnitTest):
         self.assertIsInstance(ins.widget.parent, Factory.FirstModal)
         # check with new Popup instance if the properties match
         temp_popup = Factory.FirstModal()
-        # temp_popup_exp = temp_popup.ids.firstmodal.text
-        # self.assertEqual(ins.widget.text, temp_popup_exp)
-        # # data in properties
-        # for node in ins.treeview.iterate_all_nodes():
-        #     lkey = getattr(node.ids, 'lkey', None)
-        #     if not lkey:
-        #         continue
-        #     if lkey.text == 'text':
-        #         ltext = node.ids.ltext
-        #         # slice because the string is displayed with quotes
-        #         self.assertEqual(ltext.text[1:-1], temp_popup_exp)
-        #         break
-        # del temp_popup
+        temp_popup_exp = temp_popup.ids.firstmodal.text
+        self.assertEqual(ins.widget.text, temp_popup_exp)
+        # data in properties
+        for node in ins.treeview.iterate_all_nodes():
+            lkey = getattr(node.ids, 'lkey', None)
+            if not lkey:
+                continue
+            if lkey.text == 'text':
+                ltext = node.ids.ltext
+                # slice because the string is displayed with quotes
+                self.assertEqual(ltext.text[1:-1], temp_popup_exp)
+                break
+        del temp_popup
 
         # close popup
         ins.inspect_enabled = False
