@@ -198,7 +198,8 @@ cdef _set_context_options(ContextContainer cc, dict options):
     if FcConfigGetCurrent() != cc.fc_config:
         if FcConfigSetCurrent(cc.fc_config) == FcFalse:
             Logger.warn("_text_pango: set_context_options(): Failed to set "
-                        "current fc_config for {}".format(font_name_r))
+                        "current fc_config for font_name_r='{}', font_context='{}'"
+                        .format(font_name_r, font_context))
 
     # Specify font family for fallback contexts; we don't care for isolated,
     # there is only one font to choose from.
@@ -216,7 +217,6 @@ cdef _set_context_options(ContextContainer cc, dict options):
             family_attr = b'Sans'
         pango_font_description_set_family(cc.fontdesc, family_attr)
         pango_attr_list_insert(attrs, pango_attr_family_new(family_attr))
-        pango_context_set_font_description(cc.context, cc.fontdesc)
 
     cdef int font_size = int(options['font_size'] * PANGO_SCALE)
     if PANGO_VERSION_CHECK(1, 8, 0):
@@ -257,6 +257,9 @@ cdef _set_context_options(ContextContainer cc, dict options):
         # If autodir is false, the context's base direction is used
         pango_layout_set_auto_dir(cc.layout, FALSE)
         pango_context_set_base_dir(cc.context, text_dir)
+
+    # Apply font description to context before getting metrics
+    pango_context_set_font_description(cc.context, cc.fontdesc)
 
     # The language tag is not necessarily the same as the
     # one we have cached, or the locale could have changed.
