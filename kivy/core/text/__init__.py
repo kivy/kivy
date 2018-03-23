@@ -74,6 +74,8 @@ class LabelBase(object):
     :Parameters:
         `font_size`: int, defaults to 12
             Font size of the text
+        `font_context`: str, defaults to None
+            Context for the specified font file (see Label for details)
         `font_name`: str, defaults to DEFAULT_FONT
             Font name of the text
         `bold`: bool, defaults to False
@@ -136,7 +138,8 @@ class LabelBase(object):
             RFC-3066 format language tag as a string (Pango only)
 
     .. versionchanged:: 1.10.1
-        `font_features`, `text_direction` and `text_language` were added.
+        `font_context`, `font_features`, `text_direction` and `text_language`
+        were added.
 
     .. versionchanged:: 1.10.0
         `outline_width` and `outline_color` were added.
@@ -184,7 +187,7 @@ class LabelBase(object):
         strip_reflow=True, shorten_from='center', split_str=' ',
         unicode_errors='replace',
         font_hinting='normal', font_kerning=True, font_blended=True,
-        outline_width=None, outline_color=None,
+        outline_width=None, outline_color=None, font_context=None,
         font_features=None, text_direction='auto', text_language=None,
         **kwargs):
 
@@ -204,6 +207,7 @@ class LabelBase(object):
                    'font_kerning': font_kerning,
                    'font_blended': font_blended,
                    'outline_width': outline_width,
+                   'font_context': font_context,
                    'font_features': font_features,
                    'text_direction': text_direction,
                    'text_language': text_language}
@@ -290,14 +294,20 @@ class LabelBase(object):
         else:
             filename = resource_find(fontname)
             if not filename and not fontname.endswith('.ttf'):
-                fontname = '{}.ttf'.format(fontname)
-                filename = resource_find(fontname)
+                filename = resource_find('{}.ttf'.format(fontname))
 
             if filename is None:
                 # XXX for compatibility, check directly in the data dir
                 filename = os.path.join(kivy_data_dir, fontname)
-                if not os.path.exists(filename):
-                    raise IOError('Label: File %r not found' % fontname)
+                if not os.path.exists(filename) or not os.path.isfile(filename):
+                    # Not a font file, but we have a font context. Treat it
+                    # as font family / description string.
+                    if options['font_context']:
+                        fontscache[fontname] = None
+                        options['font_name_r'] = None
+                        return
+                    else:
+                        raise IOError('Label: File %r not found' % fontname)
             fontscache[fontname] = filename
             options['font_name_r'] = filename
 

@@ -130,6 +130,8 @@ The following tags are available:
     Display the text at a subscript position relative to the text before it.
 ``[sup][/sup]``
     Display the text at a superscript position relative to the text before it.
+``[font_context=<str>][/font_context]``
+    Change context for the font, use string value "none" for isolated context.
 ``[font_features=<str>][/font_features]``
     OpenType font features, in CSS format, this is passed straight
     through to Pango. The effects of requesting a feature depends on loaded
@@ -282,8 +284,8 @@ class Label(Widget):
                         'line_height', 'max_lines', 'strip', 'shorten_from',
                         'split_str', 'ellipsis_options', 'unicode_errors',
                         'markup', 'font_hinting', 'font_kerning',
-                        'font_blended', 'font_features', 'text_direction',
-                        'text_language')
+                        'font_blended', 'font_context', 'font_features',
+                        'text_direction', 'text_language')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -500,7 +502,32 @@ class Label(Widget):
 
     .. versionadded:: 1.10.1
 
-    :attr:`text_language` is an :class:`~kivy.properties.StringProperty` and
+    :attr:`text_language` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+    '''
+
+    font_context = StringProperty(None, allownone=True)
+    '''Font context. `None` means the font is used in isolation, so you are
+    guaranteed to be drawing with the TTF file resolved by :attr:`font_name`.
+    Specifying a value here will load the font file into a named context,
+    enabling fallback between all fonts in the same context. If a font
+    context is set, you are not guaranteed that rendering will actually use
+    the specified TTF file for all glyphs (Pango will pick the one it
+    thinks is best).
+
+    If Kivy is linked against a system-wide installation of FontConfig,
+    you can load the system fonts by specifying a font context starting
+    with the special string `system://`. This will load the system
+    fontconfig configuration, and add your application-specific fonts on
+    top of it (this imposes a signifficant risk of family name collision,
+    Pango may not use your custom font file, but pick one from the system)
+
+    .. note::
+        This feature requires the Pango text provider.
+
+    .. versionadded:: 1.10.1
+
+    :attr:`font_context` is a :class:`~kivy.properties.StringProperty` and
     defaults to None.
     '''
 
