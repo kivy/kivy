@@ -21,9 +21,12 @@ cdef extern from "../../lib/pangoft2.h" nogil:
     int FREETYPE_MAJOR
     int FREETYPE_MINOR
     int FREETYPE_PATCH
-
-    ctypedef struct FT_Library:
-        pass
+    ctypedef void *FT_Library
+    ctypedef void *FT_Face
+    ctypedef int FT_Error
+    ctypedef unsigned char *FT_Byte
+    ctypedef unsigned int FT_UInt
+    ctypedef unsigned short FT_UShort
 
     ctypedef enum FT_Pixel_Mode:
         FT_PIXEL_MODE_NONE = 0
@@ -50,6 +53,14 @@ cdef extern from "../../lib/pangoft2.h" nogil:
     void FT_Bitmap_Init(FT_Bitmap *bitmap) # >= v2.6
     void FT_Bitmap_Done(FT_Library library, FT_Bitmap *bitmap)
 
+    # For font face detection
+    FT_Error FT_Init_FreeType(FT_Library *library)
+    FT_Error FT_New_Face(FT_Library library, const char *pathname, long face_index, FT_Face *aface)
+    FT_Error FT_Done_Face(FT_Face face)
+    const char *FT_Get_Postscript_Name(FT_Face face)
+#    FT_Error FT_Get_Sfnt_Name(FT_Face face, FT_UInt idx, FT_SfntName *aname)
+#    FT_Error FT_Get_Sfnt_Name_Count(FT_Face face)
+
 
 # https://www.freedesktop.org/software/fontconfig/fontconfig-devel/t1.html
 cdef extern from "fontconfig/fontconfig.h" nogil:
@@ -57,15 +68,20 @@ cdef extern from "fontconfig/fontconfig.h" nogil:
         pass
     ctypedef struct FcPattern:
         pass
-#    ctypedef struct FcFontSet:
-#        int nfont
-#        int sfont
-#        FcPattern **fonts
+    ctypedef struct FcValue:
+        pass
+    ctypedef enum FcResult:
+        FcResultMatch
+        FcResultNoMatch
+        FcResultTypeMismatch
+        FcResultNoId
 
     ctypedef bint FcBool
     ctypedef unsigned char FcChar8
     bint FcTrue
     bint FcFalse
+    char *FC_FAMILY
+    char *FC_STYLE
 
     FcConfig *FcConfigCreate()
     FcConfig *FcInitLoadConfig()
@@ -74,9 +90,11 @@ cdef extern from "fontconfig/fontconfig.h" nogil:
     FcConfig *FcConfigGetCurrent()
     FcBool FcConfigSetCurrent(FcConfig *config)
     FcBool FcConfigAppFontAddFile(FcConfig *config, const FcChar8 *file)
+    FcBool FcConfigAppFontAddDir(FcConfig *config, const FcChar8 *dir)
 
+    FcResult FcPatternGetString(FcPattern *p, const char *object, int id, FcChar8 **s)
+    void FcPatternDestroy(FcPattern *p)
 #    FcPattern *FcPatternCreate()
-#    void FcPatternDestroy(FcPattern *p)
 #    FcBool FcPatternDel(FcPattern *p, const char *object)
 #    FcBool FcPatternAddInteger (FcPattern *p, const char *object, int i)
 #    FcBool FcPatternAddDouble (FcPattern *p, const char *object, double d)
@@ -89,17 +107,16 @@ cdef extern from "fontconfig/fontconfig.h" nogil:
 #    FcBool FcPatternAddRange (FcPattern *p, const char *object, const FcRange *r)
 
 
+cdef extern from "fontconfig/fcfreetype.h" nogil:
+    FcPattern *FcFreeTypeQueryFace(const FT_Face face, const FcChar8 *file, unsigned int id, void *)
+
+
 cdef extern from "pango/pango-utils.h":
     int PANGO_VERSION_CHECK(int major, int minor, int micro)
 
 
 # https://developer.gnome.org/pango/stable/pango-Glyph-Storage.html
 cdef extern from "pango/pango-types.h" nogil:
-#    ctypedef struct PangoRectangle:
-#        int x
-#        int y
-#        int width
-#        int height
     unsigned int PANGO_SCALE
 
 
@@ -207,6 +224,7 @@ cdef extern from "pango/pango-context.h" nogil:
         pass
 
     void pango_context_set_base_dir(PangoContext *context, PangoDirection direction)
+    void pango_context_set_font_description(PangoContext *context, const PangoFontDescription *desc)
     PangoDirection pango_context_get_base_dir(PangoContext *context)
     PangoFontMetrics *pango_context_get_metrics(PangoContext *context, const PangoFontDescription *desc, PangoLanguage *language)
 
@@ -231,6 +249,8 @@ cdef extern from "pango/pango-font.h" nogil:
         pass
     ctypedef struct PangoFontMetrics:
         pass
+    ctypedef struct PangoFontFamily:
+        pass
 
     PangoFontMap *pango_ft2_font_map_new()
     PangoContext *pango_font_map_create_context(PangoFontMap *fontmap)
@@ -240,6 +260,8 @@ cdef extern from "pango/pango-font.h" nogil:
     int pango_font_metrics_get_ascent(PangoFontMetrics *metrics)
     int pango_font_metrics_get_descent(PangoFontMetrics *metrics)
     void pango_font_metrics_unref(PangoFontMetrics *metrics)
+    const char *pango_font_family_get_name(PangoFontFamily *family)
+
     # Font descriptions:
     void pango_font_description_set_family(PangoFontDescription *desc, const char *family)
     const char *pango_font_description_get_family(PangoFontDescription *desc)
@@ -253,6 +275,11 @@ cdef extern from "pango/pango-font.h" nogil:
 
     void pango_font_description_set_style(PangoFontDescription *desc, PangoStyle style)
     PangoStyle pango_font_description_get_style(PangoFontDescription *desc)
+
+
+# https://developer.gnome.org/pango/stable/pango-Fonts.html
+cdef extern from "pango/pango-fontmap.h" nogil:
+    void pango_font_map_list_families(PangoFontMap *fontmap, PangoFontFamily ***families, int *n_families)
 
 
 # https://developer.gnome.org/pango/stable/PangoFcFontMap.html
