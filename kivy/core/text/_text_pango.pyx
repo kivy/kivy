@@ -637,6 +637,7 @@ cdef _kpango_get_font_families(ContextContainer cc):
     pango_font_map_list_families(cc.fontmap, &families, &n)
     for i in range(n):
         out.append(pango_font_family_get_name(families[i]))
+    g_free(families)
     return out
 
 
