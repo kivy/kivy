@@ -91,10 +91,10 @@ of the Console::
     Console.register_addon(ConsoleAddonFps)
 
 
-You can create addon that adds panels. Panel activation/deactivation are not
-tied to the addon activation/deactivation, but on some cases, you can use the
-same callback for deactivating the addon and the panel. Here is a simple About
-panel addon::
+You can create addons that add panels. Panel activation/deactivation is not
+tied to the addon activation/deactivation, but in some cases, you can use the
+same callback for deactivating the addon and the panel. Here is a simple
+"About" panel addon::
 
     from kivy.modules.console import Console, ConsoleAddon, ConsoleLabel
 
