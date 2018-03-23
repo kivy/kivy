@@ -43,6 +43,8 @@ The following tags are available:
     Display the text at a subscript position relative to the text before it.
 ``[sup][/sup]``
     Display the text at a superscript position relative to the text before it.
+`[font_context=<str>][/font_context]``
+    Change context for the font, use string value "none" for isolated context.
 `[font_features=<str>][/font_features]``
     OpenType font features, in CSS format, this is passed straight
     through to Pango. The effects of requesting a feature depends on loaded
@@ -222,6 +224,12 @@ class MarkupLabel(MarkupLabelBase):
             elif item == '[/font]':
                 spop('font_name')
                 self.resolve_font_name()
+            elif item[:14] == '[font_context=':
+                fctx = item[14:-1]
+                spush('font_context')
+                options['font_context'] = fctx.lower() != 'none' and fctx or None
+            elif item == '[/font_context]':
+                spop('font_context')
             elif item[:15] == '[font_features=':
                 feats = item[15:-1]
                 spush('font_features')
