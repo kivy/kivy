@@ -7,4 +7,3 @@
 #include FT_BITMAP_H
 
 #endif
-

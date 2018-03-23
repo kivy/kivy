@@ -1,18 +1,7 @@
-# NOTE: We could probably use a single global FcConfig, but it's not obvious
-# how since adding a font doesn't give you back something that can be directly
-# used to render with. Apparently you must look it up via a font description.
-# Where do you get that from? I don't know... maybe FcConfigGetFonts then
-# pango_fc_font_description_from_pattern(), somehow?
-#
-# The current implementation uses pango_fc_font_map_set_config() to force the
-# loaded TTF to be used, seems to work. As far as I can tell alternative is:
-#
-#     cdef FcConfig *oldconfig = FcConfigGetCurrent()
-#     FcConfigSetCurrent(context.fc_config)
-#     <-- render -->
-#     FcConfigSetCurrent(oldconfig)
-#
-
+# TODO:
+# - We only render lines, can we use line-level pango layout functionality??
+# - Support style/weight/different underlines and fix metrics
+# - Bidirectional text alignment is broken (kivy text layout problem)
 cimport cython
 from libc.stdint cimport uint32_t
 from libc.string cimport memset
@@ -22,10 +11,50 @@ include "../../lib/pangoft2.pxi"
 from kivy.logger import Logger
 from kivy.core.image import ImageData
 
-# Cached contexts; dict key + list value is font filename ("font_name_r")
-# Dict values are ContextContainer instances, one for each font.
-cdef dict kivy_pango_cache = {}
-cdef list kivy_pango_cache_order = []
+# Global FreeType2 library instance + state flags. This is used for detecting
+# font family names, since FcConfigAppAddFontFile() doesn't give us a ref to
+# the font. So we load the file using FreeType2 to query the resulting face
+# using FontConfig (since we depend on it anyway, this is very cumbersome
+# to do with ft2 directly due to vast number of encodings + huge tables etc)
+cdef FT_Library kivy_ft_library
+cdef int kivy_ft_init
+cdef int kivy_ft_error
+
+# Since fontfiles can be reused in different contexts (or purged), cache family
+# name(s) so the file doesn't have to be opened twice for every future load to
+# a different context.
+cdef dict kivy_fontfamily_cache = {}
+cdef list kivy_fontfamily_cache_order = []
+
+# Cache of isolated font contexts, ie with a single font loaded and no
+# fallback support. This is backwards-compatible with existing Kivy text
+# providers (we will draw with the user-specified font file, no risk
+# of conflict)
+cdef dict kivy_isolated_cache = {}
+cdef list kivy_isolated_cache_order = []
+
+# Fallback contexts have one or more font files loaded, and are at risk of
+# family name collision (Pango handles fallback)
+# FIXME: These are not purged, maybe they should be... ?
+cdef dict kivy_fallback_cache = {}
+
+
+# Used for fontfamily/isolated caches
+cdef inline void _purge_cache(dict cache, list order, int limit):
+    cdef bytes popid
+    while len(order) >= limit:
+        popid = order.pop(0)
+        del cache[popid]
+
+
+# Helper for label's string options
+cdef inline bytes _byte_option(opt):
+    if opt is None:
+        return
+    if isinstance(opt, bytes):
+        return opt
+    return opt.encode('UTF-8')
+
 
 # Map text direction to pango constant, auto resets context direction to
 # weak_ltr and enabled pango auto_dir. It doesn't make sense to specify
@@ -54,6 +83,11 @@ cdef class ContextContainer:
     cdef double ascent
     cdef double descent
 
+    # Set of options['font_name_r'] filename strings loaded to fc_config
+    cdef set loaded_fonts
+    def __cinit__(self):
+        self.loaded_fonts = set()
+
     # Note: calling a method from __dealloc__ can lead to revived object
     def __dealloc__(self):
         if self.fontdesc:
@@ -68,40 +102,123 @@ cdef class ContextContainer:
             FcConfigDestroy(self.fc_config)
 
 
-# Add a contextcontainer to cache + keep max 64 open fonts
-cdef inline _add_context_to_cache(unicode fontid, ContextContainer cc):
-    global kivy_pango_cache, kivy_pango_cache_order
-
-    cdef unicode popid
-    while len(kivy_pango_cache_order) >= 64:
-        popid = kivy_pango_cache_order.pop(0)
-        del kivy_pango_cache[popid]
-
-    kivy_pango_cache[fontid] = cc
-    kivy_pango_cache_order.append(fontid)
-
 # Get PangoLanguage from options
-cdef PangoLanguage *_get_kivylabel_options_text_language(dict options):
-    txtlang = options['text_language']
+cdef PangoLanguage *_get_options_text_language(dict options):
+    cdef bytes txtlang = _byte_option(options['text_language'])
     if txtlang:
-        if not isinstance(txtlang, bytes):
-            txtlang = txtlang.encode('UTF-8')
         return pango_language_from_string(txtlang)
     return pango_language_get_default()
 
 
-# Configure the context with options from kivylabel
+# Return a string that can be used to (hopefully) render with the font
+# file later (font family name, or as close to it as we can get).
+# This could be done with pango_fontmap_list_families, but it would
+# require a separate FcConfig + adding file, etc. It doesn't seem like
+# we can rely on the returned order to avoid double-scanning. I assume
+# this is the most lightweight way to do it, but...
+cdef bytes _ft2_scan_fontfile_to_fontfamily_cache(fontfile):
+    global kivy_fontfamily_cache, kivy_fontfamily_cache_order
+    global kivy_ft_library, kivy_ft_init, kivy_ft_error
+    if not kivy_ft_init:
+        if kivy_ft_error:
+            return
+        kivy_ft_init = 1
+        kivy_ft_error = FT_Init_FreeType(&kivy_ft_library)
+        if kivy_ft_error:
+            Logger.warn("_text_pango: Failed to initialize FreeType2 "
+                        "library. Error code: {}".format(kivy_ft_error))
+            return
+    # Return from cache if this file has been loaded before
+    cdef bytes filename = _byte_option(fontfile)
+    if filename in kivy_fontfamily_cache:
+        return kivy_fontfamily_cache[filename]
+
+    # Load font file and get family name(s) for use in font description.
+    # (there is no way to resolve conflicts for same family name)
+    cdef FT_Face face
+    cdef FT_Error error = FT_New_Face(kivy_ft_library, filename, 0, &face)
+    if error:
+        Logger.warn("_text_pango: Detecting family for '{}' failed: "
+                    "Could not load/create face 0. Error code: ".format(filename, error))
+        return
+    unique = set()
+    cdef bytes order = b''
+    cdef int e = 0
+    cdef char *family
+    cdef FcResult result
+    cdef FcPattern *pat = FcFreeTypeQueryFace(face, <FcChar8 *>filename, 0, NULL)
+    while True:
+        if FcResultMatch == FcPatternGetString(pat, FC_FAMILY, e, <FcChar8 **>&family):
+            if family and family not in unique:
+                order += len(order) and b','+family or family
+                unique.update([family])
+                # FIXME: Enumerate multiple families, if present. I deactivated
+                #        this because support for setting a comma-delimited list in
+                #        font description / layout attr is a bit unclear, not sure
+                #        if it can lead to problems, versions, etc.
+                break  # Remove when clarified
+            e += 1
+        else:
+            break
+    if not order:
+        order = FT_Get_Postscript_Name(face)
+        if order:
+            # This is not supposed to happen since query falls back to it
+            Logger.warn("_text_pango: Detecting family for '{}' warning: "
+                        "Query failed, but found PostScript name: {}."
+                        .format(filename, order))
+        else:
+            Logger.warn("_text_pango: Detecting family for '{}' warning: "
+                        "No family name found in font.".format(filename))
+            order = b"Sans"
+
+    FcPatternDestroy(pat)
+    if FT_Done_Face(face) != 0:
+        Logger.warn("_text_pango: Detecting family for '{}' warning: "
+                    "Could not clean up ft2 font face.".format(filename))
+
+    _purge_cache(kivy_fontfamily_cache, kivy_fontfamily_cache_order, 200)
+    kivy_fontfamily_cache[filename] = order
+    kivy_fontfamily_cache_order.append(filename)
+    return order
+
+
+# Configure ContextContainer with options from kivylabel.
+# Underline, strikethrough, OpenType Font features (...) are not part of font
+# description. I'm not 100% sure how this fits together, but apparently none
+# of this impact metrics?
 cdef _set_context_options(ContextContainer cc, dict options):
     global kivy_pango_text_direction
-    cdef int font_size = int(options['font_size'] * PANGO_SCALE)
-
-    # Underline, strikethrough, OpenType Font features (...) are not part of font
-    # description. I'm not 100% sure how this fits together, but apparently none
-    # of this impact metrics?
-    # FIXME: do we even need a font description??? I'm not sure if metrics will
-    #        be correct without it.
+    global kivy_fontfamily_cache
     cdef PangoAttrList *attrs = pango_attr_list_new()
+    cdef bytes font_name_r = _byte_option(options['font_name_r'])
+    cdef bytes font_context = _byte_option(options['font_context'])
 
+    # Set the current FcConfig, needed for Pango to see the contained fonts.
+    if FcConfigGetCurrent() != cc.fc_config:
+        if FcConfigSetCurrent(cc.fc_config) == FcFalse:
+            Logger.warn("_text_pango: set_context_options(): Failed to set "
+                        "current fc_config for {}".format(font_name_r))
+
+    # Specify font family for fallback contexts; we don't care for isolated,
+    # there is only one font to choose from.
+    cdef bytes family_attr
+    if font_context:
+        if font_name_r:
+            family_attr = kivy_fontfamily_cache.get(font_name_r)
+            if not family_attr:  # Purged from cache
+                family_attr = _ft2_scan_fontfile_to_fontfamily_cache(font_name_r)
+                if not family_attr:  # Warnings issued in function call
+                    family_attr = b'Sans'
+        elif options['font_name']:
+            family_attr = _byte_option(options['font_name'])
+        else:
+            family_attr = b'Sans'
+        pango_font_description_set_family(cc.fontdesc, family_attr)
+        pango_attr_list_insert(attrs, pango_attr_family_new(family_attr))
+        pango_context_set_font_description(cc.context, cc.fontdesc)
+
+    cdef int font_size = int(options['font_size'] * PANGO_SCALE)
     if PANGO_VERSION_CHECK(1, 8, 0):
         pango_attr_list_insert(attrs, pango_attr_size_new_absolute(font_size))
         pango_font_description_set_absolute_size(cc.fontdesc, font_size)
@@ -127,7 +244,7 @@ cdef _set_context_options(ContextContainer cc, dict options):
         pango_attr_list_insert(attrs, pango_attr_strikethrough_new(1))
 
     if PANGO_VERSION_CHECK(1, 38, 0) and options['font_features']:
-        features = bytes(options['font_features'], encoding='UTF-8')
+        features = _byte_option(options['font_features'])
         pango_attr_list_insert(attrs, pango_attr_font_features_new(features))
 
     # Text direction
@@ -143,12 +260,11 @@ cdef _set_context_options(ContextContainer cc, dict options):
 
     # The language tag is not necessarily the same as the
     # one we have cached, or the locale could have changed.
-    cdef PangoLanguage *new_lang = _get_kivylabel_options_text_language(options)
+    cdef PangoLanguage *new_lang = _get_options_text_language(options)
     cdef PangoFontMetrics *metrics
     if new_lang != cc.lang or font_size != cc.metrics_font_size:
         cc.lang = new_lang
         cc.metrics_font_size = font_size
-        # Get font metrics
         metrics = pango_context_get_metrics(cc.context, cc.fontdesc, cc.lang)
         if metrics:
             cc.ascent = <double>(pango_font_metrics_get_ascent(metrics) / PANGO_SCALE)
@@ -158,12 +274,9 @@ cdef _set_context_options(ContextContainer cc, dict options):
             Logger.warn('_text_pango: Could not get font metrics: {}'
                         .format(options['font_name_r']))
 
-    # Finalize
     pango_attr_list_insert(attrs, pango_attr_language_new(cc.lang))
-    pango_layout_set_font_description(cc.layout, cc.fontdesc)
     pango_layout_set_attributes(cc.layout, attrs)
-    # Layout keeps a ref to attributes now
-    pango_attr_list_unref(attrs)
+    pango_attr_list_unref(attrs)  # Layout owns it now
     pango_layout_context_changed(cc.layout)
 
 
@@ -190,22 +303,71 @@ cdef _set_context_options(ContextContainer cc, dict options):
 
 
 # Creates a ContextContainer for the font_name_r of the label
-cdef _get_context_container(kivylabel):
+cdef ContextContainer _get_context_container(dict options):
+    global kivy_isolated_cache
+    global kivy_isolated_cache_order
+    global kivy_fallback_cache
     global kivy_pango_text_direction
-    cdef dict options = kivylabel.options
-    cdef unicode fontid = <unicode>options['font_name_r']
-    if fontid in kivy_pango_cache:
-        return kivy_pango_cache.get(fontid)
 
-    # Creat a new context
-    cdef ContextContainer cc = ContextContainer()
+    cdef ContextContainer cc
+    cdef bytes font_name_r = _byte_option(options['font_name_r'])
+    cdef bytes font_context = _byte_option(options['font_context'])
 
-    # Create blank FcConfig (fontconfig), and load the TTF file
-    cc.fc_config = FcInitLoadConfig()
-    cdef bytes filename = options['font_name_r'].encode('UTF-8')
-    if FcConfigAppFontAddFile(cc.fc_config, <FcChar8 *>filename) == FcFalse:
-        Logger.warn("_text_pango: Error loading font '{}'".format(filename))
-        return
+    # Check for cached context container
+    cdef bint creating_new_context = True
+    if font_context:
+        if font_context in kivy_fallback_cache:
+            cc = kivy_fallback_cache[font_context]
+            if not font_name_r:
+                return kivy_fallback_cache[font_context]
+            if font_name_r in cc.loaded_fonts:
+                return cc
+            creating_new_context = False
+            # <-- Pass here == exit early after adding font + recreating objects
+        # <-- Pass here == create + cache new fallback context (maybe adding a new font)
+    elif not font_name_r:
+        raise Exception('_text_pango: Attempt to load empty font_name_r in an'
+                        'isolated context. This is not possible.')
+    elif font_name_r in kivy_isolated_cache:
+        return kivy_isolated_cache[font_name_r]
+    # <-- Pass here == create + cache new isolated context
+
+    cdef bytes custom_context_source
+    if creating_new_context:
+        cc = ContextContainer()
+        if font_context:
+            if font_context.startswith(b'plain://'):
+                cc.fc_config = FcConfigCreate()
+            elif font_context.startswith(b'system://'):
+                cc.fc_config = FcInitLoadConfigAndFonts()
+            elif font_context.startswith('directory://'):
+                cc.fc_config = FcInitLoadConfig()
+                custom_context_source = font_context[11:]
+                if FcConfigAppFontAddDir(cc.fc_config, font_context[11:]) == FcFalse:
+                    Logger.warn("_text_pango: Error loading fonts for directory context "
+                                "'{}'".format(font_context))
+#            elif font_context.startswith('config://'):
+#                cc.fc_config = FcConfigCreate()
+#                if FcTrue != FcConfigParseAndLoad(cc.fc_config, <FcChar8 *>font_context[9:], 1):
+#                    Logger.warning("_text_pango: Error loading font_context {}: {}"
+#                                   .format(font_context))
+#                    return
+        else:  # normal shared context
+            cc.fc_config = FcInitLoadConfig()
+
+    # Add the specified font file to context, if any.
+    cdef bytes resolved_families
+    if font_name_r:
+        if FcConfigAppFontAddFile(cc.fc_config, <FcChar8 *>font_name_r) == FcFalse:
+            Logger.warn("_text_pango: Error loading font '{}'".format(font_name_r))
+            return
+        if font_name_r not in kivy_fontfamily_cache:
+            resolved_families = _ft2_scan_fontfile_to_fontfamily_cache(font_name_r)
+        cc.loaded_fonts.update([font_name_r])
+        if creating_new_context == False:
+            g_object_unref(cc.layout)
+            g_object_unref(cc.fontmap)
+            g_object_unref(cc.context)
 
     # Create a blank font map and assign the config from above (one TTF file)
     cc.fontmap = pango_ft2_font_map_new()
@@ -213,40 +375,38 @@ cdef _get_context_container(kivylabel):
         Logger.warn("_text_pango: Could not create new font map")
         return
     pango_fc_font_map_set_config(PANGO_FC_FONT_MAP(cc.fontmap), cc.fc_config)
-
-    # FIXME: should we configure this?
-    #pango_ft2_font_map_set_resolution(cc.fontmap, n, n)
+    cc.context = pango_font_map_create_context(cc.fontmap)
+    if not cc.context:
+        Logger.warn("_text_pango: Could not create pango context")
+        return
+    cc.layout = pango_layout_new(cc.context)
+    if not cc.layout:
+        Logger.warn("_text_pango: Could not create pango layout")
+        return
+    # FIXME: OpenType font features are not part of font description. Do
+    #        we need to do anything else for things to be correct??
+    if creating_new_context == False:
+        _set_context_options(cc, options)
+        return
+    cc.fontdesc = pango_font_description_new()
+    _set_context_options(cc, options)
 
     # FIXME: This may become relevant, leaving for now
-    #cc.callback_data_ptr = GUINT_TO_POINTER(flags)
     #pango_ft2_font_map_set_default_substitute(
     #                PANGO_FT2_FONT_MAP(cc.fontmap),
     #                &_configure_pattern_callback,
     #                cc.callback_data_ptr,
     #                &_configure_pattern_destroy_data)
 
-    # Create pango context from the fontmap
-    cc.context = pango_font_map_create_context(cc.fontmap)
-    if not cc.context:
-        Logger.warn("_text_pango: Could not create pango context")
-        return
 
-    # Create pango layout from context
-    cc.layout = pango_layout_new(cc.context)
-    if not cc.layout:
-        Logger.warn("_text_pango: Could not create pango layout")
-        return
-
-    # We use the context's font description, because it makes it easy
-    # to get the metrics with pango_context_get_metrics(). It's possible
-    # we could do this with PangoLayoutLine instead. The font description
-    # is updated each time the font is used.
-    # FIXME: OpenType font features are not part of font description. Do
-    #        they not matter for metrics? This needs research/confirmation.
-    cc.fontdesc = pango_font_description_new()
-
-    _set_context_options(cc, options)
-    _add_context_to_cache(fontid, cc)
+    # Fallback context
+    if font_context:
+        kivy_fallback_cache[font_context] = cc
+        return cc
+    # Isolated context
+    _purge_cache(kivy_isolated_cache, kivy_isolated_cache_order, 64)
+    kivy_isolated_cache[font_name_r] = cc
+    kivy_isolated_cache_order.append(font_name_r)
     return cc
 
 
@@ -366,29 +526,26 @@ cdef class KivyPangoRenderer:
         if not self.pixels:
             Logger.warn('_text_pango: render() called, but self.pixels is NULL')
             return
-        cdef ContextContainer cc = _get_context_container(kivylabel)
+        cdef dict options = kivylabel.options
+        cdef ContextContainer cc = _get_context_container(options)
         if not cc:
             Logger.warn('_text_pango: Could not get context container, aborting')
             return
 
-        _set_context_options(cc, kivylabel.options)
-
-        if isinstance(text, bytes):
-            utf = text
-        else:
-            utf = <bytes>text.encode('UTF-8')
+        _set_context_options(cc, options)
+        cdef bytes utf = _byte_option(text)
         pango_layout_set_text(cc.layout, utf, len(utf))
 
         # Kivy normalized text color -> 0-255 rgba for nogil
         cdef unsigned char textcolor[4]
-        color = kivylabel.options['color']
+        color = options['color']
         textcolor[0] = min(255, int(color[0] * 255))
         textcolor[1] = min(255, int(color[1] * 255))
         textcolor[2] = min(255, int(color[2] * 255))
         if len(color) > 3:
             textcolor[3] = min(255, int(color[3] * 255))
         else:
-            textcolor[3] = 1
+            textcolor[3] = 255
 
         # Finally render the layout and blit it to self.pixels
         cdef int xx = x
@@ -421,7 +578,7 @@ def kpango_get_extents(kivylabel, text):
     if not text:
         return 0, 0
     cdef dict options = kivylabel.options
-    cdef ContextContainer cc = _get_context_container(kivylabel)
+    cdef ContextContainer cc = _get_context_container(options)
     if not cc:
         Logger.warn('_text_pango: Could not get container for extents: {}'
                     .format(options['font_name_r']))
@@ -429,10 +586,7 @@ def kpango_get_extents(kivylabel, text):
 
     _set_context_options(cc, options)
 
-    if isinstance(text, bytes):
-        utf = text
-    else:
-        utf = <bytes>text.encode('UTF-8')
+    cdef bytes utf = _byte_option(text)
     pango_layout_set_text(cc.layout, utf, len(utf))
 
     cdef int w, h
@@ -443,13 +597,13 @@ def kpango_get_extents(kivylabel, text):
 # FIXME: does weight/style need to invalidate ascent/descent?
 def kpango_get_ascent(kivylabel):
     cdef dict options = kivylabel.options
-    cdef ContextContainer cc = _get_context_container(kivylabel)
+    cdef ContextContainer cc = _get_context_container(options)
     if not cc:
         Logger.warn('_text_pango: Could not get container for ascent: {}'
                     .format(options['font_name_r']))
         return 0
 
-    cdef PangoLanguage *new_lang = _get_kivylabel_options_text_language(options)
+    cdef PangoLanguage *new_lang = _get_options_text_language(options)
     cdef int new_font_size = int(options['font_size'] * PANGO_SCALE)
     if new_lang != cc.lang or new_font_size != cc.metrics_font_size:
         _set_context_options(cc, options)
@@ -459,14 +613,32 @@ def kpango_get_ascent(kivylabel):
 # FIXME: does weight/style need to invalidate ascent/descent?
 def kpango_get_descent(kivylabel):
     cdef dict options = kivylabel.options
-    cdef ContextContainer cc = _get_context_container(kivylabel)
+    cdef ContextContainer cc = _get_context_container(options)
     if not cc:
         Logger.warn('_text_pango: Could not get container for descent: {}'
                     .format(options['font_name_r']))
         return 0
 
-    cdef PangoLanguage *new_lang = _get_kivylabel_options_text_language(options)
+    cdef PangoLanguage *new_lang = _get_options_text_language(options)
     cdef int new_font_size = int(options['font_size'] * PANGO_SCALE)
     if new_lang != cc.lang or new_font_size != cc.metrics_font_size:
         _set_context_options(cc, options)
     return cc.descent
+
+
+cdef _kpango_get_font_families(ContextContainer cc):
+    cdef PangoFontFamily **families
+    cdef int n, i
+    cdef bytes famname
+    cdef list out = list()
+    pango_font_map_list_families(cc.fontmap, &families, &n)
+    for i in range(n):
+        out.append(pango_font_family_get_name(families[i]))
+    return out
+
+
+def kpango_get_font_families(kivylabel):
+    cdef dict options = kivylabel.options
+    cdef ContextContainer cc = _get_context_container(options)
+    _set_context_options(cc, options)
+    return _kpango_get_font_families(cc)
