@@ -63,12 +63,27 @@ cdef dict kivy_pango_text_direction = {
     'ltr': PANGO_DIRECTION_LTR,
     'rtl': PANGO_DIRECTION_RTL,
     'weak_ltr': PANGO_DIRECTION_WEAK_LTR,
-    'weak_rtl': PANGO_DIRECTION_WEAK_RTL,
-    'auto': PANGO_DIRECTION_NEUTRAL}
+    'weak_rtl': PANGO_DIRECTION_WEAK_RTL}
 
 
-# Fontconfig and pango structures (one per loaded font). Can't use
-# ctypedef struct here, because that won't fit in the cache dict
+# Get PangoDirection from options
+cdef inline PangoDirection _get_options_text_direction(dict options):
+    global kivy_pango_text_direction
+    cdef bytes direction = _byte_option(options['text_direction'])
+    return kivy_pango_text_direction.get(direction, PANGO_DIRECTION_NEUTRAL)
+
+
+# Get PangoLanguage from options
+cdef inline PangoLanguage *_get_options_text_language(dict options):
+    cdef bytes txtlang = _byte_option(options['text_language'])
+    if txtlang:
+        return pango_language_from_string(txtlang)
+    return pango_language_get_default()
+
+
+# Fontconfig and pango structures (one per font context). Instances of
+# this class are stored in the kivy_pango_isolated_cache (no font_context)
+# and kivy_pango_fallback_cache.
 cdef class ContextContainer:
     cdef FcConfig *fc_config
     cdef PangoLayout *layout
@@ -100,14 +115,6 @@ cdef class ContextContainer:
             g_object_unref(self.fontmap)
         if self.fc_config:
             FcConfigDestroy(self.fc_config)
-
-
-# Get PangoLanguage from options
-cdef PangoLanguage *_get_options_text_language(dict options):
-    cdef bytes txtlang = _byte_option(options['text_language'])
-    if txtlang:
-        return pango_language_from_string(txtlang)
-    return pango_language_get_default()
 
 
 # Return a string that can be used to (hopefully) render with the font
@@ -187,8 +194,8 @@ cdef bytes _ft2_scan_fontfile_to_fontfamily_cache(fontfile):
 # Underline, strikethrough, OpenType Font features (...) are not part of font
 # description. I'm not 100% sure how this fits together, but apparently none
 # of this impact metrics?
+# FIXME: Figure out the minimum needed for fontdesc/attrs here
 cdef _set_context_options(ContextContainer cc, dict options):
-    global kivy_pango_text_direction
     global kivy_fontfamily_cache
     cdef PangoAttrList *attrs = pango_attr_list_new()
     cdef bytes font_name_r = _byte_option(options['font_name_r'])
@@ -203,7 +210,7 @@ cdef _set_context_options(ContextContainer cc, dict options):
 
     # Specify font family for fallback contexts; we don't care for isolated,
     # there is only one font to choose from.
-    cdef bytes family_attr
+    cdef bytes family_attr = b'Sans'
     if font_context:
         if font_name_r:
             family_attr = kivy_fontfamily_cache.get(font_name_r)
@@ -213,8 +220,6 @@ cdef _set_context_options(ContextContainer cc, dict options):
                     family_attr = b'Sans'
         elif options['font_name']:
             family_attr = _byte_option(options['font_name'])
-        else:
-            family_attr = b'Sans'
         pango_font_description_set_family(cc.fontdesc, family_attr)
         pango_attr_list_insert(attrs, pango_attr_family_new(family_attr))
 
@@ -248,8 +253,7 @@ cdef _set_context_options(ContextContainer cc, dict options):
         pango_attr_list_insert(attrs, pango_attr_font_features_new(features))
 
     # Text direction
-    cdef PangoDirection text_dir = kivy_pango_text_direction.get(
-            options.get('text_direction', 'auto'), PANGO_DIRECTION_NEUTRAL)
+    cdef PangoDirection text_dir = _get_options_text_direction(options)
     if text_dir == PANGO_DIRECTION_NEUTRAL:
         pango_layout_set_auto_dir(cc.layout, TRUE)
         pango_context_set_base_dir(cc.context, PANGO_DIRECTION_WEAK_LTR)
@@ -310,7 +314,6 @@ cdef ContextContainer _get_context_container(dict options):
     global kivy_isolated_cache
     global kivy_isolated_cache_order
     global kivy_fallback_cache
-    global kivy_pango_text_direction
 
     cdef ContextContainer cc
     cdef bytes font_name_r = _byte_option(options['font_name_r'])
@@ -400,7 +403,6 @@ cdef ContextContainer _get_context_container(dict options):
     #                &_configure_pattern_callback,
     #                cc.callback_data_ptr,
     #                &_configure_pattern_destroy_data)
-
 
     # Fallback context
     if font_context:
@@ -629,7 +631,7 @@ def kpango_get_descent(kivylabel):
     return cc.descent
 
 
-cdef _kpango_get_font_families(ContextContainer cc):
+cdef list _kpango_get_font_families(ContextContainer cc):
     cdef PangoFontFamily **families
     cdef int n, i
     cdef bytes famname
