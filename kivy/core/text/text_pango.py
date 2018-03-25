@@ -7,7 +7,6 @@ Pango text provider
 __all__ = ('LabelPango', )
 
 from types import MethodType
-from kivy.compat import PY2
 from kivy.core.text import LabelBase
 from kivy.core.text._text_pango import (KivyPangoRenderer, kpango_get_extents,
                                         kpango_get_ascent, kpango_get_descent)
