@@ -5,6 +5,18 @@ Cython
 
 |cython_note|
 
+Working versions
+----------------
+
+* Kivy 1.10.0 -> Cython==0.25.2
+* Kivy 1.10.1dev -> Cython==0.27.3
+
+To force a version of cython, use::
+
+    $ sudo pip install -U --force-reinstall Cython==<version>
+
+where <version> is the appropriate version number.
+
 Known issues
 ------------
 

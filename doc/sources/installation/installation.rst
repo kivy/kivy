@@ -126,7 +126,11 @@ supported version from pypi:
 
 .. parsed-literal::
 
-    $ sudo pip install --upgrade |cython_install|
+    $ sudo pip install --upgrade Cython
+
+.. note:: If you experience compilation problems, please check your version
+          of Cython against those in the
+          :doc:`Cython dependencies <deps-cython>` section.
 
 OS X
 ++++
