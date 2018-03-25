@@ -214,89 +214,60 @@ class InspectorTestCase(GraphicUnitTest):
 
     def test_widget_popup(self, *args):
         from kivy.logger import Logger
-        Logger.info('test_momdule_popup.py: 1. Entering')
         EventLoop.ensure_window()
         self._win = EventLoop.window
 
-        Logger.info('test_momdule_popup.py: 2. Clean garbage')
         self.clean_garbage()
 
         # build the widget tree & add Window as the main EL
-        Logger.info('test_momdule_popup.py: 3. Set root')
         self.root = self.builder.Builder.load_string(
             KV, filename="InspectorTestCase.KV")
-        Logger.info('test_momdule_popup.py: 4. Render')
         self.render(self.root)
-        Logger.info('test_momdule_popup.py: 5. Assert')
         self.assertLess(len(self._win.children), 2)
 
         # checked widget
-        Logger.info('test_momdule_popup.py: 6. Popup')
         popup = self.root.ids.popup
-        Logger.info('test_momdule_popup.py: 7. Popup_exp')
         popup_exp = self.root.ids.popup.text
 
-        Logger.info('test_momdule_popup.py: 8. Popup')
         # activate inspector with root as ctx
         inspector.start(self._win, self.root)
-        Logger.info('test_momdule_popup.py: 9. Advance')
         self.advance_frames(1)
 
         # pull the Inspector drawer from bottom,
         # but don't inspect yet!
-        Logger.info('test_momdule_popup.py: 10. ins')
         ins = self.root.inspector
-        Logger.info('test_momdule_popup.py: 11. Disable')
         ins.inspect_enabled = False
-        Logger.info('test_momdule_popup.py: 12. Activate')
         ins.activated = True
-        Logger.info('test_momdule_popup.py: 13. Assert')
         self.assertTrue(ins.at_bottom)
 
         # touch button center to open the popup
-        Logger.info('test_momdule_popup.py: 14. UnitTouch')
         touch = UnitTestTouch(*popup.center)
-        Logger.info('test_momdule_popup.py: 15. Down')
         touch.touch_down()
-        Logger.info('test_momdule_popup.py: 16. Up')
         touch.touch_up()
-        Logger.info('test_momdule_popup.py: 17. Advance')
         self.advance_frames(1)
 
         # start inspecting
-        Logger.info('test_momdule_popup.py: 18. Enabled')
         ins.inspect_enabled = True
-        Logger.info('test_momdule_popup.py: 19. Advance')
         self.advance_frames(1)
 
         # inspect FirstModal's button
-        Logger.info('test_momdule_popup.py: 20. Down')
         touch.touch_down()
-        Logger.info('test_momdule_popup.py: 21. UP')
         touch.touch_up()
-        Logger.info('test_momdule_popup.py: 22. Advance')
         self.advance_frames(1)
 
         # open Inspector properties
-        Logger.info('test_momdule_popup.py: 23. Info')
         ins.show_widget_info()
-        Logger.info('test_momdule_popup.py: 24. Advance')
         self.advance_frames(2)
 
         # check if the popup is selected
         # stored instance
-        Logger.info('test_momdule_popup.py: 25. Asserts')
         self.assertIsInstance(ins.widget, Factory.Button)
         self.assertIsInstance(ins.widget.parent, Factory.FirstModal)
         # check with new Popup instance if the properties match
-        Logger.info('test_momdule_popup.py: 26. Popup')
         temp_popup = Factory.FirstModal()
-        Logger.info('test_momdule_popup.py: 27. Popup_exp')
         temp_popup_exp = temp_popup.ids.firstmodal.text
-        Logger.info('test_momdule_popup.py: 28. Assert')
         self.assertEqual(ins.widget.text, temp_popup_exp)
         # data in properties
-        Logger.info('test_momdule_popup.py: 29. Loop')
         for node in ins.treeview.iterate_all_nodes():
             lkey = getattr(node.ids, 'lkey', None)
             if not lkey:
@@ -309,29 +280,19 @@ class InspectorTestCase(GraphicUnitTest):
         del temp_popup
 
         # close popup
-        Logger.info('test_momdule_popup.py: 30. Dsisable')
         ins.inspect_enabled = False
-        Logger.info('test_momdule_popup.py: 31. UnitTOuch')
         touch = UnitTestTouch(0, 0)
-        Logger.info('test_momdule_popup.py: 32. Down')
         touch.touch_down()
-        Logger.info('test_momdule_popup.py: 33. Up')
         touch.touch_up()
-        Logger.info('test_momdule_popup.py: 34. Advance')
         self.advance_frames(10)
 
         # close Inspector
-        Logger.info('test_momdule_popup.py: 35. deactivate')
         ins.activated = False
-        Logger.info('test_momdule_popup.py: 36. render')
         self.render(self.root)
-        Logger.info('test_momdule_popup.py: 37. advance')
         self.advance_frames(10)
 
         # stop Inspector completely
-        Logger.info('test_momdule_popup.py: 38. stop')
         inspector.stop(self._win, self.root)
-        Logger.info('test_momdule_popup.py: 39. Assert')
         self.assertLess(len(self._win.children), 2)
         Logger.info('test_momdule_popup.py: 40. Render')
         self.render(self.root)
