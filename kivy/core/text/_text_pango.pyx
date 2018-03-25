@@ -47,15 +47,6 @@ cdef inline void _purge_cache(dict cache, list order, int limit):
         del cache[popid]
 
 
-# Helper for label's string options
-cdef inline bytes _byte_option(opt):
-    if opt is None:
-        return
-    if isinstance(opt, bytes):
-        return opt
-    return opt.encode('UTF-8')
-
-
 # Map text direction to pango constant, auto resets context direction to
 # weak_ltr and enabled pango auto_dir. It doesn't make sense to specify
 # neutral as a desired text direction.
@@ -64,6 +55,15 @@ cdef dict kivy_pango_text_direction = {
     'rtl': PANGO_DIRECTION_RTL,
     'weak_ltr': PANGO_DIRECTION_WEAK_LTR,
     'weak_rtl': PANGO_DIRECTION_WEAK_RTL}
+
+
+# Helper for label's string options
+cdef inline bytes _byte_option(opt):
+    if opt is None:
+        return
+    if isinstance(opt, bytes):
+        return opt
+    return opt.encode('UTF-8')
 
 
 # Get PangoDirection from options
@@ -129,12 +129,12 @@ cdef bytes _ft2_scan_fontfile_to_fontfamily_cache(fontfile):
     if not kivy_ft_init:
         if kivy_ft_error:
             return
-        kivy_ft_init = 1
         kivy_ft_error = FT_Init_FreeType(&kivy_ft_library)
         if kivy_ft_error:
             Logger.warn("_text_pango: Failed to initialize FreeType2 "
                         "library. Error code: {}".format(kivy_ft_error))
             return
+        kivy_ft_init = 1
     # Return from cache if this file has been loaded before
     cdef bytes filename = _byte_option(fontfile)
     if filename in kivy_fontfamily_cache:
@@ -370,7 +370,7 @@ cdef ContextContainer _get_context_container(dict options):
         if font_name_r not in kivy_fontfamily_cache:
             resolved_families = _ft2_scan_fontfile_to_fontfamily_cache(font_name_r)
         cc.loaded_fonts.update([font_name_r])
-        if creating_new_context == False:
+        if not creating_new_context:
             g_object_unref(cc.layout)
             g_object_unref(cc.fontmap)
             g_object_unref(cc.context)
@@ -391,9 +391,9 @@ cdef ContextContainer _get_context_container(dict options):
         return
     # FIXME: OpenType font features are not part of font description. Do
     #        we need to do anything else for things to be correct??
-    if creating_new_context == False:
+    if not creating_new_context:
         _set_context_options(cc, options)
-        return
+        return cc
     cc.fontdesc = pango_font_description_new()
     _set_context_options(cc, options)
 
@@ -501,7 +501,9 @@ cdef void _render_context(ContextContainer cc, unsigned char *dstbuf,
     g_free(bitmap.buffer)
     # /nogil _render_context()
 
-
+# ----------------------------------------------------------------------------
+# Public API from this point
+# ----------------------------------------------------------------------------
 cdef class KivyPangoRenderer:
     # w, h is the final bitmap size, drawn by 1+ render() calls in *pixels
     cdef int w, h
