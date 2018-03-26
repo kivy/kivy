@@ -176,7 +176,7 @@ cdef bytes _ft2_scan_fontfile_to_fontfamily_cache(fontfile):
                         .format(filename, order))
         else:
             Logger.warn("_text_pango: Detecting family for '{}' warning: "
-                        "No family name found in font.".format(filename))
+                        "No family name found in font, using Sans.".format(filename))
             order = b"Sans"
 
     FcPatternDestroy(pat)
@@ -202,11 +202,13 @@ cdef _set_context_options(ContextContainer cc, dict options):
     cdef bytes font_context = _byte_option(options['font_context'])
 
     # Set the current FcConfig, needed for Pango to see the contained fonts.
-    if FcConfigGetCurrent() != cc.fc_config:
-        if FcConfigSetCurrent(cc.fc_config) == FcFalse:
-            Logger.warn("_text_pango: set_context_options(): Failed to set "
-                        "current fc_config for font_name_r='{}', font_context='{}'"
-                        .format(font_name_r, font_context))
+    # Versions 1.38+ use a call to pango_fc_font_map_set_config() instead.
+    if not PANGO_VERSION_CHECK(1, 38, 0):
+        if FcConfigGetCurrent() != cc.fc_config:
+            if FcConfigSetCurrent(cc.fc_config) == FcFalse:
+                Logger.warn("_text_pango: set_context_options(): Failed to set "
+                            "current fc_config for font_name_r='{}', font_context='{}'"
+                            .format(font_name_r, font_context))
 
     # Specify font family for fallback contexts; we don't care for isolated,
     # there is only one font to choose from.
@@ -329,7 +331,7 @@ cdef ContextContainer _get_context_container(dict options):
             if font_name_r in cc.loaded_fonts:
                 return cc
             creating_new_context = False
-            # <-- Pass here == exit early after adding font + recreating objects
+            # <-- Pass here == exit early after adding new font to fallback context
         # <-- Pass here == create + cache new fallback context (maybe adding a new font)
     elif not font_name_r:
         raise Exception('_text_pango: Attempt to load empty font_name_r in an'
@@ -352,12 +354,13 @@ cdef ContextContainer _get_context_container(dict options):
                 if FcConfigAppFontAddDir(cc.fc_config, font_context[11:]) == FcFalse:
                     Logger.warn("_text_pango: Error loading fonts for directory context "
                                 "'{}'".format(font_context))
-#            elif font_context.startswith('config://'):
-#                cc.fc_config = FcConfigCreate()
-#                if FcTrue != FcConfigParseAndLoad(cc.fc_config, <FcChar8 *>font_context[9:], 1):
-#                    Logger.warning("_text_pango: Error loading font_context {}: {}"
-#                                   .format(font_context))
-#                    return
+            elif font_context.startswith('fontconfig://'):
+                cc.fc_config = FcConfigCreate()
+                custom_context_source = font_context[13:]
+                if FcTrue != FcConfigParseAndLoad(cc.fc_config, <FcChar8 *>custom_context_source, FcTrue):
+                    Logger.warning("_text_pango: Error loading FontConfig configuration"
+                                   "for font_context {}: {}".format(font_context, custom_context_source))
+                    return
         else:  # normal shared context
             cc.fc_config = FcInitLoadConfig()
 
@@ -371,17 +374,28 @@ cdef ContextContainer _get_context_container(dict options):
             resolved_families = _ft2_scan_fontfile_to_fontfamily_cache(font_name_r)
         cc.loaded_fonts.update([font_name_r])
         if not creating_new_context:
-            g_object_unref(cc.layout)
-            g_object_unref(cc.fontmap)
-            g_object_unref(cc.context)
+            # Older versions swap the FcConfig in _set_context_options()
+            if PANGO_VERSION_CHECK(1, 38, 0):
+                pango_fc_font_map_config_changed(PANGO_FC_FONT_MAP(cc.fontmap))
+            return
 
     # Create a blank font map and assign the config from above (one TTF file)
     cc.fontmap = pango_ft2_font_map_new()
     if not cc.fontmap:
         Logger.warn("_text_pango: Could not create new font map")
         return
-    pango_fc_font_map_set_config(PANGO_FC_FONT_MAP(cc.fontmap), cc.fc_config)
-    cc.context = pango_font_map_create_context(cc.fontmap)
+
+    # In 1.38+ we can do this (+ config_changed above) instead of swapping the
+    # current FcConfig each time we use the Pango context
+    if PANGO_VERSION_CHECK(1, 38, 0):
+        pango_fc_font_map_set_config(PANGO_FC_FONT_MAP(cc.fontmap), cc.fc_config)
+
+    # FIXME: Can we avoid deprecation warning? I guess Cython can't fold this..
+    if PANGO_VERSION_CHECK(1, 22, 0):
+        cc.context = pango_font_map_create_context(cc.fontmap)
+    else:
+        cc.context = pango_ft2_font_map_create_context(PANGO_FT2_FONT_MAP(cc.fontmap))
+
     if not cc.context:
         Logger.warn("_text_pango: Could not create pango context")
         return
@@ -389,8 +403,7 @@ cdef ContextContainer _get_context_container(dict options):
     if not cc.layout:
         Logger.warn("_text_pango: Could not create pango layout")
         return
-    # FIXME: OpenType font features are not part of font description. Do
-    #        we need to do anything else for things to be correct??
+
     if not creating_new_context:
         _set_context_options(cc, options)
         return cc
