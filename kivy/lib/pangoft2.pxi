@@ -91,6 +91,7 @@ cdef extern from "fontconfig/fontconfig.h" nogil:
     FcBool FcConfigSetCurrent(FcConfig *config)
     FcBool FcConfigAppFontAddFile(FcConfig *config, const FcChar8 *file)
     FcBool FcConfigAppFontAddDir(FcConfig *config, const FcChar8 *dir)
+    FcBool FcConfigParseAndLoad(FcConfig *config, const FcChar8 *file, FcBool complain)
 
     FcResult FcPatternGetString(FcPattern *p, const char *object, int id, FcChar8 **s)
     void FcPatternDestroy(FcPattern *p)
@@ -216,6 +217,7 @@ cdef extern from "pango/pangoft2.h" nogil:
     void pango_ft2_render_layout(FT_Bitmap *bitmap, PangoLayout *layout, int x, int y)
     void pango_ft2_render_layout_subpixel(FT_Bitmap *bitmap, PangoLayout *layout, int x, int y)
     void pango_ft2_font_map_set_default_substitute(PangoFT2FontMap *fontmap, PangoFT2SubstituteFunc func, gpointer data, GDestroyNotify notify)
+    PangoContext *pango_ft2_font_map_create_context(PangoFT2FontMap *fontmap) # < v1.22, now pango_font_map_create_context
 
 
 # https://developer.gnome.org/pango/stable/pango-Text-Processing.html
@@ -239,6 +241,7 @@ cdef extern from "pango/pango-bidi-type.h" nogil:
         PANGO_DIRECTION_WEAK_LTR
         PANGO_DIRECTION_WEAK_RTL
         PANGO_DIRECTION_NEUTRAL
+    PangoDirection pango_find_base_dir(const gchar *text, gint length)
 
 
 # https://developer.gnome.org/pango/stable/pango-Fonts.html
@@ -289,6 +292,7 @@ cdef extern from "pango/pangofc-fontmap.h" nogil:
 
     PangoFcFontMap *PANGO_FC_FONT_MAP(PangoFontMap *fontmap)
     void pango_fc_font_map_set_config(PangoFcFontMap *fontmap, FcConfig *config)
+    void pango_fc_font_map_config_changed(PangoFcFontMap *fontmap)
 
 
 # https://developer.gnome.org/pango/stable/pango-Layout-Objects.html
