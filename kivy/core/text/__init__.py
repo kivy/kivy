@@ -131,14 +131,14 @@ class LabelBase(object):
             Color of the outline.
         `font_features`: str, defaults to None
             OpenType font features in CSS format (Pango only)
-        `text_direction`: str, defaults to 'auto'
-            Text direction, one of `'auto'`, `'ltr'`, `'rtl'`, `'weak_ltr'`,
+        `base_direction`: str, defaults to None (auto)
+            Text direction, one of `None`, `'ltr'`, `'rtl'`, `'weak_ltr'`,
             or `'weak_rtl'` (Pango only)
         `text_language`: str, defaults to None (user locale)
             RFC-3066 format language tag as a string (Pango only)
 
     .. versionchanged:: 1.10.1
-        `font_context`, `font_features`, `text_direction` and `text_language`
+        `font_context`, `font_features`, `base_direction` and `text_language`
         were added.
 
     .. versionchanged:: 1.10.0
@@ -188,7 +188,7 @@ class LabelBase(object):
         unicode_errors='replace',
         font_hinting='normal', font_kerning=True, font_blended=True,
         outline_width=None, outline_color=None, font_context=None,
-        font_features=None, text_direction='auto', text_language=None,
+        font_features=None, base_direction=None, text_language=None,
         **kwargs):
 
         # Include system fonts_dir in resource paths.
@@ -209,7 +209,7 @@ class LabelBase(object):
                    'outline_width': outline_width,
                    'font_context': font_context,
                    'font_features': font_features,
-                   'text_direction': text_direction,
+                   'base_direction': base_direction,
                    'text_language': text_language}
 
         kwargs_get = kwargs.get
@@ -298,8 +298,8 @@ class LabelBase(object):
 
             if filename is None:
                 # XXX for compatibility, check directly in the data dir
-                filename = os.path.join(kivy_data_dir, fontname)
-                if not os.path.exists(filename) or not os.path.isfile(filename):
+                filename = pep8_fn = os.path.join(kivy_data_dir, fontname)
+                if not os.path.exists(pep8_fn) or not os.path.isfile(pep8_fn):
                     # Not a font file, but we have a font context. Treat it
                     # as font family / description string.
                     if options['font_context']:
@@ -527,6 +527,10 @@ class LabelBase(object):
             self.texture.blit_data(data)
         return
 
+    # FIXME: This should possibly use a Config value
+    def _find_base_direction(self, text):
+        return 'weak_ltr'
+
     def render_lines(self, lines, options, render_text, y, size):
         get_extents = self.get_cached_extents()
         uw, uh = options['text_size']
@@ -537,6 +541,8 @@ class LabelBase(object):
         sw = options['space_width']
         halign = options['halign']
         split = re.split
+        find_base_dir = self._find_base_direction
+        cur_base_dir = options['base_direction']
 
         for layout_line in lines:  # for plain label each line has only one str
             lw, lh = layout_line.w, layout_line.h
@@ -545,8 +551,13 @@ class LabelBase(object):
             if len(layout_line.words):
                 last_word = layout_line.words[0]
                 line = last_word.text
+                if not cur_base_dir:
+                    cur_base_dir = find_base_dir(line)
             x = xpad
-            if halign == 'center':
+            if halign == 'auto':
+                if cur_base_dir and 'rtl' in cur_base_dir:
+                    x = max(0, int(w - lw - xpad))  # right-align RTL text
+            elif halign == 'center':
                 x = int((w - lw) / 2.)
             elif halign == 'right':
                 x = max(0, int(w - lw - xpad))
