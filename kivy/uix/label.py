@@ -136,11 +136,8 @@ The following tags are available:
     OpenType font features, in CSS format, this is passed straight
     through to Pango. The effects of requesting a feature depends on loaded
     fonts, library versions, etc. Pango only, requires v1.38 or later.
-``[text_direction=<str>][/text_direction]``
-    Specify text direction; one of `auto`, `ltr`, `rtl`, `weak_ltr`
-    or `weak_rtl`. Pango only.
 ``[text_language=<str>][/text_language]``
-    Language of the text, this is an RFC-3066 format language tag (as a string),
+    Language of the text, this is an RFC-3066 format language tag (as string),
     for example "en_US", "zh_CN", "fr" or "ja". This can impact font selection
     and metrics. Use the string "None" to revert to locale detection.
     Pango only.
@@ -285,7 +282,7 @@ class Label(Widget):
                         'split_str', 'ellipsis_options', 'unicode_errors',
                         'markup', 'font_hinting', 'font_kerning',
                         'font_blended', 'font_context', 'font_features',
-                        'text_direction', 'text_language')
+                        'base_direction', 'text_language')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -467,28 +464,25 @@ class Label(Widget):
     defaults to (None, None), meaning no size restriction by default.
     '''
 
-    # FIXME: Verify the weak_ltr/rtl impact, not 100% sure this is accurate
-    # FIXME: Pango detects this for each chunk of text we render in auto,
-    #        but Kivy doesn't know anything about it. I think the correct
-    #        fix may be to remove auto, and default to weak_ltr like Pango.
-    #        This would make it easier to control alignment externally,
-    #        and avoid the need for calling into Cython to determine the
-    #        direction before rendering (which does the detection again)
-    text_direction = OptionProperty('auto',
-                     options=['auto', 'ltr', 'rtl', 'weak_rtl', 'weak_ltr'])
-    '''Text direction, this is normally auto-detected by Pango. Valid
-    options are "auto", "ltr" (left to right), "rtl" (right to left) plus
-    "weak_ltr" and "weak_rtl". All characters have either a strong or neutral
-    direction specified; specifying "weak_rtl" or "weak_ltr" will impact
-    characters that are neutral.
+    base_direction = OptionProperty(None,
+                     options=['ltr', 'rtl', 'weak_rtl', 'weak_ltr'],
+                     allownone=True)
+    '''Base direction of text, this impacts horizontal alignment when
+    :attr:`halign` is `auto` (the default). Available options are: None,
+    "ltr" (left to right), "rtl" (right to left) plus "weak_ltr" and
+    "weak_rtl".
 
     .. note::
         This feature requires the Pango text provider.
 
+    .. note::
+        Weak modes are currently not implemented in Kivy text layout, and
+        have the same effect as setting strong mode.
+
     .. versionadded:: 1.10.1
 
-    :attr:`text_direction` is an :class:`~kivy.properties.OptionProperty` and
-    defaults to `auto`.
+    :attr:`base_direction` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to None (autodetect RTL if possible, otherwise LTR).
     '''
 
     text_language = StringProperty(None, allownone=True)
@@ -665,13 +659,14 @@ class Label(Widget):
     (:attr:`padding_x`, :attr:`padding_y`) properties.
     '''
 
-    halign = OptionProperty('left', options=['left', 'center', 'right',
-                            'justify'])
+    halign = OptionProperty('auto', options=['left', 'center', 'right',
+                            'justify', 'auto'])
     '''Horizontal alignment of the text.
 
     :attr:`halign` is an :class:`~kivy.properties.OptionProperty` and
-    defaults to 'left'. Available options are : left, center, right and
-    justify.
+    defaults to 'auto'. Available options are : auto, left, center, right and
+    justify. Auto will attempt to autodetect horizontal alignment for RTL text
+    (Pango only), otherwise it behaves like `left`.
 
     .. warning::
 
@@ -679,6 +674,9 @@ class Label(Widget):
         (centered), only the position of the text in this texture. You probably
         want to bind the size of the Label to the :attr:`texture_size` or set a
         :attr:`text_size`.
+
+    .. versionchanged:: 1.10.1
+        Added `auto` option
 
     .. versionchanged:: 1.6.0
         A new option was added to :attr:`halign`, namely `justify`.

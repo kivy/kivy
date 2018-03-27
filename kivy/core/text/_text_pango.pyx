@@ -1,7 +1,7 @@
 # TODO:
 # - We only render lines, can we use line-level pango layout functionality??
 # - Support style/weight/different underlines and fix metrics
-# - Bidirectional text alignment is broken (kivy text layout problem)
+# - Figure out way to constant fold PANGO_VERSION_CHECK/avoid warning
 cimport cython
 from libc.stdint cimport uint32_t
 from libc.string cimport memset
@@ -50,11 +50,18 @@ cdef inline void _purge_cache(dict cache, list order, int limit):
 # Map text direction to pango constant, auto resets context direction to
 # weak_ltr and enabled pango auto_dir. It doesn't make sense to specify
 # neutral as a desired text direction.
-cdef dict kivy_pango_text_direction = {
+cdef dict kivy_pango_base_direction = {
     'ltr': PANGO_DIRECTION_LTR,
     'rtl': PANGO_DIRECTION_RTL,
     'weak_ltr': PANGO_DIRECTION_WEAK_LTR,
     'weak_rtl': PANGO_DIRECTION_WEAK_RTL}
+
+# Inverse, for kpango_find_base_dir
+cdef dict pango_kivy_base_direction = {
+    PANGO_DIRECTION_LTR: 'ltr',
+    PANGO_DIRECTION_RTL: 'rtl',
+    PANGO_DIRECTION_WEAK_LTR: 'weak_ltr',
+    PANGO_DIRECTION_WEAK_RTL: 'weak_rtl'}
 
 
 # Helper for label's string options
@@ -67,10 +74,10 @@ cdef inline bytes _byte_option(opt):
 
 
 # Get PangoDirection from options
-cdef inline PangoDirection _get_options_text_direction(dict options):
-    global kivy_pango_text_direction
-    cdef bytes direction = _byte_option(options['text_direction'])
-    return kivy_pango_text_direction.get(direction, PANGO_DIRECTION_NEUTRAL)
+cdef inline PangoDirection _get_options_base_direction(dict options):
+    global kivy_pango_base_direction
+    cdef bytes direction = _byte_option(options['base_direction'])
+    return kivy_pango_base_direction.get(direction, PANGO_DIRECTION_NEUTRAL)
 
 
 # Get PangoLanguage from options
@@ -250,19 +257,20 @@ cdef _set_context_options(ContextContainer cc, dict options):
     if options['strikethrough']:
         pango_attr_list_insert(attrs, pango_attr_strikethrough_new(1))
 
-    if PANGO_VERSION_CHECK(1, 38, 0) and options['font_features']:
-        features = _byte_option(options['font_features'])
-        pango_attr_list_insert(attrs, pango_attr_font_features_new(features))
+    if PANGO_VERSION_CHECK(1, 38, 0):
+        if options['font_features']:
+            features = _byte_option(options['font_features'])
+            pango_attr_list_insert(attrs, pango_attr_font_features_new(features))
 
-    # Text direction
-    cdef PangoDirection text_dir = _get_options_text_direction(options)
-    if text_dir == PANGO_DIRECTION_NEUTRAL:
+    # Base direction (at the moment, this probably has no impact)
+    cdef PangoDirection base_dir = _get_options_base_direction(options)
+    if base_dir == PANGO_DIRECTION_NEUTRAL:
         pango_layout_set_auto_dir(cc.layout, TRUE)
         pango_context_set_base_dir(cc.context, PANGO_DIRECTION_WEAK_LTR)
     else:
         # If autodir is false, the context's base direction is used
         pango_layout_set_auto_dir(cc.layout, FALSE)
-        pango_context_set_base_dir(cc.context, text_dir)
+        pango_context_set_base_dir(cc.context, base_dir)
 
     # Apply font description to context before getting metrics
     pango_context_set_font_description(cc.context, cc.fontdesc)
@@ -663,3 +671,9 @@ def kpango_get_font_families(kivylabel):
     cdef ContextContainer cc = _get_context_container(options)
     _set_context_options(cc, options)
     return _kpango_get_font_families(cc)
+
+
+def kpango_find_base_dir(text):
+    global pango_kivy_base_direction
+    cdef bytes t = _byte_option(text)
+    return pango_kivy_base_direction.get(pango_find_base_dir(t, len(t)))

@@ -9,7 +9,8 @@ __all__ = ('LabelPango', )
 from types import MethodType
 from kivy.core.text import LabelBase
 from kivy.core.text._text_pango import (KivyPangoRenderer, kpango_get_extents,
-                                        kpango_get_ascent, kpango_get_descent)
+                                        kpango_get_ascent, kpango_get_descent,
+                                        kpango_find_base_dir)
 
 
 class LabelPango(LabelBase):
@@ -18,6 +19,9 @@ class LabelPango(LabelBase):
         self.get_ascent = MethodType(kpango_get_ascent, self)
         self.get_descent = MethodType(kpango_get_descent, self)
         super(LabelPango, self).__init__(*largs, **kwargs)
+
+    def _find_base_direction(self, text):
+        return kpango_find_base_dir(text)
 
     def _render_begin(self):
         self._rdr = KivyPangoRenderer(*self._size)
