@@ -213,7 +213,6 @@ class InspectorTestCase(GraphicUnitTest):
         self.render(self.root)
 
     def test_widget_popup(self, *args):
-        from kivy.logger import Logger
         EventLoop.ensure_window()
         self._win = EventLoop.window
 
@@ -294,9 +293,7 @@ class InspectorTestCase(GraphicUnitTest):
         # stop Inspector completely
         inspector.stop(self._win, self.root)
         self.assertLess(len(self._win.children), 2)
-        Logger.info('test_momdule_popup.py: 40. Render')
         self.render(self.root)
-        Logger.info('test_momdule_popup.py: 41. exit')
 
     def test_widget_multipopup(self, *args):
         EventLoop.ensure_window()
