@@ -528,7 +528,8 @@ class LabelBase(object):
         return
 
     # FIXME: This should possibly use a Config value
-    def _find_base_direction(self, text):
+    @staticmethod
+    def _find_base_direction(text):
         return 'weak_ltr'
 
     def render_lines(self, lines, options, render_text, y, size):

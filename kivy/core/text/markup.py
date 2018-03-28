@@ -164,9 +164,9 @@ class MarkupLabel(MarkupLabelBase):
         uhh = (None if uh is not None and options['valign'] != 'top' or
                options['shorten'] else uh)
         options['strip'] = options['strip'] or options['halign'] == 'justify'
-        find_base_dir = self._find_base_direction
-        cur_base_dir = options['base_direction']
-        options['_auto_base_dir'] = None
+        find_base_dir = Label._find_base_direction
+        base_dir = options['base_direction']
+        self._resolved_base_dir = None
         for item in self.markup:
             if item == '[b]':
                 spush('bold')
@@ -273,10 +273,8 @@ class MarkupLabel(MarkupLabelBase):
             elif not clipped:
                 item = item.replace('&bl;', '[').replace(
                     '&br;', ']').replace('&amp;', '&')
-                if not cur_base_dir:
-                    cur_base_dir = find_base_dir(item)
-                    if cur_base_dir:
-                        options['_auto_base_dir'] = cur_base_dir
+                if not base_dir:
+                    base_dir = self._resolved_base_dir = find_base_dir(item)
                 opts = copy(options)
                 extents = self.get_cached_extents()
                 opts['space_width'] = extents(' ')[0]
@@ -451,7 +449,7 @@ class MarkupLabel(MarkupLabelBase):
         halign = options['halign']
         refs = self._refs
         anchors = self._anchors
-        base_dir = options['base_direction'] or options['_auto_base_dir']
+        base_dir = options['base_direction'] or self._resolved_base_dir
         auto_halign_r = halign == 'auto' and base_dir and 'rtl' in base_dir
 
         for layout_line in lines:  # for plain label each line has only one str
