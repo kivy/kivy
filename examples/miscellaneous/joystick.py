@@ -61,8 +61,8 @@ class Listener(Widget):
     def on_joy_axis(self, win, stickid, axisid, value):
         self.joy_motion('axis', stickid, axisid, value)
 
-    def on_joy_ball(self, win, stickid, ballid, value):
-        self.joy_motion('ball', ballid, axisid, value)
+    def on_joy_ball(self, win, stickid, ballid, xvalue, yvalue):
+        self.joy_motion('ball', stickid, ballid, (xvalue, yvalue))
 
     def on_joy_hat(self, win, stickid, hatid, value):
         self.joy_motion('hat', stickid, hatid, value)
