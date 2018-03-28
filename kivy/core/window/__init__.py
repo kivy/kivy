@@ -1634,7 +1634,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0'''
         pass
 
-    def on_joy_ball(self, stickid, ballid, value):
+    def on_joy_ball(self, stickid, ballid, xvalue, yvalue):
         '''Event called when a joystick has a ball moved.
 
         .. versionadded:: 1.9.0'''
