@@ -465,7 +465,7 @@ class Label(Widget):
     '''
 
     base_direction = OptionProperty(None,
-                     options=['ltr', 'rtl', 'weak_rtl', 'weak_ltr'],
+                     options=['ltr', 'rtl', 'weak_rtl', 'weak_ltr', None],
                      allownone=True)
     '''Base direction of text, this impacts horizontal alignment when
     :attr:`halign` is `auto` (the default). Available options are: None,

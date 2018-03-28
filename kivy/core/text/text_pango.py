@@ -20,7 +20,8 @@ class LabelPango(LabelBase):
         self.get_descent = MethodType(kpango_get_descent, self)
         super(LabelPango, self).__init__(*largs, **kwargs)
 
-    def _find_base_direction(self, text):
+    @staticmethod
+    def _find_base_direction(text):
         return kpango_find_base_dir(text)
 
     def _render_begin(self):
