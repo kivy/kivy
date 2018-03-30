@@ -385,7 +385,7 @@ cdef ContextContainer _get_context_container(dict options):
             # Older versions swap the FcConfig in _set_context_options()
             if PANGO_VERSION_CHECK(1, 38, 0):
                 pango_fc_font_map_config_changed(PANGO_FC_FONT_MAP(cc.fontmap))
-            return
+            return cc
 
     # Create a blank font map and assign the config from above (one TTF file)
     cc.fontmap = pango_ft2_font_map_new()
