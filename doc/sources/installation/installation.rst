@@ -122,7 +122,7 @@ For Ubuntu 17.10::
       libgles2-mesa-dev zlib1g-dev
 
 Kivy requires a recent version of Cython, so it's better to use the latest
-supported version from pypi:
+supported version from pypi::
 
 .. parsed-literal::
 
