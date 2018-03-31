@@ -88,6 +88,12 @@ cdef inline PangoLanguage *_get_options_text_language(dict options):
     return pango_language_get_default()
 
 
+# Callback data type. This is passed to the default substitute function.
+ctypedef struct ft2subst_callback_data_t:
+    int antialias
+    int hintstyle
+
+
 # Fontconfig and pango structures (one per font context). Instances of
 # this class are stored in the kivy_pango_isolated_cache (no font_context)
 # and kivy_pango_fallback_cache.
@@ -97,6 +103,9 @@ cdef class ContextContainer:
     cdef PangoContext *context
     cdef PangoFontMap *fontmap
     cdef PangoFontDescription *fontdesc
+
+    # FT2 default substitute data, used to pass 'font_hinting' to FontConfig
+    cdef ft2subst_callback_data_t ft2subst_callback_data
 
     # lang + metric_font_size determine validity of ascent/descent.
     # (lang is also used to set a text attribute)
@@ -130,7 +139,7 @@ cdef class ContextContainer:
 # require a separate FcConfig + adding file, etc. It doesn't seem like
 # we can rely on the returned order to avoid double-scanning. I assume
 # this is the most lightweight way to do it, but...
-cdef bytes _ft2_scan_fontfile_to_fontfamily_cache(fontfile):
+cdef bytes _ft2_scan_fontfile_to_fontfamily_cache(bytes fontfile):
     global kivy_fontfamily_cache, kivy_fontfamily_cache_order
     global kivy_ft_library, kivy_ft_init, kivy_ft_error
     if not kivy_ft_init:
@@ -275,6 +284,21 @@ cdef _set_context_options(ContextContainer cc, dict options):
     # Apply font description to context before getting metrics
     pango_context_set_font_description(cc.context, cc.fontdesc)
 
+    # FIXME: Not clear if this is identical to sdl2 settings
+    cdef bytes hinting = _byte_option(options['font_hinting'])
+    if hinting == b'normal':
+        cc.ft2subst_callback_data.antialias = 1
+        cc.ft2subst_callback_data.hintstyle = FC_HINT_FULL
+    elif hinting == b'light':
+        cc.ft2subst_callback_data.antialias = 1
+        cc.ft2subst_callback_data.hintstyle = FC_HINT_SLIGHT
+    elif hinting == b'mono':
+        cc.ft2subst_callback_data.antialias = 0
+        cc.ft2subst_callback_data.hintstyle = FC_HINT_FULL
+    else:
+        cc.ft2subst_callback_data.antialias = 0
+        cc.ft2subst_callback_data.hintstyle = FC_HINT_NONE
+
     # The language tag is not necessarily the same as the
     # one we have cached, or the locale could have changed.
     cdef PangoLanguage *new_lang = _get_options_text_language(options)
@@ -297,26 +321,20 @@ cdef _set_context_options(ContextContainer cc, dict options):
     pango_layout_context_changed(cc.layout)
 
 
-# NOTE: for future, this applies to font selection, irrelevant with one font
-# Or maybe it is relevant, it's not clear. The callback didn't execute with
-# null for data/destroy callback. I was planning on testing with flags
-# packed in a gpointer, but this is still on todo. If anyone knows more
-# about fontconfig and can clarify how this should be done, that'd be great
-
-#cdef _configure_pattern_destroy_data(gpointer data):
-#    print("_configure_pattern_destroy_data()!")
-
-#cdef _configure_pattern_callback(FcPattern *pattern, gpointer data):
-#    cdef unsigned int flags = GPOINTER_TO_UINT(data)
-#    print("_configure_pattern_callback()!")
-#    FcPatternDel(pattern, FC_HINTING)
-#    FcPatternAddBool(pattern, FC_HINTING, ...)
+# Substitute callback, for `font_hinting` property originally implemented for sdl2
+# https://github.com/SDL-mirror/SDL_ttf/blob/release-2.0.14/SDL_ttf.c#L2160-L2172
+# https://github.com/GNOME/pango/blob/1.28/pango/pangoft2.c#L186-L222
+cdef void _ft2subst_callback(FcPattern *pattern, gpointer data):
+    cdef ft2subst_callback_data_t *cbdata = <ft2subst_callback_data_t *>data
+    FcPatternDel(pattern, FC_ANTIALIAS)
+    FcPatternAddBool(pattern, FC_ANTIALIAS, <FcBool>cbdata.antialias)
+    FcPatternDel(pattern, FC_HINTING)
+    FcPatternAddBool(pattern, FC_HINTING, <FcBool>(cbdata.hintstyle != 0))
+    if cbdata.hintstyle != 0:
+        FcPatternDel(pattern, FC_HINT_STYLE)
+        FcPatternAddInteger(pattern, FC_HINT_STYLE, cbdata.hintstyle)
 #    FcPatternDel(pattern, FC_AUTOHINT)
 #    FcPatternAddBool(pattern, FC_AUTOHINT, ...)
-#    FcPatternDel(pattern, FC_HINT_STYLE)
-#    FcPatternAddInteger(pattern, FC_HINT_STYLE, ...)
-#    FcPatternDel(pattern, FC_ANTIALIAS)
-#    FcPatternAddBool(pattern, FC_ANTIALIAS, ...)
 
 
 # Creates a ContextContainer for the font_name_r of the label
@@ -358,8 +376,8 @@ cdef ContextContainer _get_context_container(dict options):
                 cc.fc_config = FcInitLoadConfigAndFonts()
             elif font_context.startswith('directory://'):
                 cc.fc_config = FcInitLoadConfig()
-                custom_context_source = font_context[11:]
-                if FcConfigAppFontAddDir(cc.fc_config, font_context[11:]) == FcFalse:
+                custom_context_source = font_context[12:]
+                if FcConfigAppFontAddDir(cc.fc_config, <FcChar8 *>custom_context_source) == FcFalse:
                     Logger.warn("_text_pango: Error loading fonts for directory context "
                                 "'{}'".format(font_context))
             elif font_context.startswith('fontconfig://'):
@@ -372,6 +390,9 @@ cdef ContextContainer _get_context_container(dict options):
         else:  # normal shared context
             cc.fc_config = FcInitLoadConfig()
 
+        # Disable rescan interval, maybe we shouldn't do this for system://?
+        FcConfigSetRescanInterval(cc.fc_config, 0)
+
     # Add the specified font file to context, if any.
     cdef bytes resolved_families
     if font_name_r:
@@ -380,6 +401,7 @@ cdef ContextContainer _get_context_container(dict options):
             return
         if font_name_r not in kivy_fontfamily_cache:
             resolved_families = _ft2_scan_fontfile_to_fontfamily_cache(font_name_r)
+
         cc.loaded_fonts.update([font_name_r])
         if not creating_new_context:
             # Older versions swap the FcConfig in _set_context_options()
@@ -418,12 +440,10 @@ cdef ContextContainer _get_context_container(dict options):
     cc.fontdesc = pango_font_description_new()
     _set_context_options(cc, options)
 
-    # FIXME: This may become relevant, leaving for now
-    #pango_ft2_font_map_set_default_substitute(
-    #                PANGO_FT2_FONT_MAP(cc.fontmap),
-    #                &_configure_pattern_callback,
-    #                cc.callback_data_ptr,
-    #                &_configure_pattern_destroy_data)
+    # The default substitute function is used to apply some last-minute
+    # options to FontConfig pattern.
+    pango_ft2_font_map_set_default_substitute(PANGO_FT2_FONT_MAP(cc.fontmap),
+                &_ft2subst_callback, <gpointer>&cc.ft2subst_callback_data, NULL)
 
     # Fallback context
     if font_context:
