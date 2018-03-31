@@ -1002,7 +1002,7 @@ class Label(Widget):
     Can be one of `'normal'`, `'light'`, `'mono'` or None.
 
     .. note::
-        This feature requires the SDL2 text provider.
+        This feature requires SDL2 or Pango text provider.
 
     .. versionadded:: 1.10.0
 
@@ -1011,7 +1011,8 @@ class Label(Widget):
     '''
 
     font_kerning = BooleanProperty(True)
-    '''Whether kerning is enabled for font rendering.
+    '''Whether kerning is enabled for font rendering. You should normally
+    only disable this if rendering is broken with a particular font file.
 
     .. note::
         This feature requires the SDL2 text provider.

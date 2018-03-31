@@ -80,8 +80,14 @@ cdef extern from "fontconfig/fontconfig.h" nogil:
     ctypedef unsigned char FcChar8
     bint FcTrue
     bint FcFalse
-    char *FC_FAMILY
-    char *FC_STYLE
+    const char *FC_FAMILY
+    const char *FC_ANTIALIAS
+    const char *FC_HINTING
+    const char *FC_HINT_STYLE
+    int FC_HINT_NONE
+    int FC_HINT_SLIGHT
+    int FC_HINT_MEDIUM
+    int FC_HINT_FULL
 
     FcConfig *FcConfigCreate()
     FcConfig *FcInitLoadConfig()
@@ -92,26 +98,30 @@ cdef extern from "fontconfig/fontconfig.h" nogil:
     FcBool FcConfigAppFontAddFile(FcConfig *config, const FcChar8 *file)
     FcBool FcConfigAppFontAddDir(FcConfig *config, const FcChar8 *dir)
     FcBool FcConfigParseAndLoad(FcConfig *config, const FcChar8 *file, FcBool complain)
+    FcBool FcConfigSetRescanInterval(FcConfig *config, int rescaninterval)
+    int FcConfigGetRescanInterval(FcConfig *config)
 
     FcResult FcPatternGetString(FcPattern *p, const char *object, int id, FcChar8 **s)
     void FcPatternDestroy(FcPattern *p)
+    FcBool FcPatternDel(FcPattern *p, const char *object)
+    FcBool FcPatternAddInteger (FcPattern *p, const char *object, int i)
+    FcBool FcPatternAddBool (FcPattern *p, const char *object, FcBool b)
 #    FcPattern *FcPatternCreate()
-#    FcBool FcPatternDel(FcPattern *p, const char *object)
-#    FcBool FcPatternAddInteger (FcPattern *p, const char *object, int i)
 #    FcBool FcPatternAddDouble (FcPattern *p, const char *object, double d)
 #    FcBool FcPatternAddString (FcPattern *p, const char *object, const FcChar8 *s)
 #    FcBool FcPatternAddMatrix (FcPattern *p, const char *object, const FcMatrix *m)
 #    FcBool FcPatternAddCharSet (FcPattern *p, const char *object, const FcCharSet *c)
-#    FcBool FcPatternAddBool (FcPattern *p, const char *object, FcBool b)
 #    FcBool FcPatternAddFTFace (FcPattern *p, const char *object, const FT_Facef)
 #    FcBool FcPatternAddLangSet (FcPattern *p, const char *object, const FcLangSet *l)
 #    FcBool FcPatternAddRange (FcPattern *p, const char *object, const FcRange *r)
 
 
+# https://www.freedesktop.org/software/fontconfig/fontconfig-devel/fcfreetypequeryface.html
 cdef extern from "fontconfig/fcfreetype.h" nogil:
     FcPattern *FcFreeTypeQueryFace(const FT_Face face, const FcChar8 *file, unsigned int id, void *)
 
 
+# https://developer.gnome.org/pango/stable/pango-Version-Checking.html
 cdef extern from "pango/pango-utils.h":
     int PANGO_VERSION_CHECK(int major, int minor, int micro)
 
@@ -156,6 +166,7 @@ cdef extern from "pango/pango-attributes.h" nogil:
         PANGO_STYLE_NORMAL
         PANGO_STYLE_OBLIQUE
         PANGO_STYLE_ITALIC
+    # FIXME: investigate need to handle this for different pango versions
     ctypedef enum PangoWeight:
         PANGO_WEIGHT_THIN
         PANGO_WEIGHT_ULTRALIGHT
