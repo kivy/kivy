@@ -97,6 +97,7 @@ cdef extern from "fontconfig/fontconfig.h" nogil:
     FcBool FcConfigSetCurrent(FcConfig *config)
     FcBool FcConfigAppFontAddFile(FcConfig *config, const FcChar8 *file)
     FcBool FcConfigAppFontAddDir(FcConfig *config, const FcChar8 *dir)
+    void FcConfigAppFontClear(FcConfig *config)
     FcBool FcConfigParseAndLoad(FcConfig *config, const FcChar8 *file, FcBool complain)
     FcBool FcConfigSetRescanInterval(FcConfig *config, int rescaninterval)
     int FcConfigGetRescanInterval(FcConfig *config)
