@@ -130,6 +130,7 @@ cdef class ContextContainer:
         if self.fontmap:
             g_object_unref(self.fontmap)
         if self.fc_config:
+            FcConfigAppFontClear(self.fc_config)
             FcConfigDestroy(self.fc_config)
 
 
