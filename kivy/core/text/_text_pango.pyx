@@ -385,14 +385,17 @@ cdef ContextContainer _get_context_container(dict options):
                 cc.fc_config = FcConfigCreate()
                 custom_context_source = font_context[13:]
                 if FcTrue != FcConfigParseAndLoad(cc.fc_config, <FcChar8 *>custom_context_source, FcTrue):
-                    Logger.warning("_text_pango: Error loading FontConfig configuration"
-                                   "for font_context {}: {}".format(font_context, custom_context_source))
-                    return
-        else:  # normal shared context
+                    Logger.warn("_text_pango: Error loading FontConfig configuration"
+                                "for font_context {}: {}".format(font_context, custom_context_source))
+        else:  # isolated context
             cc.fc_config = FcInitLoadConfig()
 
-        # Disable rescan interval, maybe we shouldn't do this for system://?
-        FcConfigSetRescanInterval(cc.fc_config, 0)
+        if cc.fc_config:
+            # Disable rescan interval, maybe we shouldn't do this for system://?
+            FcConfigSetRescanInterval(cc.fc_config, 0)
+        else:
+            Logger.warn("_text_pango: Could not create new FcConfig object, out of memory?")
+            return
 
     # Add the specified font file to context, if any.
     cdef bytes resolved_families
@@ -400,24 +403,24 @@ cdef ContextContainer _get_context_container(dict options):
         if FcConfigAppFontAddFile(cc.fc_config, <FcChar8 *>font_name_r) == FcFalse:
             Logger.warn("_text_pango: Error loading font '{}'".format(font_name_r))
             return
+        # FIXME: use pango_font_map_list_families for isolated context (?)
         if font_name_r not in kivy_fontfamily_cache:
             resolved_families = _ft2_scan_fontfile_to_fontfamily_cache(font_name_r)
-
         cc.loaded_fonts.update([font_name_r])
-        if not creating_new_context:
-            # Older versions swap the FcConfig in _set_context_options()
-            if PANGO_VERSION_CHECK(1, 38, 0):
-                pango_fc_font_map_config_changed(PANGO_FC_FONT_MAP(cc.fontmap))
-            return cc
 
-    # Create a blank font map and assign the config from above (one TTF file)
+    # Exit now if we loaded new font_file_r to existing context
+    if not creating_new_context:
+        # Older versions swap the FcConfig in _set_context_options()
+        if PANGO_VERSION_CHECK(1, 38, 0):
+            pango_fc_font_map_config_changed(PANGO_FC_FONT_MAP(cc.fontmap))
+        return cc
+
+    # Create font map and set it's FcConfig if Pango supports it (v1.38+).
+    # Older versions swapping the current FcConfig in _set_context_options()
     cc.fontmap = pango_ft2_font_map_new()
     if not cc.fontmap:
         Logger.warn("_text_pango: Could not create new font map")
         return
-
-    # In 1.38+ we can do this (+ config_changed above) instead of swapping the
-    # current FcConfig each time we use the Pango context
     if PANGO_VERSION_CHECK(1, 38, 0):
         pango_fc_font_map_set_config(PANGO_FC_FONT_MAP(cc.fontmap), cc.fc_config)
 
@@ -435,11 +438,7 @@ cdef ContextContainer _get_context_container(dict options):
         Logger.warn("_text_pango: Could not create pango layout")
         return
 
-    if not creating_new_context:
-        _set_context_options(cc, options)
-        return cc
     cc.fontdesc = pango_font_description_new()
-    _set_context_options(cc, options)
 
     # The default substitute function is used to apply some last-minute
     # options to FontConfig pattern.
@@ -464,6 +463,13 @@ cdef ContextContainer _get_context_container(dict options):
 cdef void _render_context(ContextContainer cc, unsigned char *dstbuf,
                      int x, int y, int final_w, int final_h,
                      unsigned char textcolor[]) nogil:
+    # FIXME: Clip for x/y < 0 or x+w / y+h overflow
+    if x < 0 or y < 0:
+        with gil:
+            Logger.warn("_text_pango: Clipping not implemented, got negative pos "
+                        "(x={} y={}). Some text was not rendered".format(x, y))
+            return
+
     if not dstbuf or final_w <= 0 or final_h <= 0 or x > final_w or y > final_h:
         with gil:
             Logger.warn('_text_pango: Invalid blit: final={}x{} x={} y={}'
@@ -624,7 +630,7 @@ cdef class KivyPangoRenderer:
 
 
 def kpango_get_extents(kivylabel, text):
-    if not text:
+    if text is None:  # text='' needs to return size
         return 0, 0
     cdef dict options = kivylabel.options
     cdef ContextContainer cc = _get_context_container(options)
