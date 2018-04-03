@@ -529,6 +529,8 @@ class TextInput(FocusBehavior, Widget):
         fbind('font_size', refresh_line_options)
         fbind('font_name', refresh_line_options)
         fbind('font_context', refresh_line_options)
+        fbind('base_direction', refresh_line_options)
+        fbind('text_language', refresh_line_options)
 
         def handle_readonly(instance, value):
             if value and (not _is_desktop or not self.allow_copy):
@@ -549,8 +551,6 @@ class TextInput(FocusBehavior, Widget):
 
         fbind('pos', trigger_update_graphics)
         fbind('halign', trigger_update_graphics)
-        fbind('base_direction', trigger_update_graphics)
-        fbind('text_language', trigger_update_graphics)
         fbind('readonly', handle_readonly)
         fbind('focus', self._on_textinput_focused)
         handle_readonly(self, self.readonly)
