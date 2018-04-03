@@ -488,35 +488,47 @@ cdef inline ContextContainer _get_or_create_cc_from_options(dict options):
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cdef void _render_cc(ContextContainer cc, unsigned char *dstbuf,
-                     int x, int y, int final_w, int final_h,
-                     unsigned char textcolor[]) nogil:
+                     int dstbuf_w, int dstbuf_h, int x, int y,
+                     unsigned char R, unsigned char G, unsigned char B,
+                     unsigned char A) nogil:
     #              <----------- x -----------> <------- w -------->
     #         .--> .--------------- dstbuf ---.-------------------. <--.
     #         |    |                          |      bitmap       |    | h
-    # final_h |    |                          '-------------------| <=<
+    # dstbuf_h|    |                          '-------------------| <=<
     #         |    |                                              |    | y
     #         '--> '----------------------------------------------' <--'
-    #              <---------------- final_w --------------------->
-    # FIXME: Clip for x/y < 0 or x+w / y+h overflow
-    if x < 0 or y < 0:
+    #              <---------------- dstbuf_w --------------------->
+    if not dstbuf or dstbuf_w <= 0 or dstbuf_h <= 0 or x > dstbuf_w or y > dstbuf_h:
         with gil:
-            Logger.warn("_text_pango: Clipping not implemented, got negative pos "
-                        "(x={} y={}). Some text was not rendered".format(x, y))
+            Logger.warn("_text_pango: _cc_render() with invalid arguments, "
+                        "this usually means text layout could not fit text within user-"
+                        "specified constraints: dstbuf size={}x{}, x={}, y={}"
+                        .format(dstbuf_w, dstbuf_h, x, y))
             return
 
-    if not dstbuf or final_w <= 0 or final_h <= 0 or x > final_w or y > final_h:
-        with gil:
-            Logger.warn("_text_pango: Invalid blit: final={}x{} x={} y={}"
-                        .format(final_w, final_h, x, y))
-            return
+    cdef int layout_w, layout_h
+    pango_layout_get_pixel_size(cc.layout, &layout_w, &layout_h)
 
-    # Note, w/h refers to the current subimage size, final_w/h is end result
-    cdef int w, h
-    pango_layout_get_pixel_size(cc.layout, &w, &h)
-    if w <= 0 or h <= 0 or x + w > final_w or y + h > final_h:
+    # If the bitmap is partially outside dstbuf, clip + blit a smaller area
+    cdef int w = layout_w, h = layout_h
+    cdef int clip_x_min = 0, clip_y_min = 0
+    if x < 0:
+        clip_x_min = -x
+        w -= clip_x_min
+        x = 0
+    if y < 0:
+        clip_y_min = -y
+        h -= clip_y_min
+        y = 0
+    if x + w > dstbuf_w:
+        w -= x + w - dstbuf_w
+    if y + h > dstbuf_h:
+        h -= y + h - dstbuf_h
+    if w <= 0 or h <= 0 or x + w > dstbuf_w or y + h > dstbuf_h:
         with gil:
-            Logger.warn("_text_pango: Invalid blit: final={}x{} x={} y={} w={} h={}"
-                        .format(final_w, final_h, x, y, w, h))
+            Logger.warn("_text_pango: Invalid blit: dstbuf size={}x{}, "
+                        "x={}, y={}, clip_x_min={}, w={}, clip_y_min={}, h={}"
+                        .format(dstbuf_w, dstbuf_h, x, y, clip_x_min, w, clip_y_min, h))
             return
 
     cdef FT_Bitmap bitmap
@@ -525,16 +537,16 @@ cdef void _render_cc(ContextContainer cc, unsigned char *dstbuf,
     cdef unsigned long grayidx
     cdef unsigned long yi_w
     cdef unsigned long offset
-    cdef unsigned long offset_fixed = x + (y * final_w)
-    cdef unsigned long offset_yi = final_w - w
-    cdef unsigned long maxpos = final_w * final_h
+    cdef unsigned long offset_fixed = x + (y * dstbuf_w)
+    cdef unsigned long offset_yi = dstbuf_w - w
+    cdef unsigned long maxpos = dstbuf_w * dstbuf_h
 
     # Sanity check that we don't go out of bounds here, should not happen
     if offset_fixed + ((h-1)*offset_yi) + ((h-1)*w) + w - 1 > maxpos:
         with gil:
-            Logger.warn("_text_pango: Ignoring out of bounds blit: final={}x{} "
-                        "x={} y={} w={} h={} maxpos={}".format(
-                        final_w, final_h, x, y, w, h, maxpos))
+            Logger.warn("_text_pango: Ignoring out of bounds blit: dstbuf size={}x{}, "
+                        "x={}, y={}, clip_x_min={}, w={}, clip_y_min={}, h={}, maxpos={}"
+                        .format(dstbuf_w, dstbuf_h, x, y, clip_x_min, w, clip_y_min, h, maxpos))
             return
 
     # Prepare ft2 bitmap for pango's grayscale data
@@ -550,12 +562,12 @@ cdef void _render_cc(ContextContainer cc, unsigned char *dstbuf,
                         "Abort rendering.")
             return
 
-    bitmap.width = w
-    bitmap.rows = h
-    bitmap.pitch = w # 1-byte grayscale
+    bitmap.width = layout_w
+    bitmap.rows = layout_h
+    bitmap.pitch = layout_w # 1-byte grayscale
     bitmap.pixel_mode = FT_PIXEL_MODE_GRAY # no BGRA in pango (ft2 has it)
     bitmap.num_grays = 256
-    bitmap.buffer = <unsigned char *>g_malloc0(w * h)
+    bitmap.buffer = <unsigned char *>g_malloc0(layout_w * layout_h)
     if not bitmap.buffer:
         with gil:
             Logger.warn("_text_pango: Could not malloc FT_Bitmap.buffer")
@@ -565,21 +577,21 @@ cdef void _render_cc(ContextContainer cc, unsigned char *dstbuf,
     # FIXME: does render_layout_subpixel() do us any good?
     pango_ft2_render_layout(&bitmap, cc.layout, 0, 0)
 
-    # Blit the bitmap as RGBA at x, y in dstbuf (w/h is the ft2 bitmap)
-    for yi in range(0, h):
+    # Blit the bitmap as RGBA at x, y in dstbuf (w/h is the clipped ft2 bitmap)
+    for yi in range(clip_y_min, h):
         offset = offset_fixed + (yi * offset_yi)
         yi_w = yi * w
 
         # FIXME: Handle big endian - either use variable shifts here, or
         # return as abgr + handle elsewhere
-        for xi in range(0, w):
+        for xi in range(clip_x_min, w):
             grayidx = yi_w + xi
             graysrc = (bitmap.buffer)[grayidx]
             (<uint32_t *>dstbuf)[offset + grayidx] = (
-                    (((textcolor[0] * graysrc) / 255)) |
-                    (((textcolor[1] * graysrc) / 255) << 8) |
-                    (((textcolor[2] * graysrc) / 255) << 16) |
-                    (((textcolor[3] * graysrc) / 255) << 24) )
+                    (((R * graysrc) / 255)) |
+                    (((G * graysrc) / 255) << 8) |
+                    (((B * graysrc) / 255) << 16) |
+                    (((A * graysrc) / 255) << 24) )
     g_free(bitmap.buffer)
     # /nogil _cc_render()
 
@@ -627,21 +639,21 @@ cdef class KivyPangoRenderer:
         pango_layout_set_text(cc.layout, utf, len(utf))
 
         # Kivy normalized text color -> 0-255 rgba for nogil
-        cdef unsigned char textcolor[4]
+        cdef unsigned char R, G, B, A
         color = options['color']
-        textcolor[0] = min(255, int(color[0] * 255))
-        textcolor[1] = min(255, int(color[1] * 255))
-        textcolor[2] = min(255, int(color[2] * 255))
+        R = min(255, int(color[0] * 255))
+        G = min(255, int(color[1] * 255))
+        B = min(255, int(color[2] * 255))
         if len(color) > 3:
-            textcolor[3] = min(255, int(color[3] * 255))
+            A = min(255, int(color[3] * 255))
         else:
-            textcolor[3] = 255
+            A = 255
 
         # Finally render the layout and blit it to self.pixels
         cdef int xx = x
         cdef int yy = y
         with nogil:
-            _render_cc(cc, self.pixels, xx, yy, self.w, self.h, textcolor)
+            _render_cc(cc, self.pixels, self.w, self.h, xx, yy, R, G, B, A)
         self.rdrcount += 1
 
     # Return ImageData instance with the rendered pixels
