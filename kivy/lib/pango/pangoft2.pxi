@@ -17,7 +17,7 @@ cdef extern from "glib.h" nogil:
 
 
 # https://www.freetype.org/freetype2/docs/reference/ft2-index.html
-cdef extern from "../../lib/pangoft2.h" nogil:
+cdef extern from "../../lib/pango/freetype2.h" nogil:
     int FREETYPE_MAJOR
     int FREETYPE_MINOR
     int FREETYPE_PATCH
