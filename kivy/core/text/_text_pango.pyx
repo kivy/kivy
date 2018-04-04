@@ -50,24 +50,10 @@ cdef inline void _purge_ordered_cache(dict cache, list order, int limit):
 # using FontConfig (since we depend on it anyway, this is very cumbersome
 # to do with ft2 directly due to vast number of encodings + huge tables etc)
 cdef FT_Library kivy_ft_library
-cdef int kivy_ft_init = 0
-cdef int kivy_ft_error = 0
-
-# Init global ft2 library instance. At the moment this is only used below.
-cdef inline bint _init_kivy_ft_library():
-    global kivy_ft_library, kivy_ft_init, kivy_ft_error
-    if kivy_ft_init:
-        return True
-    if kivy_ft_error:
-        return False
-    kivy_ft_error = FT_Init_FreeType(&kivy_ft_library)
-    if kivy_ft_error:
-        Logger.warn("_text_pango: Failed to initialize FreeType2 "
-                    "library. Error code: {}".format(kivy_ft_error))
-        return False
-    kivy_ft_init = 1
-    return True
-
+cdef int kivy_ft_error = FT_Init_FreeType(&kivy_ft_library)
+if kivy_ft_error:
+    Logger.warn("_text_pango: Failed to initialize FreeType2 "
+                "library. Error code: {}".format(kivy_ft_error))
 
 # Return a string that can be used to (hopefully) render with the font
 # file later (font family name, or as close to it as we can get).
@@ -79,7 +65,8 @@ cdef inline bint _init_kivy_ft_library():
 cdef bint _ft2_scan_fontfile_to_fontfamily_cache(bytes fontfile):
     global kivy_fontfamily_cache
     global kivy_ft_library
-    if not _init_kivy_ft_library():
+    global kivy_ft_error
+    if kivy_ft_error:
         return False
     # Return from cache if this file has been loaded before
     cdef bytes filename = _byte_option(fontfile)
@@ -227,7 +214,7 @@ cdef class ContextContainer:
 cdef inline bint _cc_fc_config_create(ContextContainer cc, bytes font_context):
     if cc.fc_config:
         Logger.warn("_text_pango: _cc_create_fcconfig(): cc.fc_config is not NULL")
-        return True  # arguably false .. but should not happen
+        return False  # arguably True .. but should not happen
 
     cdef bytes context_source
     if font_context:
