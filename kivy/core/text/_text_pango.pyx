@@ -13,10 +13,13 @@ cimport cython
 from libc.stdint cimport uint32_t
 from libc.string cimport memset
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
-
-include "../../lib/pango/pangoft2.pxi"
 from kivy.logger import Logger
 from kivy.core.image import ImageData
+
+include "../../lib/pango/pangoft2.pxi"
+cdef extern from "../../lib/kivy_endian.h":
+    const int KIVY_BYTEORDER
+    const int KIVY_LIL_ENDIAN
 
 # Since fontfiles can be reused in different contexts (or purged), cache family
 # name(s) so the file doesn't have to be opened twice for every future load to
@@ -471,6 +474,11 @@ cdef inline ContextContainer _get_or_create_cc_from_options(dict options):
 
 
 # Renders the pango layout to a grayscale bitmap, and blits RGBA at x, y
+cdef short RSHIFT, GSHIFT, BSHIFT, ASHIFT
+if KIVY_BYTEORDER == KIVY_LIL_ENDIAN:
+    RSHIFT = 0;  GSHIFT = 8;  BSHIFT = 16; ASHIFT = 24
+else:
+    RSHIFT = 24; GSHIFT = 16; BSHIFT = 8;  ASHIFT = 0
 @cython.cdivision(True)
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -568,19 +576,16 @@ cdef void _render_cc(ContextContainer cc, unsigned char *dstbuf,
     for yi in range(clip_y_min, h):
         offset = offset_fixed + (yi * offset_yi)
         yi_w = yi * w
-
-        # FIXME: Handle big endian - either use variable shifts here, or
-        # return as abgr + handle elsewhere
         for xi in range(clip_x_min, w):
             grayidx = yi_w + xi
             graysrc = (bitmap.buffer)[grayidx]
             (<uint32_t *>dstbuf)[offset + grayidx] = (
-                    (((R * graysrc) / 255)) |
-                    (((G * graysrc) / 255) << 8) |
-                    (((B * graysrc) / 255) << 16) |
-                    (((A * graysrc) / 255) << 24) )
+                    (((R * graysrc) / 255) << RSHIFT) |
+                    (((G * graysrc) / 255) << GSHIFT) |
+                    (((B * graysrc) / 255) << BSHIFT) |
+                    (((A * graysrc) / 255) << ASHIFT) )
     g_free(bitmap.buffer)
-    # /nogil _cc_render()
+    # /nogil _render_cc()
 
 
 # ----------------------------------------------------------------------------
@@ -626,15 +631,13 @@ cdef class KivyPangoRenderer:
         pango_layout_set_text(cc.layout, utf, len(utf))
 
         # Kivy normalized text color -> 0-255 rgba for nogil
-        cdef unsigned char R, G, B, A
+        cdef unsigned char R, G, B, A = 255
         color = options['color']
         R = min(255, int(color[0] * 255))
         G = min(255, int(color[1] * 255))
         B = min(255, int(color[2] * 255))
-        if len(color) > 3:
+        if len(color) > 3:  # ran into a situation where a wasn't included
             A = min(255, int(color[3] * 255))
-        else:
-            A = 255
 
         # Finally render the layout and blit it to self.pixels
         cdef int xx = x
