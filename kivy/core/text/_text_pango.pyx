@@ -26,16 +26,11 @@ cdef extern from "../../lib/kivy_endian.h":
 # a different context.
 cdef dict kivy_fontfamily_cache = {}
 
-# Fallback contexts have one or more font files loaded, and are at risk of
-# family name collision (Pango handles fallback)
-# FIXME: These are not purged, maybe they should be... ?
+# All font contexts (including isolated) are stored in a shared dictionary.
+# Isolated contexts are added to the _cache_order in addition, and the
+# oldest context will be purged from cache.
+# FIXME: Fallback contexts are not purged, maybe they should be... ?
 cdef dict kivy_font_context_cache = {}
-
-# Cache of isolated font contexts, ie with a single font loaded and no
-# fallback support. This is backwards-compatible with existing Kivy text
-# providers (we will draw with the user-specified font file, no risk
-# of conflict)
-cdef dict kivy_isolated_cache = {}
 cdef list kivy_isolated_cache_order = []
 
 # Purge oldest items from cache dict + order list. This is not ideal,
@@ -177,8 +172,7 @@ cdef void _ft2subst_callback(FcPattern *pattern, gpointer data):
 
 
 # Fontconfig and pango structures (one per font context). Instances of
-# this class are stored in the kivy_pango_isolated_cache (no font_context)
-# and kivy_pango_fallback_cache.
+# this class are stored in the kivy_font_context_cache dict.
 cdef class ContextContainer:
     cdef FcConfig *fc_config
     cdef PangoLayout *layout
@@ -392,30 +386,27 @@ cdef _set_cc_options(ContextContainer cc, dict options):
 # fonts (for example provided by system:// or directory://)
 cdef ContextContainer _get_or_create_cc(bytes font_context, bytes font_name_r):
     global kivy_font_context_cache
-    global kivy_isolated_cache
     global kivy_isolated_cache_order
     cdef ContextContainer cc
-    cdef bint isolated = True
+    cdef bint isolated = False
+
+    if not font_context:
+        if not font_name_r:
+            raise Exception('_text_pango: Attempt to load empty font_name_r in an'
+                            'isolated context. This is not possible.')
+        isolated = True
+        font_context = b'isolated://' + font_name_r
 
     # Check for cached context container
-    if font_context:
-        isolated = False
-        if font_context in kivy_font_context_cache:
-            cc = kivy_font_context_cache[font_context]
-            if not font_name_r or font_name_r in cc.loaded_fonts:
-                return cc
-            if _cc_add_font_file(cc, font_name_r):
-                if PANGO_VERSION_CHECK(1, 38, 0):
-                    # Older versions swap the FcConfig in _set_cc_options()
-                    pango_fc_font_map_config_changed(PANGO_FC_FONT_MAP(cc.fontmap))
+    cc = kivy_font_context_cache.get(font_context)
+    if cc:
+        if not font_name_r or font_name_r in cc.loaded_fonts:
             return cc
-        # <-- Pass here == create + cache new fallback context (maybe adding a new font)
-    elif not font_name_r:
-        raise Exception('_text_pango: Attempt to load empty font_name_r in an'
-                        'isolated context. This is not possible.')
-    elif font_name_r in kivy_isolated_cache:
-        return kivy_isolated_cache[font_name_r]
-    # <-- Pass here == create + cache new isolated context
+        if _cc_add_font_file(cc, font_name_r):
+            if PANGO_VERSION_CHECK(1, 38, 0):
+                # Older versions swap the FcConfig in _set_cc_options()
+                pango_fc_font_map_config_changed(PANGO_FC_FONT_MAP(cc.fontmap))
+        return cc
 
     cc = ContextContainer()
     if not _cc_fc_config_create(cc, font_context):
@@ -456,14 +447,10 @@ cdef ContextContainer _get_or_create_cc(bytes font_context, bytes font_name_r):
         Logger.warn("_text_pango: Could not create pango layout")
         return
 
-    # Fallback context
-    if not isolated:
-        kivy_font_context_cache[font_context] = cc
-        return cc
-    # Isolated context
-    _purge_ordered_cache(kivy_isolated_cache, kivy_isolated_cache_order, 128)
-    kivy_isolated_cache[font_name_r] = cc
-    kivy_isolated_cache_order.append(font_name_r)
+    kivy_font_context_cache[font_context] = cc
+    if isolated:
+        _purge_ordered_cache(kivy_font_context_cache, kivy_isolated_cache_order, 128)
+        kivy_isolated_cache_order.append(font_name_r)
     return cc
 
 
