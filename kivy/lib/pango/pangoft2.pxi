@@ -230,6 +230,10 @@ cdef extern from "pango/pangoft2.h" nogil:
     void pango_ft2_render_layout_subpixel(FT_Bitmap *bitmap, PangoLayout *layout, int x, int y)
     void pango_ft2_font_map_set_default_substitute(PangoFT2FontMap *fontmap, PangoFT2SubstituteFunc func, gpointer data, GDestroyNotify notify)
     PangoContext *pango_ft2_font_map_create_context(PangoFT2FontMap *fontmap) # < v1.22, now pango_font_map_create_context
+    void pango_ft2_font_map_substitute_changed(PangoFT2FontMap *fontmap)
+
+
+#cdef extern from "pango/pangoft-fontmap.h" nogil:
 
 
 # https://developer.gnome.org/pango/stable/pango-Text-Processing.html
