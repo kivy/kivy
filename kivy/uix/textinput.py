@@ -529,6 +529,7 @@ class TextInput(FocusBehavior, Widget):
         fbind('font_size', refresh_line_options)
         fbind('font_name', refresh_line_options)
         fbind('font_context', refresh_line_options)
+        fbind('font_family', refresh_line_options)
         fbind('base_direction', refresh_line_options)
         fbind('text_language', refresh_line_options)
 
@@ -1990,7 +1991,7 @@ class TextInput(FocusBehavior, Widget):
         maxy = self.top - padding_top
         halign = self.halign
         base_dir = self.base_direction
-        find_base_dir = Label._find_base_direction
+        find_base_dir = Label.find_base_direction
         auto_halign_r = halign == 'auto' and base_dir and 'rtl' in base_dir
 
         for line_num, value in enumerate(lines):
@@ -2200,6 +2201,7 @@ class TextInput(FocusBehavior, Widget):
                 'font_size': self.font_size,
                 'font_name': self.font_name,
                 'font_context': self.font_context,
+                'font_family': self.font_family,
                 'text_language': self.text_language,
                 'base_direction': self.base_direction,
                 'anchor_x': 'left',
@@ -3123,6 +3125,28 @@ class TextInput(FocusBehavior, Widget):
     .. versionadded:: 1.10.1
 
     :attr:`font_context` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+    '''
+
+    font_family = StringProperty(None, allownone=True)
+    '''Font family, this is only applicable when using :attr:`font_context`
+    option. The specified font family will be requested, but note that it may
+    not be available, or there could be multiple fonts registered with the
+    same family. The value can be a family name (string) to request from the
+    font context, for example a system (`system://` context). If set to
+    `None`, font selection is controlled by the :attr:`font_name` setting.
+
+    .. note::
+        If using :attr:`font_name` to reference a custom font file, the
+        family name is managed automatically behind the scenes, you can
+        leave this as None.
+
+    .. note::
+        This feature requires the Pango text provider.
+
+    .. versionadded:: 1.10.1
+
+    :attr:`font_family` is a :class:`~kivy.properties.StringProperty` and
     defaults to None.
     '''
 

@@ -130,6 +130,9 @@ The following tags are available:
     Display the text at a subscript position relative to the text before it.
 ``[sup][/sup]``
     Display the text at a superscript position relative to the text before it.
+``[font_family=<str>][/font_family]``
+    Font family to request for drawing. This is only valid when using a
+    font context, see :class:`kivy.uix.label.Label` for details.
 ``[font_context=<str>][/font_context]``
     Change context for the font, use string value "none" for isolated context.
 ``[font_features=<str>][/font_features]``
@@ -274,7 +277,7 @@ class Label(Widget):
     __events__ = ['on_ref_press']
 
     _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
-                        'underline', 'strikethrough', 'color',
+                        'underline', 'strikethrough', 'font_family', 'color',
                         'disabled_color', 'halign', 'valign', 'padding_x',
                         'padding_y', 'outline_width', 'disabled_outline_color',
                         'outline_color', 'text_size', 'shorten', 'mipmap',
@@ -522,6 +525,28 @@ class Label(Widget):
     .. versionadded:: 1.10.1
 
     :attr:`font_context` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+    '''
+
+    font_family = StringProperty(None, allownone=True)
+    '''Font family, this is only applicable when using :attr:`font_context`
+    option. The specified font family will be requested, but note that it may
+    not be available, or there could be multiple fonts registered with the
+    same family. The value can be a family name (string) to request from the
+    font context, for example a system (`system://` context). If set to
+    `None`, font selection is controlled by the :attr:`font_name` setting.
+
+    .. note::
+        If using :attr:`font_name` to reference a custom font file, the
+        family name is managed automatically behind the scenes, you can
+        leave this as None.
+
+    .. note::
+        This feature requires the Pango text provider.
+
+    .. versionadded:: 1.10.1
+
+    :attr:`font_family` is a :class:`~kivy.properties.StringProperty` and
     defaults to None.
     '''
 

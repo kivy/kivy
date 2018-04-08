@@ -5,6 +5,9 @@ Text
 An abstraction of text creation. Depending of the selected backend, the
 accuracy of text rendering may vary.
 
+.. versionchanged:: 1.10.1
+    :meth:`LabelBase.find_base_direction` added.
+
 .. versionchanged:: 1.5.0
     :attr:`LabelBase.line_height` added.
 
@@ -12,7 +15,7 @@ accuracy of text rendering may vary.
     The :class:`LabelBase` does not generate any texture if the text has a
     width <= 1.
 
-This is the backend layer for getting text out of different text providers,
+This is the backend layer for rendering text with different text providers,
 you should only be using this directly if your needs aren't fulfilled by the
 :class:`~kivy.uix.label.Label`.
 
@@ -30,9 +33,40 @@ Usage example::
     # however you may please.
     hello_texture = my_label.texture
 
+
+Font Context Manager
+====================
+
+A font context is a namespace where multiple fonts are loaded; if a font is
+missing a glyph needed to render text, it can fall back to a different font in
+the same context. The font context manager can be used to query and manipulate
+the state of font contexts when using the Pango text provider (no other
+provider currently implements it).
+
+.. versionadded:: 1.10.1
+
+.. warning:: This feature requires the Pango text provider.
+
+Font contexts can be created automatically by :class:`kivy.uix.label.Label` or
+:class:`kivy.uix.textinput.TextInput`; if a non-existant context is used in
+one of these classes, it will be created automatically, or if a font file is
+specified without a context (this creates an isolated context, without
+support for fallback).
+
+Usage example::
+
+    from kivy.core.text import FontContextManager as FCM
+    FCM.create('system://myapp')
+    family = FCM.add_font('/path/to/file.ttf')
+
+    # These are now interchangeable
+    from kivy.uix.label import Label
+    lbl1 = Label(font_context='system://myapp', family_name=family)
+    lbl2 = Label(font_context='system://myapp', font_name='/path/to/file.ttf')
 '''
 
-__all__ = ('LabelBase', 'Label')
+__all__ = ('LabelBase', 'Label',
+           'FontContextManagerBase', 'FontContextManager')
 
 import re
 import os
@@ -75,7 +109,9 @@ class LabelBase(object):
         `font_size`: int, defaults to 12
             Font size of the text
         `font_context`: str, defaults to None
-            Context for the specified font file (see Label for details)
+            Context for the specified font (see :class:`kivy.uix.label.Label`
+            for details). `None` will autocreate an isolated context named
+            after the resolved font file.
         `font_name`: str, defaults to DEFAULT_FONT
             Font name of the text
         `bold`: bool, defaults to False
@@ -181,7 +217,7 @@ class LabelBase(object):
 
     def __init__(
         self, text='', font_size=12, font_name=DEFAULT_FONT, bold=False,
-        italic=False, underline=False, strikethrough=False,
+        italic=False, underline=False,  strikethrough=False, font_family=None,
         halign='left', valign='bottom', shorten=False,
         text_size=None, mipmap=False, color=None, line_height=1.0, strip=False,
         strip_reflow=True, shorten_from='center', split_str=' ',
@@ -198,6 +234,7 @@ class LabelBase(object):
         options = {'text': text, 'font_size': font_size,
                    'font_name': font_name, 'bold': bold, 'italic': italic,
                    'underline': underline, 'strikethrough': strikethrough,
+                   'font_family': font_family,
                    'halign': halign, 'valign': valign, 'shorten': shorten,
                    'mipmap': mipmap, 'line_height': line_height,
                    'strip': strip, 'strip_reflow': strip_reflow,
@@ -294,20 +331,14 @@ class LabelBase(object):
         else:
             filename = resource_find(fontname)
             if not filename and not fontname.endswith('.ttf'):
-                filename = resource_find('{}.ttf'.format(fontname))
+                fontname = '{}.ttf'.format(fontname)
+                filename = resource_find(fontname)
 
             if filename is None:
                 # XXX for compatibility, check directly in the data dir
                 filename = pep8_fn = os.path.join(kivy_data_dir, fontname)
                 if not os.path.exists(pep8_fn) or not os.path.isfile(pep8_fn):
-                    # Not a font file, but we have a font context. Treat it
-                    # as font family / description string.
-                    if options['font_context']:
-                        fontscache[fontname] = None
-                        options['font_name_r'] = None
-                        return
-                    else:
-                        raise IOError('Label: File %r not found' % fontname)
+                    raise IOError('Label: File %r not found' % fontname)
             fontscache[fontname] = filename
             options['font_name_r'] = filename
 
@@ -527,10 +558,19 @@ class LabelBase(object):
             self.texture.blit_data(data)
         return
 
-    # FIXME: This should possibly use a Config value
+    # FIXME: This should possibly use a Config value, and possibly we should
+    #        expose pango_unichar_direction() / pango_bidi_type_for_unichar()
     @staticmethod
-    def _find_base_direction(text):
-        return 'weak_ltr'
+    def find_base_direction(text):
+        '''Searches a string the first character that has a strong direction,
+        according to the Unicode bidirectional algorithm. Returns `None` if
+        the base direction cannot be determined, or one of `'ltr'` or `'rtl'`.
+
+        .. versionadded: 1.10.1
+
+        .. note:: This feature requires the Pango text provider.
+        '''
+        return 'ltr'
 
     def render_lines(self, lines, options, render_text, y, size):
         get_extents = self.get_cached_extents()
@@ -542,7 +582,7 @@ class LabelBase(object):
         sw = options['space_width']
         halign = options['halign']
         split = re.split
-        find_base_dir = self._find_base_direction
+        find_base_dir = self.find_base_direction
         cur_base_dir = options['base_direction']
 
         for layout_line in lines:  # for plain label each line has only one str
@@ -813,8 +853,133 @@ class LabelBase(object):
                         doc='''(deprecated) Use text_size instead.''')
 
 
+class FontContextManagerBase(object):
+    @staticmethod
+    def create(font_context):
+        '''Create a font context, you must specify a unique name (string).
+        Returns `True` on success and `False` on failure.
+
+        If `font_context` starts with one of the reserved words `'system://'`,
+        `'directory://'`, `'fontconfig://'` or `'systemconfig://'`, the context
+        is setup accordingly (exact results of this depends on your platform,
+        environment and configuration).
+
+        * `'system://'` loads the default system's FontConfig configuration
+          and all fonts (usually including user fonts).
+        * `directory://` contexts preload a directory of font files (specified
+          in the context name), `systemconfig://` loads the system's FontConfig
+          configuration (but no fonts), and `fontconfig://` loads FontConfig
+          configuration file (specified in the context name!). These are for
+          advanced users only, check the source code and FontConfig
+          documentation for details.
+        * Fonts automatically loaded to an isolated context (ie when no
+          font context was specified) start with `'isolated://'`. This has
+          no special effect, and only serves to help you identify them in
+          the results returned from :meth:`list`.
+        * Any other string is a context that will only draw with the font
+          file(s) you explicitly add to it.
+
+        .. versionadded:: 1.10.1
+
+        .. note::
+            Font contexts are created automatically by specifying a name in the
+            `font_context` property of :class:`kivy.uix.label.Label` or
+            :class:`kivy.uix.textinput.TextInput`. They are also auto-created
+            by :meth:`add_font` by default, so you normally don't need to
+            call this directly.
+
+        .. note:: This feature requires the Pango text provider.
+        '''
+        raise NotImplementedError("No font_context support in text provider")
+
+    @staticmethod
+    def exists(font_context):
+        '''Returns True if a font context with the given name exists.
+
+        .. versionadded:: 1.10.1
+
+        .. note:: This feature requires the Pango text provider.
+        '''
+        raise NotImplementedError("No font_context support in text provider")
+
+    @staticmethod
+    def destroy(font_context):
+        '''Destroy a named font context (if it exists)
+
+        .. versionadded:: 1.10.1
+
+        .. note:: This feature requires the Pango text provider.
+        '''
+        raise NotImplementedError("No font_context support in text provider")
+
+    @staticmethod
+    def list():
+        '''Returns a list of `bytes` objects, each representing a cached font
+        context name. Note that entries that start with `isolated://` were
+        autocreated by loading a font file with no font_context specified.
+
+        .. versionadded:: 1.10.1
+
+        .. note:: This feature requires the Pango text provider.
+        '''
+        raise NotImplementedError("No font_context support in text provider")
+
+    @staticmethod
+    def list_families(font_context):
+        '''Returns a list of `bytes` objects, each representing a font family
+        name that is available in the given `font_context`.
+
+        .. versionadded:: 1.10.1
+
+        .. note::
+            Pango adds static "Serif", "Sans" and "Monospace" to the list in
+            current versions, even if only a single custom font file is added
+            to the context.
+
+        .. note:: This feature requires the Pango text provider.
+        '''
+        raise NotImplementedError("No font_context support in text provider")
+
+    @staticmethod
+    def list_custom(font_context):
+        '''Returns a dictionary representing all the custom-loaded fonts in
+        the context. The key is a `bytes` object representing the full path
+        to the font file, the value is a `bytes` object representing the font
+        family name used to request drawing with the font.
+
+        .. versionadded:: 1.10.1
+
+        .. note:: This feature requires the Pango text provider.
+        '''
+        raise NotImplementedError("No font_context support in text provider")
+
+    @staticmethod
+    def add_font(font_context, filename, autocreate=True, family=None):
+        '''Add a font file to a named font context. If `autocreate` is true,
+        the context will be created if it does not exist (this is the
+        default). You can specify the `family` argument (string) to skip
+        auto-detecting the font family name.
+
+        .. warning::
+
+            The `family` argument is slated for removal if the underlying
+            implementation can be fixed, It is offered as a way to optimize
+            startup time for deployed applications (it avoids opening the
+            file with FreeType2 to determine its family name). To use this,
+            first load the font file without specifying `family`, and
+            hardcode the returned (autodetected) `family` value in your font
+            context initialization.
+
+        .. versionadded:: 1.10.1
+
+        .. note:: This feature requires the Pango text provider.
+        '''
+        raise NotImplementedError("No font_context support in text provider")
+
+
 # Load the appropriate provider
 label_libs = []
+
 if USE_PANGOFT2:
     label_libs += [('pango', 'text_pango', 'LabelPango')]
 
@@ -832,6 +997,14 @@ if 'KIVY_DOC' not in os.environ:
         import sys
         Logger.critical('App: Unable to get a Text provider, abort.')
         sys.exit(1)
+
+    # FIXME: Better way to do this
+    if Label.__name__ == 'LabelPango':
+        from kivy.core.text.text_pango import PangoFontContextManager
+        FontContextManager = PangoFontContextManager()
+    else:
+        FontContextManager = FontContextManagerBase()
+
 
 # For the first initialization, register the default font
     Label.register(DEFAULT_FONT, *_default_font_paths)

@@ -43,6 +43,9 @@ The following tags are available:
     Display the text at a subscript position relative to the text before it.
 ``[sup][/sup]``
     Display the text at a superscript position relative to the text before it.
+``[font_family=<str>][/font_family]``
+    Font family to request for drawing. This is only valid when using a
+    font context, see :class:`kivy.uix.label.Label` for details.
 ``[font_context=<str>][/font_context]``
     Change context for the font, use string value "none" for isolated context.
 ``[font_features=<str>][/font_features]``
@@ -164,7 +167,7 @@ class MarkupLabel(MarkupLabelBase):
         uhh = (None if uh is not None and options['valign'] != 'top' or
                options['shorten'] else uh)
         options['strip'] = options['strip'] or options['halign'] == 'justify'
-        find_base_dir = Label._find_base_direction
+        find_base_dir = Label.find_base_direction
         base_dir = options['base_direction']
         self._resolved_base_dir = None
         for item in self.markup:
@@ -224,6 +227,11 @@ class MarkupLabel(MarkupLabelBase):
             elif item == '[/font]':
                 spop('font_name')
                 self.resolve_font_name()
+            elif item[:13] == '[font_family=':
+                spush('font_family')
+                options['font_family'] = item[13:-1]
+            elif item[:14] == '[/font_family]':
+                spop('font_family')
             elif item[:14] == '[font_context=':
                 fctx = item[14:-1]
                 if not fctx or fctx.lower() == 'none':
@@ -233,9 +241,8 @@ class MarkupLabel(MarkupLabelBase):
             elif item == '[/font_context]':
                 spop('font_context')
             elif item[:15] == '[font_features=':
-                feats = item[15:-1]
                 spush('font_features')
-                options['font_features'] = feats
+                options['font_features'] = item[15:-1]
             elif item == '[/font_features]':
                 spop('font_features')
             elif item[:15] == '[text_language=':
