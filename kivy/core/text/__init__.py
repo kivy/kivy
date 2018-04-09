@@ -55,14 +55,20 @@ support for fallback).
 
 Usage example::
 
+    from kivy.uix.label import Label
     from kivy.core.text import FontContextManager as FCM
+
+    # Create a font context containing system fonts + one custom TTF
     FCM.create('system://myapp')
     family = FCM.add_font('/path/to/file.ttf')
 
-    # These are now interchangeable
-    from kivy.uix.label import Label
+    # These are now interchangeable ways to refer to the custom font:
     lbl1 = Label(font_context='system://myapp', family_name=family)
     lbl2 = Label(font_context='system://myapp', font_name='/path/to/file.ttf')
+
+    # You could also refer to a system font by family, since this is a
+    # system:// font context
+    lbl3 = Label(font_context='system://myapp', family_name='Arial')
 '''
 
 __all__ = ('LabelBase', 'Label',
@@ -114,6 +120,9 @@ class LabelBase(object):
             after the resolved font file.
         `font_name`: str, defaults to DEFAULT_FONT
             Font name of the text
+        `font_family`: str, defaults to None
+            Font family name to request for drawing, this can only be used
+            with `font_context`.
         `bold`: bool, defaults to False
             Activate "bold" text style
         `italic`: bool, defaults to False
@@ -174,8 +183,8 @@ class LabelBase(object):
             RFC-3066 format language tag as a string (Pango only)
 
     .. versionchanged:: 1.10.1
-        `font_context`, `font_features`, `base_direction` and `text_language`
-        were added.
+        `font_context`, `font_family`, `font_features`, `base_direction`
+        and `text_language` were added.
 
     .. versionchanged:: 1.10.0
         `outline_width` and `outline_color` were added.
@@ -217,7 +226,7 @@ class LabelBase(object):
 
     def __init__(
         self, text='', font_size=12, font_name=DEFAULT_FONT, bold=False,
-        italic=False, underline=False,  strikethrough=False, font_family=None,
+        italic=False, underline=False, strikethrough=False, font_family=None,
         halign='left', valign='bottom', shorten=False,
         text_size=None, mipmap=False, color=None, line_height=1.0, strip=False,
         strip_reflow=True, shorten_from='center', split_str=' ',
@@ -979,7 +988,6 @@ class FontContextManagerBase(object):
 
 # Load the appropriate provider
 label_libs = []
-
 if USE_PANGOFT2:
     label_libs += [('pango', 'text_pango', 'LabelPango')]
 

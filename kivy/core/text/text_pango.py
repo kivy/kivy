@@ -2,6 +2,37 @@
 Pango text provider
 ===================
 
+.. versionadded:: 1.10.1
+
+
+Font context types for FontConfig+FreeType2 backend
+---------------------------------------------------
+
+* `system://` - `FcInitLoadConfigAndFonts()`
+* `systemconfig://` - `FcInitLoadConfig()`
+* `directory://<PATH>` - `FcInitLoadConfig()` + `FcAppFontAddDir()`
+* `fontconfig://<PATH>` - `FcConfigCreate()` + `FcConfigParseAndLoad()`
+* Any other context name - `FcConfigCreate()`
+
+
+Known limitations
+-----------------
+
+* Pango versions older than v1.38 has limited support, and is not widely
+  tested or researched. It may work on some systems with older pango and
+  newer FontConfig/FreeType2 versions.
+* Kivy's text layout is used, not Pango. This means we do not use Pango's
+  line-breaking feature (which is superior to Kivy's), and we can't use
+  Pango's bidirectional cursor helpers in TextInput.
+* Font family collissions can happen. For example, if you use a `system://`
+  context and add a custom `Arial.ttf`, using `arial` as the `font_family`
+  may or may not draw with your custom font (depending on whether or not
+  there is already a system-wide "arial" font installed)
+* Rendering is inefficient; the normal way to integrate Pango would be
+  using a dedicated PangoLayout per widget. This is not currently practical
+  due to missing abstractions in Kivy core (in the current implementation,
+  we have a dedicated PangoLayout *per font context,* which is rendered
+  once for each LayoutWord)
 '''
 
 __all__ = ('LabelPango', )
