@@ -115,7 +115,18 @@ The following tags are available:
 ``[s][/s]``
     Strikethrough text
 ``[font=<str>][/font]``
-    Change the font
+    Change the font (note: this refers to a TTF file or registered alias)
+``[font_context=<str>][/font_context]``
+    Change context for the font, use string value "none" for isolated context
+    (this is equivalent to `None`; if you created a font context named
+    `'none'`, it cannot be referred to using markup)
+``[font_family=<str>][/font_family]``
+    Font family to request for drawing. This is only valid when using a
+    font context, see :class:`kivy.uix.label.Label` for details.
+``[font_features=<str>][/font_features]``
+    OpenType font features, in CSS format, this is passed straight
+    through to Pango. The effects of requesting a feature depends on loaded
+    fonts, library versions, etc. Pango only, requires v1.38 or later.
 ``[size=<integer>][/size]``
     Change the font size
 ``[color=#<color>][/color]``
@@ -130,15 +141,6 @@ The following tags are available:
     Display the text at a subscript position relative to the text before it.
 ``[sup][/sup]``
     Display the text at a superscript position relative to the text before it.
-``[font_family=<str>][/font_family]``
-    Font family to request for drawing. This is only valid when using a
-    font context, see :class:`kivy.uix.label.Label` for details.
-``[font_context=<str>][/font_context]``
-    Change context for the font, use string value "none" for isolated context.
-``[font_features=<str>][/font_features]``
-    OpenType font features, in CSS format, this is passed straight
-    through to Pango. The effects of requesting a feature depends on loaded
-    fonts, library versions, etc. Pango only, requires v1.38 or later.
 ``[text_language=<str>][/text_language]``
     Language of the text, this is an RFC-3066 format language tag (as string),
     for example "en_US", "zh_CN", "fr" or "ja". This can impact font selection
@@ -491,8 +493,9 @@ class Label(Widget):
     text_language = StringProperty(None, allownone=True)
     '''Language of the text, if None Pango will determine it from locale.
     This is an RFC-3066 format language tag (as a string), for example
-    "en_US", "zh_CN", "fr" or "ja". This can impact font selection and
-    metrics.
+    "en_US", "zh_CN", "fr" or "ja". This can impact font selection, metrics
+    and rendering. For example, the same bytes of text can look different
+    for `ur` and `ar` languages, though both use Arabic script.
 
     .. note::
         This feature requires the Pango text provider.
@@ -532,14 +535,16 @@ class Label(Widget):
     '''Font family, this is only applicable when using :attr:`font_context`
     option. The specified font family will be requested, but note that it may
     not be available, or there could be multiple fonts registered with the
-    same family. The value can be a family name (string) to request from the
-    font context, for example a system (`system://` context). If set to
-    `None`, font selection is controlled by the :attr:`font_name` setting.
+    same family. The value can be a family name (string) available in the
+    font context (for example a system font in a `system://` context, or a
+    custom font file added using :class:`kivy.core.text.FontContextManager`).
+    If set to `None`, font selection is controlled by the :attr:`font_name`
+    setting.
 
     .. note::
-        If using :attr:`font_name` to reference a custom font file, the
-        family name is managed automatically behind the scenes, you can
-        leave this as None.
+        If using :attr:`font_name` to reference a custom font file, you
+        should leave this as `None`. The family name is managed automatically
+        in this case.
 
     .. note::
         This feature requires the Pango text provider.

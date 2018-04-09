@@ -27,7 +27,17 @@ The following tags are available:
 ``[s][/s]``
     Strikethrough text
 ``[font=<str>][/font]``
-    Change the font
+    Change the font (note: this refers to a TTF file or registered alias)
+``[font_context=<str>][/font_context]``
+    Change context for the font, use string value "none" for isolated context.
+``[font_family=<str>][/font_family]``
+    Font family to request for drawing. This is only valid when using a
+    font context, and takes precedence over `[font]`. See
+    :class:`kivy.uix.label.Label` for details.
+``[font_features=<str>][/font_features]``
+    OpenType font features, in CSS format, this is passed straight
+    through to Pango. The effects of requesting a feature depends on loaded
+    fonts, library versions, etc. Pango only, requires v1.38 or later.
 ``[size=<size>][/size]``
     Change the font size. <size> should be an integer, optionally with a
     unit (i.e. ``16sp``)
@@ -43,20 +53,12 @@ The following tags are available:
     Display the text at a subscript position relative to the text before it.
 ``[sup][/sup]``
     Display the text at a superscript position relative to the text before it.
-``[font_family=<str>][/font_family]``
-    Font family to request for drawing. This is only valid when using a
-    font context, see :class:`kivy.uix.label.Label` for details.
-``[font_context=<str>][/font_context]``
-    Change context for the font, use string value "none" for isolated context.
-``[font_features=<str>][/font_features]``
-    OpenType font features, in CSS format, this is passed straight
-    through to Pango. The effects of requesting a feature depends on loaded
-    fonts, library versions, etc. Pango only, requires v1.38 or later.
 ``[text_language=<str>][/text_language]``
     Language of the text, this is an RFC-3066 format language tag (as string),
-    for example "en_US", "zh_CN", "fr" or "ja". This can impact font selection
-    and metrics. Use the string "None" to revert to locale detection.
-    Pango only.
+    for example "en_US", "zh_CN", "fr" or "ja". This can impact font selection,
+    metrics and rendering. For example, the same bytes of text can look
+    different for `ur` and `ar` languages, though both use Arabic script.
+    Use the string `'none'` to revert to locale detection. Pango only.
 
 If you need to escape the markup from the current text, use
 :func:`kivy.utils.escape_markup`.
@@ -230,7 +232,7 @@ class MarkupLabel(MarkupLabelBase):
             elif item[:13] == '[font_family=':
                 spush('font_family')
                 options['font_family'] = item[13:-1]
-            elif item[:14] == '[/font_family]':
+            elif item == '[/font_family]':
                 spop('font_family')
             elif item[:14] == '[font_context=':
                 fctx = item[14:-1]
