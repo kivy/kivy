@@ -221,7 +221,7 @@ kivy_options = {
         'avplayer'),
     'image': ('tex', 'imageio', 'dds', 'sdl2', 'pygame', 'pil', 'ffpy', 'gif'),
     'camera': ('opencv', 'gi', 'avfoundation',
-               'android'),
+               'android', 'picamera'),
     'spelling': ('enchant', 'osxappkit', ),
     'clipboard': (
         'android', 'winctypes', 'xsel', 'xclip', 'dbusklipper', 'nspaste',
