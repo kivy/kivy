@@ -144,7 +144,9 @@ elif platform == 'android':
 else:
     providers += (('gi', 'camera_gi', 'CameraGi'), )
 
-providers += (('opencv', 'camera_opencv', 'CameraOpenCV'), )
+#providers += (('opencv', 'camera_opencv', 'CameraOpenCV'), )
+providers += (('raspberrypi', 'camera_rpi', 'CameraRaspberryPi'), )
+
 
 
 Camera = core_select_lib('camera', (providers))
