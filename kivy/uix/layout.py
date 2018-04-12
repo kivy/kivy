@@ -95,6 +95,10 @@ class Layout(Widget):
         fbind('size_hint_max', self._trigger_layout)
         fbind('size_hint_min', self._trigger_layout)
         return super(Layout, self).add_widget(widget, index)
+    
+    def add_widgets(self, *args):
+        for widget in args:
+            self.add_widget(widget)
 
     def remove_widget(self, widget):
         funbind = widget.funbind
