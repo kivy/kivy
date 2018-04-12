@@ -883,7 +883,6 @@ cdef class KivyPangoLayout:
 
     def render_as_bytes(self, color=None):
         cdef int w, h
-
         pango_layout_get_pixel_size(self.layout, &w, &h)
         if w <= 0 or h <= 0:
             Logger.warn("_text_pango: KivyPangoLayout.render_as_bytes "
@@ -894,10 +893,8 @@ cdef class KivyPangoLayout:
             Logger.warn("_text_pango: KivyPangoLayout.render_as_bytes "
                         "failed - out of memory?")
             return
-        cdef unsigned char R, G, B, A
-        if not color:
-            R = G = B = A = 255
-        else:
+        cdef unsigned char R = 255, G = 255, B = 255, A = 255
+        if color:
             R = min(255, int(color[0] * 255))
             G = min(255, int(color[1] * 255))
             B = min(255, int(color[2] * 255))
