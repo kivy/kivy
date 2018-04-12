@@ -14,6 +14,7 @@ from libc.string cimport memset
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from kivy.logger import Logger
 from kivy.core.image import ImageData
+from kivy.graphics.texture cimport Texture
 
 include "../../lib/pango/pangoft2.pxi"
 cdef extern from "../../lib/kivy_endian.h":
@@ -470,7 +471,7 @@ else:
 @cython.cdivision(True)
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef void _render_cc(ContextContainer cc, unsigned char *dstbuf,
+cdef void _render_layout(PangoLayout *layout, unsigned char *dstbuf,
                      int dstbuf_w, int dstbuf_h, int x, int y,
                      unsigned char R, unsigned char G, unsigned char B,
                      unsigned char A) nogil:
@@ -491,7 +492,7 @@ cdef void _render_cc(ContextContainer cc, unsigned char *dstbuf,
             return
 
     cdef int layout_w, layout_h
-    pango_layout_get_pixel_size(cc.layout, &layout_w, &layout_h)
+    pango_layout_get_pixel_size(layout, &layout_w, &layout_h)
 
     # If the bitmap is partially outside dstbuf, clip + blit a smaller area
     cdef int w = layout_w, h = layout_h
@@ -559,7 +560,7 @@ cdef void _render_cc(ContextContainer cc, unsigned char *dstbuf,
 
     # Render the layout as 1 byte per pixel grayscale bitmap
     # FIXME: does render_layout_subpixel() do us any good?
-    pango_ft2_render_layout(&bitmap, cc.layout, 0, 0)
+    pango_ft2_render_layout(&bitmap, layout, 0, 0)
 
     # Blit the bitmap as RGBA at x, y in dstbuf (w/h is the clipped ft2 bitmap)
     for yi in range(clip_y_min, h):
@@ -574,7 +575,7 @@ cdef void _render_cc(ContextContainer cc, unsigned char *dstbuf,
                     (((B * graysrc) / 255) << BSHIFT) |
                     (((A * graysrc) / 255) << ASHIFT) )
     g_free(bitmap.buffer)
-    # /nogil _render_cc()
+    # /nogil _render_layout()
 
 
 # ----------------------------------------------------------------------------
@@ -632,7 +633,7 @@ cdef class KivyPangoRenderer:
         cdef int xx = x
         cdef int yy = y
         with nogil:
-            _render_cc(cc, self.pixels, self.w, self.h, xx, yy, R, G, B, A)
+            _render_layout(cc.layout, self.pixels, self.w, self.h, xx, yy, R, G, B, A)
         self.rdrcount += 1
 
     # Return ImageData instance with the rendered pixels
@@ -765,3 +766,160 @@ def kpango_font_context_list_custom(font_context):
     if cc:
         return {x: kivy_fontfamily_cache[x].decode('utf-8') for x in cc.loaded_fonts}
     return {}
+
+
+# ----------------------------------------------------------------------------
+# Direct Pango layout access. This can be used by application developers
+# with advanced i18n requirements, and eventually Kivy's text core should
+# evolve to support using Pango fully (probably a garden.pango package first)
+# ----------------------------------------------------------------------------
+
+cdef class KivyPangoLayout:
+    cdef PangoLayout *layout
+
+    def __init__(self, font_context):
+        global kivy_isolated_cache_order
+        cdef bytes fctx = _byte_option(font_context)
+        cdef ContextContainer cc = _get_or_create_cc(fctx, None)
+        self.layout = pango_layout_new(cc.context)
+        if fctx in kivy_isolated_cache_order:
+            kivy_isolated_cache_order.remove(fctx)
+            Logger.warn("_text_pango: Removed font context {} from ordered cache, "
+                        "it was used in a KivyPangoLayout".format(font_context))
+
+    def __dealloc__(self):
+        if self.layout:
+            g_object_unref(self.layout)
+
+    def set_markup(self, markup, encoding='utf-8'):
+        cdef bytes m = _byte_option(markup)
+        pango_layout_set_markup(self.layout, m, len(m))
+
+    def set_width(self, width):
+        pango_layout_set_width(self.layout, int(width))
+
+    def get_width(self):
+        return pango_layout_get_width(self.layout)
+
+    def set_height(self, height):
+        pango_layout_set_height(self.layout, int(height))
+
+    def get_height(self):
+        return pango_layout_get_height(self.layout)
+
+    # set_wrap, get_wrap, is_wrapped
+    # set_ellipsized, get_.., is_...
+
+    def set_indent(self, indent):
+        pango_layout_set_indent(self.layout, int(indent))
+
+    def get_indent(self):
+        return pango_layout_get_indent(self.layout)
+
+    def set_spacing(self, spacing):
+        pango_layout_set_spacing(self.layout, int(spacing))
+
+    def get_spacing(self):
+        return pango_layout_get_spacing(self.layout)
+
+    def set_justify(self, justify):
+        pango_layout_set_justify(self.layout, bool(justify))
+
+    def get_justify(self):
+        return pango_layout_get_justify(self.layout)
+
+    def set_auto_dir(self, autodir):
+        pango_layout_set_auto_dir(self.layout, bool(autodir))
+
+    def get_auto_dir(self):
+        return pango_layout_get_auto_dir(self.layout)
+
+    # set_alignment, get_alignment
+    # set_tabs, get_tabs
+
+    def set_single_paragraph_mode(self, mode):
+        pango_layout_set_single_paragraph_mode(self.layout, bool(mode))
+
+    def get_single_paragraph_mode(self):
+        return pango_layout_get_single_paragraph_mode(self.layout)
+
+    def get_unknown_glyphs_count(self):
+        return pango_layout_get_unknown_glyphs_count(self.layout)
+
+    # pango_layout_get_log_attrs, pango_layout_get_log_attrs_readonly
+    # pango_layout_index_to_pos
+    # pango_layout_index_to_line_x
+
+    def xy_to_index(self, x, y):
+        cdef int index, trailing
+        cdef bint result = pango_layout_xy_to_index(self.layout, x, y, &index, &trailing)
+        return (result, index, trailing)
+
+    # pango_layout_get_cursor_pos
+    # pango_layout_move_cursor_visually
+    # pango_layout_get_extents
+    # pango_layout_get_pixel_extents
+
+    def get_size(self):
+        cdef int w, h
+        pango_layout_get_size(self.layout, &w, &h)
+        return (w, h)
+
+    def get_pixel_size(self):
+        cdef int w, h
+        pango_layout_get_pixel_size(self.layout, &w, &h)
+        return (w, h)
+
+    def get_baseline(self):
+        return pango_layout_get_baseline(self.layout)
+
+    def get_line_count(self):
+        return pango_layout_get_line_count(self.layout)
+
+    # pango_layout_get_line, pango_layout_get_line_readonly
+    # pango_layout_get_lines
+    # pango_layout_get_iter, pango_layout_iter_*
+    # pango_layout_line_*
+
+    def render_as_bytes(self, color=None):
+        cdef int w, h
+
+        pango_layout_get_pixel_size(self.layout, &w, &h)
+        if w <= 0 or h <= 0:
+            Logger.warn("_text_pango: KivyPangoLayout.render_as_bytes "
+                        "failed - layout pixel size is {} x {}".format(w, h))
+            return
+        cdef unsigned char *pixels = <unsigned char *>PyMem_Malloc(w * h * 4)
+        if not pixels:
+            Logger.warn("_text_pango: KivyPangoLayout.render_as_bytes "
+                        "failed - out of memory?")
+            return
+        cdef unsigned char R, G, B, A
+        if not color:
+            R = G = B = A = 255
+        else:
+            R = min(255, int(color[0] * 255))
+            G = min(255, int(color[1] * 255))
+            B = min(255, int(color[2] * 255))
+            if len(color) > 3:
+                A = min(255, int(color[3] * 255))
+        with nogil:
+            memset(pixels, 0, w * h * 4)
+            _render_layout(self.layout, pixels, w, h, 0, 0, R, G, B, A)
+        cdef bytes out = <bytes>pixels[:w * h * 4]
+        try:
+            return (w, h, 'rgba', out)
+        finally:
+            PyMem_Free(pixels)
+
+    def render_as_ImageData(self, **kwargs):
+        result = self.render_as_bytes(**kwargs)
+        if result:
+            return ImageData(*result)
+
+    def render_as_Texture(self, mipmap=False, **kwargs):
+        result = self.render_as_bytes(**kwargs)
+        if result:
+            tex = Texture.create_from_data(ImageData(*result), mipmap=mipmap)
+            tex.flip_vertical()
+            return tex
