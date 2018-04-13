@@ -73,8 +73,9 @@ from kivy.core.text._text_pango import (
         kpango_get_descent,
         kpango_find_base_dir,
         kpango_font_context_exists,
-        kpango_font_context_update,
+        kpango_font_context_create,
         kpango_font_context_destroy,
+        kpango_font_context_add_font,
         kpango_font_context_list,
         kpango_font_context_list_custom,
         kpango_font_context_list_families)
@@ -106,10 +107,7 @@ class LabelPango(LabelBase):
 class PangoFontContextManager(FontContextManagerBase):
     @staticmethod
     def create(font_context):
-        if PangoFontContextManager.exists(font_context):
-            return False
-        kpango_font_context_update(font_context)
-        return True
+        return kpango_font_context_create(font_context)
 
     @staticmethod
     def exists(font_context):
@@ -143,8 +141,6 @@ class PangoFontContextManager(FontContextManagerBase):
             if not filename.endswith('.ttf'):
                 filename = resource_find('{}.ttf'.format(filename))
         if filename and isfile(filename):
-            pango_font_context_update(font_context, filename)
-            result = kpango_font_context_update(font_context, filename)
-            return result[0]
+            return kpango_font_context_add_font(font_context, filename)
         raise Exception("FontContextManager: Attempt to add non-existant "
                         "font file: '{}' to context '{}'".format(filename, font_context))
