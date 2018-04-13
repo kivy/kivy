@@ -88,9 +88,7 @@ class LabelPango(LabelBase):
         self.get_descent = MethodType(kpango_get_descent, self)
         super(LabelPango, self).__init__(*largs, **kwargs)
 
-    @staticmethod
-    def find_base_direction(text):
-        return kpango_find_base_dir(text)
+    find_base_direction = staticmethod(kpango_find_base_dir)
 
     def _render_begin(self):
         self._rdr = KivyPangoRenderer(*self._size)
@@ -105,29 +103,12 @@ class LabelPango(LabelBase):
 
 
 class PangoFontContextManager(FontContextManagerBase):
-    @staticmethod
-    def create(font_context):
-        return kpango_font_context_create(font_context)
-
-    @staticmethod
-    def exists(font_context):
-        return kpango_font_context_exists(font_context)
-
-    @staticmethod
-    def destroy(font_context):
-        kpango_font_context_destroy(font_context)
-
-    @staticmethod
-    def list():
-        return kpango_font_context_list()
-
-    @staticmethod
-    def list_families(font_context):
-        return kpango_font_context_list_families(font_context)
-
-    @staticmethod
-    def list_custom(font_context):
-        return kpango_font_context_list_custom(font_context)
+    create = staticmethod(kpango_font_context_create)
+    exists = staticmethod(kpango_font_context_exists)
+    destroy = staticmethod(kpango_font_context_destroy)
+    list = staticmethod(kpango_font_context_list)
+    list_families = staticmethod(kpango_font_context_list_families)
+    list_custom = staticmethod(kpango_font_context_list_custom)
 
     @staticmethod
     def add_font(font_context, filename, autocreate=True, family=None):
@@ -135,6 +116,8 @@ class PangoFontContextManager(FontContextManagerBase):
             raise Exception("FontContextManager: Attempt to add font file "
                             "'{}' to non-existing context '{}' without "
                             "autocreate.".format(filename, font_context))
+        if not filename:
+            raise Exception("FontContextManager: Cannot add empty font file")
         if not isfile(filename):
             filename = resource_find(filename)
         if not isfile(filename):
