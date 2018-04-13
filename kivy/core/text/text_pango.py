@@ -15,12 +15,37 @@ Font context types for FontConfig+FreeType2 backend
 * Any other context name - `FcConfigCreate()`
 
 
+Low-level Pango access
+----------------------
+
+.. warning::
+    The low-level Pango API is experimental, and subject to change without
+    notice for as long as this warning is present.
+
+Since Kivy currently does its own text layout, the Label and TextInput widgets
+do not take full advantage of Pango. For example, line breaks do not take
+language/script into account, and switching alignment per paragraph (for bi-
+directional text) is not supported. For advanced i18n requirements, we provide
+a simple wrapper around PangoLayout that you can use to render text.
+
+* https://developer.gnome.org/pango/1.40/pango-Layout-Objects.html
+* https://developer.gnome.org/pango/1.40/PangoMarkupFormat.html
+* See the `kivy/core/text/_text_pango.pyx` file @ `cdef class KivyPangoLayout`
+  for more information. Not all features of PangoLayout are implemented.
+
+.. python::
+    from kivy.core.window import Window  # OpenGL must be initialized
+    from kivy.core.text._text_pango import KivyPangoLayout
+    layout = KivyPangoLayout('system://')
+    layout.set_markup('<span font="20">Hello <b>World!</b></span>')
+    tex = layout.render_as_Texture()
+
+
 Known limitations
 -----------------
 
-* Pango versions older than v1.38 has limited support, and is not widely
-  tested or researched. It may work on some systems with older pango and
-  newer FontConfig/FreeType2 versions.
+* Pango versions older than v1.38 has not been tested. It may work on
+  some systems with older pango and newer FontConfig/FreeType2 versions.
 * Kivy's text layout is used, not Pango. This means we do not use Pango's
   line-breaking feature (which is superior to Kivy's), and we can't use
   Pango's bidirectional cursor helpers in TextInput.
