@@ -717,25 +717,34 @@ def kpango_font_context_exists(font_context):
     return fctx and fctx in kivy_font_context_cache
 
 
-def kpango_font_context_update(font_context, *fontfiles):
+def kpango_font_context_create(font_context, fontfile=None):
+    global kivy_font_context_cache
+    cdef bytes fctx = _byte_option(font_context)
+    cdef bytes font_name_r = _byte_option(fontfile)
+    if fctx in kivy_font_context_cache:
+        return False
+    cdef ContextContainer cc = _get_or_create_cc(fctx, font_name_r)
+    if cc:
+        return True
+
+
+def kpango_font_context_add_font(font_context, fontfile):
     global kivy_font_context_cache
     global kiby_fontfamily_cache
     cdef bytes fctx = _byte_option(font_context)
+    cdef bytes font_name_r = _byte_option(fontfile)
     if not fctx:
+        Logger.warn("_text_pango: kpango_font_context_add_font() called "
+                    "with empty context")
         return
     cdef ContextContainer cc = _get_or_create_cc(fctx, None)
     if not cc:
-        Logger.warn("_text_pango: kpango_font_context_update() failed, could "
+        Logger.warn("_text_pango: kpango_font_context_add_font() failed, could "
                     "not resolve or create context container for '{}'".format(fctx))
         return
-    cdef list out = list()
-    for fn in fontfiles:
-        if fn not in cc.loaded_fonts:
-            fam = _cc_add_font_file(cc, fn)
-            out.append(fam.decode('utf-8'))
-        else:
-            out.append(kivy_fontfamily_cache[fn].decode('utf-8'))
-    return out
+    if font_name_r not in cc.loaded_fonts:
+        return _cc_add_font_file(cc, font_name_r)
+    return kivy_fontfamily_cache[font_name_r].decode('utf-8')
 
 
 def kpango_font_context_destroy(font_context):
