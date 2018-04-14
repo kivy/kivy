@@ -82,6 +82,9 @@ from kivy.core.text._text_pango import (
 
 
 class LabelPango(LabelBase):
+
+    _font_family_support = True
+
     def __init__(self, *largs, **kwargs):
         self.get_extents = MethodType(kpango_get_extents, self)
         self.get_ascent = MethodType(kpango_get_ascent, self)

@@ -224,6 +224,8 @@ class LabelBase(object):
 
     _texture_1px = None
 
+    _font_family_support = False
+
     def __init__(
         self, text='', font_size=12, font_name=DEFAULT_FONT, bold=False,
         italic=False, underline=False, strikethrough=False, font_family=None,
@@ -323,6 +325,10 @@ class LabelBase(object):
         fontname = options['font_name']
         fonts = self._fonts
         fontscache = self._fonts_cache
+
+        if self._font_family_support and options['font_family']:
+            options['font_name_r'] = None
+            return
 
         # is the font registered?
         if fontname in fonts:
