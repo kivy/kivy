@@ -562,17 +562,14 @@ cdef void _render_layout(PangoLayout *layout, unsigned char *dstbuf,
     pango_ft2_render_layout(&bitmap, layout, 0, 0)
 
     # Blit the bitmap as RGBA at x, y in dstbuf (w/h is the clipped ft2 bitmap)
+    cdef uint32_t col = R << RSHIFT | G << GSHIFT | B << BSHIFT
     for yi in range(clip_y_min, h):
         offset = offset_fixed + (yi * offset_yi)
         yi_w = yi * w
         for xi in range(clip_x_min, w):
             grayidx = yi_w + xi
             graysrc = (bitmap.buffer)[grayidx]
-            (<uint32_t *>dstbuf)[offset + grayidx] = (
-                    (((R * graysrc) / 255) << RSHIFT) |
-                    (((G * graysrc) / 255) << GSHIFT) |
-                    (((B * graysrc) / 255) << BSHIFT) |
-                    (((A * graysrc) / 255) << ASHIFT) )
+            (<uint32_t *>dstbuf)[offset + grayidx] = col | ( ((A * graysrc) / 255) << ASHIFT )
     g_free(bitmap.buffer)
     # /nogil _render_layout()
 
