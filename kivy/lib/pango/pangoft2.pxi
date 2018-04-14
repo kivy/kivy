@@ -233,9 +233,6 @@ cdef extern from "pango/pangoft2.h" nogil:
     void pango_ft2_font_map_substitute_changed(PangoFT2FontMap *fontmap)
 
 
-#cdef extern from "pango/pangoft-fontmap.h" nogil:
-
-
 # https://developer.gnome.org/pango/stable/pango-Text-Processing.html
 cdef extern from "pango/pango-context.h" nogil:
     ctypedef struct PangoContext:
@@ -320,16 +317,41 @@ cdef extern from "pango/pango-layout.h" nogil:
         PANGO_ALIGN_LEFT
         PANGO_ALIGN_CENTER
         PANGO_ALIGN_RIGHT
+    ctypedef enum PangoWrapMode:
+        PANGO_WRAP_WORD
+        PANGO_WRAP_CHAR
+        PANGO_WRAP_WORD_CHAR
+    ctypedef enum PangoEllipsizeMode:
+        PANGO_ELLIPSIZE_NONE
+        PANGO_ELLIPSIZE_START
+        PANGO_ELLIPSIZE_MIDDLE
+        PANGO_ELLIPSIZE_END
 
     PangoLayout *pango_layout_new(PangoContext *context)
     void pango_layout_context_changed(PangoLayout *layout)
     void pango_layout_set_attributes(PangoLayout *layout, PangoAttrList *attrs)
-    void pango_layout_get_pixel_size(PangoLayout *layout, int *width, int *height)
-    void pango_layout_get_size(PangoLayout *layout, int *width, int *height)
-    void pango_layout_set_alignment(PangoLayout *layout, PangoAlignment alignment)
+    void pango_layout_set_text(PangoLayout *layout, const char *text, int length)
     void pango_layout_set_markup(PangoLayout *layout, const char *markup, int length)
     void pango_layout_set_font_description(PangoLayout *layout, const PangoFontDescription *desc)
-    void pango_layout_set_text(PangoLayout *layout, const char *text, int length)
+    void pango_layout_get_pixel_size(PangoLayout *layout, int *width, int *height)
+    void pango_layout_get_size(PangoLayout *layout, int *width, int *height)
+    int pango_layout_get_baseline(PangoLayout *layout)
+    int pango_layout_get_line_count(PangoLayout *layout)
+    int pango_layout_get_unknown_glyphs_count(PangoLayout *layout)
+    gboolean pango_layout_xy_to_index(PangoLayout *layout, int x, int y, int *index, int *trailing)
+
+    void pango_layout_set_ellipsize(PangoLayout *layout, PangoEllipsizeMode ellipsize)
+    PangoEllipsizeMode pango_layout_get_ellipsize(PangoLayout *layout)
+    gboolean pango_layout_is_ellipsized(PangoLayout *layout)
+
+    void pango_layout_set_wrap(PangoLayout *layout, PangoWrapMode wrap)
+    PangoWrapMode pango_layout_get_wrap(PangoLayout *layout)
+    gboolean pango_layout_is_wrapped(PangoLayout *layout)
+
+    void pango_layout_set_alignment(PangoLayout *layout, PangoAlignment alignment)
+    PangoAlignment pango_layout_get_alignment(PangoLayout *layout)
+    void pango_layout_set_auto_dir(PangoLayout *layout, gboolean auto_dir)
+    gboolean pango_layout_get_auto_dir(PangoLayout *layout)
     void pango_layout_set_width(PangoLayout *layout, int width)
     int pango_layout_get_width(PangoLayout *layout)
     void pango_layout_set_height(PangoLayout *layout, int height)
@@ -340,11 +362,5 @@ cdef extern from "pango/pango-layout.h" nogil:
     int pango_layout_get_indent(PangoLayout *layout)
     void pango_layout_set_justify(PangoLayout *layout, gboolean justify)
     gboolean pango_layout_get_justify(PangoLayout *layout)
-    void pango_layout_set_auto_dir(PangoLayout *layout, gboolean auto_dir)
-    gboolean pango_layout_get_auto_dir(PangoLayout *layout)
     void pango_layout_set_single_paragraph_mode(PangoLayout *layout, gboolean setting)
     gboolean pango_layout_get_single_paragraph_mode(PangoLayout *layout)
-    int pango_layout_get_unknown_glyphs_count(PangoLayout *layout)
-    gboolean pango_layout_xy_to_index(PangoLayout *layout, int x, int y, int *index, int *trailing)
-    int pango_layout_get_baseline(PangoLayout *layout)
-    int pango_layout_get_line_count(PangoLayout *layout)

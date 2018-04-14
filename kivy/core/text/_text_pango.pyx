@@ -1,13 +1,12 @@
 # TODO:
 # - We only render lines, can we use line-level pango layout functionality??
-# - Support style/weight/different underlines and fix metrics
+# - Support style/weight/different underlines
 # - Investigate if we can use a serial in options dict to avoid reapply
 # - Freeing isolated contexts seem to leak memory, though everything is
 #   dealloc'd (it seems). May be an upstream issue, possibly related to the
 #   loaded TTF file as I've only observed it by loading random fonts, some
 #   of which do not render properly. Need to investigate + test with master
 #   of fc/ft2/pango at some point. Bumped the max from 64 to 128 to compensate.
-#   FIXME: this may be a problem with refcounting FcConfig objects
 cimport cython
 from libc.stdint cimport uint32_t
 from libc.string cimport memset
@@ -783,6 +782,35 @@ def kpango_font_context_list_custom(font_context):
 # evolve to support using Pango fully (probably a garden.pango package first)
 # ----------------------------------------------------------------------------
 
+cdef dict _pango2kivy_alignment = {
+        PANGO_ALIGN_LEFT: 'left',
+        PANGO_ALIGN_CENTER: 'center',
+        PANGO_ALIGN_RIGHT: 'right'}
+cdef dict _kivy2pango_alignment = {
+        'left': PANGO_ALIGN_LEFT,
+        'center': PANGO_ALIGN_CENTER,
+        'right': PANGO_ALIGN_RIGHT}
+
+cdef dict _pango2kivy_ellipsize_mode = {
+        PANGO_ELLIPSIZE_NONE: 'none',
+        PANGO_ELLIPSIZE_START: 'start',
+        PANGO_ELLIPSIZE_MIDDLE: 'middle',
+        PANGO_ELLIPSIZE_END: 'end'}
+cdef dict _kivy2pango_ellipsize_mode = {
+        'none': PANGO_ELLIPSIZE_NONE,
+        'start': PANGO_ELLIPSIZE_START,
+        'middle': PANGO_ELLIPSIZE_MIDDLE,
+        'end': PANGO_ELLIPSIZE_END}
+
+cdef dict _pango2kivy_wrap_mode = {
+        PANGO_WRAP_WORD: 'word',
+        PANGO_WRAP_CHAR: 'char',
+        PANGO_WRAP_WORD_CHAR: 'word_char'}
+cdef dict _kivy2pango_wrap_mode = {
+        'word': PANGO_WRAP_WORD,
+        'char': PANGO_WRAP_CHAR,
+        'word_char': PANGO_WRAP_WORD_CHAR}
+
 cdef class KivyPangoLayout:
     cdef PangoLayout *layout
 
@@ -816,8 +844,29 @@ cdef class KivyPangoLayout:
     def get_height(self):
         return pango_layout_get_height(self.layout)
 
-    # set_wrap, get_wrap, is_wrapped
-    # set_ellipsized, get_.., is_...
+    def get_wrap(self):
+        global _pango2kivy_wrap_mode
+        return _pango2kivy_wrap_mode.get(pango_layout_get_wrap(self.layout))
+
+    def set_wrap(self, wrap):
+        global _kivy2pango_wrap_mode
+        cdef PangoWrapMode wm = _kivy2pango_wrap_mode.get(wrap, PANGO_WRAP_WORD)
+        pango_layout_set_wrap(self.layout, wm)
+
+    def is_wrapped(self):
+        return pango_layout_is_wrapped(self.layout)
+
+    def set_ellipsize(self, ellipsize):
+        global _kivy2pango_ellipsize_mode
+        cdef PangoEllipsizeMode em = _kivy2pango_ellipsize_mode.get(ellipsize, PANGO_ELLIPSIZE_NONE)
+        pango_layout_set_ellipsize(self.layout, em)
+
+    def get_ellipsize(self):
+        global _pango2kivy_ellipsize_mode
+        return _pango2kivy_ellipsize_mode.get(pango_layout_get_ellipsize(self.layout), 'none')
+
+    def is_ellipsized(self):
+        return pango_layout_is_ellipsized(self.layout)
 
     def set_indent(self, indent):
         pango_layout_set_indent(self.layout, int(indent))
@@ -843,7 +892,15 @@ cdef class KivyPangoLayout:
     def get_auto_dir(self):
         return pango_layout_get_auto_dir(self.layout)
 
-    # set_alignment, get_alignment
+    def set_alignment(self, alignment):
+        global _kivy2pango_alignment
+        cdef PangoAlignment a = _kivy2pango_alignment.get(alignment, PANGO_ALIGN_LEFT)
+        pango_layout_set_alignment(self.layout, a)
+
+    def get_alignment(self):
+        global _pango2kivy_alignment
+        return _pango2kivy_alignment.get(pango_layout_get_alignment(self.layout), 'left')
+
     # set_tabs, get_tabs
 
     def set_single_paragraph_mode(self, mode):
