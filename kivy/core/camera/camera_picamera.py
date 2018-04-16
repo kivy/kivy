@@ -68,7 +68,7 @@ class CameraPiCamera(CameraBase):
 
             # Trim the buffer to fit the actual requested resolution.
             # TODO: Is there a simpler way to do all this reshuffling?
-            output = output.reshape((*bufsize, 3))
+            output = output.reshape((bufsize[0], bufsize[1], 3))
             output = output[:self.resolution[0], :self.resolution[1], :]
             self._buffer = output.reshape((self.resolution[0] * self.resolution[1] * 3,))
 
