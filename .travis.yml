@@ -125,6 +125,11 @@ script:
       fi;
     fi;
 
+after_script:
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" == "unit" ]; then
+      /sbin/start-stop-daemon --stop;
+    fi;
+
 
 after_success:
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" == "docs" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ] && [ "${TRAVIS_BRANCH}" == "master" ]; then
