@@ -1331,6 +1331,9 @@ class Widget(WidgetBase):
     disabled = AliasProperty(get_disabled, set_disabled)
     '''Indicates whether this widget can interact with input or not.
 
+    :attr:`disabled` is an :class:`~kivy.properties.AliasProperty` and
+    defaults to False.
+
     .. note::
 
       1. Child Widgets, when added to a disabled widget, will be disabled
@@ -1340,11 +1343,10 @@ class Widget(WidgetBase):
 
     .. versionadded:: 1.8.0
 
-    :attr:`disabled` is a :class:`~kivy.properties.BooleanProperty` and
-    defaults to False.
-
     .. versionchanged:: 1.10.1
-    :attr:`disabled` is now an :class:`~kivy.properties.AliasProperty`
-    which allows to remember the previous disabled state when a parent's
-    disabled state is changed.
+
+        :attr:`disabled` was changed from a 
+        :class:`~kivy.properties.BooleanProperty` to an 
+        :class:`~kivy.properties.AliasProperty` to allow access to its
+        previous state when a parent's disabled state is changed.
     '''
