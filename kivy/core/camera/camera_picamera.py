@@ -6,7 +6,7 @@ PiCamera Camera: Implement CameraBase with PiCamera
 # TODO: make usage of thread or multiprocess
 #
 
-__all__ = ('CameraPiCamera')
+__all__ = ('CameraPiCamera', )
 
 from math import ceil
 
