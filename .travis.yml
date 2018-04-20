@@ -127,7 +127,7 @@ script:
 
 after_script:
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" == "unit" ]; then
-      /sbin/start-stop-daemon --stop;
+      kill -9 `cat /tmp/custom_xvfb_99.pid`
     fi;
 
 
