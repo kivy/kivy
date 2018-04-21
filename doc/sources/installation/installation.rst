@@ -121,12 +121,15 @@ For Ubuntu 17.10::
       python-enchant python-dev build-essential python-pip libgl1-mesa-dev \
       libgles2-mesa-dev zlib1g-dev
 
-Kivy requires a recent version of Cython, so it's better to use the latest
-supported version from pypi:
+Kivy requires a recent version of Cython, so you might need to update your
+Cython installation::
 
 .. parsed-literal::
 
     $ sudo pip install --upgrade |cython_install|
+
+If you experience compilation problems, please check your version of Cython
+against those in the :doc:`Cython dependencies <deps-cython>` section.
 
 OS X
 ++++

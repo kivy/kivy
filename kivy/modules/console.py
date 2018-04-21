@@ -6,7 +6,7 @@ Console
 .. versionadded:: 1.9.1
 
 Reboot of the old inspector, designed to be modular and keep concerns
-separated. It also have a addons architecture that allow you to add a button,
+separated. It also has an addons architecture that allow you to add a button,
 panel, or more in the Console itself.
 
 .. warning::
@@ -23,7 +23,7 @@ For normal module usage, please see the :mod:`~kivy.modules` documentation::
 Mouse navigation
 ----------------
 
-When "Select" button is activated, you can:
+When the "Select" button is activated, you can:
 
 - tap once on a widget to select it without leaving inspect mode
 - double tap on a widget to select and leave inspect mode (then you can
@@ -34,26 +34,26 @@ Keyboard navigation
 
 - "Ctrl + e": toggle console
 - "Escape": cancel widget lookup, then hide inspector view
-- "Top": select the parent widget
-- "Down": select the first children of the current selected widget
-- "Left": select the previous following sibling
-- "Right": select the next following sibling
+- "Up": select the parent widget
+- "Down": select the first child of the currently selected widget
+- "Left": select the previous sibling
+- "Right": select the next sibling
 
-Additional informations
-------------------------
+Additional information
+----------------------
 
 Some properties can be edited live. However, due to the delayed usage of
-some properties, it might crash if you don't handle all the cases.
+some properties, it might crash if you don't handle the required cases.
 
 Addons
 ------
 
 Addons must be added to `Console.addons` before the first Clock tick of the
-application, or before the create_console is called. You cannot add addons on
-the fly currently. Addons are quite cheap until the Console is activated. Panel
-are even cheaper, nothing is done until the user select it.
+application, or before :attr:`create_console` is called. You currently cannot
+add addons on the fly. Addons are quite cheap until the Console is activated.
+Panels are even cheaper as nothing is done until the user selects them.
 
-By default, we provide multiple addons activated by default:
+We provide multiple addons activated by default:
 
 - ConsoleAddonFps: display the FPS at the top-right
 - ConsoleAddonSelect: activate the selection mode
@@ -63,8 +63,8 @@ By default, we provide multiple addons activated by default:
 - ConsoleAddonWidgetPanel: panel to display the properties of the selected
   widget
 
-If you need to add custom widget in the Console, please use either
-:class:`ConsoleButton`, :class:`ConsoleToggleButton` or :class:`ConsoleLabel`
+If you need to add custom widgets in the Console, please use either
+:class:`ConsoleButton`, :class:`ConsoleToggleButton` or :class:`ConsoleLabel`.
 
 An addon must inherit from the :class:`ConsoleAddon` class.
 
@@ -91,10 +91,10 @@ of the Console::
     Console.register_addon(ConsoleAddonFps)
 
 
-You can create addon that adds panels. Panel activation/deactivation are not
-tied to the addon activation/deactivation, but on some cases, you can use the
-same callback for deactivating the addon and the panel. Here is a simple About
-panel addon::
+You can create addons that add panels. Panel activation/deactivation is not
+tied to the addon activation/deactivation, but in some cases, you can use the
+same callback for deactivating the addon and the panel. Here is a simple
+"About" panel addon::
 
     from kivy.modules.console import Console, ConsoleAddon, ConsoleLabel
 
@@ -900,7 +900,7 @@ class Console(RelativeLayout):
         return ret
 
     def on_window_children(self, win, children):
-        if self.avoid_bring_to_top:
+        if self.avoid_bring_to_top or not self.activated:
             return
         self.avoid_bring_to_top = True
         win.remove_widget(self)
