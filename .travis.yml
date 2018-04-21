@@ -125,11 +125,6 @@ script:
       fi;
     fi;
 
-after_script:
-  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" == "unit" ]; then
-      kill -9 `cat /tmp/custom_xvfb_99.pid`
-    fi;
-
 
 after_success:
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" == "docs" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ] && [ "${TRAVIS_BRANCH}" == "master" ]; then
