@@ -78,7 +78,7 @@ cdef class VertexInstruction(Instruction):
 
 cdef class Callback(Instruction):
     cdef Shader _shader
-    cdef object func
+    cdef object _func
     cdef int _reset_context
     cdef int apply(self) except -1
     cdef int enter(self) except -1
