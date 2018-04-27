@@ -165,11 +165,11 @@ class TuioMotionEventProvider(MotionEventProvider):
         command = args[0]
 
         # verify commands
-        if command not in ['alive', 'set']:
+        if command not in [b'alive', b'set']:
             return
 
         # move or create a new touch
-        if command == 'set':
+        if command == b'set':
             id = args[1]
             if id not in self.touches[oscpath]:
                 # new touch
@@ -184,7 +184,7 @@ class TuioMotionEventProvider(MotionEventProvider):
                 dispatch_fn('update', touch)
 
         # alive event, check for deleted touch
-        if command == 'alive':
+        if command == b'alive':
             alives = args[1:]
             to_delete = []
             for id in self.touches[oscpath]:
@@ -326,7 +326,7 @@ class Tuio2dBlbMotionEvent(TuioMotionEvent):
 
 
 # registers
-TuioMotionEventProvider.register('/tuio/2Dcur', Tuio2dCurMotionEvent)
-TuioMotionEventProvider.register('/tuio/2Dobj', Tuio2dObjMotionEvent)
-TuioMotionEventProvider.register('/tuio/2Dblb', Tuio2dBlbMotionEvent)
+TuioMotionEventProvider.register(b'/tuio/2Dcur', Tuio2dCurMotionEvent)
+TuioMotionEventProvider.register(b'/tuio/2Dobj', Tuio2dObjMotionEvent)
+TuioMotionEventProvider.register(b'/tuio/2Dblb', Tuio2dBlbMotionEvent)
 MotionEventFactory.register('tuio', TuioMotionEventProvider)

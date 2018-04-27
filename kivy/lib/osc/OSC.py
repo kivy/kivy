@@ -32,7 +32,7 @@ import math
 import sys
 import string
 import pprint
-from kivy.compat import string_types
+from kivy.compat import string_types, PY2
 
 class impulse(object):
     def __nonzero__(self):
@@ -268,7 +268,6 @@ def parseArgs(args):
     return parsed
 
 
-
 def decodeOSC(data):
     try:
         """Converts a typetagged OSC message to a Python list."""
@@ -287,7 +286,7 @@ def decodeOSC(data):
         address,  rest = readString(data)
         typetags = b""
     
-        if address == "#bundle":
+        if address == b'#bundle':
             time, rest = readLong(rest)
             #decoded.append(address)
             #decoded.append(time)
@@ -300,8 +299,13 @@ def decodeOSC(data):
             typetags, rest = readString(rest)
             decoded.append(address)
             decoded.append(typetags)
-            if typetags[0] == b",":
+            marker = typetags[0]
+            if not PY2:
+                marker = chr(marker)
+            if marker == ',':
                 for tag in typetags[1:]:
+                    if not PY2:
+                        tag = chr(tag)
                     value, rest = table[tag](rest)
                     decoded.append(value)
             else:
@@ -337,13 +341,14 @@ class CallbackManager:
             # smells like nested messages
             for msg in message :
                 self.dispatch(msg, source)
-        elif type(message[0]) == str :
+        elif type(message[0]) == bytes:
             # got a single message
             try:
                 address = message[0]
-                if self.callbacks.has_key(address):
+
+                if address in self.callbacks:
                     callbackfunction = self.callbacks[address]
-                elif self.callbacks.has_key('default'):
+                elif 'default' in self.callbacks:
                     callbackfunction = self.callbacks['default']
                 else:
                     print('address %s not found ' % address)
@@ -359,7 +364,6 @@ class CallbackManager:
                 raise
         else:
             raise ValueError("OSC message not recognized", message)
-
 
     def add(self, callback, name):
         """Adds a callback to our set of callbacks,
