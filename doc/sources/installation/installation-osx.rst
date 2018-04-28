@@ -142,6 +142,20 @@ Using MacPorts with pip
     support video playback in your Kivy App. The latest port documents show the
     following `py-gst-python port <https://trac.macports.org/ticket/44813>`_.
 
+You can install Kivy with macports only:
+
+    1. Install `Macports <https://www.macports.org>`_
+    
+    2. Choose python versions for Kivy, available version 2.7, 3.5, 3.6
+    
+        $ port install py35-kivy  # for python 3.5
+        $ port install py36-kivy  # for python 3.6
+    
+    3. Check if kivy is available
+    
+        $ python3.5
+        $ >>> import kivy
+
 You can install Kivy with Macports and pip using the following steps:
 
     1. Install `Macports <https://www.macports.org>`_
