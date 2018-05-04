@@ -19,6 +19,10 @@ __all__ = (
     'stopTouchApp',
 )
 
+from traceback import format_stack
+import q
+from pprint import pformat
+
 import sys
 from kivy.config import Config
 from kivy.logger import Logger
@@ -27,6 +31,11 @@ from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.context import register_context
+from kivy.compat import PY2
+
+if not PY2:
+    from asyncio import set_event_loop, Handle
+    from kivy.guievents import GuiEventLoop
 
 # private vars
 EventLoop = None
@@ -495,13 +504,13 @@ def runTouchApp(widget=None, slave=False):
     # 2. if no window is created, we are dispatching event loop
     #    ourself (previous behavior.)
     #
-    try:
-        if EventLoop.window is None:
-            _run_mainloop()
-        else:
-            EventLoop.window.mainloop()
-    finally:
-        stopTouchApp()
+    # try:
+    #     if EventLoop.window is None:
+    #         _run_mainloop()
+    #     else:
+    #         EventLoop.window.mainloop()
+    # finally:
+    #     stopTouchApp()
 
 
 def stopTouchApp():
@@ -511,4 +520,92 @@ def stopTouchApp():
     if EventLoop.status != 'started':
         return
     Logger.info('Base: Leaving application in progress...')
-    EventLoop.close()
+    # EventLoop.close()
+
+
+
+if not PY2:
+
+    from kivy.app import App
+
+    class KivyHandle(Handle):
+        def __init__(self, callback, args, loop):
+            super().__init__(callback, args, loop)
+            self.clock_id = None
+
+        def _run(self, *args):
+            # import pudb; pudb.set_trace()
+            super()._run(*args)
+
+        def cancel(self):
+            Clock.unschedule(self.clock_id)
+            super().cancel()
+
+
+    class KivyEventLoop(GuiEventLoop):
+        _default_executor = None
+
+        def __init__(self, app=None):
+            super().__init__()
+            self.app = app or App()
+
+        def mainloop(self):
+            set_event_loop(self)
+            self.app.run()
+            print("before")
+            print(EventLoop.quit, EventLoop.status)
+            try:
+                self.run_forever()
+            finally:
+                set_event_loop(None)
+
+        def run(self):
+            while not EventLoop.quit:
+                self.run_once()
+
+            # self.close()
+
+        def run_forever(self):
+            self.run()
+
+        def run_once(self, timeout=None):
+            if EventLoop.window and hasattr(EventLoop.window, '_mainloop'):
+                EventLoop.window._mainloop()
+            else:
+                EventLoop.idle()
+
+        def stop(self):
+            q("stop called")
+            with open('/tmp/q', 'a') as f:
+                for l in format_stack():
+                    f.write(l)
+            super().stop()
+            self.app.stop()
+
+        def close(self):
+            q("close called", self, id(self))
+            with open('/tmp/q', 'a') as f:
+                for l in format_stack():
+                    f.write(l)
+            super().close()
+            q("closed", self, id(self))
+
+        def call_later(self, delay, callback, *args):
+            print("call_later", delay, callback, args)
+            handle = KivyHandle(callback, args, self)
+            res = Clock.schedule_once(
+                lambda *_: handle._run(),
+                delay)
+            print("scheduled", res)
+            handle.clock_id = res
+
+            return handle
+
+    # class _CancelJob(object):
+    #     def __init__(self, event_loop, after_id):
+    #         self.event_loop = event_loop
+    #         self.after_id = after_id
+
+    #     def cancel(self):
+    #         print("cancel called", self.after_id)
+    #         Clock.unschedule(self.after_id)
