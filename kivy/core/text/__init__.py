@@ -245,7 +245,7 @@ class LabelBase(object):
                 font = resource_find(font_type)
 
                 if font is None:
-                    raise IOError('File {0}s not found'.format(font_type))
+                    raise IOError('File {0} not found'.format(font_type))
                 else:
                     fonts.append(font)
             else:
