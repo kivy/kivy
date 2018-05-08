@@ -61,7 +61,7 @@ install.
 #. (Optionally) Install the kivy examples::
 
      python -m pip install kivy_examples
-     
+
    The examples are installed in the share directory under the root directory where python is installed.
 
 That's it. You should now be able to ``import kivy`` in python or run a basic
@@ -305,10 +305,32 @@ favorite location, do the following:
 
 #. Move the contents of ``python\Lib\site-packages\kivy\deps`` to
    ``your-path\kivy\deps`` where ``your-path`` is the path where your kivy is
-   located.
+   located. That means if you cloned from GitHub, the ``deps`` have to end up
+   in the inner ``kivy`` folder.
 #. Remove the ``python\Lib\site-packages\kivy`` directory altogether.
 #. From ``python\Lib\site-packages`` move **all** ``kivy.deps.*.dist-info``
    directories to ``your-path`` right next to ``kivy``.
+
+Your folder structure should look something like this::
+
+    <your-path>
+    :
+    ├── kivy
+    :   :
+    │   ├── data
+    │   ├── deps
+    │   │   ├── glew      -and/or-  angle
+    │   │   ├── glew_dev  -and/or-  angle_dev
+    :   :   :
+    │   │   ├── sdl2
+    │   │   ├── sdl2_dev
+    │   ├── effects
+    │   ├── ...
+    :   :
+    ├── kivy.deps.*.dist-info
+    ├── kivy.deps.*.dist-info
+    ├── ...
+    :
 
 Now you can safely compile kivy in its current location with one of these
 commands::
