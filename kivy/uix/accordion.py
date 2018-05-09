@@ -282,13 +282,14 @@ class AccordionItem(FloatLayout):
             self.accordion.select(self)
         collapse_alpha = float(value)
         if self._anim_collapse:
-            self._anim_collapse.stop()
+            self._anim_collapse.stop(self)
             self._anim_collapse = None
         if self.collapse_alpha != collapse_alpha:
             self._anim_collapse = Animation(
                 collapse_alpha=collapse_alpha,
                 t=accordion.anim_func,
-                d=accordion.anim_duration).start(self)
+                d=accordion.anim_duration)
+            self._anim_collapse.start(self)
 
     def on_collapse_alpha(self, instance, value):
         self.accordion._trigger_layout()
