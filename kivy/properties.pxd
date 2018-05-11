@@ -1,4 +1,4 @@
-from kivy._event cimport EventDispatcher, EventObservers
+from kivy._event cimport EventDispatcher, EventObservers, Observable
 
 cdef class PropertyStorage:
     cdef object value
@@ -25,6 +25,7 @@ cdef class Property:
     cdef object errorhandler
     cdef int errorvalue_set
     cdef public object defaultvalue
+    cdef public int rebind
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage)
     cpdef link(self, EventDispatcher obj, str name)
     cpdef link_deps(self, EventDispatcher obj, str name)
@@ -33,12 +34,23 @@ cdef class Property:
     cpdef unbind(self, EventDispatcher obj, observer)
     cpdef funbind(self, EventDispatcher obj, observer, tuple largs=*, dict kwargs=*)
     cpdef unbind_uid(self, EventDispatcher obj, object uid)
-    cdef compare_value(self, a, b)
+    cdef int compare_value(self, a, b)
     cpdef set(self, EventDispatcher obj, value)
     cpdef get(self, EventDispatcher obj)
     cdef check(self, EventDispatcher obj, x)
     cdef convert(self, EventDispatcher obj, x)
     cpdef dispatch(self, EventDispatcher obj)
+
+cdef class ObservableList(list):
+    cdef Property prop
+    cdef object obj
+    cdef str last_op_command
+    cdef object last_op_value
+
+cdef class ObservableDict(dict):
+    cdef Property prop
+    cdef object obj
+    cdef object _weak_return(self, item)
 
 cdef class NumericProperty(Property):
     cdef float parse_str(self, EventDispatcher obj, value) except *
@@ -51,11 +63,10 @@ cdef class ListProperty(Property):
     pass
 
 cdef class DictProperty(Property):
-    cdef public int rebind
+    pass
 
 cdef class ObjectProperty(Property):
     cdef object baseclass
-    cdef public int rebind
 
 cdef class BooleanProperty(Property):
     pass
@@ -81,7 +92,6 @@ cdef class AliasProperty(Property):
     cdef object setter
     cdef list bind_objects
     cdef int use_cache
-    cdef public int rebind
     cpdef trigger_change(self, EventDispatcher obj, value)
 
 cdef class VariableListProperty(Property):
