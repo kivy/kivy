@@ -1345,8 +1345,8 @@ class Widget(WidgetBase):
 
     .. versionchanged:: 1.10.1
 
-        :attr:`disabled` was changed from a 
-        :class:`~kivy.properties.BooleanProperty` to an 
+        :attr:`disabled` was changed from a
+        :class:`~kivy.properties.BooleanProperty` to an
         :class:`~kivy.properties.AliasProperty` to allow access to its
         previous state when a parent's disabled state is changed.
     '''

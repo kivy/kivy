@@ -31,8 +31,10 @@ matrix:
 before_install:
   # https://github.com/travis-ci/travis-ci/issues/6307
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
-      gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3;
-      rvm get head;
+      brew install gpg2;
+      brew uninstall gpg;
+      gpg2 --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3;
+      rvm get stable;
     fi
 
 install:
@@ -74,13 +76,15 @@ install:
       sudo cp -a /Volumes/SDL2_mixer/SDL2_mixer.framework /Library/Frameworks/;
       sudo installer -package gstreamer-1.0-1.10.2-x86_64.pkg -target /;
       sudo installer -package gstreamer-1.0-devel-1.10.2-x86_64.pkg -target /;
+      curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py;
       if [ "${PY}" == "3" ]; then
          curl -O -L https://www.python.org/ftp/python/3.5.2/python-3.5.2-macosx10.6.pkg;
          sudo installer -package python-3.5.2-macosx10.6.pkg -target /;
-         pip3 install --upgrade --user cython pillow nose mock;
+         python3 get-pip.py --user;
+         python3 -m pip install --upgrade --user cython pillow nose mock;
       else
-         sudo easy_install pip;
-         pip install --upgrade --user cython pillow nose mock;
+         python get-pip.py --user;
+         python -m pip install --upgrade --user cython pillow nose mock;
       fi;
     fi;
 

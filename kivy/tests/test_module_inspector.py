@@ -288,7 +288,7 @@ class InspectorTestCase(GraphicUnitTest):
         # close Inspector
         ins.activated = False
         self.render(self.root)
-        self.advance_frames(10)
+        self.advance_frames(5)
 
         # stop Inspector completely
         inspector.stop(self._win, self.root)
@@ -370,7 +370,7 @@ class InspectorTestCase(GraphicUnitTest):
         # close Inspector
         ins.activated = False
         self.render(self.root)
-        self.advance_frames(10)
+        self.advance_frames(5)
 
         # stop Inspector completely
         inspector.stop(self._win, self.root)
