@@ -48,8 +48,11 @@ class CameraPiCamera(CameraBase):
         '''Round buffer size up to 32x16 blocks.
 
         See https://picamera.readthedocs.io/en/release-1.13/recipes2.html#capturing-to-a-numpy-array
-        '''
-        return (ceil(self.resolution[0] / 32.) * 32, ceil(self.resolution[1] / 16.) * 16)
+        '''  # noqa
+        return (
+            ceil(self.resolution[0] / 32.) * 32,
+            ceil(self.resolution[1] / 16.) * 16
+        )
 
     def _update(self, dt):
         if self.stopped:
@@ -63,19 +66,21 @@ class CameraPiCamera(CameraBase):
 
         try:
             bufsize = self.raw_buffer_size()
-            output = numpy.empty((bufsize[0] * bufsize[1] * 3,), dtype=numpy.uint8)
+            output = numpy.empty(
+                (bufsize[0] * bufsize[1] * 3,), dtype=numpy.uint8)
             self._camera.capture(output, self._format, use_video_port=True)
 
             # Trim the buffer to fit the actual requested resolution.
             # TODO: Is there a simpler way to do all this reshuffling?
             output = output.reshape((bufsize[0], bufsize[1], 3))
             output = output[:self.resolution[0], :self.resolution[1], :]
-            self._buffer = output.reshape((self.resolution[0] * self.resolution[1] * 3,))
+            self._buffer = output.reshape(
+                (self.resolution[0] * self.resolution[1] * 3,))
 
             self._copy_to_gpu()
         except KeyboardInterrupt:
             raise
-        except:
+        except Exception:
             Logger.exception('PiCamera: Couldn\'t get image from Camera')
 
     def start(self):
