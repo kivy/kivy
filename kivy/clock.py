@@ -803,6 +803,52 @@ def mainthread(func):
     return delayed_func
 
 
+def triggered(timeout, interval=False):
+    '''Decorator that will trigger the call of the function at the specified
+    timeout, through the method :meth:`CyClockBase.create_trigger`. A new call
+    to the function before the timeout will interrupt the previous call and
+    restart the timeout, so only one call is executed during this timeout.
+
+    It can be helpful when an expensive funcion (i.e. call to a server) can be
+    triggered by different methods. Setting a proper timeout will delay the
+    calling and only one of them wil be triggered.
+
+        callback(id=1)
+        callback(id=2)
+
+        @triggered(timeout, interval=False)
+        def callback(self, id):
+            print('The callback has been called with id=%d' % id)
+
+    .. versionadded:: 1.10.1
+    '''
+
+    def wrapper_triggered(func):
+
+        _args = []
+        _kwargs = {}
+
+        def cb_function(dt):
+            func(*tuple(_args), **_kwargs)
+
+        cb_trigger = Clock.create_trigger(
+            cb_function,
+            timeout=timeout,
+            interval=interval)
+
+        @wraps(func)
+        def trigger_function(*args, **kwargs):
+            _args[:] = []
+            _args.extend(list(args))
+            _kwargs.clear()
+            _kwargs.update(kwargs)
+            cb_trigger()
+
+        return trigger_function
+
+    return wrapper_triggered
+
+
 if 'KIVY_DOC_INCLUDE' in environ:
     #: Instance of :class:`ClockBaseBehavior`.
     Clock = None
