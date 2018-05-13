@@ -13,18 +13,18 @@ environment:
   MSYSTEM: MINGW64
   CHERE_INVOKING: 1
   matrix:
-  - PYVER: 27
-    BITTNESS: 86
-    COMPILER: mingw
-  - PYVER: 27
-    BITTNESS: 64
-    COMPILER: mingw
-  - PYVER: 34
-    BITTNESS: 86
-    COMPILER: mingw
-  - PYVER: 34
-    BITTNESS: 64
-    COMPILER: mingw
+  # - PYVER: 27
+  #   BITTNESS: 86
+  #   COMPILER: mingw
+  # - PYVER: 27
+  #   BITTNESS: 64
+  #   COMPILER: mingw
+  # - PYVER: 34
+  #   BITTNESS: 86
+  #   COMPILER: mingw
+  # - PYVER: 34
+  #   BITTNESS: 64
+  #   COMPILER: mingw
   - PYVER: 35
     BITTNESS: 86
     COMPILER: msvc
