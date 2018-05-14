@@ -29,7 +29,7 @@ Ubuntu / Kubuntu / Xubuntu / Lubuntu (Saucy and above)
     :Python3 - **python3-kivy**:
         $ sudo apt-get install python3-kivy
     :optionally the examples - **kivy-examples**:
-        $ sudo apt-get install python-kivy-examples
+        $ sudo apt-get install kivy-examples
 
 
 Debian  (Jessie or newer)
@@ -138,7 +138,7 @@ Kivy       Cython
 1.8        0.20.2
 1.9        0.21.2
 1.9.1      0.23
-1.10.1     0.25
+1.10.0     0.25.2
 ========   =============
 
 
@@ -170,13 +170,13 @@ In the following command use "python" and "python-dev" for Python 2, or "python3
         libavformat-dev \
         libavcodec-dev \
         zlib1g-dev
-        
+
     # Install gstreamer for audio, video (optional)
     sudo apt-get install -y \
         libgstreamer1.0 \
         gstreamer1.0-plugins-base \
         gstreamer1.0-plugins-good
-        
+
 
 **Note:**  Depending on your Linux version, you may receive error messages related to the "ffmpeg" package.
 In this scenario, use "libav-tools \" in place of "ffmpeg \" (above), or use a PPA (as shown below):
@@ -196,13 +196,13 @@ Installation
 
     # Make sure Pip, Virtualenv and Setuptools are updated
     sudo pip install --upgrade pip virtualenv setuptools
-    
+
     # Then create a virtualenv named "kivyinstall" by either:
-    
+
     # 1. using the default interpreter
     virtualenv --no-site-packages kivyinstall
-    
-    # or 2. using a specific interpreter 
+
+    # or 2. using a specific interpreter
     # (this will use the interpreter in /usr/bin/python2.7)
     virtualenv --no-site-packages -p /usr/bin/python2.7 kivyinstall
 
@@ -298,11 +298,11 @@ Installation
     sudo pip install --upgrade pip virtualenv setuptools
 
     # Then create a virtualenv named "kivyinstall" by either:
-    
+
     # 1. using the default interpreter
     virtualenv --no-site-packages kivyinstall
-    
-    # or 2. using a specific interpreter 
+
+    # or 2. using a specific interpreter
     # (this will use the interpreter in /usr/bin/python2.7)
     virtualenv --no-site-packages -p /usr/bin/python2.7 kivyinstall
 
