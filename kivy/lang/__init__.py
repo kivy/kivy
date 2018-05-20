@@ -175,6 +175,8 @@ the value can use the values of other properties using reserved keywords.
             TextInput:
                 on_focus: self.insert_text("Focus" if args[1] else "No focus")
 
+.. kv-lang-ids:
+
 ids
 ~~~
 

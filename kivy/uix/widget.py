@@ -1026,15 +1026,20 @@ class Widget(WidgetBase):
     '''
 
     id = StringProperty(None, allownone=True)
-    '''Unique identifier of the widget in the tree.
+    '''Identifier of the widget in the tree.
 
     :attr:`id` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.
 
+    .. note::
+
+        The :attr:`id` is not the same as ``id`` in the kv language. For the
+        latter, see :attr:`ids` and :ref:`Kivy Language: ids <kv-lang-ids>`.
+
     .. warning::
 
-        If the :attr:`id` is already used in the tree, an exception will
-        be raised.
+        The :attr:`id` property has been deprecated and will be removed
+        completely in future versions.
     '''
 
     children = ListProperty([])
