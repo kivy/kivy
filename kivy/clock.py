@@ -803,7 +803,7 @@ def mainthread(func):
     return delayed_func
 
 
-def triggered(timeout, interval=False):
+def triggered(timeout=0, interval=False):
     '''Decorator that will trigger the call of the function at the specified
     timeout, through the method :meth:`CyClockBase.create_trigger`. A new call
     to the function before the timeout will interrupt the previous call and
@@ -816,7 +816,7 @@ def triggered(timeout, interval=False):
         callback(id=1)
         callback(id=2)
 
-        @triggered(timeout, interval=False)
+        @triggered(timeout=0, interval=False)
         def callback(self, id):
             print('The callback has been called with id=%d' % id)
 
