@@ -117,3 +117,15 @@ class ClockTestCase(unittest.TestCase):
         self.assertEqual(counter, 0)
         Clock.tick()
         self.assertEqual(counter, 1)
+
+    def test_trigger_decorator_cancel(self):
+        from kivy.clock import Clock, triggered
+
+        @triggered()
+        def triggered_callback():
+            callback(dt=0)
+
+        triggered_callback()
+        triggered_callback.cancel()
+        Clock.tick()
+        self.assertEqual(counter, 0)

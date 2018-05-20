@@ -813,12 +813,17 @@ def triggered(timeout=0, interval=False):
     triggered by different methods. Setting a proper timeout will delay the
     calling and only one of them wil be triggered.
 
-        callback(id=1)
-        callback(id=2)
-
-        @triggered(timeout=0, interval=False)
+        @triggered(timeout, interval=False)
         def callback(self, id):
             print('The callback has been called with id=%d' % id)
+
+        >> callback(id=1)
+        >> callback(id=2)
+        The callback has been called with id=2
+
+    The decorated callback can also be unscheduled using:
+
+        >> callback.cancel()
 
     .. versionadded:: 1.10.1
     '''
@@ -843,6 +848,11 @@ def triggered(timeout=0, interval=False):
             _kwargs.clear()
             _kwargs.update(kwargs)
             cb_trigger()
+
+        def trigger_cancel():
+            cb_trigger.cancel()
+
+        setattr(trigger_function, 'cancel', trigger_cancel)
 
         return trigger_function
 
