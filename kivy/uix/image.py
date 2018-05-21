@@ -391,3 +391,12 @@ class AsyncImage(Image):
 
     def texture_update(self, *largs):
         pass
+
+    def reload(self):
+        if Loader:
+            source = self.source
+            if not self.is_uri(source):
+                source = resource_find(source)
+            Loader.remove_from_cache(source)
+
+        super(AsyncImage, self).reload()
