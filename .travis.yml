@@ -107,7 +107,7 @@ script:
         make test;
       fi;
       if [ "${COVERALLS}" == "true" ] && [ "${TRAVIS_BRANCH}" == "master" ]; then
-        coveralls;
+        travis_retry coveralls;
       fi;
       if [ "${RUN}" == "pep8" ]; then
         make style;
