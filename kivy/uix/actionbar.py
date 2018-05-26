@@ -9,23 +9,98 @@ Action Bar
 
 The ActionBar widget is like Android's `ActionBar
 <http://developer.android.com/guide/topics/ui/actionbar.html>`_, where items
-are stacked horizontally. When the area becomes to small, widgets are moved
+are stacked horizontally. When the area becomes too small, widgets are moved
 into the :class:`ActionOverflow` area.
 
-An :class:`ActionBar` contains an :class:`ActionView` with various
-:class:`ContextualActionViews <kivy.uix.actionbar.ContextualActionView>`.
-An :class:`ActionView` will contain an :class:`ActionPrevious` having title,
-app_icon and previous_icon properties. An :class:`ActionView` will contain
-subclasses of :class:`ActionItems <ActionItem>`. Some predefined ones include
-an :class:`ActionButton`, an :class:`ActionToggleButton`, an
-:class:`ActionCheck`, an :class:`ActionSeparator` and an :class:`ActionGroup`.
+To get started, create an :class:`ActionBar` containing an :class:`ActionView`
+with an :class:`ActionPrevious` button::
+
+    ActionBar:
+        ActionView:
+            ActionPrevious:
+            ...
+
+This initial structure is required, but you don't need to worry about an
+:class:`ActionOverflow`, because each :class:`ActionView` and
+:class:`ContextualActionView` have one by default. It is only made visible
+when necessary, i.e. the available area is too small to fit all the widgets.
+
+Example
+-------
+
+.. image:: images/actionbar-example.png
+    :align: right
+
+You may want to create a simple application with a few
+:class:`ActionButtons <ActionButton>` to get a feeling for how this behaves::
+
+    from kivy.base import runTouchApp
+    from kivy.lang import Builder
+
+    KV = """\\
+    <ActionBarExample@BoxLayout>:
+        orientation: 'vertical'
+
+        ActionBar:
+            ActionView:
+                ActionPrevious:
+                ActionButton:
+                    text: 'Button 1'
+                ActionButton:
+                    text: 'Now see, this Button 2 takes more space'
+                ActionButton:
+                    text: 'Button 3'
+
+    ActionBarExample:
+        Label:
+            text: 'Add content here'
+    """
+
+    actionbar_example = Builder.load_string(KV)
+    runTouchApp(actionbar_example)
+
+
+Overview
+--------
+
+An :class:`ActionBar` always contains an :class:`ActionView`. Various
+:class:`ContextualActionViews <kivy.uix.actionbar.ContextualActionView>` can
+optionally be layered on top, using the :meth:`ActionBar.add_widget` method.
+Subsequently, :class:`ContextualActionViews <ContextualActionView>` are removed
+one by one when pressing the :class:`ActionPrevious` button.
+:class:`ContextualActionView` is a subclass of :class:`ActionView`.
+
+The :class:`ActionPrevious` button has the properties
+:attr:`title <ActionPrevious.title>`, :attr:`app_icon <ActionPrevious.app_icon>`
+and :attr:`previous_image <ActionPrevious.previous_image>`, among others.
+
+An :class:`ActionView` or :class:`ContextualActionView` requires that each
+item is a subclass of :class:`ActionItem`. Some predefined ones include an
+:class:`ActionButton`, an :class:`ActionToggleButton`, an :class:`ActionCheck`,
+an :class:`ActionSeparator` and an :class:`ActionGroup`.
 
 An :class:`ActionGroup` is used to display :class:`ActionItems <ActionItem>`
-in a group. An :class:`ActionView` will always display an :class:`ActionGroup`
-after other :class:`ActionItems <ActionItem>`. An :class:`ActionView` contains
-an :class:`ActionOverflow`, but this is only made visible when required i.e.
-the available area is too small to fit all the widgets. A
-:class:`ContextualActionView` is a subclass of an:class:`ActionView`.
+in a group, conditionally as a dropdown. An :class:`ActionView` will always
+display an :class:`ActionGroup` after other :class:`ActionItems <ActionItem>`.
+Adjust :attr:`ActionGroup.dropdown_width` if some items need more space to be
+fully displayed.
+
+To add your own custom items, inherit from both your desired widget and
+:class:`ActionItem`, for example like so::
+
+    class ActionLabel(Label, ActionItem):
+        pass
+
+By default, a view's :class:`ActionOverflow` (see
+:attr:`overflow_group <ActionView.overflow_group>`) is hidden and will be shown
+on the right side when necessary. Use the :attr:`ActionOverflow.overflow_image`
+property to change the icon.
+
+.. note::
+
+    You can run this module directly for another, more complete example::
+
+        python -m kivy.uix.actionbar
 
 .. versionchanged:: 1.10.1
     :class:`ActionGroup` core rewritten from :class:`Spinner` to pure
