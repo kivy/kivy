@@ -638,6 +638,9 @@ class ActionView(BoxLayout):
                 use_separator=self.use_separator)
 
     def on_action_previous(self, instance, value):
+        if value is not None and not isinstance(value, ActionPrevious):
+            error_fmt = 'action_previous must be an ActionPrevious (got {!r})'
+            raise ActionBarException(error_fmt.format(self.action_previous))
         self._list_action_items.insert(0, value)
 
     def add_widget(self, action_item, index=0):
@@ -835,10 +838,57 @@ class ActionView(BoxLayout):
 
 class ContextualActionView(ActionView):
     '''
-    ContextualActionView class, see the module documentation for more
-    information.
+    A ContextualActionView's API is the same as that of the
+    :class:`ActionView`, but it is handled in a different way by the
+    :class:`ActionBar`.
+
+    Whereas there's only ever one :class:`ActionView`, several
+    ContextualActionViews can be stacked on top of it.  One is removed whenever
+    the :class:`ActionPrevious` button is pressed.
+
+    Please see the module documentation for more information.
     '''
-    pass
+
+    def __init__(self, **kwargs):
+        super(ContextualActionView, self).__init__(**kwargs)
+        # current parent and current action_previous need to be tracked to
+        # keep the action_previous event bindings up-to-date
+        self._current_parent = self.parent
+        self._current_action_previous = self.action_previous
+
+    def on_parent(self, instance, parent):
+        if self.action_previous is None:
+            # nothing to do; binding will be manipulated in on_action_previous
+            self._current_parent = parent
+            return
+        # else:
+        action_previous = self.action_previous
+        if not isinstance(self.action_previous, ActionPrevious):
+            error_fmt = 'action_previous must be an ActionPrevious (got {!r})'
+            raise ActionBarException(error_fmt.format(self.action_previous))
+        # unbind from old parent, if necessary:
+        if isinstance(self._current_parent, ActionBar):
+            self.action_previous.unbind(
+                on_release=self._current_parent._emit_previous)
+        # bind to new parent, if necessary:
+        if isinstance(parent, ActionBar):
+            self.action_previous.bind(on_release=parent._emit_previous)
+        self._current_parent = parent
+
+    def on_action_previous(self, instance, value):
+        super(ContextualActionView, self).on_action_previous(instance, value)
+        if self.parent is None:
+            self._current_action_previous = value
+            # nothing to do; binding will be manipulated in on_action_previous
+            return
+        # else: unbind old action_previous, if necessary:
+        if self._current_action_previous is not None:
+            self._current_action_previous.unbind(
+                on_release=self.parent._emit_previous)
+        # then bind new action_previous, if necessary:
+        if value is not None:
+            value.bind(on_release=self.parent._emit_previous)
+        self._current_action_previous = value
 
 
 class ActionBar(BoxLayout):
@@ -897,21 +947,14 @@ class ActionBar(BoxLayout):
         self._emit_previous = partial(self.dispatch, 'on_previous')
 
     def add_widget(self, view):
-        if isinstance(view, ContextualActionView):
-            self._stack_cont_action_view.append(view)
-            if view.action_previous is not None:
-                view.action_previous.unbind(on_release=self._emit_previous)
-                view.action_previous.bind(on_release=self._emit_previous)
-            self.clear_widgets()
-            super(ActionBar, self).add_widget(view)
-
-        elif isinstance(view, ActionView):
-            self.action_view = view
-            super(ActionBar, self).add_widget(view)
-
-        else:
+        if not isinstance(view, ActionView):
             raise ActionBarException(
                 'ActionBar can only add ContextualActionView or ActionView')
+        elif isinstance(view, ContextualActionView):
+            self._stack_cont_action_view.append(view)
+        else:
+            self.action_view = view
+        self._ensure_single_view(view)
 
     def on_previous(self, *args):
         self._pop_contextual_action_view()
@@ -920,12 +963,24 @@ class ActionBar(BoxLayout):
         '''Remove the current ContextualActionView and display either the
            previous one or the ActionView.
         '''
-        self._stack_cont_action_view.pop()
-        self.clear_widgets()
-        if self._stack_cont_action_view == []:
-            super(ActionBar, self).add_widget(self.action_view)
+        cav_count = len(self._stack_cont_action_view)
+        if cav_count >= 1:
+            self._stack_cont_action_view.pop()
+            cav_count -= 1
+        if cav_count == 0:
+            self._ensure_single_view(self.action_view)
         else:
-            super(ActionBar, self).add_widget(self._stack_cont_action_view[-1])
+            self._ensure_single_view(self._stack_cont_action_view[-1])
+
+    def _ensure_single_view(self, view):
+        '''
+        Make view the only child, if it is an Actionview.
+        '''
+        if view is None or not isinstance(view, ActionView):
+            return
+        # else:
+        super(ActionBar, self).clear_widgets()
+        super(ActionBar, self).add_widget(view)
 
 
 if __name__ == "__main__":
