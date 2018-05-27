@@ -567,7 +567,7 @@ class ActionOverflow(ActionGroup):
 
         if not isinstance(action_item, ActionItem):
             raise ActionBarException('ActionView only accepts ActionItem'
-                                     ' (got {!r}'.format(action_item))
+                                     ' (got {!r})'.format(action_item))
 
         else:
             if index == 0:
@@ -629,9 +629,9 @@ class ActionView(BoxLayout):
     '''
 
     def __init__(self, **kwargs):
+        super(ActionView, self).__init__(**kwargs)
         self._list_action_items = []
         self._list_action_group = []
-        super(ActionView, self).__init__(**kwargs)
         self._state = ''
         if not self.overflow_group:
             self.overflow_group = ActionOverflow(
@@ -649,7 +649,7 @@ class ActionView(BoxLayout):
 
         if not isinstance(action_item, ActionItem):
             raise ActionBarException('ActionView only accepts ActionItem'
-                                     ' (got {!r}'.format(action_item))
+                                     ' (got {!r})'.format(action_item))
 
         elif isinstance(action_item, ActionOverflow):
             self.overflow_group = action_item
@@ -960,8 +960,9 @@ class ActionBar(BoxLayout):
         self._pop_contextual_action_view()
 
     def _pop_contextual_action_view(self):
-        '''Remove the current ContextualActionView and display either the
-           previous one or the ActionView.
+        '''
+        Remove the current ContextualActionView and display either the previous
+        one or the ActionView.
         '''
         cav_count = len(self._stack_cont_action_view)
         if cav_count >= 1:
