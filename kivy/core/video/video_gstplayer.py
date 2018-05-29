@@ -117,13 +117,13 @@ class VideoGstplayer(VideoBase):
         # texture is not allocated yet, create it first
         if not self._texture:
             self._texture = Texture.create(size=(width, height),
-                                           colorfmt='rgb')
+                                           colorfmt='rgba')
             self._texture.flip_vertical()
             self.dispatch('on_load')
 
         if self._texture:
             self._texture.blit_buffer(
-                data, size=(width, height), colorfmt='rgb')
+                data, size=(width, height), colorfmt='rgba')
 
     def _get_uri(self):
         uri = self.filename
