@@ -139,6 +139,7 @@ build_script:
     if ($env:APPVEYOR_REPO_BRANCH -ne "master") {
       $GIT_BRANCH = $env:APPVEYOR_REPO_BRANCH
       $WHEEL_NAME = "dev0.$WHEEL_DATE`.$GIT_BRANCH@$GIT_TAG-"
+      $DO_WHEEL = "True"
     }
 
     echo "test=$env:DO_TEST, make_wheel=$DO_WHEEL"
