@@ -587,7 +587,7 @@ class ActionView(BoxLayout):
     ActionView class, see module documentation for more information.
     '''
 
-    action_previous = ObjectProperty(None)
+    action_previous = ObjectProperty(None, baseclass=ActionPrevious)
     '''
     Previous button for an ActionView.
 
@@ -620,7 +620,7 @@ class ActionView(BoxLayout):
     defaults to False.
     '''
 
-    overflow_group = ObjectProperty(None)
+    overflow_group = ObjectProperty(None, baseclass=ActionOverflow)
     '''
     Widget to be used for the overflow.
 
@@ -905,7 +905,7 @@ class ActionBar(BoxLayout):
     Please see the module documentation for more information.
     '''
 
-    action_view = ObjectProperty(None)
+    action_view = ObjectProperty(None, baseclass=ActionView)
     '''
     action_view of the ActionBar.
 
@@ -943,6 +943,7 @@ class ActionBar(BoxLayout):
 
     def __init__(self, **kwargs):
         super(ActionBar, self).__init__(**kwargs)
+        self._current_action_view = self.action_view
         self._stack_cont_action_view = []
         self._emit_previous = partial(self.dispatch, 'on_previous')
 
@@ -952,9 +953,32 @@ class ActionBar(BoxLayout):
                 'ActionBar can only add ContextualActionView or ActionView')
         elif isinstance(view, ContextualActionView):
             self._stack_cont_action_view.append(view)
+            self._ensure_view_is_single_child(view)
         else:
             self.action_view = view
-        self._ensure_single_view(view)
+
+    def remove_widget(self, view):
+        if isinstance(view, ContextualActionView) \
+                and view in self._stack_cont_action_view:
+            if view in self.children:
+                self._pop_contextual_action_view()
+            else:
+                self._stack_cont_action_view.remove(view)
+        elif view is self.action_view:
+            self.action_view = None  # will raise a ValueError
+
+    def on_action_view(self, *args):
+        # ensure no ContextualActionView can be set as ActionView
+        if isinstance(self.action_view, ContextualActionView):
+            self.action_view = self._current_action_view
+            raise ActionBarException(
+                'action_view must not be a ContextualActionView')
+        # else:
+        self._current_action_view = self.action_view
+        if self._stack_cont_action_view:
+            return  # stop here if there are stacked ContextualActionViews
+        # else:
+        self._ensure_view_is_single_child(self.action_view)
 
     def on_previous(self, *args):
         self._pop_contextual_action_view()
@@ -969,18 +993,21 @@ class ActionBar(BoxLayout):
             self._stack_cont_action_view.pop()
             cav_count -= 1
         if cav_count == 0:
-            self._ensure_single_view(self.action_view)
+            self._ensure_view_is_single_child(self.action_view)
         else:
-            self._ensure_single_view(self._stack_cont_action_view[-1])
+            self._ensure_view_is_single_child(self._stack_cont_action_view[-1])
 
-    def _ensure_single_view(self, view):
+    def _ensure_view_is_single_child(self, view):
         '''
-        Make view the only child, if it is an Actionview.
+        Make view the only child, if it is an ActionView.
         '''
         if view is None or not isinstance(view, ActionView):
             return
         # else:
-        super(ActionBar, self).clear_widgets()
+        # there should only ever be one child view at a time, but it
+        # doesn't hurt to make sure by removing all existing children:
+        for child in self.children[:]:
+            super(ActionBar, self).remove_widget(child)
         super(ActionBar, self).add_widget(view)
 
 

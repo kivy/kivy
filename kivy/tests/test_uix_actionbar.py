@@ -1,10 +1,13 @@
 from kivy.tests.common import GraphicUnitTest
 
-from kivy.lang import Builder
 from kivy.base import EventLoop
-from kivy.weakproxy import WeakProxy
-from kivy.uix.dropdown import DropDown
 from kivy.input.motionevent import MotionEvent
+from kivy.lang import Builder
+from kivy.uix.dropdown import DropDown
+from kivy.uix.actionbar import ActionBar, ActionView, ContextualActionView, \
+    ActionPrevious, ActionBarException, ActionOverflow
+from kivy.uix.widget import Widget
+from kivy.weakproxy import WeakProxy
 
 
 KV = '''
@@ -353,6 +356,163 @@ class ActionBarTestCase(GraphicUnitTest):
                 self.assertFalse(group.is_open)
                 self.check_dropdown(present=False)
         self._win.remove_widget(root)
+
+    def test_5_action_view(self):
+        self._win = EventLoop.window
+        self.clean_garbage()
+        root = Builder.load_string(KV)
+        self.render(root)
+        self.assertLess(len(self._win.children), 2)
+        action_bar = root.children[0]
+        action_view = action_bar.children[0]
+        action_previous = action_view.action_previous
+        self.assertIsInstance(action_bar, ActionBar)
+        self.assertIsInstance(action_view, ActionView)
+        self.assertIsInstance(action_previous, ActionPrevious)
+        self.move_frames(5)
+
+        # General
+        # -------
+        # integrity checks on the KV loaded subtree:
+        self.assertSequenceEqual(action_bar.children, [action_view])
+        self.assertIs(action_view.parent, action_bar)
+        self.assertIsInstance(action_view.overflow_group, ActionOverflow)
+        # add_widget() behavior:
+        self.assertRaises(ActionBarException,
+                          action_view.add_widget, Widget())  # not an ActionItem
+        with self.assertRaises(ValueError):
+            action_bar.action_view = None  # action_view can't be removed
+        with self.assertRaises(ValueError):
+            action_bar.remove_widget(action_view)  # same here
+        self.assertIs(action_bar.action_view, action_view)
+        with self.assertRaises(ActionBarException):
+            action_bar.action_view = ContextualActionView()  # not allowed
+        self.assertIs(action_bar.action_view, action_view)
+        # adding another ActionView replaces the existing one:
+        action_view2 = ActionView()
+        action_bar.add_widget(action_view2)
+        self.assertIs(action_bar.action_view, action_view2)
+        self.assertSequenceEqual(action_bar.children, [action_view2])
+        self.assertIs(action_view2.parent, action_bar)
+        self.assertIsNone(action_view.parent)
+        # readding/-setting results in no change:
+        action_bar.add_widget(action_view2)
+        self.assertIs(action_bar.action_view, action_view2)
+        self.assertSequenceEqual(action_bar.children, [action_view2])
+        action_bar.action_view = action_view2
+        self.assertIs(action_bar.action_view, action_view2)
+        self.assertSequenceEqual(action_bar.children, [action_view2])
+        # resetting to the original one does, however:
+        action_bar.action_view = action_view
+        self.assertIs(action_bar.action_view, action_view)
+        self.assertSequenceEqual(action_bar.children, [action_view])
+        self.assertIs(action_view.parent, action_bar)
+        self.assertIsNone(action_view2.parent)
+
+        # ActionPrevious
+        # --------------
+        with self.assertRaises(ValueError):
+            action_view.action_previous = Widget()  # must be ActionPrevious
+        with self.assertRaises(ValueError):
+            action_view.action_previous = None  # action_view can't be removed
+        self.assertIs(action_view.action_previous, action_previous)
+        # check the property but not the children here, it
+        # may only be added to children during layouting:
+        new_action_previous = ActionPrevious()
+        action_view.add_widget(new_action_previous)
+        self.assertIs(action_view.action_previous, new_action_previous)
+        action_view.add_widget(action_previous)
+        self.assertIs(action_view.action_previous, action_previous)
+        # action_previous is initially unassigned:
+        action_view3 = ActionView()
+        self.assertIs(action_view3.action_previous, None)
+
+    def test_6_contextual_action_views(self):
+        self._win = EventLoop.window
+        self.clean_garbage()
+        root = Builder.load_string(KV)
+        self.render(root)
+        self.assertLess(len(self._win.children), 2)
+        action_bar = root.children[0]
+        action_view = action_bar.children[0]
+        self.assertIsInstance(action_bar, ActionBar)
+        self.assertIsInstance(action_view, ActionView)
+        stack_cont_action_view = action_bar._stack_cont_action_view
+
+        # General
+        # -------
+        cont_action_view = ContextualActionView()
+        action_previous = ActionPrevious(title='ContextualActionView')
+        self.assertIsNone(cont_action_view.action_previous)
+        cont_action_view.add_widget(action_previous)
+        self.assertIs(cont_action_view.action_previous, action_previous)
+        self.assertRaises(ActionBarException,
+                          action_bar.add_widget, Widget())
+
+        # ActionBar only has a single (Contextual)ActionView child at a time
+        # ------------------------------------------------------------------
+        self.assertSequenceEqual(action_bar.children, [action_view])
+        action_bar.add_widget(cont_action_view)
+        self.assertIs(cont_action_view.parent, action_bar)
+        self.assertIn(cont_action_view, stack_cont_action_view)
+        self.assertSequenceEqual(action_bar.children, [cont_action_view])
+        action_bar.remove_widget(cont_action_view)
+        self.assertIsNone(cont_action_view.parent)
+        self.assertNotIn(cont_action_view, stack_cont_action_view)
+        self.assertSequenceEqual(action_bar.children, [action_view])
+        # now with several:
+        action_bar.add_widget(cont_action_view)
+        self.assertIn(cont_action_view, stack_cont_action_view)
+        self.assertSequenceEqual(action_bar.children, [cont_action_view])
+        cont_action_view2 = ContextualActionView()
+        cont_action_view2.action_previous = ActionPrevious()
+        action_view2 = ActionView()
+        action_view2.action_previous = ActionPrevious()
+        action_bar.add_widget(cont_action_view2)
+        self.assertIn(cont_action_view2, stack_cont_action_view)
+        self.assertSequenceEqual(action_bar.children, [cont_action_view2])
+        action_bar.add_widget(action_view2)
+        # ContextualActionViews hide ActionView changes:
+        self.assertSequenceEqual(action_bar.children, [cont_action_view2])
+        action_bar.action_view = action_view
+        self.assertSequenceEqual(action_bar.children, [cont_action_view2])
+        # action_previous event removes ContextualActionViews, and only them:
+        action_bar._emit_previous(action_bar)
+        self.assertNotIn(cont_action_view2, stack_cont_action_view)
+        self.assertSequenceEqual(action_bar.children, [cont_action_view])
+        action_bar._emit_previous(action_bar)
+        self.assertNotIn(cont_action_view, stack_cont_action_view)
+        self.assertSequenceEqual(action_bar.children, [action_view])
+        action_bar._emit_previous(action_bar)
+        self.assertSequenceEqual(action_bar.children, [action_view])
+        # remove an intermediate ContextualActionView:
+        action_bar.add_widget(cont_action_view2)
+        self.assertIn(cont_action_view2, stack_cont_action_view)
+        action_bar.add_widget(cont_action_view)
+        self.assertIn(cont_action_view, stack_cont_action_view)
+        self.assertSequenceEqual(action_bar.children, [cont_action_view])
+        action_bar.remove_widget(cont_action_view2)
+        self.assertNotIn(cont_action_view2, stack_cont_action_view)
+        self.assertIn(cont_action_view, stack_cont_action_view)
+        self.assertSequenceEqual(action_bar.children, [cont_action_view])
+        action_bar.remove_widget(cont_action_view)  # reset for the next tests
+        
+        # Automatic ActionPrevious button binding
+        #----------------------------------------
+        ap_button_center = action_view.action_previous.ids.button.center[:]
+        action_bar.add_widget(cont_action_view)
+        action_bar.add_widget(cont_action_view2)
+        self.move_frames(5)
+        self.assertSequenceEqual(action_bar.children, [cont_action_view2])
+        TouchPoint(*ap_button_center)
+        self.move_frames(5)
+        self.assertSequenceEqual(action_bar.children, [cont_action_view])
+        TouchPoint(*ap_button_center)
+        self.move_frames(5)
+        self.assertSequenceEqual(action_bar.children, [action_view])
+        TouchPoint(*ap_button_center)  # ActionView's button isn't bound, though
+        self.move_frames(5)
+        self.assertSequenceEqual(action_bar.children, [action_view])
 
 
 if __name__ == '__main__':
