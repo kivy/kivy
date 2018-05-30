@@ -300,9 +300,9 @@ def decodeOSC(data):
             typetags, rest = readString(rest)
             decoded.append(address)
             decoded.append(typetags)
-            if typetags[0] == b",":
+            if typetags[0] == ord(","):
                 for tag in typetags[1:]:
-                    value, rest = table[tag](rest)
+                    value, rest = table[chr(tag)](rest)
                     decoded.append(value)
             else:
                 print("Oops, typetag lacks the magic ,")
