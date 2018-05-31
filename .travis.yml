@@ -141,7 +141,7 @@ script:
         git_tag=$(git rev-parse --short HEAD);
         wheel_name="dev0.$wheel_date.$git_tag";
 
-        docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/.ci/build-wheels-linux.sh;
+        sudo docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/.ci/build-wheels-linux.sh;
         for name in wheelhouse/*manylinux*.whl; do
           new_name="${name/dev0/$wheel_name}";
           cp $name $new_name;
@@ -181,8 +181,8 @@ script:
           python$pyver_short -m pip install --upgrade --user cython nose wheel pillow mock docutils;
           python$pyver_short -m pip install --upgrade delocate;
 
-          python$pyver_short setup.py build_ext --inplace;
-          python$pyver_short setup.py bdist_wheel;
+          USE_SDL2=1 USE_GSTREAMER=1 python$pyver_short setup.py build_ext --inplace;
+          USE_SDL2=1 USE_GSTREAMER=1 python$pyver_short setup.py bdist_wheel;
           python$pyver_short -m nose.core kivy/tests;
 
           /Library/Frameworks/Python.framework/Versions/$pyver_short/bin/delocate-wheel dist/*.whl;
