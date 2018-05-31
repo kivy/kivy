@@ -130,7 +130,7 @@ script:
       if [ "${RUN}" == "docs" ]; then
         make html;
       fi;
-      if [ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ] || [ "${TRAVIS_BRANCH}" == "ci_test" ] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel]" ]] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel linux]" ]]; then
+      if [ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel]" ]] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel linux]" ]]; then
         mkdir wheelhouse;
         wheel_date = python -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))";
         git_tag = git rev-parse --short HEAD;
