@@ -53,13 +53,8 @@ class ImageLoaderPIL(ImageLoaderBase):
     @staticmethod
     def extensions():
         '''Return accepted extensions for this loader'''
-        # See http://www.pythonware.com/library/pil/handbook/index.htm
-        return ('bmp', 'bufr', 'cur', 'dcx', 'fits', 'fl', 'fpx', 'gbr',
-                'gd', 'gif', 'grib', 'hdf5', 'ico', 'im', 'imt', 'iptc',
-                'jpeg', 'jpg', 'jpe', 'mcidas', 'mic', 'mpeg', 'msp',
-                'pcd', 'pcx', 'pixar', 'png', 'ppm', 'psd', 'sgi',
-                'spider', 'tga', 'tiff', 'wal', 'wmf', 'xbm', 'xpm',
-                'xv')
+        PILImage.init()
+        return tuple((ext_with_dot[1:] for ext_with_dot in PILImage.EXTENSION))
 
     def _img_correct(self, _img_tmp):
         '''Convert image to the correct format and orientation.
