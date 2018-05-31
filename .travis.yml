@@ -137,7 +137,7 @@ script:
         wheel_date=$(python -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))");
         git_tag=$(git rev-parse --short HEAD);
         wheel_name="dev0.$wheel_date.$git_tag";
-        pwd
+        ls;
 
         docker run --rm -v `pwd`/../:/io $DOCKER_IMAGE "/io/.ci/build-wheels-linux.sh";
         for name in wheelhouse/*manylinux*.whl; do
