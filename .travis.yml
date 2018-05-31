@@ -41,9 +41,8 @@ matrix:
       env: RUN=unit PY=3
       os: osx
     - language: generic
-      env: PY=3 RUN=wheels
       os: osx
-      env: PYVERS="3.5.4 3.6.5"
+      env: PYVERS="3.5.4 3.6.5" PY=3 RUN=wheels
 
 before_install:
   # https://github.com/travis-ci/travis-ci/issues/6307
