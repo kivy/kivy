@@ -27,10 +27,8 @@ matrix:
       os: linux
       dist: trusty
     - language: python
-      python: 3.5
+      sudo: required
       env: RUN=wheels DOCKER_IMAGE=markrwilliams/manylinux2:x86_64
-      os: linux
-      dist: trusty
       services:
         - docker
     - language: generic
@@ -140,14 +138,14 @@ script:
         git_tag=$(git rev-parse --short HEAD);
         wheel_name="dev0.$wheel_date.$git_tag";
 
-        sudo docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/.ci/build-wheels-linux.sh;
+        docker run --rm -v `pwd`:/io $DOCKER_IMAGE /io/.ci/build-wheels-linux.sh;
         for name in wheelhouse/*manylinux*.whl; do
           new_name="${name/dev0/$wheel_name}";
           cp $name $new_name;
         done;
         ls wheelhouse/;
 
-        openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./.ci/id_rsa.enc -out ~/.ssh/id_rsa -d;
+        openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
         chmod 600 ~/.ssh/id_rsa;
         echo -e "Host $SERVER_IP\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
         rsync -avh -e "ssh -p 2458" --include="*/" --include="*manylinux*.whl" --exclude="*" "wheelhouse/" "root@$SERVER_IP:/web/downloads/ci/linux/kivy/";
@@ -180,7 +178,6 @@ script:
           python$pyver_short -m pip install --upgrade --user cython nose wheel pillow mock docutils;
           python$pyver_short -m pip install --upgrade delocate;
 
-          USE_SDL2=1 USE_GSTREAMER=1 python$pyver_short setup.py build_ext --inplace;
           USE_SDL2=1 USE_GSTREAMER=1 python$pyver_short setup.py bdist_wheel;
           python$pyver_short -m nose.core kivy/tests;
 
@@ -189,8 +186,17 @@ script:
           cp dist/*.whl ../wheelhouse/;
         done;
 
+        wheel_date=$(python -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))");
+        git_tag=$(git rev-parse --short HEAD);
+        wheel_name="dev0.$wheel_date.$git_tag";
+
+        for name in ../wheelhouse/*.whl; do
+          new_name="${name/dev0/$wheel_name}";
+          cp $name $new_name;
+        done;
         ls ../wheelhouse/;
-        openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./.ci/id_rsa.enc -out ~/.ssh/id_rsa -d;
+
+        openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
         chmod 600 ~/.ssh/id_rsa;
         echo -e "Host $SERVER_IP\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
         rsync -avh -e "ssh -p 2458" --include="*/" --include="*.whl" --exclude="*" "../wheelhouse/" "root@$SERVER_IP:/web/downloads/ci/osx/kivy/";
