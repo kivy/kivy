@@ -132,15 +132,15 @@ script:
       fi;
       if [ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel]" ]] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel linux]" ]]; then
         mkdir wheelhouse;
-        wheel_date = python -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))";
-        git_tag = git rev-parse --short HEAD;
+        wheel_date=$(python -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))");
+        git_tag=$(git rev-parse --short HEAD);
         wheel_name="dev0.$wheel_date.$git_tag";
 
         docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/.ci/build-wheels-linux.sh;
         for name in wheelhouse/*manylinux*.whl; do
           new_name="${name/dev0/$wheel_name}";
           cp $name $new_name;
-        done
+        done;
         ls wheelhouse/;
 
         openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./.ci/id_rsa.enc -out ~/.ssh/id_rsa -d;
