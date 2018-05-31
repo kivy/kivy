@@ -31,7 +31,6 @@ matrix:
       env: RUN=wheels DOCKER_IMAGE=markrwilliams/manylinux2:x86_64
       os: linux
       dist: trusty
-      sudo: required
       services:
         - docker
     - language: generic

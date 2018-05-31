@@ -125,7 +125,7 @@ build_script:
       $DO_WHEEL = "False"
     }
 
-    if ($env:APPVEYOR_REPO_BRANCH -ne "master" -and -Not ($env:APPVEYOR_REPO_COMMIT_MESSAGE.Contains("[build wheel win]"))) {
+    if ($env:APPVEYOR_REPO_BRANCH -ne "master" -and -Not ($env:APPVEYOR_REPO_COMMIT_MESSAGE.Contains("[build wheel win]")) -and -Not ($env:APPVEYOR_REPO_COMMIT_MESSAGE.Contains("[build wheel]"))) {
       $DO_WHEEL = "False"
     }
 
