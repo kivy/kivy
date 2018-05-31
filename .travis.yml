@@ -137,8 +137,9 @@ script:
         wheel_date=$(python -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))");
         git_tag=$(git rev-parse --short HEAD);
         wheel_name="dev0.$wheel_date.$git_tag";
+        pwd
 
-        docker run --rm -v `pwd`:/io $DOCKER_IMAGE "ls /io && echo kivy && /io/.ci/build-wheels-linux.sh";
+        docker run --rm -v `pwd`/../:/io $DOCKER_IMAGE "/io/.ci/build-wheels-linux.sh";
         for name in wheelhouse/*manylinux*.whl; do
           new_name="${name/dev0/$wheel_name}";
           cp $name $new_name;
@@ -200,8 +201,7 @@ script:
         openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
         chmod 600 ~/.ssh/id_rsa;
         echo -e "Host $SERVER_IP\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
-        echo "Uploading to root@$SERVER_IP:/web/downloads/ci/osx/kivy/";
-        rsync -avh -e "ssh -p 2458" --include="*/" --include="*.whl" --exclude="*" "../wheelhouse/" "root@$SERVER_IP:/web/downloads/ci/osx/";
+        rsync -avh -e "ssh -p 2458" --include="*/" --include="*.whl" --exclude="*" "../wheelhouse/" "root@$SERVER_IP:/web/downloads/ci/osx/kivy/";
       fi;
     fi;
 
