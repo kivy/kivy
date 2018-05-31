@@ -146,7 +146,7 @@ script:
         openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./.ci/id_rsa.enc -out ~/.ssh/id_rsa -d;
         chmod 600 ~/.ssh/id_rsa;
         echo -e "Host $SERVER_IP\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
-        rsync -avh -e "ssh -p 2458" --include="*/" --include="*manylinux*.whl" --exclude="*" "wheelhouse/" "root@$SERVER_IP:/web/downloads/ci/linux/kivy/"
+        rsync -avh -e "ssh -p 2458" --include="*/" --include="*manylinux*.whl" --exclude="*" "wheelhouse/" "root@$SERVER_IP:/web/downloads/ci/linux/kivy/";
       fi;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
