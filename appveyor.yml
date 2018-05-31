@@ -6,6 +6,7 @@ environment:
   DO_WHEEL: True
   KEY_WITH_NO_TEETH:
     secure: 7cS7xjpCL/VH5jIIGSf13camkiu1enMh5hO0UsBgmRlBXyKk3t/7HB79ofyJKgDb
+  SERVER_IP: 159.203.106.198
   USE_SDL2: 1
   USE_GSTREAMER: 1
   KIVY_USE_SETUPTOOLS: 1
@@ -13,18 +14,12 @@ environment:
   MSYSTEM: MINGW64
   CHERE_INVOKING: 1
   matrix:
-  # - PYVER: 27
-  #   BITTNESS: 86
-  #   COMPILER: mingw
-  # - PYVER: 27
-  #   BITTNESS: 64
-  #   COMPILER: mingw
-  # - PYVER: 34
-  #   BITTNESS: 86
-  #   COMPILER: mingw
-  # - PYVER: 34
-  #   BITTNESS: 64
-  #   COMPILER: mingw
+  - PYVER: 27
+    BITTNESS: 86
+    COMPILER: mingw
+  - PYVER: 27
+    BITTNESS: 64
+    COMPILER: mingw
   - PYVER: 35
     BITTNESS: 86
     COMPILER: msvc
@@ -72,12 +67,6 @@ build_script:
     mkdir "$env:WHEEL_DIR"
 
     Check-Error
-
-
-    C:\Python27\Scripts\pip.exe install pydrive
-
-    Check-Error
-
 
 
     if ($env:BITTNESS -eq "64") {
@@ -159,7 +148,9 @@ build_script:
 
     Check-Error
 
-    pip install kivy.deps.angle
+    if ($env:COMPILER -eq "msvc") {
+      pip install kivy.deps.angle
+    }
 
     Copy-Item "$PYTHON_ROOT\Lib\site-packages\kivy\deps\*" -destination "$env:APPVEYOR_BUILD_FOLDER\kivy\deps" -recurse
 
@@ -174,7 +165,7 @@ build_script:
       python setup.py bdist_wheel -d "$env:WHEEL_DIR"
       Check-Error
 
-      if ($env:BITTNESS -eq "64" -and $env:PYVER -eq "27") {
+      if ($env:BITTNESS -eq "64" -and $env:PYVER -eq "35") {
         python setup.py bdist_wheel -d "$env:WHEEL_DIR" --build_examples --universal
         Check-Error
       }
@@ -194,10 +185,10 @@ build_script:
         Check-Error
       }
 
-      secure-file\tools\secure-file -decrypt C:\projects\kivy\kivy\tools\appveyor\id_rsa.enc -secret "$env:KEY_WITH_NO_TEETH"
+      secure-file\tools\secure-file -decrypt C:\projects\kivy\.ci\id_rsa.enc -secret "$env:KEY_WITH_NO_TEETH"
       Check-Error
 
-      C:\msys64\usr\bin\bash --login C:\projects\kivy\kivy\tools\appveyor\kivy-upload.sh
+      C:\msys64\usr\bin\bash --login -c "/c/projects/kivy/.ci/appveyor-server-upload.sh $env:SERVER_IP '$env:WHEEL_DIR' Kivy* appveyor/kivy/"
       Check-Error
 
     }
@@ -214,7 +205,11 @@ test_script:
 
 
     if ($env:DO_TEST -eq "True"){
-      $env:KIVY_GL_BACKEND = "angle_sdl2"
+      if ($env:COMPILER -eq "msvc") {
+        $env:KIVY_GL_BACKEND = "angle_sdl2"
+      } else {
+        $env:KIVY_GL_BACKEND = "mock"
+      }
       python -m nose.core kivy/tests
       Check-Error
     }
