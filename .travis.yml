@@ -1,3 +1,8 @@
+env:
+  global:
+    - KIVY_USE_SETUPTOOLS=1
+    - KIVY_SPLIT_EXAMPLES=1
+    - SERVER_IP=159.203.106.198
 matrix:
   fast_finish: true
   include:
@@ -21,6 +26,14 @@ matrix:
       env: RUN=docs
       os: linux
       dist: trusty
+    - language: python
+      python: 3.5
+      env: RUN=wheels DOCKER_IMAGE=markrwilliams/manylinux2:x86_64
+      os: linux
+      dist: trusty
+      sudo: required
+      services:
+        - docker
     - language: generic
       env: RUN=unit PY=2
       os: osx
@@ -38,7 +51,7 @@ before_install:
     fi
 
 install:
-  - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" != "wheels" ]; then
       if [ "${RUN}" != "pep8" ]; then
         yes | sudo add-apt-repository ppa:zoogie/sdl2-snapshots;
         yes | sudo add-apt-repository ppa:gstreamer-developers/ppa;
@@ -89,7 +102,7 @@ install:
     fi;
 
 before_script:
-  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" != "pep8" ]; then
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" != "pep8" ] && [ "${RUN}" != "wheels" ]; then
       export DISPLAY=:99.0;
       /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX;
       export PYTHONPATH=$PYTHONPATH:$(pwd);
@@ -117,6 +130,24 @@ script:
       if [ "${RUN}" == "docs" ]; then
         make html;
       fi;
+      if [ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ] || [ "${TRAVIS_BRANCH}" == "ci_test" ] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel]" ]] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel linux]" ]]; then
+        mkdir wheelhouse;
+        wheel_date = python -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))";
+        git_tag = git rev-parse --short HEAD;
+        wheel_name="dev0.$wheel_date.$git_tag";
+
+        docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/.ci/build-wheels-linux.sh;
+        for name in wheelhouse/*manylinux*.whl; do
+          new_name="${name/dev0/$wheel_name}";
+          cp $name $new_name;
+        done
+        ls wheelhouse/;
+
+        openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./.ci/id_rsa.enc -out ~/.ssh/id_rsa -d;
+        chmod 600 ~/.ssh/id_rsa;
+        echo -e "Host $SERVER_IP\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
+        rsync -avh -e "ssh -p 2458" --include="*/" --include="*manylinux*.whl" --exclude="*" "wheelhouse/" "root@$SERVER_IP:/web/downloads/ci/linux/kivy/"
+      fi;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
       set -ex;
@@ -134,8 +165,8 @@ after_success:
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" == "docs" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ] && [ "${TRAVIS_BRANCH}" == "master" ]; then
       openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
       chmod 600 ~/.ssh/id_rsa;
-      echo -e "Host 159.203.106.198\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
-      rsync --delete --force -r -e "ssh -p 2457" ./doc/build/html/ root@159.203.106.198:/web/docs/;
+      echo -e "Host $SERVER_IP\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
+      rsync --delete --force -r -e "ssh -p 2457" ./doc/build/html/ root@$SERVER_IP:/web/docs/;
     fi;
 
 notifications:
