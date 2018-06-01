@@ -40,14 +40,14 @@ PATH="$HOME/kivy_build/bin:$PATH" make;
 make install;
 make distclean;
 
-# Compile wheels
+cd /io;
 for PYBIN in /opt/python/*3*/bin; do
-    "${PYBIN}/pip" install --upgrade setuptools pip
-    "${PYBIN}/pip" install --upgrade cython nose pygments docutils
-    USE_X11=1 USE_SDL2=1 USE_GSTREAMER=0 PKG_CONFIG_PATH="$HOME/kivy_build/lib/pkgconfig" "${PYBIN}/pip" wheel --no-deps /io/ -w wheelhouse/
+    "${PYBIN}/pip" install --upgrade setuptools pip;
+    "${PYBIN}/pip" install --upgrade cython nose pygments docutils;
+    USE_X11=1 USE_SDL2=1 USE_GSTREAMER=0 PKG_CONFIG_PATH="$HOME/kivy_build/lib/pkgconfig" "${PYBIN}/pip" wheel --no-deps . -w wheelhouse/;
 done
 
-# Bundle external shared libraries into the wheels
-for whl in wheelhouse/kivy*.whl; do
-    auditwheel repair "$whl" -w /io/wheelhouse/
+for name in /io/wheelhouse/*.whl; do
+    echo "Fixing $name";
+    auditwheel repair $name -w /io/wheelhouse/;
 done
