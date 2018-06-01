@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e -x
 
-yum -y install  autoconf automake cmake gcc gcc-c++ git make pkgconfig zlib-devel portmidi portmidi-devel gstreamer gstreamer-devel gstreamer-plugins-base gstreamer-plugins-base-devel gstreamer-plugins-good gstreamer-plugins-good-devel Xorg-x11-server-deve mesa-libEGL-devel mtdev-devel mesa-libEGL
+yum -y install  autoconf automake cmake gcc gcc-c++ git make pkgconfig zlib-devel portmidi portmidi-devel gstreamer gstreamer-devel gstreamer-plugins-base gstreamer-plugins-base-devel gstreamer-plugins-good gstreamer-plugins-good-devel Xorg-x11-server-deve mesa-libEGL-devel mtdev-devel mesa-libEGL freetype freetype-devel
 mkdir ~/kivy_sources;
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/kivy_build/lib;
 
