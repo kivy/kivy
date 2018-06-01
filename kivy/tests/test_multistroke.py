@@ -172,7 +172,7 @@ class MultistrokeTestCase(unittest.TestCase):
         self.assertTrue(r.best['name'] == 'T')
         self.assertTrue(r.best['score'] < 0.5)
 
-    def _timeout_case_2(self):
+    def test_timeout_case_2(self):
         global best_score
         from kivy.clock import Clock
         from time import sleep
