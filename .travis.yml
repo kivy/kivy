@@ -1,3 +1,8 @@
+env:
+  global:
+    - KIVY_USE_SETUPTOOLS=1
+    - KIVY_SPLIT_EXAMPLES=1
+    - SERVER_IP=159.203.106.198
 matrix:
   fast_finish: true
   include:
@@ -21,12 +26,20 @@ matrix:
       env: RUN=docs
       os: linux
       dist: trusty
+    - language: python
+      sudo: required
+      env: RUN=wheels DOCKER_IMAGE=markrwilliams/manylinux2:x86_64
+      services:
+        - docker
     - language: generic
       env: RUN=unit PY=2
       os: osx
     - language: generic
       env: RUN=unit PY=3
       os: osx
+    - language: generic
+      os: osx
+      env: PYVERS="3.5.4 3.6.5" PY=3 RUN=wheels
 
 before_install:
   # https://github.com/travis-ci/travis-ci/issues/6307
@@ -38,7 +51,7 @@ before_install:
     fi
 
 install:
-  - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" != "wheels" ]; then
       if [ "${RUN}" != "pep8" ]; then
         yes | sudo add-apt-repository ppa:zoogie/sdl2-snapshots;
         yes | sudo add-apt-repository ppa:gstreamer-developers/ppa;
@@ -77,19 +90,21 @@ install:
       sudo installer -package gstreamer-1.0-1.10.2-x86_64.pkg -target /;
       sudo installer -package gstreamer-1.0-devel-1.10.2-x86_64.pkg -target /;
       curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py;
-      if [ "${PY}" == "3" ]; then
-         curl -O -L https://www.python.org/ftp/python/3.5.2/python-3.5.2-macosx10.6.pkg;
-         sudo installer -package python-3.5.2-macosx10.6.pkg -target /;
-         python3 get-pip.py --user;
-         python3 -m pip install --upgrade --user cython pillow nose mock docutils;
-      else
-         python get-pip.py --user;
-         python -m pip install --upgrade --user cython pillow nose mock docutils;
+      if [ "${RUN}" != "wheels" ]; then
+        if [ "${PY}" == "3" ]; then
+           curl -O -L https://www.python.org/ftp/python/3.5.2/python-3.5.2-macosx10.6.pkg;
+           sudo installer -package python-3.5.2-macosx10.6.pkg -target /;
+           python3 get-pip.py --user;
+           python3 -m pip install --upgrade --user cython pillow nose mock docutils;
+        else
+           python get-pip.py --user;
+           python -m pip install --upgrade --user cython pillow nose mock docutils;
+        fi;
       fi;
     fi;
 
 before_script:
-  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" != "pep8" ]; then
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" != "pep8" ] && [ "${RUN}" != "wheels" ]; then
       export DISPLAY=:99.0;
       /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX;
       export PYTHONPATH=$PYTHONPATH:$(pwd);
@@ -117,15 +132,76 @@ script:
       if [ "${RUN}" == "docs" ]; then
         make html;
       fi;
+      if [ "${RUN}" == "wheels" ] && ([ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel]" ]] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel linux]" ]]); then
+        mkdir wheelhouse;
+        wheel_date=$(python -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))");
+        git_tag=$(git rev-parse --short HEAD);
+        wheel_name="dev0.$wheel_date.$git_tag";
+
+        chmod +x .ci/build-wheels-linux.sh;
+        docker run --rm -v `pwd`:/io $DOCKER_IMAGE "/io/.ci/build-wheels-linux.sh";
+        for name in wheelhouse/*manylinux*.whl; do
+          new_name="${name/dev0/$wheel_name}";
+          cp $name $new_name;
+        done;
+        ls wheelhouse/;
+
+        openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
+        chmod 600 ~/.ssh/id_rsa;
+        echo -e "Host $SERVER_IP\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
+        rsync -avh -e "ssh -p 2458" --include="*/" --include="*manylinux*.whl" --exclude="*" "wheelhouse/" "root@$SERVER_IP:/web/downloads/ci/linux/kivy/";
+      fi;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
       set -ex;
-      if [ "${PY}" == "3" ]; then
-        python3 setup.py build_ext --inplace;
-        python3 -m nose.core kivy/tests;
-      else
-        make;
-        make test;
+      if [ "${RUN}" != "wheels" ]; then
+        if [ "${PY}" == "3" ]; then
+          python3 setup.py build_ext --inplace;
+          python3 -m nose.core kivy/tests;
+        else
+          make;
+          make test;
+        fi;
+      elif [ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel]" ]] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel osx]" ]]; then
+        mkdir ../wheelhouse;
+
+        for pyver in $PYVERS; do
+          git reset --hard;
+          git clean -d -x -f;
+          pyver_short=${pyver:0:3};
+
+          curl -O -L https://www.python.org/ftp/python/$pyver/python-$pyver-macosx10.6.pkg;
+          sudo installer -package python-$pyver-macosx10.6.pkg -target /;
+          curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py;
+          python$pyver_short get-pip.py --user;
+
+          python$pyver_short -m pip install --upgrade --user pip;
+          python$pyver_short -m pip install --upgrade --user cython nose wheel pillow mock docutils;
+          python$pyver_short -m pip install --upgrade delocate;
+
+          USE_SDL2=1 USE_GSTREAMER=1 python$pyver_short setup.py build_ext --inplace;
+          USE_SDL2=1 USE_GSTREAMER=1 python$pyver_short setup.py bdist_wheel;
+          # python$pyver_short -m nose.core kivy/tests;
+
+          /Library/Frameworks/Python.framework/Versions/$pyver_short/bin/delocate-wheel dist/*.whl;
+          /Library/Frameworks/Python.framework/Versions/$pyver_short/bin/delocate-addplat --rm-orig -x 10_9 -x 10_10 dist/*.whl;
+          cp dist/*.whl ../wheelhouse/;
+        done;
+
+        wheel_date=$(python -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))");
+        git_tag=$(git rev-parse --short HEAD);
+        wheel_name="dev0.$wheel_date.$git_tag";
+
+        for name in ../wheelhouse/*.whl; do
+          new_name="${name/dev0/$wheel_name}";
+          cp $name $new_name;
+        done;
+        ls ../wheelhouse/;
+
+        openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
+        chmod 600 ~/.ssh/id_rsa;
+        echo -e "Host $SERVER_IP\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
+        rsync -avh -e "ssh -p 2458" --include="*/" --include="*.whl" --exclude="*" "../wheelhouse/" "root@$SERVER_IP:/web/downloads/ci/osx/kivy/";
       fi;
     fi;
 
@@ -134,8 +210,8 @@ after_success:
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" == "docs" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ] && [ "${TRAVIS_BRANCH}" == "master" ]; then
       openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
       chmod 600 ~/.ssh/id_rsa;
-      echo -e "Host 159.203.106.198\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
-      rsync --delete --force -r -e "ssh -p 2457" ./doc/build/html/ root@159.203.106.198:/web/docs/;
+      echo -e "Host $SERVER_IP\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
+      rsync --delete --force -r -e "ssh -p 2457" ./doc/build/html/ root@$SERVER_IP:/web/docs/;
     fi;
 
 notifications:
