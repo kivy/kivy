@@ -44,7 +44,7 @@ make distclean;
 for PYBIN in /opt/python/*3*/bin; do
     "${PYBIN}/pip" install --upgrade setuptools pip
     "${PYBIN}/pip" install --upgrade cython nose
-    USE_X11=1 USE_SDL2=1 USE_GSTREAMER=1 PKG_CONFIG_PATH="$HOME/kivy_build/lib/pkgconfig" "${PYBIN}/pip" wheel /io/ -w wheelhouse/
+    USE_X11=1 USE_SDL2=1 USE_GSTREAMER=0 PKG_CONFIG_PATH="$HOME/kivy_build/lib/pkgconfig" "${PYBIN}/pip" wheel /io/ -w wheelhouse/
 done
 
 # Bundle external shared libraries into the wheels
