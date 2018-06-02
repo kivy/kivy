@@ -60,30 +60,45 @@ On Ubuntu, GStreamer should be installed by default. But you might need some
 additional plugins to play every possible video format. Have a look at the
 suggested packages and install the ones starting with ``gstreamer1.0-plugins``.
 
-Debian  (Jessie or newer)
--------------------------
 
-#. Add one of the PPAs to your sources.list in apt manually or via Synaptic
+Debian
+------
+
+The situation here is similar to Ubuntu's. Both official packages are still
+based on version 1.9.1, and ``python3-kivy`` is currently broken. If you decide
+to install ``python-kivy`` you may want to add the optional ``python-pygments``
+and ``python-docutils`` as well.
+
+In contrast to Ubuntu and derivative distros, it is generally not recommended to
+use `an Ubuntu PPA`_, although if you must, the following instructions may work.
+Installing Kivy into a virtual environment (see `below <virtual_environment>`_)
+is probably a better approach.
+
+.. _an Ubuntu PPA: https://wiki.debian.org/DontBreakDebian#Don.27t_make_a_FrankenDebian
+
+#. Add one of the PPAs to ``/etc/apt/sources.list`` manually or via Synaptic
 
     :stable builds:
-        deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu xenial main
+        ``deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu xenial main``
     :daily builds:
-        deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu xenial main
-
-    **Notice**: Wheezy is not supported - You'll need to upgrade to Jessie at least!
+        ``deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu xenial main``
 
 #. Add the GPG key to your apt keyring by executing
 
-    as user:
+    ``$ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6``
 
-    ``sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6``
+#. Update your package list using your package manager
 
-    as root:
+    ``$ sudo apt-get update``
 
-    ``apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6``
+#. Install Kivy
 
-#. Refresh your package list and install **python-kivy** and/or **python3-kivy** and optionally the examples
-   found in **kivy-examples**
+    :Python2 - **python-kivy**:
+        ``$ sudo apt-get install python-kivy``
+    :Python3 - **python3-kivy**:
+        ``$ sudo apt-get install python3-kivy``
+    :optionally the examples - **kivy-examples**:
+        ``$ sudo apt-get install kivy-examples``
 
 
 Linux Mint
@@ -144,6 +159,7 @@ Other
 
 For other distros, we recommend installing via pip as shown below.
 
+.. _virtual_environment
 
 Installation in a Virtual Environment
 =====================================
