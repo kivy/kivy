@@ -3,34 +3,62 @@
 Installation on Linux
 =====================
 
-Using software packages
+Kivy has support for different backends and in some cases allows you to mix and
+match the dependencies. However, if you're new the recommended ones are the SDL2
+libraries, and optionally GStreamer for video. Therefore, you will normally
+install some variation of the following dependencies. Prebuilt packages likely
+include them as prerequisites:
+
+- SDL2
+- SDL2 image
+- SDL2 mixer
+- SDL2 ttf
+- GStreamer
+
+Using Software Packages
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-For installing distribution relative packages .deb/.rpm/...
+Distribution specific prebuilt packages, for example .deb/.rpm/...
 
+Ubuntu and Variants
+-------------------
 
-Ubuntu / Kubuntu / Xubuntu / Lubuntu (Saucy and above)
-------------------------------------------------------
+The official version (Ubuntu Universe) of ``python3-kivy`` is currently broken,
+and ``python-kivy`` is using version 1.9.1 still.  We recommend the Kivy PPA
+instead.
 
 #. Add one of the PPAs as you prefer
 
     :stable builds:
-        $ sudo add-apt-repository ppa:kivy-team/kivy
-    :nightly builds:
-        $ sudo add-apt-repository ppa:kivy-team/kivy-daily
+        ``$ sudo add-apt-repository ppa:kivy-team/kivy``
+    :daily builds:
+        ``$ sudo add-apt-repository ppa:kivy-team/kivy-daily``
 
 #. Update your package list using your package manager
-    $ sudo apt-get update
+
+    ``$ sudo apt-get update``
 
 #. Install Kivy
 
     :Python2 - **python-kivy**:
-        $ sudo apt-get install python-kivy
+        ``$ sudo apt-get install python-kivy``
     :Python3 - **python3-kivy**:
-        $ sudo apt-get install python3-kivy
+        ``$ sudo apt-get install python3-kivy``
     :optionally the examples - **kivy-examples**:
-        $ sudo apt-get install kivy-examples
+        ``$ sudo apt-get install kivy-examples``
 
+The PPAs allow for some variability in the dependencies as mentioned above. So
+depending on your existing installation, you might end up with a slightly
+different configuration. If you are unsure, just install the following packages
+manually:
+
+.. code-block:: console
+
+    $ sudo apt-get install libsdl2-2.0-0 libsdl2-image-2.0-0 libsdl2-mixer-2.0-0 libsdl2-ttf-2.0-0
+
+On Ubuntu, GStreamer should be installed by default. But you might need some
+additional plugins to play every possible video format. Have a look at the
+suggested packages and install the ones starting with ``gstreamer1.0-plugins``.
 
 Debian  (Jessie or newer)
 -------------------------
