@@ -1106,6 +1106,9 @@ if not build_examples:
         install_requires=[
             'Kivy-Garden>=0.1.4', 'docutils', 'pygments'
         ],
+        extra_requires={
+            'tuio': ['oscpy']
+        },
         setup_requires=[
             'cython>=' + MIN_CYTHON_STRING
         ] if not skip_cython else [])
