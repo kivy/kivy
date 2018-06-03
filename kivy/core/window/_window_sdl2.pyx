@@ -3,6 +3,7 @@ include "../../include/config.pxi"
 
 from libc.string cimport memcpy
 from os import environ
+from kivy.core import image
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy import platform
@@ -406,13 +407,19 @@ cdef class _WindowSDL2Storage:
         elif mode == 'colorkey':
             sdl_window_mode.mode = ShapeModeColorKey
 
-        sdl_shape = IMG_Load(<bytes>shape.encode('utf-8'))
-        if not sdl_shape:
+        try:
+            core_image = image.Image.load(shape, nocache=True)
+        except:
+            sdl_shape = NULL
             Logger.error(
                 'Window: Shape image "%s" could not be loaded!' % shape
             )
+        else:
+            sdl_shape = surface_from_core_image(core_image)
 
         result = SDL_SetWindowShape(self.win, sdl_shape, &sdl_window_mode)
+        if sdl_shape:
+            SDL_FreeSurface(sdl_shape)
 
         # SDL prevents the change with wrong input values and gives back useful
         # return values, so we pass the values to the user instead of killing
@@ -437,8 +444,11 @@ cdef class _WindowSDL2Storage:
     # twb end
 
     def set_window_icon(self, filename):
-        icon = IMG_Load(<bytes>filename.encode('utf-8'))
-        SDL_SetWindowIcon(self.win, icon)
+        core_image = image.Image.load(filename, nocache=True)
+        print(core_image.nocache, core_image.size)
+        cdef SDL_Surface *icon_surface = surface_from_core_image(core_image)
+        SDL_SetWindowIcon(self.win, icon_surface)
+        SDL_FreeSurface(icon_surface)
 
     def teardown_window(self):
         if self.ctx != NULL:
@@ -634,17 +644,9 @@ cdef class _WindowSDL2Storage:
         SDL_GL_SwapWindow(self.win)
 
     def save_bytes_in_png(self, filename, data, int width, int height):
-        cdef SDL_Surface *surface = SDL_CreateRGBSurfaceFrom(
-            <char *>data, width, height, 24, width * 3,
-            0x0000ff, 0x00ff00, 0xff0000, 0
-        )
-        cdef bytes bytes_filename = <bytes>filename.encode('utf-8')
-        cdef char *real_filename = <char *>bytes_filename
-
-        cdef SDL_Surface *flipped_surface = flipVert(surface)
-        IMG_SavePNG(flipped_surface, real_filename)
-        SDL_FreeSurface(surface)
-        SDL_FreeSurface(flipped_surface)
+        loader = next(loader for loader in image.ImageLoader.loaders
+                      if loader.can_save() and 'png' in loader.extensions())
+        loader.save(filename, width, height, 'RGB', data, flipped=True)
 
     def grab_mouse(self, grab):
         SDL_SetWindowGrab(self.win, SDL_TRUE if grab else SDL_FALSE)
@@ -686,3 +688,14 @@ cdef SDL_Surface* flipVert(SDL_Surface* sfc):
         memcpy(&rpixels[pos], &pixels[(pxlength - pos) - pitch], pitch)
 
     return result
+
+cdef SDL_Surface* surface_from_core_image(core_image):
+    # create an SDL_Surface from a core image's texture pixels. Use
+    # SDL_FreeSurface(surface) to deallocate
+    width, height = core_image.size
+    cdef int pitch = width * 4
+    cdef char *c_pixels = core_image.image.texture.pixels
+    cdef SDL_Surface *icon_surface
+    icon_surface = SDL_CreateRGBSurfaceFrom(c_pixels, width, height, 32,
+        pitch, 0x00000000ff, 0x0000ff00, 0x00ff0000, 0xff000000)
+    return icon_surface
