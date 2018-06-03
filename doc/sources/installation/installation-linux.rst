@@ -104,60 +104,63 @@ is probably a better approach.
 Linux Mint
 ----------
 
-#. Find out on which Ubuntu release your installation is based on, using this
-   `overview <https://linuxmint.com/download_all.php>`_.
-#. Continue as described for Ubuntu above, depending on which version your
-   installation is based on.
+Recent Linux Mint releases are derived from Ubuntu LTS (Long Term Support)
+versions, therefore the instructions are generally the same. You only need to
+know your own Ubuntu release name. The only exception is LMDE, which is based on
+Debian.
+
+#. Find out on which Ubuntu release your installation is based, using `this
+   overview <https://linuxmint.com/download_all.php>`_.
+
+#. Continue as described for Ubuntu above.
 
 
-Bodhi Linux
------------
-
-#. Find out which version of the distribution you are running and use the table below
-   to find out on which Ubuntu LTS it is based.
-
-    :Bodhi 1:
-        Ubuntu 10.04 LTS aka Lucid (No packages, just manual install)
-    :Bodhi 2:
-        Ubuntu 12.04 LTS aka Precise
-    :Bodhi 3:
-        Ubuntu 14.04 LTS aka Trusty
-    :Bodhi 4:
-        Ubuntu 16.04 LTS aka Xenial
-
-
-2. Continue as described for Ubuntu above, depending on which version your installation is based on.
-
-
-OpenSuSE
+OpenSUSE
 --------
 
-#. To install kivy go to http://software.opensuse.org/package/python-Kivy and use the "1 Click Install" for your openSuse version. You might need to make the latest kivy version appear in the list by clicking on "Show unstable packages". We prefer to use packages by " devel:languages:python".
+Depending on your version it might be possible to use a 1 click installer. If it
+works, this is the easiest option, if not you may run into trouble. We recommend
+installing into a `virtual environment <virtual_environment>`_ instead.
 
-#. If you would like access to the examples, please select **python-Kivy-examples** in the upcoming installation wizard.
+#. To install Kivy go to http://software.opensuse.org/package/python-Kivy and
+   use the "1 Click Install" for your openSUSE version. You might need to make
+   the latest kivy version appear in the list by clicking on "Show unstable
+   packages". We prefer to use packages by " devel:languages:python".
+
+#. If you would like access to the examples, please select
+   **python-Kivy-examples** in the upcoming installation wizard.
 
 
 Gentoo
 ------
 
-#. There is a kivy ebuild (kivy stable version)
+#. There is a Kivy ebuild (Kivy stable version)
 
    emerge Kivy
 
 #. available USE-flags are:
 
-   `cairo: Standard flag, let kivy use cairo graphical libraries.`
-   `camera: Install libraries needed to support camera.`
-   `doc: Standard flag, will make you build the documentation locally.`
-   `examples: Standard flag, will give you kivy examples programs.`
-   `garden: Install garden tool to manage user maintained widgets.`
-   `gstreamer: Standard flag, kivy will be able to use audio/video streaming libraries.`
-   `spell: Standard flag, provide enchant to use spelling in kivy apps.`
+    :cairo:
+        Standard flag, let kivy use cairo graphical libraries.
+    :camera:
+        Install libraries needed to support camera.
+    :doc:
+        Standard flag, will make you build the documentation locally.
+    :examples:
+        Standard flag, will give you kivy examples programs.
+    :garden:
+        Install garden tool to manage user maintained widgets.
+    :gstreamer:
+        Standard flag, kivy will be able to use audio/video streaming libraries.
+    :spell:
+        Standard flag, provide enchant to use spelling in kivy apps.
 
-Other
------
+
+Others
+------
 
 For other distros, we recommend installing via pip as shown below.
+
 
 .. _virtual_environment
 
