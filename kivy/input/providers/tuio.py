@@ -39,14 +39,21 @@ You must add the provider before your application is run, like this::
 __all__ = ('TuioMotionEventProvider', 'Tuio2dCurMotionEvent',
            'Tuio2dObjMotionEvent')
 
+from kivy.logger import Logger
+try:
+    from oscpy.server import OSCThreadServer
+except ImportError:
+    Logger.info(
+        'Please install the oscpy python module to use the TUIO provider'
+    )
+    raise
+
 from functools import partial
-from oscpy.server import OSCThreadServer
 from collections import deque
 from kivy.input.provider import MotionEventProvider
 from kivy.input.factory import MotionEventFactory
 from kivy.input.motionevent import MotionEvent
 from kivy.input.shape import ShapeRect
-from kivy.logger import Logger
 
 
 class TuioMotionEventProvider(MotionEventProvider):
