@@ -65,16 +65,16 @@ BoxLayout:
                     app.go_screen(idx)
             ActionToggleButton:
                 text: 'Toggle sourcecode'
-                icon: 'data/icons/sourcecode.png'
+                icon: 'data/icons/bug.png'
                 on_release: app.toggle_source_code()
             ActionButton:
                 text: 'Previous screen'
-                icon: 'data/icons/prev.png'
+                icon: 'data/icons/chevron-left.png'
                 on_release: app.go_previous_screen()
 
             ActionButton:
                 text: 'Next screen'
-                icon: 'data/icons/next.png'
+                icon: 'data/icons/chevron-right.png'
                 on_release: app.go_next_screen()
                 important: True
 
