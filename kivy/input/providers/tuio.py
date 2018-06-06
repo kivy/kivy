@@ -40,13 +40,6 @@ __all__ = ('TuioMotionEventProvider', 'Tuio2dCurMotionEvent',
            'Tuio2dObjMotionEvent')
 
 from kivy.logger import Logger
-try:
-    from oscpy.server import OSCThreadServer
-except ImportError:
-    Logger.info(
-        'Please install the oscpy python module to use the TUIO provider'
-    )
-    raise
 
 from functools import partial
 from collections import deque
@@ -139,6 +132,14 @@ class TuioMotionEventProvider(MotionEventProvider):
 
     def start(self):
         '''Start the TUIO provider'''
+        try:
+            from oscpy.server import OSCThreadServer
+        except ImportError:
+            Logger.info(
+                'Please install the oscpy python module to use the TUIO '
+                'provider.'
+            )
+            raise
         self.oscid = osc = OSCThreadServer()
         osc.listen(self.ip, self.port, default=True)
         for oscpath in TuioMotionEventProvider.__handlers__:
