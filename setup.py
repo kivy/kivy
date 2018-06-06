@@ -1103,7 +1103,12 @@ if not build_examples:
             'Topic :: Software Development :: User Interfaces'],
         dependency_links=[
             'https://github.com/kivy-garden/garden/archive/master.zip'],
-        install_requires=['Kivy-Garden>=0.1.4', 'docutils', 'pygments'],
+        install_requires=[
+            'Kivy-Garden>=0.1.4', 'docutils', 'pygments'
+        ],
+        extra_requires={
+            'tuio': ['oscpy']
+        },
         setup_requires=[
             'cython>=' + MIN_CYTHON_STRING
         ] if not skip_cython else [])

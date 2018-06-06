@@ -20,7 +20,12 @@ __author__ = "www.ixi-software.net"
 __license__ = "GNU General Public License"
 __all__ = ("oscAPI", "OSC")
 
+from kivy.logger import Logger
+Logger.warn(
+    'The kivy.lib.osc package has been replaced with `oscpy` and will be '
+    'removed in a future version'
+)
+
 from .OSC import *
 from .oscAPI import *
-
 
