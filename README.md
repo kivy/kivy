@@ -89,6 +89,8 @@ Sister projects
 - [KivEnt](https://github.com/kivy/kivent): entity-based game engine for Kivy.
 - [Garden](https://github.com/kivy-garden): widgets and libraries created and
   maintained by users.
+* [Oscpy](https://github.com/kivy/oscpy/): a fast and tested python2/3
+  implementation of OSC.
 
 Licenses
 --------
