@@ -59,7 +59,7 @@ if use_multiprocessing:
         try:
             while True:
                 message = thread.queue.get_nowait()
-                thread.addressManager.handle(message)
+                thread.addressManager.handle(*message)
         except:
             pass
 
@@ -67,7 +67,7 @@ if use_multiprocessing:
         def __init__(self, **kwargs):
             self.addressManager = OSC.CallbackManager()
             self.queue = Queue()
-            Process.__init__(self, args=(self.queue,))
+            Process.__init__(self)
             self.daemon     = True
             self._isRunning = Value('b', True)
             self._haveSocket= Value('b', False)
@@ -96,7 +96,7 @@ else:
         h = thread.addressManager.handle
 
         while q:
-            h(q.popleft())
+            h(*q.popleft())
 
     class _OSCServer(Thread):
         def __init__(self, **kwargs):
@@ -111,11 +111,16 @@ else:
             self.queue.append(message)
 
 
-def init() :
+def init(ipAddr=None, port=None):
     '''instantiates address manager and outsocket as globals
+        returns local port of outsocket for bidirectional communication
     '''
     global outSocket
-    outSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    if not outSocket:
+        outSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        if ipAddr is not None:
+            outSocket.bind((ipAddr, port or 0))
+    return outSocket.getsockname()[1]
 
 
 def bind(oscid, func, oscaddress):
@@ -187,14 +192,21 @@ class OSCServer(_OSCServer):
     def __init__(self, **kwargs):
         kwargs.setdefault('ipAddr', '127.0.0.1')
         kwargs.setdefault('port', 9001)
-        super(OSCServer, self).__init__()
+        super(OSCServer, self).__init__(**kwargs)
         self.ipAddr     = kwargs.get('ipAddr')
         self.port       = kwargs.get('port')
 
     def run(self):
         self.haveSocket = False
         # create socket
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        if(
+            outSocket and
+            (self.ipAddr or '0.0.0.0', self.port) == outSocket.getsockname()
+        ):
+            # Allow re-use of outSocket port for bidirectional communication
+            self.socket = outSocket
+        else:
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
         # fix trouble if python leave without cleaning well the socket
         # not needed under windows, he can reuse addr even if the socket
@@ -204,8 +216,9 @@ class OSCServer(_OSCServer):
 
         # try to bind the socket, retry if necessary
         while not self.haveSocket and self.isRunning:
-            try :
-                self.socket.bind((self.ipAddr, self.port))
+            try:
+                if self.socket != outSocket:
+                    self.socket.bind((self.ipAddr, self.port))
                 self.socket.settimeout(0.5)
                 self.haveSocket = True
 
@@ -216,6 +229,7 @@ class OSCServer(_OSCServer):
                 if error == errno.EADDRINUSE:
                     Logger.error('OSC: Address %s:%i already in use, retry in 2 second' % (self.ipAddr, self.port))
                 else:
+                    Logger.error('OSC: Error %d: %s', error, message)
                     self.haveSocket = False
 
                 # sleep 2 second before retry
@@ -225,13 +239,15 @@ class OSCServer(_OSCServer):
 
         while self.isRunning:
             try:
-                message = self.socket.recv(65535)
+                message = self.socket.recvfrom(65535)
                 self._queue_message(message)
             except Exception as e:
                 if type(e) == socket.timeout:
                     continue
-                Logger.exception('OSC: Error in Tuio recv()')
+                Logger.exception('OSC: Error in Tuio recvfrom()')
                 return 'no data arrived'
+        if self.haveSocket:
+            self.socket.close()
 
 def listen(ipAddr='127.0.0.1', port=9001):
     '''Creates a new thread listening to that port
@@ -256,7 +272,6 @@ def dontListen(thread_id = None):
     else:
         ids = list(oscThreads.keys())
     for thread_id in ids:
-        #oscThreads[thread_id].socket.close()
         Logger.debug('OSC: Stop thread <%s>' % thread_id)
         oscThreads[thread_id].isRunning = False
         oscThreads[thread_id].join()

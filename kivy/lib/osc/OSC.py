@@ -323,13 +323,13 @@ class CallbackManager:
         self.callbacks = {}
         self.add(self.unbundler, "#bundle")
 
-    def handle(self, data, source = None):
+    def handle(self, data, source):
         """Given OSC data, tries to call the callback with the
         right address."""
         decoded = decodeOSC(data)
         self.dispatch(decoded, source)
 
-    def dispatch(self, message, source = None):
+    def dispatch(self, message, source):
         """Sends decoded OSC data to an appropriate calback"""
         if not message or len(message) == 0: # ignore empty messages
             return
