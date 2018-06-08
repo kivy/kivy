@@ -40,6 +40,8 @@ try:
     use_multiprocessing = True
     from multiprocessing import Process, Queue, Value
     import multiprocessing.synchronize
+    # Don't use fork as it is a bad idea with threaded processes
+    multiprocessing.set_start_method('spawn')
     Logger.info('OSC: using <multiprocessing> for socket')
 except:
     use_multiprocessing = False
