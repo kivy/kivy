@@ -359,7 +359,7 @@ cdef class Mesh(VertexInstruction):
 
             which will allow mapping vertex data to the glsl instructions.
 
-                [(b'v_pos', 2, b'float'), (b'v_tc', 2, b'float'),]
+                [(b'v_pos', 2, 'float'), (b'v_tc', 2, 'float'),]
 
             will allow using
 
