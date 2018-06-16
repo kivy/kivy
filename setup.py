@@ -231,6 +231,7 @@ def check_c_files_updated():
         fn = splitext(f)[0] + '.c'
         if not exists(fn) or os.stat(f).st_mtime >= os.stat(fn).st_mtime:
             return False
+    return True
 
 
 have_cython = False
