@@ -392,6 +392,7 @@ class sdist(_sdist):
         # XXX can't call super, it's an old style class in python2
         _sdist.run(self)
 
+
 # -----------------------------------------------------------------------------
 # extract version (simulate doc generation, kivy will be not imported)
 environ['KIVY_DOC_INCLUDE'] = '1'
