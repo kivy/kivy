@@ -27,9 +27,6 @@ matrix:
       os: linux
       dist: trusty
     - language: python
-      python: 3.5
-      env: RUN=sdist
-    - language: python
       sudo: required
       env: RUN=wheels DOCKER_IMAGE=markrwilliams/manylinux2:x86_64
       services:
@@ -134,21 +131,6 @@ script:
       fi;
       if [ "${RUN}" == "docs" ]; then
         make html;
-      fi;
-      if [ "${RUN}" == "sdist" ]; then
-        make clean;
-        python setup.py sdist;
-        sdist_date=$(python -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))");
-        git_tag=$(git rev-parse --short HEAD);
-        sdist_name="dev0.$sdist_date.$git_tag";
-        for name in dist/Kivy-*.tar.gz; do
-          new_name="${name/dev0/$sdist_name}";
-          cp $name $new_name;
-        done;
-        openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
-        chmod 600 ~/.ssh/id_rsa;
-        echo -e "Host $SERVER_IP\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
-        rsync -avh -e "ssh -p 2458" dist/Kivy*.tar.gz "root@$SERVER_IP:/web/downloads/ci/linux/kivy/";
       fi;
       if [ "${RUN}" == "wheels" ] && ([ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel]" ]] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel linux]" ]]); then
         mkdir wheelhouse;
