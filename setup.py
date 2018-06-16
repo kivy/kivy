@@ -12,7 +12,7 @@ if "--build_examples" in sys.argv:
 
 from copy import deepcopy
 import os
-from os.path import join, dirname, sep, exists, basename, isdir
+from os.path import join, dirname, sep, exists, basename, isdir, splitext
 from os import walk, environ
 from distutils.version import LooseVersion
 from distutils.sysconfig import get_python_inc
@@ -20,13 +20,16 @@ from collections import OrderedDict
 from time import sleep
 from subprocess import check_output, CalledProcessError
 from datetime import datetime
+from glob import glob
 
 if environ.get('KIVY_USE_SETUPTOOLS'):
     from setuptools import setup, Extension
+    from setuptools.command.sdist import sdist as _sdist
     print('Using setuptools')
 else:
     from distutils.core import setup
     from distutils.extension import Extension
+    from distutils.command.sdist import sdist as _sdist
     print('Using distutils')
 
 
@@ -221,9 +224,19 @@ cython_unsupported = '''\
 '''.format(MIN_CYTHON_STRING, MAX_CYTHON_STRING,
            cython_unsupported_append)
 
+
+def check_c_files_updated():
+    files = glob('**/*.pyx')
+    for f in files:
+        fn = splitext(f)[0] + '.c'
+        if not exists(fn) or os.stat(f).st_mtime >= os.stat(fn).st_mtime:
+            return False
+    return True
+
+
 have_cython = False
 skip_cython = False
-if platform in ('ios', 'android'):
+if platform in ('ios', 'android') or check_c_files_updated():
     print('\nCython check avoided.')
     skip_cython = True
 else:
@@ -259,16 +272,8 @@ src_path = build_path = dirname(__file__)
 
 
 class KivyBuildExt(build_ext):
-
-    def finalize_options(self):
-        retval = build_ext.finalize_options(self)
-        global build_path
-        if (self.build_lib is not None and exists(self.build_lib) and
-                not self.inplace):
-            build_path = self.build_lib
-        return retval
-
-    def build_extensions(self):
+    @classmethod
+    def gen_config(cls, debug=False):
         # build files
         config_h_fn = ('include', 'config.h')
         config_pxi_fn = ('include', 'config.pxi')
@@ -295,7 +300,6 @@ class KivyBuildExt(build_ext):
             config_h += '#define __{0} {1}\n'.format(opt, value)
             config_pxi += 'DEF {0} = {1}\n'.format(opt, value)
             config_py += '{0} = {1}\n'.format(opt, value)
-        debug = bool(self.debug)
         print(' * debug = {0}'.format(debug))
 
         config_pxi += 'DEF DEBUG = {0}\n'.format(debug)
@@ -303,14 +307,30 @@ class KivyBuildExt(build_ext):
         config_pxi += 'DEF PLATFORM = "{0}"\n'.format(platform)
         config_py += 'PLATFORM = "{0}"\n'.format(platform)
         for fn, content in (
-                (config_h_fn, config_h), (config_pxi_fn, config_pxi),
-                (config_py_fn, config_py)):
+            (config_h_fn, config_h),
+            (config_pxi_fn, config_pxi),
+            (config_py_fn, config_py)
+        ):
             build_fn = expand(build_path, *fn)
-            if self.update_if_changed(build_fn, content):
+            if cls.update_if_changed(build_fn, content):
                 print('Updated {}'.format(build_fn))
             src_fn = expand(src_path, *fn)
-            if src_fn != build_fn and self.update_if_changed(src_fn, content):
+            if (
+                src_fn != build_fn and
+                cls.update_if_changed(src_fn, content)
+            ):
                 print('Updated {}'.format(src_fn))
+
+    def finalize_options(self):
+        retval = build_ext.finalize_options(self)
+        global build_path
+        if (self.build_lib is not None and exists(self.build_lib) and
+                not self.inplace):
+            build_path = self.build_lib
+        return retval
+
+    def build_extensions(self):
+        self.gen_config(self.debug)
 
         c = self.compiler.compiler_type
         print('Detected compiler is {}'.format(c))
@@ -320,7 +340,8 @@ class KivyBuildExt(build_ext):
 
         build_ext.build_extensions(self)
 
-    def update_if_changed(self, fn, content):
+    @staticmethod
+    def update_if_changed(fn, content):
         need_update = True
         if exists(fn):
             with open(fn) as fd:
@@ -360,6 +381,18 @@ def _check_and_fix_sdl2_mixer(f_path):
         print("WARNING: Unable to apply the changes, sorry.")
 
 
+class sdist(_sdist):
+    def run(self):
+        # subclass setuptools source distribution builder to ensure cython
+        # generated C files are included in source distribution.
+        # See http://stackoverflow.com/a/18418524/1382869
+        from Cython.Build import cythonize
+        KivyBuildExt.gen_config()
+        cythonize(['kivy/' + source for source in sources])
+        # XXX can't call super, it's an old style class in python2
+        _sdist.run(self)
+
+
 # -----------------------------------------------------------------------------
 # extract version (simulate doc generation, kivy will be not imported)
 environ['KIVY_DOC_INCLUDE'] = '1'
@@ -371,6 +404,7 @@ import kivy
 # installed for c extensions.
 from kivy.tools.packaging.factory import FactoryBuild
 cmdclass = {
+    'sdist': sdist,
     'build_factory': FactoryBuild,
     'build_ext': KivyBuildExt}
 
