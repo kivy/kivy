@@ -119,13 +119,9 @@ build_script:
 
     if ($env:APPVEYOR_REPO_TAG -eq "true"){
       $WHEEL_NAME = "dev0-"
-    } elseif ($env:APPVEYOR_SCHEDULED_BUILD -eq "True" -or $env:APPVEYOR_REPO_COMMIT_MESSAGE.Contains("[build wheel]") -or $env:APPVEYOR_REPO_COMMIT_MESSAGE.Contains("[build wheel win]")){
+    } elseif (-not $env:APPVEYOR_PULL_REQUEST_NUMBER -and($env:APPVEYOR_SCHEDULED_BUILD -eq "True" -or $env:APPVEYOR_REPO_COMMIT_MESSAGE.Contains("[build wheel]") -or $env:APPVEYOR_REPO_COMMIT_MESSAGE.Contains("[build wheel win]"))){
       $WHEEL_NAME = "dev0.$WHEEL_DATE`.$GIT_TAG-"
     } else {
-      $DO_WHEEL = "False"
-    }
-
-    if ($env:APPVEYOR_REPO_BRANCH -ne "master" -and -Not ($env:APPVEYOR_REPO_COMMIT_MESSAGE.Contains("[build wheel win]")) -and -Not ($env:APPVEYOR_REPO_COMMIT_MESSAGE.Contains("[build wheel]"))) {
       $DO_WHEEL = "False"
     }
 
