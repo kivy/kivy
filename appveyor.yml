@@ -2,6 +2,7 @@ version: 1.0.{build}
 os: Visual Studio 2015
 environment:
   WHEEL_DIR: C:\kivy_wheels
+  UPLOAD_DIR: C:\kivy_upload
   KIVY_BUILD_DIR: C:\kivy_build
   DO_WHEEL: True
   KEY_WITH_NO_TEETH:
@@ -164,7 +165,9 @@ build_script:
       python setup.py bdist_wheel -d "$env:WHEEL_DIR"
       Check-Error
 
-      if ($env:BITTNESS -eq "64" -and $env:PYVER -eq "35") {
+      if ($env:BITTNESS -eq "64" -and $env:PYVER -eq "36") {
+        python setup.py sdist --formats=gztar -d "$env:WHEEL_DIR"
+        Check-Error
         python setup.py bdist_wheel -d "$env:WHEEL_DIR" --build_examples --universal
         Check-Error
       }
@@ -186,12 +189,20 @@ build_script:
         }
       }
 
+      mkdir "$env:UPLOAD_DIR"
+      Check-Error
+      cp "$env:WHEEL_DIR\*.whl" "$env:UPLOAD_DIR"
+      Check-Error
+      cp "$env:WHEEL_DIR\*.gz" "$env:UPLOAD_DIR"
+      Check-Error
+
       secure-file\tools\secure-file -decrypt C:\projects\kivy\.ci\id_rsa.enc -secret "$env:KEY_WITH_NO_TEETH"
       Check-Error
 
-      echo "Uploading Kivy-*:"
+      echo "Uploading Kivy*:"
       dir $env:WHEEL_DIR
-      C:\msys64\usr\bin\bash --login -c "/c/projects/kivy/.ci/appveyor-server-upload.sh $env:SERVER_IP '$env:WHEEL_DIR' 'Kivy-*' ci/win/kivy/"
+      dir $env:UPLOAD_DIR
+      C:\msys64\usr\bin\bash --login -c "/c/projects/kivy/.ci/appveyor-server-upload.sh $env:SERVER_IP '$env:UPLOAD_DIR' 'Kivy*' ci/win/kivy/"
       Check-Error
 
     }
