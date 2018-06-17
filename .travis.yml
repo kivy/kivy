@@ -193,7 +193,7 @@ script:
         wheel_date=$(python -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))");
         git_tag=$(git rev-parse --short HEAD);
         wheel_name="dev0.$wheel_date.$git_tag";
-        ls wheelhouse/;
+        ls ../wheelhouse/;
 
         for name in ../wheelhouse/*.whl; do
           new_name="${name/dev0/$wheel_name}";
