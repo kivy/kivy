@@ -142,7 +142,7 @@ script:
         docker run --rm -v `pwd`:/io $DOCKER_IMAGE "/io/.ci/build-wheels-linux.sh";
         for name in wheelhouse/*manylinux*.whl; do
           new_name="${name/dev0/$wheel_name}";
-          cp $name $new_name;
+          cp -n $name $new_name;
         done;
         ls wheelhouse/;
 
@@ -193,7 +193,7 @@ script:
 
         for name in ../wheelhouse/*.whl; do
           new_name="${name/dev0/$wheel_name}";
-          cp $name $new_name;
+          cp -n $name $new_name;
         done;
         ls ../wheelhouse/;
 
