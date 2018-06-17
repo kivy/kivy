@@ -39,9 +39,9 @@ from kivy.logger import Logger, LOG_LEVELS
 from kivy.utils import platform
 
 MAJOR = 1
-MINOR = 10
-MICRO = 1
-RELEASE = True
+MINOR = 11
+MICRO = 0
+RELEASE = False
 
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
