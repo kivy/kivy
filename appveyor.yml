@@ -46,7 +46,10 @@ build_script:
       }
     }
 
-    echo "Bitness=$env:BITTNESS, scheduled=$env:APPVEYOR_SCHEDULED_BUILD, forced=$env:APPVEYOR_FORCED_BUILD, rebuild=$env:APPVEYOR_RE_BUILD, tagged=$env:APPVEYOR_REPO_TAG"
+    echo "Bitness=$env:BITTNESS, scheduled=$env:APPVEYOR_SCHEDULED_BUILD, forced=$env:APPVEYOR_FORCED_BUILD"
+    echo "rebuild=$env:APPVEYOR_RE_BUILD, tagged=$env:APPVEYOR_REPO_TAG, pr=$env:APPVEYOR_PULL_REQUEST_NUMBER"
+    echo "commit=$env:APPVEYOR_REPO_COMMIT_MESSAGE, branch"
+    echo "branch=APPVEYOR_REPO_BRANCH"
 
 
     cd $env:APPVEYOR_BUILD_FOLDER
@@ -176,15 +179,19 @@ build_script:
         echo "Nightly file: $env:WHEEL_DIR\$WHEEL_NIGHTLY"
         Check-Error
 
-        echo "Copying from default $WHEEL_DEFAULT to nightly $WHEEL_NIGHTLY"
-        Copy-Item "$env:WHEEL_DIR\$WHEEL_DEFAULT" "$env:WHEEL_DIR\$WHEEL_NIGHTLY"
-        Check-Error
+        if (-not (Test-Path "$env:WHEEL_DIR\$WHEEL_NIGHTLY")){
+          echo "Copying from default $WHEEL_DEFAULT to nightly $WHEEL_NIGHTLY"
+          Copy-Item "$env:WHEEL_DIR\$WHEEL_DEFAULT" "$env:WHEEL_DIR\$WHEEL_NIGHTLY"
+          Check-Error
+        }
       }
 
       secure-file\tools\secure-file -decrypt C:\projects\kivy\.ci\id_rsa.enc -secret "$env:KEY_WITH_NO_TEETH"
       Check-Error
 
-      C:\msys64\usr\bin\bash --login -c "/c/projects/kivy/.ci/appveyor-server-upload.sh $env:SERVER_IP '$env:WHEEL_DIR' Kivy* appveyor/kivy/"
+      echo "Uploading Kivy-*:"
+      dir $env:WHEEL_DIR
+      C:\msys64\usr\bin\bash --login -c "/c/projects/kivy/.ci/appveyor-server-upload.sh $env:SERVER_IP '$env:WHEEL_DIR' 'Kivy-*' ci/win/kivy/"
       Check-Error
 
     }
