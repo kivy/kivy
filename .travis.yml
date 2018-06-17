@@ -140,9 +140,12 @@ script:
 
         chmod +x .ci/build-wheels-linux.sh;
         docker run --rm -v `pwd`:/io $DOCKER_IMAGE "/io/.ci/build-wheels-linux.sh";
+        ls wheelhouse/;
         for name in wheelhouse/*manylinux*.whl; do
           new_name="${name/dev0/$wheel_name}";
-          cp -n $name $new_name;
+          if [ ! -f "$new_name" ]; then
+            cp -n $name $new_name;
+          fi;
         done;
         ls wheelhouse/;
 
@@ -190,10 +193,13 @@ script:
         wheel_date=$(python -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))");
         git_tag=$(git rev-parse --short HEAD);
         wheel_name="dev0.$wheel_date.$git_tag";
+        ls wheelhouse/;
 
         for name in ../wheelhouse/*.whl; do
           new_name="${name/dev0/$wheel_name}";
-          cp -n $name $new_name;
+          if [ ! -f "$new_name" ]; then
+            cp -n "$name" "$new_name";
+          fi;
         done;
         ls ../wheelhouse/;
 
