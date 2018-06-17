@@ -147,7 +147,9 @@ manually pasting the following commands in a terminal::
     sudo cp -a /Volumes/SDL2/SDL2.framework /Library/Frameworks/
 
 This should ask you for your root password, provide it and then paste
-the following lines in your terminal::
+the following lines in your terminal:
+
+.. parsed-literal::
 
     hdiutil attach SDL2_image-2.0.1.dmg
     sudo cp -a /Volumes/SDL2_image/SDL2_image.framework /Library/Frameworks/
@@ -157,7 +159,7 @@ the following lines in your terminal::
     sudo cp -a /Volumes/SDL2_mixer/SDL2_mixer.framework /Library/Frameworks/
     sudo installer -package gstreamer-1.0-1.7.1-x86_64.pkg -target /
     sudo installer -package gstreamer-1.0-devel-1.7.1-x86_64.pkg -target /
-    pip install --upgrade --user cython pillow
+    pip install --upgrade --user |cython_install| pillow
 
 Now that you have all the dependencies for kivy, you need to make sure
 you have the command line tools installed::

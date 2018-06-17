@@ -17,14 +17,16 @@ The overall process for creating a package for IOS can be explained in 4 steps:
 Prerequisites
 -------------
 
-You need to install some dependencies, like cython, autotools, etc. We
+You need to install some dependencies, like Cython, autotools, etc. We
 encourage you to use `Homebrew <http://mxcl.github.com/homebrew/>`_ to install
-those dependencies::
+those dependencies:
+
+.. parsed-literal::
 
     brew install autoconf automake libtool pkg-config
     brew link libtool
     sudo easy_install pip
-    sudo pip install Cython==0.26.1
+    sudo pip install |cython_install|
 
 For more detail, see :ref:`IOS Prerequisites <packaging_ios_prerequisites>`.
 Just ensure that everything is ok before starting the second step!

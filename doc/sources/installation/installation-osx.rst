@@ -15,7 +15,7 @@ Using The Kivy.app
 
     This method has only been tested on OS X 10.7 and above (64-bit).
     For versions prior to 10.7 or 10.7 32-bit, you have to install the
-    components yourself. 
+    components yourself.
 
 For OS X 10.7 and later, we provide packages with all dependencies
 bundled in a virtual environment, including a Python interpreter for
@@ -126,7 +126,7 @@ You can install Kivy with Homebrew and pip using the following steps:
 
     2. Install Cython and Kivy using pip::
 
-        $ pip install Cython==0.26.1
+        $ pip install Cython==0.28.2
         $ pip install kivy
 
     - To install the development version, use this in the second step::
@@ -145,14 +145,14 @@ Using MacPorts with pip
 You can install Kivy with macports only:
 
     1. Install `Macports <https://www.macports.org>`_
-    
+
     2. Choose python versions for Kivy, available version 2.7, 3.5, 3.6
-    
+
         $ port install py35-kivy  # for python 3.5
         $ port install py36-kivy  # for python 3.6
-    
+
     3. Check if kivy is available
-    
+
         $ python3.5
         $ >>> import kivy
 
@@ -176,7 +176,7 @@ You can install Kivy with Macports and pip using the following steps:
 
     5. Install Cython and Kivy using pip::
 
-        $ pip install Cython==0.26.1
+        $ pip install Cython==0.28.2
         $ pip install kivy
 
     - To install the development version, use this in the second step::
