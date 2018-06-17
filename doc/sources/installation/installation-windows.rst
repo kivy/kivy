@@ -255,9 +255,11 @@ kivy with git rather than a wheel there are some additional steps:
    These variables must be set everytime you recompile kivy.
 
 #. Install the other dependencies as well as their dev versions (you can skip
-   gstreamer and gstreamer_dev if you aren't going to use video/audio)::
+   gstreamer and gstreamer_dev if you aren't going to use video/audio):
 
-     python -m pip install cython docutils pygments pypiwin32 kivy.deps.sdl2 \
+   .. parsed-literal::
+
+     python -m pip install |cython_install| docutils pygments pypiwin32 kivy.deps.sdl2 \
      kivy.deps.glew kivy.deps.gstreamer kivy.deps.glew_dev kivy.deps.sdl2_dev \
      kivy.deps.gstreamer_dev
 

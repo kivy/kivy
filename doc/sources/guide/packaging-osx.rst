@@ -34,10 +34,12 @@ Complete guide
        (re)install them with ``--build-bottle`` as described
        `below <additional libraries_>`_.
 
-#. Install Cython and Kivy::
+#. Install Cython and Kivy:
 
-    $ pip install Cython==0.26.1
-    $ pip install -U kivy
+    .. parsed-literal::
+
+        $ pip install |cython_install|
+        $ pip install -U kivy
 
 #. Install PyInstaller::
 
