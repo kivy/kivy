@@ -126,6 +126,7 @@ from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty, \
     StringProperty, ListProperty, OptionProperty, AliasProperty
 from kivy.metrics import sp
 from kivy.lang import Builder
+from kivy.logger import Logger
 from functools import partial
 
 
@@ -183,6 +184,22 @@ class ActionItem(object):
 
     :attr:`inside_group` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
+    '''
+    
+    _remembered_outside_group_width = NumericProperty(0)
+    
+    def get_outside_group_width(self):
+        if not self.inside_group:
+            self._remembered_outside_group_width = self.width
+        return self._remembered_outside_group_width
+    
+    outside_group_width = AliasProperty(
+        get_outside_group_width, bind=('width',))
+    '''
+    (read-only) The width an ActionItem does or would take when displayed
+    outside an ActionGroup.
+    
+    :attr:`pack_width` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     background_normal = StringProperty(
@@ -335,7 +352,7 @@ class ActionPrevious(BoxLayout, ActionItem):
     :attr:`markup` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
-
+    
     def __init__(self, **kwargs):
         self.register_event_type('on_press')
         self.register_event_type('on_release')
@@ -811,12 +828,17 @@ class ActionView(BoxLayout):
         # can we display all of them?
         total_width = 0
         for child in self._list_action_items:
-            total_width += child.pack_width
+            if isinstance(child, ActionPrevious):
+                total_width += (child.minimum_width
+                                + min(sp(100), child.ids.title.width))
+            else:
+                total_width += child.width
         for group in self._list_action_group:
             for child in group.list_action_item:
-                total_width += child.pack_width
+                total_width += child.outside_group_width
         if total_width <= self.width:
             if self._state != 'all':
+                Logger.debug("ActionView: Layout strategy: 'all'")
                 self._layout_all()
             return
 
@@ -829,10 +851,12 @@ class ActionView(BoxLayout):
         if total_width < self.width:
             # ok, we can display all the items grouped
             if self._state != 'group':
+                Logger.debug("ActionView: Layout strategy: 'group'")
                 self._layout_group()
             return
 
         # none of the solutions worked, display them in pack mode
+        Logger.debug("ActionView: Layout strategy: 'random'")
         self._layout_random()
 
 

@@ -27,7 +27,7 @@ FloatLayout:
             ActionButton:
                 text: 'Btn1'
             ActionButton:
-                text: 'Btn2'
+                text: 'Btn2 & some text to collapse the groups'
             ActionGroup:
                 id: group1
                 text: 'group 1'
