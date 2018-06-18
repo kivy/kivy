@@ -379,7 +379,7 @@ class ActionBarTestCase(GraphicUnitTest):
         self.assertIsInstance(action_view.overflow_group, ActionOverflow)
         # add_widget() behavior:
         self.assertRaises(ActionBarException,
-                          action_view.add_widget, Widget())  # not an ActionItem
+                          action_view.add_widget, Widget())  # no ActionItem
         with self.assertRaises(ValueError):
             action_bar.action_view = None  # action_view can't be removed
         with self.assertRaises(ValueError):
@@ -496,9 +496,9 @@ class ActionBarTestCase(GraphicUnitTest):
         self.assertIn(cont_action_view, stack_cont_action_view)
         self.assertSequenceEqual(action_bar.children, [cont_action_view])
         action_bar.remove_widget(cont_action_view)  # reset for the next tests
-        
+
         # Automatic ActionPrevious button binding
-        #----------------------------------------
+        # ---------------------------------------
         ap_button_center = action_view.action_previous.ids.button.center[:]
         action_bar.add_widget(cont_action_view)
         action_bar.add_widget(cont_action_view2)
@@ -510,7 +510,7 @@ class ActionBarTestCase(GraphicUnitTest):
         TouchPoint(*ap_button_center)
         self.move_frames(5)
         self.assertSequenceEqual(action_bar.children, [action_view])
-        TouchPoint(*ap_button_center)  # ActionView's button isn't bound, though
+        TouchPoint(*ap_button_center)  # ActionView button isn't bound, though
         self.move_frames(5)
         self.assertSequenceEqual(action_bar.children, [action_view])
 

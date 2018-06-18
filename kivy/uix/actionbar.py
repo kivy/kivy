@@ -71,7 +71,8 @@ one by one when pressing the :class:`ActionPrevious` button.
 :class:`ContextualActionView` is a subclass of :class:`ActionView`.
 
 The :class:`ActionPrevious` button has the properties
-:attr:`title <ActionPrevious.title>`, :attr:`app_icon <ActionPrevious.app_icon>`
+:attr:`title <ActionPrevious.title>`,
+:attr:`app_icon <ActionPrevious.app_icon>`
 and :attr:`previous_image <ActionPrevious.previous_image>`, among others.
 
 An :class:`ActionView` or :class:`ContextualActionView` requires that each
@@ -185,20 +186,20 @@ class ActionItem(object):
     :attr:`inside_group` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
-    
+
     _remembered_outside_group_width = NumericProperty(0)
-    
+
     def get_outside_group_width(self):
         if not self.inside_group:
             self._remembered_outside_group_width = self.width
         return self._remembered_outside_group_width
-    
+
     outside_group_width = AliasProperty(
         get_outside_group_width, bind=('width',))
     '''
     (read-only) The width an ActionItem does or would take when displayed
     outside an ActionGroup.
-    
+
     :attr:`pack_width` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
@@ -352,7 +353,7 @@ class ActionPrevious(BoxLayout, ActionItem):
     :attr:`markup` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
-    
+
     def __init__(self, **kwargs):
         self.register_event_type('on_press')
         self.register_event_type('on_release')
@@ -829,8 +830,8 @@ class ActionView(BoxLayout):
         total_width = 0
         for child in self._list_action_items:
             if isinstance(child, ActionPrevious):
-                total_width += (child.minimum_width
-                                + min(sp(100), child.ids.title.width))
+                total_width += (child.minimum_width +
+                                min(sp(100), child.ids.title.width))
             else:
                 total_width += child.width
         for group in self._list_action_group:
@@ -867,7 +868,7 @@ class ContextualActionView(ActionView):
     :class:`ActionBar`.
 
     Whereas there's only ever one :class:`ActionView`, several
-    ContextualActionViews can be stacked on top of it.  One is removed whenever
+    ContextualActionViews can be stacked on top of it. One is removed whenever
     the :class:`ActionPrevious` button is pressed.
 
     Please see the module documentation for more information.
