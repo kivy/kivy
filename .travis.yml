@@ -40,6 +40,13 @@ matrix:
     - language: generic
       os: osx
       env: PYVERS="3.5.4 3.6.5" PY=3 RUN=wheels
+    - language: generic
+      env: RUN=app PY=2
+      os: osx
+    - language: generic
+      env:  PYVERS="3.6.5" PY=3 RUN=app
+      os: osx
+      #osx_image: xcode9.2
 
 before_install:
   # https://github.com/travis-ci/travis-ci/issues/6307
@@ -76,6 +83,7 @@ install:
       curl -O -L https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.1.dmg;
       curl -O -L https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-2.0.1.dmg;
       curl -O -L https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.14.dmg;
+      curl -O -L http://www.sveinbjorn.org/files/software/platypus/platypus4.8.zip;
       /usr/local/aria2/bin/aria2c -x 10 https://gstreamer.freedesktop.org/data/pkg/osx/1.10.2/gstreamer-1.0-1.10.2-x86_64.pkg;
       /usr/local/aria2/bin/aria2c -x 10 https://gstreamer.freedesktop.org/data/pkg/osx/1.10.2/gstreamer-1.0-devel-1.10.2-x86_64.pkg;
 
@@ -90,7 +98,17 @@ install:
       sudo installer -package gstreamer-1.0-1.10.2-x86_64.pkg -target /;
       sudo installer -package gstreamer-1.0-devel-1.10.2-x86_64.pkg -target /;
       curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py;
-      if [ "${RUN}" != "wheels" ]; then
+      if [ "${RUN}" == "app" ]; then
+          curl -O -L http://www.sveinbjorn.org/files/software/platypus/platypus4.8.zip;
+          unzip platypus4.8.zip;
+          mkdir -p /usr/local/bin;
+          mkdir -p /usr/local/share/platypus;
+          cp Platypus-4.8/Platypus.app/Contents/Resources/platypus_clt /usr/local/bin/platypus;
+          cp Platypus-4.8/Platypus.app/Contents/Resources/ScriptExec /usr/local/share/platypus/ScriptExec;
+          cp -a Platypus-4.8/Platypus.app/Contents/Resources/MainMenu.nib /usr/local/share/platypus/MainMenu.nib;
+          chmod -R 755 /usr/local/share/platypus;
+      fi;
+      if [ "${RUN}" == "unit" ]; then
         if [ "${PY}" == "3" ]; then
            curl -O -L https://www.python.org/ftp/python/3.5.2/python-3.5.2-macosx10.6.pkg;
            sudo installer -package python-3.5.2-macosx10.6.pkg -target /;
@@ -157,7 +175,7 @@ script:
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
       set -ex;
-      if [ "${RUN}" != "wheels" ]; then
+      if [ "${RUN}" == "unit" ]; then
         if [ "${PY}" == "3" ]; then
           python3 setup.py build_ext --inplace;
           python3 -m nose.core kivy/tests;
@@ -165,6 +183,32 @@ script:
           make;
           make test;
         fi;
+      elif [ "${RUN}" == "app" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
+          openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
+          chmod 600 ~/.ssh/id_rsa;
+          echo -e "Host $SERVER_IP\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
+
+          git clone https://github.com/kivy/kivy-sdk-packager;
+          pushd kivy-sdk-packager/osx;
+          app_date=$(python -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))");
+          git_tag=$(git rev-parse --short HEAD);
+          app_name="dev0.$app_date.$git_tag";
+
+          if [ "${PY}" == "3" ]; then
+             yes | ./create-osx-bundle.sh python3 master > output.txt;
+             mv Kivy.app Kivy3.app;
+             ./create-osx-dmg.sh Kivy3.app;
+             mkdir app;
+             mv Kivy3.dmg app/"Kivy-$app_name-python3.6.5".dmg;
+          else
+             ./create-osx-bundle.sh python2 master > output.txt;
+              mv Kivy.app Kivy2.app;
+             ./create-osx-dmg.sh Kivy2.app;
+             mkdir app;
+             mv Kivy2.dmg app/Kivy-$app_name-python2.dmg;
+          fi;
+          yes | rsync -avh -e "ssh -p 2458" --include="*/" --include="*.dmg" --exclude="*" "./app/" "root@$SERVER_IP:/web/downloads/ci/osx/app/";
+          popd;
       elif [ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel]" ]] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel osx]" ]]; then
         mkdir ../wheelhouse;
 
@@ -226,3 +270,4 @@ notifications:
     on_success: always
     on_failure: always
     on_start: always
+
