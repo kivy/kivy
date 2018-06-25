@@ -83,7 +83,6 @@ install:
       curl -O -L https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.1.dmg;
       curl -O -L https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-2.0.1.dmg;
       curl -O -L https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.14.dmg;
-      curl -O -L http://www.sveinbjorn.org/files/software/platypus/platypus4.8.zip;
       /usr/local/aria2/bin/aria2c -x 10 https://gstreamer.freedesktop.org/data/pkg/osx/1.10.2/gstreamer-1.0-1.10.2-x86_64.pkg;
       /usr/local/aria2/bin/aria2c -x 10 https://gstreamer.freedesktop.org/data/pkg/osx/1.10.2/gstreamer-1.0-devel-1.10.2-x86_64.pkg;
 
@@ -98,7 +97,7 @@ install:
       sudo installer -package gstreamer-1.0-1.10.2-x86_64.pkg -target /;
       sudo installer -package gstreamer-1.0-devel-1.10.2-x86_64.pkg -target /;
       curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py;
-      if [ "${RUN}" == "app" ]; then
+      if [ "${RUN}" == "app" ]  && ([ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ]  || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build app osx]" ]]); then
           curl -O -L http://www.sveinbjorn.org/files/software/platypus/platypus4.8.zip;
           unzip platypus4.8.zip;
           mkdir -p /usr/local/bin;
@@ -183,7 +182,7 @@ script:
           make;
           make test;
         fi;
-      elif [ "${RUN}" == "app" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
+      elif [ "${RUN}" == "app" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]  && ([ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ]  || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build app osx]" ]]); then
           openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
           chmod 600 ~/.ssh/id_rsa;
           echo -e "Host $SERVER_IP\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
