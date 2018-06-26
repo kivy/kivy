@@ -198,7 +198,7 @@ script:
              mv Kivy.app Kivy3.app;
              ./create-osx-dmg.sh Kivy3.app;
              mkdir app;
-             mv Kivy3.dmg app/"Kivy-$app_ver-$git_tag-$app_date"-python3.6.5".dmg;
+             mv Kivy3.dmg app/"Kivy-$app_ver-$git_tag-$app_date"-python3.6.5.dmg;
           else
              ./create-osx-bundle.sh python2 master > output.txt;            
               app_ver=$(Kivy.app/Contents/Resources/script -c 'import kivy; print(kivy.__version__)');
