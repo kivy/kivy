@@ -86,7 +86,7 @@ else:
             line = "0"
             try:
                 line = read_line(path)
-            except OSError:
+            except (IOError, OSError):
                 return []
 
             capabilities = []
