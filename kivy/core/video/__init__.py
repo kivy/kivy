@@ -212,6 +212,7 @@ except ImportError:
 video_providers += [
     ('ffmpeg', 'video_ffmpeg', 'VideoFFMpeg'),
     ('ffpyplayer', 'video_ffpyplayer', 'VideoFFPy'),
+    ('av', 'video_av', 'VideoAV'),
     ('null', 'video_null', 'VideoNull')]
 
 
