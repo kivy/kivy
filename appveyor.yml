@@ -135,9 +135,7 @@ build_script:
 
     Check-Error
 
-    pip install mock cython pygments docutils nose kivy.deps.glew_dev kivy.deps.glew kivy.deps.gstreamer_dev kivy.deps.sdl2_dev kivy.deps.sdl2
-
-    pip --no-cache-dir install kivy.deps.gstreamer
+    pip install cython
 
     Check-Error
 
@@ -147,6 +145,12 @@ build_script:
       python setup.py sdist --formats=gztar -d "$env:WHEEL_DIR"
       Check-Error
     }
+    
+    pip install mock cython pygments docutils nose kivy.deps.glew_dev kivy.deps.glew kivy.deps.gstreamer_dev kivy.deps.sdl2_dev kivy.deps.sdl2
+
+    pip --no-cache-dir install kivy.deps.gstreamer
+
+    Check-Error
 
     if ($env:COMPILER -ne "msvc") {
       python -c "with open(r'$PYTHON_ROOT\Lib\distutils\distutils.cfg', 'wb') as fh: fh.write(b'[build]\ncompiler = mingw32\n')"
