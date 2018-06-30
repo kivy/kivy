@@ -135,6 +135,12 @@ build_script:
 
     Check-Error
 
+    pip install mock cython pygments docutils nose kivy.deps.glew_dev kivy.deps.glew kivy.deps.gstreamer_dev kivy.deps.sdl2_dev kivy.deps.sdl2
+
+    pip --no-cache-dir install kivy.deps.gstreamer
+
+    Check-Error
+
     # sdist must happen before anything else
 
     if ($DO_WHEEL -eq "True" -and $env:BITTNESS -eq "64" -and $env:PYVER -eq "36") {
@@ -148,12 +154,6 @@ build_script:
       pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy
       Check-Error
     }
-
-    pip install mock cython pygments docutils nose kivy.deps.glew_dev kivy.deps.glew kivy.deps.gstreamer_dev kivy.deps.sdl2_dev kivy.deps.sdl2
-
-    pip --no-cache-dir install kivy.deps.gstreamer
-
-    Check-Error
 
     if ($env:COMPILER -eq "msvc") {
       pip install kivy.deps.angle
