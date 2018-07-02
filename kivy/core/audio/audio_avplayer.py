@@ -21,10 +21,11 @@ class SoundAvplayer(Sound):
         # taken from https://goo.gl/015kvU
         return ("aac", "adts", "aif", "aiff", "aifc", "caf", "mp3", "mp4",
                 "m4a", "snd", "au", "sd2", "wav")
+                
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args):
         self._avplayer = None
-        super(SoundAvplayer, self).__init__(**kwargs)
+        super(SoundAvplayer, self).__init__(*args)
 
     def load(self):
         self.unload()
