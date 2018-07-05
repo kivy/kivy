@@ -125,12 +125,10 @@ doing ``python -m pip install kivy`` we'll install one of these wheels as
 follows.
 
 + |cp27_win32|_
-+ |cp34_win32|_
 + |cp35_win32|_
 + |cp36_win32|_
 
 - |cp27_amd64|_
-- |cp34_amd64|_
 - |cp35_amd64|_
 - |cp36_amd64|_
 
