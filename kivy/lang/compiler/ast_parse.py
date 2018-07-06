@@ -191,6 +191,10 @@ def generate_source(node):
     return ''.join(split_lines(generator.result, maxline=2 ** 32 - 1))
 
 
+class NotWhiteListed(Exception):
+    pass
+
+
 class ParseKVBindTransformer(ast.NodeTransformer):
 
     src_node_map = {}
@@ -208,6 +212,8 @@ class ParseKVBindTransformer(ast.NodeTransformer):
     visited = set()
 
     current_rule = None
+
+    whitelist = None
 
     def __init__(self):
         super(ParseKVBindTransformer, self).__init__()
@@ -229,12 +235,20 @@ class ParseKVBindTransformer(ast.NodeTransformer):
         self.visited.add(node)
 
         if self.under_attr and isinstance(node, ast.expr):
+            whitelist = self.whitelist
+            if whitelist is not None and not is_attribute and node.__class__.__name__ not in whitelist:
+                raise NotWhiteListed
+
             current_processing_node = self.current_processing_node
             new_node = True
             self.current_processing_node = ret_node = ASTNodeRef(
                 is_attribute)
-            node = super(ParseKVBindTransformer, self).generic_visit(node)
-            self.current_processing_node = current_processing_node
+
+            try:
+                node = super(ParseKVBindTransformer, self).generic_visit(node)
+            finally:
+                self.current_processing_node = current_processing_node
+
             if is_final_attribute:
                 # final nodes are not evaluated anywhere so we don't need
                 # their source. Also, they are all unique so we don't
@@ -296,8 +310,12 @@ class ParseKVBindTransformer(ast.NodeTransformer):
             return self.generic_visit(node, is_attribute=True)
 
         self.under_attr = True
-        node = self.generic_visit(
-            node, is_attribute=True, is_final_attribute=True)
+        try:
+            node = self.generic_visit(
+                node, is_attribute=True, is_final_attribute=True)
+        except NotWhiteListed:
+            # we don't care about the state of node, it'll not be used anyway
+            pass
         self.under_attr = False
         return node
 

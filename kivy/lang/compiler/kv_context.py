@@ -12,10 +12,20 @@ class KVCtx(object):
 
     transformer = None
 
-    def __init__(self, **kwargs):
+    def __init__(self, kv_syntax=None, **kwargs):
         super(KVCtx, self).__init__(**kwargs)
         self.bind_list = []
-        self.transformer = ParseKVBindTransformer()
+        transformer = self.transformer = ParseKVBindTransformer()
+
+        if kv_syntax is not None:
+            if kv_syntax not in ('minimal', ):
+                raise ValueError(
+                    'kv_syntax can be either None or "minimal", not {}'.
+                    format(kv_syntax))
+
+        if kv_syntax == 'minimal':
+            transformer.whitelist = {
+                'Name', 'Num', 'Bytes', 'Str', 'NameConstant', 'Subscript'}
 
     def __call__(self, *args, **kwargs):
         self.add_rule(*args, **kwargs)
