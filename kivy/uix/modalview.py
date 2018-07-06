@@ -96,7 +96,7 @@ class ModalView(AnchorLayout):
             Fired when the ModalView is closed. If the callback returns True,
             the dismiss will be canceled.
 
-    .. versionchanged:: 1.10.1
+    .. versionchanged:: 1.11.0
         Added events `on_pre_open` and `on_pre_dismiss`.
 
     '''
