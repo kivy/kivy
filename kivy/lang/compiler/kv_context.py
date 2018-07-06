@@ -1,4 +1,6 @@
 import ast
+import fnmatch
+import re
 from kivy.lang.compiler.ast_parse import ParseKVBindTransformer
 
 
@@ -27,3 +29,89 @@ class KVCtx(object):
             nodes = [ast.parse(bind) for bind in binds]
 
         self.transformer.update_tree(nodes, self)
+
+    def set_nodes_proxy(self, use_proxy, use_proxy_exclude=None):
+        nodes_rules = self.transformer.nodes_by_rule
+        if use_proxy is True:
+            if use_proxy_exclude:
+                if isinstance(use_proxy_exclude, str):
+                    pat = re.compile(fnmatch.translate(use_proxy_exclude))
+                else:
+                    pat = re.compile('|'.join(map(fnmatch.translate, use_proxy_exclude)))
+                match = re.match
+
+                for nodes_rule in nodes_rules:
+                    for node in nodes_rule:
+                        node.proxy = len(node.depends_on_me) == 1 and \
+                            node.depends_on_me[0].is_attribute and \
+                            match(pat, node.src) is None
+            else:
+                for nodes_rule in nodes_rules:
+                    for node in nodes_rule:
+                        node.proxy = len(node.depends_on_me) == 1 and \
+                            node.depends_on_me[0].is_attribute
+        elif use_proxy is False:
+            for nodes_rule in nodes_rules:
+                for node in nodes_rule:
+                    node.proxy = False
+        elif isinstance(use_proxy, str):
+            pat = re.compile(fnmatch.translate(use_proxy))
+            match = re.match
+
+            for nodes_rule in nodes_rules:
+                for node in nodes_rule:
+                    node.proxy = len(node.depends_on_me) == 1 and \
+                        node.depends_on_me[0].is_attribute and \
+                        match(pat, node.src) is not None
+        else:
+            pat = re.compile('|'.join(map(fnmatch.translate, use_proxy)))
+            match = re.match
+
+            for nodes_rule in nodes_rules:
+                for node in nodes_rule:
+                    node.proxy = len(node.depends_on_me) == 1 and \
+                        node.depends_on_me[0].is_attribute and \
+                        match(pat, node.src) is not None
+
+    def set_nodes_rebind(self, rebind, rebind_exclude=None):
+        nodes_rules = self.transformer.nodes_by_rule
+        if rebind is True:
+            if rebind_exclude:
+                if isinstance(rebind_exclude, str):
+                    pat = re.compile(fnmatch.translate(rebind_exclude))
+                else:
+                    pat = re.compile('|'.join(map(fnmatch.translate, rebind_exclude)))
+                match = re.match
+
+                for nodes_rule in nodes_rules:
+                    for node in nodes_rule:
+                        node.rebind = node.is_attribute and \
+                            node.leaf_rule is None and \
+                            match(pat, node.src) is None
+            else:
+                for nodes_rule in nodes_rules:
+                    for node in nodes_rule:
+                        node.rebind = node.is_attribute and \
+                            node.leaf_rule is None
+        elif rebind is False:
+            for nodes_rule in nodes_rules:
+                for node in nodes_rule:
+                    node.rebind = False
+        elif isinstance(rebind, str):
+            pat = re.compile(fnmatch.translate(rebind))
+            match = re.match
+
+            for nodes_rule in nodes_rules:
+                for node in nodes_rule:
+                    node.rebind = node.is_attribute and \
+                        node.leaf_rule is None and \
+                        match(pat, node.src) is not None
+        else:
+            pat = re.compile('|'.join(map(fnmatch.translate, rebind)))
+            match = re.match
+
+            for nodes_rule in nodes_rules:
+                for node in nodes_rule:
+                    node.rebind = node.is_attribute and \
+                        node.leaf_rule is None and \
+                        match(pat, node.src) is not None

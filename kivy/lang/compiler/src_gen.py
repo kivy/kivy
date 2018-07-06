@@ -280,7 +280,8 @@ class KVCompiler(object):
                             func_src_code.append('{}if {} is not None:'.format(' ' * 4, dep_name))
                             indent = 8
 
-                        func_src_code.append('{}__kv__fbind = getattr({}, "fbind", None)'.format(' ' * indent, dep_name))
+                        fbind_name = 'fbind_proxy' if dep.proxy else 'fbind'
+                        func_src_code.append('{}__kv__fbind = getattr({}, "{}", None)'.format(' ' * indent, dep_name, fbind_name))
                         func_src_code.append('{}if __kv__fbind is not None:'.format(' ' * indent))
                         indent2 = indent + 4
                         indent3 = indent + 8
@@ -373,7 +374,8 @@ class KVCompiler(object):
                     if rebind_nodes:
                         assert len(deps) == 1
                         dep_name = node_value_var[node.depends[0]]
-                        rule_src_code.append('{}__kv__fbind = getattr({}, "fbind", None)'.format(' ' * indent, dep_name))
+                        fbind_name = 'fbind_proxy' if node.depends[0].proxy else 'fbind'
+                        rule_src_code.append('{}__kv__fbind = getattr({}, "{}", None)'.format(' ' * indent, dep_name, fbind_name))
                         rule_src_code.append('{}if __kv__fbind is not None:'.format(' ' * indent))
                         indent2 = indent + 4
 
@@ -414,6 +416,9 @@ class KVCompiler(object):
         return pre_src_code, src_code, post_src_code
 
     def exec_bindings(self, ctx, local_vars, globals_vars):
+        ctx.set_nodes_proxy(True)
+        ctx.set_nodes_rebind(True)
+
         bind_store_pool = self.binding_store_pool
         trees = self.compute_attr_bindings(ctx)
         trees_bind_store = [bind_store_pool.borrow_persistent() for _ in trees]

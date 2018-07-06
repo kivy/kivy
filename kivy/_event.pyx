@@ -556,19 +556,28 @@ cdef class EventDispatcher(ObjectWithUid):
         if name[:3] == 'on_':
             observers = self.__event_stack.get(name)
             if observers is not None:
-                if kwargs.pop('ref', False):
-                    return observers.fbind(WeakMethod(func), largs, kwargs, 1)
-                else:
-                    return observers.fbind(func, largs, kwargs, 0)
+                return observers.fbind(func, largs, kwargs, 0)
             return 0
         else:
             ps = self.__storage.get(name)
             if ps is None:
                 return 0
-            if kwargs.pop('ref', False):
-                return ps.observers.fbind(WeakMethod(func), largs, kwargs, 1)
-            else:
-                return ps.observers.fbind(func, largs, kwargs, 0)
+            return ps.observers.fbind(func, largs, kwargs, 0)
+
+    def fbind_proxy(self, name, func, *largs, **kwargs):
+        cdef EventObservers observers
+        cdef PropertyStorage ps
+
+        if name[:3] == 'on_':
+            observers = self.__event_stack.get(name)
+            if observers is not None:
+                return observers.fbind(WeakMethod(func), largs, kwargs, 1)
+            return 0
+        else:
+            ps = self.__storage.get(name)
+            if ps is None:
+                return 0
+            return ps.observers.fbind(WeakMethod(func), largs, kwargs, 1)
 
     def funbind(self, name, func, *largs, **kwargs):
         '''Similar to :meth:`fbind`.

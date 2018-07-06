@@ -44,19 +44,25 @@ class ASTNodeRef(ast.AST):
 
     is_attribute = False
 
+    rebind = False
+
+    proxy = False
+
     depends_on_me = []
 
     depends = []
 
     count = 0
+    '''The number of times this node is used as a parent node. E.g. in
+    `self.obj.x + self.obj.y`, `self.obj` has a count of two.
+    '''
 
     leaf_rule = None
     # only attrs can be leaf
 
     my_tree = []
-
-    code_frag = []
-    '''Can be used for anything.
+    '''Keeps track of the tree the node is in. E.g. `self.x + obj.y` contains
+    two independent trees.
     '''
 
     def __init__(self, is_attribute):
@@ -140,6 +146,11 @@ class ASTNodeRef(ast.AST):
 
     @staticmethod
     def group_by_required_deps_ordered(nodes):
+        '''Groups the nodes into groups based on their deps. All nodes with the
+        same deps are grouped together. The order of nodes is preserved as given
+        in `nodes` such that the first occurrence of nodes with unique deps are
+        ordered in the order they occur in nodes.
+        '''
         grouped_nodes = []
         deps_idx = {}
 
