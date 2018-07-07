@@ -823,6 +823,7 @@ class ActionView(BoxLayout):
             if not self.overflow_group.parent:
                 super_add(overflow_group)
 
+
     def on_width(self, width, *args):
         # determine the layout to use
 
@@ -830,13 +831,15 @@ class ActionView(BoxLayout):
         total_width = 0
         for child in self._list_action_items:
             if isinstance(child, ActionPrevious):
-                total_width += (child.minimum_width +
-                                min(sp(100), child.ids.title.width))
+                total_width += child.minimum_width + sp(100)
             else:
-                total_width += child.width
+                total_width += child.outside_group_width
         for group in self._list_action_group:
             for child in group.list_action_item:
                 total_width += child.outside_group_width
+        # TODO: remove print() in final revision
+        print('required width (strategy: all):', total_width,
+              'self.width:', self.width)
         if total_width <= self.width:
             if self._state != 'all':
                 Logger.debug("ActionView: Layout strategy: 'all'")
@@ -846,9 +849,15 @@ class ActionView(BoxLayout):
         # can we display them per group?
         total_width = 0
         for child in self._list_action_items:
-            total_width += child.pack_width
+            if isinstance(child, ActionPrevious):
+                total_width += child.minimum_width + sp(100)
+            else:
+                total_width += child.outside_group_width
         for group in self._list_action_group:
             total_width += group.pack_width
+        # TODO: remove print() in final revision
+        print('required width (strategy: group):', total_width,
+              'self.width:', self.width)
         if total_width < self.width:
             # ok, we can display all the items grouped
             if self._state != 'group':
@@ -887,7 +896,6 @@ class ContextualActionView(ActionView):
             self._current_parent = parent
             return
         # else:
-        action_previous = self.action_previous
         if not isinstance(self.action_previous, ActionPrevious):
             error_fmt = 'action_previous must be an ActionPrevious (got {!r})'
             raise ActionBarException(error_fmt.format(self.action_previous))
