@@ -360,6 +360,7 @@ class TreeView(Widget):
         '''
         if self._selected_node:
             self._selected_node.is_selected = False
+            self._selected_node = None
 
     def toggle_node(self, node):
         '''Toggle the state of the node (open/collapsed).
