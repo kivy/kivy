@@ -485,3 +485,12 @@ div.navlink {
 	top: -30px;
 	height: 0px;
 }
+
+#version_selector {
+	width: 100%;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	border: 1px solid #d0d0d0;
+	padding: 0.5em 1em;
+	background: #ffffff00 url('disclosure_down.png') top right no-repeat;
+}

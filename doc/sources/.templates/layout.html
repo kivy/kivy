@@ -46,6 +46,8 @@
       {%- if not embedded %}{% if not theme_nosidebar|tobool %}
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+            <h3>Version</h3>
+            <select id="version_selector"></select>
             <h3>Quick search</h3>
             <form class="search" action="{{ pathto('search') }}" method="get">
                 &nbsp;
@@ -101,6 +103,7 @@
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '{{ file_suffix }}',
         HAS_SOURCE:  {{ has_source|lower }}
+
       };
     </script>
     {%- for scriptfile in script_files %}
@@ -225,6 +228,30 @@
     var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
     g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'pw.js'; s.parentNode.insertBefore(g,s);
   })();
+</script>
+<script>
+  var selector = $("#version_selector");
+
+  selector.on('change', function() {
+    var current = document.location.pathname;
+    // TODO find a better way to replace the current version with the new one
+    var target = current.split('/');
+    target.shift();
+    var prefix = target.shift();
+    target.shift();
+    document.location.pathname = ["", prefix, this.value].concat(target).join('/');
+  });
+
+  var url = "{{ url_root }}/versions.json";
+
+  $.getJSON(url, function(versions) {
+    versions.forEach(function(version){
+      var current = window.location.pathname.split('/')[2]
+      selector.append(
+        $("<option " + (version == current ? "selected" : "") + "/>").val(version).html(version)
+      );
+    });
+  });
 </script>
 <noscript><p><img src="//pw.kivy.org/pw.php?idsite=4&rec=1" style="border:0;" alt="" /></p></noscript>
 <!-- End Piwik Tracking Code -->
