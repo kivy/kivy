@@ -31,7 +31,7 @@ class KVCompiler(object):
             for node in tree:
                 if node.leaf_rule is not None or node in visited:
                     continue
-                subtree = node.get_attribute_subtree()
+                subtree = node.get_rebind_or_leaf_subtree()
                 for term in subtree.terminal_attrs:
                     if term.leaf_rule is None:
                         subtree.terminates_with_leafs_only = False
@@ -43,11 +43,12 @@ class KVCompiler(object):
             visited = set()
             ordered_subtree_dep_indices = {}
             for node in tree:
-                if node.is_attribute and node not in visited:
+                if (node.leaf_rule is not None or node.rebind) and node not in visited:
                     subtree = attr_subtree[term_subtree_indices[node]]
                     visited.update(subtree.terminal_attrs)
                     for dep in subtree.nodes:
-                        if dep.is_attribute:
+                        assert dep.leaf_rule is None
+                        if dep.rebind:
                             subtree.n_attr_deps += 1
                             ordered_subtree_dep_indices[dep] = len(
                                 ordered_attr_subtrees)
@@ -92,7 +93,7 @@ class KVCompiler(object):
         for tree in ctx.transformer.nodes_by_tree:
             attr_list_indices = {}
             for node in tree:
-                if node.is_attribute:
+                if node.leaf_rule is not None or node.rebind:
                     attr_list_indices[node] = len(attr_list_indices)
             trees_bind_indices.append(attr_list_indices)
         return trees_bind_indices
@@ -159,8 +160,10 @@ class KVCompiler(object):
                             assert not node.is_attribute
                             # we found a global or local variable - add its name
                             node_value_var[node] = node.src
-                        elif node.is_attribute and node not in attrs_visited:
+                        elif node.rebind and node not in attrs_visited:
                             assert len(node.depends) == 1
+                            assert node.leaf_rule is None
+                            assert node.is_attribute
                             dep = node.depends[0]
                             # this is a root attr, just read its value into var.
                             # node_use_count[node] and len(node.depends_on_me)
@@ -205,12 +208,13 @@ class KVCompiler(object):
                             assert node not in node_original_ref
                             node_original_ref[node] = node.ref_node
                             node.set_ref_node(ast.Name(id=var, ctx=ast.Load()))
-                        elif node.is_attribute:
+                        elif node.rebind:
                             assert node in node_value_var, 'should already ' \
                                 'have been created in terminal node stage'
                         else:
                             assert node.leaf_rule is None
                             assert node.depends_on_me
+                            assert not node.is_attribute or not node.rebind
                             # to eval node so we can bind or whatever we need to
                             # check if the last value(s) is not None for deps
                             # but only those that are not locals/globals
@@ -266,6 +270,7 @@ class KVCompiler(object):
 
                     for dep, nodes in terminal_attrs_by_dep.items():
                         for node in nodes:
+                            assert node.leaf_rule is not None or node.rebind
                             if node.leaf_rule is None:
                                 node_value_var[node] = temp_pool.borrow(node, node_use_count[node])
 
@@ -370,16 +375,16 @@ class KVCompiler(object):
 
                         indent = 4
 
-                    rebind_nodes = [node for node in group if node.is_attribute]
-                    if rebind_nodes:
+                    bind_nodes = [node for node in group if node.leaf_rule is not None or node.rebind]
+                    if bind_nodes:
                         assert len(deps) == 1
-                        dep_name = node_value_var[node.depends[0]]
-                        fbind_name = 'fbind_proxy' if node.depends[0].proxy else 'fbind'
+                        dep_name = node_value_var[deps[0]]
+                        fbind_name = 'fbind_proxy' if deps[0].proxy else 'fbind'
                         rule_src_code.append('{}__kv__fbind = getattr({}, "{}", None)'.format(' ' * indent, dep_name, fbind_name))
                         rule_src_code.append('{}if __kv__fbind is not None:'.format(' ' * indent))
                         indent2 = indent + 4
 
-                        for node in rebind_nodes:
+                        for node in bind_nodes:
                             obj_attr = node.ref_node.attr
                             i = nodes_attr_bind_indices[node]
                             bind_store = nodes_bind_store_map[node]
@@ -416,9 +421,6 @@ class KVCompiler(object):
         return pre_src_code, src_code, post_src_code
 
     def exec_bindings(self, ctx, local_vars, globals_vars):
-        ctx.set_nodes_proxy(True)
-        ctx.set_nodes_rebind(True)
-
         bind_store_pool = self.binding_store_pool
         trees = self.compute_attr_bindings(ctx)
         trees_bind_store = [bind_store_pool.borrow_persistent() for _ in trees]

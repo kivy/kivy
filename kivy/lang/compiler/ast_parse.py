@@ -1,7 +1,5 @@
-import inspect
 import ast
-import textwrap
-from collections import deque, defaultdict
+from collections import deque
 import astor
 from astor.code_gen import SourceGenerator
 from astor.source_repr import split_lines
@@ -71,7 +69,7 @@ class ASTNodeRef(ast.AST):
         self.depends_on_me = []
         self.depends = []
 
-    def get_attribute_subtree(self):
+    def get_rebind_or_leaf_subtree(self):
         # these trees have no cycles, and are directed, even if you remove their
         # directionality, there could be cycles.
         # Algo: start with the node add its deps_on_me to the stack, then mark
@@ -91,7 +89,7 @@ class ASTNodeRef(ast.AST):
         explored = [self]
 
         for dep in self.depends_on_me:
-            if dep.is_attribute:
+            if dep.leaf_rule is not None or dep.rebind:
                 terminal_nodes.append(dep)
             else:
                 forward_queue.append(dep)
@@ -105,7 +103,7 @@ class ASTNodeRef(ast.AST):
             forward_queue.clear()
             for item in backward_stack:
                 for dep in item.depends_on_me:
-                    if dep.is_attribute:
+                    if dep.leaf_rule is not None or dep.rebind:
                         # a atrr has only a single parent node () so it could
                         # not have been visited previously if we are its dep
                         assert dep not in visited
@@ -125,7 +123,7 @@ class ASTNodeRef(ast.AST):
 
                 for dep in node.depends:
                     if dep not in visited:
-                        if dep.is_attribute:
+                        if dep.rebind:
                             explored.append(dep)
                             visited.add(dep)
                         else:

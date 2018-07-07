@@ -50,6 +50,9 @@ if __name__ == '__main__':
             print('updated w.y to ', w.y)
         ctx.add_rule(manage_y, 'w.parent.y + w.x')
 
+        # these must happen *before* anything else and after all rules
+        ctx.set_nodes_proxy(True)
+        ctx.set_nodes_rebind(True)
         compiler.exec_bindings(ctx, locals(), globals())
 
         w3.add_widget(w2)
@@ -60,6 +63,8 @@ if __name__ == '__main__':
             print('updated w2.y to ', w2.y)
         ctx.add_rule(manage_w2_y, '(w2.parent.y + w2.parent.x).z')
 
+        ctx.set_nodes_proxy(True)
+        ctx.set_nodes_rebind(True)
         compiler.exec_bindings(ctx, locals(), globals())
 
     build_kv()
