@@ -39,7 +39,7 @@ matrix:
       os: osx
     - language: generic
       os: osx
-      env: PYVERS="3.5.4 3.6.5" PY=3 RUN=wheels
+      env: PYVERS="3.5.4 3.6.5 3.7.0" PY=3 RUN=wheels
     - language: generic
       env: RUN=app PY=2
       os: osx
