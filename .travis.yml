@@ -44,7 +44,7 @@ matrix:
       env: RUN=app PY=2
       os: osx
     - language: generic
-      env:  PYVERS="3.6.5" PY=3 RUN=app
+      env:  PYVERS="3.5.4 3.6.5 3.7.0" PY=3 RUN=app
       os: osx
       #osx_image: xcode9.2
 
