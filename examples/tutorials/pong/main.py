@@ -9,16 +9,42 @@ from kivy.vector import Vector
 from kivy.clock import Clock
 
 
+class BounceManager():
+    can_bounce = True
+
+    def bounce_callback(self, width, velx):
+        self.disable_bounce()
+        timer = self.get_timer(width, velx)
+        Clock.schedule_once(self.enable_bounce, timer)
+
+    def get_timer(self, width, velx):
+        fps = Clock.get_fps()
+        vel = abs(velx)
+        # calculate time needed to callback enable_bounce
+        value = width / vel / fps
+        return value
+
+    def enable_bounce(self, *args):
+        self.can_bounce = True
+
+    def disable_bounce(self, *args):
+        self.can_bounce = False
+
+
 class PongPaddle(Widget):
     score = NumericProperty(0)
 
     def bounce_ball(self, ball):
-        if self.collide_widget(ball):
+        if self.collide_widget(ball) and self.parent.bouncer.can_bounce:
             vx, vy = ball.velocity
             offset = (ball.center_y - self.center_y) / (self.height / 2)
             bounced = Vector(-1 * vx, vy)
             vel = bounced * 1.1
             ball.velocity = vel.x, vel.y + offset
+
+            # calling bounce callback, using player1.width and velocity_x as arguments to calculate
+            width = self.parent.player1.width # any paddle is ok
+            self.parent.bouncer.bounce_callback(width, vx)
 
 
 class PongBall(Widget):
@@ -34,6 +60,7 @@ class PongGame(Widget):
     ball = ObjectProperty(None)
     player1 = ObjectProperty(None)
     player2 = ObjectProperty(None)
+    bouncer = BounceManager()
 
     def serve_ball(self, vel=(4, 0)):
         self.ball.center = self.center
