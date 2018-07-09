@@ -4,17 +4,49 @@ import re
 from kivy.lang.compiler.ast_parse import ParseKVBindTransformer
 
 
-class KVCtx(object):
+class KVRule(object):
 
-    bind_list = []
+    rule_bindings = []
 
     callback = None
+
+    callback_name = ''
+
+    binds = []
+
+    delay = None
+
+    exec_rule = True
+
+    name = None
+
+    def __init__(
+            self, callback=None, binds=[], delay=None, exec_rule=True,
+            name=None, **kwargs):
+        super(KVRule, self).__init__(**kwargs)
+        self.callback = callback
+        self.binds = binds
+        self.delay = delay
+        self.exec_rule = exec_rule
+        self.name = name
+
+
+class KVCtx(object):
+
+    bindings = []
+
+    rebind_functions = []
+
+    named_rules = {}
+
+    rules = []
 
     transformer = None
 
     def __init__(self, kv_syntax=None, **kwargs):
         super(KVCtx, self).__init__(**kwargs)
-        self.bind_list = []
+        self.rules = []
+        self.named_bindings = {}
         transformer = self.transformer = ParseKVBindTransformer()
 
         if kv_syntax is not None:
@@ -27,18 +59,28 @@ class KVCtx(object):
             transformer.whitelist = {
                 'Name', 'Num', 'Bytes', 'Str', 'NameConstant', 'Subscript'}
 
-    def __call__(self, *args, **kwargs):
-        self.add_rule(*args, **kwargs)
-        return self
+    def add_rule(self, rule, callback_name=None):
+        if not callback_name:
+            callback_name = '__kv_leaf_callback_{}'.format(len(self.rules))
+        rule['callback_name'] = callback_name
 
-    def add_rule(self, callback, binds):
-        self.callback = callback
-        if isinstance(binds, str):
-            nodes = [ast.parse(binds)]
-        else:
-            nodes = [ast.parse(bind) for bind in binds]
+        rule.setdefault('exec_rule', True)
+        rule.setdefault('delay', None)
 
-        self.transformer.update_tree(nodes, self)
+        self.rules.append(rule)
+        if rule['name']:
+            self.named_rules[rule['name']] = rule
+
+    def parse_rules(self):
+        for rule in self.rules:
+            if not rule['binds']:
+                raise ValueError('binds must be specified')
+
+            if isinstance(rule['binds'], str):
+                nodes = [ast.parse(rule['binds'])]
+            else:
+                nodes = [ast.parse(bind) for bind in rule['binds']]
+            self.transformer.update_tree(nodes, rule)
 
     def set_nodes_proxy(self, use_proxy, use_proxy_exclude=None):
         nodes_rules = self.transformer.nodes_by_rule
@@ -47,7 +89,8 @@ class KVCtx(object):
                 if isinstance(use_proxy_exclude, str):
                     pat = re.compile(fnmatch.translate(use_proxy_exclude))
                 else:
-                    pat = re.compile('|'.join(map(fnmatch.translate, use_proxy_exclude)))
+                    pat = re.compile(
+                        '|'.join(map(fnmatch.translate, use_proxy_exclude)))
                 match = re.match
 
                 for nodes_rule in nodes_rules:
@@ -90,7 +133,8 @@ class KVCtx(object):
                 if isinstance(rebind_exclude, str):
                     pat = re.compile(fnmatch.translate(rebind_exclude))
                 else:
-                    pat = re.compile('|'.join(map(fnmatch.translate, rebind_exclude)))
+                    pat = re.compile(
+                        '|'.join(map(fnmatch.translate, rebind_exclude)))
                 match = re.match
 
                 for nodes_rule in nodes_rules:

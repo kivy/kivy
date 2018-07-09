@@ -2,6 +2,7 @@ import inspect
 import ast
 import textwrap
 from collections import deque, defaultdict
+from itertools import chain
 
 from kivy.lang.compiler.ast_parse import generate_source, ASTNodeRef
 from kivy.lang.compiler.utils import StringPool
@@ -17,10 +18,37 @@ class KVCompiler(object):
 
     binding_store_pool = None
 
+    exec_rules_before_binding = False
+
     def __init__(self, **kwargs):
         super(KVCompiler, self).__init__(**kwargs)
         self.rebind_func_pool = StringPool(prefix='__kv_rebind_callback')
         self.binding_store_pool = StringPool(prefix='__kv_bind_store')
+
+    def get_leaves_dependencies(self, trees):
+        node_deps = {}
+        for tree, _, _ in trees:
+            for node in tree:
+                if node.leaf_rule is None:
+                    continue
+
+                node_deps[node] = None
+                stack = deque(node.depends)
+                stack.append(node)
+                while stack:
+                    first = stack[0]
+                    if first not in node_deps:
+                        stack.extendleft(first.depends)
+                        # next time we see it, its deps will be ready
+                        node_deps[first] = None
+                    elif node_deps[first] is None:
+                        item = node_deps[first] = set(chain(*(node_deps[dep] for dep in first.depends)))
+                        item.add(first)
+                        stack.popleft()
+                    else:
+                        stack.popleft()
+
+        return node_deps
 
     def compute_attr_bindings(self, ctx):
         trees_attr_subtree = []
@@ -85,7 +113,7 @@ class KVCompiler(object):
                             node_bind_func_names[node] = \
                                 tree_bind_func_names[node_tree] = func
                     else:
-                        node_bind_func_names[node] = 'cheese'  # node.leaf_rule
+                        node_bind_func_names[node] = node.leaf_rule['callback_name']
         return tree_bind_func_names, node_bind_func_names
 
     def get_trees_attr_bind_indices(self, ctx):
@@ -99,9 +127,10 @@ class KVCompiler(object):
         return trees_bind_indices
 
     def get_bind_funcs(
-            self, trees, tree_bind_func_names, node_bind_func_names,
+            self, ctx_name, trees, tree_bind_func_names, node_bind_func_names,
             trees_attr_bind_indices, trees_bind_store):
         src_code = []
+
         for attr_bind_indices, bind_store, (
                     tree, attr_subtrees, subtree_dep_indices) in zip(
                 trees_attr_bind_indices, trees_bind_store, trees):
@@ -140,6 +169,8 @@ class KVCompiler(object):
                 node_original_ref = {}
                 temp_pool = StringPool(prefix='__kv_temp_val')
                 func_src_code = ['def {}(*__kv_largs):'.format(tree_bind_func_names[subtree])]
+
+                leaf_callbacks = []
 
                 while queue:
                     current_subtree = queue.popleft()
@@ -263,6 +294,9 @@ class KVCompiler(object):
                         func_src_code.append('{}__kv_bind_ref[0] = None'.format(' ' * 12))
                         func_src_code.append('')
 
+                        if node.leaf_rule is not None and node_bind_func_names[node] not in leaf_callbacks:
+                            leaf_callbacks.append(node_bind_func_names[node])
+
                     terminal_attrs_by_dep = defaultdict(list)
                     for node in current_subtree.terminal_attrs:
                         assert len(node.depends) == 1
@@ -294,9 +328,11 @@ class KVCompiler(object):
                         for node in nodes:
                             obj_attr = node.ref_node.attr
                             i = attr_bind_indices[node]
-                            func_src_code.append('{}if {}[{}] is not None:'.format(' ' * indent2, bind_store, i))
+                            func_src_code.append('{}__kv_bind_element = {}[{}]'.format(' ' * indent2, bind_store, i))
+                            func_src_code.append('{}if __kv_bind_element is not None:'.format(' ' * indent2))
                             bind = '__kv__fbind("{}", {})'.format(obj_attr, node_bind_func_names[node])
-                            func_src_code.append('{}{}[{}] = [{}, "{}", {}]'.format(' ' * indent3, bind_store, i, dep_name, obj_attr, bind))
+                            func_src_code.append('{}__kv_bind_element[0] = {}'.format(' ' * indent3, dep_name))
+                            func_src_code.append('{}__kv_bind_element[3] = {}'.format(' ' * indent3, bind))
                             func_src_code.append('')
 
                         for node in nodes:
@@ -314,6 +350,10 @@ class KVCompiler(object):
                             for _ in nodes:
                                 temp_pool.return_back(dep)
 
+                for callback in leaf_callbacks:
+                    func_src_code.append('{}{}()'.format(' ' * 4, callback))
+                func_src_code.append('')
+
                 # remove all that depend on the node because either the dep
                 # is in the same subtree, or it's in the terminal of the
                 # subtree. In the latter case, binding and attr eval happens
@@ -323,28 +363,65 @@ class KVCompiler(object):
                 processed_subtrees.add(current_subtree)
                 for node, origin_node in node_original_ref.items():
                     node.set_ref_node(origin_node)
-                func_src_code.append('')
                 src_code.extend(func_src_code)
+
+        src_code.append('{}.rebind_functions = ({}, )'.format(
+            ctx_name,
+            ', '.join(
+                tree_bind_func_names[subtree]
+                for _, subtrees, _ in trees for subtree in subtrees
+                if subtree.n_attr_deps
+            ),
+        ))
+        src_code.append('')
 
         for node, count in node_use_count.items():
             assert not count, '{}, {} should be zero'.format(node, count)
         return src_code
 
-    def get_init_bindings(self, rules_nodes, node_bind_func_names,
-            nodes_attr_bind_indices, nodes_bind_store_map, bind_stores_size):
+    def get_init_bindings(
+            self, create_rules, ctx_name, trees, rules, rules_nodes,
+            node_bind_func_names, nodes_attr_bind_indices, nodes_bind_store_map,
+            bind_stores_size):
+        assert rules
         temp_pool = StringPool(prefix='__kv_temp_val')
         original_ref_node = {}
         node_value_var = {}
+        exec_rules_before_binding = self.exec_rules_before_binding
+
+        leaves_deps = self.get_leaves_dependencies(trees)
 
         pre_src_code = []
         for name, n in bind_stores_size:
             pre_src_code.append('{} = [None, ] * {}'.format(name, n))
+        pre_src_code.append('{}.bindings = ({}, )'.format(ctx_name, ', '.join((item[0] for item in bind_stores_size))))
         pre_src_code.append('')
+        if create_rules:
+            pre_src_code.append('__kv_get_rule_cls = {}.get_rule_cls()'.format(ctx_name))
+            pre_src_code.append('')
 
         src_code = []
-        for rule_nodes in rules_nodes:
+        for rule_i, (rule, rule_nodes) in enumerate(zip(rules, rules_nodes)):
             rule_src_code = []
-            for group in ASTNodeRef.group_by_required_deps_ordered(rule_nodes):
+            delay = rule['delay']
+            if create_rules:
+                delay_arg = 'None' if delay is None else '"{}"'.format(delay)
+                rule_src_code.append(
+                    '__kv_rule = {"name": "{}", "delay": {}, "exec_rule": {})'.
+                    format(rule['name'], delay_arg, rule['exec_rule']))
+                rule_src_code.append('{}.add_rule(__kv_rule, "{}")'.format(ctx_name, rule['callback_name']))
+            else:
+                rule_src_code.append('__kv_rule = {}.rules[{}]'.format(ctx_name, rule_i))
+
+            rule_src_code.append('__kv_rule["callback"] = {}'.format(rule['callback_name']))
+
+            grouped_rules = ASTNodeRef.group_by_required_deps_ordered(rule_nodes)
+
+            if rule['exec_rule'] and exec_rules_before_binding:
+                rule_src_code.append('{}()'.format(rule['callback_name']))
+                rule_src_code.append('')
+
+            for group in grouped_rules:
                 deps = group[0].depends
                 if not deps:
                     for node in group:
@@ -388,8 +465,22 @@ class KVCompiler(object):
                             obj_attr = node.ref_node.attr
                             i = nodes_attr_bind_indices[node]
                             bind_store = nodes_bind_store_map[node]
-                            bind = '__kv__fbind("{}", {})'.format(obj_attr, node_bind_func_names[node])
-                            rule_src_code.append('{}{}[{}] = [{}, "{}", {}]'.format(' ' * indent2, bind_store, i, dep_name, obj_attr, bind))
+                            func_name = node_bind_func_names[node]
+                            bind = '__kv__fbind("{}", {})'.format(obj_attr, func_name)
+                            if node.leaf_rule is None:
+                                indices = '()'
+                            else:
+                                indices = '({}, )'.format(', '.join(map(
+                                    str, sorted((
+                                        nodes_attr_bind_indices[dep] for dep in
+                                        leaves_deps[node]
+                                        if dep.leaf_rule is not None or dep.rebind)))))
+                            rule_src_code.append(
+                                '{}{}[{}] = [{}, "{}", {}, {}, {}, {}]'.format(
+                                    ' ' * indent2, bind_store, i, dep_name,
+                                    obj_attr, func_name, bind, node.count,
+                                    indices
+                                ))
                             rule_src_code.append('')
 
                     i = 0
@@ -410,17 +501,21 @@ class KVCompiler(object):
                         if dep.depends:
                             for _ in group:
                                 temp_pool.return_back(dep)
+
+            if rule['exec_rule'] and not exec_rules_before_binding:
+                rule_src_code.append('{}()'.format(rule['callback_name']))
+                rule_src_code.append('')
             src_code.append(rule_src_code)
 
         var_clear = ', '.join(temp_pool.get_used_items())
-        post_src_code = ['del {}'.format(var_clear)]
+        post_src_code = ['del __kv_rule, {}'.format(var_clear), '']
 
         for node, origin_node in original_ref_node.items():
             node.set_ref_node(origin_node)
 
         return pre_src_code, src_code, post_src_code
 
-    def exec_bindings(self, ctx, local_vars, globals_vars):
+    def generate_bindings(self, ctx, ctx_name):
         bind_store_pool = self.binding_store_pool
         trees = self.compute_attr_bindings(ctx)
         trees_bind_store = [bind_store_pool.borrow_persistent() for _ in trees]
@@ -433,18 +528,17 @@ class KVCompiler(object):
         nodes_attr_bind_indices = {}
         for item in trees_attr_bind_indices:
             nodes_attr_bind_indices.update(item)
-        rules_nodes = ctx.transformer.nodes_by_rule
+
         funcs = self.get_bind_funcs(
-            trees, tree_bind_func_names, node_bind_func_names,
+            ctx_name, trees, tree_bind_func_names, node_bind_func_names,
             trees_attr_bind_indices, trees_bind_store)
         bind_stores_size = []
         for name, tree_indices in zip(trees_bind_store, trees_attr_bind_indices):
             bind_stores_size.append((name, len(tree_indices)))
-        print('\n'.join(funcs))
+
         pre_src, src, post_src = self.get_init_bindings(
-            rules_nodes, node_bind_func_names,
-            nodes_attr_bind_indices, nodes_bind_store_map, bind_stores_size)
-        print('\n'.join(pre_src))
-        for rule in src:
-            print('\n'.join(rule))
-        print('\n'.join(post_src))
+            False, ctx_name, trees, ctx.rules, ctx.transformer.nodes_by_rule,
+            node_bind_func_names, nodes_attr_bind_indices, nodes_bind_store_map,
+            bind_stores_size)
+
+        return funcs, pre_src, (item for rule in src for item in rule), post_src
