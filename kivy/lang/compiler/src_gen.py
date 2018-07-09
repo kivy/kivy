@@ -394,7 +394,7 @@ class KVCompiler(object):
         pre_src_code = []
         for name, n in bind_stores_size:
             pre_src_code.append('{} = [None, ] * {}'.format(name, n))
-        pre_src_code.append('{}.bindings = ({}, )'.format(ctx_name, ', '.join((item[0] for item in bind_stores_size))))
+        pre_src_code.append('{}.bind_stores_by_tree = ({}, )'.format(ctx_name, ', '.join((item[0] for item in bind_stores_size))))
         pre_src_code.append('')
         if create_rules:
             pre_src_code.append('__kv_get_rule_cls = {}.get_rule_cls()'.format(ctx_name))
@@ -414,6 +414,15 @@ class KVCompiler(object):
                 rule_src_code.append('__kv_rule = {}.rules[{}]'.format(ctx_name, rule_i))
 
             rule_src_code.append('__kv_rule["callback"] = {}'.format(rule['callback_name']))
+
+            leaf_indices_and_store = defaultdict(list)
+            for node in rule_nodes:
+                if node.leaf_rule is not None:
+                    leaf_indices_and_store[nodes_bind_store_map[node]].append(nodes_attr_bind_indices[node])
+            bind_stores = (
+                '({}, ({}, ))'.format(name, ', '.join(map(str, sorted(indices))))
+                for name, indices in leaf_indices_and_store.items())
+            rule_src_code.append('__kv_rule["bind_stores"] = ({}, )'.format(', '.join(bind_stores)))
 
             grouped_rules = ASTNodeRef.group_by_required_deps_ordered(rule_nodes)
 

@@ -33,7 +33,7 @@ class KVRule(object):
 
 class KVCtx(object):
 
-    bindings = []
+    bind_stores_by_tree = []
 
     rebind_functions = []
 
@@ -46,7 +46,7 @@ class KVCtx(object):
     def __init__(self, kv_syntax=None, **kwargs):
         super(KVCtx, self).__init__(**kwargs)
         self.rules = []
-        self.named_bindings = {}
+        self.named_rules = {}
         transformer = self.transformer = ParseKVBindTransformer()
 
         if kv_syntax is not None:
@@ -66,6 +66,7 @@ class KVCtx(object):
 
         rule.setdefault('exec_rule', True)
         rule.setdefault('delay', None)
+        rule.setdefault('bind_stores', ())
 
         self.rules.append(rule)
         if rule['name']:
