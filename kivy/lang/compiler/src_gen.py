@@ -287,8 +287,9 @@ class KVCompiler(object):
                         # each tree contains *all* deps of terminal attrs
                         i = attr_bind_indices[node]
 
-                        func_src_code.append('{}if {}[{}] is not None:'.format(' ' * 4, bind_store, i))
-                        func_src_code.append('{}__kv_bind_ref = __kv_obj, __kv_attr, __kv_uid = {}[{}]'.format(' ' * 8, bind_store, i))
+                        func_src_code.append('{}__kv_bind_ref = {}[{}]'.format(' ' * 4, bind_store, i))
+                        func_src_code.append('{}if __kv_bind_ref is not None:'.format(' ' * 4))
+                        func_src_code.append('{}__kv_obj, __kv_attr, _, __kv_uid, _, _ = __kv_bind_ref'.format(' ' * 8))
                         func_src_code.append('{}if __kv_obj is not None and __kv_uid:'.format(' ' * 8))
                         func_src_code.append('{}__kv_obj.unbind_uid(__kv_attr, __kv_uid)'.format(' ' * 12))
                         func_src_code.append('{}__kv_bind_ref[0] = None'.format(' ' * 12))
