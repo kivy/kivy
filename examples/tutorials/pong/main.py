@@ -47,7 +47,7 @@ class PongPaddle(Widget):
                 vel = bounced
             ball.velocity = vel.x, vel.y + offset
 
-            # calling bounce callback, using player1.width and velocity_x as arguments to calculate
+            # calling bounce callback with width and vx args
             width = self.parent.player1.width # any paddle is ok
             self.parent.bouncer.bounce_callback(width, vx)
 
