@@ -59,6 +59,45 @@ class KVCtx(object):
             transformer.whitelist = {
                 'Name', 'Num', 'Bytes', 'Str', 'NameConstant', 'Subscript'}
 
+    def unbind_rule(self, name=None, num=None):
+        # we are slowly trimming leaves until all are unbound
+        rule = self.rules[num] if name is None else self.named_rules[name]
+        binds_stores = rule['bind_stores']
+
+        for bind_store, leaf_indices in binds_stores:
+            for leaf_index in leaf_indices:
+                leaf = bind_store[leaf_index]
+                if leaf is None:
+                    # we're in the middle of binding and this should not have
+                    # been called
+                    raise Exception(
+                        'Cannot unbind a rule before it was finished binding')
+
+                leaf_tree_indices = leaf[5]
+                assert leaf[4] == 1
+                for bind_idx in leaf_tree_indices:
+                    bind_item = bind_store[bind_idx]
+                    if bind_item is None:
+                        raise Exception(
+                            'Cannot unbind a rule before it was finished '
+                            'binding')
+
+                    obj, attr, _, uid, count, _ = bind_item
+                    if count == 1:
+                        # last item bound, we're done with this one
+                        obj.unbind_uid(attr, uid)
+                        bind_store[bind_idx] = None
+                    else:
+                        bind_item[4] -= 1
+                        assert bind_item[4] >= 1
+
+        rule['bind_stores'] = ()
+        # it's ok to release the (possibly last) ref to the callback because at
+        # worst it's scheduled in the clock, which has no problem dealing with
+        # abandoned refs, or its scheduled with the canvas instructions that
+        # holds a direct ref to it.
+        rule['callback'] = None
+
     def add_rule(self, rule, callback_name=None):
         if not callback_name:
             callback_name = '__kv_leaf_callback_{}'.format(len(self.rules))
