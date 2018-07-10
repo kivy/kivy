@@ -39,7 +39,7 @@ matrix:
       os: osx
     - language: generic
       os: osx
-      env: PYVERS="3.5.4 3.6.5 3.7.0" PY=3 RUN=wheels
+      env: PYVERS="3.5.4 3.6.5 3.7.0 2.7.10 2.7.15" PY=3 RUN=wheels
     - language: generic
       env: RUN=app PY=2
       os: osx
@@ -227,8 +227,8 @@ script:
           python$pyver_short -m pip install --upgrade --user cython nose wheel pillow mock docutils;
           python$pyver_short -m pip install --upgrade delocate;
 
-          USE_SDL2=1 USE_GSTREAMER=1 python$pyver_short setup.py build_ext --inplace;
-          USE_SDL2=1 USE_GSTREAMER=1 python$pyver_short setup.py bdist_wheel;
+          USE_SDL2=1 USE_GSTREAMER=1 python$pyver_short setup.py build_ext --inplace>output.txt;
+          USE_SDL2=1 USE_GSTREAMER=1 python$pyver_short setup.py bdist_wheel>output.txt;
 
           /Library/Frameworks/Python.framework/Versions/$pyver_short/bin/delocate-wheel dist/*.whl;
           zip_dir="$(basename dist/*.whl .whl)";
@@ -240,16 +240,16 @@ script:
           cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/modplug.framework/Versions/A/modplug dist/$zip_dir/kivy/.dylibs/;
           cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/smpeg2.framework/Versions/A/smpeg2 dist/$zip_dir/kivy/.dylibs/;
           cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/smpeg2.framework/Versions/A/smpeg2 dist/$zip_dir/kivy/.dylibs/;
-          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/SDL2.framework/Versions/A/SDL2 @loader_path/SDL2;
-          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/FLAC.framework/Versions/A/FLAC @loader_path/FLAC;
-          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/modplug.framework/Versions/A/modplug @loader_path/modplug;
-          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/smpeg2.framework/Versions/A/smpeg2 @loader_path/smpeg2;
-          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/FreeType.framework/Versions/A/FreeType @loader_path/FreeType;
-          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/webp.framework/Versions/A/webp @loader_path/webp;
-          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/Vorbis.framework/Versions/A/Vorbis @loader_path/Vorbis;
-          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/../../../../SDL2.framework/Versions/A/SDL2 @loader_path/SDL2;
-          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/Ogg.framework/Versions/A/Ogg @loader_path/Ogg;
-          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/Ogg.framework/Versions/A/Ogg @loader_path/Ogg;
+          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/SDL2.framework/Versions/A/SDL2 @loader_path/SDL2>output.txt;
+          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/FLAC.framework/Versions/A/FLAC @loader_path/FLAC>output.txt;
+          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/modplug.framework/Versions/A/modplug @loader_path/modplug>output.txt;
+          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/smpeg2.framework/Versions/A/smpeg2 @loader_path/smpeg2>output.txt;
+          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/FreeType.framework/Versions/A/FreeType @loader_path/FreeType>output.txt;
+          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/webp.framework/Versions/A/webp @loader_path/webp>output.txt;
+          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/Vorbis.framework/Versions/A/Vorbis @loader_path/Vorbis>output.txt;
+          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/../../../../SDL2.framework/Versions/A/SDL2 @loader_path/SDL2>output.txt;
+          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/Ogg.framework/Versions/A/Ogg @loader_path/Ogg>output.txt;
+          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/Ogg.framework/Versions/A/Ogg @loader_path/Ogg>output.txt;
           rm dit/$zip_dir.whl;
           pushd dist;
           python$pyver_short -c "from delocate import delocating; delocating.dir2zip('$zip_dir', '$zip_dir.whl')";
