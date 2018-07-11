@@ -30,17 +30,6 @@ specific platform:
     :target: ../installation/installation-rpi.html
     :class: gs-osimage gs-osimage-last
 
-.. note::
-
-   `Python 3.7 <https://www.python.org/downloads/>`_ has recently been
-   released, but for technical reasons we can't provide binary Kivy packages
-   yet.
-
-   For the time being, please use one of the supported versions up to and
-   including Python 3.6. Alternatively, it's also possible to compile it
-   yourself, for example by following the instructions for the development
-   version below.
-
 Development Version
 ~~~~~~~~~~~~~~~~~~~
 
