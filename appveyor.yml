@@ -15,24 +15,24 @@ environment:
   MSYSTEM: MINGW64
   CHERE_INVOKING: 1
   matrix:
-  - PYVER: 27
-    BITTNESS: 86
-    COMPILER: mingw
-  - PYVER: 27
-    BITTNESS: 64
-    COMPILER: mingw
-  - PYVER: 35
-    BITTNESS: 86
-    COMPILER: msvc
-  - PYVER: 35
-    BITTNESS: 64
-    COMPILER: msvc
-  - PYVER: 36
-    BITTNESS: 86
-    COMPILER: msvc
-  - PYVER: 36
-    BITTNESS: 64
-    COMPILER: msvc
+  #- PYVER: 27
+  #  BITTNESS: 86
+  #  COMPILER: mingw
+  #- PYVER: 27
+  #  BITTNESS: 64
+  #  COMPILER: mingw
+  #- PYVER: 35
+  #  BITTNESS: 86
+  #  COMPILER: msvc
+  #- PYVER: 35
+  #  BITTNESS: 64
+  #  COMPILER: msvc
+  #- PYVER: 36
+  #  BITTNESS: 86
+  #  COMPILER: msvc
+  #- PYVER: 36
+  #  BITTNESS: 64
+  #  COMPILER: msvc
   - PYVER: 37
     BITTNESS: 86
     COMPILER: msvc
@@ -127,10 +127,19 @@ build_script:
     # nightly: Kivy-X.Y.Z.dev0-cpAB-cpABm-ARCH.whl (Kivy_examples-X.Y.Z.dev0-py2.py3-none-any.whl)
     # archive: Kivy-X.Y.Z.dev0.YYYYMMDD.githash-cpAB-cpABm-ARCH.whl (Kivy_examples-X.Y.Z.dev0.YYYYMMDD.githash-py2.py3-none-any.whl)
 
+    echo "TAG: $env:APPVEYOR_REPO_TAG"
+    echo "MESSAGE: $env:APPVEYOR_REPO_COMMIT_MESSAGE"
+    echo "PR: $env:APPVEYOR_PULL_REQUEST_NUMBER"
+    echo "[build wheel]: $env:APPVEYOR_REPO_COMMIT_MESSAGE".Contains("[build wheel]")
+    echo "[build wheel win]: $env:APPVEYOR_REPO_COMMIT_MESSAGE".Contains("[build wheel win]")
+
     if ($env:APPVEYOR_REPO_TAG -eq "true"){
       $WHEEL_NAME = "dev0-"
+      echo "TAG!"
     } elseif (-not $env:APPVEYOR_PULL_REQUEST_NUMBER -and($env:APPVEYOR_SCHEDULED_BUILD -eq "True" -or $env:APPVEYOR_REPO_COMMIT_MESSAGE.Contains("[build wheel]") -or $env:APPVEYOR_REPO_COMMIT_MESSAGE.Contains("[build wheel win]"))){
       $WHEEL_NAME = "dev0.$WHEEL_DATE`.$GIT_TAG-"
+      echo "TAG!"
+      echo "wheel name: $WHEEL_NAME"
     } else {
       $DO_WHEEL = "False"
     }
