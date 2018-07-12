@@ -1404,8 +1404,10 @@ cdef class AliasProperty(Property):
         `bind`: list/tuple
             Properties to observe for changes, as property name strings
         `cache`: boolean
-            If True, the value will be cached, until one of the binded elements
-            will changes
+            If True, the value will be cached, until one of the binded
+            elements changes. If `bind` collection is empty and `cache` is
+            True, `setter` must return True in order to cache new value and
+            trigger its dispatch.
         `rebind`: bool, defaults to False
             See :class:`ObjectProperty` for details.
 
@@ -1448,10 +1450,11 @@ cdef class AliasProperty(Property):
 
     cpdef trigger_change(self, EventDispatcher obj, value):
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.alias_initial = 0
         dvalue = ps.getter(obj)
         if ps.value != dvalue:
-            ps.value = dvalue
+            if self.use_cache:
+                ps.alias_initial = 0
+                ps.value = dvalue
             self.dispatch(obj)
 
     cdef check(self, EventDispatcher obj, value):
@@ -1461,14 +1464,20 @@ cdef class AliasProperty(Property):
         cdef PropertyStorage ps = obj.__storage[self._name]
         if self.use_cache:
             if ps.alias_initial:
-                return ps.getter(obj)
+                ps.alias_initial = 0
+                ps.value = ps.getter(obj)
             return ps.value
         return ps.getter(obj)
 
     cpdef set(self, EventDispatcher obj, value):
         cdef PropertyStorage ps = obj.__storage[self._name]
         if ps.setter(obj, value):
-            ps.value = self.get(obj)
+            if self.use_cache:
+                if ps.alias_initial:
+                    ps.alias_initial = 0
+                ps.value = ps.getter(obj)
+            self.dispatch(obj)
+        elif self.force_dispatch:
             self.dispatch(obj)
 
     cpdef dispatch(self, EventDispatcher obj):
