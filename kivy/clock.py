@@ -805,16 +805,15 @@ def mainthread(func):
 
 def triggered(timeout=0, interval=False):
     '''Decorator that will trigger the call of the function at the specified
-    timeout, through the method :meth:`CyClockBase.create_trigger`. A new call
-    to the function before the timeout will interrupt the previous call and
-    restart the timeout, so only one call is executed during this timeout.
+    timeout, through the method :meth:`CyClockBase.create_trigger`. Subsequent
+    calls to the decorated function (while the timeout is active) are ignored.
 
     It can be helpful when an expensive funcion (i.e. call to a server) can be
     triggered by different methods. Setting a proper timeout will delay the
     calling and only one of them wil be triggered.
 
         @triggered(timeout, interval=False)
-        def callback(self, id):
+        def callback(id):
             print('The callback has been called with id=%d' % id)
 
         >> callback(id=1)
