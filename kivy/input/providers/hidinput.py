@@ -299,6 +299,7 @@ else:
         'numpadmul': '*',
         'numpaddivide': '/',
         'numpadadd': '+',
+        'numpaddecimal': '.',
         'numpadsubstract': '-',
     }
 
