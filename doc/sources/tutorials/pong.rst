@@ -430,6 +430,84 @@ pong.kv:
     :language: kv
     :linenos:
 
+Improve Bouncing
+---------------
+
+..container:: title
+
+    Just one bounce per collision
+   
+If you try to hit ball with upper or lower part of the paddle and moving, you'll notice that the bounce_ball is fired many times, causing undesired behavior.
+
+To solve that, we can add a bouncer controller, that enables and disables bouncing ability. In short, bouncing is disabled when paddle_collides ball, and gets re-enabled when is not colliding again.
+
+This is the BouncerManager class:
+
+    class BounceManager():
+        can_bounce = True
+
+        def bounce_callback(self, width, velx):
+            self.disable_bounce()
+            timer = self.get_timer(width, velx)
+            Clock.schedule_once(self.enable_bounce, timer)
+
+        def get_timer(self, width, velx):
+            fps = Clock.get_fps()
+            vel = abs(velx)
+            # calculate time needed to callback enable_bounce
+            value = width / vel / fps
+            return value
+
+        def enable_bounce(self, *args):
+            self.can_bounce = True
+
+        def disable_bounce(self, *args):
+            self.can_bounce = False
+
+In the bounce_ball function from PongPaddle class, we have to add it:
+
+    class PongPaddle(Widget):
+        score = NumericProperty(0)
+
+        def bounce_ball(self, ball):
+            if self.collide_widget(ball) and self.parent.bouncer.can_bounce:
+
+and call the bouncer callback at bottom of the same func:
+
+    width = self.parent.player1.width # any paddle is ok
+    self.parent.bouncer.bounce_callback(width, vx)
+    
+To make all work, the final step is to instantiate the bouncer in the PongGame:
+
+    class PongGame(Widget):
+        ball = ObjectProperty(None)
+        player1 = ObjectProperty(None)
+        player2 = ObjectProperty(None)
+        bouncer = BounceManager()
+        
+Thats's all, now the ball will bounce just once per collision.
+NOTE: ball speed has been set to 26 max in bounce_ball() function, but this needs improvement, this is jut a patch:
+
+    if abs(vx) < 26:
+        vel = bounced * 1.1
+    else:
+        vel = bounced
+    ball.velocity = vel.x, vel.y + offset
+
+No changes has been mde to pong.kv file.
+
+This is the code with bounce manager included and ball speed limited:
+
+main.py:
+.. include:: ../../../examples/tutorials/pong/steps/step6/main.py
+:literal:
+
+pong.kv:
+
+.. literalinclude:: ../../../examples/tutorials/pong/steps/step6/pong.kv
+:language: kv
+:linenos:
+    
 
 Where To Go Now?
 ----------------
