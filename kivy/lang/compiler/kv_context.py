@@ -1,68 +1,58 @@
 import ast
 import fnmatch
 import re
-from kivy.lang.compiler.ast_parse import ParseKVBindTransformer
 
 
 class KVRule(object):
 
-    rule_bindings = []
-
-    callback = None
-
-    callback_name = ''
-
-    binds = []
-
-    delay = None
-
-    exec_rule = True
-
-    name = None
+    __slots__ = ('bind_stores', 'callback', 'callback_name', 'binds', 'delay',
+                 'name', 'captures', 'src')
 
     def __init__(
-            self, callback=None, binds=[], delay=None, exec_rule=True,
-            name=None, **kwargs):
-        super(KVRule, self).__init__(**kwargs)
-        self.callback = callback
+            self, *binds, delay=None, name=None):
         self.binds = binds
         self.delay = delay
-        self.exec_rule = exec_rule
         self.name = name
+        self.bind_stores = ()
+
+    def __enter__(self):
+        raise TypeError(
+            "Something went wrong if and the KV code was not compiled. Did "
+            "you forget to decorate the function with a compiler?")
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        raise NotImplemented
 
 
 class KVCtx(object):
 
-    bind_stores_by_tree = []
+    __slots__ = (
+        'bind_stores_by_tree', 'rebind_functions',
+        'named_rules', 'rules', 'transformer', 'kv_syntax')
 
-    rebind_functions = []
-
-    named_rules = {}
-
-    rules = []
-
-    transformer = None
-
-    def __init__(self, kv_syntax=None, **kwargs):
-        super(KVCtx, self).__init__(**kwargs)
+    def __init__(self):
         self.rules = []
         self.named_rules = {}
-        transformer = self.transformer = ParseKVBindTransformer()
+        self.transformer = None
 
-        if kv_syntax is not None:
-            if kv_syntax not in ('minimal', ):
-                raise ValueError(
-                    'kv_syntax can be either None or "minimal", not {}'.
-                    format(kv_syntax))
+    def __enter__(self):
+        raise TypeError(
+            "Something went wrong if and the KV code was not compiled. Did "
+            "you forget to decorate the function with a compiler?")
 
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        raise NotImplemented
+
+    def set_kv_binding_ast_transformer(self, transformer, kv_syntax):
         if kv_syntax == 'minimal':
             transformer.whitelist = {
                 'Name', 'Num', 'Bytes', 'Str', 'NameConstant', 'Subscript'}
+        self.transformer = transformer
 
     def unbind_rule(self, name=None, num=None):
         # we are slowly trimming leaves until all are unbound
         rule = self.rules[num] if name is None else self.named_rules[name]
-        binds_stores = rule['bind_stores']
+        binds_stores = rule.bind_stores
 
         for bind_store, leaf_indices in binds_stores:
             for leaf_index in leaf_indices:
@@ -91,35 +81,33 @@ class KVCtx(object):
                         bind_item[4] -= 1
                         assert bind_item[4] >= 1
 
-        rule['bind_stores'] = ()
+        rule.bind_stores = ()
         # it's ok to release the (possibly last) ref to the callback because at
         # worst it's scheduled in the clock, which has no problem dealing with
         # abandoned refs, or its scheduled with the canvas instructions that
         # holds a direct ref to it.
-        rule['callback'] = None
+        rule.callback = None
 
     def add_rule(self, rule, callback_name=None):
-        if not callback_name:
-            callback_name = '__kv_leaf_callback_{}'.format(len(self.rules))
-        rule['callback_name'] = callback_name
-
-        rule.setdefault('exec_rule', True)
-        rule.setdefault('delay', None)
-        rule.setdefault('bind_stores', ())
+        if callback_name:
+            rule.callback_name = callback_name
 
         self.rules.append(rule)
-        if rule['name']:
-            self.named_rules[rule['name']] = rule
+        if rule.name:
+            self.named_rules[rule.name] = rule
 
     def parse_rules(self):
         for rule in self.rules:
-            if not rule['binds']:
+            if not rule.binds:
                 raise ValueError('binds must be specified')
 
-            if isinstance(rule['binds'], str):
-                nodes = [ast.parse(rule['binds'])]
+            if isinstance(rule.binds, str):
+                nodes = [ast.parse(rule.binds)]
+            elif isinstance(rule.binds, ast.AST):
+                nodes = [rule.binds]
             else:
-                nodes = [ast.parse(bind) for bind in rule['binds']]
+                nodes = [ast.parse(bind) if isinstance(bind, str) else bind
+                         for bind in rule.binds]
             self.transformer.update_tree(nodes, rule)
 
     def set_nodes_proxy(self, use_proxy, use_proxy_exclude=None):

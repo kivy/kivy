@@ -1,8 +1,14 @@
 import ast
-from collections import deque
+from collections import deque, defaultdict
 import astor
 from astor.code_gen import SourceGenerator
 from astor.source_repr import split_lines
+
+from kivy.lang.compiler.kv_context import KVCtx, KVRule
+
+
+class KVCompilerParserException(Exception):
+    pass
 
 
 class BindSubTreeNode(object):
@@ -29,7 +35,7 @@ class BindSubTreeNode(object):
             '}, {'.join(map(repr, self.terminal_attrs)) + '}'
 
 
-class ASTNodeRef(ast.AST):
+class ASTBindNodeRef(ast.AST):
 
     original_node = None
 
@@ -64,7 +70,7 @@ class ASTNodeRef(ast.AST):
     '''
 
     def __init__(self, is_attribute):
-        super(ASTNodeRef, self).__init__()
+        super(ASTBindNodeRef, self).__init__()
         self.is_attribute = is_attribute
         self.depends_on_me = []
         self.depends = []
@@ -172,10 +178,22 @@ class ASTNodeRef(ast.AST):
                 [node.src for node in self.depends])
 
 
+class ASTRuleCtxNodePlaceholder(ast.AST):
+
+    src_lines = []
+
+
 class RefSourceGenerator(SourceGenerator):
 
-    def visit_ASTNodeRef(self, node, *largs, **kwargs):
+    def visit_ASTBindNodeRef(self, node, *largs, **kwargs):
         return self.visit(node.ref_node, *largs, **kwargs)
+
+    def visit_ASTRuleCtxNodePlaceholder(self, node, *largs, **kwargs):
+        self.newline(extra=1)
+        lines = ['\n', ] * (len(node.src_lines) * 2)
+        for i, line in enumerate(node.src_lines):
+            lines[2 * i] = line
+        self.write(*lines)
 
 
 def generate_source(node):
@@ -239,7 +257,7 @@ class ParseKVBindTransformer(ast.NodeTransformer):
 
             current_processing_node = self.current_processing_node
             new_node = True
-            self.current_processing_node = ret_node = ASTNodeRef(
+            self.current_processing_node = ret_node = ASTBindNodeRef(
                 is_attribute)
 
             try:
@@ -348,133 +366,353 @@ class ParseKVBindTransformer(ast.NodeTransformer):
         return node
 
 
-class ParseBindTransformer(ast.NodeTransformer):
+class ParseKVFunctionTransformer(ast.NodeTransformer):
+    '''The most important things is that we cannot allow a kv rule to be
+    conditionally executed because we'd be lying to the user.
 
-    stack = []
+    E.g. a return statement is forbidden within a kv context.
 
-    items = []
+    There's another problem to avoid, having callbacks use variables that
+    are not available anymore or has changed. Therefore, we capture all the
+    variables, local, nonlocal, and global defined before the rule and provide
+    it to the callback (side note, that improves speed). Therefore, some
+    statements, e.g. a function def contains local variables which is too hard
+    to trace, so we don't allow it within a rule at all as we cannot figure
+    out which variables need to be captured (yet).
+    '''
 
-    list_name = 'item'
+    current_ctx_info = None
 
-    tmp_vars = []
+    current_rule_info = None
 
-    def __init__(self, list_name, *largs, **kwargs):
-        super(ParseBindTransformer, self).__init__(*largs, **kwargs)
-        self.items = []
-        self.list_name = list_name
-        self.stack = deque()
-        self.tmp_vars = []
+    node_classes_within_ctx = None
 
-    def visit_Subscript(self, node):
-        if not isinstance(node.ctx, ast.Load):
-            return self.generic_visit(node)
-        self.stack.append([])
-        self.generic_visit(node.slice)
-        item = self.stack.pop()
-        if item:
-            self.items.append(item)
+    context_infos = []
 
-        # ret_node = ast.Subscript(
-        #     value=ast.Subscript(
-        #         value=ast.Name(id=self.list_name, ctx=ast.Load()),
-        #         slice=ast.Index(value=ast.Num(n=len(self.items))),
-        #         ctx=ast.Load()),
-        #     slice=ast.Index(value=ast.Num(n=5)),
-        #     ctx=ast.Store()
-        # )
+    kv_syntax = None
 
-        name = ''
-        if isinstance(node.value, ast.Attribute):
-            value = self.generic_visit(node.value.value)
-            name = node.value.attr
-        else:
-            value = self.generic_visit(node.value)
+    kv_rule_cls_name = '__KVRule'
 
-        new_node = ast.Assign(
-            targets=[ast.Name(id='sd', ctx=ast.Store())],
-            value=value)
-        self.items.append(astor.to_source(new_node))
+    illegal_node_classes_within_ctx = {
+        ast.If, ast.For, ast.While, ast.Try, ast.Suite, ast.FunctionDef,
+        ast.AsyncFor, ast.AsyncFunctionDef, ast.ExceptHandler, ast.ClassDef,
+        ast.While, ast.Try}
 
-        ret_node.ctx = ast.Load()
+    known_ast = {
+        ast.AST, ast.operator, ast.Add, ast.alias, ast.boolop, ast.And, ast.arg,
+        ast.arguments, ast.stmt, ast.Assert, ast.Assign, ast.AsyncFor,
+        ast.AsyncFunctionDef, ast.AsyncWith, ast.expr, ast.Attribute,
+        ast.AugAssign, ast.expr_context, ast.AugLoad, ast.AugStore, ast.Await,
+        ast.BinOp, ast.BitAnd, ast.BitOr, ast.BitXor, ast.BoolOp, ast.Break,
+        ast.Bytes, ast.Call, ast.ClassDef, ast.cmpop, ast.Compare,
+        ast.comprehension, ast.Continue, ast.Del, ast.Delete, ast.Dict,
+        ast.DictComp, ast.Div, ast.Ellipsis, ast.Eq, ast.excepthandler,
+        ast.ExceptHandler, ast.Expr, ast.mod, ast.Expression, ast.slice,
+        ast.ExtSlice, ast.FloorDiv, ast.For, ast.FunctionDef, ast.GeneratorExp,
+        ast.Global, ast.Gt, ast.GtE, ast.If, ast.IfExp, ast.Import,
+        ast.ImportFrom, ast.In, ast.Index, ast.Interactive, ast.unaryop,
+        ast.Invert, ast.Is, ast.IsNot, ast.keyword, ast.Lambda, ast.List,
+        ast.ListComp, ast.Load, ast.LShift, ast.Lt, ast.LtE, ast.MatMult,
+        ast.Mod, ast.Module, ast.Mult, ast.Name, ast.NameConstant, ast.Nonlocal,
+        ast.Not, ast.NotEq, ast.NotIn, ast.Num, ast.Or, ast.Param, ast.Pass,
+        ast.Pow, ast.Raise, ast.Return, ast.RShift, ast.Set, ast.SetComp,
+        ast.Slice, ast.Starred, ast.Store, ast.Str, ast.Sub, ast.Subscript,
+        ast.Suite, ast.Try, ast.Tuple, ast.UAdd, ast.UnaryOp, ast.USub,
+        ast.While, ast.With, ast.withitem, ast.Yield, ast.YieldFrom}
 
-        return ret_node
+    def __init__(self, kv_syntax=None):
+        super(ParseKVFunctionTransformer, self).__init__()
+        self.context_infos = []
 
-    def visit_Attribute(self, node):
-        node = self.generic_visit(node)
-        if not isinstance(node.ctx, ast.Load):
-            return node
+        if kv_syntax is not None:
+            if kv_syntax not in ('minimal', ):
+                raise ValueError(
+                    'kv_syntax can be either None or "minimal", not {}'.
+                    format(kv_syntax))
+        self.kv_syntax = kv_syntax
 
-        ret_node = ast.Subscript(
-            value=ast.Subscript(
-                value=ast.Name(id=self.list_name, ctx=ast.Load()),
-                slice=ast.Index(value=ast.Num(n=len(self.items))),
-                ctx=ast.Load()),
-            slice=ast.Index(value=ast.Num(n=5)),
-            ctx=ast.Store()
-        )
-        new_node = ast.Assign(
-            targets=[ret_node],
-            value=node)
-        self.items.append(astor.to_source(new_node))
-        ret_node.ctx = ast.Load()
-        return ret_node
+    def process_contexts(self, bind_on_exit_with_ctx):
+        for ctx_info in self.context_infos:
+            ctx = ctx_info['ctx']
 
-    def visit_BinOp(self, node):
-        pass
-
-    def visit_Compare(self, node):
-        pass
-
-    def visit_IfExp(self, node):
-        pass
-
-    def visit_DictComp(self, node):
-        return node
-
-    def visit_GeneratorExp(self, node):
-        return node
-
-    def visit_Lambda(self, node):
-        return node
-
-    def visit_ListComp(self, node):
-        return node
-
-    def visit_SetComp(self, node):
-        return node
-
-
-class StaticKVLangTransformer(ast.NodeTransformer):
 
     def generic_visit(self, node):
-        # print(ast.dump(node))
-        return super(KVLangTransformer, self).generic_visit(node)
-
-    # def visit_AugAssign(self, node):
-    #     #print(ast.dump(node))
-    #     # if not isinstance(node.op, ast.MatMult):
-    #     #     return node
-    #     #print(ast.dump(node))
-    #     #print(node.target.value.id, node.target.attr, node.value)
-    #     return node
+        if node.__class__ not in self.known_ast:
+            raise KVCompilerParserException(
+                'ast class {} not recognized. If it is a new python feature '
+                'it will need to be whitelisted'.format(node.__class__))
+        classes = self.node_classes_within_ctx
+        if classes is not None:
+            classes[node.__class__] += 1
+        ret_node = super(ParseKVFunctionTransformer, self).generic_visit(node)
+        if classes is not None:
+            classes[node.__class__] -= 1
+        return ret_node
 
     def visit_With(self, node):
-        items = []
-        for item in node.items:
-            expr = item.context_expr
+        func_name = None
+        args = keywords = assigned_var = None
+        for with_item in node.items:
+            assert isinstance(with_item, ast.withitem)
+            expr = with_item.context_expr
             if not isinstance(expr, ast.Call):
                 continue
-            func = expr.func
 
-            if isinstance(func, ast.Name
-                          ) and func.id.lower().startswith('kvbind'):
-                items.append(func)
-            elif isinstance(func, ast.Attribute
-                            ) and func.attr.lower().startswith('kvbind'):
-                items.append(func)
+            f_name = expr.func
+            name = None
+            if isinstance(f_name, ast.Attribute):
+                name = f_name.attr
+            elif isinstance(f_name, ast.Name):
+                name = f_name.id
 
-        self.process_with_body(items, node.body)
-        return node
+            if name in ('KVCtx', 'KVRule'):
+                func_name = name
+                args = expr.args
+                keywords = expr.keywords
+                assigned_var = with_item.optional_vars
+                break
 
-    def process_with_body(self, with_calls, with_body):
-        print(with_body)
+        if func_name is not None and len(node.items) > 1:
+            raise KVCompilerParserException(
+                'Multiple with statements not allowed for {}'.format(func_name))
+
+        if func_name is None:
+            return self.generic_visit(node)
+
+        if func_name == 'KVCtx':
+            ret_node = self.process_kv_with_ctx_node(
+                node, args, keywords, assigned_var)
+        else:
+            assert func_name == 'KVRule'
+            ret_node = self.process_kv_with_rule_node(
+                node, args, keywords, assigned_var)
+
+        return ret_node
+
+    def process_kv_with_ctx_node(self, node, args, keywords, assigned_var):
+        if self.current_rule_info is not None:
+            raise KVCompilerParserException('Cannot have context within rule')
+        if args or keywords:
+            raise KVCompilerParserException(
+                'KVCtx takes no positional or keyword arguments currently')
+
+        ctx = KVCtx()
+        transformer = ParseKVBindTransformer()
+        ctx.set_kv_binding_ast_transformer(transformer, self.kv_syntax)
+
+        previous_ctx_info = self.current_ctx_info
+        ctx_info = self.current_ctx_info = {
+            'ctx': ctx, 'args': args, 'keywords': keywords,
+            'rules': [], 'node': node,
+            'assign_target_node': ast.Name(id='__xxx', ctx=ast.Store()),
+            'before_ctx': ASTRuleCtxNodePlaceholder(),
+            'after_ctx': ASTRuleCtxNodePlaceholder()}
+
+        previous_node_classes = self.node_classes_within_ctx
+        self.node_classes_within_ctx = defaultdict(int)
+        ret_nodes = []
+        for item in node.body:
+            ret_nodes.append(self.visit(item))
+        self.current_ctx_info = previous_ctx_info
+        self.node_classes_within_ctx = previous_node_classes
+
+        self.context_infos.append(ctx_info)
+        for rule_info in ctx_info['rules']:
+            rule = rule_info['rule']
+            rule.binds = rule_info['binds']
+            rule.captures = rule_info['non_locals'] - rule_info['locals']
+            rule.src = generate_source(rule_info['body']).strip('\r\n')
+            ctx.add_rule(rule)
+
+        targets = [ctx_info['assign_target_node']]
+        if assigned_var:
+            targets.append(assigned_var)
+
+        assign_node = ast.Assign(
+            targets=targets,
+            value=ast.Call(func=ast.Name(id='__KVCtx', ctx=ast.Load()),
+            args=[], keywords=[]))
+
+        return [assign_node, ctx_info['before_ctx']] + ret_nodes + [
+            ctx_info['after_ctx']]
+
+    def process_kv_with_rule_node(self, node, args, keywords, assigned_var):
+        ctx_info = self.current_ctx_info
+        if ctx_info is None:
+            raise KVCompilerParserException(
+                'Cannot have KVRule outside of a KVCtx')
+        if self.current_rule_info is not None:
+            raise KVCompilerParserException('Cannot have rule within rule')
+
+        if assigned_var:
+            raise KVCompilerParserException(
+                'A KVRule cannot be assigned to a variable in the with '
+                'statement. The rule can be accessed only after the KVCtx is '
+                'done by name or index')
+
+        node_classes = self.node_classes_within_ctx
+        assert node_classes is not None
+        illegal_classes = set(cls for cls, n in node_classes.items() if n) & \
+            self.illegal_node_classes_within_ctx
+        if illegal_classes:
+            raise KVCompilerParserException(
+                'KV rule cannot be under conditionally executing code, the '
+                'following code objects were found containing the rule: {}. '
+                'You can wrap the rule under a new KV context instead'.
+                format(illegal_classes))
+
+        rules = ctx_info['rules']
+        name = delay = None
+        for keyword in keywords:
+            if keyword.arg == 'name':
+                val = keyword.value
+                if not isinstance(val, ast.Str):
+                    raise KVCompilerParserException(
+                        'Cannot parse {}, must be a string'.format(val))
+                name = val.s
+            elif keyword.arg == 'delay':
+                val = keyword.value
+                if not isinstance(val, ast.NameConstant):
+                    raise KVCompilerParserException(
+                        'Cannot parse {}, must be True/False/None'.format(val))
+                delay = val.value
+            else:
+                raise KVCompilerParserException(
+                    'Got unrecognized keyword {}'.format(keyword.arg))
+
+        for i, arg in enumerate(args):
+            if isinstance(arg, ast.Str):
+                mod = ast.parse(arg.s)
+                assert len(mod.body) == 1
+                args[i] = mod.body[0].value
+
+        rule = self.current_rule_info = {
+            'node': node, 'binds': list(args),
+            'from_with': True, 'body': None,
+            'non_locals': set(), 'locals': set(), 'rule': KVRule(
+                delay=delay, name=name)}
+        del args[:]
+        del keywords[:]
+
+        rule['body'] = ret_node = self.generic_visit(node.body)
+        rules.append(rule)
+        self.current_rule_info = None
+        return ret_node
+
+    def visit_AugAssign(self, node):
+        if not isinstance(node.op, ast.MatMult):
+            return self.generic_visit(node)
+
+        ctx_info = self.current_ctx_info
+        if ctx_info is None:
+            raise KVCompilerParserException(
+                'Cannot have KVRule outside of a KVCtx')
+
+        node_classes = self.node_classes_within_ctx
+        assert node_classes is not None
+        illegal_classes = set(cls for cls, n in node_classes.items() if n) & \
+            self.illegal_node_classes_within_ctx
+        if illegal_classes:
+            raise KVCompilerParserException(
+                'KV rule cannot be under conditionally executing code, the '
+                'following code objects were found containing the rule: {}'.
+                format(illegal_classes))
+
+        previous_rule_info = self.current_rule_info
+        if previous_rule_info is None:
+            rule = self.current_rule_info = {
+                'node': node,
+                'binds': [node.value], 'from_with': False,
+                'body': None, 'non_locals': set(), 'locals': set(),
+                'rule': KVRule()}
+            self.visit(node.value)
+            ctx_info['rules'].append(rule)
+            self.current_rule_info = None
+
+            assign = ast.Assign(targets=[node.target], value=node.value)
+            rule['body'] = assign
+            return assign
+        else:
+            self.visit(node.value)
+            previous_rule_info['binds'].append(node.value)
+
+            return ast.Assign(targets=[node.target], value=node.value)
+
+    def visit_Name(self, node):
+        current_rule = self.current_rule_info
+        if current_rule is not None:
+            if isinstance(node.ctx, ast.Load):
+                current_rule['non_locals'].add(node.id)
+            elif isinstance(node.ctx, ast.Store):
+                current_rule['locals'].add(node.id)
+            else:
+                raise KVCompilerParserException(
+                    'A variable cannot be deleted within a KV rule')
+        return self.generic_visit(node)
+
+    def visit_ImportFrom(self, node):
+        current_rule = self.current_rule_info
+        if current_rule is not None:
+            for name in node.names:
+                assert isinstance(name, ast.alias)
+                current_rule['locals'].add(name.asname or name.name)
+        return self.generic_visit(node)
+
+    def visit_Import(self, node):
+        current_rule = self.current_rule_info
+        if current_rule is not None:
+            for name in node.names:
+                assert isinstance(name, ast.alias)
+                name_split = name.name.split('.')
+                if len(name_split) == 1:
+                    current_rule['locals'].add(name_split[0])
+        return self.generic_visit(node)
+
+    def visit_Return(self, node):
+        if self.current_ctx_info:
+            raise KVCompilerParserException(
+                'Return is not allowed within a KV context')
+        return self.generic_visit(node)
+
+    def visit_illegal_rule_node(self, node):
+        if self.current_rule_info is not None:
+            raise KVCompilerParserException(
+                'Good try, but {} is not currently allowed within a KV rule'.
+                    format(node.__class__.__name__))
+        return self.generic_visit(node)
+
+    def visit_FunctionDef(self, node):
+        return self.visit_illegal_rule_node(node)
+
+    def visit_AsyncFunctionDef(self, node):
+        return self.visit_illegal_rule_node(node)
+
+    def visit_ClassDef(self, node):
+        return self.visit_illegal_rule_node(node)
+
+    def visit_comprehension(self, node):
+        return self.visit_illegal_rule_node(node)
+
+    def visit_DictComp(self, node):
+        return self.visit_illegal_rule_node(node)
+
+    def visit_ExceptHandler(self, node):
+        return self.visit_illegal_rule_node(node)
+
+    def visit_GeneratorExp(self, node):
+        return self.visit_illegal_rule_node(node)
+
+    def visit_Global(self, node):
+        return self.visit_illegal_rule_node(node)
+
+    def visit_Lambda(self, node):
+        return self.visit_illegal_rule_node(node)
+
+    def visit_ListComp(self, node):
+        return self.visit_illegal_rule_node(node)
+
+    def visit_Nonlocal(self, node):
+        return self.visit_illegal_rule_node(node)
+
+    def visit_SetComp(self, node):
+        return self.visit_illegal_rule_node(node)
