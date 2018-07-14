@@ -238,7 +238,7 @@ class KVCompiler(object):
 
     def gen_non_bind_node_local_variable(
             self, src_code, node, temp_pool, nodes_use_count, nodes_original_ref,
-            nodes_temp_var_name):
+            nodes_temp_var_name, indent):
         '''Create the local temp variable when rebinding from a node, provided
         the node is neither a leaf nor a rebindable attribute. E.g. a
         simple addition operation, or even a attribute, but rebind is False
@@ -252,7 +252,6 @@ class KVCompiler(object):
         # but only those that are not locals/globals
         depends = [dep for dep in node.depends if dep.depends]
 
-        indent = 4
         # we hit internal rebind node, performs its
         # computation and store it in local var
         assert nodes_use_count[node] >= 1
@@ -263,7 +262,7 @@ class KVCompiler(object):
         if depends:
             src_code.append('{}{} = None'.format(' ' * 4, var))
 
-            indent = 8
+            indent += 4
             condition = []
             for dep in depends:
                 name = nodes_temp_var_name[dep]
@@ -493,7 +492,7 @@ class KVCompiler(object):
                 else:
                     self.gen_non_bind_node_local_variable(
                         src_code, node, temp_pool, nodes_use_count,
-                        nodes_original_ref, nodes_temp_var_name)
+                        nodes_original_ref, nodes_temp_var_name, indent=4)
 
             # unbind
             self.gen_unbind_subtree_bindings(
@@ -692,7 +691,7 @@ class KVCompiler(object):
                 else:
                     self.gen_non_bind_node_local_variable(
                         src_code, node, temp_pool, nodes_use_count,
-                        nodes_original_ref, nodes_temp_var_name)
+                        nodes_original_ref, nodes_temp_var_name, indent=0)
 
             self.gen_subtree_bindings(
                 src_code, subtree, temp_pool,

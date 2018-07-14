@@ -6,18 +6,20 @@ import ast
 
 from kivy.lang.compiler.src_gen import KVCompiler
 from kivy.lang.compiler.ast_parse import ParseKVFunctionTransformer, \
-    ParseKVBindTransformer, generate_source, KVCompilerParserException
+    ParseKVBindTransformer, generate_source, KVCompilerParserException, \
+    ASTRuleCtxNodePlaceholder
 from kivy.lang.compiler.kv_context import KVCtx, KVRule
 from kivy.lang.compiler.runtime import load_kvc_from_file, save_kvc_to_file
 
 _space_match = re.compile('^ +$')
 
 
-def KV(func, kv_syntax=None, proxy=False, rebind=True, bind_on_enter=True,
+def KV(func, kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
        exec_rules_after_binding=False, compiler_cls=KVCompiler,
        transformer_cls=ParseKVFunctionTransformer):
     mod, f = load_kvc_from_file(func, func.__name__)  # no lambda
     if f is not None:
+        f._kv_src_func_globals = func.__globals__
         return f
 
     print('going the slow route')
@@ -39,6 +41,22 @@ def KV(func, kv_syntax=None, proxy=False, rebind=True, bind_on_enter=True,
     if not transformer.context_infos:
         return func
 
+    func_def = tree.body[0]
+    assert isinstance(func_def, ast.FunctionDef)
+    func_body = func_def.body
+    assert isinstance(func_body, list)
+    update_node = ASTRuleCtxNodePlaceholder()
+    update_node.src_lines = [
+        'from kivy.lang.compiler.kv_context import KVCtx as __KVCtx, '
+        'KVRule as __KVRule',
+        '__kv_mod_func = {}'.format(func.__name__),
+        'globals().clear()',
+        'globals().update(__kv_mod_func._kv_src_func_globals)',
+        'globals()["{}"] = __kv_mod_func'.format(func.__name__),
+        '',
+    ]
+    func_body.insert(0, update_node)
+
     node = None
     for ctx_info in transformer.context_infos:
         ctx = ctx_info['ctx']
@@ -53,15 +71,12 @@ def KV(func, kv_syntax=None, proxy=False, rebind=True, bind_on_enter=True,
         ctx_info['assign_target_node'].id = ctx_name
 
         node = ctx_info['before_ctx' if bind_on_enter else 'after_ctx']
-        node.src_lines = funcs
+        node.src_lines = ([''] + funcs) if bind_on_enter else funcs
     node.src_lines.extend(compiler.gen_delete_temp_vars())
 
-    compiled = 'from kivy.lang.compiler.kv_context import KVCtx as __KVCtx, ' \
-               'KVRule as __KVRule\n\n\n'
-    compiled += generate_source(ast_nodes)
-
-    save_kvc_to_file(func, compiled)
+    save_kvc_to_file(func, generate_source(ast_nodes))
     mod, f = load_kvc_from_file(func, func.__name__)
+    f._kv_src_func_globals = func.__globals__
     return f
 
 
