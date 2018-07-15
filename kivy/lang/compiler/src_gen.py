@@ -260,15 +260,16 @@ class KVCompiler(object):
         # if it has no deps, it won't be under a `if`
         # so no need to init variable
         if depends:
-            src_code.append('{}{} = None'.format(' ' * 4, var))
+            src_code.append('{}{} = None'.format(' ' * indent, var))
 
-            indent += 4
             condition = []
             for dep in depends:
                 name = nodes_temp_var_name[dep]
                 condition.append('{} is not None'.format(name))
-            condition = '{}if {}:'.format(' ' * 4, ' and '.join(condition))
+            condition = '{}if {}:'.format(' ' * indent, ' and '.join(condition))
             src_code.append(condition)
+
+            indent += 4
 
         assignment = '{}{} = {}'.format(
             ' ' * indent, var, generate_source(node).rstrip('\r\n'))
@@ -478,8 +479,8 @@ class KVCompiler(object):
                     assert not node.is_attribute
                     # we found a global or local variable - add its name
                     src = nodes_temp_var_name[node] = node.src
-                    assert isinstance(node.ref_node, ast.Name)
-                    capturing_vars.add(src)
+                    if isinstance(node.ref_node, ast.Name):
+                        capturing_vars.add(src)
                 elif node.rebind and node not in terminal_nodes_visited:
                     self.gen_base_rebind_node_local_variable(
                         src_code, current_subtree, node, temp_pool,
@@ -601,13 +602,14 @@ class KVCompiler(object):
         for rule_idx, (rule, rule_nodes) in enumerate(
                 zip(ctx.rules, ctx.transformer.nodes_by_rule)):
 
-            s = ', '.join('{0}={0}'.format(name) for name in rule.captures)
+            s = ', '.join(
+                '{0}={0}'.format(name) for name in sorted(rule.captures))
             s = ', {}'.format(s) if s else ''
             func_def = 'def {}(*__kv_largs{}):'.format(rule.callback_name, s)
 
             if create_rules:
                 src_code.append(func_def)
-                for line in rule.src.split('\r\n'):
+                for line in rule.src.splitlines():
                     src_code.append('{}{}'.format(' ' * 4, line))
                 src_code.append('')
 
@@ -682,8 +684,7 @@ class KVCompiler(object):
                 if not node.depends:
                     assert not node.is_attribute
                     # we found a global or local variable - add its name
-                    src = nodes_temp_var_name[node] = node.src
-                    assert isinstance(node.ref_node, ast.Name)
+                    nodes_temp_var_name[node] = node.src
                 elif node.rebind:
                     assert node in terminal_nodes_visited
                     assert node in nodes_temp_var_name, 'should already ' \

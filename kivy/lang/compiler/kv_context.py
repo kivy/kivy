@@ -17,8 +17,8 @@ class KVRule(object):
 
     def __enter__(self):
         raise TypeError(
-            "Something went wrong if and the KV code was not compiled. Did "
-            "you forget to decorate the function with a compiler?")
+            "Something went wrong and the KV code was not compiled. Did "
+            "you forget to decorate the function with the KV compiler?")
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         raise NotImplemented
@@ -37,8 +37,8 @@ class KVCtx(object):
 
     def __enter__(self):
         raise TypeError(
-            "Something went wrong if and the KV code was not compiled. Did "
-            "you forget to decorate the function with a compiler?")
+            "Something went wrong and the KV code was not compiled. Did "
+            "you forget to decorate the function with the KV compiler?")
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         raise NotImplemented

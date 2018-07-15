@@ -183,10 +183,19 @@ class ASTRuleCtxNodePlaceholder(ast.AST):
     src_lines = []
 
 
+class ASTNodeList(ast.AST):
+
+    nodes = []
+
+
 class RefSourceGenerator(SourceGenerator):
 
     def visit_ASTBindNodeRef(self, node, *largs, **kwargs):
         return self.visit(node.ref_node, *largs, **kwargs)
+
+    def visit_ASTNodeList(self, node, *largs, **kwargs):
+        for item in node.nodes:
+            self.visit(item, *largs, **kwargs)
 
     def visit_ASTRuleCtxNodePlaceholder(self, node, *largs, **kwargs):
         self.newline(extra=1)
@@ -431,10 +440,13 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
                     format(kv_syntax))
         self.kv_syntax = kv_syntax
 
-    def process_contexts(self, bind_on_exit_with_ctx):
-        for ctx_info in self.context_infos:
-            ctx = ctx_info['ctx']
-
+    def visit(self, node):
+        if isinstance(node, list):
+            return [
+                None if item is None else
+                super(ParseKVFunctionTransformer, self).visit(item)
+                for item in node]
+        return super(ParseKVFunctionTransformer, self).visit(node)
 
     def generic_visit(self, node):
         if node.__class__ not in self.known_ast:
@@ -520,7 +532,7 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
         for rule_info in ctx_info['rules']:
             rule = rule_info['rule']
             rule.binds = rule_info['binds']
-            rule.captures = rule_info['non_locals'] - rule_info['locals']
+            rule.captures = rule_info['captures']
             rule.src = generate_source(rule_info['body']).strip('\r\n')
             ctx.add_rule(rule)
 
@@ -572,15 +584,27 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
                 name = val.s
             elif keyword.arg == 'delay':
                 val = keyword.value
-                if not isinstance(val, ast.NameConstant):
+                if isinstance(val, ast.NameConstant):
+                    if val.value is not None:
+                        raise KVCompilerParserException(
+                            'Cannot parse {}, must be one of canvas/clock/None'.
+                            format(val.value))
+                elif isinstance(val, ast.Str):
+                    if val.s not in ('canvas', 'clock'):
+                        raise KVCompilerParserException(
+                            'Cannot parse {}, must be one of canvas/clock/None'.
+                            format(val.s))
+                    delay = val.s
+                else:
                     raise KVCompilerParserException(
-                        'Cannot parse {}, must be True/False/None'.format(val))
-                delay = val.value
+                        'Cannot parse {}, must be one of canvas/clock/None'.
+                        format(val))
             else:
                 raise KVCompilerParserException(
                     'Got unrecognized keyword {}'.format(keyword.arg))
 
         for i, arg in enumerate(args):
+            # convert strings bind instructions to ast
             if isinstance(arg, ast.Str):
                 mod = ast.parse(arg.s)
                 assert len(mod.body) == 1
@@ -589,20 +613,20 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
         rule = self.current_rule_info = {
             'node': node, 'binds': list(args),
             'from_with': True, 'body': None,
-            'non_locals': set(), 'locals': set(), 'rule': KVRule(
+            'locals': set(), 'captures': set(), 'currently_locals': None,
+            'possibly_locals': set(), 'rule': KVRule(
                 delay=delay, name=name)}
         del args[:]
         del keywords[:]
 
-        rule['body'] = ret_node = self.generic_visit(node.body)
+        rule['body'] = node_list = ASTNodeList()
+        node_list.nodes = self.visit(node.body)
         rules.append(rule)
         self.current_rule_info = None
-        return ret_node
 
-    def visit_AugAssign(self, node):
-        if not isinstance(node.op, ast.MatMult):
-            return self.generic_visit(node)
+        return node_list
 
+    def do_kv_assign(self, node, delay=None):
         ctx_info = self.current_ctx_info
         if ctx_info is None:
             raise KVCompilerParserException(
@@ -623,8 +647,10 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
             rule = self.current_rule_info = {
                 'node': node,
                 'binds': [node.value], 'from_with': False,
-                'body': None, 'non_locals': set(), 'locals': set(),
-                'rule': KVRule()}
+                'body': None, 'locals': set(), 'captures': set(),
+                'currently_locals': None, 'possibly_locals': set(),
+                'rule': KVRule(delay=delay)}
+
             self.visit(node.value)
             ctx_info['rules'].append(rule)
             self.current_rule_info = None
@@ -633,29 +659,71 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
             rule['body'] = assign
             return assign
         else:
+            if delay != previous_rule_info['rule'].delay:
+                raise KVCompilerParserException(
+                    'A rule can only have a single delay type (one of '
+                    'canvas/clock/None). The rule delay type was previously '
+                    'declared as {}, but was attempted to be redefined to {}'.
+                    format(previous_rule_info['rule'].delay, delay))
             self.visit(node.value)
             previous_rule_info['binds'].append(node.value)
 
             return ast.Assign(targets=[node.target], value=node.value)
 
+    def visit_AugAssign(self, node):
+        if isinstance(node.op, ast.MatMult):
+            return self.do_kv_assign(node, None)
+        elif isinstance(node.op, ast.BitXor):
+            return self.do_kv_assign(node, 'canvas')
+        return self.generic_visit(node)
+
     def visit_Name(self, node):
         current_rule = self.current_rule_info
         if current_rule is not None:
             if isinstance(node.ctx, ast.Load):
-                current_rule['non_locals'].add(node.id)
+                if node.id not in current_rule['locals'] and (
+                        current_rule['currently_locals'] is None or
+                        node.id not in current_rule['currently_locals']) and \
+                        node.id not in current_rule['captures']:
+                    if node.id in current_rule['possibly_locals']:
+                        raise KVCompilerParserException(
+                            'variable {} may or may not have been set within a '
+                            'conditional or loop and is therefore not allowed '
+                            'in KV. Make sure the variable is always defined'.
+                            format(node.id))
+                    current_rule['captures'].add(node.id)
             elif isinstance(node.ctx, ast.Store):
-                current_rule['locals'].add(node.id)
+                if current_rule['currently_locals'] is None:
+                    current_rule['locals'].add(node.id)
+                else:
+                    current_rule['currently_locals'].add(node.id)
             else:
+                # how can we del a var in the callback? What if it was def
+                # outside the rule? The callback will freak out. So it's illegal
+                # in KV.
                 raise KVCompilerParserException(
-                    'A variable cannot be deleted within a KV rule')
+                    'A variable cannot currently be deleted within a KV rule')
         return self.generic_visit(node)
+
+    def visit_Assign(self, node):
+        assert set(node._fields) == {'targets', 'value'}
+        # the node needs to visit value before targets because e.g.
+        # `var = x + var`, we need to know if `var` was already existing in
+        # captures before this call
+        node.value = self.visit(node.value)
+        node.targets = self.visit(node.targets)
+        return node
 
     def visit_ImportFrom(self, node):
         current_rule = self.current_rule_info
         if current_rule is not None:
             for name in node.names:
                 assert isinstance(name, ast.alias)
-                current_rule['locals'].add(name.asname or name.name)
+                if current_rule['currently_locals'] is None:
+                    current_rule['locals'].add(name.asname or name.name)
+                else:
+                    current_rule['currently_locals'].add(
+                        name.asname or name.name)
         return self.generic_visit(node)
 
     def visit_Import(self, node):
@@ -665,8 +733,223 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
                 assert isinstance(name, ast.alias)
                 name_split = name.name.split('.')
                 if len(name_split) == 1:
-                    current_rule['locals'].add(name_split[0])
+                    if current_rule['currently_locals'] is None:
+                        current_rule['locals'].add(name_split[0])
+                    else:
+                        current_rule['currently_locals'].add(name_split[0])
         return self.generic_visit(node)
+
+    def do_loop(self, node, loop='for'):
+        current_rule = self.current_rule_info
+        if current_rule is None:
+            return self.generic_visit(node)
+
+        if loop == 'for':
+            assert set(node._fields) == {'target', 'iter', 'body', 'orelse'}
+            node.iter = self.visit(node.iter)
+        else:
+            assert set(node._fields) == {'test', 'body', 'orelse'}
+            node.test = self.visit(node.test)
+
+        original = current_rule['currently_locals']
+        current_rule['currently_locals'] = set(original) if original else set()
+        if loop == 'for':
+            node.target = self.visit(node.target)
+
+        node.body = self.visit(node.body)
+        current_rule['possibly_locals'].update(current_rule['currently_locals'])
+
+        current_rule['currently_locals'] = set(original) if original else set()
+        node.orelse = self.visit(node.orelse)
+        current_rule['possibly_locals'].update(current_rule['currently_locals'])
+
+        current_rule['currently_locals'] = original
+        return node
+
+    def visit_For(self, node):
+        return self.do_loop(node)
+
+    def visit_AsyncFor(self, node):
+        return self.do_loop(node)
+
+    def visit_While(self, node):
+        return self.do_loop(node, loop='while')
+
+    def visit_comprehension(self, node):
+        assert self.current_rule_info is None, 'it is dealt with below'
+        return self.generic_visit(node)
+
+    def do_generators(self, node, current_rule):
+        original = current_rule['currently_locals']
+        current_rule['currently_locals'] = set(original) if original else set()
+
+        for item in node.generators:
+            assert isinstance(item, ast.comprehension)
+            assert item._fields == ('target', 'iter', 'ifs')
+            # iter MUST be first because that is before locals are created in
+            # the comprehension
+            item.iter = self.visit(item.iter)
+            item.target = self.visit(item.target)
+            item.ifs = self.visit(item.ifs)
+        return original
+
+    def do_simple_comp(self, node):
+        current_rule = self.current_rule_info
+        if current_rule is None:
+            return self.generic_visit(node)
+        assert set(node._fields) == {'elt', 'generators'}
+
+        original = self.do_generators(node, current_rule)
+        node.elt = self.visit(node.elt)
+        # no need to update possible locals, because comp variables don'y leak
+        # out to the outside context
+        current_rule['currently_locals'] = original
+        return node
+
+    def visit_ListComp(self, node):
+        return self.do_simple_comp(node)
+
+    def visit_SetComp(self, node):
+        return self.do_simple_comp(node)
+
+    def visit_GeneratorExp(self, node):
+        return self.do_simple_comp(node)
+
+    def visit_DictComp(self, node):
+        current_rule = self.current_rule_info
+        if current_rule is None:
+            return self.generic_visit(node)
+        assert set(node._fields) == {'key', 'value', 'generators'}
+
+        original = self.do_generators(node, current_rule)
+        node.key = self.visit(node.key)
+        node.value = self.visit(node.value)
+
+        # no need to update possible locals, because comp variables don'y leak
+        # out to the outside context
+        current_rule['currently_locals'] = original
+        return node
+
+    def visit_If(self, node):
+        current_rule = self.current_rule_info
+        if current_rule is None:
+            return self.generic_visit(node)
+
+        assert set(node._fields) == {'test', 'body', 'orelse'}
+        node.test = self.visit(node.test)
+
+        original = current_rule['currently_locals']
+        current_rule['currently_locals'] = set(original) if original else set()
+        node.body = self.visit(node.body)
+        current_rule['possibly_locals'].update(current_rule['currently_locals'])
+
+        current_rule['currently_locals'] = set(original) if original else set()
+        node.orelse = self.visit(node.orelse)
+        current_rule['possibly_locals'].update(current_rule['currently_locals'])
+
+        current_rule['currently_locals'] = original
+        return node
+
+    def visit_Try(self, node):
+        current_rule = self.current_rule_info
+        if current_rule is None:
+            return self.generic_visit(node)
+
+        assert set(node._fields) == {'body', 'handlers', 'orelse', 'finalbody'}
+        node.body = self.visit(node.body)
+        node.handlers = self.visit(node.handlers)
+
+        original = current_rule['currently_locals']
+        current_rule['currently_locals'] = set(original) if original else set()
+        node.orelse = self.visit(node.orelse)
+        current_rule['possibly_locals'].update(current_rule['currently_locals'])
+
+        current_rule['currently_locals'] = set(original) if original else set()
+        node.finalbody = self.visit(node.finalbody)
+        current_rule['possibly_locals'].update(current_rule['currently_locals'])
+
+        current_rule['currently_locals'] = original
+        return node
+
+    def visit_ExceptHandler(self, node):
+        current_rule = self.current_rule_info
+        if current_rule is None:
+            return self.generic_visit(node)
+
+        assert set(node._fields) == {'type', 'name', 'body'}
+        if node.type is not None:
+            node.type = self.visit(node.type)
+
+        original = current_rule['currently_locals']
+        current_rule['currently_locals'] = set(original) if original else set()
+        if node.name is not None:
+            current_rule['currently_locals'].add(node.name)
+        node.body = self.visit(node.body)
+        # exception handler vars don't leak out
+        current_rule['currently_locals'] = original
+        return node
+
+    def visit_Lambda(self, node):
+        current_rule = self.current_rule_info
+        if current_rule is None:
+            return self.generic_visit(node)
+
+        assert set(node._fields) == {'args', 'body'}
+
+        args = node.args
+        assert set(args._fields) == {
+            'args', 'vararg', 'kwonlyargs', 'kw_defaults', 'kwarg', 'defaults'}
+
+        # these must happen before the others because e.g. lambda y, x=y: 55
+        # should not get confused that the seconds y has already been created
+        # when the first y is written. So all the keyword values are processed
+        # first and added to captured if needed
+        args.kw_defaults = [
+            None if val is None else self.visit(val)
+            for val in args.kw_defaults]
+        args.defaults = [
+            None if val is None else self.visit(val)
+            for val in args.defaults]
+
+        original = current_rule['currently_locals']
+        current_rule['currently_locals'] = set(original) if original else set()
+        # we don't need to visit the following, because we don't change them
+        if args.vararg:
+            assert isinstance(args.vararg, ast.arg)
+            current_rule['currently_locals'].add(args.vararg.arg)
+        if args.kwarg:
+            assert isinstance(args.kwarg, ast.arg)
+            current_rule['currently_locals'].add(args.kwarg.arg)
+        for item in args.args:
+            assert isinstance(item, ast.arg)
+            current_rule['currently_locals'].add(item.arg)
+        for item in args.kwonlyargs:
+            assert isinstance(item, ast.arg)
+            current_rule['currently_locals'].add(item.arg)
+
+        node.body = self.visit(node.body)
+        # no need to update possible locals, because lambda variables don'y leak
+        # out to the outside context
+        current_rule['currently_locals'] = original
+        return node
+
+    def visit_illegal_closure_node(self, node):
+        if self.current_rule_info is not None:
+            raise KVCompilerParserException(
+                '{} is not allowed within a KV rule because it '
+                'creates a closure with possible nonlocal variables, which '
+                'would be ill defined within a KV callback.'.
+                format(node.__class__.__name__))
+        return self.generic_visit(node)
+
+    def visit_FunctionDef(self, node):
+        return self.visit_illegal_closure_node(node)
+
+    def visit_AsyncFunctionDef(self, node):
+        return self.visit_illegal_closure_node(node)
+
+    def visit_ClassDef(self, node):
+        return self.visit_illegal_closure_node(node)
 
     def visit_Return(self, node):
         if self.current_ctx_info:
@@ -674,45 +957,12 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
                 'Return is not allowed within a KV context')
         return self.generic_visit(node)
 
-    def visit_illegal_rule_node(self, node):
-        if self.current_rule_info is not None:
-            raise KVCompilerParserException(
-                'Good try, but {} is not currently allowed within a KV rule'.
-                    format(node.__class__.__name__))
-        return self.generic_visit(node)
-
-    def visit_FunctionDef(self, node):
-        return self.visit_illegal_rule_node(node)
-
-    def visit_AsyncFunctionDef(self, node):
-        return self.visit_illegal_rule_node(node)
-
-    def visit_ClassDef(self, node):
-        return self.visit_illegal_rule_node(node)
-
-    def visit_comprehension(self, node):
-        return self.visit_illegal_rule_node(node)
-
-    def visit_DictComp(self, node):
-        return self.visit_illegal_rule_node(node)
-
-    def visit_ExceptHandler(self, node):
-        return self.visit_illegal_rule_node(node)
-
-    def visit_GeneratorExp(self, node):
-        return self.visit_illegal_rule_node(node)
-
     def visit_Global(self, node):
-        return self.visit_illegal_rule_node(node)
-
-    def visit_Lambda(self, node):
-        return self.visit_illegal_rule_node(node)
-
-    def visit_ListComp(self, node):
-        return self.visit_illegal_rule_node(node)
+        raise KVCompilerParserException(
+            'It is illegal to use global in a KV decorated function because '
+            'the kv callbacks may fail')
 
     def visit_Nonlocal(self, node):
-        return self.visit_illegal_rule_node(node)
-
-    def visit_SetComp(self, node):
-        return self.visit_illegal_rule_node(node)
+        raise KVCompilerParserException(
+            'It is illegal to use nonlocal in a KV decorated function because '
+            'the kv callbacks may fail')
