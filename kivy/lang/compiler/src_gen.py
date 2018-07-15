@@ -595,37 +595,35 @@ class KVCompiler(object):
         src_code.append('')
         return src_code
 
-    def gen_leaf_callbacks_and_rules(
+    def gen_leaf_rules(
             self, ctx, ctx_name, create_rules, nodes_bind_store_names,
             node_bind_store_indices):
-        src_code = []
+        rule_creation = []
+        rule_finalization = []
+        kv_rule_pool = self.kv_rule_pool
+
         for rule_idx, (rule, rule_nodes) in enumerate(
                 zip(ctx.rules, ctx.transformer.nodes_by_rule)):
-
-            s = ', '.join(
-                '{0}={0}'.format(name) for name in sorted(rule.captures))
-            s = ', {}'.format(s) if s else ''
-            func_def = 'def {}(*__kv_largs{}):'.format(rule.callback_name, s)
-
+            name = kv_rule_pool.borrow_persistent()
             if create_rules:
-                src_code.append(func_def)
-                for line in rule.src.splitlines():
-                    src_code.append('{}{}'.format(' ' * 4, line))
-                src_code.append('')
-
                 delay = rule.delay
                 delay_arg = 'None' if delay is None else '"{}"'.format(delay)
 
-                src_code.append('__kv_rule = __KVRule()')
-                src_code.append('__kv_rule.delay = {}'.format(delay_arg))
+                rule_creation.append('{} = __KVRule()'.format(name))
+                rule_creation.append('{}.delay = {}'.format(name, delay_arg))
                 if rule.name:
-                    src_code.append('__kv_rule.name = "{}"'.format(rule.name))
-                src_code.append(
-                    '__kv_rule.callback = {}'.format(rule.callback_name))
-                src_code.append('{}.add_rule(__kv_rule)'.format(ctx_name))
+                    rule_creation.append(
+                        '{}.name = "{}"'.format(name, rule.name))
+                rule_creation.append('{}.add_rule({})'.format(ctx_name, name))
+
+                if rule.with_var_name_ast is not None:
+                    rule.with_var_name_ast.id = name
+
+                rule_finalization.append(
+                    '{}.callback = {}'.format(name, rule.callback_name))
             else:
-                src_code.append(
-                    '__kv_rule = {}.rules[{}]'.format(ctx_name, rule_idx))
+                rule_creation.append(
+                    '{} = {}.rules[{}]'.format(name, ctx_name, rule_idx))
 
             leaf_indices_by_store_names = defaultdict(list)
             for node in rule_nodes:
@@ -638,15 +636,36 @@ class KVCompiler(object):
                 '({}, ({}, ))'.format(
                     name, ', '.join(map(str, sorted(indices))))
                 for name, indices in leaf_indices_by_store_names.items())
-            src_code.append(
-                '__kv_rule.bind_stores = ({}, )'.format(', '.join(bind_stores)))
+            rule_finalization.append(
+                '{}.bind_stores = ({}, )'.format(name, ', '.join(bind_stores)))
+
+            rule_creation.append('')
+            rule_finalization.append('')
+
+        return rule_creation, rule_finalization
+
+    def gen_leaf_callbacks(self, ctx):
+        src_code = []
+        for rule_idx, (rule, rule_nodes) in enumerate(
+                zip(ctx.rules, ctx.transformer.nodes_by_rule)):
+            name = None
+            if rule.with_var_name_ast is not None:
+                name = rule.with_var_name_ast.id
+                rule.captures.add(name)
+
+            s = ', '.join(
+                '{0}={0}'.format(name) for name in sorted(rule.captures))
+            s = ', {}'.format(s) if s else ''
+            func_def = 'def {}(*__kv_largs{}):'.format(rule.callback_name, s)
+
+            src_code.append(func_def)
+            if name is not None:
+                src_code.append('{}{}.largs = __kv_largs'.format(' ' * 4, name))
+
+            for line in rule.src.splitlines():
+                src_code.append('{}{}'.format(' ' * 4, line))
             src_code.append('')
 
-        # delete the rule, as opposed to the other temp locals we create because
-        # if the rule is unbound, we should not hold a ref to it, but it may not
-        # be needed to deleted, but whatever
-        src_code.append('del __kv_rule')
-        src_code.append('')
         return src_code
 
     def gen_initial_bindings_for_tree(
@@ -733,7 +752,9 @@ class KVCompiler(object):
         return src_code
 
     def gen_delete_temp_vars(self):
-        var_clear = ', '.join(self.temp_var_pool.get_used_items())
+        var_clear = ', '.join(sorted(chain(
+            self.temp_var_pool.get_used_items(),
+            self.kv_rule_pool.get_all_items())))
         if var_clear:
             return ['del {}'.format(var_clear), '']
         return []
@@ -760,10 +781,13 @@ class KVCompiler(object):
             trees_bind_store_indices, trees_bind_store_names,
             nodes_bind_store_names, trees_bind_store_name_and_size)
 
-        res = self.gen_leaf_callbacks_and_rules(
+        rule_creation, rule_finalization = self.gen_leaf_rules(
             ctx, ctx_name, create_rules, nodes_bind_store_names,
             node_bind_store_indices)
-        funcs.extend(res)
+
+        if create_rules:
+            res = self.gen_leaf_callbacks(ctx)
+            funcs.extend(res)
 
         res = self.gen_initial_bindings(
             ctx, trees, node_bind_callback_names,
@@ -771,4 +795,4 @@ class KVCompiler(object):
             exec_rules_after_binding)
         funcs.extend(res)
 
-        return ctx_name, funcs
+        return ctx_name, funcs, rule_creation, rule_finalization

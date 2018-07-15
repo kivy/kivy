@@ -1,3 +1,4 @@
+from itertools import chain
 
 
 class StringPool(object):
@@ -52,3 +53,8 @@ class StringPool(object):
 
     def get_used_items(self):
         return self.pool
+
+    def get_all_items(self):
+        return set(chain(
+            (item for item in self.pool if item is not None),
+            (item[0] for item in self.tokens.values())))

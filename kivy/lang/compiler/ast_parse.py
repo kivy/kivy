@@ -4,7 +4,7 @@ import astor
 from astor.code_gen import SourceGenerator
 from astor.source_repr import split_lines
 
-from kivy.lang.compiler.kv_context import KVCtx, KVRule
+from kivy.lang.compiler.kv_context import KVCtx, KVParserRule
 
 
 class KVCompilerParserException(Exception):
@@ -400,7 +400,7 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
 
     kv_syntax = None
 
-    kv_rule_cls_name = '__KVRule'
+    kv_ctx_cls_name = '__KVCtx'
 
     illegal_node_classes_within_ctx = {
         ast.If, ast.For, ast.While, ast.Try, ast.Suite, ast.FunctionDef,
@@ -542,8 +542,8 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
 
         assign_node = ast.Assign(
             targets=targets,
-            value=ast.Call(func=ast.Name(id='__KVCtx', ctx=ast.Load()),
-            args=[], keywords=[]))
+            value=ast.Call(func=ast.Name(id=self.kv_ctx_cls_name, ctx=ast.Load()),
+                           args=[], keywords=[]))
 
         return [assign_node, ctx_info['before_ctx']] + ret_nodes + [
             ctx_info['after_ctx']]
@@ -555,12 +555,6 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
                 'Cannot have KVRule outside of a KVCtx')
         if self.current_rule_info is not None:
             raise KVCompilerParserException('Cannot have rule within rule')
-
-        if assigned_var:
-            raise KVCompilerParserException(
-                'A KVRule cannot be assigned to a variable in the with '
-                'statement. The rule can be accessed only after the KVCtx is '
-                'done by name or index')
 
         node_classes = self.node_classes_within_ctx
         assert node_classes is not None
@@ -614,15 +608,21 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
             'node': node, 'binds': list(args),
             'from_with': True, 'body': None,
             'locals': set(), 'captures': set(), 'currently_locals': None,
-            'possibly_locals': set(), 'rule': KVRule(
+            'possibly_locals': set(), 'rule': KVParserRule(
                 delay=delay, name=name)}
-        del args[:]
-        del keywords[:]
 
         rule['body'] = node_list = ASTNodeList()
         node_list.nodes = self.visit(node.body)
         rules.append(rule)
         self.current_rule_info = None
+
+        if assigned_var is not None:
+            rule_var_name = rule['rule'].with_var_name_ast = ast.Name(
+                id='__xxx', ctx=ast.Load())
+            assign_node = ast.Assign(
+                targets=[assigned_var], value=rule_var_name)
+            node_list = ASTNodeList()
+            node_list.nodes = [assign_node] + rule['body'].nodes
 
         return node_list
 
@@ -649,7 +649,7 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
                 'binds': [node.value], 'from_with': False,
                 'body': None, 'locals': set(), 'captures': set(),
                 'currently_locals': None, 'possibly_locals': set(),
-                'rule': KVRule(delay=delay)}
+                'rule': KVParserRule(delay=delay)}
 
             self.visit(node.value)
             ctx_info['rules'].append(rule)

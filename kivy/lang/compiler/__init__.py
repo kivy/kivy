@@ -72,13 +72,23 @@ def KV(func, kv_syntax=None, proxy=False, rebind=True, bind_on_enter=False,
         ctx.set_nodes_proxy(proxy)
         ctx.set_nodes_rebind(rebind)
 
-        ctx_name, funcs = compiler.generate_bindings(
-            ctx, None, create_rules=True,
-            exec_rules_after_binding=exec_rules_after_binding)
+        ctx_name, funcs, rule_creation, rule_finalization = \
+            compiler.generate_bindings(
+                ctx, None, create_rules=True,
+                exec_rules_after_binding=exec_rules_after_binding)
         ctx_info['assign_target_node'].id = ctx_name
 
-        node = ctx_info['before_ctx' if bind_on_enter else 'after_ctx']
-        node.src_lines = ([''] + funcs) if bind_on_enter else funcs
+        before_ctx_node = ctx_info['before_ctx']
+        after_ctx_node = ctx_info['after_ctx']
+
+        if bind_on_enter:
+            node = before_ctx_node
+            before_ctx_node.src_lines = \
+                [''] + rule_creation + funcs + rule_finalization
+        else:
+            node = after_ctx_node
+            before_ctx_node.src_lines = [''] + rule_creation
+            after_ctx_node.src_lines = funcs + rule_finalization
     node.src_lines.extend(compiler.gen_delete_temp_vars())
 
     save_kvc_to_file(func, generate_source(ast_nodes))
