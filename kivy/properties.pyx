@@ -1471,6 +1471,11 @@ cdef class AliasProperty(Property):
             ps.value = self.get(obj)
             self.dispatch(obj)
 
+    cpdef dispatch(self, EventDispatcher obj):
+        cdef PropertyStorage ps = obj.__storage[self._name]
+        ps.observers.dispatch(obj, self.get(obj), None, None, 0)
+
+
 cdef class VariableListProperty(Property):
     '''A ListProperty that allows you to work with a variable amount of
     list items and to expand them to the desired list size.

@@ -85,11 +85,20 @@ class ModalView(AnchorLayout):
     '''ModalView class. See module documentation for more information.
 
     :Events:
+        `on_pre_open`:
+            Fired before the ModalView is opened. When this event is fired
+            ModalView is not yet added to window.
         `on_open`:
             Fired when the ModalView is opened.
+        `on_pre_dismiss`:
+            Fired before the ModalView is closed.
         `on_dismiss`:
             Fired when the ModalView is closed. If the callback returns True,
             the dismiss will be canceled.
+
+    .. versionchanged:: 1.11.0
+        Added events `on_pre_open` and `on_pre_dismiss`.
+
     '''
 
     auto_dismiss = BooleanProperty(True)
@@ -145,7 +154,7 @@ class ModalView(AnchorLayout):
 
     _window = ObjectProperty(None, allownone=True, rebind=True)
 
-    __events__ = ('on_open', 'on_dismiss')
+    __events__ = ('on_pre_open', 'on_open', 'on_pre_dismiss', 'on_dismiss')
 
     def __init__(self, **kwargs):
         self._parent = None
@@ -183,6 +192,7 @@ class ModalView(AnchorLayout):
         if not self._window:
             Logger.warning('ModalView: cannot open view, no window found.')
             return
+        self.dispatch('on_pre_open')
         self._window.add_widget(self)
         self._window.bind(
             on_resize=self._align_center,
@@ -215,6 +225,7 @@ class ModalView(AnchorLayout):
         '''
         if self._window is None:
             return
+        self.dispatch('on_pre_dismiss')
         if self.dispatch('on_dismiss') is True:
             if kwargs.get('force', False) is not True:
                 return
@@ -257,7 +268,13 @@ class ModalView(AnchorLayout):
             on_keyboard=self._handle_keyboard)
         self._window = None
 
+    def on_pre_open(self):
+        pass
+
     def on_open(self):
+        pass
+
+    def on_pre_dismiss(self):
         pass
 
     def on_dismiss(self):

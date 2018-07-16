@@ -146,9 +146,7 @@ class CheckBox(ToggleButtonBehavior, Widget):
     '''Color is used for tinting the default graphical representation
     of checkbox and radio button (images).
 
-    Color is in the format (r, g, b, a). Use alpha greater than 1 for
-    brighter colors. Alpha greater than 4 causes blending border and check
-    mark together.
+    Color is in the format (r, g, b, a).
 
     .. versionadded:: 1.10.0
 

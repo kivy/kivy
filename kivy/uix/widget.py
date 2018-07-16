@@ -531,7 +531,7 @@ class Widget(WidgetBase):
                                   % (widget, parent))
         widget.parent = parent = self
         # Child will be disabled if added to a disabled parent.
-        widget._disabled_count = self._disabled_count
+        widget.inc_disabled(self._disabled_count)
 
         canvas = self.canvas.before if canvas == 'before' else \
             self.canvas.after if canvas == 'after' else self.canvas
@@ -584,6 +584,7 @@ class Widget(WidgetBase):
         elif widget.canvas in self.canvas.before.children:
             self.canvas.before.remove(widget.canvas)
         widget.parent = None
+        widget.dec_disabled(self._disabled_count)
 
     def clear_widgets(self, children=None):
         '''
@@ -1318,20 +1319,21 @@ class Widget(WidgetBase):
                 self.inc_disabled()
             else:
                 self.dec_disabled()
+            return True
 
-    def inc_disabled(self):
-        self._disabled_count += 1
-        if self._disabled_count == 1:
+    def inc_disabled(self, count=1):
+        self._disabled_count += count
+        if self._disabled_count - count < 1 <= self._disabled_count:
             self.property('disabled').dispatch(self)
         for c in self.children:
-            c.inc_disabled()
+            c.inc_disabled(count)
 
-    def dec_disabled(self):
-        self._disabled_count -= 1
-        if self._disabled_count == 0:
+    def dec_disabled(self, count=1):
+        self._disabled_count -= count
+        if self._disabled_count <= 0 < self._disabled_count + count:
             self.property('disabled').dispatch(self)
         for c in self.children:
-            c.dec_disabled()
+            c.dec_disabled(count)
 
     disabled = AliasProperty(get_disabled, set_disabled)
     '''Indicates whether this widget can interact with input or not.

@@ -15,7 +15,7 @@ That said, there is one dependency that Kivy **does** require:
 `Cython <http://cython.org>`_.
 
 In addition, you need a `Python <http://python.org/>`_ 2.x (2.7 <= x < 3.0)
-or 3.x (3.3 <= x) interpreter. If you want to enable features like windowing
+or 3.x (3.4 <= x) interpreter. If you want to enable features like windowing
 (i.e. open a Window), audio/video playback or spelling correction, additional
 dependencies must be available. For these, we recommend
 `SDL2 <https://www.libsdl.org/download-2.0.php>`_,
