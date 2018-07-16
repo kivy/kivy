@@ -16,6 +16,10 @@ class KVCompiler(object):
 
     leaf_callback_pool = None
 
+    leaf_canvas_callback_pool = None
+
+    leaf_clock_callback_pool = None
+
     binding_store_pool = None
 
     temp_var_pool = None
@@ -24,10 +28,18 @@ class KVCompiler(object):
 
     kv_rule_pool = None
 
+    used_clock_rule = False
+
+    used_canvas_rule = False
+
     def __init__(self, **kwargs):
         super(KVCompiler, self).__init__(**kwargs)
         self.rebind_callback_pool = StringPool(prefix='__kv_rebind_callback')
         self.leaf_callback_pool = StringPool(prefix='__kv_leaf_callback')
+        self.leaf_canvas_callback_pool = StringPool(
+            prefix='__kv_leaf_callback_canvas')
+        self.leaf_clock_callback_pool = StringPool(
+            prefix='__kv_leaf_callback_clock')
         self.binding_store_pool = StringPool(prefix='__kv_bind_store')
         self.temp_var_pool = StringPool(prefix='__kv_temp_val')
         self.kv_ctx_pool = StringPool(prefix='__kv_ctx')
@@ -606,8 +618,12 @@ class KVCompiler(object):
                 zip(ctx.rules, ctx.transformer.nodes_by_rule)):
             name = kv_rule_pool.borrow_persistent()
             if create_rules:
-                delay = rule.delay
-                delay_arg = 'None' if delay is None else '"{}"'.format(delay)
+                if rule.delay is None:
+                    delay_arg = 'None'
+                elif rule.delay == 'canvas':
+                    delay_arg = '"canvas"'
+                else:
+                    delay_arg = '{}'.format(rule.delay)
 
                 rule_creation.append('{} = __KVRule()'.format(name))
                 rule_creation.append('{}.delay = {}'.format(name, delay_arg))
@@ -646,6 +662,8 @@ class KVCompiler(object):
 
     def gen_leaf_callbacks(self, ctx):
         src_code = []
+        canvas_pool = self.leaf_canvas_callback_pool
+        clock_pool = self.leaf_clock_callback_pool
         for rule_idx, (rule, rule_nodes) in enumerate(
                 zip(ctx.rules, ctx.transformer.nodes_by_rule)):
             name = None
@@ -653,10 +671,21 @@ class KVCompiler(object):
                 name = rule.with_var_name_ast.id
                 rule.captures.add(name)
 
+            delay = rule.delay
+            callback_name = rule.callback_name
+            if delay is None:
+                proxy_callback_name = callback_name
+            elif delay == 'canvas':
+                proxy_callback_name = canvas_pool.borrow_persistent()
+                self.used_canvas_rule = True
+            else:
+                proxy_callback_name = clock_pool.borrow_persistent()
+                self.used_clock_rule = True
+
             s = ', '.join(
                 '{0}={0}'.format(name) for name in sorted(rule.captures))
             s = ', {}'.format(s) if s else ''
-            func_def = 'def {}(*__kv_largs{}):'.format(rule.callback_name, s)
+            func_def = 'def {}(*__kv_largs{}):'.format(proxy_callback_name, s)
 
             src_code.append(func_def)
             if name is not None:
@@ -665,6 +694,22 @@ class KVCompiler(object):
             for line in rule.src.splitlines():
                 src_code.append('{}{}'.format(' ' * 4, line))
             src_code.append('')
+
+            if delay is None:
+                continue
+            elif delay == 'canvas':
+                func_def = 'def {}(*__kv_largs, __kv_canvas_item=[{}, ' \
+                    'None, None]):'.format(callback_name, proxy_callback_name)
+                body = '{}__kv_add_graphics_callback(__kv_canvas_item, ' \
+                    '__kv_largs)'.format(' ' * 4)
+                src_code.append(func_def)
+                src_code.append(body)
+                src_code.append('')
+            else:
+                line = '{} = __kv_Clock.create_trigger({}, {})'.\
+                    format(callback_name, proxy_callback_name, delay)
+                src_code.append(line)
+                src_code.append('')
 
         return src_code
 

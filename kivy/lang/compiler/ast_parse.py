@@ -581,17 +581,19 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
                 if isinstance(val, ast.NameConstant):
                     if val.value is not None:
                         raise KVCompilerParserException(
-                            'Cannot parse {}, must be one of canvas/clock/None'.
-                            format(val.value))
+                            'Cannot parse {}, must be one of canvas/number/None'
+                            .format(val.value))
                 elif isinstance(val, ast.Str):
-                    if val.s not in ('canvas', 'clock'):
+                    if val.s != 'canvas':
                         raise KVCompilerParserException(
-                            'Cannot parse {}, must be one of canvas/clock/None'.
-                            format(val.s))
+                            'Cannot parse {}, must be one of canvas/number/None'
+                            .format(val.s))
                     delay = val.s
+                elif isinstance(val, ast.Num):
+                    delay = val.n
                 else:
                     raise KVCompilerParserException(
-                        'Cannot parse {}, must be one of canvas/clock/None'.
+                        'Cannot parse {}, must be one of canvas/number/None'.
                         format(val))
             else:
                 raise KVCompilerParserException(
@@ -659,10 +661,12 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
             rule['body'] = assign
             return assign
         else:
-            if delay != previous_rule_info['rule'].delay:
+            if delay != previous_rule_info['rule'].delay and not (
+                    isinstance(previous_rule_info['rule'].delay, (int, float))
+                    and delay is None):
                 raise KVCompilerParserException(
                     'A rule can only have a single delay type (one of '
-                    'canvas/clock/None). The rule delay type was previously '
+                    'canvas/number/None). The rule delay type was previously '
                     'declared as {}, but was attempted to be redefined to {}'.
                     format(previous_rule_info['rule'].delay, delay))
             self.visit(node.value)

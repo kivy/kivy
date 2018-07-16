@@ -52,17 +52,6 @@ def KV(func, kv_syntax=None, proxy=False, rebind=True, bind_on_enter=False,
     assert isinstance(func_def, ast.FunctionDef)
     func_body = func_def.body
     assert isinstance(func_body, list)
-    update_node = ASTRuleCtxNodePlaceholder()
-    update_node.src_lines = [
-        'from kivy.lang.compiler.kv_context import KVCtx as __KVCtx, '
-        'KVRule as __KVRule',
-        '__kv_mod_func = {}'.format(func.__name__),
-        'globals().clear()',
-        'globals().update(__kv_mod_func._kv_src_func_globals)',
-        'globals()["{}"] = __kv_mod_func'.format(func.__name__),
-        '',
-    ]
-    func_body.insert(0, update_node)
 
     node = None
     for ctx_info in transformer.context_infos:
@@ -90,6 +79,26 @@ def KV(func, kv_syntax=None, proxy=False, rebind=True, bind_on_enter=False,
             before_ctx_node.src_lines = [''] + rule_creation
             after_ctx_node.src_lines = funcs + rule_finalization
     node.src_lines.extend(compiler.gen_delete_temp_vars())
+
+    update_node = ASTRuleCtxNodePlaceholder()
+    imports = ['from kivy.lang.compiler.kv_context import KVCtx as __KVCtx, '
+               'KVRule as __KVRule']
+    if compiler.used_canvas_rule:
+        imports.append(
+            'from kivy.lang.compiler.runtime import add_graphics_callback as '
+            '__kv_add_graphics_callback')
+    if compiler.used_clock_rule:
+        imports.append('from kivy.clock import Clock as __kv_Clock')
+
+    globals_update = [
+        '__kv_mod_func = {}'.format(func.__name__),
+        'globals().clear()',
+        'globals().update(__kv_mod_func._kv_src_func_globals)',
+        'globals()["{}"] = __kv_mod_func'.format(func.__name__),
+        '']
+
+    update_node.src_lines = imports + globals_update
+    func_body.insert(0, update_node)
 
     save_kvc_to_file(func, generate_source(ast_nodes))
     mod, f = load_kvc_from_file(func, func.__name__)
