@@ -62,7 +62,7 @@ def load_kvc_from_file(func, target_func_name, flags=''):
     if not os.path.exists(kv_fname) or os.stat(func_filname).st_mtime >= os.stat(kv_fname).st_mtime:
         return None, None
 
-    loader = importlib.machinery.SourceFileLoader('__kv', kv_fname)
+    loader = importlib.machinery.SourceFileLoader('__kv{}'.format(len(_kvc_cache)), kv_fname)
     mod = loader.load_module()
     f = getattr(mod, target_func_name)
 

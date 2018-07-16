@@ -1,5 +1,4 @@
 import textwrap
-import itertools
 import inspect
 import re
 import ast
@@ -118,13 +117,10 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
 
 def KV_apply_manual(
         ctx, func, local_vars, global_vars, compiler_cls=KVCompiler,
-        kv_syntax=None, proxy=False, rebind=True,
+        kv_syntax='minimal', proxy=False, rebind=True,
         exec_rules_after_binding=False):
     ctx_name = '__kv_ctx'
     compiler = compiler_cls()
-    global_vars = global_vars.copy()
-    global_vars.update(local_vars)
-    global_vars[ctx_name] = ctx
 
     mod, f = load_kvc_from_file(func, '__kv_manual_wrapper', 'manual')
 
@@ -137,18 +133,28 @@ def KV_apply_manual(
         ctx.set_nodes_proxy(proxy)
         ctx.set_nodes_rebind(rebind)
 
-        parts = compiler.generate_bindings(
-            ctx, ctx_name, create_rules=False,
-            exec_rules_after_binding=exec_rules_after_binding)
-        lines = ('    {}'.format(line) if line else ''
-                 for line in itertools.chain(*parts))
-        globals_src = 'def update_globals(globals_vars):\n    globals_vars.' \
-            'update(globals())\n    globals().update(globals_vars)\n\n'
-        src = '{}def __kv_manual_wrapper():\n{}'.format(
-            globals_src, '\n'.join(lines))
+        _, funcs, rule_creation, rule_finalization = \
+            compiler.generate_bindings(
+                ctx, ctx_name, create_rules=False,
+                exec_rules_after_binding=exec_rules_after_binding)
+
+        creation, deletion = compiler.gen_temp_vars_creation_deletion()
+        globals_update = [
+            '__kv_mod_func = __kv_manual_wrapper',
+            'globals().clear()',
+            'globals().update(__kv_src_func_globals)',
+            'globals()["__kv_manual_wrapper"] = __kv_mod_func',
+            '']
+
+        lines = globals_update + creation + rule_creation + funcs + \
+            rule_finalization + deletion
+        lines = ('    {}'.format(line) if line else '' for line in lines)
+        src = 'def __kv_manual_wrapper(__kv_src_func_globals, {}):\n{}'.\
+            format(ctx_name, '\n'.join(lines))
 
         save_kvc_to_file(func, src, 'manual')
         mod, f = load_kvc_from_file(func, '__kv_manual_wrapper', 'manual')
 
-    mod.update_globals(global_vars)
-    f()
+    global_vars = global_vars.copy()
+    global_vars.update(local_vars)
+    f(global_vars, ctx)

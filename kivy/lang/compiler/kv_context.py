@@ -67,8 +67,8 @@ class KVParserRule(KVRule):
 
     __slots__ = ('callback_name', 'captures', 'src', 'with_var_name_ast')
 
-    def __init__(self, **kwargs):
-        super(KVParserRule, self).__init__(**kwargs)
+    def __init__(self, *largs, **kwargs):
+        super(KVParserRule, self).__init__(*largs, **kwargs)
         self.with_var_name_ast = None
 
 
@@ -97,10 +97,7 @@ class KVCtx(object):
                 'Name', 'Num', 'Bytes', 'Str', 'NameConstant', 'Subscript'}
         self.transformer = transformer
 
-    def add_rule(self, rule, callback_name=None):
-        if callback_name:
-            rule.callback_name = callback_name
-
+    def add_rule(self, rule):
         self.rules.append(rule)
         if rule.name:
             self.named_rules[rule.name] = rule
