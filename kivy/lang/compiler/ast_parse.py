@@ -7,7 +7,11 @@ from astor.source_repr import split_lines
 from kivy.lang.compiler.kv_context import KVCtx, KVParserRule
 
 
-class KVCompilerParserException(Exception):
+class KVException(Exception):
+    pass
+
+
+class KVCompilerParserException(KVException):
     pass
 
 
