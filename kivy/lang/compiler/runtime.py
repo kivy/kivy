@@ -1,11 +1,15 @@
 import os
 import inspect
+import functools
 import os.path
 import importlib.machinery
 
 _graphics_callback_linked_list = None
 
 _kvc_cache = {}
+
+assert set(functools.WRAPPER_ASSIGNMENTS) == {
+    '__module__', '__name__', '__qualname__', '__doc__', '__annotations__'}
 
 
 def add_graphics_callback(item, largs):
@@ -60,7 +64,17 @@ def load_kvc_from_file(func, target_func_name, flags=''):
 
     loader = importlib.machinery.SourceFileLoader('__kv', kv_fname)
     mod = loader.load_module()
-    _kvc_cache[key] = mod, getattr(mod, target_func_name)
+    f = getattr(mod, target_func_name)
+
+    for attr in functools.WRAPPER_ASSIGNMENTS:
+        try:
+            value = getattr(func, attr)
+        except AttributeError:
+            pass
+        else:
+            setattr(f, attr, value)
+
+    _kvc_cache[key] = mod, f
     return _kvc_cache[key]
 
 

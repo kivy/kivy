@@ -108,7 +108,9 @@ class KVCtx(object):
     def parse_rules(self):
         for rule in self.rules:
             if not rule.binds:
-                raise ValueError('binds must be specified')
+                raise ValueError(
+                    'To create a rule, some binding parameters must be '
+                    'specified, or added in the rule using the x @= y syntax')
 
             if isinstance(rule.binds, str):
                 nodes = [ast.parse(rule.binds)]
