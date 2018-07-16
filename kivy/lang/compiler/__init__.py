@@ -18,7 +18,7 @@ class KVException(Exception):
     pass
 
 
-def KV(func, kv_syntax=None, proxy=False, rebind=True, bind_on_enter=False,
+def KV(func, kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
        exec_rules_after_binding=False, compiler_cls=KVCompiler,
        transformer_cls=ParseKVFunctionTransformer):
     if func.__closure__:
@@ -26,6 +26,8 @@ def KV(func, kv_syntax=None, proxy=False, rebind=True, bind_on_enter=False,
             'The KV decorator cannot be used on a function that is a closure')
     mod, f = load_kvc_from_file(func, func.__name__)  # no lambda
     if f is not None:
+        if f == 'use_original':
+            return func
         f._kv_src_func_globals = func.__globals__
         return f
 
@@ -41,16 +43,16 @@ def KV(func, kv_syntax=None, proxy=False, rebind=True, bind_on_enter=False,
     assert isinstance(func_def, ast.FunctionDef)
     if len(func_def.decorator_list) > 1:
         raise KVCompilerParserException(
-            'KV functions can have only one decorator - the KV decorator')
+            'KV decorated functions can have only one decorator - a single KV '
+            'decorator')
     del func_def.decorator_list[:]
     ast_nodes = transformer.visit(tree)
 
     if not transformer.context_infos:
         save_kvc_to_file(
             func,
-            'print("There was no KV context or rules, so this file will '
-            'not be used and can be ignored - the original function has been '
-            'returned instead. This statement should never be printed")')
+            '# There was no KV context or rules, the original function will be '
+            'returned instead.\n{} = "use_original"\n'.format(func.__name__))
         return func
 
     func_def = tree.body[0]

@@ -638,8 +638,9 @@ class KVCompiler(object):
                 if rule.with_var_name_ast is not None:
                     rule.with_var_name_ast.id = name
 
-                rule_finalization.append(
-                    '{}.callback = {}'.format(name, rule.callback_name))
+                if rule_nodes:
+                    rule_finalization.append(
+                        '{}.callback = {}'.format(name, rule.callback_name))
             else:
                 rule_creation.append(
                     '{} = {}.rules[{}]'.format(name, ctx_name, rule_idx))
@@ -655,8 +656,11 @@ class KVCompiler(object):
                 '({}, ({}, ))'.format(
                     name, ', '.join(map(str, sorted(indices))))
                 for name, indices in leaf_indices_by_store_names.items())
-            rule_finalization.append(
-                '{}.bind_stores = ({}, )'.format(name, ', '.join(bind_stores)))
+
+            if rule_nodes:
+                rule_finalization.append(
+                    '{}.bind_stores = ({}, )'.
+                    format(name, ', '.join(bind_stores)))
 
             rule_creation.append('')
             rule_finalization.append('')
@@ -669,6 +673,9 @@ class KVCompiler(object):
         clock_pool = self.leaf_clock_callback_pool
         for rule_idx, (rule, rule_nodes) in enumerate(
                 zip(ctx.rules, ctx.transformer.nodes_by_rule)):
+            if not rule_nodes:
+                continue
+
             name = None
             if rule.with_var_name_ast is not None:
                 name = rule.with_var_name_ast.id
@@ -800,6 +807,10 @@ class KVCompiler(object):
         return src_code
 
     def gen_temp_vars_creation_deletion(self):
+        # we must create the variables at the root indentation so that we can
+        # delete it at the root indentation at the end, in case some of the
+        # variables are only actually used under conditionals, so we make sure
+        # it always exists.
         variables = list(sorted(chain(
             self.temp_var_pool.get_used_items(),
             self.kv_rule_pool.get_all_items())))
