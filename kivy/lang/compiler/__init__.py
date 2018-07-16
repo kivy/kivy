@@ -46,6 +46,11 @@ def KV(func, kv_syntax=None, proxy=False, rebind=True, bind_on_enter=False,
     ast_nodes = transformer.visit(tree)
 
     if not transformer.context_infos:
+        save_kvc_to_file(
+            func,
+            'print("There was no KV context or rules, so this file will '
+            'not be used and can be ignored - the original function has been '
+            'returned instead. This statement should never be printed")')
         return func
 
     func_def = tree.body[0]

@@ -551,10 +551,13 @@ class KVCompiler(object):
         for name, n in trees_bind_store_name_and_size:
             src_code.append('{} = [None, ] * {}'.format(name, n))
         src_code.append('')
-        src_code.append(
-            '{}.bind_stores_by_tree = ({}, )'.format(
-                ctx_name, ', '.join(
-                    (item[0] for item in trees_bind_store_name_and_size))))
+
+        s = ', '.join(item[0] for item in trees_bind_store_name_and_size)
+        if s:
+            src_code.append(
+                '{}.bind_stores_by_tree = ({}, )'.format(ctx_name, s))
+        else:
+            src_code.append('{}.bind_stores_by_tree = ()'.format(ctx_name))
         src_code.append('')
 
         for tree_bind_store_indices, bind_store, (
