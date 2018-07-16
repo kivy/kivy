@@ -799,13 +799,17 @@ class KVCompiler(object):
 
         return src_code
 
-    def gen_delete_temp_vars(self):
-        var_clear = ', '.join(sorted(chain(
+    def gen_temp_vars_creation_deletion(self):
+        variables = list(sorted(chain(
             self.temp_var_pool.get_used_items(),
             self.kv_rule_pool.get_all_items())))
-        if var_clear:
-            return ['del {}'.format(var_clear), '']
-        return []
+
+        if variables:
+            var_create = ' = '.join(variables)
+            var_clear = ', '.join(variables)
+            return ['{} = None'.format(var_create), ''], [
+                'del {}'.format(var_clear), '']
+        return [], []
 
     def generate_bindings(
             self, ctx, ctx_name, create_rules, exec_rules_after_binding):

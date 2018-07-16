@@ -58,7 +58,6 @@ def KV(func, kv_syntax=None, proxy=False, rebind=True, bind_on_enter=False,
     func_body = func_def.body
     assert isinstance(func_body, list)
 
-    node = None
     for ctx_info in transformer.context_infos:
         ctx = ctx_info['ctx']
         ctx.parse_rules()
@@ -76,14 +75,13 @@ def KV(func, kv_syntax=None, proxy=False, rebind=True, bind_on_enter=False,
         after_ctx_node = ctx_info['after_ctx']
 
         if bind_on_enter:
-            node = before_ctx_node
             before_ctx_node.src_lines = \
                 [''] + rule_creation + funcs + rule_finalization
         else:
-            node = after_ctx_node
             before_ctx_node.src_lines = [''] + rule_creation
             after_ctx_node.src_lines = funcs + rule_finalization
-    node.src_lines.extend(compiler.gen_delete_temp_vars())
+
+    creation, deletion = compiler.gen_temp_vars_creation_deletion()
 
     update_node = ASTRuleCtxNodePlaceholder()
     imports = ['from kivy.lang.compiler.kv_context import KVCtx as __KVCtx, '
@@ -102,10 +100,15 @@ def KV(func, kv_syntax=None, proxy=False, rebind=True, bind_on_enter=False,
         'globals()["{}"] = __kv_mod_func'.format(func.__name__),
         '']
 
-    update_node.src_lines = imports + globals_update
+    update_node.src_lines = imports + globals_update + creation
     func_body.insert(0, update_node)
 
-    save_kvc_to_file(func, generate_source(ast_nodes))
+    src_code = generate_source(ast_nodes) + '\n'
+    src_code = src_code + '\n'.join('    {}'.format(line) for line in deletion)
+    src_code = re.sub('^ +$', '', src_code, flags=re.M)  # remove empty space
+    src_code = re.sub('\n\n\n+', '\n\n', src_code)  # reduce newlines
+
+    save_kvc_to_file(func, src_code)
     mod, f = load_kvc_from_file(func, func.__name__)
     f._kv_src_func_globals = func.__globals__
     return f
