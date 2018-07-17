@@ -18,7 +18,12 @@ All you need to do to install kivy using wheels on osx is ::
 Using Conda
 -----------
 
+If you use Anaconda; you first need to activate conda-forger like so ::
+
    $ conda config --add channels conda-forge
+
+Then you can install kivy using ::
+
    $ conda install kivy
 
 Using The Kivy.app
