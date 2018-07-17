@@ -7,6 +7,19 @@ Installation on OS X
 
     This guide describes multiple ways for setting up Kivy.
 
+Using Wheels
+------------
+
+Wheels are precompiled binaries for the specific platform you are on.
+All you need to do to install kivy using wheels on osx is ::
+
+    $ python -m pip install kivy
+
+Using Conda
+-----------
+
+   $ conda config --add channels conda-forge
+   $ conda install kivy
 
 Using The Kivy.app
 ------------------
