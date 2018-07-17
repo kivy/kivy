@@ -2,35 +2,35 @@ import textwrap
 import inspect
 import re
 import ast
+import copy
 
 from kivy.lang.compiler.src_gen import KVCompiler
 from kivy.lang.compiler.ast_parse import ParseKVFunctionTransformer, \
     ParseKVBindTransformer, generate_source, KVCompilerParserException, \
-    ASTRuleCtxNodePlaceholder
+    ASTRuleCtxNodePlaceholder, verify_readonly_nodes
 from kivy.lang.compiler.runtime import load_kvc_from_file, save_kvc_to_file
 from kivy.lang.compiler.ast_parse import KVException
 
 
 def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
-       exec_rules_after_binding=False, compiler_cls=KVCompiler,
-       transformer_cls=ParseKVFunctionTransformer):
+       exec_rules_after_binding=False, captures_are_readonly=True):
     def KV_decorate(func):
         if func.__closure__:
             raise KVException(
                 'The KV decorator cannot be used on a function that is a '
                 'closure')
-        mod, f = load_kvc_from_file(func, func.__name__)  # no lambda
+        mod, f = load_kvc_from_file(func)  # no lambda
         if f is not None:
             if f == 'use_original':
                 return func
             f._kv_src_func_globals = func.__globals__
             return f
 
-        compiler = compiler_cls()
+        compiler = KVCompiler()
         inspect.getfile(func)
         src = textwrap.dedent(inspect.getsource(func))
 
-        transformer = transformer_cls(kv_syntax=kv_syntax)
+        transformer = ParseKVFunctionTransformer(kv_syntax=kv_syntax)
         tree = ast.parse(src)
         # remove the KV decorator
         func_def = tree.body[0]
@@ -40,6 +40,10 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
                 'KV decorated functions can have only one decorator - a '
                 'single KV decorator')
         del func_def.decorator_list[:]
+
+        copied_tree = None
+        if captures_are_readonly:
+            copied_tree = copy.deepcopy(tree)
         ast_nodes = transformer.visit(tree)
 
         if not transformer.context_infos:
@@ -80,6 +84,10 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
 
         creation, deletion = compiler.gen_temp_vars_creation_deletion()
 
+        if captures_are_readonly:
+            # needs to happen after all the rules are parsed
+            verify_readonly_nodes(copied_tree, transformer, bind_on_enter)
+
         update_node = ASTRuleCtxNodePlaceholder()
         imports = [
             'from kivy.lang.compiler.kv_context import KVCtx as __KVCtx, '
@@ -108,7 +116,7 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
         src_code = re.sub('\n\n\n+', '\n\n', src_code)  # reduce newlines
 
         save_kvc_to_file(func, src_code)
-        mod, f = load_kvc_from_file(func, func.__name__)
+        mod, f = load_kvc_from_file(func)
         f._kv_src_func_globals = func.__globals__
         return f
 
@@ -116,11 +124,10 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
 
 
 def KV_apply_manual(
-        ctx, func, local_vars, global_vars, compiler_cls=KVCompiler,
-        kv_syntax='minimal', proxy=False, rebind=True,
-        exec_rules_after_binding=False):
+        ctx, func, local_vars, global_vars, kv_syntax='minimal', proxy=False,
+        rebind=True, exec_rules_after_binding=False):
     ctx_name = '__kv_ctx'
-    compiler = compiler_cls()
+    compiler = KVCompiler()
 
     mod, f = load_kvc_from_file(func, '__kv_manual_wrapper', 'manual')
 

@@ -225,6 +225,10 @@ class NotWhiteListed(Exception):
 
 
 class ParseKVBindTransformer(ast.NodeTransformer):
+    # no Name node that is a Store shall be saved in any of the trees. It's not
+    # included anyway because it cannot be an expression, but we should not
+    # include either way because in the KV decorator we use all Name for
+    # capturing and making them readonly. This assumes that they are all Load.
 
     src_node_map = {}
 
@@ -392,6 +396,10 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
     statements, e.g. a function def contains local variables which is too hard
     to trace, so we don't allow it within a rule at all as we cannot figure
     out which variables need to be captured (yet).
+
+    This transformer is not allowed to change nodes (except trivially), except
+    for changing kv rule and ctx from with to plain assignment, and similarly
+    from x @= y or x ^= y to x = y.
     '''
 
     current_ctx_info = None
@@ -401,10 +409,14 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
     node_classes_within_ctx = None
 
     context_infos = []
+    # contexts are added in the order they are entered, not existed.
 
     kv_syntax = None
 
     kv_ctx_cls_name = '__KVCtx'
+
+    rules_by_occurrence = []
+    # rules cannot contain other rules, so the order is flat always
 
     illegal_node_classes_within_ctx = {
         ast.If, ast.For, ast.While, ast.Try, ast.Suite, ast.FunctionDef,
@@ -436,6 +448,7 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
     def __init__(self, kv_syntax=None):
         super(ParseKVFunctionTransformer, self).__init__()
         self.context_infos = []
+        self.rules_by_occurrence = []
 
         if kv_syntax is not None:
             if kv_syntax not in ('minimal', ):
@@ -505,6 +518,12 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
 
         return ret_node
 
+    def start_kv_ctx(self, ctx_info):
+        pass
+
+    def finish_kv_ctx(self, ctx_info):
+        pass
+
     def process_kv_with_ctx_node(self, node, args, keywords, assigned_var):
         if self.current_rule_info is not None:
             raise KVCompilerParserException('Cannot have context within rule')
@@ -523,16 +542,19 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
             'assign_target_node': ast.Name(id='__xxx', ctx=ast.Store()),
             'before_ctx': ASTRuleCtxNodePlaceholder(),
             'after_ctx': ASTRuleCtxNodePlaceholder()}
+        self.start_kv_ctx(ctx_info)
+        # they must be added in the order it is entered
+        self.context_infos.append(ctx_info)
 
         previous_node_classes = self.node_classes_within_ctx
         self.node_classes_within_ctx = defaultdict(int)
         ret_nodes = []
         for item in node.body:
             ret_nodes.append(self.visit(item))
+        self.finish_kv_ctx(ctx_info)
         self.current_ctx_info = previous_ctx_info
         self.node_classes_within_ctx = previous_node_classes
 
-        self.context_infos.append(ctx_info)
         for rule_info in ctx_info['rules']:
             rule = rule_info['rule']
             rule.binds = rule_info['binds']
@@ -551,6 +573,12 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
 
         return [assign_node, ctx_info['before_ctx']] + ret_nodes + [
             ctx_info['after_ctx']]
+
+    def start_kv_rule(self, ctx_info, rule_info):
+        self.rules_by_occurrence.append((ctx_info, rule_info))
+
+    def finish_kv_rule(self, ctx_info, rule_info):
+        pass
 
     def process_kv_with_rule_node(self, node, args, keywords, assigned_var):
         ctx_info = self.current_ctx_info
@@ -616,15 +644,21 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
             'locals': set(), 'captures': set(), 'currently_locals': None,
             'possibly_locals': set(), 'rule': KVParserRule(
                 delay=delay, name=name)}
+        rule['args_binds'] = rule['binds']
+        self.start_kv_rule(ctx_info, rule)
 
         rule['body'] = node_list = ASTNodeList()
         node_list.nodes = self.visit(node.body)
         rules.append(rule)
+        self.finish_kv_rule(ctx_info, rule)
         self.current_rule_info = None
 
         if assigned_var is not None:
             rule_var_name = rule['rule'].with_var_name_ast = ast.Name(
                 id='__xxx', ctx=ast.Load())
+            # we don't visit this node. If we did, it'd have to be *before* and
+            # outside setting self.current_rule_info to the rule so that the
+            # visit to assign name happens in chronological order
             assign_node = ast.Assign(
                 targets=[assigned_var], value=rule_var_name)
             node_list = ASTNodeList()
@@ -655,10 +689,13 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
                 'binds': [node.value], 'from_with': False,
                 'body': None, 'locals': set(), 'captures': set(),
                 'currently_locals': None, 'possibly_locals': set(),
-                'rule': KVParserRule(delay=delay)}
+                'rule': KVParserRule(delay=delay), 'args_binds': []}
+            self.start_kv_rule(ctx_info, rule)
 
             self.visit(node.value)
+            self.visit(node.target)
             ctx_info['rules'].append(rule)
+            self.finish_kv_rule(ctx_info, rule)
             self.current_rule_info = None
 
             assign = ast.Assign(targets=[node.target], value=node.value)
@@ -679,10 +716,28 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
             return ast.Assign(targets=[node.target], value=node.value)
 
     def visit_AugAssign(self, node):
+        # these become a store instead of a load/store
         if isinstance(node.op, ast.MatMult):
             return self.do_kv_assign(node, None)
         elif isinstance(node.op, ast.BitXor):
             return self.do_kv_assign(node, 'canvas')
+
+        # visit_Name for target process it only as Store, but it should also be
+        # proceeded by a load, which we do manually here
+        current_rule = self.current_rule_info
+        if current_rule is not None:
+            if isinstance(node.target, ast.Name):
+                if node.id not in current_rule['locals'] and (
+                        current_rule['currently_locals'] is None or
+                        node.id not in current_rule['currently_locals']) and \
+                        node.id not in current_rule['captures']:
+                    if node.id in current_rule['possibly_locals']:
+                        raise KVCompilerParserException(
+                            'variable {} may or may not have been set within a '
+                            'conditional or loop and is therefore not allowed '
+                            'in KV. Make sure the variable is always defined'.
+                            format(node.id))
+                    current_rule['captures'].add(node.id)
         return self.generic_visit(node)
 
     def visit_Name(self, node):
@@ -710,7 +765,7 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
                 # outside the rule? The callback will freak out. So it's illegal
                 # in KV.
                 raise KVCompilerParserException(
-                    'A variable cannot currently be deleted within a KV rule')
+                    'A variable cannot be deleted within a KV rule')
         return self.generic_visit(node)
 
     def visit_Assign(self, node):
@@ -974,3 +1029,281 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
         raise KVCompilerParserException(
             'It is illegal to use nonlocal in a KV decorated function because '
             'the kv callbacks may fail')
+
+
+class DoNothingAST(ast.AST):
+
+    pass
+
+
+class ParseExpressionNameLoadTransformer(ast.NodeTransformer):
+
+    names = set()
+
+    def __init__(self):
+        super(ParseExpressionNameLoadTransformer, self).__init__()
+        self.names = set()
+
+    def visit_Lambda(self, node):
+        return node
+
+    def visit_ListComp(self, node):
+        return node
+
+    def visit_SetComp(self, node):
+        return node
+
+    def visit_GeneratorExp(self, node):
+        return node
+
+    def visit_DictComp(self, node):
+        return node
+
+    def visit_Name(self, node):
+        if isinstance(node.ctx, ast.Load):
+            self.names.add(node.id)
+        return node
+
+
+class VerifyKVCaptureOnExitTransformer(ParseKVFunctionTransformer):
+    # we can overwrite e.g. list comp visit because it cannot alter the
+    # creation of new rules/ctx. But anything that changes rule or ctx creation
+    # is now allowed here as it would make the first and second pass
+    # inconsistent
+
+    # why do we need to both process loads in visit_Node and get the captures
+    # from the first pass rules? Because imagine a `with` rule containing 2
+    # lines: `x = obj; z @= x.y + 10`. Because `x` is a local to the rule,
+    # captues will not include x, meaning we'd be free to modify x after
+    # the rule. But then the bind will not bind to the same x as in the original
+    # rule. That's why here we make any load Name within a rule readonly.
+    # The callback is not the problem, because the callback only cares about
+    # captures variables and local vars can be changed in the callback.
+
+    ro_ctx_stack = None
+
+    current_read_only_vars = set()
+
+    under_kv_aug_assign = False
+
+    first_pass_rules = None
+
+    first_pass_contexts = None
+
+    current_ctx_stack = []
+
+    def __init__(self, first_pass_rules, first_pass_contexts, **kwargs):
+        super(VerifyKVCaptureOnExitTransformer, self).__init__(**kwargs)
+        self.ro_ctx_stack = deque()
+        self.current_ctx_stack = deque()
+        self.first_pass_rules = deque(first_pass_rules)
+        self.first_pass_contexts = deque(first_pass_contexts)
+
+    def start_kv_ctx(self, ctx_info):
+        self.first_pass_contexts.popleft()
+        self.ro_ctx_stack.appendleft(self.current_read_only_vars)
+        self.current_read_only_vars = set(self.current_read_only_vars)
+
+    def finish_kv_ctx(self, ctx_info):
+        self.current_read_only_vars = self.ro_ctx_stack.popleft()
+
+    def start_kv_rule(self, ctx_info, rule_info):
+        _, rule_info_0 = self.first_pass_rules.popleft()
+        self.current_read_only_vars.update(rule_info_0['captures'])
+
+        t = ParseExpressionNameLoadTransformer()
+        for arg in rule_info_0['args_binds']:
+            t.visit(arg)
+        self.current_read_only_vars.update(t.names)
+
+    def finish_kv_rule(self, ctx_info, rule_info):
+        pass
+
+    def visit_AugAssign(self, node):
+        # these become a store instead of a load/store
+        if isinstance(node.op, ast.MatMult):
+            # In case target is a load, we don't want to include it in
+            # visit_Name below because the load on the left of the assign is
+            # never bound to so there's no reason to make it read only
+            node.target = DoNothingAST()
+            self.under_kv_aug_assign = True
+            ret = super(
+                VerifyKVCaptureOnExitTransformer, self).visit_AugAssign(node)
+            self.under_kv_aug_assign = False
+        elif isinstance(node.op, ast.BitXor):
+            node.target = DoNothingAST()
+            self.under_kv_aug_assign = True
+            ret = super(
+                VerifyKVCaptureOnExitTransformer, self).visit_AugAssign(node)
+            self.under_kv_aug_assign = False
+        else:
+            # super will check out if Store and we'll see it under visit_Name
+            ret = super(
+                VerifyKVCaptureOnExitTransformer, self).visit_AugAssign(node)
+        return ret
+
+    def visit_Name(self, node):
+        if self.under_kv_aug_assign and isinstance(node.ctx, ast.Load):
+            self.current_read_only_vars.add(node.id)
+        if isinstance(node.ctx, ast.Store):
+            if node.id in self.current_read_only_vars:
+                raise KVCompilerParserException(
+                    'A variable that has been used in a KV rule cannot be '
+                    'changed until the current context has exited if bindings'
+                    ' occur upon context exit. The '
+                    'variable that was attempted to be changed is {}'.
+                    format(node.id))
+
+        return super(VerifyKVCaptureOnExitTransformer, self).visit_Name(node)
+
+    def visit_ListComp(self, node):
+        return node
+
+    def visit_SetComp(self, node):
+        return node
+
+    def visit_GeneratorExp(self, node):
+        return node
+
+    def visit_DictComp(self, node):
+        return node
+
+    def visit_ExceptHandler(self, node):
+        if node.name in self.current_read_only_vars:
+            raise KVCompilerParserException(
+                'A variable that has been used in a KV rule cannot be '
+                'changed until the current context has exited if bindings'
+                ' occur upon context exit. The '
+                'variable that was attempted to be changed is {}'.
+                format(node.name))
+        return super(
+            VerifyKVCaptureOnExitTransformer, self).visit_ExceptHandler(node)
+
+    def visit_ImportFrom(self, node):
+        for name in node.names:
+            if (name.asname or name.name) in self.current_read_only_vars:
+                raise KVCompilerParserException(
+                    'A variable that has been used in a KV rule cannot be '
+                    'changed until the current context has exited if bindings'
+                    ' occur upon context exit. The '
+                    'variable that was attempted to be changed is {}'.
+                    format(name.asname or name.name))
+        return super(
+            VerifyKVCaptureOnExitTransformer, self).visit_ImportFrom(node)
+
+    def visit_Import(self, node):
+        for name in node.names:
+            name_split = name.name.split('.')
+            if len(name_split) == 1 and \
+                    name_split[0] in self.current_read_only_vars:
+                raise KVCompilerParserException(
+                    'A variable that has been used in a KV rule cannot be '
+                    'changed until the current context has exited if bindings'
+                    ' occur upon context exit. The '
+                    'variable that was attempted to be changed is {}'.
+                    format(name_split[0]))
+        return super(VerifyKVCaptureOnExitTransformer, self).visit_Import(node)
+
+    def visit_Lambda(self, node):
+        return node
+
+    def visit_DoNothingAST(self, node):
+        return node
+
+
+class VerifyKVCaptureOnEnterTransformer(VerifyKVCaptureOnExitTransformer):
+    # when binds happen on enter, everything must be available at that point
+    # and nothing can change until the corresponding rule is finished.
+    # This means that from the ctx enter all subsequent rule's vars are
+    # readonly. I.e. after rule n, all vars from rule n + 1 until the last
+    # rule of the ctx become readonly. At ctx entrance, *all* rules are
+    # readonly.
+
+    def start_kv_ctx(self, ctx_info):
+        # first_pass_contexts is ordered by entrance, not exit
+        first_ctx_info = self.first_pass_contexts.popleft()
+        self.current_ctx_stack.appendleft(first_ctx_info)
+        if not first_ctx_info['rules']:
+            # there's no rule to pop for this context
+            return
+
+        self.ro_ctx_stack.appendleft(self.current_read_only_vars)
+        self.current_read_only_vars = set(self.current_read_only_vars)  # seed
+        # get rule from ctx, in case we have ctx within ctx and the rules are at
+        # the end of each ctx so first_pass_rules is then not reliable.
+        rule_info_0 = first_ctx_info['rules'][0]
+        self.current_read_only_vars.update(rule_info_0['enter_readonly_names'])
+
+    def finish_kv_ctx(self, ctx_info):
+        self.current_ctx_stack.popleft()
+
+    def start_kv_rule(self, ctx_info, rule_info):
+        pass
+
+    def finish_kv_rule(self, ctx_info, rule_info):
+        # we know which rule was completed, but the next rule in first_pass_
+        # rules may not be in this ctx (e.g. if there's a nested ctx before the
+        # next rule in this ctx). We need to know what the next rule of the
+        # current is, because that is the readonly vars for this context next
+        first_ctx_info, first_rule_info = self.first_pass_rules.popleft()
+        # we don't need current_ctx_stack, but it's useful for the assert
+        assert first_ctx_info is self.current_ctx_stack[0]
+        rules = first_ctx_info['rules']
+        # rules are unique because of indexing added to them with enter_rule_i
+        i = rules.index(first_rule_info)
+
+        if len(rules) - 1 == i:  # last rule
+            # jump back to vars from previous ctx
+            self.current_read_only_vars = self.ro_ctx_stack.popleft()
+            return
+
+        # there are still more rules,
+        self.current_read_only_vars = set(self.ro_ctx_stack[0])  # seed RO
+        self.current_read_only_vars.update(rules[i + 1]['enter_readonly_names'])
+
+    def visit_AugAssign(self, node):
+        # aug assign is the same as assign for our purposes because it's a
+        # Store that we need to verify when on a Name.
+        return ParseKVFunctionTransformer.visit_AugAssign(self, node)
+
+    def visit_Name(self, node):
+        if isinstance(node.ctx, ast.Store):
+            if node.id in self.current_read_only_vars:
+                raise KVCompilerParserException(
+                    'A variable that has been used in a KV rule cannot be '
+                    'changed until the rule is executed, if the '
+                    'bindings occur upon context enter. The '
+                    'variable that was attempted to be changed is {}'.
+                    format(node.id))
+
+        return ParseKVFunctionTransformer.visit_Name(self, node)
+
+
+def verify_readonly_nodes(tree, transformer, bind_on_enter):
+    if bind_on_enter:
+        # compute all the readonly name. For bind on enter, it all
+        # happens at the start of the ctx, so everything must valid
+        # there and therefore everything becomes readonly
+        t = ParseExpressionNameLoadTransformer()
+        for ctx_info in transformer.context_infos:
+            last = set()
+            for i, rule_info in enumerate(ctx_info['rules'][::-1]):
+                t.names = set()
+                for arg in rule_info['binds']:
+                    t.visit(arg)
+
+                last = rule_info['rule'].captures | t.names | last
+                rule_info['enter_readonly_names'] = last
+                rule_info['enter_rule_i'] = -i  # just has to be unique
+        verifier_cls = VerifyKVCaptureOnEnterTransformer
+    else:
+        verifier_cls = VerifyKVCaptureOnExitTransformer
+
+    verifier = verifier_cls(first_pass_rules=transformer.rules_by_occurrence,
+                            first_pass_contexts=transformer.context_infos)
+    verifier.visit(tree)
+    # should have been fully consumed
+    assert not verifier.first_pass_contexts
+    assert not verifier.first_pass_rules
+    assert not verifier.ro_ctx_stack
+    assert not verifier.current_ctx_stack

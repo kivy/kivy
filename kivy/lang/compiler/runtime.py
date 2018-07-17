@@ -44,7 +44,22 @@ def process_graphics_callbacks():
         f(*largs)
 
 
-def load_kvc_from_file(func, target_func_name, flags=''):
+def get_kvc_filename(func, flags=''):
+    func_filname = inspect.getfile(func)
+    func_name = func.__qualname__
+    head, tail = os.path.split(func_filname)
+    fname_root, _ = os.path.splitext(tail)
+
+    kv_dir = os.path.join(head, '__kvcache__')
+    flags = '-{}'.format(flags) if flags else ''
+    kv_fname = os.path.join(kv_dir, '{}-{}{}.kvc'.format(
+        fname_root, func_name, flags))
+    return kv_fname
+
+
+def load_kvc_from_file(func, target_func_name=None, flags=''):
+    if target_func_name is None:
+        target_func_name = func.__name__
     func_filname = inspect.getfile(func)
     func_name = func.__qualname__
     key = func_filname, func_name, flags
@@ -52,6 +67,7 @@ def load_kvc_from_file(func, target_func_name, flags=''):
     if key in _kvc_cache:
         return _kvc_cache[key]
 
+    # any and all os.xxx are super slow, so fallback on last resort
     head, tail = os.path.split(func_filname)
     fname_root, _ = os.path.splitext(tail)
 
