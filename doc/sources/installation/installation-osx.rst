@@ -14,6 +14,14 @@ Wheels are precompiled binaries for the specific platform you are on.
 All you need to do to install kivy using wheels on osx is ::
 
     $ python -m pip install kivy
+   
+If you would like to use media playback with kivy, you should install `ffpyplayer` like so ::
+
+    $ python -m pip install ffpyplayer
+
+Make sure to set `KIVY_VIDEO=ffpyplayer` env variable before running the app.
+
+Gstreamer Wheels would be uploaded to pypi shortly.
 
 Using Conda
 -----------
