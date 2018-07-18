@@ -233,16 +233,14 @@
   var selector = $("#version_selector");
 
   selector.on('change', function() {
-    var current = document.location.pathname;
-    // TODO find a better way to replace the current version with the new one
-    var target = current.split('/');
-    target.shift();
-    var prefix = target.shift();
-    target.shift();
-    document.location.pathname = ["", prefix, this.value].concat(target).join('/');
+    // replace the version part of the url with the selected version
+    document.location.pathname = document.location.pathname.replace(
+      /^(\/.*?\/).*?(\/.*)/,
+     '$1' + this.value + '$2'
+    );
   });
 
-  var url = "{{ url_root }}/versions.json";
+  var url = "/docs/versions.json";
 
   $.getJSON(url, function(versions) {
     versions.forEach(function(version){
