@@ -208,6 +208,10 @@ class RefSourceGenerator(SourceGenerator):
             lines[2 * i] = line
         self.write(*lines)
 
+    def visit_DoNothingAST(self, node, *largs, **kwargs):
+        pass
+
+
 
 def generate_source(node):
     generator = RefSourceGenerator(indent_with=' ' * 4)
@@ -550,7 +554,11 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
         self.node_classes_within_ctx = defaultdict(int)
         ret_nodes = []
         for item in node.body:
-            ret_nodes.append(self.visit(item))
+            res = self.visit(item)
+            if isinstance(res, list):
+                ret_nodes.extend(res)
+            else:
+                ret_nodes.append(res)
         self.finish_kv_ctx(ctx_info)
         self.current_ctx_info = previous_ctx_info
         self.node_classes_within_ctx = previous_node_classes
@@ -727,17 +735,18 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
         current_rule = self.current_rule_info
         if current_rule is not None:
             if isinstance(node.target, ast.Name):
-                if node.id not in current_rule['locals'] and (
+                val = node.target.id
+                if val not in current_rule['locals'] and (
                         current_rule['currently_locals'] is None or
-                        node.id not in current_rule['currently_locals']) and \
-                        node.id not in current_rule['captures']:
-                    if node.id in current_rule['possibly_locals']:
+                        val not in current_rule['currently_locals']) and \
+                        val not in current_rule['captures']:
+                    if val in current_rule['possibly_locals']:
                         raise KVCompilerParserException(
                             'variable {} may or may not have been set within a '
                             'conditional or loop and is therefore not allowed '
                             'in KV. Make sure the variable is always defined'.
-                            format(node.id))
-                    current_rule['captures'].add(node.id)
+                            format(val))
+                    current_rule['captures'].add(val)
         return self.generic_visit(node)
 
     def visit_Name(self, node):
@@ -1145,7 +1154,7 @@ class VerifyKVCaptureOnExitTransformer(ParseKVFunctionTransformer):
     def visit_Name(self, node):
         if self.under_kv_aug_assign and isinstance(node.ctx, ast.Load):
             self.current_read_only_vars.add(node.id)
-        if isinstance(node.ctx, ast.Store):
+        if isinstance(node.ctx, ast.Store) or isinstance(node.ctx, ast.Del):
             if node.id in self.current_read_only_vars:
                 raise KVCompilerParserException(
                     'A variable that has been used in a KV rule cannot be '
@@ -1238,9 +1247,6 @@ class VerifyKVCaptureOnEnterTransformer(VerifyKVCaptureOnExitTransformer):
         self.current_ctx_stack.popleft()
 
     def start_kv_rule(self, ctx_info, rule_info):
-        pass
-
-    def finish_kv_rule(self, ctx_info, rule_info):
         # we know which rule was completed, but the next rule in first_pass_
         # rules may not be in this ctx (e.g. if there's a nested ctx before the
         # next rule in this ctx). We need to know what the next rule of the
@@ -1261,13 +1267,16 @@ class VerifyKVCaptureOnEnterTransformer(VerifyKVCaptureOnExitTransformer):
         self.current_read_only_vars = set(self.ro_ctx_stack[0])  # seed RO
         self.current_read_only_vars.update(rules[i + 1]['enter_readonly_names'])
 
+    def finish_kv_rule(self, ctx_info, rule_info):
+        pass
+
     def visit_AugAssign(self, node):
         # aug assign is the same as assign for our purposes because it's a
         # Store that we need to verify when on a Name.
         return ParseKVFunctionTransformer.visit_AugAssign(self, node)
 
     def visit_Name(self, node):
-        if isinstance(node.ctx, ast.Store):
+        if isinstance(node.ctx, ast.Store) or isinstance(node.ctx, ast.Del):
             if node.id in self.current_read_only_vars:
                 raise KVCompilerParserException(
                     'A variable that has been used in a KV rule cannot be '
