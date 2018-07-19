@@ -423,9 +423,8 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
     # rules cannot contain other rules, so the order is flat always
 
     illegal_node_classes_within_ctx = {
-        ast.If, ast.For, ast.While, ast.Try, ast.Suite, ast.FunctionDef,
-        ast.AsyncFor, ast.AsyncFunctionDef, ast.ExceptHandler, ast.ClassDef,
-        ast.While, ast.Try}
+        ast.If, ast.For, ast.While, ast.Suite, ast.FunctionDef,
+        ast.AsyncFor, ast.AsyncFunctionDef, ast.ExceptHandler, ast.ClassDef}
 
     known_ast = {
         ast.AST, ast.operator, ast.Add, ast.alias, ast.boolop, ast.And, ast.arg,
