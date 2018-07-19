@@ -143,6 +143,10 @@ if exists('/opt/vc/include/bcm_host.h'):
 if exists('/usr/lib/arm-linux-gnueabihf/libMali.so'):
     platform = 'mali'
 
+# Needed when cross-compiling
+if environ.get('KIVY_CROSS_PLATFORM'):
+    platform = environ.get('KIVY_CROSS_PLATFORM')
+
 # -----------------------------------------------------------------------------
 # Detect options
 #
@@ -585,6 +589,8 @@ def determine_gl_flags():
     kivy_graphics_include = join(src_path, 'kivy', 'include')
     flags = {'include_dirs': [kivy_graphics_include], 'libraries': []}
     base_flags = {'include_dirs': [kivy_graphics_include], 'libraries': []}
+    cross_sysroot = environ.get('KIVY_CROSS_SYSROOT')
+
     if c_options['use_opengl_mock']:
         return flags, base_flags
     if platform == 'win32':
@@ -606,18 +612,31 @@ def determine_gl_flags():
         flags['library_dirs'] = [join(ndkplatform, 'usr', 'lib')]
         flags['libraries'] = ['GLESv2']
     elif platform == 'rpi':
-        flags['include_dirs'] = [
-            '/opt/vc/include',
-            '/opt/vc/include/interface/vcos/pthreads',
-            '/opt/vc/include/interface/vmcs_host/linux']
-        flags['library_dirs'] = ['/opt/vc/lib']
-        brcm_lib_files = (
-            '/opt/vc/lib/libbrcmEGL.so',
-            '/opt/vc/lib/libbrcmGLESv2.so')
+
+        if not cross_sysroot:
+            flags['include_dirs'] = [
+                '/opt/vc/include',
+                '/opt/vc/include/interface/vcos/pthreads',
+                '/opt/vc/include/interface/vmcs_host/linux']
+            flags['library_dirs'] = ['/opt/vc/lib']
+            brcm_lib_files = (
+                '/opt/vc/lib/libbrcmEGL.so',
+                '/opt/vc/lib/libbrcmGLESv2.so')
+
+        else:
+            print("KIVY_CROSS_SYSROOT: " + cross_sysroot)
+            flags['include_dirs'] = [
+                cross_sysroot + '/usr/include',
+                cross_sysroot + '/usr/include/interface/vcos/pthreads',
+                cross_sysroot + '/usr/include/interface/vmcs_host/linux']
+            flags['library_dirs'] = [cross_sysroot + '/usr/lib']
+            brcm_lib_files = (
+                cross_sysroot + '/usr/lib/libbrcmEGL.so',
+                cross_sysroot + '/usr/lib/libbrcmGLESv2.so')
+
         if all((exists(lib) for lib in brcm_lib_files)):
-            print(
-                'Found brcmEGL and brcmGLES library files'
-                'for rpi platform at /opt/vc/lib/')
+            print('Found brcmEGL and brcmGLES library files'
+                  'for rpi platform at ' + dirname(brcm_lib_files[0]))
             gl_libs = ['brcmEGL', 'brcmGLESv2']
         else:
             print(
@@ -625,6 +644,7 @@ def determine_gl_flags():
                 'for rpi platform, falling back to EGL and GLESv2.')
             gl_libs = ['EGL', 'GLESv2']
         flags['libraries'] = ['bcm_host'] + gl_libs
+
     elif platform == 'mali':
         flags['include_dirs'] = ['/usr/include/']
         flags['library_dirs'] = ['/usr/lib/arm-linux-gnueabihf']
