@@ -739,7 +739,7 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
                         current_rule['currently_locals'] is None or
                         val not in current_rule['currently_locals']) and \
                         val not in current_rule['captures']:
-                    if val in current_rule['possibly_locals']:
+                    if False and val in current_rule['possibly_locals']:
                         raise KVCompilerParserException(
                             'variable {} may or may not have been set within a '
                             'conditional or loop and is therefore not allowed '
@@ -756,7 +756,7 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
                         current_rule['currently_locals'] is None or
                         node.id not in current_rule['currently_locals']) and \
                         node.id not in current_rule['captures']:
-                    if node.id in current_rule['possibly_locals']:
+                    if False and node.id in current_rule['possibly_locals']:
                         raise KVCompilerParserException(
                             'variable {} may or may not have been set within a '
                             'conditional or loop and is therefore not allowed '
@@ -956,7 +956,8 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
         if node.name is not None:
             current_rule['currently_locals'].add(node.name)
         node.body = self.visit(node.body)
-        # exception handler vars don't leak out
+        current_rule['possibly_locals'].update(current_rule['currently_locals'])
+
         current_rule['currently_locals'] = original
         return node
 
