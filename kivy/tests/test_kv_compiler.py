@@ -3,10 +3,13 @@
 # read only no rules in nested ctx
 # recursive ctx
 # rule within rule
+# deep nested ctx
 # proxy
 # rebind
 # canvas/clock
 # rule/ctx order
+
+# TODO: add tests for async def, like do_def, once py2 support is dropped
 
 import re
 import os
@@ -26,6 +29,8 @@ from kivy.event import EventDispatcher
 from kivy.lang import Builder
 
 import unittest
+
+delete_kvc_after_test = int(os.environ.get('KIVY_TEST_DELETE_KVC', 1))
 
 
 skip_py2_decorator = unittest.skip('Does not support py2') if PY2 else \
@@ -47,7 +52,7 @@ class TestBase(unittest.TestCase):
     def tearDown(self):
         import shutil
         p = os.path.join(os.path.dirname(__file__), '__kvcache__')
-        if exists(p):
+        if delete_kvc_after_test and exists(p):
             shutil.rmtree(p)
 
 
@@ -62,6 +67,14 @@ class BaseWidget(Widget):
     value_list = ListProperty([])
 
     value_dict = DictProperty({})
+
+    widget = ObjectProperty(None)
+
+    widget2 = ObjectProperty(None)
+
+    widget3 = ObjectProperty(None)
+
+    widget4 = ObjectProperty(None)
 
 
 class SimpleWidget(BaseWidget):
@@ -238,14 +251,6 @@ class TestGlobalsAutoCompiler(TestBase):
 
 
 class WidgetCapture(BaseWidget):
-
-    widget = ObjectProperty(None)
-
-    widget2 = ObjectProperty(None)
-
-    widget3 = ObjectProperty(None)
-
-    widget4 = ObjectProperty(None)
 
     def rule_with_capture_on_enter(self):
         self.widget = Widget()
@@ -510,6 +515,54 @@ class WidgetCapture(BaseWidget):
                 self.value @= self.widget2.height + e
             e = 90
             self.value @= self.widget3.height + r
+
+    def rule_with_capture_lambda(self):
+        self.widget = Widget()
+
+        with KVCtx():
+            self.value @= self.widget.width + (lambda x: lambda y: 44)(12)(27)
+
+    def rule_with_capture_list_comp(self):
+        self.widget = Widget()
+
+        with KVCtx():
+            self.value @= self.widget.width + [
+                [x for z in [1]][0] for x in range(10)
+                for q in range(1) if True][3]
+
+    def rule_with_capture_set_comp(self):
+        self.widget = Widget()
+
+        with KVCtx():
+            self.value @= self.widget.width + list(
+                {[x for z in [1]][0] * 0 for x in range(10)
+                 for q in range(1) if True})[0]
+
+    def rule_with_capture_gen_comp(self):
+        self.widget = Widget()
+
+        with KVCtx():
+            self.value @= self.widget.width + list(
+                [x for z in [1]][0] for x in range(10)
+                for q in range(1) if True)[3]
+
+    def rule_with_capture_dict_comp(self):
+        self.widget = Widget()
+
+        with KVCtx():
+            self.value @= self.widget.width + {
+                [x for z in [1]][0]: [x for z in [1]][0]
+                for x in range(10) for q in range(1) if True}[3]
+
+    def do_exception_handler(self):
+        # comprehensions
+        self.widget = Widget()
+        with KVCtx():
+            try:
+                pass
+            except Exception as e:
+                pass
+            self.width @= self.widget.width + len(str(e))
 
 
 @skip_py2_decorator
@@ -856,6 +909,60 @@ class TestCaptureAutoCompiler(TestBase):
         w.widget2.height = 33
         self.assertEqual(w.value, w.widget2.height + 34)
 
+    def capture_inlined_code(self, func, num):
+        KV_f_ro, KV_f = self.get_KV()
+        f = KV_f_ro(func)
+        w = WidgetCapture()
+        f(w)
+        self.assertEqual(w.value, w.widget.width + num)
+        w.widget.width = 33
+        self.assertEqual(w.value, w.widget.width + num)
+
+        remove_kvc(func)
+        f = KV_f(func)
+        w = WidgetCapture()
+        f(w)
+        self.assertEqual(w.value, w.widget.width + num)
+        w.widget.width = 33
+        self.assertEqual(w.value, w.widget.width + num)
+
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        remove_kvc(func)
+        f = KV_f_ro(func)
+        w = WidgetCapture()
+        f(w)
+        self.assertEqual(w.value, w.widget.width + num)
+        w.widget.width = 33
+        self.assertEqual(w.value, w.widget.width + num)
+
+        remove_kvc(func)
+        f = KV_f(func)
+        w = WidgetCapture()
+        f(w)
+        self.assertEqual(w.value, w.widget.width + num)
+        w.widget.width = 33
+        self.assertEqual(w.value, w.widget.width + num)
+
+    def test_captured_lambda(self):
+        self.capture_inlined_code(
+            WidgetCapture.rule_with_capture_lambda, 44)
+
+    def test_captured_list_comp(self):
+        self.capture_inlined_code(
+            WidgetCapture.rule_with_capture_list_comp, 3)
+
+    def test_captured_set_comp(self):
+        self.capture_inlined_code(
+            WidgetCapture.rule_with_capture_set_comp, 0)
+
+    def test_captured_gen_comp(self):
+        self.capture_inlined_code(
+            WidgetCapture.rule_with_capture_gen_comp, 3)
+
+    def test_captured_dict_comp(self):
+        self.capture_inlined_code(
+            WidgetCapture.rule_with_capture_dict_comp, 3)
+
 
 class CtxWidget(BaseWidget):
     def no_ctx(self):
@@ -872,6 +979,8 @@ class CtxWidget(BaseWidget):
 
     def bind_canvas_rule_without_ctx(self):
         self.value ^= self.width
+
+    # bind to function input
 
 
 @skip_py2_decorator
@@ -896,3 +1005,577 @@ class TestCtxAutoCompiler(TestBase):
             KV_f(CtxWidget.canvas_no_bind_rule_without_ctx)
         with self.assertRaises(KVCompilerParserException):
             KV_f(CtxWidget.bind_canvas_rule_without_ctx)
+
+_temp_value = 45
+
+class CodeNodesWidget(BaseWidget):
+
+    def do_nonlocal(self):
+        self.width = 55
+        a = 12
+
+        def inner():
+            nonlocal a
+            return 86
+        return inner
+
+    def do_nonlocal_ctx(self):
+        self.width = 55
+        a = 12
+
+        def inner():
+            nonlocal a
+            return 86
+
+        with KVCtx():
+            pass
+        return inner
+
+    def do_global(self):
+        self.width = 78
+        global _temp_value
+
+    def do_global_ctx(self):
+        self.width = 78
+        global _temp_value
+
+        with KVCtx():
+            pass
+
+    def do_return(self, return_early):
+        self.widget = Widget()
+        self.value = 42
+        if return_early:
+            return
+        with KVCtx():
+            self.value @= self.widget.width
+
+    def do_return2(self, return_early):
+        self.widget = Widget()
+        with KVCtx():
+            if return_early:
+                return
+            self.value @= self.widget.width
+
+    def do_return3(self, return_early):
+        self.widget = Widget()
+        with KVCtx():
+            with KVCtx():
+                if return_early:
+                    return
+            self.value @= self.widget.width
+
+    def do_return4(self, return_early):
+        self.widget = Widget()
+        with KVCtx():
+            self.value @= self.widget.width
+            if return_early:
+                return
+
+    def do_return5(self, return_early):
+        self.widget = Widget()
+        with KVCtx():
+            self.value @= self.widget.width
+        if return_early:
+            return
+
+    def do_def(self):
+        self.widget = Widget()
+        def x():
+            pass
+        with KVCtx():
+            self.width @= self.widget.width
+
+    def do_def2(self):
+        self.widget = Widget()
+        with KVCtx():
+            def x():
+                pass
+            self.width @= self.widget.width
+
+    def do_def3(self):
+        self.widget = Widget()
+        with KVCtx():
+            self.width @= self.widget.width
+        def x():
+            pass
+
+    def do_def4(self):
+        self.widget = Widget()
+        with KVCtx():
+            def x():
+                pass
+            with KVRule():
+                self.width @= self.widget.width
+
+    def do_def5(self):
+        self.widget = Widget()
+        with KVCtx():
+            with KVRule():
+                def x():
+                    pass
+                self.width @= self.widget.width
+
+    def do_def6(self):
+        self.widget = Widget()
+        with KVCtx():
+            with KVRule():
+                self.width @= self.widget.width
+            def x():
+                pass
+
+    def do_class(self):
+        self.widget = Widget()
+        class x(object):
+            pass
+        with KVCtx():
+            self.width @= self.widget.width
+
+    def do_class2(self):
+        self.widget = Widget()
+        with KVCtx():
+            class x(object):
+                pass
+            self.width @= self.widget.width
+
+    def do_class3(self):
+        self.widget = Widget()
+        with KVCtx():
+            self.width @= self.widget.width
+        class x(object):
+            pass
+
+    def do_class4(self):
+        self.widget = Widget()
+        with KVCtx():
+            class x(object):
+                pass
+            with KVRule():
+                self.width @= self.widget.width
+
+    def do_class5(self):
+        self.widget = Widget()
+        with KVCtx():
+            with KVRule():
+                class x(object):
+                    pass
+                self.width @= self.widget.width
+
+    def do_class6(self):
+        self.widget = Widget()
+        with KVCtx():
+            with KVRule():
+                self.width @= self.widget.width
+            class x(object):
+                pass
+
+    def do_exception_handler(self):
+        self.widget = Widget()
+        with KVCtx():
+            try:
+                pass
+            except KeyError as e:
+                self.value @= self.widget.width
+
+    def do_exception_handler1(self):
+        self.widget = Widget()
+        with KVCtx():
+            try:
+                pass
+            except KeyError as e:
+                pass
+            self.value @= self.widget.width
+
+    def do_exception_handler2(self):
+        self.widget = Widget()
+        with KVCtx():
+            try:
+                raise KeyError
+            except KeyError as e:
+                with KVCtx():
+                    self.value @= self.widget.width
+
+    def do_exception_handler3(self):
+        self.widget = Widget()
+        with KVCtx():
+            try:
+                raise KeyError
+            except KeyError as e:
+                with KVRule():
+                    self.value @= self.widget.width
+
+    def do_exception_handler4(self):
+        self.widget = Widget()
+        with KVCtx():
+            try:
+                pass
+            except KeyError as e:
+                pass
+            except KeyError as e2:
+                self.value @= self.widget.width
+
+    def do_exception_handler5(self):
+        self.widget = Widget()
+        with KVCtx():
+            try:
+                raise KeyError
+            except ValueError as e:
+                pass
+            except KeyError as e2:
+                with KVCtx():
+                    self.value @= self.widget.width
+
+    def do_try(self):
+        self.widget = Widget()
+        with KVCtx():
+            try:
+                self.value @= self.widget.width
+            except KeyError as e:
+                pass
+
+    def do_if(self):
+        self.widget = Widget()
+        with KVCtx():
+            if True:
+                self.value @= self.widget.width
+
+    def do_if1(self):
+        self.widget = Widget()
+        with KVCtx():
+            if True:
+                q = 44
+            self.value @= self.widget.width
+
+    def do_if2(self):
+        self.widget = Widget()
+        with KVCtx():
+            if True:
+                with KVCtx():
+                    self.value @= self.widget.width
+
+    def do_if3(self):
+        self.widget = Widget()
+        with KVCtx():
+            if True:
+                with KVRule():
+                    self.value @= self.widget.width
+
+    def do_while(self):
+        self.widget = Widget()
+        with KVCtx():
+            while True:
+                self.value @= self.widget.width
+                break
+
+    def do_while1(self):
+        self.widget = Widget()
+        with KVCtx():
+            while True:
+                q = 44
+                break
+            self.value @= self.widget.width
+
+    def do_while2(self, objs):
+        self.widget = Widget()
+        with KVCtx():
+            i = 0
+            while i < len(objs):
+                with KVCtx():
+                    self.value_list[i].value @= objs[i].width
+                i += 1
+
+    def do_while3(self):
+        self.widget = Widget()
+        with KVCtx():
+            while True:
+                with KVRule():
+                    self.value @= self.widget.width
+                break
+
+    def do_for(self):
+        self.widget = Widget()
+        with KVCtx():
+            for i in range(5):
+                self.value @= self.widget.width
+
+    def do_for1(self):
+        self.widget = Widget()
+        with KVCtx():
+            for i in range(5):
+                q = 44
+            self.value @= self.widget.width
+
+    def do_for2(self, objs):
+        self.widget = Widget()
+        with KVCtx():
+            for i in range(5):
+                with KVCtx():
+                    self.value_list[i].value @= objs[i].width
+
+    def do_for3(self):
+        self.widget = Widget()
+        with KVCtx():
+            for i in range(5):
+                with KVRule():
+                    self.value @= self.widget.width
+
+
+class TestIllegalNodes(TestBase):
+
+    def test_nonlocal(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CodeNodesWidget.do_nonlocal)
+
+    def test_nonlocal_ctx(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CodeNodesWidget.do_nonlocal_ctx)
+
+    def test_globall(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CodeNodesWidget.do_global)
+
+    def test_global_ctx(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CodeNodesWidget.do_global_ctx)
+
+    def test_return_before_ctx(self):
+        KV_f = KV()
+        f = KV_f(CodeNodesWidget.do_return)
+        w = CodeNodesWidget()
+        f(w, True)
+
+        val = w.value
+        self.assertEqual(val, 42)
+        w.widget.width = 7445
+        self.assertEqual(w.value, val)
+
+    def test_return_before_rule(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CodeNodesWidget.do_return2)
+
+    def test_return_before_rule_nested(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CodeNodesWidget.do_return3)
+
+    def test_return_after_rule(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CodeNodesWidget.do_return4)
+
+    def test_return_after_ctx(self):
+        KV_f = KV()
+        f = KV_f(CodeNodesWidget.do_return5)
+        w = CodeNodesWidget()
+        f(w, True)
+
+        self.assertEqual(w.value, w.widget.width)
+        w.widget.width = 132
+        self.assertEqual(w.value, w.widget.width)
+
+    def test_def_before_ctx(self):
+        KV_f = KV()
+        KV_f(CodeNodesWidget.do_def)
+
+    def test_def_before_rule(self):
+        KV_f = KV()
+        KV_f(CodeNodesWidget.do_def2)
+
+    def test_def_after_ctx(self):
+        KV_f = KV()
+        KV_f(CodeNodesWidget.do_def3)
+
+    def test_def_before_explicit_rule(self):
+        KV_f = KV()
+        KV_f(CodeNodesWidget.do_def4)
+
+    def test_def_in_explciit_rule(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CodeNodesWidget.do_def5)
+
+    def test_def_after_explicit_rule(self):
+        KV_f = KV()
+        KV_f(CodeNodesWidget.do_def6)
+
+    def test_class_before_ctx(self):
+        KV_f = KV()
+        KV_f(CodeNodesWidget.do_class)
+
+    def test_class_before_rule(self):
+        KV_f = KV()
+        KV_f(CodeNodesWidget.do_class2)
+
+    def test_class_after_ctx(self):
+        KV_f = KV()
+        KV_f(CodeNodesWidget.do_class3)
+
+    def test_class_before_explicit_rule(self):
+        KV_f = KV()
+        KV_f(CodeNodesWidget.do_class4)
+
+    def test_class_in_explciit_rule(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CodeNodesWidget.do_class5)
+
+    def test_class_after_explicit_rule(self):
+        KV_f = KV()
+        KV_f(CodeNodesWidget.do_class6)
+
+    def test_except_handler(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CodeNodesWidget.do_exception_handler)
+
+    def test_after_except_handler(self):
+        KV_f = KV()
+        f = KV_f(CodeNodesWidget.do_exception_handler1)
+        w = CodeNodesWidget()
+        f(w)
+
+        self.assertEqual(w.value, w.widget.width)
+        w.widget.width = 155
+        self.assertEqual(w.value, w.widget.width)
+
+    def test_except_handler_wrap_ctx(self):
+        KV_f = KV()
+        f = KV_f(CodeNodesWidget.do_exception_handler2)
+        w = CodeNodesWidget()
+        f(w)
+
+        self.assertEqual(w.value, w.widget.width)
+        w.widget.width = 6345
+        self.assertEqual(w.value, w.widget.width)
+
+    def test_except_handler_explicit_rule(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CodeNodesWidget.do_exception_handler3)
+
+    def test_except_handler_second(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CodeNodesWidget.do_exception_handler4)
+
+    def test_except_handler_second_wrap_ctx(self):
+        KV_f = KV()
+        f = KV_f(CodeNodesWidget.do_exception_handler5)
+        w = CodeNodesWidget()
+        f(w)
+
+        self.assertEqual(w.value, w.widget.width)
+        w.widget.width = 158
+        self.assertEqual(w.value, w.widget.width)
+
+    def test_try(self):
+        KV_f = KV()
+        f = KV_f(CodeNodesWidget.do_try)
+        w = CodeNodesWidget()
+        f(w)
+
+        self.assertEqual(w.value, w.widget.width)
+        w.widget.width = 345
+        self.assertEqual(w.value, w.widget.width)
+
+    def test_if(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CodeNodesWidget.do_if)
+
+    def test_after_if(self):
+        KV_f = KV()
+        f = KV_f(CodeNodesWidget.do_if1)
+        w = CodeNodesWidget()
+        f(w)
+
+        self.assertEqual(w.value, w.widget.width)
+        w.widget.width = 451
+        self.assertEqual(w.value, w.widget.width)
+
+    def test_if_wrap_ctx(self):
+        KV_f = KV()
+        f = KV_f(CodeNodesWidget.do_if2)
+        w = CodeNodesWidget()
+        f(w)
+
+        self.assertEqual(w.value, w.widget.width)
+        w.widget.width = 854
+        self.assertEqual(w.value, w.widget.width)
+
+    def test_if_explicit_rule(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CodeNodesWidget.do_if3)
+
+    def test_while(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CodeNodesWidget.do_while)
+
+    def test_after_while(self):
+        KV_f = KV()
+        f = KV_f(CodeNodesWidget.do_while1)
+        w = CodeNodesWidget()
+        f(w)
+
+        self.assertEqual(w.value, w.widget.width)
+        w.widget.width = 45
+        self.assertEqual(w.value, w.widget.width)
+
+    def test_while_wrap_ctx(self):
+        KV_f = KV()
+        f = KV_f(CodeNodesWidget.do_while2)
+        w = CodeNodesWidget()
+        sources = [CodeNodesWidget() for _ in range(5)]
+        targets = w.value_list = [CodeNodesWidget() for _ in range(5)]
+        f(w, sources)
+
+        for target, source in zip(targets, sources):
+            self.assertEqual(target.value, source.width)
+            source.width = 95
+            self.assertEqual(target.value, source.width)
+
+    def test_while_explicit_rule(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CodeNodesWidget.do_while3)
+
+    def test_for(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CodeNodesWidget.do_for)
+
+    def test_after_for(self):
+        KV_f = KV()
+        f = KV_f(CodeNodesWidget.do_for1)
+        w = CodeNodesWidget()
+        f(w)
+
+        self.assertEqual(w.value, w.widget.width)
+        w.widget.width = 45
+        self.assertEqual(w.value, w.widget.width)
+
+    def test_for_wrap_ctx(self):
+        KV_f = KV()
+        f = KV_f(CodeNodesWidget.do_for2)
+        w = CodeNodesWidget()
+        sources = [CodeNodesWidget() for _ in range(5)]
+        targets = w.value_list = [CodeNodesWidget() for _ in range(5)]
+        f(w, sources)
+
+        for target, source in zip(targets, sources):
+            self.assertEqual(target.value, source.width)
+            source.width = 95
+            self.assertEqual(target.value, source.width)
+
+    def test_for_explicit_rule(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CodeNodesWidget.do_for3)
+
