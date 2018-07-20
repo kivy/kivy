@@ -3,24 +3,27 @@
 # read only no rules in nested ctx
 # rule within rule
 # deep nested ctx
+# x.y.z.KVCtx
 # rebind
 # rule/ctx order
 # objects that are None in rule
-# bind mutliple of same object in rule
+# bind mutliple of same object in rule, including in rule largs
+# rule/ctx attributes
+# manual tests
 
 # TODO: add tests for async def, like do_def, once py2 support is dropped
 # we must remove pycache b/c https://bugs.python.org/issue31772
 
-import re
 import time
 import os
 from os.path import exists, isfile
 import inspect
 import gc
-import shutil
 
 from kivy.lang.compiler.kv_context import KVParserRule
-from kivy.lang.compiler import KV_apply_manual, KV, KVCtx, KVRule
+from kivy.lang.compiler.kv import KV_apply_manual
+from kivy.lang.compiler.utils import StringPool
+from kivy.lang.compiler import KV, KVCtx, KVRule
 from kivy.lang.compiler.ast_parse import KVException, KVCompilerParserException
 from kivy.lang.compiler.runtime import get_kvc_filename, \
     process_graphics_callbacks
@@ -51,6 +54,73 @@ def remove_kvc(func, flags=''):
                 os.unlink(file_path)
 
 
+class TestStringPool(unittest.TestCase):
+
+    def test_pool(self):
+        pool = StringPool(prefix='var')
+
+        self.assertEqual(set(pool.get_all_items()), set())
+        self.assertEqual(set(pool.get_available_items()), set())
+        self.assertEqual(pool.get_num_borrowed(), 0)
+
+        obj1 = object()
+        name1 = pool.borrow(obj1, 2)
+
+        self.assertEqual(set(pool.get_all_items()), {name1})
+        self.assertEqual(set(pool.get_available_items()), set())
+        self.assertEqual(pool.get_num_borrowed(), 1)
+
+        obj2 = object()
+        name2 = pool.borrow(obj2, 1)
+        self.assertNotEqual(name1, name2)
+
+        self.assertEqual(set(pool.get_all_items()), {name1, name2})
+        self.assertEqual(set(pool.get_available_items()), set())
+        self.assertEqual(pool.get_num_borrowed(), 2)
+
+        name3 = pool.borrow_persistent()
+        self.assertNotEqual(name2, name3)
+
+        self.assertEqual(set(pool.get_all_items()), {name1, name2, name3})
+        self.assertEqual(set(pool.get_available_items()), set())
+        self.assertEqual(pool.get_num_borrowed(), 3)
+
+        self.assertEqual(pool.return_back(obj1), 1)
+
+        self.assertEqual(set(pool.get_all_items()), {name1, name2, name3})
+        self.assertEqual(set(pool.get_available_items()), set())
+        self.assertEqual(pool.get_num_borrowed(), 3)
+
+        self.assertEqual(pool.return_back(obj1), 0)
+
+        self.assertEqual(set(pool.get_all_items()), {name1, name2, name3})
+        self.assertEqual(set(pool.get_available_items()), {name1, })
+        self.assertEqual(pool.get_num_borrowed(), 2)
+
+        self.assertEqual(pool.return_back(obj2), 0)
+
+        self.assertEqual(set(pool.get_all_items()), {name1, name2, name3})
+        self.assertEqual(set(pool.get_available_items()), {name1, name2})
+        self.assertEqual(pool.get_num_borrowed(), 1)
+
+        name4 = pool.borrow(object())
+        self.assertIn(name4, {name1, name2})
+
+        self.assertEqual(set(pool.get_all_items()), {name1, name2, name3})
+        self.assertEqual(
+            set(pool.get_available_items()), {name1, name2} - {name4})
+        self.assertEqual(pool.get_num_borrowed(), 2)
+
+        name5 = pool.borrow(object())
+        self.assertIn(name5, {name1, name2})
+        self.assertNotEqual(name4, name5)
+
+        self.assertEqual(set(pool.get_all_items()), {name1, name2, name3})
+        self.assertEqual(set(pool.get_available_items()), set())
+        self.assertEqual(pool.get_num_borrowed(), 3)
+
+
+@skip_py2_decorator
 class TestBase(unittest.TestCase):
 
     def tearDown(self):
@@ -1037,6 +1107,7 @@ class TestCtxAutoCompiler(TestBase):
             KV_f(CtxWidget.bind_canvas_rule_without_ctx)
 
 _temp_value = 45
+
 
 class CodeNodesWidget(BaseWidget):
 
@@ -2535,4 +2606,212 @@ class TestNotCompiled(TestBase):
         with self.assertRaises(TypeError):
             w.apply_rule2()
 
-# unbinding
+
+class UnbindingWidget(BaseWidget):
+
+    ctx = None
+
+    ctx2 = None
+
+    ctx3 = None
+
+    def unbind_rule(self):
+        self.widget = Widget()
+        with KVCtx() as self.ctx:
+            self.value @= self.widget.width
+
+    def unbind_rule2(self):
+        self.widget = Widget()
+        with KVCtx() as self.ctx:
+            with KVRule(self.widget.width):
+                self.value = self.widget.width
+
+    def unbind_rule3(self):
+        self.widget = Widget()
+        self.widget2 = Widget()
+        self.widget3 = Widget()
+
+        with KVCtx() as self.ctx:
+            with KVRule(self.widget.width, name='first'):
+                self.value @= self.widget.width
+
+            with KVCtx() as self.ctx3:
+                with KVRule(self.widget3.width, name='third'):
+                    self.value3 @= self.widget3.width
+                self.value3 @= self.widget3.height
+
+            self.value @= self.widget.height
+
+        with KVCtx() as self.ctx2:
+            self.value2 @= self.widget2.height
+            with KVRule(self.widget2.width, name='second'):
+                self.value2 @= self.widget2.width
+
+
+@skip_py2_decorator
+class TestUnbinding(TestBase):
+
+    def test_unbind_rule(self):
+        KV_f = KV()
+        f = KV_f(UnbindingWidget.unbind_rule)
+        w = UnbindingWidget()
+        f(w)
+
+        self.assertEqual(w.value, w.widget.width)
+        w.widget.width = 453
+        self.assertEqual(w.value, 453)
+
+        w.ctx.unbind_all_rules()
+        w.widget.width = 756
+        self.assertEqual(w.value, 453)
+
+    def test_unbind_rule_explicit(self):
+        KV_f = KV()
+        f = KV_f(UnbindingWidget.unbind_rule2)
+        w = UnbindingWidget()
+        f(w)
+
+        self.assertEqual(w.value, w.widget.width)
+        w.widget.width = 453
+        self.assertEqual(w.value, 453)
+
+        w.ctx.unbind_all_rules()
+        w.widget.width = 756
+        self.assertEqual(w.value, 453)
+
+    def test_unbind_rule_multi(self):
+        from random import randint
+        KV_f = KV()
+        f = KV_f(UnbindingWidget.unbind_rule3)
+        w = UnbindingWidget()
+        f(w)
+
+        self.assertEqual(w.value, w.widget.height)
+        self.assertEqual(w.value2, w.widget2.width)
+        self.assertEqual(w.value3, w.widget3.height)
+
+        def check_1_1(bound=True):
+            orig = w.value
+            w.widget.width = randint(0, 100000)
+            if bound:
+                self.assertEqual(w.value, w.widget.width)
+            else:
+                self.assertEqual(w.value, orig)
+
+        def check_1_2(bound=True):
+            orig = w.value
+            w.widget.height = randint(0, 100000)
+            if bound:
+                self.assertEqual(w.value, w.widget.height)
+            else:
+                self.assertEqual(w.value, orig)
+
+        def check_2_1(bound=True):
+            orig = w.value2
+            w.widget2.height = randint(0, 100000)
+            if bound:
+                self.assertEqual(w.value2, w.widget2.height)
+            else:
+                self.assertEqual(w.value2, orig)
+
+        def check_2_2(bound=True):
+            orig = w.value2
+            w.widget2.width = randint(0, 100000)
+            if bound:
+                self.assertEqual(w.value2, w.widget2.width)
+            else:
+                self.assertEqual(w.value2, orig)
+
+        def check_3_1(bound=True):
+            orig = w.value3
+            w.widget3.width = randint(0, 100000)
+            if bound:
+                self.assertEqual(w.value3, w.widget3.width)
+            else:
+                self.assertEqual(w.value3, orig)
+
+        def check_3_2(bound=True):
+            orig = w.value3
+            w.widget3.height = randint(0, 100000)
+            if bound:
+                self.assertEqual(w.value3, w.widget3.height)
+            else:
+                self.assertEqual(w.value3, orig)
+
+        self.assertIs(w.ctx.named_rules['first'], w.ctx.rules[0])
+        self.assertIs(w.ctx2.named_rules['second'], w.ctx2.rules[1])
+        self.assertIs(w.ctx3.named_rules['third'], w.ctx3.rules[0])
+
+        self.assertEqual(len(w.ctx.rules), 2)
+        self.assertEqual(len(w.ctx2.rules), 2)
+        self.assertEqual(len(w.ctx3.rules), 2)
+
+        check_1_1()
+        check_1_2()
+        check_2_1()
+        check_2_2()
+        check_3_1()
+        check_3_2()
+
+        w.ctx.named_rules['first'].unbind_rule()
+        check_1_1(bound=False)
+        check_1_2()
+        check_2_1()
+        check_2_2()
+        check_3_1()
+        check_3_2()
+        w.ctx.named_rules['first'].unbind_rule()  # check no error
+
+        w.ctx3.rules[1].unbind_rule()
+        check_1_1(bound=False)
+        check_1_2()
+        check_2_1()
+        check_2_2()
+        check_3_1()
+        check_3_2(bound=False)
+        w.ctx3.rules[1].unbind_rule()  # check no error
+
+        w.ctx2.named_rules['second'].unbind_rule()
+        check_1_1(bound=False)
+        check_1_2()
+        check_2_1()
+        check_2_2(bound=False)
+        check_3_1()
+        check_3_2(bound=False)
+        w.ctx2.named_rules['second'].unbind_rule()  # check no error
+
+        w.ctx3.named_rules['third'].unbind_rule()
+        check_1_1(bound=False)
+        check_1_2()
+        check_2_1()
+        check_2_2(bound=False)
+        check_3_1(bound=False)
+        check_3_2(bound=False)
+        w.ctx3.named_rules['third'].unbind_rule()  # check no error
+
+        w.ctx2.rules[0].unbind_rule()
+        check_1_1(bound=False)
+        check_1_2()
+        check_2_1(bound=False)
+        check_2_2(bound=False)
+        check_3_1(bound=False)
+        check_3_2(bound=False)
+        w.ctx2.rules[0].unbind_rule()  # check no error
+
+        w.ctx.rules[1].unbind_rule()
+        check_1_1(bound=False)
+        check_1_2(bound=False)
+        check_2_1(bound=False)
+        check_2_2(bound=False)
+        check_3_1(bound=False)
+        check_3_2(bound=False)
+        w.ctx.rules[1].unbind_rule()  # check no error
+
+        w.ctx.unbind_all_rules()
+        check_1_1(bound=False)
+        check_1_2(bound=False)
+        check_2_1(bound=False)
+        check_2_2(bound=False)
+        check_3_1(bound=False)
+        check_3_2(bound=False)
+
