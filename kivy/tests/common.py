@@ -16,6 +16,7 @@ import logging
 import os
 from kivy.graphics.cgl import cgl_get_backend_name
 from kivy.input.motionevent import MotionEvent
+from kivy.compat import PY2
 log = logging.getLogger('unittest')
 
 _base = object
@@ -23,6 +24,9 @@ if 'mock' != cgl_get_backend_name():
     _base = unittest.TestCase
 
 make_screenshots = os.environ.get('KIVY_UNITTEST_SCREENSHOTS')
+
+skip_py2_decorator = unittest.skip('Does not support py2') if PY2 else \
+    lambda x: x
 
 
 class GraphicUnitTest(_base):

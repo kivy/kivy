@@ -1,40 +1,37 @@
 # capture x.y @= ... for x
 # read only x = x.y, should crash
 # read only no rules in nested ctx
-# recursive ctx
 # rule within rule
 # deep nested ctx
-# proxy
 # rebind
-# canvas/clock
 # rule/ctx order
+# objects that are None in rule
+# bind mutliple of same object in rule
 
 # TODO: add tests for async def, like do_def, once py2 support is dropped
+# we must remove pycache b/c https://bugs.python.org/issue31772
 
 import re
+import time
 import os
 from os.path import exists, isfile
 import inspect
+import gc
+import shutil
 
 from kivy.lang.compiler.kv_context import KVParserRule
 from kivy.lang.compiler import KV_apply_manual, KV, KVCtx, KVRule
 from kivy.lang.compiler.ast_parse import KVException, KVCompilerParserException
-from kivy.lang.compiler.runtime import get_kvc_filename
+from kivy.lang.compiler.runtime import get_kvc_filename, \
+    process_graphics_callbacks
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, ObjectProperty, ListProperty, \
     DictProperty
-from kivy.compat import PY2
-from kivy.factory import Factory
-from kivy.event import EventDispatcher
-from kivy.lang import Builder
+from kivy.tests.common import skip_py2_decorator
 
 import unittest
 
 delete_kvc_after_test = int(os.environ.get('KIVY_TEST_DELETE_KVC', 1))
-
-
-skip_py2_decorator = unittest.skip('Does not support py2') if PY2 else \
-    lambda x: x
 
 
 def f_time(filename):
@@ -45,6 +42,13 @@ def remove_kvc(func, flags=''):
     fname = get_kvc_filename(func, flags=flags)
     if exists(fname):
         os.remove(fname)
+
+    d = os.path.join(os.path.dirname(fname), '__pycache__')
+    if exists(d):
+        for f in os.listdir(d):
+            file_path = os.path.join(d, f)
+            if os.path.isfile(file_path):
+                os.unlink(file_path)
 
 
 class TestBase(unittest.TestCase):
@@ -95,6 +99,10 @@ class SimpleWidget(BaseWidget):
         with KVCtx():
             self.value @= self.width + 44
 
+    def simple_rule5(self):
+        with KVCtx():
+            self.value @= self.width + 44
+
 
 class SimpleWidget2(BaseWidget):
 
@@ -139,6 +147,28 @@ class TestCompilationFilesAutoCompiler(TestBase):
         f2 = KV_f(w2.simple_rule2)
         self.assertEqual(f, f2)
         self.assertEqual(t, f_time(get_kvc_filename(w2.simple_rule2)))
+
+    def test_compile_flags_compilation(self):
+        KV_f = KV(proxy=False)
+        self.assertFalse(exists(get_kvc_filename(SimpleWidget.simple_rule5)))
+        f = KV_f(SimpleWidget.simple_rule5)
+        self.assertTrue(exists(get_kvc_filename(SimpleWidget.simple_rule5)))
+        t = f_time(get_kvc_filename(SimpleWidget.simple_rule5))
+
+        f2 = KV_f(SimpleWidget.simple_rule5)
+        self.assertIs(f, f2)
+        self.assertEqual(
+            t, f_time(get_kvc_filename(SimpleWidget.simple_rule5)))
+
+        KV_f = KV(proxy=True)
+        f3 = KV_f(SimpleWidget.simple_rule5)
+        self.assertNotEqual(f3, f2)
+        self.assertGreater(
+            f_time(get_kvc_filename(SimpleWidget.simple_rule5)), t)
+
+    def test_flags_compilation(self):
+        # test manual vs auto compilation
+        pass
 
     def test_func_uniqeness(self):
         KV_f = KV()
@@ -980,7 +1010,7 @@ class CtxWidget(BaseWidget):
     def bind_canvas_rule_without_ctx(self):
         self.value ^= self.width
 
-    # bind to function input
+    # mix rules types, test all rules without ctx etc, rule within rule
 
 
 @skip_py2_decorator
@@ -1320,6 +1350,7 @@ class CodeNodesWidget(BaseWidget):
                     self.value @= self.widget.width
 
 
+@skip_py2_decorator
 class TestIllegalNodes(TestBase):
 
     def test_nonlocal(self):
@@ -1579,3 +1610,929 @@ class TestIllegalNodes(TestBase):
         with self.assertRaises(KVCompilerParserException):
             KV_f(CodeNodesWidget.do_for3)
 
+
+@skip_py2_decorator
+class TestClosure(TestBase):
+
+    def test_closure(self):
+        w = BaseWidget()
+
+        def do_kv_closure():
+            with KVCtx():
+                w.value @= w.width
+
+        KV_f = KV()
+        with self.assertRaises(KVException):
+            KV_f(do_kv_closure)
+
+    def test_not_closure_but_local(self):
+        def do_kv_not_closure(widget):
+            with KVCtx():
+                widget.value @= widget.width
+
+        KV_f = KV()
+        with self.assertRaises(KVException):
+            KV_f(do_kv_not_closure)
+
+
+class ProxyWidget(BaseWidget):
+
+    kv_ctx = None
+
+    def apply_kv(self, widget1, widget2):
+        with KVCtx():
+            self.value @= widget1.width + widget2.width
+
+    def apply_kv2(self, widget1, widget2):
+        with KVCtx():
+            self.value @= widget1.width + widget2.width
+
+    def apply_kv3(self, widget1, widget2):
+        with KVCtx() as self.kv_ctx:
+            self.value @= widget1.width + widget2.width
+
+    def apply_kv4(self, widget1, widget2):
+        with KVCtx() as self.kv_ctx:
+            self.value @= widget1.width + widget2.width
+
+    def apply_kv5(self):
+        self.widget = Widget()
+        self.widget2 = Widget()
+
+        with KVCtx():
+            self.value @= self.widget.width + self.widget2.width
+
+    def apply_kv6(self):
+        self.widget = Widget()
+        self.widget2 = Widget()
+        self.widget3 = Widget()
+
+        with KVCtx():
+            self.value @= \
+                self.widget.width + self.widget2.width + self.widget3.width
+
+    def apply_kv7(self):
+        w = self.widget = BaseWidget()
+        w.widget = Widget()
+        self.widget2 = Widget()
+
+        with KVCtx():
+            self.value @= self.widget.widget.width + self.widget2.width
+
+        return w, self.widget2, w.widget
+
+    def apply_kv8(self):
+        w = self.widget = BaseWidget()
+        w.widget = Widget()
+        self.widget2 = Widget()
+
+        with KVCtx():
+            self.value @= self.widget.widget.width + self.widget2.width
+
+        return w, self.widget2, w.widget
+
+    def apply_kv9(self, widget1, widget2):
+        with KVCtx():
+            self.value @= widget1.width + widget2.width
+
+    def apply_kv10(self, widget1, widget2):
+        with KVCtx():
+            self.value @= widget1.width + widget2.width
+
+    def apply_kv11(self, widget1, widget2):
+        with KVCtx():
+            self.value @= widget1.width + widget2.width
+
+
+@skip_py2_decorator
+class TestProxy(TestBase):
+
+    def test_no_proxy(self):
+        w1 = Widget()
+        w2 = Widget()
+        KV_f = KV(proxy=False)
+
+        f = KV_f(ProxyWidget.apply_kv)
+        w = ProxyWidget()
+        f(w, w1, w2)
+        gc.collect()
+        self.assertEqual(w.value, w1.width + w2.width)
+        w1.width = 564
+        self.assertEqual(w.value, w1.width + w2.width)
+        w2.width = 76
+        self.assertEqual(w.value, w1.width + w2.width)
+
+        ref = w.proxy_ref
+        del w
+        gc.collect()
+        ref.size  # w1 and w2 keep it alive
+
+        ref1 = w1.proxy_ref
+        ref2 = w2.proxy_ref
+        del w1
+        gc.collect()
+        ref1.size  # this will be kept alive by the rule bound to w2
+
+        del w2
+        gc.collect()
+        with self.assertRaises(ReferenceError):
+            ref1.size
+        with self.assertRaises(ReferenceError):
+            ref2.size
+        with self.assertRaises(ReferenceError):
+            ref.size
+
+    def test_proxy_ref(self):
+        w = Widget()
+        ref = w.proxy_ref
+        del w
+        gc.collect()
+        with self.assertRaises(ReferenceError):
+            ref.size
+
+    def test_all_proxy(self):
+        w1 = Widget()
+        w2 = Widget()
+        KV_f = KV(proxy=True)
+
+        f = KV_f(ProxyWidget.apply_kv2)
+        w = ProxyWidget()
+        f(w, w1, w2)
+        gc.collect()
+        # rules are dead now
+        original_w = w1.width + w2.width
+        self.assertEqual(w.value, original_w)
+        w1.width = 564
+        self.assertEqual(w.value, original_w)
+        w2.width = 76
+        self.assertEqual(w.value, original_w)
+
+        ref = w.proxy_ref
+        del w
+        gc.collect()
+        # w1 and w2 don't keep it alive anymore b/c proxy
+        with self.assertRaises(ReferenceError):
+            ref.size
+
+        ref1 = w1.proxy_ref
+        ref2 = w2.proxy_ref
+        del w1
+        gc.collect()
+        # w2 holds a proxy to w1, so w1 is dead now
+        with self.assertRaises(ReferenceError):
+            ref1.size
+
+        del w2
+        gc.collect()
+        with self.assertRaises(ReferenceError):
+            ref2.size
+
+    def test_all_proxy_save_ctx(self):
+        w1 = Widget()
+        w2 = Widget()
+        KV_f = KV(proxy=True)
+
+        f = KV_f(ProxyWidget.apply_kv3)
+        w = ProxyWidget()
+        f(w, w1, w2)
+        gc.collect()
+
+        ref = w.proxy_ref
+        ref1 = w1.proxy_ref
+        ref2 = w2.proxy_ref
+        ctx = w.kv_ctx
+        del w, w1, w2
+        gc.collect()
+
+        # ctx keeps rules alive
+        self.assertEqual(ref.value, ref1.width + ref2.width)
+        ref1.width = 564
+        self.assertEqual(ref.value, ref1.width + ref2.width)
+        ref2.width = 76
+        self.assertEqual(ref.value, ref1.width + ref2.width)
+
+        ref.size  # ctx keeps it alive
+        ref1.size
+        ref2.size
+
+        ctx = None
+        gc.collect()
+
+        # now it's all dead
+        with self.assertRaises(ReferenceError):
+            ref1.size
+        with self.assertRaises(ReferenceError):
+            ref2.size
+        with self.assertRaises(ReferenceError):
+            ref.size
+
+    def test_proxy_all_unbind(self):
+        w1 = Widget()
+        w2 = Widget()
+        KV_f = KV(proxy=True)
+
+        f = KV_f(ProxyWidget.apply_kv4)
+        w = ProxyWidget()
+        f(w, w1, w2)
+
+        ctx = w.kv_ctx
+        ref = w.proxy_ref
+        del w, w1, w2
+        gc.collect()
+        ref.size
+
+        # ctx keeps everything alive
+        ctx.unbind_all_rules()
+        ctx = None
+        gc.collect()
+
+        with self.assertRaises(ReferenceError):
+            ref.size
+
+    def test_partial_proxy(self):
+        KV_f = KV(proxy='*widget')
+
+        f = KV_f(ProxyWidget.apply_kv5)
+        w = ProxyWidget()
+        f(w)
+
+        w1, w2 = w.widget, w.widget2
+        ref = w.proxy_ref
+        ref1 = w1.proxy_ref
+        ref2 = w2.proxy_ref
+        del w, w1
+        gc.collect()
+
+        original_w = ref1.width + w2.width
+        self.assertEqual(ref.value, original_w)
+        ref1.width = 564
+        # the rules are kept alive by w2
+        self.assertEqual(ref.value, ref1.width + w2.width)
+        w2.width = 76
+        self.assertEqual(ref.value, ref1.width + w2.width)
+
+        # w2 keeps it alive
+        ref.size
+        ref1.size
+
+        w1 = ref1.__self__  # bring it back
+
+        del w2  # only w2 has to die for the rule to die
+        gc.collect()
+        gc.collect()
+        with self.assertRaises(ReferenceError):
+            ref2.size
+        with self.assertRaises(ReferenceError):
+            ref.size
+
+        # should not cause issues because rule will get unbound when dispatcher
+        # realizes the callback is dead
+        w1.width = 657
+
+    def test_partial_proxy_multi(self):
+        KV_f = KV(proxy=['*widget', '*widget2'])
+
+        f = KV_f(ProxyWidget.apply_kv6)
+        w = ProxyWidget()
+        f(w)
+
+        w1, w2, w3 = w.widget, w.widget2, w.widget3
+        ref = w.proxy_ref
+        ref1 = w1.proxy_ref
+        ref2 = w2.proxy_ref
+        ref3 = w3.proxy_ref
+        del w, w1, w2
+        gc.collect()
+
+        original_w = ref1.width + ref2.width + w3.width
+        self.assertEqual(ref.value, original_w)
+        ref1.width = 564
+        # the rules are kept alive by w3
+        self.assertEqual(ref.value, ref1.width + ref2.width + w3.width)
+        ref2.width = 76
+        self.assertEqual(ref.value, ref1.width + ref2.width + w3.width)
+        w3.width = 67
+        self.assertEqual(ref.value, ref1.width + ref2.width + w3.width)
+
+        # w3 keeps it alive
+        ref.size
+        ref1.size
+        ref2.size
+
+        w1 = ref1.__self__
+        w2 = ref2.__self__
+
+        del w3  # only w3 has to die for the rule to die
+        gc.collect()
+        with self.assertRaises(ReferenceError):
+            ref3.size
+        with self.assertRaises(ReferenceError):
+            ref.size
+
+        # should not cause issues because rule will get unbound when dispatcher
+        # realizes the callback is dead
+        w1.width = 84
+        w2.width = 2093
+
+    def test_deep_proxy(self):
+        KV_f = KV(proxy='*t.widget')
+
+        f = KV_f(ProxyWidget.apply_kv7)
+        w = ProxyWidget()
+        w1, w2, ww1 = f(w)
+
+        ref = w.proxy_ref
+        ref1 = w1.proxy_ref
+        ref_ww1 = ww1.proxy_ref
+        ref2 = w2.proxy_ref
+        del w, w1
+        gc.collect()
+
+        original_w = ww1.width + w2.width
+        self.assertEqual(ref.value, original_w)
+        ww1.width = 564
+        # the rules are kept alive by w2
+        self.assertEqual(ref.value, ww1.width + w2.width)
+        w2.width = 76
+        self.assertEqual(ref.value, ww1.width + w2.width)
+
+        # w2 keeps it alive
+        ref.size
+        ref1.size
+
+        # only w2 now has to die for the rule to die, even if ww1 is alive, it
+        # should only bind with proxy
+        del w2
+        gc.collect()
+        with self.assertRaises(ReferenceError):
+            ref2.size
+        with self.assertRaises(ReferenceError):
+            ref.size
+        with self.assertRaises(ReferenceError):
+            ref1.size
+
+        del ww1
+        gc.collect()
+        with self.assertRaises(ReferenceError):
+            ref_ww1.size
+
+    def test_deep_proxy2(self):
+        # this time, w1 will keep it alive
+        KV_f = KV(proxy='*t.widget')
+
+        f = KV_f(ProxyWidget.apply_kv8)
+        w = ProxyWidget()
+        w1, w2, ww1 = f(w)
+
+        ref = w.proxy_ref
+        ref1 = w1.proxy_ref
+        ref_ww1 = ww1.proxy_ref
+        ref2 = w2.proxy_ref
+        del w, w2
+        gc.collect()
+
+        original_w = ww1.width + ref2.width
+        self.assertEqual(ref.value, original_w)
+        ww1.width = 564
+        # the rules are kept alive by w2
+        self.assertEqual(ref.value, ww1.width + ref2.width)
+        ref2.width = 76
+        self.assertEqual(ref.value, ww1.width + ref2.width)
+
+        # w1 keeps it alive
+        ref.size
+        ref2.size
+
+        # only w1 now has to die for the rule to die, even if ww1 is alive, it
+        # should only bind with proxy
+        del w1
+        gc.collect()
+        with self.assertRaises(ReferenceError):
+            ref1.size
+        with self.assertRaises(ReferenceError):
+            ref.size
+        with self.assertRaises(ReferenceError):
+            ref2.size
+
+        del ww1
+        gc.collect()
+        with self.assertRaises(ReferenceError):
+            ref_ww1.size
+
+    def test_proxy_no_match(self):
+        w1 = Widget()
+        w2 = Widget()
+        KV_f = KV(proxy=['widd', 'croker', '*idge'])
+
+        f = KV_f(ProxyWidget.apply_kv9)
+        w = ProxyWidget()
+        f(w, w1, w2)
+        gc.collect()
+        self.assertEqual(w.value, w1.width + w2.width)
+        w1.width = 564
+        self.assertEqual(w.value, w1.width + w2.width)
+        w2.width = 76
+        self.assertEqual(w.value, w1.width + w2.width)
+
+        ref = w.proxy_ref
+        del w
+        gc.collect()
+        ref.size  # w1 and w2 keep it alive
+
+        ref1 = w1.proxy_ref
+        ref2 = w2.proxy_ref
+        del w1
+        gc.collect()
+        ref1.size  # this will be kept alive by the rule bound to w2
+
+        del w2
+        gc.collect()
+        with self.assertRaises(ReferenceError):
+            ref1.size
+        with self.assertRaises(ReferenceError):
+            ref2.size
+        with self.assertRaises(ReferenceError):
+            ref.size
+
+    def test_all_proxy_match(self):
+        w1 = Widget()
+        w2 = Widget()
+        KV_f = KV(proxy='*idget*')
+
+        f = KV_f(ProxyWidget.apply_kv10)
+        w = ProxyWidget()
+        f(w, w1, w2)
+        gc.collect()
+        # rules are dead now
+        original_w = w1.width + w2.width
+        self.assertEqual(w.value, original_w)
+        w1.width = 564
+        self.assertEqual(w.value, original_w)
+        w2.width = 76
+        self.assertEqual(w.value, original_w)
+
+        ref = w.proxy_ref
+        del w
+        gc.collect()
+        # w1 and w2 don't keep it alive anymore b/c proxy
+        with self.assertRaises(ReferenceError):
+            ref.size
+
+        ref1 = w1.proxy_ref
+        ref2 = w2.proxy_ref
+        del w1
+        gc.collect()
+        # w2 holds a proxy to w1, so w1 is dead now
+        with self.assertRaises(ReferenceError):
+            ref1.size
+
+        del w2
+        gc.collect()
+        with self.assertRaises(ReferenceError):
+            ref2.size
+
+    def test_all_proxy_match2(self):
+        w1 = Widget()
+        w2 = Widget()
+        KV_f = KV(proxy=['widget1*', 'widget2*'])
+
+        f = KV_f(ProxyWidget.apply_kv11)
+        w = ProxyWidget()
+        f(w, w1, w2)
+        gc.collect()
+        # rules are dead now
+        original_w = w1.width + w2.width
+        self.assertEqual(w.value, original_w)
+        w1.width = 564
+        self.assertEqual(w.value, original_w)
+        w2.width = 76
+        self.assertEqual(w.value, original_w)
+
+        ref = w.proxy_ref
+        del w
+        gc.collect()
+        # w1 and w2 don't keep it alive anymore b/c proxy
+        with self.assertRaises(ReferenceError):
+            ref.size
+
+        ref1 = w1.proxy_ref
+        ref2 = w2.proxy_ref
+        del w1
+        gc.collect()
+        # w2 holds a proxy to w1, so w1 is dead now
+        with self.assertRaises(ReferenceError):
+            ref1.size
+
+        del w2
+        gc.collect()
+        with self.assertRaises(ReferenceError):
+            ref2.size
+
+
+class CanvasWidget(BaseWidget):
+
+    def canvas_rule(self):
+        self.value = 42
+        self.widget = Widget()
+        with KVCtx():
+            self.value ^= self.widget.width
+
+    def canvas_rule2(self):
+        self.value = 42
+        self.widget = Widget()
+        with KVCtx():
+            with KVRule(self.widget.width, delay='canvas'):
+                self.value = self.widget.width
+
+    def canvas_rule3(self):
+        self.value = 42
+        self.widget = Widget()
+        with KVCtx():
+            with KVRule(delay='canvas'):
+                self.value ^= self.widget.width
+
+    def canvas_rule4(self):
+        self.value = 42
+        self.widget = Widget()
+        with KVCtx():
+            with KVRule(delay='canvas'):
+                self.value @= self.widget.width
+
+    def canvas_rule5(self):
+        self.value = 42
+        self.widget = Widget()
+        with KVCtx():
+            with KVRule(delay='canvas'):
+                self.value ^= self.widget.width
+            self.value2 ^= self.widget.height
+
+
+@skip_py2_decorator
+class TestCanvasScheduling(TestBase):
+
+    def canvas_rule_base(self, f):
+        KV_f = KV()
+        f = KV_f(f)
+        w = CanvasWidget()
+        f(w)
+
+        orig_val = w.widget.width
+        self.assertEqual(w.value, orig_val)
+        w.widget.width = 67
+        self.assertEqual(w.value, orig_val)
+        process_graphics_callbacks()
+        self.assertEqual(w.value, w.widget.width)
+
+        orig_val = w.widget.width
+        w.widget.width = 67
+        self.assertEqual(w.value, orig_val)
+        w.widget.width = 98
+        self.assertEqual(w.value, orig_val)
+        w.widget.width = 234
+        self.assertEqual(w.value, orig_val)
+        process_graphics_callbacks()
+        self.assertEqual(w.value, w.widget.width)
+
+        return w
+
+    def test_canvas_implicit_rule(self):
+        self.canvas_rule_base(CanvasWidget.canvas_rule)
+
+    def test_canvas_explicit_rule_bind_explicit(self):
+        self.canvas_rule_base(CanvasWidget.canvas_rule2)
+
+    def test_canvas_explicit_rule(self):
+        self.canvas_rule_base(CanvasWidget.canvas_rule3)
+
+    def test_canvas_explicit_rule_mix(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CanvasWidget.canvas_rule4)
+
+    def test_canvas_multi(self):
+        w = self.canvas_rule_base(CanvasWidget.canvas_rule5)
+
+        # second rule
+        orig_val = w.widget.height
+        self.assertEqual(w.value2, orig_val)
+        w.widget.height = 67
+        self.assertEqual(w.value2, orig_val)
+        process_graphics_callbacks()
+        self.assertEqual(w.value2, w.widget.height)
+
+        orig_val = w.widget.height
+        w.widget.height = 67
+        self.assertEqual(w.value2, orig_val)
+        w.widget.height = 98
+        self.assertEqual(w.value2, orig_val)
+        w.widget.height = 234
+        self.assertEqual(w.value2, orig_val)
+        process_graphics_callbacks()
+        self.assertEqual(w.value2, w.widget.height)
+
+
+class ClockWidget(BaseWidget):
+
+    ctx = None
+
+    def clock_rule(self):
+        self.value = 42
+        self.widget = Widget()
+        with KVCtx() as self.ctx:
+            with KVRule(self.widget.width, delay=0):
+                self.value = self.widget.width
+
+    def clock_rule2(self):
+        self.value = 42
+        self.widget = Widget()
+        with KVCtx() as self.ctx:
+            with KVRule(delay=0):
+                self.value @= self.widget.width
+
+    def clock_rule3(self):
+        self.value = 42
+        self.widget = Widget()
+        with KVCtx() as self.ctx:
+            with KVRule(delay=0):
+                self.value ^= self.widget.width
+
+    def clock_rule4(self):
+        self.value = 42
+        self.widget = Widget()
+        with KVCtx() as self.ctx:
+            with KVRule(delay=0):
+                self.value @= self.widget.width
+            with KVRule(delay=0):
+                self.value2 @= self.widget.height
+
+    def clock_rule5(self):
+        self.value = 42
+        self.widget = Widget()
+        with KVCtx():
+            with KVRule(delay=0):
+                self.value @= self.widget.width
+
+    def clock_rule6(self):
+        self.value = 42
+        self.widget = Widget()
+        with KVCtx() as self.ctx:
+            with KVRule(delay=.3):
+                self.value @= self.widget.width
+
+
+@skip_py2_decorator
+class TestClockScheduling(TestBase):
+
+    def clock_rule_base(self, f, delay):
+        from kivy.clock import Clock
+        KV_f = KV()
+        f = KV_f(f)
+        w = ClockWidget()
+        f(w)
+
+        orig_val = w.widget.width
+        self.assertEqual(w.value, orig_val)
+        w.widget.width = 67
+        self.assertEqual(w.value, orig_val)
+        ts = time.clock()
+        Clock.tick()
+        while time.clock() - ts < delay + .1:
+            Clock.tick()
+        self.assertEqual(w.value, w.widget.width)
+
+        orig_val = w.widget.width
+        w.widget.width = 67
+        self.assertEqual(w.value, orig_val)
+        w.widget.width = 98
+        self.assertEqual(w.value, orig_val)
+        w.widget.width = 234
+        self.assertEqual(w.value, orig_val)
+        ts = time.clock()
+        Clock.tick()
+        while time.clock() - ts < delay + .1:
+            Clock.tick()
+        self.assertEqual(w.value, w.widget.width)
+
+        return w
+
+    def test_clock_explicit_rule_bind_explicit(self):
+        self.clock_rule_base(ClockWidget.clock_rule, 0)
+
+    def test_clock_explicit_rule(self):
+        self.clock_rule_base(ClockWidget.clock_rule2, 0)
+
+    def test_clock_explicit_rule_mix(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(ClockWidget.clock_rule3)
+
+    def test_clock_multi(self):
+        from kivy.clock import Clock
+        w = self.clock_rule_base(ClockWidget.clock_rule4, 0)
+
+        # second rule
+        orig_val = w.widget.height
+        self.assertEqual(w.value2, orig_val)
+        w.widget.height = 67
+        self.assertEqual(w.value2, orig_val)
+        Clock.tick()
+        self.assertEqual(w.value2, w.widget.height)
+
+        orig_val = w.widget.height
+        w.widget.height = 67
+        self.assertEqual(w.value2, orig_val)
+        w.widget.height = 98
+        self.assertEqual(w.value2, orig_val)
+        w.widget.height = 234
+        self.assertEqual(w.value2, orig_val)
+        Clock.tick()
+        self.assertEqual(w.value2, w.widget.height)
+
+    def clock_rule_no_ctx(self):
+        from kivy.clock import Clock
+        KV_f = KV()
+        f = KV_f(ClockWidget.clock_rule5)
+        w = ClockWidget()
+        f(w)
+
+        orig_val = w.widget.width
+        self.assertEqual(w.value, orig_val)
+        w.widget.width = 67
+        self.assertEqual(w.value, orig_val)
+        Clock.tick()
+        # clock event callback should die if no ref to the ctx is held
+        self.assertEqual(w.value, orig_val)
+
+    def test_clock_explicit_rule_non_zero(self):
+        self.clock_rule_base(ClockWidget.clock_rule6, .3)
+
+
+class LargsWidget(BaseWidget):
+
+    rule = None
+
+    def args_rule(self):
+        self.widget = Widget()
+        self.widget2 = Widget()
+
+        with KVCtx():
+            with KVRule() as self.rule:
+                self.value @= self.widget.width + self.widget2.width
+
+    def args_rule2(self):
+        self.widget = Widget()
+        self.widget2 = Widget()
+
+        with KVCtx():
+            with KVRule(delay='canvas') as self.rule:
+                self.value ^= self.widget.width + self.widget2.width
+
+    def args_rule3(self):
+        self.widget = Widget()
+        self.widget2 = Widget()
+
+        with KVCtx():
+            with KVRule(delay='canvas') as self.rule:
+                self.value ^= self.widget.width + self.widget2.width
+
+    def args_rule4(self):
+        self.widget = Widget()
+        self.widget2 = Widget()
+
+        with KVCtx():
+            with KVRule(delay=0) as self.rule:
+                self.value @= self.widget.width + self.widget2.width
+
+    def args_rule5(self):
+        self.widget = Widget()
+        self.widget2 = Widget()
+
+        with KVCtx():
+            with KVRule(delay=0) as self.rule:
+                self.value @= self.widget.width + self.widget2.width
+
+
+@skip_py2_decorator
+class TestLargs(TestBase):
+
+    def test_largs(self):
+        KV_f = KV()
+        f = KV_f(LargsWidget.args_rule)
+        w = LargsWidget()
+        f(w)
+
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        w.widget.width = 82
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        self.assertEqual(w.rule.largs[0], w.widget)
+        self.assertEqual(w.rule.largs[1], 82)
+
+        w.widget2.width = 98
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        self.assertEqual(w.rule.largs[0], w.widget2)
+        self.assertEqual(w.rule.largs[1], 98)
+
+    def test_largs_canvas(self):
+        KV_f = KV()
+        f = KV_f(LargsWidget.args_rule2)
+        w = LargsWidget()
+        f(w)
+        process_graphics_callbacks()
+
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        w.widget.width = 82
+        process_graphics_callbacks()
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        self.assertEqual(w.rule.largs[0], w.widget)
+        self.assertEqual(w.rule.largs[1], 82)
+
+        w.widget2.width = 98
+        process_graphics_callbacks()
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        self.assertEqual(w.rule.largs[0], w.widget2)
+        self.assertEqual(w.rule.largs[1], 98)
+
+    def test_largs_canvas_pooled(self):
+        KV_f = KV()
+        f = KV_f(LargsWidget.args_rule3)
+        w = LargsWidget()
+        f(w)
+        process_graphics_callbacks()
+
+        orig_val = w.widget.width + w.widget2.width
+        self.assertEqual(w.value, orig_val)
+        w.widget.width = 82
+        self.assertEqual(w.value, orig_val)
+
+        w.widget2.width = 98
+        process_graphics_callbacks()
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        self.assertEqual(w.rule.largs[0], w.widget)
+        self.assertEqual(w.rule.largs[1], 82)
+
+    def test_largs_clock(self):
+        from kivy.clock import Clock
+        KV_f = KV()
+        f = KV_f(LargsWidget.args_rule4)
+        w = LargsWidget()
+        f(w)
+        Clock.tick()
+
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        w.widget.width = 82
+        Clock.tick()
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        self.assertEqual(len(w.rule.largs), 1)
+        self.assertIsInstance(w.rule.largs[0], (int, float))
+
+        w.widget2.width = 98
+        Clock.tick()
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        self.assertEqual(len(w.rule.largs), 1)
+        self.assertIsInstance(w.rule.largs[0], (int, float))
+
+    def test_largs_clock_pooled(self):
+        from kivy.clock import Clock
+        KV_f = KV()
+        f = KV_f(LargsWidget.args_rule5)
+        w = LargsWidget()
+        f(w)
+        Clock.tick()
+
+        orig_val = w.widget.width + w.widget2.width
+        self.assertEqual(w.value, orig_val)
+        w.widget.width = 82
+        self.assertEqual(w.value, orig_val)
+
+        w.widget2.width = 98
+        Clock.tick()
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        self.assertEqual(len(w.rule.largs), 1)
+        self.assertIsInstance(w.rule.largs[0], (int, float))
+
+
+class NotCompiledWudget(BaseWidget):
+
+    def apply_rule(self):
+        with KVCtx():
+            pass
+
+    def apply_rule2(self):
+        with KVRule():
+            pass
+
+
+@skip_py2_decorator
+class TestNotCompiled(TestBase):
+
+    def test_not_compiled_ctx(self):
+        w = NotCompiledWudget()
+        with self.assertRaises(TypeError):
+            w.apply_rule()
+
+    def test_not_compiled_rule(self):
+        w = NotCompiledWudget()
+        with self.assertRaises(TypeError):
+            w.apply_rule2()
+
+# unbinding
