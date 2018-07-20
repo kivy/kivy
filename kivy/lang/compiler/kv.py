@@ -1,4 +1,7 @@
-# XXX: https://bugs.python.org/issue31772
+'''
+KV Compilation
+===============
+'''
 
 import textwrap
 import inspect
@@ -12,6 +15,9 @@ from kivy.lang.compiler.ast_parse import ParseKVFunctionTransformer, \
     ASTRuleCtxNodePlaceholder, verify_readonly_nodes
 from kivy.lang.compiler.runtime import load_kvc_from_file, save_kvc_to_file
 from kivy.lang.compiler.ast_parse import KVException
+
+__all__ = ('KV', 'KV_apply_manual')
+# XXX: https://bugs.python.org/issue31772
 
 
 def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
