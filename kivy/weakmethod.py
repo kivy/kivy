@@ -17,24 +17,28 @@ import sys
 
 if sys.version > '3':
 
-    class WeakMethod:
+    class WeakMethod(object):
         '''Implementation of a
         `weakref <http://en.wikipedia.org/wiki/Weak_reference>`_
         for functions and bound methods.
         '''
+
+        __slots__ = ('method', 'method_name', 'proxy')
+
         def __init__(self, method):
             self.method = None
             self.method_name = None
-            try:
-                if method.__self__ is not None:
-                    self.method_name = method.__func__.__name__
-                    self.proxy = weakref.proxy(method.__self__)
-                else:
+
+            s = getattr(method, '__self__', None)
+            if s is not None:
+                self.method_name = method.__func__.__name__
+                self.proxy = weakref.proxy(s)
+            else:
+                try:
+                    self.proxy = weakref.ref(method)
+                except TypeError:
                     self.method = method
                     self.proxy = None
-            except AttributeError:
-                self.method = method
-                self.proxy = None
 
         def __call__(self):
             '''Return a new bound-method like the original, or the
@@ -42,18 +46,27 @@ if sys.version > '3':
             method.
             Returns None if the original object doesn't exist.
             '''
-            try:
-                if self.proxy:
-                    return getattr(self.proxy, self.method_name)
-            except ReferenceError:
-                pass
+            proxy = self.proxy
+            if proxy is not None:
+                name = self.method_name
+                if name is not None:
+                    try:
+                        return getattr(proxy, name)
+                    except ReferenceError:
+                        return None
+                else:
+                    return proxy()
             return self.method
 
         def is_dead(self):
             '''Returns True if the referenced callable was a bound method and
             the instance no longer exists. Otherwise, return False.
             '''
-            return self.proxy is not None and not bool(dir(self.proxy))
+            if self.proxy is None:
+                return False
+            if self.method_name is None:
+                return self.proxy() is None
+            return len(dir(self.proxy)) == 0
 
         def __eq__(self, other):
             try:
@@ -63,6 +76,9 @@ if sys.version > '3':
                 return s is not None and s == other()
             except:
                 return False
+
+        def __str__(self):
+            return self.__repr__()
 
         def __repr__(self):
             return '<WeakMethod proxy={} method={} method_name={}>'.format(
