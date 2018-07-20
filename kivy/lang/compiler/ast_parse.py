@@ -1,21 +1,45 @@
+'''
+KV Parser
+===========
+
+Parses source code contains KV rules and contexts.
+'''
+
 import ast
 from collections import deque, defaultdict
-import astor
 from astor.code_gen import SourceGenerator
 from astor.source_repr import split_lines
 
-from kivy.lang.compiler.kv_context import KVCtx, KVParserRule
+from kivy.lang.compiler.kv_context import KVParserCtx, KVParserRule
+
+__all__ = (
+    'KVException', 'KVCompilerParserException', 'BindSubTreeNode',
+    'ASTBindNodeRef', 'ASTRuleCtxNodePlaceholder', 'ASTNodeList',
+    'RefSourceGenerator', 'generate_source', 'NotWhiteListed',
+    'ParseKVBindTransformer', 'ParseKVFunctionTransformer',
+    'DoNothingAST', 'ParseExpressionNameLoadTransformer',
+    'VerifyKVCaptureOnExitTransformer',
+    'VerifyKVCaptureOnEnterTransformer', 'verify_readonly_nodes')
 
 
 class KVException(Exception):
+    '''
+    Raised when something goes wrong with KV compilation or loading.
+    '''
     pass
 
 
 class KVCompilerParserException(KVException):
+    '''
+    Raised when something goes wrong with KV parsing.
+    '''
     pass
 
 
 class BindSubTreeNode(object):
+    '''
+    A minimal rebind/leaf constrained subtree from the bind tree.
+    '''
 
     nodes = []
 
@@ -40,6 +64,11 @@ class BindSubTreeNode(object):
 
 
 class ASTBindNodeRef(ast.AST):
+    '''
+    A AST node in the bind tree that replaces the original node and describes
+    a node that we may bind to (e.g. a attribute access of a rebind or leaf
+    node).
+    '''
 
     original_node = None
 
@@ -183,16 +212,29 @@ class ASTBindNodeRef(ast.AST):
 
 
 class ASTRuleCtxNodePlaceholder(ast.AST):
+    '''
+    And AST node that is added to a AST body list and describes the source code
+    as a list of strings implicitly indented to the body's base indentation.
+
+    Useful for dumping strings rather than having to create AST nodes for all
+    the source code.
+    '''
 
     src_lines = []
 
 
 class ASTNodeList(ast.AST):
+    '''
+    AST node that is compposed of a list of AST nodes.
+    '''
 
     nodes = []
 
 
 class RefSourceGenerator(SourceGenerator):
+    '''
+    Generates the source code from the custom AST nodes.
+    '''
 
     def visit_ASTBindNodeRef(self, node, *largs, **kwargs):
         return self.visit(node.ref_node, *largs, **kwargs)
@@ -212,8 +254,10 @@ class RefSourceGenerator(SourceGenerator):
         pass
 
 
-
 def generate_source(node):
+    '''
+    Generates the source code string represented by the node.
+    '''
     generator = RefSourceGenerator(indent_with=' ' * 4)
     generator.visit(node)
 
@@ -225,10 +269,17 @@ def generate_source(node):
 
 
 class NotWhiteListed(Exception):
+    '''
+    Raised by the parser internally to handle nodes that should be ignored.
+    '''
     pass
 
 
 class ParseKVBindTransformer(ast.NodeTransformer):
+    '''
+    Transforms and computes all the nodes that should be bound to. It processes
+    all the nodes and create the graphs representing the bind rules.
+    '''
     # no Name node that is a Store shall be saved in any of the trees. It's not
     # included anyway because it cannot be an expression, but we should not
     # include either way because in the KV decorator we use all Name for
@@ -388,7 +439,13 @@ class ParseKVBindTransformer(ast.NodeTransformer):
 
 
 class ParseKVFunctionTransformer(ast.NodeTransformer):
-    '''The most important things is that we cannot allow a kv rule to be
+    '''
+    Transforms and parses the KV decorated function and creates all the graphs
+    required for the generation of compiled source code.
+
+    Notes:
+
+    The most important things is that we cannot allow a kv rule to be
     conditionally executed because we'd be lying to the user.
 
     E.g. a return statement is forbidden within a kv context.
@@ -534,7 +591,7 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
             raise KVCompilerParserException(
                 'KVCtx takes no positional or keyword arguments currently')
 
-        ctx = KVCtx()
+        ctx = KVParserCtx()
         transformer = ParseKVBindTransformer()
         ctx.set_kv_binding_ast_transformer(transformer, self.kv_syntax)
 
@@ -1049,11 +1106,16 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
 
 
 class DoNothingAST(ast.AST):
+    '''An AST node indicating that nothing should generated in the source code.
+    '''
 
     pass
 
 
 class ParseExpressionNameLoadTransformer(ast.NodeTransformer):
+    '''
+    AST transformer that finds all the Name nodes in the tree.
+    '''
 
     names = set()
 
@@ -1083,6 +1145,10 @@ class ParseExpressionNameLoadTransformer(ast.NodeTransformer):
 
 
 class VerifyKVCaptureOnExitTransformer(ParseKVFunctionTransformer):
+    '''
+    AST transformer that verifies that captured variables are not modified
+    and are read only, for the case where the bindings occur upon KVCtx exit.
+    '''
     # we can overwrite e.g. list comp visit because it cannot alter the
     # creation of new rules/ctx. But anything that changes rule or ctx creation
     # is now allowed here as it would make the first and second pass
@@ -1229,6 +1295,10 @@ class VerifyKVCaptureOnExitTransformer(ParseKVFunctionTransformer):
 
 
 class VerifyKVCaptureOnEnterTransformer(VerifyKVCaptureOnExitTransformer):
+    '''
+    AST transformer that verifies that captured variables are not modified
+    and are read only, for the case where the bindings occur upon KVCtx enter.
+    '''
     # when binds happen on enter, everything must be available at that point
     # and nothing can change until the corresponding rule is finished.
     # This means that from the ctx enter all subsequent rule's vars are
@@ -1297,6 +1367,10 @@ class VerifyKVCaptureOnEnterTransformer(VerifyKVCaptureOnExitTransformer):
 
 
 def verify_readonly_nodes(tree, transformer, bind_on_enter):
+    '''
+    Runs the appropriate transformer that verifies that captured and read only
+    variables are not modified.
+    '''
     if bind_on_enter:
         # compute all the readonly name. For bind on enter, it all
         # happens at the start of the ctx, so everything must valid

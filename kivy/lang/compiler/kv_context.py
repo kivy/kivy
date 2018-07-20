@@ -1,32 +1,126 @@
+'''
+KV Compiler Contexts and Rules
+================================
+
+Describes the classes that captures a KV binding rule as well as the context
+that stores the rules.
+
+Typical usage::
+
+    class MyWidget(Widget):
+
+        kv_ctx = None
+
+        def __init__(self, **kwargs):
+            super(MyWidget, self).__init__(**kwargs)
+            self.apply_kv()
+
+        @KV()
+        def apply_rule(self):
+            with KVCtx() as self.kv_ctx:
+                self.width @= self.height + 10
+
+                with KVRule(name='my_rule') as rule:
+                    print('callback args is:', rule.largs)
+                    self.x @= self.y + 25
+
+Then::
+
+    >>> widget = MyWidget()
+    >>> widget.height = 43  # sets widget.width to 53
+    >>> rule = widget.kv_ctx.named_rules['my_rule']
+    >>> rule.unbind_rule()  # unbinds the rule
+    >>> widget.kv_ctx.unbind_all_rules()  # unbinds all the rules
+
+'''
+
 import ast
 import fnmatch
 import re
 
+__all__ = ('KVRule', 'KVCtx', 'KVParserRule', 'KVParserCtx')
+
 
 class KVRule(object):
+    '''
+    Describes a KV rule.
 
-    __slots__ = ('bind_stores', 'callback', 'binds', 'delay', 'name', 'largs',
+    :param *binds: captures all positional arguments and add them to the bind
+        list. E.g.::
+
+            with KVRule():
+                self.x @= self.y
+
+        does the same things as::
+
+            with KVRule(self.y):
+                self.x = self.y
+
+        and you can add as many positional args there as you like, and the rule
+        will bind to all fo them. The args can be actual variable names, e.g.
+        `self.y`, or as a string, e.g. `"self.y"` - they will do the same thing.
+    :param delay: the rule type: can be None (default), `"canvas"`, or a number.
+        Describes the rule type.
+        * If `None`, it's a normal KV rule
+        * If `"canvas"`, it's meant to be used with a canvas instruction and
+          the rule will be scheduled to be executed with other graphics *after*
+          the frame, rather than every time it is called.
+        * If a number, a Clock trigger event will be created with the given
+          delay and when the rule dispatches, the event will be triggered,
+          rather than be executed immediately.
+
+          .. warning:
+              If setting the KV decorator proxy parameter to True and a clock
+              rule is created, a reference must be held to the rule or context,
+              otherwise the rule will be freed by the garbage collection.
+    :param delay: name: a optional name for the rule. Defaults to `None`
+
+    Class attributes:
+
+    :var largs: The largs provided when the rule is dispatched.
+    :var bind_stores: (internal): Maintains a reference to the lists that
+        stores all the bindings created for the rule.
+    :var callback: (internal): The callback function that is called by the rule
+        whenever it is dispatched.
+    :var _callback: (internal): If it's a clock or canvas rule, contains the
+        underlying callback that actually executed the rule. In that case,
+        `callback` contains the clock trigger or function that schedules the
+        canvas update.
+    '''
+
+    __slots__ = ('bind_stores', 'callback', 'delay', 'name', 'largs',
                  '_callback')
 
-    def __init__(
-            self, *binds, delay=None, name=None):
-        self.binds = binds
-        self.delay = delay
-        self.name = name
+    def __init__(self, *binds, delay=None, name=None):
+        # we don't save any of the args here, because when a rule is created by
+        # the manual compiler, it is the KVParserRule. For the auto compiler,
+        # the user writes in the code KVRule, but the compiler intercepts it
+        # and creates a KVParserRule instead when parsing and saves the args
+        # there. Finally, the compiler emits the creation of a KVRule without
+        # any args/kwargs and instead emits manual code that sets the
+        # attributes of the KVRule based on the internal KVParserRule, rather
+        # than passing it to the constructor.
+        # Calss variables are not init here as a optimization
         self.largs = ()
-        self.callback = None
-        self.bind_stores = ()
-        self._callback = None
 
     def __enter__(self):
         raise TypeError(
             "Something went wrong and the KV code was not compiled. Did "
-            "you forget to decorate the function with the KV compiler?")
+            "you forget to decorate the function with the KV compiler? "
+            "Make sure the KV rule class is KVRule because it cannot be "
+            "inherited from as it's parsed syntactically at compile time.")
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         raise NotImplemented
 
     def unbind_rule(self):
+        '''Unbinds the rule, so that it will not be triggered by any of the
+        properties that the rule is bound to.
+
+        If the rule is already scheduled, e.g. with a canvas instruction or
+        clock trigger, it may still execute (this may change in the future
+        to immediately cancel that as well), but it won't be scheduled again.
+        '''
         # we are slowly trimming leaves until all are unbound
         binds_stores = self.bind_stores
 
@@ -66,48 +160,108 @@ class KVRule(object):
 
 
 class KVParserRule(KVRule):
+    '''Created by the parser when it encounters a :class:`KVRule`.
+
+    It is also used when manually compiling KV.
+    '''
 
     __slots__ = ('callback_name', 'captures', 'src', 'with_var_name_ast',
-                 '_callback_name')
+                 '_callback_name', 'binds')
 
-    def __init__(self, *largs, **kwargs):
-        super(KVParserRule, self).__init__(*largs, **kwargs)
+    def __init__(self, *binds, delay=None, name=None):
+        super(KVParserRule, self).__init__()
         self.with_var_name_ast = None
+        self._callback = None
+        self.binds = binds
+        self.delay = delay
+        self.name = name
+        self.bind_stores = ()
+        self.callback = None
 
 
 class KVCtx(object):
+    '''
+    Manages KV rules created under the context.
+
+    Class attributes:
+
+    :var rules: List of :class:`KVRule`
+        Contains all the KV rules created under the context, ignoring rules
+        created under a second context within this context. E.g.::
+
+            with KVCtx() as my_ctx:
+                self.x @= self.y
+                with KVCtx() as my_ctx2:
+                    self.y @= self.height + 10
+                with KVRule(name='my_rule'):
+                    self.width @= self.height
+
+        then `my_ctx` will contain 2 rules, and my_ctx2 will contain 1 rule.
+        The rules are ordered and numbered in the order they occur in the
+        function.
+    :var named_rules: dictionary with all the rules that are named.
+        Similarly to `rules`, but contains the rules that have been given
+        names. In the example above, `my_ctx.named_rules` contains one rule
+        with name/key value `"my_rule"`.
+
+    :var bind_stores_by_tree: (internal): Maintains a reference to the lists
+        that stores all the bindings created for all the rules in the context.
+    :var rebind_functions: (internal): Maintains a reference to all the
+        callbacks used in all the context's rules.
+    '''
 
     __slots__ = (
-        'bind_stores_by_tree', 'rebind_functions',
-        'named_rules', 'rules', 'transformer', 'kv_syntax')
+        'bind_stores_by_tree', 'rebind_functions', 'named_rules', 'rules')
 
     def __init__(self):
         self.rules = []
         self.named_rules = {}
-        self.transformer = None
 
     def __enter__(self):
         raise TypeError(
             "Something went wrong and the KV code was not compiled. Did "
-            "you forget to decorate the function with the KV compiler?")
+            "you forget to decorate the function with the KV compiler? "
+            "Make sure the KV context class is KVCtx because it cannot be "
+            "inherited from as it's parsed syntactically at compile time.")
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         raise NotImplemented
+
+    def add_rule(self, rule):
+        '''Adds the rule to the context.
+
+        It is called automatically by the compiler and should only be called
+        when manually compiling KV.
+        '''
+        self.rules.append(rule)
+        if rule.name:
+            self.named_rules[rule.name] = rule
+
+    def unbind_all_rules(self):
+        '''Calls :meth:`KVRule.unbind_rule` for all the rules in the context
+        to unbind all the rules.
+        '''
+        for rule in self.rules:
+            rule.unbind_rule()
+
+
+class KVParserCtx(KVCtx):
+    '''Created by the parser when it encounters a :class:`KVCtx`.
+
+    It is also used when manually compiling KV.
+    '''
+
+    __slots__ = ('transformer', 'kv_syntax')
+
+    def __init__(self):
+        super(KVParserCtx, self).__init__()
+        self.transformer = None
 
     def set_kv_binding_ast_transformer(self, transformer, kv_syntax):
         if kv_syntax == 'minimal':
             transformer.whitelist = {
                 'Name', 'Num', 'Bytes', 'Str', 'NameConstant', 'Subscript'}
         self.transformer = transformer
-
-    def add_rule(self, rule):
-        self.rules.append(rule)
-        if rule.name:
-            self.named_rules[rule.name] = rule
-
-    def unbind_all_rules(self):
-        for rule in self.rules:
-            rule.unbind_rule()
 
     def parse_rules(self):
         for rule in self.rules:

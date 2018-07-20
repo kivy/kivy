@@ -1,3 +1,10 @@
+'''
+KV Compiler Source Code Generation
+====================================
+
+Generates the compiled KV source code.
+'''
+
 import ast
 from collections import deque, defaultdict
 from itertools import chain
@@ -5,8 +12,15 @@ from itertools import chain
 from kivy.lang.compiler.ast_parse import generate_source
 from kivy.lang.compiler.utils import StringPool
 
+__all__ = ('KVCompiler', )
+
 
 class KVCompiler(object):
+    '''
+    The compiler that generates all the source code.
+
+    This class is not part of the public API.
+    '''
 
     ref = False
 
@@ -637,6 +651,8 @@ class KVCompiler(object):
                 if rule.name:
                     rule_creation.append(
                         '{}.name = "{}"'.format(name, rule.name))
+                else:
+                    rule_creation.append('{}.name = None'.format(name))
                 rule_creation.append('{}.add_rule({})'.format(ctx_name, name))
 
                 if rule.with_var_name_ast is not None:
@@ -660,6 +676,12 @@ class KVCompiler(object):
                         rule_finalization.append(
                             '{}._callback = {}'.format(name, _callback_name))
                         assert rule.delay is not None
+                    else:
+                        rule_finalization.append(
+                            '{}._callback = None'.format(name))
+                else:
+                    rule_finalization.append('{}.callback = None'.format(name))
+                    rule_finalization.append('{}._callback = None'.format(name))
             else:
                 rule_creation.append(
                     '{} = {}.rules[{}]'.format(name, ctx_name, rule_idx))
@@ -680,6 +702,8 @@ class KVCompiler(object):
                 rule_finalization.append(
                     '{}.bind_stores = ({}, )'.
                     format(name, ', '.join(bind_stores)))
+            else:
+                rule_finalization.append('{}.bind_stores = ()'.format(name))
 
             rule_creation.append('')
             rule_finalization.append('')
@@ -821,8 +845,9 @@ class KVCompiler(object):
         # delete it at the root indentation at the end, in case some of the
         # variables are only actually used under conditionals, so we make sure
         # it always exists.
+        assert not self.temp_var_pool.get_num_borrowed()
         variables = list(sorted(chain(
-            self.temp_var_pool.get_used_items(),
+            self.temp_var_pool.get_available_items(),
             self.kv_rule_pool.get_all_items())))
 
         if variables:
