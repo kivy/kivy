@@ -32,6 +32,9 @@ __all__ = ('InputPostprocCalibration', )
 
 from kivy.config import Config
 from kivy.logger import Logger
+from kivy.input import providers
+from kivy.input.factory import MotionEventFactory
+from kivy.input.motionevent import MotionEvent
 
 
 class InputPostprocCalibration(object):
@@ -58,6 +61,7 @@ class InputPostprocCalibration(object):
         super(InputPostprocCalibration, self).__init__()
         self.devices = {}
         self.frame = 0
+        self.provider_map = self._get_provider_map()
         if not Config.has_section('postproc:calibration'):
             return
         default_params = {'xoffset': 0, 'yoffset': 0, 'xratio': 1, 'yratio': 1}
@@ -74,6 +78,26 @@ class InputPostprocCalibration(object):
                 params[key] = float(value)
             self.devices[device_key] = params
 
+    def _get_provider_map(self):
+        provider_map = {}
+        for input_provider in MotionEventFactory.list():
+            p = getattr(providers, input_provider)
+            events = []
+            for m in p.__all__:
+                attr = getattr(p, m)
+                if issubclass(attr, MotionEvent):
+                    events.append(attr)
+            if events:
+                provider_map[input_provider] = events
+        return provider_map
+
+    def _get_provider_key(self, event):
+        for input_type, ev_class in self.provider_map.items():
+            key = '({})'.format(input_type)
+            for ec in ev_class:
+                if isinstance(event, ec) and key in self.devices:
+                    return key
+
     def process(self, events):
         # avoid doing any processing if there is no device to calibrate at all.
         if not self.devices:
@@ -86,14 +110,20 @@ class InputPostprocCalibration(object):
             # end events having been already processed
             if etype == 'end':
                 continue
-            if event.device not in self.devices:
+
+            if event.device in self.devices:
+                dev = event.device
+            else:
+                dev = self._get_provider_key(event)
+            if not dev:
                 continue
+
             # some providers use the same event to update and end
             if 'calibration:frame' not in event.ud:
                 event.ud['calibration:frame'] = frame
             elif event.ud['calibration:frame'] == frame:
                 continue
-            params = self.devices[event.device]
+            params = self.devices[dev]
             event.sx = event.sx * params['xratio'] + params['xoffset']
             event.sy = event.sy * params['yratio'] + params['yoffset']
             event.ud['calibration:frame'] = frame
