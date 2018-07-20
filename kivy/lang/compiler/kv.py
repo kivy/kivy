@@ -1,3 +1,5 @@
+# XXX: https://bugs.python.org/issue31772
+
 import textwrap
 import inspect
 import re
@@ -14,12 +16,21 @@ from kivy.lang.compiler.ast_parse import KVException
 
 def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
        exec_rules_after_binding=False, captures_are_readonly=True):
+    '''Once a function is decorated, calling KV again on it will ignore
+    option changes, unless the source changed. This means calling KV()(f)
+    multiple times with different flags will not re-compile f.'''
+    compile_flags = (
+        kv_syntax, proxy, rebind, bind_on_enter, exec_rules_after_binding,
+        captures_are_readonly)
+
     def KV_decorate(func):
-        if func.__closure__:
+        if func.__closure__ or '<locals>' in func.__qualname__:
             raise KVException(
                 'The KV decorator cannot be used on a function that is a '
-                'closure')
-        mod, f = load_kvc_from_file(func)  # no lambda
+                'closure or a local. It must be defined as a global function,'
+                'such as a class method or global function in a module')
+        # no lambda
+        mod, f = load_kvc_from_file(func, compile_flags=compile_flags)
         if f is not None:
             if f == 'use_original':
                 return func
@@ -115,8 +126,8 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
         src_code = re.sub('^ +$', '', src_code, flags=re.M)  # del empty space
         src_code = re.sub('\n\n\n+', '\n\n', src_code)  # reduce newlines
 
-        save_kvc_to_file(func, src_code)
-        mod, f = load_kvc_from_file(func)
+        save_kvc_to_file(func, src_code, compile_flags=compile_flags)
+        mod, f = load_kvc_from_file(func, compile_flags=compile_flags)
         f._kv_src_func_globals = func.__globals__
         return f
 

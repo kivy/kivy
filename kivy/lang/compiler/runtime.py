@@ -1,3 +1,4 @@
+import sys
 import os
 import inspect
 import functools
@@ -10,6 +11,10 @@ _kvc_cache = {}
 
 assert set(functools.WRAPPER_ASSIGNMENTS) == {
     '__module__', '__name__', '__qualname__', '__doc__', '__annotations__'}
+
+
+def clear_kvc_cache():
+    _kvc_cache.clear()
 
 
 def add_graphics_callback(item, largs):
@@ -57,12 +62,13 @@ def get_kvc_filename(func, flags=''):
     return kv_fname
 
 
-def load_kvc_from_file(func, target_func_name=None, flags=''):
+def load_kvc_from_file(func, target_func_name=None, flags='', compile_flags=()):
     if target_func_name is None:
         target_func_name = func.__name__
     func_filname = inspect.getfile(func)
     func_name = func.__qualname__
-    key = func_filname, func_name, flags
+    compile_flags_s = repr(compile_flags)
+    key = func_filname, func_name, flags, compile_flags_s
 
     if key in _kvc_cache:
         return _kvc_cache[key]
@@ -73,13 +79,19 @@ def load_kvc_from_file(func, target_func_name=None, flags=''):
 
     kv_dir = os.path.join(head, '__kvcache__')
     flags = '-{}'.format(flags) if flags else ''
-    kv_fname = os.path.join(kv_dir, '{}-{}{}.kvc'.format(fname_root, func_name, flags))
+    kv_fname = os.path.join(
+        kv_dir, '{}-{}{}.kvc'.format(fname_root, func_name, flags))
 
-    if not os.path.exists(kv_fname) or os.stat(func_filname).st_mtime >= os.stat(kv_fname).st_mtime:
+    if not os.path.exists(kv_fname) or os.stat(
+            func_filname).st_mtime >= os.stat(kv_fname).st_mtime:
         return None, None
 
-    loader = importlib.machinery.SourceFileLoader('__kv{}'.format(len(_kvc_cache)), kv_fname)
+    mod_name = '__kv{}'.format(len(_kvc_cache))
+    loader = importlib.machinery.SourceFileLoader(mod_name, kv_fname)
     mod = loader.load_module()
+    if compile_flags_s != mod.__kv_kvc_compile_flags:
+        del sys.modules[mod_name]
+        return None, None
     f = getattr(mod, target_func_name)
 
     for attr in functools.WRAPPER_ASSIGNMENTS:
@@ -94,7 +106,7 @@ def load_kvc_from_file(func, target_func_name=None, flags=''):
     return _kvc_cache[key]
 
 
-def save_kvc_to_file(func, src_code, flags=''):
+def save_kvc_to_file(func, src_code, flags='', compile_flags=()):
     func_filname = inspect.getfile(func)
     head, tail = os.path.split(func_filname)
     fname_root, _ = os.path.splitext(tail)
@@ -102,10 +114,13 @@ def save_kvc_to_file(func, src_code, flags=''):
     kv_dir = os.path.join(head, '__kvcache__')
     flags = '-{}'.format(flags) if flags else ''
     func_name = func.__qualname__
-    kv_fname = os.path.join(kv_dir, '{}-{}{}.kvc'.format(fname_root, func_name, flags))
+    kv_fname = os.path.join(
+        kv_dir, '{}-{}{}.kvc'.format(fname_root, func_name, flags))
 
     if not os.path.exists(kv_dir):
         os.mkdir(kv_dir)
 
     with open(kv_fname, 'w') as fh:
+        fh.write('__kv_kvc_compile_flags = {}\n\n'.format(
+            repr(repr(compile_flags))))
         fh.write(src_code)
