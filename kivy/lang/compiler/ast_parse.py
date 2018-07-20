@@ -630,6 +630,14 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
                     delay = val.s
                 elif isinstance(val, ast.Num):
                     delay = val.n
+                elif isinstance(val, ast.UnaryOp) and isinstance(
+                        val.operand, ast.Num):
+                    if isinstance(val.op, ast.USub):
+                        delay = -val.operand.n
+                    elif isinstance(val.op, ast.UAdd):
+                        delay = val.operand.n
+                    else:
+                        assert False
                 else:
                     raise KVCompilerParserException(
                         'Cannot parse {}, must be one of canvas/number/None'.
