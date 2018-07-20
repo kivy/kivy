@@ -5,7 +5,8 @@ import re
 
 class KVRule(object):
 
-    __slots__ = ('bind_stores', 'callback', 'binds', 'delay', 'name', 'largs')
+    __slots__ = ('bind_stores', 'callback', 'binds', 'delay', 'name', 'largs',
+                 '_callback')
 
     def __init__(
             self, *binds, delay=None, name=None):
@@ -15,6 +16,7 @@ class KVRule(object):
         self.largs = ()
         self.callback = None
         self.bind_stores = ()
+        self._callback = None
 
     def __enter__(self):
         raise TypeError(
@@ -65,7 +67,8 @@ class KVRule(object):
 
 class KVParserRule(KVRule):
 
-    __slots__ = ('callback_name', 'captures', 'src', 'with_var_name_ast')
+    __slots__ = ('callback_name', 'captures', 'src', 'with_var_name_ast',
+                 '_callback_name')
 
     def __init__(self, *largs, **kwargs):
         super(KVParserRule, self).__init__(*largs, **kwargs)
@@ -101,6 +104,10 @@ class KVCtx(object):
         self.rules.append(rule)
         if rule.name:
             self.named_rules[rule.name] = rule
+
+    def unbind_all_rules(self):
+        for rule in self.rules:
+            rule.unbind_rule()
 
     def parse_rules(self):
         for rule in self.rules:

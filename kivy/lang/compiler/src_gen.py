@@ -616,14 +616,18 @@ class KVCompiler(object):
         rule_creation = []
         rule_finalization = []
         kv_rule_pool = self.kv_rule_pool
+        canvas_pool = self.leaf_canvas_callback_pool
+        clock_pool = self.leaf_clock_callback_pool
 
         for rule_idx, (rule, rule_nodes) in enumerate(
                 zip(ctx.rules, ctx.transformer.nodes_by_rule)):
             name = kv_rule_pool.borrow_persistent()
             if create_rules:
-                if rule.delay is None:
+                delay = rule.delay
+
+                if delay is None:
                     delay_arg = 'None'
-                elif rule.delay == 'canvas':
+                elif delay == 'canvas':
                     delay_arg = '"canvas"'
                 else:
                     delay_arg = '{}'.format(rule.delay)
@@ -639,8 +643,23 @@ class KVCompiler(object):
                     rule.with_var_name_ast.id = name
 
                 if rule_nodes:
+                    callback_name = rule.callback_name
+                    if delay is None:
+                        _callback_name = callback_name
+                    elif delay == 'canvas':
+                        _callback_name = canvas_pool.borrow_persistent()
+                        self.used_canvas_rule = True
+                    else:
+                        _callback_name = clock_pool.borrow_persistent()
+                        self.used_clock_rule = True
+                    rule._callback_name = _callback_name
+
                     rule_finalization.append(
-                        '{}.callback = {}'.format(name, rule.callback_name))
+                        '{}.callback = {}'.format(name, callback_name))
+                    if callback_name != _callback_name:
+                        rule_finalization.append(
+                            '{}._callback = {}'.format(name, _callback_name))
+                        assert rule.delay is not None
             else:
                 rule_creation.append(
                     '{} = {}.rules[{}]'.format(name, ctx_name, rule_idx))
@@ -669,8 +688,6 @@ class KVCompiler(object):
 
     def gen_leaf_callbacks(self, ctx):
         src_code = []
-        canvas_pool = self.leaf_canvas_callback_pool
-        clock_pool = self.leaf_clock_callback_pool
         for rule_idx, (rule, rule_nodes) in enumerate(
                 zip(ctx.rules, ctx.transformer.nodes_by_rule)):
             if not rule_nodes:
@@ -683,19 +700,12 @@ class KVCompiler(object):
 
             delay = rule.delay
             callback_name = rule.callback_name
-            if delay is None:
-                proxy_callback_name = callback_name
-            elif delay == 'canvas':
-                proxy_callback_name = canvas_pool.borrow_persistent()
-                self.used_canvas_rule = True
-            else:
-                proxy_callback_name = clock_pool.borrow_persistent()
-                self.used_clock_rule = True
+            _callback_name = rule._callback_name
 
             s = ', '.join(
                 '{0}={0}'.format(name) for name in sorted(rule.captures))
             s = ', {}'.format(s) if s else ''
-            func_def = 'def {}(*__kv_largs{}):'.format(proxy_callback_name, s)
+            func_def = 'def {}(*__kv_largs{}):'.format(_callback_name, s)
 
             src_code.append(func_def)
             if name is not None:
@@ -709,7 +719,7 @@ class KVCompiler(object):
                 continue
             elif delay == 'canvas':
                 func_def = 'def {}(*__kv_largs, __kv_canvas_item=[{}, ' \
-                    'None, None]):'.format(callback_name, proxy_callback_name)
+                    'None, None]):'.format(callback_name, _callback_name)
                 body = '{}__kv_add_graphics_callback(__kv_canvas_item, ' \
                     '__kv_largs)'.format(' ' * 4)
                 src_code.append(func_def)
@@ -717,7 +727,7 @@ class KVCompiler(object):
                 src_code.append('')
             else:
                 line = '{} = __kv_Clock.create_trigger({}, {})'.\
-                    format(callback_name, proxy_callback_name, delay)
+                    format(callback_name, _callback_name, delay)
                 src_code.append(line)
                 src_code.append('')
 
