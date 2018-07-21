@@ -9,6 +9,7 @@
 # objects that are None in rule
 # bind mutliple of same object in rule, including in rule largs
 # rule/ctx attributes
+# test on_xxx
 # manual tests
 
 # TODO: add tests for async def, like do_def, once py2 support is dropped
@@ -1106,6 +1107,7 @@ class TestCtxAutoCompiler(TestBase):
         with self.assertRaises(KVCompilerParserException):
             KV_f(CtxWidget.bind_canvas_rule_without_ctx)
 
+
 _temp_value = 45
 
 
@@ -1182,6 +1184,7 @@ class CodeNodesWidget(BaseWidget):
 
     def do_def(self):
         self.widget = Widget()
+
         def x():
             pass
         with KVCtx():
@@ -1198,6 +1201,7 @@ class CodeNodesWidget(BaseWidget):
         self.widget = Widget()
         with KVCtx():
             self.width @= self.widget.width
+
         def x():
             pass
 
@@ -1222,11 +1226,13 @@ class CodeNodesWidget(BaseWidget):
         with KVCtx():
             with KVRule():
                 self.width @= self.widget.width
+
             def x():
                 pass
 
     def do_class(self):
         self.widget = Widget()
+
         class x(object):
             pass
         with KVCtx():
@@ -1243,6 +1249,7 @@ class CodeNodesWidget(BaseWidget):
         self.widget = Widget()
         with KVCtx():
             self.width @= self.widget.width
+
         class x(object):
             pass
 
@@ -1267,6 +1274,7 @@ class CodeNodesWidget(BaseWidget):
         with KVCtx():
             with KVRule():
                 self.width @= self.widget.width
+
             class x(object):
                 pass
 
@@ -2615,6 +2623,8 @@ class UnbindingWidget(BaseWidget):
 
     ctx3 = None
 
+    count = 0
+
     def unbind_rule(self):
         self.widget = Widget()
         with KVCtx() as self.ctx:
@@ -2647,6 +2657,20 @@ class UnbindingWidget(BaseWidget):
             with KVRule(self.widget2.width, name='second'):
                 self.value2 @= self.widget2.width
 
+    def unbind_rule4(self):
+        self.widget = Widget()
+        with KVCtx() as self.ctx:
+            self.value @= self.widget.width
+            self.value2 @= self.widget.width
+
+    def unbind_rule5(self):
+        self.widget = Widget()
+        with KVCtx() as self.ctx:
+            with KVRule(self.widget.width):
+                self.count += 1
+                self.value @= \
+                    self.widget.width + self.widget.width + self.widget.width
+
 
 @skip_py2_decorator
 class TestUnbinding(TestBase):
@@ -2657,6 +2681,12 @@ class TestUnbinding(TestBase):
         w = UnbindingWidget()
         f(w)
 
+        self.assertEqual(len(w.ctx.bind_stores_by_tree), 1)
+        self.assertEqual(len(w.ctx.bind_stores_by_tree[0]), 2)
+        self.assertEqual(len(w.ctx.rules[0].bind_stores), 1)
+        for item in w.ctx.bind_stores_by_tree[0]:
+            self.assertIsNotNone(item)
+
         self.assertEqual(w.value, w.widget.width)
         w.widget.width = 453
         self.assertEqual(w.value, 453)
@@ -2664,6 +2694,9 @@ class TestUnbinding(TestBase):
         w.ctx.unbind_all_rules()
         w.widget.width = 756
         self.assertEqual(w.value, 453)
+
+        for item in w.ctx.bind_stores_by_tree[0]:
+            self.assertIsNone(item)
 
     def test_unbind_rule_explicit(self):
         KV_f = KV()
@@ -2671,6 +2704,12 @@ class TestUnbinding(TestBase):
         w = UnbindingWidget()
         f(w)
 
+        self.assertEqual(len(w.ctx.bind_stores_by_tree), 1)
+        self.assertEqual(len(w.ctx.bind_stores_by_tree[0]), 2)
+        self.assertEqual(len(w.ctx.rules[0].bind_stores), 1)
+        for item in w.ctx.bind_stores_by_tree[0]:
+            self.assertIsNotNone(item)
+
         self.assertEqual(w.value, w.widget.width)
         w.widget.width = 453
         self.assertEqual(w.value, 453)
@@ -2679,12 +2718,37 @@ class TestUnbinding(TestBase):
         w.widget.width = 756
         self.assertEqual(w.value, 453)
 
+        for item in w.ctx.bind_stores_by_tree[0]:
+            self.assertIsNone(item)
+
     def test_unbind_rule_multi(self):
         from random import randint
         KV_f = KV()
         f = KV_f(UnbindingWidget.unbind_rule3)
         w = UnbindingWidget()
         f(w)
+
+        self.assertEqual(len(w.ctx.bind_stores_by_tree), 1)
+        self.assertEqual(len(w.ctx.bind_stores_by_tree[0]), 3)
+        self.assertEqual(len(w.ctx.rules[0].bind_stores), 1)
+        self.assertEqual(len(w.ctx.rules[1].bind_stores), 1)
+
+        self.assertEqual(len(w.ctx2.bind_stores_by_tree), 1)
+        self.assertEqual(len(w.ctx2.bind_stores_by_tree[0]), 3)
+        self.assertEqual(len(w.ctx2.rules[0].bind_stores), 1)
+        self.assertEqual(len(w.ctx2.rules[1].bind_stores), 1)
+
+        self.assertEqual(len(w.ctx3.bind_stores_by_tree), 1)
+        self.assertEqual(len(w.ctx3.bind_stores_by_tree[0]), 3)
+        self.assertEqual(len(w.ctx3.rules[0].bind_stores), 1)
+        self.assertEqual(len(w.ctx3.rules[1].bind_stores), 1)
+
+        for item in w.ctx.bind_stores_by_tree[0]:
+            self.assertIsNotNone(item)
+        for item in w.ctx2.bind_stores_by_tree[0]:
+            self.assertIsNotNone(item)
+        for item in w.ctx3.bind_stores_by_tree[0]:
+            self.assertIsNotNone(item)
 
         self.assertEqual(w.value, w.widget.height)
         self.assertEqual(w.value2, w.widget2.width)
@@ -2807,6 +2871,13 @@ class TestUnbinding(TestBase):
         check_3_2(bound=False)
         w.ctx.rules[1].unbind_rule()  # check no error
 
+        for item in w.ctx.bind_stores_by_tree[0]:
+            self.assertIsNone(item)
+        for item in w.ctx2.bind_stores_by_tree[0]:
+            self.assertIsNone(item)
+        for item in w.ctx3.bind_stores_by_tree[0]:
+            self.assertIsNone(item)
+
         w.ctx.unbind_all_rules()
         check_1_1(bound=False)
         check_1_2(bound=False)
@@ -2815,3 +2886,68 @@ class TestUnbinding(TestBase):
         check_3_1(bound=False)
         check_3_2(bound=False)
 
+    def test_unbind_rebind(self):
+        KV_f = KV(rebind=True)
+        f = KV_f(UnbindingWidget.unbind_rule4)
+        w = UnbindingWidget()
+        f(w)
+
+        self.assertEqual(len(w.ctx.bind_stores_by_tree), 1)
+        self.assertEqual(len(w.ctx.bind_stores_by_tree[0]), 3)
+        self.assertEqual(len(w.ctx.rules[0].bind_stores), 1)
+        for item in w.ctx.bind_stores_by_tree[0]:
+            self.assertIsNotNone(item)
+
+        self.assertEqual(w.value, w.widget.width)
+        self.assertEqual(w.value2, w.widget.width)
+
+        w.widget.width = 56
+        self.assertEqual(w.value, 56)
+        self.assertEqual(w.value2, 56)
+
+        w.ctx.rules[0].unbind_rule()
+        w.widget.width = 43
+        self.assertEqual(w.value, 56)
+        self.assertEqual(w.value2, 43)
+
+        w.widget = Widget()
+        self.assertEqual(w.value, 56)
+        self.assertEqual(w.value2, w.widget.width)
+
+        w.widget.width = 5123
+        self.assertEqual(w.value, 56)
+        self.assertEqual(w.value2, 5123)
+
+        w.ctx.rules[1].unbind_rule()
+        w.widget.width = 155
+        self.assertEqual(w.value, 56)
+        self.assertEqual(w.value2, 5123)
+
+        for item in w.ctx.bind_stores_by_tree[0]:
+            self.assertIsNone(item)
+
+    def test_unbind_rule_explicit_multiple_of_same(self):
+        KV_f = KV()
+        f = KV_f(UnbindingWidget.unbind_rule5)
+        w = UnbindingWidget()
+        f(w)
+
+        self.assertEqual(len(w.ctx.bind_stores_by_tree), 1)
+        self.assertEqual(len(w.ctx.bind_stores_by_tree[0]), 2)
+        self.assertEqual(len(w.ctx.rules[0].bind_stores), 1)
+        for item in w.ctx.bind_stores_by_tree[0]:
+            self.assertIsNotNone(item)
+
+        self.assertEqual(w.value, 3 * w.widget.width)
+        count = w.count
+        w.widget.width = 851
+        self.assertEqual(w.value, 3 * 851)
+        self.assertEqual(count + 1, w.count)
+
+        w.widget.width = 65
+        self.assertEqual(w.value, 3 * 65)
+        self.assertEqual(count + 2, w.count)
+
+        w.ctx.unbind_all_rules()
+        w.widget.width = 59
+        self.assertEqual(w.value, 3 * 65)

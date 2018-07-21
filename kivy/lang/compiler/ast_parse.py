@@ -303,6 +303,10 @@ class ParseKVBindTransformer(ast.NodeTransformer):
 
     whitelist = None
 
+    leaf_nodes_in_rule = set()
+
+    nodes_under_leaf = set()
+
     def __init__(self):
         super(ParseKVBindTransformer, self).__init__()
         self.src_node_map = {}
@@ -313,6 +317,7 @@ class ParseKVBindTransformer(ast.NodeTransformer):
     def update_tree(self, nodes, rule):
         self.current_rule = rule
         self.src_nodes = src_nodes = []
+        self.leaf_nodes_in_rule = set()
         self.nodes_by_rule.append(src_nodes)
         for node in nodes:
             self.visit(node)
@@ -323,8 +328,12 @@ class ParseKVBindTransformer(ast.NodeTransformer):
         self.visited.add(node)
 
         if self.under_attr and isinstance(node, ast.expr):
+            if is_final_attribute:
+                self.nodes_under_leaf = set()
+
             whitelist = self.whitelist
-            if whitelist is not None and not is_attribute and node.__class__.__name__ not in whitelist:
+            if whitelist is not None and not is_attribute and \
+                    node.__class__.__name__ not in whitelist:
                 raise NotWhiteListed
 
             current_processing_node = self.current_processing_node
@@ -337,12 +346,20 @@ class ParseKVBindTransformer(ast.NodeTransformer):
             finally:
                 self.current_processing_node = current_processing_node
 
+            src = generate_source(node).rstrip('\r\n')
             if is_final_attribute:
                 # final nodes are not evaluated anywhere so we don't need
                 # their source. Also, they are all unique so we don't
                 # de-duplicate
                 assert is_attribute
                 assert current_processing_node is None
+
+                if src in self.leaf_nodes_in_rule:
+                    for item in self.nodes_under_leaf:
+                        item.count -= 1
+                    return node
+                self.leaf_nodes_in_rule.add(src)
+
                 ret_node.set_ref_node(node)
                 ret_node.count += 1
                 ret_node.leaf_rule = self.current_rule
@@ -350,14 +367,17 @@ class ParseKVBindTransformer(ast.NodeTransformer):
                 for dep in ret_node.depends:
                     dep.depends_on_me.append(ret_node)
             else:
-                src = generate_source(node).rstrip('\r\n')
-                # either we already saw a tree with a unique root path to this node
+                # either we already saw a tree with a unique root path to
+                # this node
                 if src in self.src_node_map:
                     # if we did, replace the re-occurrence with the node of the
                     # first occurrence. Abandon ret_node, everything there is
                     # redundant
                     new_node = False
                     ret_node = self.src_node_map[src]
+                    if ret_node not in self.nodes_under_leaf:
+                        self.nodes_under_leaf.add(ret_node)
+                        ret_node.count += 1
                 else:
                     # if we didn't, create a node representing this path
                     ret_node.set_ref_node(node)
@@ -367,7 +387,9 @@ class ParseKVBindTransformer(ast.NodeTransformer):
                     for dep in ret_node.depends:
                         dep.depends_on_me.append(ret_node)
 
-                ret_node.count += 1
+                    ret_node.count += 1
+                    self.nodes_under_leaf.add(ret_node)
+
                 # if it's None, we hit the final (root) expr of the tree
                 if ret_node not in current_processing_node.depends:
                     current_processing_node.depends.append(ret_node)
