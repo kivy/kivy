@@ -133,9 +133,9 @@ class KVRule(object):
                     raise Exception(
                         'Cannot unbind a rule before it was finished binding')
 
-                leaf_tree_indices = leaf[5]
+                leaf_graph_indices = leaf[5]
                 assert leaf[4] == 1
-                for bind_idx in leaf_tree_indices:
+                for bind_idx in leaf_graph_indices:
                     bind_item = bind_store[bind_idx]
                     if bind_item is None:
                         raise Exception(
@@ -204,14 +204,14 @@ class KVCtx(object):
         names. In the example above, `my_ctx.named_rules` contains one rule
         with name/key value `"my_rule"`.
 
-    :var bind_stores_by_tree: (internal): Maintains a reference to the lists
+    :var bind_stores_by_graph: (internal): Maintains a reference to the lists
         that stores all the bindings created for all the rules in the context.
     :var rebind_functions: (internal): Maintains a reference to all the
         callbacks used in all the context's rules.
     '''
 
     __slots__ = (
-        'bind_stores_by_tree', 'rebind_functions', 'named_rules', 'rules')
+        'bind_stores_by_graph', 'rebind_functions', 'named_rules', 'rules')
 
     def __init__(self):
         self.rules = []
@@ -277,7 +277,7 @@ class KVParserCtx(KVCtx):
             else:
                 nodes = [ast.parse(bind) if isinstance(bind, str) else bind
                          for bind in rule.binds]
-            self.transformer.update_tree(nodes, rule)
+            self.transformer.update_graph(nodes, rule)
 
     def set_nodes_proxy(self, use_proxy, use_proxy_exclude=None):
         nodes_rules = self.transformer.nodes_by_rule

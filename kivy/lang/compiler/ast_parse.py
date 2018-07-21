@@ -13,7 +13,7 @@ from astor.source_repr import split_lines
 from kivy.lang.compiler.kv_context import KVParserCtx, KVParserRule
 
 __all__ = (
-    'KVException', 'KVCompilerParserException', 'BindSubTreeNode',
+    'KVException', 'KVCompilerParserException', 'BindSubGraphNode',
     'ASTBindNodeRef', 'ASTRuleCtxNodePlaceholder', 'ASTNodeList',
     'RefSourceGenerator', 'generate_source', 'NotWhiteListed',
     'ParseKVBindTransformer', 'ParseKVFunctionTransformer',
@@ -36,9 +36,9 @@ class KVCompilerParserException(KVException):
     pass
 
 
-class BindSubTreeNode(object):
+class BindSubGraphNode(object):
     '''
-    A minimal rebind/leaf constrained subtree from the bind tree.
+    A minimal rebind/leaf constrained subgraph from the bind graph.
     '''
 
     nodes = []
@@ -52,20 +52,25 @@ class BindSubTreeNode(object):
     terminates_with_leafs_only = True
 
     def __init__(self, nodes, terminal_attrs):
-        super(BindSubTreeNode, self).__init__()
+        super(BindSubGraphNode, self).__init__()
         self.nodes = nodes
         self.terminal_attrs = terminal_attrs
         self.depends_on_me = []
 
     def __repr__(self):
-        return 'Nodes: {' + '}, {'.join(map(repr, self.nodes)) + \
-            '}\nTerminal nodes: {' + \
-            '}, {'.join(map(repr, self.terminal_attrs)) + '}'
+        base = '<Subgraph -- # attr deps: {}, leafs_only?: {}\n'.format(
+            self.n_attr_deps, self.terminates_with_leafs_only)
+        return base + \
+            'Nodes({}): {{'.format(len(self.nodes)) + \
+            '}\n    {'.join(map(repr, self.nodes)) + \
+            '}}\nTerminal nodes({}): {{'.format(len(self.terminal_attrs)) + \
+            '}\n    {'.join(map(repr, self.terminal_attrs)) + \
+            '}>'
 
 
 class ASTBindNodeRef(ast.AST):
     '''
-    A AST node in the bind tree that replaces the original node and describes
+    A AST node in the bind graph that replaces the original node and describes
     a node that we may bind to (e.g. a attribute access of a rebind or leaf
     node).
     '''
@@ -97,9 +102,9 @@ class ASTBindNodeRef(ast.AST):
     leaf_rule = None
     # only attrs can be leaf
 
-    my_tree = []
-    '''Keeps track of the tree the node is in. E.g. `self.x + obj.y` contains
-    two independent trees.
+    my_graph = []
+    '''Keeps track of the graph the node is in. E.g. `self.x + obj.y` contains
+    two independent graphs.
     '''
 
     def __init__(self, is_attribute):
@@ -108,8 +113,8 @@ class ASTBindNodeRef(ast.AST):
         self.depends_on_me = []
         self.depends = []
 
-    def get_rebind_or_leaf_subtree(self):
-        # these trees have no cycles, and are directed, even if you remove their
+    def get_rebind_or_leaf_subgraph(self):
+        # these graphs have no cycles, and are directed, even if you remove their
         # directionality, there could be cycles.
         # Algo: start with the node add its deps_on_me to the stack, then mark
         # it saying that we already explored all its dependencies. Working
@@ -174,7 +179,7 @@ class ASTBindNodeRef(ast.AST):
                     visited.add(node)
                     backward_stack.popleft()
 
-        return BindSubTreeNode(explored, terminal_nodes)
+        return BindSubGraphNode(explored, terminal_nodes)
 
     def set_ref_node(self, node):
         self._attributes = node._attributes
@@ -202,13 +207,14 @@ class ASTBindNodeRef(ast.AST):
         return grouped_nodes
 
     def __repr__(self):
-        return '{} - is_attr: {}, count: {}, ' \
-            'leaf: {}, depends_on_me({}): {}, , depends({}): {}'.\
+        deps_on_me = '}, {'.join(node.src for node in self.depends_on_me)
+        deps = '}, {'.join(node.src for node in self.depends)
+        return '<Node {} -- is_attr?: {}, rebind?: {}, proxy?: {}, count: {}, '\
+            'leaf?: {}, depends_on_me({}): {{{}}}, depends({}): {{{}}}>'.\
             format(
-                self.src, self.is_attribute, self.count,
-                self.leaf_rule is not None, len(self.depends_on_me),
-                [node.src for node in self.depends_on_me], len(self.depends),
-                [node.src for node in self.depends])
+                self.src, self.is_attribute, self.rebind, self.proxy,
+                self.count, self.leaf_rule is not None, len(self.depends_on_me),
+                deps_on_me, len(self.depends), deps)
 
 
 class ASTRuleCtxNodePlaceholder(ast.AST):
@@ -280,7 +286,7 @@ class ParseKVBindTransformer(ast.NodeTransformer):
     Transforms and computes all the nodes that should be bound to. It processes
     all the nodes and create the graphs representing the bind rules.
     '''
-    # no Name node that is a Store shall be saved in any of the trees. It's not
+    # no Name node that is a Store shall be saved in any of the graphs. It's not
     # included anyway because it cannot be an expression, but we should not
     # include either way because in the KV decorator we use all Name for
     # capturing and making them readonly. This assumes that they are all Load.
@@ -291,7 +297,7 @@ class ParseKVBindTransformer(ast.NodeTransformer):
 
     nodes_by_rule = []
 
-    nodes_by_tree = []
+    nodes_by_graph = []
 
     src_nodes = []
 
@@ -310,11 +316,11 @@ class ParseKVBindTransformer(ast.NodeTransformer):
     def __init__(self):
         super(ParseKVBindTransformer, self).__init__()
         self.src_node_map = {}
-        self.nodes_by_tree = []
+        self.nodes_by_graph = []
         self.nodes_by_rule = []
         self.visited = set()
 
-    def update_tree(self, nodes, rule):
+    def update_graph(self, nodes, rule):
         self.current_rule = rule
         self.src_nodes = src_nodes = []
         self.leaf_nodes_in_rule = set()
@@ -361,13 +367,14 @@ class ParseKVBindTransformer(ast.NodeTransformer):
                 self.leaf_nodes_in_rule.add(src)
 
                 ret_node.set_ref_node(node)
+                ret_node.src = src
                 ret_node.count += 1
                 ret_node.leaf_rule = self.current_rule
                 self.src_nodes.append(ret_node)
                 for dep in ret_node.depends:
                     dep.depends_on_me.append(ret_node)
             else:
-                # either we already saw a tree with a unique root path to
+                # either we already saw a graph with a unique root path to
                 # this node
                 if src in self.src_node_map:
                     # if we did, replace the re-occurrence with the node of the
@@ -390,27 +397,27 @@ class ParseKVBindTransformer(ast.NodeTransformer):
                     ret_node.count += 1
                     self.nodes_under_leaf.add(ret_node)
 
-                # if it's None, we hit the final (root) expr of the tree
+                # if it's None, we hit the final (root) expr of the graph
                 if ret_node not in current_processing_node.depends:
                     current_processing_node.depends.append(ret_node)
 
             if new_node:
                 if not ret_node.depends:
-                    tree = ret_node.my_tree = [[ret_node], [None]]
-                    tree[1][0] = tree
-                    self.nodes_by_tree.append(tree[0])
+                    graph = ret_node.my_graph = [[ret_node], [None]]
+                    graph[1][0] = graph
+                    self.nodes_by_graph.append(graph[0])
                 else:
-                    ret_node.my_tree = tree = ret_node.depends[0].my_tree
+                    ret_node.my_graph = graph = ret_node.depends[0].my_graph
                     for dep in ret_node.depends[1:]:
-                        if dep.my_tree[0] is tree[0]:
+                        if dep.my_graph[0] is graph[0]:
                             continue
 
-                        self.nodes_by_tree.remove(dep.my_tree[0])
-                        tree[0].extend(dep.my_tree[0])
-                        tree[1].extend(dep.my_tree[1])
-                        for item in dep.my_tree[1]:
-                            item[0] = tree[0]
-                    tree[0].append(ret_node)
+                        self.nodes_by_graph.remove(dep.my_graph[0])
+                        graph[0].extend(dep.my_graph[0])
+                        graph[1].extend(dep.my_graph[1])
+                        for item in dep.my_graph[1]:
+                            item[0] = graph[0]
+                    graph[0].append(ret_node)
         else:
             ret_node = super(ParseKVBindTransformer, self).generic_visit(node)
         return ret_node
@@ -1136,7 +1143,7 @@ class DoNothingAST(ast.AST):
 
 class ParseExpressionNameLoadTransformer(ast.NodeTransformer):
     '''
-    AST transformer that finds all the Name nodes in the tree.
+    AST transformer that finds all the Name nodes in the graph.
     '''
 
     names = set()
@@ -1388,7 +1395,7 @@ class VerifyKVCaptureOnEnterTransformer(VerifyKVCaptureOnExitTransformer):
         return ParseKVFunctionTransformer.visit_Name(self, node)
 
 
-def verify_readonly_nodes(tree, transformer, bind_on_enter):
+def verify_readonly_nodes(graph, transformer, bind_on_enter):
     '''
     Runs the appropriate transformer that verifies that captured and read only
     variables are not modified.
@@ -1414,7 +1421,7 @@ def verify_readonly_nodes(tree, transformer, bind_on_enter):
 
     verifier = verifier_cls(first_pass_rules=transformer.rules_by_occurrence,
                             first_pass_contexts=transformer.context_infos)
-    verifier.visit(tree)
+    verifier.visit(graph)
     # should have been fully consumed
     assert not verifier.first_pass_contexts
     assert not verifier.first_pass_rules

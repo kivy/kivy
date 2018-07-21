@@ -48,9 +48,9 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
         src = textwrap.dedent(inspect.getsource(func))
 
         transformer = ParseKVFunctionTransformer(kv_syntax=kv_syntax)
-        tree = ast.parse(src)
+        graph = ast.parse(src)
         # remove the KV decorator
-        func_def = tree.body[0]
+        func_def = graph.body[0]
         assert isinstance(func_def, ast.FunctionDef)
         if len(func_def.decorator_list) > 1:
             raise KVCompilerParserException(
@@ -58,10 +58,10 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
                 'single KV decorator')
         del func_def.decorator_list[:]
 
-        copied_tree = None
+        copied_graph = None
         if captures_are_readonly:
-            copied_tree = copy.deepcopy(tree)
-        ast_nodes = transformer.visit(tree)
+            copied_graph = copy.deepcopy(graph)
+        ast_nodes = transformer.visit(graph)
 
         if not transformer.context_infos:
             save_kvc_to_file(
@@ -71,7 +71,7 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
                 format(func.__name__))
             return func
 
-        func_def = tree.body[0]
+        func_def = graph.body[0]
         assert isinstance(func_def, ast.FunctionDef)
         func_body = func_def.body
         assert isinstance(func_body, list)
@@ -103,7 +103,7 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
 
         if captures_are_readonly:
             # needs to happen after all the rules are parsed
-            verify_readonly_nodes(copied_tree, transformer, bind_on_enter)
+            verify_readonly_nodes(copied_graph, transformer, bind_on_enter)
 
         update_node = ASTRuleCtxNodePlaceholder()
         imports = [

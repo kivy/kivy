@@ -2671,6 +2671,20 @@ class UnbindingWidget(BaseWidget):
                 self.value @= \
                     self.widget.width + self.widget.width + self.widget.width
 
+    def unbind_rule6(self):
+        self.value2 = 0
+        self.widget = Widget()
+        self.widget2 = Widget()
+        widget = self.widget3 = Widget()
+
+        with KVCtx() as self.ctx:
+            with KVRule():
+                self.count += 1
+                self.value @= (
+                    self.widget if self.value2 else self.widget2).width + \
+                    widget.height
+            self.value3 @= self.widget.width
+
 
 @skip_py2_decorator
 class TestUnbinding(TestBase):
@@ -2681,10 +2695,10 @@ class TestUnbinding(TestBase):
         w = UnbindingWidget()
         f(w)
 
-        self.assertEqual(len(w.ctx.bind_stores_by_tree), 1)
-        self.assertEqual(len(w.ctx.bind_stores_by_tree[0]), 2)
+        self.assertEqual(len(w.ctx.bind_stores_by_graph), 1)
+        self.assertEqual(len(w.ctx.bind_stores_by_graph[0]), 2)
         self.assertEqual(len(w.ctx.rules[0].bind_stores), 1)
-        for item in w.ctx.bind_stores_by_tree[0]:
+        for item in w.ctx.bind_stores_by_graph[0]:
             self.assertIsNotNone(item)
 
         self.assertEqual(w.value, w.widget.width)
@@ -2695,7 +2709,7 @@ class TestUnbinding(TestBase):
         w.widget.width = 756
         self.assertEqual(w.value, 453)
 
-        for item in w.ctx.bind_stores_by_tree[0]:
+        for item in w.ctx.bind_stores_by_graph[0]:
             self.assertIsNone(item)
 
     def test_unbind_rule_explicit(self):
@@ -2704,10 +2718,10 @@ class TestUnbinding(TestBase):
         w = UnbindingWidget()
         f(w)
 
-        self.assertEqual(len(w.ctx.bind_stores_by_tree), 1)
-        self.assertEqual(len(w.ctx.bind_stores_by_tree[0]), 2)
+        self.assertEqual(len(w.ctx.bind_stores_by_graph), 1)
+        self.assertEqual(len(w.ctx.bind_stores_by_graph[0]), 2)
         self.assertEqual(len(w.ctx.rules[0].bind_stores), 1)
-        for item in w.ctx.bind_stores_by_tree[0]:
+        for item in w.ctx.bind_stores_by_graph[0]:
             self.assertIsNotNone(item)
 
         self.assertEqual(w.value, w.widget.width)
@@ -2718,7 +2732,7 @@ class TestUnbinding(TestBase):
         w.widget.width = 756
         self.assertEqual(w.value, 453)
 
-        for item in w.ctx.bind_stores_by_tree[0]:
+        for item in w.ctx.bind_stores_by_graph[0]:
             self.assertIsNone(item)
 
     def test_unbind_rule_multi(self):
@@ -2728,26 +2742,26 @@ class TestUnbinding(TestBase):
         w = UnbindingWidget()
         f(w)
 
-        self.assertEqual(len(w.ctx.bind_stores_by_tree), 1)
-        self.assertEqual(len(w.ctx.bind_stores_by_tree[0]), 3)
+        self.assertEqual(len(w.ctx.bind_stores_by_graph), 1)
+        self.assertEqual(len(w.ctx.bind_stores_by_graph[0]), 3)
         self.assertEqual(len(w.ctx.rules[0].bind_stores), 1)
         self.assertEqual(len(w.ctx.rules[1].bind_stores), 1)
 
-        self.assertEqual(len(w.ctx2.bind_stores_by_tree), 1)
-        self.assertEqual(len(w.ctx2.bind_stores_by_tree[0]), 3)
+        self.assertEqual(len(w.ctx2.bind_stores_by_graph), 1)
+        self.assertEqual(len(w.ctx2.bind_stores_by_graph[0]), 3)
         self.assertEqual(len(w.ctx2.rules[0].bind_stores), 1)
         self.assertEqual(len(w.ctx2.rules[1].bind_stores), 1)
 
-        self.assertEqual(len(w.ctx3.bind_stores_by_tree), 1)
-        self.assertEqual(len(w.ctx3.bind_stores_by_tree[0]), 3)
+        self.assertEqual(len(w.ctx3.bind_stores_by_graph), 1)
+        self.assertEqual(len(w.ctx3.bind_stores_by_graph[0]), 3)
         self.assertEqual(len(w.ctx3.rules[0].bind_stores), 1)
         self.assertEqual(len(w.ctx3.rules[1].bind_stores), 1)
 
-        for item in w.ctx.bind_stores_by_tree[0]:
+        for item in w.ctx.bind_stores_by_graph[0]:
             self.assertIsNotNone(item)
-        for item in w.ctx2.bind_stores_by_tree[0]:
+        for item in w.ctx2.bind_stores_by_graph[0]:
             self.assertIsNotNone(item)
-        for item in w.ctx3.bind_stores_by_tree[0]:
+        for item in w.ctx3.bind_stores_by_graph[0]:
             self.assertIsNotNone(item)
 
         self.assertEqual(w.value, w.widget.height)
@@ -2871,11 +2885,11 @@ class TestUnbinding(TestBase):
         check_3_2(bound=False)
         w.ctx.rules[1].unbind_rule()  # check no error
 
-        for item in w.ctx.bind_stores_by_tree[0]:
+        for item in w.ctx.bind_stores_by_graph[0]:
             self.assertIsNone(item)
-        for item in w.ctx2.bind_stores_by_tree[0]:
+        for item in w.ctx2.bind_stores_by_graph[0]:
             self.assertIsNone(item)
-        for item in w.ctx3.bind_stores_by_tree[0]:
+        for item in w.ctx3.bind_stores_by_graph[0]:
             self.assertIsNone(item)
 
         w.ctx.unbind_all_rules()
@@ -2892,10 +2906,10 @@ class TestUnbinding(TestBase):
         w = UnbindingWidget()
         f(w)
 
-        self.assertEqual(len(w.ctx.bind_stores_by_tree), 1)
-        self.assertEqual(len(w.ctx.bind_stores_by_tree[0]), 3)
+        self.assertEqual(len(w.ctx.bind_stores_by_graph), 1)
+        self.assertEqual(len(w.ctx.bind_stores_by_graph[0]), 3)
         self.assertEqual(len(w.ctx.rules[0].bind_stores), 1)
-        for item in w.ctx.bind_stores_by_tree[0]:
+        for item in w.ctx.bind_stores_by_graph[0]:
             self.assertIsNotNone(item)
 
         self.assertEqual(w.value, w.widget.width)
@@ -2923,7 +2937,7 @@ class TestUnbinding(TestBase):
         self.assertEqual(w.value, 56)
         self.assertEqual(w.value2, 5123)
 
-        for item in w.ctx.bind_stores_by_tree[0]:
+        for item in w.ctx.bind_stores_by_graph[0]:
             self.assertIsNone(item)
 
     def test_unbind_rule_explicit_multiple_of_same(self):
@@ -2932,10 +2946,10 @@ class TestUnbinding(TestBase):
         w = UnbindingWidget()
         f(w)
 
-        self.assertEqual(len(w.ctx.bind_stores_by_tree), 1)
-        self.assertEqual(len(w.ctx.bind_stores_by_tree[0]), 2)
+        self.assertEqual(len(w.ctx.bind_stores_by_graph), 1)
+        self.assertEqual(len(w.ctx.bind_stores_by_graph[0]), 2)
         self.assertEqual(len(w.ctx.rules[0].bind_stores), 1)
-        for item in w.ctx.bind_stores_by_tree[0]:
+        for item in w.ctx.bind_stores_by_graph[0]:
             self.assertIsNotNone(item)
 
         self.assertEqual(w.value, 3 * w.widget.width)
@@ -2951,3 +2965,51 @@ class TestUnbinding(TestBase):
         w.ctx.unbind_all_rules()
         w.widget.width = 59
         self.assertEqual(w.value, 3 * 65)
+
+    def test_unbind_rule_full_syntax(self):
+        KV_f = KV(kv_syntax=None, rebind=True)
+        f = KV_f(UnbindingWidget.unbind_rule6)
+        w = UnbindingWidget()
+        f(w)
+
+        self.assertEqual(len(w.ctx.bind_stores_by_graph), 2)
+        self.assertEqual(set(map(len, w.ctx.bind_stores_by_graph)), {1, 4})
+        self.assertEqual(len(w.ctx.rules[0].bind_stores), 2)
+        for graph in w.ctx.bind_stores_by_graph:
+            for item in graph:
+                self.assertIsNotNone(item)
+
+        orig = w.widget2.width + w.widget3.height
+        self.assertEqual(w.value, orig)
+        w.widget.width = 433
+        self.assertEqual(w.value, orig)
+        self.assertEqual(w.value3, w.widget.width)
+        w.widget2.width = 786
+        self.assertEqual(w.value, w.widget2.width + w.widget3.height)
+        w.widget3.height = 987
+        self.assertEqual(w.value, w.widget2.width + w.widget3.height)
+
+        w.value2 = 1
+
+        orig = w.widget.width + w.widget3.height
+        self.assertEqual(w.value, orig)
+        w.widget2.width = 34
+        self.assertEqual(w.value, orig)
+        w.widget.width = 67
+        self.assertEqual(w.value, w.widget.width + w.widget3.height)
+        w.widget3.height = 123
+        self.assertEqual(w.value, w.widget.width + w.widget3.height)
+
+        # self.assertEqual(w.value, 3 * w.widget.width)
+        # count = w.count
+        # w.widget.width = 851
+        # self.assertEqual(w.value, 3 * 851)
+        # self.assertEqual(count + 1, w.count)
+        #
+        # w.widget.width = 65
+        # self.assertEqual(w.value, 3 * 65)
+        # self.assertEqual(count + 2, w.count)
+        #
+        # w.ctx.unbind_all_rules()
+        # w.widget.width = 59
+        # self.assertEqual(w.value, 3 * 65)
