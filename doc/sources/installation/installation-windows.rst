@@ -3,6 +3,11 @@
 Installation on Windows
 =======================
 
+To use Kivy, you need existing installation of 
+`Python <https://www.python.org/downloads/windows/>`_.
+Multiple versions of Python can be installed side by side, but Kivy needs to
+be installed for each Python version that you want to use Kivy.
+
 Beginning with 1.9.1 we provide binary
 `wheels <https://wheel.readthedocs.org/en/latest/>`_
 for Kivy and all its dependencies to be used with an existing Python
@@ -20,10 +25,6 @@ location** and not to site-packages, please see :ref:`alternate-win`.
     because of the following Python
     `issue 4709 <http://bugs.python.org/issue4709>`_ about MinGW.
     Generally this should make no difference when using precompiled wheels.
-
-To use Kivy you need `Python <https://www.python.org/downloads/windows/>`_.
-Multiple versions of Python can be installed side by side, but Kivy needs to
-be installed for each Python version that you want to use Kivy.
 
 .. _install-win-dist:
 
