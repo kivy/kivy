@@ -59,7 +59,7 @@ class KVCompiler(object):
         self.kv_ctx_pool = StringPool(prefix='__kv_ctx')
         self.kv_rule_pool = StringPool(prefix='__kv_rule')
 
-    def get_all_parent_nodes_of_leaves(self, graphs):
+    def get_all_bind_store_indices_for_leaf_and_parents(self, graphs):
         node_deps = {}
         for graph, _, _ in graphs:
             for node in graph:
@@ -68,23 +68,50 @@ class KVCompiler(object):
 
                 node_deps[node] = None
                 stack = deque(node.depends)
+                # notice append right not left here. It has to be last at start
                 stack.append(node)
                 while stack:
                     first = stack[0]
+                    # node of the deps of first can be a leaf, by definition
                     if first not in node_deps:
+                        # we have not processed the first previously at all so
+                        # add its deps to the top of stack so that when we
+                        # arrive again to this node, all the deps of the
+                        # current's deps will have been computed, and we just
+                        # need to merge them.
                         stack.extendleft(first.depends)
                         # next time we see it, its deps will be ready
                         node_deps[first] = None
                     elif node_deps[first] is None:
-                        item = node_deps[first] = set(chain(*(node_deps[dep] for dep in first.depends)))
-                        item.add(first)
+                        # all the deps of the first is done because it's the
+                        # second time we encounter it, just merge them.
+                        subgraph = first.subgraph_for_terminal_node
+                        node_deps[first] = merged = set()
+                        for dep in first.depends:
+                            # get deps of deps
+                            merged.update(node_deps[dep])
+                            if not dep.bind_store_indices:
+                                # it's not a rebind/leaf node
+                                continue
+                            # get index of the dep
+                            i = dep.subgraphs_to_bind_store_name_and_idx[
+                                subgraph]
+                            i = dep.bind_store_indices[i]
+                            merged.add(i)
                         stack.popleft()
                     else:
+                        # we have seen it previously, e.g. as co-dep of
+                        # multiple nodes, e.g. in a triangle graph a->b->c and
+                        # a->c, we'll see a twice
                         stack.popleft()
+                assert len(node.bind_store_indices) == 1
+                node_deps[node].add(node.bind_store_indices[0])
 
         return node_deps
 
     def compute_attr_bindings(self, ctx):
+        # can the same `nodes` node be in multiple subgraphs that are
+        # depends on each other?
         graphs_attr_subgraph = []
         for graph in ctx.transformer.nodes_by_graph:
             visited = set()
@@ -107,7 +134,8 @@ class KVCompiler(object):
             visited = set()
             ordered_subgraph_dep_indices = {}
             for node in graph:
-                if (node.leaf_rule is not None or node.rebind) and node not in visited:
+                if (node.leaf_rule is not None or node.rebind) and \
+                        node not in visited:
                     subgraph = attr_subgraph[term_subgraph_indices[node]]
                     visited.update(subgraph.terminal_attrs)
                     for dep in subgraph.nodes:
@@ -130,75 +158,72 @@ class KVCompiler(object):
                 (graph, ordered_attr_subgraphs, ordered_subgraph_dep_indices))
         return graphs_attr_subgraph
 
-    def get_bind_store_names(self, graphs):
-        pool = self.binding_store_pool
-        graphs_bind_store_names = [pool.borrow_persistent() for _ in graphs]
-
-        nodes_bind_store_names = {
-            node: graphs_bind_store_names[i]
-            for i, graph in enumerate(graphs) for node in graph[0]}
-        return graphs_bind_store_names, nodes_bind_store_names
-
-    def update_names_of_bind_callbacks(
-            self, bind_graphs, gen_leaf_name, ctx):
+    def populate_bind_stores_and_indices_and_callback_names(
+            self, graphs, gen_leaf_name, ctx):
+        store_pool = self.binding_store_pool
         rebind_pool = self.rebind_callback_pool
         leaf_pool = self.leaf_callback_pool
-        graph_bind_callback_names = {}
-        node_bind_callback_names = {}
 
-        for graph, bind_subgraphs, subgraphs_node_dep_idx in bind_graphs:
-            for subgraph in bind_subgraphs:
-                for node in subgraph.terminal_attrs:
-                    if node.leaf_rule is None:
-                        node_subgraph = bind_subgraphs[
-                            subgraphs_node_dep_idx[node]]
-                        if node_subgraph in graph_bind_callback_names:
-                            # graph was already assigned rebind function
-                            node_bind_callback_names[node] = \
-                                graph_bind_callback_names[node_subgraph]
-                        else:
-                            name = rebind_pool.borrow_persistent()
-                            node_bind_callback_names[node] = \
-                                graph_bind_callback_names[node_subgraph] = name
+        graphs_bind_store_name_and_size = []
 
-        for rule, rule_nodes in zip(ctx.rules, ctx.transformer.nodes_by_rule):
-            if gen_leaf_name:
-                name = rule.callback_name = leaf_pool.borrow_persistent()
-            else:
-                name = rule.callback_name
+        if gen_leaf_name:
+            for rule, rule_nodes in zip(
+                    ctx.rules, ctx.transformer.nodes_by_rule):
+                rule.callback_name = leaf_pool.borrow_persistent()
 
-            for node in rule_nodes:
-                if node.leaf_rule is not None:
-                    node_bind_callback_names[node] = name
-        return graph_bind_callback_names, node_bind_callback_names
-
-    def get_graphs_bind_store_name_and_size(
-            self, graphs_bind_store_names, graphs_bind_store_indices):
-        bind_store_name_and_size = []
-        for name, graph_indices in zip(
-                graphs_bind_store_names, graphs_bind_store_indices):
-            bind_store_name_and_size.append((name, len(graph_indices)))
-        return bind_store_name_and_size
-
-    def get_bind_store_indices(self, ctx):
-        graphs_bind_store_indices = []
-        node_bind_store_indices = {}
-
-        for graph in ctx.transformer.nodes_by_graph:
-            bind_store_indices = {}
+        for graph, subgraphs, _ in graphs:
+            bind_store_count = 0
+            bind_store_name = store_pool.borrow_persistent()
             for node in graph:
-                if node.leaf_rule is not None or node.rebind:
-                    bind_store_indices[node] = len(bind_store_indices)
-            graphs_bind_store_indices.append(bind_store_indices)
+                node.bind_store_name = bind_store_name
 
-        for item in graphs_bind_store_indices:
-            node_bind_store_indices.update(item)
-        return graphs_bind_store_indices, node_bind_store_indices
+            for subgraph in subgraphs:
+                subgraph.bind_store_name = bind_store_name
+                rebind_nodes = [node for node in subgraph.nodes if node.rebind]
+                # if no rebind nodes, it's e.g. a root subtree with just
+                # literals or global/local/nonlocal names.
+                if rebind_nodes:
+                    name = subgraph.rebind_callback_name = \
+                        rebind_pool.borrow_persistent()
+                    for node in rebind_nodes:
+                        node.subgraphs_to_bind_store_name_and_idx[
+                            subgraph] = len(node.callback_names)
+                        node.callback_names.append(name)
+                        node.bind_store_indices.append(bind_store_count)
+                        subgraph.bind_store_rebind_nodes_indices[node] = \
+                            bind_store_count
+                        bind_store_count += 1
+
+                # rebind nodes in terminal_attrs will be inspected in
+                # subsequent subgraph, as they must be in `nodes` in the future
+                # because they depend on us and is a child subgraph of us
+                for node in subgraph.terminal_attrs:
+                    # leaf nodes can only be bound once, but may occur in
+                    # multiple subgraphs
+                    node.subgraph_for_terminal_node = subgraph
+                    if node.leaf_rule is not None and not node.callback_names:
+                        node.callback_names.append(
+                            node.leaf_rule.callback_name)
+                        node.bind_store_indices.append(bind_store_count)
+                        bind_store_count += 1
+
+                # these nodes are not rebind nodes, so they either occur as
+                # child of a rebind node, in which case it has a unique
+                # subgraph, or it's like a number, which has no deps, so we
+                # don't care what its subgraph is because it'll never
+                # have bind indices associated with it
+                for node in subgraph.nodes:
+                    if not node.rebind:
+                        node.subgraph_for_terminal_node = subgraph
+
+            graphs_bind_store_name_and_size.append(
+                (bind_store_name, bind_store_count))
+
+        return graphs_bind_store_name_and_size
 
     def gen_base_rebind_node_local_variable(
             self, src_code, subgraph, node, temp_pool, nodes_use_count,
-            bind_store_indices, bind_store_names, nodes_original_ref,
-            nodes_temp_var_name):
+            nodes_original_ref, nodes_temp_var_name):
         '''generates the source for getting the value from the bind store
         on which the rebind function was bound, and saves it as a local
         variable to be used by children nodes later in the rebind function.
@@ -224,13 +249,13 @@ class KVCompiler(object):
         # a rebind function could be bound to multiple attr
         # rebind nodes (e.g. `(self.x + other.y).value`) so
         # we need to check if the rebind list has been init
-        i = bind_store_indices[node]  # list index of rbind
-        bind_store_name = bind_store_names[node]
+        i = subgraph.bind_store_rebind_nodes_indices[node]  # rebind list index
+        bind_store_name = subgraph.bind_store_name
         assert subgraph.n_attr_deps >= 1
 
         indent = 4
-        # only if the graph does have deps, otherwise, there's nothing to lookup
-        # in the bind store as it's a global etc.
+        # only if the graph does have deps, otherwise, there's nothing to
+        # lookup in the bind store as it's a global etc.
         if subgraph.n_attr_deps > 1:
             src_code.append(
                 '{}{} = None'.format(' ' * 4, var))
@@ -265,8 +290,8 @@ class KVCompiler(object):
         node.set_ref_node(ast.Name(id=var, ctx=ast.Load()))
 
     def gen_non_bind_node_local_variable(
-            self, src_code, node, temp_pool, nodes_use_count, nodes_original_ref,
-            nodes_temp_var_name, indent):
+            self, src_code, node, temp_pool, nodes_use_count,
+            nodes_original_ref, nodes_temp_var_name, indent):
         '''Create the local temp variable when rebinding from a node, provided
         the node is neither a leaf nor a rebindable attribute. E.g. a
         simple addition operation, or even a attribute, but rebind is False
@@ -294,7 +319,8 @@ class KVCompiler(object):
             for dep in depends:
                 name = nodes_temp_var_name[dep]
                 condition.append('{} is not None'.format(name))
-            condition = '{}if {}:'.format(' ' * indent, ' and '.join(condition))
+            condition = '{}if {}:'.format(
+                ' ' * indent, ' and '.join(condition))
             src_code.append(condition)
 
             indent += 4
@@ -313,85 +339,78 @@ class KVCompiler(object):
         for dep in depends:
             temp_pool.return_back(dep)
 
-    def gen_unbind_subgraph_bindings(
-            self, src_code, subgraph, bind_store_indices, bind_store):
+    def gen_unbind_subgraph_bindings(self, src_code, subgraph):
+        bind_store_name = subgraph.bind_store_name
         for node in subgraph.terminal_attrs:
             # we don't need too check for double visits because
             # each graph contains *all* deps of terminal attrs
-            i = bind_store_indices[node]
-
-            src_code.append(
-                '{}__kv_bind_ref = {}[{}]'.format(' ' * 4, bind_store, i))
-            src_code.append('{}if __kv_bind_ref is not None:'.format(' ' * 4))
-            src_code.append(
-                '{}__kv_obj, __kv_attr, _, __kv_uid, _, _ = __kv_bind_ref'.
-                format(' ' * 8))
-            src_code.append(
-                '{}if __kv_obj is not None and __kv_uid:'.format(' ' * 8))
-            src_code.append(
-                '{}__kv_obj.unbind_uid(__kv_attr, __kv_uid)'.format(' ' * 12))
-            src_code.append('{}__kv_bind_ref[0] = None'.format(' ' * 12))
-            src_code.append('')
+            for i in node.bind_store_indices:
+                src_code.append(
+                    '{}__kv_bind_ref = {}[{}]'.format(
+                        ' ' * 4, bind_store_name, i))
+                src_code.append(
+                    '{}if __kv_bind_ref is not None:'.format(' ' * 4))
+                src_code.append(
+                    '{}__kv_obj, __kv_attr, _, __kv_uid, _, _ = __kv_bind_ref'.
+                    format(' ' * 8))
+                src_code.append(
+                    '{}if __kv_obj is not None and __kv_uid:'.format(' ' * 8))
+                src_code.append(
+                    '{}__kv_obj.unbind_uid(__kv_attr, __kv_uid)'.
+                    format(' ' * 12))
+                src_code.append('{}__kv_bind_ref[0] = None'.format(' ' * 12))
+                src_code.append('')
 
     def gen_fbind_for_subgraph_nodes_in_rebind_callback(
-            self, src_code, nodes, indent, bind_store_indices,
-            bind_store_names, dep_name):
+            self, src_code, nodes, indent, dep_name):
         indent2 = indent + 4
         indent3 = indent + 8
 
         for node in nodes:
             obj_attr = node.ref_node.attr
-            i = bind_store_indices[node]
-            bind_store_name = bind_store_names[node]
-
-            src_code.append(
-                '{}__kv_bind_element = {}[{}]'.format(
-                    ' ' * indent2, bind_store_name, i))
-            src_code.append(
-                '{}if __kv_bind_element is not None:'.format(' ' * indent2))
-            bind = '__kv__fbind("{}", __kv_bind_element[2])'.format(obj_attr)
-            src_code.append(
-                '{}__kv_bind_element[0] = {}'.format(' ' * indent3, dep_name))
-            src_code.append(
-                '{}__kv_bind_element[3] = {}'.format(' ' * indent3, bind))
-            src_code.append('')
+            for i in node.bind_store_indices:
+                src_code.append(
+                    '{}__kv_bind_element = {}[{}]'.format(
+                        ' ' * indent2, node.bind_store_name, i))
+                src_code.append(
+                    '{}if __kv_bind_element is not None:'.
+                    format(' ' * indent2))
+                bind = '__kv__fbind("{}", __kv_bind_element[2])'.format(
+                    obj_attr)
+                src_code.append(
+                    '{}__kv_bind_element[0] = {}'.
+                    format(' ' * indent3, dep_name))
+                src_code.append(
+                    '{}__kv_bind_element[3] = {}'.format(' ' * indent3, bind))
+                src_code.append('')
 
     def gen_fbind_for_subgraph_nodes_for_initial_bindings(
-            self, src_code, nodes, indent, bind_store_indices,
-            bind_store_names, dep_name, node_bind_callback_names,
-            parent_nodes_of_leaves):
+            self, src_code, nodes, indent, dep_name, parent_nodes_of_leaves):
         indent2 = indent + 4
 
         for node in nodes:
             obj_attr = node.ref_node.attr
-            i = bind_store_indices[node]
-            bind_store_name = bind_store_names[node]
+            for i, callback_name in zip(
+                    node.bind_store_indices, node.callback_names):
+                bind = '__kv__fbind("{}", {})'.format(obj_attr, callback_name)
+                if node.leaf_rule is None:
+                    indices = '()'
+                else:
+                    indices = '({}, )'.format(', '.join(map(str, sorted(
+                        parent_nodes_of_leaves[node]))))
 
-            callback_name = node_bind_callback_names[node]
-            bind = '__kv__fbind("{}", {})'.format(obj_attr, callback_name)
-            if node.leaf_rule is None:
-                indices = '()'
-            else:
-                indices = '({}, )'.format(', '.join(
-                    map(str, sorted((
-                        bind_store_indices[dep]
-                        for dep in parent_nodes_of_leaves[node]
-                        if dep.leaf_rule is not None or dep.rebind)))
-                ))
-
-            src_code.append(
-                '{}{}[{}] = [{}, "{}", {}, {}, {}, {}]'.format(
-                    ' ' * indent2, bind_store_name, i, dep_name,
-                    obj_attr, callback_name, bind, node.count,
-                    indices
-                ))
-            src_code.append('')
+                src_code.append(
+                    '{}{}[{}] = [{}, "{}", {}, {}, {}, {}]'.format(
+                        ' ' * indent2, node.bind_store_name, i, dep_name,
+                        obj_attr, callback_name, bind, node.count,
+                        indices
+                    ))
+                src_code.append('')
 
     def gen_subgraph_bindings(
             self, src_code, subgraph, temp_pool, nodes_use_count,
-            bind_store_indices, bind_store_names, nodes_original_ref,
-            nodes_temp_var_name, node_bind_callback_names,
-            init_bindings, parent_nodes_of_leaves=None):
+            nodes_original_ref, nodes_temp_var_name, init_bindings,
+            parent_nodes_of_leaves=None):
         '''Generates the code that binds all the callbacks associated with this
         subgraph.
         '''
@@ -434,20 +453,18 @@ class KVCompiler(object):
 
             if init_bindings:
                 self.gen_fbind_for_subgraph_nodes_for_initial_bindings(
-                    src_code, nodes, indent, bind_store_indices,
-                    bind_store_names, dep_name, node_bind_callback_names,
-                    parent_nodes_of_leaves)
+                    src_code, nodes, indent, dep_name, parent_nodes_of_leaves)
             else:
                 self.gen_fbind_for_subgraph_nodes_in_rebind_callback(
-                    src_code, nodes, indent, bind_store_indices,
-                    bind_store_names, dep_name)
+                    src_code, nodes, indent, dep_name)
 
             # create the values of the nodes for use later, using the temp vars
             for node in nodes:
                 if node.leaf_rule is None:
                     var = nodes_temp_var_name[node]
                     assignment = '{}{} = {}'.format(
-                        ' ' * indent, var, generate_source(node).rstrip('\r\n'))
+                        ' ' * indent, var,
+                        generate_source(node).rstrip('\r\n'))
                     src_code.append(assignment)
                     src_code.append('')
 
@@ -460,9 +477,7 @@ class KVCompiler(object):
                     temp_pool.return_back(dep)
 
     def gen_subgraph_and_children_rebind_callback(
-            self, src_code, subgraph, nodes_use_count, bind_store_indices,
-            bind_store_names, graph_bind_callback_names,
-            node_bind_callback_names):
+            self, src_code, subgraph, nodes_use_count):
         '''
         The subgraph is composed of root nodes and leaf nodes and is
         of course a directed graph because the containing graph is directed.
@@ -520,9 +535,9 @@ class KVCompiler(object):
         src_code.append(None)
 
         assert subgraph.terminal_attrs
-        # it's the same for all nodes in a graph
-        bind_store = bind_store_names[subgraph.terminal_attrs[0]]
-        capturing_vars.add(bind_store)
+        assert subgraph.n_attr_deps
+        # it's the same for all subgraphs in a graph
+        capturing_vars.add(subgraph.bind_store_name)
 
         leaf_callbacks = defaultdict(set)
 
@@ -548,10 +563,11 @@ class KVCompiler(object):
                     if isinstance(node.ref_node, ast.Name):
                         capturing_vars.add(src)
                 elif node.rebind and node not in terminal_nodes_visited:
+                    # there are no cycles, so any node from `nodes` will be
+                    # seen only once
                     self.gen_base_rebind_node_local_variable(
                         src_code, current_subgraph, node, temp_pool,
-                        nodes_use_count, bind_store_indices,
-                        bind_store_names, nodes_original_ref,
+                        nodes_use_count, nodes_original_ref,
                         nodes_temp_var_name)
                 elif node.rebind:
                     assert node in nodes_temp_var_name, 'should already ' \
@@ -562,23 +578,19 @@ class KVCompiler(object):
                         nodes_original_ref, nodes_temp_var_name, indent=4)
 
             # unbind
-            self.gen_unbind_subgraph_bindings(
-                src_code, current_subgraph,
-                bind_store_indices, bind_store)
+            self.gen_unbind_subgraph_bindings(src_code, current_subgraph)
 
             for node in current_subgraph.terminal_attrs:
                 if node.leaf_rule is not None:
-                    i = bind_store_indices[node]
-                    bind_store_name = bind_store_names[node]
-                    f_location = '{}[{}]'.format(bind_store_name, i)
-                    leaf_callbacks[
-                        node_bind_callback_names[node]].add(f_location)
+                    assert len(node.bind_store_indices) == 1
+                    assert len(node.callback_names) == 1
+                    i = node.bind_store_indices[0]
+                    f_location = '{}[{}]'.format(node.bind_store_name, i)
+                    leaf_callbacks[node.callback_names[0]].add(f_location)
 
             self.gen_subgraph_bindings(
-                src_code, current_subgraph, temp_pool,
-                nodes_use_count, bind_store_indices, bind_store_names,
-                nodes_original_ref, nodes_temp_var_name,
-                node_bind_callback_names, init_bindings=False)
+                src_code, current_subgraph, temp_pool, nodes_use_count,
+                nodes_original_ref, nodes_temp_var_name, init_bindings=False)
 
         for name, locations in leaf_callbacks.items():
             src_code.append(
@@ -589,17 +601,15 @@ class KVCompiler(object):
         for node, origin_node in nodes_original_ref.items():
             node.set_ref_node(origin_node)
 
-        s = ', '.join('{0}={0}'.format(item) for item in sorted(capturing_vars))
+        s = ', '.join(
+            '{0}={0}'.format(item) for item in sorted(capturing_vars))
         s = ', {}'.format(s) if s else ''
         func_def = 'def {}(*__kv_largs{}):'.format(
-            graph_bind_callback_names[subgraph], s)
+            subgraph.rebind_callback_name, s)
         src_code[func_def_i] = func_def
 
     def gen_rebind_callbacks(
-            self, ctx_name, graphs, graph_bind_callback_names,
-            node_bind_callback_names, graphs_bind_store_indices,
-            graphs_bind_store_names, nodes_bind_store_names,
-            graphs_bind_store_name_and_size):
+            self, ctx_name, graphs, graphs_bind_store_name_and_size):
         src_code = []
 
         for name, n in graphs_bind_store_name_and_size:
@@ -614,9 +624,7 @@ class KVCompiler(object):
             src_code.append('{}.bind_stores_by_graph = ()'.format(ctx_name))
         src_code.append('')
 
-        for graph_bind_store_indices, bind_store, (
-                    graph, bind_subgraphs, subgraphs_node_dep_idx) in zip(
-                graphs_bind_store_indices, graphs_bind_store_names, graphs):
+        for graph, bind_subgraphs, subgraphs_node_dep_idx in graphs:
             # count the number of places each node is used. E.g. in
             # `self.x + self.y`, `self` is used twice. Keep in mind that nodes
             # are unique
@@ -639,9 +647,7 @@ class KVCompiler(object):
 
                 func_src_code = []
                 self.gen_subgraph_and_children_rebind_callback(
-                    func_src_code, subgraph, nodes_use_count,
-                    graph_bind_store_indices, nodes_bind_store_names,
-                    graph_bind_callback_names, node_bind_callback_names)
+                    func_src_code, subgraph, nodes_use_count)
 
                 # remove all that depend on the node because either the dep
                 # is in the same subgraph, or it's in the terminal of the
@@ -654,19 +660,17 @@ class KVCompiler(object):
             for node, count in nodes_use_count.items():
                 assert not count, '{}, {} should be zero'.format(node, count)
 
-        s = ', '.join(
-            graph_bind_callback_names[subgraph]
+        s = ', '.join(sorted(
+            subgraph.rebind_callback_name
             for _, subgraphs, _ in graphs for subgraph in subgraphs
-            if subgraph.n_attr_deps)
+            if subgraph.rebind_callback_name))
         comma = ', ' if s else ''
         src_code.append('{}.rebind_functions = ({}{})'.format(
             ctx_name, s, comma))
         src_code.append('')
         return src_code
 
-    def gen_leaf_rules(
-            self, ctx, ctx_name, create_rules, nodes_bind_store_names,
-            node_bind_store_indices):
+    def gen_leaf_rules(self, ctx, ctx_name, create_rules):
         rule_creation = []
         rule_finalization = []
         kv_rule_pool = self.kv_rule_pool
@@ -721,7 +725,8 @@ class KVCompiler(object):
                             '{}._callback = None'.format(name))
                 else:
                     rule_finalization.append('{}.callback = None'.format(name))
-                    rule_finalization.append('{}._callback = None'.format(name))
+                    rule_finalization.append(
+                        '{}._callback = None'.format(name))
             else:
                 rule_creation.append(
                     '{} = {}.rules[{}]'.format(name, ctx_name, rule_idx))
@@ -729,9 +734,8 @@ class KVCompiler(object):
             leaf_indices_by_store_names = defaultdict(list)
             for node in rule_nodes:
                 if node.leaf_rule is not None:
-                    leaf_indices_by_store_names[
-                        nodes_bind_store_names[node]].append(
-                        node_bind_store_indices[node])
+                    leaf_indices_by_store_names[node.bind_store_name].append(
+                        node.bind_store_indices[0])
 
             bind_stores = (
                 '({}, ({}, ))'.format(
@@ -773,7 +777,8 @@ class KVCompiler(object):
 
             src_code.append(func_def)
             if name is not None:
-                src_code.append('{}{}.largs = __kv_largs'.format(' ' * 4, name))
+                src_code.append(
+                    '{}{}.largs = __kv_largs'.format(' ' * 4, name))
 
             for line in rule.src.splitlines():
                 src_code.append('{}{}'.format(' ' * 4, line))
@@ -798,8 +803,7 @@ class KVCompiler(object):
         return src_code
 
     def gen_initial_bindings_for_graph(
-            self, src_code, graph, subgraphs, bind_store_indices,
-            bind_store_names, node_bind_callback_names, parent_nodes_of_leaves):
+            self, src_code, graph, subgraphs, parent_nodes_of_leaves):
         # we keep track of all attrs we visit in the subgraph. Because
         # deps are always explored before the children, if we encounter
         # a attr dep that has not been visited, it means its at the root
@@ -844,9 +848,8 @@ class KVCompiler(object):
 
             self.gen_subgraph_bindings(
                 src_code, subgraph, temp_pool,
-                nodes_use_count, bind_store_indices, bind_store_names,
-                nodes_original_ref, nodes_temp_var_name,
-                node_bind_callback_names, init_bindings=True,
+                nodes_use_count, nodes_original_ref, nodes_temp_var_name,
+                init_bindings=True,
                 parent_nodes_of_leaves=parent_nodes_of_leaves)
 
             for node in subgraph.nodes:
@@ -858,20 +861,14 @@ class KVCompiler(object):
         for node, origin_node in nodes_original_ref.items():
             node.set_ref_node(origin_node)
 
-    def gen_initial_bindings(
-            self, ctx, graphs, node_bind_callback_names,
-            graphs_bind_store_indices, nodes_bind_store_names,
-            exec_rules_after_binding):
-        parent_nodes_of_leaves = self.get_all_parent_nodes_of_leaves(graphs)
+    def gen_initial_bindings(self, ctx, graphs, exec_rules_after_binding):
+        parent_nodes_of_leaves = \
+            self.get_all_bind_store_indices_for_leaf_and_parents(graphs)
         src_code = []
 
-        for graph_bind_store_indices, (graph, bind_subgraphs, _) in zip(
-                graphs_bind_store_indices, graphs):
-
+        for graph, bind_subgraphs, _ in graphs:
             self.gen_initial_bindings_for_graph(
-                src_code, graph, bind_subgraphs,
-                graph_bind_store_indices, nodes_bind_store_names,
-                node_bind_callback_names, parent_nodes_of_leaves)
+                src_code, graph, bind_subgraphs, parent_nodes_of_leaves)
 
         if exec_rules_after_binding:
             for rule in ctx.rules:
@@ -904,33 +901,21 @@ class KVCompiler(object):
 
         graphs = self.compute_attr_bindings(ctx)
 
-        graphs_bind_store_names, nodes_bind_store_names = \
-            self.get_bind_store_names(graphs)
-        graph_bind_callback_names, node_bind_callback_names = \
-            self.update_names_of_bind_callbacks(graphs, create_rules, ctx)
-        graphs_bind_store_indices, node_bind_store_indices = \
-            self.get_bind_store_indices(ctx)
         graphs_bind_store_name_and_size = \
-            self.get_graphs_bind_store_name_and_size(
-                graphs_bind_store_names, graphs_bind_store_indices)
+            self.populate_bind_stores_and_indices_and_callback_names(
+                graphs, create_rules, ctx)
 
         funcs = self.gen_rebind_callbacks(
-            ctx_name, graphs, graph_bind_callback_names, node_bind_callback_names,
-            graphs_bind_store_indices, graphs_bind_store_names,
-            nodes_bind_store_names, graphs_bind_store_name_and_size)
+            ctx_name, graphs, graphs_bind_store_name_and_size)
 
         rule_creation, rule_finalization = self.gen_leaf_rules(
-            ctx, ctx_name, create_rules, nodes_bind_store_names,
-            node_bind_store_indices)
+            ctx, ctx_name, create_rules)
 
         if create_rules:
             res = self.gen_leaf_callbacks(ctx)
             funcs.extend(res)
 
-        res = self.gen_initial_bindings(
-            ctx, graphs, node_bind_callback_names,
-            graphs_bind_store_indices, nodes_bind_store_names,
-            exec_rules_after_binding)
+        res = self.gen_initial_bindings(ctx, graphs, exec_rules_after_binding)
         funcs.extend(res)
 
         return ctx_name, funcs, rule_creation, rule_finalization

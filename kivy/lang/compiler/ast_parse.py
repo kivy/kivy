@@ -13,7 +13,7 @@ from astor.source_repr import split_lines
 from kivy.lang.compiler.kv_context import KVParserCtx, KVParserRule
 
 __all__ = (
-    'KVException', 'KVCompilerParserException', 'BindSubGraphNode',
+    'KVException', 'KVCompilerParserException', 'BindSubGraph',
     'ASTBindNodeRef', 'ASTRuleCtxNodePlaceholder', 'ASTNodeList',
     'RefSourceGenerator', 'generate_source', 'NotWhiteListed',
     'ParseKVBindTransformer', 'ParseKVFunctionTransformer',
@@ -36,7 +36,7 @@ class KVCompilerParserException(KVException):
     pass
 
 
-class BindSubGraphNode(object):
+class BindSubGraph(object):
     '''
     A minimal rebind/leaf constrained subgraph from the bind graph.
     '''
@@ -51,11 +51,30 @@ class BindSubGraphNode(object):
 
     terminates_with_leafs_only = True
 
+    rebind_callback_name = None
+    '''There is one rebind callback for each subtree, provided there are at 
+    least one rebind attribute as a node in `nodes` (i.e. n_attr_deps is
+    non-zero) in which case there are none.
+    '''
+
+    bind_store_rebind_nodes_indices = {}
+    '''The nodes that are in the `nodes` of the subgraph, and maps to the
+    index in `callback_names` and `bind_store_indices` where this subgraph was
+    bound to in the bind store. I.e. the index in bind store, where each node
+    bind a rebind function that is the rebind created for this subgraph.
+    '''
+
+    bind_store_name = None
+    '''There is one bind store list per graph, so a subgraph also has only
+    one name.
+    '''
+
     def __init__(self, nodes, terminal_attrs):
-        super(BindSubGraphNode, self).__init__()
+        super(BindSubGraph, self).__init__()
         self.nodes = nodes
         self.terminal_attrs = terminal_attrs
         self.depends_on_me = []
+        self.bind_store_rebind_nodes_indices = {}
 
     def __repr__(self):
         base = '<Subgraph -- # attr deps: {}, leafs_only?: {}\n'.format(
@@ -107,11 +126,40 @@ class ASTBindNodeRef(ast.AST):
     two independent graphs.
     '''
 
+    callback_names = []
+
+    bind_store_name = ''
+
+    bind_store_indices = []
+
+    subgraph_for_terminal_node = None
+    '''The subgraph the node appears in as a terminal node. It can only be
+    one. Otherwise, either it has shared deps, in which case it would be one
+    subgraph as each contains all the deps of every terminal node. Otherwise,
+    they don't share deps, which makes no sense.
+    
+    Also, nodes that are not rebind, will occur only in one subgraph, so this
+    is also set to the subgraph by 
+    populate_bind_stores_and_indices_and_callback_names. Nodes that are not
+    rebind and occur in multiple subgraphs, e.g. a number, such nodes never 
+    care what subgraph it's in, because it has no rebind in its parent graph
+    so the subgraph is the last one it occurred in and.
+    '''
+
+    subgraphs_to_bind_store_name_and_idx = {}
+    '''Maps a subgraph to the index in `callback_names` and 
+    `bind_store_indices`, indicating the index in these lists that corresponds
+    to the bind for that subgraph.
+    '''
+
     def __init__(self, is_attribute):
         super(ASTBindNodeRef, self).__init__()
         self.is_attribute = is_attribute
         self.depends_on_me = []
         self.depends = []
+        self.callback_names = []
+        self.bind_store_indices = []
+        self.subgraphs_to_bind_store_name_and_idx = {}
 
     def get_rebind_or_leaf_subgraph(self):
         # these graphs have no cycles, and are directed, even if you remove their
@@ -179,7 +227,7 @@ class ASTBindNodeRef(ast.AST):
                     visited.add(node)
                     backward_stack.popleft()
 
-        return BindSubGraphNode(explored, terminal_nodes)
+        return BindSubGraph(explored, terminal_nodes)
 
     def set_ref_node(self, node):
         self._attributes = node._attributes
