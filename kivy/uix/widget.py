@@ -626,7 +626,7 @@ class Widget(WidgetBase):
         :Parameters:
             `filename`: str
                 The filename with which to save the png.
-            `scale`: int
+            `scale`: float
                 The amount by which to scale the saved image, defaults to 1.
         '''
 
