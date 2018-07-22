@@ -3,10 +3,15 @@
 Installation on Windows
 =======================
 
-To use Kivy, you need existing installation of 
-`Python <https://www.python.org/downloads/windows/>`_.
+Prerequisites
+-------------
+
+Kivy is written in
+`Python <https://en.wikipedia.org/wiki/Python_%28programming_language%29>`_
+and as such, to use Kivy, you need existing
+installation of `Python <https://www.python.org/downloads/windows/>`_.
 Multiple versions of Python can be installed side by side, but Kivy needs to
-be installed for each Python version that you want to use Kivy.
+be installed in each Python version that you want to use Kivy in.
 
 Beginning with 1.9.1 we provide binary
 `wheels <https://wheel.readthedocs.org/en/latest/>`_
