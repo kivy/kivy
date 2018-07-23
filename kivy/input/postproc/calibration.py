@@ -100,8 +100,8 @@ class InputPostprocCalibration(object):
 
     def _get_provider_map(self):
         """Iterates through all registered input provider names and finds the
-        respective MotionEvent subclass for each. Returns a dict of provider
-        names mapped to their MotionEvent subclass.
+        respective MotionEvent subclass for each. Returns a dict of MotionEvent
+        subclasses mapped to their provider name.
         """
         provider_map = {}
         for input_provider in MotionEventFactory.list():
@@ -109,24 +109,21 @@ class InputPostprocCalibration(object):
                 continue
 
             p = getattr(providers, input_provider)
-            events = []
             for m in p.__all__:
-                attr = getattr(p, m)
-                if issubclass(attr, MotionEvent):
-                    events.append(attr)
-            if events:
-                provider_map[input_provider] = events
+                event = getattr(p, m)
+                if issubclass(event, MotionEvent):
+                    provider_map[event] = input_provider
+
         return provider_map
 
     def _get_provider_key(self, event):
-        """Idenitifes the provider name of a MotionEvent and returns the
-        corresponding key in self.devices if it exists.
+        """Returns the provider key for the event if the provider is configured
+        for calibration.
         """
-        for input_type, ev_class in self.provider_map.items():
-            key = '({})'.format(input_type)
-            for ec in ev_class:
-                if isinstance(event, ec) and key in self.devices:
-                    return key
+        input_type = self.provider_map.get(event.__class__)
+        key = '({})'.format(input_type)
+        if input_type and key in self.devices:
+            return key
 
     def process(self, events):
         # avoid doing any processing if there is no device to calibrate at all.
