@@ -74,7 +74,7 @@ class KVRule(object):
               If setting the KV decorator proxy parameter to True and a clock
               rule is created, a reference must be held to the rule or context,
               otherwise the rule will be freed by the garbage collection.
-    :param delay: name: a optional name for the rule. Defaults to `None`
+    :param name: a optional name for the rule. Defaults to `None`
 
     Class attributes:
 

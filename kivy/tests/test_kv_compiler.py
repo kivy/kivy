@@ -1,15 +1,7 @@
 # capture x.y @= ... for x
 # read only x = x.y, should crash
 # read only no rules in nested ctx
-# rule within rule
-# deep nested ctx
-# x.y.z.KVCtx
-# rebind
-# rule/ctx order
 # objects that are None in rule
-# bind mutliple of same object in rule, including in rule largs
-# rule/ctx attributes
-# test on_xxx
 # manual tests
 
 # TODO: add tests for async def, like do_def, once py2 support is dropped
@@ -142,6 +134,8 @@ class BaseWidget(Widget):
     value_list = ListProperty([])
 
     value_dict = DictProperty({})
+
+    value_object = ObjectProperty(None)
 
     widget = ObjectProperty(None)
 
@@ -1066,6 +1060,9 @@ class TestCaptureAutoCompiler(TestBase):
 
 
 class CtxWidget(BaseWidget):
+
+    ctx = None
+
     def no_ctx(self):
         self.value = 55
 
@@ -1075,13 +1072,120 @@ class CtxWidget(BaseWidget):
     def bind_rule_without_ctx(self):
         self.value @= self.width
 
+    def no_bind_rule_without_ctx_explicit(self):
+        with KVRule():
+            self.value = 55
+
+    def bind_rule_without_ctx_explicit(self):
+        with KVRule():
+            self.value = self.width
+
     def canvas_no_bind_rule_without_ctx(self):
         self.value ^= 55
 
     def bind_canvas_rule_without_ctx(self):
         self.value ^= self.width
 
-    # mix rules types, test all rules without ctx etc, rule within rule
+    def canvas_no_bind_rule_without_ctx_explicit(self):
+        with KVRule(delay='canvas'):
+            self.value = 55
+
+    def bind_canvas_rule_without_ctx_explicit(self):
+        with KVRule(delay='canvas'):
+            self.value = self.width
+
+    def clock_no_bind_rule_without_ctx_explicit(self):
+        with KVRule(delay='canvas'):
+            self.value = 55
+
+    def bind_clock_rule_without_ctx_explicit(self):
+        with KVRule(delay='canvas'):
+            self.value = self.width
+
+    def apply_kv(self):
+        with KVCtx():
+            with KVRule():
+                self.value = self.width
+                with KVRule():
+                    self.value2 = self.height
+
+    def apply_kv2(self):
+        with KVCtx():
+            with KVRule(delay='canvas'):
+                self.value = self.width
+                with KVRule(delay='canvas'):
+                    self.value2 = self.height
+
+    def apply_kv3(self):
+        with KVCtx():
+            with KVRule(delay=0):
+                self.value = self.width
+                with KVRule(delay=0):
+                    self.value2 = self.height
+
+    def apply_kv4(self):
+        with KVCtx():
+            with KVRule():
+                self.value = self.width
+                with KVRule(delay=0):
+                    self.value2 = self.height
+
+    def apply_kv5(self):
+        with KVCtx():
+            with KVRule(delay=0):
+                self.value = self.width
+                with KVRule():
+                    self.value2 = self.height
+
+    def apply_kv6(self):
+        with KVCtx():
+            with KVRule(delay=0):
+                self.value = self.width
+                with KVRule(delay='canvas'):
+                    self.value2 = self.height
+
+    def apply_kv7(self):
+        with KVCtx():
+            with KVRule(delay='canvas'):
+                self.value = self.width
+                with KVRule(delay=0):
+                    self.value2 = self.height
+
+    def apply_kv8(self):
+        with KVCtx():
+            with KVRule():
+                self.value = self.width
+                with KVRule(delay='canvas'):
+                    self.value2 = self.height
+
+    def apply_kv9(self):
+        with KVCtx():
+            with KVRule(delay='canvas'):
+                self.value = self.width
+                with KVRule(delay=None):
+                    self.value2 = self.height
+
+    def apply_kv10(self):
+        import kivy.lang.compiler
+        with kivy.lang.compiler.KVCtx():
+            with kivy.lang.compiler.KVRule():
+                self.value @= self.width
+
+    def apply_kv11(self):
+        self.value3 = 0
+        self.value = 1
+        self.value2 = 2
+        with KVCtx():
+            self.value @= self.height
+            with KVCtx():
+                self.value @= self.width
+                with KVCtx() as self.ctx:
+                    self.value @= self.x
+                    with KVCtx():
+                        self.value @= self.y
+                        with KVCtx():
+                            self.value @= self.value2
+                self.value3 @= self.value
 
 
 @skip_py2_decorator
@@ -1097,15 +1201,130 @@ class TestCtxAutoCompiler(TestBase):
 
     def test_no_ctx_with_rule(self):
         KV_f = KV()
-
         with self.assertRaises(KVCompilerParserException):
             KV_f(CtxWidget.no_bind_rule_without_ctx)
         with self.assertRaises(KVCompilerParserException):
             KV_f(CtxWidget.bind_rule_without_ctx)
         with self.assertRaises(KVCompilerParserException):
+            KV_f(CtxWidget.no_bind_rule_without_ctx_explicit)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CtxWidget.bind_rule_without_ctx_explicit)
+
+    def test_no_ctx_with_rule_canvas(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
             KV_f(CtxWidget.canvas_no_bind_rule_without_ctx)
         with self.assertRaises(KVCompilerParserException):
             KV_f(CtxWidget.bind_canvas_rule_without_ctx)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CtxWidget.canvas_no_bind_rule_without_ctx_explicit)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CtxWidget.bind_canvas_rule_without_ctx_explicit)
+
+    def test_no_ctx_with_rule_clock(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CtxWidget.clock_no_bind_rule_without_ctx_explicit)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CtxWidget.bind_clock_rule_without_ctx_explicit)
+
+    def test_nested_rule(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CtxWidget.apply_kv)
+
+    def test_nested_rule_canvas(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CtxWidget.apply_kv2)
+
+    def test_nested_rule_clock(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CtxWidget.apply_kv3)
+
+    def test_nested_rule_mix(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CtxWidget.apply_kv4)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CtxWidget.apply_kv5)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CtxWidget.apply_kv6)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CtxWidget.apply_kv7)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CtxWidget.apply_kv8)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CtxWidget.apply_kv9)
+
+    def test_dotted_rule_ctx_name(self):
+        KV_f = KV()
+        f = KV_f(CtxWidget.apply_kv10)
+        w = CtxWidget()
+        f(w)
+
+        self.assertEqual(w.value, w.width)
+        w.width = 56
+        self.assertEqual(w.value, 56)
+
+    def test_deeply_nested_ctx(self):
+        KV_f = KV()
+        f = KV_f(CtxWidget.apply_kv11)
+        w = CtxWidget()
+        f(w)
+
+        self.assertEqual(w.value, 2)
+        self.assertEqual(w.value2, 2)
+        self.assertEqual(w.value3, 2)
+
+        w.height = 12
+        self.assertEqual(w.value, 12)
+        self.assertEqual(w.value3, 12)
+
+        w.width = 45
+        self.assertEqual(w.value, 45)
+        self.assertEqual(w.value3, 45)
+
+        w.x = 78
+        self.assertEqual(w.value, 78)
+        self.assertEqual(w.value3, 78)
+
+        w.y = 34
+        self.assertEqual(w.value, 34)
+        self.assertEqual(w.value3, 34)
+
+        w.value2 = 87
+        self.assertEqual(w.value, 87)
+        self.assertEqual(w.value3, 87)
+
+        w.value = 63
+        self.assertEqual(w.value3, 63)
+
+        w.ctx.unbind_all_rules()
+
+        w.height = 65
+        self.assertEqual(w.value, 65)
+        self.assertEqual(w.value3, 65)
+
+        w.width = 49
+        self.assertEqual(w.value, 49)
+        self.assertEqual(w.value3, 49)
+
+        w.x = 45
+        self.assertEqual(w.value, 49)
+        self.assertEqual(w.value3, 49)
+
+        w.y = 93
+        self.assertEqual(w.value, 93)
+        self.assertEqual(w.value3, 93)
+
+        w.value2 = 238
+        self.assertEqual(w.value, 238)
+        self.assertEqual(w.value3, 238)
+
+        w.value = 5368
+        self.assertEqual(w.value3, 5368)
 
 
 _temp_value = 45
@@ -2245,6 +2464,13 @@ class CanvasWidget(BaseWidget):
                 self.value ^= self.widget.width
             self.value2 ^= self.widget.height
 
+    def canvas_rule6(self):
+        self.value = 42
+        self.widget = Widget()
+        with KVCtx():
+            with KVRule(delay=None):
+                self.value ^= self.widget.width
+
 
 @skip_py2_decorator
 class TestCanvasScheduling(TestBase):
@@ -2287,6 +2513,11 @@ class TestCanvasScheduling(TestBase):
         KV_f = KV()
         with self.assertRaises(KVCompilerParserException):
             KV_f(CanvasWidget.canvas_rule4)
+
+    def test_canvas_explicit_rule_mix_flipped(self):
+        KV_f = KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(CanvasWidget.canvas_rule6)
 
     def test_canvas_multi(self):
         w = self.canvas_rule_base(CanvasWidget.canvas_rule5)
@@ -2615,7 +2846,7 @@ class TestNotCompiled(TestBase):
             w.apply_rule2()
 
 
-class UnbindingWidget(BaseWidget):
+class SyntaxUnbindingCtxRulePropsWidget(BaseWidget):
 
     ctx = None
 
@@ -2685,14 +2916,62 @@ class UnbindingWidget(BaseWidget):
                     widget.height
             self.value3 @= self.widget.width
 
+    def dict_rule7(self):
+        self.value_dict = {0: 44, 1: 23}
+        self.value2 = 0
+
+        with KVCtx() as self.ctx:
+            with KVRule():
+                self.count += 1
+                self.value @= self.value_dict[self.value2] + 76
+
+    def dict_rule8(self):
+        self.value_dict = {0: 44, 1: 23, 2: 87}
+        self.value2 = 0
+        self.value3 = 0
+
+        with KVCtx() as self.ctx:
+            with KVRule():
+                self.count += 1
+                self.value @= \
+                    self.value_dict[self.value2 + self.value3] + self.value3
+
+    def apply_kv(self):
+        self.widget = Widget()
+        with KVCtx() as self.ctx:
+            self.value @= self.widget.width
+
+    def apply_kv2(self):
+        self.widget = Widget()
+        with KVCtx() as self.ctx:
+            with KVRule(delay=None):
+                self.value @= self.widget.width
+
+    def apply_kv3(self):
+        self.widget = Widget()
+        with KVCtx() as self.ctx:
+            self.value ^= self.widget.width
+
+    def apply_kv4(self):
+        self.widget = Widget()
+        with KVCtx() as self.ctx:
+            with KVRule(delay='canvas'):
+                self.value ^= self.widget.width
+
+    def apply_kv5(self):
+        self.widget = Widget()
+        with KVCtx() as self.ctx:
+            with KVRule(delay=0):
+                self.value @= self.widget.width
+
 
 @skip_py2_decorator
-class TestUnbinding(TestBase):
+class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
 
     def test_unbind_rule(self):
         KV_f = KV()
-        f = KV_f(UnbindingWidget.unbind_rule)
-        w = UnbindingWidget()
+        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.unbind_rule)
+        w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
         self.assertEqual(len(w.ctx.bind_stores_by_graph), 1)
@@ -2714,8 +2993,8 @@ class TestUnbinding(TestBase):
 
     def test_unbind_rule_explicit(self):
         KV_f = KV()
-        f = KV_f(UnbindingWidget.unbind_rule2)
-        w = UnbindingWidget()
+        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.unbind_rule2)
+        w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
         self.assertEqual(len(w.ctx.bind_stores_by_graph), 1)
@@ -2738,8 +3017,8 @@ class TestUnbinding(TestBase):
     def test_unbind_rule_multi(self):
         from random import randint
         KV_f = KV()
-        f = KV_f(UnbindingWidget.unbind_rule3)
-        w = UnbindingWidget()
+        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.unbind_rule3)
+        w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
         self.assertEqual(len(w.ctx.bind_stores_by_graph), 1)
@@ -2902,8 +3181,8 @@ class TestUnbinding(TestBase):
 
     def test_unbind_rebind(self):
         KV_f = KV(rebind=True)
-        f = KV_f(UnbindingWidget.unbind_rule4)
-        w = UnbindingWidget()
+        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.unbind_rule4)
+        w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
         self.assertEqual(len(w.ctx.bind_stores_by_graph), 1)
@@ -2942,8 +3221,8 @@ class TestUnbinding(TestBase):
 
     def test_unbind_rule_explicit_multiple_of_same(self):
         KV_f = KV()
-        f = KV_f(UnbindingWidget.unbind_rule5)
-        w = UnbindingWidget()
+        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.unbind_rule5)
+        w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
         self.assertEqual(len(w.ctx.bind_stores_by_graph), 1)
@@ -2968,8 +3247,8 @@ class TestUnbinding(TestBase):
 
     def test_unbind_rule_full_syntax(self):
         KV_f = KV(kv_syntax=None, rebind=True)
-        f = KV_f(UnbindingWidget.unbind_rule6)
-        w = UnbindingWidget()
+        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.unbind_rule6)
+        w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
         self.assertEqual(len(w.ctx.bind_stores_by_graph), 2)
@@ -2988,6 +3267,7 @@ class TestUnbinding(TestBase):
         self.assertEqual(w.value, w.widget2.width + w.widget3.height)
         w.widget3.height = 987
         self.assertEqual(w.value, w.widget2.width + w.widget3.height)
+        self.assertEqual(w.value3, w.widget.width)
 
         w.value2 = 1
 
@@ -2996,20 +3276,277 @@ class TestUnbinding(TestBase):
         w.widget2.width = 34
         self.assertEqual(w.value, orig)
         w.widget.width = 67
+        self.assertEqual(w.value3, w.widget.width)
         self.assertEqual(w.value, w.widget.width + w.widget3.height)
         w.widget3.height = 123
         self.assertEqual(w.value, w.widget.width + w.widget3.height)
+        self.assertEqual(w.value3, w.widget.width)
 
-        # self.assertEqual(w.value, 3 * w.widget.width)
-        # count = w.count
-        # w.widget.width = 851
-        # self.assertEqual(w.value, 3 * 851)
-        # self.assertEqual(count + 1, w.count)
-        #
-        # w.widget.width = 65
-        # self.assertEqual(w.value, 3 * 65)
-        # self.assertEqual(count + 2, w.count)
-        #
-        # w.ctx.unbind_all_rules()
-        # w.widget.width = 59
-        # self.assertEqual(w.value, 3 * 65)
+        w.widget2 = Widget()
+
+        orig = w.widget.width + w.widget3.height
+        self.assertEqual(w.value, orig)
+        w.widget2.width = 3298
+        self.assertEqual(w.value, orig)
+        w.widget.width = 1896
+        self.assertEqual(w.value3, w.widget.width)
+        self.assertEqual(w.value, w.widget.width + w.widget3.height)
+        w.widget3.height = 872
+        self.assertEqual(w.value, w.widget.width + w.widget3.height)
+        self.assertEqual(w.value3, w.widget.width)
+
+        w.widget = Widget()
+
+        orig = w.widget.width + w.widget3.height
+        self.assertEqual(w.value, orig)
+        w.widget2.width = 4567
+        self.assertEqual(w.value, orig)
+        w.widget.width = 345
+        self.assertEqual(w.value3, w.widget.width)
+        self.assertEqual(w.value, w.widget.width + w.widget3.height)
+        w.widget3.height = 987
+        self.assertEqual(w.value, w.widget.width + w.widget3.height)
+        self.assertEqual(w.value3, w.widget.width)
+
+        orig2 = w.value3
+        orig = w.widget.width + w.widget3.height
+        w.ctx.rules[1].unbind_rule()
+
+        self.assertEqual(w.value, orig)
+        w.widget2.width = 6734
+        self.assertEqual(w.value, orig)
+        self.assertEqual(w.value3, orig2)
+        w.widget.width = 347
+        self.assertEqual(w.value3, orig2)
+        self.assertEqual(w.value, w.widget.width + w.widget3.height)
+        w.widget3.height = 987
+        self.assertEqual(w.value, w.widget.width + w.widget3.height)
+        self.assertEqual(w.value3, orig2)
+
+        orig2 = w.value3
+        orig = w.widget.width + w.widget3.height
+        w.ctx.rules[0].unbind_rule()
+
+        self.assertEqual(w.value, orig)
+        w.widget2.width = 6734
+        self.assertEqual(w.value, orig)
+        self.assertEqual(w.value3, orig2)
+        w.widget.width = 347
+        self.assertEqual(w.value3, orig2)
+        self.assertEqual(w.value, orig)
+        w.widget3.height = 987
+        self.assertEqual(w.value, orig)
+        self.assertEqual(w.value3, orig2)
+
+    def test_unbind_rule_full_syntax_flipped(self):
+        KV_f = KV(kv_syntax=None, rebind=True)
+        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.unbind_rule6)
+        w = SyntaxUnbindingCtxRulePropsWidget()
+        f(w)
+
+        orig = w.widget2.width + w.widget3.height
+        self.assertEqual(w.value, orig)
+        w.widget.width = 867
+        self.assertEqual(w.value, orig)
+        self.assertEqual(w.value3, w.widget.width)
+        w.widget2.width = 234
+        self.assertEqual(w.value, w.widget2.width + w.widget3.height)
+        w.widget3.height = 437
+        self.assertEqual(w.value, w.widget2.width + w.widget3.height)
+        self.assertEqual(w.value3, w.widget.width)
+
+        orig2 = w.value3
+        orig = w.widget2.width + w.widget3.height
+        self.assertEqual(w.value, orig)
+        self.assertEqual(w.value3, orig2)
+        w.ctx.rules[0].unbind_rule()
+
+        self.assertEqual(w.value, orig)
+        w.widget2.width = 357
+        self.assertEqual(w.value, orig)
+        self.assertEqual(w.value3, orig2)
+        w.widget.width = 457
+        self.assertEqual(w.value3, w.widget.width)
+        self.assertEqual(w.value, orig)
+        w.widget3.height = 349
+        self.assertEqual(w.value, orig)
+        self.assertEqual(w.value3, w.widget.width)
+
+        orig2 = w.value3
+        w.ctx.rules[1].unbind_rule()
+
+        self.assertEqual(w.value, orig)
+        w.widget2.width = 67342
+        self.assertEqual(w.value, orig)
+        self.assertEqual(w.value3, orig2)
+        w.widget.width = 8346
+        self.assertEqual(w.value3, orig2)
+        self.assertEqual(w.value, orig)
+        w.widget3.height = 9546
+        self.assertEqual(w.value, orig)
+        self.assertEqual(w.value3, orig2)
+
+    def test_syntax_rule_dict(self):
+        KV_f = KV(kv_syntax='minimal', rebind=True)
+        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.dict_rule7)
+        w = SyntaxUnbindingCtxRulePropsWidget()
+        f(w)
+
+        count = w.count
+        self.assertEqual(w.value, 44 + 76)
+        w.value_dict[0] = 89
+        self.assertEqual(w.value, 89 + 76)
+        self.assertEqual(w.count, count + 1)
+
+        w.value_dict[1] = 26
+        self.assertEqual(w.value, 89 + 76)
+        self.assertEqual(w.count, count + 2)
+
+        w.value2 = 1
+        self.assertEqual(w.value, 26 + 76)
+        self.assertEqual(w.count, count + 3)
+
+    def test_syntax_rule_dict_multi(self):
+        KV_f = KV(kv_syntax='minimal', rebind=True)
+        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.dict_rule8)
+        w = SyntaxUnbindingCtxRulePropsWidget()
+        f(w)
+
+        count = w.count
+        self.assertEqual(w.value, 44 + 0)
+        w.value_dict[0] = 89
+        self.assertEqual(w.value, 89 + 0)
+        self.assertEqual(w.count, count + 1)
+
+        w.value_dict[1] = 26
+        self.assertEqual(w.value, 89 + 0)
+        self.assertEqual(w.count, count + 2)
+
+        w.value2 = 1
+        self.assertEqual(w.value, 26 + 0)
+        self.assertEqual(w.count, count + 3)
+
+        w.value3 = 1
+        self.assertEqual(w.value, 87 + 1)
+        self.assertEqual(w.count, count + 4)
+
+        w.value2 = 0
+        self.assertEqual(w.value, 26 + 1)
+        self.assertEqual(w.count, count + 5)
+
+        w.ctx.unbind_all_rules()
+        w.value2 = 1
+        w.value3 = 0
+        w.value_dict[0] = 654
+        self.assertEqual(w.value, 26 + 1)
+        self.assertEqual(w.count, count + 5)
+
+    def test_callback_rule(self):
+        KV_f = KV()
+        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv)
+        w = SyntaxUnbindingCtxRulePropsWidget()
+        f(w)
+
+        self.assertIsNotNone(w.ctx.rules[0].callback)
+        self.assertIsNone(w.ctx.rules[0]._callback)
+        self.assertEqual(w.ctx.rules[0].delay, None)
+
+    def test_callback_rule_explicit(self):
+        KV_f = KV()
+        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv2)
+        w = SyntaxUnbindingCtxRulePropsWidget()
+        f(w)
+
+        self.assertIsNotNone(w.ctx.rules[0].callback)
+        self.assertIsNone(w.ctx.rules[0]._callback)
+        self.assertEqual(w.ctx.rules[0].delay, None)
+
+    def test_callback_rule_canvas(self):
+        KV_f = KV()
+        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv3)
+        w = SyntaxUnbindingCtxRulePropsWidget()
+        f(w)
+
+        self.assertIsNotNone(w.ctx.rules[0].callback)
+        self.assertIsNotNone(w.ctx.rules[0]._callback)
+        self.assertEqual(w.ctx.rules[0].delay, 'canvas')
+
+    def test_callback_rule_explicit_canvas(self):
+        KV_f = KV()
+        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv4)
+        w = SyntaxUnbindingCtxRulePropsWidget()
+        f(w)
+
+        self.assertIsNotNone(w.ctx.rules[0].callback)
+        self.assertIsNotNone(w.ctx.rules[0]._callback)
+        self.assertEqual(w.ctx.rules[0].delay, 'canvas')
+
+    def test_callback_rule_explicit_clock(self):
+        KV_f = KV()
+        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv5)
+        w = SyntaxUnbindingCtxRulePropsWidget()
+        f(w)
+
+        self.assertIsNotNone(w.ctx.rules[0].callback)
+        self.assertIsNotNone(w.ctx.rules[0]._callback)
+        self.assertEqual(w.ctx.rules[0].delay, 0)
+
+
+class EventBindWidget(BaseWidget):
+
+    ctx = None
+
+    def on_touch_down(self, touch):
+        pass
+
+    def apply_kv(self):
+        with KVCtx() as self.ctx:
+            with KVRule(self.on_touch_down) as my_rule:
+                self.value_object = my_rule.largs
+
+    def apply_kv2(self):
+        self.value2 = 0
+        with KVCtx() as self.ctx:
+            with KVRule(self.on_touch_down, self.value2) as my_rule:
+                self.value @= self.value2
+
+
+@skip_py2_decorator
+class TestEventBind(TestBase):
+
+    def test_event(self):
+        KV_f = KV()
+        f = KV_f(EventBindWidget.apply_kv)
+        w = EventBindWidget()
+        f(w)
+
+        self.assertEqual(w.value_object, ())
+        w.dispatch('on_touch_down', "here's johnny")
+        self.assertEqual(w.value_object, (w, "here's johnny"))
+        w.dispatch('on_touch_down', "blah")
+        self.assertEqual(w.value_object, (w, "blah"))
+
+        w.ctx.unbind_all_rules()
+        w.dispatch('on_touch_down', "friday!!!")
+        self.assertEqual(w.value_object, (w, "blah"))
+
+    def test_event_multi(self):
+        KV_f = KV()
+        f = KV_f(EventBindWidget.apply_kv2)
+        w = EventBindWidget()
+        f(w)
+
+        self.assertEqual(w.value, 0)
+
+        w.dispatch('on_touch_down', "here's johnny")
+        self.assertEqual(w.ctx.rules[0].largs, (w, "here's johnny"))
+        w.dispatch('on_touch_down', "blah")
+        self.assertEqual(w.ctx.rules[0].largs, (w, "blah"))
+        w.value2 = 76
+        self.assertEqual(w.ctx.rules[0].largs, (w, 76))
+
+        w.ctx.unbind_all_rules()
+        w.dispatch('on_touch_down', "friday!!!")
+        self.assertEqual(w.ctx.rules[0].largs, (w, 76))
+        w.value2 = 56
+        self.assertEqual(w.ctx.rules[0].largs, (w, 76))
