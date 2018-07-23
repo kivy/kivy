@@ -43,9 +43,11 @@ class BindSubGraph(object):
 
     nodes = []
 
-    terminal_attrs = []
+    terminal_nodes = []
 
-    n_attr_deps = 0
+    n_rebind_deps = 0
+    '''The number of rebind nodes in :attr:`nodes`.
+    '''
 
     depends_on_me = []
 
@@ -53,7 +55,7 @@ class BindSubGraph(object):
 
     rebind_callback_name = None
     '''There is one rebind callback for each subtree, provided there are at 
-    least one rebind attribute as a node in `nodes` (i.e. n_attr_deps is
+    least one rebind attribute as a node in `nodes` (i.e. n_rebind_deps is
     non-zero) in which case there are none.
     '''
 
@@ -69,21 +71,21 @@ class BindSubGraph(object):
     one name.
     '''
 
-    def __init__(self, nodes, terminal_attrs):
+    def __init__(self, nodes, terminal_nodes):
         super(BindSubGraph, self).__init__()
         self.nodes = nodes
-        self.terminal_attrs = terminal_attrs
+        self.terminal_nodes = terminal_nodes
         self.depends_on_me = []
         self.bind_store_rebind_nodes_indices = {}
 
     def __repr__(self):
         base = '<Subgraph -- # attr deps: {}, leafs_only?: {}\n'.format(
-            self.n_attr_deps, self.terminates_with_leafs_only)
+            self.n_rebind_deps, self.terminates_with_leafs_only)
         return base + \
             'Nodes({}): {{'.format(len(self.nodes)) + \
             '}\n    {'.join(map(repr, self.nodes)) + \
-            '}}\nTerminal nodes({}): {{'.format(len(self.terminal_attrs)) + \
-            '}\n    {'.join(map(repr, self.terminal_attrs)) + \
+            '}}\nTerminal nodes({}): {{'.format(len(self.terminal_nodes)) + \
+            '}\n    {'.join(map(repr, self.terminal_nodes)) + \
             '}>'
 
 
@@ -162,8 +164,9 @@ class ASTBindNodeRef(ast.AST):
         self.subgraphs_to_bind_store_name_and_idx = {}
 
     def get_rebind_or_leaf_subgraph(self):
-        # these graphs have no cycles, and are directed, even if you remove their
-        # directionality, there could be cycles.
+        # these graphs have no cycles, and are directed, even if you remove
+        # their directionality, there could be cycles.
+        # xxx: update comment
         # Algo: start with the node add its deps_on_me to the stack, then mark
         # it saying that we already explored all its dependencies. Working
         # through the stack, for each node we adds its depends_on_me (i.e. its
@@ -174,60 +177,66 @@ class ASTBindNodeRef(ast.AST):
         # or has none is removed from the stack.
         assert self.depends_on_me, 'we must end with a attr node and this ' \
             'should not have been called on a leaf node.'
-        visited = set([self])
-        forward_queue = deque()
-        backward_stack = deque()
-        terminal_nodes = []
-        explored = [self]
+        assert self.leaf_rule is None
+        assert self.rebind or not self.depends
 
-        for dep in self.depends_on_me:
-            if dep.leaf_rule is not None or dep.rebind:
-                terminal_nodes.append(dep)
+        subgraphs = []
+        for dep_on_me in self.depends_on_me:
+            visited = set([self])
+            forward_queue = deque()
+            backward_stack = deque()
+            terminal_nodes = []
+            explored = [self]
+
+            if dep_on_me.leaf_rule is not None or dep_on_me.rebind:
+                terminal_nodes.append(dep_on_me)
             else:
-                forward_queue.append(dep)
+                forward_queue.append(dep_on_me)
 
-        while forward_queue:
-            assert not backward_stack
-            # there could be some visited nodes, but we leave them in case
-            # their children has not been visited. Visited nodes will be
-            # filtered out in backward_stack anyway
-            backward_stack.extend(forward_queue)
-            forward_queue.clear()
-            for item in backward_stack:
-                for dep in item.depends_on_me:
-                    if dep.leaf_rule is not None or dep.rebind:
-                        # a atrr has only a single parent node () so it could
-                        # not have been visited previously if we are its dep
-                        assert dep not in visited
-                        terminal_nodes.append(dep)
-                    else:
-                        # It seems possible that a node could be visited as a
-                        # parent as well as a child, but it will be filtered
-                        # out in the backward_stack
-                        forward_queue.append(dep)
-
-            while backward_stack:
-                node = backward_stack[0]
-                if node in visited:
-                    backward_stack.popleft()
-                    continue
-                all_done = True
-
-                for dep in node.depends:
-                    if dep not in visited:
-                        if dep.rebind:
-                            explored.append(dep)
-                            visited.add(dep)
+            while forward_queue:
+                assert not backward_stack
+                # there could be some visited nodes, but we leave them in case
+                # their children has not been visited. Visited nodes will be
+                # filtered out in backward_stack anyway
+                backward_stack.extend(forward_queue)
+                forward_queue.clear()
+                for item in backward_stack:
+                    for dep in item.depends_on_me:
+                        if dep.leaf_rule is not None or dep.rebind:
+                            # a atrr has only a single parent node () so it
+                            # could not have been visited previously if we are
+                            # its dep
+                            assert dep not in visited
+                            terminal_nodes.append(dep)
                         else:
-                            all_done = False
-                            backward_stack.appendleft(dep)
+                            # It seems possible that a node could be visited as
+                            # a parent as well as a child, but it will be
+                            # filtered out in the backward_stack
+                            forward_queue.append(dep)
 
-                if all_done:
-                    explored.append(node)
-                    visited.add(node)
-                    backward_stack.popleft()
+                while backward_stack:
+                    node = backward_stack[0]
+                    if node in visited:
+                        backward_stack.popleft()
+                        continue
+                    all_done = True
 
-        return BindSubGraph(explored, terminal_nodes)
+                    for dep in node.depends:
+                        if dep not in visited:
+                            if dep.rebind:
+                                explored.append(dep)
+                                visited.add(dep)
+                            else:
+                                all_done = False
+                                backward_stack.appendleft(dep)
+
+                    if all_done:
+                        explored.append(node)
+                        visited.add(node)
+                        backward_stack.popleft()
+
+            subgraphs.append(BindSubGraph(explored, terminal_nodes))
+        return subgraphs
 
     def set_ref_node(self, node):
         self._attributes = node._attributes

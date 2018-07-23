@@ -57,6 +57,9 @@ class StringPool(object):
         :param count: The number of times the item will be borrowed.
         :return: A value from the pool.
         '''
+        if not count:
+            raise ValueError('Count cannot be zero')
+
         if token in self.tokens:
             item = self.tokens[token]
             item[2] += count
@@ -119,7 +122,8 @@ class StringPool(object):
 
     def get_all_items(self):
         '''
-        :return: all the items that has been borrowed or are currently borrowed.
+        :return: all the items that has been borrowed or are currently
+            borrowed.
         '''
         return set(chain(
             (item for item in self.pool if item is not None),

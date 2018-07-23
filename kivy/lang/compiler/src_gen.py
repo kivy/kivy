@@ -61,7 +61,7 @@ class KVCompiler(object):
 
     def get_all_bind_store_indices_for_leaf_and_parents(self, graphs):
         node_deps = {}
-        for graph, _, _ in graphs:
+        for graph, _ in graphs:
             for node in graph:
                 if node.leaf_rule is None:
                     continue
@@ -109,53 +109,108 @@ class KVCompiler(object):
 
         return node_deps
 
-    def compute_attr_bindings(self, ctx):
-        # can the same `nodes` node be in multiple subgraphs that are
-        # depends on each other?
-        graphs_attr_subgraph = []
+    def get_subgraphs(self, ctx):
+        # consider the graph made by rule (x.y + x.z).q + x.y.k
+        graphs_subgraphs = []
         for graph in ctx.transformer.nodes_by_graph:
-            visited = set()
-            attr_subgraph = []
-            term_subgraph_indices = {}
-            # consider the graph made by rule (x.y + x.z).q + x.y.k - we cannot
-            # look at the subgraph created by
+            # we have to compute *all* the subtgraphs first before we can merge
+            # because consider this graph: a->b->c, a->d->c, d->e->c, f->d
+            # and you'll see what I mean
+            all_subgraphs = []
+            unique_subgraphs = []
             for node in graph:
-                if node.leaf_rule is not None or node in visited:
+                # leafs cannot have their own subgraph
+                if node.leaf_rule is not None:
                     continue
-                subgraph = node.get_rebind_or_leaf_subgraph()
-                for term in subgraph.terminal_attrs:
-                    if term.leaf_rule is None:
-                        subgraph.terminates_with_leafs_only = False
-                    term_subgraph_indices[term] = len(attr_subgraph)
-                attr_subgraph.append(subgraph)
-                visited.update(subgraph.nodes)
+                # if it's also not a rebind node, then either it's a base node,
+                # e.g. a local/global/nonlocal/number etc, in which case it has
+                # no depends and we need to make a subgraph starting from it,
+                # or if it has depends then it's after some other node, and
+                # we'd have encountered it already in another subgraph so don't
+                # generate one again
+                if not node.rebind and node.depends:
+                    continue
+                all_subgraphs.extend(node.get_rebind_or_leaf_subgraph())
 
-            ordered_attr_subgraphs = []
+            subgraphs_grouped_by_nodes = defaultdict(list)
+            for subgraph in all_subgraphs:
+                assert subgraph.nodes
+                subgraphs_grouped_by_nodes[tuple(subgraph.nodes)].append(
+                    subgraph)
+
+            for subgraphs in subgraphs_grouped_by_nodes.values():
+                terminal_nodes = list({
+                    node for subgraph in subgraphs
+                    for node in subgraph.terminal_nodes})
+                subgraph = subgraphs[0]
+                subgraph.terminal_nodes = terminal_nodes
+                unique_subgraphs.append(subgraph)
+            graphs_subgraphs.append(unique_subgraphs)
+        return graphs_subgraphs
+
+    def get_graphs_and_subgraphs(self, ctx):
+        # consider the graph made by rule (x.y + x.z).q + x.y.k - we cannot
+        # look at the subgraph created by
+        graphs_attr_subgraph = []
+        for graph, subgraphs in zip(
+                ctx.transformer.nodes_by_graph, self.get_subgraphs(ctx)):
+            # for every terminal node in a subgraph, it's the index of the
+            # subgraph in subgraphs
+            terminal_nodes_subgraphs_idx = {}
+            # fill in terminal_nodes_subgraphs_idx
+            for i, subgraph in enumerate(subgraphs):
+                for terminal_node in subgraph.terminal_nodes:
+                    if terminal_node.leaf_rule is None:
+                        subgraph.terminates_with_leafs_only = False
+                    terminal_nodes_subgraphs_idx[terminal_node] = i
+
+            # we reorder the subgraphs so that if we process the subgraphs in
+            # the reordered order, when every subgraph will have all its deps
+            # in terminal nodes of subgraphs previous to it in the list, or
+            # the deps will be in `nodes` of the subgraph (e.g. for
+            # non-attribute dep nodes).
+            ordered_subgraphs = []
             visited = set()
-            ordered_subgraph_dep_indices = {}
+            # to compute what subgraphs are children (depend on) a subgraph, we
+            # store for every rebind node, the subgraphs it appears in its
+            # `nodes` list
+            subgraphs_containing_rebind_node = defaultdict(list)
+            # in graph, nodes are ordered according to their position in the
+            # graph such that a node never depends on a node later in the graph
+            # list, but subsequent nodes may depend on previous nodes
             for node in graph:
+                # unvisited leaf or rebind node -- find it's subgraph in which
+                # it's a terminal node. Because all terminal nodes of the
+                # subgraph share the same `nodes` dependencies, and since by
+                # the order in `graph` we found a one terminal node whose deps
+                # must have already been encountered previously in `graph`.
+                # That means we have all the deps for all terminal nodes.
                 if (node.leaf_rule is not None or node.rebind) and \
                         node not in visited:
-                    subgraph = attr_subgraph[term_subgraph_indices[node]]
-                    visited.update(subgraph.terminal_attrs)
+                    subgraph = subgraphs[terminal_nodes_subgraphs_idx[node]]
+
+                    # so add all terminal nodes to visited and process them
+                    visited.update(subgraph.terminal_nodes)
+                    # this is the first time we see this subgraph
                     for dep in subgraph.nodes:
                         assert dep.leaf_rule is None
                         if dep.rebind:
-                            subgraph.n_attr_deps += 1
-                            ordered_subgraph_dep_indices[dep] = len(
-                                ordered_attr_subgraphs)
-                    ordered_attr_subgraphs.append(subgraph)
+                            subgraph.n_rebind_deps += 1
+                            # a node can be in `nodes` of multiple subgraphs
+                            subgraphs_containing_rebind_node[dep].append(
+                                subgraph)
+                    ordered_subgraphs.append(subgraph)
 
-            for subgraph in ordered_attr_subgraphs:
-                for term in subgraph.terminal_attrs:
-                    # every terminal node that isn't a leaf is a dep somewhere
-                    if not term.leaf_rule:
-                        subgraph.depends_on_me.append(
-                            ordered_attr_subgraphs[
-                                ordered_subgraph_dep_indices[term]])
+            # fill in depends_on_me
+            for subgraph in ordered_subgraphs:
+                for terminal_node in subgraph.terminal_nodes:
+                    # every terminal node that isn't a leaf is a dep of some
+                    # subgraph and stored in its `nodes`.
+                    if not terminal_node.leaf_rule:
+                        subgraph.depends_on_me.extend(
+                            subgraphs_containing_rebind_node[terminal_node])
 
-            graphs_attr_subgraph.append(
-                (graph, ordered_attr_subgraphs, ordered_subgraph_dep_indices))
+            graphs_attr_subgraph.append((graph, ordered_subgraphs))
         return graphs_attr_subgraph
 
     def populate_bind_stores_and_indices_and_callback_names(
@@ -171,7 +226,7 @@ class KVCompiler(object):
                     ctx.rules, ctx.transformer.nodes_by_rule):
                 rule.callback_name = leaf_pool.borrow_persistent()
 
-        for graph, subgraphs, _ in graphs:
+        for graph, subgraphs in graphs:
             bind_store_count = 0
             bind_store_name = store_pool.borrow_persistent()
             for node in graph:
@@ -194,10 +249,10 @@ class KVCompiler(object):
                             bind_store_count
                         bind_store_count += 1
 
-                # rebind nodes in terminal_attrs will be inspected in
+                # rebind nodes in terminal_nodes will be inspected in
                 # subsequent subgraph, as they must be in `nodes` in the future
                 # because they depend on us and is a child subgraph of us
-                for node in subgraph.terminal_attrs:
+                for node in subgraph.terminal_nodes:
                     # leaf nodes can only be bound once, but may occur in
                     # multiple subgraphs
                     node.subgraph_for_terminal_node = subgraph
@@ -251,12 +306,12 @@ class KVCompiler(object):
         # we need to check if the rebind list has been init
         i = subgraph.bind_store_rebind_nodes_indices[node]  # rebind list index
         bind_store_name = subgraph.bind_store_name
-        assert subgraph.n_attr_deps >= 1
+        assert subgraph.n_rebind_deps >= 1
 
         indent = 4
         # only if the graph does have deps, otherwise, there's nothing to
         # lookup in the bind store as it's a global etc.
-        if subgraph.n_attr_deps > 1:
+        if subgraph.n_rebind_deps > 1:
             src_code.append(
                 '{}{} = None'.format(' ' * 4, var))
             # make sure the bind store is not None for the required value
@@ -341,7 +396,7 @@ class KVCompiler(object):
 
     def gen_unbind_subgraph_bindings(self, src_code, subgraph):
         bind_store_name = subgraph.bind_store_name
-        for node in subgraph.terminal_attrs:
+        for node in subgraph.terminal_nodes:
             # we don't need too check for double visits because
             # each graph contains *all* deps of terminal attrs
             for i in node.bind_store_indices:
@@ -414,14 +469,14 @@ class KVCompiler(object):
         '''Generates the code that binds all the callbacks associated with this
         subgraph.
         '''
-        terminal_attrs_by_dep = defaultdict(list)
+        terminal_nodes_by_dep = defaultdict(list)
         # terminal nodes are attributes so by definition they can and must have
         # exactly one dep.
-        for node in subgraph.terminal_attrs:
+        for node in subgraph.terminal_nodes:
             assert len(node.depends) == 1
-            terminal_attrs_by_dep[node.depends[0]].append(node)
+            terminal_nodes_by_dep[node.depends[0]].append(node)
 
-        for dep, nodes in terminal_attrs_by_dep.items():
+        for dep, nodes in terminal_nodes_by_dep.items():
             # create forward temp variables for the nodes, if used later
             for node in nodes:
                 assert node.leaf_rule is not None or node.rebind
@@ -476,8 +531,24 @@ class KVCompiler(object):
                 for _ in nodes:
                     temp_pool.return_back(dep)
 
+    def get_subgraph_and_children_subgraphs(self, subgraph):
+        queue = deque([subgraph])
+        # we can have a subgraph being a child
+        # of multiple different subgraphs. E.g. self.a.b + self.a.c
+        subgraphs_visited = set()
+        subgraphs = []
+        while queue:
+            current_subgraph = queue.popleft()
+            if current_subgraph in subgraphs_visited:
+                continue
+
+            subgraphs_visited.add(current_subgraph)
+            queue.extend(current_subgraph.depends_on_me)
+            subgraphs.append(current_subgraph)
+        return subgraphs
+
     def gen_subgraph_and_children_rebind_callback(
-            self, src_code, subgraph, nodes_use_count):
+            self, src_code, subgraph):
         '''
         The subgraph is composed of root nodes and leaf nodes and is
         of course a directed graph because the containing graph is directed.
@@ -516,10 +587,6 @@ class KVCompiler(object):
         The exact details of how each subgraph is "used", is defined in the
         function.
         '''
-        queue = deque([subgraph])
-        # we can have a subgraph being a child
-        # of multiple different subgraphs. E.g. self.a.b + self.a.c
-        subgraphs_visited = set()
         # we keep track of all attrs we visit in the subgraph. Because
         # deps are always explored before the children, if we encounter
         # a attr dep that has not been visited, it means its at the root
@@ -534,22 +601,18 @@ class KVCompiler(object):
         func_def_i = len(src_code)
         src_code.append(None)
 
-        assert subgraph.terminal_attrs
-        assert subgraph.n_attr_deps
+        assert subgraph.terminal_nodes
+        assert subgraph.n_rebind_deps
         # it's the same for all subgraphs in a graph
         capturing_vars.add(subgraph.bind_store_name)
 
         leaf_callbacks = defaultdict(set)
+        subgraphs = self.get_subgraph_and_children_subgraphs(subgraph)
+        nodes_use_count = self.compute_nodes_dependency_count_for_subgraphs(
+            subgraphs)
 
-        while queue:
-            current_subgraph = queue.popleft()
-            if current_subgraph in subgraphs_visited:
-                continue
-            subgraphs_visited.add(current_subgraph)
-
-            queue.extend(current_subgraph.depends_on_me)
-            terminal_nodes_visited.update(current_subgraph.terminal_attrs)
-
+        for current_subgraph in subgraphs:
+            terminal_nodes_visited.update(current_subgraph.terminal_nodes)
             for node in current_subgraph.nodes:
                 if node in nodes_visited:
                     continue
@@ -580,7 +643,10 @@ class KVCompiler(object):
             # unbind
             self.gen_unbind_subgraph_bindings(src_code, current_subgraph)
 
-            for node in current_subgraph.terminal_attrs:
+            # collect all the locations where a leaf callback is saved. Then
+            # we execute the callback at the end of rebind, only if at least
+            # of the bindings to the leaf callback is alive, i.e. is not None.
+            for node in current_subgraph.terminal_nodes:
                 if node.leaf_rule is not None:
                     assert len(node.bind_store_indices) == 1
                     assert len(node.callback_names) == 1
@@ -591,6 +657,10 @@ class KVCompiler(object):
             self.gen_subgraph_bindings(
                 src_code, current_subgraph, temp_pool, nodes_use_count,
                 nodes_original_ref, nodes_temp_var_name, init_bindings=False)
+            self.remove_subgraph_from_count(current_subgraph, nodes_use_count)
+
+        for node, count in nodes_use_count.items():
+            assert not count, '{}, {} should be zero'.format(node, count)
 
         for name, locations in leaf_callbacks.items():
             src_code.append(
@@ -608,6 +678,54 @@ class KVCompiler(object):
             subgraph.rebind_callback_name, s)
         src_code[func_def_i] = func_def
 
+    def compute_nodes_dependency_count_for_subgraphs(self, subgraphs):
+        nodes_use_count = defaultdict(int)
+        for subgraph in subgraphs:
+            for node in subgraph.terminal_nodes:
+                # these must all be in nodes
+                for dep in node.depends:
+                    nodes_use_count[dep] += 1
+
+            for node in subgraph.nodes:
+                # add deps of the nodes that are also in the nodes. If
+                # rebind, then it won't be in the current nodes. Its deps could
+                # be in another subgraph though, but either it's a terminal
+                # node somewhere, in which case we'll count it if the subgraph
+                # is in our list of subgraphs, otherwise, it's a root node, and
+                # its deps our outside our subgraphs, in which case we'll never
+                # refer to its deps in in this set of subgraphs, so no count.
+                # If not rebind, it'll only be present if it has deps, because
+                # the roots of the subgraph must be either rebind nodes, or
+                # nodes with no depends e.g. for locals/number etc.
+                if node.depends and not node.rebind:
+                    for dep in node.depends:
+                        nodes_use_count[dep] += 1
+        return nodes_use_count
+
+    def compute_nodes_dependency_count(self, graph):
+        nodes_use_count = defaultdict(int)
+        for node in graph:
+            for dep in node.depends:
+                assert dep.leaf_rule is None, 'a dep cannot be a leaf, duh'
+                nodes_use_count[dep] += 1
+        return nodes_use_count
+
+    def remove_subgraph_from_count(self, subgraph, nodes_use_count):
+        for node in subgraph.terminal_nodes:
+            # these must all be in nodes
+            for dep in node.depends:
+                nodes_use_count[dep] -= 1
+
+        for node in subgraph.nodes:
+            # remove deps of the nodes that are also in the nodes. If
+            # rebind, then it won't be in the current nodes. If not rebind,
+            # it'll only be present if it has deps, because the roots of the
+            # subgraph must be either rebind nodes, or nodes with no depends
+            # e.g. for locals/number etc.
+            if node.depends and not node.rebind:
+                for dep in node.depends:
+                    nodes_use_count[dep] -= 1
+
     def gen_rebind_callbacks(
             self, ctx_name, graphs, graphs_bind_store_name_and_size):
         src_code = []
@@ -624,37 +742,30 @@ class KVCompiler(object):
             src_code.append('{}.bind_stores_by_graph = ()'.format(ctx_name))
         src_code.append('')
 
-        for graph, bind_subgraphs, subgraphs_node_dep_idx in graphs:
+        for graph, bind_subgraphs in graphs:
             # count the number of places each node is used. E.g. in
             # `self.x + self.y`, `self` is used twice. Keep in mind that nodes
             # are unique
-            nodes_use_count = defaultdict(int)
-            for node in graph:
-                for dep in node.depends:
-                    assert dep.leaf_rule is None, 'a dep cannot be a leaf, duh'
-                    nodes_use_count[dep] += 1
-
+            nodes_use_count = self.compute_nodes_dependency_count(graph)
             for subgraph in bind_subgraphs:
                 # we create a rebind func for each subgraph that roots in attr
-                if not subgraph.n_attr_deps:
+                if not subgraph.n_rebind_deps:
                     # It means that all the deps are not attributes, meaning
                     # thet are e.g. variables etc, so that we never create a
                     # rebind func for them
                     # see further down why len(node.depends_on_me) is correct
-                    for node in subgraph.nodes:
-                        nodes_use_count[node] -= len(node.depends_on_me)
+                    self.remove_subgraph_from_count(subgraph, nodes_use_count)
                     continue
 
                 func_src_code = []
                 self.gen_subgraph_and_children_rebind_callback(
-                    func_src_code, subgraph, nodes_use_count)
+                    func_src_code, subgraph)
 
                 # remove all that depend on the node because either the dep
                 # is in the same subgraph, or it's in the terminal of the
                 # subgraph. In the latter case, binding and attr eval happens
                 # in this subgraph iteration, so this node won't be used again
-                for node in subgraph.nodes:
-                    nodes_use_count[node] -= len(node.depends_on_me)
+                self.remove_subgraph_from_count(subgraph, nodes_use_count)
                 src_code.extend(func_src_code)
 
             for node, count in nodes_use_count.items():
@@ -662,7 +773,7 @@ class KVCompiler(object):
 
         s = ', '.join(sorted(
             subgraph.rebind_callback_name
-            for _, subgraphs, _ in graphs for subgraph in subgraphs
+            for _, subgraphs in graphs for subgraph in subgraphs
             if subgraph.rebind_callback_name))
         comma = ', ' if s else ''
         src_code.append('{}.rebind_functions = ({}{})'.format(
@@ -817,15 +928,10 @@ class KVCompiler(object):
         # it's the same for all nodes in a graph
         assert subgraphs
 
-        nodes_use_count = defaultdict(int)
-        for node in graph:
-            for dep in node.depends:
-                assert dep.leaf_rule is None, 'a dep cannot be a leaf, duh'
-                nodes_use_count[dep] += 1
-
+        nodes_use_count = self.compute_nodes_dependency_count(graph)
         for subgraph in subgraphs:
-            assert subgraph.terminal_attrs
-            terminal_nodes_visited.update(subgraph.terminal_attrs)
+            assert subgraph.terminal_nodes
+            terminal_nodes_visited.update(subgraph.terminal_nodes)
 
             for node in subgraph.nodes:
                 if node in nodes_visited:
@@ -852,8 +958,7 @@ class KVCompiler(object):
                 init_bindings=True,
                 parent_nodes_of_leaves=parent_nodes_of_leaves)
 
-            for node in subgraph.nodes:
-                nodes_use_count[node] -= len(node.depends_on_me)
+            self.remove_subgraph_from_count(subgraph, nodes_use_count)
 
         for node, count in nodes_use_count.items():
             assert not count, '{}, {} should be zero'.format(node, count)
@@ -866,7 +971,7 @@ class KVCompiler(object):
             self.get_all_bind_store_indices_for_leaf_and_parents(graphs)
         src_code = []
 
-        for graph, bind_subgraphs, _ in graphs:
+        for graph, bind_subgraphs in graphs:
             self.gen_initial_bindings_for_graph(
                 src_code, graph, bind_subgraphs, parent_nodes_of_leaves)
 
@@ -899,7 +1004,7 @@ class KVCompiler(object):
         if not ctx_name:
             ctx_name = self.kv_ctx_pool.borrow_persistent()
 
-        graphs = self.compute_attr_bindings(ctx)
+        graphs = self.get_graphs_and_subgraphs(ctx)
 
         graphs_bind_store_name_and_size = \
             self.populate_bind_stores_and_indices_and_callback_names(
