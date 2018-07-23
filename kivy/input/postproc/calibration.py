@@ -26,6 +26,22 @@ Then, you can use the calibration postproc module::
 Now, the touches from the left screen will be within 0-0.3333 range, and the
 touches from the middle screen will be within 0.3333-0.6666 range.
 
+You can also match calibration rules to devices based on their provider type.
+This is useful when probesysfs is used to match devices. For example::
+
+    [input]
+    mtdev_%(name)s = probesysfs,provider=mtdev
+
+To apply calibration to these devices, you can match with the provider name
+enclosed by parentheses::
+
+    [postproc:calibration]
+    (mtdev) = xratio=0.3333,xoffset=0.3333
+
+Matching devices like this means the device's path doesn't need to be
+configured ahead of time. Note that with this method, all mtdev inputs will
+have the same calibration applied to them. For this reason, matching by
+provider will typically be useful only when expecting one input device.
 '''
 
 __all__ = ('InputPostprocCalibration', )
@@ -41,9 +57,13 @@ class InputPostprocCalibration(object):
     '''Recalibrate the inputs.
 
     The configuration must go within a section named `postproc:calibration`.
-    Within the section, you must have line like::
+    Within the section, you must have a line like::
 
         devicename = param=value,param=value
+
+    If you wish to match by provider, you must have a line like::
+
+        (provider) = param=value,param=value
 
     :Parameters:
         `xratio`: float
