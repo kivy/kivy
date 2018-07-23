@@ -58,9 +58,10 @@ class KVRule(object):
 
         and you can add as many positional args there as you like, and the rule
         will bind to all fo them. The args can be actual variable names, e.g.
-        `self.y`, or as a string, e.g. `"self.y"` - they will do the same thing.
-    :param delay: the rule type: can be None (default), `"canvas"`, or a number.
-        Describes the rule type.
+        `self.y`, or as a string, e.g. `"self.y"` - they will do the same
+        thing.
+    :param delay: the rule type: can be None (default), `"canvas"`, or a
+        number. Describes the rule type.
         * If `None`, it's a normal KV rule
         * If `"canvas"`, it's meant to be used with a canvas instruction and
           the rule will be scheduled to be executed with other graphics *after*

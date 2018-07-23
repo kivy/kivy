@@ -54,7 +54,7 @@ class BindSubGraph(object):
     terminates_with_leafs_only = True
 
     rebind_callback_name = None
-    '''There is one rebind callback for each subtree, provided there are at 
+    '''There is one rebind callback for each subtree, provided there are at
     least one rebind attribute as a node in `nodes` (i.e. n_rebind_deps is
     non-zero) in which case there are none.
     '''
@@ -139,17 +139,17 @@ class ASTBindNodeRef(ast.AST):
     one. Otherwise, either it has shared deps, in which case it would be one
     subgraph as each contains all the deps of every terminal node. Otherwise,
     they don't share deps, which makes no sense.
-    
+
     Also, nodes that are not rebind, will occur only in one subgraph, so this
-    is also set to the subgraph by 
+    is also set to the subgraph by
     populate_bind_stores_and_indices_and_callback_names. Nodes that are not
-    rebind and occur in multiple subgraphs, e.g. a number, such nodes never 
+    rebind and occur in multiple subgraphs, e.g. a number, such nodes never
     care what subgraph it's in, because it has no rebind in its parent graph
     so the subgraph is the last one it occurred in and.
     '''
 
     subgraphs_to_bind_store_name_and_idx = {}
-    '''Maps a subgraph to the index in `callback_names` and 
+    '''Maps a subgraph to the index in `callback_names` and
     `bind_store_indices`, indicating the index in these lists that corresponds
     to the bind for that subgraph.
     '''
@@ -246,9 +246,9 @@ class ASTBindNodeRef(ast.AST):
     @staticmethod
     def group_by_required_deps_ordered(nodes):
         '''Groups the nodes into groups based on their deps. All nodes with the
-        same deps are grouped together. The order of nodes is preserved as given
-        in `nodes` such that the first occurrence of nodes with unique deps are
-        ordered in the order they occur in nodes.
+        same deps are grouped together. The order of nodes is preserved as
+        given in `nodes` such that the first occurrence of nodes with unique
+        deps are ordered in the order they occur in nodes.
         '''
         grouped_nodes = []
         deps_idx = {}
@@ -266,12 +266,12 @@ class ASTBindNodeRef(ast.AST):
     def __repr__(self):
         deps_on_me = '}, {'.join(node.src for node in self.depends_on_me)
         deps = '}, {'.join(node.src for node in self.depends)
-        return '<Node {} -- is_attr?: {}, rebind?: {}, proxy?: {}, count: {}, '\
-            'leaf?: {}, depends_on_me({}): {{{}}}, depends({}): {{{}}}>'.\
+        return '<Node {} -- is_attr?: {}, rebind?: {}, proxy?: {}, count: {},'\
+            ' leaf?: {}, depends_on_me({}): {{{}}}, depends({}): {{{}}}>'.\
             format(
                 self.src, self.is_attribute, self.rebind, self.proxy,
-                self.count, self.leaf_rule is not None, len(self.depends_on_me),
-                deps_on_me, len(self.depends), deps)
+                self.count, self.leaf_rule is not None,
+                len(self.depends_on_me), deps_on_me, len(self.depends), deps)
 
 
 class ASTRuleCtxNodePlaceholder(ast.AST):
@@ -343,8 +343,8 @@ class ParseKVBindTransformer(ast.NodeTransformer):
     Transforms and computes all the nodes that should be bound to. It processes
     all the nodes and create the graphs representing the bind rules.
     '''
-    # no Name node that is a Store shall be saved in any of the graphs. It's not
-    # included anyway because it cannot be an expression, but we should not
+    # no Name node that is a Store shall be saved in any of the graphs. It's
+    # not included anyway because it cannot be an expression, but we should not
     # include either way because in the KV decorator we use all Name for
     # capturing and making them readonly. This assumes that they are all Load.
 
@@ -385,7 +385,8 @@ class ParseKVBindTransformer(ast.NodeTransformer):
         for node in nodes:
             self.visit(node)
 
-    def generic_visit(self, node, is_attribute=False, is_final_attribute=False):
+    def generic_visit(
+            self, node, is_attribute=False, is_final_attribute=False):
         if node in self.visited:
             return node
         self.visited.add(node)
@@ -570,8 +571,8 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
         ast.AsyncFor, ast.AsyncFunctionDef, ast.ExceptHandler, ast.ClassDef}
 
     known_ast = {
-        ast.AST, ast.operator, ast.Add, ast.alias, ast.boolop, ast.And, ast.arg,
-        ast.arguments, ast.stmt, ast.Assert, ast.Assign, ast.AsyncFor,
+        ast.AST, ast.operator, ast.Add, ast.alias, ast.boolop, ast.And,
+        ast.arg, ast.arguments, ast.stmt, ast.Assert, ast.Assign, ast.AsyncFor,
         ast.AsyncFunctionDef, ast.AsyncWith, ast.expr, ast.Attribute,
         ast.AugAssign, ast.expr_context, ast.AugLoad, ast.AugStore, ast.Await,
         ast.BinOp, ast.BitAnd, ast.BitOr, ast.BitXor, ast.BoolOp, ast.Break,
@@ -584,12 +585,13 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
         ast.ImportFrom, ast.In, ast.Index, ast.Interactive, ast.unaryop,
         ast.Invert, ast.Is, ast.IsNot, ast.keyword, ast.Lambda, ast.List,
         ast.ListComp, ast.Load, ast.LShift, ast.Lt, ast.LtE, ast.MatMult,
-        ast.Mod, ast.Module, ast.Mult, ast.Name, ast.NameConstant, ast.Nonlocal,
-        ast.Not, ast.NotEq, ast.NotIn, ast.Num, ast.Or, ast.Param, ast.Pass,
-        ast.Pow, ast.Raise, ast.Return, ast.RShift, ast.Set, ast.SetComp,
-        ast.Slice, ast.Starred, ast.Store, ast.Str, ast.Sub, ast.Subscript,
-        ast.Suite, ast.Try, ast.Tuple, ast.UAdd, ast.UnaryOp, ast.USub,
-        ast.While, ast.With, ast.withitem, ast.Yield, ast.YieldFrom}
+        ast.Mod, ast.Module, ast.Mult, ast.Name, ast.NameConstant,
+        ast.Nonlocal, ast.Not, ast.NotEq, ast.NotIn, ast.Num, ast.Or,
+        ast.Param, ast.Pass, ast.Pow, ast.Raise, ast.Return, ast.RShift,
+        ast.Set, ast.SetComp, ast.Slice, ast.Starred, ast.Store, ast.Str,
+        ast.Sub, ast.Subscript, ast.Suite, ast.Try, ast.Tuple, ast.UAdd,
+        ast.UnaryOp, ast.USub, ast.While, ast.With, ast.withitem,
+        ast.Yield, ast.YieldFrom}
 
     def __init__(self, kv_syntax=None):
         super(ParseKVFunctionTransformer, self).__init__()
@@ -649,7 +651,8 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
 
         if func_name is not None and len(node.items) > 1:
             raise KVCompilerParserException(
-                'Multiple with statements not allowed for {}'.format(func_name))
+                'Multiple with statements not allowed for {}'.
+                format(func_name))
 
         if func_name is None:
             return self.generic_visit(node)
@@ -718,8 +721,9 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
 
         assign_node = ast.Assign(
             targets=targets,
-            value=ast.Call(func=ast.Name(id=self.kv_ctx_cls_name, ctx=ast.Load()),
-                           args=[], keywords=[]))
+            value=ast.Call(
+                func=ast.Name(id=self.kv_ctx_cls_name, ctx=ast.Load()),
+                args=[], keywords=[]))
 
         return [assign_node, ctx_info['before_ctx']] + ret_nodes + [
             ctx_info['after_ctx']]
@@ -763,13 +767,13 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
                 if isinstance(val, ast.NameConstant):
                     if val.value is not None:
                         raise KVCompilerParserException(
-                            'Cannot parse {}, must be one of canvas/number/None'
-                            .format(val.value))
+                            'Cannot parse {}, must be one of '
+                            'canvas/number/None'.format(val.value))
                 elif isinstance(val, ast.Str):
                     if val.s != 'canvas':
                         raise KVCompilerParserException(
-                            'Cannot parse {}, must be one of canvas/number/None'
-                            .format(val.s))
+                            'Cannot parse {}, must be one of '
+                            'canvas/number/None'.format(val.s))
                     delay = val.s
                 elif isinstance(val, ast.Num):
                     delay = val.n
@@ -861,8 +865,8 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
             return assign
         else:
             if delay != previous_rule_info['rule'].delay and not (
-                    isinstance(previous_rule_info['rule'].delay, (int, float))
-                    and delay is None):
+                    isinstance(previous_rule_info['rule'].delay,
+                               (int, float)) and delay is None):
                 raise KVCompilerParserException(
                     'A rule can only have a single delay type (one of '
                     'canvas/number/None). The rule delay type was previously '
@@ -892,9 +896,9 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
                         val not in current_rule['captures']:
                     if False and val in current_rule['possibly_locals']:
                         raise KVCompilerParserException(
-                            'variable {} may or may not have been set within a '
-                            'conditional or loop and is therefore not allowed '
-                            'in KV. Make sure the variable is always defined'.
+                            'variable {} may or may not have been set within a'
+                            ' conditional or loop and is therefore not allowed'
+                            ' in KV. Make sure the variable is always defined'.
                             format(val))
                     current_rule['captures'].add(val)
         return self.generic_visit(node)
@@ -909,9 +913,9 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
                         node.id not in current_rule['captures']:
                     if False and node.id in current_rule['possibly_locals']:
                         raise KVCompilerParserException(
-                            'variable {} may or may not have been set within a '
-                            'conditional or loop and is therefore not allowed '
-                            'in KV. Make sure the variable is always defined'.
+                            'variable {} may or may not have been set within a'
+                            ' conditional or loop and is therefore not allowed'
+                            ' in KV. Make sure the variable is always defined'.
                             format(node.id))
                     current_rule['captures'].add(node.id)
             elif isinstance(node.ctx, ast.Store):
@@ -921,8 +925,8 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
                     current_rule['currently_locals'].add(node.id)
             else:
                 # how can we del a var in the callback? What if it was def
-                # outside the rule? The callback will freak out. So it's illegal
-                # in KV.
+                # outside the rule? The callback will freak out. So it's
+                # illegal in KV.
                 raise KVCompilerParserException(
                     'A variable cannot be deleted within a KV rule')
         return self.generic_visit(node)
@@ -979,11 +983,13 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
             node.target = self.visit(node.target)
 
         node.body = self.visit(node.body)
-        current_rule['possibly_locals'].update(current_rule['currently_locals'])
+        current_rule['possibly_locals'].update(
+            current_rule['currently_locals'])
 
         current_rule['currently_locals'] = set(original) if original else set()
         node.orelse = self.visit(node.orelse)
-        current_rule['possibly_locals'].update(current_rule['currently_locals'])
+        current_rule['possibly_locals'].update(
+            current_rule['currently_locals'])
 
         current_rule['currently_locals'] = original
         return node
@@ -1063,11 +1069,13 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
         original = current_rule['currently_locals']
         current_rule['currently_locals'] = set(original) if original else set()
         node.body = self.visit(node.body)
-        current_rule['possibly_locals'].update(current_rule['currently_locals'])
+        current_rule['possibly_locals'].update(
+            current_rule['currently_locals'])
 
         current_rule['currently_locals'] = set(original) if original else set()
         node.orelse = self.visit(node.orelse)
-        current_rule['possibly_locals'].update(current_rule['currently_locals'])
+        current_rule['possibly_locals'].update(
+            current_rule['currently_locals'])
 
         current_rule['currently_locals'] = original
         return node
@@ -1084,11 +1092,13 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
         original = current_rule['currently_locals']
         current_rule['currently_locals'] = set(original) if original else set()
         node.orelse = self.visit(node.orelse)
-        current_rule['possibly_locals'].update(current_rule['currently_locals'])
+        current_rule['possibly_locals'].update(
+            current_rule['currently_locals'])
 
         current_rule['currently_locals'] = set(original) if original else set()
         node.finalbody = self.visit(node.finalbody)
-        current_rule['possibly_locals'].update(current_rule['currently_locals'])
+        current_rule['possibly_locals'].update(
+            current_rule['currently_locals'])
 
         current_rule['currently_locals'] = original
         return node
@@ -1107,7 +1117,8 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
         if node.name is not None:
             current_rule['currently_locals'].add(node.name)
         node.body = self.visit(node.body)
-        current_rule['possibly_locals'].update(current_rule['currently_locals'])
+        current_rule['possibly_locals'].update(
+            current_rule['currently_locals'])
 
         current_rule['currently_locals'] = original
         return node
@@ -1151,8 +1162,8 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
             current_rule['currently_locals'].add(item.arg)
 
         node.body = self.visit(node.body)
-        # no need to update possible locals, because lambda variables don'y leak
-        # out to the outside context
+        # no need to update possible locals, because lambda variables don't
+        # leak out to the outside context
         current_rule['currently_locals'] = original
         return node
 
@@ -1244,8 +1255,9 @@ class VerifyKVCaptureOnExitTransformer(ParseKVFunctionTransformer):
     # from the first pass rules? Because imagine a `with` rule containing 2
     # lines: `x = obj; z @= x.y + 10`. Because `x` is a local to the rule,
     # captues will not include x, meaning we'd be free to modify x after
-    # the rule. But then the bind will not bind to the same x as in the original
-    # rule. That's why here we make any load Name within a rule readonly.
+    # the rule. But then the bind will not bind to the same x as in the
+    # original rule. That's why here we make any load Name within a rule
+    # readonly.
     # The callback is not the problem, because the callback only cares about
     # captures variables and local vars can be changed in the callback.
 
@@ -1402,8 +1414,8 @@ class VerifyKVCaptureOnEnterTransformer(VerifyKVCaptureOnExitTransformer):
 
         self.ro_ctx_stack.appendleft(self.current_read_only_vars)
         self.current_read_only_vars = set(self.current_read_only_vars)  # seed
-        # get rule from ctx, in case we have ctx within ctx and the rules are at
-        # the end of each ctx so first_pass_rules is then not reliable.
+        # get rule from ctx, in case we have ctx within ctx and the rules are
+        # at the end of each ctx so first_pass_rules is then not reliable.
         rule_info_0 = first_ctx_info['rules'][0]
         self.current_read_only_vars.update(rule_info_0['enter_readonly_names'])
 
@@ -1429,7 +1441,8 @@ class VerifyKVCaptureOnEnterTransformer(VerifyKVCaptureOnExitTransformer):
 
         # there are still more rules,
         self.current_read_only_vars = set(self.ro_ctx_stack[0])  # seed RO
-        self.current_read_only_vars.update(rules[i + 1]['enter_readonly_names'])
+        self.current_read_only_vars.update(
+            rules[i + 1]['enter_readonly_names'])
 
     def finish_kv_rule(self, ctx_info, rule_info):
         pass

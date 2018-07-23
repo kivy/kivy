@@ -98,7 +98,8 @@ def get_kvc_filename(func, flags=''):
     return kv_fname
 
 
-def load_kvc_from_file(func, target_func_name=None, flags='', compile_flags=()):
+def load_kvc_from_file(
+        func, target_func_name=None, flags='', compile_flags=()):
     '''
     Loads the compiled KV function from the kvc file associated with the
     function.
@@ -106,7 +107,8 @@ def load_kvc_from_file(func, target_func_name=None, flags='', compile_flags=()):
     This is a internal function, with non-public API.
 
     :param func: The original function, whose compiled code should be loaded.
-    :param target_func_name: The name of the function as stored in the kvc file.
+    :param target_func_name: The name of the function as stored in the kvc
+        file.
         Typically, it's the function's name.
     :param flags: Any arch flags used when saving the kvc file. This is stored
         in the kvc filename.
