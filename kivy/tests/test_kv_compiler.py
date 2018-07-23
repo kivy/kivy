@@ -2973,7 +2973,7 @@ class TestUnbinding(TestBase):
         f(w)
 
         self.assertEqual(len(w.ctx.bind_stores_by_graph), 2)
-        self.assertEqual(set(map(len, w.ctx.bind_stores_by_graph)), {1, 4})
+        self.assertEqual(set(map(len, w.ctx.bind_stores_by_graph)), {1, 6})
         self.assertEqual(len(w.ctx.rules[0].bind_stores), 2)
         for graph in w.ctx.bind_stores_by_graph:
             for item in graph:

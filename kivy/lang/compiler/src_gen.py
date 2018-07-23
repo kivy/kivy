@@ -60,8 +60,10 @@ class KVCompiler(object):
         self.kv_rule_pool = StringPool(prefix='__kv_rule')
 
     def get_all_bind_store_indices_for_leaf_and_parents(self, graphs):
-        node_deps = {}
+        graphs_node_deps = []
         for graph, _ in graphs:
+            node_deps = {}
+            graphs_node_deps.append(node_deps)
             for node in graph:
                 if node.leaf_rule is None:
                     continue
@@ -107,7 +109,21 @@ class KVCompiler(object):
                 assert len(node.bind_store_indices) == 1
                 node_deps[node].add(node.bind_store_indices[0])
 
-        return node_deps
+        return graphs_node_deps
+
+    def get_num_binds_for_bind_store_indices(
+            self, graphs_leaf_parents_indices):
+        graphs_bind_counts = []
+        for leaf_parents_indices in graphs_leaf_parents_indices:
+            bind_counts = defaultdict(int)
+            for node, indices in leaf_parents_indices.items():
+                if node.leaf_rule is None:
+                    continue
+
+                for i in indices:
+                    bind_counts[i] += 1
+            graphs_bind_counts.append(bind_counts)
+        return graphs_bind_counts
 
     def get_subgraphs(self, ctx):
         # consider the graph made by rule (x.y + x.z).q + x.y.k
@@ -440,11 +456,14 @@ class KVCompiler(object):
                 src_code.append('')
 
     def gen_fbind_for_subgraph_nodes_for_initial_bindings(
-            self, src_code, nodes, indent, dep_name, parent_nodes_of_leaves):
+            self, src_code, nodes, indent, dep_name, parent_nodes_of_leaves,
+            store_indices_count):
         indent2 = indent + 4
 
         for node in nodes:
             obj_attr = node.ref_node.attr
+            assert node.count == sum(
+                store_indices_count[j] for j in node.bind_store_indices)
             for i, callback_name in zip(
                     node.bind_store_indices, node.callback_names):
                 bind = '__kv__fbind("{}", {})'.format(obj_attr, callback_name)
@@ -457,7 +476,7 @@ class KVCompiler(object):
                 src_code.append(
                     '{}{}[{}] = [{}, "{}", {}, {}, {}, {}]'.format(
                         ' ' * indent2, node.bind_store_name, i, dep_name,
-                        obj_attr, callback_name, bind, node.count,
+                        obj_attr, callback_name, bind, store_indices_count[i],
                         indices
                     ))
                 src_code.append('')
@@ -465,7 +484,7 @@ class KVCompiler(object):
     def gen_subgraph_bindings(
             self, src_code, subgraph, temp_pool, nodes_use_count,
             nodes_original_ref, nodes_temp_var_name, init_bindings,
-            parent_nodes_of_leaves=None):
+            parent_nodes_of_leaves=None, store_indices_count=None):
         '''Generates the code that binds all the callbacks associated with this
         subgraph.
         '''
@@ -508,7 +527,8 @@ class KVCompiler(object):
 
             if init_bindings:
                 self.gen_fbind_for_subgraph_nodes_for_initial_bindings(
-                    src_code, nodes, indent, dep_name, parent_nodes_of_leaves)
+                    src_code, nodes, indent, dep_name, parent_nodes_of_leaves,
+                    store_indices_count)
             else:
                 self.gen_fbind_for_subgraph_nodes_in_rebind_callback(
                     src_code, nodes, indent, dep_name)
@@ -914,7 +934,8 @@ class KVCompiler(object):
         return src_code
 
     def gen_initial_bindings_for_graph(
-            self, src_code, graph, subgraphs, parent_nodes_of_leaves):
+            self, src_code, graph, subgraphs, parent_nodes_of_leaves,
+            store_indices_count):
         # we keep track of all attrs we visit in the subgraph. Because
         # deps are always explored before the children, if we encounter
         # a attr dep that has not been visited, it means its at the root
@@ -956,7 +977,8 @@ class KVCompiler(object):
                 src_code, subgraph, temp_pool,
                 nodes_use_count, nodes_original_ref, nodes_temp_var_name,
                 init_bindings=True,
-                parent_nodes_of_leaves=parent_nodes_of_leaves)
+                parent_nodes_of_leaves=parent_nodes_of_leaves,
+                store_indices_count=store_indices_count)
 
             self.remove_subgraph_from_count(subgraph, nodes_use_count)
 
@@ -967,13 +989,19 @@ class KVCompiler(object):
             node.set_ref_node(origin_node)
 
     def gen_initial_bindings(self, ctx, graphs, exec_rules_after_binding):
-        parent_nodes_of_leaves = \
+        graphs_parent_nodes_of_leaves = \
             self.get_all_bind_store_indices_for_leaf_and_parents(graphs)
+        graphs_store_indices_count = self.get_num_binds_for_bind_store_indices(
+            graphs_parent_nodes_of_leaves)
         src_code = []
 
-        for graph, bind_subgraphs in graphs:
+        for parent_nodes_of_leaves, store_indices_count, (
+                graph, bind_subgraphs) in zip(
+                graphs_parent_nodes_of_leaves, graphs_store_indices_count,
+                graphs):
             self.gen_initial_bindings_for_graph(
-                src_code, graph, bind_subgraphs, parent_nodes_of_leaves)
+                src_code, graph, bind_subgraphs, parent_nodes_of_leaves,
+                store_indices_count)
 
         if exec_rules_after_binding:
             for rule in ctx.rules:
