@@ -1,8 +1,6 @@
 # capture x.y @= ... for x
 # read only x = x.y, should crash
 # read only no rules in nested ctx
-# objects that are None in rule
-# manual tests
 
 # TODO: add tests for async def, like do_def, once py2 support is dropped
 # we must remove pycache b/c https://bugs.python.org/issue31772
@@ -13,7 +11,7 @@ from os.path import exists, isfile
 import inspect
 import gc
 
-from kivy.lang.compiler.kv_context import KVParserRule
+from kivy.lang.compiler.kv_context import KVParserRule, KVParserCtx
 from kivy.lang.compiler.kv import KV_apply_manual
 from kivy.lang.compiler.utils import StringPool
 from kivy.lang.compiler import KV, KVCtx, KVRule
@@ -137,7 +135,7 @@ class BaseWidget(Widget):
 
     value_object = ObjectProperty(None)
 
-    widget = ObjectProperty(None)
+    widget = ObjectProperty(None, allownone=True)
 
     widget2 = ObjectProperty(None)
 
@@ -2936,6 +2934,17 @@ class SyntaxUnbindingCtxRulePropsWidget(BaseWidget):
                 self.value @= \
                     self.value_dict[self.value2 + self.value3] + self.value3
 
+    def dict_rule9(self):
+        self.widget = Widget()
+        self.widget2 = Widget()
+        self.value_dict = {0: self.widget, 1: self.widget2}
+        self.value2 = 0
+
+        with KVCtx() as self.ctx:
+            with KVRule():
+                self.count += 1
+                self.value @= self.value_dict[self.value2].width + self.value3
+
     def apply_kv(self):
         self.widget = Widget()
         with KVCtx() as self.ctx:
@@ -3441,6 +3450,30 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
         self.assertEqual(w.value, 26 + 1)
         self.assertEqual(w.count, count + 5)
 
+    def test_syntax_rule_dict_rebind(self):
+        KV_f = KV(kv_syntax='minimal', rebind=True)
+        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.dict_rule9)
+        w = SyntaxUnbindingCtxRulePropsWidget()
+        f(w)
+
+        self.assertEqual(w.value, w.widget.width + w.value3)
+        w.widget.width = 354
+        self.assertEqual(w.value, w.widget.width + w.value3)
+        orig = w.widget.width + w.value3
+        w.widget2.width = 43
+        self.assertEqual(w.value, orig)
+
+        w.value2 = 1
+        self.assertEqual(w.value, w.widget2.width + w.value3)
+        w.widget2.width = 45
+        self.assertEqual(w.value, w.widget2.width + w.value3)
+        orig = w.widget2.width + w.value3
+        w.widget.width = 585
+        self.assertEqual(w.value, orig)
+
+        w.value3 = 435
+        self.assertEqual(w.value, w.widget2.width + w.value3)
+
     def test_callback_rule(self):
         KV_f = KV()
         f = KV_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv)
@@ -3550,3 +3583,264 @@ class TestEventBind(TestBase):
         self.assertEqual(w.ctx.rules[0].largs, (w, 76))
         w.value2 = 56
         self.assertEqual(w.ctx.rules[0].largs, (w, 76))
+
+
+class RebindWidget(BaseWidget):
+
+    def apply_kv(self):
+        self.widget = Widget()
+        self.widget2 = Widget()
+
+        with KVCtx():
+            self.value @= self.widget.width + self.widget2.width
+
+    def apply_kv2(self):
+        self.widget = Widget()
+        self.widget2 = Widget()
+
+        with KVCtx():
+            self.value @= self.widget.width + self.widget2.width
+
+    def apply_kv3(self):
+        self.widget = Widget()
+        self.widget2 = Widget()
+
+        with KVCtx():
+            self.value @= self.widget.width + self.widget2.width
+
+    def apply_kv4(self):
+        self.widget = Widget()
+        self.widget2 = Widget()
+
+        with KVCtx():
+            self.value @= self.widget.width + self.widget2.width
+
+    def apply_kv5(self):
+        self.widget = Widget()
+        self.widget2 = Widget()
+
+        with KVCtx():
+            self.value @= self.widget.width + self.widget2.width
+
+    def apply_kv6(self):
+        self.widget = Widget()
+        self.widget2 = Widget()
+
+        with KVCtx():
+            self.value @= self.widget.width + self.widget2.width
+
+
+@skip_py2_decorator
+class TestRebind(TestBase):
+
+    def test_rebind(self):
+        KV_f = KV(rebind=False)
+        f = KV_f(RebindWidget.apply_kv)
+        w = RebindWidget()
+        f(w)
+
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        w.widget.width = 54
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        w.widget2.width = 856
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+
+        orig_widget = w.widget
+        orig_widget2 = w.widget2
+        w.widget = Widget()
+        w.widget2 = Widget()
+        self.assertEqual(w.value, orig_widget.width + orig_widget2.width)
+        w.widget.width = 67
+        self.assertEqual(w.value, orig_widget.width + orig_widget2.width)
+        w.widget2.width = 568
+        self.assertEqual(w.value, orig_widget.width + orig_widget2.width)
+        orig_widget.width = 5637
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        orig_widget2.width = 6854
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+
+    def test_rebind_true(self):
+        KV_f = KV(rebind=True)
+        f = KV_f(RebindWidget.apply_kv2)
+        w = RebindWidget()
+        f(w)
+
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        w.widget.width = 41
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        w.widget2.width = 872
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+
+        orig_widget = w.widget
+        orig_widget2 = w.widget2
+        w.widget = Widget()
+        w.widget2 = Widget()
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        w.widget.width = 782
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        w.widget2.width = 2748
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        orig_widget.width = 456
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        orig_widget2.width = 78
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+
+    def rebind_partial_base(self, f, params):
+        KV_f = KV(rebind=params)
+        f = KV_f(f)
+        w = RebindWidget()
+        f(w)
+
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        w.widget.width = 786
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        w.widget2.width = 468
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+
+        orig_widget = w.widget
+        orig_widget2 = w.widget2
+        w.widget2 = Widget()
+        # this must be set last, because the rule don't exec for
+        # `w.widget2 = Widget()` so the value won't match
+        w.widget = Widget()
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        w.widget.width = 4864
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        orig_val = w.widget.width + w.widget2.width
+        w.widget2.width = 34
+        self.assertEqual(w.value, orig_val)
+        orig_widget.width = 45674
+        self.assertEqual(w.value, orig_val)
+        orig_widget2.width = 756
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+
+    def test_rebind_partial(self):
+        self.rebind_partial_base(RebindWidget.apply_kv3, '*.widget')
+
+    def test_rebind_partial2(self):
+        self.rebind_partial_base(RebindWidget.apply_kv4, '*dget')
+
+    def test_rebind_partial3(self):
+        self.rebind_partial_base(RebindWidget.apply_kv5, ['*.widget'])
+
+    def test_rebind_partial4(self):
+        self.rebind_partial_base(
+            RebindWidget.apply_kv6, ['*.widget', 'sfsd', '*cheese'])
+
+
+class ManualKVWidget(BaseWidget):
+
+    ctx = None
+
+    def apply_kv(self):
+        self.widget = Widget()
+        self.widget2 = Widget()
+        self.ctx = ctx = KVParserCtx()
+
+        def manage_val(*largs):
+            self.value = self.widget.width + self.widget2.width
+        manage_val()
+
+        rule = KVParserRule('self.widget.width + self.widget2.width')
+        rule.callback = manage_val
+        rule.callback_name = manage_val.__name__
+        ctx.add_rule(rule)
+
+        KV_apply_manual(ctx, self.apply_kv, locals(), globals(), rebind=True)
+
+
+@skip_py2_decorator
+class TestManualKV(TestBase):
+
+    def test_manual(self):
+        w = ManualKVWidget()
+        w.apply_kv()
+
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        w.widget.width = 41
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        w.widget2.width = 872
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+
+        orig_widget = w.widget
+        orig_widget2 = w.widget2
+        w.widget = Widget()
+        w.widget2 = Widget()
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        w.widget.width = 782
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        w.widget2.width = 2748
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        orig_widget.width = 456
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+        orig_widget2.width = 78
+        self.assertEqual(w.value, w.widget.width + w.widget2.width)
+
+        self.assertEqual(len(w.ctx.bind_stores_by_graph), 1)
+        self.assertEqual(len(w.ctx.rebind_functions), 2)
+        self.assertEqual(len(w.ctx.named_rules), 0)
+        self.assertEqual(len(w.ctx.rules), 1)
+        rule = w.ctx.rules[0]
+        self.assertEqual(len(rule.bind_stores), 1)
+        self.assertIsNotNone(rule.callback)
+        self.assertIsNone(rule.delay)
+        self.assertIsNone(rule.name)
+        self.assertIsNone(rule._callback)
+        self.assertEqual(rule.largs, ())
+
+
+class NoneLocalsWidget(BaseWidget):
+
+    def apply_kv(self):
+        widget = None
+        with KVCtx():
+            self.value @= widget.height
+
+    def apply_kv2(self):
+        self.widget = None
+        with KVCtx():
+            self.value @= self.widget.height
+
+    def apply_kv3(self):
+        self.widget = None
+        with KVCtx():
+            self.value @= self.widget.height if self.widget is not None else 55
+
+
+@skip_py2_decorator
+class TestNoneLocal(TestBase):
+
+    def test_None_local(self):
+        KV_f = KV()
+        f = KV_f(NoneLocalsWidget.apply_kv)
+        w = NoneLocalsWidget()
+        with self.assertRaises(AttributeError):
+            f(w)
+
+    def test_None_local_attr(self):
+        KV_f = KV()
+        f = KV_f(NoneLocalsWidget.apply_kv2)
+        w = NoneLocalsWidget()
+        with self.assertRaises(AttributeError):
+            f(w)
+
+    def test_None_local_attr_protected(self):
+        KV_f = KV()
+        f = KV_f(NoneLocalsWidget.apply_kv3)
+        w = NoneLocalsWidget()
+        f(w)
+
+        self.assertEqual(w.value, 55)
+        w.widget = Widget()
+        self.assertEqual(w.value, w.widget.height)
+        w.widget.height = 9645
+        self.assertEqual(w.value, w.widget.height)
+        w.widget = None
+        self.assertEqual(w.value, 55)
+
+        w.widget = Widget()
+        self.assertEqual(w.value, w.widget.height)
+        w.widget.height = 128
+        self.assertEqual(w.value, w.widget.height)
+        w.widget = None
+        self.assertEqual(w.value, 55)
