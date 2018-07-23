@@ -457,7 +457,7 @@ class KVCompiler(object):
 
     def gen_fbind_for_subgraph_nodes_for_initial_bindings(
             self, src_code, nodes, indent, dep_name, parent_nodes_of_leaves,
-            store_indices_count):
+            store_indices_count, var_none):
         indent2 = indent + 4
 
         for node in nodes:
@@ -467,6 +467,9 @@ class KVCompiler(object):
             for i, callback_name in zip(
                     node.bind_store_indices, node.callback_names):
                 bind = '__kv__fbind("{}", {})'.format(obj_attr, callback_name)
+                if var_none:
+                    bind = 'None'
+
                 if node.leaf_rule is None:
                     indices = '()'
                 else:
@@ -525,10 +528,24 @@ class KVCompiler(object):
             src_code.append(
                 '{}if __kv__fbind is not None:'.format(' ' * indent))
 
+            else_bind = []
             if init_bindings:
                 self.gen_fbind_for_subgraph_nodes_for_initial_bindings(
                     src_code, nodes, indent, dep_name, parent_nodes_of_leaves,
-                    store_indices_count)
+                    store_indices_count, False)
+
+                src_code.append(
+                    '{}else:'.format(' ' * indent))
+                self.gen_fbind_for_subgraph_nodes_for_initial_bindings(
+                    src_code, nodes, indent, dep_name, parent_nodes_of_leaves,
+                    store_indices_count, True)
+
+                if dep.depends:
+                    else_bind.append(
+                        '{}else:'.format(' ' * 0))
+                    self.gen_fbind_for_subgraph_nodes_for_initial_bindings(
+                        else_bind, nodes, 0, dep_name, parent_nodes_of_leaves,
+                        store_indices_count, True)
             else:
                 self.gen_fbind_for_subgraph_nodes_in_rebind_callback(
                     src_code, nodes, indent, dep_name)
@@ -547,6 +564,7 @@ class KVCompiler(object):
                     nodes_original_ref[node] = node.ref_node
                     node.set_ref_node(ast.Name(id=var, ctx=ast.Load()))
 
+            src_code.extend(else_bind)
             if dep.depends:
                 for _ in nodes:
                     temp_pool.return_back(dep)
