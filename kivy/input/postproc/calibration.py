@@ -32,16 +32,16 @@ This is useful when probesysfs is used to match devices. For example::
     [input]
     mtdev_%(name)s = probesysfs,provider=mtdev
 
-To apply calibration to these devices, you can match with the provider name
-enclosed by parentheses::
+Then to apply calibration to any mtdev device, you can assign rules to the
+provider name enclosed by parentheses::
 
     [postproc:calibration]
     (mtdev) = xratio=0.3333,xoffset=0.3333
 
-Matching devices like this means the device's path doesn't need to be
+Calibrating devices like this means the device's path doesn't need to be
 configured ahead of time. Note that with this method, all mtdev inputs will
 have the same calibration applied to them. For this reason, matching by
-provider will typically be useful only when expecting one input device.
+provider will typically be useful when expecting only one input device.
 '''
 
 __all__ = ('InputPostprocCalibration', )
@@ -99,8 +99,15 @@ class InputPostprocCalibration(object):
             self.devices[device_key] = params
 
     def _get_provider_map(self):
+        """Iterates through all registered input provider names and finds the
+        respective MotionEvent subclass for each. Returns a dict of provider
+        names mapped to their MotionEvent subclass.
+        """
         provider_map = {}
         for input_provider in MotionEventFactory.list():
+            if not hasattr(providers, input_provider):
+                continue
+
             p = getattr(providers, input_provider)
             events = []
             for m in p.__all__:
@@ -112,6 +119,9 @@ class InputPostprocCalibration(object):
         return provider_map
 
     def _get_provider_key(self, event):
+        """Idenitifes the provider name of a MotionEvent and returns the
+        corresponding key in self.devices if it exists.
+        """
         for input_type, ev_class in self.provider_map.items():
             key = '({})'.format(input_type)
             for ec in ev_class:
