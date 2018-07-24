@@ -1023,7 +1023,8 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
 
         for item in node.generators:
             assert isinstance(item, ast.comprehension)
-            assert item._fields == ('target', 'iter', 'ifs')
+            assert item._fields == ('target', 'iter', 'ifs') or \
+                   item._fields == ('target', 'iter', 'ifs', 'is_async')
             # iter MUST be first because that is before locals are created in
             # the comprehension
             item.iter = self.visit(item.iter)
