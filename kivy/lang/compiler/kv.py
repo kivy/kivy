@@ -22,9 +22,99 @@ __all__ = ('KV', 'KV_apply_manual')
 
 def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
        exec_rules_after_binding=False, captures_are_readonly=True):
-    '''Once a function is decorated, calling KV again on it will ignore
-    option changes, unless the source changed. This means calling KV()(f)
-    multiple times with different flags will not re-compile f.'''
+    '''
+    Decorator factory function that returns a decorator that compiles a KV
+    containing function. Typical usage::
+
+        class MyWidget(Widget):
+            @KV()  # notice that it MUST be called
+            def apply_kv(self):
+                with KVCtx():
+                    self.x @= self.y + 256
+
+    :param kv_syntax: The binding syntax to support. Default: `"minimal"`
+        With `"minimal"`, it's similar to traditional KV, and binds rules e.g.
+        `self.x @= self.widget.y` and `self.dict[self.name]`. When None, it
+        binds to a expanded set of syntax, e.g.
+        `(self.widget + self.widget2).width`.
+
+        The `"minimal"` syntax is recommended for most situations and `None`
+        should only be used in exceptional circumstance.
+    :param proxy: glob pattern(s) describing the widgets that should not hold
+        a direct reference to other widgets for garbage collection purposes.
+        Defaults to `False`
+
+        It is either `False` - when all widgets should hold direct references,
+        or `True` - when no widgets should hold direct references, or
+        a glob string describing the widget(s) that should not hold a
+        reference, e.g. `"*widget"` will match `self.widget` and
+        `self.my_widget`. Or it can be a list of glob strings and any that
+        match will not hold a direct reference.
+
+        This is to be used when binding widgets that have a very long life, and
+        it's not desirable that the widget prevent other widgets from being
+        garbage collected. This is mostly encountered when binding to the
+        global App, which never dies.
+
+        This is used for widgets that are being bound to, e.g. in the rule
+        `self.x @= self.app.my_x`, `proxy` may be set to `"*app"`, to prevent
+        the `self` widget from being kept alive by `app`. But is not needed
+        e.g. when binding to widgets that are not independently kept alive.
+
+        .. warning::
+
+            If all binding widgets are using proxies, no one will keep the KV
+            rules alive, and the rules will not be executed once garbage
+            collection runs. You can save a reference to the KVCtx, and that
+            will keep that context alive as long as the context is held.
+    :param rebind: glob pattern(s) describing the intermediate widgets that
+        should be rebound when they change. Defaults to `True`.
+
+        It is either `True` - when all widgets should rebind,
+        or `False` - when no widgets should rebind, or
+        a glob string describing the widget(s) that should rebind, e.g.
+        `"*widget"` will match `self.widget` and
+        `self.my_widget` and both `widget` and `my_widget` will rebind. Or it
+        can be a list of glob strings and any that match will rebind.
+
+        This is used in rule e.g. `self.x @= self.widget.x`, if `self.widget`
+        is rebound, then when `self.widget` changes, the rulee rebind to `x`
+        belonging to the new widget stored in `self.widget`.
+    :param bind_on_enter: Where KV binding should occur for the context.
+        Defaults to False.
+
+        For a rule such as::
+
+            with KVCtx():
+                ...
+
+        binding can occur when the context is entered or exited. When
+        `bind_on_enter` is `True`, it occurs upon entrance, when `False` it
+        occurs upon exit. The default is `False`. Binding upon entrance is not
+        recommended because it's unintuitive and doesn't follow the typical
+        python programmatic flow.
+    :param exec_rules_after_binding: Whether all the rules should be executed
+        after the bindings. Defaults to False.
+
+        This is only useful when `bind_on_enter` is `False`, because then the
+        rules are executed before the bindings occur, and it may be desirable
+        for the rules to be executed again, once all the bindings occurs.
+
+        This is particularly useful for circular rules. It is `False` by
+        default for performance reasons.
+    :param captures_are_readonly: Whether any variables that participate
+        in a rule may be changed between rule execution and binding. Defaults
+        to `True`.
+
+        This parameter should not be changed to `False` except for debugging
+        purposes or if you truly understand the internals of binding.
+    :return: The compiled function associated with the original function,
+        or the original function if there was nothing to compile.
+
+    Once a function is decorated, calling KV again on it will not recompile
+    the function, unless the source or the compile options changed. This means
+    calling `KV()(f)` will not re-compile `f` (and it shouldn't need to).
+    '''
     compile_flags = (
         kv_syntax, proxy, rebind, bind_on_enter, exec_rules_after_binding,
         captures_are_readonly)
@@ -141,12 +231,51 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
 
 
 def KV_apply_manual(
-        ctx, func, local_vars, global_vars, kv_syntax='minimal', proxy=False,
-        rebind=True, exec_rules_after_binding=False):
+        ctx, callback, local_vars, global_vars, kv_syntax='minimal',
+        proxy=False, rebind=True, exec_rules_after_binding=False):
+    '''
+    Similar to :func:`KV`, except that is is called manually to compile
+    bindings. Similalrly to :func:`KV`, the bindings are compiled once, and are
+    only recompiled if any of the compile options or source code file
+    containing the callback is modified.
+
+    This is meant to be used for debugging purposes, and may change in the
+    future.
+
+    Typical usage::
+
+        class ManualKVWidget(Widget):
+
+            def apply_kv(self):
+                ctx = KVParserCtx()
+
+                def manage_val(*largs):
+                    self.x = self.y + 512
+                manage_val()
+
+                # will bind to `self.y`.
+                rule = KVParserRule('self.y + 512')
+                rule.callback = manage_val
+                rule.callback_name = manage_val.__name__
+                ctx.add_rule(rule)
+
+                KV_apply_manual(ctx, self.apply_kv, locals(), globals())
+
+    :param ctx: a `KVParserCtx` used for parsing the rules.
+    :param callback: The callback to call when any of the bindings change.
+    :param local_vars: `locals()` of the function where the bindings occur.
+    :param global_vars: `globals()` of the function where the bindings occur.
+    :param kv_syntax: See :func:`KV`.
+    :param proxy: See :func:`KV`.
+    :param rebind: See :func:`KV`.
+    :param exec_rules_after_binding: See :func:`KV`.
+    :return: None - it executes the compiled rule in the provided `locals()`,
+        `globals()` environment.
+    '''
     ctx_name = '__kv_ctx'
     compiler = KVCompiler()
 
-    mod, f = load_kvc_from_file(func, '__kv_manual_wrapper', 'manual')
+    mod, f = load_kvc_from_file(callback, '__kv_manual_wrapper', 'manual')
 
     if f is None:
         transformer = ParseKVBindTransformer()
@@ -176,8 +305,8 @@ def KV_apply_manual(
         src = 'def __kv_manual_wrapper(__kv_src_func_globals, {}):\n{}'.\
             format(ctx_name, '\n'.join(lines))
 
-        save_kvc_to_file(func, src, 'manual')
-        mod, f = load_kvc_from_file(func, '__kv_manual_wrapper', 'manual')
+        save_kvc_to_file(callback, src, 'manual')
+        mod, f = load_kvc_from_file(callback, '__kv_manual_wrapper', 'manual')
 
     global_vars = global_vars.copy()
     global_vars.update(local_vars)

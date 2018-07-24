@@ -610,6 +610,13 @@ class WidgetCapture(BaseWidget):
                 self.count += 1
                 self.width @= self.height
 
+    def enter_del_in_rule(self):
+        x = 22
+        with KVCtx():
+            with KVRule():
+                self.width @= self.height
+                del x
+
     def rule_with_capture_on_exit(self):
         self.widget = Widget()
         self.widget2 = Widget()
@@ -927,6 +934,13 @@ class WidgetCapture(BaseWidget):
             with KVRule():
                 self.count += 1
                 self.width @= self.height
+
+    def exit_del_in_rule(self):
+        x = 22
+        with KVCtx():
+            with KVRule():
+                self.width @= self.height
+                del x
 
     def rule_with_capture_lambda(self):
         self.widget = Widget()
@@ -1345,6 +1359,15 @@ class TestCaptureAutoCompiler(TestBase):
         w.height = 237
         self.assertEqual(w.count, 3)
         self.assertEqual(w.width, w.height)
+
+    def test_enter_del_in_rule(self):
+        KV_f_ro, KV_f = self.get_KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.enter_del_in_rule)
+
+        remove_kvc(WidgetCapture.enter_del_in_rule)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(WidgetCapture.enter_del_in_rule)
 
     def test_capture_on_exit(self):
         KV_f = KV(bind_on_enter=False, captures_are_readonly=False)
@@ -1798,6 +1821,15 @@ class TestCaptureAutoCompiler(TestBase):
         w.height = 237
         self.assertEqual(w.count, 3)
         self.assertEqual(w.width, w.height)
+
+    def test_exit_del_in_rule(self):
+        KV_f_ro, KV_f = self.get_KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.exit_del_in_rule)
+
+        remove_kvc(WidgetCapture.exit_del_in_rule)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f(WidgetCapture.exit_del_in_rule)
 
     def capture_inlined_code(self, func, num):
         KV_f_ro, KV_f = self.get_KV()
