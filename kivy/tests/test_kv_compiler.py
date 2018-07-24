@@ -1,7 +1,3 @@
-# capture x.y @= ... for x
-# read only x = x.y, should crash
-# read only no rules in nested ctx
-
 # TODO: add tests for async def, like do_def, once py2 support is dropped
 # we must remove pycache b/c https://bugs.python.org/issue31772
 
@@ -345,24 +341,9 @@ class TestGlobalsAutoCompiler(TestBase):
 
 class WidgetCapture(BaseWidget):
 
+    count = 0
+
     def rule_with_capture_on_enter(self):
-        self.widget = Widget()
-        self.widget2 = Widget()
-        self.widget3 = Widget()
-        self.widget4 = Widget()
-        self.widget.width = 10
-        self.widget2.width = 20
-        self.widget3.width = 30
-        self.widget4.width = 40
-
-        w = self.widget
-        with KVCtx():
-            w = self.widget2
-            self.value @= w.width
-            w = self.widget3
-        w = self.widget4
-
-    def rule_with_capture_on_exit(self):
         self.widget = Widget()
         self.widget2 = Widget()
         self.widget3 = Widget()
@@ -386,28 +367,12 @@ class WidgetCapture(BaseWidget):
             w = self.widget
             self.value @= w.width
 
-    def rule_with_capture_on_exit_not_exist(self):
-        self.widget = Widget()
-
-        with KVCtx():
-            w = self.widget
-            self.value @= w.width
-            del w
-
     def enter_not_exist(self):
         self.widget = Widget()
 
         with KVCtx():
             w = self.widget
             self.value @= w.width
-
-    def exit_not_exist(self):
-        self.widget = Widget()
-
-        with KVCtx():
-            w = self.widget
-            self.value @= w.width
-            del w
 
     def enter_var_overwrite(self):
         w = Widget()
@@ -496,11 +461,10 @@ class WidgetCapture(BaseWidget):
         w2 = Widget()
         q = 55
         with KVCtx():
-            w2 = Widget()
             with KVRule(w2.width):
-                w2 = Widget()
                 x = w2
                 self.value @= w.width + q
+            w2 = Widget()
 
     def enter_var_overwrite_009_2(self):
         self.widget = w = Widget()
@@ -609,6 +573,361 @@ class WidgetCapture(BaseWidget):
             e = 90
             self.value @= self.widget3.height + r
 
+    def enter_var_overwrite19(self):
+        self.widget = w = Widget()
+        with KVCtx():
+            with KVRule(self.width):
+                w.width += self.width
+
+    def enter_var_overwrite20(self):
+        w = Widget()
+        with KVCtx():
+            w @= w.width
+
+    def enter_var_overwrite21(self):
+        w = Widget()
+        with KVCtx():
+            with KVRule():
+                w @= w.width
+
+    def enter_var_overwrite22(self):
+        self.widget = w = Widget()
+        with KVCtx():
+            with KVRule():
+                self.width @= self.widget.width
+                w = w.width
+
+    def enter_var_overwrite23(self):
+        self.widget = w = Widget()
+        with KVCtx():
+            with KVCtx():
+                with KVCtx():
+                    w = w.width
+
+    def enter_callback_at_end(self):
+        with KVCtx():
+            with KVRule():
+                self.count += 1
+                self.width @= self.height
+
+    def rule_with_capture_on_exit(self):
+        self.widget = Widget()
+        self.widget2 = Widget()
+        self.widget3 = Widget()
+        self.widget4 = Widget()
+        self.widget.width = 10
+        self.widget2.width = 20
+        self.widget3.width = 30
+        self.widget4.width = 40
+
+        w = self.widget
+        with KVCtx():
+            w = self.widget2
+            self.value @= w.width
+            w = self.widget3
+        w = self.widget4
+
+    def rule_with_capture_on_exit_not_exist(self):
+        self.widget = Widget()
+
+        with KVCtx():
+            w = self.widget
+            self.value @= w.width
+            del w
+
+    def exit_not_exist(self):
+        self.widget = Widget()
+
+        with KVCtx():
+            w = self.widget
+            self.value @= w.width
+            del w
+
+    def exit_var_overwrite(self):
+        w = Widget()
+        with KVCtx():
+            w = self.widget
+            self.value @= w.width
+
+    def exit_var_overwrite2(self):
+        w = Widget()
+        with KVCtx():
+            self.value @= w.width
+            w = self.widget
+
+    def exit_var_overwrite3(self):
+        w = Widget()
+        with KVCtx():
+            self.value @= w.width
+        w = self.widget
+
+    def exit_var_overwrite4(self):
+        w = Widget()
+        with KVCtx():
+            q = w
+            self.value @= q.width
+            w = self.widget
+
+    def exit_var_overwrite5(self):
+        w = Widget()
+        with KVCtx():
+            with KVRule():
+                q = w
+                q = None or w
+                self.value @= q.width
+            w = self.widget
+
+    def exit_var_overwrite_005(self):
+        self.widget = w = Widget()
+        with KVCtx():
+            with KVRule():
+                q = w
+                q = None or w
+                self.value @= q.width
+            del q
+
+    def exit_var_overwrite6(self):
+        w = Widget()
+        with KVCtx():
+            q = 55
+            self.value @= w.width + q
+            q = 56
+
+    def exit_var_overwrite7(self):
+        self.widget = w = Widget()
+        q = 55
+        with KVCtx():
+            q = 12
+            self.value @= w.width + q
+            q = 56
+
+    def exit_var_overwrite8(self):
+        self.widget = w = Widget()
+        q = 55
+        with KVCtx():
+            with KVRule():
+                self.value @= w.width + q
+                q = 12
+
+    def exit_var_overwrite_008(self):
+        self.widget = w = Widget()
+        q = 55
+        with KVCtx():
+            with KVRule():
+                q = 12
+                self.value @= w.width + q
+
+    def exit_var_overwrite_009_pre_ctx(self):
+        self.widget = w = Widget()
+        self.widget2 = w2 = Widget()
+        q = 55
+        w2 = Widget()
+        with KVCtx():
+            with KVRule(w2.width):
+                self.count += 1
+                self.value @= w.width + q
+
+    def exit_var_overwrite_009_pre_rule(self):
+        self.widget = w = Widget()
+        self.widget2 = w2 = Widget()
+        q = 55
+        with KVCtx():
+            w2 = Widget()
+            with KVRule(w2.width):
+                self.count += 1
+                self.value @= w.width + q
+
+    def exit_var_overwrite_009_in_rule(self):
+        self.widget = w = Widget()
+        self.widget2 = w2 = Widget()
+        q = 55
+        with KVCtx():
+            with KVRule(w2.width):
+                self.count += 1
+                w2 = Widget()
+                self.value @= w.width + q
+
+    def exit_var_overwrite9(self):
+        self.widget = w = Widget()
+        self.widget2 = w2 = Widget()
+        q = 55
+        with KVCtx():
+            with KVRule(w2.width):
+                self.count += 1
+                self.value @= w.width + q
+                w2 = Widget()
+
+    def exit_var_overwrite_009(self):
+        self.widget = w = Widget()
+        self.widget2 = w2 = Widget()
+        q = 55
+        with KVCtx():
+            with KVRule(w2.width):
+                self.count += 1
+                self.value @= w.width + q
+            w2 = Widget()
+
+    def exit_var_overwrite_009_1(self):
+        self.widget = w = Widget()
+        self.widget2 = w2 = Widget()
+        q = 55
+        with KVCtx():
+            with KVRule(w2.width):
+                w2 = Widget()
+                x = w2
+                self.value @= w.width + q
+            w2 = Widget()
+
+    def exit_var_overwrite_009_2(self):
+        self.widget = w = Widget()
+        self.widget2 = w2 = Widget()
+        q = 55
+        with KVCtx():
+            with KVRule(w2.width):
+                x = w2
+                self.value @= w.width + q
+            w2 = Widget()
+
+    def exit_var_overwrite10(self):
+        self.widget = w = Widget()
+        with KVCtx():
+            with KVRule(w.width):
+                self.widget2 = w = Widget()
+
+    def exit_var_overwrite_010(self):
+        self.widget = w = Widget()
+        with KVCtx():
+            with KVRule(w.width):
+                self.widget3 = w
+                self.widget2 = w = Widget()
+
+    def exit_var_overwrite11(self):
+        self.widget = w = Widget()
+        q = 55
+        with KVCtx():
+            self.value @= w.width + q
+            q = 27
+
+    def exit_var_overwrite12(self):
+        w = Widget()
+        q = 55
+        with KVCtx():
+            with KVRule(w.width):
+                q += 55
+
+    def exit_var_overwrite13(self):
+        w = Widget()
+        q = 55
+        with KVCtx():
+            q += 55
+            with KVRule(w.width):
+                x = q
+
+    def exit_var_overwrite15(self):
+        self.widget = w = Widget()
+        q = 55
+        with KVCtx():
+            q += 22
+            with KVRule(w.width):
+                self.value = q
+
+    def exit_var_overwrite16(self):
+        self.widget = Widget()
+        self.widget2 = Widget()
+        self.widget3 = Widget()
+        q = 54
+        e = 34
+        r = 78
+        with KVCtx():
+            self.value @= self.widget.height + q
+            with KVCtx():
+                q = 90
+                self.value @= self.widget2.height + e
+            self.value @= self.widget3.height + r + q
+
+    def exit_var_overwrite17(self):
+        self.widget = Widget()
+        self.widget2 = Widget()
+        self.widget3 = Widget()
+        q = 54
+        e = 34
+        r = 78
+        with KVCtx():
+            self.value @= self.widget.height + q
+            q = 90
+            with KVCtx():
+                self.value @= self.widget2.height + e
+            self.value @= self.widget3.height + r + q
+
+    def exit_var_overwrite18(self):
+        self.widget = Widget()
+        self.widget2 = Widget()
+        self.widget3 = Widget()
+        self.widget.height = 98
+        self.widget2.height = 65
+        self.widget3.height = 12
+        q = 54
+        e = 34
+        r = 78
+        with KVCtx():
+            q = 90
+            self.value @= self.widget.height + q
+            e = 97
+            with KVCtx():
+                self.value @= self.widget2.height + e
+            self.value @= self.widget3.height + r + q
+
+    def exit_var_overwrite19(self):
+        self.widget = Widget()
+        self.widget2 = Widget()
+        self.widget3 = Widget()
+        q = 54
+        e = 34
+        r = 78
+        with KVCtx():
+            self.value @= self.widget.height + q
+            self.value @= self.widget3.height + r + q
+            with KVCtx():
+                self.value @= self.widget2.height + e + q
+                q = 90
+
+    def exit_var_overwrite20(self):
+        self.widget = w = Widget()
+        with KVCtx():
+            with KVRule(self.width):
+                w.width += self.width
+
+    def exit_var_overwrite21(self):
+        w = Widget()
+        with KVCtx():
+            w @= w.width
+
+    def exit_var_overwrite22(self):
+        w = Widget()
+        with KVCtx():
+            with KVRule():
+                w @= w.width
+
+    def exit_var_overwrite23(self):
+        self.widget = w = Widget()
+        with KVCtx():
+            with KVRule():
+                self.width @= self.widget.width
+                w = w.width
+
+    def exit_var_overwrite24(self):
+        self.widget = w = Widget()
+        with KVCtx():
+            with KVCtx():
+                with KVCtx():
+                    w = w.width
+
+    def exit_callback_at_end(self):
+        with KVCtx():
+            with KVRule():
+                self.count += 1
+                self.width @= self.height
+
     def rule_with_capture_lambda(self):
         self.widget = Widget()
 
@@ -686,33 +1005,9 @@ class TestCaptureAutoCompiler(TestBase):
         w.widget.width = 76
         self.assertEqual(w.value, 76)
 
-    def test_capture_on_exit(self):
-        KV_f = KV(bind_on_enter=False, captures_are_readonly=False)
-        f_static = KV_f(WidgetCapture.rule_with_capture_on_exit)
-
-        w = WidgetCapture()
-        f_static(w)
-        self.assertEqual(w.value, 20)
-        w.widget2.width = 35
-        self.assertEqual(w.value, 20)
-        w.widget4.width = 66
-        self.assertEqual(w.value, 20)
-        w.widget.width = 76
-        self.assertEqual(w.value, 20)
-        w.widget3.width = 44
-        self.assertEqual(w.value, 44)
-
     def test_capture_on_enter_not_exist(self):
         KV_f = KV(bind_on_enter=True, captures_are_readonly=False)
         f_static = KV_f(WidgetCapture.rule_with_capture_on_enter_not_exist)
-
-        w = WidgetCapture()
-        with self.assertRaises(UnboundLocalError):
-            f_static(w)
-
-    def test_capture_on_exit_not_exist(self):
-        KV_f = KV(bind_on_enter=True, captures_are_readonly=False)
-        f_static = KV_f(WidgetCapture.rule_with_capture_on_exit_not_exist)
 
         w = WidgetCapture()
         with self.assertRaises(UnboundLocalError):
@@ -768,10 +1063,8 @@ class TestCaptureAutoCompiler(TestBase):
 
     def test_enter_indirect_explicit_rule(self):
         KV_f_ro, KV_f = self.get_KV()
-        f = KV_f_ro(WidgetCapture.enter_var_overwrite_005)
-        w = WidgetCapture()
-        with self.assertRaises(UnboundLocalError):
-            f(w)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.enter_var_overwrite_005)
 
         remove_kvc(WidgetCapture.enter_var_overwrite_005)
         f = KV_f(WidgetCapture.enter_var_overwrite_005)
@@ -803,12 +1096,8 @@ class TestCaptureAutoCompiler(TestBase):
 
     def test_enter_overwrite_in_rule_explicit_rule_defined(self):
         KV_f_ro, KV_f = self.get_KV()
-        f = KV_f_ro(WidgetCapture.enter_var_overwrite8)
-        w = WidgetCapture()
-        f(w)
-        self.assertEqual(w.value, w.widget.width + 12)
-        w.widget.width = 33
-        self.assertEqual(w.value, w.widget.width + 12)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.enter_var_overwrite8)
 
         remove_kvc(WidgetCapture.enter_var_overwrite8)
         f = KV_f(WidgetCapture.enter_var_overwrite8)
@@ -820,7 +1109,9 @@ class TestCaptureAutoCompiler(TestBase):
 
     def test_enter_overwrite_in_rule_explicit_bind(self):
         KV_f_ro, KV_f = self.get_KV()
-        f = KV_f_ro(WidgetCapture.enter_var_overwrite9)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.enter_var_overwrite9)
+
         remove_kvc(WidgetCapture.enter_var_overwrite9)
         f = KV_f(WidgetCapture.enter_var_overwrite9)
         w = WidgetCapture()
@@ -829,20 +1120,10 @@ class TestCaptureAutoCompiler(TestBase):
         w.widget.width = 77
         self.assertEqual(w.value, w.widget.width + 55)
 
-        w = WidgetCapture()
-        f(w)
-        self.assertEqual(w.value, w.widget.width + 55)
-        w.widget.width = 77
-        self.assertEqual(w.value, w.widget.width + 55)
-
     def test_enter_overwrite_before_rule_explicit_bind(self):
         KV_f_ro, KV_f = self.get_KV()
-        f = KV_f_ro(WidgetCapture.enter_var_overwrite_009)
-        w = WidgetCapture()
-        f(w)
-        self.assertEqual(w.value, w.widget.width + 55)
-        w.widget.width = 77
-        self.assertEqual(w.value, w.widget.width + 55)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.enter_var_overwrite_009)
 
         remove_kvc(WidgetCapture.enter_var_overwrite_009)
         f = KV_f(WidgetCapture.enter_var_overwrite_009)
@@ -854,7 +1135,10 @@ class TestCaptureAutoCompiler(TestBase):
 
     def test_enter_overwrite_before_rule_explicit_bind_not_captured(self):
         KV_f_ro, KV_f = self.get_KV()
-        f = KV_f_ro(WidgetCapture.enter_var_overwrite_009_1)
+        KV_f_ro(WidgetCapture.enter_var_overwrite_009_1)
+
+        remove_kvc(WidgetCapture.enter_var_overwrite_009_1)
+        f = KV_f(WidgetCapture.enter_var_overwrite_009_1)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + 55)
@@ -868,13 +1152,8 @@ class TestCaptureAutoCompiler(TestBase):
 
     def test_enter_overwrite_in_rule_explicit_bind2(self):
         KV_f_ro, KV_f = self.get_KV()
-        f = KV_f_ro(WidgetCapture.enter_var_overwrite10)
-        w = WidgetCapture()
-        f(w)
-        self.assertIsNot(w.widget, w.widget2)
-        w2 = w.widget2
-        w.widget.width = 77
-        self.assertIsNot(w.widget2, w2)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.enter_var_overwrite10)
 
         remove_kvc(WidgetCapture.enter_var_overwrite10)
         f = KV_f(WidgetCapture.enter_var_overwrite10)
@@ -887,14 +1166,8 @@ class TestCaptureAutoCompiler(TestBase):
 
     def test_enter_overwrite_in_rule_explicit_bind_captured(self):
         KV_f_ro, KV_f = self.get_KV()
-        f = KV_f_ro(WidgetCapture.enter_var_overwrite_010)
-        w = WidgetCapture()
-        f(w)
-        self.assertIsNot(w.widget, w.widget2)
-        self.assertIs(w.widget, w.widget3)
-        w2 = w.widget2
-        w.widget.width = 77
-        self.assertIsNot(w.widget2, w2)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.enter_var_overwrite_010)
 
         remove_kvc(WidgetCapture.enter_var_overwrite_010)
         f = KV_f(WidgetCapture.enter_var_overwrite_010)
@@ -934,9 +1207,8 @@ class TestCaptureAutoCompiler(TestBase):
 
     def test_enter_aug_overwrite_in_rule_captured(self):
         KV_f_ro, KV_f = self.get_KV()
-        f = KV_f_ro(WidgetCapture.enter_var_overwrite13)
-        w = WidgetCapture()
-        f(w)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.enter_var_overwrite13)
         remove_kvc(WidgetCapture.enter_var_overwrite13)
         f = KV_f(WidgetCapture.enter_var_overwrite13)
         w = WidgetCapture()
@@ -944,9 +1216,8 @@ class TestCaptureAutoCompiler(TestBase):
 
     def test_enter_aug_overwrite_after_rule_captured(self):
         KV_f_ro, KV_f = self.get_KV()
-        f = KV_f_ro(WidgetCapture.enter_var_overwrite14)
-        w = WidgetCapture()
-        f(w)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.enter_var_overwrite14)
         remove_kvc(WidgetCapture.enter_var_overwrite14)
         f = KV_f(WidgetCapture.enter_var_overwrite14)
         w = WidgetCapture()
@@ -954,12 +1225,8 @@ class TestCaptureAutoCompiler(TestBase):
 
     def test_enter_aug_overwrite_in_rule_read(self):
         KV_f_ro, KV_f = self.get_KV()
-        f = KV_f_ro(WidgetCapture.enter_var_overwrite15)
-        w = WidgetCapture()
-        f(w)
-        self.assertEqual(w.value, 55 + 22)
-        w.widget.width = 43
-        self.assertEqual(w.value, 55 + 22)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.enter_var_overwrite15)
 
     def test_enter_nested_ctx_overwrite_in_nested(self):
         KV_f_ro, KV_f = self.get_KV()
@@ -1001,6 +1268,536 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, w.widget3.height + 78)
         w.widget2.height = 33
         self.assertEqual(w.value, w.widget2.height + 34)
+
+    def test_enter_aug(self):
+        KV_f_ro, KV_f = self.get_KV()
+        f = KV_f_ro(WidgetCapture.enter_var_overwrite19)
+        w = WidgetCapture()
+        f(w)
+        width = w.widget.width
+        widget = w.widget
+        w.widget = None
+        w.width = 124
+        self.assertEqual(widget.width, 124 + width)
+
+        remove_kvc(WidgetCapture.enter_var_overwrite19)
+        f = KV_f(WidgetCapture.enter_var_overwrite19)
+        w = WidgetCapture()
+        f(w)
+        width = w.widget.width
+        widget = w.widget
+        w.widget = None
+        w.width = 124
+        self.assertEqual(widget.width, 124 + width)
+
+    def test_enter_overwrite_var(self):
+        KV_f_ro, KV_f = self.get_KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.enter_var_overwrite20)
+
+        remove_kvc(WidgetCapture.enter_var_overwrite20)
+        f = KV_f(WidgetCapture.enter_var_overwrite20)
+
+    def test_enter_overwrite_var_explicit(self):
+        KV_f_ro, KV_f = self.get_KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.enter_var_overwrite21)
+
+        remove_kvc(WidgetCapture.enter_var_overwrite21)
+        f = KV_f(WidgetCapture.enter_var_overwrite21)
+
+    def test_enter_overwrite_var_assign(self):
+        KV_f_ro, KV_f = self.get_KV()
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.enter_var_overwrite22)
+
+        remove_kvc(WidgetCapture.enter_var_overwrite22)
+        f = KV_f(WidgetCapture.enter_var_overwrite22)
+
+    def test_enter_overwrite_var_assign_no_rule(self):
+        KV_f_ro, KV_f = self.get_KV()
+        KV_f_ro(WidgetCapture.enter_var_overwrite23)
+
+        remove_kvc(WidgetCapture.enter_var_overwrite23)
+        f = KV_f(WidgetCapture.enter_var_overwrite23)
+
+    def test_enter_callbacks_at_end(self):
+        KV_f = KV(bind_on_enter=True, exec_rules_after_binding=False)
+        f = KV_f(WidgetCapture.enter_callback_at_end)
+        w = WidgetCapture()
+        f(w)
+
+        self.assertEqual(w.count, 1)
+        self.assertEqual(w.width, w.height)
+        w.height = 237
+        self.assertEqual(w.count, 2)
+        self.assertEqual(w.width, w.height)
+
+        remove_kvc(WidgetCapture.enter_callback_at_end)
+
+        KV_f = KV(bind_on_enter=True, exec_rules_after_binding=True)
+        f = KV_f(WidgetCapture.enter_callback_at_end)
+        w = WidgetCapture()
+        f(w)
+
+        self.assertEqual(w.count, 2)
+        self.assertEqual(w.width, w.height)
+        w.height = 237
+        self.assertEqual(w.count, 3)
+        self.assertEqual(w.width, w.height)
+
+    def test_capture_on_exit(self):
+        KV_f = KV(bind_on_enter=False, captures_are_readonly=False)
+        f_static = KV_f(WidgetCapture.rule_with_capture_on_exit)
+
+        w = WidgetCapture()
+        f_static(w)
+        self.assertEqual(w.value, 20)
+        w.widget2.width = 35
+        self.assertEqual(w.value, 20)
+        w.widget4.width = 66
+        self.assertEqual(w.value, 20)
+        w.widget.width = 76
+        self.assertEqual(w.value, 20)
+        w.widget3.width = 44
+        self.assertEqual(w.value, 44)
+
+    def test_capture_on_exit_not_exist(self):
+        KV_f = KV(bind_on_enter=True, captures_are_readonly=False)
+        f_static = KV_f(WidgetCapture.rule_with_capture_on_exit_not_exist)
+
+        w = WidgetCapture()
+        with self.assertRaises(UnboundLocalError):
+            f_static(w)
+
+    def test_exit_not_exists(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.exit_not_exist)
+
+        remove_kvc(WidgetCapture.exit_not_exist)
+        KV_f(WidgetCapture.exit_not_exist)
+
+    def test_exit_overwrite_before_rule(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+
+        KV_f_ro(WidgetCapture.exit_var_overwrite)
+        remove_kvc(WidgetCapture.exit_var_overwrite)
+        KV_f(WidgetCapture.exit_var_overwrite)
+
+    def test_exit_overwrite_after_rule(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.exit_var_overwrite2)
+        remove_kvc(WidgetCapture.exit_var_overwrite2)
+        KV_f(WidgetCapture.exit_var_overwrite2)
+
+    def test_exit_overwrite_after_ctx(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        KV_f_ro(WidgetCapture.exit_var_overwrite3)
+        remove_kvc(WidgetCapture.exit_var_overwrite3)
+        KV_f(WidgetCapture.exit_var_overwrite3)
+
+    def test_exit_overwrite_after_rule_indirect(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        f = KV_f_ro(WidgetCapture.exit_var_overwrite4)
+        w = WidgetCapture()
+        f(w)
+
+        remove_kvc(WidgetCapture.exit_var_overwrite4)
+        f = KV_f(WidgetCapture.exit_var_overwrite4)
+        w = WidgetCapture()
+        f(w)
+
+    def test_exit_overwrite_after_rule_indirect_explicit_rule(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.exit_var_overwrite5)
+        remove_kvc(WidgetCapture.exit_var_overwrite5)
+        f = KV_f(WidgetCapture.exit_var_overwrite5)
+        w = WidgetCapture()
+        f(w)
+
+    def test_exit_indirect_explicit_rule(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.exit_var_overwrite_005)
+
+        remove_kvc(WidgetCapture.exit_var_overwrite_005)
+        f = KV_f(WidgetCapture.exit_var_overwrite_005)
+        w = WidgetCapture()
+        with self.assertRaises(UnboundLocalError):
+            f(w)
+
+    def test_exit_overwrite_in_ctx_not_defined(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.exit_var_overwrite6)
+        remove_kvc(WidgetCapture.exit_var_overwrite6)
+        f = KV_f(WidgetCapture.exit_var_overwrite6)
+        w = WidgetCapture()
+        f(w)
+
+    def test_exit_overwrite_in_ctx_defined(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.exit_var_overwrite7)
+        remove_kvc(WidgetCapture.exit_var_overwrite7)
+        f = KV_f(WidgetCapture.exit_var_overwrite7)
+        w = WidgetCapture()
+        f(w)
+        self.assertEqual(w.value, w.widget.width + 12)
+        w.widget.width = 965
+        self.assertEqual(w.value, w.widget.width + 56)
+
+    def test_exit_overwrite_in_rule_explicit_rule_defined(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.exit_var_overwrite8)
+
+        remove_kvc(WidgetCapture.exit_var_overwrite8)
+        f = KV_f(WidgetCapture.exit_var_overwrite8)
+        w = WidgetCapture()
+        f(w)
+        self.assertEqual(w.value, w.widget.width + 55)
+        w.widget.width = 33
+        self.assertEqual(w.value, w.widget.width + 12)
+
+    def test_exit_overwrite_in_rule_explicit_rule_defined_before(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        f = KV_f_ro(WidgetCapture.exit_var_overwrite_008)
+        w = WidgetCapture()
+        f(w)
+        self.assertEqual(w.value, w.widget.width + 12)
+        w.widget.width = 33
+        self.assertEqual(w.value, w.widget.width + 12)
+
+        remove_kvc(WidgetCapture.exit_var_overwrite_008)
+        f = KV_f(WidgetCapture.exit_var_overwrite_008)
+        w = WidgetCapture()
+        f(w)
+        self.assertEqual(w.value, w.widget.width + 12)
+        w.widget.width = 33
+        self.assertEqual(w.value, w.widget.width + 12)
+
+    def test_exit_overwrite_in_rule_explicit_bind_pre_ctx(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        f = KV_f_ro(WidgetCapture.exit_var_overwrite_009_pre_ctx)
+        w = WidgetCapture()
+        f(w)
+        self.assertEqual(w.value, w.widget.width + 55)
+        w.widget.width = 77
+        self.assertEqual(w.value, w.widget.width + 55)
+
+        count = w.count
+        w.widget2.width = 436
+        self.assertEqual(w.count, count)
+
+        remove_kvc(WidgetCapture.exit_var_overwrite_009_pre_ctx)
+        f = KV_f(WidgetCapture.exit_var_overwrite_009_pre_ctx)
+        w = WidgetCapture()
+        f(w)
+        self.assertEqual(w.value, w.widget.width + 55)
+        w.widget.width = 77
+        self.assertEqual(w.value, w.widget.width + 55)
+
+    def test_exit_overwrite_in_rule_explicit_bind_pre_rule(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        f = KV_f_ro(WidgetCapture.exit_var_overwrite_009_pre_rule)
+        w = WidgetCapture()
+        f(w)
+        self.assertEqual(w.value, w.widget.width + 55)
+        w.widget.width = 77
+        self.assertEqual(w.value, w.widget.width + 55)
+
+        count = w.count
+        w.widget2.width = 436
+        self.assertEqual(w.count, count)
+
+        remove_kvc(WidgetCapture.exit_var_overwrite_009_pre_rule)
+        f = KV_f(WidgetCapture.exit_var_overwrite_009_pre_rule)
+        w = WidgetCapture()
+        f(w)
+        self.assertEqual(w.value, w.widget.width + 55)
+        w.widget.width = 77
+        self.assertEqual(w.value, w.widget.width + 55)
+
+    def test_exit_overwrite_in_rule_explicit_bind_in_rule(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.exit_var_overwrite_009_in_rule)
+
+        remove_kvc(WidgetCapture.exit_var_overwrite_009_in_rule)
+        f = KV_f(WidgetCapture.exit_var_overwrite_009_in_rule)
+        w = WidgetCapture()
+        f(w)
+        self.assertEqual(w.value, w.widget.width + 55)
+        w.widget.width = 77
+        self.assertEqual(w.value, w.widget.width + 55)
+
+        count = w.count
+        w.widget2.width = 436
+        self.assertEqual(w.count, count)
+
+    def test_exit_overwrite_in_rule_explicit_bind(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.exit_var_overwrite9)
+
+        remove_kvc(WidgetCapture.exit_var_overwrite9)
+        f = KV_f(WidgetCapture.exit_var_overwrite9)
+        w = WidgetCapture()
+        f(w)
+        self.assertEqual(w.value, w.widget.width + 55)
+        w.widget.width = 77
+        self.assertEqual(w.value, w.widget.width + 55)
+
+        count = w.count
+        w.widget2.width = 436
+        self.assertEqual(w.count, count)
+
+    def test_exit_overwrite_after_rule_explicit_bind(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.exit_var_overwrite_009)
+
+        remove_kvc(WidgetCapture.exit_var_overwrite_009)
+        f = KV_f(WidgetCapture.exit_var_overwrite_009)
+        w = WidgetCapture()
+        f(w)
+        self.assertEqual(w.value, w.widget.width + 55)
+        w.widget.width = 77
+        self.assertEqual(w.value, w.widget.width + 55)
+
+        count = w.count
+        w.widget2.width = 436
+        self.assertEqual(w.count, count)
+
+    def test_exit_overwrite_before_rule_explicit_bind_not_captured(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.exit_var_overwrite_009_1)
+
+        remove_kvc(WidgetCapture.exit_var_overwrite_009_1)
+        f = KV_f(WidgetCapture.exit_var_overwrite_009_1)
+        w = WidgetCapture()
+        f(w)
+        self.assertEqual(w.value, w.widget.width + 55)
+        w.widget.width = 77
+        self.assertEqual(w.value, w.widget.width + 55)
+
+        count = w.count
+        w.widget2.width = 436
+        self.assertEqual(w.count, count)
+
+    def test_exit_overwrite_before_rule_explicit_bind_captured(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.exit_var_overwrite_009_2)
+
+    def test_exit_overwrite_in_rule_explicit_bind2(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.exit_var_overwrite10)
+
+        remove_kvc(WidgetCapture.exit_var_overwrite10)
+        f = KV_f(WidgetCapture.exit_var_overwrite10)
+        w = WidgetCapture()
+        f(w)
+        self.assertIsNot(w.widget, w.widget2)
+        w2 = w.widget2
+        w.widget.width = 77
+        self.assertIs(w.widget2, w2)
+        w.widget2.width = 54
+        self.assertIsNot(w.widget2, w2)
+
+    def test_exit_overwrite_in_rule_explicit_bind_captured(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.exit_var_overwrite_010)
+
+        remove_kvc(WidgetCapture.exit_var_overwrite_010)
+        f = KV_f(WidgetCapture.exit_var_overwrite_010)
+        w = WidgetCapture()
+        f(w)
+        self.assertIsNot(w.widget, w.widget2)
+        w2 = w.widget2
+        w.widget.width = 77
+        self.assertIs(w.widget2, w2)
+        w.widget2.width = 54
+        self.assertIsNot(w.widget2, w2)
+
+    def test_exit_overwrite_after_rule_captured(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.exit_var_overwrite11)
+
+        remove_kvc(WidgetCapture.exit_var_overwrite11)
+        f = KV_f(WidgetCapture.exit_var_overwrite11)
+        w = WidgetCapture()
+        f(w)
+        self.assertEqual(w.value, w.widget.width + 55)
+        w.widget.width = 27
+        self.assertEqual(w.value, w.widget.width + 27)
+
+    def test_exit_aug_overwrite_before_rule_captured(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.exit_var_overwrite12)
+        remove_kvc(WidgetCapture.exit_var_overwrite12)
+        f = KV_f(WidgetCapture.exit_var_overwrite12)
+        w = WidgetCapture()
+        f(w)
+
+    def test_exit_aug_overwrite_in_rule_captured(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        f = KV_f_ro(WidgetCapture.exit_var_overwrite13)
+        w = WidgetCapture()
+        f(w)
+        remove_kvc(WidgetCapture.exit_var_overwrite13)
+        f = KV_f(WidgetCapture.exit_var_overwrite13)
+        w = WidgetCapture()
+        f(w)
+
+    def test_exit_aug_overwrite_in_rule_read(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        f = KV_f_ro(WidgetCapture.exit_var_overwrite15)
+        w = WidgetCapture()
+        f(w)
+        self.assertEqual(w.value, 55 + 22)
+        w.widget.width = 43
+        self.assertEqual(w.value, 55 + 22)
+
+    def test_exit_nested_ctx_overwrite_in_nested(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.exit_var_overwrite16)
+        remove_kvc(WidgetCapture.exit_var_overwrite16)
+        f = KV_f(WidgetCapture.exit_var_overwrite16)
+        w = WidgetCapture()
+        f(w)
+        self.assertEqual(w.value, w.widget3.height + 78 + 90)
+        w.widget3.height = 26
+        self.assertEqual(w.value, 26 + 78 + 90)
+
+    def test_exit_nested_ctx_overwrite_before_nested(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.exit_var_overwrite17)
+        remove_kvc(WidgetCapture.exit_var_overwrite17)
+        f = KV_f(WidgetCapture.exit_var_overwrite17)
+        w = WidgetCapture()
+        f(w)
+        self.assertEqual(w.value, w.widget3.height + 78 + 90)
+        w.widget3.height = 458
+        self.assertEqual(w.value, 458 + 78 + 90)
+
+    def test_exit_nested_ctx_overwrite_after_nested(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        f = KV_f_ro(WidgetCapture.exit_var_overwrite18)
+        w = WidgetCapture()
+        f(w)
+        self.assertEqual(w.value, w.widget3.height + 78 + 90)
+        w.widget2.height = 923
+        self.assertEqual(w.value, 923 + 97)
+
+        remove_kvc(WidgetCapture.exit_var_overwrite18)
+        f = KV_f(WidgetCapture.exit_var_overwrite18)
+        w = WidgetCapture()
+        f(w)
+        self.assertEqual(w.value, w.widget3.height + 78 + 90)
+        w.widget2.height = 923
+        self.assertEqual(w.value, 923 + 97)
+
+    def test_exit_nested_ctx_overwrite_after_final_nested(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.exit_var_overwrite19)
+
+        remove_kvc(WidgetCapture.exit_var_overwrite19)
+        f = KV_f(WidgetCapture.exit_var_overwrite19)
+        w = WidgetCapture()
+        f(w)
+        self.assertEqual(w.value, w.widget2.height + 54 + 34)
+        w.widget2.height = 692
+        self.assertEqual(w.value, 692 + 34 + 90)
+
+    def test_exit_aug(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        f = KV_f_ro(WidgetCapture.exit_var_overwrite20)
+        w = WidgetCapture()
+        f(w)
+        width = w.widget.width
+        widget = w.widget
+        w.widget = None
+        w.width = 124
+        self.assertEqual(widget.width, 124 + width)
+
+        remove_kvc(WidgetCapture.exit_var_overwrite20)
+        f = KV_f(WidgetCapture.exit_var_overwrite20)
+        w = WidgetCapture()
+        f(w)
+        width = w.widget.width
+        widget = w.widget
+        w.widget = None
+        w.width = 124
+        self.assertEqual(widget.width, 124 + width)
+
+    def test_exit_overwrite_var(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.exit_var_overwrite21)
+
+        remove_kvc(WidgetCapture.exit_var_overwrite21)
+        f = KV_f(WidgetCapture.exit_var_overwrite21)
+
+    def test_exit_overwrite_var_explicit(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.exit_var_overwrite22)
+
+        remove_kvc(WidgetCapture.exit_var_overwrite22)
+        f = KV_f(WidgetCapture.exit_var_overwrite22)
+
+    def test_exit_overwrite_var_assign(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        with self.assertRaises(KVCompilerParserException):
+            KV_f_ro(WidgetCapture.exit_var_overwrite23)
+
+        remove_kvc(WidgetCapture.exit_var_overwrite23)
+        f = KV_f(WidgetCapture.exit_var_overwrite23)
+
+    def test_exit_overwrite_var_assign_no_rule(self):
+        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        KV_f_ro(WidgetCapture.exit_var_overwrite24)
+
+        remove_kvc(WidgetCapture.exit_var_overwrite24)
+        f = KV_f(WidgetCapture.exit_var_overwrite24)
+
+    def test_exit_callbacks_at_end(self):
+        KV_f = KV(bind_on_enter=False, exec_rules_after_binding=False)
+        f = KV_f(WidgetCapture.exit_callback_at_end)
+        w = WidgetCapture()
+        f(w)
+
+        self.assertEqual(w.count, 1)
+        self.assertEqual(w.width, w.height)
+        w.height = 237
+        self.assertEqual(w.count, 2)
+        self.assertEqual(w.width, w.height)
+
+        remove_kvc(WidgetCapture.exit_callback_at_end)
+
+        KV_f = KV(bind_on_enter=False, exec_rules_after_binding=True)
+        f = KV_f(WidgetCapture.exit_callback_at_end)
+        w = WidgetCapture()
+        f(w)
+
+        self.assertEqual(w.count, 2)
+        self.assertEqual(w.width, w.height)
+        w.height = 237
+        self.assertEqual(w.count, 3)
+        self.assertEqual(w.width, w.height)
 
     def capture_inlined_code(self, func, num):
         KV_f_ro, KV_f = self.get_KV()
@@ -1063,6 +1860,14 @@ class CtxWidget(BaseWidget):
 
     def no_ctx(self):
         self.value = 55
+
+    def ctx_no_rule(self):
+        with KVCtx():
+            pass
+
+    def ctx_no_rule2(self):
+        with KVCtx():
+            self.value = self.width
 
     def no_bind_rule_without_ctx(self):
         self.value @= 55
@@ -1196,6 +2001,20 @@ class TestCtxAutoCompiler(TestBase):
         self.assertEqual(w.value, 42)
         KV_f(w.no_ctx)()
         self.assertEqual(w.value, 55)
+
+    def test_ctx_no_rule(self):
+        KV_f = KV()
+        f = KV_f(CtxWidget.ctx_no_rule)
+
+        w = CtxWidget()
+        f(w)
+
+    def test_ctx_no_rule_stmt(self):
+        KV_f = KV()
+        f = KV_f(CtxWidget.ctx_no_rule2)
+
+        w = CtxWidget()
+        f(w)
 
     def test_no_ctx_with_rule(self):
         KV_f = KV()
