@@ -141,7 +141,7 @@ build_script:
 
     Check-Error
 
-    pip install cython
+    pip install cython astor
 
     Check-Error
 
@@ -151,7 +151,7 @@ build_script:
       python setup.py sdist --formats=gztar -d "$env:WHEEL_DIR"
       Check-Error
     }
-    
+
     pip install mock cython pygments docutils nose kivy.deps.glew_dev kivy.deps.glew kivy.deps.gstreamer_dev kivy.deps.sdl2_dev kivy.deps.sdl2
 
     pip --no-cache-dir install kivy.deps.gstreamer
