@@ -7,13 +7,16 @@ from os.path import exists, isfile
 import inspect
 import gc
 
-from kivy.lang.compiler.kv_context import KVParserRule, KVParserCtx
-from kivy.lang.compiler.kv import KV_apply_manual
-from kivy.lang.compiler.utils import StringPool
-from kivy.lang.compiler import KV, KVCtx, KVRule
-from kivy.lang.compiler.ast_parse import KVException, KVCompilerParserException
-from kivy.lang.compiler.runtime import get_kvc_filename, \
-    process_graphics_callbacks
+from kivy.compat import PY2
+if not PY2:
+    from kivy.lang.compiler.kv_context import KVParserRule, KVParserCtx
+    from kivy.lang.compiler.kv import KV_apply_manual
+    from kivy.lang.compiler.utils import StringPool
+    from kivy.lang.compiler import KV, KVCtx, KVRule
+    from kivy.lang.compiler.ast_parse import KVException, \
+        KVCompilerParserException
+    from kivy.lang.compiler.runtime import get_kvc_filename, \
+        process_graphics_callbacks
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, ObjectProperty, ListProperty, \
     DictProperty
