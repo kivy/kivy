@@ -24,6 +24,7 @@ from kivy.compat import PY2, iteritems, iterkeys
 from kivy.context import register_context
 from kivy.resources import resource_find
 from kivy._event import Observable, EventDispatcher
+from kivy.graphics import Callback as CallbackInstruction
 
 __all__ = ('Observable', 'Builder', 'BuilderBase', 'BuilderException')
 
@@ -828,6 +829,10 @@ class BuilderBase(object):
             if name == 'Clear':
                 canvas.clear()
                 continue
+            if name == 'Callback':
+                for handler in crule.handlers:
+                    _create_callback_instruction(widget, handler, idmap)
+                continue
             instr = Factory.get(name)()
             if not isinstance(instr, Instruction):
                 raise BuilderException(
@@ -916,3 +921,10 @@ if 'KIVY_PROFILE_LANG' in environ:
         print('Profiling written at builder_stats.html')
 
     atexit.register(dump_builder_stats)
+
+
+def _create_callback_instruction(widget, prule, idmap):
+    idmap = copy(idmap)
+    idmap.update(global_idmap)
+    idmap['self'] = widget.proxy_ref
+    return CallbackInstruction(partial(custom_callback, prule, idmap))
