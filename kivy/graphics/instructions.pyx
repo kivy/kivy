@@ -456,9 +456,9 @@ cdef class Callback(Instruction):
         regarding that, please contact us.
 
     '''
-    def __init__(self, arg, **kwargs):
+    def __init__(self, arg=None, **kwargs):
         Instruction.__init__(self, **kwargs)
-        self.func = arg
+        self._func = arg
         self._reset_context = int(kwargs.get('reset_context', False))
 
     def ask_update(self):
@@ -479,7 +479,7 @@ cdef class Callback(Instruction):
         cgl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
         cgl.glBindBuffer(GL_ARRAY_BUFFER, 0)
 
-        if self.func(self):
+        if self._func(self):
             self.flag_update_done()
 
         if self._reset_context:
@@ -533,6 +533,17 @@ cdef class Callback(Instruction):
             if self._reset_context == ivalue:
                 return
             self._reset_context = ivalue
+            self.flag_update()
+
+    property func:
+        '''Property for getting/setting func.
+        '''
+        def __get__(self):
+            return self._func
+        def __set__(self, object func):
+            if self._func == func:
+                return
+            self._func = func
             self.flag_update()
 
 
