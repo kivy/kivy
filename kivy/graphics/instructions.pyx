@@ -479,10 +479,11 @@ cdef class Callback(Instruction):
         cgl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
         cgl.glBindBuffer(GL_ARRAY_BUFFER, 0)
 
-        if self.func(self):
+        func = self.func
+        if func is None or func(self):
             self.flag_update_done()
 
-        if self._reset_context:
+        if func is not None and self._reset_context:
             # FIXME do that in a proper way
             cgl.glDisable(GL_DEPTH_TEST)
             cgl.glDisable(GL_CULL_FACE)
