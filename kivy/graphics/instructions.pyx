@@ -456,7 +456,7 @@ cdef class Callback(Instruction):
         regarding that, please contact us.
 
     '''
-    def __init__(self, arg, **kwargs):
+    def __init__(self, arg=None, **kwargs):
         Instruction.__init__(self, **kwargs)
         self.func = arg
         self._reset_context = int(kwargs.get('reset_context', False))
@@ -533,6 +533,17 @@ cdef class Callback(Instruction):
             if self._reset_context == ivalue:
                 return
             self._reset_context = ivalue
+            self.flag_update()
+
+    property callback:
+        '''Property for getting/setting func.
+        '''
+        def __get__(self):
+            return self.func
+        def __set__(self, object func):
+            if self.func == func:
+                return
+            self.func = func
             self.flag_update()
 
 
