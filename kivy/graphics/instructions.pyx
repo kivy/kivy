@@ -456,9 +456,9 @@ cdef class Callback(Instruction):
         regarding that, please contact us.
 
     '''
-    def __init__(self, arg=None, **kwargs):
+    def __init__(self, callback=None, **kwargs):
         Instruction.__init__(self, **kwargs)
-        self.func = arg
+        self.func = callback
         self._reset_context = int(kwargs.get('reset_context', False))
 
     def ask_update(self):
