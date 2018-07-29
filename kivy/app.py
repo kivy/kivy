@@ -511,6 +511,7 @@ class App(EventDispatcher):
                 Use this to add default section / key / value items
 
         '''
+	pass
 
     def build_settings(self, settings):
         '''.. versionadded:: 1.0.7
