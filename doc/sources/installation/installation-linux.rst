@@ -188,8 +188,41 @@ In this scenario, use "libav-tools \" in place of "ffmpeg \" (above), or use a P
 - sudo apt-get install ffmpeg
 
 
+Fedora example
+--------------
+
+You will likely need to do this preliminary step which installs the rpmfusion-free repository unless you have some other 3rd-party repo installed which has the required packages. See rpmfusion.org for complete installation instructions, but only the rpmfusion-free repo is needed for acquiring kivy dependencies (though rpmfusion-nonfree is recommended by rpm fusion installation instructions) as shown in this step.
+
+.. parsed-literal::
+
+    sudo dnf install -y https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm 
+
+After you ensure that a 3rd-party repository containing any packages that dnf is otherwise unable to find, continue installing dependencies:
+
+.. parsed-literal::
+
+    # Install necessary system packages
+    sudo dnf install -y python3-devel ffmpeg-libs SDL2-devel SDL2_image-devel SDL2_mixer-devel SDL2_ttf-devel portmidi-devel libavdevice libavc1394-devel zlibrary-devel ccache mesa-libGL mesa-libGL-devel
+
+    # 
+    # In case you get the following error preventing kivy install:
+    #  annobin: _event.c: Error: plugin built for compiler version (8.0.1) but run with compiler version (8.1.1)
+    #  cc1: error: fail to initialize plugin /usr/lib/gcc/86_64-redhat-linux/8/plugin/annobin.so
+    # This has been resolved in later updates after the on-disk release of Fedora 28, so upgrade your packages:
+    #  sudo dnf -y upgrade
+
+    # avoid pip Cython conflict with packaged version:
+    sudo dnf remove python3-Cython
+
+    sudo pip3 install --upgrade pip setuptools
+
+    # Use correct Cython version here (0.28.2 is for 1.10.1):
+    sudo pip3 install Cython==0.28.2
+
+
 Installation
 ------------
+(after installing dependencies above specific to your distribution, do the following remaining steps on any distro where no package is available)
 
 
 .. parsed-literal::
