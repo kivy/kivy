@@ -203,6 +203,8 @@ After you ensure that a 3rd-party repository containing any packages that dnf is
 
     # Install necessary system packages
     sudo dnf install -y python3-devel ffmpeg-libs SDL2-devel SDL2_image-devel SDL2_mixer-devel SDL2_ttf-devel portmidi-devel libavdevice libavc1394-devel zlibrary-devel ccache mesa-libGL mesa-libGL-devel
+    # Install xclip in case you run a kivy app using your computer, and the app requires a CutBuffer provider:
+    sudo dnf install -y xclip
 
     # 
     # In case you get the following error preventing kivy install:
