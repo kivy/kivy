@@ -7,7 +7,7 @@ screenshot will be made and be compared to the original one.
 If no screenshot exists for the current test, the very first one will be used.
 
 The screenshots live in the 'kivy/tests/results' folder and are in PNG format,
-320x240 pixels
+320x240 pixels.
 '''
 
 __all__ = ('GraphicUnitTest', )
