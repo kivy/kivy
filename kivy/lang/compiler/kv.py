@@ -8,15 +8,18 @@ import inspect
 import re
 import ast
 import copy
+import inspect
+from inspect import ismethod as _inspect_ismethod, \
+    isfunction as _inspect_isfunction
 
 from kivy.lang.compiler.src_gen import KVCompiler
 from kivy.lang.compiler.ast_parse import ParseKVFunctionTransformer, \
     ParseKVBindTransformer, generate_source, KVCompilerParserException, \
-    ASTRuleCtxNodePlaceholder, verify_readonly_nodes
+    ASTStrPlaceholder, verify_readonly_nodes
 from kivy.lang.compiler.runtime import load_kvc_from_file, save_kvc_to_file
 from kivy.lang.compiler.ast_parse import KVException
 
-__all__ = ('KV', 'KV_apply_manual')
+__all__ = ('KV', 'KV_apply_manual', 'patch_inspect', 'unpatch_inspect')
 # XXX: https://bugs.python.org/issue31772
 
 
@@ -195,7 +198,7 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
             # needs to happen after all the rules are parsed
             verify_readonly_nodes(copied_graph, transformer, bind_on_enter)
 
-        update_node = ASTRuleCtxNodePlaceholder()
+        update_node = ASTStrPlaceholder()
         imports = [
             'from kivy.lang.compiler.kv_context import KVCtx as __KVCtx, '
             'KVRule as __KVRule']
@@ -216,7 +219,7 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
         update_node.src_lines = imports + globals_update + creation
         func_body.insert(0, update_node)
 
-        src_code = generate_source(ast_nodes) + '\n'
+        src_code = generate_source(ast_nodes) + '\n\n'
         src_code = src_code + '\n'.join(
             '    {}'.format(line) for line in deletion)
         src_code = re.sub('^ +$', '', src_code, flags=re.M)  # del empty space
@@ -278,8 +281,8 @@ def KV_apply_manual(
     mod, f = load_kvc_from_file(callback, '__kv_manual_wrapper', 'manual')
 
     if f is None:
-        transformer = ParseKVBindTransformer()
-        ctx.set_kv_binding_ast_transformer(transformer, kv_syntax)
+        transformer = ParseKVBindTransformer(kv_syntax)
+        ctx.set_kv_binding_ast_transformer(transformer)
 
         ctx.parse_rules()
         # these must happen *before* anything else and after all rules
@@ -311,3 +314,28 @@ def KV_apply_manual(
     global_vars = global_vars.copy()
     global_vars.update(local_vars)
     f(global_vars, ctx)
+
+
+def patch_inspect():
+    def ismethod_cython(object):
+        if _inspect_ismethod(object):
+            return True
+        if object.__class__.__name__ == 'cython_function_or_method' and \
+                hasattr(object, '__func__'):
+            return True
+        return False
+    inspect.ismethod = ismethod_cython
+
+    def isfunction_cython(object):
+        if _inspect_isfunction(object):
+            return True
+        if object.__class__.__name__ == 'cython_function_or_method' and not \
+                hasattr(object, '__func__'):
+            return True
+        return False
+    inspect.isfunction = isfunction_cython
+
+
+def unpatch_inspect():
+    inspect.ismethod = _inspect_ismethod
+    inspect.isfunction = _inspect_isfunction

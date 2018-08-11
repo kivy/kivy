@@ -1,11 +1,16 @@
 # TODO: add tests for async def, like do_def, once py2 support is dropped
-# we must remove pycache b/c https://bugs.python.org/issue31772
 
+import sys
 import time
 import os
 from os.path import exists, isfile
+import glob
 import inspect
 import gc
+import subprocess
+import ast
+import shutil
+import importlib
 
 from kivy.compat import PY2
 if not PY2:
@@ -16,7 +21,7 @@ if not PY2:
     from kivy.lang.compiler.ast_parse import KVException, \
         KVCompilerParserException
     from kivy.lang.compiler.runtime import get_kvc_filename, \
-        process_graphics_callbacks
+        process_graphics_callbacks, clear_kvc_cache
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, ObjectProperty, ListProperty, \
     DictProperty
@@ -25,6 +30,7 @@ from kivy.tests.common import skip_py2_decorator
 import unittest
 
 delete_kvc_after_test = int(os.environ.get('KIVY_TEST_DELETE_KVC', 1))
+# helpful during testing - if set to 0, it'll leave the kvc in the folder
 
 
 def f_time(filename):
@@ -36,6 +42,7 @@ def remove_kvc(func, flags=''):
     if exists(fname):
         os.remove(fname)
 
+    # we must remove pycache b/c https://bugs.python.org/issue31772
     d = os.path.join(os.path.dirname(fname), '__pycache__')
     if exists(d):
         for f in os.listdir(d):
@@ -113,7 +120,12 @@ class TestStringPool(unittest.TestCase):
 @skip_py2_decorator
 class TestBase(unittest.TestCase):
 
+    def setUp(self):
+        super(TestBase, self).setUp()
+        clear_kvc_cache()
+
     def tearDown(self):
+        super(TestBase, self).tearDown()
         import shutil
         p = os.path.join(os.path.dirname(__file__), '__kvcache__')
         if delete_kvc_after_test and exists(p):
@@ -1940,76 +1952,76 @@ class CtxWidget(BaseWidget):
         with KVRule(delay='canvas'):
             self.value = self.width
 
-    def apply_kv(self):
+    def apply_kv_test(self):
         with KVCtx():
             with KVRule():
                 self.value = self.width
                 with KVRule():
                     self.value2 = self.height
 
-    def apply_kv2(self):
+    def apply_kv_test2(self):
         with KVCtx():
             with KVRule(delay='canvas'):
                 self.value = self.width
                 with KVRule(delay='canvas'):
                     self.value2 = self.height
 
-    def apply_kv3(self):
+    def apply_kv_test3(self):
         with KVCtx():
             with KVRule(delay=0):
                 self.value = self.width
                 with KVRule(delay=0):
                     self.value2 = self.height
 
-    def apply_kv4(self):
+    def apply_kv_test4(self):
         with KVCtx():
             with KVRule():
                 self.value = self.width
                 with KVRule(delay=0):
                     self.value2 = self.height
 
-    def apply_kv5(self):
+    def apply_kv_test5(self):
         with KVCtx():
             with KVRule(delay=0):
                 self.value = self.width
                 with KVRule():
                     self.value2 = self.height
 
-    def apply_kv6(self):
+    def apply_kv_test6(self):
         with KVCtx():
             with KVRule(delay=0):
                 self.value = self.width
                 with KVRule(delay='canvas'):
                     self.value2 = self.height
 
-    def apply_kv7(self):
+    def apply_kv_test7(self):
         with KVCtx():
             with KVRule(delay='canvas'):
                 self.value = self.width
                 with KVRule(delay=0):
                     self.value2 = self.height
 
-    def apply_kv8(self):
+    def apply_kv_test8(self):
         with KVCtx():
             with KVRule():
                 self.value = self.width
                 with KVRule(delay='canvas'):
                     self.value2 = self.height
 
-    def apply_kv9(self):
+    def apply_kv_test9(self):
         with KVCtx():
             with KVRule(delay='canvas'):
                 self.value = self.width
                 with KVRule(delay=None):
                     self.value2 = self.height
 
-    def apply_kv10(self):
+    def apply_kv_test10(self):
         import kivy.lang.compiler
         with kivy.lang.compiler.KVCtx():
             with kivy.lang.compiler.KVRule():
                 self.value @= self.width
 
-    def apply_kv11(self):
+    def apply_kv_test11(self):
         self.value3 = 0
         self.value = 1
         self.value2 = 2
@@ -2083,36 +2095,36 @@ class TestCtxAutoCompiler(TestBase):
     def test_nested_rule(self):
         KV_f = KV()
         with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.apply_kv)
+            KV_f(CtxWidget.apply_kv_test)
 
     def test_nested_rule_canvas(self):
         KV_f = KV()
         with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.apply_kv2)
+            KV_f(CtxWidget.apply_kv_test2)
 
     def test_nested_rule_clock(self):
         KV_f = KV()
         with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.apply_kv3)
+            KV_f(CtxWidget.apply_kv_test3)
 
     def test_nested_rule_mix(self):
         KV_f = KV()
         with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.apply_kv4)
+            KV_f(CtxWidget.apply_kv_test4)
         with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.apply_kv5)
+            KV_f(CtxWidget.apply_kv_test5)
         with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.apply_kv6)
+            KV_f(CtxWidget.apply_kv_test6)
         with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.apply_kv7)
+            KV_f(CtxWidget.apply_kv_test7)
         with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.apply_kv8)
+            KV_f(CtxWidget.apply_kv_test8)
         with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.apply_kv9)
+            KV_f(CtxWidget.apply_kv_test9)
 
     def test_dotted_rule_ctx_name(self):
         KV_f = KV()
-        f = KV_f(CtxWidget.apply_kv10)
+        f = KV_f(CtxWidget.apply_kv_test10)
         w = CtxWidget()
         f(w)
 
@@ -2122,7 +2134,7 @@ class TestCtxAutoCompiler(TestBase):
 
     def test_deeply_nested_ctx(self):
         KV_f = KV()
-        f = KV_f(CtxWidget.apply_kv11)
+        f = KV_f(CtxWidget.apply_kv_test11)
         w = CtxWidget()
         f(w)
 
@@ -2789,30 +2801,30 @@ class ProxyWidget(BaseWidget):
 
     kv_ctx = None
 
-    def apply_kv(self, widget1, widget2):
+    def apply_kv_test(self, widget1, widget2):
         with KVCtx():
             self.value @= widget1.width + widget2.width
 
-    def apply_kv2(self, widget1, widget2):
+    def apply_kv_test2(self, widget1, widget2):
         with KVCtx():
             self.value @= widget1.width + widget2.width
 
-    def apply_kv3(self, widget1, widget2):
+    def apply_kv_test3(self, widget1, widget2):
         with KVCtx() as self.kv_ctx:
             self.value @= widget1.width + widget2.width
 
-    def apply_kv4(self, widget1, widget2):
+    def apply_kv_test4(self, widget1, widget2):
         with KVCtx() as self.kv_ctx:
             self.value @= widget1.width + widget2.width
 
-    def apply_kv5(self):
+    def apply_kv_test5(self):
         self.widget = Widget()
         self.widget2 = Widget()
 
         with KVCtx():
             self.value @= self.widget.width + self.widget2.width
 
-    def apply_kv6(self):
+    def apply_kv_test6(self):
         self.widget = Widget()
         self.widget2 = Widget()
         self.widget3 = Widget()
@@ -2821,7 +2833,7 @@ class ProxyWidget(BaseWidget):
             self.value @= \
                 self.widget.width + self.widget2.width + self.widget3.width
 
-    def apply_kv7(self):
+    def apply_kv_test7(self):
         w = self.widget = BaseWidget()
         w.widget = Widget()
         self.widget2 = Widget()
@@ -2831,7 +2843,7 @@ class ProxyWidget(BaseWidget):
 
         return w, self.widget2, w.widget
 
-    def apply_kv8(self):
+    def apply_kv_test8(self):
         w = self.widget = BaseWidget()
         w.widget = Widget()
         self.widget2 = Widget()
@@ -2841,15 +2853,15 @@ class ProxyWidget(BaseWidget):
 
         return w, self.widget2, w.widget
 
-    def apply_kv9(self, widget1, widget2):
+    def apply_kv_test9(self, widget1, widget2):
         with KVCtx():
             self.value @= widget1.width + widget2.width
 
-    def apply_kv10(self, widget1, widget2):
+    def apply_kv_test10(self, widget1, widget2):
         with KVCtx():
             self.value @= widget1.width + widget2.width
 
-    def apply_kv11(self, widget1, widget2):
+    def apply_kv_test11(self, widget1, widget2):
         with KVCtx():
             self.value @= widget1.width + widget2.width
 
@@ -2862,7 +2874,7 @@ class TestProxy(TestBase):
         w2 = Widget()
         KV_f = KV(proxy=False)
 
-        f = KV_f(ProxyWidget.apply_kv)
+        f = KV_f(ProxyWidget.apply_kv_test)
         w = ProxyWidget()
         f(w, w1, w2)
         gc.collect()
@@ -2905,7 +2917,7 @@ class TestProxy(TestBase):
         w2 = Widget()
         KV_f = KV(proxy=True)
 
-        f = KV_f(ProxyWidget.apply_kv2)
+        f = KV_f(ProxyWidget.apply_kv_test2)
         w = ProxyWidget()
         f(w, w1, w2)
         gc.collect()
@@ -2942,7 +2954,7 @@ class TestProxy(TestBase):
         w2 = Widget()
         KV_f = KV(proxy=True)
 
-        f = KV_f(ProxyWidget.apply_kv3)
+        f = KV_f(ProxyWidget.apply_kv_test3)
         w = ProxyWidget()
         f(w, w1, w2)
         gc.collect()
@@ -2981,7 +2993,7 @@ class TestProxy(TestBase):
         w2 = Widget()
         KV_f = KV(proxy=True)
 
-        f = KV_f(ProxyWidget.apply_kv4)
+        f = KV_f(ProxyWidget.apply_kv_test4)
         w = ProxyWidget()
         f(w, w1, w2)
 
@@ -3002,7 +3014,7 @@ class TestProxy(TestBase):
     def test_partial_proxy(self):
         KV_f = KV(proxy='*widget')
 
-        f = KV_f(ProxyWidget.apply_kv5)
+        f = KV_f(ProxyWidget.apply_kv_test5)
         w = ProxyWidget()
         f(w)
 
@@ -3042,7 +3054,7 @@ class TestProxy(TestBase):
     def test_partial_proxy_multi(self):
         KV_f = KV(proxy=['*widget', '*widget2'])
 
-        f = KV_f(ProxyWidget.apply_kv6)
+        f = KV_f(ProxyWidget.apply_kv_test6)
         w = ProxyWidget()
         f(w)
 
@@ -3087,7 +3099,7 @@ class TestProxy(TestBase):
     def test_deep_proxy(self):
         KV_f = KV(proxy='*t.widget')
 
-        f = KV_f(ProxyWidget.apply_kv7)
+        f = KV_f(ProxyWidget.apply_kv_test7)
         w = ProxyWidget()
         w1, w2, ww1 = f(w)
 
@@ -3130,7 +3142,7 @@ class TestProxy(TestBase):
         # this time, w1 will keep it alive
         KV_f = KV(proxy='*t.widget')
 
-        f = KV_f(ProxyWidget.apply_kv8)
+        f = KV_f(ProxyWidget.apply_kv_test8)
         w = ProxyWidget()
         w1, w2, ww1 = f(w)
 
@@ -3174,7 +3186,7 @@ class TestProxy(TestBase):
         w2 = Widget()
         KV_f = KV(proxy=['widd', 'croker', '*idge'])
 
-        f = KV_f(ProxyWidget.apply_kv9)
+        f = KV_f(ProxyWidget.apply_kv_test9)
         w = ProxyWidget()
         f(w, w1, w2)
         gc.collect()
@@ -3209,7 +3221,7 @@ class TestProxy(TestBase):
         w2 = Widget()
         KV_f = KV(proxy='*idget*')
 
-        f = KV_f(ProxyWidget.apply_kv10)
+        f = KV_f(ProxyWidget.apply_kv_test10)
         w = ProxyWidget()
         f(w, w1, w2)
         gc.collect()
@@ -3246,7 +3258,7 @@ class TestProxy(TestBase):
         w2 = Widget()
         KV_f = KV(proxy=['widget1*', 'widget2*'])
 
-        f = KV_f(ProxyWidget.apply_kv11)
+        f = KV_f(ProxyWidget.apply_kv_test11)
         w = ProxyWidget()
         f(w, w1, w2)
         gc.collect()
@@ -3799,29 +3811,29 @@ class SyntaxUnbindingCtxRulePropsWidget(BaseWidget):
                 self.count += 1
                 self.value @= self.value_dict[self.value2].width + self.value3
 
-    def apply_kv(self):
+    def apply_kv_test(self):
         self.widget = Widget()
         with KVCtx() as self.ctx:
             self.value @= self.widget.width
 
-    def apply_kv2(self):
+    def apply_kv_test2(self):
         self.widget = Widget()
         with KVCtx() as self.ctx:
             with KVRule(delay=None):
                 self.value @= self.widget.width
 
-    def apply_kv3(self):
+    def apply_kv_test3(self):
         self.widget = Widget()
         with KVCtx() as self.ctx:
             self.value ^= self.widget.width
 
-    def apply_kv4(self):
+    def apply_kv_test4(self):
         self.widget = Widget()
         with KVCtx() as self.ctx:
             with KVRule(delay='canvas'):
                 self.value ^= self.widget.width
 
-    def apply_kv5(self):
+    def apply_kv_test5(self):
         self.widget = Widget()
         with KVCtx() as self.ctx:
             with KVRule(delay=0):
@@ -4330,7 +4342,7 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
 
     def test_callback_rule(self):
         KV_f = KV()
-        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv)
+        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv_test)
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
@@ -4340,7 +4352,7 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
 
     def test_callback_rule_explicit(self):
         KV_f = KV()
-        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv2)
+        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv_test2)
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
@@ -4350,7 +4362,7 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
 
     def test_callback_rule_canvas(self):
         KV_f = KV()
-        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv3)
+        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv_test3)
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
@@ -4360,7 +4372,7 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
 
     def test_callback_rule_explicit_canvas(self):
         KV_f = KV()
-        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv4)
+        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv_test4)
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
@@ -4370,7 +4382,7 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
 
     def test_callback_rule_explicit_clock(self):
         KV_f = KV()
-        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv5)
+        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv_test5)
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
@@ -4386,12 +4398,12 @@ class EventBindWidget(BaseWidget):
     def on_touch_down(self, touch):
         pass
 
-    def apply_kv(self):
+    def apply_kv_test(self):
         with KVCtx() as self.ctx:
             with KVRule(self.on_touch_down) as my_rule:
                 self.value_object = my_rule.largs
 
-    def apply_kv2(self):
+    def apply_kv_test2(self):
         self.value2 = 0
         with KVCtx() as self.ctx:
             with KVRule(self.on_touch_down, self.value2) as my_rule:
@@ -4403,7 +4415,7 @@ class TestEventBind(TestBase):
 
     def test_event(self):
         KV_f = KV()
-        f = KV_f(EventBindWidget.apply_kv)
+        f = KV_f(EventBindWidget.apply_kv_test)
         w = EventBindWidget()
         f(w)
 
@@ -4419,7 +4431,7 @@ class TestEventBind(TestBase):
 
     def test_event_multi(self):
         KV_f = KV()
-        f = KV_f(EventBindWidget.apply_kv2)
+        f = KV_f(EventBindWidget.apply_kv_test2)
         w = EventBindWidget()
         f(w)
 
@@ -4441,42 +4453,42 @@ class TestEventBind(TestBase):
 
 class RebindWidget(BaseWidget):
 
-    def apply_kv(self):
+    def apply_kv_test(self):
         self.widget = Widget()
         self.widget2 = Widget()
 
         with KVCtx():
             self.value @= self.widget.width + self.widget2.width
 
-    def apply_kv2(self):
+    def apply_kv_test2(self):
         self.widget = Widget()
         self.widget2 = Widget()
 
         with KVCtx():
             self.value @= self.widget.width + self.widget2.width
 
-    def apply_kv3(self):
+    def apply_kv_test3(self):
         self.widget = Widget()
         self.widget2 = Widget()
 
         with KVCtx():
             self.value @= self.widget.width + self.widget2.width
 
-    def apply_kv4(self):
+    def apply_kv_test4(self):
         self.widget = Widget()
         self.widget2 = Widget()
 
         with KVCtx():
             self.value @= self.widget.width + self.widget2.width
 
-    def apply_kv5(self):
+    def apply_kv_test5(self):
         self.widget = Widget()
         self.widget2 = Widget()
 
         with KVCtx():
             self.value @= self.widget.width + self.widget2.width
 
-    def apply_kv6(self):
+    def apply_kv_test6(self):
         self.widget = Widget()
         self.widget2 = Widget()
 
@@ -4489,7 +4501,7 @@ class TestRebind(TestBase):
 
     def test_rebind(self):
         KV_f = KV(rebind=False)
-        f = KV_f(RebindWidget.apply_kv)
+        f = KV_f(RebindWidget.apply_kv_test)
         w = RebindWidget()
         f(w)
 
@@ -4515,7 +4527,7 @@ class TestRebind(TestBase):
 
     def test_rebind_true(self):
         KV_f = KV(rebind=True)
-        f = KV_f(RebindWidget.apply_kv2)
+        f = KV_f(RebindWidget.apply_kv_test2)
         w = RebindWidget()
         f(w)
 
@@ -4569,24 +4581,24 @@ class TestRebind(TestBase):
         self.assertEqual(w.value, w.widget.width + w.widget2.width)
 
     def test_rebind_partial(self):
-        self.rebind_partial_base(RebindWidget.apply_kv3, '*.widget')
+        self.rebind_partial_base(RebindWidget.apply_kv_test3, '*.widget')
 
     def test_rebind_partial2(self):
-        self.rebind_partial_base(RebindWidget.apply_kv4, '*dget')
+        self.rebind_partial_base(RebindWidget.apply_kv_test4, '*dget')
 
     def test_rebind_partial3(self):
-        self.rebind_partial_base(RebindWidget.apply_kv5, ['*.widget'])
+        self.rebind_partial_base(RebindWidget.apply_kv_test5, ['*.widget'])
 
     def test_rebind_partial4(self):
         self.rebind_partial_base(
-            RebindWidget.apply_kv6, ['*.widget', 'sfsd', '*cheese'])
+            RebindWidget.apply_kv_test6, ['*.widget', 'sfsd', '*cheese'])
 
 
 class ManualKVWidget(BaseWidget):
 
     ctx = None
 
-    def apply_kv(self):
+    def apply_kv_test(self):
         self.widget = Widget()
         self.widget2 = Widget()
         self.ctx = ctx = KVParserCtx()
@@ -4600,7 +4612,7 @@ class ManualKVWidget(BaseWidget):
         rule.callback_name = manage_val.__name__
         ctx.add_rule(rule)
 
-        KV_apply_manual(ctx, self.apply_kv, locals(), globals(), rebind=True)
+        KV_apply_manual(ctx, self.apply_kv_test, locals(), globals(), rebind=True)
 
 
 @skip_py2_decorator
@@ -4608,7 +4620,7 @@ class TestManualKV(TestBase):
 
     def test_manual(self):
         w = ManualKVWidget()
-        w.apply_kv()
+        w.apply_kv_test()
 
         self.assertEqual(w.value, w.widget.width + w.widget2.width)
         w.widget.width = 41
@@ -4645,17 +4657,17 @@ class TestManualKV(TestBase):
 
 class NoneLocalsWidget(BaseWidget):
 
-    def apply_kv(self):
+    def apply_kv_test(self):
         widget = None
         with KVCtx():
             self.value @= widget.height
 
-    def apply_kv2(self):
+    def apply_kv_test2(self):
         self.widget = None
         with KVCtx():
             self.value @= self.widget.height
 
-    def apply_kv3(self):
+    def apply_kv_test3(self):
         self.widget = None
         with KVCtx():
             self.value @= self.widget.height if self.widget is not None else 55
@@ -4666,21 +4678,21 @@ class TestNoneLocal(TestBase):
 
     def test_None_local(self):
         KV_f = KV()
-        f = KV_f(NoneLocalsWidget.apply_kv)
+        f = KV_f(NoneLocalsWidget.apply_kv_test)
         w = NoneLocalsWidget()
         with self.assertRaises(AttributeError):
             f(w)
 
     def test_None_local_attr(self):
         KV_f = KV()
-        f = KV_f(NoneLocalsWidget.apply_kv2)
+        f = KV_f(NoneLocalsWidget.apply_kv_test2)
         w = NoneLocalsWidget()
         with self.assertRaises(AttributeError):
             f(w)
 
     def test_None_local_attr_protected(self):
         KV_f = KV()
-        f = KV_f(NoneLocalsWidget.apply_kv3)
+        f = KV_f(NoneLocalsWidget.apply_kv_test3)
         w = NoneLocalsWidget()
         f(w)
 
@@ -4698,3 +4710,746 @@ class TestNoneLocal(TestBase):
         self.assertEqual(w.value, w.widget.height)
         w.widget = None
         self.assertEqual(w.value, 55)
+
+
+@skip_py2_decorator
+class TestASTWhitelist(TestBase):
+
+    def test_ast_whitelist_minimal(self):
+        from kivy.lang.compiler.ast_parse import \
+            ParseKVBindTransformer, ParseCheckWhitelisted, parse_expr_ast
+        whitelist = ParseKVBindTransformer.whitelist_opts['minimal']
+        checker = ParseCheckWhitelisted(whitelist)
+
+        checker.check_node_graph(parse_expr_ast('self.x'))
+        for node, illegal in checker.node_has_illegal_parent.items():
+            self.assertFalse(illegal)
+
+        checker.check_node_graph(parse_expr_ast('self.z.h'))
+        for node, illegal in checker.node_has_illegal_parent.items():
+            self.assertFalse(illegal)
+
+        checker.check_node_graph(parse_expr_ast('other.x'))
+        for node, illegal in checker.node_has_illegal_parent.items():
+            self.assertFalse(illegal)
+
+    def test_ast_whitelist_minimal_dict(self):
+        from kivy.lang.compiler.ast_parse import \
+            ParseKVBindTransformer, ParseCheckWhitelisted, parse_expr_ast
+        whitelist = ParseKVBindTransformer.whitelist_opts['minimal']
+        checker = ParseCheckWhitelisted(whitelist)
+
+        checker.check_node_graph(parse_expr_ast('self.x.y[self.z].f'))
+        for node, illegal in checker.node_has_illegal_parent.items():
+            self.assertFalse(illegal)
+
+        checker.check_node_graph(parse_expr_ast('self.x.y[self.x.y].f'))
+        for node, illegal in checker.node_has_illegal_parent.items():
+            self.assertFalse(illegal)
+
+    def test_ast_whitelist_minimal_list(self):
+        from kivy.lang.compiler.ast_parse import \
+            ParseKVBindTransformer, ParseCheckWhitelisted, parse_expr_ast
+        whitelist = ParseKVBindTransformer.whitelist_opts['minimal']
+        checker = ParseCheckWhitelisted(whitelist)
+
+        checker.check_node_graph(parse_expr_ast('self.x.y[55].f'))
+        for node, illegal in checker.node_has_illegal_parent.items():
+            self.assertFalse(illegal)
+
+    def test_ast_whitelist_minimal_illegal(self):
+        from kivy.lang.compiler.ast_parse import \
+            ParseKVBindTransformer, ParseCheckWhitelisted, parse_expr_ast
+        whitelist = ParseKVBindTransformer.whitelist_opts['minimal']
+        checker = ParseCheckWhitelisted(whitelist)
+
+        checker.check_node_graph(parse_expr_ast('(self.x + self.y).z'))
+        for node, illegal in checker.node_has_illegal_parent.items():
+            if isinstance(node, ast.Name) and node.id == 'self' or \
+                    isinstance(node, ast.Attribute) and \
+                    node.attr in ('x', 'y'):
+                self.assertFalse(illegal)
+            else:
+                self.assertTrue(illegal)
+
+
+@skip_py2_decorator
+class TestGenerateSource(TestBase):
+
+    def test_simple(self):
+        from kivy.lang.compiler.ast_parse import generate_source
+        s = 'self.x + self.y'
+        node = ast.parse(s)
+        self.assertEqual(s, generate_source(node))
+
+    def test_node_list(self):
+        from kivy.lang.compiler.ast_parse import generate_source, ASTNodeList
+
+        node1 = ast.parse('self.x')
+        node2 = ast.parse('self.y')
+        node_list = ASTNodeList()
+        node_list.nodes = [node1, node2]
+
+        self.assertEqual('self.x\nself.y', generate_source(node_list))
+
+    def test_node_list_indent(self):
+        from kivy.lang.compiler.ast_parse import generate_source, ASTNodeList
+
+        node1 = ast.parse('if self.x:\n    55')
+        node2 = ast.parse('name = self.y')
+        node_list = ASTNodeList()
+        node_list.nodes = [node1, node2]
+
+        self.assertEqual(
+            'if self.x:\n    55\nname = self.y', generate_source(node_list))
+
+    def test_node_str_placeholder(self):
+        from kivy.lang.compiler.ast_parse import \
+            generate_source, ASTStrPlaceholder
+
+        node = ASTStrPlaceholder()
+        node.src_lines = ['self.x', 'name = self.y']
+        self.assertEqual('self.x\nname = self.y', generate_source(node))
+
+    def test_node_str_placeholder_indented(self):
+        from kivy.lang.compiler.ast_parse import \
+            generate_source, ASTStrPlaceholder
+
+        node = ASTStrPlaceholder()
+        node.src_lines = ['self.x', 'name = self.y']
+
+        if_node = ast.parse('if self.z:\n    55')
+        if_node.body[0].body[0].value = node
+        self.assertEqual(
+            'if self.z:\n\n    self.x\n    name = self.y',
+            generate_source(if_node))
+
+    def test_node_str_ref(self):
+        from kivy.lang.compiler.ast_parse import \
+            generate_source, ASTBindNodeRef
+
+        s = 'if self.z:\n    55'
+        if_node = ast.parse(s)
+        ref = ASTBindNodeRef(False)
+        ref.ref_node = if_node
+        self.assertEqual(s, generate_source(ref))
+
+
+@skip_py2_decorator
+class TestParseASTBind(TestBase):
+
+    def test_ast_rule_None(self):
+        from kivy.lang.compiler.ast_parse import \
+            ParseKVBindTransformer, parse_expr_ast
+        transformer = ParseKVBindTransformer(kv_syntax='minimal')
+
+        with self.assertRaises(ValueError):
+            transformer.update_graph([parse_expr_ast('self.x + self.y')], None)
+
+    def test_ast_whitelist_minimal(self):
+        from kivy.lang.compiler.ast_parse import \
+            ParseKVBindTransformer, parse_expr_ast
+        transformer = ParseKVBindTransformer(kv_syntax='minimal')
+
+        transformer.update_graph([parse_expr_ast('self.x + self.y')], 'rule')
+
+        self.assertEqual(len(transformer.nodes_by_graph), 1)
+        self.assertEqual(len(transformer.nodes_by_rule), 1)
+
+        self.assertEqual(
+            set(transformer.nodes_by_rule[0]),
+            set(transformer.nodes_by_graph[0]))
+        self.assertEqual(len(transformer.nodes_by_graph[0]), 3)
+
+        # don't know if x, or y is visited first, but the following test work
+        # whether x or y was visited first as exact identity is not assumed
+        # but, whichever is first, their graph and rule order is the same
+        self.assertEqual(
+            transformer.nodes_by_rule[0], transformer.nodes_by_graph[0])
+        n0, n1, n2 = transformer.nodes_by_rule[0]
+
+        self.assertIsNone(n0.leaf_rule)
+        self.assertEqual(n1.leaf_rule, 'rule')
+        self.assertEqual(n2.leaf_rule, 'rule')
+
+        self.assertFalse(n0.is_attribute)
+        self.assertTrue(n1.is_attribute)
+        self.assertTrue(n2.is_attribute)
+
+        self.assertEqual(n0.count, 2)
+        self.assertEqual(n1.count, 1)
+        self.assertEqual(n2.count, 1)
+
+        self.assertFalse(n0.depends)
+        self.assertEqual(set(n0.depends_on_me), {n1, n2})
+        self.assertEqual(set(n1.depends), {n0})
+        self.assertEqual(set(n2.depends), {n0})
+        self.assertFalse(n1.depends_on_me)
+        self.assertFalse(n2.depends_on_me)
+
+    def test_ast_whitelist_minimal_multi_rules(self):
+        from kivy.lang.compiler.ast_parse import \
+            ParseKVBindTransformer, parse_expr_ast
+        transformer = ParseKVBindTransformer(kv_syntax='minimal')
+
+        transformer.update_graph([parse_expr_ast('self.x + self.y')], 'rule1')
+        transformer.update_graph([parse_expr_ast('self.x + self.y')], 'rule2')
+
+        self.assertEqual(len(transformer.nodes_by_graph), 1)
+        self.assertEqual(len(transformer.nodes_by_rule), 2)
+
+        self.assertEqual(
+            (set(transformer.nodes_by_rule[0]) |
+             set(transformer.nodes_by_rule[1])),
+            set(transformer.nodes_by_graph[0]))
+
+        self.assertEqual(len(transformer.nodes_by_graph[0]), 5)
+        self.assertEqual(len(transformer.nodes_by_rule[0]), 3)
+        self.assertEqual(len(transformer.nodes_by_rule[1]), 2)
+
+        # don't know if x, or y is visited first, but the following test work
+        # whether x or y was visited first as exact identity is not assumed
+        # but, whichever is first, their graph and rule order is the same
+        self.assertEqual(
+            transformer.nodes_by_rule[0], transformer.nodes_by_graph[0][:3])
+        self.assertEqual(
+            set(transformer.nodes_by_rule[1]),
+            set(transformer.nodes_by_graph[0][3:]))
+        n0, n1, n2, n3, n4 = transformer.nodes_by_graph[0]
+
+        self.assertIsNone(n0.leaf_rule)
+        self.assertEqual(n1.leaf_rule, 'rule1')
+        self.assertEqual(n2.leaf_rule, 'rule1')
+
+        self.assertFalse(n0.is_attribute)
+        self.assertTrue(n1.is_attribute)
+        self.assertTrue(n2.is_attribute)
+
+        self.assertEqual(n0.count, 4)
+        self.assertEqual(n1.count, 1)
+        self.assertEqual(n2.count, 1)
+
+        self.assertEqual(n3.leaf_rule, 'rule2')
+        self.assertEqual(n4.leaf_rule, 'rule2')
+
+        self.assertTrue(n3.is_attribute)
+        self.assertTrue(n4.is_attribute)
+
+        self.assertEqual(n3.count, 1)
+        self.assertEqual(n4.count, 1)
+
+        self.assertFalse(n0.depends)
+        self.assertEqual(set(n0.depends_on_me), {n1, n2, n3, n4})
+        self.assertEqual(set(n1.depends), {n0})
+        self.assertEqual(set(n2.depends), {n0})
+        self.assertEqual(set(n3.depends), {n0})
+        self.assertEqual(set(n4.depends), {n0})
+        self.assertFalse(n1.depends_on_me)
+        self.assertFalse(n2.depends_on_me)
+        self.assertFalse(n3.depends_on_me)
+        self.assertFalse(n4.depends_on_me)
+
+    def test_ast_whitelist_minimal_reuse_node(self):
+        from kivy.lang.compiler.ast_parse import \
+            ParseKVBindTransformer, parse_expr_ast
+        transformer = ParseKVBindTransformer(kv_syntax='minimal')
+
+        transformer.update_graph([parse_expr_ast('self.x[self.x].z')], 'rule')
+
+        self.assertEqual(len(transformer.nodes_by_graph), 1)
+        self.assertEqual(len(transformer.nodes_by_rule), 1)
+
+        self.assertEqual(
+            set(transformer.nodes_by_rule[0]),
+            set(transformer.nodes_by_graph[0]))
+        self.assertEqual(len(transformer.nodes_by_graph[0]), 4)
+
+        # don't know if x, or y is visited first, but the following test work
+        # whether x or y was visited first as exact identity is not assumed
+        # but, whichever is first, their graph and rule order is the same
+        self.assertEqual(
+            transformer.nodes_by_rule[0], transformer.nodes_by_graph[0])
+        n0, n1, n2, n3 = transformer.nodes_by_rule[0]
+
+        self.assertIsNone(n0.leaf_rule)
+        self.assertIsNone(n1.leaf_rule)
+        self.assertIsNone(n2.leaf_rule)
+        self.assertEqual(n3.leaf_rule, 'rule')
+
+        self.assertFalse(n0.is_attribute)
+        self.assertTrue(n1.is_attribute)
+        self.assertFalse(n2.is_attribute)
+        self.assertTrue(n3.is_attribute)
+
+        self.assertEqual(n0.count, 1)
+        self.assertEqual(n1.count, 1)
+        self.assertEqual(n2.count, 1)
+        self.assertEqual(n3.count, 1)
+
+        self.assertFalse(n0.depends)
+        self.assertEqual(set(n0.depends_on_me), {n1})
+        self.assertEqual(set(n1.depends), {n0})
+        self.assertEqual(set(n1.depends_on_me), {n2})
+        self.assertEqual(set(n2.depends), {n1})
+        self.assertEqual(set(n2.depends_on_me), {n3})
+        self.assertEqual(set(n3.depends), {n2})
+        self.assertFalse(n3.depends_on_me)
+
+    def test_ast_whitelist_minimal_reuse_forked_node(self):
+        from kivy.lang.compiler.ast_parse import \
+            ParseKVBindTransformer, parse_expr_ast
+        transformer = ParseKVBindTransformer(kv_syntax='minimal')
+
+        transformer.update_graph([parse_expr_ast('self.x[self.y].z')], 'rule')
+
+        self.assertEqual(len(transformer.nodes_by_graph), 1)
+        self.assertEqual(len(transformer.nodes_by_rule), 1)
+
+        self.assertEqual(
+            set(transformer.nodes_by_rule[0]),
+            set(transformer.nodes_by_graph[0]))
+        self.assertEqual(len(transformer.nodes_by_graph[0]), 5)
+
+        # don't know if x, or y is visited first, but the following test work
+        # whether x or y was visited first as exact identity is not assumed
+        # but, whichever is first, their graph and rule order is the same
+        self.assertEqual(
+            transformer.nodes_by_rule[0], transformer.nodes_by_graph[0])
+        n0, n1, n2, n3, n4 = transformer.nodes_by_rule[0]
+
+        self.assertIsNone(n0.leaf_rule)
+        self.assertIsNone(n1.leaf_rule)
+        self.assertIsNone(n2.leaf_rule)
+        self.assertIsNone(n3.leaf_rule)
+        self.assertEqual(n4.leaf_rule, 'rule')
+
+        self.assertFalse(n0.is_attribute)
+        self.assertFalse(n3.is_attribute)
+        self.assertTrue(n1.is_attribute)
+        self.assertTrue(n2.is_attribute)
+        self.assertTrue(n4.is_attribute)
+
+        # `self` is only counted once because it has only one leaf node which
+        # tests nodes_under_leaf
+        self.assertEqual(n0.count, 1)
+        self.assertEqual(n1.count, 1)
+        self.assertEqual(n2.count, 1)
+        self.assertEqual(n3.count, 1)
+        self.assertEqual(n4.count, 1)
+
+        self.assertFalse(n0.depends)
+        self.assertEqual(set(n0.depends_on_me), {n1, n2})
+        self.assertEqual(set(n1.depends), {n0})
+        self.assertEqual(set(n1.depends_on_me), {n3})
+        self.assertEqual(set(n2.depends), {n0})
+        self.assertEqual(set(n2.depends_on_me), {n3})
+        self.assertEqual(set(n3.depends), {n1, n2})
+        self.assertEqual(set(n3.depends_on_me), {n4})
+        self.assertEqual(set(n4.depends), {n3})
+        self.assertFalse(n4.depends_on_me)
+
+    def test_ast_whitelist_minimal_reuse_forked_node_sum(self):
+        from kivy.lang.compiler.ast_parse import \
+            ParseKVBindTransformer, parse_expr_ast
+        transformer = ParseKVBindTransformer(kv_syntax='minimal')
+
+        transformer.update_graph(
+            [parse_expr_ast('(self.x + self.y).z')], 'rule')
+
+        self.assertEqual(len(transformer.nodes_by_graph), 1)
+        self.assertEqual(len(transformer.nodes_by_rule), 1)
+
+        self.assertEqual(
+            set(transformer.nodes_by_rule[0]),
+            set(transformer.nodes_by_graph[0]))
+        self.assertEqual(len(transformer.nodes_by_graph[0]), 3)
+
+        # don't know if x, or y is visited first, but the following test work
+        # whether x or y was visited first as exact identity is not assumed
+        # but, whichever is first, their graph and rule order is the same
+        self.assertEqual(
+            transformer.nodes_by_rule[0], transformer.nodes_by_graph[0])
+        n0, n1, n2 = transformer.nodes_by_rule[0]
+
+        self.assertIsNone(n0.leaf_rule)
+        self.assertEqual(n1.leaf_rule, 'rule')
+        self.assertEqual(n2.leaf_rule, 'rule')
+
+        self.assertFalse(n0.is_attribute)
+        self.assertTrue(n1.is_attribute)
+        self.assertTrue(n2.is_attribute)
+
+        # with minimal syntax, z is not a leaf, rather x and y are, so self has
+        # two different leaves so its count is 2. tests nodes_under_leaf
+        self.assertEqual(n0.count, 2)
+        self.assertEqual(n1.count, 1)
+        self.assertEqual(n2.count, 1)
+
+        self.assertFalse(n0.depends)
+        self.assertEqual(set(n0.depends_on_me), {n1, n2})
+        self.assertEqual(set(n1.depends), {n0})
+        self.assertEqual(set(n2.depends), {n0})
+        self.assertFalse(n1.depends_on_me)
+        self.assertFalse(n2.depends_on_me)
+
+    def test_ast_whitelist_None_reuse_forked_node_sum(self):
+        from kivy.lang.compiler.ast_parse import \
+            ParseKVBindTransformer, parse_expr_ast
+        transformer = ParseKVBindTransformer(kv_syntax=None)
+
+        transformer.update_graph(
+            [parse_expr_ast('(self.x + self.y).z')], 'rule')
+
+        self.assertEqual(len(transformer.nodes_by_graph), 1)
+        self.assertEqual(len(transformer.nodes_by_rule), 1)
+
+        self.assertEqual(
+            set(transformer.nodes_by_rule[0]),
+            set(transformer.nodes_by_graph[0]))
+        self.assertEqual(len(transformer.nodes_by_graph[0]), 5)
+
+        # don't know if x, or y is visited first, but the following test work
+        # whether x or y was visited first as exact identity is not assumed
+        # but, whichever is first, their graph and rule order is the same
+        self.assertEqual(
+            transformer.nodes_by_rule[0], transformer.nodes_by_graph[0])
+        n0, n1, n2, n3, n4 = transformer.nodes_by_rule[0]
+
+        self.assertIsNone(n0.leaf_rule)
+        self.assertIsNone(n1.leaf_rule)
+        self.assertIsNone(n2.leaf_rule)
+        self.assertIsNone(n3.leaf_rule)
+        self.assertEqual(n4.leaf_rule, 'rule')
+
+        self.assertFalse(n0.is_attribute)
+        self.assertFalse(n3.is_attribute)
+        self.assertTrue(n1.is_attribute)
+        self.assertTrue(n2.is_attribute)
+        self.assertTrue(n4.is_attribute)
+
+        # with full syntax, there's only one leaf - z, so self has a count of 1
+        # which tests nodes_under_leaf
+        self.assertEqual(n0.count, 1)
+        self.assertEqual(n1.count, 1)
+        self.assertEqual(n2.count, 1)
+        self.assertEqual(n3.count, 1)
+        self.assertEqual(n4.count, 1)
+
+        self.assertFalse(n0.depends)
+        self.assertEqual(set(n0.depends_on_me), {n1, n2})
+        self.assertEqual(set(n1.depends), {n0})
+        self.assertEqual(set(n1.depends_on_me), {n3})
+        self.assertEqual(set(n2.depends), {n0})
+        self.assertEqual(set(n2.depends_on_me), {n3})
+        self.assertEqual(set(n3.depends), {n1, n2})
+        self.assertEqual(set(n3.depends_on_me), {n4})
+        self.assertEqual(set(n4.depends), {n3})
+        self.assertFalse(n4.depends_on_me)
+
+    def ast_simple(self, s):
+        from kivy.lang.compiler.ast_parse import \
+            ParseKVBindTransformer, parse_expr_ast
+        transformer = ParseKVBindTransformer(kv_syntax='minimal')
+
+        transformer.update_graph([parse_expr_ast(s)], 'rule')
+
+        self.assertEqual(len(transformer.nodes_by_graph), 1)
+        self.assertEqual(len(transformer.nodes_by_rule), 1)
+
+        self.assertEqual(
+            set(transformer.nodes_by_rule[0]),
+            set(transformer.nodes_by_graph[0]))
+        self.assertEqual(len(transformer.nodes_by_graph[0]), 2)
+
+        self.assertEqual(
+            transformer.nodes_by_rule[0], transformer.nodes_by_graph[0])
+
+        n0, n1 = transformer.nodes_by_rule[0]
+
+        self.assertIsNone(n0.leaf_rule)
+        self.assertEqual(n1.leaf_rule, 'rule')
+
+        self.assertFalse(n0.is_attribute)
+        self.assertTrue(n1.is_attribute)
+
+        self.assertEqual(n0.count, 1)
+        self.assertEqual(n1.count, 1)
+
+        self.assertFalse(n0.depends)
+        self.assertEqual(set(n0.depends_on_me), {n1, })
+        self.assertEqual(set(n1.depends), {n0})
+        self.assertFalse(n1.depends_on_me)
+
+    def test_ast_simple(self):
+        self.ast_simple('self.x')
+
+    def test_ast_simple_duplicate(self):
+        # this tests de-duplication by leaf_nodes_in_rule
+        self.ast_simple('self.x + self.x')
+
+    def test_ast_simple_duplicate_multiple_rules(self):
+        from kivy.lang.compiler.ast_parse import \
+            ParseKVBindTransformer, parse_expr_ast
+        transformer = ParseKVBindTransformer(kv_syntax='minimal')
+
+        # this tests de-duplication by leaf_nodes_in_rule for each rule
+        transformer.update_graph([parse_expr_ast('self.x + self.x')], 'rule1')
+        transformer.update_graph([parse_expr_ast('self.x + self.x')], 'rule2')
+
+        self.assertEqual(len(transformer.nodes_by_graph), 1)
+        self.assertEqual(len(transformer.nodes_by_rule), 2)
+
+        self.assertEqual(
+            (set(transformer.nodes_by_rule[0]) |
+             set(transformer.nodes_by_rule[1])),
+            set(transformer.nodes_by_graph[0]))
+
+        self.assertEqual(len(transformer.nodes_by_graph[0]), 3)
+        self.assertEqual(len(transformer.nodes_by_rule[0]), 2)
+        self.assertEqual(len(transformer.nodes_by_rule[1]), 1)
+
+        # don't know if x, or y is visited first, but the following test work
+        # whether x or y was visited first as exact identity is not assumed
+        # but, whichever is first, their graph and rule order is the same
+        self.assertEqual(
+            transformer.nodes_by_rule[0], transformer.nodes_by_graph[0][:2])
+        self.assertEqual(
+            set(transformer.nodes_by_rule[1]),
+            set(transformer.nodes_by_graph[0][2:]))
+        n0, n1, n2 = transformer.nodes_by_graph[0]
+
+        self.assertIsNone(n0.leaf_rule)
+        self.assertEqual(n1.leaf_rule, 'rule1')
+        self.assertEqual(n2.leaf_rule, 'rule2')
+
+        self.assertFalse(n0.is_attribute)
+        self.assertTrue(n1.is_attribute)
+        self.assertTrue(n2.is_attribute)
+
+        self.assertEqual(n0.count, 2)
+        self.assertEqual(n1.count, 1)
+        self.assertEqual(n2.count, 1)
+
+        self.assertFalse(n0.depends)
+        self.assertEqual(set(n0.depends_on_me), {n1, n2})
+        self.assertEqual(set(n1.depends), {n0})
+        self.assertEqual(set(n2.depends), {n0})
+        self.assertFalse(n1.depends_on_me)
+        self.assertFalse(n2.depends_on_me)
+
+    def test_ast_multiple_graphs(self):
+        from kivy.lang.compiler.ast_parse import \
+            ParseKVBindTransformer, parse_expr_ast
+        transformer = ParseKVBindTransformer(kv_syntax='minimal')
+
+        transformer.update_graph([parse_expr_ast('self.x + other.x')], 'rule')
+
+        self.assertEqual(len(transformer.nodes_by_graph), 2)
+        self.assertEqual(len(transformer.nodes_by_rule), 1)
+
+        self.assertEqual(
+            (set(transformer.nodes_by_graph[0]) |
+             set(transformer.nodes_by_graph[1])),
+            set(transformer.nodes_by_rule[0]))
+
+        self.assertEqual(len(transformer.nodes_by_rule[0]), 4)
+        self.assertEqual(len(transformer.nodes_by_graph[0]), 2)
+        self.assertEqual(len(transformer.nodes_by_graph[1]), 2)
+
+        # don't know if self, or other is visited first, but the following
+        # tests work whether self or other was visited first as exact identity
+        # is not assumed but, whichever is first, their graph and rule order is
+        # the same
+        self.assertEqual(
+            transformer.nodes_by_graph[0], transformer.nodes_by_rule[0][:2])
+        self.assertEqual(
+            set(transformer.nodes_by_graph[1]),
+            set(transformer.nodes_by_rule[0][2:]))
+        n0, n1, n2, n3 = transformer.nodes_by_rule[0]
+
+        self.assertIsNone(n0.leaf_rule)
+        self.assertEqual(n1.leaf_rule, 'rule')
+        self.assertIsNone(n2.leaf_rule)
+        self.assertEqual(n3.leaf_rule, 'rule')
+
+        self.assertFalse(n0.is_attribute)
+        self.assertTrue(n1.is_attribute)
+        self.assertFalse(n2.is_attribute)
+        self.assertTrue(n3.is_attribute)
+
+        self.assertEqual(n0.count, 1)
+        self.assertEqual(n1.count, 1)
+        self.assertEqual(n2.count, 1)
+        self.assertEqual(n3.count, 1)
+
+        self.assertFalse(n0.depends)
+        self.assertEqual(set(n0.depends_on_me), {n1, })
+        self.assertEqual(set(n1.depends), {n0})
+        self.assertFalse(n1.depends_on_me)
+
+        self.assertFalse(n2.depends)
+        self.assertEqual(set(n2.depends_on_me), {n3, })
+        self.assertEqual(set(n3.depends), {n2})
+        self.assertFalse(n3.depends_on_me)
+
+
+@skip_py2_decorator
+class TestCythonKV(TestBase):
+
+    def setUp(self):
+        super(TestCythonKV, self).setUp()
+        from kivy.lang.compiler.kv import patch_inspect
+        patch_inspect()
+
+        cython_path = os.path.join(
+            os.path.dirname(__file__), 'kv_tests', 'cython')
+        self.cython_path = cython_path
+
+        import kivy.lang.compiler.runtime
+        self.original_kvc_path = kivy.lang.compiler.runtime._kvc_path
+        kivy.lang.compiler.runtime._kvc_path = cython_path
+
+    def test_cython(self):
+        setup_path = os.path.join(self.cython_path, 'setup.py')
+        try:
+            subprocess.check_output(
+                'python "{}" build_ext --inplace'.format(setup_path),
+                stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            print(e.output.decode('utf8'))
+            raise
+
+        sys.path.append(self.cython_path)
+        kv_cython = importlib.import_module('kv_cython_test')
+        w = kv_cython.MyWidget()
+        w.apply_kv()
+
+        self.assertEqual(w.x, w.y)
+        w.y = 868
+        self.assertEqual(w.x, 868)
+        w.y = 370
+        self.assertEqual(w.x, 370)
+
+        sys.path.remove(self.cython_path)
+
+    def tearDown(self):
+        super(TestCythonKV, self).tearDown()
+        from kivy.lang.compiler.kv import unpatch_inspect
+        unpatch_inspect()
+
+        import kivy.lang.compiler.runtime
+        kivy.lang.compiler.runtime._kvc_path = self.original_kvc_path
+
+        shutil.rmtree(
+            os.path.join(self.cython_path, '__pycache__'), ignore_errors=True)
+        for fname in glob.glob(os.path.join(self.cython_path, '*.c')):
+            os.remove(fname)
+        for fname in glob.glob(os.path.join(self.cython_path, '*.kvc')):
+            os.remove(fname)
+
+
+@skip_py2_decorator
+class TestCythonKVDefault(TestBase):
+
+    def setUp(self):
+        super(TestCythonKVDefault, self).setUp()
+        from kivy.lang.compiler.kv import patch_inspect
+        patch_inspect()
+
+        cython_path = os.path.join(
+            os.path.dirname(__file__), 'kv_tests', 'cython')
+        self.cython_path = cython_path
+
+    def test_cython(self):
+        setup_path = os.path.join(self.cython_path, 'setup.py')
+        try:
+            subprocess.check_output(
+                'python "{}" build_ext --inplace'.format(setup_path),
+                stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            print(e.output.decode('utf8'))
+            raise
+
+        sys.path.append(self.cython_path)
+        kv_cython = importlib.import_module('kv_cython_test')
+        w = kv_cython.MyWidget()
+        w.apply_kv()
+
+        self.assertEqual(w.x, w.y)
+        w.y = 868
+        self.assertEqual(w.x, 868)
+        w.y = 370
+        self.assertEqual(w.x, 370)
+
+        sys.path.remove(self.cython_path)
+
+    def tearDown(self):
+        super(TestCythonKVDefault, self).tearDown()
+        from kivy.lang.compiler.kv import unpatch_inspect
+        unpatch_inspect()
+
+        shutil.rmtree(
+            os.path.join(self.cython_path, '__pycache__'), ignore_errors=True)
+        shutil.rmtree(
+            os.path.join(self.cython_path, '__kvcache__'), ignore_errors=True)
+        for fname in glob.glob(os.path.join(self.cython_path, '*.c')):
+            os.remove(fname)
+
+
+@skip_py2_decorator
+class TestPyinstallerKV(TestBase):
+
+    def setUp(self):
+        super(TestPyinstallerKV, self).setUp()
+        self.pinstall_path = os.path.join(
+            os.path.dirname(__file__), 'kv_tests', 'pyinstaller')
+
+    def test_cython(self):
+        env = os.environ.copy()
+        env['KIVY_KVC_PATH'] = os.path.join(self.pinstall_path, 'kvc')
+
+        try:
+            # create kvc
+            subprocess.check_output(
+                'python main.py',
+                cwd=self.pinstall_path, stderr=subprocess.STDOUT, env=env)
+        except subprocess.CalledProcessError as e:
+            print(e.output.decode('utf8'))
+            raise
+
+        try:
+            # create pyinstaller package
+            subprocess.check_output(
+                'pyinstaller main.spec',
+                cwd=self.pinstall_path, stderr=subprocess.STDOUT, env=env)
+        except subprocess.CalledProcessError as e:
+            print(e.output.decode('utf8'))
+            raise
+
+        try:
+            # test package
+            subprocess.check_output(
+                os.path.join(self.pinstall_path, 'dist', 'main', 'main'),
+                stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            print(e.output.decode('utf8'))
+            raise
+
+    def tearDown(self):
+        super(TestPyinstallerKV, self).tearDown()
+
+        shutil.rmtree(
+            os.path.join(self.pinstall_path, '__pycache__'),
+            ignore_errors=True)
+        shutil.rmtree(
+            os.path.join(self.pinstall_path, 'build'),
+            ignore_errors=True)
+        shutil.rmtree(
+            os.path.join(self.pinstall_path, 'dist'),
+            ignore_errors=True)
+        shutil.rmtree(
+            os.path.join(self.pinstall_path, 'kvc'),
+            ignore_errors=True)
+        shutil.rmtree(
+            os.path.join(self.pinstall_path, 'project', '__pycache__'),
+            ignore_errors=True)

@@ -95,8 +95,16 @@ if 'KIVY_DOC' not in environ:
         (kivy.kivy_modules_dir,
          os.path.join('kivy_install', os.path.basename(kivy.kivy_modules_dir)))
     ]
-'''List of datas to be included by pyinstaller.
-'''
+    '''List of datas to be included by pyinstaller.
+    '''
+
+    kvc = os.path.join('kivy_install', 'kvc')
+    from kivy.lang.compiler.runtime import get_cache_kvc_filenames, _kvc_path
+    # for fname in get_cache_kvc_filenames():
+    #     datas.append((fname, kvc))
+
+    if _kvc_path is not None:
+        datas.append((_kvc_path, kvc))
 
 
 def runtime_hooks():

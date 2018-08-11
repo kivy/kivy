@@ -20,6 +20,14 @@ _graphics_callback_linked_list = None
 
 _kvc_cache = {}
 
+_kvc_path = os.environ.get('KIVY_KVC_PATH', None)
+if _kvc_path is not None:
+    _kvc_path = os.path.abspath(_kvc_path)
+_kvc_freeze = bool(int(os.environ.get('KIVY_KVC_FREEZE', 0)))
+
+# check all the attrs of the compiled function that need to be set to match the
+# original function's values. If the sets are not equal, it means we may need
+# to set more values if python changed
 assert set(functools.WRAPPER_ASSIGNMENTS) == {
     '__module__', '__name__', '__qualname__', '__doc__', '__annotations__'}
 
@@ -86,16 +94,26 @@ def get_kvc_filename(func, flags=''):
     it's the filename where the function's compiled KV code is stored.
 
     The file may not exist, if it has not been compiled yet.'''
-    func_filname = inspect.getfile(func)
     func_name = func.__qualname__
-    head, tail = os.path.split(func_filname)
-    fname_root, _ = os.path.splitext(tail)
-
-    kv_dir = os.path.join(head, '__kvcache__')
     flags = '-{}'.format(flags) if flags else ''
-    kv_fname = os.path.join(kv_dir, '{}-{}{}.kvc'.format(
-        fname_root, func_name, flags))
-    return kv_fname
+    mod_name = inspect.getmodule(func).__name__
+
+    # generated filename is mod_name-func_qualname-flags.kvc
+    kv_fname = '{}-{}{}.kvc'.format(mod_name, func_name, flags)
+
+    if not _kvc_path:
+        # generated filename is py_filename-func_qualname-flags.kvc
+        func_filname = inspect.getfile(func)
+        kv_dir = os.path.join(os.path.dirname(func_filname), '__kvcache__')
+        kv_path = os.path.join(kv_dir, kv_fname)
+    else:
+        kv_path = os.path.join(_kvc_path, kv_fname)
+
+    return kv_path
+
+
+def get_cache_kvc_filenames():
+    return [mod.__file__ for mod, _ in _kvc_cache.values()]
 
 
 def load_kvc_from_file(
@@ -118,25 +136,27 @@ def load_kvc_from_file(
     '''
     if target_func_name is None:
         target_func_name = func.__name__
-    func_filname = inspect.getfile(func)
+    mod_name = inspect.getmodule(func).__name__
     func_name = func.__qualname__
     compile_flags_s = repr(compile_flags)
-    key = func_filname, func_name, flags, compile_flags_s
+    key = mod_name, func_name, flags, compile_flags_s
 
     if key in _kvc_cache:
         return _kvc_cache[key]
 
     # any and all os.xxx are super slow, so fallback on last resort
-    head, tail = os.path.split(func_filname)
-    fname_root, _ = os.path.splitext(tail)
+    kv_fname = get_kvc_filename(func, flags)
 
-    kv_dir = os.path.join(head, '__kvcache__')
-    flags = '-{}'.format(flags) if flags else ''
-    kv_fname = os.path.join(
-        kv_dir, '{}-{}{}.kvc'.format(fname_root, func_name, flags))
-
-    if not os.path.exists(kv_fname) or os.stat(
-            func_filname).st_mtime >= os.stat(kv_fname).st_mtime:
+    if not os.path.exists(kv_fname):
+        if _kvc_freeze:
+            raise ValueError(
+                'Could not find compiled file, {}, for function {}, yet '
+                'KIVY_KVC_FREEZE was set so we cannot generate a compiled '
+                'file'.format(kv_fname, func))
+        return None, None
+    elif not _kvc_freeze and os.stat(
+            inspect.getfile(func)).st_mtime >= os.stat(kv_fname).st_mtime:
+        # if frozen, we don't care about file ages
         return None, None
 
     mod_name = '__kv{}'.format(len(_kvc_cache))
@@ -144,6 +164,14 @@ def load_kvc_from_file(
     mod = loader.load_module()
     if compile_flags_s != mod.__kv_kvc_compile_flags:
         del sys.modules[mod_name]
+
+        if _kvc_freeze:
+            raise ValueError(
+                'Compiled file, {}, for function {}, does not match flags yet '
+                'KIVY_KVC_FREEZE was set so we cannot generate a new compiled '
+                'file ({} != {})'.format(
+                    kv_fname, func, compile_flags_s,
+                    mod.__kv_kvc_compile_flags))
         return None, None
     f = getattr(mod, target_func_name)
 
@@ -173,18 +201,11 @@ def save_kvc_to_file(func, src_code, flags='', compile_flags=()):
     :param compile_flags: Any compiler flags used when compiling the kvc file.
         These are stored within the compiled code, not in the filename.
     '''
-    func_filname = inspect.getfile(func)
-    head, tail = os.path.split(func_filname)
-    fname_root, _ = os.path.splitext(tail)
+    kv_fname = get_kvc_filename(func, flags)
+    head = os.path.dirname(kv_fname)
 
-    kv_dir = os.path.join(head, '__kvcache__')
-    flags = '-{}'.format(flags) if flags else ''
-    func_name = func.__qualname__
-    kv_fname = os.path.join(
-        kv_dir, '{}-{}{}.kvc'.format(fname_root, func_name, flags))
-
-    if not os.path.exists(kv_dir):
-        os.mkdir(kv_dir)
+    if not os.path.exists(head):
+        os.mkdir(head)
 
     with open(kv_fname, 'w') as fh:
         fh.write('__kv_kvc_compile_flags = {}\n\n'.format(

@@ -4,6 +4,8 @@ import sys
 root = os.path.join(sys._MEIPASS, 'kivy_install')
 
 os.environ['KIVY_DATA_DIR'] = os.path.join(root, 'data')
+os.environ['KIVY_KVC_PATH'] = os.path.join(root, 'kvc')
+os.environ['KIVY_KVC_FREEZE'] = '1'
 os.environ['KIVY_MODULES_DIR'] = os.path.join(root, 'modules')
 os.environ['GST_PLUGIN_PATH'] = '{};{}'.format(
     sys._MEIPASS, os.path.join(sys._MEIPASS, 'gst-plugins'))
