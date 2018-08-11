@@ -258,10 +258,7 @@ class KVParserCtx(KVCtx):
         super(KVParserCtx, self).__init__()
         self.transformer = None
 
-    def set_kv_binding_ast_transformer(self, transformer, kv_syntax):
-        if kv_syntax == 'minimal':
-            transformer.whitelist = {
-                'Name', 'Num', 'Bytes', 'Str', 'NameConstant', 'Subscript'}
+    def set_kv_binding_ast_transformer(self, transformer):
         self.transformer = transformer
 
     def parse_rules(self):

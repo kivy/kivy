@@ -351,7 +351,7 @@ class KVCompiler(object):
 
         # save node to local variable
         assignment = '{}{} = {}'.format(
-            ' ' * indent, var, generate_source(node).rstrip('\r\n'))
+            ' ' * indent, var, generate_source(node))
         src_code.append(assignment)
         src_code.append('')
 
@@ -397,7 +397,7 @@ class KVCompiler(object):
             indent += 4
 
         assignment = '{}{} = {}'.format(
-            ' ' * indent, var, generate_source(node).rstrip('\r\n'))
+            ' ' * indent, var, generate_source(node))
         src_code.append(assignment)
         src_code.append('')
 
@@ -555,8 +555,7 @@ class KVCompiler(object):
                 if node.leaf_rule is None:
                     var = nodes_temp_var_name[node]
                     assignment = '{}{} = {}'.format(
-                        ' ' * indent, var,
-                        generate_source(node).rstrip('\r\n'))
+                        ' ' * indent, var, generate_source(node))
                     src_code.append(assignment)
                     src_code.append('')
 

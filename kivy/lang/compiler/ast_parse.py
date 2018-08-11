@@ -13,13 +13,32 @@ from astor.source_repr import split_lines
 from kivy.lang.compiler.kv_context import KVParserCtx, KVParserRule
 
 __all__ = (
-    'KVException', 'KVCompilerParserException', 'BindSubGraph',
-    'ASTBindNodeRef', 'ASTRuleCtxNodePlaceholder', 'ASTNodeList',
-    'RefSourceGenerator', 'generate_source', 'NotWhiteListed',
+    'KVException', 'KVCompilerParserException', 'parse_expr_ast',
+    'BindSubGraph',
+    'ASTBindNodeRef', 'ASTStrPlaceholder', 'ASTNodeList',
+    'RefSourceGenerator', 'generate_source', 'ParseCheckWhitelisted',
     'ParseKVBindTransformer', 'ParseKVFunctionTransformer',
     'DoNothingAST', 'ParseExpressionNameLoadTransformer',
     'VerifyKVCaptureOnExitTransformer',
     'VerifyKVCaptureOnEnterTransformer', 'verify_readonly_nodes')
+
+
+def parse_expr_ast(expr_str):
+    '''Takes a expression string (i.e. can be represented by `ast.Expr` type),
+    e.g. `"self.x"`, and returns the AST node that directly corresponds to that
+    expression (i.e. it's not wrapped in a Module like `ast.parse`).
+
+    E.g.:
+
+    >>> ast.dump(parse_expr_ast('self.x'))
+    "Attribute(value=Name(id='self', ctx=Load()), attr='x', ctx=Load())"
+    '''
+    body = ast.parse(expr_str).body[0]
+    if not isinstance(body, ast.Expr):
+        raise ValueError(
+            'Function takes only source code that represents an expression '
+            '(ast.Expr)')
+    return body.value
 
 
 class KVException(Exception):
@@ -91,37 +110,123 @@ class BindSubGraph(object):
 
 class ASTBindNodeRef(ast.AST):
     '''
-    A AST node in the bind graph that replaces the original node and describes
-    a node that we may bind to (e.g. a attribute access of a rebind or leaf
-    node).
+    Created by :class:`ParseKVBindTransformer` as it walks the AST graph to
+    represent an original `ast.AST` node that we could bind to (e.g. a
+    attribute access of a rebind, or leaf node) or a dependency of such a node
+    (e.g. a local or global or `Name` etc.).
+
+    E.g. given `self.x + self.y`, when visiting its ast nodes, we create
+    corresponding :class:`ASTBindNodeRef` nodes for `self`, `x`, and `y`.
+
+    Subsequently, :attr:`depends` and :attr:`depends_on_me` describes a newly
+    constructed ast graph that represent a subgraph of the original ast graph,
+    that contains this node. Each :attr:`ParseKVBindTransformer.nodes_by_graph`
+    item is a list of all the nodes of one such sub-graph.
+
+    E.g. `self.x + other.x` represents two independent subgraphs, one
+    with :class:`ASTBindNodeRef` nodes representing `self` and `self.x`,
+    and the other with nodes representing `other` and `other.x`.
+
+    After parsing, the graphs created by these nodes are self contained in
+    the sense they
     '''
 
-    original_node = None
-
     ref_node = None
+    '''The `AST` node that this instance represents.
+    '''
 
     src = ''
     '''
-    Not set for final attribute nodes because we never evaluate the node.
+    The :func:`generate_source` generated source representing the
+    :attr:`ref_node`. E.g. for the graph `self.x.y + self.z`, if the
+    :attr:`ref_node` represents the `x` `Attribute` node, then :attr:`src` will
+    be `"self.x"`.
+
+    In the bind graph, this is the primary method we use currently to identify
+    node duplicates. I.e. :attr:`ParseKVBindTransformer.src_node_map` keeps a
+    mapping from :attr:`src` to the :class:`ASTBindNodeRef` instance that
+    represents it for non-:attr:`leaf_rule` nodes. Then, if we encounter a
+    source fragment we have seen before, we reuse that node and increment
+    :attr:`count`, unless it's a :attr:`leaf_rule`, then we don't re-use but
+    always create a new one (except if we have seen this leaf already in that
+    rule as tracked by :attr:`ParseKVBindTransformer.nodes_under_leaf`).
     '''
 
     is_attribute = False
+    '''Whether the :class:`ASTBindNodeRef` represents an `ast.Attribute`
+    node. These are nodes that we potentially bind to either because it's a
+    :attr:`rebind` node or because it's a :attr:`leaf`. '''
 
     rebind = False
+    '''If the node is an :attr:`is_attribute`, and if it's not a
+    :attr:`leaf_rule` then it indicates whether this node will be rebound.
+
+    E.g. if a rule is bound to `self.x.y`, then we would need to rebind
+    the rule to the `x` attribute if :attr:`rebind` is `True`. In this case,
+    if `x` changes, all the nodes that are children of `x` will be
+    re-evaluated and e.g. the rule will be rebound so then when the `y` value
+    of the new `x` changes the rule will be dispatched.
+
+    :attr:`rebind` may be set after graph parsing is done and is not used
+    during parsing (:meth:`ParseKVBindTransformer.update_graph`) in any way.
+    '''
 
     proxy = False
+    '''If the node's child is an :attr:`is_attribute`, then it indicates
+    whether the object represented by this node must not hold a direct
+    reference to the other objects after binding. When `True`, it will hold
+    a proxy to the objects.
+
+    E.g. if a rule is bound to `self.x.y`, then we bind to `self.x` and
+    potentially to `self`, depending on the :attr:`rebind` value of `self.x`.
+    Either way, if `proxy` is True for `self` and/or `self.x`, neither will
+    hold a direct ref to any of the binding objects or callbacks. This is
+    to prevent the `self` and/or `self.x` objects from keeping the other
+    objects from being garbage collected.
+
+    :attr:`proxy` may be set after graph parsing is done and is not used
+    during parsing (:meth:`ParseKVBindTransformer.update_graph`) in any way.
+    '''
 
     depends_on_me = []
+    '''List of :class:`ASTBindNodeRef` instances that represent ast nodes
+    that are children of this node. The :attr:`ASTBindNodeRef.depends` of
+    such children must include this node.
+    '''
 
     depends = []
+    '''List of :class:`ASTBindNodeRef` instances that represent ast nodes
+    that are parents of this node. The :attr:`ASTBindNodeRef.depends_on_me` of
+    such parents must include this node.
+    '''
 
     count = 0
-    '''The number of times this node is used as a parent node. E.g. in
-    `self.obj.x + self.obj.y`, `self.obj` has a count of two.
+    '''The number of unique leaves (:attr:`leaf_rule` is not `None`, not
+    counting :attr:`leaf_rule` value duplicates) that this node
+    is an ancestor of or 1 if it's a :attr:`leaf_rule`. E.g. in
+    `self.obj.x + self.obj.y`, `self.obj` has a count of two as does `self`.
+    `y` and `x` both have a :attr:`count` of one.
+
+    :atr:`count` is not the same as len(:attr:`depends_on_me`). Although for
+    the the rule `self.x + self.y.z`, the len and :attr:`count` will be the
+    same for `self` (2). For rule `self.x[self.x.y].z`, there's only one leaf
+    rule so :attr:`count` will be one, yet :attr:`depends_on_me` will contain
+    two items for the node representing `self.x`.
+
+    Similarly, if we have two rules, each saying `self.x`, then `self` will
+    have a count of two.
     '''
 
     leaf_rule = None
-    # only attrs can be leaf
+    '''If :attr:`is_attribute` and it's a leaf node in the ast expression,
+    e.g. `x` in `self.x` or `(self.y + self.z).x`, then :attr:`leaf_rule` is
+    set to the value of `rule` passed to
+    :meth:`ParseKVBindTransformer.update_graph`. That indicates that it's a
+    leaf. Otherwise it is `None`.
+
+    The exact value of :attr:`leaf_rule` is not important, we just use it to
+    check if it's `None`.
+    '''
 
     my_graph = []
     '''Keeps track of the graph the node is in. E.g. `self.x + obj.y` contains
@@ -274,29 +379,73 @@ class ASTBindNodeRef(ast.AST):
                 len(self.depends_on_me), deps_on_me, len(self.depends), deps)
 
 
-class ASTRuleCtxNodePlaceholder(ast.AST):
+class ASTStrPlaceholder(ast.AST):
     '''
-    And AST node that is added to a AST body list and describes the source code
-    as a list of strings implicitly indented to the body's base indentation.
+    An AST node that represents a list of strings that is added to
+    the source code when generated to source. They are implicitly indented to
+    the indentation level of the node they are contained in.
 
     Useful for dumping strings rather than having to create AST nodes for all
-    the source code.
+    the source code manually. E.g.:
+
+    >>> node = ASTStrPlaceholder()
+    >>> node.src_lines = ['self.x', 'name = self.y']
+    >>> generate_source(node)
+    'self.x\nname = self.y'
+    >>> # then
+    >>> if_node = ast.parse('if self.z:\\n    55')
+    >>> ast.dump(if_node)
+    "Module(body=[If(test=Attribute(value=Name(id='self', ctx=Load()), \
+attr='z', ctx=Load()), body=[Expr(value=Num(n=55))], orelse=[])])"
+    >>> if_node.body[0].body[0].value = node
+    >>> generate_source(if_node)
+    'if self.z:\\n\\n    self.x\\n    name = self.y'
     '''
 
     src_lines = []
 
+    def __init__(self, *largs, **kwargs):
+        super(ASTStrPlaceholder, self).__init__(*largs, **kwargs)
+        self.src_lines = []
+
 
 class ASTNodeList(ast.AST):
     '''
-    AST node that is compposed of a list of AST nodes.
+    AST node that represents a list of AST nodes.
+
+    E.g.:
+
+    >>> node1 = ast.parse('self.x')
+    >>> node2 = ast.parse('self.y')
+    >>> node_list = ASTNodeList()
+    >>> node_list.nodes = [node1, node2]
+    >>> generate_source(node_list)
+    'self.x\\nself.y'
+
+    Or:
+
+    >>> node1 = ast.parse('if self.x:\\n    55')
+    >>> node2 = ast.parse('name = self.y')
+    >>> node_list = ASTNodeList()
+    >>> node_list.nodes = [node1, node2]
+    >>> generate_source(node_list)
+    'if self.x:\\n    55\\nname = self.y'
     '''
 
     nodes = []
+    '''List of ast nodes represented by this node.
+    '''
+
+    def __init__(self, *largs, **kwargs):
+        super(ASTNodeList, self).__init__(*largs, **kwargs)
+        self.nodes = []
 
 
 class RefSourceGenerator(SourceGenerator):
     '''
     Generates the source code from the custom AST nodes.
+
+    Used with :func:`generate_source` to add custom AST nodes.
     '''
 
     def visit_ASTBindNodeRef(self, node, *largs, **kwargs):
@@ -306,7 +455,7 @@ class RefSourceGenerator(SourceGenerator):
         for item in node.nodes:
             self.visit(item, *largs, **kwargs)
 
-    def visit_ASTRuleCtxNodePlaceholder(self, node, *largs, **kwargs):
+    def visit_ASTStrPlaceholder(self, node, *largs, **kwargs):
         self.newline(extra=1)
         lines = ['\n', ] * (len(node.src_lines) * 2)
         for i, line in enumerate(node.src_lines):
@@ -319,7 +468,17 @@ class RefSourceGenerator(SourceGenerator):
 
 def generate_source(node):
     '''
-    Generates the source code string represented by the node.
+    Generates the source code string represented by the node based on
+    `astor.to_source`.
+
+    As opposed to `astor.to_source`, it understands how to handle our custom
+    `AST` classes and removes any trailing newlines.
+
+    E.g.:
+
+    >>> node = ast.parse('self.x + self.y + len("hello")')
+    >>> generate_source(node)
+    "self.x + self.y + len('hello')"
     '''
     generator = RefSourceGenerator(indent_with=' ' * 4)
     generator.visit(node)
@@ -328,97 +487,328 @@ def generate_source(node):
     if set(generator.result[0]) == set('\n'):
         generator.result[0] = ''
 
-    return ''.join(split_lines(generator.result, maxline=2 ** 32 - 1))
+    s = ''.join(split_lines(generator.result, maxline=2 ** 32 - 1))
+    return s.rstrip('\r\n')
 
 
-class NotWhiteListed(Exception):
+class ParseCheckWhitelisted(ast.NodeTransformer):
+    '''Takes a expression node and checks whether any of the expression nodes
+    that are part of the node's graph are not in the :attr:`whitelist`.
+
+    For every node encountered, we map the node in
+    :attr:`node_has_illegal_parent` to whether the node or any of its parents
+    are not whitelisted.
+
+    E.g. `self.x` would map `self` and `self.x` to `False`, while
+    `(self.x + self.y).z` would map `self`, `self.x`, `self.y` to `False` and
+    `(self.x + self.y)` and `(self.x + self.y).z` to `True` (assuming only
+    `Attribute` and `Name` are whitelisted).
     '''
-    Raised by the parser internally to handle nodes that should be ignored.
+
+    node_has_illegal_parent = {}
+    '''Maps each node in :meth:`check_node_graph` `node`'s graph to whether
+    it is or has a non-whitelisted parent.'''
+
+    has_illegal_parent = False
+    '''Set by node to True if it or any of its parents are not whitelisted.
     '''
-    pass
+
+    whitelist = set()
+    '''Set of ast class names that are whitelisted. These are strings
+    with the exact class names, e.g. `"Attribute"`.'''
+
+    def __init__(self, whitelist):
+        self.node_has_illegal_parent = {}
+        self.whitelist = whitelist
+
+    def check_node_graph(self, node):
+        '''
+        Gets called with a node describing a single expression. Doesn't accept
+        non-expression nodes, e.g. an assign, Module etc. It then populates
+        :attr:`node_has_illegal_parent`.
+        '''
+        self.has_illegal_parent = False
+        return self.visit(node)
+
+    def generic_visit(self, node):
+        # we only care about expressions (e.g. ast.Load is ok even if not
+        # whitelisted because it may occur in expressions).
+        if not isinstance(node, ast.expr):
+            return super(ParseCheckWhitelisted, self).generic_visit(node)
+
+        # save the state of our sibling nodes before clearing to get our value
+        has_illegal_parent = self.has_illegal_parent
+        self.has_illegal_parent = False
+        # clear state and now check all the parents of this node to see whether
+        # any of them contain a illegal node.
+        node = super(ParseCheckWhitelisted, self).generic_visit(node)
+        self.node_has_illegal_parent[node] = illegal = \
+            node.__class__.__name__ not in self.whitelist or \
+            self.has_illegal_parent
+
+        # now we know whether this node or any of its parents are illegal
+        # and we set the corresponding value for the node.
+        # Next, we save whether we encountered a illegal node so far, including
+        # from sibling nodes - this will be used by our child to decide if the
+        # child has illegal parents.
+        self.has_illegal_parent = has_illegal_parent or illegal
+        return node
 
 
 class ParseKVBindTransformer(ast.NodeTransformer):
     '''
     Transforms and computes all the nodes that should be bound to. It processes
     all the nodes and create the graphs representing the bind rules.
+
+    Algorithm: given ast for e.g. `(self.x + self.y).z + 55, the leaves
+    are `z` and `55` and the roots are `self`, `55`. For every node we
+    visit, it first processes its parents and then itself. E.g.
+    `(self.x + self.y)` is processed before `(self.x + self.y).z`, and
+    `self.x`, `self.y` before `(self.x + self.y)`.
+
+    The idea is to find the first node starting from leaves and working up
+    the parent graph that are an `Attribute`, e.g. `(self.x + self.y).z`.
+    Once we have that, we may need to rebind to all intermediate attribute
+    nodes in its parent graph. E.g. for `(self.x + self.y).z`, we may need to
+    rebind to `self.x` and `self.y`. We create :class:`ASTBindNodeRef` for
+    each node we encounter once we encounter the first `Attribute`.
+
+    So e.g. for `self.x + self.q`, we create 3 `ASTBindNodeRef` nodes - for
+    `self`, `self.x`, and `self.q`. Their summation does not happen "under"
+    a `Attribute` access, so it is ignored.
+
+    :class:`ASTBindNodeRef` instances describe subgraphs within the larger
+    ast graph. As can be seen, :class:`ASTBindNodeRef` points to nodes
+    that depend on it (children) and that it depends on (parents)- that defines
+    the subgraph that we may need to rebind to.
+
+    Nodes that evaluate to the same string, e.g. in `self.x + self.x`, `self.x`
+    occurs twice, but in the graph we create, we only create one node for
+    `self` and one node for `self.x`. Similarly, for `self.x + self.y`, only
+    3 nodes are created.
+
+    Examples so far, all created one subgraph - but we can have more than one.
+    E.g. `self.x + other.x` creates two independent graphs, one for `self.x`
+    and one for `other.x`, each composed of two nodes because they share no
+    common nodes. But e.g.
+    `(self.x + other.y).z` will create one subgraph with 6 nodes, a node for
+    each operation because they all happen under the same `Attribute` leaf so
+    it describes one graph.
+
+    The key thing to remember is that parent nodes are processed before
+    children. This order determines the linear order of the nodes as they
+    get added to :attr:`nodes_by_rule` and :attr:`nodes_by_graph`. This means
+    that when a node is encountered in the :attr:`nodes_by_rule` or
+    :attr:`nodes_by_graph` lists, all their parents are present in the lists
+    at indices previous to that node. In other words, if we walk the lists
+    linearly, we encounter a node only after all its dependencies. This key
+    property is used by the compiler to help reason about the graph order.
+
+    There are two syntax flavors, `"minimal"` and the the full syntax.
+    The `"minimal"` version only rebinds to nodes that are attribute access
+    or slice access. E.g. `self.x[self.y].z`. The full syntax, allows also
+    e.g. `(self.x + other.y).z` and would also rebind to the `z` property of
+    `(self.x + other.y)`. The `"minimal"` syntax in this case would only rebind
+    to `self.x` and `other.y`.
+
+    This is used by calling :meth:`update_graph` once for each rule, where we
+    pass the ast nodes for a rule to that function at once. The idea is to
+    create graphs that represent bindings across all the rules, while
+    also tracking which rule a (leaf) node came from. E.g. if we had two
+    rules - `self.x + self.y`, and `self.x.z + 55 + self.y`, then we
+    would create one graph: self -> x, self -> y, x -> z that describes the
+    bindings for the rules. Additionally, we would create a leaf from `x`, `y`
+    for the first rule, and `z`, `y` for the second. You can see more in the
+    visualization module.
+
+    Currently, all comprehensions and lambda are treated as opaque so
+    we don't bind to anything within it.
     '''
     # no Name node that is a Store shall be saved in any of the graphs. It's
     # not included anyway because it cannot be an expression, but we should not
-    # include either way because in the KV decorator we use all Name for
-    # capturing and making them readonly. This assumes that they are all Load.
+    # include either way because in the compiler we use all Name that we
+    # encountered here to identify local vars for
+    # capturing and making them readonly and verified by the
+    # verifier later. That assumes that they are all Load in this stage because
+    # we don't check in this class.
 
     src_node_map = {}
+    '''For each non leaf :class:`ASTBindNodeRef` node we create (i.e.
+    :attr:`ASTBindNodeRef.leaf_rule` is `None`), we map the source code
+    representation of the node (:attr:`ASTBindNodeRef.src`) to the node. E.g.
+    for `self.x.y` we create three reference nodes with the corresponding
+    representation, `"self"`, `"self.x"`, and `"self.x.y"`.
+
+    This helps find duplicates across all rules, e.g. for `self.x + self.x`, we
+    only create two nodes for `"self"` and `"self.x"` the first time we
+    encounter them. The second time, we just re-use the existing node for
+    `self` and increment its :attr:`ASTBindNodeRef.count`. The second time we
+    encounter `self.x` in this rule, we don't create a new leaf because
+    :attr:`leaf_nodes_in_rule` tracks the already seen leaf nodes per rule.
+    '''
 
     under_attr = False
 
     nodes_by_rule = []
+    '''For each rule (each time we call :meth:`update_graph`), we add a new
+    list here that contains all the :class:`ASTBindNodeRef` that were created
+    for this rule. Existing nodes that are re-used from previous rules are
+    not added.
+
+    The order is such that if we were to linearly walk across all the lists in
+    order in :attr:`nodes_by_rule`, when we a encounter a node, all the parents
+    of the node, up to the roots would have been encountered by the time
+    we reach the node. This means that the node deps are always encountered
+    first. But, unrelated nodes may also be present before reaching the node,
+    even if they are not parents.
+    '''
 
     nodes_by_graph = []
+    '''For each independent graph we add a new list here that contains all the
+    :class:`ASTBindNodeRef` that were created for this graph. E.g. for the rule
+    `self.x + other.x`, we create two independent graphs, one containing
+    nodes for `self.x` and the other for `other.x`.
+
+    The order is such that if we were to linearly walk the list of any graph
+    in :attr:`nodes_by_graph`, when we a encounter a node, all the parents
+    of the node, up to the roots would have been encountered by the time
+    we reach the node. This means that the node deps are always encountered
+    first. But, unrelated nodes may also be present before reaching the node,
+    even if they are not parents.
+    '''
 
     src_nodes = []
+    '''During each rule, it creates the list of :class:`ASTBindNodeRef`
+    instances that were created due to this rule. Re-used nodes from previous
+    rules are not added.
+    '''
 
-    current_processing_node = None
+    current_child_node = None
+    '''As we walk the bind graph nodes, for each expression node we create
+    a :class:`ASTBindNodeRef` that references the node and add it to
+    :attr:`nodes_by_rule` and :attr:`nodes_by_graph`. The node is stored here
+    while we explore its parent tree. Then, all the direct parent's of this
+    node will point to this node using their
+    :attr:`ASTBindNodeRef.depend_on_me` and this node's
+    :attr:`ASTBindNodeRef.depends` will point to the parents.
+    '''
 
     visited = set()
 
     current_rule = None
-
-    whitelist = None
+    '''During the processing of a rule in :meth:`update_graph`, we store
+    here the `rule` parameter passed to :meth:`update_graph`. Its value is used
+    to set :attr:`ASTBindNodeRef.leaf_rule` for leaf nodes.
+    '''
 
     leaf_nodes_in_rule = set()
+    '''For each rule, while the rule is processed it keeps track of the leaf
+    nodes in this rule we encountered already. This prevent creating duplicate
+    copies of e.g. `self.x + self.x` for the same rule. So if we already saw
+    this exact leaf in the rule, we don't add a node for it again.
+    '''
 
     nodes_under_leaf = set()
+    '''For every rule and for every leaf, this stores all the nodes that we
+    encountered while processing the parents of the leaf.'''
 
-    def __init__(self):
+    illegal_parent_check = None
+    '''Stores the :class:`ParseCheckWhitelisted` we use to check for
+    whitelisted nodes when not all classes are whitelisted. Otherwise, it's
+    None.
+    '''
+
+    whitelist_opts = {
+        'minimal': {
+            'Name', 'Num', 'Bytes', 'Str', 'NameConstant', 'Subscript',
+            'Attribute'}
+    }
+    '''For each syntax flavor, the values is a set of the names of AST node
+    classes that is allowed to be "under" a `Attribute`. If we encounter a
+    non-whitelisted class and :attr:`illegal_parent_check` is not None, the
+    nodes between the `Attribute` and illegal node would be dropped from the
+    bind graph.
+    '''
+
+    def __init__(self, kv_syntax=None):
         super(ParseKVBindTransformer, self).__init__()
         self.src_node_map = {}
         self.nodes_by_graph = []
         self.nodes_by_rule = []
         self.visited = set()
 
+        if kv_syntax is not None:
+            if kv_syntax not in self.whitelist_opts:
+                raise ValueError(
+                    'kv_syntax can be either None or one of ({}, ), not {}'.
+                    format(', '.join(self.whitelist_opts.keys()), kv_syntax))
+            self.illegal_parent_check = ParseCheckWhitelisted(
+                self.whitelist_opts[kv_syntax])
+
     def update_graph(self, nodes, rule):
+        '''Adds the nodes of the the rule to the existing bind graph.
+
+        It creates a new rule list in :attr:`nodes_by_rule` and all nodes
+        newly created due to this rule are added to it. In addition, nodes are
+        also added to :attr:`nodes_by_graph` in the corresponding graphs.
+        '''
+        if rule is None:
+            raise ValueError('rule cannot be None')
+
         self.current_rule = rule
         self.src_nodes = src_nodes = []
         self.leaf_nodes_in_rule = set()
         self.nodes_by_rule.append(src_nodes)
+
+        # compute the nodes that are not whitelisted.
+        if self.illegal_parent_check is not None:
+            for node in nodes:
+                self.illegal_parent_check.check_node_graph(node)
+
         for node in nodes:
             self.visit(node)
 
     def generic_visit(
             self, node, is_attribute=False, is_final_attribute=False):
+        # this is probably not needed anymore because nodes are not visited
+        # multiple times
         if node in self.visited:
             return node
         self.visited.add(node)
 
+        # once under an `Attribute`, we save all the nodes that participate
         if self.under_attr and isinstance(node, ast.expr):
             if is_final_attribute:
                 self.nodes_under_leaf = set()
 
-            whitelist = self.whitelist
-            if whitelist is not None and not is_attribute and \
-                    node.__class__.__name__ not in whitelist:
-                raise NotWhiteListed
-
-            current_processing_node = self.current_processing_node
+            # save the last child, and make yourself the new child
+            current_child_node = self.current_child_node
             new_node = True
-            self.current_processing_node = ret_node = ASTBindNodeRef(
+            self.current_child_node = ret_node = ASTBindNodeRef(
                 is_attribute)
 
             try:
+                # explore the parents, who will link to current_child_node
                 node = super(ParseKVBindTransformer, self).generic_visit(node)
             finally:
-                self.current_processing_node = current_processing_node
+                self.current_child_node = current_child_node
 
-            src = generate_source(node).rstrip('\r\n')
+            src = generate_source(node)
+            # a final attt means that it's e.g. y in self.x.y. In other words,
+            # it's not a rebind but is what causes a rule to be executed when
+            # dispatched. These are leaf nodes, and we always create them, even
+            # if one already existed (unless they are part of the same rule).
             if is_final_attribute:
-                # final nodes are not evaluated anywhere so we don't need
-                # their source. Also, they are all unique so we don't
-                # de-duplicate
+                # they are all unique so we don't de-duplicate
                 assert is_attribute
-                assert current_processing_node is None
+                assert current_child_node is None
 
+                # we only de-duplicate if the exact leaf occurred already in
+                # this rule. This prevents creating identical copies e.g.
+                # for a rule `self.x + self.x`.
                 if src in self.leaf_nodes_in_rule:
+                    # this node will not be added to the graph - remove it from
+                    # parents that it was added as a child of while exploring.
                     for item in self.nodes_under_leaf:
                         item.count -= 1
                     return node
@@ -429,19 +819,27 @@ class ParseKVBindTransformer(ast.NodeTransformer):
                 ret_node.count += 1
                 ret_node.leaf_rule = self.current_rule
                 self.src_nodes.append(ret_node)
+                # everyone that I depend on, depends on me
                 for dep in ret_node.depends:
                     dep.depends_on_me.append(ret_node)
             else:
-                # either we already saw a graph with a unique root path to
+                # Now we are not a leaf, but some intermediate node to a leaf.
+                # Either we already saw a graph with a unique root path to
                 # this node
                 if src in self.src_node_map:
                     # if we did, replace the re-occurrence with the node of the
                     # first occurrence. Abandon ret_node, everything there is
-                    # redundant
+                    # a duplication of the first occurrence
                     new_node = False
                     ret_node = self.src_node_map[src]
+                    # if we saw the node already under *this* leaf, then the
+                    # rule is something like a diamond (self.x[self.x].z or
+                    # self.x[self.x.y].z). In that case, don't count self again
+                    # because we only bind one rebind callback for any
+                    # attribute for each rule.
                     if ret_node not in self.nodes_under_leaf:
                         self.nodes_under_leaf.add(ret_node)
+                        # bump the count for this occurrence
                         ret_node.count += 1
                 else:
                     # if we didn't, create a node representing this path
@@ -449,6 +847,7 @@ class ParseKVBindTransformer(ast.NodeTransformer):
                     ret_node.src = src
                     self.src_node_map[src] = ret_node
                     self.src_nodes.append(ret_node)
+                    # everyone that I depend on, depends on me
                     for dep in ret_node.depends:
                         dep.depends_on_me.append(ret_node)
 
@@ -456,10 +855,15 @@ class ParseKVBindTransformer(ast.NodeTransformer):
                     self.nodes_under_leaf.add(ret_node)
 
                 # if it's None, we hit the final (root) expr of the graph
-                if ret_node not in current_processing_node.depends:
-                    current_processing_node.depends.append(ret_node)
+                if ret_node not in current_child_node.depends:
+                    current_child_node.depends.append(ret_node)
 
             if new_node:
+                # If we created a new node, we need to figure out the specific
+                # graph it will added to. The idea is that whenever we
+                # encounter a new node, we create a new graph for it. Then, as
+                # we encounter them again we merge these graphs if they share
+                # nodes. See `my_graph` for an explanation.
                 if not ret_node.depends:
                     graph = ret_node.my_graph = [[ret_node], [None]]
                     graph[1][0] = graph
@@ -482,32 +886,22 @@ class ParseKVBindTransformer(ast.NodeTransformer):
 
     def visit_Attribute(self, node):
         if self.under_attr:
+            # if it's under an Attribute already, that this node cannot contain
+            # non-whitelisted nodes in its parent graph
             return self.generic_visit(node, is_attribute=True)
 
+        # if not whitelisted, then we don't count this attribute.
+        if self.illegal_parent_check is not None and \
+                self.illegal_parent_check.node_has_illegal_parent[node]:
+            # this attribute contains a non-whitelisted node in the parent
+            # graph so this won't be rebound.
+            return super(ParseKVBindTransformer, self).generic_visit(node)
+
         self.under_attr = True
-        try:
-            node = self.generic_visit(
-                node, is_attribute=True, is_final_attribute=True)
-        except NotWhiteListed:
-            # we don't care about the state of node, it'll not be used anyway
-            pass
+        node = self.generic_visit(
+            node, is_attribute=True, is_final_attribute=True)
         self.under_attr = False
         return node
-
-    # def visit_Name(self, node):
-    #     return super(ParseKVBindTransformer, self).generic_visit(node)
-
-    # def visit_Num(self, node):
-    #     return super(ParseKVBindTransformer, self).generic_visit(node)
-    #
-    # def visit_Bytes(self, node):
-    #     return super(ParseKVBindTransformer, self).generic_visit(node)
-    #
-    # def visit_NameConstant(self, node):
-    #     return super(ParseKVBindTransformer, self).generic_visit(node)
-    #
-    # def visit_Str(self, node):
-    #     return super(ParseKVBindTransformer, self).generic_visit(node)
 
     def visit_DictComp(self, node):
         return node
@@ -681,16 +1075,16 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
                 'KVCtx takes no positional or keyword arguments currently')
 
         ctx = KVParserCtx()
-        transformer = ParseKVBindTransformer()
-        ctx.set_kv_binding_ast_transformer(transformer, self.kv_syntax)
+        transformer = ParseKVBindTransformer(self.kv_syntax)
+        ctx.set_kv_binding_ast_transformer(transformer)
 
         previous_ctx_info = self.current_ctx_info
         ctx_info = self.current_ctx_info = {
             'ctx': ctx, 'args': args, 'keywords': keywords,
             'rules': [], 'node': node,
             'assign_target_node': ast.Name(id='__xxx', ctx=ast.Store()),
-            'before_ctx': ASTRuleCtxNodePlaceholder(),
-            'after_ctx': ASTRuleCtxNodePlaceholder()}
+            'before_ctx': ASTStrPlaceholder(),
+            'after_ctx': ASTStrPlaceholder()}
         self.start_kv_ctx(ctx_info)
         # they must be added in the order it is entered
         self.context_infos.append(ctx_info)
@@ -712,7 +1106,7 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
             rule = rule_info['rule']
             rule.binds = rule_info['binds']
             rule.captures = rule_info['captures']
-            rule.src = generate_source(rule_info['body']).strip('\r\n')
+            rule.src = generate_source(rule_info['body'])
             ctx.add_rule(rule)
 
         targets = [ctx_info['assign_target_node']]
