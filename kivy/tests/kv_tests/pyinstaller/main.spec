@@ -2,16 +2,20 @@
 
 block_cipher = None
 from kivy.deps import sdl2, glew
-from kivy.tools.packaging.pyinstaller_hooks import runtime_hooks
+from kivy.tools.packaging.pyinstaller_hooks import runtime_hooks, hookspath
+import os
+if '__KIVY_KV_USE_CACHE' in os.environ:
+    from project.widgets import MyWidget
+
 
 a = Analysis(['main.py'],
-             pathex=['.'],
+             pathex=[os.environ['__KIVY_PYINSTALLER_DIR']],
              binaries=[],
              datas=[],
              hiddenimports=[],
-             hookspath=[],
+             hookspath=[os.environ['__KIVY_PYINSTALLER_DIR']],
              runtime_hooks=runtime_hooks(),
-             excludes=[],
+             excludes=['numpy', 'ffpyplayer'],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher)

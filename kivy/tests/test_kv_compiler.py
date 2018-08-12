@@ -26,11 +26,16 @@ from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, ObjectProperty, ListProperty, \
     DictProperty
 from kivy.tests.common import skip_py2_decorator
+from kivy.utils import platform
+from kivy.compat import PY2
 
 import unittest
 
 delete_kvc_after_test = int(os.environ.get('KIVY_TEST_DELETE_KVC', 1))
 # helpful during testing - if set to 0, it'll leave the kvc in the folder
+
+skip_py2_non_win = unittest.skip('Does not support py2') \
+    if PY2 or platform != 'win' else lambda x: x
 
 
 def f_time(filename):
@@ -3849,10 +3854,10 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
-        self.assertEqual(len(w.ctx.bind_stores_by_graph), 1)
-        self.assertEqual(len(w.ctx.bind_stores_by_graph[0]), 2)
-        self.assertEqual(len(w.ctx.rules[0].bind_stores), 1)
-        for item in w.ctx.bind_stores_by_graph[0]:
+        self.assertEqual(len(w.ctx.bind_store), 2)
+        self.assertEqual(len(w.ctx.rules[0].bind_store_leaf_indices), 1)
+        self.assertIsNotNone(w.ctx.rules[0].bind_store)
+        for item in w.ctx.bind_store:
             self.assertIsNotNone(item)
 
         self.assertEqual(w.value, w.widget.width)
@@ -3863,7 +3868,7 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
         w.widget.width = 756
         self.assertEqual(w.value, 453)
 
-        for item in w.ctx.bind_stores_by_graph[0]:
+        for item in w.ctx.bind_store:
             self.assertIsNone(item)
 
     def test_unbind_rule_explicit(self):
@@ -3872,10 +3877,10 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
-        self.assertEqual(len(w.ctx.bind_stores_by_graph), 1)
-        self.assertEqual(len(w.ctx.bind_stores_by_graph[0]), 2)
-        self.assertEqual(len(w.ctx.rules[0].bind_stores), 1)
-        for item in w.ctx.bind_stores_by_graph[0]:
+        self.assertEqual(len(w.ctx.bind_store), 2)
+        self.assertEqual(len(w.ctx.rules[0].bind_store_leaf_indices), 1)
+        self.assertIsNotNone(w.ctx.rules[0].bind_store)
+        for item in w.ctx.bind_store:
             self.assertIsNotNone(item)
 
         self.assertEqual(w.value, w.widget.width)
@@ -3886,7 +3891,7 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
         w.widget.width = 756
         self.assertEqual(w.value, 453)
 
-        for item in w.ctx.bind_stores_by_graph[0]:
+        for item in w.ctx.bind_store:
             self.assertIsNone(item)
 
     def test_unbind_rule_multi(self):
@@ -3896,26 +3901,29 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
-        self.assertEqual(len(w.ctx.bind_stores_by_graph), 1)
-        self.assertEqual(len(w.ctx.bind_stores_by_graph[0]), 3)
-        self.assertEqual(len(w.ctx.rules[0].bind_stores), 1)
-        self.assertEqual(len(w.ctx.rules[1].bind_stores), 1)
+        self.assertEqual(len(w.ctx.bind_store), 3)
+        self.assertIs(w.ctx.bind_store, w.ctx.rules[0].bind_store)
+        self.assertIs(w.ctx.bind_store, w.ctx.rules[1].bind_store)
+        self.assertEqual(len(w.ctx.rules[0].bind_store_leaf_indices), 1)
+        self.assertEqual(len(w.ctx.rules[1].bind_store_leaf_indices), 1)
 
-        self.assertEqual(len(w.ctx2.bind_stores_by_graph), 1)
-        self.assertEqual(len(w.ctx2.bind_stores_by_graph[0]), 3)
-        self.assertEqual(len(w.ctx2.rules[0].bind_stores), 1)
-        self.assertEqual(len(w.ctx2.rules[1].bind_stores), 1)
+        self.assertEqual(len(w.ctx2.bind_store), 3)
+        self.assertIs(w.ctx2.bind_store, w.ctx2.rules[0].bind_store)
+        self.assertIs(w.ctx2.bind_store, w.ctx2.rules[1].bind_store)
+        self.assertEqual(len(w.ctx2.rules[0].bind_store_leaf_indices), 1)
+        self.assertEqual(len(w.ctx2.rules[1].bind_store_leaf_indices), 1)
 
-        self.assertEqual(len(w.ctx3.bind_stores_by_graph), 1)
-        self.assertEqual(len(w.ctx3.bind_stores_by_graph[0]), 3)
-        self.assertEqual(len(w.ctx3.rules[0].bind_stores), 1)
-        self.assertEqual(len(w.ctx3.rules[1].bind_stores), 1)
+        self.assertEqual(len(w.ctx3.bind_store), 3)
+        self.assertIs(w.ctx3.bind_store, w.ctx3.rules[0].bind_store)
+        self.assertIs(w.ctx3.bind_store, w.ctx3.rules[1].bind_store)
+        self.assertEqual(len(w.ctx3.rules[0].bind_store_leaf_indices), 1)
+        self.assertEqual(len(w.ctx3.rules[1].bind_store_leaf_indices), 1)
 
-        for item in w.ctx.bind_stores_by_graph[0]:
+        for item in w.ctx.bind_store:
             self.assertIsNotNone(item)
-        for item in w.ctx2.bind_stores_by_graph[0]:
+        for item in w.ctx2.bind_store:
             self.assertIsNotNone(item)
-        for item in w.ctx3.bind_stores_by_graph[0]:
+        for item in w.ctx3.bind_store:
             self.assertIsNotNone(item)
 
         self.assertEqual(w.value, w.widget.height)
@@ -4039,11 +4047,29 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
         check_3_2(bound=False)
         w.ctx.rules[1].unbind_rule()  # check no error
 
-        for item in w.ctx.bind_stores_by_graph[0]:
+        self.assertEqual(len(w.ctx.bind_store), 3)
+        self.assertIsNone(w.ctx.rules[0].bind_store)
+        self.assertIsNone(w.ctx.rules[1].bind_store)
+        self.assertEqual(len(w.ctx.rules[0].bind_store_leaf_indices), 0)
+        self.assertEqual(len(w.ctx.rules[1].bind_store_leaf_indices), 0)
+
+        self.assertEqual(len(w.ctx2.bind_store), 3)
+        self.assertIsNone(w.ctx2.rules[0].bind_store)
+        self.assertIsNone(w.ctx2.rules[1].bind_store)
+        self.assertEqual(len(w.ctx2.rules[0].bind_store_leaf_indices), 0)
+        self.assertEqual(len(w.ctx2.rules[1].bind_store_leaf_indices), 0)
+
+        self.assertEqual(len(w.ctx3.bind_store), 3)
+        self.assertIsNone(w.ctx3.rules[0].bind_store)
+        self.assertIsNone(w.ctx3.rules[1].bind_store)
+        self.assertEqual(len(w.ctx3.rules[0].bind_store_leaf_indices), 0)
+        self.assertEqual(len(w.ctx3.rules[1].bind_store_leaf_indices), 0)
+
+        for item in w.ctx.bind_store:
             self.assertIsNone(item)
-        for item in w.ctx2.bind_stores_by_graph[0]:
+        for item in w.ctx2.bind_store:
             self.assertIsNone(item)
-        for item in w.ctx3.bind_stores_by_graph[0]:
+        for item in w.ctx3.bind_store:
             self.assertIsNone(item)
 
         w.ctx.unbind_all_rules()
@@ -4060,10 +4086,12 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
-        self.assertEqual(len(w.ctx.bind_stores_by_graph), 1)
-        self.assertEqual(len(w.ctx.bind_stores_by_graph[0]), 3)
-        self.assertEqual(len(w.ctx.rules[0].bind_stores), 1)
-        for item in w.ctx.bind_stores_by_graph[0]:
+        self.assertEqual(len(w.ctx.bind_store), 3)
+        self.assertEqual(len(w.ctx.rules[0].bind_store_leaf_indices), 1)
+        self.assertIs(w.ctx.rules[0].bind_store, w.ctx.bind_store)
+        self.assertEqual(len(w.ctx.rules[1].bind_store_leaf_indices), 1)
+        self.assertIs(w.ctx.rules[1].bind_store, w.ctx.bind_store)
+        for item in w.ctx.bind_store:
             self.assertIsNotNone(item)
 
         self.assertEqual(w.value, w.widget.width)
@@ -4091,7 +4119,7 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
         self.assertEqual(w.value, 56)
         self.assertEqual(w.value2, 5123)
 
-        for item in w.ctx.bind_stores_by_graph[0]:
+        for item in w.ctx.bind_store:
             self.assertIsNone(item)
 
     def test_unbind_rule_explicit_multiple_of_same(self):
@@ -4100,10 +4128,10 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
-        self.assertEqual(len(w.ctx.bind_stores_by_graph), 1)
-        self.assertEqual(len(w.ctx.bind_stores_by_graph[0]), 2)
-        self.assertEqual(len(w.ctx.rules[0].bind_stores), 1)
-        for item in w.ctx.bind_stores_by_graph[0]:
+        self.assertEqual(len(w.ctx.bind_store), 2)
+        self.assertEqual(len(w.ctx.rules[0].bind_store_leaf_indices), 1)
+        self.assertIs(w.ctx.rules[0].bind_store, w.ctx.bind_store)
+        for item in w.ctx.bind_store:
             self.assertIsNotNone(item)
 
         self.assertEqual(w.value, 3 * w.widget.width)
@@ -4120,18 +4148,22 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
         w.widget.width = 59
         self.assertEqual(w.value, 3 * 65)
 
+        for item in w.ctx.bind_store:
+            self.assertIsNone(item)
+
     def test_unbind_rule_full_syntax(self):
         KV_f = KV(kv_syntax=None, rebind=True)
         f = KV_f(SyntaxUnbindingCtxRulePropsWidget.unbind_rule6)
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
-        self.assertEqual(len(w.ctx.bind_stores_by_graph), 2)
-        self.assertEqual(set(map(len, w.ctx.bind_stores_by_graph)), {1, 6})
-        self.assertEqual(len(w.ctx.rules[0].bind_stores), 2)
-        for graph in w.ctx.bind_stores_by_graph:
-            for item in graph:
-                self.assertIsNotNone(item)
+        self.assertEqual(len(w.ctx.bind_store), 7)
+        self.assertIs(w.ctx.bind_store, w.ctx.rules[0].bind_store)
+        self.assertIs(w.ctx.bind_store, w.ctx.rules[1].bind_store)
+        self.assertEqual(len(w.ctx.rules[0].bind_store_leaf_indices), 2)
+        self.assertEqual(len(w.ctx.rules[1].bind_store_leaf_indices), 1)
+        for item in w.ctx.bind_store:
+            self.assertIsNotNone(item)
 
         orig = w.widget2.width + w.widget3.height
         self.assertEqual(w.value, orig)
@@ -4642,12 +4674,12 @@ class TestManualKV(TestBase):
         orig_widget2.width = 78
         self.assertEqual(w.value, w.widget.width + w.widget2.width)
 
-        self.assertEqual(len(w.ctx.bind_stores_by_graph), 1)
         self.assertEqual(len(w.ctx.rebind_functions), 2)
         self.assertEqual(len(w.ctx.named_rules), 0)
         self.assertEqual(len(w.ctx.rules), 1)
         rule = w.ctx.rules[0]
-        self.assertEqual(len(rule.bind_stores), 1)
+        self.assertEqual(len(rule.bind_store_leaf_indices), 2)
+        self.assertEqual(len(rule.bind_store), 4)
         self.assertIsNotNone(rule.callback)
         self.assertIsNone(rule.delay)
         self.assertIsNone(rule.name)
@@ -4835,7 +4867,6 @@ class TestGenerateSource(TestBase):
         self.assertEqual(s, generate_source(ref))
 
 
-@skip_py2_decorator
 class TestParseASTBind(TestBase):
 
     def test_ast_rule_None(self):
@@ -4853,19 +4884,12 @@ class TestParseASTBind(TestBase):
 
         transformer.update_graph([parse_expr_ast('self.x + self.y')], 'rule')
 
-        self.assertEqual(len(transformer.nodes_by_graph), 1)
         self.assertEqual(len(transformer.nodes_by_rule), 1)
-
-        self.assertEqual(
-            set(transformer.nodes_by_rule[0]),
-            set(transformer.nodes_by_graph[0]))
-        self.assertEqual(len(transformer.nodes_by_graph[0]), 3)
+        self.assertEqual(len(transformer.nodes_by_rule[0]), 3)
 
         # don't know if x, or y is visited first, but the following test work
         # whether x or y was visited first as exact identity is not assumed
         # but, whichever is first, their graph and rule order is the same
-        self.assertEqual(
-            transformer.nodes_by_rule[0], transformer.nodes_by_graph[0])
         n0, n1, n2 = transformer.nodes_by_rule[0]
 
         self.assertIsNone(n0.leaf_rule)
@@ -4895,27 +4919,15 @@ class TestParseASTBind(TestBase):
         transformer.update_graph([parse_expr_ast('self.x + self.y')], 'rule1')
         transformer.update_graph([parse_expr_ast('self.x + self.y')], 'rule2')
 
-        self.assertEqual(len(transformer.nodes_by_graph), 1)
         self.assertEqual(len(transformer.nodes_by_rule), 2)
-
-        self.assertEqual(
-            (set(transformer.nodes_by_rule[0]) |
-             set(transformer.nodes_by_rule[1])),
-            set(transformer.nodes_by_graph[0]))
-
-        self.assertEqual(len(transformer.nodes_by_graph[0]), 5)
         self.assertEqual(len(transformer.nodes_by_rule[0]), 3)
         self.assertEqual(len(transformer.nodes_by_rule[1]), 2)
 
         # don't know if x, or y is visited first, but the following test work
         # whether x or y was visited first as exact identity is not assumed
         # but, whichever is first, their graph and rule order is the same
-        self.assertEqual(
-            transformer.nodes_by_rule[0], transformer.nodes_by_graph[0][:3])
-        self.assertEqual(
-            set(transformer.nodes_by_rule[1]),
-            set(transformer.nodes_by_graph[0][3:]))
-        n0, n1, n2, n3, n4 = transformer.nodes_by_graph[0]
+        n0, n1, n2 = transformer.nodes_by_rule[0]
+        n3, n4 = transformer.nodes_by_rule[1]
 
         self.assertIsNone(n0.leaf_rule)
         self.assertEqual(n1.leaf_rule, 'rule1')
@@ -4956,19 +4968,12 @@ class TestParseASTBind(TestBase):
 
         transformer.update_graph([parse_expr_ast('self.x[self.x].z')], 'rule')
 
-        self.assertEqual(len(transformer.nodes_by_graph), 1)
         self.assertEqual(len(transformer.nodes_by_rule), 1)
-
-        self.assertEqual(
-            set(transformer.nodes_by_rule[0]),
-            set(transformer.nodes_by_graph[0]))
-        self.assertEqual(len(transformer.nodes_by_graph[0]), 4)
+        self.assertEqual(len(transformer.nodes_by_rule[0]), 4)
 
         # don't know if x, or y is visited first, but the following test work
         # whether x or y was visited first as exact identity is not assumed
         # but, whichever is first, their graph and rule order is the same
-        self.assertEqual(
-            transformer.nodes_by_rule[0], transformer.nodes_by_graph[0])
         n0, n1, n2, n3 = transformer.nodes_by_rule[0]
 
         self.assertIsNone(n0.leaf_rule)
@@ -5002,19 +5007,12 @@ class TestParseASTBind(TestBase):
 
         transformer.update_graph([parse_expr_ast('self.x[self.y].z')], 'rule')
 
-        self.assertEqual(len(transformer.nodes_by_graph), 1)
         self.assertEqual(len(transformer.nodes_by_rule), 1)
-
-        self.assertEqual(
-            set(transformer.nodes_by_rule[0]),
-            set(transformer.nodes_by_graph[0]))
-        self.assertEqual(len(transformer.nodes_by_graph[0]), 5)
+        self.assertEqual(len(transformer.nodes_by_rule[0]), 5)
 
         # don't know if x, or y is visited first, but the following test work
         # whether x or y was visited first as exact identity is not assumed
         # but, whichever is first, their graph and rule order is the same
-        self.assertEqual(
-            transformer.nodes_by_rule[0], transformer.nodes_by_graph[0])
         n0, n1, n2, n3, n4 = transformer.nodes_by_rule[0]
 
         self.assertIsNone(n0.leaf_rule)
@@ -5056,19 +5054,12 @@ class TestParseASTBind(TestBase):
         transformer.update_graph(
             [parse_expr_ast('(self.x + self.y).z')], 'rule')
 
-        self.assertEqual(len(transformer.nodes_by_graph), 1)
         self.assertEqual(len(transformer.nodes_by_rule), 1)
-
-        self.assertEqual(
-            set(transformer.nodes_by_rule[0]),
-            set(transformer.nodes_by_graph[0]))
-        self.assertEqual(len(transformer.nodes_by_graph[0]), 3)
+        self.assertEqual(len(transformer.nodes_by_rule[0]), 3)
 
         # don't know if x, or y is visited first, but the following test work
         # whether x or y was visited first as exact identity is not assumed
         # but, whichever is first, their graph and rule order is the same
-        self.assertEqual(
-            transformer.nodes_by_rule[0], transformer.nodes_by_graph[0])
         n0, n1, n2 = transformer.nodes_by_rule[0]
 
         self.assertIsNone(n0.leaf_rule)
@@ -5100,19 +5091,12 @@ class TestParseASTBind(TestBase):
         transformer.update_graph(
             [parse_expr_ast('(self.x + self.y).z')], 'rule')
 
-        self.assertEqual(len(transformer.nodes_by_graph), 1)
         self.assertEqual(len(transformer.nodes_by_rule), 1)
-
-        self.assertEqual(
-            set(transformer.nodes_by_rule[0]),
-            set(transformer.nodes_by_graph[0]))
-        self.assertEqual(len(transformer.nodes_by_graph[0]), 5)
+        self.assertEqual(len(transformer.nodes_by_rule[0]), 5)
 
         # don't know if x, or y is visited first, but the following test work
         # whether x or y was visited first as exact identity is not assumed
         # but, whichever is first, their graph and rule order is the same
-        self.assertEqual(
-            transformer.nodes_by_rule[0], transformer.nodes_by_graph[0])
         n0, n1, n2, n3, n4 = transformer.nodes_by_rule[0]
 
         self.assertIsNone(n0.leaf_rule)
@@ -5153,16 +5137,8 @@ class TestParseASTBind(TestBase):
 
         transformer.update_graph([parse_expr_ast(s)], 'rule')
 
-        self.assertEqual(len(transformer.nodes_by_graph), 1)
         self.assertEqual(len(transformer.nodes_by_rule), 1)
-
-        self.assertEqual(
-            set(transformer.nodes_by_rule[0]),
-            set(transformer.nodes_by_graph[0]))
-        self.assertEqual(len(transformer.nodes_by_graph[0]), 2)
-
-        self.assertEqual(
-            transformer.nodes_by_rule[0], transformer.nodes_by_graph[0])
+        self.assertEqual(len(transformer.nodes_by_rule[0]), 2)
 
         n0, n1 = transformer.nodes_by_rule[0]
 
@@ -5196,27 +5172,15 @@ class TestParseASTBind(TestBase):
         transformer.update_graph([parse_expr_ast('self.x + self.x')], 'rule1')
         transformer.update_graph([parse_expr_ast('self.x + self.x')], 'rule2')
 
-        self.assertEqual(len(transformer.nodes_by_graph), 1)
         self.assertEqual(len(transformer.nodes_by_rule), 2)
-
-        self.assertEqual(
-            (set(transformer.nodes_by_rule[0]) |
-             set(transformer.nodes_by_rule[1])),
-            set(transformer.nodes_by_graph[0]))
-
-        self.assertEqual(len(transformer.nodes_by_graph[0]), 3)
         self.assertEqual(len(transformer.nodes_by_rule[0]), 2)
         self.assertEqual(len(transformer.nodes_by_rule[1]), 1)
 
         # don't know if x, or y is visited first, but the following test work
         # whether x or y was visited first as exact identity is not assumed
         # but, whichever is first, their graph and rule order is the same
-        self.assertEqual(
-            transformer.nodes_by_rule[0], transformer.nodes_by_graph[0][:2])
-        self.assertEqual(
-            set(transformer.nodes_by_rule[1]),
-            set(transformer.nodes_by_graph[0][2:]))
-        n0, n1, n2 = transformer.nodes_by_graph[0]
+        n0, n1 = transformer.nodes_by_rule[0]
+        n2, = transformer.nodes_by_rule[1]
 
         self.assertIsNone(n0.leaf_rule)
         self.assertEqual(n1.leaf_rule, 'rule1')
@@ -5244,27 +5208,13 @@ class TestParseASTBind(TestBase):
 
         transformer.update_graph([parse_expr_ast('self.x + other.x')], 'rule')
 
-        self.assertEqual(len(transformer.nodes_by_graph), 2)
         self.assertEqual(len(transformer.nodes_by_rule), 1)
-
-        self.assertEqual(
-            (set(transformer.nodes_by_graph[0]) |
-             set(transformer.nodes_by_graph[1])),
-            set(transformer.nodes_by_rule[0]))
-
         self.assertEqual(len(transformer.nodes_by_rule[0]), 4)
-        self.assertEqual(len(transformer.nodes_by_graph[0]), 2)
-        self.assertEqual(len(transformer.nodes_by_graph[1]), 2)
 
         # don't know if self, or other is visited first, but the following
         # tests work whether self or other was visited first as exact identity
         # is not assumed but, whichever is first, their graph and rule order is
         # the same
-        self.assertEqual(
-            transformer.nodes_by_graph[0], transformer.nodes_by_rule[0][:2])
-        self.assertEqual(
-            set(transformer.nodes_by_graph[1]),
-            set(transformer.nodes_by_rule[0][2:]))
         n0, n1, n2, n3 = transformer.nodes_by_rule[0]
 
         self.assertIsNone(n0.leaf_rule)
@@ -5293,6 +5243,30 @@ class TestParseASTBind(TestBase):
         self.assertFalse(n3.depends_on_me)
 
 
+cython_setup = '''
+from distutils.core import setup
+from Cython.Build import cythonize
+from os.path import join, dirname, abspath
+
+setup(
+    ext_modules=cythonize(abspath(join(dirname(__file__), "{}")))
+)
+'''
+
+cython_file = '''
+#cython: binding=True
+
+from kivy.uix.widget import Widget
+from kivy.lang.compiler import KV, KVCtx
+
+class MyWidget(Widget):
+
+    @KV()
+    def apply_kv(self):
+        with KVCtx():
+            self.x @= self.y
+'''
+
 @skip_py2_decorator
 class TestCythonKV(TestBase):
 
@@ -5304,6 +5278,13 @@ class TestCythonKV(TestBase):
         cython_path = os.path.join(
             os.path.dirname(__file__), 'kv_tests', 'cython')
         self.cython_path = cython_path
+        os.mkdir(cython_path)
+
+        with open(os.path.join(cython_path, 'cython_kv.pyx'), 'w') as fh:
+            fh.write(cython_file)
+
+        with open(os.path.join(cython_path, 'setup.py'), 'w') as fh:
+            fh.write(cython_setup.format('cython_kv.pyx'))
 
         import kivy.lang.compiler.runtime
         self.original_kvc_path = kivy.lang.compiler.runtime._kvc_path
@@ -5320,7 +5301,7 @@ class TestCythonKV(TestBase):
             raise
 
         sys.path.append(self.cython_path)
-        kv_cython = importlib.import_module('kv_cython_test')
+        kv_cython = importlib.import_module('cython_kv')
         w = kv_cython.MyWidget()
         w.apply_kv()
 
@@ -5331,6 +5312,9 @@ class TestCythonKV(TestBase):
         self.assertEqual(w.x, 370)
 
         sys.path.remove(self.cython_path)
+        del sys.modules['cython_kv'], w, kv_cython
+        import gc
+        gc.collect()
 
     def tearDown(self):
         super(TestCythonKV, self).tearDown()
@@ -5340,12 +5324,7 @@ class TestCythonKV(TestBase):
         import kivy.lang.compiler.runtime
         kivy.lang.compiler.runtime._kvc_path = self.original_kvc_path
 
-        shutil.rmtree(
-            os.path.join(self.cython_path, '__pycache__'), ignore_errors=True)
-        for fname in glob.glob(os.path.join(self.cython_path, '*.c')):
-            os.remove(fname)
-        for fname in glob.glob(os.path.join(self.cython_path, '*.kvc')):
-            os.remove(fname)
+        shutil.rmtree(self.cython_path, ignore_errors=True)
 
 
 @skip_py2_decorator
@@ -5359,8 +5338,16 @@ class TestCythonKVDefault(TestBase):
         cython_path = os.path.join(
             os.path.dirname(__file__), 'kv_tests', 'cython')
         self.cython_path = cython_path
+        os.mkdir(cython_path)
 
-    def test_cython(self):
+        with open(os.path.join(
+                cython_path, 'cython_kv_default.pyx'), 'w') as fh:
+            fh.write(cython_file)
+
+        with open(os.path.join(cython_path, 'setup.py'), 'w') as fh:
+            fh.write(cython_setup.format('cython_kv_default.pyx'))
+
+    def test_cython_default(self):
         setup_path = os.path.join(self.cython_path, 'setup.py')
         try:
             subprocess.check_output(
@@ -5371,7 +5358,7 @@ class TestCythonKVDefault(TestBase):
             raise
 
         sys.path.append(self.cython_path)
-        kv_cython = importlib.import_module('kv_cython_test')
+        kv_cython = importlib.import_module('cython_kv_default')
         w = kv_cython.MyWidget()
         w.apply_kv()
 
@@ -5382,31 +5369,33 @@ class TestCythonKVDefault(TestBase):
         self.assertEqual(w.x, 370)
 
         sys.path.remove(self.cython_path)
+        del sys.modules['cython_kv_default'], w, kv_cython
+        import gc
+        gc.collect()
 
     def tearDown(self):
         super(TestCythonKVDefault, self).tearDown()
         from kivy.lang.compiler.kv import unpatch_inspect
         unpatch_inspect()
 
-        shutil.rmtree(
-            os.path.join(self.cython_path, '__pycache__'), ignore_errors=True)
-        shutil.rmtree(
-            os.path.join(self.cython_path, '__kvcache__'), ignore_errors=True)
-        for fname in glob.glob(os.path.join(self.cython_path, '*.c')):
-            os.remove(fname)
+        shutil.rmtree(self.cython_path, ignore_errors=True)
 
 
-@skip_py2_decorator
-class TestPyinstallerKV(TestBase):
+class PyinstallerKVBase(TestBase):
 
     def setUp(self):
-        super(TestPyinstallerKV, self).setUp()
+        super(PyinstallerKVBase, self).setUp()
         self.pinstall_path = os.path.join(
             os.path.dirname(__file__), 'kv_tests', 'pyinstaller')
 
-    def test_cython(self):
+    def get_env(self):
         env = os.environ.copy()
         env['KIVY_KVC_PATH'] = os.path.join(self.pinstall_path, 'kvc')
+        env['__KIVY_PYINSTALLER_DIR'] = self.pinstall_path
+        return env
+
+    def do_packaging(self):
+        env = self.get_env()
 
         try:
             # create kvc
@@ -5436,7 +5425,7 @@ class TestPyinstallerKV(TestBase):
             raise
 
     def tearDown(self):
-        super(TestPyinstallerKV, self).tearDown()
+        super(PyinstallerKVBase, self).tearDown()
 
         shutil.rmtree(
             os.path.join(self.pinstall_path, '__pycache__'),
@@ -5453,3 +5442,29 @@ class TestPyinstallerKV(TestBase):
         shutil.rmtree(
             os.path.join(self.pinstall_path, 'project', '__pycache__'),
             ignore_errors=True)
+        shutil.rmtree(
+            os.path.join(self.pinstall_path, 'project', '__kvcache__'),
+            ignore_errors=True)
+
+
+@skip_py2_non_win
+class TestPyinstallerKV(PyinstallerKVBase):
+
+    def test_pyinstaller_kvc_path(self):
+        self.do_packaging()
+
+
+@skip_py2_non_win
+class TestPyinstallerKVCache(PyinstallerKVBase):
+
+    def get_env(self):
+        env = super(TestPyinstallerKVCache, self).get_env()
+        del env['KIVY_KVC_PATH']
+        # use the cache rather than kvc path
+        env['__KIVY_KV_USE_CACHE'] = '1'
+        env['PYTHONPATH'] = \
+            env.get('PYTHONPATH', '') + os.pathsep + self.pinstall_path
+        return env
+
+    def test_pyinstaller_cache(self):
+        self.do_packaging()

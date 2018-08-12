@@ -85,11 +85,6 @@ class BindSubGraph(object):
     bind a rebind function that is the rebind created for this subgraph.
     '''
 
-    bind_store_name = None
-    '''There is one bind store list per graph, so a subgraph also has only
-    one name.
-    '''
-
     def __init__(self, nodes, terminal_nodes):
         super(BindSubGraph, self).__init__()
         self.nodes = nodes
@@ -107,6 +102,176 @@ class BindSubGraph(object):
             '}\n    {'.join(map(repr, self.terminal_nodes)) + \
             '}>'
 
+    @classmethod
+    def get_subgraphs(cls, nodes):
+        # consider the graph made by rule (x.y + x.z).q + x.y.k
+        # we have to compute *all* the subtgraphs first before we can merge
+        # because consider this graph: a->b->c, a->d->c, d->e->c, f->d
+        # and you'll see what I mean
+        all_subgraphs = []
+        unique_subgraphs = []
+        for node in nodes:
+            # leafs cannot have their own subgraph
+            if node.leaf_rule is not None:
+                continue
+            # if it's also not a rebind node, then either it's a base node,
+            # e.g. a local/global/nonlocal/number etc, in which case it has
+            # no depends and we need to make a subgraph starting from it,
+            # or if it has depends then it's after some other node, and
+            # we'd have encountered it already in another subgraph so don't
+            # generate one again
+            if not node.rebind and node.depends:
+                continue
+            all_subgraphs.extend(node.get_rebind_or_leaf_subgraph())
+
+        subgraphs_grouped_by_nodes = defaultdict(list)
+        for subgraph in all_subgraphs:
+            assert subgraph.nodes
+            subgraphs_grouped_by_nodes[tuple(subgraph.nodes)].append(
+                subgraph)
+
+        for subgraphs in subgraphs_grouped_by_nodes.values():
+            terminal_nodes = list({
+                node for subgraph in subgraphs
+                for node in subgraph.terminal_nodes})
+            subgraph = subgraphs[0]
+            subgraph.terminal_nodes = terminal_nodes
+            unique_subgraphs.append(subgraph)
+        return unique_subgraphs
+
+    @classmethod
+    def get_ordered_subgraphs(cls, nodes):
+        # consider the graph made by rule (x.y + x.z).q + x.y.k - we cannot
+        # look at the subgraph created by
+        subgraphs = cls.get_subgraphs(nodes)
+        # for every terminal node in a subgraph, it's the index of the
+        # subgraph in subgraphs
+        terminal_nodes_subgraphs_idx = {}
+        # fill in terminal_nodes_subgraphs_idx
+        for i, subgraph in enumerate(subgraphs):
+            for terminal_node in subgraph.terminal_nodes:
+                if terminal_node.leaf_rule is None:
+                    subgraph.terminates_with_leafs_only = False
+                terminal_nodes_subgraphs_idx[terminal_node] = i
+
+        # we reorder the subgraphs so that if we process the subgraphs in
+        # the reordered order, when every subgraph will have all its deps
+        # in terminal nodes of subgraphs previous to it in the list, or
+        # the deps will be in `nodes` of the subgraph (e.g. for
+        # non-attribute dep nodes).
+        ordered_subgraphs = []
+        visited = set()
+        # to compute what subgraphs are children (depend on) a subgraph, we
+        # store for every rebind node, the subgraphs it appears in its
+        # `nodes` list
+        subgraphs_containing_rebind_node = defaultdict(list)
+        # in graph, nodes are ordered according to their position in the
+        # graph such that a node never depends on a node later in the graph
+        # list, but subsequent nodes may depend on previous nodes
+        for node in nodes:
+            # unvisited leaf or rebind node -- find it's subgraph in which
+            # it's a terminal node. Because all terminal nodes of the
+            # subgraph share the same `nodes` dependencies, and since by
+            # the order in `graph` we found a one terminal node whose deps
+            # must have already been encountered previously in `graph`.
+            # That means we have all the deps for all terminal nodes.
+            if (node.leaf_rule is not None or node.rebind) and \
+                    node not in visited:
+                subgraph = subgraphs[terminal_nodes_subgraphs_idx[node]]
+
+                # so add all terminal nodes to visited and process them
+                visited.update(subgraph.terminal_nodes)
+                # this is the first time we see this subgraph
+                for dep in subgraph.nodes:
+                    assert dep.leaf_rule is None
+                    if dep.rebind:
+                        subgraph.n_rebind_deps += 1
+                        # a node can be in `nodes` of multiple subgraphs
+                        subgraphs_containing_rebind_node[dep].append(subgraph)
+                ordered_subgraphs.append(subgraph)
+
+        # fill in depends_on_me
+        for subgraph in ordered_subgraphs:
+            depends_on_me = set()
+            for terminal_node in subgraph.terminal_nodes:
+                # every terminal node that isn't a leaf is a dep of some
+                # subgraph and stored in its `nodes`.
+                if not terminal_node.leaf_rule:
+                    subgraph.depends_on_me.extend(
+                        item for item in
+                        subgraphs_containing_rebind_node[terminal_node] if
+                        item not in depends_on_me)
+                    depends_on_me.update(
+                        subgraphs_containing_rebind_node[terminal_node])
+
+        return ordered_subgraphs
+
+    @classmethod
+    def compute_nodes_dependency_count_for_subgraphs(cls, subgraphs):
+        nodes_use_count = defaultdict(int)
+        for subgraph in subgraphs:
+            for node in subgraph.terminal_nodes:
+                # these must all be in nodes
+                for dep in node.depends:
+                    nodes_use_count[dep] += 1
+
+            for node in subgraph.nodes:
+                # add deps of the nodes that are also in the nodes. If
+                # rebind, then it won't be in the current nodes. Its deps could
+                # be in another subgraph though, but either it's a terminal
+                # node somewhere, in which case we'll count it if the subgraph
+                # is in our list of subgraphs, otherwise, it's a root node, and
+                # its deps our outside our subgraphs, in which case we'll never
+                # refer to its deps in in this set of subgraphs, so no count.
+                # If not rebind, it'll only be present if it has deps, because
+                # the roots of the subgraph must be either rebind nodes, or
+                # nodes with no depends e.g. for locals/number etc.
+                if node.depends and not node.rebind:
+                    for dep in node.depends:
+                        nodes_use_count[dep] += 1
+        return nodes_use_count
+
+    @classmethod
+    def compute_nodes_dependency_count(cls, nodes):
+        nodes_use_count = defaultdict(int)
+        for node in nodes:
+            for dep in node.depends:
+                assert dep.leaf_rule is None, 'a dep cannot be a leaf, duh'
+                nodes_use_count[dep] += 1
+        return nodes_use_count
+
+    def remove_from_count(self, nodes_use_count):
+        for node in self.terminal_nodes:
+            # these must all be in nodes
+            for dep in node.depends:
+                nodes_use_count[dep] -= 1
+
+        for node in self.nodes:
+            # remove deps of the nodes that are also in the nodes. If
+            # rebind, then it won't be in the current nodes. If not rebind,
+            # it'll only be present if it has deps, because the roots of the
+            # subgraph must be either rebind nodes, or nodes with no depends
+            # e.g. for locals/number etc.
+            if node.depends and not node.rebind:
+                for dep in node.depends:
+                    nodes_use_count[dep] -= 1
+
+    def get_subgraph_and_children_subgraphs(self):
+        queue = deque([self])
+        # we can have a subgraph being a child
+        # of multiple different subgraphs. E.g. self.a.b + self.a.c
+        subgraphs_visited = set()
+        subgraphs = []
+        while queue:
+            current_subgraph = queue.popleft()
+            if current_subgraph in subgraphs_visited:
+                continue
+
+            subgraphs_visited.add(current_subgraph)
+            queue.extend(current_subgraph.depends_on_me)
+            subgraphs.append(current_subgraph)
+        return subgraphs
+
 
 class ASTBindNodeRef(ast.AST):
     '''
@@ -119,9 +284,8 @@ class ASTBindNodeRef(ast.AST):
     corresponding :class:`ASTBindNodeRef` nodes for `self`, `x`, and `y`.
 
     Subsequently, :attr:`depends` and :attr:`depends_on_me` describes a newly
-    constructed ast graph that represent a subgraph of the original ast graph,
-    that contains this node. Each :attr:`ParseKVBindTransformer.nodes_by_graph`
-    item is a list of all the nodes of one such sub-graph.
+    constructed ast graph that represents a subgraph of the original ast graph,
+    that contains this node.
 
     E.g. `self.x + other.x` represents two independent subgraphs, one
     with :class:`ASTBindNodeRef` nodes representing `self` and `self.x`,
@@ -235,8 +399,6 @@ class ASTBindNodeRef(ast.AST):
 
     callback_names = []
 
-    bind_store_name = ''
-
     bind_store_indices = []
 
     subgraph_for_terminal_node = None
@@ -253,7 +415,7 @@ class ASTBindNodeRef(ast.AST):
     so the subgraph is the last one it occurred in and.
     '''
 
-    subgraphs_to_bind_store_name_and_idx = {}
+    subgraphs_to_bind_store_idx_and_name = {}
     '''Maps a subgraph to the index in `callback_names` and
     `bind_store_indices`, indicating the index in these lists that corresponds
     to the bind for that subgraph.
@@ -266,7 +428,7 @@ class ASTBindNodeRef(ast.AST):
         self.depends = []
         self.callback_names = []
         self.bind_store_indices = []
-        self.subgraphs_to_bind_store_name_and_idx = {}
+        self.subgraphs_to_bind_store_idx_and_name = {}
 
     def get_rebind_or_leaf_subgraph(self):
         # these graphs have no cycles, and are directed, even if you remove
@@ -367,6 +529,67 @@ class ASTBindNodeRef(ast.AST):
                 grouped_nodes.append([node])
 
         return grouped_nodes
+
+    @classmethod
+    def get_all_bind_store_indices_for_leaf_and_parents(cls, nodes):
+        node_deps = {}
+        for node in nodes:
+            if node.leaf_rule is None:
+                continue
+
+            node_deps[node] = None
+            stack = deque(node.depends)
+            # notice append right not left here. It has to be last at start
+            stack.append(node)
+            while stack:
+                first = stack[0]
+                # node of the deps of first can be a leaf, by definition
+                if first not in node_deps:
+                    # we have not processed the first previously at all so
+                    # add its deps to the top of stack so that when we
+                    # arrive again to this node, all the deps of the
+                    # current's deps will have been computed, and we just
+                    # need to merge them.
+                    stack.extendleft(first.depends)
+                    # next time we see it, its deps will be ready
+                    node_deps[first] = None
+                elif node_deps[first] is None:
+                    # all the deps of the first is done because it's the
+                    # second time we encounter it, just merge them.
+                    subgraph = first.subgraph_for_terminal_node
+                    node_deps[first] = merged = set()
+                    for dep in first.depends:
+                        # get deps of deps
+                        merged.update(node_deps[dep])
+                        if not dep.bind_store_indices:
+                            # it's not a rebind/leaf node
+                            continue
+                        # get index of the dep
+                        i = dep.subgraphs_to_bind_store_idx_and_name[
+                            subgraph]
+                        i = dep.bind_store_indices[i]
+                        merged.add(i)
+                    stack.popleft()
+                else:
+                    # we have seen it previously, e.g. as co-dep of
+                    # multiple nodes, e.g. in a triangle graph a->b->c and
+                    # a->c, we'll see a twice
+                    stack.popleft()
+            assert len(node.bind_store_indices) == 1
+            node_deps[node].add(node.bind_store_indices[0])
+
+        return node_deps
+
+    @classmethod
+    def get_num_binds_for_bind_store_indices(cls, leaf_parents_indices):
+        bind_counts = defaultdict(int)
+        for node, indices in leaf_parents_indices.items():
+            if node.leaf_rule is None:
+                continue
+
+            for i in indices:
+                bind_counts[i] += 1
+        return bind_counts
 
     def __repr__(self):
         deps_on_me = '}, {'.join(node.src for node in self.depends_on_me)
@@ -597,9 +820,9 @@ class ParseKVBindTransformer(ast.NodeTransformer):
 
     The key thing to remember is that parent nodes are processed before
     children. This order determines the linear order of the nodes as they
-    get added to :attr:`nodes_by_rule` and :attr:`nodes_by_graph`. This means
-    that when a node is encountered in the :attr:`nodes_by_rule` or
-    :attr:`nodes_by_graph` lists, all their parents are present in the lists
+    get added to :attr:`nodes_by_rule`. This means
+    that when a node is encountered in the :attr:`nodes_by_rule` lists, all
+    their parents are present in the lists
     at indices previous to that node. In other words, if we walk the lists
     linearly, we encounter a node only after all its dependencies. This key
     property is used by the compiler to help reason about the graph order.
@@ -663,20 +886,6 @@ class ParseKVBindTransformer(ast.NodeTransformer):
     even if they are not parents.
     '''
 
-    nodes_by_graph = []
-    '''For each independent graph we add a new list here that contains all the
-    :class:`ASTBindNodeRef` that were created for this graph. E.g. for the rule
-    `self.x + other.x`, we create two independent graphs, one containing
-    nodes for `self.x` and the other for `other.x`.
-
-    The order is such that if we were to linearly walk the list of any graph
-    in :attr:`nodes_by_graph`, when we a encounter a node, all the parents
-    of the node, up to the roots would have been encountered by the time
-    we reach the node. This means that the node deps are always encountered
-    first. But, unrelated nodes may also be present before reaching the node,
-    even if they are not parents.
-    '''
-
     src_nodes = []
     '''During each rule, it creates the list of :class:`ASTBindNodeRef`
     instances that were created due to this rule. Re-used nodes from previous
@@ -686,7 +895,7 @@ class ParseKVBindTransformer(ast.NodeTransformer):
     current_child_node = None
     '''As we walk the bind graph nodes, for each expression node we create
     a :class:`ASTBindNodeRef` that references the node and add it to
-    :attr:`nodes_by_rule` and :attr:`nodes_by_graph`. The node is stored here
+    :attr:`nodes_by_rule`. The node is stored here
     while we explore its parent tree. Then, all the direct parent's of this
     node will point to this node using their
     :attr:`ASTBindNodeRef.depend_on_me` and this node's
@@ -733,7 +942,6 @@ class ParseKVBindTransformer(ast.NodeTransformer):
     def __init__(self, kv_syntax=None):
         super(ParseKVBindTransformer, self).__init__()
         self.src_node_map = {}
-        self.nodes_by_graph = []
         self.nodes_by_rule = []
         self.visited = set()
 
@@ -749,8 +957,7 @@ class ParseKVBindTransformer(ast.NodeTransformer):
         '''Adds the nodes of the the rule to the existing bind graph.
 
         It creates a new rule list in :attr:`nodes_by_rule` and all nodes
-        newly created due to this rule are added to it. In addition, nodes are
-        also added to :attr:`nodes_by_graph` in the corresponding graphs.
+        newly created due to this rule are added to it.
         '''
         if rule is None:
             raise ValueError('rule cannot be None')
@@ -783,7 +990,6 @@ class ParseKVBindTransformer(ast.NodeTransformer):
 
             # save the last child, and make yourself the new child
             current_child_node = self.current_child_node
-            new_node = True
             self.current_child_node = ret_node = ASTBindNodeRef(
                 is_attribute)
 
@@ -830,7 +1036,6 @@ class ParseKVBindTransformer(ast.NodeTransformer):
                     # if we did, replace the re-occurrence with the node of the
                     # first occurrence. Abandon ret_node, everything there is
                     # a duplication of the first occurrence
-                    new_node = False
                     ret_node = self.src_node_map[src]
                     # if we saw the node already under *this* leaf, then the
                     # rule is something like a diamond (self.x[self.x].z or
@@ -857,29 +1062,6 @@ class ParseKVBindTransformer(ast.NodeTransformer):
                 # if it's None, we hit the final (root) expr of the graph
                 if ret_node not in current_child_node.depends:
                     current_child_node.depends.append(ret_node)
-
-            if new_node:
-                # If we created a new node, we need to figure out the specific
-                # graph it will added to. The idea is that whenever we
-                # encounter a new node, we create a new graph for it. Then, as
-                # we encounter them again we merge these graphs if they share
-                # nodes. See `my_graph` for an explanation.
-                if not ret_node.depends:
-                    graph = ret_node.my_graph = [[ret_node], [None]]
-                    graph[1][0] = graph
-                    self.nodes_by_graph.append(graph[0])
-                else:
-                    ret_node.my_graph = graph = ret_node.depends[0].my_graph
-                    for dep in ret_node.depends[1:]:
-                        if dep.my_graph[0] is graph[0]:
-                            continue
-
-                        self.nodes_by_graph.remove(dep.my_graph[0])
-                        graph[0].extend(dep.my_graph[0])
-                        graph[1].extend(dep.my_graph[1])
-                        for item in dep.my_graph[1]:
-                            item[0] = graph[0]
-                    graph[0].append(ret_node)
         else:
             ret_node = super(ParseKVBindTransformer, self).generic_visit(node)
         return ret_node

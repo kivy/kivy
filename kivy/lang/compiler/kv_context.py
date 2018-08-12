@@ -79,8 +79,10 @@ class KVRule(object):
     Class attributes:
 
     :var largs: The largs provided when the rule is dispatched.
-    :var bind_stores: (internal): Maintains a reference to the lists that
+    :var bind_store: (internal): Maintains a reference to the list that
         stores all the bindings created for the rule.
+    :var bind_store_leaf_indices: (internal): The list of all the indices in
+        `bind_store` that store the leaf bindings created for the rule.
     :var callback: (internal): The callback function that is called by the rule
         whenever it is dispatched.
     :var _callback: (internal): If it's a clock or canvas rule, contains the
@@ -89,8 +91,8 @@ class KVRule(object):
         canvas update.
     '''
 
-    __slots__ = ('bind_stores', 'callback', 'delay', 'name', 'largs',
-                 '_callback')
+    __slots__ = ('bind_store', 'bind_store_leaf_indices', 'callback', 'delay',
+                 'name', 'largs', '_callback')
 
     def __init__(self, *binds, delay=None, name=None):
         # we don't save any of the args here, because when a rule is created by
@@ -123,36 +125,36 @@ class KVRule(object):
         to immediately cancel that as well), but it won't be scheduled again.
         '''
         # we are slowly trimming leaves until all are unbound
-        binds_stores = self.bind_stores
+        bind_store = self.bind_store
 
-        for bind_store, leaf_indices in binds_stores:
-            for leaf_index in leaf_indices:
-                leaf = bind_store[leaf_index]
-                if leaf is None:
-                    # we're in the middle of binding and this should not have
-                    # been called
+        for leaf_index in self.bind_store_leaf_indices:
+            leaf = bind_store[leaf_index]
+            if leaf is None:
+                # we're in the middle of binding and this should not have
+                # been called
+                raise Exception(
+                    'Cannot unbind a rule before it was finished binding')
+
+            leaf_graph_indices = leaf[5]
+            assert leaf[4] == 1
+            for bind_idx in leaf_graph_indices:
+                bind_item = bind_store[bind_idx]
+                if bind_item is None:
                     raise Exception(
-                        'Cannot unbind a rule before it was finished binding')
+                        'Cannot unbind a rule before it was finished '
+                        'binding')
 
-                leaf_graph_indices = leaf[5]
-                assert leaf[4] == 1
-                for bind_idx in leaf_graph_indices:
-                    bind_item = bind_store[bind_idx]
-                    if bind_item is None:
-                        raise Exception(
-                            'Cannot unbind a rule before it was finished '
-                            'binding')
+                obj, attr, _, uid, count, _ = bind_item
+                if count == 1:
+                    # last item bound, we're done with this one
+                    obj.unbind_uid(attr, uid)
+                    bind_store[bind_idx] = None
+                else:
+                    bind_item[4] -= 1
+                    assert bind_item[4] >= 1
 
-                    obj, attr, _, uid, count, _ = bind_item
-                    if count == 1:
-                        # last item bound, we're done with this one
-                        obj.unbind_uid(attr, uid)
-                        bind_store[bind_idx] = None
-                    else:
-                        bind_item[4] -= 1
-                        assert bind_item[4] >= 1
-
-        self.bind_stores = ()
+        self.bind_store = None
+        self.bind_store_leaf_indices = ()
         # it's ok to release the (possibly last) ref to the callback because at
         # worst it's scheduled in the clock, which has no problem dealing with
         # abandoned refs, or its scheduled with the canvas instructions that
@@ -176,7 +178,8 @@ class KVParserRule(KVRule):
         self.binds = binds
         self.delay = delay
         self.name = name
-        self.bind_stores = ()
+        self.bind_store = None
+        self.bind_store_leaf_indices = ()
         self.callback = None
 
 
@@ -205,14 +208,14 @@ class KVCtx(object):
         names. In the example above, `my_ctx.named_rules` contains one rule
         with name/key value `"my_rule"`.
 
-    :var bind_stores_by_graph: (internal): Maintains a reference to the lists
+    :var bind_store: (internal): Maintains a reference to the list
         that stores all the bindings created for all the rules in the context.
     :var rebind_functions: (internal): Maintains a reference to all the
         callbacks used in all the context's rules.
     '''
 
     __slots__ = (
-        'bind_stores_by_graph', 'rebind_functions', 'named_rules', 'rules')
+        'bind_store', 'rebind_functions', 'named_rules', 'rules')
 
     def __init__(self):
         self.rules = []
