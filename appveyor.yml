@@ -141,7 +141,7 @@ build_script:
 
     Check-Error
 
-    pip install cython astor
+    pip install cython astor pyinstaller
 
     Check-Error
 

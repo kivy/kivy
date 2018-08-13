@@ -25,7 +25,7 @@ if sys.version > '3':
 
         __slots__ = ('method', 'method_name', 'proxy')
 
-        def __init__(self, method):
+        def __init__(self, method, proxy_func=False):
             self.method = None
             self.method_name = None
 
@@ -35,8 +35,12 @@ if sys.version > '3':
                 self.proxy = weakref.proxy(s)
             else:
                 try:
-                    self.proxy = weakref.ref(method)
-                except TypeError:
+                    if proxy_func:
+                        self.proxy = weakref.ref(method)
+                    else:
+                        self.method = method
+                        self.proxy = None
+                except (TypeError, AttributeError):
                     self.method = method
                     self.proxy = None
 

@@ -2,7 +2,10 @@ from kivy.lang.compiler.ast_parse import ParseKVBindTransformer, BindSubGraph
 from kivy.lang.compiler.kv_context import KVParserCtx, KVParserRule
 from kivy.lang.compiler.utils import StringPool
 import ast
-from graphviz import Digraph
+try:
+    from graphviz import Digraph
+except ImportError:
+    Digraph = None
 
 
 class VisualizeBindTree(object):
@@ -16,6 +19,10 @@ class VisualizeBindTree(object):
     def __init__(self):
         super(VisualizeBindTree, self).__init__()
         self.ctx = KVParserCtx()
+        if Digraph is None:
+            raise ValueError(
+                'graphviz could not be imported. Please make sure it is '
+                'installed and the binaries are on the PATH')
 
     def add_rule(self, *binds, name):
         self.ctx.add_rule(KVParserRule(*binds, name=name))

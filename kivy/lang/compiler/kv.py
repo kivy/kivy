@@ -208,6 +208,9 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
                 'as __kv_add_graphics_callback')
         if compiler.used_clock_rule:
             imports.append('from kivy.clock import Clock as __kv_Clock')
+        if compiler.used_weak_method:
+            imports.append(
+                'from kivy.weakmethod import WeakMethod as __kv_WeakMethod')
 
         globals_update = [
             '__kv_mod_func = {}'.format(func.__name__),

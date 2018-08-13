@@ -47,6 +47,8 @@ class KVCompiler(object):
 
     used_canvas_rule = False
 
+    used_weak_method = False
+
     def __init__(self, **kwargs):
         super(KVCompiler, self).__init__(**kwargs)
         self.rebind_callback_pool = StringPool(prefix='__kv_rebind_callback')
@@ -200,9 +202,12 @@ class KVCompiler(object):
                 src_code.append('')
 
     def gen_fbind_for_subgraph_nodes_in_rebind_callback(
-            self, src_code, nodes, indent, dep_name, bind_store_name):
+            self, src_code, nodes, indent, dep_name, bind_store_name, proxy):
         indent2 = indent + 4
         indent3 = indent + 8
+        bind_callback = '__kv_bind_element[2]'
+        if proxy:
+            bind_callback = '__kv_WeakMethod(__kv_bind_element[2], True)'
 
         for node in nodes:
             obj_attr = node.ref_node.attr
@@ -213,8 +218,7 @@ class KVCompiler(object):
                 src_code.append(
                     '{}if __kv_bind_element is not None:'.
                     format(' ' * indent2))
-                bind = '__kv__fbind("{}", __kv_bind_element[2])'.format(
-                    obj_attr)
+                bind = '__kv__fbind("{}", {})'.format(obj_attr, bind_callback)
                 src_code.append(
                     '{}__kv_bind_element[0] = {}'.
                     format(' ' * indent3, dep_name))
@@ -224,7 +228,7 @@ class KVCompiler(object):
 
     def gen_fbind_for_subgraph_nodes_for_initial_bindings(
             self, src_code, nodes, indent, dep_name, parent_nodes_of_leaves,
-            store_indices_count, var_none, bind_store_name):
+            store_indices_count, var_none, bind_store_name, proxy):
         indent2 = indent + 4
 
         for node in nodes:
@@ -233,7 +237,12 @@ class KVCompiler(object):
                 store_indices_count[j] for j in node.bind_store_indices)
             for i, callback_name in zip(
                     node.bind_store_indices, node.callback_names):
-                bind = '__kv__fbind("{}", {})'.format(obj_attr, callback_name)
+                bind_callback = callback_name
+                if proxy:
+                    bind_callback = \
+                        '__kv_WeakMethod({}, True)'.format(callback_name)
+
+                bind = '__kv__fbind("{}", {})'.format(obj_attr, bind_callback)
                 if var_none:
                     bind = 'None'
 
@@ -290,6 +299,7 @@ class KVCompiler(object):
                 indent += 4
 
             # do we need to create a proxy for the callback?
+            self.used_weak_method = self.used_weak_method or dep.proxy
             fbind_name = 'fbind_proxy' if dep.proxy else 'fbind'
             src_code.append('{}__kv__fbind = getattr({}, "{}", None)'.
                             format(' ' * indent, dep_name, fbind_name))
@@ -300,23 +310,24 @@ class KVCompiler(object):
             if init_bindings:
                 self.gen_fbind_for_subgraph_nodes_for_initial_bindings(
                     src_code, nodes, indent, dep_name, parent_nodes_of_leaves,
-                    store_indices_count, False, bind_store_name)
+                    store_indices_count, False, bind_store_name, dep.proxy)
 
                 src_code.append(
                     '{}else:'.format(' ' * indent))
                 self.gen_fbind_for_subgraph_nodes_for_initial_bindings(
                     src_code, nodes, indent, dep_name, parent_nodes_of_leaves,
-                    store_indices_count, True, bind_store_name)
+                    store_indices_count, True, bind_store_name, dep.proxy)
 
                 if dep.depends:
                     else_bind.append(
                         '{}else:'.format(' ' * 0))
                     self.gen_fbind_for_subgraph_nodes_for_initial_bindings(
                         else_bind, nodes, 0, dep_name, parent_nodes_of_leaves,
-                        store_indices_count, True, bind_store_name)
+                        store_indices_count, True, bind_store_name, dep.proxy)
             else:
                 self.gen_fbind_for_subgraph_nodes_in_rebind_callback(
-                    src_code, nodes, indent, dep_name, bind_store_name)
+                    src_code, nodes, indent, dep_name, bind_store_name,
+                    dep.proxy)
 
             # create the values of the nodes for use later, using the temp vars
             for node in nodes:

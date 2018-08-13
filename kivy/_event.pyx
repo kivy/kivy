@@ -465,8 +465,7 @@ cdef class EventDispatcher(ObjectWithUid):
            the same callback multiple times will just keep adding it.
         #. Although :meth:`bind` creates a :class:`WeakMethod` of the callback when
            binding to an event or property, this method stores the callback
-           directly, unless a keyword argument `ref` with value True is provided
-           and then a :class:`WeakMethod` is saved.
+           directly. See :meth:`fbind_proxy` to use a ref instead.
            This is useful when there's no risk of a memory leak by storing the
            callback directly.
         #. This method returns a unique positive number if `name` was found and
@@ -564,20 +563,28 @@ cdef class EventDispatcher(ObjectWithUid):
                 return 0
             return ps.observers.fbind(func, largs, kwargs, 0)
 
-    def fbind_proxy(self, name, func, *largs, **kwargs):
+    def fbind_proxy(self, name, proxy_func, *largs, **kwargs):
+        '''
+        Identical to :meth:`fbind`, except that `proxy_func` must be a proxy
+        to the callback function or method. The proxy is called internally
+        with `proxy_func()` to get the original callback, which is only called
+        if it's still alive.
+
+        Typically, `proxy_func` is a :class:`~kivy.weakmethod.WeakMethod`.
+        '''
         cdef EventObservers observers
         cdef PropertyStorage ps
 
         if name[:3] == 'on_':
             observers = self.__event_stack.get(name)
             if observers is not None:
-                return observers.fbind(WeakMethod(func), largs, kwargs, 1)
+                return observers.fbind(proxy_func, largs, kwargs, 1)
             return 0
         else:
             ps = self.__storage.get(name)
             if ps is None:
                 return 0
-            return ps.observers.fbind(WeakMethod(func), largs, kwargs, 1)
+            return ps.observers.fbind(proxy_func, largs, kwargs, 1)
 
     def funbind(self, name, func, *largs, **kwargs):
         '''Similar to :meth:`fbind`.
