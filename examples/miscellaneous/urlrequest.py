@@ -30,7 +30,7 @@ BoxLayout:
 
     BoxLayout:
         size_hint_y: None
-        height: 48
+        height: 48
         Spinner:
             id: spinner
             text: 'select'
