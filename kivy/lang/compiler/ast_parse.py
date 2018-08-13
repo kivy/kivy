@@ -306,6 +306,7 @@ class BindSubGraph(object):
             for node in subgraph.nodes:
                 if not node.rebind:
                     node.subgraph_for_terminal_node = subgraph
+        return bind_store_size
 
     def get_subgraph_and_children_subgraphs(self):
         queue = deque([self])
