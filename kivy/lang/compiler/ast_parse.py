@@ -7,6 +7,7 @@ Parses source code contains KV rules and contexts.
 
 import ast
 from collections import deque, defaultdict
+from itertools import chain
 from astor.code_gen import SourceGenerator
 from astor.source_repr import split_lines
 
@@ -140,7 +141,8 @@ class BindSubGraph(object):
         return unique_subgraphs
 
     @classmethod
-    def get_ordered_subgraphs(cls, nodes):
+    def get_ordered_subgraphs(cls, transformer):
+        nodes = list(chain(*transformer.nodes_by_rule))
         # consider the graph made by rule (x.y + x.z).q + x.y.k - we cannot
         # look at the subgraph created by
         subgraphs = cls.get_subgraphs(nodes)
@@ -255,6 +257,55 @@ class BindSubGraph(object):
             if node.depends and not node.rebind:
                 for dep in node.depends:
                     nodes_use_count[dep] -= 1
+
+    @classmethod
+    def populate_bind_store_size_indices_and_callback_names(
+            cls, subgraphs, gen_leaves_callback_name, rules, transformer,
+            rebind_callback_pool, leaf_callback_pool):
+        bind_store_size = 0
+
+        if gen_leaves_callback_name:
+            for rule, rule_nodes in zip(rules, transformer.nodes_by_rule):
+                rule.callback_name = leaf_callback_pool.borrow_persistent()
+
+        for subgraph in subgraphs:
+            rebind_nodes = [node for node in subgraph.nodes if node.rebind]
+            # if no rebind nodes, it's e.g. a root subtree with just
+            # literals or global/local/nonlocal names.
+            if rebind_nodes:
+                name = subgraph.rebind_callback_name = \
+                    rebind_callback_pool.borrow_persistent()
+                for node in rebind_nodes:
+                    node.subgraphs_to_bind_store_idx_and_name[
+                        subgraph] = len(node.callback_names)
+                    node.callback_names.append(name)
+                    node.bind_store_indices.append(bind_store_size)
+                    subgraph.bind_store_rebind_nodes_indices[node] = \
+                        bind_store_size
+                    bind_store_size += 1
+
+            # rebind nodes in terminal_nodes will be visited in
+            # subsequent subgraph, as they must be in `nodes` in the future
+            # because they depend on us and is a child subgraph of us
+            # so we only need to process leaves in terminal nodes
+            for node in subgraph.terminal_nodes:
+                # leaf nodes can only be bound once, but may occur in
+                # multiple subgraphs
+                node.subgraph_for_terminal_node = subgraph
+                if node.leaf_rule is not None and not node.callback_names:
+                    node.callback_names.append(
+                        node.leaf_rule.callback_name)
+                    node.bind_store_indices.append(bind_store_size)
+                    bind_store_size += 1
+
+            # these nodes are not rebind nodes, so they either occur as
+            # child of a rebind node, in which case it has a unique
+            # subgraph, or it's like a number, which has no deps, so we
+            # don't care what its subgraph is because it'll never
+            # have bind indices associated with it
+            for node in subgraph.nodes:
+                if not node.rebind:
+                    node.subgraph_for_terminal_node = subgraph
 
     def get_subgraph_and_children_subgraphs(self):
         queue = deque([self])
@@ -390,11 +441,6 @@ class ASTBindNodeRef(ast.AST):
 
     The exact value of :attr:`leaf_rule` is not important, we just use it to
     check if it's `None`.
-    '''
-
-    my_graph = []
-    '''Keeps track of the graph the node is in. E.g. `self.x + obj.y` contains
-    two independent graphs.
     '''
 
     callback_names = []

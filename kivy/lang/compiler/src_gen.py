@@ -6,7 +6,7 @@ Generates the compiled KV source code.
 '''
 
 import ast
-from collections import deque, defaultdict
+from collections import defaultdict
 from itertools import chain
 
 from kivy.lang.compiler.ast_parse import generate_source, BindSubGraph, \
@@ -59,62 +59,6 @@ class KVCompiler(object):
         self.temp_var_pool = StringPool(prefix='__kv_temp_val')
         self.kv_ctx_pool = StringPool(prefix='__kv_ctx')
         self.kv_rule_pool = StringPool(prefix='__kv_rule')
-
-    def populate_bind_stores_and_indices_and_callback_names(
-            self, subgraphs, gen_leaf_name, ctx):
-        rebind_pool = self.rebind_callback_pool
-        leaf_pool = self.leaf_callback_pool
-
-        bind_store_size = 0
-
-        if gen_leaf_name:
-            for rule, rule_nodes in zip(
-                    ctx.rules, ctx.transformer.nodes_by_rule):
-                rule.callback_name = leaf_pool.borrow_persistent()
-
-        for subgraph in subgraphs:
-            rebind_nodes = [node for node in subgraph.nodes if node.rebind]
-            # if no rebind nodes, it's e.g. a root subtree with just
-            # literals or global/local/nonlocal names.
-            if rebind_nodes:
-                name = subgraph.rebind_callback_name = \
-                    rebind_pool.borrow_persistent()
-                for node in rebind_nodes:
-                    node.subgraphs_to_bind_store_idx_and_name[
-                        subgraph] = len(node.callback_names)
-                    node.callback_names.append(name)
-                    node.bind_store_indices.append(bind_store_size)
-                    subgraph.bind_store_rebind_nodes_indices[node] = \
-                        bind_store_size
-                    bind_store_size += 1
-
-            # rebind nodes in terminal_nodes will be inspected in
-            # subsequent subgraph, as they must be in `nodes` in the future
-            # because they depend on us and is a child subgraph of us
-            for node in subgraph.terminal_nodes:
-                # leaf nodes can only be bound once, but may occur in
-                # multiple subgraphs
-                node.subgraph_for_terminal_node = subgraph
-                if node.leaf_rule is not None and not node.callback_names:
-                    node.callback_names.append(
-                        node.leaf_rule.callback_name)
-                    node.bind_store_indices.append(bind_store_size)
-                    bind_store_size += 1
-
-            # these nodes are not rebind nodes, so they either occur as
-            # child of a rebind node, in which case it has a unique
-            # subgraph, or it's like a number, which has no deps, so we
-            # don't care what its subgraph is because it'll never
-            # have bind indices associated with it
-            for node in subgraph.nodes:
-                if not node.rebind:
-                    node.subgraph_for_terminal_node = subgraph
-
-        if bind_store_size:
-            bind_store_name = self.binding_store_pool.borrow_persistent()
-        else:
-            bind_store_name = None
-        return bind_store_name, bind_store_size
 
     def gen_base_rebind_node_local_variable(
             self, src_code, subgraph, node, temp_pool, nodes_use_count,
@@ -797,12 +741,17 @@ class KVCompiler(object):
         if not ctx_name:
             ctx_name = self.kv_ctx_pool.borrow_persistent()
 
-        nodes = list(chain(*ctx.transformer.nodes_by_rule))
-        subgraphs = BindSubGraph.get_ordered_subgraphs(nodes)
+        subgraphs = BindSubGraph.get_ordered_subgraphs(ctx.transformer)
 
-        bind_store_name, bind_store_size = \
-            self.populate_bind_stores_and_indices_and_callback_names(
-                subgraphs, create_rules, ctx)
+        bind_store_size = BindSubGraph.\
+            populate_bind_store_size_indices_and_callback_names(
+                subgraphs, create_rules, ctx.rules, ctx.transformer,
+                self.rebind_callback_pool, self.leaf_callback_pool)
+
+        bind_store_name = None
+        if bind_store_size:
+            bind_store_name = self.binding_store_pool.borrow_persistent()
+        nodes = list(chain(*ctx.transformer.nodes_by_rule))
 
         funcs = self.gen_rebind_callbacks(
             ctx_name, nodes, subgraphs, bind_store_name, bind_store_size)
