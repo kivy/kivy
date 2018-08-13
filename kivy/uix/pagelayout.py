@@ -75,6 +75,8 @@ class PageLayout(Layout):
 
     :data:`anim_kwargs` is a :class:`~kivy.properties.DictProperty`
     and defaults to {'d': .5, 't': 'in_quad'}.
+
+    .. versionadded:: 1.11.0
     '''
 
     def __init__(self, **kwargs):
