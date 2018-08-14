@@ -5402,7 +5402,7 @@ class PyinstallerKVBase(TestBase):
         try:
             # create kvc
             subprocess.check_output(
-                'python main.py',
+                [sys.executable or 'python', 'main.py'],
                 cwd=self.pinstall_path, stderr=subprocess.STDOUT, env=env)
         except subprocess.CalledProcessError as e:
             print(e.output.decode('utf8'))
@@ -5411,7 +5411,7 @@ class PyinstallerKVBase(TestBase):
         try:
             # create pyinstaller package
             subprocess.check_output(
-                'pyinstaller main.spec',
+                [sys.executable or 'python', '-m', 'PyInstaller', 'main.spec'],
                 cwd=self.pinstall_path, stderr=subprocess.STDOUT, env=env)
         except subprocess.CalledProcessError as e:
             print(e.output.decode('utf8'))

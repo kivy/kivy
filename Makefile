@@ -1,7 +1,8 @@
 PYTHON = python
 CHECKSCRIPT = kivy/tools/pep8checker/pep8kivy.py
 KIVY_DIR = kivy/
-NOSETESTS = $(PYTHON) -m nose.core
+NOSETESTS = $(PYTHON) -m nose
+NOSEOPT = `python -c 'from kivy.compat import PY2; print("-I test_kv_compiler.py") if PY2 else 1'`
 KIVY_USE_DEFAULTCONFIG = 1
 HOSTPYTHON = $(KIVYIOSROOT)/tmp/Python-$(PYTHON_VERSION)/hostpython
 
@@ -89,7 +90,7 @@ image-testsuite:
 
 test:
 	-rm -rf kivy/tests/build
-	$(NOSETESTS) kivy/tests
+	$(NOSETESTS) kivy/tests $(NOSEOPT)
 
 cover:
 	coverage html --include='$(KIVY_DIR)*' --omit '$(KIVY_DIR)data/*,$(KIVY_DIR)lib/*,$(KIVY_DIR)tools/*,$(KIVY_DIR)tests/*'

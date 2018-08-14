@@ -27,7 +27,10 @@ from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.context import register_context
-from kivy.lang.compiler.runtime import process_graphics_callbacks
+from kivy.compat import PY2
+
+if not PY2:
+    from kivy.lang.compiler.runtime import process_graphics_callbacks
 
 # private vars
 EventLoop = None
@@ -342,14 +345,16 @@ class EventLoopBase(EventDispatcher):
 
         # flush all the canvas operation
         Builder.sync()
-        process_graphics_callbacks()
+        if not PY2:
+            process_graphics_callbacks()
 
         # tick before draw
         Clock.tick_draw()
 
         # flush all the canvas operation
         Builder.sync()
-        process_graphics_callbacks()
+        if not PY2:
+            process_graphics_callbacks()
 
         window = self.window
         if window and window.canvas.needs_redraw:
