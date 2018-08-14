@@ -18,3 +18,4 @@ Programming Guide
     guide/other-frameworks
     guide/packaging
     guide/licensing
+    kv/kv_proposal

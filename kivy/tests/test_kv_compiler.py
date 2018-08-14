@@ -4644,7 +4644,8 @@ class ManualKVWidget(BaseWidget):
         rule.callback_name = manage_val.__name__
         ctx.add_rule(rule)
 
-        KV_apply_manual(ctx, self.apply_kv_test, locals(), globals(), rebind=True)
+        KV_apply_manual(
+            ctx, self.apply_kv_test, locals(), globals(), rebind=True)
 
 
 @skip_py2_decorator
@@ -5267,6 +5268,7 @@ class MyWidget(Widget):
             self.x @= self.y
 '''
 
+
 @skip_py2_decorator
 class TestCythonKV(TestBase):
 
@@ -5294,8 +5296,8 @@ class TestCythonKV(TestBase):
         setup_path = os.path.join(self.cython_path, 'setup.py')
         try:
             subprocess.check_output(
-                'python "{}" build_ext --inplace'.format(setup_path),
-                stderr=subprocess.STDOUT)
+                [sys.executable or 'python', setup_path, 'build_ext',
+                 '--inplace'], stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as e:
             print(e.output.decode('utf8'))
             raise
@@ -5351,8 +5353,8 @@ class TestCythonKVDefault(TestBase):
         setup_path = os.path.join(self.cython_path, 'setup.py')
         try:
             subprocess.check_output(
-                'python "{}" build_ext --inplace'.format(setup_path),
-                stderr=subprocess.STDOUT)
+                [sys.executable or 'python', setup_path, 'build_ext',
+                 '--inplace'], stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as e:
             print(e.output.decode('utf8'))
             raise

@@ -195,7 +195,8 @@ if __name__ == '__main__':
     vis = VisualizeBindTree()
 
     vis.add_rule('(self.x + self.y + 55).z + 29 + self.x', name='r1')
-    vis.add_rule('other.x[other.x + 86 + other.x.m.z].z + other.x.q', name='r2')
+    vis.add_rule(
+        'other.x[other.x + 86 + other.x.m.z].z + other.x.q', name='r2')
     vis.add_rule('(that.x + that.y).z', name='r3')
     vis.add_rule('(that.x + that.q).z', name='r4')
 
