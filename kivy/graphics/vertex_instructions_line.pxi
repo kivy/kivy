@@ -285,11 +285,15 @@ cdef class Line(VertexInstruction):
         self._bxmax = -999999999
         self._bymax = -999999999
 
+        cap = self._cap
+        if cap == LINE_CAP_SQUARE:
+            p = p[2:]
+            count -= 1
+
         if count < 2:
             self.batch.clear_data()
             return
 
-        cap = self._cap
         if self._close and count > 2:
             p = p + p[0:4]
             count += 2
@@ -314,8 +318,8 @@ cdef class Line(VertexInstruction):
             indices_count += 12
             vertices_count += 4
         elif cap == LINE_CAP_ROUND:
-            indices_count += (self._cap_precision * 3) * 2
-            vertices_count += (self._cap_precision) * 2
+            indices_count += 2 * (self._cap_precision + 1) * 3 * 2
+            vertices_count += 2 * (self._cap_precision + 1) * 2
 
         vertices = <vertex_t *>malloc(vertices_count * sizeof(vertex_t))
         if vertices == NULL:
@@ -592,7 +596,7 @@ cdef class Line(VertexInstruction):
             vertices[iv].s0 = 0
             vertices[iv].t0 = 0
             iv += 1
-            for i in xrange(0, self._cap_precision - 1):
+            for i in xrange(0, 2 * self._cap_precision + 1):
                 vertices[iv].x = cx + cos(a1 + step * i) * w
                 vertices[iv].y = cy + sin(a1 + step * i) * w
                 vertices[iv].s0 = 1
@@ -624,7 +628,7 @@ cdef class Line(VertexInstruction):
             vertices[iv].s0 = 0
             vertices[iv].t0 = 0
             iv += 1
-            for i in xrange(0, self._cap_precision - 1):
+            for i in xrange(0, 2 * self._cap_precision + 1):
                 vertices[iv].x = cx + cos(a1 + step * i) * w
                 vertices[iv].y = cy + sin(a1 + step * i) * w
                 vertices[iv].s0 = 0
