@@ -71,6 +71,7 @@ BoxLayout:
         text: json.dumps(app.headers, indent=2)
 '''
 
+
 class UrlExample(App):
     status = NumericProperty()
     result_text = StringProperty()
