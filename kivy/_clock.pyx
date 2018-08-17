@@ -82,10 +82,11 @@ cdef class ClockEvent(object):
         cdef object callback = self.callback
         if callback is not None:
             return callback
-        callback = self.weak_callback
-        if callback.is_dead():
+        callback = self.weak_callback()
+
+        if callback is None:
             return None
-        return callback()
+        return callback
 
     @property
     def is_triggered(self):

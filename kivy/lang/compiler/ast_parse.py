@@ -1173,6 +1173,10 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
     from x @= y or x ^= y to x = y.
     '''
 
+    context_classes = {'KVCtx': KVParserCtx}
+
+    rule_classes = {'KVRule': KVParserRule}
+
     current_ctx_info = None
 
     current_rule_info = None
@@ -1216,10 +1220,22 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
         ast.UnaryOp, ast.USub, ast.While, ast.With, ast.withitem,
         ast.Yield, ast.YieldFrom}
 
-    def __init__(self, kv_syntax=None):
+    def __init__(self, kv_syntax=None, context_classes={}, rule_classes={}):
         super(ParseKVFunctionTransformer, self).__init__()
         self.context_infos = []
         self.rules_by_occurrence = []
+
+        self.context_classes = dict(self.context_classes)
+        self.rule_classes = dict(self.rule_classes)
+        self.context_classes.update(context_classes)
+        self.rule_classes.update(rule_classes)
+
+        overlap = set(
+            self.context_classes.keys()) & set(self.rule_classes.keys())
+        if overlap:
+            raise ValueError(
+                'context_classes and rule_classes may not have overlapping '
+                'names ({})'.format(overlap))
 
         if kv_syntax is not None:
             if kv_syntax not in ('minimal', ):
@@ -1265,7 +1281,7 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
             elif isinstance(f_name, ast.Name):
                 name = f_name.id
 
-            if name in ('KVCtx', 'KVRule'):
+            if name in self.context_classes or name in self.rule_classes:
                 func_name = name
                 args = expr.args
                 keywords = expr.keywords
@@ -1280,13 +1296,15 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
         if func_name is None:
             return self.generic_visit(node)
 
-        if func_name == 'KVCtx':
+        if func_name in self.context_classes:
             ret_node = self.process_kv_with_ctx_node(
-                node, args, keywords, assigned_var)
+                self.context_classes[func_name], node, args, keywords,
+                assigned_var)
         else:
-            assert func_name == 'KVRule'
+            assert func_name in self.rule_classes
             ret_node = self.process_kv_with_rule_node(
-                node, args, keywords, assigned_var)
+                self.rule_classes[func_name], node, args, keywords,
+                assigned_var)
 
         return ret_node
 
@@ -1296,20 +1314,35 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
     def finish_kv_ctx(self, ctx_info):
         pass
 
-    def process_kv_with_ctx_node(self, node, args, keywords, assigned_var):
+    def process_kv_with_ctx_node(
+            self, ctx_cls, node, args, keywords, assigned_var):
         if self.current_rule_info is not None:
             raise KVCompilerParserException('Cannot have context within rule')
-        if args or keywords:
+        if args:
             raise KVCompilerParserException(
-                'KVCtx takes no positional or keyword arguments currently')
+                'KVCtx takes no positional arguments currently, arguments '
+                'must be specified by keyword')
 
-        ctx = KVParserCtx()
+        ctx_opts = {}
+        for keyword in keywords:
+            if keyword.arg == 'reinit_after':
+                val = keyword.value
+                if not isinstance(val, ast.NameConstant) or val.value is None:
+                    raise KVCompilerParserException(
+                        'Cannot parse {}, reinit_after must be True or False'.
+                        format(val))
+                ctx_opts['reinit_after'] = val.value
+            else:
+                raise KVCompilerParserException(
+                    'Got unrecognized keyword {}'.format(keyword.arg))
+
+        ctx = ctx_cls(**ctx_opts)
         transformer = ParseKVBindTransformer(self.kv_syntax)
         ctx.set_kv_binding_ast_transformer(transformer)
 
         previous_ctx_info = self.current_ctx_info
         ctx_info = self.current_ctx_info = {
-            'ctx': ctx, 'args': args, 'keywords': keywords,
+            'ctx': ctx,
             'rules': [], 'node': node,
             'assign_target_node': ast.Name(id='__xxx', ctx=ast.Store()),
             'before_ctx': ASTStrPlaceholder(),
@@ -1357,7 +1390,8 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
     def finish_kv_rule(self, ctx_info, rule_info):
         pass
 
-    def process_kv_with_rule_node(self, node, args, keywords, assigned_var):
+    def process_kv_with_rule_node(
+            self, rule_cls, node, args, keywords, assigned_var):
         ctx_info = self.current_ctx_info
         if ctx_info is None:
             raise KVCompilerParserException(
@@ -1377,41 +1411,48 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
                 format(illegal_classes))
 
         rules = ctx_info['rules']
-        name = delay = None
+        rule_opts = {}
         for keyword in keywords:
-            if keyword.arg == 'name':
+            if keyword.arg == 'triggered_only':
+                val = keyword.value
+                if not isinstance(val, ast.NameConstant) or val.value is None:
+                    raise KVCompilerParserException(
+                        'Cannot parse {}, triggered_only must be True or '
+                        'False'.format(val))
+                rule_opts['triggered_only'] = val.value
+            elif keyword.arg == 'name':
                 val = keyword.value
                 if not isinstance(val, ast.Str):
                     raise KVCompilerParserException(
-                        'Cannot parse {}, must be a string'.format(val))
-                name = val.s
+                        'Cannot parse {}, name must be a string'.format(val))
+                rule_opts['name'] = val.s
             elif keyword.arg == 'delay':
                 val = keyword.value
                 if isinstance(val, ast.NameConstant):
                     if val.value is not None:
                         raise KVCompilerParserException(
-                            'Cannot parse {}, must be one of '
+                            'Cannot parse {}, delay must be one of '
                             'canvas/number/None'.format(val.value))
                 elif isinstance(val, ast.Str):
                     if val.s != 'canvas':
                         raise KVCompilerParserException(
-                            'Cannot parse {}, must be one of '
+                            'Cannot parse {}, delay must be one of '
                             'canvas/number/None'.format(val.s))
-                    delay = val.s
+                    rule_opts['delay'] = val.s
                 elif isinstance(val, ast.Num):
-                    delay = val.n
+                    rule_opts['delay'] = val.n
                 elif isinstance(val, ast.UnaryOp) and isinstance(
                         val.operand, ast.Num):
                     if isinstance(val.op, ast.USub):
-                        delay = -val.operand.n
+                        rule_opts['delay'] = -val.operand.n
                     elif isinstance(val.op, ast.UAdd):
-                        delay = val.operand.n
+                        rule_opts['delay'] = val.operand.n
                     else:
                         assert False
                 else:
                     raise KVCompilerParserException(
-                        'Cannot parse {}, must be one of canvas/number/None'.
-                        format(val))
+                        'Cannot parse {}, delay must be one of canvas/number/'
+                        'None'.format(val))
             else:
                 raise KVCompilerParserException(
                     'Got unrecognized keyword {}'.format(keyword.arg))
@@ -1436,8 +1477,7 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
             'node': node, 'binds': list(args),
             'from_with': True, 'body': None,
             'locals': set(), 'captures': set(), 'currently_locals': None,
-            'possibly_locals': set(), 'rule': KVParserRule(
-                delay=delay, name=name)}
+            'possibly_locals': set(), 'rule': rule_cls(**rule_opts)}
         rule['args_binds'] = list(rule['binds'])
         self.start_kv_rule(ctx_info, rule)
 
@@ -1456,7 +1496,12 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
             assign_node = ast.Assign(
                 targets=[assigned_var], value=rule_var_name)
             node_list = ASTNodeList()
-            node_list.nodes = [assign_node] + rule['body'].nodes
+
+            node_list.nodes = [assign_node]
+            if not rule['rule'].triggered_only:
+                node_list.nodes += rule['body'].nodes
+        elif rule['rule'].triggered_only:
+            node_list = ASTNodeList()
 
         return node_list
 
@@ -1478,12 +1523,14 @@ class ParseKVFunctionTransformer(ast.NodeTransformer):
 
         previous_rule_info = self.current_rule_info
         if previous_rule_info is None:
+            rule_opt = {} if delay is None else {'delay': 'canvas'}
             rule = self.current_rule_info = {
                 'node': node,
                 'binds': [node.value], 'from_with': False,
                 'body': None, 'locals': set(), 'captures': set(),
                 'currently_locals': None, 'possibly_locals': set(),
-                'rule': KVParserRule(delay=delay), 'args_binds': []}
+                'rule': self.rule_classes['KVRule'](**rule_opt),
+                'args_binds': []}
             self.start_kv_rule(ctx_info, rule)
 
             self.visit(node.value)

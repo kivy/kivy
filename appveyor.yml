@@ -66,7 +66,7 @@ build_script:
     Check-Error
 
 
-    $PYTHONPATH = "$env:APPVEYOR_BUILD_FOLDER;$PYTHONPATH"
+    $env:PYTHONPATH = "$env:APPVEYOR_BUILD_FOLDER;$PYTHONPATH"
 
     echo "Build folder: $env:APPVEYOR_BUILD_FOLDER. Wheel folder: $env:WHEEL_DIR."
 
@@ -239,6 +239,11 @@ test_script:
       } else {
         $env:KIVY_GL_BACKEND = "mock"
       }
-      python -m nose.core kivy/tests
+
+      if ($env:PYVER -eq "27") {
+        python -m nose kivy/tests -I test_kv_compiler.py
+      } else {
+        python -m nose.core kivy/tests
+      }
       Check-Error
     }

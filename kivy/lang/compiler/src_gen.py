@@ -47,7 +47,7 @@ class KVCompiler(object):
 
     used_canvas_rule = False
 
-    used_weak_method = False
+    used_weak_ref = False
 
     def __init__(self, **kwargs):
         super(KVCompiler, self).__init__(**kwargs)
@@ -207,7 +207,7 @@ class KVCompiler(object):
         indent3 = indent + 8
         bind_callback = '__kv_bind_element[2]'
         if proxy:
-            bind_callback = '__kv_WeakMethod(__kv_bind_element[2], True)'
+            bind_callback = '__kv_ref(__kv_bind_element[2])'
 
         for node in nodes:
             obj_attr = node.ref_node.attr
@@ -240,7 +240,7 @@ class KVCompiler(object):
                 bind_callback = callback_name
                 if proxy:
                     bind_callback = \
-                        '__kv_WeakMethod({}, True)'.format(callback_name)
+                        '__kv_ref({})'.format(callback_name)
 
                 bind = '__kv__fbind("{}", {})'.format(obj_attr, bind_callback)
                 if var_none:
@@ -299,7 +299,7 @@ class KVCompiler(object):
                 indent += 4
 
             # do we need to create a proxy for the callback?
-            self.used_weak_method = self.used_weak_method or dep.proxy
+            self.used_weak_ref = self.used_weak_ref or dep.proxy
             fbind_name = 'fbind_proxy' if dep.proxy else 'fbind'
             src_code.append('{}__kv__fbind = getattr({}, "{}", None)'.
                             format(' ' * indent, dep_name, fbind_name))
@@ -448,7 +448,8 @@ class KVCompiler(object):
             # we execute the callback at the end of rebind, only if at least
             # of the bindings to the leaf callback is alive, i.e. is not None.
             for node in current_subgraph.terminal_nodes:
-                if node.leaf_rule is not None:
+                if node.leaf_rule is not None and \
+                        not node.leaf_rule.triggered_only:
                     assert len(node.bind_store_indices) == 1
                     assert len(node.callback_names) == 1
                     i = node.bind_store_indices[0]
@@ -662,9 +663,7 @@ class KVCompiler(object):
 
         return src_code
 
-    def gen_initial_bindings(
-            self, ctx, nodes, subgraphs, exec_rules_after_binding,
-            bind_store_name):
+    def gen_initial_bindings(self, ctx, nodes, subgraphs, bind_store_name):
         leaf_parents_indices = ASTBindNodeRef.\
             get_all_bind_store_indices_for_leaf_and_parents(nodes)
         store_indices_count = ASTBindNodeRef.\
@@ -722,10 +721,6 @@ class KVCompiler(object):
 
         for node, origin_node in nodes_original_ref.items():
             node.set_ref_node(origin_node)
-
-        if exec_rules_after_binding:
-            for rule in ctx.rules:
-                src_code.append('{}()'.format(rule.callback_name))
         src_code.append('')
 
         return src_code
@@ -747,8 +742,29 @@ class KVCompiler(object):
                 'del {}'.format(var_clear), '']
         return [], []
 
-    def generate_bindings(
-            self, ctx, ctx_name, create_rules, exec_rules_after_binding):
+    def gen_reinit_after_callbacks(self, nodes, bind_store_name):
+        src_code = []
+        leaf_callbacks = defaultdict(set)
+
+        for node in nodes:
+            if node.leaf_rule is None or node.leaf_rule.triggered_only:
+                continue
+
+            assert len(node.bind_store_indices) == 1
+            assert len(node.callback_names) == 1
+            i = node.bind_store_indices[0]
+            f_location = '{}[{}]'.format(bind_store_name, i)
+            leaf_callbacks[node.callback_names[0]].add(f_location)
+
+        for name, locations in leaf_callbacks.items():
+            src_code.append(
+                '__kv_callback = {}'.format(' or '.join(locations)))
+            src_code.append('if __kv_callback is not None:')
+            src_code.append('{}__kv_callback[2]()'.format(' ' * 4))
+            src_code.append('')
+        return src_code
+
+    def generate_bindings(self, ctx, ctx_name, create_rules):
         if not ctx_name:
             ctx_name = self.kv_ctx_pool.borrow_persistent()
 
@@ -781,8 +797,12 @@ class KVCompiler(object):
 
         if subgraphs:
             res = self.gen_initial_bindings(
-                ctx, nodes, subgraphs, exec_rules_after_binding,
-                bind_store_name)
+                ctx, nodes, subgraphs, bind_store_name)
             funcs.extend(res)
 
-        return ctx_name, funcs, rule_creation, rule_finalization
+        if ctx.reinit_after:
+            reinit = self.gen_reinit_after_callbacks(nodes, bind_store_name)
+        else:
+            reinit = []
+
+        return ctx_name, funcs, rule_creation, rule_finalization, reinit

@@ -24,7 +24,7 @@ __all__ = ('KV', 'KV_apply_manual', 'patch_inspect', 'unpatch_inspect')
 
 
 def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
-       exec_rules_after_binding=False, captures_are_readonly=True):
+       captures_are_readonly=True):
     '''
     Decorator factory function that returns a decorator that compiles a KV
     containing function. Typical usage::
@@ -96,15 +96,6 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
         occurs upon exit. The default is `False`. Binding upon entrance is not
         recommended because it's unintuitive and doesn't follow the typical
         python programmatic flow.
-    :param exec_rules_after_binding: Whether all the rules should be executed
-        after the bindings. Defaults to False.
-
-        This is only useful when `bind_on_enter` is `False`, because then the
-        rules are executed before the bindings occur, and it may be desirable
-        for the rules to be executed again, once all the bindings occurs.
-
-        This is particularly useful for circular rules. It is `False` by
-        default for performance reasons.
     :param captures_are_readonly: Whether any variables that participate
         in a rule may be changed between rule execution and binding. Defaults
         to `True`.
@@ -119,8 +110,7 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
     calling `KV()(f)` will not re-compile `f` (and it shouldn't need to).
     '''
     compile_flags = (
-        kv_syntax, proxy, rebind, bind_on_enter, exec_rules_after_binding,
-        captures_are_readonly)
+        kv_syntax, proxy, rebind, bind_on_enter, captures_are_readonly)
 
     def KV_decorate(func):
         if func.__closure__ or '<locals>' in func.__qualname__:
@@ -176,10 +166,8 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
             ctx.set_nodes_proxy(proxy)
             ctx.set_nodes_rebind(rebind)
 
-            ctx_name, funcs, rule_creation, rule_finalization = \
-                compiler.generate_bindings(
-                    ctx, None, create_rules=True,
-                    exec_rules_after_binding=exec_rules_after_binding)
+            ctx_name, funcs, rule_creation, rule_finalization, reinit = \
+                compiler.generate_bindings(ctx, None, create_rules=True)
             ctx_info['assign_target_node'].id = ctx_name
 
             before_ctx_node = ctx_info['before_ctx']
@@ -191,6 +179,7 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
             else:
                 before_ctx_node.src_lines = [''] + rule_creation
                 after_ctx_node.src_lines = funcs + rule_finalization
+            after_ctx_node.src_lines += reinit
 
         creation, deletion = compiler.gen_temp_vars_creation_deletion()
 
@@ -208,9 +197,9 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
                 'as __kv_add_graphics_callback')
         if compiler.used_clock_rule:
             imports.append('from kivy.clock import Clock as __kv_Clock')
-        if compiler.used_weak_method:
+        if compiler.used_weak_ref:
             imports.append(
-                'from kivy.weakmethod import WeakMethod as __kv_WeakMethod')
+                'from weakref import ref as __kv_ref')
 
         globals_update = [
             '__kv_mod_func = {}'.format(func.__name__),
@@ -238,7 +227,7 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
 
 def KV_apply_manual(
         ctx, callback, local_vars, global_vars, kv_syntax='minimal',
-        proxy=False, rebind=True, exec_rules_after_binding=False):
+        proxy=False, rebind=True):
     '''
     Similar to :func:`KV`, except that is is called manually to compile
     bindings. Similalrly to :func:`KV`, the bindings are compiled once, and are
@@ -274,7 +263,6 @@ def KV_apply_manual(
     :param kv_syntax: See :func:`KV`.
     :param proxy: See :func:`KV`.
     :param rebind: See :func:`KV`.
-    :param exec_rules_after_binding: See :func:`KV`.
     :return: None - it executes the compiled rule in the provided `locals()`,
         `globals()` environment.
     '''
@@ -292,10 +280,8 @@ def KV_apply_manual(
         ctx.set_nodes_proxy(proxy)
         ctx.set_nodes_rebind(rebind)
 
-        _, funcs, rule_creation, rule_finalization = \
-            compiler.generate_bindings(
-                ctx, ctx_name, create_rules=False,
-                exec_rules_after_binding=exec_rules_after_binding)
+        _, funcs, rule_creation, rule_finalization, reinit = \
+            compiler.generate_bindings(ctx, ctx_name, create_rules=False)
 
         creation, deletion = compiler.gen_temp_vars_creation_deletion()
         globals_update = [
@@ -306,7 +292,7 @@ def KV_apply_manual(
             '']
 
         lines = globals_update + creation + rule_creation + funcs + \
-            rule_finalization + deletion
+            rule_finalization + reinit + deletion
         lines = ('    {}'.format(line) if line else '' for line in lines)
         src = 'def __kv_manual_wrapper(__kv_src_func_globals, {}):\n{}'.\
             format(ctx_name, '\n'.join(lines))

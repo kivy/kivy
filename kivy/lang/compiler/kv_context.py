@@ -94,7 +94,7 @@ class KVRule(object):
     __slots__ = ('bind_store', 'bind_store_leaf_indices', 'callback', 'delay',
                  'name', 'largs', '_callback')
 
-    def __init__(self, *binds, delay=None, name=None):
+    def __init__(self, *binds, delay=None, name=None, triggered_only=False):
         # we don't save any of the args here, because when a rule is created by
         # the manual compiler, it is the KVParserRule. For the auto compiler,
         # the user writes in the code KVRule, but the compiler intercepts it
@@ -169,9 +169,9 @@ class KVParserRule(KVRule):
     '''
 
     __slots__ = ('callback_name', 'captures', 'src', 'with_var_name_ast',
-                 '_callback_name', 'binds')
+                 '_callback_name', 'binds', 'triggered_only')
 
-    def __init__(self, *binds, delay=None, name=None):
+    def __init__(self, *binds, delay=None, name=None, triggered_only=False):
         super(KVParserRule, self).__init__()
         self.with_var_name_ast = None
         self._callback = None
@@ -179,6 +179,7 @@ class KVParserRule(KVRule):
         self.delay = delay
         self.name = name
         self.bind_store = None
+        self.triggered_only = triggered_only
         self.bind_store_leaf_indices = ()
         self.callback = None
 
@@ -186,6 +187,18 @@ class KVParserRule(KVRule):
 class KVCtx(object):
     '''
     Manages KV rules created under the context.
+
+    :param reinit_after: Whether all the rules that are not
+        :attr:`KVRule.triggered_only` should be executed again after the
+        bindings are complete when the :class:`KVCtx` exits. Defaults to False.
+
+        This is only useful when `bind_on_enter` in
+        :func:`~kivy.lang.compiler.kv.KV` is `False`, because then the
+        rules are executed before the bindings occur, and it may be desirable
+        for the rules to be executed again, once all the bindings occurs.
+
+        This is particularly useful for circular rules. It is `False` by
+        default for performance reasons.
 
     Class attributes:
 
@@ -217,7 +230,7 @@ class KVCtx(object):
     __slots__ = (
         'bind_store', 'rebind_functions', 'named_rules', 'rules')
 
-    def __init__(self):
+    def __init__(self, reinit_after=False):
         self.rules = []
         self.named_rules = {}
 
@@ -255,11 +268,12 @@ class KVParserCtx(KVCtx):
     It is also used when manually compiling KV.
     '''
 
-    __slots__ = ('transformer', 'kv_syntax')
+    __slots__ = ('transformer', 'kv_syntax', 'reinit_after')
 
-    def __init__(self):
+    def __init__(self, reinit_after=False):
         super(KVParserCtx, self).__init__()
         self.transformer = None
+        self.reinit_after = reinit_after
 
     def set_kv_binding_ast_transformer(self, transformer):
         self.transformer = transformer

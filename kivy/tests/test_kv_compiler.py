@@ -31,6 +31,19 @@ from kivy.compat import PY2
 
 import unittest
 
+try:
+    import PyInstaller
+    skip_pyinstaller = lambda x: x
+except ImportError:
+    skip_pyinstaller = unittest.skip('PyInstaller is not available')
+
+try:
+    import cython
+    skip_cython = lambda x: x
+except ImportError:
+    skip_cython = unittest.skip('Cython is not available')
+
+
 delete_kvc_after_test = int(os.environ.get('KIVY_TEST_DELETE_KVC', 1))
 # helpful during testing - if set to 0, it'll leave the kvc in the folder
 
@@ -630,6 +643,12 @@ class WidgetCapture(BaseWidget):
                 self.count += 1
                 self.width @= self.height
 
+    def enter_callback_at_end_reinit(self):
+        with KVCtx(reinit_after=True):
+            with KVRule():
+                self.count += 1
+                self.width @= self.height
+
     def enter_del_in_rule(self):
         x = 22
         with KVCtx():
@@ -951,6 +970,12 @@ class WidgetCapture(BaseWidget):
 
     def exit_callback_at_end(self):
         with KVCtx():
+            with KVRule():
+                self.count += 1
+                self.width @= self.height
+
+    def exit_callback_at_end_reinit(self):
+        with KVCtx(reinit_after=True):
             with KVRule():
                 self.count += 1
                 self.width @= self.height
@@ -1356,7 +1381,7 @@ class TestCaptureAutoCompiler(TestBase):
         f = KV_f(WidgetCapture.enter_var_overwrite23)
 
     def test_enter_callbacks_at_end(self):
-        KV_f = KV(bind_on_enter=True, exec_rules_after_binding=False)
+        KV_f = KV(bind_on_enter=True)
         f = KV_f(WidgetCapture.enter_callback_at_end)
         w = WidgetCapture()
         f(w)
@@ -1369,8 +1394,8 @@ class TestCaptureAutoCompiler(TestBase):
 
         remove_kvc(WidgetCapture.enter_callback_at_end)
 
-        KV_f = KV(bind_on_enter=True, exec_rules_after_binding=True)
-        f = KV_f(WidgetCapture.enter_callback_at_end)
+        KV_f = KV(bind_on_enter=True)
+        f = KV_f(WidgetCapture.enter_callback_at_end_reinit)
         w = WidgetCapture()
         f(w)
 
@@ -1818,7 +1843,7 @@ class TestCaptureAutoCompiler(TestBase):
         f = KV_f(WidgetCapture.exit_var_overwrite24)
 
     def test_exit_callbacks_at_end(self):
-        KV_f = KV(bind_on_enter=False, exec_rules_after_binding=False)
+        KV_f = KV(bind_on_enter=False)
         f = KV_f(WidgetCapture.exit_callback_at_end)
         w = WidgetCapture()
         f(w)
@@ -1831,8 +1856,8 @@ class TestCaptureAutoCompiler(TestBase):
 
         remove_kvc(WidgetCapture.exit_callback_at_end)
 
-        KV_f = KV(bind_on_enter=False, exec_rules_after_binding=True)
-        f = KV_f(WidgetCapture.exit_callback_at_end)
+        KV_f = KV(bind_on_enter=False)
+        f = KV_f(WidgetCapture.exit_callback_at_end_reinit)
         w = WidgetCapture()
         f(w)
 
@@ -5269,6 +5294,7 @@ class MyWidget(Widget):
 '''
 
 
+@skip_cython
 @skip_py2_decorator
 class TestCythonKV(TestBase):
 
@@ -5329,6 +5355,7 @@ class TestCythonKV(TestBase):
         shutil.rmtree(self.cython_path, ignore_errors=True)
 
 
+@skip_cython
 @skip_py2_decorator
 class TestCythonKVDefault(TestBase):
 
@@ -5449,6 +5476,7 @@ class PyinstallerKVBase(TestBase):
             ignore_errors=True)
 
 
+@skip_pyinstaller
 @skip_py2_non_win
 class TestPyinstallerKV(PyinstallerKVBase):
 
@@ -5456,6 +5484,7 @@ class TestPyinstallerKV(PyinstallerKVBase):
         self.do_packaging()
 
 
+@skip_pyinstaller
 @skip_py2_non_win
 class TestPyinstallerKVCache(PyinstallerKVBase):
 
