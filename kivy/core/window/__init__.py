@@ -631,7 +631,7 @@ class WindowBase(EventDispatcher):
     Will return 0 if not on mobile platform or if IME is not active.
 
     .. note:: This property returns 0 with SDL2 on Android, but setting
-              Window.softinput_mode does works.
+              Window.softinput_mode does work.
 
     .. versionadded:: 1.9.0
 
