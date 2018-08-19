@@ -10,8 +10,9 @@ Create a package for IOS
 
 The overall process for creating a package for IOS can be explained in 4 steps:
 
-#. Compile python + modules for IOS
-#. Create an Xcode project and link your source code
+#. Compile the Distribution (python + modules for IOS)
+#. Create an Xcode project (and link your source code)
+#. Update the Xcode project
 #. Customize
 
 Prerequisites
@@ -78,8 +79,8 @@ Then click on `Play`, and enjoy.
     the `<title>-ios/YourApp` directory. Don't make changes in the -ios
     directory directly.
 
-Updating an Xcode project
--------------------------
+Update the Xcode project
+------------------------
 
 Let's say you want to add numpy to your project but you did not compile it
 prior to creating your XCode project. First, ensure it is built::
