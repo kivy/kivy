@@ -291,8 +291,8 @@ after_success:
           chmod 600 ~/.ssh/id_rsa;
           echo -e "Host $SERVER_IP\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
           echo "[$(echo $DOC_VERSIONS|tr ' ' ', '|sed -s 's/\([^,]\+\)/"\1"/g')]" > versions.json
-          rsync --force -e "ssh -p 2457" versions.json root@$SERVER_IP:/web/docs/;
-          rsync --delete --force -r -e "ssh -p 2457" ./doc/build/html/ root@$SERVER_IP:/web/docs/$version;
+          rsync --force -e "ssh -p 2457" versions.json root@$SERVER_IP:/web/doc/;
+          rsync --delete --force -r -e "ssh -p 2457" ./doc/build/html/ root@$SERVER_IP:/web/doc/$version;
         fi;
       done;
     fi;
