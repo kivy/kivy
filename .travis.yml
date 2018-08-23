@@ -290,7 +290,7 @@ after_success:
           openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
           chmod 600 ~/.ssh/id_rsa;
           echo -e "Host $SERVER_IP\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
-          echo "[$(echo $DOC_VERSIONS|tr ' ' ', '|sed -s 's/\([^,]\+\)/"\1"/g')]" > versions.json
+          echo "[$(echo $DOC_VERSIONS|tr ' ' ', '|sed -s 's/\([^,]\+\)/"\1"/g')]" > versions.json;
           rsync --force -e "ssh -p 2457" versions.json root@$SERVER_IP:/web/doc/;
           rsync --delete --force -r -e "ssh -p 2457" ./doc/build/html/ root@$SERVER_IP:/web/doc/$version;
         fi;
