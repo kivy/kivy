@@ -437,6 +437,28 @@ class Widget(WidgetBase):
             return False
         return True
 
+    def __contains__(self, obj):
+        '''
+        Reference:
+            collide_widget(wid),collide_point(x,y)
+
+        .. code-block:: python
+
+            >>> wid = Widget(size=(50, 50))
+            >>> wid2 = Widget(size=(50, 50), pos=(25, 25))
+            >>> wid2 in wid
+            True
+            >>> (60,60) in wid2
+            True
+            >>> [60,60] in wid
+            False
+        '''
+        if isinstance(obj, Widget):
+            return self.collide_widget(obj)
+        else:
+            return self.collide_point(*obj)
+
+
     #
     # Default event handlers
     #
