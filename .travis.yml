@@ -3,7 +3,7 @@ env:
     - KIVY_USE_SETUPTOOLS=1
     - KIVY_SPLIT_EXAMPLES=1
     - SERVER_IP=159.203.106.198
-    - DOC_VERSIONS="stable-1.9.0 stable-1.10 stable master"
+    - DOC_VERSIONS="stable master"
 matrix:
   fast_finish: true
   include:
