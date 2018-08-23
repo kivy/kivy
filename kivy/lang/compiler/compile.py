@@ -1,5 +1,5 @@
 '''
-KV Compilation
+kv Compilation
 ===============
 '''
 
@@ -12,31 +12,31 @@ import inspect
 from inspect import ismethod as _inspect_ismethod, \
     isfunction as _inspect_isfunction
 
-from kivy.lang.compiler.src_gen import KVCompiler
-from kivy.lang.compiler.ast_parse import ParseKVFunctionTransformer, \
-    ParseKVBindTransformer, generate_source, KVCompilerParserException, \
+from kivy.lang.compiler.src_gen import KvCompiler
+from kivy.lang.compiler.ast_parse import ParseKvFunctionTransformer, \
+    ParseKvBindTransformer, generate_source, KvCompilerParserException, \
     ASTStrPlaceholder, verify_readonly_nodes
 from kivy.lang.compiler.runtime import load_kvc_from_file, save_kvc_to_file
-from kivy.lang.compiler.ast_parse import KVException
+from kivy.lang.compiler.ast_parse import KvException
 
-__all__ = ('KV', 'KV_apply_manual', 'patch_inspect', 'unpatch_inspect')
+__all__ = ('kv', 'kv_apply_manual', 'patch_inspect', 'unpatch_inspect')
 # XXX: https://bugs.python.org/issue31772
 
 
-def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
+def kv(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
        captures_are_readonly=True):
     '''
-    Decorator factory function that returns a decorator that compiles a KV
+    Decorator factory function that returns a decorator that compiles a kv
     containing function. Typical usage::
 
         class MyWidget(Widget):
-            @KV()  # notice that it MUST be called
+            @kv()  # notice that it MUST be called
             def apply_kv(self):
-                with KVCtx():
+                with KvContext():
                     self.x @= self.y + 256
 
     :param kv_syntax: The binding syntax to support. Default: `"minimal"`
-        With `"minimal"`, it's similar to traditional KV, and binds rules e.g.
+        With `"minimal"`, it's similar to traditional kv, and binds rules e.g.
         `self.x @= self.widget.y` and `self.dict[self.name]`. When None, it
         binds to a expanded set of syntax, e.g.
         `(self.widget + self.widget2).width`.
@@ -66,9 +66,9 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
 
         .. warning::
 
-            If all binding widgets are using proxies, no one will keep the KV
+            If all binding widgets are using proxies, no one will keep the kv
             rules alive, and the rules will not be executed once garbage
-            collection runs. You can save a reference to the KVCtx, and that
+            collection runs. You can save a reference to the KvContext, and that
             will keep that context alive as long as the context is held.
     :param rebind: glob pattern(s) describing the intermediate widgets that
         should be rebound when they change. Defaults to `True`.
@@ -83,12 +83,12 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
         This is used in rule e.g. `self.x @= self.widget.x`, if `self.widget`
         is rebound, then when `self.widget` changes, the rulee rebind to `x`
         belonging to the new widget stored in `self.widget`.
-    :param bind_on_enter: Where KV binding should occur for the context.
+    :param bind_on_enter: Where kv binding should occur for the context.
         Defaults to False.
 
         For a rule such as::
 
-            with KVCtx():
+            with KvContext():
                 ...
 
         binding can occur when the context is entered or exited. When
@@ -105,17 +105,17 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
     :return: The compiled function associated with the original function,
         or the original function if there was nothing to compile.
 
-    Once a function is decorated, calling KV again on it will not recompile
+    Once a function is decorated, calling kv again on it will not recompile
     the function, unless the source or the compile options changed. This means
-    calling `KV()(f)` will not re-compile `f` (and it shouldn't need to).
+    calling `kv()(f)` will not re-compile `f` (and it shouldn't need to).
     '''
     compile_flags = (
         kv_syntax, proxy, rebind, bind_on_enter, captures_are_readonly)
 
-    def KV_decorate(func):
+    def kv_decorate(func):
         if func.__closure__ or '<locals>' in func.__qualname__:
-            raise KVException(
-                'The KV decorator cannot be used on a function that is a '
+            raise KvException(
+                'The kv decorator cannot be used on a function that is a '
                 'closure or a local. It must be defined as a global function,'
                 'such as a class method or global function in a module')
         # no lambda
@@ -126,19 +126,19 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
             f._kv_src_func_globals = func.__globals__
             return f
 
-        compiler = KVCompiler()
+        compiler = KvCompiler()
         inspect.getfile(func)
         src = textwrap.dedent(inspect.getsource(func))
 
-        transformer = ParseKVFunctionTransformer(kv_syntax=kv_syntax)
+        transformer = ParseKvFunctionTransformer(kv_syntax=kv_syntax)
         graph = ast.parse(src)
-        # remove the KV decorator
+        # remove the kv decorator
         func_def = graph.body[0]
         assert isinstance(func_def, ast.FunctionDef)
         if len(func_def.decorator_list) > 1:
-            raise KVCompilerParserException(
-                'KV decorated functions can have only one decorator - a '
-                'single KV decorator')
+            raise KvCompilerParserException(
+                'Kv decorated functions can have only one decorator - a '
+                'single kv decorator')
         del func_def.decorator_list[:]
 
         copied_graph = None
@@ -149,7 +149,7 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
         if not transformer.context_infos:
             save_kvc_to_file(
                 func,
-                '# There was no KV context or rules, the original function '
+                '# There was no kv context or rules, the original function '
                 'will be returned instead.\n{} = "use_original"\n'.
                 format(func.__name__))
             return func
@@ -189,8 +189,8 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
 
         update_node = ASTStrPlaceholder()
         imports = [
-            'from kivy.lang.compiler.kv_context import KVCtx as __KVCtx, '
-            'KVRule as __KVRule']
+            'from kivy.lang.compiler.kv_context import KvContext as __KvContext, '
+            'KvRule as __KvRule']
         if compiler.used_canvas_rule:
             imports.append(
                 'from kivy.lang.compiler.runtime import add_graphics_callback '
@@ -222,15 +222,15 @@ def KV(kv_syntax='minimal', proxy=False, rebind=True, bind_on_enter=False,
         f._kv_src_func_globals = func.__globals__
         return f
 
-    return KV_decorate
+    return kv_decorate
 
 
-def KV_apply_manual(
+def kv_apply_manual(
         ctx, callback, local_vars, global_vars, kv_syntax='minimal',
         proxy=False, rebind=True):
     '''
-    Similar to :func:`KV`, except that is is called manually to compile
-    bindings. Similalrly to :func:`KV`, the bindings are compiled once, and are
+    Similar to :func:`kv`, except that is is called manually to compile
+    bindings. Similalrly to :func:`kv`, the bindings are compiled once, and are
     only recompiled if any of the compile options or source code file
     containing the callback is modified.
 
@@ -239,40 +239,40 @@ def KV_apply_manual(
 
     Typical usage::
 
-        class ManualKVWidget(Widget):
+        class ManualkvWidget(Widget):
 
             def apply_kv(self):
-                ctx = KVParserCtx()
+                ctx = KvParserContext()
 
                 def manage_val(*largs):
                     self.x = self.y + 512
                 manage_val()
 
                 # will bind to `self.y`.
-                rule = KVParserRule('self.y + 512')
+                rule = KvParserRule('self.y + 512')
                 rule.callback = manage_val
                 rule.callback_name = manage_val.__name__
                 ctx.add_rule(rule)
 
-                KV_apply_manual(ctx, self.apply_kv, locals(), globals())
+                kv_apply_manual(ctx, self.apply_kv, locals(), globals())
 
-    :param ctx: a `KVParserCtx` used for parsing the rules.
+    :param ctx: a `KvParserContext` used for parsing the rules.
     :param callback: The callback to call when any of the bindings change.
     :param local_vars: `locals()` of the function where the bindings occur.
     :param global_vars: `globals()` of the function where the bindings occur.
-    :param kv_syntax: See :func:`KV`.
-    :param proxy: See :func:`KV`.
-    :param rebind: See :func:`KV`.
+    :param kv_syntax: See :func:`kv`.
+    :param proxy: See :func:`kv`.
+    :param rebind: See :func:`kv`.
     :return: None - it executes the compiled rule in the provided `locals()`,
         `globals()` environment.
     '''
     ctx_name = '__kv_ctx'
-    compiler = KVCompiler()
+    compiler = KvCompiler()
 
     mod, f = load_kvc_from_file(callback, '__kv_manual_wrapper', 'manual')
 
     if f is None:
-        transformer = ParseKVBindTransformer(kv_syntax)
+        transformer = ParseKvBindTransformer(kv_syntax)
         ctx.set_kv_binding_ast_transformer(transformer)
 
         ctx.parse_rules()

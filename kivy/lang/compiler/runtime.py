@@ -1,5 +1,5 @@
 '''
-KV Compiler Runtime Functions
+Kv Compiler Runtime Functions
 ==============================
 
 Exports functions used by the compiled code at runtime.
@@ -91,7 +91,7 @@ def process_graphics_callbacks():
 
 def get_kvc_filename(func, flags=''):
     '''Returns the `kvc` file associated with the function. Specifically,
-    it's the filename where the function's compiled KV code is stored.
+    it's the filename where the function's compiled kv code is stored.
 
     The file may not exist, if it has not been compiled yet.'''
     func_name = func.__qualname__
@@ -119,7 +119,7 @@ def get_cache_kvc_filenames():
 def load_kvc_from_file(
         func, target_func_name=None, flags='', compile_flags=()):
     '''
-    Loads the compiled KV function from the kvc file associated with the
+    Loads the compiled kv function from the kvc file associated with the
     function.
 
     This is a internal function, with non-public API.

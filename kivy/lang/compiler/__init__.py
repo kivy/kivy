@@ -1,11 +1,11 @@
 '''
-KV Compiler
+Kv Compiler
 ============
 '''
 
 
-from kivy.lang.compiler.kv_context import KVCtx, KVRule
-from kivy.lang.compiler.kv import KV
-from kivy.lang.compiler.ast_parse import KVException
+from kivy.lang.compiler.kv_context import KvContext, KvRule
+from kivy.lang.compiler.compile import kv
+from kivy.lang.compiler.ast_parse import KvException
 
-__all__ = ('KVCtx', 'KVRule', 'KV', 'KVException')
+__all__ = ('KvContext', 'KvRule', 'kv', 'KvException')

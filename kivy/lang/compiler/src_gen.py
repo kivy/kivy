@@ -1,8 +1,8 @@
 '''
-KV Compiler Source Code Generation
+Kv Compiler Source Code Generation
 ====================================
 
-Generates the compiled KV source code.
+Generates the compiled kv source code.
 '''
 
 import ast
@@ -13,10 +13,10 @@ from kivy.lang.compiler.ast_parse import generate_source, BindSubGraph, \
     ASTBindNodeRef
 from kivy.lang.compiler.utils import StringPool
 
-__all__ = ('KVCompiler', )
+__all__ = ('KvCompiler', )
 
 
-class KVCompiler(object):
+class KvCompiler(object):
     '''
     The compiler that generates all the source code.
 
@@ -50,7 +50,7 @@ class KVCompiler(object):
     used_weak_ref = False
 
     def __init__(self, **kwargs):
-        super(KVCompiler, self).__init__(**kwargs)
+        super(KvCompiler, self).__init__(**kwargs)
         self.rebind_callback_pool = StringPool(prefix='__kv_rebind_callback')
         self.leaf_callback_pool = StringPool(prefix='__kv_leaf_callback')
         self.leaf_canvas_callback_pool = StringPool(
@@ -550,7 +550,7 @@ class KVCompiler(object):
                 else:
                     delay_arg = '{}'.format(rule.delay)
 
-                rule_creation.append('{} = __KVRule()'.format(name))
+                rule_creation.append('{} = __KvRule()'.format(name))
                 rule_creation.append('{}.delay = {}'.format(name, delay_arg))
                 if rule.name:
                     rule_creation.append(

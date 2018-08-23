@@ -14,12 +14,12 @@ import importlib
 
 from kivy.compat import PY2
 if not PY2:
-    from kivy.lang.compiler.kv_context import KVParserRule, KVParserCtx
-    from kivy.lang.compiler.kv import KV_apply_manual
+    from kivy.lang.compiler.kv_context import KvParserRule, KvParserContext
+    from kivy.lang.compiler.compile import kv_apply_manual
     from kivy.lang.compiler.utils import StringPool
-    from kivy.lang.compiler import KV, KVCtx, KVRule
-    from kivy.lang.compiler.ast_parse import KVException, \
-        KVCompilerParserException
+    from kivy.lang.compiler import kv, KvContext, KvRule
+    from kivy.lang.compiler.ast_parse import KvException, \
+        KvCompilerParserException
     from kivy.lang.compiler.runtime import get_kvc_filename, \
         process_graphics_callbacks, clear_kvc_cache
 from kivy.uix.widget import Widget
@@ -176,30 +176,30 @@ class BaseWidget(Widget):
 class SimpleWidget(BaseWidget):
 
     def simple_rule(self):
-        with KVCtx():
+        with KvContext():
             self.value @= self.width + 42
 
     def simple_rule2(self):
-        with KVCtx():
+        with KvContext():
             self.value @= self.width + 43
 
     def simple_rule3(self):
-        with KVCtx():
+        with KvContext():
             self.value @= self.width + 44
 
     def simple_rule4(self):
-        with KVCtx():
+        with KvContext():
             self.value @= self.width + 44
 
     def simple_rule5(self):
-        with KVCtx():
+        with KvContext():
             self.value @= self.width + 44
 
 
 class SimpleWidget2(BaseWidget):
 
     def simple_rule4(self):
-        with KVCtx():
+        with KvContext():
             self.value @= self.width + 44
 
 
@@ -207,53 +207,53 @@ class SimpleWidget2(BaseWidget):
 class TestCompilationFilesAutoCompiler(TestBase):
 
     def test_func_vs_method(self):
-        KV_f = KV()
+        kv_f = kv()
         w = SimpleWidget()
 
         self.assertFalse(exists(get_kvc_filename(SimpleWidget.simple_rule)))
         self.assertFalse(exists(get_kvc_filename(w.simple_rule)))
 
-        f_cls = KV_f(SimpleWidget.simple_rule)
+        f_cls = kv_f(SimpleWidget.simple_rule)
         self.assertTrue(exists(get_kvc_filename(SimpleWidget.simple_rule)))
         t = f_time(get_kvc_filename(SimpleWidget.simple_rule))
 
         # file should not be recreated
-        f = KV_f(w.simple_rule)
+        f = kv_f(w.simple_rule)
         self.assertTrue(exists(get_kvc_filename(w.simple_rule)))
         self.assertEqual(t, f_time(get_kvc_filename(w.simple_rule)))
 
     def test_single_compilation(self):
-        KV_f = KV()
+        kv_f = kv()
         w = SimpleWidget()
         w2 = SimpleWidget()
 
         self.assertFalse(exists(get_kvc_filename(w.simple_rule2)))
-        f = KV_f(w.simple_rule2)
+        f = kv_f(w.simple_rule2)
         self.assertTrue(exists(get_kvc_filename(w.simple_rule2)))
         t = f_time(get_kvc_filename(w.simple_rule2))
 
-        f2 = KV_f(w.simple_rule2)
+        f2 = kv_f(w.simple_rule2)
         self.assertIs(f, f2)
         self.assertEqual(t, f_time(get_kvc_filename(w.simple_rule2)))
 
-        f2 = KV_f(w2.simple_rule2)
+        f2 = kv_f(w2.simple_rule2)
         self.assertEqual(f, f2)
         self.assertEqual(t, f_time(get_kvc_filename(w2.simple_rule2)))
 
     def test_compile_flags_compilation(self):
-        KV_f = KV(proxy=False)
+        kv_f = kv(proxy=False)
         self.assertFalse(exists(get_kvc_filename(SimpleWidget.simple_rule5)))
-        f = KV_f(SimpleWidget.simple_rule5)
+        f = kv_f(SimpleWidget.simple_rule5)
         self.assertTrue(exists(get_kvc_filename(SimpleWidget.simple_rule5)))
         t = f_time(get_kvc_filename(SimpleWidget.simple_rule5))
 
-        f2 = KV_f(SimpleWidget.simple_rule5)
+        f2 = kv_f(SimpleWidget.simple_rule5)
         self.assertIs(f, f2)
         self.assertEqual(
             t, f_time(get_kvc_filename(SimpleWidget.simple_rule5)))
 
-        KV_f = KV(proxy=True)
-        f3 = KV_f(SimpleWidget.simple_rule5)
+        kv_f = kv(proxy=True)
+        f3 = kv_f(SimpleWidget.simple_rule5)
         self.assertNotEqual(f3, f2)
         self.assertGreater(
             f_time(get_kvc_filename(SimpleWidget.simple_rule5)), t)
@@ -263,18 +263,18 @@ class TestCompilationFilesAutoCompiler(TestBase):
         pass
 
     def test_func_uniqeness(self):
-        KV_f = KV()
+        kv_f = kv()
 
         self.assertFalse(exists(get_kvc_filename(SimpleWidget.simple_rule3)))
-        f = KV_f(SimpleWidget.simple_rule3)
+        f = kv_f(SimpleWidget.simple_rule3)
         self.assertTrue(exists(get_kvc_filename(SimpleWidget.simple_rule3)))
 
         self.assertFalse(exists(get_kvc_filename(SimpleWidget.simple_rule4)))
-        f = KV_f(SimpleWidget.simple_rule4)
+        f = kv_f(SimpleWidget.simple_rule4)
         self.assertTrue(exists(get_kvc_filename(SimpleWidget.simple_rule4)))
 
         self.assertFalse(exists(get_kvc_filename(SimpleWidget2.simple_rule4)))
-        f = KV_f(SimpleWidget2.simple_rule4)
+        f = kv_f(SimpleWidget2.simple_rule4)
         self.assertTrue(exists(get_kvc_filename(SimpleWidget2.simple_rule4)))
 
 
@@ -284,7 +284,7 @@ rule_with_globals_duration = 198
 class WidgetWithGlobals(BaseWidget):
 
     def rule_with_globals(self):
-        with KVCtx():
+        with KvContext():
             if 'rule_with_globals_duration1' in globals():
                 val = globals()['rule_with_globals_duration1']
             else:
@@ -298,8 +298,8 @@ class TestGlobalsAutoCompiler(TestBase):
 
     def test_global_capturing_and_modification(self):
         global rule_with_globals_duration
-        KV_f = KV()
-        f_static = KV_f(WidgetWithGlobals.rule_with_globals)
+        kv_f = kv()
+        f_static = kv_f(WidgetWithGlobals.rule_with_globals)
 
         w1 = WidgetWithGlobals()
         w2 = WidgetWithGlobals()
@@ -362,8 +362,8 @@ class TestGlobalsAutoCompiler(TestBase):
         self.assertEqual(w4.value, 98 + 125)
 
     def test_function_name(self):
-        KV_f = KV()
-        f_static = KV_f(WidgetWithGlobals.rule_with_globals)
+        kv_f = kv()
+        f_static = kv_f(WidgetWithGlobals.rule_with_globals)
 
         self.assertEqual(
             f_static.__name__, WidgetWithGlobals.rule_with_globals.__name__)
@@ -387,7 +387,7 @@ class WidgetCapture(BaseWidget):
         self.widget4.width = 40
 
         w = self.widget
-        with KVCtx():
+        with KvContext():
             w = self.widget2
             self.value @= w.width
             w = self.widget3
@@ -396,77 +396,77 @@ class WidgetCapture(BaseWidget):
     def rule_with_capture_on_enter_not_exist(self):
         self.widget = Widget()
 
-        with KVCtx():
+        with KvContext():
             w = self.widget
             self.value @= w.width
 
     def enter_not_exist(self):
         self.widget = Widget()
 
-        with KVCtx():
+        with KvContext():
             w = self.widget
             self.value @= w.width
 
     def enter_var_overwrite(self):
         w = Widget()
-        with KVCtx():
+        with KvContext():
             w = self.widget
             self.value @= w.width
 
     def enter_var_overwrite2(self):
         w = Widget()
-        with KVCtx():
+        with KvContext():
             self.value @= w.width
             w = self.widget
 
     def enter_var_overwrite3(self):
         w = Widget()
-        with KVCtx():
+        with KvContext():
             self.value @= w.width
         w = self.widget
 
     def enter_var_overwrite4(self):
         w = Widget()
-        with KVCtx():
+        with KvContext():
             w = self.widget
             q = w
             self.value @= q.width
 
     def enter_var_overwrite5(self):
         w = Widget()
-        with KVCtx():
+        with KvContext():
             w = self.widget
-            with KVRule():
+            with KvRule():
                 q = w
                 q = None or w
                 self.value @= q.width
 
     def enter_var_overwrite_005(self):
         self.widget = w = Widget()
-        with KVCtx():
-            with KVRule():
+        with KvContext():
+            with KvRule():
                 q = w
                 q = None or w
                 self.value @= q.width
 
     def enter_var_overwrite6(self):
         w = Widget()
-        with KVCtx():
+        with KvContext():
             q = 55
             self.value @= w.width + q
 
     def enter_var_overwrite7(self):
         self.widget = w = Widget()
         q = 55
-        with KVCtx():
+        with KvContext():
             q = 12
             self.value @= w.width + q
 
     def enter_var_overwrite8(self):
         self.widget = w = Widget()
         q = 55
-        with KVCtx():
-            with KVRule():
+        with KvContext():
+            with KvRule():
                 q = 12
                 self.value @= w.width + q
 
@@ -474,8 +474,8 @@ class WidgetCapture(BaseWidget):
         self.widget = w = Widget()
         self.widget2 = w2 = Widget()
         q = 55
-        with KVCtx():
-            with KVRule(w2.width):
+        with KvContext():
+            with KvRule(w2.width):
                 w2 = Widget()
                 self.value @= w.width + q
 
@@ -483,9 +483,9 @@ class WidgetCapture(BaseWidget):
         self.widget = w = Widget()
         w2 = Widget()
         q = 55
-        with KVCtx():
+        with KvContext():
             w2 = Widget()
-            with KVRule(w2.width):
+            with KvRule(w2.width):
                 w2 = Widget()
                 self.value @= w.width + q
 
@@ -493,8 +493,8 @@ class WidgetCapture(BaseWidget):
         self.widget = w = Widget()
         w2 = Widget()
         q = 55
-        with KVCtx():
-            with KVRule(w2.width):
+        with KvContext():
+            with KvRule(w2.width):
                 x = w2
                 self.value @= w.width + q
             w2 = Widget()
@@ -503,61 +503,61 @@ class WidgetCapture(BaseWidget):
         self.widget = w = Widget()
         w2 = Widget()
         q = 55
-        with KVCtx():
+        with KvContext():
             w2 = Widget()
-            with KVRule(w2.width):
+            with KvRule(w2.width):
                 x = w2
                 self.value @= w.width + q
 
     def enter_var_overwrite10(self):
         self.widget = w = Widget()
-        with KVCtx():
-            with KVRule(w.width):
+        with KvContext():
+            with KvRule(w.width):
                 self.widget2 = w = Widget()
 
     def enter_var_overwrite_010(self):
         self.widget = w = Widget()
-        with KVCtx():
-            with KVRule(w.width):
+        with KvContext():
+            with KvRule(w.width):
                 self.widget3 = w
                 self.widget2 = w = Widget()
 
     def enter_var_overwrite11(self):
         self.widget = w = Widget()
         q = 55
-        with KVCtx():
+        with KvContext():
             self.value @= w.width + q
             q = 27
 
     def enter_var_overwrite12(self):
         w = Widget()
         q = 55
-        with KVCtx():
+        with KvContext():
             q = 12
-            with KVRule(w.width):
+            with KvRule(w.width):
                 q += 55
 
     def enter_var_overwrite13(self):
         w = Widget()
         q = 55
-        with KVCtx():
-            with KVRule(w.width):
+        with KvContext():
+            with KvRule(w.width):
                 q += 55
                 q = 12
 
     def enter_var_overwrite14(self):
         w = Widget()
         q = 55
-        with KVCtx():
-            with KVRule(w.width):
+        with KvContext():
+            with KvRule(w.width):
                 q += 55
             q = 12
 
     def enter_var_overwrite15(self):
         self.widget = w = Widget()
         q = 55
-        with KVCtx():
-            with KVRule(w.width):
+        with KvContext():
+            with KvRule(w.width):
                 q += 22
                 self.value = q
 
@@ -568,9 +568,9 @@ class WidgetCapture(BaseWidget):
         q = 54
         e = 34
         r = 78
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.height + q
-            with KVCtx():
+            with KvContext():
                 r = 90
                 self.value @= self.widget2.height + e
             self.value @= self.widget3.height + r
@@ -582,10 +582,10 @@ class WidgetCapture(BaseWidget):
         q = 54
         e = 34
         r = 78
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.height + q
             r = 90
-            with KVCtx():
+            with KvContext():
                 self.value @= self.widget2.height + e
             self.value @= self.widget3.height + r
 
@@ -599,60 +599,60 @@ class WidgetCapture(BaseWidget):
         q = 54
         e = 34
         r = 78
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.height + q
-            with KVCtx():
+            with KvContext():
                 self.value @= self.widget2.height + e
             e = 90
             self.value @= self.widget3.height + r
 
     def enter_var_overwrite19(self):
         self.widget = w = Widget()
-        with KVCtx():
-            with KVRule(self.width):
+        with KvContext():
+            with KvRule(self.width):
                 w.width += self.width
 
     def enter_var_overwrite20(self):
         w = Widget()
-        with KVCtx():
+        with KvContext():
             w @= w.width
 
     def enter_var_overwrite21(self):
         w = Widget()
-        with KVCtx():
-            with KVRule():
+        with KvContext():
+            with KvRule():
                 w @= w.width
 
     def enter_var_overwrite22(self):
         self.widget = w = Widget()
-        with KVCtx():
-            with KVRule():
+        with KvContext():
+            with KvRule():
                 self.width @= self.widget.width
                 w = w.width
 
     def enter_var_overwrite23(self):
         self.widget = w = Widget()
-        with KVCtx():
-            with KVCtx():
-                with KVCtx():
+        with KvContext():
+            with KvContext():
+                with KvContext():
                     w = w.width
 
     def enter_callback_at_end(self):
-        with KVCtx():
-            with KVRule():
+        with KvContext():
+            with KvRule():
                 self.count += 1
                 self.width @= self.height
 
     def enter_callback_at_end_reinit(self):
-        with KVCtx(reinit_after=True):
-            with KVRule():
+        with KvContext(reinit_after=True):
+            with KvRule():
                 self.count += 1
                 self.width @= self.height
 
     def enter_del_in_rule(self):
         x = 22
-        with KVCtx():
-            with KVRule():
+        with KvContext():
+            with KvRule():
                 self.width @= self.height
                 del x
 
@@ -667,7 +667,7 @@ class WidgetCapture(BaseWidget):
         self.widget4.width = 40
 
         w = self.widget
-        with KVCtx():
+        with KvContext():
             w = self.widget2
             self.value @= w.width
             w = self.widget3
@@ -676,7 +676,7 @@ class WidgetCapture(BaseWidget):
     def rule_with_capture_on_exit_not_exist(self):
         self.widget = Widget()
 
-        with KVCtx():
+        with KvContext():
             w = self.widget
             self.value @= w.width
             del w
@@ -684,40 +684,40 @@ class WidgetCapture(BaseWidget):
     def exit_not_exist(self):
         self.widget = Widget()
 
-        with KVCtx():
+        with KvContext():
             w = self.widget
             self.value @= w.width
             del w
 
     def exit_var_overwrite(self):
         w = Widget()
-        with KVCtx():
+        with KvContext():
             w = self.widget
             self.value @= w.width
 
     def exit_var_overwrite2(self):
         w = Widget()
-        with KVCtx():
+        with KvContext():
             self.value @= w.width
             w = self.widget
 
     def exit_var_overwrite3(self):
         w = Widget()
-        with KVCtx():
+        with KvContext():
             self.value @= w.width
         w = self.widget
 
     def exit_var_overwrite4(self):
         w = Widget()
-        with KVCtx():
+        with KvContext():
             q = w
             self.value @= q.width
             w = self.widget
 
     def exit_var_overwrite5(self):
         w = Widget()
-        with KVCtx():
-            with KVRule():
+        with KvContext():
+            with KvRule():
                 q = w
                 q = None or w
                 self.value @= q.width
@@ -725,8 +725,8 @@ class WidgetCapture(BaseWidget):
 
     def exit_var_overwrite_005(self):
         self.widget = w = Widget()
-        with KVCtx():
-            with KVRule():
+        with KvContext():
+            with KvRule():
                 q = w
                 q = None or w
                 self.value @= q.width
@@ -734,7 +734,7 @@ class WidgetCapture(BaseWidget):
 
     def exit_var_overwrite6(self):
         w = Widget()
-        with KVCtx():
+        with KvContext():
             q = 55
             self.value @= w.width + q
             q = 56
@@ -742,7 +742,7 @@ class WidgetCapture(BaseWidget):
     def exit_var_overwrite7(self):
         self.widget = w = Widget()
         q = 55
-        with KVCtx():
+        with KvContext():
             q = 12
             self.value @= w.width + q
             q = 56
@@ -750,16 +750,16 @@ class WidgetCapture(BaseWidget):
     def exit_var_overwrite8(self):
         self.widget = w = Widget()
         q = 55
-        with KVCtx():
-            with KVRule():
+        with KvContext():
+            with KvRule():
                 self.value @= w.width + q
                 q = 12
 
     def exit_var_overwrite_008(self):
         self.widget = w = Widget()
         q = 55
-        with KVCtx():
-            with KVRule():
+        with KvContext():
+            with KvRule():
                 q = 12
                 self.value @= w.width + q
 
@@ -768,8 +768,8 @@ class WidgetCapture(BaseWidget):
         self.widget2 = w2 = Widget()
         q = 55
         w2 = Widget()
-        with KVCtx():
-            with KVRule(w2.width):
+        with KvContext():
+            with KvRule(w2.width):
                 self.count += 1
                 self.value @= w.width + q
 
@@ -777,9 +777,9 @@ class WidgetCapture(BaseWidget):
         self.widget = w = Widget()
         self.widget2 = w2 = Widget()
         q = 55
-        with KVCtx():
+        with KvContext():
             w2 = Widget()
-            with KVRule(w2.width):
+            with KvRule(w2.width):
                 self.count += 1
                 self.value @= w.width + q
 
@@ -787,8 +787,8 @@ class WidgetCapture(BaseWidget):
         self.widget = w = Widget()
         self.widget2 = w2 = Widget()
         q = 55
-        with KVCtx():
-            with KVRule(w2.width):
+        with KvContext():
+            with KvRule(w2.width):
                 self.count += 1
                 w2 = Widget()
                 self.value @= w.width + q
@@ -797,8 +797,8 @@ class WidgetCapture(BaseWidget):
         self.widget = w = Widget()
         self.widget2 = w2 = Widget()
         q = 55
-        with KVCtx():
-            with KVRule(w2.width):
+        with KvContext():
+            with KvRule(w2.width):
                 self.count += 1
                 self.value @= w.width + q
                 w2 = Widget()
@@ -807,8 +807,8 @@ class WidgetCapture(BaseWidget):
         self.widget = w = Widget()
         self.widget2 = w2 = Widget()
         q = 55
-        with KVCtx():
-            with KVRule(w2.width):
+        with KvContext():
+            with KvRule(w2.width):
                 self.count += 1
                 self.value @= w.width + q
             w2 = Widget()
@@ -817,8 +817,8 @@ class WidgetCapture(BaseWidget):
         self.widget = w = Widget()
         self.widget2 = w2 = Widget()
         q = 55
-        with KVCtx():
-            with KVRule(w2.width):
+        with KvContext():
+            with KvRule(w2.width):
                 w2 = Widget()
                 x = w2
                 self.value @= w.width + q
@@ -828,53 +828,53 @@ class WidgetCapture(BaseWidget):
         self.widget = w = Widget()
         self.widget2 = w2 = Widget()
         q = 55
-        with KVCtx():
-            with KVRule(w2.width):
+        with KvContext():
+            with KvRule(w2.width):
                 x = w2
                 self.value @= w.width + q
             w2 = Widget()
 
     def exit_var_overwrite10(self):
         self.widget = w = Widget()
-        with KVCtx():
-            with KVRule(w.width):
+        with KvContext():
+            with KvRule(w.width):
                 self.widget2 = w = Widget()
 
     def exit_var_overwrite_010(self):
         self.widget = w = Widget()
-        with KVCtx():
-            with KVRule(w.width):
+        with KvContext():
+            with KvRule(w.width):
                 self.widget3 = w
                 self.widget2 = w = Widget()
 
     def exit_var_overwrite11(self):
         self.widget = w = Widget()
         q = 55
-        with KVCtx():
+        with KvContext():
             self.value @= w.width + q
             q = 27
 
     def exit_var_overwrite12(self):
         w = Widget()
         q = 55
-        with KVCtx():
-            with KVRule(w.width):
+        with KvContext():
+            with KvRule(w.width):
                 q += 55
 
     def exit_var_overwrite13(self):
         w = Widget()
         q = 55
-        with KVCtx():
+        with KvContext():
             q += 55
-            with KVRule(w.width):
+            with KvRule(w.width):
                 x = q
 
     def exit_var_overwrite15(self):
         self.widget = w = Widget()
         q = 55
-        with KVCtx():
+        with KvContext():
             q += 22
-            with KVRule(w.width):
+            with KvRule(w.width):
                 self.value = q
 
     def exit_var_overwrite16(self):
@@ -884,9 +884,9 @@ class WidgetCapture(BaseWidget):
         q = 54
         e = 34
         r = 78
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.height + q
-            with KVCtx():
+            with KvContext():
                 q = 90
                 self.value @= self.widget2.height + e
             self.value @= self.widget3.height + r + q
@@ -898,10 +898,10 @@ class WidgetCapture(BaseWidget):
         q = 54
         e = 34
         r = 78
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.height + q
             q = 90
-            with KVCtx():
+            with KvContext():
                 self.value @= self.widget2.height + e
             self.value @= self.widget3.height + r + q
 
@@ -915,11 +915,11 @@ class WidgetCapture(BaseWidget):
         q = 54
         e = 34
         r = 78
-        with KVCtx():
+        with KvContext():
             q = 90
             self.value @= self.widget.height + q
             e = 97
-            with KVCtx():
+            with KvContext():
                 self.value @= self.widget2.height + e
             self.value @= self.widget3.height + r + q
 
@@ -930,73 +930,73 @@ class WidgetCapture(BaseWidget):
         q = 54
         e = 34
         r = 78
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.height + q
             self.value @= self.widget3.height + r + q
-            with KVCtx():
+            with KvContext():
                 self.value @= self.widget2.height + e + q
                 q = 90
 
     def exit_var_overwrite20(self):
         self.widget = w = Widget()
-        with KVCtx():
-            with KVRule(self.width):
+        with KvContext():
+            with KvRule(self.width):
                 w.width += self.width
 
     def exit_var_overwrite21(self):
         w = Widget()
-        with KVCtx():
+        with KvContext():
             w @= w.width
 
     def exit_var_overwrite22(self):
         w = Widget()
-        with KVCtx():
-            with KVRule():
+        with KvContext():
+            with KvRule():
                 w @= w.width
 
     def exit_var_overwrite23(self):
         self.widget = w = Widget()
-        with KVCtx():
-            with KVRule():
+        with KvContext():
+            with KvRule():
                 self.width @= self.widget.width
                 w = w.width
 
     def exit_var_overwrite24(self):
         self.widget = w = Widget()
-        with KVCtx():
-            with KVCtx():
-                with KVCtx():
+        with KvContext():
+            with KvContext():
+                with KvContext():
                     w = w.width
 
     def exit_callback_at_end(self):
-        with KVCtx():
-            with KVRule():
+        with KvContext():
+            with KvRule():
                 self.count += 1
                 self.width @= self.height
 
     def exit_callback_at_end_reinit(self):
-        with KVCtx(reinit_after=True):
-            with KVRule():
+        with KvContext(reinit_after=True):
+            with KvRule():
                 self.count += 1
                 self.width @= self.height
 
     def exit_del_in_rule(self):
         x = 22
-        with KVCtx():
-            with KVRule():
+        with KvContext():
+            with KvRule():
                 self.width @= self.height
                 del x
 
     def rule_with_capture_lambda(self):
         self.widget = Widget()
 
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.width + (lambda x: lambda y: 44)(12)(27)
 
     def rule_with_capture_list_comp(self):
         self.widget = Widget()
 
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.width + [
                 [x for z in [1]][0] for x in range(10)
                 for q in range(1) if True][3]
@@ -1004,7 +1004,7 @@ class WidgetCapture(BaseWidget):
     def rule_with_capture_set_comp(self):
         self.widget = Widget()
 
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.width + list(
                 {[x for z in [1]][0] * 0 for x in range(10)
                  for q in range(1) if True})[0]
@@ -1012,7 +1012,7 @@ class WidgetCapture(BaseWidget):
     def rule_with_capture_gen_comp(self):
         self.widget = Widget()
 
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.width + list(
                 [x for z in [1]][0] for x in range(10)
                 for q in range(1) if True)[3]
@@ -1020,7 +1020,7 @@ class WidgetCapture(BaseWidget):
     def rule_with_capture_dict_comp(self):
         self.widget = Widget()
 
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.width + {
                 [x for z in [1]][0]: [x for z in [1]][0]
                 for x in range(10) for q in range(1) if True}[3]
@@ -1028,7 +1028,7 @@ class WidgetCapture(BaseWidget):
     def do_exception_handler(self):
         # comprehensions
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             try:
                 pass
             except Exception as e:
@@ -1039,18 +1039,18 @@ class WidgetCapture(BaseWidget):
 @skip_py2_decorator
 class TestCaptureAutoCompiler(TestBase):
 
-    def get_KV(self, bind_on_enter=True, **kwargs):
-        KV_f_ro = KV(
+    def get_kv(self, bind_on_enter=True, **kwargs):
+        kv_f_ro = kv(
             captures_are_readonly=True, bind_on_enter=bind_on_enter,
             **kwargs)
-        KV_f = KV(
+        kv_f = kv(
             captures_are_readonly=False, bind_on_enter=bind_on_enter,
             **kwargs)
-        return KV_f_ro, KV_f
+        return kv_f_ro, kv_f
 
     def test_capture_on_enter(self):
-        KV_f = KV(bind_on_enter=True, captures_are_readonly=False)
-        f_static = KV_f(WidgetCapture.rule_with_capture_on_enter)
+        kv_f = kv(bind_on_enter=True, captures_are_readonly=False)
+        f_static = kv_f(WidgetCapture.rule_with_capture_on_enter)
 
         w = WidgetCapture()
         f_static(w)
@@ -1065,88 +1065,88 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, 76)
 
     def test_capture_on_enter_not_exist(self):
-        KV_f = KV(bind_on_enter=True, captures_are_readonly=False)
-        f_static = KV_f(WidgetCapture.rule_with_capture_on_enter_not_exist)
+        kv_f = kv(bind_on_enter=True, captures_are_readonly=False)
+        f_static = kv_f(WidgetCapture.rule_with_capture_on_enter_not_exist)
 
         w = WidgetCapture()
         with self.assertRaises(UnboundLocalError):
             f_static(w)
 
     def test_enter_not_exists(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.enter_not_exist)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.enter_not_exist)
 
         remove_kvc(WidgetCapture.enter_not_exist)
-        KV_f(WidgetCapture.enter_not_exist)
+        kv_f(WidgetCapture.enter_not_exist)
 
     def test_enter_overwrite_before_rule(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.enter_var_overwrite)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.enter_var_overwrite)
 
         remove_kvc(WidgetCapture.enter_var_overwrite)
-        KV_f(WidgetCapture.enter_var_overwrite)
+        kv_f(WidgetCapture.enter_var_overwrite)
 
     def test_enter_overwrite_after_rule(self):
-        KV_f_ro, KV_f = self.get_KV()
-        KV_f_ro(WidgetCapture.enter_var_overwrite2)
+        kv_f_ro, kv_f = self.get_kv()
+        kv_f_ro(WidgetCapture.enter_var_overwrite2)
         remove_kvc(WidgetCapture.enter_var_overwrite2)
-        KV_f(WidgetCapture.enter_var_overwrite2)
+        kv_f(WidgetCapture.enter_var_overwrite2)
 
     def test_enter_overwrite_after_ctx(self):
-        KV_f_ro, KV_f = self.get_KV()
-        KV_f_ro(WidgetCapture.enter_var_overwrite3)
+        kv_f_ro, kv_f = self.get_kv()
+        kv_f_ro(WidgetCapture.enter_var_overwrite3)
         remove_kvc(WidgetCapture.enter_var_overwrite3)
-        KV_f(WidgetCapture.enter_var_overwrite3)
+        kv_f(WidgetCapture.enter_var_overwrite3)
 
     def test_enter_overwrite_before_rule_indirect(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.enter_var_overwrite4)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.enter_var_overwrite4)
         remove_kvc(WidgetCapture.enter_var_overwrite4)
-        f = KV_f(WidgetCapture.enter_var_overwrite4)
+        f = kv_f(WidgetCapture.enter_var_overwrite4)
         w = WidgetCapture()
         with self.assertRaises(UnboundLocalError):
             f(w)
 
     def test_enter_overwrite_before_rule_indirect_explicit_rule(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.enter_var_overwrite5)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.enter_var_overwrite5)
         remove_kvc(WidgetCapture.enter_var_overwrite5)
-        f = KV_f(WidgetCapture.enter_var_overwrite5)
+        f = kv_f(WidgetCapture.enter_var_overwrite5)
         w = WidgetCapture()
         with self.assertRaises(UnboundLocalError):
             f(w)
 
     def test_enter_indirect_explicit_rule(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.enter_var_overwrite_005)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.enter_var_overwrite_005)
 
         remove_kvc(WidgetCapture.enter_var_overwrite_005)
-        f = KV_f(WidgetCapture.enter_var_overwrite_005)
+        f = kv_f(WidgetCapture.enter_var_overwrite_005)
         w = WidgetCapture()
         with self.assertRaises(UnboundLocalError):
             f(w)
 
     def test_enter_overwrite_in_ctx_not_defined(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.enter_var_overwrite6)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.enter_var_overwrite6)
         remove_kvc(WidgetCapture.enter_var_overwrite6)
-        f = KV_f(WidgetCapture.enter_var_overwrite6)
+        f = kv_f(WidgetCapture.enter_var_overwrite6)
         w = WidgetCapture()
         with self.assertRaises(UnboundLocalError):
             f(w)
 
     def test_enter_overwrite_in_ctx_defined(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.enter_var_overwrite7)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.enter_var_overwrite7)
         remove_kvc(WidgetCapture.enter_var_overwrite7)
-        f = KV_f(WidgetCapture.enter_var_overwrite7)
+        f = kv_f(WidgetCapture.enter_var_overwrite7)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + 12)
@@ -1154,12 +1154,12 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, w.widget.width + 55)
 
     def test_enter_overwrite_in_rule_explicit_rule_defined(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.enter_var_overwrite8)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.enter_var_overwrite8)
 
         remove_kvc(WidgetCapture.enter_var_overwrite8)
-        f = KV_f(WidgetCapture.enter_var_overwrite8)
+        f = kv_f(WidgetCapture.enter_var_overwrite8)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + 12)
@@ -1167,12 +1167,12 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, w.widget.width + 12)
 
     def test_enter_overwrite_in_rule_explicit_bind(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.enter_var_overwrite9)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.enter_var_overwrite9)
 
         remove_kvc(WidgetCapture.enter_var_overwrite9)
-        f = KV_f(WidgetCapture.enter_var_overwrite9)
+        f = kv_f(WidgetCapture.enter_var_overwrite9)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + 55)
@@ -1180,12 +1180,12 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, w.widget.width + 55)
 
     def test_enter_overwrite_before_rule_explicit_bind(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.enter_var_overwrite_009)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.enter_var_overwrite_009)
 
         remove_kvc(WidgetCapture.enter_var_overwrite_009)
-        f = KV_f(WidgetCapture.enter_var_overwrite_009)
+        f = kv_f(WidgetCapture.enter_var_overwrite_009)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + 55)
@@ -1193,11 +1193,11 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, w.widget.width + 55)
 
     def test_enter_overwrite_before_rule_explicit_bind_not_captured(self):
-        KV_f_ro, KV_f = self.get_KV()
-        KV_f_ro(WidgetCapture.enter_var_overwrite_009_1)
+        kv_f_ro, kv_f = self.get_kv()
+        kv_f_ro(WidgetCapture.enter_var_overwrite_009_1)
 
         remove_kvc(WidgetCapture.enter_var_overwrite_009_1)
-        f = KV_f(WidgetCapture.enter_var_overwrite_009_1)
+        f = kv_f(WidgetCapture.enter_var_overwrite_009_1)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + 55)
@@ -1205,17 +1205,17 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, w.widget.width + 55)
 
     def test_enter_overwrite_before_rule_explicit_bind_captured(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.enter_var_overwrite_009_2)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.enter_var_overwrite_009_2)
 
     def test_enter_overwrite_in_rule_explicit_bind2(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.enter_var_overwrite10)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.enter_var_overwrite10)
 
         remove_kvc(WidgetCapture.enter_var_overwrite10)
-        f = KV_f(WidgetCapture.enter_var_overwrite10)
+        f = kv_f(WidgetCapture.enter_var_overwrite10)
         w = WidgetCapture()
         f(w)
         self.assertIsNot(w.widget, w.widget2)
@@ -1224,12 +1224,12 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertIsNot(w.widget2, w2)
 
     def test_enter_overwrite_in_rule_explicit_bind_captured(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.enter_var_overwrite_010)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.enter_var_overwrite_010)
 
         remove_kvc(WidgetCapture.enter_var_overwrite_010)
-        f = KV_f(WidgetCapture.enter_var_overwrite_010)
+        f = kv_f(WidgetCapture.enter_var_overwrite_010)
         w = WidgetCapture()
         f(w)
         self.assertIsNot(w.widget, w.widget2)
@@ -1239,8 +1239,8 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertIsNot(w.widget2, w2)
 
     def test_enter_overwrite_after_rule_captured(self):
-        KV_f_ro, KV_f = self.get_KV()
-        f = KV_f_ro(WidgetCapture.enter_var_overwrite11)
+        kv_f_ro, kv_f = self.get_kv()
+        f = kv_f_ro(WidgetCapture.enter_var_overwrite11)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + 55)
@@ -1248,7 +1248,7 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, w.widget.width + 55)
 
         remove_kvc(WidgetCapture.enter_var_overwrite11)
-        f = KV_f(WidgetCapture.enter_var_overwrite11)
+        f = kv_f(WidgetCapture.enter_var_overwrite11)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + 55)
@@ -1256,43 +1256,43 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, w.widget.width + 55)
 
     def test_enter_aug_overwrite_before_rule_captured(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.enter_var_overwrite12)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.enter_var_overwrite12)
         remove_kvc(WidgetCapture.enter_var_overwrite12)
-        f = KV_f(WidgetCapture.enter_var_overwrite12)
+        f = kv_f(WidgetCapture.enter_var_overwrite12)
         w = WidgetCapture()
         f(w)
 
     def test_enter_aug_overwrite_in_rule_captured(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.enter_var_overwrite13)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.enter_var_overwrite13)
         remove_kvc(WidgetCapture.enter_var_overwrite13)
-        f = KV_f(WidgetCapture.enter_var_overwrite13)
+        f = kv_f(WidgetCapture.enter_var_overwrite13)
         w = WidgetCapture()
         f(w)
 
     def test_enter_aug_overwrite_after_rule_captured(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.enter_var_overwrite14)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.enter_var_overwrite14)
         remove_kvc(WidgetCapture.enter_var_overwrite14)
-        f = KV_f(WidgetCapture.enter_var_overwrite14)
+        f = kv_f(WidgetCapture.enter_var_overwrite14)
         w = WidgetCapture()
         f(w)
 
     def test_enter_aug_overwrite_in_rule_read(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.enter_var_overwrite15)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.enter_var_overwrite15)
 
     def test_enter_nested_ctx_overwrite_in_nested(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.enter_var_overwrite16)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.enter_var_overwrite16)
         remove_kvc(WidgetCapture.enter_var_overwrite16)
-        f = KV_f(WidgetCapture.enter_var_overwrite16)
+        f = kv_f(WidgetCapture.enter_var_overwrite16)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget3.height + 90)
@@ -1300,11 +1300,11 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, w.widget3.height + 78)
 
     def test_enter_nested_ctx_overwrite_before_nested(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.enter_var_overwrite17)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.enter_var_overwrite17)
         remove_kvc(WidgetCapture.enter_var_overwrite17)
-        f = KV_f(WidgetCapture.enter_var_overwrite17)
+        f = kv_f(WidgetCapture.enter_var_overwrite17)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget3.height + 90)
@@ -1312,8 +1312,8 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, w.widget3.height + 78)
 
     def test_enter_nested_ctx_overwrite_after_nested(self):
-        KV_f_ro, KV_f = self.get_KV()
-        f = KV_f_ro(WidgetCapture.enter_var_overwrite18)
+        kv_f_ro, kv_f = self.get_kv()
+        f = kv_f_ro(WidgetCapture.enter_var_overwrite18)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget3.height + 78)
@@ -1321,7 +1321,7 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, w.widget2.height + 34)
 
         remove_kvc(WidgetCapture.enter_var_overwrite18)
-        f = KV_f(WidgetCapture.enter_var_overwrite18)
+        f = kv_f(WidgetCapture.enter_var_overwrite18)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget3.height + 78)
@@ -1329,8 +1329,8 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, w.widget2.height + 34)
 
     def test_enter_aug(self):
-        KV_f_ro, KV_f = self.get_KV()
-        f = KV_f_ro(WidgetCapture.enter_var_overwrite19)
+        kv_f_ro, kv_f = self.get_kv()
+        f = kv_f_ro(WidgetCapture.enter_var_overwrite19)
         w = WidgetCapture()
         f(w)
         width = w.widget.width
@@ -1340,7 +1340,7 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(widget.width, 124 + width)
 
         remove_kvc(WidgetCapture.enter_var_overwrite19)
-        f = KV_f(WidgetCapture.enter_var_overwrite19)
+        f = kv_f(WidgetCapture.enter_var_overwrite19)
         w = WidgetCapture()
         f(w)
         width = w.widget.width
@@ -1350,39 +1350,39 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(widget.width, 124 + width)
 
     def test_enter_overwrite_var(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.enter_var_overwrite20)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.enter_var_overwrite20)
 
         remove_kvc(WidgetCapture.enter_var_overwrite20)
-        f = KV_f(WidgetCapture.enter_var_overwrite20)
+        f = kv_f(WidgetCapture.enter_var_overwrite20)
 
     def test_enter_overwrite_var_explicit(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.enter_var_overwrite21)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.enter_var_overwrite21)
 
         remove_kvc(WidgetCapture.enter_var_overwrite21)
-        f = KV_f(WidgetCapture.enter_var_overwrite21)
+        f = kv_f(WidgetCapture.enter_var_overwrite21)
 
     def test_enter_overwrite_var_assign(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.enter_var_overwrite22)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.enter_var_overwrite22)
 
         remove_kvc(WidgetCapture.enter_var_overwrite22)
-        f = KV_f(WidgetCapture.enter_var_overwrite22)
+        f = kv_f(WidgetCapture.enter_var_overwrite22)
 
     def test_enter_overwrite_var_assign_no_rule(self):
-        KV_f_ro, KV_f = self.get_KV()
-        KV_f_ro(WidgetCapture.enter_var_overwrite23)
+        kv_f_ro, kv_f = self.get_kv()
+        kv_f_ro(WidgetCapture.enter_var_overwrite23)
 
         remove_kvc(WidgetCapture.enter_var_overwrite23)
-        f = KV_f(WidgetCapture.enter_var_overwrite23)
+        f = kv_f(WidgetCapture.enter_var_overwrite23)
 
     def test_enter_callbacks_at_end(self):
-        KV_f = KV(bind_on_enter=True)
-        f = KV_f(WidgetCapture.enter_callback_at_end)
+        kv_f = kv(bind_on_enter=True)
+        f = kv_f(WidgetCapture.enter_callback_at_end)
         w = WidgetCapture()
         f(w)
 
@@ -1394,8 +1394,8 @@ class TestCaptureAutoCompiler(TestBase):
 
         remove_kvc(WidgetCapture.enter_callback_at_end)
 
-        KV_f = KV(bind_on_enter=True)
-        f = KV_f(WidgetCapture.enter_callback_at_end_reinit)
+        kv_f = kv(bind_on_enter=True)
+        f = kv_f(WidgetCapture.enter_callback_at_end_reinit)
         w = WidgetCapture()
         f(w)
 
@@ -1406,17 +1406,17 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.width, w.height)
 
     def test_enter_del_in_rule(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.enter_del_in_rule)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.enter_del_in_rule)
 
         remove_kvc(WidgetCapture.enter_del_in_rule)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(WidgetCapture.enter_del_in_rule)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(WidgetCapture.enter_del_in_rule)
 
     def test_capture_on_exit(self):
-        KV_f = KV(bind_on_enter=False, captures_are_readonly=False)
-        f_static = KV_f(WidgetCapture.rule_with_capture_on_exit)
+        kv_f = kv(bind_on_enter=False, captures_are_readonly=False)
+        f_static = kv_f(WidgetCapture.rule_with_capture_on_exit)
 
         w = WidgetCapture()
         f_static(w)
@@ -1431,87 +1431,87 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, 44)
 
     def test_capture_on_exit_not_exist(self):
-        KV_f = KV(bind_on_enter=True, captures_are_readonly=False)
-        f_static = KV_f(WidgetCapture.rule_with_capture_on_exit_not_exist)
+        kv_f = kv(bind_on_enter=True, captures_are_readonly=False)
+        f_static = kv_f(WidgetCapture.rule_with_capture_on_exit_not_exist)
 
         w = WidgetCapture()
         with self.assertRaises(UnboundLocalError):
             f_static(w)
 
     def test_exit_not_exists(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.exit_not_exist)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.exit_not_exist)
 
         remove_kvc(WidgetCapture.exit_not_exist)
-        KV_f(WidgetCapture.exit_not_exist)
+        kv_f(WidgetCapture.exit_not_exist)
 
     def test_exit_overwrite_before_rule(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
 
-        KV_f_ro(WidgetCapture.exit_var_overwrite)
+        kv_f_ro(WidgetCapture.exit_var_overwrite)
         remove_kvc(WidgetCapture.exit_var_overwrite)
-        KV_f(WidgetCapture.exit_var_overwrite)
+        kv_f(WidgetCapture.exit_var_overwrite)
 
     def test_exit_overwrite_after_rule(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.exit_var_overwrite2)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.exit_var_overwrite2)
         remove_kvc(WidgetCapture.exit_var_overwrite2)
-        KV_f(WidgetCapture.exit_var_overwrite2)
+        kv_f(WidgetCapture.exit_var_overwrite2)
 
     def test_exit_overwrite_after_ctx(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        KV_f_ro(WidgetCapture.exit_var_overwrite3)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        kv_f_ro(WidgetCapture.exit_var_overwrite3)
         remove_kvc(WidgetCapture.exit_var_overwrite3)
-        KV_f(WidgetCapture.exit_var_overwrite3)
+        kv_f(WidgetCapture.exit_var_overwrite3)
 
     def test_exit_overwrite_after_rule_indirect(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        f = KV_f_ro(WidgetCapture.exit_var_overwrite4)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        f = kv_f_ro(WidgetCapture.exit_var_overwrite4)
         w = WidgetCapture()
         f(w)
 
         remove_kvc(WidgetCapture.exit_var_overwrite4)
-        f = KV_f(WidgetCapture.exit_var_overwrite4)
+        f = kv_f(WidgetCapture.exit_var_overwrite4)
         w = WidgetCapture()
         f(w)
 
     def test_exit_overwrite_after_rule_indirect_explicit_rule(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.exit_var_overwrite5)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.exit_var_overwrite5)
         remove_kvc(WidgetCapture.exit_var_overwrite5)
-        f = KV_f(WidgetCapture.exit_var_overwrite5)
+        f = kv_f(WidgetCapture.exit_var_overwrite5)
         w = WidgetCapture()
         f(w)
 
     def test_exit_indirect_explicit_rule(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.exit_var_overwrite_005)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.exit_var_overwrite_005)
 
         remove_kvc(WidgetCapture.exit_var_overwrite_005)
-        f = KV_f(WidgetCapture.exit_var_overwrite_005)
+        f = kv_f(WidgetCapture.exit_var_overwrite_005)
         w = WidgetCapture()
         with self.assertRaises(UnboundLocalError):
             f(w)
 
     def test_exit_overwrite_in_ctx_not_defined(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.exit_var_overwrite6)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.exit_var_overwrite6)
         remove_kvc(WidgetCapture.exit_var_overwrite6)
-        f = KV_f(WidgetCapture.exit_var_overwrite6)
+        f = kv_f(WidgetCapture.exit_var_overwrite6)
         w = WidgetCapture()
         f(w)
 
     def test_exit_overwrite_in_ctx_defined(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.exit_var_overwrite7)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.exit_var_overwrite7)
         remove_kvc(WidgetCapture.exit_var_overwrite7)
-        f = KV_f(WidgetCapture.exit_var_overwrite7)
+        f = kv_f(WidgetCapture.exit_var_overwrite7)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + 12)
@@ -1519,12 +1519,12 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, w.widget.width + 56)
 
     def test_exit_overwrite_in_rule_explicit_rule_defined(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.exit_var_overwrite8)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.exit_var_overwrite8)
 
         remove_kvc(WidgetCapture.exit_var_overwrite8)
-        f = KV_f(WidgetCapture.exit_var_overwrite8)
+        f = kv_f(WidgetCapture.exit_var_overwrite8)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + 55)
@@ -1532,8 +1532,8 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, w.widget.width + 12)
 
     def test_exit_overwrite_in_rule_explicit_rule_defined_before(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        f = KV_f_ro(WidgetCapture.exit_var_overwrite_008)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        f = kv_f_ro(WidgetCapture.exit_var_overwrite_008)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + 12)
@@ -1541,7 +1541,7 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, w.widget.width + 12)
 
         remove_kvc(WidgetCapture.exit_var_overwrite_008)
-        f = KV_f(WidgetCapture.exit_var_overwrite_008)
+        f = kv_f(WidgetCapture.exit_var_overwrite_008)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + 12)
@@ -1549,8 +1549,8 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, w.widget.width + 12)
 
     def test_exit_overwrite_in_rule_explicit_bind_pre_ctx(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        f = KV_f_ro(WidgetCapture.exit_var_overwrite_009_pre_ctx)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        f = kv_f_ro(WidgetCapture.exit_var_overwrite_009_pre_ctx)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + 55)
@@ -1562,7 +1562,7 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.count, count)
 
         remove_kvc(WidgetCapture.exit_var_overwrite_009_pre_ctx)
-        f = KV_f(WidgetCapture.exit_var_overwrite_009_pre_ctx)
+        f = kv_f(WidgetCapture.exit_var_overwrite_009_pre_ctx)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + 55)
@@ -1570,8 +1570,8 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, w.widget.width + 55)
 
     def test_exit_overwrite_in_rule_explicit_bind_pre_rule(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        f = KV_f_ro(WidgetCapture.exit_var_overwrite_009_pre_rule)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        f = kv_f_ro(WidgetCapture.exit_var_overwrite_009_pre_rule)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + 55)
@@ -1583,7 +1583,7 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.count, count)
 
         remove_kvc(WidgetCapture.exit_var_overwrite_009_pre_rule)
-        f = KV_f(WidgetCapture.exit_var_overwrite_009_pre_rule)
+        f = kv_f(WidgetCapture.exit_var_overwrite_009_pre_rule)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + 55)
@@ -1591,12 +1591,12 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, w.widget.width + 55)
 
     def test_exit_overwrite_in_rule_explicit_bind_in_rule(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.exit_var_overwrite_009_in_rule)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.exit_var_overwrite_009_in_rule)
 
         remove_kvc(WidgetCapture.exit_var_overwrite_009_in_rule)
-        f = KV_f(WidgetCapture.exit_var_overwrite_009_in_rule)
+        f = kv_f(WidgetCapture.exit_var_overwrite_009_in_rule)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + 55)
@@ -1608,12 +1608,12 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.count, count)
 
     def test_exit_overwrite_in_rule_explicit_bind(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.exit_var_overwrite9)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.exit_var_overwrite9)
 
         remove_kvc(WidgetCapture.exit_var_overwrite9)
-        f = KV_f(WidgetCapture.exit_var_overwrite9)
+        f = kv_f(WidgetCapture.exit_var_overwrite9)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + 55)
@@ -1625,12 +1625,12 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.count, count)
 
     def test_exit_overwrite_after_rule_explicit_bind(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.exit_var_overwrite_009)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.exit_var_overwrite_009)
 
         remove_kvc(WidgetCapture.exit_var_overwrite_009)
-        f = KV_f(WidgetCapture.exit_var_overwrite_009)
+        f = kv_f(WidgetCapture.exit_var_overwrite_009)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + 55)
@@ -1642,12 +1642,12 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.count, count)
 
     def test_exit_overwrite_before_rule_explicit_bind_not_captured(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.exit_var_overwrite_009_1)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.exit_var_overwrite_009_1)
 
         remove_kvc(WidgetCapture.exit_var_overwrite_009_1)
-        f = KV_f(WidgetCapture.exit_var_overwrite_009_1)
+        f = kv_f(WidgetCapture.exit_var_overwrite_009_1)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + 55)
@@ -1659,17 +1659,17 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.count, count)
 
     def test_exit_overwrite_before_rule_explicit_bind_captured(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.exit_var_overwrite_009_2)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.exit_var_overwrite_009_2)
 
     def test_exit_overwrite_in_rule_explicit_bind2(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.exit_var_overwrite10)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.exit_var_overwrite10)
 
         remove_kvc(WidgetCapture.exit_var_overwrite10)
-        f = KV_f(WidgetCapture.exit_var_overwrite10)
+        f = kv_f(WidgetCapture.exit_var_overwrite10)
         w = WidgetCapture()
         f(w)
         self.assertIsNot(w.widget, w.widget2)
@@ -1680,12 +1680,12 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertIsNot(w.widget2, w2)
 
     def test_exit_overwrite_in_rule_explicit_bind_captured(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.exit_var_overwrite_010)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.exit_var_overwrite_010)
 
         remove_kvc(WidgetCapture.exit_var_overwrite_010)
-        f = KV_f(WidgetCapture.exit_var_overwrite_010)
+        f = kv_f(WidgetCapture.exit_var_overwrite_010)
         w = WidgetCapture()
         f(w)
         self.assertIsNot(w.widget, w.widget2)
@@ -1696,12 +1696,12 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertIsNot(w.widget2, w2)
 
     def test_exit_overwrite_after_rule_captured(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.exit_var_overwrite11)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.exit_var_overwrite11)
 
         remove_kvc(WidgetCapture.exit_var_overwrite11)
-        f = KV_f(WidgetCapture.exit_var_overwrite11)
+        f = kv_f(WidgetCapture.exit_var_overwrite11)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + 55)
@@ -1709,27 +1709,27 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, w.widget.width + 27)
 
     def test_exit_aug_overwrite_before_rule_captured(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.exit_var_overwrite12)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.exit_var_overwrite12)
         remove_kvc(WidgetCapture.exit_var_overwrite12)
-        f = KV_f(WidgetCapture.exit_var_overwrite12)
+        f = kv_f(WidgetCapture.exit_var_overwrite12)
         w = WidgetCapture()
         f(w)
 
     def test_exit_aug_overwrite_in_rule_captured(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        f = KV_f_ro(WidgetCapture.exit_var_overwrite13)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        f = kv_f_ro(WidgetCapture.exit_var_overwrite13)
         w = WidgetCapture()
         f(w)
         remove_kvc(WidgetCapture.exit_var_overwrite13)
-        f = KV_f(WidgetCapture.exit_var_overwrite13)
+        f = kv_f(WidgetCapture.exit_var_overwrite13)
         w = WidgetCapture()
         f(w)
 
     def test_exit_aug_overwrite_in_rule_read(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        f = KV_f_ro(WidgetCapture.exit_var_overwrite15)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        f = kv_f_ro(WidgetCapture.exit_var_overwrite15)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, 55 + 22)
@@ -1737,11 +1737,11 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, 55 + 22)
 
     def test_exit_nested_ctx_overwrite_in_nested(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.exit_var_overwrite16)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.exit_var_overwrite16)
         remove_kvc(WidgetCapture.exit_var_overwrite16)
-        f = KV_f(WidgetCapture.exit_var_overwrite16)
+        f = kv_f(WidgetCapture.exit_var_overwrite16)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget3.height + 78 + 90)
@@ -1749,11 +1749,11 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, 26 + 78 + 90)
 
     def test_exit_nested_ctx_overwrite_before_nested(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.exit_var_overwrite17)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.exit_var_overwrite17)
         remove_kvc(WidgetCapture.exit_var_overwrite17)
-        f = KV_f(WidgetCapture.exit_var_overwrite17)
+        f = kv_f(WidgetCapture.exit_var_overwrite17)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget3.height + 78 + 90)
@@ -1761,8 +1761,8 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, 458 + 78 + 90)
 
     def test_exit_nested_ctx_overwrite_after_nested(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        f = KV_f_ro(WidgetCapture.exit_var_overwrite18)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        f = kv_f_ro(WidgetCapture.exit_var_overwrite18)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget3.height + 78 + 90)
@@ -1770,7 +1770,7 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, 923 + 97)
 
         remove_kvc(WidgetCapture.exit_var_overwrite18)
-        f = KV_f(WidgetCapture.exit_var_overwrite18)
+        f = kv_f(WidgetCapture.exit_var_overwrite18)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget3.height + 78 + 90)
@@ -1778,12 +1778,12 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, 923 + 97)
 
     def test_exit_nested_ctx_overwrite_after_final_nested(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.exit_var_overwrite19)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.exit_var_overwrite19)
 
         remove_kvc(WidgetCapture.exit_var_overwrite19)
-        f = KV_f(WidgetCapture.exit_var_overwrite19)
+        f = kv_f(WidgetCapture.exit_var_overwrite19)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget2.height + 54 + 34)
@@ -1791,8 +1791,8 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, 692 + 34 + 90)
 
     def test_exit_aug(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        f = KV_f_ro(WidgetCapture.exit_var_overwrite20)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        f = kv_f_ro(WidgetCapture.exit_var_overwrite20)
         w = WidgetCapture()
         f(w)
         width = w.widget.width
@@ -1802,7 +1802,7 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(widget.width, 124 + width)
 
         remove_kvc(WidgetCapture.exit_var_overwrite20)
-        f = KV_f(WidgetCapture.exit_var_overwrite20)
+        f = kv_f(WidgetCapture.exit_var_overwrite20)
         w = WidgetCapture()
         f(w)
         width = w.widget.width
@@ -1812,39 +1812,39 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(widget.width, 124 + width)
 
     def test_exit_overwrite_var(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.exit_var_overwrite21)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.exit_var_overwrite21)
 
         remove_kvc(WidgetCapture.exit_var_overwrite21)
-        f = KV_f(WidgetCapture.exit_var_overwrite21)
+        f = kv_f(WidgetCapture.exit_var_overwrite21)
 
     def test_exit_overwrite_var_explicit(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.exit_var_overwrite22)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.exit_var_overwrite22)
 
         remove_kvc(WidgetCapture.exit_var_overwrite22)
-        f = KV_f(WidgetCapture.exit_var_overwrite22)
+        f = kv_f(WidgetCapture.exit_var_overwrite22)
 
     def test_exit_overwrite_var_assign(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.exit_var_overwrite23)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.exit_var_overwrite23)
 
         remove_kvc(WidgetCapture.exit_var_overwrite23)
-        f = KV_f(WidgetCapture.exit_var_overwrite23)
+        f = kv_f(WidgetCapture.exit_var_overwrite23)
 
     def test_exit_overwrite_var_assign_no_rule(self):
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
-        KV_f_ro(WidgetCapture.exit_var_overwrite24)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
+        kv_f_ro(WidgetCapture.exit_var_overwrite24)
 
         remove_kvc(WidgetCapture.exit_var_overwrite24)
-        f = KV_f(WidgetCapture.exit_var_overwrite24)
+        f = kv_f(WidgetCapture.exit_var_overwrite24)
 
     def test_exit_callbacks_at_end(self):
-        KV_f = KV(bind_on_enter=False)
-        f = KV_f(WidgetCapture.exit_callback_at_end)
+        kv_f = kv(bind_on_enter=False)
+        f = kv_f(WidgetCapture.exit_callback_at_end)
         w = WidgetCapture()
         f(w)
 
@@ -1856,8 +1856,8 @@ class TestCaptureAutoCompiler(TestBase):
 
         remove_kvc(WidgetCapture.exit_callback_at_end)
 
-        KV_f = KV(bind_on_enter=False)
-        f = KV_f(WidgetCapture.exit_callback_at_end_reinit)
+        kv_f = kv(bind_on_enter=False)
+        f = kv_f(WidgetCapture.exit_callback_at_end_reinit)
         w = WidgetCapture()
         f(w)
 
@@ -1868,17 +1868,17 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.width, w.height)
 
     def test_exit_del_in_rule(self):
-        KV_f_ro, KV_f = self.get_KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f_ro(WidgetCapture.exit_del_in_rule)
+        kv_f_ro, kv_f = self.get_kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f_ro(WidgetCapture.exit_del_in_rule)
 
         remove_kvc(WidgetCapture.exit_del_in_rule)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(WidgetCapture.exit_del_in_rule)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(WidgetCapture.exit_del_in_rule)
 
     def capture_inlined_code(self, func, num):
-        KV_f_ro, KV_f = self.get_KV()
-        f = KV_f_ro(func)
+        kv_f_ro, kv_f = self.get_kv()
+        f = kv_f_ro(func)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + num)
@@ -1886,16 +1886,16 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, w.widget.width + num)
 
         remove_kvc(func)
-        f = KV_f(func)
+        f = kv_f(func)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + num)
         w.widget.width = 33
         self.assertEqual(w.value, w.widget.width + num)
 
-        KV_f_ro, KV_f = self.get_KV(bind_on_enter=False)
+        kv_f_ro, kv_f = self.get_kv(bind_on_enter=False)
         remove_kvc(func)
-        f = KV_f_ro(func)
+        f = kv_f_ro(func)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + num)
@@ -1903,7 +1903,7 @@ class TestCaptureAutoCompiler(TestBase):
         self.assertEqual(w.value, w.widget.width + num)
 
         remove_kvc(func)
-        f = KV_f(func)
+        f = kv_f(func)
         w = WidgetCapture()
         f(w)
         self.assertEqual(w.value, w.widget.width + num)
@@ -1939,11 +1939,11 @@ class CtxWidget(BaseWidget):
         self.value = 55
 
     def ctx_no_rule(self):
-        with KVCtx():
+        with KvContext():
             pass
 
     def ctx_no_rule2(self):
-        with KVCtx():
+        with KvContext():
             self.value = self.width
 
     def no_bind_rule_without_ctx(self):
@@ -1953,11 +1953,11 @@ class CtxWidget(BaseWidget):
         self.value @= self.width
 
     def no_bind_rule_without_ctx_explicit(self):
-        with KVRule():
+        with KvRule():
             self.value = 55
 
     def bind_rule_without_ctx_explicit(self):
-        with KVRule():
+        with KvRule():
             self.value = self.width
 
     def canvas_no_bind_rule_without_ctx(self):
@@ -1967,103 +1967,103 @@ class CtxWidget(BaseWidget):
         self.value ^= self.width
 
     def canvas_no_bind_rule_without_ctx_explicit(self):
-        with KVRule(delay='canvas'):
+        with KvRule(delay='canvas'):
             self.value = 55
 
     def bind_canvas_rule_without_ctx_explicit(self):
-        with KVRule(delay='canvas'):
+        with KvRule(delay='canvas'):
             self.value = self.width
 
     def clock_no_bind_rule_without_ctx_explicit(self):
-        with KVRule(delay='canvas'):
+        with KvRule(delay='canvas'):
             self.value = 55
 
     def bind_clock_rule_without_ctx_explicit(self):
-        with KVRule(delay='canvas'):
+        with KvRule(delay='canvas'):
             self.value = self.width
 
     def apply_kv_test(self):
-        with KVCtx():
-            with KVRule():
+        with KvContext():
+            with KvRule():
                 self.value = self.width
-                with KVRule():
+                with KvRule():
                     self.value2 = self.height
 
     def apply_kv_test2(self):
-        with KVCtx():
-            with KVRule(delay='canvas'):
+        with KvContext():
+            with KvRule(delay='canvas'):
                 self.value = self.width
-                with KVRule(delay='canvas'):
+                with KvRule(delay='canvas'):
                     self.value2 = self.height
 
     def apply_kv_test3(self):
-        with KVCtx():
-            with KVRule(delay=0):
+        with KvContext():
+            with KvRule(delay=0):
                 self.value = self.width
-                with KVRule(delay=0):
+                with KvRule(delay=0):
                     self.value2 = self.height
 
     def apply_kv_test4(self):
-        with KVCtx():
-            with KVRule():
+        with KvContext():
+            with KvRule():
                 self.value = self.width
-                with KVRule(delay=0):
+                with KvRule(delay=0):
                     self.value2 = self.height
 
     def apply_kv_test5(self):
-        with KVCtx():
-            with KVRule(delay=0):
+        with KvContext():
+            with KvRule(delay=0):
                 self.value = self.width
-                with KVRule():
+                with KvRule():
                     self.value2 = self.height
 
     def apply_kv_test6(self):
-        with KVCtx():
-            with KVRule(delay=0):
+        with KvContext():
+            with KvRule(delay=0):
                 self.value = self.width
-                with KVRule(delay='canvas'):
+                with KvRule(delay='canvas'):
                     self.value2 = self.height
 
     def apply_kv_test7(self):
-        with KVCtx():
-            with KVRule(delay='canvas'):
+        with KvContext():
+            with KvRule(delay='canvas'):
                 self.value = self.width
-                with KVRule(delay=0):
+                with KvRule(delay=0):
                     self.value2 = self.height
 
     def apply_kv_test8(self):
-        with KVCtx():
-            with KVRule():
+        with KvContext():
+            with KvRule():
                 self.value = self.width
-                with KVRule(delay='canvas'):
+                with KvRule(delay='canvas'):
                     self.value2 = self.height
 
     def apply_kv_test9(self):
-        with KVCtx():
-            with KVRule(delay='canvas'):
+        with KvContext():
+            with KvRule(delay='canvas'):
                 self.value = self.width
-                with KVRule(delay=None):
+                with KvRule(delay=None):
                     self.value2 = self.height
 
     def apply_kv_test10(self):
         import kivy.lang.compiler
-        with kivy.lang.compiler.KVCtx():
-            with kivy.lang.compiler.KVRule():
+        with kivy.lang.compiler.KvContext():
+            with kivy.lang.compiler.KvRule():
                 self.value @= self.width
 
     def apply_kv_test11(self):
         self.value3 = 0
         self.value = 1
         self.value2 = 2
-        with KVCtx():
+        with KvContext():
             self.value @= self.height
-            with KVCtx():
+            with KvContext():
                 self.value @= self.width
-                with KVCtx() as self.ctx:
+                with KvContext() as self.ctx:
                     self.value @= self.x
-                    with KVCtx():
+                    with KvContext():
                         self.value @= self.y
-                        with KVCtx():
+                        with KvContext():
                             self.value @= self.value2
                 self.value3 @= self.value
 
@@ -2072,89 +2072,89 @@ class CtxWidget(BaseWidget):
 class TestCtxAutoCompiler(TestBase):
 
     def test_no_ctx_no_rule(self):
-        KV_f = KV()
+        kv_f = kv()
 
         w = CtxWidget()
         self.assertEqual(w.value, 42)
-        KV_f(w.no_ctx)()
+        kv_f(w.no_ctx)()
         self.assertEqual(w.value, 55)
 
     def test_ctx_no_rule(self):
-        KV_f = KV()
-        f = KV_f(CtxWidget.ctx_no_rule)
+        kv_f = kv()
+        f = kv_f(CtxWidget.ctx_no_rule)
 
         w = CtxWidget()
         f(w)
 
     def test_ctx_no_rule_stmt(self):
-        KV_f = KV()
-        f = KV_f(CtxWidget.ctx_no_rule2)
+        kv_f = kv()
+        f = kv_f(CtxWidget.ctx_no_rule2)
 
         w = CtxWidget()
         f(w)
 
     def test_no_ctx_with_rule(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.no_bind_rule_without_ctx)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.bind_rule_without_ctx)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.no_bind_rule_without_ctx_explicit)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.bind_rule_without_ctx_explicit)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CtxWidget.no_bind_rule_without_ctx)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CtxWidget.bind_rule_without_ctx)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CtxWidget.no_bind_rule_without_ctx_explicit)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CtxWidget.bind_rule_without_ctx_explicit)
 
     def test_no_ctx_with_rule_canvas(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.canvas_no_bind_rule_without_ctx)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.bind_canvas_rule_without_ctx)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.canvas_no_bind_rule_without_ctx_explicit)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.bind_canvas_rule_without_ctx_explicit)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CtxWidget.canvas_no_bind_rule_without_ctx)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CtxWidget.bind_canvas_rule_without_ctx)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CtxWidget.canvas_no_bind_rule_without_ctx_explicit)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CtxWidget.bind_canvas_rule_without_ctx_explicit)
 
     def test_no_ctx_with_rule_clock(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.clock_no_bind_rule_without_ctx_explicit)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.bind_clock_rule_without_ctx_explicit)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CtxWidget.clock_no_bind_rule_without_ctx_explicit)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CtxWidget.bind_clock_rule_without_ctx_explicit)
 
     def test_nested_rule(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.apply_kv_test)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CtxWidget.apply_kv_test)
 
     def test_nested_rule_canvas(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.apply_kv_test2)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CtxWidget.apply_kv_test2)
 
     def test_nested_rule_clock(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.apply_kv_test3)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CtxWidget.apply_kv_test3)
 
     def test_nested_rule_mix(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.apply_kv_test4)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.apply_kv_test5)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.apply_kv_test6)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.apply_kv_test7)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.apply_kv_test8)
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CtxWidget.apply_kv_test9)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CtxWidget.apply_kv_test4)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CtxWidget.apply_kv_test5)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CtxWidget.apply_kv_test6)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CtxWidget.apply_kv_test7)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CtxWidget.apply_kv_test8)
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CtxWidget.apply_kv_test9)
 
     def test_dotted_rule_ctx_name(self):
-        KV_f = KV()
-        f = KV_f(CtxWidget.apply_kv_test10)
+        kv_f = kv()
+        f = kv_f(CtxWidget.apply_kv_test10)
         w = CtxWidget()
         f(w)
 
@@ -2163,8 +2163,8 @@ class TestCtxAutoCompiler(TestBase):
         self.assertEqual(w.value, 56)
 
     def test_deeply_nested_ctx(self):
-        KV_f = KV()
-        f = KV_f(CtxWidget.apply_kv_test11)
+        kv_f = kv()
+        f = kv_f(CtxWidget.apply_kv_test11)
         w = CtxWidget()
         f(w)
 
@@ -2243,7 +2243,7 @@ class CodeNodesWidget(BaseWidget):
             nonlocal a
             return 86
 
-        with KVCtx():
+        with KvContext():
             pass
         return inner
 
@@ -2255,7 +2255,7 @@ class CodeNodesWidget(BaseWidget):
         self.width = 78
         global _temp_value
 
-        with KVCtx():
+        with KvContext():
             pass
 
     def do_return(self, return_early):
@@ -2263,34 +2263,34 @@ class CodeNodesWidget(BaseWidget):
         self.value = 42
         if return_early:
             return
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.width
 
     def do_return2(self, return_early):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             if return_early:
                 return
             self.value @= self.widget.width
 
     def do_return3(self, return_early):
         self.widget = Widget()
-        with KVCtx():
-            with KVCtx():
+        with KvContext():
+            with KvContext():
                 if return_early:
                     return
             self.value @= self.widget.width
 
     def do_return4(self, return_early):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.width
             if return_early:
                 return
 
     def do_return5(self, return_early):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.width
         if return_early:
             return
@@ -2300,19 +2300,19 @@ class CodeNodesWidget(BaseWidget):
 
         def x():
             pass
-        with KVCtx():
+        with KvContext():
             self.width @= self.widget.width
 
     def do_def2(self):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             def x():
                 pass
             self.width @= self.widget.width
 
     def do_def3(self):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             self.width @= self.widget.width
 
         def x():
@@ -2320,24 +2320,24 @@ class CodeNodesWidget(BaseWidget):
 
     def do_def4(self):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             def x():
                 pass
-            with KVRule():
+            with KvRule():
                 self.width @= self.widget.width
 
     def do_def5(self):
         self.widget = Widget()
-        with KVCtx():
-            with KVRule():
+        with KvContext():
+            with KvRule():
                 def x():
                     pass
                 self.width @= self.widget.width
 
     def do_def6(self):
         self.widget = Widget()
-        with KVCtx():
-            with KVRule():
+        with KvContext():
+            with KvRule():
                 self.width @= self.widget.width
 
             def x():
@@ -2348,19 +2348,19 @@ class CodeNodesWidget(BaseWidget):
 
         class x(object):
             pass
-        with KVCtx():
+        with KvContext():
             self.width @= self.widget.width
 
     def do_class2(self):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             class x(object):
                 pass
             self.width @= self.widget.width
 
     def do_class3(self):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             self.width @= self.widget.width
 
         class x(object):
@@ -2368,24 +2368,24 @@ class CodeNodesWidget(BaseWidget):
 
     def do_class4(self):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             class x(object):
                 pass
-            with KVRule():
+            with KvRule():
                 self.width @= self.widget.width
 
     def do_class5(self):
         self.widget = Widget()
-        with KVCtx():
-            with KVRule():
+        with KvContext():
+            with KvRule():
                 class x(object):
                     pass
                 self.width @= self.widget.width
 
     def do_class6(self):
         self.widget = Widget()
-        with KVCtx():
-            with KVRule():
+        with KvContext():
+            with KvRule():
                 self.width @= self.widget.width
 
             class x(object):
@@ -2393,7 +2393,7 @@ class CodeNodesWidget(BaseWidget):
 
     def do_exception_handler(self):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             try:
                 pass
             except KeyError as e:
@@ -2401,7 +2401,7 @@ class CodeNodesWidget(BaseWidget):
 
     def do_exception_handler1(self):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             try:
                 pass
             except KeyError as e:
@@ -2410,25 +2410,25 @@ class CodeNodesWidget(BaseWidget):
 
     def do_exception_handler2(self):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             try:
                 raise KeyError
             except KeyError as e:
-                with KVCtx():
+                with KvContext():
                     self.value @= self.widget.width
 
     def do_exception_handler3(self):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             try:
                 raise KeyError
             except KeyError as e:
-                with KVRule():
+                with KvRule():
                     self.value @= self.widget.width
 
     def do_exception_handler4(self):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             try:
                 pass
             except KeyError as e:
@@ -2438,18 +2438,18 @@ class CodeNodesWidget(BaseWidget):
 
     def do_exception_handler5(self):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             try:
                 raise KeyError
             except ValueError as e:
                 pass
             except KeyError as e2:
-                with KVCtx():
+                with KvContext():
                     self.value @= self.widget.width
 
     def do_try(self):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             try:
                 self.value @= self.widget.width
             except KeyError as e:
@@ -2457,41 +2457,41 @@ class CodeNodesWidget(BaseWidget):
 
     def do_if(self):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             if True:
                 self.value @= self.widget.width
 
     def do_if1(self):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             if True:
                 q = 44
             self.value @= self.widget.width
 
     def do_if2(self):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             if True:
-                with KVCtx():
+                with KvContext():
                     self.value @= self.widget.width
 
     def do_if3(self):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             if True:
-                with KVRule():
+                with KvRule():
                     self.value @= self.widget.width
 
     def do_while(self):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             while True:
                 self.value @= self.widget.width
                 break
 
     def do_while1(self):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             while True:
                 q = 44
                 break
@@ -2499,46 +2499,46 @@ class CodeNodesWidget(BaseWidget):
 
     def do_while2(self, objs):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             i = 0
             while i < len(objs):
-                with KVCtx():
+                with KvContext():
                     self.value_list[i].value @= objs[i].width
                 i += 1
 
     def do_while3(self):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             while True:
-                with KVRule():
+                with KvRule():
                     self.value @= self.widget.width
                 break
 
     def do_for(self):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             for i in range(5):
                 self.value @= self.widget.width
 
     def do_for1(self):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             for i in range(5):
                 q = 44
             self.value @= self.widget.width
 
     def do_for2(self, objs):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             for i in range(5):
-                with KVCtx():
+                with KvContext():
                     self.value_list[i].value @= objs[i].width
 
     def do_for3(self):
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             for i in range(5):
-                with KVRule():
+                with KvRule():
                     self.value @= self.widget.width
 
 
@@ -2546,28 +2546,28 @@ class CodeNodesWidget(BaseWidget):
 class TestIllegalNodes(TestBase):
 
     def test_nonlocal(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CodeNodesWidget.do_nonlocal)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CodeNodesWidget.do_nonlocal)
 
     def test_nonlocal_ctx(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CodeNodesWidget.do_nonlocal_ctx)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CodeNodesWidget.do_nonlocal_ctx)
 
     def test_globall(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CodeNodesWidget.do_global)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CodeNodesWidget.do_global)
 
     def test_global_ctx(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CodeNodesWidget.do_global_ctx)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CodeNodesWidget.do_global_ctx)
 
     def test_return_before_ctx(self):
-        KV_f = KV()
-        f = KV_f(CodeNodesWidget.do_return)
+        kv_f = kv()
+        f = kv_f(CodeNodesWidget.do_return)
         w = CodeNodesWidget()
         f(w, True)
 
@@ -2577,23 +2577,23 @@ class TestIllegalNodes(TestBase):
         self.assertEqual(w.value, val)
 
     def test_return_before_rule(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CodeNodesWidget.do_return2)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CodeNodesWidget.do_return2)
 
     def test_return_before_rule_nested(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CodeNodesWidget.do_return3)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CodeNodesWidget.do_return3)
 
     def test_return_after_rule(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CodeNodesWidget.do_return4)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CodeNodesWidget.do_return4)
 
     def test_return_after_ctx(self):
-        KV_f = KV()
-        f = KV_f(CodeNodesWidget.do_return5)
+        kv_f = kv()
+        f = kv_f(CodeNodesWidget.do_return5)
         w = CodeNodesWidget()
         f(w, True)
 
@@ -2602,63 +2602,63 @@ class TestIllegalNodes(TestBase):
         self.assertEqual(w.value, w.widget.width)
 
     def test_def_before_ctx(self):
-        KV_f = KV()
-        KV_f(CodeNodesWidget.do_def)
+        kv_f = kv()
+        kv_f(CodeNodesWidget.do_def)
 
     def test_def_before_rule(self):
-        KV_f = KV()
-        KV_f(CodeNodesWidget.do_def2)
+        kv_f = kv()
+        kv_f(CodeNodesWidget.do_def2)
 
     def test_def_after_ctx(self):
-        KV_f = KV()
-        KV_f(CodeNodesWidget.do_def3)
+        kv_f = kv()
+        kv_f(CodeNodesWidget.do_def3)
 
     def test_def_before_explicit_rule(self):
-        KV_f = KV()
-        KV_f(CodeNodesWidget.do_def4)
+        kv_f = kv()
+        kv_f(CodeNodesWidget.do_def4)
 
     def test_def_in_explciit_rule(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CodeNodesWidget.do_def5)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CodeNodesWidget.do_def5)
 
     def test_def_after_explicit_rule(self):
-        KV_f = KV()
-        KV_f(CodeNodesWidget.do_def6)
+        kv_f = kv()
+        kv_f(CodeNodesWidget.do_def6)
 
     def test_class_before_ctx(self):
-        KV_f = KV()
-        KV_f(CodeNodesWidget.do_class)
+        kv_f = kv()
+        kv_f(CodeNodesWidget.do_class)
 
     def test_class_before_rule(self):
-        KV_f = KV()
-        KV_f(CodeNodesWidget.do_class2)
+        kv_f = kv()
+        kv_f(CodeNodesWidget.do_class2)
 
     def test_class_after_ctx(self):
-        KV_f = KV()
-        KV_f(CodeNodesWidget.do_class3)
+        kv_f = kv()
+        kv_f(CodeNodesWidget.do_class3)
 
     def test_class_before_explicit_rule(self):
-        KV_f = KV()
-        KV_f(CodeNodesWidget.do_class4)
+        kv_f = kv()
+        kv_f(CodeNodesWidget.do_class4)
 
     def test_class_in_explciit_rule(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CodeNodesWidget.do_class5)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CodeNodesWidget.do_class5)
 
     def test_class_after_explicit_rule(self):
-        KV_f = KV()
-        KV_f(CodeNodesWidget.do_class6)
+        kv_f = kv()
+        kv_f(CodeNodesWidget.do_class6)
 
     def test_except_handler(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CodeNodesWidget.do_exception_handler)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CodeNodesWidget.do_exception_handler)
 
     def test_after_except_handler(self):
-        KV_f = KV()
-        f = KV_f(CodeNodesWidget.do_exception_handler1)
+        kv_f = kv()
+        f = kv_f(CodeNodesWidget.do_exception_handler1)
         w = CodeNodesWidget()
         f(w)
 
@@ -2667,8 +2667,8 @@ class TestIllegalNodes(TestBase):
         self.assertEqual(w.value, w.widget.width)
 
     def test_except_handler_wrap_ctx(self):
-        KV_f = KV()
-        f = KV_f(CodeNodesWidget.do_exception_handler2)
+        kv_f = kv()
+        f = kv_f(CodeNodesWidget.do_exception_handler2)
         w = CodeNodesWidget()
         f(w)
 
@@ -2677,18 +2677,18 @@ class TestIllegalNodes(TestBase):
         self.assertEqual(w.value, w.widget.width)
 
     def test_except_handler_explicit_rule(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CodeNodesWidget.do_exception_handler3)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CodeNodesWidget.do_exception_handler3)
 
     def test_except_handler_second(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CodeNodesWidget.do_exception_handler4)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CodeNodesWidget.do_exception_handler4)
 
     def test_except_handler_second_wrap_ctx(self):
-        KV_f = KV()
-        f = KV_f(CodeNodesWidget.do_exception_handler5)
+        kv_f = kv()
+        f = kv_f(CodeNodesWidget.do_exception_handler5)
         w = CodeNodesWidget()
         f(w)
 
@@ -2697,8 +2697,8 @@ class TestIllegalNodes(TestBase):
         self.assertEqual(w.value, w.widget.width)
 
     def test_try(self):
-        KV_f = KV()
-        f = KV_f(CodeNodesWidget.do_try)
+        kv_f = kv()
+        f = kv_f(CodeNodesWidget.do_try)
         w = CodeNodesWidget()
         f(w)
 
@@ -2707,13 +2707,13 @@ class TestIllegalNodes(TestBase):
         self.assertEqual(w.value, w.widget.width)
 
     def test_if(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CodeNodesWidget.do_if)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CodeNodesWidget.do_if)
 
     def test_after_if(self):
-        KV_f = KV()
-        f = KV_f(CodeNodesWidget.do_if1)
+        kv_f = kv()
+        f = kv_f(CodeNodesWidget.do_if1)
         w = CodeNodesWidget()
         f(w)
 
@@ -2722,8 +2722,8 @@ class TestIllegalNodes(TestBase):
         self.assertEqual(w.value, w.widget.width)
 
     def test_if_wrap_ctx(self):
-        KV_f = KV()
-        f = KV_f(CodeNodesWidget.do_if2)
+        kv_f = kv()
+        f = kv_f(CodeNodesWidget.do_if2)
         w = CodeNodesWidget()
         f(w)
 
@@ -2732,18 +2732,18 @@ class TestIllegalNodes(TestBase):
         self.assertEqual(w.value, w.widget.width)
 
     def test_if_explicit_rule(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CodeNodesWidget.do_if3)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CodeNodesWidget.do_if3)
 
     def test_while(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CodeNodesWidget.do_while)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CodeNodesWidget.do_while)
 
     def test_after_while(self):
-        KV_f = KV()
-        f = KV_f(CodeNodesWidget.do_while1)
+        kv_f = kv()
+        f = kv_f(CodeNodesWidget.do_while1)
         w = CodeNodesWidget()
         f(w)
 
@@ -2752,8 +2752,8 @@ class TestIllegalNodes(TestBase):
         self.assertEqual(w.value, w.widget.width)
 
     def test_while_wrap_ctx(self):
-        KV_f = KV()
-        f = KV_f(CodeNodesWidget.do_while2)
+        kv_f = kv()
+        f = kv_f(CodeNodesWidget.do_while2)
         w = CodeNodesWidget()
         sources = [CodeNodesWidget() for _ in range(5)]
         targets = w.value_list = [CodeNodesWidget() for _ in range(5)]
@@ -2765,18 +2765,18 @@ class TestIllegalNodes(TestBase):
             self.assertEqual(target.value, source.width)
 
     def test_while_explicit_rule(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CodeNodesWidget.do_while3)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CodeNodesWidget.do_while3)
 
     def test_for(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CodeNodesWidget.do_for)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CodeNodesWidget.do_for)
 
     def test_after_for(self):
-        KV_f = KV()
-        f = KV_f(CodeNodesWidget.do_for1)
+        kv_f = kv()
+        f = kv_f(CodeNodesWidget.do_for1)
         w = CodeNodesWidget()
         f(w)
 
@@ -2785,8 +2785,8 @@ class TestIllegalNodes(TestBase):
         self.assertEqual(w.value, w.widget.width)
 
     def test_for_wrap_ctx(self):
-        KV_f = KV()
-        f = KV_f(CodeNodesWidget.do_for2)
+        kv_f = kv()
+        f = kv_f(CodeNodesWidget.do_for2)
         w = CodeNodesWidget()
         sources = [CodeNodesWidget() for _ in range(5)]
         targets = w.value_list = [CodeNodesWidget() for _ in range(5)]
@@ -2798,9 +2798,9 @@ class TestIllegalNodes(TestBase):
             self.assertEqual(target.value, source.width)
 
     def test_for_explicit_rule(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CodeNodesWidget.do_for3)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CodeNodesWidget.do_for3)
 
 
 @skip_py2_decorator
@@ -2810,21 +2810,21 @@ class TestClosure(TestBase):
         w = BaseWidget()
 
         def do_kv_closure():
-            with KVCtx():
+            with KvContext():
                 w.value @= w.width
 
-        KV_f = KV()
-        with self.assertRaises(KVException):
-            KV_f(do_kv_closure)
+        kv_f = kv()
+        with self.assertRaises(KvException):
+            kv_f(do_kv_closure)
 
     def test_not_closure_but_local(self):
         def do_kv_not_closure(widget):
-            with KVCtx():
+            with KvContext():
                 widget.value @= widget.width
 
-        KV_f = KV()
-        with self.assertRaises(KVException):
-            KV_f(do_kv_not_closure)
+        kv_f = kv()
+        with self.assertRaises(KvException):
+            kv_f(do_kv_not_closure)
 
 
 class ProxyWidget(BaseWidget):
@@ -2832,26 +2832,26 @@ class ProxyWidget(BaseWidget):
     kv_ctx = None
 
     def apply_kv_test(self, widget1, widget2):
-        with KVCtx():
+        with KvContext():
             self.value @= widget1.width + widget2.width
 
     def apply_kv_test2(self, widget1, widget2):
-        with KVCtx():
+        with KvContext():
             self.value @= widget1.width + widget2.width
 
     def apply_kv_test3(self, widget1, widget2):
-        with KVCtx() as self.kv_ctx:
+        with KvContext() as self.kv_ctx:
             self.value @= widget1.width + widget2.width
 
     def apply_kv_test4(self, widget1, widget2):
-        with KVCtx() as self.kv_ctx:
+        with KvContext() as self.kv_ctx:
             self.value @= widget1.width + widget2.width
 
     def apply_kv_test5(self):
         self.widget = Widget()
         self.widget2 = Widget()
 
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.width + self.widget2.width
 
     def apply_kv_test6(self):
@@ -2859,7 +2859,7 @@ class ProxyWidget(BaseWidget):
         self.widget2 = Widget()
         self.widget3 = Widget()
 
-        with KVCtx():
+        with KvContext():
             self.value @= \
                 self.widget.width + self.widget2.width + self.widget3.width
 
@@ -2868,7 +2868,7 @@ class ProxyWidget(BaseWidget):
         w.widget = Widget()
         self.widget2 = Widget()
 
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.widget.width + self.widget2.width
 
         return w, self.widget2, w.widget
@@ -2878,21 +2878,21 @@ class ProxyWidget(BaseWidget):
         w.widget = Widget()
         self.widget2 = Widget()
 
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.widget.width + self.widget2.width
 
         return w, self.widget2, w.widget
 
     def apply_kv_test9(self, widget1, widget2):
-        with KVCtx():
+        with KvContext():
             self.value @= widget1.width + widget2.width
 
     def apply_kv_test10(self, widget1, widget2):
-        with KVCtx():
+        with KvContext():
             self.value @= widget1.width + widget2.width
 
     def apply_kv_test11(self, widget1, widget2):
-        with KVCtx():
+        with KvContext():
             self.value @= widget1.width + widget2.width
 
 
@@ -2902,9 +2902,9 @@ class TestProxy(TestBase):
     def test_no_proxy(self):
         w1 = Widget()
         w2 = Widget()
-        KV_f = KV(proxy=False)
+        kv_f = kv(proxy=False)
 
-        f = KV_f(ProxyWidget.apply_kv_test)
+        f = kv_f(ProxyWidget.apply_kv_test)
         w = ProxyWidget()
         f(w, w1, w2)
         gc.collect()
@@ -2945,9 +2945,9 @@ class TestProxy(TestBase):
     def test_all_proxy(self):
         w1 = Widget()
         w2 = Widget()
-        KV_f = KV(proxy=True)
+        kv_f = kv(proxy=True)
 
-        f = KV_f(ProxyWidget.apply_kv_test2)
+        f = kv_f(ProxyWidget.apply_kv_test2)
         w = ProxyWidget()
         f(w, w1, w2)
         gc.collect()
@@ -2982,9 +2982,9 @@ class TestProxy(TestBase):
     def test_all_proxy_save_ctx(self):
         w1 = Widget()
         w2 = Widget()
-        KV_f = KV(proxy=True)
+        kv_f = kv(proxy=True)
 
-        f = KV_f(ProxyWidget.apply_kv_test3)
+        f = kv_f(ProxyWidget.apply_kv_test3)
         w = ProxyWidget()
         f(w, w1, w2)
         gc.collect()
@@ -3021,9 +3021,9 @@ class TestProxy(TestBase):
     def test_proxy_all_unbind(self):
         w1 = Widget()
         w2 = Widget()
-        KV_f = KV(proxy=True)
+        kv_f = kv(proxy=True)
 
-        f = KV_f(ProxyWidget.apply_kv_test4)
+        f = kv_f(ProxyWidget.apply_kv_test4)
         w = ProxyWidget()
         f(w, w1, w2)
 
@@ -3042,9 +3042,9 @@ class TestProxy(TestBase):
             ref.size
 
     def test_partial_proxy(self):
-        KV_f = KV(proxy='*widget')
+        kv_f = kv(proxy='*widget')
 
-        f = KV_f(ProxyWidget.apply_kv_test5)
+        f = kv_f(ProxyWidget.apply_kv_test5)
         w = ProxyWidget()
         f(w)
 
@@ -3082,9 +3082,9 @@ class TestProxy(TestBase):
         w1.width = 657
 
     def test_partial_proxy_multi(self):
-        KV_f = KV(proxy=['*widget', '*widget2'])
+        kv_f = kv(proxy=['*widget', '*widget2'])
 
-        f = KV_f(ProxyWidget.apply_kv_test6)
+        f = kv_f(ProxyWidget.apply_kv_test6)
         w = ProxyWidget()
         f(w)
 
@@ -3127,9 +3127,9 @@ class TestProxy(TestBase):
         w2.width = 2093
 
     def test_deep_proxy(self):
-        KV_f = KV(proxy='*t.widget')
+        kv_f = kv(proxy='*t.widget')
 
-        f = KV_f(ProxyWidget.apply_kv_test7)
+        f = kv_f(ProxyWidget.apply_kv_test7)
         w = ProxyWidget()
         w1, w2, ww1 = f(w)
 
@@ -3170,9 +3170,9 @@ class TestProxy(TestBase):
 
     def test_deep_proxy2(self):
         # this time, w1 will keep it alive
-        KV_f = KV(proxy='*t.widget')
+        kv_f = kv(proxy='*t.widget')
 
-        f = KV_f(ProxyWidget.apply_kv_test8)
+        f = kv_f(ProxyWidget.apply_kv_test8)
         w = ProxyWidget()
         w1, w2, ww1 = f(w)
 
@@ -3214,9 +3214,9 @@ class TestProxy(TestBase):
     def test_proxy_no_match(self):
         w1 = Widget()
         w2 = Widget()
-        KV_f = KV(proxy=['widd', 'croker', '*idge'])
+        kv_f = kv(proxy=['widd', 'croker', '*idge'])
 
-        f = KV_f(ProxyWidget.apply_kv_test9)
+        f = kv_f(ProxyWidget.apply_kv_test9)
         w = ProxyWidget()
         f(w, w1, w2)
         gc.collect()
@@ -3249,9 +3249,9 @@ class TestProxy(TestBase):
     def test_all_proxy_match(self):
         w1 = Widget()
         w2 = Widget()
-        KV_f = KV(proxy='*idget*')
+        kv_f = kv(proxy='*idget*')
 
-        f = KV_f(ProxyWidget.apply_kv_test10)
+        f = kv_f(ProxyWidget.apply_kv_test10)
         w = ProxyWidget()
         f(w, w1, w2)
         gc.collect()
@@ -3286,9 +3286,9 @@ class TestProxy(TestBase):
     def test_all_proxy_match2(self):
         w1 = Widget()
         w2 = Widget()
-        KV_f = KV(proxy=['widget1*', 'widget2*'])
+        kv_f = kv(proxy=['widget1*', 'widget2*'])
 
-        f = KV_f(ProxyWidget.apply_kv_test11)
+        f = kv_f(ProxyWidget.apply_kv_test11)
         w = ProxyWidget()
         f(w, w1, w2)
         gc.collect()
@@ -3326,43 +3326,43 @@ class CanvasWidget(BaseWidget):
     def canvas_rule(self):
         self.value = 42
         self.widget = Widget()
-        with KVCtx():
+        with KvContext():
             self.value ^= self.widget.width
 
     def canvas_rule2(self):
         self.value = 42
         self.widget = Widget()
-        with KVCtx():
-            with KVRule(self.widget.width, delay='canvas'):
+        with KvContext():
+            with KvRule(self.widget.width, delay='canvas'):
                 self.value = self.widget.width
 
     def canvas_rule3(self):
         self.value = 42
         self.widget = Widget()
-        with KVCtx():
-            with KVRule(delay='canvas'):
+        with KvContext():
+            with KvRule(delay='canvas'):
                 self.value ^= self.widget.width
 
     def canvas_rule4(self):
         self.value = 42
         self.widget = Widget()
-        with KVCtx():
-            with KVRule(delay='canvas'):
+        with KvContext():
+            with KvRule(delay='canvas'):
                 self.value @= self.widget.width
 
     def canvas_rule5(self):
         self.value = 42
         self.widget = Widget()
-        with KVCtx():
-            with KVRule(delay='canvas'):
+        with KvContext():
+            with KvRule(delay='canvas'):
                 self.value ^= self.widget.width
             self.value2 ^= self.widget.height
 
     def canvas_rule6(self):
         self.value = 42
         self.widget = Widget()
-        with KVCtx():
-            with KVRule(delay=None):
+        with KvContext():
+            with KvRule(delay=None):
                 self.value ^= self.widget.width
 
 
@@ -3370,8 +3370,8 @@ class CanvasWidget(BaseWidget):
 class TestCanvasScheduling(TestBase):
 
     def canvas_rule_base(self, f):
-        KV_f = KV()
-        f = KV_f(f)
+        kv_f = kv()
+        f = kv_f(f)
         w = CanvasWidget()
         f(w)
 
@@ -3404,14 +3404,14 @@ class TestCanvasScheduling(TestBase):
         self.canvas_rule_base(CanvasWidget.canvas_rule3)
 
     def test_canvas_explicit_rule_mix(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CanvasWidget.canvas_rule4)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CanvasWidget.canvas_rule4)
 
     def test_canvas_explicit_rule_mix_flipped(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(CanvasWidget.canvas_rule6)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(CanvasWidget.canvas_rule6)
 
     def test_canvas_multi(self):
         w = self.canvas_rule_base(CanvasWidget.canvas_rule5)
@@ -3442,45 +3442,45 @@ class ClockWidget(BaseWidget):
     def clock_rule(self):
         self.value = 42
         self.widget = Widget()
-        with KVCtx() as self.ctx:
-            with KVRule(self.widget.width, delay=0):
+        with KvContext() as self.ctx:
+            with KvRule(self.widget.width, delay=0):
                 self.value = self.widget.width
 
     def clock_rule2(self):
         self.value = 42
         self.widget = Widget()
-        with KVCtx() as self.ctx:
-            with KVRule(delay=0):
+        with KvContext() as self.ctx:
+            with KvRule(delay=0):
                 self.value @= self.widget.width
 
     def clock_rule3(self):
         self.value = 42
         self.widget = Widget()
-        with KVCtx() as self.ctx:
-            with KVRule(delay=0):
+        with KvContext() as self.ctx:
+            with KvRule(delay=0):
                 self.value ^= self.widget.width
 
     def clock_rule4(self):
         self.value = 42
         self.widget = Widget()
-        with KVCtx() as self.ctx:
-            with KVRule(delay=0):
+        with KvContext() as self.ctx:
+            with KvRule(delay=0):
                 self.value @= self.widget.width
-            with KVRule(delay=0):
+            with KvRule(delay=0):
                 self.value2 @= self.widget.height
 
     def clock_rule5(self):
         self.value = 42
         self.widget = Widget()
-        with KVCtx():
-            with KVRule(delay=0):
+        with KvContext():
+            with KvRule(delay=0):
                 self.value @= self.widget.width
 
     def clock_rule6(self):
         self.value = 42
         self.widget = Widget()
-        with KVCtx() as self.ctx:
-            with KVRule(delay=.3):
+        with KvContext() as self.ctx:
+            with KvRule(delay=.3):
                 self.value @= self.widget.width
 
 
@@ -3489,8 +3489,8 @@ class TestClockScheduling(TestBase):
 
     def clock_rule_base(self, f, delay):
         from kivy.clock import Clock
-        KV_f = KV()
-        f = KV_f(f)
+        kv_f = kv()
+        f = kv_f(f)
         w = ClockWidget()
         f(w)
 
@@ -3526,9 +3526,9 @@ class TestClockScheduling(TestBase):
         self.clock_rule_base(ClockWidget.clock_rule2, 0)
 
     def test_clock_explicit_rule_mix(self):
-        KV_f = KV()
-        with self.assertRaises(KVCompilerParserException):
-            KV_f(ClockWidget.clock_rule3)
+        kv_f = kv()
+        with self.assertRaises(KvCompilerParserException):
+            kv_f(ClockWidget.clock_rule3)
 
     def test_clock_multi(self):
         from kivy.clock import Clock
@@ -3554,8 +3554,8 @@ class TestClockScheduling(TestBase):
 
     def clock_rule_no_ctx(self):
         from kivy.clock import Clock
-        KV_f = KV()
-        f = KV_f(ClockWidget.clock_rule5)
+        kv_f = kv()
+        f = kv_f(ClockWidget.clock_rule5)
         w = ClockWidget()
         f(w)
 
@@ -3579,40 +3579,40 @@ class LargsWidget(BaseWidget):
         self.widget = Widget()
         self.widget2 = Widget()
 
-        with KVCtx():
-            with KVRule() as self.rule:
+        with KvContext():
+            with KvRule() as self.rule:
                 self.value @= self.widget.width + self.widget2.width
 
     def args_rule2(self):
         self.widget = Widget()
         self.widget2 = Widget()
 
-        with KVCtx():
-            with KVRule(delay='canvas') as self.rule:
+        with KvContext():
+            with KvRule(delay='canvas') as self.rule:
                 self.value ^= self.widget.width + self.widget2.width
 
     def args_rule3(self):
         self.widget = Widget()
         self.widget2 = Widget()
 
-        with KVCtx():
-            with KVRule(delay='canvas') as self.rule:
+        with KvContext():
+            with KvRule(delay='canvas') as self.rule:
                 self.value ^= self.widget.width + self.widget2.width
 
     def args_rule4(self):
         self.widget = Widget()
         self.widget2 = Widget()
 
-        with KVCtx():
-            with KVRule(delay=0) as self.rule:
+        with KvContext():
+            with KvRule(delay=0) as self.rule:
                 self.value @= self.widget.width + self.widget2.width
 
     def args_rule5(self):
         self.widget = Widget()
         self.widget2 = Widget()
 
-        with KVCtx():
-            with KVRule(delay=0) as self.rule:
+        with KvContext():
+            with KvRule(delay=0) as self.rule:
                 self.value @= self.widget.width + self.widget2.width
 
 
@@ -3620,8 +3620,8 @@ class LargsWidget(BaseWidget):
 class TestLargs(TestBase):
 
     def test_largs(self):
-        KV_f = KV()
-        f = KV_f(LargsWidget.args_rule)
+        kv_f = kv()
+        f = kv_f(LargsWidget.args_rule)
         w = LargsWidget()
         f(w)
 
@@ -3637,8 +3637,8 @@ class TestLargs(TestBase):
         self.assertEqual(w.rule.largs[1], 98)
 
     def test_largs_canvas(self):
-        KV_f = KV()
-        f = KV_f(LargsWidget.args_rule2)
+        kv_f = kv()
+        f = kv_f(LargsWidget.args_rule2)
         w = LargsWidget()
         f(w)
         process_graphics_callbacks()
@@ -3657,8 +3657,8 @@ class TestLargs(TestBase):
         self.assertEqual(w.rule.largs[1], 98)
 
     def test_largs_canvas_pooled(self):
-        KV_f = KV()
-        f = KV_f(LargsWidget.args_rule3)
+        kv_f = kv()
+        f = kv_f(LargsWidget.args_rule3)
         w = LargsWidget()
         f(w)
         process_graphics_callbacks()
@@ -3676,8 +3676,8 @@ class TestLargs(TestBase):
 
     def test_largs_clock(self):
         from kivy.clock import Clock
-        KV_f = KV()
-        f = KV_f(LargsWidget.args_rule4)
+        kv_f = kv()
+        f = kv_f(LargsWidget.args_rule4)
         w = LargsWidget()
         f(w)
         Clock.tick()
@@ -3697,8 +3697,8 @@ class TestLargs(TestBase):
 
     def test_largs_clock_pooled(self):
         from kivy.clock import Clock
-        KV_f = KV()
-        f = KV_f(LargsWidget.args_rule5)
+        kv_f = kv()
+        f = kv_f(LargsWidget.args_rule5)
         w = LargsWidget()
         f(w)
         Clock.tick()
@@ -3718,11 +3718,11 @@ class TestLargs(TestBase):
 class NotCompiledWudget(BaseWidget):
 
     def apply_rule(self):
-        with KVCtx():
+        with KvContext():
             pass
 
     def apply_rule2(self):
-        with KVRule():
+        with KvRule():
             pass
 
 
@@ -3752,13 +3752,13 @@ class SyntaxUnbindingCtxRulePropsWidget(BaseWidget):
 
     def unbind_rule(self):
         self.widget = Widget()
-        with KVCtx() as self.ctx:
+        with KvContext() as self.ctx:
             self.value @= self.widget.width
 
     def unbind_rule2(self):
         self.widget = Widget()
-        with KVCtx() as self.ctx:
-            with KVRule(self.widget.width):
+        with KvContext() as self.ctx:
+            with KvRule(self.widget.width):
                 self.value = self.widget.width
 
     def unbind_rule3(self):
@@ -3766,32 +3766,32 @@ class SyntaxUnbindingCtxRulePropsWidget(BaseWidget):
         self.widget2 = Widget()
         self.widget3 = Widget()
 
-        with KVCtx() as self.ctx:
-            with KVRule(self.widget.width, name='first'):
+        with KvContext() as self.ctx:
+            with KvRule(self.widget.width, name='first'):
                 self.value @= self.widget.width
 
-            with KVCtx() as self.ctx3:
-                with KVRule(self.widget3.width, name='third'):
+            with KvContext() as self.ctx3:
+                with KvRule(self.widget3.width, name='third'):
                     self.value3 @= self.widget3.width
                 self.value3 @= self.widget3.height
 
             self.value @= self.widget.height
 
-        with KVCtx() as self.ctx2:
+        with KvContext() as self.ctx2:
             self.value2 @= self.widget2.height
-            with KVRule(self.widget2.width, name='second'):
+            with KvRule(self.widget2.width, name='second'):
                 self.value2 @= self.widget2.width
 
     def unbind_rule4(self):
         self.widget = Widget()
-        with KVCtx() as self.ctx:
+        with KvContext() as self.ctx:
             self.value @= self.widget.width
             self.value2 @= self.widget.width
 
     def unbind_rule5(self):
         self.widget = Widget()
-        with KVCtx() as self.ctx:
-            with KVRule(self.widget.width):
+        with KvContext() as self.ctx:
+            with KvRule(self.widget.width):
                 self.count += 1
                 self.value @= \
                     self.widget.width + self.widget.width + self.widget.width
@@ -3802,8 +3802,8 @@ class SyntaxUnbindingCtxRulePropsWidget(BaseWidget):
         self.widget2 = Widget()
         widget = self.widget3 = Widget()
 
-        with KVCtx() as self.ctx:
-            with KVRule():
+        with KvContext() as self.ctx:
+            with KvRule():
                 self.count += 1
                 self.value @= (
                     self.widget if self.value2 else self.widget2).width + \
@@ -3814,8 +3814,8 @@ class SyntaxUnbindingCtxRulePropsWidget(BaseWidget):
         self.value_dict = {0: 44, 1: 23}
         self.value2 = 0
 
-        with KVCtx() as self.ctx:
-            with KVRule():
+        with KvContext() as self.ctx:
+            with KvRule():
                 self.count += 1
                 self.value @= self.value_dict[self.value2] + 76
 
@@ -3824,8 +3824,8 @@ class SyntaxUnbindingCtxRulePropsWidget(BaseWidget):
         self.value2 = 0
         self.value3 = 0
 
-        with KVCtx() as self.ctx:
-            with KVRule():
+        with KvContext() as self.ctx:
+            with KvRule():
                 self.count += 1
                 self.value @= \
                     self.value_dict[self.value2 + self.value3] + self.value3
@@ -3836,37 +3836,37 @@ class SyntaxUnbindingCtxRulePropsWidget(BaseWidget):
         self.value_dict = {0: self.widget, 1: self.widget2}
         self.value2 = 0
 
-        with KVCtx() as self.ctx:
-            with KVRule():
+        with KvContext() as self.ctx:
+            with KvRule():
                 self.count += 1
                 self.value @= self.value_dict[self.value2].width + self.value3
 
     def apply_kv_test(self):
         self.widget = Widget()
-        with KVCtx() as self.ctx:
+        with KvContext() as self.ctx:
             self.value @= self.widget.width
 
     def apply_kv_test2(self):
         self.widget = Widget()
-        with KVCtx() as self.ctx:
-            with KVRule(delay=None):
+        with KvContext() as self.ctx:
+            with KvRule(delay=None):
                 self.value @= self.widget.width
 
     def apply_kv_test3(self):
         self.widget = Widget()
-        with KVCtx() as self.ctx:
+        with KvContext() as self.ctx:
             self.value ^= self.widget.width
 
     def apply_kv_test4(self):
         self.widget = Widget()
-        with KVCtx() as self.ctx:
-            with KVRule(delay='canvas'):
+        with KvContext() as self.ctx:
+            with KvRule(delay='canvas'):
                 self.value ^= self.widget.width
 
     def apply_kv_test5(self):
         self.widget = Widget()
-        with KVCtx() as self.ctx:
-            with KVRule(delay=0):
+        with KvContext() as self.ctx:
+            with KvRule(delay=0):
                 self.value @= self.widget.width
 
 
@@ -3874,8 +3874,8 @@ class SyntaxUnbindingCtxRulePropsWidget(BaseWidget):
 class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
 
     def test_unbind_rule(self):
-        KV_f = KV()
-        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.unbind_rule)
+        kv_f = kv()
+        f = kv_f(SyntaxUnbindingCtxRulePropsWidget.unbind_rule)
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
@@ -3897,8 +3897,8 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
             self.assertIsNone(item)
 
     def test_unbind_rule_explicit(self):
-        KV_f = KV()
-        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.unbind_rule2)
+        kv_f = kv()
+        f = kv_f(SyntaxUnbindingCtxRulePropsWidget.unbind_rule2)
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
@@ -3921,8 +3921,8 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
 
     def test_unbind_rule_multi(self):
         from random import randint
-        KV_f = KV()
-        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.unbind_rule3)
+        kv_f = kv()
+        f = kv_f(SyntaxUnbindingCtxRulePropsWidget.unbind_rule3)
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
@@ -4106,8 +4106,8 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
         check_3_2(bound=False)
 
     def test_unbind_rebind(self):
-        KV_f = KV(rebind=True)
-        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.unbind_rule4)
+        kv_f = kv(rebind=True)
+        f = kv_f(SyntaxUnbindingCtxRulePropsWidget.unbind_rule4)
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
@@ -4148,8 +4148,8 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
             self.assertIsNone(item)
 
     def test_unbind_rule_explicit_multiple_of_same(self):
-        KV_f = KV()
-        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.unbind_rule5)
+        kv_f = kv()
+        f = kv_f(SyntaxUnbindingCtxRulePropsWidget.unbind_rule5)
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
@@ -4177,8 +4177,8 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
             self.assertIsNone(item)
 
     def test_unbind_rule_full_syntax(self):
-        KV_f = KV(kv_syntax=None, rebind=True)
-        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.unbind_rule6)
+        kv_f = kv(kv_syntax=None, rebind=True)
+        f = kv_f(SyntaxUnbindingCtxRulePropsWidget.unbind_rule6)
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
@@ -4271,8 +4271,8 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
         self.assertEqual(w.value3, orig2)
 
     def test_unbind_rule_full_syntax_flipped(self):
-        KV_f = KV(kv_syntax=None, rebind=True)
-        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.unbind_rule6)
+        kv_f = kv(kv_syntax=None, rebind=True)
+        f = kv_f(SyntaxUnbindingCtxRulePropsWidget.unbind_rule6)
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
@@ -4319,8 +4319,8 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
         self.assertEqual(w.value3, orig2)
 
     def test_syntax_rule_dict(self):
-        KV_f = KV(kv_syntax='minimal', rebind=True)
-        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.dict_rule7)
+        kv_f = kv(kv_syntax='minimal', rebind=True)
+        f = kv_f(SyntaxUnbindingCtxRulePropsWidget.dict_rule7)
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
@@ -4339,8 +4339,8 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
         self.assertEqual(w.count, count + 3)
 
     def test_syntax_rule_dict_multi(self):
-        KV_f = KV(kv_syntax='minimal', rebind=True)
-        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.dict_rule8)
+        kv_f = kv(kv_syntax='minimal', rebind=True)
+        f = kv_f(SyntaxUnbindingCtxRulePropsWidget.dict_rule8)
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
@@ -4374,8 +4374,8 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
         self.assertEqual(w.count, count + 5)
 
     def test_syntax_rule_dict_rebind(self):
-        KV_f = KV(kv_syntax='minimal', rebind=True)
-        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.dict_rule9)
+        kv_f = kv(kv_syntax='minimal', rebind=True)
+        f = kv_f(SyntaxUnbindingCtxRulePropsWidget.dict_rule9)
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
@@ -4398,8 +4398,8 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
         self.assertEqual(w.value, w.widget2.width + w.value3)
 
     def test_callback_rule(self):
-        KV_f = KV()
-        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv_test)
+        kv_f = kv()
+        f = kv_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv_test)
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
@@ -4408,8 +4408,8 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
         self.assertEqual(w.ctx.rules[0].delay, None)
 
     def test_callback_rule_explicit(self):
-        KV_f = KV()
-        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv_test2)
+        kv_f = kv()
+        f = kv_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv_test2)
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
@@ -4418,8 +4418,8 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
         self.assertEqual(w.ctx.rules[0].delay, None)
 
     def test_callback_rule_canvas(self):
-        KV_f = KV()
-        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv_test3)
+        kv_f = kv()
+        f = kv_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv_test3)
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
@@ -4428,8 +4428,8 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
         self.assertEqual(w.ctx.rules[0].delay, 'canvas')
 
     def test_callback_rule_explicit_canvas(self):
-        KV_f = KV()
-        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv_test4)
+        kv_f = kv()
+        f = kv_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv_test4)
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
@@ -4438,8 +4438,8 @@ class TestSyntaxUnbindingCtxRulePropsWidget(TestBase):
         self.assertEqual(w.ctx.rules[0].delay, 'canvas')
 
     def test_callback_rule_explicit_clock(self):
-        KV_f = KV()
-        f = KV_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv_test5)
+        kv_f = kv()
+        f = kv_f(SyntaxUnbindingCtxRulePropsWidget.apply_kv_test5)
         w = SyntaxUnbindingCtxRulePropsWidget()
         f(w)
 
@@ -4456,14 +4456,14 @@ class EventBindWidget(BaseWidget):
         pass
 
     def apply_kv_test(self):
-        with KVCtx() as self.ctx:
-            with KVRule(self.on_touch_down) as my_rule:
+        with KvContext() as self.ctx:
+            with KvRule(self.on_touch_down) as my_rule:
                 self.value_object = my_rule.largs
 
     def apply_kv_test2(self):
         self.value2 = 0
-        with KVCtx() as self.ctx:
-            with KVRule(self.on_touch_down, self.value2) as my_rule:
+        with KvContext() as self.ctx:
+            with KvRule(self.on_touch_down, self.value2) as my_rule:
                 self.value @= self.value2
 
 
@@ -4471,8 +4471,8 @@ class EventBindWidget(BaseWidget):
 class TestEventBind(TestBase):
 
     def test_event(self):
-        KV_f = KV()
-        f = KV_f(EventBindWidget.apply_kv_test)
+        kv_f = kv()
+        f = kv_f(EventBindWidget.apply_kv_test)
         w = EventBindWidget()
         f(w)
 
@@ -4487,8 +4487,8 @@ class TestEventBind(TestBase):
         self.assertEqual(w.value_object, (w, "blah"))
 
     def test_event_multi(self):
-        KV_f = KV()
-        f = KV_f(EventBindWidget.apply_kv_test2)
+        kv_f = kv()
+        f = kv_f(EventBindWidget.apply_kv_test2)
         w = EventBindWidget()
         f(w)
 
@@ -4514,42 +4514,42 @@ class RebindWidget(BaseWidget):
         self.widget = Widget()
         self.widget2 = Widget()
 
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.width + self.widget2.width
 
     def apply_kv_test2(self):
         self.widget = Widget()
         self.widget2 = Widget()
 
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.width + self.widget2.width
 
     def apply_kv_test3(self):
         self.widget = Widget()
         self.widget2 = Widget()
 
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.width + self.widget2.width
 
     def apply_kv_test4(self):
         self.widget = Widget()
         self.widget2 = Widget()
 
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.width + self.widget2.width
 
     def apply_kv_test5(self):
         self.widget = Widget()
         self.widget2 = Widget()
 
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.width + self.widget2.width
 
     def apply_kv_test6(self):
         self.widget = Widget()
         self.widget2 = Widget()
 
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.width + self.widget2.width
 
 
@@ -4557,8 +4557,8 @@ class RebindWidget(BaseWidget):
 class TestRebind(TestBase):
 
     def test_rebind(self):
-        KV_f = KV(rebind=False)
-        f = KV_f(RebindWidget.apply_kv_test)
+        kv_f = kv(rebind=False)
+        f = kv_f(RebindWidget.apply_kv_test)
         w = RebindWidget()
         f(w)
 
@@ -4583,8 +4583,8 @@ class TestRebind(TestBase):
         self.assertEqual(w.value, w.widget.width + w.widget2.width)
 
     def test_rebind_true(self):
-        KV_f = KV(rebind=True)
-        f = KV_f(RebindWidget.apply_kv_test2)
+        kv_f = kv(rebind=True)
+        f = kv_f(RebindWidget.apply_kv_test2)
         w = RebindWidget()
         f(w)
 
@@ -4609,8 +4609,8 @@ class TestRebind(TestBase):
         self.assertEqual(w.value, w.widget.width + w.widget2.width)
 
     def rebind_partial_base(self, f, params):
-        KV_f = KV(rebind=params)
-        f = KV_f(f)
+        kv_f = kv(rebind=params)
+        f = kv_f(f)
         w = RebindWidget()
         f(w)
 
@@ -4651,33 +4651,33 @@ class TestRebind(TestBase):
             RebindWidget.apply_kv_test6, ['*.widget', 'sfsd', '*cheese'])
 
 
-class ManualKVWidget(BaseWidget):
+class ManualKvWidget(BaseWidget):
 
     ctx = None
 
     def apply_kv_test(self):
         self.widget = Widget()
         self.widget2 = Widget()
-        self.ctx = ctx = KVParserCtx()
+        self.ctx = ctx = KvParserContext()
 
         def manage_val(*largs):
             self.value = self.widget.width + self.widget2.width
         manage_val()
 
-        rule = KVParserRule('self.widget.width + self.widget2.width')
+        rule = KvParserRule('self.widget.width + self.widget2.width')
         rule.callback = manage_val
         rule.callback_name = manage_val.__name__
         ctx.add_rule(rule)
 
-        KV_apply_manual(
+        kv_apply_manual(
             ctx, self.apply_kv_test, locals(), globals(), rebind=True)
 
 
 @skip_py2_decorator
-class TestManualKV(TestBase):
+class TestManualkv(TestBase):
 
     def test_manual(self):
-        w = ManualKVWidget()
+        w = ManualKvWidget()
         w.apply_kv_test()
 
         self.assertEqual(w.value, w.widget.width + w.widget2.width)
@@ -4717,17 +4717,17 @@ class NoneLocalsWidget(BaseWidget):
 
     def apply_kv_test(self):
         widget = None
-        with KVCtx():
+        with KvContext():
             self.value @= widget.height
 
     def apply_kv_test2(self):
         self.widget = None
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.height
 
     def apply_kv_test3(self):
         self.widget = None
-        with KVCtx():
+        with KvContext():
             self.value @= self.widget.height if self.widget is not None else 55
 
 
@@ -4735,22 +4735,22 @@ class NoneLocalsWidget(BaseWidget):
 class TestNoneLocal(TestBase):
 
     def test_None_local(self):
-        KV_f = KV()
-        f = KV_f(NoneLocalsWidget.apply_kv_test)
+        kv_f = kv()
+        f = kv_f(NoneLocalsWidget.apply_kv_test)
         w = NoneLocalsWidget()
         with self.assertRaises(AttributeError):
             f(w)
 
     def test_None_local_attr(self):
-        KV_f = KV()
-        f = KV_f(NoneLocalsWidget.apply_kv_test2)
+        kv_f = kv()
+        f = kv_f(NoneLocalsWidget.apply_kv_test2)
         w = NoneLocalsWidget()
         with self.assertRaises(AttributeError):
             f(w)
 
     def test_None_local_attr_protected(self):
-        KV_f = KV()
-        f = KV_f(NoneLocalsWidget.apply_kv_test3)
+        kv_f = kv()
+        f = kv_f(NoneLocalsWidget.apply_kv_test3)
         w = NoneLocalsWidget()
         f(w)
 
@@ -4775,8 +4775,8 @@ class TestASTWhitelist(TestBase):
 
     def test_ast_whitelist_minimal(self):
         from kivy.lang.compiler.ast_parse import \
-            ParseKVBindTransformer, ParseCheckWhitelisted, parse_expr_ast
-        whitelist = ParseKVBindTransformer.whitelist_opts['minimal']
+            ParseKvBindTransformer, ParseCheckWhitelisted, parse_expr_ast
+        whitelist = ParseKvBindTransformer.whitelist_opts['minimal']
         checker = ParseCheckWhitelisted(whitelist)
 
         checker.check_node_graph(parse_expr_ast('self.x'))
@@ -4793,8 +4793,8 @@ class TestASTWhitelist(TestBase):
 
     def test_ast_whitelist_minimal_dict(self):
         from kivy.lang.compiler.ast_parse import \
-            ParseKVBindTransformer, ParseCheckWhitelisted, parse_expr_ast
-        whitelist = ParseKVBindTransformer.whitelist_opts['minimal']
+            ParseKvBindTransformer, ParseCheckWhitelisted, parse_expr_ast
+        whitelist = ParseKvBindTransformer.whitelist_opts['minimal']
         checker = ParseCheckWhitelisted(whitelist)
 
         checker.check_node_graph(parse_expr_ast('self.x.y[self.z].f'))
@@ -4807,8 +4807,8 @@ class TestASTWhitelist(TestBase):
 
     def test_ast_whitelist_minimal_list(self):
         from kivy.lang.compiler.ast_parse import \
-            ParseKVBindTransformer, ParseCheckWhitelisted, parse_expr_ast
-        whitelist = ParseKVBindTransformer.whitelist_opts['minimal']
+            ParseKvBindTransformer, ParseCheckWhitelisted, parse_expr_ast
+        whitelist = ParseKvBindTransformer.whitelist_opts['minimal']
         checker = ParseCheckWhitelisted(whitelist)
 
         checker.check_node_graph(parse_expr_ast('self.x.y[55].f'))
@@ -4817,8 +4817,8 @@ class TestASTWhitelist(TestBase):
 
     def test_ast_whitelist_minimal_illegal(self):
         from kivy.lang.compiler.ast_parse import \
-            ParseKVBindTransformer, ParseCheckWhitelisted, parse_expr_ast
-        whitelist = ParseKVBindTransformer.whitelist_opts['minimal']
+            ParseKvBindTransformer, ParseCheckWhitelisted, parse_expr_ast
+        whitelist = ParseKvBindTransformer.whitelist_opts['minimal']
         checker = ParseCheckWhitelisted(whitelist)
 
         checker.check_node_graph(parse_expr_ast('(self.x + self.y).z'))
@@ -4897,16 +4897,16 @@ class TestParseASTBind(TestBase):
 
     def test_ast_rule_None(self):
         from kivy.lang.compiler.ast_parse import \
-            ParseKVBindTransformer, parse_expr_ast
-        transformer = ParseKVBindTransformer(kv_syntax='minimal')
+            ParseKvBindTransformer, parse_expr_ast
+        transformer = ParseKvBindTransformer(kv_syntax='minimal')
 
         with self.assertRaises(ValueError):
             transformer.update_graph([parse_expr_ast('self.x + self.y')], None)
 
     def test_ast_whitelist_minimal(self):
         from kivy.lang.compiler.ast_parse import \
-            ParseKVBindTransformer, parse_expr_ast
-        transformer = ParseKVBindTransformer(kv_syntax='minimal')
+            ParseKvBindTransformer, parse_expr_ast
+        transformer = ParseKvBindTransformer(kv_syntax='minimal')
 
         transformer.update_graph([parse_expr_ast('self.x + self.y')], 'rule')
 
@@ -4939,8 +4939,8 @@ class TestParseASTBind(TestBase):
 
     def test_ast_whitelist_minimal_multi_rules(self):
         from kivy.lang.compiler.ast_parse import \
-            ParseKVBindTransformer, parse_expr_ast
-        transformer = ParseKVBindTransformer(kv_syntax='minimal')
+            ParseKvBindTransformer, parse_expr_ast
+        transformer = ParseKvBindTransformer(kv_syntax='minimal')
 
         transformer.update_graph([parse_expr_ast('self.x + self.y')], 'rule1')
         transformer.update_graph([parse_expr_ast('self.x + self.y')], 'rule2')
@@ -4989,8 +4989,8 @@ class TestParseASTBind(TestBase):
 
     def test_ast_whitelist_minimal_reuse_node(self):
         from kivy.lang.compiler.ast_parse import \
-            ParseKVBindTransformer, parse_expr_ast
-        transformer = ParseKVBindTransformer(kv_syntax='minimal')
+            ParseKvBindTransformer, parse_expr_ast
+        transformer = ParseKvBindTransformer(kv_syntax='minimal')
 
         transformer.update_graph([parse_expr_ast('self.x[self.x].z')], 'rule')
 
@@ -5028,8 +5028,8 @@ class TestParseASTBind(TestBase):
 
     def test_ast_whitelist_minimal_reuse_forked_node(self):
         from kivy.lang.compiler.ast_parse import \
-            ParseKVBindTransformer, parse_expr_ast
-        transformer = ParseKVBindTransformer(kv_syntax='minimal')
+            ParseKvBindTransformer, parse_expr_ast
+        transformer = ParseKvBindTransformer(kv_syntax='minimal')
 
         transformer.update_graph([parse_expr_ast('self.x[self.y].z')], 'rule')
 
@@ -5074,8 +5074,8 @@ class TestParseASTBind(TestBase):
 
     def test_ast_whitelist_minimal_reuse_forked_node_sum(self):
         from kivy.lang.compiler.ast_parse import \
-            ParseKVBindTransformer, parse_expr_ast
-        transformer = ParseKVBindTransformer(kv_syntax='minimal')
+            ParseKvBindTransformer, parse_expr_ast
+        transformer = ParseKvBindTransformer(kv_syntax='minimal')
 
         transformer.update_graph(
             [parse_expr_ast('(self.x + self.y).z')], 'rule')
@@ -5111,8 +5111,8 @@ class TestParseASTBind(TestBase):
 
     def test_ast_whitelist_None_reuse_forked_node_sum(self):
         from kivy.lang.compiler.ast_parse import \
-            ParseKVBindTransformer, parse_expr_ast
-        transformer = ParseKVBindTransformer(kv_syntax=None)
+            ParseKvBindTransformer, parse_expr_ast
+        transformer = ParseKvBindTransformer(kv_syntax=None)
 
         transformer.update_graph(
             [parse_expr_ast('(self.x + self.y).z')], 'rule')
@@ -5158,8 +5158,8 @@ class TestParseASTBind(TestBase):
 
     def ast_simple(self, s):
         from kivy.lang.compiler.ast_parse import \
-            ParseKVBindTransformer, parse_expr_ast
-        transformer = ParseKVBindTransformer(kv_syntax='minimal')
+            ParseKvBindTransformer, parse_expr_ast
+        transformer = ParseKvBindTransformer(kv_syntax='minimal')
 
         transformer.update_graph([parse_expr_ast(s)], 'rule')
 
@@ -5191,8 +5191,8 @@ class TestParseASTBind(TestBase):
 
     def test_ast_simple_duplicate_multiple_rules(self):
         from kivy.lang.compiler.ast_parse import \
-            ParseKVBindTransformer, parse_expr_ast
-        transformer = ParseKVBindTransformer(kv_syntax='minimal')
+            ParseKvBindTransformer, parse_expr_ast
+        transformer = ParseKvBindTransformer(kv_syntax='minimal')
 
         # this tests de-duplication by leaf_nodes_in_rule for each rule
         transformer.update_graph([parse_expr_ast('self.x + self.x')], 'rule1')
@@ -5229,8 +5229,8 @@ class TestParseASTBind(TestBase):
 
     def test_ast_multiple_graphs(self):
         from kivy.lang.compiler.ast_parse import \
-            ParseKVBindTransformer, parse_expr_ast
-        transformer = ParseKVBindTransformer(kv_syntax='minimal')
+            ParseKvBindTransformer, parse_expr_ast
+        transformer = ParseKvBindTransformer(kv_syntax='minimal')
 
         transformer.update_graph([parse_expr_ast('self.x + other.x')], 'rule')
 
@@ -5283,24 +5283,24 @@ cython_file = '''
 #cython: binding=True
 
 from kivy.uix.widget import Widget
-from kivy.lang.compiler import KV, KVCtx
+from kivy.lang.compiler import kv, KvContext
 
 class MyWidget(Widget):
 
-    @KV()
+    @kv()
     def apply_kv(self):
-        with KVCtx():
+        with KvContext():
             self.x @= self.y
 '''
 
 
 @skip_cython
 @skip_py2_decorator
-class TestCythonKV(TestBase):
+class TestCythonKv(TestBase):
 
     def setUp(self):
-        super(TestCythonKV, self).setUp()
-        from kivy.lang.compiler.kv import patch_inspect
+        super(TestCythonKv, self).setUp()
+        from kivy.lang.compiler.compile import patch_inspect
         patch_inspect()
 
         cython_path = os.path.join(
@@ -5345,8 +5345,8 @@ class TestCythonKV(TestBase):
         gc.collect()
 
     def tearDown(self):
-        super(TestCythonKV, self).tearDown()
-        from kivy.lang.compiler.kv import unpatch_inspect
+        super(TestCythonKv, self).tearDown()
+        from kivy.lang.compiler.compile import unpatch_inspect
         unpatch_inspect()
 
         import kivy.lang.compiler.runtime
@@ -5357,11 +5357,11 @@ class TestCythonKV(TestBase):
 
 @skip_cython
 @skip_py2_decorator
-class TestCythonKVDefault(TestBase):
+class TestCythonKvDefault(TestBase):
 
     def setUp(self):
-        super(TestCythonKVDefault, self).setUp()
-        from kivy.lang.compiler.kv import patch_inspect
+        super(TestCythonKvDefault, self).setUp()
+        from kivy.lang.compiler.compile import patch_inspect
         patch_inspect()
 
         cython_path = os.path.join(
@@ -5403,17 +5403,17 @@ class TestCythonKVDefault(TestBase):
         gc.collect()
 
     def tearDown(self):
-        super(TestCythonKVDefault, self).tearDown()
-        from kivy.lang.compiler.kv import unpatch_inspect
+        super(TestCythonKvDefault, self).tearDown()
+        from kivy.lang.compiler.compile import unpatch_inspect
         unpatch_inspect()
 
         shutil.rmtree(self.cython_path, ignore_errors=True)
 
 
-class PyinstallerKVBase(TestBase):
+class PyinstallerKvBase(TestBase):
 
     def setUp(self):
-        super(PyinstallerKVBase, self).setUp()
+        super(PyinstallerKvBase, self).setUp()
         self.pinstall_path = os.path.join(
             os.path.dirname(__file__), 'kv_tests', 'pyinstaller')
 
@@ -5454,7 +5454,7 @@ class PyinstallerKVBase(TestBase):
             raise
 
     def tearDown(self):
-        super(PyinstallerKVBase, self).tearDown()
+        super(PyinstallerKvBase, self).tearDown()
 
         shutil.rmtree(
             os.path.join(self.pinstall_path, '__pycache__'),
@@ -5478,7 +5478,7 @@ class PyinstallerKVBase(TestBase):
 
 @skip_pyinstaller
 @skip_py2_non_win
-class TestPyinstallerKV(PyinstallerKVBase):
+class TestPyinstallerkv(PyinstallerKvBase):
 
     def test_pyinstaller_kvc_path(self):
         self.do_packaging()
@@ -5486,10 +5486,10 @@ class TestPyinstallerKV(PyinstallerKVBase):
 
 @skip_pyinstaller
 @skip_py2_non_win
-class TestPyinstallerKVCache(PyinstallerKVBase):
+class TestPyinstallerKvCache(PyinstallerKvBase):
 
     def get_env(self):
-        env = super(TestPyinstallerKVCache, self).get_env()
+        env = super(TestPyinstallerKvCache, self).get_env()
         del env['KIVY_KVC_PATH']
         # use the cache rather than kvc path
         env['__KIVY_KV_USE_CACHE'] = '1'

@@ -1,11 +1,11 @@
 
 from kivy.uix.widget import Widget
-from kivy.lang.compiler import KV, KVCtx
+from kivy.lang.compiler import kv, KvContext
 
 
 class MyWidget(Widget):
 
-    @KV()
+    @kv()
     def apply_kv(self):
-        with KVCtx():
+        with KvContext():
             self.x @= self.y

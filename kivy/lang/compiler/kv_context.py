@@ -1,8 +1,8 @@
 '''
-KV Compiler Contexts and Rules
+Kv Compiler Contexts and Rules
 ================================
 
-Describes the classes that captures a KV binding rule as well as the context
+Describes the classes that captures a kv binding rule as well as the context
 that stores the rules.
 
 Typical usage::
@@ -15,12 +15,12 @@ Typical usage::
             super(MyWidget, self).__init__(**kwargs)
             self.apply_kv()
 
-        @KV()
+        @kv()
         def apply_rule(self):
-            with KVCtx() as self.kv_ctx:
+            with KvContext() as self.kv_ctx:
                 self.width @= self.height + 10
 
-                with KVRule(name='my_rule') as rule:
+                with KvRule(name='my_rule') as rule:
                     print('callback args is:', rule.largs)
                     self.x @= self.y + 25
 
@@ -38,22 +38,22 @@ import ast
 import fnmatch
 import re
 
-__all__ = ('KVRule', 'KVCtx', 'KVParserRule', 'KVParserCtx')
+__all__ = ('KvRule', 'KvContext', 'KvParserRule', 'KvParserContext')
 
 
-class KVRule(object):
+class KvRule(object):
     '''
-    Describes a KV rule.
+    Describes a kv rule.
 
     :param *binds: captures all positional arguments and add them to the bind
         list. E.g.::
 
-            with KVRule():
+            with KvRule():
                 self.x @= self.y
 
         does the same things as::
 
-            with KVRule(self.y):
+            with KvRule(self.y):
                 self.x = self.y
 
         and you can add as many positional args there as you like, and the rule
@@ -62,7 +62,7 @@ class KVRule(object):
         thing.
     :param delay: the rule type: can be None (default), `"canvas"`, or a
         number. Describes the rule type.
-        * If `None`, it's a normal KV rule
+        * If `None`, it's a normal kv rule
         * If `"canvas"`, it's meant to be used with a canvas instruction and
           the rule will be scheduled to be executed with other graphics *after*
           the frame, rather than every time it is called.
@@ -71,7 +71,7 @@ class KVRule(object):
           rather than be executed immediately.
 
           .. warning:
-              If setting the KV decorator proxy parameter to True and a clock
+              If setting the kv decorator proxy parameter to True and a clock
               rule is created, a reference must be held to the rule or context,
               otherwise the rule will be freed by the garbage collection.
     :param name: a optional name for the rule. Defaults to `None`
@@ -96,21 +96,21 @@ class KVRule(object):
 
     def __init__(self, *binds, delay=None, name=None, triggered_only=False):
         # we don't save any of the args here, because when a rule is created by
-        # the manual compiler, it is the KVParserRule. For the auto compiler,
-        # the user writes in the code KVRule, but the compiler intercepts it
-        # and creates a KVParserRule instead when parsing and saves the args
-        # there. Finally, the compiler emits the creation of a KVRule without
+        # the manual compiler, it is the KvParserRule. For the auto compiler,
+        # the user writes in the code KvRule, but the compiler intercepts it
+        # and creates a KvParserRule instead when parsing and saves the args
+        # there. Finally, the compiler emits the creation of a KvRule without
         # any args/kwargs and instead emits manual code that sets the
-        # attributes of the KVRule based on the internal KVParserRule, rather
+        # attributes of the KvRule based on the internal KvParserRule, rather
         # than passing it to the constructor.
         # Calss variables are not init here as a optimization
         self.largs = ()
 
     def __enter__(self):
         raise TypeError(
-            "Something went wrong and the KV code was not compiled. Did "
-            "you forget to decorate the function with the KV compiler? "
-            "Make sure the KV rule class is KVRule because it cannot be "
+            "Something went wrong and the kv code was not compiled. Did "
+            "you forget to decorate the function with the kv compiler? "
+            "Make sure the kv rule class is KvRule because it cannot be "
             "inherited from as it's parsed syntactically at compile time.")
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -162,17 +162,17 @@ class KVRule(object):
         self.callback = None
 
 
-class KVParserRule(KVRule):
-    '''Created by the parser when it encounters a :class:`KVRule`.
+class KvParserRule(KvRule):
+    '''Created by the parser when it encounters a :class:`KvRule`.
 
-    It is also used when manually compiling KV.
+    It is also used when manually compiling kv.
     '''
 
     __slots__ = ('callback_name', 'captures', 'src', 'with_var_name_ast',
                  '_callback_name', 'binds', 'triggered_only')
 
     def __init__(self, *binds, delay=None, name=None, triggered_only=False):
-        super(KVParserRule, self).__init__()
+        super(KvParserRule, self).__init__()
         self.with_var_name_ast = None
         self._callback = None
         self.binds = binds
@@ -184,16 +184,16 @@ class KVParserRule(KVRule):
         self.callback = None
 
 
-class KVCtx(object):
+class KvContext(object):
     '''
-    Manages KV rules created under the context.
+    Manages kv rules created under the context.
 
     :param reinit_after: Whether all the rules that are not
-        :attr:`KVRule.triggered_only` should be executed again after the
-        bindings are complete when the :class:`KVCtx` exits. Defaults to False.
+        :attr:`KvRule.triggered_only` should be executed again after the
+        bindings are complete when the :class:`KvContext` exits. Defaults to False.
 
         This is only useful when `bind_on_enter` in
-        :func:`~kivy.lang.compiler.kv.KV` is `False`, because then the
+        :func:`~kivy.lang.compiler.compile.kv` is `False`, because then the
         rules are executed before the bindings occur, and it may be desirable
         for the rules to be executed again, once all the bindings occurs.
 
@@ -202,15 +202,15 @@ class KVCtx(object):
 
     Class attributes:
 
-    :var rules: List of :class:`KVRule`
-        Contains all the KV rules created under the context, ignoring rules
+    :var rules: List of :class:`KvRule`
+        Contains all the kv rules created under the context, ignoring rules
         created under a second context within this context. E.g.::
 
-            with KVCtx() as my_ctx:
+            with KvContext() as my_ctx:
                 self.x @= self.y
-                with KVCtx() as my_ctx2:
+                with KvContext() as my_ctx2:
                     self.y @= self.height + 10
-                with KVRule(name='my_rule'):
+                with KvRule(name='my_rule'):
                     self.width @= self.height
 
         then `my_ctx` will contain 2 rules, and my_ctx2 will contain 1 rule.
@@ -236,9 +236,9 @@ class KVCtx(object):
 
     def __enter__(self):
         raise TypeError(
-            "Something went wrong and the KV code was not compiled. Did "
-            "you forget to decorate the function with the KV compiler? "
-            "Make sure the KV context class is KVCtx because it cannot be "
+            "Something went wrong and the kv code was not compiled. Did "
+            "you forget to decorate the function with the kv compiler? "
+            "Make sure the kv context class is KvContext because it cannot be "
             "inherited from as it's parsed syntactically at compile time.")
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -248,30 +248,30 @@ class KVCtx(object):
         '''Adds the rule to the context.
 
         It is called automatically by the compiler and should only be called
-        when manually compiling KV.
+        when manually compiling kv.
         '''
         self.rules.append(rule)
         if rule.name:
             self.named_rules[rule.name] = rule
 
     def unbind_all_rules(self):
-        '''Calls :meth:`KVRule.unbind_rule` for all the rules in the context
+        '''Calls :meth:`KvRule.unbind_rule` for all the rules in the context
         to unbind all the rules.
         '''
         for rule in self.rules:
             rule.unbind_rule()
 
 
-class KVParserCtx(KVCtx):
-    '''Created by the parser when it encounters a :class:`KVCtx`.
+class KvParserContext(KvContext):
+    '''Created by the parser when it encounters a :class:`KvContext`.
 
-    It is also used when manually compiling KV.
+    It is also used when manually compiling kv.
     '''
 
     __slots__ = ('transformer', 'kv_syntax', 'reinit_after')
 
     def __init__(self, reinit_after=False):
-        super(KVParserCtx, self).__init__()
+        super(KvParserContext, self).__init__()
         self.transformer = None
         self.reinit_after = reinit_after
 
