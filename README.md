@@ -13,7 +13,7 @@ whilst making your code reusable and deployable.
 
 Kivy is written in Python and [Cython](http://cython.org/), based on OpenGL ES
 2, supports various input devices and has an extensive widget library. With the
-same codebase, you can target Windows, OS X, Linux, Android and iOS. All Kivy
+same codebase, you can target Windows, macOS, Linux, Android and iOS. All Kivy
 widgets are built with multitouch support.
 
 Kivy is MIT licensed, actively developed by a great community and is supported
