@@ -82,6 +82,7 @@ from kivy.properties import ObjectProperty, BooleanProperty, ListProperty, \
 from kivy.graphics.texture import Texture
 from kivy.clock import Clock
 from kivy.lang import Builder
+from kivy.weakproxy import WeakProxy
 
 
 Builder.load_string('''
@@ -530,7 +531,11 @@ class Inspector(FloatLayout):
         keys = list(widget.properties().keys())
         keys.sort()
         node = None
-        wk_widget = weakref.ref(widget)
+        if type(widget) is WeakProxy:
+            wk_widget = widget.__ref__
+            widget = wk_widget()
+        else:
+            wk_widget = weakref.ref(widget)
         for key in keys:
             node = TreeViewProperty(key=key, widget_ref=wk_widget)
             node.bind(is_selected=self.show_property)
