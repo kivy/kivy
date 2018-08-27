@@ -533,7 +533,6 @@ class Inspector(FloatLayout):
         node = None
         if type(widget) is WeakProxy:
             wk_widget = widget.__ref__
-            widget = wk_widget()
         else:
             wk_widget = weakref.ref(widget)
         for key in keys:
