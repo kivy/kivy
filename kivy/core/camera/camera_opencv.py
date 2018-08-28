@@ -138,9 +138,11 @@ class CameraOpenCV(CameraBase):
             try:
                 self._buffer = frame.imageData
             except AttributeError:
-                # On OSX there is no imageData attribute but a tostring()
+                # On OSX/Linux there is no imageData attribute but a tostring()
                 # method.
-                self._buffer = frame.tostring()
+                # frame is already of type ndarray which can be reshaped to 1-d.
+                # Either frame.tostring() or frame.tobytes() is slow.
+                self._buffer = frame.reshape(-1)
             self._copy_to_gpu()
         except:
             Logger.exception('OpenCV: Couldn\'t get image from Camera')
