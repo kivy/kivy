@@ -116,4 +116,4 @@ class Camera(Image):
         if value:
             self._camera.start()
         else:
-            self._camera.stop()
+            self._camera._release_camera() 
