@@ -160,6 +160,10 @@ class SequentialAnimationTestCase(AnimationTestCaseBase):
         self.assertDictEqual(anim.animated_properties,
                              {'x': 0, 'y': 200, })
 
+    def test_transition(self):
+        with self.assertRaises(AttributeError):
+            self.a.transition
+
 
 class ParallelAnimationTestCase(AnimationTestCaseBase):
 
@@ -187,3 +191,7 @@ class ParallelAnimationTestCase(AnimationTestCaseBase):
     def test_animated_properties(self):
         self.assertDictEqual(self.a.animated_properties,
                              {'x': 100, 'y': 100, })
+
+    def test_transition(self):
+        with self.assertRaises(AttributeError):
+            self.a.transition

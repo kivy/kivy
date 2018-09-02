@@ -441,6 +441,12 @@ class CompoundAnimation(Animation):
         d.update(self.anim2.animated_properties)
         return d
 
+    @property
+    def transition(self):
+        # This property is impossible to implement
+        raise AttributeError(
+            "Can't lookup transition attribute of a CompoundAnimation")
+
 
 class Sequence(CompoundAnimation):
 
