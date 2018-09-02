@@ -391,7 +391,30 @@ class Animation(EventDispatcher):
         return Parallel(self, animation)
 
 
-class Sequence(Animation):
+class CompoundAnimation(Animation):
+
+    def stop(self, widget):
+        self.anim1.stop(widget)
+        self.anim2.stop(widget)
+        props = self._widgets.pop(widget.uid, None)
+        if props:
+            self.dispatch('on_complete', widget)
+        super(CompoundAnimation, self).cancel(widget)
+
+    def stop_property(self, widget, prop):
+        self.anim1.stop_property(widget, prop)
+        self.anim2.stop_property(widget, prop)
+        if (not self.anim1.have_properties_to_animate(widget) and
+                not self.anim2.have_properties_to_animate(widget)):
+            self.stop(widget)
+
+    def cancel(self, widget):
+        self.anim1.cancel(widget)
+        self.anim2.cancel(widget)
+        super(CompoundAnimation, self).cancel(widget)
+
+
+class Sequence(CompoundAnimation):
 
     def __init__(self, anim1, anim2):
         super(Sequence, self).__init__()
@@ -418,26 +441,6 @@ class Sequence(Animation):
         self._register()
         self.anim1.start(widget)
         self.anim1.bind(on_complete=self.on_anim1_complete)
-
-    def stop(self, widget):
-        self.anim1.stop(widget)
-        self.anim2.stop(widget)
-        props = self._widgets.pop(widget.uid, None)
-        if props:
-            self.dispatch('on_complete', widget)
-        super(Sequence, self).cancel(widget)
-
-    def stop_property(self, widget, prop):
-        self.anim1.stop_property(widget, prop)
-        self.anim2.stop_property(widget, prop)
-        if (not self.anim1.have_properties_to_animate(widget) and
-                not self.anim2.have_properties_to_animate(widget)):
-            self.stop(widget)
-
-    def cancel(self, widget):
-        self.anim1.cancel(widget)
-        self.anim2.cancel(widget)
-        super(Sequence, self).cancel(widget)
 
     def cancel_property(self, widget, prop):
         '''Even if an animation is running, remove a property. It will not be
@@ -481,7 +484,7 @@ class Sequence(Animation):
         self.dispatch('on_progress', widget, .5 + progress / 2.)
 
 
-class Parallel(Animation):
+class Parallel(CompoundAnimation):
 
     def __init__(self, anim1, anim2):
         super(Parallel, self).__init__()
@@ -502,26 +505,6 @@ class Parallel(Animation):
         self._widgets[widget.uid] = {'complete': 0}
         self._register()
         self.dispatch('on_start', widget)
-
-    def stop(self, widget):
-        self.anim1.stop(widget)
-        self.anim2.stop(widget)
-        props = self._widgets.pop(widget.uid, None)
-        if props:
-            self.dispatch('on_complete', widget)
-        super(Parallel, self).cancel(widget)
-
-    def stop_property(self, widget, prop):
-        self.anim1.stop_property(widget, prop)
-        self.anim2.stop_property(widget, prop)
-        if (not self.anim1.have_properties_to_animate(widget) and
-                not self.anim2.have_properties_to_animate(widget)):
-            self.stop(widget)
-
-    def cancel(self, widget):
-        self.anim1.cancel(widget)
-        self.anim2.cancel(widget)
-        super(Parallel, self).cancel(widget)
 
     def on_anim_complete(self, instance, widget):
         self._widgets[widget.uid]['complete'] += 1
