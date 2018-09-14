@@ -91,8 +91,8 @@ def start(win, ctx):
         window=win,
         pointer_scale=float(config_get('scale', 1.0)),
         pointer_alpha=float(config_get('alpha', 1.0)),
-        pointer_image=Image(config_get('image',
-                                       'atlas://data/images/defaulttheme/ring')),
+        pointer_image=Image(
+            config_get('image', 'atlas://data/images/defaulttheme/ring')),
     )
     win.bind(on_touch_down=widget.on_touch_down_window,
              on_touch_move=widget.on_touch_move_window)
