@@ -116,4 +116,7 @@ class Camera(Image):
         if value:
             self._camera.start()
         else:
-            self._camera.stop()
+            if hasattr(self._camera,"_release_camera"):
+                self._camera._release_camera()
+            else:
+                self._camera.stop()
