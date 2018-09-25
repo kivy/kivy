@@ -227,5 +227,8 @@ class DragBehavior(object):
             return
         touch.ungrab(self)
         self._drag_touch = None
+        touch.push()
+        touch.apply_transform_2d(self.parent.to_widget)
         super(DragBehavior, self).on_touch_down(touch)
+        touch.pop()
         return

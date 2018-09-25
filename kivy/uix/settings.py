@@ -61,8 +61,7 @@ settings. Here is an example::
             "title": "Fullscreen",
             "desc": "Set the window in windowed or fullscreen",
             "section": "graphics",
-            "key": "fullscreen",
-            "true": "auto"
+            "key": "fullscreen"
         }
     ]
 
@@ -453,7 +452,7 @@ class SettingPath(SettingItem):
     :attr:`show_hidden` is an :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
     '''
 
     dirselect = BooleanProperty(True)
@@ -462,7 +461,7 @@ class SettingPath(SettingItem):
     :attr:`dirselect` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
     '''
 
     def on_panel(self, instance, value):
@@ -967,7 +966,8 @@ class Settings(BoxLayout):
 
     def add_json_panel(self, title, config, filename=None, data=None):
         '''Create and add a new :class:`SettingsPanel` using the configuration
-        `config` with the JSON definition `filename`.
+        `config` with the JSON definition `filename`. If `filename` is not set,
+        then the JSON definition is read from the `data` parameter instead.
 
         Check the :ref:`settings_json` section in the documentation for more
         information about JSON format and the usage of this function.

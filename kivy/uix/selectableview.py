@@ -2,6 +2,9 @@
 SelectableView
 ==============
 
+.. deprecated:: 1.10.0
+    The feature has been deprecated.
+
 This module houses the :class:`SelectableView` mixin class. This is used by
 the :class:`~kivy.uix.listview.ListView` and it's associated
 :mod:`Adapters <kivy.adapters>` to provide selection behaviour
@@ -10,6 +13,7 @@ when presenting large lists.
 '''
 
 from kivy.properties import NumericProperty, BooleanProperty
+from kivy.utils import deprecated
 
 
 class SelectableView(object):
@@ -30,6 +34,7 @@ class SelectableView(object):
     in sync with the equivalent property the data item represents.
     '''
 
+    @deprecated
     def __init__(self, **kwargs):
         super(SelectableView, self).__init__(**kwargs)
 

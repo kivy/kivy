@@ -54,6 +54,7 @@ if __name__ == '__main__':
 
     exclude_dirs = [
         'kivy/lib',
+        'kivy/deps',
         'kivy/tools/pep8checker',
         'coverage',
         'doc'
@@ -100,5 +101,6 @@ if __name__ == '__main__':
                 if target.endswith('.py'):
                     errors += check(target)
 
-    # If errors is 0 we return with 0. That's just fine.
-    sys.exit(errors)
+    if errors:
+        print("Error: {} style guide violation(s) encountered.".format(errors))
+        sys.exit(1)

@@ -206,8 +206,8 @@ print('\n'.join(report_dict['Global'] + report_dict['OpenGL'] +
                 report_dict['Configuration'] +
                 report_dict['InputAvailablity'] +
                 report_dict['Environ'] + report_dict['Options']))
-print()
-print()
+print('\n')
+print('\n')
 
 try:
     print('The report will be sent as an anonymous gist.')
@@ -221,11 +221,11 @@ if reply.lower().strip() in ('', 'y'):
 
     paste_url = send_report(report_dict)
 
-    print()
-    print()
+    print('\n')
+    print('\n')
     print('REPORT posted at %s' % paste_url)
-    print()
-    print()
+    print('\n')
+    print('\n')
 else:
     print('No report posted.')
 

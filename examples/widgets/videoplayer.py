@@ -18,7 +18,7 @@ class VideoPlayerApp(App):
             filename = argv[1]
         else:
             curdir = dirname(__file__)
-            filename = join(curdir, 'softboy.mpg')
+            filename = join(curdir, 'cityCC0.mpg')
         return VideoPlayer(source=filename, state='play')
 
 

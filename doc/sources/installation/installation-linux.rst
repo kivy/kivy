@@ -29,7 +29,7 @@ Ubuntu / Kubuntu / Xubuntu / Lubuntu (Saucy and above)
     :Python3 - **python3-kivy**:
         $ sudo apt-get install python3-kivy
     :optionally the examples - **kivy-examples**:
-        $ sudo apt-get install python-kivy-examples
+        $ sudo apt-get install kivy-examples
 
 
 Debian  (Jessie or newer)
@@ -37,21 +37,12 @@ Debian  (Jessie or newer)
 
 #. Add one of the PPAs to your sources.list in apt manually or via Synaptic
 
-    * Jessie/Testing:
+    :stable builds:
+        deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu xenial main
+    :daily builds:
+        deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu xenial main
 
-        :stable builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu trusty main
-        :daily builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu trusty main
-
-    * Sid/Unstable:
-
-        :stable builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu utopic main
-        :daily builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu utopic main
-
-        **Notice**: Wheezy is not supported - You'll need to upgrade to Jessie at least!
+    **Notice**: Wheezy is not supported - You'll need to upgrade to Jessie at least!
 
 #. Add the GPG key to your apt keyring by executing
 
@@ -103,31 +94,6 @@ OpenSuSE
 #. If you would like access to the examples, please select **python-Kivy-examples** in the upcoming installation wizard.
 
 
-Fedora
-------
-
-#. Adding the repository via the terminal:
-
-    **Fedora 18** ::
-
-        $ sudo yum-config-manager  --add-repo=http://download.opensuse.org\
-        /repositories/home:/thopiekar:/kivy/Fedora_18/home:thopiekar:kivy.repo
-
-    **Fedora 17** ::
-
-        $ sudo yum-config-manager --add-repo=http://download.opensuse.org\
-        /repositories/home:/thopiekar:/kivy/Fedora_17/home:thopiekar:kivy.repo
-
-    **Fedora 16** ::
-
-        $ sudo yum-config-manager --add-repo=http://download.opensuse.org\
-        /repositories/home:/thopiekar:/kivy/Fedora_16/home:thopiekar:kivy.repo
-
-#. Use your preferred package-manager to refresh your packagelists
-
-#. Install **python-Kivy** and optionally the examples, as found in **python-Kivy-examples**
-
-
 Gentoo
 ------
 
@@ -144,6 +110,11 @@ Gentoo
    `garden: Install garden tool to manage user maintained widgets.`
    `gstreamer: Standard flag, kivy will be able to use audio/video streaming libraries.`
    `spell: Standard flag, provide enchant to use spelling in kivy apps.`
+
+Other
+-----
+
+For other distros, we recommend installing via pip as shown below.
 
 
 Installation in a Virtual Environment
@@ -164,9 +135,10 @@ It may or may not work with a later version.
 ========   =============
 Kivy       Cython
 ========   =============
-1.8        0.20.2
 1.9        0.21.2
-1.9.1      0.23
+1.9.1      0.23.1
+1.10.0     0.25.2
+1.10.1     0.28.2
 ========   =============
 
 
@@ -199,6 +171,13 @@ In the following command use "python" and "python-dev" for Python 2, or "python3
         libavcodec-dev \
         zlib1g-dev
 
+    # Install gstreamer for audio, video (optional)
+    sudo apt-get install -y \
+        libgstreamer1.0 \
+        gstreamer1.0-plugins-base \
+        gstreamer1.0-plugins-good
+
+
 **Note:**  Depending on your Linux version, you may receive error messages related to the "ffmpeg" package.
 In this scenario, use "libav-tools \" in place of "ffmpeg \" (above), or use a PPA (as shown below):
 
@@ -209,21 +188,56 @@ In this scenario, use "libav-tools \" in place of "ffmpeg \" (above), or use a P
 - sudo apt-get install ffmpeg
 
 
+Fedora example
+--------------
+
+You will likely need to do this preliminary step which installs the rpmfusion-free repository unless you have some other 3rd-party repo installed which has the required packages. See rpmfusion.org for complete installation instructions, but only the rpmfusion-free repo is needed for acquiring kivy dependencies (though rpmfusion-nonfree is recommended by rpm fusion installation instructions) as shown in this step.
+
+.. parsed-literal::
+
+    sudo dnf install -y https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm 
+
+After you ensure that a 3rd-party repository containing any packages that dnf is otherwise unable to find, continue installing dependencies:
+
+.. parsed-literal::
+
+    # Install necessary system packages
+    sudo dnf install -y python3-devel ffmpeg-libs SDL2-devel SDL2_image-devel SDL2_mixer-devel SDL2_ttf-devel portmidi-devel libavdevice libavc1394-devel zlibrary-devel ccache mesa-libGL mesa-libGL-devel
+    # Install xclip in case you run a kivy app using your computer, and the app requires a CutBuffer provider:
+    sudo dnf install -y xclip
+
+    # 
+    # In case you get the following error preventing kivy install:
+    #  annobin: _event.c: Error: plugin built for compiler version (8.0.1) but run with compiler version (8.1.1)
+    #  cc1: error: fail to initialize plugin /usr/lib/gcc/86_64-redhat-linux/8/plugin/annobin.so
+    # This has been resolved in later updates after the on-disk release of Fedora 28, so upgrade your packages:
+    #  sudo dnf -y upgrade
+
+    # avoid pip Cython conflict with packaged version:
+    sudo dnf remove python3-Cython
+
+    sudo pip3 install --upgrade pip setuptools
+
+    # Use correct Cython version here (0.28.2 is for 1.10.1):
+    sudo pip3 install Cython==0.28.2
+
+
 Installation
 ------------
+(after installing dependencies above specific to your distribution, do the following remaining steps on any distro where no package is available)
 
 
-::
+.. parsed-literal::
 
     # Make sure Pip, Virtualenv and Setuptools are updated
     sudo pip install --upgrade pip virtualenv setuptools
-    
+
     # Then create a virtualenv named "kivyinstall" by either:
-    
+
     # 1. using the default interpreter
     virtualenv --no-site-packages kivyinstall
-    
-    # or 2. using a specific interpreter 
+
+    # or 2. using a specific interpreter
     # (this will use the interpreter in /usr/bin/python2.7)
     virtualenv --no-site-packages -p /usr/bin/python2.7 kivyinstall
 
@@ -231,7 +245,7 @@ Installation
     . kivyinstall/bin/activate
 
     # Use correct Cython version here
-    pip install Cython==0.23
+    pip install |cython_install|
 
     # Install stable version of Kivy into the virtualenv
     pip install kivy
@@ -313,17 +327,17 @@ OpenSuse
 Installation
 ------------
 
-::
+.. parsed-literal::
 
     # Make sure Pip, Virtualenv and Setuptools are updated
     sudo pip install --upgrade pip virtualenv setuptools
 
     # Then create a virtualenv named "kivyinstall" by either:
-    
+
     # 1. using the default interpreter
     virtualenv --no-site-packages kivyinstall
-    
-    # or 2. using a specific interpreter 
+
+    # or 2. using a specific interpreter
     # (this will use the interpreter in /usr/bin/python2.7)
     virtualenv --no-site-packages -p /usr/bin/python2.7 kivyinstall
 
@@ -332,7 +346,7 @@ Installation
 
     pip install numpy
 
-    pip install Cython==0.23
+    pip install |cython_install|
 
     # If you want to install pygame backend instead of sdl2
     # you can install pygame using command below and enforce using

@@ -95,7 +95,7 @@ cdef class Instruction(ObjectWithUid):
     cdef void set_parent(self, Instruction parent):
         self.parent = parent
 
-    cdef void reload(self):
+    cdef void reload(self) except *:
         self.flags |= GI_NEEDS_UPDATE
         self.flags &= ~GI_NO_APPLY_ONCE
         self.flags &= ~GI_IGNORE
@@ -223,7 +223,7 @@ cdef class InstructionGroup(Instruction):
         cdef Instruction c
         return [c for c in self.children if c.group == groupname]
 
-    cdef void reload(self):
+    cdef void reload(self) except *:
         Instruction.reload(self)
         cdef Instruction c
         for c in self.children:
@@ -456,9 +456,9 @@ cdef class Callback(Instruction):
         regarding that, please contact us.
 
     '''
-    def __init__(self, arg, **kwargs):
+    def __init__(self, callback=None, **kwargs):
         Instruction.__init__(self, **kwargs)
-        self.func = arg
+        self.func = callback
         self._reset_context = int(kwargs.get('reset_context', False))
 
     def ask_update(self):
@@ -479,10 +479,11 @@ cdef class Callback(Instruction):
         cgl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
         cgl.glBindBuffer(GL_ARRAY_BUFFER, 0)
 
-        if self.func(self):
+        func = self.func
+        if func is None or func(self):
             self.flag_update_done()
 
-        if self._reset_context:
+        if func is not None and self._reset_context:
             # FIXME do that in a proper way
             cgl.glDisable(GL_DEPTH_TEST)
             cgl.glDisable(GL_CULL_FACE)
@@ -535,6 +536,17 @@ cdef class Callback(Instruction):
             self._reset_context = ivalue
             self.flag_update()
 
+    property callback:
+        '''Property for getting/setting func.
+        '''
+        def __get__(self):
+            return self.func
+        def __set__(self, object func):
+            if self.func == func:
+                return
+            self.func = func
+            self.flag_update()
+
 
 cdef class CanvasBase(InstructionGroup):
     '''CanvasBase provides the context manager methods for the
@@ -574,7 +586,7 @@ cdef class Canvas(CanvasBase):
         self._before = None
         self._after = None
 
-    cdef void reload(self):
+    cdef void reload(self) except *:
         return
         '''
         # XXX ensure it's not needed anymore.
@@ -743,6 +755,7 @@ cdef class RenderContext(Canvas):
     def __cinit__(self, *args, **kwargs):
         self._use_parent_projection = 0
         self._use_parent_modelview = 0
+        self._use_parent_frag_modelview = 0
         self.bind_texture = dict()
 
     def __init__(self, *args, **kwargs):
@@ -765,6 +778,7 @@ cdef class RenderContext(Canvas):
             'color'    : [[1.0,1.0,1.0,1.0]],
             'projection_mat': [Matrix()],
             'modelview_mat' : [Matrix()],
+            'frag_modelview_mat' : [Matrix()],
         }
 
         cdef str key
@@ -776,6 +790,8 @@ cdef class RenderContext(Canvas):
             self._use_parent_projection = bool(int(kwargs['use_parent_projection']))
         if 'use_parent_modelview' in kwargs:
             self._use_parent_modelview = bool(int(kwargs['use_parent_modelview']))
+        if 'use_parent_frag_modelview' in kwargs:
+            self._use_parent_frag_modelview = bool(int(kwargs['use_parent_frag_modelview']))
 
     cdef void set_state(self, str name, value, int apply_now=0):
         # Upload the uniform value to the shader
@@ -857,6 +873,9 @@ cdef class RenderContext(Canvas):
         if self._use_parent_modelview:
             self.set_state('modelview_mat',
                     active_context.get_state('modelview_mat'), 0)
+        if self._use_parent_frag_modelview:
+            self.set_state('frag_modelview_mat',
+                    active_context.get_state('frag_modelview_mat'), 0)
         pushActiveContext(self)
         if _need_reset_gl:
             reset_gl_context()
@@ -868,7 +887,7 @@ cdef class RenderContext(Canvas):
 
         return 0
 
-    cdef void reload(self):
+    cdef void reload(self) except *:
         pushActiveContext(self)
         reset_gl_context()
         Canvas.reload(self)
@@ -926,6 +945,21 @@ cdef class RenderContext(Canvas):
             cdef cvalue = int(bool(value))
             if self._use_parent_modelview != cvalue:
                 self._use_parent_modelview = cvalue
+                self.flag_update()
+
+    property use_parent_frag_modelview:
+        '''If True, the parent fragment modelview matrix will be used.
+
+        .. versionadded:: 1.10.1
+
+            rc = RenderContext(use_parent_frag_modelview=True)
+        '''
+        def __get__(self):
+            return bool(self._use_parent_frag_modelview)
+        def __set__(self, value):
+            cdef cvalue = int(bool(value))
+            if self._use_parent_frag_modelview != cvalue:
+                self._use_parent_frag_modelview = cvalue
                 self.flag_update()
 
 

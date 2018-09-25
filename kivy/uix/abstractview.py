@@ -4,6 +4,9 @@ Abstract View
 
 .. versionadded:: 1.5
 
+.. deprecated:: 1.10.0
+    The feature has been deprecated.
+
 .. warning::
 
     This code is still experimental, and its API is subject to change in a
@@ -20,6 +23,7 @@ __all__ = ('AbstractView', )
 
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import ObjectProperty
+from kivy.utils import deprecated
 
 
 class AbstractView(FloatLayout):
@@ -33,3 +37,7 @@ class AbstractView(FloatLayout):
     common example is the :class:`~kivy.adapters.listadapter.ListAdapter` used
     for managing data items in a list.
     '''
+
+    @deprecated
+    def __init__(self, **kwargs):
+        super(AbstractView, self).__init__(**kwargs)

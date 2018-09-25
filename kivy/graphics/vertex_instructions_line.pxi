@@ -332,7 +332,7 @@ cdef class Line(VertexInstruction):
         cdef double pcx, pcy, px1, py1, px2, py2, px3, py3, px4, py4, pangle, pangle2
         cdef double w = self._width
         cdef double ix, iy
-        cdef unsigned int piv, pii2, piv2
+        cdef unsigned int piv, pii2, piv2, skip = 0
         cdef double jangle
         angle = sangle = 0
         piv = pcx = pcy = cx = cy = ii = iv = ix = iy = 0
@@ -346,7 +346,11 @@ cdef class Line(VertexInstruction):
             bx = p[i * 2 + 2]
             _by = p[i * 2 + 3]
 
-            if i > 0 and self._joint != LINE_JOINT_NONE:
+            if (ax, ay) == (bx, _by):
+                skip += 1
+                continue
+
+            if i - skip > 0 and self._joint != LINE_JOINT_NONE:
                 pcx = cx
                 pcy = cy
                 px1 = x1
@@ -384,7 +388,7 @@ cdef class Line(VertexInstruction):
             x3 = bx + cos2
             y3 = _by + sin2
 
-            if i == 0:
+            if i - skip == 0:
                 sx1 = x1
                 sy1 = y1
                 sx4 = x4
@@ -421,7 +425,7 @@ cdef class Line(VertexInstruction):
             iv += 1
 
             # joint generation
-            if i == 0 or self._joint == LINE_JOINT_NONE:
+            if i - skip == 0 or self._joint == LINE_JOINT_NONE:
                 continue
 
             # calculate the angle of the previous and current segment
@@ -497,8 +501,6 @@ cdef class Line(VertexInstruction):
                     indices[ii + 5] = iv + 1
                     ii += 6
                     iv += 2
-
-
 
             elif self._joint == LINE_JOINT_ROUND:
 
@@ -643,6 +645,11 @@ cdef class Line(VertexInstruction):
             indices[ii + 1] = iv - 1
             indices[ii + 2] = piv + 2
             ii += 3
+
+        while ii < indices_count:
+            # make all the remaining indices point to the last vertice
+            indices[ii] = siv
+            ii += 1
 
         # compute bbox
         for i in xrange(vertices_count):

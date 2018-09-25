@@ -3,13 +3,10 @@
 Kivy Base
 =========
 
-This module contains core Kivy functionality and is not intended for end users.
-Feel free to look though it, but calling any of these methods directly may well
-result in unpredictable behavior.
-
-Event loop management
----------------------
-
+This module contains the Kivy core functionality and is not intended for end
+users. Feel free to look through it, but bare in mind that calling any of
+these methods directly may result in an unpredictable behavior as the calls
+access directly the event loop of an application.
 '''
 
 __all__ = (
@@ -54,7 +51,7 @@ class ExceptionHandler(object):
 
     def handle_exception(self, exception):
         '''Handle one exception, defaults to returning
-        ExceptionManager.STOP.
+        `ExceptionManager.RAISE`.
         '''
         return ExceptionManager.RAISE
 
@@ -80,7 +77,8 @@ class ExceptionManagerBase:
             self.handlers.remove(cls)
 
     def handle_exception(self, inst):
-        '''Called when an exception occurred in the runTouchApp() main loop.'''
+        '''Called when an exception occurred in the :func:`runTouchApp`
+        main loop.'''
         ret = self.policy
         for handler in self.handlers:
             r = handler.handle_exception(inst)
@@ -158,7 +156,7 @@ class EventLoopBase(EventDispatcher):
             self.event_listeners.remove(listener)
 
     def start(self):
-        '''Must be called only once before run().
+        '''Must be called only once before :meth:`EventLoopBase.run()`.
         This starts all configured input providers.'''
         self.status = 'started'
         self.quit = False
@@ -175,7 +173,7 @@ class EventLoopBase(EventDispatcher):
 
     def stop(self):
         '''Stop all input providers and call callbacks registered using
-        EventLoop.add_stop_callback().'''
+        `EventLoop.add_stop_callback()`.'''
 
         # XXX stop in reverse order that we started them!! (like push
         # pop), very important because e.g. wm_touch and WM_PEN both
@@ -210,15 +208,15 @@ class EventLoopBase(EventDispatcher):
             from android import remove_presplash
             remove_presplash()
         except ImportError:
-            Logger.error(
+            Logger.warning(
                 'Base: Failed to import "android" module. '
                 'Could not remove android presplash.')
             return
 
     def post_dispatch_input(self, etype, me):
-        '''This function is called by dispatch_input() when we want to dispatch
-        an input event. The event is dispatched to all listeners and if
-        grabbed, it's dispatched to grabbed widgets.
+        '''This function is called by :meth:`EventLoopBase.dispatch_input()`
+        when we want to dispatch an input event. The event is dispatched to
+        all listeners and if grabbed, it's dispatched to grabbed widgets.
         '''
         # update available list
         if etype == 'begin':
@@ -307,8 +305,8 @@ class EventLoopBase(EventDispatcher):
         self.input_events.append(ev)
 
     def dispatch_input(self):
-        '''Called by idle() to read events from input providers, pass events to
-        postproc, and dispatch final events.
+        '''Called by :meth:`EventLoopBase.idle()` to read events from input
+        providers, pass events to postproc, and dispatch final events.
         '''
 
         # first, aquire input events

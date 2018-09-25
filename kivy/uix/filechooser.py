@@ -102,7 +102,7 @@ from kivy.properties import (
 from os import listdir
 from os.path import (
     basename, join, sep, normpath, expanduser, altsep,
-    splitdrive, realpath, getsize, isdir, abspath)
+    splitdrive, realpath, getsize, isdir, abspath, isfile, dirname)
 from fnmatch import fnmatch
 import collections
 
@@ -838,6 +838,8 @@ class FileChooserController(RelativeLayout):
 
     def _add_files(self, path, parent=None):
         path = expanduser(path)
+        if isfile(path):
+            path = dirname(path)
 
         files = []
         fappend = files.append

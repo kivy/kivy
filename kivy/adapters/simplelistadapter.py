@@ -4,6 +4,9 @@ SimpleListAdapter
 
 .. versionadded:: 1.5
 
+.. deprecated:: 1.10.0
+    The feature has been deprecated.
+
 .. warning::
 
     This code is still experimental, and its API is subject to change in a
@@ -20,6 +23,7 @@ __all__ = ('SimpleListAdapter', )
 from kivy.adapters.adapter import Adapter
 from kivy.properties import ListProperty
 from kivy.lang import Builder
+from kivy.utils import deprecated
 
 
 class SimpleListAdapter(Adapter):
@@ -41,6 +45,7 @@ class SimpleListAdapter(Adapter):
     defaults to [].
     '''
 
+    @deprecated
     def __init__(self, **kwargs):
         if 'data' not in kwargs:
             raise Exception('list adapter: input must include data argument')

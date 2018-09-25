@@ -2,7 +2,7 @@
 RecycleLayout
 =============
 
-.. versionadded:: 1.9.2
+.. versionadded:: 1.10.0
 
 .. warning::
     This module is highly experimental, its API may change in the future and
@@ -18,6 +18,9 @@ __all__ = ('RecycleLayout', )
 
 
 class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
+    """
+    RecycleLayout provides the default layout for RecycleViews.
+    """
 
     default_size = ObjectProperty((100, 100))
     '''size as in w, h. They each can be None.

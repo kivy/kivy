@@ -1,8 +1,8 @@
 Touchtracer
 ===========
 
-Touchtracer is a simple example to draw lines under every touches detected
-on your hardware.
+Touchtracer is a simple example that draws lines using all the touch events
+detected by your hardware.
 
 Android
 -------

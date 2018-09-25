@@ -10,12 +10,13 @@ system.
 
 .. note::
 
-    This widget requires ``docutils`` package to run. Install it with ``pip``.
+    This widget requires the ``docutils`` package to run. Install it with
+    ``pip`` or include it as one of your deployment requirements.
 
 .. warning::
 
-    This widget is highly experimental. The whole styling and
-    implementation are not stable until this warning has been removed.
+    This widget is highly experimental. The styling and implementation should
+    not be considered stable until this warning has been removed.
 
 Usage with Text
 ---------------
@@ -43,11 +44,11 @@ The rendering will output:
 Usage with Source
 -----------------
 
-You can also render a rst file using the :attr:`RstDocument.source` property::
+You can also render a rst file using the :attr:`~RstDocument.source` property::
 
     document = RstDocument(source='index.rst')
 
-You can reference other documents with the role ``:doc:``. For example, in the
+You can reference other documents using the role ``:doc:``. For example, in the
 document ``index.rst`` you can write::
 
     Go to my next document: :doc:`moreinfo.rst`
@@ -317,7 +318,7 @@ Builder.load_string('''
     size_hint: 0.2, 1
     color: (0, 0, 0, 1)
     bold: True
-    text_size: self.width-10, self.height - 10
+    text_size: self.width - 10, self.height - 10
     valign: 'top'
     font_size: sp(self.document.base_font_size / 2.0)
 
@@ -325,6 +326,21 @@ Builder.load_string('''
     cols: 1
     size_hint_y: None
     height: self.minimum_height
+
+<RstFootnote>:
+    cols: 2
+    size_hint_y: None
+    height: self.minimum_height
+
+<RstFootName>:
+    markup: True
+    valign: 'top'
+    size_hint: 0.2, 1
+    color: (0, 0, 0, 1)
+    bold: True
+    text_size: self.width - 10, self.height - 10
+    valign: 'top'
+    font_size: sp(self.document.base_font_size / 2.0)
 
 <RstTable>:
     size_hint_y: None
@@ -760,6 +776,15 @@ class RstFieldBody(GridLayout):
     pass
 
 
+class RstFootnote(GridLayout):
+    pass
+
+
+class RstFootName(Label):
+
+    document = ObjectProperty(None)
+
+
 class RstGridLayout(GridLayout):
     pass
 
@@ -838,6 +863,33 @@ class _Visitor(nodes.NodeVisitor):
         self.text_have_anchor = False
         self.section = 0
         self.do_strip_text = False
+        self.substitution = {}
+
+        # store refblock here while building
+        self.foot_refblock = None
+
+        # store order for autonum/sym footnotes+refs
+        self.footnotes = {
+            'autonum': 0,
+            'autosym': 0,
+            'autonum_ref': 0,
+            'autosym_ref': 0,
+        }
+
+        # last four default chars aren't in our Roboto font,
+        # those were replaced with something else
+        self.footlist = [
+            '\u002A',  # asterisk
+            '\u2020',  # dagger
+            '\u2021',  # doubledagger
+            '\u00A7',  # section
+            '\u00B6',  # pilcrow
+            '\u0023',  # number
+            '\u2206',  # cap delta
+            '\u220F',  # cap pi
+            '\u0470',  # cap psi
+            '\u0466',  # cap yus
+        ]
         nodes.NodeVisitor.__init__(self, *largs)
 
     def push(self, widget):
@@ -847,13 +899,198 @@ class _Visitor(nodes.NodeVisitor):
     def pop(self):
         self.current = self.current_list.pop()
 
+    def brute_refs(self, node):
+        # get foot/cit refs manually because the output from
+        # docutils' parser doesn't contain any of these:
+        # node's refid, refname, backref, ... and/or are just ''/[]
+
+        def get_refs(condition, backref=False):
+            # backref=True is used in nodes.footnote
+            autonum = autosym = 0
+            _nodes = node.traverse(condition=condition, ascend=False)
+
+            for f in _nodes:
+                id = f['ids'][0]
+                auto = ''
+                if 'auto' in f:
+                    auto = f['auto']
+
+                # auto is either 1(int) or '*'
+                if auto == 1:
+                    autonum += 1
+                    key = 'backref' + str(autonum) if backref else str(autonum)
+                    self.root.refs_assoc[key] = id
+                elif auto == '*':
+                    sym = self.footlist[
+                        autosym % 10
+                    ] * (int(autosym / 10) + 1)
+                    key = 'backref' + sym if backref else sym
+                    self.root.refs_assoc[key] = id
+                    autosym += 1
+                else:
+                    if not backref:
+                        key = f['names'][0]
+                        if key:
+                            self.root.refs_assoc[key] = id
+                        continue
+
+                    key = 'backref' + f['refname'][0]
+
+                    if key in self.root.refs_assoc:
+                        self.root.refs_assoc[key].append(id)
+                    else:
+                        self.root.refs_assoc[key] = [id, ]
+
+        # these are unique and need to go FIRST
+        get_refs(nodes.footnote, backref=False)
+
+        # autonum & autosym are unique
+        get_refs(nodes.footnote_reference, backref=True)
+
     def dispatch_visit(self, node):
         cls = node.__class__
         if cls is nodes.document:
             self.push(self.root.content)
+            self.brute_refs(node)
+
+        elif cls is nodes.comment:
+            return
 
         elif cls is nodes.section:
             self.section += 1
+
+        elif cls is nodes.substitution_definition:
+            name = node.attributes['names'][0]
+            self.substitution[name] = node.children[0]
+
+        elif cls is nodes.substitution_reference:
+            node = self.substitution[node.attributes['refname']]
+            # it can be e.g. image or something else too!
+            if isinstance(node, nodes.Text):
+                self.text += node
+
+        elif cls is nodes.footnote:
+            # .. [x] footnote
+            text = ''
+            foot = RstFootnote()
+            ids = node.attributes['ids']
+            self.current.add_widget(foot)
+            self.push(foot)
+
+            # check if its autonumbered
+            auto = ''
+            if 'auto' in node.attributes:
+                auto = node.attributes['auto']
+
+            # auto is either 1(int) or '*'
+            if auto == 1:
+                self.footnotes['autonum'] += 1
+                name = str(self.footnotes['autonum'])
+                node_id = node.attributes['ids'][0]
+            elif auto == '*':
+                autosym = self.footnotes['autosym']
+                name = self.footlist[
+                    autosym % 10
+                ] * (int(autosym / 10) + 1)
+                self.footnotes['autosym'] += 1
+                node_id = node.attributes['ids'][0]
+            else:
+                # can have multiple refs:
+                # [8] (1, 2) Footnote ref
+                name = node.attributes['names'][0]
+                node_id = node['ids'][0]
+
+            # we can have a footnote without any link or ref
+            # .. [1] Empty footnote
+            link = self.root.refs_assoc.get(name, '')
+
+            # handle no refs
+            ref = self.root.refs_assoc.get('backref' + name, '')
+
+            # colorize only with refs
+            colorized = self.colorize(name, 'link') if ref else name
+
+            # has no refs
+            if not ref:
+                text = '&bl;%s&br;' % (colorized)
+            # list of refs
+            elif ref and isinstance(ref, list):
+                ref_block = [
+                    '[ref=%s][u]%s[/u][/ref]' % (r, i + 1)
+                    for i, r in enumerate(ref)
+                ]
+                # [1] ( 1, 2, ...) Footnote
+                self.foot_refblock = ''.join([
+                    '[i]( ', ', '.join(ref_block), ' )[/i]'
+                ])
+
+                text = '[anchor=%s]&bl;%s&br;' % (
+                    node['ids'][0], colorized
+                )
+            # single ref
+            else:
+                text = '[anchor=%s][ref=%s]&bl;%s&br;[/ref]' % (
+                    node['ids'][0], ref, colorized
+                )
+
+            name = RstFootName(
+                document=self.root,
+                text=text,
+            )
+            self.current.add_widget(name)
+            # give it anchor + event manually
+            self.root.add_anchors(name)
+            name.bind(on_ref_press=self.root.on_ref_press)
+
+        elif cls is nodes.footnote_reference:
+            self.text += '&bl;'
+            text = ''
+            name = ''
+
+            # check if its autonumbered
+            auto = ''
+            if 'auto' in node.attributes:
+                auto = node.attributes['auto']
+
+            # auto is either 1(int) or '*'
+            if auto == 1:
+                self.footnotes['autonum_ref'] += 1
+                name = str(self.footnotes['autonum_ref'])
+                node_id = node.attributes['ids'][0]
+            elif auto == '*':
+                autosym = self.footnotes['autosym_ref']
+                name = self.footlist[
+                    autosym % 10
+                ] * (int(autosym / 10) + 1)
+                self.footnotes['autosym_ref'] += 1
+                node_id = node.attributes['ids'][0]
+            else:
+                # can have multiple refs:
+                # [8] (1, 2) Footnote ref
+                name = node.children[0]
+                node_id = node['ids'][0]
+            text += name
+
+            refs = self.root.refs_assoc.get(name, '')
+            if not refs and auto in (1, '*'):
+                # parser should trigger it when checking
+                # for backlinks, but we don't have **any** refs
+                # to work with, so we have to trigger it manually
+                raise Exception(
+                    'Too many autonumbered or autosymboled '
+                    'footnote references!'
+                )
+
+            # has a single or no refs ( '' )
+            text = '[anchor=%s][ref=%s][color=%s]%s' % (
+                node_id, refs,
+                self.root.colors.get(
+                    'link', self.root.colors.get('paragraph')
+                ),
+                text
+            )
+            self.text += text
+            self.text_have_anchor = True
 
         elif cls is nodes.title:
             label = RstTitle(section=self.section, document=self.root)
@@ -862,6 +1099,24 @@ class _Visitor(nodes.NodeVisitor):
             # assert(self.text == '')
 
         elif cls is nodes.Text:
+            # check if parent isn't a special directive
+            if hasattr(node, 'parent'):
+                if node.parent.tagname == 'substitution_definition':
+                    # .. |ref| replace:: something
+                    return
+                elif node.parent.tagname == 'substitution_reference':
+                    # |ref|
+                    return
+                elif node.parent.tagname == 'comment':
+                    # .. COMMENT
+                    return
+                elif node.parent.tagname == 'footnote_reference':
+                    # .. [#]_
+                    # .. [*]_
+                    # rewrite it to handle autonum/sym here
+                    # close tags with departure
+                    return
+
             if self.do_strip_text:
                 node = node.replace('\n', ' ')
                 node = node.replace('  ', ' ')
@@ -877,6 +1132,13 @@ class _Visitor(nodes.NodeVisitor):
 
         elif cls is nodes.paragraph:
             self.do_strip_text = True
+
+            if isinstance(node.parent, nodes.footnote):
+                if self.foot_refblock:
+                    self.text = self.foot_refblock + ' '
+                self.foot_refblock = None
+                # self.do_strip_text = False
+
             label = RstParagraph(document=self.root)
             if isinstance(self.current, RstEntry):
                 label.mx = 10
@@ -946,20 +1208,45 @@ class _Visitor(nodes.NodeVisitor):
             assert(self.text == '')
 
         elif cls is nodes.image:
+            # docutils parser breaks path with spaces
+            # e.g. "C:/my path" -> "C:/mypath"
             uri = node['uri']
+            align = node.get('align', 'center')
+            image_size = [
+                node.get('width'),
+                node.get('height')
+            ]
+
+            # use user's size if defined
+            def set_size(img, size):
+                img.size = [
+                    size[0] or img.width,
+                    size[1] or img.height
+                ]
+
             if uri.startswith('/') and self.root.document_root:
                 uri = join(self.root.document_root, uri[1:])
+
             if uri.startswith('http://') or uri.startswith('https://'):
                 image = RstAsyncImage(source=uri)
+                image.bind(on_load=lambda *a: set_size(image, image_size))
             else:
                 image = RstImage(source=uri)
+                set_size(image, image_size)
 
-            align = node.get('align', 'center')
-            root = AnchorLayout(size_hint_y=None, anchor_x=align,
-                                height=image.height)
+            root = AnchorLayout(
+                size_hint_y=None,
+                anchor_x=align,
+                height=image.height
+            )
+
             image.bind(height=root.setter('height'))
             root.add_widget(image)
             self.current.add_widget(root)
+            # TODO:
+            # .. _img: <url>
+            # .. |img| image:: <img>
+            # |img|_ <- needs refs and on_ref_press
 
         elif cls is nodes.definition_list:
             lst = RstDefinitionList(document=self.root)
@@ -1126,6 +1413,18 @@ class _Visitor(nodes.NodeVisitor):
 
         elif cls is nodes.reference:
             self.text += '[/color][/ref]'
+
+        elif cls is nodes.footnote:
+            self.pop()
+            self.set_text(self.current, 'link')
+
+        elif cls is nodes.footnote_reference:
+            # close opened footnote [x]
+            # self.text += '[/ref]'
+            # self.set_text(self.current, 'link')
+            self.text += '[/color][/ref]'
+            # self.text += '[/color][/ref]'
+            self.text += '&br;'
 
         elif cls is role_doc:
             docname = self.text[self.doc_index:]

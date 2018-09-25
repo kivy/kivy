@@ -93,7 +93,7 @@ class MyApp(App):
             elif key == 'font_size':
                 self.root.ids.label.font_size = float(value)
 
-    def close_settings(self, settings):
+    def close_settings(self, settings=None):
         """
         The settings panel has been closed.
         """

@@ -241,9 +241,6 @@ are some limitations to grabbing:
     - You might receive an event with a grabbed touch, but not from you: it can be
       because the parent has sent the touch to its children while it was in
       the grabbed state.
-    - The touch coordinate is not translated to your widget space because the
-      touch is coming directly from the Window. It's your job to convert the
-      coordinate to your local space.
 
 Here is an example of how to use grabbing::
 
@@ -359,7 +356,7 @@ Xbox 360
 |            +------+---------+-----+--------+
 |            |  5   |axis 4   |  6  |axis 3  |
 |            +------+---------+-----+--------+
-|            |  7   |axis 2   |  9  |axis 5  |
+|            |  7   |axis 2   |  8  |axis 5  |
 | |xbox_ctr| +------+---------+-----+--------+
 |            |  9   |button 4 | 10  |button 5|
 |            +------+---------+-----+--------+

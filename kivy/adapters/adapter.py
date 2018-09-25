@@ -4,6 +4,9 @@ Adapter
 
 .. versionadded:: 1.5
 
+.. deprecated:: 1.10.0
+    The feature has been deprecated.
+
 .. warning::
 
     This code is still experimental, and its API is subject to change in a
@@ -46,6 +49,7 @@ from kivy.lang import Builder
 from kivy.adapters.args_converters import list_item_args_converter
 from kivy.factory import Factory
 from kivy.compat import string_types
+from kivy.utils import deprecated
 
 
 class Adapter(EventDispatcher):
@@ -103,6 +107,7 @@ class Adapter(EventDispatcher):
     defaults to None.
     '''
 
+    @deprecated
     def __init__(self, **kwargs):
 
         if 'data' not in kwargs:

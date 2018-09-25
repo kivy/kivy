@@ -15,8 +15,22 @@ Depending the compilation of SDL2 mixer and/or installed libraries:
 * ogg since 1.9.1 (mixer needs libvorbis/libogg)
 * flac since 1.9.1 (mixer needs libflac)
 * mp3 since 1.9.1 (mixer needs libsmpeg/libmad; only use mad for GPL apps)
+  * Since 1.10.1 + mixer 2.0.2, mpg123 can also be used
 * sequenced formats since 1.9.1 (midi, mod, s3m, etc. Mixer needs
   libmodplug or libmikmod)
+
+.. Note::
+
+    Sequenced format support changed with mixer v2.0.2. If mixer is
+    linked with one of libmodplug or libmikmod, format support for
+    both libraries is assumed. This will work perfectly with formats
+    upported by both libraries, but if you were to try to load an
+    obscure format (like `apun` file with mikmod only), it will fail.
+
+    * Kivy <= 1.10.0: will fail to build with mixer >= 2.0.2
+      will report correct format support with < 2.0.2
+    * Kivy >= 1.10.1: will build with old and new mixer, and
+      will "guesstimate" sequenced format support
 
 .. Warning::
 
@@ -57,8 +71,13 @@ cdef mix_init():
         mix_is_init = -1
         return 0
 
+    # In mixer 2.0.2, MIX_INIT_MODPLUG is now implied by MIX_INIT_MOD,
+    # and MIX_INIT_FLUIDSYNTH was renamed to MIX_INIT_MID. In previous
+    # versions, we requested both _MODPLUG and _MOD + _FLUIDSYNTH.
+    # 0x20 used to be MIX_INIT_FLUIDSYNTH, now MIX_INIT_MID
+    # 0x4  used to be MIX_INIT_MODPLUG before 2.0.2
     want_flags = MIX_INIT_FLAC | MIX_INIT_OGG | MIX_INIT_MP3
-    want_flags |= MIX_INIT_MOD | MIX_INIT_MODPLUG | MIX_INIT_FLUIDSYNTH
+    want_flags |= MIX_INIT_MOD | 0x20 | 0x4
 
     mix_flags = Mix_Init(want_flags)
 
@@ -244,25 +263,23 @@ class MusicSDL2(Sound):
     @staticmethod
     def extensions():
         mix_init()
+        # FIXME: this should probably evolve to use the new has_music()
+        #        interface to determine format support
 
         # Assume native midi support (defaults to enabled), but may use
         # modplug, fluidsynth or timidity in reality. It may also be
         # disabled completely, in which case loading it will fail
         extensions = set(['mid', 'midi'])
 
-        # libmodplug, may be incomplete
-        if mix_flags & MIX_INIT_MODPLUG:
-            extensions.update(['669', 'abc', 'amf', 'ams', 'dbm', 'dmf',
-                               'dsm', 'far', 'it', 'j2b', 'mdl', 'med',
-                               'mod', 'mt2', 'mtm', 'okt', 'pat', 'psm',
-                               'ptm', 's3m', 'stm', 'ult', 'umx', 'xm'])
+        # libmodplug and libmikmod, may be incomplete.
+        # 0x4 is for mixer < 2.0.2, MIX_INIT_MODPLUG
+        if mix_flags & (MIX_INIT_MOD | 0x4):
+            extensions.update(['669', 'abc', 'amf', 'ams', 'apun', 'dbm',
+                               'dmf', 'dsm', 'far', 'gdm', 'it',   'j2b',
+                               'mdl', 'med', 'mod', 'mt2', 'mtm',  'okt',
+                               'pat', 'psm', 'ptm', 's3m', 'stm',  'stx',
+                               'ult', 'umx', 'uni', 'xm'])
 
-        # libmikmod, may be incomplete
-        if mix_flags & MIX_INIT_MOD:
-            extensions.update(['669', 'amf', 'apun', 'dsm', 'far', 'gdm',
-                               'gt2', 'it',  'med', 'mod', 'mtm', 'okt',
-                               's3m', 'stm', 'stx', 'ult', 'umx', 'uni',
-                               'xm'])
         return list(extensions)
 
     def __init__(self, **kwargs):

@@ -24,6 +24,7 @@ kivy/*.c
 kivy/*.pyd
 kivy/core/text/text_layout.c
 kivy/core/text/text_layout.pyd
+kivy/core/window/window_info.c
 kivy/graphics/*.c
 kivy/graphics/*.cpp
 kivy/graphics/*.pyd
@@ -35,6 +36,7 @@ kivy/lib/gstplayer/_gstplayer.c
 kivy/core/camera/camera_avfoundation.c
 kivy/tests/build
 kivy/tests/results
+kivy/tests/image-testsuite
 kivy/garden
 .last_known_portable_deps_hash
 deps.zip
@@ -50,6 +52,7 @@ htmlcov
 kivy/deps/*
 !kivy/deps/__init__.py
 kivy.deps*
+kivy/version.py
 
 MANIFEST
 

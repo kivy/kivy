@@ -6,6 +6,19 @@ from kivy.app import App
 from kivy.graphics.svg import Svg
 from kivy.core.window import Window
 from kivy.uix.floatlayout import FloatLayout
+from kivy.lang import Builder
+
+Builder.load_string("""
+<SvgWidget>:
+    do_rotation: False
+<FloatLayout>:
+    canvas.before:
+        Color:
+            rgb: (1, 1, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+""")
 
 
 class SvgWidget(Scatter):

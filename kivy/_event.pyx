@@ -13,17 +13,6 @@ handlers.
 
 __all__ = ('EventDispatcher', 'ObjectWithUid', 'Observable')
 
-
-cdef extern from "Python.h":
-    ctypedef int (*visitproc)(PyObject *, void *)
-    ctypedef int (*inquiry)(PyObject *)
-    ctypedef int (*traverseproc)(PyObject *, visitproc, void *)
-    ctypedef struct PyTypeObject:
-        traverseproc tp_traverse
-        inquiry tp_clear
-    void Py_INCREF(PyObject *)
-    void Py_DECREF(PyObject *)
-
 from libc.stdlib cimport malloc, free
 from libc.string cimport memset
 
@@ -52,7 +41,7 @@ def _get_bases(cls):
 cdef class ObjectWithUid(object):
     '''
     (internal) This class assists in providing unique identifiers for class
-    instances. It it not intended for direct usage.
+    instances. It is not intended for direct usage.
     '''
     def __cinit__(self):
         global widget_uid

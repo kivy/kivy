@@ -2,15 +2,11 @@
 RecycleView
 ===========
 
-.. versionadded:: 1.9.2
+.. versionadded:: 1.10.0
 
 The RecycleView provides a flexible model for viewing selected sections of
 large data sets. It aims to prevent the performance degradation that can occur
 when generating large numbers of widgets in order to display many data items.
-
-.. warning::
-    This module is highly experimental, its API may change in the future and
-    the documentation is not complete at this time.
 
 The view is generatad by processing the :attr:`~RecycleView.data`, essentially
 a list of dicts, and uses these dicts to generate instances of the
@@ -21,13 +17,15 @@ pattern.
 
 * Model: The model is formed by :attr:`~RecycleView.data` you pass in via a
   list of dicts.
-* View: The View is split across layout and views and implemented by...
-* Controller: The controller is implemented by :class:`RecycleViewBehavior`.
+* View: The View is split across layout and views and implemented using
+  adaters.
+* Controller: The controller determines the logical interaction and is
+  implemented by :class:`RecycleViewBehavior`.
 
 These are abstract classes and cannot be used directly. The default concrete
-implementation is the
+implementations are the
 :class:`~kivy.uix.recycleview.datamodel.RecycleDataModel` for the model, the
-:class:`~kivy.uix.recyclelayout.RecycleLayout` and ... for view, and the
+:class:`~kivy.uix.recyclelayout.RecycleLayout` for the view, and the
 :class:`RecycleView` for the controller.
 
 When a RecycleView is instantiated, it automatically creates the views and data
@@ -392,7 +390,7 @@ class RecycleViewBehavior(object):
     The Layout manager responsible for positioning views within the
     :class:`RecycleView`.
 
-    layout_manager is an :class:`~kivy.uix.properties.AliasProperty` that gets
+    layout_manager is an :class:`~kivy.properties.AliasProperty` that gets
     and sets the layout_manger.
     """
 

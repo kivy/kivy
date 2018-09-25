@@ -278,7 +278,7 @@ class TabbedPanel(GridLayout):
     graphics instruction, used itself for :attr:`background_image`.
     Can be changed for a custom background.
 
-    It must be a list of four values: (top, right, bottom, left). Read the
+    It must be a list of four values: (bottom, right, top, left). Read the
     BorderImage instructions for more information.
 
     :attr:`border` is a :class:`~kivy.properties.ListProperty` and
@@ -491,7 +491,7 @@ class TabbedPanel(GridLayout):
     def switch_to(self, header, do_scroll=False):
         '''Switch to a specific panel header.
 
-        .. versionchanged:: 1.9.2
+        .. versionchanged:: 1.10.0
 
         If used with `do_scroll=True`, it scrolls
         to the header's tab too.

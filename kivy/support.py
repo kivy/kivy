@@ -166,6 +166,7 @@ def install_twisted_reactor(**kwargs):
         put the twisted distribution (and zope.interface dependency) in your
         application directory.
     '''
+
     import twisted
 
     # prevent installing more than once

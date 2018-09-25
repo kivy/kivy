@@ -38,6 +38,9 @@ from array import array
 from cython cimport view
 from time import time
 from kivy.utils import hex_colormap
+from kivy.properties import NUMERIC_FORMATS, dpi2px
+from string import hexdigits
+from kivy.core.window import Window
 
 cdef dict colormap = hex_colormap
 
@@ -109,11 +112,21 @@ cdef inline float angle(float ux, float uy, float vx, float vy):
     sgn = 1 if ux * vy > uy * vx else -1
     return sgn * a
 
+cdef float parse_width(txt, float vbox_width):
+    if txt.endswith('%'):
+        return vbox_width * float(txt[:-1]) / 100.
+    return parse_float(txt)
+
+cdef float parse_height(txt, float vbox_height):
+    if txt.endswith('%'):
+        return vbox_height * float(txt[:-1]) / 100.
+    return parse_float(txt)
+
 cdef float parse_float(txt):
     if not txt:
         return 0.
-    if txt[-2:] == 'px':
-        return float(txt[:-2])
+    if txt[-2:] in NUMERIC_FORMATS:
+        return dpi2px(txt[:-2], txt[-2:])
     return float(txt)
 
 cdef list parse_list(string):
@@ -124,7 +137,7 @@ cdef dict parse_style(string):
     for item in string.split(';'):
         if ':' in item:
             key, value = item.split(':', 1)
-            sdict[key] = value
+            sdict[key] = value.strip()
     return sdict
 
 cdef list kv_color_to_int_color(color):
@@ -150,29 +163,38 @@ cdef parse_color(c, current_color=None):
         g = int(c[2:4], 16)
         b = int(c[4:6], 16)
         a = 255
-    elif len(c) == 8:
-        r = int(c[0:2], 16)
-        g = int(c[2:4], 16)
-        b = int(c[4:6], 16)
-        a = int(c[6:8], 16)
-    elif len(c) == 6:
-        r = int(c[0:2], 16)
-        g = int(c[2:4], 16)
-        b = int(c[4:6], 16)
+    elif c.startswith('rgba('):
+        r, g, b, a = [int(x) for x in c[4:-1].split(',')]
+
+    elif c.startswith('rgb('):
+        r, g, b = [int(x) for x in c[4:-1].split(',')]
         a = 255
-    elif len(c) == 4:
-        r = int(c[0], 16) * 17
-        g = int(c[1], 16) * 17
-        b = int(c[2], 16) * 17
-        a = int(c[3], 16) * 17
-    elif len(c) == 3:
-        r = int(c[0], 16) * 17
-        g = int(c[1], 16) * 17
-        b = int(c[2], 16) * 17
-        a = 255
+
+    elif all(x in hexdigits for x in c):
+        if len(c) == 8:
+            r = int(c[0:2], 16)
+            g = int(c[2:4], 16)
+            b = int(c[4:6], 16)
+            a = int(c[6:8], 16)
+        elif len(c) == 6:
+            r = int(c[0:2], 16)
+            g = int(c[2:4], 16)
+            b = int(c[4:6], 16)
+            a = 255
+        elif len(c) == 4:
+            r = int(c[0], 16) * 17
+            g = int(c[1], 16) * 17
+            b = int(c[2], 16) * 17
+            a = int(c[3], 16) * 17
+        elif len(c) == 3:
+            r = int(c[0], 16) * 17
+            g = int(c[1], 16) * 17
+            b = int(c[2], 16) * 17
+            a = 255
+        else:
+            raise Exception('Invalid color format {}'.format(c))
     else:
-        # ...
-        raise Exception('Invalid color format {}'.format(c))
+        raise Exception('Unknown color {}'.format(c))
     return [r, g, b, a]
 
 cdef class Matrix(object):
@@ -194,7 +216,13 @@ cdef class Matrix(object):
                 self.mat[4] = float(a)
                 self.mat[5] = float(b)
             elif string.startswith('scale('):
-                a, b = parse_list(string[6:-1])
+                value = parse_list(string[6:-1])
+                if len(value) == 1:
+                    a = b = value[0]
+                elif len(value) == 2:
+                    a, b = value
+                else:
+                    print("SVG: unknown how to parse: {!r}".format(value))
                 self.mat[0] = float(a)
                 self.mat[3] = float(b)
         elif string is not None:
@@ -362,12 +390,16 @@ cdef class Svg(RenderContext):
         self.paths = []
         self.width = 0
         self.height = 0
-        self.line_width = 0.25
+        self.line_width = 1.0
+        self.vbox_x = 0.
+        self.vbox_y = 0.
+        self.vbox_width = 0.
+        self.vbox_height = 0.
 
-        if color is None:
-            self.current_color = None
-        else:
-            self.current_color = kv_color_to_int_color(color)
+        # if color is None:
+        #     self.current_color = [0, 0, 0, 255]
+        # else:
+        #     self.current_color = kv_color_to_int_color(color)
 
         self.bezier_points = bezier_points
         self.circle_points = circle_points
@@ -460,7 +492,7 @@ cdef class Svg(RenderContext):
             finally:
                 fd.close()
 
-    cdef void reload(self):
+    cdef void reload(self) except *:
             # parse tree
             start = time()
             self.parse_tree(self.tree)
@@ -476,9 +508,17 @@ cdef class Svg(RenderContext):
         self.paths = []
         self.width = parse_float(root.get('width'))
         self.height = parse_float(root.get('height'))
+
+        view_box = parse_list(root.get('viewBox', '0 0 100% 100%'))
+        self.vbox_x = parse_float(view_box[0])
+        self.vbox_y = parse_float(view_box[1])
+        self.vbox_width = parse_width(view_box[2], Window.width)
+        self.vbox_height = parse_height(view_box[3], Window.height)
+
         if self.height:
             self.transform = Matrix([1, 0, 0, -1, 0, self.height])
         else:
+            # XXX parse_width/height
             x, y, w, h = [parse_float(x) for x in
                     parse_list(root.get('viewBox'))]
             self.transform = Matrix([1, 0, 0, -1, -x, h + y])
@@ -490,12 +530,14 @@ cdef class Svg(RenderContext):
             self.parse_element(e)
 
     cdef parse_element(self, e):
-        self.fill = parse_color(e.get('fill'), self.current_color)
+        self.fill = parse_color(e.get('fill', 'black'), self.current_color)
         self.stroke = parse_color(e.get('stroke'), self.current_color)
         oldopacity = self.opacity
         self.opacity *= float(e.get('opacity', 1))
         fill_opacity = float(e.get('fill-opacity', 1))
         stroke_opacity = float(e.get('stroke-opacity', 1))
+        old_line_width = self.line_width
+        self.line_width = float(e.get('stroke-width', self.line_width))
 
         oldtransform = self.transform
         for t in self.parse_transform(e.get('transform')):
@@ -512,9 +554,9 @@ cdef class Svg(RenderContext):
                 self.stroke = parse_color(sdict['stroke'], self.current_color)
             if 'stroke-opacity' in sdict:
                 stroke_opacity *= float(sdict['stroke-opacity'])
+            if 'stroke-width' in sdict:
+                self.line_width = parse_float(sdict['stroke-width'])
 
-        if self.fill is None:
-            self.fill = [0, 0, 0, 255]
         if self.stroke is None:
             self.stroke = [0, 0, 0, 0]
         if isinstance(self.stroke, list):
@@ -531,17 +573,43 @@ cdef class Svg(RenderContext):
             x = 0
             y = 0
             if 'x' in e.keys():
-                x = float(e.get('x'))
+                x = parse_width(e.get('x'), self.vbox_width)
             if 'y' in e.keys():
-                y = float(e.get('y'))
-            h = float(e.get('height'))
-            w = float(e.get('width'))
+                y = parse_height(e.get('y'), self.vbox_height)
+            h = parse_width(e.get('height'), self.vbox_width)
+            w = parse_height(e.get('width'), self.vbox_height)
+            rx = parse_width(e.get('rx', '0'), self.vbox_width)
+            ry = parse_height(e.get('ry', '0'), self.vbox_height)
+
+            if rx:
+                if not ry:
+                    ry = rx
+
+                rx = min(rx, w / 2.)
+                ry = min(ry, h / 2.)
+
             self.new_path()
-            self.set_position(x, y)
-            self.set_position(x + w, y)
-            self.set_position(x + w, y + h)
-            self.set_position(x, y + h)
-            self.set_position(x, y)
+            self.set_position(x + rx, y)
+            self.set_position(x + w - rx, y)
+            # top-right angle
+            if rx:
+                self.arc_to(rx, ry, 0, 0, 1, x + w, y + ry)
+
+            self.set_position(x + w, y + h - ry)
+            # bottom-right angle
+            if rx:
+                self.arc_to(rx, ry, 0, 0, 1, x + w - rx, y + h)
+
+            self.set_position(x + rx, y + h)
+            # bottom-left angle
+            if rx:
+                self.arc_to(rx, ry, 0, 0, 1, x, y + h - ry)
+
+            self.set_position(x, y + ry)
+            # top-left angle
+            if rx:
+                self.arc_to(rx, ry, 0, 0, 1, x + rx, y)
+
             self.end_path()
 
         elif e.tag.endswith('polyline') or e.tag.endswith('polygon'):
@@ -552,26 +620,26 @@ cdef class Svg(RenderContext):
             self.new_path()
             while pathdata:
                 self.set_position(
-                    float(pathdata.pop()),
-                    float(pathdata.pop()))
+                    parse_width(pathdata.pop(), self.vbox_width),
+                    parse_height(pathdata.pop(), self.vbox_height))
             if e.tag.endswith('polygon'):
                 self.close_path()
             self.end_path()
 
         elif e.tag.endswith('line'):
-            x1 = float(e.get('x1'))
-            y1 = float(e.get('y1'))
-            x2 = float(e.get('x2'))
-            y2 = float(e.get('y2'))
+            x1 = parse_height(e.get('x1'), self.vbox_width)
+            y1 = parse_width(e.get('y1'), self.vbox_height)
+            x2 = parse_height(e.get('x2'), self.vbox_width)
+            y2 = parse_width(e.get('y2'), self.vbox_height)
             self.new_path()
             self.set_position(x1, y1)
             self.set_position(x2, y2)
             self.end_path()
 
         elif e.tag.endswith('circle'):
-            cx = float(e.get('cx'))
-            cy = float(e.get('cy'))
-            r = float(e.get('r'))
+            cx = parse_width(e.get('cx'), self.vbox_width)
+            cy = parse_height(e.get('cy'), self.vbox_height)
+            r = parse_float(e.get('r'))
             self.new_path()
             for i in xrange(self.circle_points):
                 theta = 2 * i * pi / self.circle_points
@@ -580,10 +648,10 @@ cdef class Svg(RenderContext):
             self.end_path()
 
         elif e.tag.endswith('ellipse'):
-            cx = float(e.get('cx'))
-            cy = float(e.get('cy'))
-            rx = float(e.get('rx'))
-            ry = float(e.get('ry'))
+            cx = parse_width(e.get('cx'), self.vbox_width)
+            cy = parse_height(e.get('cy'), self.vbox_height)
+            rx = parse_width(e.get('rx'), self.vbox_width)
+            ry = parse_height(e.get('ry'), self.vbox_height)
             self.new_path()
             for i in xrange(self.circle_points):
                 theta = 2 * i * pi / self.circle_points
@@ -602,6 +670,7 @@ cdef class Svg(RenderContext):
 
         self.transform = oldtransform
         self.opacity = oldopacity
+        self.line_width = old_line_width
 
     cdef list parse_transform(self, transform_def):
         if isinstance(transform_def, str):
@@ -636,7 +705,6 @@ cdef class Svg(RenderContext):
                     raise ValueError("Unallowed implicit command in %s, position %s" % (
                         pathdef, len(pathdef.split()) - len(elements)))
 
-
             if command == 'M':
                 # Moveto command. This is like "picking up the pen", so
                 # start a new loop.
@@ -644,8 +712,8 @@ cdef class Svg(RenderContext):
                     self.path.append(self.loop)
                     self.loop = array('f', [])
 
-                x = float(elements.pop())
-                y = float(elements.pop())
+                x = parse_width(elements.pop(), self.vbox_width)
+                y = parse_height(elements.pop(), self.vbox_height)
                 self.set_position(x, y, absolute)
 
                 # Implicit moveto commands are treated as lineto commands.
@@ -657,31 +725,31 @@ cdef class Svg(RenderContext):
                 self.close_path()
 
             elif command == 'L':
-                x = float(elements.pop())
-                y = float(elements.pop())
+                x = parse_width(elements.pop(), self.vbox_width)
+                y = parse_height(elements.pop(), self.vbox_height)
                 self.set_position(x, y, absolute)
 
             elif command == 'H':
-                x = float(elements.pop())
+                x = parse_width(elements.pop(), self.vbox_width)
                 if absolute:
                     self.set_position(x, self.y)
                 else:
                     self.set_position(self.x + x, self.y)
 
             elif command == 'V':
-                y = float(elements.pop())
+                y = parse_height(elements.pop(), self.vbox_height)
                 if absolute:
                     self.set_position(self.x, y)
                 else:
                     self.set_position(self.x, self.y + y)
 
             elif command == 'C':
-                c1x = float(elements.pop())
-                c1y = float(elements.pop())
-                c2x = float(elements.pop())
-                c2y = float(elements.pop())
-                endx = float(elements.pop())
-                endy = float(elements.pop())
+                c1x = parse_width(elements.pop(), self.vbox_width)
+                c1y = parse_height(elements.pop(), self.vbox_height)
+                c2x = parse_width(elements.pop(), self.vbox_width)
+                c2y = parse_height(elements.pop(), self.vbox_height)
+                endx = parse_width(elements.pop(), self.vbox_width)
+                endy = parse_height(elements.pop(), self.vbox_height)
 
                 if not absolute:
                     c1x += self.x
@@ -707,13 +775,13 @@ cdef class Svg(RenderContext):
                     # The first control point is assumed to be the reflection of
                     # the second control point on the previous command relative
                     # to the current point.
-                    c1x = self.last_cx
-                    c1y = self.last_cy
+                    c1x = self.x + self.x - self.last_cx
+                    c1y = self.y + self.y - self.last_cy
 
-                c2x = float(elements.pop())
-                c2y = float(elements.pop())
-                endx = float(elements.pop())
-                endy = float(elements.pop())
+                c2x = parse_width(elements.pop(), self.vbox_width)
+                c2y = parse_height(elements.pop(), self.vbox_height)
+                endx = parse_width(elements.pop(), self.vbox_width)
+                endy = parse_height(elements.pop(), self.vbox_height)
 
                 if not absolute:
                     c2x += self.x
@@ -722,6 +790,10 @@ cdef class Svg(RenderContext):
                     endy += self.y
 
                 self.curve_to(c1x, c1y, c2x, c2y, endx, endy)
+                # if we have multiple sets of coords, we want to use the
+                # last control point, not new position, as next control
+                # point
+                last_command = 'S'
 
             elif command == 'A':
                 rx = float(elements.pop())
@@ -729,8 +801,8 @@ cdef class Svg(RenderContext):
                 rotation = float(elements.pop())
                 arc = float(elements.pop())
                 sweep = float(elements.pop())
-                x = float(elements.pop())
-                y = float(elements.pop())
+                x = parse_width(elements.pop(), self.vbox_width)
+                y = parse_height(elements.pop(), self.vbox_height)
 
                 if not absolute:
                     x += self.x
@@ -738,20 +810,19 @@ cdef class Svg(RenderContext):
 
                 self.arc_to(rx, ry, rotation, arc, sweep, x, y)
 
-            else:
-                Logger.warning('Svg: unimplemented command {}'.format(command))
-
-            '''
             elif command == 'Q':
-                control = float(elements.pop()) + float(elements.pop()) * 1j
-                end = float(elements.pop()) + float(elements.pop()) * 1j
+                cx = parse_width(elements.pop(), self.vbox_width)
+                cy = parse_height(elements.pop(), self.vbox_height)
+                x = parse_width(elements.pop(), self.vbox_width)
+                y = parse_height(elements.pop(), self.vbox_height)
 
                 if not absolute:
-                    control += current_pos
-                    end += current_pos
+                    cx += self.x
+                    cy += self.y
+                    x += self.x
+                    y += self.y
 
-                segments.append(path.QuadraticBezier(current_pos, control, end))
-                current_pos = end
+                self.quadratic_bezier_curve_to(cx, cy, x, y)
 
             elif command == 'T':
                 # Smooth curve. Control point is the "reflection" of
@@ -761,22 +832,26 @@ cdef class Svg(RenderContext):
                     # If there is no previous command or if the previous command
                     # was not an Q, q, T or t, assume the first control point is
                     # coincident with the current point.
-                    control = current_pos
+                    cx = self.x
+                    cy = self.y
                 else:
                     # The control point is assumed to be the reflection of
                     # the control point on the previous command relative
                     # to the current point.
-                    control = current_pos + current_pos - segments[-1].control2
+                    cx = self.x + self.x - cx
+                    cy = self.y + self.y - cy
 
-                end = float(elements.pop()) + float(elements.pop()) * 1j
+                x = parse_width(elements.pop(), self.vbox_width)
+                y = parse_height(elements.pop(), self.vbox_height)
 
                 if not absolute:
-                    control += current_pos
-                    end += current_pos
+                    x += self.x
+                    y += self.y
 
-                segments.append(path.QuadraticBezier(current_pos, control, end))
-                current_pos = end
-            '''
+                self.quadratic_bezier_curve_to(cx, cy, x, y)
+
+            else:
+                Logger.warning('Svg: unimplemented command {}'.format(command))
 
         self.end_path()
 
@@ -788,10 +863,9 @@ cdef class Svg(RenderContext):
         self.loop = array('f', [])
 
     cdef void close_path(self):
-        #self.loop.append(self.loop[0])
-        #self.loop.append(self.loop[1])
-        self.path.append(self.loop)
-        self.loop = array('f', [])
+        if len(self.loop):
+            self.loop.append(self.loop[0])
+            self.loop.append(self.loop[1])
 
     cdef void set_position(self, float x, float y, int absolute=1):
         if absolute:
@@ -847,6 +921,48 @@ cdef class Svg(RenderContext):
             self.set_position(cp * rx * ct - sp * ry * st + cx,
                     sp * rx * ct + cp * ry * st + cy)
 
+
+    @cython.boundscheck(False)
+    cdef void quadratic_bezier_curve_to(self, float cx, float cy, float x, float y):
+        cdef int bp_count = self.bezier_points + 1
+        cdef int i, count, ilast
+        cdef float t, t0, t1, t2, px = 0, py = 0
+        cdef list bc
+        cdef array.array loop
+        cdef float* f_loop
+        cdef float[:] f_bc
+
+        if self.bezier_coefficients is None:
+            self.bezier_coefficients = view.array(
+                    shape=(bp_count * 3, ),
+                    itemsize=sizeof(float),
+                    format="f")
+            f_bc = self.bezier_coefficients
+            for i in range(bp_count):
+                t = float(i) / self.bezier_points
+                t0 = (1 - t) ** 2
+                t1 = 2 * t * (1 - t)
+                t2 = t ** 2
+                f_bc[i * 3] = t0
+                f_bc[i * 3 + 1] = t1
+                f_bc[i * 3 + 2] = t2
+        else:
+            f_bc = self.bezier_coefficients
+
+        self.last_cx = cx
+        self.last_cy = cy
+        count = bp_count * 2
+        ilast = len(self.loop)
+        array.resize(self.loop, ilast + count)
+        f_loop = self.loop.data.as_floats
+        for i in range(bp_count):
+            t0 = f_bc[i * 3]
+            t1 = f_bc[i * 3 + 1]
+            t2 = f_bc[i * 3 + 2]
+            f_loop[ilast + i * 2] = px = t0 * self.x + t1 * cx + t2 * x
+            f_loop[ilast + i * 2 + 1] = py = t0 * self.y + t1 * cy + t2 * y
+
+        self.x, self.y = px, py
 
     @cython.boundscheck(False)
     cdef void curve_to(self, float x1, float y1, float x2, float y2,
@@ -909,22 +1025,24 @@ cdef class Svg(RenderContext):
 
         # Add the stroke for the first subpath, and the fill for all
         # subpaths.
-        self.paths.append((
-            self.path[0] if self.stroke else None,
-            self.stroke,
-            tris,
-            self.fill,
-            self.transform))
+        for loop in self.path:
+            if self.stroke:
+                self.paths.append((
+                    loop,
+                    self.stroke,
+                    tris,
+                    self.fill,
+                    self.transform,
+                    self.line_width))
 
-        # Finally, add the stroke for second and subsequent subpaths
-        if self.stroke and len(self.path) > 1:
-            for loop in self.path[1:]:
+            if self.fill:
                 self.paths.append((
                     loop,
                     self.stroke,
                     None,
                     None,
-                    self.transform))
+                    self.transform,
+                    0.))
         self.path = []
 
     @cython.boundscheck(False)
@@ -984,14 +1102,13 @@ cdef class Svg(RenderContext):
         self.last_mesh = StripMesh(fmt=VERTEX_FORMAT)
         self.last_mesh.add_triangle_strip(vertices, vindex, count, mode)
 
-    cdef void push_line_mesh(self, float[:] path, fill, Matrix transform):
+    cdef void push_line_mesh(self, float[:] path, fill, Matrix transform, float width):
         # Tentative to use smooth line, doesn't work completly yet.
         # Caps and joint are missing
         cdef int index, vindex = 0, odd = 0, i
         cdef float ax, ay, bx, _by, r = 0, g = 0, b = 0, a = 0
         cdef int count = len(path) / 2
         cdef float *vertices = NULL
-        cdef float width = self.line_width
         vindex = 0
 
         vertices = <float *>malloc(sizeof(float) * count * 32)
@@ -1001,7 +1118,7 @@ cdef class Svg(RenderContext):
         if not isinstance(fill, str):
             r, g, b, a = fill
 
-        for index in range(count):
+        for index in range(count - 1):
             i = index * 2
             ax = path[i]
             ay = path[i + 1]
@@ -1061,13 +1178,43 @@ cdef class Svg(RenderContext):
             vertices[vindex + 25] = y3
             vindex += 32
 
+        # if self.closed:
+        #     vindex = vcount - 4
+        #     i0 = vindex
+        #     i1 = vindex + 1
+        #     i2 = vindex + 2
+        #     i3 = vindex + 3
+        #     i4 = 0
+        #     i5 = 1
+        #     i6 = 2
+        #     i7 = 3
+        #     tindices[0] = i0
+        #     tindices[1] = i2
+        #     tindices[2] = i6
+        #     tindices[3] = i0
+        #     tindices[4] = i6
+        #     tindices[5] = i4
+        #     tindices[6] = i1
+        #     tindices[7] = i0
+        #     tindices[8] = i4
+        #     tindices[9] = i1
+        #     tindices[10] = i4
+        #     tindices[11] = i5
+        #     tindices[12] = i3
+        #     tindices[13] = i1
+        #     tindices[14] = i5
+        #     tindices[15] = i3
+        #     tindices[16] = i5
+        #     tindices[17] = i7
+        #     tindices = tindices + 18
+
         self.push_strip_mesh(vertices, vindex, (vindex / 32) * 4, 1)
         free(vertices)
 
     cdef void render(self):
-        for path, stroke, tris, fill, transform in self.paths:
+        for path, stroke, tris, fill, transform, width in self.paths:
             if tris:
                 for item in tris:
                     self.push_mesh(item, fill, transform, 'triangle_strip')
             if path:
-                self.push_line_mesh(path, stroke, transform)
+                self.push_line_mesh(path, stroke, transform, width)

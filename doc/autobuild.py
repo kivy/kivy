@@ -14,7 +14,8 @@ ignore_list = (
     'kivy.graphics.vbo',
     'kivy.graphics.vertex',
     'kivy.uix.recycleview.__init__',
-    'kivy.setupconfig'
+    'kivy.setupconfig',
+    'kivy.version'
 )
 
 import os
@@ -50,6 +51,7 @@ import kivy.modules.touchring
 import kivy.modules.inspector
 import kivy.modules.recorder
 import kivy.modules.screen
+import kivy.modules.joycursor
 import kivy.storage
 import kivy.storage.dictstore
 import kivy.storage.jsonstore

@@ -71,6 +71,7 @@ include "../include/config.pxi"
 include "opcodes.pxi"
 
 from os import environ
+from kivy.compat import PY2
 from kivy.logger import Logger
 from kivy.weakmethod import WeakMethod
 from kivy.graphics.texture cimport Texture
@@ -81,6 +82,8 @@ from kivy.graphics.cgl cimport *
 
 from kivy.graphics.instructions cimport RenderContext, Canvas
 from kivy.graphics.opengl import glReadPixels as py_glReadPixels
+from kivy.graphics.stencil_instructions cimport (
+    get_stencil_state, restore_stencil_state, reset_stencil_state)
 
 cdef list fbo_stack = []
 cdef list fbo_release_list = []
@@ -311,6 +314,10 @@ cdef class Fbo(RenderContext):
             cgl.glGetIntegerv(GL_VIEWPORT, <GLint *>self._viewport)
             cgl.glViewport(0, 0, self._width, self._height)
 
+        # save stencil stack
+        self._stencil_state = get_stencil_state()
+        reset_stencil_state()
+
     cpdef release(self):
         '''Release the Framebuffer (unbind).
         '''
@@ -327,6 +334,9 @@ cdef class Fbo(RenderContext):
         if self._push_viewport:
             cgl.glViewport(self._viewport[0], self._viewport[1],
                            self._viewport[2], self._viewport[3])
+
+        # restore stencil stack
+        restore_stencil_state(self._stencil_state)
 
     cpdef clear_buffer(self):
         '''Clear the framebuffer with the :attr:`clear_color`.
@@ -359,7 +369,7 @@ cdef class Fbo(RenderContext):
             self.flag_update_done()
         return 0
 
-    cdef void reload(self):
+    cdef void reload(self) except *:
         # recreate the framebuffer, without deleting it. the deletion is not
         # handled by us.
         self.create_fbo()
@@ -462,6 +472,5 @@ cdef class Fbo(RenderContext):
         self.bind()
         data = py_glReadPixels(wx, wy, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE)
         self.release()
-        raw_data = str(data)
 
-        return [ord(i) for i in raw_data]
+        return [ord(i) if PY2 else i for i in data]

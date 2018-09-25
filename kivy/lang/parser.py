@@ -422,6 +422,11 @@ class Parser(object):
                     ref = ref[6:].strip()
                     force_load = True
 
+                # if #:include [force] "path with quotes around"
+                if ref[0] == ref[-1] and ref[0] in ('"', "'"):
+                    c = ref[:3].count(ref[0])
+                    ref = ref[c:-c] if c != 2 else ref
+
                 if ref[-3:] != '.kv':
                     Logger.warn('Lang: {0} does not have a valid Kivy'
                                 'Language extension (.kv)'.format(ref))

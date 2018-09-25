@@ -2,7 +2,7 @@
 RecycleView Data Model
 ======================
 
-.. versionadded:: 1.9.2
+.. versionadded:: 1.10.0
 
 The data model part of the RecycleView model-view-controller pattern.
 
@@ -102,7 +102,7 @@ refresh_from_data`.
 
 
 class RecycleDataModel(RecycleDataModelBehavior, EventDispatcher):
-    '''A implementation of :class:`RecycleDataModelBehavior` that keeps the
+    '''An implementation of :class:`RecycleDataModelBehavior` that keeps the
     data in a indexable list. See :attr:`data`.
 
     When data changes this class currently dispatches `on_data_changed`  with

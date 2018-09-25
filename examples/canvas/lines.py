@@ -24,7 +24,7 @@ Builder.load_string('''
     canvas:
         Color:
             rgba: .4, .4, 1, root.alpha
-        SmoothLine:
+        Line:
             points: self.points
             joint: self.joint
             cap: self.cap
@@ -32,12 +32,12 @@ Builder.load_string('''
             close: self.close
         Color:
             rgba: .8, .8, .8, root.alpha_controlline
-        SmoothLine:
+        Line:
             points: self.points
             close: self.close
         Color:
             rgba: 1, .4, .4, root.alpha
-        SmoothLine:
+        Line:
             points: self.points2
             joint: self.joint
             cap: self.cap

@@ -101,7 +101,7 @@ class BoxLayout(Layout):
     minimum_width = NumericProperty(0)
     '''Automatically computed minimum width needed to contain all children.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`minimum_width` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0. It is read only.
@@ -110,7 +110,7 @@ class BoxLayout(Layout):
     minimum_height = NumericProperty(0)
     '''Automatically computed minimum height needed to contain all children.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`minimum_height` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0. It is read only.
@@ -119,7 +119,7 @@ class BoxLayout(Layout):
     minimum_size = ReferenceListProperty(minimum_width, minimum_height)
     '''Automatically computed minimum size needed to contain all children.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`minimum_size` is a
     :class:`~kivy.properties.ReferenceListProperty` of
@@ -308,9 +308,9 @@ class BoxLayout(Layout):
                 else:
                     c.size = (w, h)
 
-    def add_widget(self, widget, index=0):
+    def add_widget(self, widget, index=0, canvas=None):
         widget.fbind('pos_hint', self._trigger_layout)
-        return super(BoxLayout, self).add_widget(widget, index)
+        return super(BoxLayout, self).add_widget(widget, index, canvas)
 
     def remove_widget(self, widget):
         widget.funbind('pos_hint', self._trigger_layout)

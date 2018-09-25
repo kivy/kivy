@@ -5,12 +5,24 @@ PIL: PIL image loader
 __all__ = ('ImageLoaderPIL', )
 
 try:
-    from PIL import Image as PILImage
-except:
     import Image as PILImage
+except ImportError:
+    # for python3
+    from PIL import Image as PILImage
 
 from kivy.logger import Logger
 from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
+
+try:
+    # Pillow
+    PILImage.frombytes
+    PILImage.Image.tobytes
+except AttributeError:
+    # PIL
+    # monkey patch frombytes and tobytes methods, refs:
+    # https://github.com/kivy/kivy/issues/5460
+    PILImage.frombytes = PILImage.frombuffer
+    PILImage.Image.tobytes = PILImage.Image.tostring
 
 
 class ImageLoaderPIL(ImageLoaderBase):
@@ -41,13 +53,8 @@ class ImageLoaderPIL(ImageLoaderBase):
     @staticmethod
     def extensions():
         '''Return accepted extensions for this loader'''
-        # See http://www.pythonware.com/library/pil/handbook/index.htm
-        return ('bmp', 'bufr', 'cur', 'dcx', 'fits', 'fl', 'fpx', 'gbr',
-                'gd', 'gif', 'grib', 'hdf5', 'ico', 'im', 'imt', 'iptc',
-                'jpeg', 'jpg', 'jpe', 'mcidas', 'mic', 'mpeg', 'msp',
-                'pcd', 'pcx', 'pixar', 'png', 'ppm', 'psd', 'sgi',
-                'spider', 'tga', 'tiff', 'wal', 'wmf', 'xbm', 'xpm',
-                'xv')
+        PILImage.init()
+        return tuple((ext_with_dot[1:] for ext_with_dot in PILImage.EXTENSION))
 
     def _img_correct(self, _img_tmp):
         '''Convert image to the correct format and orientation.

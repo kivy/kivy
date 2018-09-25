@@ -12,10 +12,12 @@ import os
 import re
 from os.path import sep
 from os.path import join as slash  # just like that name better
+from os.path import dirname, abspath
 from kivy.logger import Logger
 import textwrap
 
-base_dir = '..'  # from here to the kivy top
+# from here to the kivy top
+base_dir = dirname(dirname(abspath(__file__)))
 examples_dir = slash(base_dir, 'examples')
 screenshots_dir = slash(base_dir, 'doc/sources/images/examples')
 generation_dir = slash(base_dir, 'doc/sources/examples')
@@ -109,7 +111,7 @@ def iter_docstring_info(dir_name):
         yield file_info
 
 
-def enhance_info_description(info, line_length=50):
+def enhance_info_description(info, line_length=79):
     ''' Using the info['description'], add fields to info.
 
     info['files'] is the source filename and any filenames referenced by the
@@ -125,7 +127,10 @@ def enhance_info_description(info, line_length=50):
 
     # make text a set of long lines, one per paragraph.
     paragraphs = info['description'].split('\n\n')
-    lines = [paragraph.replace('\n', ' ') for paragraph in paragraphs]
+    lines = [
+        paragraph.replace('\n', '$newline$')
+        for paragraph in paragraphs
+    ]
     text = '\n'.join(lines)
 
     info['files'] = [info['file'] + '.' + info['ext']]
@@ -141,8 +146,13 @@ def enhance_info_description(info, line_length=50):
     text = text.replace('$folder$', folder)
 
     # now break up text into array of paragraphs, each an array of lines.
-    lines = text.split('\n')
-    paragraphs = [textwrap.wrap(line, line_length) for line in lines]
+    lines = [line.replace('$newline$', '\n') for line in text.split('\n')]
+    paragraphs = [
+        textwrap.wrap(line, line_length)
+        # ignore wrapping if .. note:: or similar block
+        if not line.startswith(' ') else [line]
+        for line in lines
+    ]
     info['enhanced_description'] = paragraphs
 
 
@@ -271,7 +281,7 @@ def make_detail_page(info):
             a('\n' + title)
             a('~' * len(title))
             a('\n.. image:: ../../../examples/' + full_name)
-            a('     :align:  center')
+            a('    :align:  center')
         else:  # code
             title = 'File **' + full_name + '**'
             a('\n' + title)

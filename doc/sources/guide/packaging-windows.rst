@@ -186,9 +186,10 @@ To use the the alternate hooks with the examples above modify as following to
 add the hooks with ``hookspath()`` and ``runtime_hooks`` (if required)
 and ``**get_deps_minimal()`` or ``**get_deps_all()`` to specify the providers.
 
-For example, add the import statement
-``from kivy.tools.packaging.pyinstaller_hooks import  get_deps_minimal,
-get_deps_all, hookspath, runtime_hooks``
+For example, add the import statement::
+
+ from kivy.tools.packaging.pyinstaller_hooks import get_deps_minimal, get_deps_all, hookspath, runtime_hooks
+
 and then modify ``Analysis`` as follows::
 
     a = Analysis(['examples-path\\demo\\touchtracer\\main.py'],

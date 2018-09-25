@@ -5,7 +5,7 @@ Camera
 Core class for acquiring the camera and converting its input into a
 :class:`~kivy.graphics.texture.Texture`.
 
-.. versionchanged:: 1.9.2
+.. versionchanged:: 1.10.0
     The pygst and videocapture providers have been removed.
 
 .. versionchanged:: 1.8.0
@@ -141,6 +141,9 @@ if platform == 'macosx':
                    'CameraAVFoundation'), )
 elif platform == 'android':
     providers += (('android', 'camera_android', 'CameraAndroid'), )
+else:
+    providers += (('picamera', 'camera_picamera', 'CameraPiCamera'), )
+    providers += (('gi', 'camera_gi', 'CameraGi'), )
 
 providers += (('opencv', 'camera_opencv', 'CameraOpenCV'), )
 

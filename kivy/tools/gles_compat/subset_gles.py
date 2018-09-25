@@ -122,4 +122,4 @@ print('''
 print('#ifdef __cplusplus')
 print('}')
 print('#endif')
-print()
+print('\n')

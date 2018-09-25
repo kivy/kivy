@@ -8,7 +8,7 @@ And if i really want to write my code: &amp;bl; Hello world &amp;br;
 And video widget
 ----------------
 
-.. video:: softboy.mpg
+.. video:: cityCC0.mpg
 
 
 Inline Markup

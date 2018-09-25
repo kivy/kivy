@@ -21,6 +21,7 @@ cdef class Property:
     cdef str _name
     cdef int allownone
     cdef int force_dispatch
+    cdef object comparator
     cdef object errorvalue
     cdef object errorhandler
     cdef int errorvalue_set
@@ -41,8 +42,8 @@ cdef class Property:
     cpdef dispatch(self, EventDispatcher obj)
 
 cdef class NumericProperty(Property):
-    cdef float parse_str(self, EventDispatcher obj, value)
-    cdef float parse_list(self, EventDispatcher obj, value, ext)
+    cdef float parse_str(self, EventDispatcher obj, value) except *
+    cdef float parse_list(self, EventDispatcher obj, value, ext) except *
 
 cdef class StringProperty(Property):
     pass
@@ -87,8 +88,8 @@ cdef class AliasProperty(Property):
 cdef class VariableListProperty(Property):
     cdef public int length
     cdef _convert_numeric(self, EventDispatcher obj, x)
-    cdef float parse_str(self, EventDispatcher obj, value)
-    cdef float parse_list(self, EventDispatcher obj, value, ext)
+    cdef float parse_str(self, EventDispatcher obj, value) except *
+    cdef float parse_list(self, EventDispatcher obj, value, ext) except *
 
 cdef class ConfigParserProperty(Property):
     cdef object config

@@ -300,6 +300,7 @@ else:
         'numpadmul': '*',
         'numpaddivide': '/',
         'numpadadd': '+',
+        'numpaddecimal': '.',
         'numpadsubstract': '-',
     }
 
@@ -313,6 +314,8 @@ else:
         options = ('min_position_x', 'max_position_x',
                    'min_position_y', 'max_position_y',
                    'min_pressure', 'max_pressure',
+                   'min_abs_x', 'max_abs_x',
+                   'min_abs_y', 'max_abs_y',
                    'invert_x', 'invert_y', 'rotation')
 
         def __init__(self, device, args):

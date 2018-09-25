@@ -117,7 +117,7 @@ class Recorder(EventDispatcher):
         `on_stop`:
             Fired when the playing stops.
 
-    .. versionchanged:: 1.9.2
+    .. versionchanged:: 1.10.0
         Event `on_stop` added.
     '''
 

@@ -466,6 +466,9 @@ class LoaderBase(object):
 
         return client
 
+    def remove_from_cache(self, filename):
+        Cache.remove('kv.loader', filename)
+
 #
 # Loader implementation
 #

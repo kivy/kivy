@@ -21,6 +21,7 @@ __all__ = ('Color', 'BindTexture', 'PushMatrix', 'PopMatrix',
            'Rotate', 'Scale', 'Translate', 'MatrixInstruction',
            'gl_init_resources')
 
+from kivy.compat import PY2
 from kivy.graphics.instructions cimport *
 from kivy.graphics.transformation cimport *
 
@@ -401,11 +402,14 @@ cdef class LoadIdentity(ContextInstruction):
         self.stack = kwargs.get('stack', 'modelview_mat')
 
     property stack:
-        '''Name of the matrix stack to use. Can be 'modelview_mat' or
-        'projection_mat'.
+        '''Name of the matrix stack to use. Can be 'modelview_mat',
+        'projection_mat' or 'frag_modelview_mat'.
         '''
         def __get__(self):
-            return self.context_state.keys()[0]
+            if PY2:
+                return self.context_state.keys()[0]
+            else:
+                return list(self.context_state.keys())[0]
         def __set__(self, value):
             self.context_state = {value: Matrix()}
 
@@ -418,8 +422,8 @@ cdef class PushMatrix(ContextInstruction):
         self.stack = kwargs.get('stack', 'modelview_mat')
 
     property stack:
-        '''Name of the matrix stack to use. Can be 'modelview_mat' or
-        'projection_mat'.
+        '''Name of the matrix stack to use. Can be 'modelview_mat',
+        'projection_mat' or 'frag_modelview_mat'.
 
         .. versionadded:: 1.6.0
         '''
@@ -438,8 +442,8 @@ cdef class PopMatrix(ContextInstruction):
         self.stack = kwargs.get('stack', 'modelview_mat')
 
     property stack:
-        '''Name of the matrix stack to use. Can be 'modelview_mat' or
-        'projection_mat'.
+        '''Name of the matrix stack to use. Can be 'modelview_mat',
+        'projection_mat' or 'frag_modelview_mat'.
 
         .. versionadded:: 1.6.0
         '''
@@ -468,7 +472,7 @@ cdef class ApplyContextMatrix(ContextInstruction):
 
     property target_stack:
         '''Name of the matrix stack to use as a target.
-        Can be 'modelview_mat' or 'projection_mat'.
+        Can be 'modelview_mat', 'projection_mat' or 'frag_modelview_mat'.
 
         .. versionadded:: 1.6.0
         '''
@@ -479,7 +483,7 @@ cdef class ApplyContextMatrix(ContextInstruction):
 
     property source_stack:
         '''Name of the matrix stack to use as a source.
-        Can be 'modelview_mat' or 'projection_mat'.
+        Can be 'modelview_mat', 'projection_mat' or 'frag_modelview_mat'.
 
         .. versionadded:: 1.6.0
         '''
@@ -534,8 +538,8 @@ cdef class MatrixInstruction(ContextInstruction):
             self.flag_update()
 
     property stack:
-        '''Name of the matrix stack to use. Can be 'modelview_mat' or
-        'projection_mat'.
+        '''Name of the matrix stack to use. Can be 'modelview_mat',
+        'projection_mat' or 'frag_modelview_mat'.
 
         .. versionadded:: 1.6.0
         '''

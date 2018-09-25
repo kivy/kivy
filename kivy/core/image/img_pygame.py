@@ -65,7 +65,7 @@ class ImageLoaderPygame(ImageLoaderBase):
             raise
 
         fmt = ''
-        if im.get_bytesize() == 3:
+        if im.get_bytesize() == 3 and not im.get_colorkey():
             fmt = 'rgb'
         elif im.get_bytesize() == 4:
             fmt = 'rgba'

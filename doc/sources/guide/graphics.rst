@@ -6,10 +6,10 @@ Graphics
 Introduction to Canvas
 ----------------------
 
-Widgets graphical representation is done using a canvas, which you can see both
-as an unlimited drawing board, and as a set of drawing instructions. There are
-numerous different instructions you can apply (add) to your canvas, but there
-are two main kinds of them:
+A Widgets graphical representation is rendered using a canvas, which you can see
+as both an unlimited drawing board or as a set of drawing instructions. There
+are numerous instructions you can apply (add) to your canvas, but there are two
+main variations:
 
 - :mod:`context instructions <kivy.graphics.context_instructions>`
 - :mod:`vertex instructions <kivy.graphics.vertex_instructions>`
@@ -68,8 +68,8 @@ polygon, to more complex ones, like meshes or bezier curves::
 Manipulating instructions
 -------------------------
 
-Sometime, you want to update or remove the instructions you added to a canvas,
-this can be done in various ways depending on your needs:
+Sometimes you want to update or remove the instructions you have added to a
+canvas. This can be done in various ways depending on your needs:
 
 You can keep a reference to your instructions and update them::
 

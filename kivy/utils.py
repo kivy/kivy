@@ -92,7 +92,7 @@ def rgba(s, *args):
     '''Return a Kivy color (4 value from 0-1 range) from either a hex string or
     a list of 0-255 values.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
     '''
     if isinstance(s, string_types):
         return get_color_from_hex(s)

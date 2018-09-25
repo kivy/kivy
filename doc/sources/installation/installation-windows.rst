@@ -3,6 +3,16 @@
 Installation on Windows
 =======================
 
+Prerequisites
+-------------
+
+Kivy is written in
+`Python <https://en.wikipedia.org/wiki/Python_%28programming_language%29>`_
+and as such, to use Kivy, you need an existing
+installation of `Python <https://www.python.org/downloads/windows/>`_.
+Multiple versions of Python can be installed side by side, but Kivy needs to
+be installed in each Python version that you want to use Kivy in.
+
 Beginning with 1.9.1 we provide binary
 `wheels <https://wheel.readthedocs.org/en/latest/>`_
 for Kivy and all its dependencies to be used with an existing Python
@@ -13,15 +23,13 @@ We also provide nightly wheels generated using Kivy
 See also :ref:`upgrade-win-dist`. If installing kivy to an **alternate
 location** and not to site-packages, please see :ref:`alternate-win`.
 
-.. warning::
+.. note::
 
-    Python 3.5 is currently not supported on Windows with GCC from MinGW due to
-    `this issue <http://bugs.python.org/issue4709>`_. You can compile with
-    :ref:`msvc-install-win` or download already compiled wheel.
-
-To use Kivy you need `Python <https://www.python.org/downloads/windows/>`_.
-Multiple versions of Python can be installed side by side, but Kivy needs to
-be installed for each Python version that you want to use Kivy.
+    For Python < 3.5 we use the MinGW compiler. However, for Python 3.5+ on
+    Windows we currently only support the MSVC compiler
+    because of the following Python
+    `issue 4709 <http://bugs.python.org/issue4709>`_ about MinGW.
+    Generally this should make no difference when using precompiled wheels.
 
 .. _install-win-dist:
 
@@ -42,12 +50,28 @@ install.
      python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew
      python -m pip install kivy.deps.gstreamer
 
+   .. note::
+
+       If you encounter a `MemoryError` while installing, add after
+       `pip install` an option `--no-cache-dir`.
+
+   For Python 3.5+, you can also use the angle backend instead of glew. This
+   can be installed with::
+
+     python -m pip install kivy.deps.angle
+
 #. Install kivy::
 
      python -m pip install kivy
 
+#. (Optionally) Install the kivy examples::
+
+     python -m pip install kivy_examples
+
+   The examples are installed in the share directory under the root directory where python is installed.
+
 That's it. You should now be able to ``import kivy`` in python or run a basic
-example::
+example if you installed the kivy examples::
 
     python share\kivy-examples\demo\showcase\main.py
 
@@ -81,17 +105,23 @@ Nightly wheel installation
 --------------------------
 
 .. |cp27_win32| replace:: Python 2.7, 32bit
-.. _cp27_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp27-cp27m-win32.whl
-.. |cp34_win32| replace:: Python 3.4, 32bit
-.. _cp34_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp34-cp34m-win32.whl
+.. _cp27_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp27-cp27m-win32.whl
 .. |cp27_amd64| replace:: Python 2.7, 64bit
-.. _cp27_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp27-cp27m-win_amd64.whl
-.. |cp34_amd64| replace:: Python 3.4, 64bit
-.. _cp34_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp34-cp34m-win_amd64.whl
+.. _cp27_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp27-cp27m-win_amd64.whl
 .. |cp35_win32| replace:: Python 3.5, 32bit
-.. _cp35_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp35-cp35m-win32.whl
+.. _cp35_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp35-cp35m-win32.whl
 .. |cp35_amd64| replace:: Python 3.5, 64bit
-.. _cp35_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.9.2.dev0-cp35-cp35m-win_amd64.whl
+.. _cp35_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp35-cp35m-win_amd64.whl
+.. |cp36_win32| replace:: Python 3.6, 32bit
+.. _cp36_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp36-cp36m-win32.whl
+.. |cp36_amd64| replace:: Python 3.6, 64bit
+.. _cp36_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp36-cp36m-win_amd64.whl
+.. |cp37_win32| replace:: Python 3.7, 32bit
+.. _cp37_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp37-cp37m-win32.whl
+.. |cp37_amd64| replace:: Python 3.7, 64bit
+.. _cp37_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp37-cp37m-win_amd64.whl
+.. |examples_whl| replace:: Kivy examples
+.. _examples_whl: https://kivy.org/downloads/appveyor/kivy/Kivy_examples-1.11.0.dev0-py2.py3-none-any.whl
 
 .. warning::
 
@@ -105,18 +135,24 @@ doing ``python -m pip install kivy`` we'll install one of these wheels as
 follows.
 
 + |cp27_win32|_
-+ |cp34_win32|_
 + |cp35_win32|_
++ |cp36_win32|_
++ |cp37_win32|_
 
 - |cp27_amd64|_
-- |cp34_amd64|_
 - |cp35_amd64|_
+- |cp36_amd64|_
+- |cp37_amd64|_
 
 #. Perform steps 1 and 2 of the above Installation section.
 #. Download the appropriate wheel for your system.
 #. Install it with ``python -m pip install wheel-name`` where ``wheel-name``
    is the name of the renamed file and add deps to the `PATH`.
 
+Kivy examples are separated from the core because of their size. The examples
+can be installed separately on both Python 2 and 3 with this single wheel:
+
+- |examples_whl|_
 
 .. _kivy-dependencies:
 
@@ -125,19 +161,24 @@ Kivy's dependencies
 
 We offer wheels for Kivy and its dependencies separately so only desired
 dependencies need be installed. The dependencies are offered as
-`namespace <https://www.python.org/dev/peps/pep-0420/>`_
-packages of Kivy.deps, e.g. ``kivy.deps.sdl2``.
+optional sub-packages of kivy.deps, e.g. ``kivy.deps.sdl2``.
 
 Currently on Windows, we provide the following dependency wheels:
 
 * `gstreamer <https://gstreamer.freedesktop.org>`_ for audio and video
-* `glew <http://glew.sourceforge.net/>`_ or
-  `angle <https://github.com/Microsoft/angle>`_ for OpenGL
-* `sdl2 <https://libsdl.org>`_ for using OpenGL and control
+* `glew <http://glew.sourceforge.net/>`_ and/or
+  `angle (3.5 only) <https://github.com/Microsoft/angle>`_ for OpenGL
+* `sdl2 <https://libsdl.org>`_ for control and/or OpenGL.
+
+One can select which of these to use for OpenGL use using the
+`KIVY_GL_BACKEND` envrionment variable by setting it to `glew`
+(the default), `angle`, or `sdl2`. `angle` is currently
+in an experimental phase as a substitute for `glew` on Python
+3.5 only.
 
 `gstreamer` is an optional dependency which only needs to be
-installed if video display or audio is desired. `angle` is currently
-in an experimental phase as a substitute for `glew`.
+installed if video display or audio is desired. `ffpyplayer`
+is an alternate dependency for audio or video.
 
 .. _windows-run-app:
 
@@ -158,7 +199,7 @@ command line as `well <http://rogerdudler.github.io/git-guide/>`_ as
 installed.
 
 Walking the path! To add your python to the path, simply open your command line
-and then us the ``cd`` command to change the current directory to where python
+and then use the ``cd`` command to change the current directory to where python
 is installed, e.g. ``cd C:\Python27``. Alternatively if you only have one
 python version installed, permanently add the python directory to the path for
 `cmd <http://www.computerhope.com/issues/ch000549.htm>`_ or
@@ -185,15 +226,27 @@ kivy with git rather than a wheel there are some additional steps:
 
      python -m pip install --upgrade pip wheel setuptools
 
-#. Create the ``python\Lib\distutils\distutils.cfg`` file and add the two
-   lines::
+#. Get the compiler.
+   For Python < 3.5 we use mingwpy as follows.
 
-     [build]
-     compiler = mingw32
+   #. Create the
+      ``python\Lib\distutils\distutils.cfg`` file and add the two lines::
 
-#. Install MinGW with::
+        [build]
+        compiler = mingw32
 
-     python -m pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy
+   #. Install MinGW with::
+
+        python -m pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy
+
+   For Python 3.5 we use the MSVC compiler. For 3.5,
+   `Visual Studio 2015 <https://www.visualstudio.com/downloads/>`_ is
+   required, which is availible for free. Just download and install it and
+   you'll be good to go.
+
+   Visual Studio is very big so you can also use the smaller,
+   `Visual C Build Tools instead
+   <https://github.com/kivy/kivy/wiki/Using-Visual-C---Build-Tools-instead-of-Visual-Studio-on-Windows>`_.
 
 #. Set the environment variables. On windows do::
 
@@ -208,9 +261,11 @@ kivy with git rather than a wheel there are some additional steps:
    These variables must be set everytime you recompile kivy.
 
 #. Install the other dependencies as well as their dev versions (you can skip
-   gstreamer and gstreamer_dev if you aren't going to use video/audio)::
+   gstreamer and gstreamer_dev if you aren't going to use video/audio):
 
-     python -m pip install cython docutils pygments pypiwin32 kivy.deps.sdl2 \
+   .. parsed-literal::
+
+     python -m pip install |cython_install| docutils pygments pypiwin32 kivy.deps.sdl2 \
      kivy.deps.glew kivy.deps.gstreamer kivy.deps.glew_dev kivy.deps.sdl2_dev \
      kivy.deps.gstreamer_dev
 
@@ -221,49 +276,6 @@ kivy with git rather than a wheel there are some additional steps:
    ``filename`` can be a url such as
    ``https://github.com/kivy/kivy/archive/master.zip`` for kivy master, or the
    full path to a local copy of a kivy.
-
-.. _msvc-install-win:
-
-MSVC
-~~~~
-
-.. |msvc| replace:: Visual C++ Build Tools
-.. _msvc: http://landinghub.visualstudio.com/visual-cpp-build-tools
-
-Environment
-^^^^^^^^^^^
-
-MSVC is used mainly to support Python 3.5 and higher versions. To compile
-for Python 3.5 there's more than one tool to use for compilation although the
-used compiler is basically the same. Visual C++ Build Tools is the smallest one
-among all of them. If you already have Visual Studio, you can skip downloading,
-``vcvarsall.bat`` and setting environment variables for compiler.
-
-#. Get |msvc|_ (~5GB total size)
-#. Open ``cmd.exe`` in `<python.exe folder>` (`shift` + right click)
-#. Upgrade pip and setuptools*
-#. Get sdl2 and glew DLLs and headers::
-
-    python -m pip install kivy.deps.sdl2 kivy.deps.glew
-    python -m pip install kivy.deps.sdl2_dev kivy.deps.glew_dev
-
-#. ``"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"``
-#. Set environment variables for compiler::
-
-    set MSSdk=1
-    set DISTUTILS_USE_SDK=1
-    set LIB=%cd%\libs;%LIB%
-    set INCLUDE=%cd%\include;%INCLUDE%
-
-#. Set environment variables for Kivy::
-
-    set USE_SDL2=1
-    set USE_GSTREAMER=1
-
-#. ``git clone https://github.com/kivy/kivy``
-
-\*The setuptools Python package version must be at least 24.0. according
-to Python's `wiki <https://wiki.python.org/moin/WindowsCompilers>`_
 
 Compile Kivy
 ^^^^^^^^^^^^
@@ -301,10 +313,11 @@ favorite location, do the following:
 
 #. Move the contents of ``python\Lib\site-packages\kivy\deps`` to
    ``your-path\kivy\deps`` where ``your-path`` is the path where your kivy is
-   located.
+   located. That means if you cloned from GitHub, the ``deps`` have to end up
+   in the **inner** ``kivy`` folder.
 #. Remove the ``python\Lib\site-packages\kivy`` directory altogether.
 #. From ``python\Lib\site-packages`` move **all** ``kivy.deps.*.dist-info``
-directories to ``your-path`` right next to ``kivy``.
+   directories to ``your-path`` right next to ``kivy``.
 
 Now you can safely compile kivy in its current location with one of these
 commands::
@@ -324,7 +337,7 @@ Making Python available anywhere
 There are two methods for launching python on your ``*.py`` files.
 
 Double-click method
-~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^
 
 If you only have one Python installed, you can associate all ``*.py`` files
 with your python, if it isn't already, and then run it by double clicking. Or
@@ -343,7 +356,7 @@ you can only do it once if you want to be able to choose each time:
 #. You are done. Open the file.
 
 Send-to method
-~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^
 
 You can launch a .py file with our Python using the Send-to menu:
 

@@ -132,7 +132,7 @@ cdef inline void final_strip(LayoutLine line):
     ''' Ensures that the line does not end with trailing spaces.
 
     Given the line, it'll start from the last word and strip from the
-    right. If the word becomes empty, it'll remove it and trip the word
+    right. If the word becomes empty, it'll remove it and strip the word
     previous to that and so on.
     '''
     cdef int diff

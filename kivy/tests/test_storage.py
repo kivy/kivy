@@ -4,6 +4,8 @@ Storage tests
 '''
 
 import unittest
+from os.path import abspath, dirname, join
+import errno
 import os
 
 
@@ -21,6 +23,14 @@ class StorageTestCase(unittest.TestCase):
             self._do_store_test_filled(DictStore(tmpfn))
         finally:
             unlink(tmpfn)
+
+    def test_dict_storage_nofolder(self):
+        from kivy.storage.dictstore import DictStore
+        self._do_store_test_nofolder(DictStore)
+
+    def test_json_storage_nofolder(self):
+        from kivy.storage.jsonstore import JsonStore
+        self._do_store_test_nofolder(JsonStore)
 
     def test_json_storage(self):
         from kivy.storage.jsonstore import JsonStore
@@ -108,3 +118,18 @@ class StorageTestCase(unittest.TestCase):
         self.assertTrue(store.delete('plop'))
         self.assertRaises(KeyError, lambda: store.delete('plop'))
         self.assertRaises(KeyError, lambda: store.get('plop'))
+
+    def _do_store_test_nofolder(self, store_cls):
+        ext = store_cls.__name__.lower()[:4]
+        path = join(
+            dirname(abspath(__file__)),
+            '__i_dont_exist__',
+            'test.' + ext
+        )
+        with self.assertRaises(IOError) as context:
+            store = store_cls(path)
+        self.assertEqual(context.exception.errno, errno.ENOENT)
+
+
+if __name__ == '__main__':
+    unittest.main()

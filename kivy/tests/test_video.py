@@ -2,7 +2,7 @@
 import unittest
 
 
-class AnimationTestCase(unittest.TestCase):
+class VideoTestCase(unittest.TestCase):
 
     def test_video_unload(self):
         # fix issue https://github.com/kivy/kivy/issues/2275
@@ -13,7 +13,7 @@ class AnimationTestCase(unittest.TestCase):
         from os.path import join, dirname, abspath
         here = dirname(__file__)
         source = abspath(join(
-            here, "..", "..", "examples", "widgets", "softboy.mpg"))
+            here, "..", "..", "examples", "widgets", "cityCC0.mpg"))
         video = Video(source=source, play=True)
         Clock.schedule_once(lambda x: stopTouchApp(), 1)
 

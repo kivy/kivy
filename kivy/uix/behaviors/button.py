@@ -105,7 +105,7 @@ class ButtonBehavior(object):
 
     .. versionadded:: 1.9.0
 
-    .. versionchanged:: 1.9.2
+    .. versionchanged:: 1.10.0
         The default value is now False.
 
     :attr:`always_release` is a :class:`~kivy.properties.BooleanProperty` and

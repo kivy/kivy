@@ -47,16 +47,18 @@ cdef class Context:
         self.l_canvas = []
         self.l_fbo = []
         self.flush()
-        self.trigger_gl_dealloc = Clock.create_trigger(self.gl_dealloc, 0)
+
+    def trigger_gl_dealloc(self):
+        Clock.schedule_del_safe(self.gl_dealloc)
 
     cdef void flush(self):
         gc.collect()
-        self.lr_texture = array('i')
+        self.lr_texture = array('I')
         self.lr_canvas = []
-        self.lr_vbo = array('i')
-        self.lr_fbo_rb = array('i')
-        self.lr_fbo_fb = array('i')
-        self.lr_shadersource = array('i')
+        self.lr_vbo = array('I')
+        self.lr_fbo_rb = array('I')
+        self.lr_fbo_fb = array('I')
+        self.lr_shadersource = array('I')
         self.lr_shader = []
 
     cdef void register_texture(self, Texture texture):
@@ -113,9 +115,9 @@ cdef class Context:
             arr_fb = self.lr_fbo_fb
             arr_fb.append(fbo.buffer_id)
             self.trigger_gl_dealloc()
-        if fbo.depthbuffer_id != 0:
+        if fbo.depthbuffer_id != 0 or fbo.stencilbuffer_id != 0:
             arr_rb = self.lr_fbo_rb
-            arr_rb.append(fbo.depthbuffer_id)
+            arr_rb.append(fbo.depthbuffer_id or fbo.stencilbuffer_id)
             # no need to trigger, depthbuffer required absolutely a buffer.
 
     def add_reload_observer(self, callback, before=False):

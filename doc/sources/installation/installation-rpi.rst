@@ -7,8 +7,8 @@ You can install Kivy manually, or you can download and boot KivyPie on the
 Raspberry Pi. Both options are described below.
 
 
-Manual installation (On Raspbian Jessie)
-----------------------------------------
+Manual installation (On Raspbian Jessie/Stretch)
+------------------------------------------------
 
 #. Install the dependencies::
 
@@ -17,23 +17,34 @@ Manual installation (On Raspbian Jessie)
        pkg-config libgl1-mesa-dev libgles2-mesa-dev \
        python-setuptools libgstreamer1.0-dev git-core \
        gstreamer1.0-plugins-{bad,base,good,ugly} \
-       gstreamer1.0-{omx,alsa} python-dev cython
+       gstreamer1.0-{omx,alsa} python-dev libmtdev-dev \
+       xclip xsel
 
+#. Install a new enough version of Cython:
+
+    .. parsed-literal::
+
+        sudo pip install -U |cython_install|
 
 #. Install Kivy globally on your system::
 
     sudo pip install git+https://github.com/kivy/kivy.git@master
 
-
 #. Or build and use kivy inplace (best for development)::
 
     git clone https://github.com/kivy/kivy
     cd kivy
-    
+
     make
     echo "export PYTHONPATH=$(pwd):\$PYTHONPATH" >> ~/.profile
     source ~/.profile
-    
+
+.. note::
+
+    On versions of kivy prior to 1.10.1, Mesa library naming changes can result
+    in "Unable to find any valuable Window provider" errors. If you experience
+    this issue, please upgrade or consult `ticket #5360.
+    <https://github.com/kivy/kivy/issues/5360>`_
 
 Manual installation (On Raspbian Wheezy)
 ----------------------------------------
@@ -61,9 +72,11 @@ Manual installation (On Raspbian Wheezy)
     wget https://raw.github.com/pypa/pip/master/contrib/get-pip.py
     sudo python get-pip.py
 
-#. Install Cython from sources (debian package are outdated)::
+#. Install Cython from sources (debian packages are outdated):
 
-    sudo pip install cython
+    .. parsed-literal::
+
+        sudo pip install |cython_install|
 
 #. Install Kivy globally on your system::
 
@@ -73,7 +86,7 @@ Manual installation (On Raspbian Wheezy)
 
     git clone https://github.com/kivy/kivy
     cd kivy
-    
+
     make
     echo "export PYTHONPATH=$(pwd):\$PYTHONPATH" >> ~/.profile
     source ~/.profile

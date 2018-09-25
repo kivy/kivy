@@ -70,7 +70,7 @@ class Spinner(Button):
     Setting it to True will cause the spinner to update its :attr:`text`
     property every time attr:`values` are changed.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`text_autoupdate` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
@@ -104,8 +104,8 @@ class Spinner(Button):
     defaults to :class:`~kivy.uix.dropdown.DropDown`.
 
     .. versionchanged:: 1.8.0
-        If you set a string, the :class:`~kivy.factory.Factory` will be used to
-        resolve the class.
+        If set to a string, the :class:`~kivy.factory.Factory` will be used to
+        resolve the class name.
 
     '''
 
@@ -123,7 +123,7 @@ class Spinner(Button):
     Set to True to propagate the Spinner's height value to each dropdown
     list element.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`sync_height` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.

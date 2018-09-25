@@ -2,7 +2,7 @@
 RecycleGridLayout
 =================
 
-.. versionadded:: 1.9.2
+.. versionadded:: 1.10.0
 
 .. warning::
     This module is highly experimental, its API may change in the future and
@@ -15,7 +15,7 @@ The RecycleGridLayout is designed to provide a
 """
 
 from kivy.uix.recyclelayout import RecycleLayout
-from kivy.uix.gridlayout import GridLayout, nmax, nmin
+from kivy.uix.gridlayout import GridLayout, GridLayoutException, nmax, nmin
 from collections import defaultdict
 
 __all__ = ('RecycleGridLayout', )

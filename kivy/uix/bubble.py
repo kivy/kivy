@@ -104,7 +104,7 @@ class Bubble(GridLayout):
     graphics instruction. Used with the :attr:`background_image`.
     It should be used when using custom backgrounds.
 
-    It must be a list of 4 values: (top, right, bottom, left). Read the
+    It must be a list of 4 values: (bottom, right, top, left). Read the
     BorderImage instructions for more information about how to use it.
 
     :attr:`border` is a :class:`~kivy.properties.ListProperty` and defaults to

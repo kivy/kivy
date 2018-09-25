@@ -181,7 +181,7 @@ Persian:        روباه قهوه ای سریع روی سگ تنبل قدیم�
 Polish:         Szybki brązowy lis przeskoczył nad leniwym psem życia.
 Portugese:      A ligeira raposa marrom ataca o cão preguiçoso de idade.
 Romanian:       Rapidă maro vulpea sare peste cainele lenes vechi.
-Russian:       Быстрый коричневый лис перепрыгивает через ленивый старый пес.
+Russian:        Быстрая коричневая лисица перепрыгивает ленивого старого пса.
 Serniam:        Брза смеђа лисица прескаче лењог пса старог.
 Slovak:         Rýchla hnedá líška skáče cez lenivého starého psa.
 Slovenian:      Kožuščku hudobnega nad leni starega psa.
@@ -233,11 +233,9 @@ class unicode_app(App):
 
         for fdir in fonts_path:
             for fpath in sorted(os.listdir(fdir)):
-                if '.' not in fpath:
-                    continue
-                font, ext = fpath.rsplit('.')
-                if ext == 'ttf':
-                    flist.append(font)
+                if fpath.endswith('.ttf'):
+                    flist.append(fpath[:-4])
+
         return sorted(flist)
 
 

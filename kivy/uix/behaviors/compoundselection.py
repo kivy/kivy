@@ -196,7 +196,7 @@ class CompoundSelectionBehavior(object):
     '''Determines whether the last selected node can be deselected when
     :attr:`multiselect` or :attr:`touch_multiselect` is False.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`touch_deselect_last` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to True on mobile, False on desktop platforms.
@@ -259,7 +259,7 @@ class CompoundSelectionBehavior(object):
     concatenated and the combined text is passed as the key argument of
     :meth:`goto_node`.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
     '''
 
     _anchor = None  # the last anchor node selected (e.g. shift relative node)
@@ -313,8 +313,8 @@ class CompoundSelectionBehavior(object):
         range_select = multi and self._shift_down
 
         if touch and 'button' in touch.profile and touch.button in\
-                ('scrollup', 'scrolldown', 'scrollleft', 'scrollright'):
-            node_src, idx_src = self._reslove_last_node()
+            ('scrollup', 'scrolldown', 'scrollleft', 'scrollright'):
+            node_src, idx_src = self._resolve_last_node()
             node, idx = self.goto_node(touch.button, node_src, idx_src)
             if node == node_src:
                 return False
@@ -363,7 +363,7 @@ class CompoundSelectionBehavior(object):
             return False
         keys = self._key_list
         multi = self.multiselect
-        node_src, idx_src = self._reslove_last_node()
+        node_src, idx_src = self._resolve_last_node()
         text = scancode[1]
 
         if text == 'shift':
@@ -454,7 +454,7 @@ class CompoundSelectionBehavior(object):
         'down': uc, 'right': rc, 'left': -rc, 'scrollup': sc,
         'scrolldown': -sc, 'scrollright': -sc, 'scrollleft': sc}
 
-    def _reslove_last_node(self):
+    def _resolve_last_node(self):
         # for offset selection, we have a anchor, and we select everything
         # between anchor and added offset relative to last node
         sister_nodes = self.get_selectable_nodes()

@@ -117,7 +117,7 @@ class Animation(EventDispatcher):
     .. versionchanged:: 1.4.0
         Added s/step parameter.
 
-    .. versionchanged:: 1.9.2
+    .. versionchanged:: 1.10.0
         The default value of the step parameter was changed from 1/60. to 0.
     '''
 
@@ -231,7 +231,7 @@ class Animation(EventDispatcher):
 
     def stop_property(self, widget, prop):
         '''Even if an animation is running, remove a property. It will not be
-        animated futher. If it was the only/last property being animated,
+        animated further. If it was the only/last property being animated,
         the animation will be stopped (see :attr:`stop`).
         '''
         props = self._widgets.get(widget.uid, None)
@@ -315,7 +315,7 @@ class Animation(EventDispatcher):
         widgets = self._widgets
         transition = self._transition
         calculate = self._calculate
-        for uid in list(widgets.keys())[:]:
+        for uid in list(widgets.keys()):
             anim = widgets[uid]
             widget = anim['widget']
 
@@ -447,7 +447,7 @@ class Sequence(Animation):
         This method overrides `:class:kivy.animation.Animation`'s
         version, to cancel it on all animations of the Sequence.
 
-        .. versionadded:: 1.9.2
+        .. versionadded:: 1.10.0
         '''
         self.anim1.cancel_property(widget, prop)
         self.anim2.cancel_property(widget, prop)

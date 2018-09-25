@@ -71,7 +71,9 @@ class KvViewerApp(App):
         try:
             Window.add_widget(Builder.load_file(join(PATH, TARGET)))
         except Exception as e:
-            Window.add_widget(Label(text=e.message if e.message else str(e)))
+            Window.add_widget(Label(text=(
+                e.message if getattr(e, r'message', None) else str(e)
+            )))
 
 
 if __name__ == '__main__':

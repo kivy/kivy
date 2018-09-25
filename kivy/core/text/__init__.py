@@ -128,7 +128,7 @@ class LabelBase(object):
         `outline_color`: tuple, defaults to (0, 0, 0)
             Color of the outline.
 
-    .. versionchanged:: 1.9.2
+    .. versionchanged:: 1.10.0
         `outline_width` and `outline_color` were added.
 
     .. versionchanged:: 1.9.0
@@ -245,11 +245,11 @@ class LabelBase(object):
                 font = resource_find(font_type)
 
                 if font is None:
-                    raise IOError('File {0}s not found'.format(font_type))
+                    raise IOError('File {0} not found'.format(font_type))
                 else:
                     fonts.append(font)
             else:
-                fonts.append(fonts[-1])  # add regular font to list again
+                fonts.append(fonts[0])  # add regular font to list again
 
         LabelBase._fonts[name] = tuple(fonts)
 

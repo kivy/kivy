@@ -39,6 +39,8 @@ To fix that, you can add these options to the argument line:
 __all__ = ('MTDMotionEventProvider', 'MTDMotionEvent')
 
 import os
+import os.path
+import time
 from kivy.input.motionevent import MotionEvent
 from kivy.input.shape import ShapeRect
 
@@ -111,7 +113,7 @@ else:
             if not args:
                 Logger.error('MTD: No filename pass to MTD configuration')
                 Logger.error('MTD: Use /dev/input/event0 for example')
-                return None
+                return
 
             # read filename
             self.input_fn = args[0]
@@ -218,7 +220,10 @@ else:
                     queue.append((action, touch))
 
             def normalize(value, vmin, vmax):
-                return (value - vmin) / float(vmax - vmin)
+                try:
+                    return (value - vmin) / float(vmax - vmin)
+                except ZeroDivisionError:  # it's both in py2 and py3
+                    return (value - vmin)
 
             # open mtdev device
             _fn = input_fn
@@ -273,8 +278,20 @@ else:
             rotation = drs('rotation', 0)
             Logger.info('MTD: <%s> rotation set to %d' %
                         (_fn, rotation))
-
+            failures = 0
             while _device:
+                # if device have disconnected lets try to connect
+                if failures > 1000:
+                    Logger.info('MTD: <%s> input device disconnected' % _fn)
+                    while not os.path.exists(_fn):
+                        time.sleep(0.05)
+                    # input device is back online let's recreate device
+                    _device.close()
+                    _device = Device(_fn)
+                    Logger.info('MTD: <%s> input device reconnected' % _fn)
+                    failures = 0
+                    continue
+
                 # idle as much as we can.
                 while _device.idle(1000):
                     continue
@@ -283,7 +300,10 @@ else:
                 while True:
                     data = _device.get()
                     if data is None:
+                        failures += 1
                         break
+
+                    failures = 0
 
                     # set the working slot
                     if data.type == MTDEV_TYPE_EV_ABS and \
@@ -292,7 +312,7 @@ else:
                         continue
 
                     # fill the slot
-                    if _slot not in l_points:
+                    if not (_slot in l_points):
                         l_points[_slot] = dict()
                     point = l_points[_slot]
                     ev_value = data.value

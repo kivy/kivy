@@ -249,7 +249,7 @@ class Carousel(StencilView):
     :attr:`ignore_perpendicular_swipes` is a
     :class:`~kivy.properties.BooleanProperty` and defaults to False.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
     '''
 
     # private properties, for internal use only ###
@@ -615,10 +615,10 @@ class Carousel(StencilView):
             super(Carousel, self).on_touch_down(touch)
             return
 
-    def add_widget(self, widget, index=0):
+    def add_widget(self, widget, index=0, canvas=None):
         slide = RelativeLayout(size=self.size, x=self.x - self.width, y=self.y)
         slide.add_widget(widget)
-        super(Carousel, self).add_widget(slide, index)
+        super(Carousel, self).add_widget(slide, index, canvas)
         if index != 0:
             self.slides.insert(index - len(self.slides), widget)
         else:

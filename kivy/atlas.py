@@ -92,7 +92,7 @@ As you can see, we get 2 new files: ``myatlas.atlas`` and ``myatlas-0.png``.
     If you need path information included, you should include ``use_path`` as
     follows::
 
-        $ python -m kivy.atlas use_path myatlas 256 *.png
+        $ python -m kivy.atlas -- --use_path myatlas 256 *.png
 
     In which case the id for ``../images/button.png`` will be ``images_button``
 

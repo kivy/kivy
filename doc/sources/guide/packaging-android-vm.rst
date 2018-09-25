@@ -3,6 +3,11 @@
 The Kivy Android Virtual Machine
 ================================
 
+.. note::
+
+    The VM is now updated. Please check the `Kivy website <http://kivy.org/#download>`_
+    for the latest version.
+
 Introduction
 ------------
 
@@ -19,26 +24,19 @@ If you are not familiar with virtualization, we encourage you to read the
 Getting started
 ---------------
 
-#. Download the disc image from `here <http://kivy.org/#download>`_, in the
-   *Virtual Machine* section. The download is >2GB (6GB after extracted).
-   Extract the file and remember the location of the extracted vdi file.
+#. Download the `Kivy / Buildozer VM <http://kivy.org/#download>`_, in the
+   *Virtual Machine* section. The download is 1.2GB.
+   Extract the file and remember the location of the extracted directory.
 
 #. Download the version of VirtualBox for your machine from the
    `VirtualBox download area <https://www.virtualbox.org/wiki/Downloads>`_
    and install it.
 
-#. Start VirtualBox, click on "New" in the left top. Then select "linux" and
-   "Ubuntu 64-bit".
+#. Start VirtualBox, click on "File", "Import Appliance".
 
-#. Under "Hard drive", choose "Use an existing virtual hard drive file".
-   Search for your vdi file and select it.
+#. Select the extracted directory, file should be named "Buildozer VM.ovf"
 
-#. Go to the "Settings" for your virtual machine. In the
-   "Display -> Video" section, increase video ram to 32mb or above.
-   Enable 3d acceleration to improve the user experience.
-
-#. Start the Virtual machine and follow the instructions in the readme file
-   on the desktop.
+#. Start the Virtual machine and click on the "Buildozer" icon.
 
 Building the APK
 ----------------
@@ -62,6 +60,10 @@ Hints and tips
     'Auto-mount' options) to copy the built APK to the host machine so it can
     form part of your normal dev environment. A simple script can easily
     automate the build and copy/move process.
+
+    Currently, VirtualBox doesn't allow symlink anymore in a shared folder.
+    Adjust your buildozer.spec to build outside the shared folder.
+    Also, ensure the `kivy` user is in the `vboxsf` group.
 
 #. Copy and paste
 
@@ -87,3 +89,7 @@ Hints and tips
 
     If this occurs, please check the amount of free memory in the Kivy VM and
     increase the amount of RAM allocated to it if required.
+
+#. No space left
+
+    Read the section about resizing the VM at https://github.com/kivy/buildozer#buildozer-virtual-machine

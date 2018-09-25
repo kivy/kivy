@@ -46,7 +46,7 @@ class CameraClick(BoxLayout):
         '''
         camera = self.ids['camera']
         timestr = time.strftime("%Y%m%d_%H%M%S")
-        camera.export_to_png("IMG_" + timestr)
+        camera.export_to_png("IMG_{}.png".format(timestr))
         print("Captured")
 
 

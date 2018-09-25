@@ -48,7 +48,7 @@ def resource_find(filename):
     Use resource_add_path to add a custom path to the search.
     '''
     if not filename:
-        return None
+        return
     if filename[:8] == 'atlas://':
         return filename
     if exists(abspath(filename)):
@@ -59,7 +59,6 @@ def resource_find(filename):
             return output
     if filename[:5] == 'data:':
         return filename
-    return None
 
 
 def resource_add_path(path):

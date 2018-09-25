@@ -2,13 +2,13 @@
 RecycleView Views
 =================
 
-.. versionadded:: 1.9.2
+.. versionadded:: 1.10.0
 
 The adapter part of the RecycleView which together with the layout is the
 view part of the model-view-controller pattern.
 
 The view module handles converting the data to a view using the adapter class
-which is then displayed by the layout. A view is any Widget based class.
+which is then displayed by the layout. A view can be any Widget based class.
 However, inheriting from RecycleDataViewBehavior adds methods for converting
 the data to a view.
 

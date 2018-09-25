@@ -27,9 +27,13 @@ class ClipboardWindows(ClipboardBase):
         GetClipboardData.restype = wintypes.HANDLE
 
         user32.OpenClipboard(user32.GetActiveWindow())
-        # 1 is CF_TEXT
+        # Standard Clipboard Format "1" is "CF_TEXT"
         pcontents = GetClipboardData(13)
+
+        # if someone pastes a FILE, the content is None for SCF 13
+        # and the clipboard is locked if not closed properly
         if not pcontents:
+            user32.CloseClipboard()
             return ''
         data = c_wchar_p(pcontents).value.encode(self._encoding)
         user32.CloseClipboard()
@@ -52,7 +56,9 @@ class ClipboardWindows(ClipboardBase):
         user32.OpenClipboard(user32.GetActiveWindow())
         user32.EmptyClipboard()
         hCd = GlobalAlloc(0, len(text) * ctypes.sizeof(ctypes.c_wchar))
-        msvcrt.wcscpy_s(c_wchar_p(hCd), len(text), c_wchar_p(text))
+
+        # ignore null character for strSource pointer
+        msvcrt.wcscpy_s(c_wchar_p(hCd), len(text), c_wchar_p(text[:-1]))
         SetClipboardData(CF_UNICODETEXT, hCd)
         user32.CloseClipboard()
 

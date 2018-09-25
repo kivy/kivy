@@ -102,7 +102,9 @@ devices = {
     'tablet_sony_xperia_z3_tablet': ('Sony Xperia Z3 Tablet',
                                      1920, 1200, 282, 2.0),
     'tablet_sony_xperia_z4_tablet': ('Sony Xperia Z4 Tablet',
-                                     2560, 1600, 297, 2.0)
+                                     2560, 1600, 297, 2.0),
+    'tablet_huawei_mediapad_m3_lite_10': ('HUAWEI MediaPad M3 Lite 10',
+                                          1920, 1200, 320, 2.25)
 
 }
 

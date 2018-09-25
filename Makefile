@@ -11,7 +11,7 @@ IOSPATH := $(PATH):/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin
 
 BUILD_OPTS       = build_ext --inplace
 BUILD_OPTS_FORCE = $(BUILD_OPTS) -f
-BUILD_OPTS_DEBUG = $(BUILD_OPTS_FORCE) -g
+BUILD_OPTS_DEBUG = $(BUILD_OPTS_FORCE) -g --cython-gdb
 
 INSTALL_OPTIONS  = install
 INSTALL_ROOT     =
@@ -38,7 +38,7 @@ force:
 	$(PYTHON) setup.py $(BUILD_OPTS_FORCE)
 
 debug:
-	$(PYTHON) setup.py $(BUILD_OPTS_DEBUG)
+	env CFLAGS="-Og" $(PYTHON) setup.py $(BUILD_OPTS_DEBUG)
 
 mesabuild:
 	env USE_MESAGL=1 $(PYTHON) setup.py $(BUILD_OPTS)
@@ -82,6 +82,10 @@ hook:
 	# consistency.
 	cp kivy/tools/pep8checker/pre-commit.githook .git/hooks/pre-commit
 	chmod +x .git/hooks/pre-commit
+
+image-testsuite:
+	mkdir -p "${KIVY_DIR}tests/image-testsuite"
+	-${KIVY_DIR}tools/image-testsuite/imagemagick-testsuite.sh "${KIVY_DIR}tests/image-testsuite"
 
 test:
 	-rm -rf kivy/tests/build

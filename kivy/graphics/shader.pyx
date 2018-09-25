@@ -109,7 +109,6 @@ cdef class ShaderSource:
 
         # show any messages
         ctype = 'vertex' if self.shadertype == GL_VERTEX_SHADER else 'fragment'
-        self.process_message('%s shader' % ctype, self.get_shader_log(shader))
 
         # ensure compilation is ok
         cgl.glGetShaderiv(shader, GL_COMPILE_STATUS, &success)
@@ -118,6 +117,7 @@ cdef class ShaderSource:
             error = cgl.glGetError()
             Logger.error('Shader: <%s> failed to compile (gl:%d)' % (
                 ctype, error))
+            self.process_message('%s shader' % ctype, self.get_shader_log(shader))
             cgl.glDeleteShader(shader)
             return
 
@@ -575,13 +575,13 @@ cdef class Shader:
         cgl.glGetError()
 
         cgl.glLinkProgram(self.program)
-        self.process_message('program', self.get_program_log(self.program))
         self.uniform_locations = dict()
         error = cgl.glGetError()
         if error:
             Logger.error('Shader: GL error %d' % error)
         if not self.is_linked():
             self._success = 0
+            self.process_message('program', self.get_program_log(self.program))
             raise Exception('Shader didnt link, check info log.')
         self._success = 1
         return 0
@@ -628,6 +628,8 @@ cdef class Shader:
         # convert only the part before \0.
         # XXX Also, we cannot use directly msg as a python string, as some
         # others drivers doesn't include a \0 (which is great.)
+        if length == 0:
+            return ""
         cdef bytes ret = msg[:length]
         return ret.split(b'\0')[0].decode('utf-8')
 

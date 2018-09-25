@@ -37,6 +37,10 @@ You can use your texture in almost all vertex instructions with the
 your texture in kv lang, you can save it in an
 :class:`~kivy.properties.ObjectProperty` inside your widget.
 
+.. warning::
+    Using Texture before OpenGL has been initialized will lead to a crash. If
+    you need to create textures before the application has started, import
+    Window first: `from kivy.core.window import Window`
 
 Blitting custom data
 --------------------
@@ -46,7 +50,7 @@ You can create your own data and blit it to the texture using
 
 For example, to blit immutable bytes data::
 
-    # create a 64x64 texture, defaults to rgb / ubyte
+    # create a 64x64 texture, defaults to rgba / ubyte
     texture = Texture.create(size=(64, 64))
 
     # create 64x64 rgb tab, and fill with values from 0 to 255

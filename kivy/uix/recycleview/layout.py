@@ -2,7 +2,7 @@
 RecycleView Layouts
 ===================
 
-.. versionadded:: 1.9.2
+.. versionadded:: 1.10.0
 
 The Layouts handle the presentation of views for the
 :class:`~kivy.uix.recycleview.RecycleView`.
@@ -121,7 +121,7 @@ class LayoutSelectionBehavior(CompoundSelectionBehavior):
         If the view is a instance of
         :class:`~kivy.uix.recycleview.views.RecycleDataViewBehavior`, its
         :meth:`~kivy.uix.recycleview.views.RecycleDataViewBehavior.\
-apply_selection` method will be called everything the view needs to refresh
+apply_selection` method will be called every time the view needs to refresh
         the selection state. Otherwise, the this method is responsible
         for applying the selection.
 

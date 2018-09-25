@@ -2,28 +2,28 @@
 FFmpeg based video abstraction
 ==============================
 
-To use, you need to install ffpyplyaer and have a compiled ffmpeg shared
+To use, you need to install ffpyplayer and have a compiled ffmpeg shared
 library.
 
     https://github.com/matham/ffpyplayer
 
 The docs there describe how to set this up. But briefly, first you need to
 compile ffmpeg using the shared flags while disabling the static flags (you'll
-probably have to set the fPIC flag, e.g. CFLAGS=-fPIC). Here's some
+probably have to set the fPIC flag, e.g. CFLAGS=-fPIC). Here are some
 instructions: https://trac.ffmpeg.org/wiki/CompilationGuide. For Windows, you
 can download compiled GPL binaries from http://ffmpeg.zeranoe.com/builds/.
-Similarly, you should download SDL.
+Similarly, you should download SDL2.
 
-Now, you should a ffmpeg and sdl directory. In each, you should have a include,
-bin, and lib directory, where e.g. for Windows, lib contains the .dll.a files,
-while bin contains the actual dlls. The include directory holds the headers.
-The bin directory is only needed if the shared libraries are not already on
-the path. In the environment define FFMPEG_ROOT and SDL_ROOT, each pointing to
-the ffmpeg, and SDL directories, respectively. (If you're using SDL2,
-the include directory will contain a directory called SDL2, which then holds
-the headers).
+Now, you should have ffmpeg and sdl directories. In each, you should have an
+'include', 'bin' and 'lib' directory, where e.g. for Windows, 'lib' contains
+the .dll.a files, while 'bin' contains the actual dlls. The 'include' directory
+holds the headers. The 'bin' directory is only needed if the shared libraries
+are not already in the path. In the environment, define FFMPEG_ROOT and
+SDL_ROOT, each pointing to the ffmpeg and SDL directories respectively. (If
+you're using SDL2, the 'include' directory will contain an 'SDL2' directory,
+which then holds the headers).
 
-Once defined, download the ffpyplayer git and run
+Once defined, download the ffpyplayer git repo and run
 
     python setup.py build_ext --inplace
 
@@ -33,14 +33,14 @@ Finally, before running you need to ensure that ffpyplayer is in python's path.
 
     When kivy exits by closing the window while the video is playing,
     it appears that the __del__method of VideoFFPy
-    is not called. Because of this the VideoFFPy object is not
+    is not called. Because of this, the VideoFFPy object is not
     properly deleted when kivy exits. The consequence is that because
     MediaPlayer creates internal threads which do not have their daemon
-    flag set, when the main threads exists it'll hang and wait for the other
+    flag set, when the main threads exists, it'll hang and wait for the other
     MediaPlayer threads to exit. But since __del__ is not called to delete the
-    MediaPlayer object, those threads will remain alive hanging kivy. What this
-    means is that you have to be sure to delete the MediaPlayer object before
-    kivy exits by setting it to None.
+    MediaPlayer object, those threads will remain alive, hanging kivy. What
+    this means is that you have to be sure to delete the MediaPlayer object
+    before kivy exits by setting it to None.
 '''
 
 __all__ = ('VideoFFPy', )
@@ -199,11 +199,12 @@ class VideoFFPy(VideoBase):
         if self._texture:
             if self._out_fmt == 'yuv420p':
                 dy, du, dv, _ = img.to_memoryview()
-                self._tex_y.blit_buffer(dy, colorfmt='luminance')
-                self._tex_u.blit_buffer(du, colorfmt='luminance')
-                self._tex_v.blit_buffer(dv, colorfmt='luminance')
-                self._fbo.ask_update()
-                self._fbo.draw()
+                if dy and du and dv:
+                    self._tex_y.blit_buffer(dy, colorfmt='luminance')
+                    self._tex_u.blit_buffer(du, colorfmt='luminance')
+                    self._tex_v.blit_buffer(dv, colorfmt='luminance')
+                    self._fbo.ask_update()
+                    self._fbo.draw()
             else:
                 self._texture.blit_buffer(
                     img.to_memoryview()[0], colorfmt='rgba')
@@ -252,17 +253,52 @@ class VideoFFPy(VideoBase):
         self._change_state('playing')
 
         while not self._ffplayer_need_quit:
+            seek_happened = False
             if seek_queue:
                 vals = seek_queue[:]
                 del seek_queue[:len(vals)]
+                percent, precise = vals[-1]
                 ffplayer.seek(
-                    vals[-1] * ffplayer.get_metadata()['duration'],
-                    relative=False)
+                    percent * ffplayer.get_metadata()['duration'],
+                    relative=False,
+                    accurate=precise
+                )
+                seek_happened = True
                 self._next_frame = None
 
-            t1 = time.time()
-            frame, val = ffplayer.get_frame()
-            t2 = time.time()
+            # Get next frame if paused:
+            if seek_happened and ffplayer.get_pause():
+                ffplayer.set_volume(0.0)  # Try to do it silently.
+                ffplayer.set_pause(False)
+                try:
+                    # We don't know concrete number of frames to skip,
+                    # this number worked fine on couple of tested videos:
+                    to_skip = 6
+                    while True:
+                        frame, val = ffplayer.get_frame(show=False)
+                        # Exit loop on invalid val:
+                        if val in ('paused', 'eof'):
+                            break
+                        # Exit loop on seek_queue updated:
+                        if seek_queue:
+                            break
+                        # Wait for next frame:
+                        if frame is None:
+                            sleep(0.005)
+                            continue
+                        # Wait until we skipped enough frames:
+                        to_skip -= 1
+                        if to_skip == 0:
+                            break
+                    # Assuming last frame is actual, just get it:
+                    frame, val = ffplayer.get_frame(force_refresh=True)
+                finally:
+                    ffplayer.set_pause(bool(self._state == 'paused'))
+                    ffplayer.set_volume(self._volume)
+            # Get next frame regular:
+            else:
+                frame, val = ffplayer.get_frame()
+
             if val == 'eof':
                 sleep(0.2)
                 if not did_dispatch_eof:
@@ -280,10 +316,10 @@ class VideoFFPy(VideoBase):
                     val = val if val else (1 / 30.)
                 sleep(val)
 
-    def seek(self, percent):
+    def seek(self, percent, precise=True):
         if self._ffplayer is None:
             return
-        self._seek_queue.append(percent)
+        self._seek_queue.append((percent, precise,))
 
     def stop(self):
         self.unload()
@@ -303,7 +339,8 @@ class VideoFFPy(VideoBase):
         self._out_fmt = 'rgba'
         ff_opts = {
             'paused': True,
-            'out_fmt': self._out_fmt
+            'out_fmt': self._out_fmt,
+            'sn': True,
         }
         self._ffplayer = MediaPlayer(
                 self._filename, callback=self._player_callback,
