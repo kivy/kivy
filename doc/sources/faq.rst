@@ -242,7 +242,7 @@ Here's a checklist:
   the current state is (very roughly), what you would like to improve and how,
   etc.
 * Discuss that proposal with us in a timely manner. Get feedback.
-* Be patient! Especially on IRC. We will try to get to you if we're available.
+* Be patient! Especially on Discord. We will try to get to you if we're available.
   If not, send an email and just wait. Most questions are already answered in
   the docs or somewhere else and can be found with some research. If your
   questions don't reflect that you've actually thought through what you're
