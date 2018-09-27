@@ -33,7 +33,7 @@ Kivy framework code on the
 
 
 Discord
----
+---------
 
 **#Kivy on Discord at https://chat.kivy.org**
 
