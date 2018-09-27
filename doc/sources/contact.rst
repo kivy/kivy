@@ -35,7 +35,7 @@ Kivy framework code on the
 Discord
 ---------
 
-**#Kivy on Discord at https://chat.kivy.org**
+**Kivy on Discord at https://chat.kivy.org**
 
 Discord is great for real-time communication, but please make sure to **wait** after
 you asked your question. If you just join, ask and quit we have **no way** of
@@ -51,4 +51,3 @@ too soon. Just make sure to ask on the ``#support`` channel.
 Please read our
 `Community Guidelines <https://github.com/kivy/kivy/wiki/Community-Guidelines/>`_
 before asking for help on the mailing list or Discord channel.
-
