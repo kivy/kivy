@@ -15,12 +15,12 @@ Discussions
 
 Discussions around Kivy development happens on Github's issues and pull
 requests for specific things. For things that don't fit in either, discussions
-happen on the `#kivy-dev irc channel <https://webchat.freenode.net?nick=kvdev.&channels=kivy-dev&amp;uio=d4>`_
-of the freenode network, and on the `kivy-dev google group <https://groups.google.com/forum/#!forum/kivy-dev>`_.
+happen on the `#dev Discord channel <https://chat.kivy.org/>`_, and on the
+`kivy-dev google group <https://groups.google.com/forum/#!forum/kivy-dev>`_.
 Please come ask for guidance if you are unsure about how to contribute, or you
 want confirmation about your ideas fitting in the project before working on
 them. If you want to ask for — or contribute — support, you can join the
-`#kivy irc channel <https://webchat.freenode.net?nick=kvuser.&channels=kivy&amp;uio=d4>`_,
+`#support Discord channel <https://chat.kivy.org/>`_,
 and the `kivy-users google group <https://groups.google.com/forum/#!forum/kivy-users>`_.
 
 
