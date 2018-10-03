@@ -442,6 +442,14 @@ class ScrollView(StencilView):
     defaults to ['content'].
     '''
 
+    smooth = BooleanProperty()
+    '''Whether smooth scrolling should be used or not when scrolling with the the mouse-wheel.
+
+    .. versionadded:: 1.11.0
+
+    :attr:`smooth` is a :class:`~kivy.properties.BooleanProperty` and defaults to True.
+    '''
+
     # private, for internal use only
 
     _viewport = ObjectProperty(None, allownone=True)
@@ -681,11 +689,17 @@ class ScrollView(StencilView):
 
             if e:
                 if btn in ('scrolldown', 'scrollleft'):
-                    e.value = max(e.value - m, e.min)
-                    e.velocity = 0
+                    if self.smooth:
+                        e.velocity -= m * 10
+                    else:
+                        e.value = max(e.value - m, e.min)
+                        e.velocity = 0
                 elif btn in ('scrollup', 'scrollright'):
-                    e.value = min(e.value + m, e.max)
-                    e.velocity = 0
+                    if self.smooth:
+                        e.velocity += m * 10
+                    else:
+                        e.value = min(e.value + m, e.max)
+                        e.velocity = 0
                 touch.ud[self._get_uid('svavoid')] = True
                 e.trigger_velocity_update()
             return True
