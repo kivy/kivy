@@ -443,11 +443,13 @@ class ScrollView(StencilView):
     '''
 
     smooth = BooleanProperty()
-    '''Whether smooth scrolling should be used or not when scrolling with the the mouse-wheel.
+    '''Whether smooth scrolling should be used or not when scrolling with the
+    the mouse-wheel.
 
     .. versionadded:: 1.11.0
 
-    :attr:`smooth` is a :class:`~kivy.properties.BooleanProperty` and defaults to True.
+    :attr:`smooth` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to True.
     '''
 
     # private, for internal use only
