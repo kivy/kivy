@@ -603,7 +603,7 @@ class Widget(WidgetBase):
         for child in children[:]:
             remove_widget(child)
 
-    def export_to_png(self, filename, *args):
+    def export_to_png(self, filename, *args, scale=1):
         '''Saves an image of the widget and its children in png format at the
         specified filename. Works by removing the widget canvas from its
         parent, rendering to an :class:`~kivy.graphics.fbo.Fbo`, and calling
@@ -623,6 +623,12 @@ class Widget(WidgetBase):
             extension in your filename.
 
         .. versionadded:: 1.9.0
+
+        :Parameters:
+            `filename`: str
+                The filename with which to save the png.
+            `scale`: float
+                The amount by which to scale the saved image, defaults to 1.
         '''
 
         if self.parent is not None:
@@ -630,12 +636,14 @@ class Widget(WidgetBase):
             if canvas_parent_index > -1:
                 self.parent.canvas.remove(self.canvas)
 
-        fbo = Fbo(size=self.size, with_stencilbuffer=True)
+        fbo = Fbo(size=(self.width * scale, self.height * scale),
+                  with_stencilbuffer=True)
 
         with fbo:
             ClearColor(0, 0, 0, 0)
             ClearBuffers()
             Scale(1, -1, 1)
+            Scale(scale, scale, 1)
             Translate(-self.x, -self.y - self.height, 0)
 
         fbo.add(self.canvas)
