@@ -14,18 +14,24 @@ Technical FAQ
 Unable to get a Window, abort.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If Kivy cannot instanciate a Window core provider (mostly SDL2), you'll see
-this. The underlaying issue depends of many things:
-- check your setup. Twice.
-- check that you have a support for OpenGL 2.1 minimum
-- if you use windows and ANGLE, check that you have DirectX 9 support
-- if your platform doesn't supports OpenGL, SDL2 can't init OpenGL
-- don't mix dependencies architecture (Python 64 bits and 32 bits extensions/SDL2)
-- don't mix python installation: if you have Python and Anaconda installed,
-  check your PATH to ensure that it won't be mixed, or bad stuff can happen.
-- ensure you have all dependencies installed (like `kivy.deps.sdl2`)
-- maybe your drivers have missing OpenGL symbol? Try to switch to another KIVY_GL_BACKEND manually to check.
-- maybe your Pycharm configuration is incorrect (https://stackoverflow.com/questions/49466785/kivy-error-python-2-7-sdl2-import-error)
+If Kivy cannot instantiate a Window core provider (mostly SDL2), you'll see
+this. The underlaying issue depends on many things:
+
+- Check your installation. Twice.
+- Check that your graphics driver support OpenGL 2.1 at the minimum. Otherwise, Kivy can't run.
+- If you use windows and ANGLE (``KIVY_GL_BACKEND=angle_sdl2``), check that you have DirectX 9 support.
+- If your platform doesn't supports OpenGL, SDL2 cannot initialize OpenGL.
+- Don't mix the architecture of the dependencies (e.g. Python 64-bit and 32-bit extensions/SDL2)
+- Don't mix python installation: e.g. if you have Python and Anaconda installed, the Python actually run may be different than you think. Similarly, if you have multiple Python versions available on the ``PATH``, they may clash.
+- Check your PATH to ensure that other programs in it don't provide the same dlls as Kivy/Python, or bad stuff can happen.
+  
+  - This commonly happens if some other program that uses similar dependecies as Kivy adds itself to the ``PATH`` so that Kivy's dependecies clash with theirs.
+  - Please read `this <https://superuser.com/questions/284342/what-are-path-and-other-environment-variables-and-how-can-i-set-or-use-them>`_ and `this <https://www.digitalcitizen.life/simple-questions-what-are-environment-variables>`_ for more details on ``PATH``.
+  - The best tool to troubleshoot this is with `Dependency Walker <http://www.dependencywalker.com/>`_ explained `here <https://www.thewindowsclub.com/dependency-walker-download>`_ and `here <https://kb.froglogic.com/display/KB/Analyzing+dependencies+with+Dependency+Walker>`_. 
+  - But ensure that you're launching it from the identical environment that you start Python.
+- Ensure you have all dependencies installed (like ``kivy.deps.sdl2``).
+- Maybe your drivers have some missing OpenGL symbols? Try to switch to another graphics backend with ``KIVY_GL_BACKEND``.
+- Maybe your `Pycharm configuration is incorrect <https://stackoverflow.com/questions/49466785/kivy-error-python-2-7-sdl2-import-error>`_.
 
 
 Fatal Python error: (pygame parachute) Segmentation Fault
