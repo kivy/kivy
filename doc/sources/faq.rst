@@ -11,6 +11,23 @@ The following document tries to answer some of them.
 Technical FAQ
 -------------
 
+Unable to get a Window, abort.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If Kivy cannot instanciate a Window core provider (mostly SDL2), you'll see
+this. The underlaying issue depends of many things:
+- check your setup. Twice.
+- check that you have a support for OpenGL 2.1 minimum
+- if you use windows and ANGLE, check that you have DirectX 9 support
+- if your platform doesn't supports OpenGL, SDL2 can't init OpenGL
+- don't mix dependencies architecture (Python 64 bits and 32 bits extensions/SDL2)
+- don't mix python installation: if you have Python and Anaconda installed,
+  check your PATH to ensure that it won't be mixed, or bad stuff can happen.
+- ensure you have all dependencies installed (like `kivy.deps.sdl2`)
+- maybe your drivers have missing OpenGL symbol? Try to switch to another KIVY_GL_BACKEND manually to check.
+- maybe your Pycharm configuration is incorrect (https://stackoverflow.com/questions/49466785/kivy-error-python-2-7-sdl2-import-error)
+
+
 Fatal Python error: (pygame parachute) Segmentation Fault
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
