@@ -41,6 +41,7 @@ from kivy.clock import Clock
 from kivy.cache import Cache
 from kivy.core.image import ImageLoader, Image
 from kivy.compat import PY2, string_types
+from kivy.config import Config
 
 from collections import deque
 from time import sleep
@@ -314,7 +315,16 @@ class LoaderBase(object):
                 fd = urllib_request.build_opener(SMBHandler).open(filename)
             else:
                 # read from internet
-                fd = urllib_request.urlopen(filename)
+                request = urllib_request.Request(filename)
+                if (
+                    Config.has_section('network')
+                    and 'useragent' in Config.items('network')
+                ):
+                    useragent = Config.get('network', 'useragent')
+                    if useragent:
+                        request.add_header('User-Agent', useragent)
+                opener = urllib_request.build_opener()
+                fd = opener.open(request)
 
             if '#.' in filename:
                 # allow extension override from URL fragment
