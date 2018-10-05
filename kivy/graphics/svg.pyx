@@ -462,30 +462,36 @@ cdef class Svg(RenderContext):
 
     @property
     def color(self):
+        '''The default color
+
+        Used for SvgElements that specify "currentColor"
+
+        .. versionchanged:: 1.10.3
+
+            The color is gettable and settable
+
+        .. versionadded:: 1.9.1
+        '''
         return int_color_to_kv_color(self.current_color)
 
     @color.setter
     def color(self, color):
-        '''Set the default color.
-
-        Used for SvgElements that specify "currentColor"
-
-        .. versionadded:: 1.9.1
-
-        '''
         self.current_color = kv_color_to_int_color(color)
         self.reload()
 
     @property
     def filename(self):
+        '''filename to load.
+
+        The parsing and rendering is done as soon as you set the filename.
+
+        .. versionchanged:: 1.10.3
+            You can get the used filename
+        '''
         return self._filename
 
     @filename.setter
     def filename(self, filename):
-        '''Filename to load.
-
-        The parsing and rendering is done as soon as you set the filename.
-        '''
         Logger.debug('Svg: Loading {}'.format(filename))
         # check gzip
         start = time()
