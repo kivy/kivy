@@ -1,4 +1,5 @@
 import unittest
+from tempfile import TemporaryDirectory
 
 
 class WidgetTestCase(unittest.TestCase):
@@ -64,3 +65,22 @@ class WidgetTestCase(unittest.TestCase):
         self.assertEqual(wid.collide_point(100, 100), True)
         self.assertEqual(wid.collide_point(200, 0), False)
         self.assertEqual(wid.collide_point(500, 500), False)
+
+    def test_export_to_png(self):
+        from kivy.core.image import Image as CoreImage
+        from kivy.uix.button import Button
+        from os.path import join
+
+        wid = Button(text='test', size=(200, 100), size_hint=(None, None))
+        self.root.add_widget(wid)
+
+        with TemporaryDirectory() as tmp:
+            wid.export_to_png(join(tmp, 'a.png'))
+            wid.export_to_png(join(tmp, 'b.png'), scale=.5)
+            wid.export_to_png(join(tmp, 'c.png'), scale=2)
+
+            CoreImage(join(tmp, 'a.png')).size == (200, 100)
+            CoreImage(join(tmp, 'b.png')).size == (100, 50)
+            CoreImage(join(tmp, 'c.png')).size == (400, 200)
+
+        self.root.remove_widget(wid)
