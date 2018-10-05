@@ -628,6 +628,8 @@ class Widget(WidgetBase):
                 The filename with which to save the png.
             `scale`: float
                 The amount by which to scale the saved image, defaults to 1.
+
+                .. versionadded:: 1.11.0
         '''
 
         scale = kwargs.get('scale', 1)
