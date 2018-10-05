@@ -642,7 +642,8 @@ cdef class Shader:
     # Python access
     #
 
-    property source:
+    @property
+    def source(self):
         '''glsl  source code.
 
         source should be the filename of a glsl shader that contains both the
@@ -652,66 +653,71 @@ cdef class Shader:
 
         .. versionadded:: 1.6.0
         '''
-        def __get__(self):
-            return self._source
-        def __set__(self, object source):
-            self._source = source
-            if source is None:
-                self.vs = None
-                self.fs = None
-                return
-            self.vert_src = ""
-            self.frag_src = ""
-            glsl_source = "\n"
-            Logger.info('Shader: Read <{}>'.format(self._source))
-            with open(self._source) as fin:
-                glsl_source += fin.read()
-            sections = glsl_source.split('\n---')
-            for section in sections:
-                lines = section.split('\n')
-                if lines[0].lower().startswith("vertex"):
-                    _vs = '\n'.join(lines[1:])
-                    self.vert_src = _vs.replace('$HEADER$', header_vs)
-                if lines[0].lower().startswith("fragment"):
-                    _fs = '\n'.join(lines[1:])
-                    self.frag_src = _fs.replace('$HEADER$', header_fs)
-            self.build_vertex(0)
-            self.build_fragment(0)
-            self.link_program()
+        return self._source
 
-    property vs:
+    @source.setter
+    def source(self, object source):
+        self._source = source
+        if source is None:
+            self.vs = None
+            self.fs = None
+            return
+        self.vert_src = ""
+        self.frag_src = ""
+        glsl_source = "\n"
+        Logger.info('Shader: Read <{}>'.format(self._source))
+        with open(self._source) as fin:
+            glsl_source += fin.read()
+        sections = glsl_source.split('\n---')
+        for section in sections:
+            lines = section.split('\n')
+            if lines[0].lower().startswith("vertex"):
+                _vs = '\n'.join(lines[1:])
+                self.vert_src = _vs.replace('$HEADER$', header_vs)
+            if lines[0].lower().startswith("fragment"):
+                _fs = '\n'.join(lines[1:])
+                self.frag_src = _fs.replace('$HEADER$', header_fs)
+        self.build_vertex(0)
+        self.build_fragment(0)
+        self.link_program()
+
+    @property
+    def vs(self):
         '''Vertex shader source code.
 
         If you set a new vertex shader code source, it will be automatically
         compiled and will replace the current vertex shader.
         '''
-        def __get__(self):
-            return self.vert_src
-        def __set__(self, object source):
-            if source is None:
-                source = default_vs
-            source = source.replace('$HEADER$', header_vs)
-            self.vert_src = source
-            self.build_vertex()
+        return self.vert_src
 
-    property fs:
+    @vs.setter
+    def vs(self, object source):
+        if source is None:
+            source = default_vs
+        source = source.replace('$HEADER$', header_vs)
+        self.vert_src = source
+        self.build_vertex()
+
+    @property
+    def fs(self):
         '''Fragment shader source code.
 
         If you set a new fragment shader code source, it will be automatically
         compiled and will replace the current fragment shader.
         '''
-        def __get__(self):
-            return self.frag_src
-        def __set__(self, object source):
-            if source is None:
-                source = default_fs
-            source = source.replace('$HEADER$', header_fs)
-            self.frag_src = source
-            self.build_fragment()
+        return self.frag_src
 
-    property success:
+    @fs.setter
+    def fs(self, object source):
+        if source is None:
+            source = default_fs
+        source = source.replace('$HEADER$', header_fs)
+        self.frag_src = source
+        self.build_fragment()
+
+    @property
+    def success(self):
         '''Indicate whether the shader loaded successfully and is ready for
         usage or not.
         '''
-        def __get__(self):
-            return self._success
+        return self._success

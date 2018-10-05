@@ -74,7 +74,7 @@ def get_version(filename='kivy/version.py'):
     return VERSION
 
 
-MIN_CYTHON_STRING = '0.23'
+MIN_CYTHON_STRING = '0.24'
 MIN_CYTHON_VERSION = LooseVersion(MIN_CYTHON_STRING)
 MAX_CYTHON_STRING = '0.28.3'
 MAX_CYTHON_VERSION = LooseVersion(MAX_CYTHON_STRING)

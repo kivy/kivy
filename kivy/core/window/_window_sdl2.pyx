@@ -649,11 +649,11 @@ cdef class _WindowSDL2Storage:
     def grab_mouse(self, grab):
         SDL_SetWindowGrab(self.win, SDL_TRUE if grab else SDL_FALSE)
 
-    property window_size:
-        def __get__(self):
-            cdef int w, h
-            SDL_GetWindowSize(self.win, &w, &h)
-            return [w, h]
+    @property
+    def window_size(self):
+        cdef int w, h
+        SDL_GetWindowSize(self.win, &w, &h)
+        return [w, h]
 
 
 # Based on the example at
