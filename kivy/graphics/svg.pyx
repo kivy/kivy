@@ -144,6 +144,10 @@ cdef list kv_color_to_int_color(color):
     c = [int(255*x) for x in color]
     return c if len(c) == 4 else c + [255]
 
+cdef int_color_to_kv_color(color):
+    c = [int(x)/255.0 for x in color]
+    return c if len(c) == 4 else c + [255]
+
 cdef parse_color(c, current_color=None):
     cdef int r, g, b, a
     if c is None or c == 'none':
@@ -411,86 +415,102 @@ cdef class Svg(RenderContext):
                 size=(2, 1), colorfmt="rgba")
         self.line_texture.blit_buffer(
                 b"\xff\xff\xff\xff\xff\xff\xff\x00", colorfmt="rgba")
+
+        self._filename = None
         self.filename = filename
 
-    property anchor_x:
+
+    @property
+    def anchor_x(self):
         '''
         Horizontal anchor position for scaling and rotations. Defaults to 0. The
         symbolic values 'left', 'center' and 'right' are also accepted.
         '''
+        return self._anchor_x
 
-        def __set__(self, anchor_x):
-            self._anchor_x = anchor_x
-            if self._anchor_x == 'left':
-                self._a_x = 0
-            elif self._anchor_x == 'center':
-                self._a_x = self.width * .5
-            elif self._anchor_x == 'right':
-                self._a_x = self.width
-            else:
-                self._a_x = self._anchor_x
+    @x.setter
+    def x(self, anchor_x):
+        self._anchor_x = anchor_x
+        if self._anchor_x == 'left':
+            self._a_x = 0
+        elif self._anchor_x == 'center':
+            self._a_x = self.width * .5
+        elif self._anchor_x == 'right':
+            self._a_x = self.width
+        else:
+            self._a_x = self._anchor_x
 
-        def __get__(self):
-            return self._anchor_x
-
-
-    property anchor_y:
+    @property
+    def anchor_y(self):
         '''
         Vertical anchor position for scaling and rotations. Defaults to 0. The
         symbolic values 'bottom', 'center' and 'top' are also accepted.
         '''
+        return self._anchor_y
 
-        def __set__(self, anchor_y):
-            self._anchor_y = anchor_y
-            if self._anchor_y == 'bottom':
-                self._a_y = 0
-            elif self._anchor_y == 'center':
-                self._a_y = self.height * .5
-            elif self._anchor_y == 'top':
-                self._a_y = self.height
-            else:
-                self._a_y = self.anchor_y
+    @anchor_y.setter
+    def anchor_y(self, anchor_y):
+        self._anchor_y = anchor_y
+        if self._anchor_y == 'bottom':
+            self._a_y = 0
+        elif self._anchor_y == 'center':
+            self._a_y = self.height * .5
+        elif self._anchor_y == 'top':
+            self._a_y = self.height
+        else:
+            self._a_y = self.anchor_y
 
-        def __get__(self):
-            return self._anchor_y
+    @property
+    def color(self):
+        '''The default color
 
+        Used for SvgElements that specify "currentColor"
 
-    '''Set the default color.
+        .. versionchanged:: 1.10.3
 
-    Used for SvgElements that specify "currentColor"
+            The color is gettable and settable
 
-    .. versionadded:: 1.9.1
+        .. versionadded:: 1.9.1
+        '''
+        return int_color_to_kv_color(self.current_color)
 
-    '''
-    property color:
-        def __set__(self, color):
-            self.current_color = kv_color_to_int_color(color)
-            self.reload()
+    @color.setter
+    def color(self, color):
+        self.current_color = kv_color_to_int_color(color)
+        self.reload()
 
-    property filename:
-        '''Filename to load.
+    @property
+    def filename(self):
+        '''filename to load.
 
         The parsing and rendering is done as soon as you set the filename.
+
+        .. versionchanged:: 1.10.3
+            You can get the used filename
         '''
-        def __set__(self, filename):
-            Logger.debug('Svg: Loading {}'.format(filename))
-            # check gzip
-            start = time()
-            with open(filename, 'rb') as fd:
-                header = fd.read(3)
-            if header == '\x1f\x8b\x08':
-                import gzip
-                fd = gzip.open(filename, 'rb')
-            else:
-                fd = open(filename, 'rb')
-            try:
-		#save the tree for later reloading
-                self.tree = parse(fd)
-                self.reload()
-                end = time()
-                Logger.debug("Svg: Loaded {} in {:.2f}s".format(filename, end - start))
-            finally:
-                fd.close()
+        return self._filename
+
+    @filename.setter
+    def filename(self, filename):
+        Logger.debug('Svg: Loading {}'.format(filename))
+        # check gzip
+        start = time()
+        with open(filename, 'rb') as fd:
+            header = fd.read(3)
+        if header == '\x1f\x8b\x08':
+            import gzip
+            fd = gzip.open(filename, 'rb')
+        else:
+            fd = open(filename, 'rb')
+        try:
+            #save the tree for later reloading
+            self.tree = parse(fd)
+            self.reload()
+            end = time()
+            Logger.debug("Svg: Loaded {} in {:.2f}s".format(filename, end - start))
+        finally:
+            self._filename = filename
+            fd.close()
 
     cdef void reload(self) except *:
             # parse tree

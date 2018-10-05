@@ -35,9 +35,9 @@ cdef class WeakProxy(object):
     def __delattr__(self, name):
         delattr(self.__ref__(), name)
 
-    property __class__:
-        def __get__(self):
-            return self.__ref__().__class__
+    @property
+    def __class__(self):
+        return self.__ref__().__class__
 
     def __dir__(self):
         r = self.__ref()
