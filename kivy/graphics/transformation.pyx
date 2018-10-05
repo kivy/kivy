@@ -80,8 +80,8 @@ cdef class Matrix:
             [0.000000, 0.000000, 1.000000, 0.000000],
             [0.000000, 0.000000, 0.000000, 1.000000]]
 
-        you can use this format to plug the result straight into numpy 
-        in this way numpy.array(m.tolist()) 
+        you can use this format to plug the result straight into numpy
+        in this way numpy.array(m.tolist())
 
         .. versionadded:: 1.9.0
         '''
@@ -209,11 +209,11 @@ cdef class Matrix:
 
         :Parameters:
             `x`: float
-                The scale factor along the X axis         
+                The scale factor along the X axis
             `y`: float
                 The scale factor along the Y axis
             `z`: float
-                The scale factor along the Z axis        
+                The scale factor along the Z axis
         '''
         with nogil:
             self.mat[ 0] *= x;
@@ -226,7 +226,7 @@ cdef class Matrix:
 
         :Parameters:
             `x`: float
-                The translation factor along the X axis         
+                The translation factor along the X axis
             `y`: float
                 The translation factor along the Y axis
             `z`: float
@@ -333,7 +333,7 @@ cdef class Matrix:
                 self.mat[13] = (top+bottom)/(bottom-top)
                 self.mat[2]  = 0.0
                 self.mat[6]  = 0.0
-                self.mat[10] = 2.0/(far-near)
+                self.mat[10] = -2.0/(far-near)
                 self.mat[14] = (far+near)/(near-far)
                 self.mat[3]  = 0.0
                 self.mat[7]  = 0.0
@@ -541,7 +541,7 @@ cdef class Matrix:
         the result (not inplace)::
 
             m.multiply(n) -> n * m
-            
+
         :Parameters:
             `ma`: Matrix
                 The matrix to multiply by
@@ -572,7 +572,7 @@ cdef class Matrix:
     cpdef project(Matrix self, double objx, double objy, double objz, Matrix model, Matrix proj,
             double vx, double vy, double vw, double vh):
         '''Project a point from 3d space into a 2d viewport.
-        
+
         :Parameters:
             `objx`: float
                 Points X co-ordinate
@@ -620,7 +620,3 @@ cdef class Matrix:
                    m[4], m[5], m[6], m[7],
                    m[8], m[9], m[10], m[11],
                    m[12], m[13], m[14], m[15])
-
-
-
-
