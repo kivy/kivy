@@ -484,7 +484,7 @@ class Label(Widget):
         Weak modes are currently not implemented in Kivy text layout, and
         have the same effect as setting strong mode.
 
-    .. versionadded:: 1.10.1
+    .. versionadded:: 1.11.0
 
     :attr:`base_direction` is an :class:`~kivy.properties.OptionProperty` and
     defaults to None (autodetect RTL if possible, otherwise LTR).
@@ -500,7 +500,7 @@ class Label(Widget):
     .. note::
         This feature requires the Pango text provider.
 
-    .. versionadded:: 1.10.1
+    .. versionadded:: 1.11.0
 
     :attr:`text_language` is a :class:`~kivy.properties.StringProperty` and
     defaults to None.
@@ -525,7 +525,7 @@ class Label(Widget):
     .. note::
         This feature requires the Pango text provider.
 
-    .. versionadded:: 1.10.1
+    .. versionadded:: 1.11.0
 
     :attr:`font_context` is a :class:`~kivy.properties.StringProperty` and
     defaults to None.
@@ -549,7 +549,7 @@ class Label(Widget):
     .. note::
         This feature requires the Pango text provider.
 
-    .. versionadded:: 1.10.1
+    .. versionadded:: 1.11.0
 
     :attr:`font_family` is a :class:`~kivy.properties.StringProperty` and
     defaults to None.
@@ -596,7 +596,7 @@ class Label(Widget):
         This feature requires the Pango text provider, and Pango library
         v1.38 or later.
 
-    .. versionadded:: 1.10.1
+    .. versionadded:: 1.11.0
 
     :attr:`font_features` is a :class:`~kivy.properties.StringProperty` and
     defaults to an empty string.

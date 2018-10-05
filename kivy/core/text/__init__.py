@@ -43,7 +43,7 @@ the same context. The font context manager can be used to query and manipulate
 the state of font contexts when using the Pango text provider (no other
 provider currently implements it).
 
-.. versionadded:: 1.10.1
+.. versionadded:: 1.11.0
 
 .. warning:: This feature requires the Pango text provider.
 
@@ -894,7 +894,7 @@ class FontContextManagerBase(object):
         * Any other string is a context that will only draw with the font
           file(s) you explicitly add to it.
 
-        .. versionadded:: 1.10.1
+        .. versionadded:: 1.11.0
 
         .. note::
             Font contexts are created automatically by specifying a name in the
@@ -911,7 +911,7 @@ class FontContextManagerBase(object):
     def exists(font_context):
         '''Returns True if a font context with the given name exists.
 
-        .. versionadded:: 1.10.1
+        .. versionadded:: 1.11.0
 
         .. note:: This feature requires the Pango text provider.
         '''
@@ -921,7 +921,7 @@ class FontContextManagerBase(object):
     def destroy(font_context):
         '''Destroy a named font context (if it exists)
 
-        .. versionadded:: 1.10.1
+        .. versionadded:: 1.11.0
 
         .. note:: This feature requires the Pango text provider.
         '''
@@ -933,7 +933,7 @@ class FontContextManagerBase(object):
         context name. Note that entries that start with `isolated://` were
         autocreated by loading a font file with no font_context specified.
 
-        .. versionadded:: 1.10.1
+        .. versionadded:: 1.11.0
 
         .. note:: This feature requires the Pango text provider.
         '''
@@ -944,7 +944,7 @@ class FontContextManagerBase(object):
         '''Returns a list of `bytes` objects, each representing a font family
         name that is available in the given `font_context`.
 
-        .. versionadded:: 1.10.1
+        .. versionadded:: 1.11.0
 
         .. note::
             Pango adds static "Serif", "Sans" and "Monospace" to the list in
@@ -962,7 +962,7 @@ class FontContextManagerBase(object):
         to the font file, the value is a `bytes` object representing the font
         family name used to request drawing with the font.
 
-        .. versionadded:: 1.10.1
+        .. versionadded:: 1.11.0
 
         .. note:: This feature requires the Pango text provider.
         '''
@@ -985,7 +985,7 @@ class FontContextManagerBase(object):
             hardcode the returned (autodetected) `family` value in your font
             context initialization.
 
-        .. versionadded:: 1.10.1
+        .. versionadded:: 1.11.0
 
         .. note:: This feature requires the Pango text provider.
         '''

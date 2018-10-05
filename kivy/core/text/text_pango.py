@@ -2,7 +2,23 @@
 Pango text provider
 ===================
 
-.. versionadded:: 1.10.1
+.. versionadded:: 1.11.0
+
+.. warning::
+    The low-level Pango API is experimental, and subject to change without
+    notice for as long as this warning is present.
+
+
+Installation
+------------
+
+1. Install pangoft2 (`apt install libfreetype6-dev libpango1.0-dev libpangoft2-1.0-0`)
+   or ensure it is available in pkg-config
+2. Recompile kivy. Check that pangoft2 is found `use_pangoft2 = 1`
+3. Test it! Enforce the text core renderer to pango using environment variable:
+   `export KIVY_TEXT=pango`
+
+This has been tested on OSX and Linux, Python 3.6.
 
 
 Font context types for FontConfig+FreeType2 backend
@@ -17,10 +33,6 @@ Font context types for FontConfig+FreeType2 backend
 
 Low-level Pango access
 ----------------------
-
-.. warning::
-    The low-level Pango API is experimental, and subject to change without
-    notice for as long as this warning is present.
 
 Since Kivy currently does its own text layout, the Label and TextInput widgets
 do not take full advantage of Pango. For example, line breaks do not take
