@@ -37,7 +37,7 @@ class VideoBase(EventDispatcher):
             Action to take when EOS is hit. Can be one of 'pause', 'stop' or
             'loop'.
 
-            .. versionchanged:: unknown
+            .. versionchanged:: 1.4.0
                 added 'pause'
 
         `async`: bool, defaults to True
