@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from kivy.base import runTouchApp
 from kivy.lang import Builder
 from kivy.factory import Factory as F
