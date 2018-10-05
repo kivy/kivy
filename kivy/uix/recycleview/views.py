@@ -156,9 +156,9 @@ class RecycleDataAdapter(EventDispatcher):
         Scrolling RV A, then Scrolling RV B, content of A and B seemed
         to be getting mixed up
         """
-        super(RecycleDataAdapter, self).__init__(**kwargs)
         self.views = {}
         self.dirty_views = defaultdict(dict)
+        super(RecycleDataAdapter, self).__init__(**kwargs)
 
     def attach_recycleview(self, rv):
         '''Associates a :class:`~kivy.uix.recycleview.RecycleViewBehavior`
