@@ -153,6 +153,7 @@ c_options['use_egl'] = False
 c_options['use_opengl_es2'] = None
 c_options['use_opengl_mock'] = environ.get('READTHEDOCS', None) == 'True'
 c_options['use_sdl2'] = None
+c_options['use_pangoft2'] = None
 c_options['use_ios'] = False
 c_options['use_mesagl'] = False
 c_options['use_x11'] = False
@@ -815,6 +816,17 @@ if c_options['use_sdl2'] and sdl2_flags:
                         'core/clipboard/_clipboard_sdl2.pyx'):
         sources[source_file] = merge(
             base_flags, sdl2_flags, sdl2_depends)
+
+if c_options['use_pangoft2'] in (None, True) and platform not in (
+                                      'android', 'ios', 'windows'):
+    pango_flags = pkgconfig('pangoft2')
+    if pango_flags and 'libraries' in pango_flags:
+        print('Pango: pangoft2 found via pkg-config')
+        c_options['use_pangoft2'] = True
+        pango_depends = {'depends': ['lib/pangoft2.pxi',
+                                     'lib/pangoft2.h']}
+        sources['core/text/_text_pango.pyx'] = merge(
+                base_flags, pango_flags, pango_depends)
 
 if platform in ('darwin', 'ios'):
     # activate ImageIO provider for our core image
