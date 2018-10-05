@@ -438,27 +438,21 @@ class Carousel(StencilView):
         if self._skip_slide is not None or index is None:
             return
 
-        if direction[0] == 'r':
-            if _offset <= -width:
-                index += 1
-            if _offset >= width:
-                index -= 1
-        if direction[0] == 'l':
-            if _offset <= -width:
-                index -= 1
-            if _offset >= width:
-                index += 1
-        if direction[0] == 't':
-            if _offset <= - height:
-                index += 1
-            if _offset >= height:
-                index -= 1
-        if direction[0] == 'b':
-            if _offset <= -height:
-                index -= 1
-            if _offset >= height:
-                index += 1
-        self.index = index
+        # Move to next slide?
+        if (direction[0] == 'r' and _offset <= -width) or \
+                (direction[0] == 'l' and _offset >= width) or \
+                (direction[0] == 't' and _offset <= - height) or \
+                (direction[0] == 'b' and _offset >= height):
+            if self.next_slide:
+                self.index += 1
+
+        # Move to previous slide?
+        if (direction[0] == 'r' and _offset >= width) or \
+                (direction[0] == 'l' and _offset <= -width) or \
+                (direction[0] == 't' and _offset >= height) or \
+                (direction[0] == 'b' and _offset <= -height):
+            if self.previous_slide:
+                self.index -= 1
 
     def _start_animation(self, *args, **kwargs):
         # compute target offset for ease back, next or prev
