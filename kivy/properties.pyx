@@ -395,9 +395,9 @@ cdef class Property:
         if 'errorhandler' in kw and not callable(self.errorhandler):
             raise ValueError('errorhandler %s not callable' % self.errorhandler)
 
-    property name:
-        def __get__(self):
-            return self._name
+    @property
+    def name(self):
+        return self._name
 
     def __repr__(self):
         return '<{} name={}>'.format(self.__class__.__name__, self._name)
@@ -1166,28 +1166,27 @@ cdef class BoundedNumericProperty(Property):
                     self.name, _f_max))
         return True
 
-    property bounds:
+    @property
+    def bounds(self):
         '''Return min/max of the value.
 
         .. versionadded:: 1.0.9
         '''
+        if self.use_min == 1:
+            _min = self.min
+        elif self.use_min == 2:
+            _min = self.f_min
+        else:
+            _min = None
 
-        def __get__(self):
-            if self.use_min == 1:
-                _min = self.min
-            elif self.use_min == 2:
-                _min = self.f_min
-            else:
-                _min = None
+        if self.use_max == 1:
+            _max = self.max
+        elif self.use_max == 2:
+            _max = self.f_max
+        else:
+            _max = None
 
-            if self.use_max == 1:
-                _max = self.max
-            elif self.use_max == 2:
-                _max = self.f_max
-            else:
-                _max = None
-
-            return _min, _max
+        return _min, _max
 
 
 cdef class OptionProperty(Property):
@@ -1232,14 +1231,13 @@ cdef class OptionProperty(Property):
                              self.name,
                              value, ps.options))
 
-    property options:
+    @property
+    def options(self):
         '''Return the options available.
 
         .. versionadded:: 1.0.9
         '''
-
-        def __get__(self):
-            return self.options
+        return self.options
 
 class ObservableReferenceList(ObservableList):
     def __setitem__(self, key, value, update_properties=True):
