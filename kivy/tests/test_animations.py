@@ -10,7 +10,6 @@ from kivy.animation import Animation, AnimationTransition
 from kivy.uix.widget import Widget
 from kivy.clock import Clock
 from kivy.graphics import Scale
-from kivy.weakproxy import WeakProxy
 
 
 class AnimationTestCase(unittest.TestCase):
