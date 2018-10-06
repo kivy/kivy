@@ -12,20 +12,27 @@ from kivy.clock import Clock
 from kivy.graphics import Scale
 
 
-class AnimationTestCase(unittest.TestCase):
+class AnimationTestCaseBase(unittest.TestCase):
+
+    def assertNoAnimationsBeingPlayed(self):
+        self.assertEqual(len(Animation._instances), 0)
+
     def sleep(self, t):
         start = time()
         while time() < start + t:
             sleep(.01)
             Clock.tick()
 
+    def tearDown(self):
+        self.assertNoAnimationsBeingPlayed()
+
+
+class AnimationTestCase(AnimationTestCaseBase):
+
     def setUp(self):
         self.assertEqual(len(Animation._instances), 0)
         self.a = Animation(x=100, d=1, t='out_bounce')
         self.w = Widget()
-
-    def tearDown(self):
-        self.assertEqual(len(Animation._instances), 0)
 
     def test_start_animation(self):
         self.a.start(self.w)
@@ -83,22 +90,13 @@ class AnimationTestCase(unittest.TestCase):
             pass
 
 
-class SequentialAnimationTestCase(unittest.TestCase):
-
-    def sleep(self, t):
-        start = time()
-        while time() < start + t:
-            sleep(.01)
-            Clock.tick()
+class SequentialAnimationTestCase(AnimationTestCaseBase):
 
     def setUp(self):
         self.assertEqual(len(Animation._instances), 0)
         self.a = Animation(x=100, d=1, t='out_bounce')
         self.a += Animation(x=0, d=1, t='out_bounce')
         self.w = Widget()
-
-    def tearDown(self):
-        self.assertEqual(len(Animation._instances), 0)
 
     def test_cancel_all(self):
         self.a.start(self.w)
@@ -146,22 +144,13 @@ class SequentialAnimationTestCase(unittest.TestCase):
         self.assertFalse(self.a.have_properties_to_animate(self.w))
 
 
-class ParallelAnimationTestCase(unittest.TestCase):
-
-    def sleep(self, t):
-        start = time()
-        while time() < start + t:
-            sleep(.01)
-            Clock.tick()
+class ParallelAnimationTestCase(AnimationTestCaseBase):
 
     def setUp(self):
         self.assertEqual(len(Animation._instances), 0)
         self.a = Animation(x=100, d=1)
         self.a &= Animation(y=100, d=.5)
         self.w = Widget()
-
-    def tearDown(self):
-        self.assertEqual(len(Animation._instances), 0)
 
     def test_have_properties_to_animate(self):
         self.assertFalse(self.a.have_properties_to_animate(self.w))
