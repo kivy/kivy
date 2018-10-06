@@ -6,7 +6,7 @@ Core classes for loading images and converting them to a
 :class:`~kivy.graphics.texture.Texture`. The raw image data can be keep in
 memory for further access.
 
-.. versionchanged:: 1.10.1-dev0
+.. versionchanged:: 1.11.0
 
     Add support for argb and abgr image data
 
@@ -78,7 +78,7 @@ class ImageData(object):
 
     __slots__ = ('fmt', 'mipmaps', 'source', 'flip_vertical', 'source_image')
     _supported_fmts = ('rgb', 'bgr', 'rgba', 'bgra', 'argb', 'abgr', 's3tc_dxt1',
-                       's3tc_dxt3', 's3tc_dxt5', 'pvrtc_rgb2', 'pvrtc_rgb4', 
+                       's3tc_dxt3', 's3tc_dxt5', 'pvrtc_rgb2', 'pvrtc_rgb4',
                        'pvrtc_rgba2', 'pvrtc_rgba4', 'etc1_rgb8')
 
     def __init__(self, width, height, fmt, data, source=None,
