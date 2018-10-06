@@ -433,6 +433,14 @@ class CompoundAnimation(Animation):
         return (self.anim1.have_properties_to_animate(widget) or
                 self.anim2.have_properties_to_animate(widget))
 
+    @property
+    def animated_properties(self):
+        # TODO: after kivy drops python2 support, this code can be optimized.
+        #       for example: using ChainMap
+        d = dict(self.anim1.animated_properties)
+        d.update(self.anim2.animated_properties)
+        return d
+
 
 class Sequence(CompoundAnimation):
 

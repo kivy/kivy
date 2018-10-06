@@ -155,6 +155,11 @@ class SequentialAnimationTestCase(AnimationTestCaseBase):
         self.assertFalse(self.a.have_properties_to_animate(self.w))
         self.assertNoAnimationsBeingPlayed()
 
+    def test_animated_properties(self):
+        anim = Animation(x=100, y=200) + Animation(x=0)
+        self.assertDictEqual(anim.animated_properties,
+                             {'x': 0, 'y': 200, })
+
 
 class ParallelAnimationTestCase(AnimationTestCaseBase):
 
@@ -178,3 +183,7 @@ class ParallelAnimationTestCase(AnimationTestCaseBase):
         a.cancel_property(w, 'x')
         a.stop(w)
         self.assertNoAnimationsBeingPlayed()
+
+    def test_animated_properties(self):
+        self.assertDictEqual(self.a.animated_properties,
+                             {'x': 100, 'y': 100, })
