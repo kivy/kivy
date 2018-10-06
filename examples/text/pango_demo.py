@@ -4,10 +4,12 @@ from kivy.base import runTouchApp
 from kivy.lang import Builder
 from kivy.factory import Factory as F
 
+
 class DemoBox(F.ButtonBehavior, F.BoxLayout):
     base_direction = F.StringProperty(None, allownone=True)
     font_context = F.StringProperty(None, allownone=True)
     font_size = F.NumericProperty(10)
+
 
 runTouchApp(Builder.load_string('''
 #:import F kivy.factory.Factory
@@ -79,8 +81,10 @@ runTouchApp(Builder.load_string('''
             pop.text = lbl.text
             pop.ids.ti.halign = root.halign
             pop.ids.ti.font_size = root.font_size
-            pop.ids.ti.font_context = root.font_context != 'None' and root.font_context or None
-            pop.ids.ti.base_direction = root.base_direction != 'None' and root.base_direction or None
+            pop.ids.ti.font_context = root.font_context != 'None' \
+                                      and root.font_context or None
+            pop.ids.ti.base_direction = root.base_direction != 'None' \
+                                        and root.base_direction or None
             pop.title = 'Edit: {}'.format(root.language)
             pop.open()
     Label:
@@ -105,8 +109,10 @@ runTouchApp(Builder.load_string('''
         halign: root.halign
         text: root.text
         markup: root.markup
-        font_context: root.font_context != 'None' and root.font_context or None
-        base_direction: root.base_direction != 'None' and root.base_direction or None
+        font_context: root.font_context != 'None' and \
+                      root.font_context or None
+        base_direction: root.base_direction != 'None' and \
+                        root.base_direction or None
         font_size: root.font_size
         text_size: self.width, None
         canvas.before:
@@ -120,7 +126,8 @@ runTouchApp(Builder.load_string('''
         halign: root.halign
         cursor_width: 3
         font_context: root.font_context != 'None' and root.font_context or None
-        base_direction: root.base_direction != 'None' and root.base_direction or None
+        base_direction: root.base_direction != 'None' and \
+                        root.base_direction or None
         font_size: root.font_size
 BoxLayout:
     orientation: 'vertical'
@@ -138,7 +145,9 @@ BoxLayout:
             DemoBox:
                 markup: True
                 language: 'Arabic'
-                text: 'اَلْحَمْدُ لِلّٰهِ رَبِّ [color=ff0000]الْعَالَمِينَ\\nاَلرَّحْ[/color]مٰنِ الرَّحِيمِ'
+                text: 'اَلْحَمْدُ لِلّٰهِ رَبِّ \
+                    [color=ff0000]الْعَالَمِينَ\
+                    \\nاَلرَّحْ[/color]مٰنِ الرَّحِيمِ'
             DemoBox:
                 language: 'Arabic + English'
                 text: 'اِيَّاكَ نَعْبُدُ Kivyوَ اِيَّاكَ نَسْتَعِينُ\\nKivy'
@@ -147,7 +156,8 @@ BoxLayout:
                 text: 'Kivy\\nاِيَّاكَ نَعْبُدُ وَKivy اِيَّاكَ نَسْتَعِينُ'
             DemoBox:
                 language: 'Hebrew'
-                text: 'בְּרֵאשִׁ֖ית בָּרָ֣א \\nאֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃'
+                text: 'בְּרֵאשִׁ֖ית בָּרָ֣א \
+                       \\nאֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃'
             DemoBox:
                 language: 'Hebrew + English'
                 text: 'בְּרֵאKivyשִׁ֖ית בָּרָ֣א \\nKivy'
@@ -180,7 +190,8 @@ BoxLayout:
                 text: ' འ Kivyབྲུག་རྒྱལ་ཁབ\\n་འདི་དགKivyའ་ཏོག་ཏོ་ཡོད།'
             DemoBox:
                 language: 'English + Tibetan'
-                text: 'Regular letters\\n འབྲུག་རྒྱལ་ཁབ་འདི་དགའ་Kivyཏོག་ཏོ་ཡོད།'
+                text: 'Regular letters\\n\
+                        འབྲུག་རྒྱལ་ཁབ་འདི་དགའ་Kivyཏོག་ཏོ་ཡོད།'
             DemoBox:
                 language: 'Braille (EN)'
                 text: '⠊⠀⠉⠁⠝⠀⠑⠁⠞⠀⠛⠇⠁⠎⠎⠀\\n⠁⠝⠙⠀⠊⠞⠀⠙⠕⠑⠎⠝⠞⠀⠓⠥⠗⠞⠀⠍⠑'
@@ -190,7 +201,8 @@ BoxLayout:
             DemoBox:
                 markup: True
                 language: 'Braille (EN) + English'
-                text: '⠊⠀⠉⠁⠝⠀⠑⠁⠞Kivy\\n⠀⠛⠇⠁⠎⠎⠀⠁⠝Kivy⠙⠀⠊⠞⠀[color=ff0000]⠙⠕⠑⠎⠝⠞⠀⠓⠥⠗⠞⠀⠍⠑[/color]'
+                text: '⠊⠀⠉⠁⠝⠀⠑⠁⠞Kivy\\n⠀⠛⠇⠁⠎⠎⠀⠁⠝Kivy\
+                       ⠙⠀⠊⠞⠀[color=ff0000]⠙⠕⠑⠎⠝⠞⠀⠓⠥⠗⠞⠀⠍⠑[/color]'
     # --------------------------------------- HALIGN
     BoxLayout:
         __boxes: boxes
