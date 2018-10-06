@@ -1,5 +1,4 @@
 #:kivy 1.7.1
-#:import ListAdapter kivy.adapters.listadapter.ListAdapter
 #:import Factory kivy.factory.Factory
 
 <Screen>:
@@ -143,5 +142,13 @@
                 width: self.height
                 on_release: app.add_note()
 
-        ListView:
-            adapter: ListAdapter(data=root.data, cls=Factory.NoteListItem, args_converter=root.args_converter)
+        RecycleView:
+            data: root.data_for_widgets
+            viewclass: 'NoteListItem'
+            RecycleBoxLayout:
+                default_size: None, dp(56)
+                default_size_hint: 1, None
+                size_hint_y: None
+                height: self.minimum_height
+                orientation: 'vertical'
+                spacing: dp(2)
