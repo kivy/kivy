@@ -6,6 +6,10 @@ Core classes for loading images and converting them to a
 :class:`~kivy.graphics.texture.Texture`. The raw image data can be keep in
 memory for further access.
 
+.. versionchanged:: 1.10.1-dev0
+
+    Add support for argb and abgr image data
+
 In-memory image loading
 -----------------------
 
@@ -73,9 +77,9 @@ class ImageData(object):
     '''
 
     __slots__ = ('fmt', 'mipmaps', 'source', 'flip_vertical', 'source_image')
-    _supported_fmts = ('rgb', 'rgba', 'bgr', 'bgra', 's3tc_dxt1', 's3tc_dxt3',
-                       's3tc_dxt5', 'pvrtc_rgb2', 'pvrtc_rgb4', 'pvrtc_rgba2',
-                       'pvrtc_rgba4', 'etc1_rgb8')
+    _supported_fmts = ('rgb', 'bgr', 'rgba', 'bgra', 'argb', 'abgr', 's3tc_dxt1',
+                       's3tc_dxt3', 's3tc_dxt5', 'pvrtc_rgb2', 'pvrtc_rgb4', 
+                       'pvrtc_rgba2', 'pvrtc_rgba4', 'etc1_rgb8')
 
     def __init__(self, width, height, fmt, data, source=None,
                  flip_vertical=True, source_image=None,
@@ -900,8 +904,15 @@ class Image(EventDispatcher):
         raw = bytearray(data.data[index:index + size])
         color = [c / 255.0 for c in raw]
 
-        # conversion for BGR->RGB, BGR->RGBA format
-        if data.fmt in ('bgr', 'bgra'):
+        bgr_flag = False
+        if data.fmt == 'argb':
+            color.reverse() # bgra
+            bgr_flag = True
+        elif data.fmt == 'abgr':
+            color.reverse() # rgba
+
+        # conversion for BGR->RGB, BGRA->RGBA format
+        if bgr_flag or data.fmt in ('bgr', 'bgra'):
             color[0], color[2] = color[2], color[0]
 
         return color
