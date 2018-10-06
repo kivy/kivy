@@ -428,8 +428,8 @@ cdef class Svg(RenderContext):
         '''
         return self._anchor_x
 
-    @x.setter
-    def x(self, anchor_x):
+    @anchor_x.setter
+    def anchor_x(self, anchor_x):
         self._anchor_x = anchor_x
         if self._anchor_x == 'left':
             self._a_x = 0
