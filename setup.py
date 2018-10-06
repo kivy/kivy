@@ -998,7 +998,6 @@ if not build_examples:
         cmdclass=cmdclass,
         packages=[
             'kivy',
-            'kivy.adapters',
             'kivy.core',
             'kivy.core.audio',
             'kivy.core.camera',
