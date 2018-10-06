@@ -413,6 +413,22 @@ class CompoundAnimation(Animation):
         self.anim2.cancel(widget)
         super(CompoundAnimation, self).cancel(widget)
 
+    def cancel_property(self, widget, prop):
+        '''Even if an animation is running, remove a property. It will not be
+        animated further. If it was the only/last property being animated,
+        the animation will be canceled (see :attr:`cancel`)
+
+        This method overrides `:class:kivy.animation.Animation`'s
+        version, to cancel it on all animations of the Sequence.
+
+        .. versionadded:: 1.10.0
+        '''
+        self.anim1.cancel_property(widget, prop)
+        self.anim2.cancel_property(widget, prop)
+        if (not self.anim1.have_properties_to_animate(widget) and
+                not self.anim2.have_properties_to_animate(widget)):
+            self.cancel(widget)
+
     def have_properties_to_animate(self, widget):
         return (self.anim1.have_properties_to_animate(widget) or
                 self.anim2.have_properties_to_animate(widget))
@@ -445,22 +461,6 @@ class Sequence(CompoundAnimation):
         self._register()
         self.anim1.start(widget)
         self.anim1.bind(on_complete=self.on_anim1_complete)
-
-    def cancel_property(self, widget, prop):
-        '''Even if an animation is running, remove a property. It will not be
-        animated further. If it was the only/last property being animated,
-        the animation will be canceled (see :attr:`cancel`)
-
-        This method overrides `:class:kivy.animation.Animation`'s
-        version, to cancel it on all animations of the Sequence.
-
-        .. versionadded:: 1.10.0
-        '''
-        self.anim1.cancel_property(widget, prop)
-        self.anim2.cancel_property(widget, prop)
-        if (not self.anim1.have_properties_to_animate(widget) and
-                not self.anim2.have_properties_to_animate(widget)):
-            self.cancel(widget)
 
     def on_anim1_start(self, instance, widget):
         self.dispatch('on_start', widget)

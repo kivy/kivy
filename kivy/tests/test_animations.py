@@ -170,3 +170,11 @@ class ParallelAnimationTestCase(AnimationTestCaseBase):
         self.a.stop(self.w)
         self.assertFalse(self.a.have_properties_to_animate(self.w))
         self.assertNoAnimationsBeingPlayed()
+
+    def test_cancel_property(self):
+        a = self.a
+        w = self.w
+        a.start(w)
+        a.cancel_property(w, 'x')
+        a.stop(w)
+        self.assertNoAnimationsBeingPlayed()
