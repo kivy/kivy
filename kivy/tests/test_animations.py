@@ -24,13 +24,13 @@ class AnimationTestCaseBase(unittest.TestCase):
             Clock.tick()
 
     def tearDown(self):
-        self.assertNoAnimationsBeingPlayed()
+        self.a.cancel(self.w)
+        Animation._instances.clear()
 
 
 class AnimationTestCase(AnimationTestCaseBase):
 
     def setUp(self):
-        self.assertEqual(len(Animation._instances), 0)
         self.a = Animation(x=100, d=1, t='out_bounce')
         self.w = Widget()
 
@@ -38,11 +38,13 @@ class AnimationTestCase(AnimationTestCaseBase):
         self.a.start(self.w)
         self.sleep(1.5)
         self.assertAlmostEqual(self.w.x, 100)
+        self.assertNoAnimationsBeingPlayed()
 
     def test_animation_duration_0(self):
         a = Animation(x=100, d=0)
         a.start(self.w)
         self.sleep(.5)
+        self.assertNoAnimationsBeingPlayed()
 
     def test_stop_animation(self):
         self.a.start(self.w)
@@ -50,16 +52,19 @@ class AnimationTestCase(AnimationTestCaseBase):
         self.a.stop(self.w)
         self.assertNotAlmostEqual(self.w.x, 100)
         self.assertNotAlmostEqual(self.w.x, 0)
+        self.assertNoAnimationsBeingPlayed()
 
     def test_stop_all(self):
         self.a.start(self.w)
         self.sleep(.5)
         Animation.stop_all(self.w)
+        self.assertNoAnimationsBeingPlayed()
 
     def test_stop_all_2(self):
         self.a.start(self.w)
         self.sleep(.5)
         Animation.stop_all(self.w, 'x')
+        self.assertNoAnimationsBeingPlayed()
 
     def test_duration(self):
         self.assertEqual(self.a.duration, 1)
@@ -77,6 +82,7 @@ class AnimationTestCase(AnimationTestCaseBase):
         self.assertAlmostEqual(instruction.x, 3)
         self.sleep(1.5)
         self.assertAlmostEqual(instruction.x, 100)
+        self.assertNoAnimationsBeingPlayed()
 
     def test_weakref(self):
         widget = Widget()
@@ -88,12 +94,12 @@ class AnimationTestCase(AnimationTestCaseBase):
             self.sleep(1.)
         except ReferenceError:
             pass
+        self.assertNoAnimationsBeingPlayed()
 
 
 class SequentialAnimationTestCase(AnimationTestCaseBase):
 
     def setUp(self):
-        self.assertEqual(len(Animation._instances), 0)
         self.a = Animation(x=100, d=1, t='out_bounce')
         self.a += Animation(x=0, d=1, t='out_bounce')
         self.w = Widget()
@@ -102,21 +108,25 @@ class SequentialAnimationTestCase(AnimationTestCaseBase):
         self.a.start(self.w)
         self.sleep(.5)
         Animation.cancel_all(self.w)
+        self.assertNoAnimationsBeingPlayed()
 
     def test_cancel_all_2(self):
         self.a.start(self.w)
         self.sleep(.5)
         Animation.cancel_all(self.w, 'x')
+        self.assertNoAnimationsBeingPlayed()
 
     def test_stop_all(self):
         self.a.start(self.w)
         self.sleep(.5)
         Animation.stop_all(self.w)
+        self.assertNoAnimationsBeingPlayed()
 
     def test_stop_all_2(self):
         self.a.start(self.w)
         self.sleep(.5)
         Animation.stop_all(self.w, 'x')
+        self.assertNoAnimationsBeingPlayed()
 
     def _test_on_progress(self, anim, widget, progress):
         self._on_progress_called = True
@@ -135,6 +145,7 @@ class SequentialAnimationTestCase(AnimationTestCaseBase):
         self.sleep(2)
         self.assertTrue(self._on_progress_called)
         self.assertTrue(self._on_complete_called)
+        self.assertNoAnimationsBeingPlayed()
 
     def test_have_properties_to_animate(self):
         self.assertFalse(self.a.have_properties_to_animate(self.w))
@@ -142,12 +153,12 @@ class SequentialAnimationTestCase(AnimationTestCaseBase):
         self.assertTrue(self.a.have_properties_to_animate(self.w))
         self.a.stop(self.w)
         self.assertFalse(self.a.have_properties_to_animate(self.w))
+        self.assertNoAnimationsBeingPlayed()
 
 
 class ParallelAnimationTestCase(AnimationTestCaseBase):
 
     def setUp(self):
-        self.assertEqual(len(Animation._instances), 0)
         self.a = Animation(x=100, d=1)
         self.a &= Animation(y=100, d=.5)
         self.w = Widget()
@@ -158,3 +169,4 @@ class ParallelAnimationTestCase(AnimationTestCaseBase):
         self.assertTrue(self.a.have_properties_to_animate(self.w))
         self.a.stop(self.w)
         self.assertFalse(self.a.have_properties_to_animate(self.w))
+        self.assertNoAnimationsBeingPlayed()
