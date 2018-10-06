@@ -1,5 +1,6 @@
 import unittest
-from tempfile import TemporaryDirectory
+from tempfile import mkdtemp
+from shutil import rmtree
 
 
 class WidgetTestCase(unittest.TestCase):
@@ -74,13 +75,14 @@ class WidgetTestCase(unittest.TestCase):
         wid = Button(text='test', size=(200, 100), size_hint=(None, None))
         self.root.add_widget(wid)
 
-        with TemporaryDirectory() as tmp:
-            wid.export_to_png(join(tmp, 'a.png'))
-            wid.export_to_png(join(tmp, 'b.png'), scale=.5)
-            wid.export_to_png(join(tmp, 'c.png'), scale=2)
+        tmp = mkdtemp()
+        wid.export_to_png(join(tmp, 'a.png'))
+        wid.export_to_png(join(tmp, 'b.png'), scale=.5)
+        wid.export_to_png(join(tmp, 'c.png'), scale=2)
 
-            CoreImage(join(tmp, 'a.png')).size == (200, 100)
-            CoreImage(join(tmp, 'b.png')).size == (100, 50)
-            CoreImage(join(tmp, 'c.png')).size == (400, 200)
+        CoreImage(join(tmp, 'a.png')).size == (200, 100)
+        CoreImage(join(tmp, 'b.png')).size == (100, 50)
+        CoreImage(join(tmp, 'c.png')).size == (400, 200)
+        rmtree(tmp)
 
         self.root.remove_widget(wid)
