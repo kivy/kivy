@@ -77,9 +77,9 @@ class ImageData(object):
     '''
 
     __slots__ = ('fmt', 'mipmaps', 'source', 'flip_vertical', 'source_image')
-    _supported_fmts = ('rgb', 'bgr', 'rgba', 'bgra', 'argb', 'abgr', 's3tc_dxt1',
-                       's3tc_dxt3', 's3tc_dxt5', 'pvrtc_rgb2', 'pvrtc_rgb4',
-                       'pvrtc_rgba2', 'pvrtc_rgba4', 'etc1_rgb8')
+    _supported_fmts = ('rgb', 'bgr', 'rgba', 'bgra', 'argb', 'abgr',
+                       's3tc_dxt1', 's3tc_dxt3', 's3tc_dxt5', 'pvrtc_rgb2',
+                       'pvrtc_rgb4', 'pvrtc_rgba2', 'pvrtc_rgba4', 'etc1_rgb8')
 
     def __init__(self, width, height, fmt, data, source=None,
                  flip_vertical=True, source_image=None,
@@ -906,10 +906,10 @@ class Image(EventDispatcher):
 
         bgr_flag = False
         if data.fmt == 'argb':
-            color.reverse() # bgra
+            color.reverse()  # bgra
             bgr_flag = True
         elif data.fmt == 'abgr':
-            color.reverse() # rgba
+            color.reverse()  # rgba
 
         # conversion for BGR->RGB, BGRA->RGBA format
         if bgr_flag or data.fmt in ('bgr', 'bgra'):

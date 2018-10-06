@@ -67,7 +67,7 @@ class CameraAndroid(CameraBase):
         self._android_camera.setPreviewTexture(self._surface_texture)
 
         self._fbo = Fbo(size=self._resolution)
-        self._fbo['resolution'] = (float(width),float(height))
+        self._fbo['resolution'] = (float(width), float(height))
         self._fbo.shader.fs = '''
             #extension GL_OES_EGL_image_external : require
             #ifdef GL_ES
@@ -85,7 +85,8 @@ class CameraAndroid(CameraBase):
 
             void main()
             {
-                vec2 coord = vec2(tex_coord0.y*(resolution.y/resolution.x),1.-tex_coord0.x);
+                vec2 coord = vec2(tex_coord0.y * (
+                    resolution.y / resolution.x), 1. -tex_coord0.x);
                 gl_FragColor = texture2D(texture1, tex_coord0);
             }
         '''

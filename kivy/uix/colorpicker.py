@@ -279,7 +279,8 @@ class ColorWheel(Widget):
             # _hsv based on the selected ColorArc
             piece = int((theta / (2 * pi)) * self._pieces_of_pie)
             division = int((r / self._radius) * self._piece_divisions)
-            hsva = list(self.arcs[self._pieces_of_pie * division + piece].color)
+            hsva = list(
+                self.arcs[self._pieces_of_pie * division + piece].color)
             self.color = list(hsv_to_rgb(*hsva[:3])) + hsva[-1:]
 
     def _get_touch_r(self, pos):
@@ -384,7 +385,6 @@ class ColorPicker(RelativeLayout):
         self.set_color(value)
 
     hsv = AliasProperty(_get_hsv, _set_hsv, bind=('color', ))
-    #hsv = ListProperty((1, 1, 1))
     '''The :attr:`hsv` holds the color currently selected in hsv format.
 
     :attr:`hsv` is a :class:`~kivy.properties.ListProperty` and defaults to

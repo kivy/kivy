@@ -12,8 +12,8 @@ Pango text provider
 Installation
 ------------
 
-1. Install pangoft2 (`apt install libfreetype6-dev libpango1.0-dev libpangoft2-1.0-0`)
-   or ensure it is available in pkg-config
+1. Install pangoft2 (`apt install libfreetype6-dev libpango1.0-dev
+   libpangoft2-1.0-0`) or ensure it is available in pkg-config
 2. Recompile kivy. Check that pangoft2 is found `use_pangoft2 = 1`
 3. Test it! Enforce the text core renderer to pango using environment variable:
    `export KIVY_TEXT=pango`
