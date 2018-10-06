@@ -413,6 +413,10 @@ class CompoundAnimation(Animation):
         self.anim2.cancel(widget)
         super(CompoundAnimation, self).cancel(widget)
 
+    def have_properties_to_animate(self, widget):
+        return (self.anim1.have_properties_to_animate(widget) or
+                self.anim2.have_properties_to_animate(widget))
+
 
 class Sequence(CompoundAnimation):
 

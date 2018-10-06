@@ -138,3 +138,35 @@ class SequentialAnimationTestCase(unittest.TestCase):
         self.sleep(2)
         self.assertTrue(self._on_progress_called)
         self.assertTrue(self._on_complete_called)
+
+    def test_have_properties_to_animate(self):
+        self.assertFalse(self.a.have_properties_to_animate(self.w))
+        self.a.start(self.w)
+        self.assertTrue(self.a.have_properties_to_animate(self.w))
+        self.a.stop(self.w)
+        self.assertFalse(self.a.have_properties_to_animate(self.w))
+
+
+class ParallelAnimationTestCase(unittest.TestCase):
+
+    def sleep(self, t):
+        start = time()
+        while time() < start + t:
+            sleep(.01)
+            Clock.tick()
+
+    def setUp(self):
+        self.assertEqual(len(Animation._instances), 0)
+        self.a = Animation(x=100, d=1)
+        self.a &= Animation(y=100, d=.5)
+        self.w = Widget()
+
+    def tearDown(self):
+        self.assertEqual(len(Animation._instances), 0)
+
+    def test_have_properties_to_animate(self):
+        self.assertFalse(self.a.have_properties_to_animate(self.w))
+        self.a.start(self.w)
+        self.assertTrue(self.a.have_properties_to_animate(self.w))
+        self.a.stop(self.w)
+        self.assertFalse(self.a.have_properties_to_animate(self.w))
