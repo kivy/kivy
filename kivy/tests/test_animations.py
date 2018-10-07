@@ -12,6 +12,25 @@ from kivy.clock import Clock
 from kivy.graphics import Scale
 
 
+class EventCounter(object):
+    def __init__(self, anim):
+        self.n_start = 0
+        self.n_progress = 0
+        self.n_complete = 0
+        anim.bind(on_start=self.on_start,
+                  on_progress=self.on_progress,
+                  on_complete=self.on_complete)
+
+    def on_start(self, anim, widget):
+        self.n_start += 1
+
+    def on_progress(self, anim, widget, progress):
+        self.n_progress += 1
+
+    def on_complete(self, anim, widget):
+        self.n_complete += 1
+
+
 class AnimationTestCaseBase(unittest.TestCase):
 
     def assertNoAnimationsBeingPlayed(self):
@@ -26,6 +45,15 @@ class AnimationTestCaseBase(unittest.TestCase):
     def tearDown(self):
         self.a.cancel(self.w)
         Animation._instances.clear()
+
+    def assertEventCountEqual(self, ec, n_start, n_progress_greater_than_zero,
+                              n_complete):
+        self.assertEqual(ec.n_start, n_start)
+        if n_progress_greater_than_zero:
+            self.assertGreater(ec.n_progress, 0)
+        else:
+            self.assertEqual(ec.n_progress, 0)
+        self.assertEqual(ec.n_complete, n_complete)
 
 
 class AnimationTestCase(AnimationTestCaseBase):
@@ -178,6 +206,31 @@ class RepeatitiveSequentialAnimationTestCase(AnimationTestCaseBase):
         w = self.w
         a.start(w)
         a.stop(w)
+        self.assertNoAnimationsBeingPlayed()
+
+    def test_event_count(self):
+        a = self.a
+        w = self.w
+        ec = EventCounter(a)
+
+        # before the animation starts
+        self.assertEventCountEqual(ec, 0, False, 0)
+        a.start(w)
+
+        # right after the animation starts
+        self.assertEventCountEqual(ec, 1, False, 0)
+        self.sleep(.2)
+
+        # during the 1st round of the animation
+        self.assertEventCountEqual(ec, 1, True, 0)
+        self.sleep(.4)
+
+        # during the 2nd round of the animation
+        self.assertEventCountEqual(ec, 1, True, 0)
+        a.stop(w)
+
+        # after the animation is stopped
+        self.assertEventCountEqual(ec, 1, True, 1)
         self.assertNoAnimationsBeingPlayed()
 
 
