@@ -1,4 +1,4 @@
-from kivy.tests.common import GraphicUnitTest
+from kivy.tests.common import GraphicUnitTest, ensure_web_server
 
 from kivy.uix.image import AsyncImage
 from kivy.config import Config
@@ -14,6 +14,10 @@ except ImportError:
 
 
 class AsyncImageTestCase(GraphicUnitTest):
+    @classmethod
+    def setUpClass(cls):
+        ensure_web_server()
+
     def setUp(self):
         self.maxfps = Config.getint('graphics', 'maxfps')
         super(AsyncImageTestCase, self).setUp()
@@ -54,8 +58,7 @@ class AsyncImageTestCase(GraphicUnitTest):
     def test_remote_zipsequence(self):
         # cube ZIP has 63 PNGs used for animation
         ZIP = (
-            'https://github.com/kivy/kivy/'
-            'raw/master/examples/widgets/'
+            'http://localhost:8000/examples/widgets/'
             'sequenced_images/data/images/cube.zip'
         )
 
