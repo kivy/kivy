@@ -14,22 +14,22 @@ matrix:
       python: 2.7
       env: RUN=unit
       os: linux
-      dist: trusty
+      dist: bionic
     - language: python
       python: 3.5
       env: RUN=unit COVERALLS=true
       os: linux
-      dist: trusty
+      dist: bionic
     - language: python
       python: 3.5
       env: RUN=pep8
       os: linux
-      dist: trusty
+      dist: bionic
     - language: python
       python: 3.5
       env: RUN=docs
       os: linux
-      dist: trusty
+      dist: bionic
     - language: python
       sudo: required
       env: RUN=wheels DOCKER_IMAGE=markrwilliams/manylinux2:x86_64
