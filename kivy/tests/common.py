@@ -29,6 +29,7 @@ make_screenshots = os.environ.get('KIVY_UNITTEST_SCREENSHOTS')
 http_server = None
 http_server_ready = threading.Event()
 
+
 def ensure_web_server():
     if http_server is not None:
         return True
