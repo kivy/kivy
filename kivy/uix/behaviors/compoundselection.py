@@ -667,7 +667,7 @@ class CompoundSelectionBehavior(object):
             nodes.append(node)
         self._anchor = node
         self._last_selected_node = node
-        self._reslove_last_node()
+        self.reslove_last_node()
         return True
 
     def deselect_node(self, node):
@@ -688,7 +688,7 @@ class CompoundSelectionBehavior(object):
             is overwritten.
         '''
         self._last_selected_node = None
-        self._reslove_last_node()
+        self.reslove_last_node()
         if(len(self.selected_nodes) > 1):
             self._anchor = node
             self._anchor_idx = self.get_index_of_node(
