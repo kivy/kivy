@@ -4,6 +4,9 @@ env:
     - KIVY_SPLIT_EXAMPLES=1
     - SERVER_IP=159.203.106.198
     - DOC_VERSIONS="stable master"
+
+osx_image: xcode10
+
 matrix:
   fast_finish: true
   include:
@@ -47,7 +50,6 @@ matrix:
     - language: generic
       env:  PYVERS="3.5.4 3.6.5 3.7.0" PY=3 RUN=app
       os: osx
-      #osx_image: xcode9.2
 
 before_install:
   # https://github.com/travis-ci/travis-ci/issues/6307
@@ -201,7 +203,7 @@ script:
              mkdir app;
              mv Kivy3.dmg app/"Kivy-$app_ver-$git_tag-$app_date"-python3.6.5.dmg;
           else
-             ./create-osx-bundle.sh python2 master > output.txt;            
+             ./create-osx-bundle.sh python2 master > output.txt;
               app_ver=$(Kivy.app/Contents/Resources/script -c 'import kivy; print(kivy.__version__)');
               mv Kivy.app Kivy2.app;
              ./create-osx-dmg.sh Kivy2.app;
@@ -304,4 +306,3 @@ notifications:
     on_success: always
     on_failure: always
     on_start: always
-
