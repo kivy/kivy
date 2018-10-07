@@ -12,43 +12,43 @@ matrix:
   include:
     - language: python
       python: 2.7
-      env: RUN=unit
+      env: RUN=unit USE_PANGOFT2=0
       os: linux
       dist: bionic
     - language: python
       python: 3.5
-      env: RUN=unit COVERALLS=true
+      env: RUN=unit COVERALLS=true USE_PANGOFT2=0
       os: linux
       dist: bionic
     - language: python
       python: 3.5
-      env: RUN=pep8
+      env: RUN=pep8 USE_PANGOFT2=0
       os: linux
       dist: bionic
     - language: python
       python: 3.5
-      env: RUN=docs
+      env: RUN=docs USE_PANGOFT2=0
       os: linux
       dist: bionic
     - language: python
       sudo: required
-      env: RUN=wheels DOCKER_IMAGE=markrwilliams/manylinux2:x86_64
+      env: RUN=wheels DOCKER_IMAGE=markrwilliams/manylinux2:x86_64 USE_PANGOFT2=0
       services:
         - docker
     - language: generic
-      env: RUN=unit PY=2
+      env: RUN=unit PY=2 USE_PANGOFT2=0
       os: osx
     - language: generic
-      env: RUN=unit PY=3
+      env: RUN=unit PY=3 USE_PANGOFT2=0
       os: osx
     - language: generic
       os: osx
-      env: PYVERS="3.5.4 3.6.5 3.7.0 2.7.10 2.7.15" PY=3 RUN=wheels
+      env: PYVERS="3.5.4 3.6.5 3.7.0 2.7.10 2.7.15" PY=3 RUN=wheels USE_PANGOFT2=0
     - language: generic
-      env: RUN=app PY=2
+      env: RUN=app PY=2 USE_PANGOFT2=0
       os: osx
     - language: generic
-      env:  PYVERS="3.5.4 3.6.5 3.7.0" PY=3 RUN=app
+      env: PYVERS="3.5.4 3.6.5 3.7.0" PY=3 RUN=app USE_PANGOFT2=0
       os: osx
 
 before_install:
