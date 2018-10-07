@@ -165,6 +165,22 @@ class SequentialAnimationTestCase(AnimationTestCaseBase):
             self.a.transition
 
 
+class RepeatitiveSequentialAnimationTestCase(AnimationTestCaseBase):
+
+    def setUp(self):
+        self.a = Animation(x=100, d=.2)
+        self.a += Animation(x=0, d=.2)
+        self.a.repeat = True
+        self.w = Widget()
+
+    def test_stop(self):
+        a = self.a
+        w = self.w
+        a.start(w)
+        a.stop(w)
+        self.assertNoAnimationsBeingPlayed()
+
+
 class ParallelAnimationTestCase(AnimationTestCaseBase):
 
     def setUp(self):

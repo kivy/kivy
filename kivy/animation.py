@@ -393,14 +393,6 @@ class Animation(EventDispatcher):
 
 class CompoundAnimation(Animation):
 
-    def stop(self, widget):
-        self.anim1.stop(widget)
-        self.anim2.stop(widget)
-        props = self._widgets.pop(widget.uid, None)
-        if props:
-            self.dispatch('on_complete', widget)
-        super(CompoundAnimation, self).cancel(widget)
-
     def stop_property(self, widget, prop):
         self.anim1.stop_property(widget, prop)
         self.anim2.stop_property(widget, prop)
@@ -461,6 +453,7 @@ class Sequence(CompoundAnimation):
         self.anim2 = anim2
 
         self.anim1.bind(on_start=self.on_anim1_start,
+                        on_complete=self.on_anim1_complete,
                         on_progress=self.on_anim1_progress)
         self.anim2.bind(on_complete=self.on_anim2_complete,
                         on_progress=self.on_anim2_progress)
@@ -469,18 +462,26 @@ class Sequence(CompoundAnimation):
     def duration(self):
         return self.anim1.duration + self.anim2.duration
 
+    def stop(self, widget):
+        props = self._widgets.pop(widget.uid, None)
+        self.anim1.stop(widget)
+        self.anim2.stop(widget)
+        if props:
+            self.dispatch('on_complete', widget)
+        super(CompoundAnimation, self).cancel(widget)
+
     def start(self, widget):
         self.stop(widget)
         self._widgets[widget.uid] = True
         self._register()
         self.anim1.start(widget)
-        self.anim1.bind(on_complete=self.on_anim1_complete)
 
     def on_anim1_start(self, instance, widget):
         self.dispatch('on_start', widget)
 
     def on_anim1_complete(self, instance, widget):
-        self.anim1.unbind(on_complete=self.on_anim1_complete)
+        if widget.uid not in self._widgets:
+            return
         self.anim2.start(widget)
 
     def on_anim1_progress(self, instance, widget, progress):
@@ -491,6 +492,8 @@ class Sequence(CompoundAnimation):
 
         .. versionadded:: 1.7.1
         '''
+        if widget.uid not in self._widgets:
+            return
         if self.repeat:
             self.anim1.start(widget)
             self.anim1.bind(on_complete=self.on_anim1_complete)
@@ -515,6 +518,14 @@ class Parallel(CompoundAnimation):
     @property
     def duration(self):
         return max(self.anim1.duration, self.anim2.duration)
+
+    def stop(self, widget):
+        self.anim1.stop(widget)
+        self.anim2.stop(widget)
+        props = self._widgets.pop(widget.uid, None)
+        if props:
+            self.dispatch('on_complete', widget)
+        super(CompoundAnimation, self).cancel(widget)
 
     def start(self, widget):
         self.stop(widget)
