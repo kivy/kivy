@@ -452,8 +452,8 @@ class ScrollView(StencilView):
 
     .. versionadded:: 1.11.0
 
-    :attr:`smooth_scroll_end` is a :class:`~kivy.properties.NumericProperty` and defaults
-    to None.
+    :attr:`smooth_scroll_end` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to None.
     '''
 
     # private, for internal use only
