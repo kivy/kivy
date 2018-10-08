@@ -925,7 +925,9 @@ cdef class Texture:
             pbuffer, colorfmt = convert_to_gl_format(pbuffer, colorfmt)
         cdef char [:] char_view
         cdef short [:] short_view
+        cdef unsigned short [:] ushort_view
         cdef int [:] int_view
+        cdef unsigned int [:] uint_view
         cdef float [:] float_view
         cdef char *cdata = NULL
         cdef long datasize = 0
@@ -937,14 +939,22 @@ cdef class Texture:
                 char_view = pbuffer
                 cdata = &char_view[0]
                 datasize = char_view.nbytes
-            elif glbufferfmt == GL_SHORT or glbufferfmt == GL_UNSIGNED_SHORT:
+            elif glbufferfmt == GL_SHORT:
                 short_view = pbuffer
                 cdata = <char *>&short_view[0]
                 datasize = short_view.nbytes
-            elif glbufferfmt == GL_INT or glbufferfmt == GL_UNSIGNED_INT:
+            elif glbufferfmt == GL_UNSIGNED_SHORT:
+                ushort_view = pbuffer
+                cdata = <char *>&ushort_view[0]
+                datasize = ushort_view.nbytes
+            elif glbufferfmt == GL_INT:
                 int_view = pbuffer
                 cdata = <char *>&int_view[0]
                 datasize = int_view.nbytes
+            elif glbufferfmt == GL_UNSIGNED_INT:
+                uint_view = pbuffer
+                cdata = <char *>&uint_view[0]
+                datasize = uint_view.nbytes
             elif glbufferfmt == GL_FLOAT:
                 float_view = pbuffer
                 cdata = <char *>&float_view[0]
