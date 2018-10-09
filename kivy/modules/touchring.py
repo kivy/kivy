@@ -66,7 +66,6 @@ class TouchRingWidget(Widget):
             self.on_touch_down_window(window, touch)
 
     def on_touch_move(self, touch):
-        assert touch.grab_current is self
         pointer_image = self.pointer_image
         pointer_scale = self.pointer_scale
         touch.ud['tr.rect'].pos = (
@@ -74,7 +73,6 @@ class TouchRingWidget(Widget):
             touch.y - (pointer_image.height / 2. * pointer_scale))
 
     def on_touch_up(self, touch):
-        assert touch.grab_current is self
         ud = touch.ud
         remove = self.window.canvas.after.remove
         remove(ud['tr.color'])
