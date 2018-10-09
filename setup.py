@@ -1018,7 +1018,6 @@ if not build_examples:
             'kivy.input.providers',
             'kivy.lang',
             'kivy.lib',
-            'kivy.lib.osc',
             'kivy.lib.gstplayer',
             'kivy.lib.vidcore_lite',
             'kivy.modules',
