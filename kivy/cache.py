@@ -170,7 +170,7 @@ class Cache(object):
 
     @staticmethod
     def _purge_oldest(category, maxpurge=1):
-        print('PURGE', category)
+        Logger.debug('Cache: Remove oldest in %s' % category)
         import heapq
         time = Clock.get_time()
         heap_list = []
@@ -179,13 +179,13 @@ class Cache(object):
             if obj['lastaccess'] == obj['timestamp'] == time:
                 continue
             heapq.heappush(heap_list, (obj['lastaccess'], key))
-            print('<<<', obj['lastaccess'])
+            Logger.trace('Cache: <<< %f' % obj['lastaccess'])
         n = 0
         while n <= maxpurge:
             try:
                 n += 1
                 lastaccess, key = heapq.heappop(heap_list)
-                print(n, '=>', key, lastaccess, Clock.get_time())
+                Logger.trace('Cache: %d => %s %f %f' % (n, key, lastaccess, Clock.get_time()))
             except Exception:
                 return
             Cache.remove(category, key)
