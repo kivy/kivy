@@ -163,8 +163,10 @@ class Cache(object):
         try:
             if key is not None:
                 del Cache._objects[category][key]
+                Logger.trace('Cache: Removed %s:%s from cache' % (category, key))
             else:
                 Cache._objects[category] = {}
+                Logger.trace('Cache: Flushed category %s from cache' % category)
         except Exception:
             pass
 
@@ -221,6 +223,7 @@ class Cache(object):
                     continue
 
                 if curtime - lastaccess > timeout:
+                    Logger.debug('Cache: Removed %s:%s from cache due to timeout' % (category, key))
                     Cache.remove(category, key)
 
     @staticmethod
