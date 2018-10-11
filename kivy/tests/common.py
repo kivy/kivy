@@ -86,7 +86,7 @@ class GraphicUnitTest(_base):
             self.tearDown(fake=True)
             self.setUp()
 
-    def run(self, name):
+    def run(self, *args, **kwargs):
         '''Extend the run of unittest, to check if results directory have been
         found. If no results directory exists, the test will be ignored.
         '''
@@ -98,7 +98,7 @@ class GraphicUnitTest(_base):
         self.test_counter = 0
         self.results_dir = results_dir
         self.test_failed = False
-        return super(GraphicUnitTest, self).run(name)
+        return super(GraphicUnitTest, self).run(*args, **kwargs)
 
     def setUp(self):
         '''Prepare the graphic test, with:
