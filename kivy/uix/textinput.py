@@ -1926,7 +1926,7 @@ class TextInput(FocusBehavior, Widget):
                     # _split_smart assumes first line to be not a new line
                     _lines_flags[0] = self_lines_flags[start]
                 _lins_flags.extend(_lines_flags)
-            _lins_flags.extend(self_lines_flaICENSE.mdgs[finish:])
+            _lins_flags.extend(self_lines_flags[finish:])
             self._lines_flags = _lins_flags
 
             _lins_lbls = []
