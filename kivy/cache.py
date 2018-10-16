@@ -174,7 +174,7 @@ class Cache(object):
 
     @staticmethod
     def _purge_oldest(category, maxpurge=1):
-        Logger.debug('Cache: Remove oldest in %s' % category)
+        Logger.trace('Cache: Remove oldest in %s' % category)
         import heapq
         time = Clock.get_time()
         heap_list = []
@@ -226,7 +226,7 @@ class Cache(object):
                     continue
 
                 if curtime - lastaccess > timeout:
-                    Logger.debug('Cache: Removed %s:%s from cache due to '
+                    Logger.trace('Cache: Removed %s:%s from cache due to '
                                  'timeout' % (category, key))
                     Cache.remove(category, key)
 
