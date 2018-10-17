@@ -21,9 +21,12 @@ __all__ = ('intersection', 'difference', 'strtotuple',
            'platform', 'escape_markup', 'reify', 'rgba')
 
 from os import environ
+from os.path import splitext, extsep, exists
 from sys import platform as _sys_platform
 from re import match, split
 from kivy.compat import string_types
+from kivy.lang import Builder
+import inspect
 
 
 def boundary(value, minvalue, maxvalue):
@@ -496,3 +499,13 @@ class reify(object):
         retval = self.func(inst)
         setattr(inst, self.func.__name__, retval)
         return retval
+
+
+def load_kv():
+    '''This magical function lookup module name, and load the kv file
+    with the same name (in the same directory)
+    '''
+    filename = inspect.currentframe().f_back.f_code.co_filename
+    f = extsep.join((splitext(filename)[0], 'kv'))
+    if exists(f) and f not in Builder.files:
+        Builder.load_file(f)
