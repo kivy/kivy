@@ -71,6 +71,11 @@ KIVY_NO_FILELOG
 KIVY_NO_CONSOLELOG
     If set, logs will be not print to the console
 
+KIVY_REPLACE_ROOT_LOGGER
+    If set, the root logger will be replaced by the Kivy logger.
+
+    .. versionadded:: 1.9.2
+
 KIVY_NO_ARGS
     If set, the argument passed in command line will not be parsed and used by Kivy.
     Ie, you can safely make a script or an app with your own arguments without
