@@ -5,30 +5,30 @@ Drag and Drop
 This adds a drag and drop functionality to layouts and widgets. There are 2
 primary and one internal component used to have drag and drop:
 
-* The :class:`DragableObjectBehavior`. Each widget that can be dragged needs
-  to inherit from this. It has :attr:`DragableObjectBehavior.drag_cls`, which
-  is a string that indicates the :class:`DragableLayoutBehavior` instance
+* The :class:`DraggableObjectBehavior`. Each widget that can be dragged needs
+  to inherit from this. It has :attr:`DraggableObjectBehavior.drag_cls`, which
+  is a string that indicates the :class:`DraggableLayoutBehavior` instance
   into which the widget can potentially be dropped.
-* The :class:`DragableLayoutBehavior`, which any layout that wants to accept
+* The :class:`DraggableLayoutBehavior`, which any layout that wants to accept
   drop behavior must inherit from. It has a
-  :attr:`DragableLayoutBehavior.drag_classes`, which determines the
-  dragging widgets it accepts - their :attr:`DragableObjectBehavior.drag_cls`
-  must be listed in :attr:`DragableLayoutBehavior.drag_classes`.
-* Finally, :class:`DragableController`which manages the drag and drop
+  :attr:`DraggableLayoutBehavior.drag_classes`, which determines the
+  dragging widgets it accepts - their :attr:`DraggableObjectBehavior.drag_cls`
+  must be listed in :attr:`DraggableLayoutBehavior.drag_classes`.
+* Finally, :class:`DraggableController`which manages the drag and drop
   coordination. This is created automatically for each
-  :class:`DragableObjectBehavior.drag_controller` upon first drag, or it
+  :class:`DraggableObjectBehavior.drag_controller` upon first drag, or it
   can be set by the user to a global controller to save memory.
 
 Layout
 -------
 
-To use :class:`DragableLayoutBehavior` with a layout,
-:meth:`DragableLayoutBehavior.compare_pos_to_widget` must be implement for each
+To use :class:`DraggableLayoutBehavior` with a layout,
+:meth:`DraggableLayoutBehavior.compare_pos_to_widget` must be implement for each
 layout. This determines where in the layout the widget is being previewed and
 ultimitely dropped. But, it can be further customized for any type of layout
 by overwriting the default
-:meth:`DragableLayoutBehavior.get_drop_insertion_index_move` and
-:meth:`DragableLayoutBehavior.get_drop_insertion_index_up`.
+:meth:`DraggableLayoutBehavior.get_drop_insertion_index_move` and
+:meth:`DraggableLayoutBehavior.get_drop_insertion_index_up`.
 
 Similarly, :meth:`.handle_drag_release` should be implemented. It handles the
 actual final drop into the layout. A good default implementation is::
@@ -39,9 +39,9 @@ actual final drop into the layout. A good default implementation is::
 Dragging Widget
 -----------------
 
-To use :class:`DragableObjectBehavior`, one should implement
-:meth:`DragableObjectBehavior.initiate_drag` and/or
-:meth:`DragableObjectBehavior.complete_drag`. Typically, you would want to
+To use :class:`DraggableObjectBehavior`, one should implement
+:meth:`DraggableObjectBehavior.initiate_drag` and/or
+:meth:`DraggableObjectBehavior.complete_drag`. Typically, you would want to
 remove the widget from it's current layout as it starts to be dragged, with
 e.g. ::
 
@@ -51,13 +51,13 @@ e.g. ::
 Describing Which Widgets can be Dropped Into Which Layout
 -------------------------------------------------------------
 
-Given some :class:`DragableObjectBehavior` and
-some :class:`DragableLayoutBehavior` instances. We can control which widget can
+Given some :class:`DraggableObjectBehavior` and
+some :class:`DraggableLayoutBehavior` instances. We can control which widget can
 be dragged into which layout using their
-:attr:`DragableObjectBehavior.drag_cls` and
-:attr:`DragableLayoutBehavior.drag_classes`.
-:attr:`DragableObjectBehavior.drag_cls` must be listed in
-:attr:`DragableLayoutBehavior.drag_classes` for the widget to be draggable into
+:attr:`DraggableObjectBehavior.drag_cls` and
+:attr:`DraggableLayoutBehavior.drag_classes`.
+:attr:`DraggableObjectBehavior.drag_cls` must be listed in
+:attr:`DraggableLayoutBehavior.drag_classes` for the widget to be draggable into
 the layout.
 
 Example
@@ -68,7 +68,7 @@ Following is an example with :class:`kivy.uix.boxlayout.BoxLayout`::
     from kivy.uix.label import Label
     from kivy.uix.boxlayout import BoxLayout
 
-    class DragableBoxLayout(DragableLayoutBehavior, BoxLayout):
+    class DraggableBoxLayout(DraggableLayoutBehavior, BoxLayout):
 
         def compare_pos_to_widget(self, widget, pos):
             if self.orientation == 'vertical':
@@ -78,7 +78,7 @@ Following is an example with :class:`kivy.uix.boxlayout.BoxLayout`::
         def handle_drag_release(self, index, drag_widget):
             self.add_widget(drag_widget, index)
 
-    class DragLabel(DragableObjectBehavior, Label):
+    class DragLabel(DraggableObjectBehavior, Label):
 
         def initiate_drag(self):
             # during a drag, we remove the widget from the original location
@@ -87,7 +87,7 @@ Following is an example with :class:`kivy.uix.boxlayout.BoxLayout`::
 And then in kv::
 
     BoxLayout:
-        DragableBoxLayout:
+        DraggableBoxLayout:
             drag_classes: ['label']
             orientation: 'vertical'
             Label:
@@ -96,7 +96,7 @@ And then in kv::
                 text: 'A'
             Label:
                 text: 'A'
-        DragableBoxLayout:
+        DraggableBoxLayout:
             drag_classes: ['label']
             orientation: 'vertical'
             DragLabel:
@@ -118,7 +118,7 @@ from kivy.core.window import Window
 from kivy.config import Config
 
 __all__ = (
-    'DragableObjectBehavior', 'DragableLayoutBehavior', 'DragableController',
+    'DraggableObjectBehavior', 'DraggableLayoutBehavior', 'DraggableController',
     'PreviewWidget', 'SpacerWidget')
 
 _drag_distance = 0
@@ -142,15 +142,15 @@ def collide_parent_tree(widget, x, y):
     return True
 
 
-class DragableObjectBehavior(object):
+class DraggableObjectBehavior(object):
     """A widget that inherits from this class can participate in a drag by
     someone dragging it with the mouse.
     """
 
     drag_controller = ObjectProperty(None)
-    """A (potentially global) :class:`DragableController` instance that manages
+    """A (potentially global) :class:`DraggableController` instance that manages
     the (potential) drag. If `None` during the first potential drag, a
-    :class:`DragableController` instance will be created and set.
+    :class:`DraggableController` instance will be created and set.
     """
 
     drag_widget = ObjectProperty(None)
@@ -160,22 +160,22 @@ class DragableObjectBehavior(object):
 
     drag_cls = StringProperty('')
     """A name to determine where we can potentially drop the dragged widget.
-    For each :class:`DragableLayoutBehavior` that we hover over, if
-    :attr:`drag_cls` is in that :attr:`DragableLayoutBehavior.drag_classes`, we
+    For each :class:`DraggableLayoutBehavior` that we hover over, if
+    :attr:`drag_cls` is in that :attr:`DraggableLayoutBehavior.drag_classes`, we
     will preview and allow the widget to be dropped there.
     """
 
     _drag_touch = None
 
     def initiate_drag(self):
-        """Called by the :class:`DragableController`, when a drag is initiated
+        """Called by the :class:`DraggableController`, when a drag is initiated
         on the widget (i.e. thw widget is actually being dragged once it
         exceeds the minimum drag distance).
         """
         pass
 
     def complete_drag(self):
-        """Called by the :class:`DragableController`, when a drag is completed.
+        """Called by the :class:`DraggableController`, when a drag is completed.
         """
         pass
 
@@ -187,7 +187,7 @@ class DragableObjectBehavior(object):
         if uid in touch.ud:
             return touch.ud[uid]
 
-        if super(DragableObjectBehavior, self).on_touch_down(touch):
+        if super(DraggableObjectBehavior, self).on_touch_down(touch):
             touch.ud[uid] = False
             return True
 
@@ -206,7 +206,7 @@ class DragableObjectBehavior(object):
         touch.ud[uid] = True
 
         if not self.drag_controller:
-            self.drag_controller = DragableController()
+            self.drag_controller = DraggableController()
 
         return self.drag_controller.drag_down(self, touch)
 
@@ -214,16 +214,16 @@ class DragableObjectBehavior(object):
         uid = self._touch_uid()
         if uid not in touch.ud:
             touch.ud[uid] = False
-            return super(DragableObjectBehavior, self).on_touch_move(touch)
+            return super(DraggableObjectBehavior, self).on_touch_move(touch)
 
         if not touch.ud[uid]:
-            return super(DragableObjectBehavior, self).on_touch_move(touch)
+            return super(DraggableObjectBehavior, self).on_touch_move(touch)
 
         if touch.grab_current is not self:
             return False
 
         if not self.drag_controller:
-            self.drag_controller = DragableController()
+            self.drag_controller = DraggableController()
 
         return self.drag_controller.drag_move(self, touch)
 
@@ -231,10 +231,10 @@ class DragableObjectBehavior(object):
         uid = self._touch_uid()
         if uid not in touch.ud:
             touch.ud[uid] = False
-            return super(DragableObjectBehavior, self).on_touch_up(touch)
+            return super(DraggableObjectBehavior, self).on_touch_up(touch)
 
         if not touch.ud[uid]:
-            return super(DragableObjectBehavior, self).on_touch_up(touch)
+            return super(DraggableObjectBehavior, self).on_touch_up(touch)
 
         if touch.grab_current is not self:
             return False
@@ -243,7 +243,7 @@ class DragableObjectBehavior(object):
         self._drag_touch = None
 
         if not self.drag_controller:
-            self.drag_controller = DragableController()
+            self.drag_controller = DraggableController()
 
         return self.drag_controller.drag_up(self, touch)
 
@@ -288,7 +288,7 @@ Builder.load_string('''
 ''')
 
 
-class DragableController(EventDispatcher):
+class DraggableController(EventDispatcher):
     """The controller that manages the dragging process.
     """
 
@@ -305,7 +305,7 @@ class DragableController(EventDispatcher):
     preview_pixels = None
 
     widget_dragged = None
-    """The :class:`DragableObjectBehavior` widget currently being dragged by
+    """The :class:`DraggableObjectBehavior` widget currently being dragged by
     the controller.
     """
 
@@ -318,7 +318,7 @@ class DragableController(EventDispatcher):
     start_widget_pos = 0, 0
 
     def __init__(self, **kwargs):
-        super(DragableController, self).__init__(**kwargs)
+        super(DraggableController, self).__init__(**kwargs)
         self.preview_widget = PreviewWidget(size_hint=(None, None))
 
     def _reload_texture(self, texture):
@@ -376,7 +376,7 @@ class DragableController(EventDispatcher):
             widget.parent.remove_widget(widget)
 
     def drag_down(self, source, touch):
-        """Called by :class:`DragableObjectBehavior` when it got a touch down.
+        """Called by :class:`DraggableObjectBehavior` when it got a touch down.
         """
         self.clean_dragging()
         self.widget_dragged = source
@@ -390,7 +390,7 @@ class DragableController(EventDispatcher):
         return False
 
     def drag_move(self, source, touch):
-        """Called by :class:`DragableObjectBehavior` when it got a touch move.
+        """Called by :class:`DraggableObjectBehavior` when it got a touch move.
         """
         if not self.dragging:
             self.touch_dx += abs(touch.dx)
@@ -412,7 +412,7 @@ class DragableController(EventDispatcher):
         return False
 
     def drag_up(self, source, touch):
-        """Called by :class:`DragableObjectBehavior` when it got a touch up.
+        """Called by :class:`DraggableObjectBehavior` when it got a touch up.
         """
         self.clean_dragging()
         if not self.dragging:
@@ -425,12 +425,12 @@ class DragableController(EventDispatcher):
         return False
 
 
-class DragableLayoutBehavior(object):
+class DraggableLayoutBehavior(object):
     """Adds support to a layout such that we can drag widgets **into** this
     layout and preview it while dragging.
 
-    Only :class:`DragableObjectBehavior` widgets whose
-    :attr:`DragableObjectBehavior.drag_cls` are in :attr:`drag_classes` will be
+    Only :class:`DraggableObjectBehavior` widgets whose
+    :attr:`DraggableObjectBehavior.drag_cls` are in :attr:`drag_classes` will be
     dropable into the layout.
     """
 
@@ -449,23 +449,23 @@ class DragableLayoutBehavior(object):
 
     drag_classes = ListProperty([])
     """During a drag, the controller will try to preview and add the dragged
-    :class:`DragableObjectBehavior` to this layout widget when it is over the
+    :class:`DraggableObjectBehavior` to this layout widget when it is over the
     widget's area. But, it will only do it if the dragged widget's 
-    :attr:`DragableObjectBehavior.drag_cls` is in the layout's 
+    :attr:`DraggableObjectBehavior.drag_cls` is in the layout's 
     :attr:`drag_classes`.
     
     This allows selecting which widgets can be dropped where.
     """
 
     drag_append_end = BooleanProperty(False)
-    """Whether the :class:`DragableObjectBehavior` when dragged over the
+    """Whether the :class:`DraggableObjectBehavior` when dragged over the
     layout's area should be previewed and return an index that would add it at
     that location in its children, or if it will only support adding the widget
     to the end of children.
     """
 
     def __init__(self, **kwargs):
-        super(DragableLayoutBehavior, self).__init__(**kwargs)
+        super(DraggableLayoutBehavior, self).__init__(**kwargs)
         self.spacer_widget = SpacerWidget()
         self.fbind('spacer_props', self._track_spacer_props)
         self._track_spacer_props()
@@ -506,7 +506,7 @@ class DragableLayoutBehavior(object):
     def handle_drag_release(self, index, drag_widget):
         """This is called when a widget is dropped in the layout.
         ``index`` is the index in `children` where the widget should be added.
-        ``drag_widget`` is the :class:`DragableObjectBehavior` that was dropped
+        ``drag_widget`` is the :class:`DraggableObjectBehavior` that was dropped
         there.
 
         This must be overwritten by the inherited class to actually do the
@@ -586,14 +586,14 @@ class DragableLayoutBehavior(object):
                 # we haven't dealt with this before
                 if self.collide_point(*touch.pos) and \
                         touch.ud.get('drag_cls') in self.drag_classes:
-                    if super(DragableLayoutBehavior, self).on_touch_move(
+                    if super(DraggableLayoutBehavior, self).on_touch_move(
                             touch):
                         return True
                     touch.grab(self)
                     touch.ud[self._touch_uid()] = True
                     x, y = touch.pos
                 else:
-                    return super(DragableLayoutBehavior, self).on_touch_move(
+                    return super(DraggableLayoutBehavior, self).on_touch_move(
                         touch)
             else:
                 # we have dealt with this touch before, do it when grab_current
@@ -607,7 +607,7 @@ class DragableLayoutBehavior(object):
                 if spacer.parent:
                     self.remove_widget(spacer)
                 return False
-            if super(DragableLayoutBehavior, self).on_touch_move(touch):
+            if super(DraggableLayoutBehavior, self).on_touch_move(touch):
                 touch.ungrab(self)
                 del touch.ud[self._touch_uid()]
                 if spacer.parent:
@@ -636,11 +636,11 @@ class DragableLayoutBehavior(object):
                 # we haven't dealt with this before
                 if self.collide_point(*touch.pos) and \
                         touch.ud.get('drag_cls') in self.drag_classes:
-                    if super(DragableLayoutBehavior, self).on_touch_up(touch):
+                    if super(DraggableLayoutBehavior, self).on_touch_up(touch):
                         return True
                     x, y = touch.pos
                 else:
-                    return super(DragableLayoutBehavior, self).on_touch_up(
+                    return super(DraggableLayoutBehavior, self).on_touch_up(
                         touch)
             else:
                 # we have dealt with this touch before, do it when grab_current
@@ -654,7 +654,7 @@ class DragableLayoutBehavior(object):
                 if spacer.parent:
                     self.remove_widget(spacer)
                 return False
-            if super(DragableLayoutBehavior, self).on_touch_up(touch):
+            if super(DraggableLayoutBehavior, self).on_touch_up(touch):
                 if spacer.parent:
                     self.remove_widget(spacer)
                 return True
@@ -676,7 +676,7 @@ if __name__ == '__main__':
     from kivy.uix.label import Label
     from kivy.uix.boxlayout import BoxLayout
 
-    class DragableBoxLayout(DragableLayoutBehavior, BoxLayout):
+    class DraggableBoxLayout(DraggableLayoutBehavior, BoxLayout):
 
         def compare_pos_to_widget(self, widget, pos):
             if self.orientation == 'vertical':
@@ -686,7 +686,7 @@ if __name__ == '__main__':
         def handle_drag_release(self, index, drag_widget):
             self.add_widget(drag_widget, index)
 
-    class DragLabel(DragableObjectBehavior, Label):
+    class DragLabel(DraggableObjectBehavior, Label):
 
         def initiate_drag(self):
             # during a drag, we remove the widget from the original location
@@ -694,7 +694,7 @@ if __name__ == '__main__':
 
     widget = Builder.load_string('''
 BoxLayout:
-    DragableBoxLayout:
+    DraggableBoxLayout:
         drag_classes: ['label']
         orientation: 'vertical'
         Label:
@@ -709,7 +709,7 @@ BoxLayout:
             text: 'A'
         Label:
             text: 'A'
-        DragableBoxLayout:
+        DraggableBoxLayout:
             padding: '20dp', 0
             drag_classes: ['label2']
             orientation: 'vertical'
@@ -719,7 +719,7 @@ BoxLayout:
                 text: 'B'
             Label:
                 text: 'B'
-    DragableBoxLayout:
+    DraggableBoxLayout:
         drag_classes: ['label', 'label2']
         orientation: 'vertical'
         DragLabel:
