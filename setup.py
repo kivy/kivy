@@ -225,6 +225,7 @@ cython_unsupported = '''\
 
 have_cython = False
 skip_cython = False
+getting_cython = False
 if platform in ('ios', 'android'):
     print('\nCython check avoided.')
     skip_cython = True
@@ -247,8 +248,7 @@ else:
             print(cython_max)
             sleep(1)
     except ImportError:
-        print("\nCython is missing, it's required for compiling kivy !\n\n")
-        raise
+        getting_cython = True
 
 if not have_cython:
     from distutils.command.build_ext import build_ext
@@ -935,7 +935,7 @@ def get_extensions_from_sources(sources):
         pyx = expand(src_path, pyx)
         depends = [expand(src_path, x) for x in flags.pop('depends', [])]
         c_depends = [expand(src_path, x) for x in flags.pop('c_depends', [])]
-        if not have_cython:
+        if not (have_cython or getting_cython):
             pyx = '%s.c' % pyx[:-4]
         if is_graphics:
             depends = resolve_dependencies(pyx, depends)
@@ -984,6 +984,12 @@ if isdir(binary_deps_path):
 # -----------------------------------------------------------------------------
 # setup !
 if not build_examples:
+    install_requires = [
+            'Kivy-Garden>=0.1.4', 'docutils', 'pygments'
+    ]
+    if getting_cython:
+        install_requires.append(
+                'cython >=' + MIN_CYTHON_STRING + ', <= ' + MAX_CYTHON_STRING)
     setup(
         name='Kivy',
         version=get_version(),
@@ -1113,14 +1119,12 @@ if not build_examples:
             'Topic :: Software Development :: User Interfaces'],
         dependency_links=[
             'https://github.com/kivy-garden/garden/archive/master.zip'],
-        install_requires=[
-            'Kivy-Garden>=0.1.4', 'docutils', 'pygments'
-        ],
+        install_requires=install_requires,
         extra_requires={
             'tuio': ['oscpy']
         },
         setup_requires=[
-            'cython>=' + MIN_CYTHON_STRING
+            'cython >=' + MIN_CYTHON_STRING + ', <= ' + MAX_CYTHON_STRING
         ] if not skip_cython else [])
 else:
     setup(
