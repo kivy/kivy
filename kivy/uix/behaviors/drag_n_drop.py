@@ -671,10 +671,6 @@ class DragableLayoutBehavior(object):
         return True
 
 
-Factory.register('DragableObjectBehavior', DragableObjectBehavior)
-Factory.register('DragableController', DragableController)
-Factory.register('DragableLayoutBehavior', DragableLayoutBehavior)
-
 if __name__ == '__main__':
     from kivy.app import runTouchApp
     from kivy.uix.label import Label
