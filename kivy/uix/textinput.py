@@ -1614,7 +1614,7 @@ class TextInput(FocusBehavior, Widget):
         # Show a bubble with cut copy and paste buttons
         if not self.use_bubble:
             return
-        elif Not self.collide_point(*pos):
+        elif not self.collide_point(*pos):
             return
         bubble = self._bubble
         if bubble is None:
