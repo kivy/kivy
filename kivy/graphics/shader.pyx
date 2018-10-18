@@ -517,7 +517,8 @@ cdef class Shader:
                 attr = &self._current_vertex_format.vattr[i]
                 if attr.per_vertex == 0:
                     continue
-                cgl.glDisableVertexAttribArray(attr.index)
+                if attr.index != <unsigned int>-1:
+                  cgl.glDisableVertexAttribArray(attr.index)
                 log_gl_error(
                     'Shader.bind_vertex_format-glDisableVertexAttribArray')
 
@@ -530,7 +531,8 @@ cdef class Shader:
                     continue
                 name = <bytes>attr.name
                 attr.index = cgl.glGetAttribLocation(self.program, <char *>name)
-                cgl.glEnableVertexAttribArray(attr.index)
+                if attr.index != <unsigned int>-1:
+                    cgl.glEnableVertexAttribArray(attr.index)
                 log_gl_error(
                     'Shader.bind_vertex_format-glEnableVertexAttribArray')
 
