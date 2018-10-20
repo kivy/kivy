@@ -1120,7 +1120,7 @@ if not build_examples:
         dependency_links=[
             'https://github.com/kivy-garden/garden/archive/master.zip'],
         install_requires=install_requires,
-        extra_requires={
+        extras_require={
             'tuio': ['oscpy']
         },
         setup_requires=[
