@@ -21,10 +21,10 @@ from time import sleep, time
 from subprocess import check_output, CalledProcessError
 from datetime import datetime
 
-if environ.get('KIVY_USE_SETUPTOOLS'):
+try:
     from setuptools import setup, Extension
     print('Using setuptools')
-else:
+except ImportError:
     from distutils.core import setup
     from distutils.extension import Extension
     print('Using distutils')
@@ -223,17 +223,38 @@ cython_unsupported = '''\
 '''.format(MIN_CYTHON_STRING, MAX_CYTHON_STRING,
            cython_unsupported_append)
 
-have_cython = False
-skip_cython = False
-getting_cython = False
+# The goal is to not have cython ever be present as _any_ dependency if
+# possible, as we want to make cython a completely optional dependency.
+# However, for packages compiling from source, it needs to be available
+# somehow to ensure the .c files be generated from .pyx files.
+# The following are things to be done:
+# 1) DO NOT add cython to setup_requires for ios/android (author of this
+#    comment has been informed that there are issues with the usage of
+#    Cython to generate sources for kivy on those platforms).
+# 2) DO NOT add cython to setup_requires if Cython can be imported (i.e.
+#    already present in the environment. The reason for this is that
+#    the .whl files produced for kivy must NOT specify Cython its
+#    dependancy as it is a build time dependency (and can cause conflict
+#    for certain platforms).
+# 3) Only have cython listed in setup_requires if neither of the above
+#    conditions apply, so that dependent packages being installed on
+#    systems that the kivy wheel is not available and cython may be
+#    installed, that cython also be installed before pip runs ``setup.py
+#    bdist_wheel`` on the kivy source package when end-users execute
+#    ``pip install kivy`` or any other packages that depend on kivy.
+
+# This determines whether Cython specific functionality may be used.
+can_use_cython = True
+# This sets whether or not Cython gets added to setup_requires.
+declare_cython = False
+
 if platform in ('ios', 'android'):
-    print('\nCython check avoided.')
-    skip_cython = True
+    # NEVER use or declare cython on these platforms
+    print('Not using cython on %s' % platform)
+    can_use_cython = False
 else:
     try:
-        # check for cython
-        from Cython.Distutils import build_ext
-        have_cython = True
+        # see if Cython needs to be declared by its absence.
         import Cython
         cy_version_str = Cython.__version__
         cy_ver = LooseVersion(cy_version_str)
@@ -248,16 +269,26 @@ else:
             print(cython_max)
             sleep(1)
     except ImportError:
-        getting_cython = True
-
-if not have_cython:
-    from distutils.command.build_ext import build_ext
+        print(
+            "Cython can be used but is not available in the environment; "
+            "declare it as a setup_requires"
+        )
+        declare_cython = True
 
 # -----------------------------------------------------------------------------
 # Setup classes
 
 # the build path where kivy is being compiled
 src_path = build_path = dirname(__file__)
+
+
+from distutils.command.build_ext import build_ext
+if can_use_cython:
+    try:
+        from Cython.Distutils import build_ext
+        print('using cython build_ext')
+    except ImportError:
+        print('not using cython build_ext')
 
 
 class KivyBuildExt(build_ext):
@@ -935,7 +966,8 @@ def get_extensions_from_sources(sources):
         pyx = expand(src_path, pyx)
         depends = [expand(src_path, x) for x in flags.pop('depends', [])]
         c_depends = [expand(src_path, x) for x in flags.pop('c_depends', [])]
-        if not (have_cython or getting_cython):
+        if not can_use_cython:
+            # can't use cython, so use the .c files instead.
             pyx = '%s.c' % pyx[:-4]
         if is_graphics:
             depends = resolve_dependencies(pyx, depends)
@@ -985,11 +1017,12 @@ if isdir(binary_deps_path):
 # setup !
 if not build_examples:
     install_requires = [
-            'Kivy-Garden>=0.1.4', 'docutils', 'pygments'
+        'Kivy-Garden>=0.1.4', 'docutils', 'pygments'
     ]
-    if getting_cython:
-        install_requires.append(
-                'cython >=' + MIN_CYTHON_STRING + ', <= ' + MAX_CYTHON_STRING)
+    setup_requires = []
+    if declare_cython:
+        setup_requires.append(
+            'cython >=' + MIN_CYTHON_STRING + ', <= ' + MAX_CYTHON_STRING)
     setup(
         name='Kivy',
         version=get_version(),
@@ -1120,12 +1153,10 @@ if not build_examples:
         dependency_links=[
             'https://github.com/kivy-garden/garden/archive/master.zip'],
         install_requires=install_requires,
+        setup_requires=setup_requires,
         extras_require={
             'tuio': ['oscpy']
-        },
-        setup_requires=[
-            'cython >=' + MIN_CYTHON_STRING + ', <= ' + MAX_CYTHON_STRING
-        ] if not skip_cython else [])
+        })
 else:
     setup(
         name='Kivy-examples',
