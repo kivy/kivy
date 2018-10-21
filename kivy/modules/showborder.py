@@ -16,6 +16,8 @@ from kivy.lang import Builder
 KV_CODE = '''
 <Widget>:
     canvas.after:
+        Color:
+            rgba: 1, 1, 1, 1
         Line:
             rectangle: self.x + 1, self.y + 1, self.width - 1, self.height - 1
             dash_offset: 5
