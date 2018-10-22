@@ -18,7 +18,7 @@ from distutils.command.build_ext import build_ext
 from distutils.version import LooseVersion
 from distutils.sysconfig import get_python_inc
 from collections import OrderedDict
-from time import sleep, time
+from time import time
 from subprocess import check_output, CalledProcessError
 from datetime import datetime
 
@@ -83,6 +83,13 @@ MAX_CYTHON_VERSION = LooseVersion(MAX_CYTHON_STRING)
 CYTHON_UNSUPPORTED = (
     # ref https://github.com/cython/cython/issues/1968
     '0.27', '0.27.2'
+)
+CYTHON_REQUIRES_STRING = (
+    'cython>={min_version},<={max_version},{exclusion}'.format(
+        min_version=MIN_CYTHON_STRING,
+        max_version=MAX_CYTHON_STRING,
+        exclusion=','.join('!=%s' % excl for excl in CYTHON_UNSUPPORTED),
+    )
 )
 
 
@@ -254,27 +261,7 @@ if platform in ('ios', 'android'):
     print('Not using cython on %s' % platform)
     can_use_cython = False
 else:
-    try:
-        # see if Cython needs to be declared by its absence.
-        import Cython
-        cy_version_str = Cython.__version__
-        cy_ver = LooseVersion(cy_version_str)
-        print('\nDetected Cython version {}'.format(cy_version_str))
-        if cy_ver < MIN_CYTHON_VERSION:
-            print(cython_min)
-            raise ImportError('Incompatible Cython Version')
-        if cy_ver in CYTHON_UNSUPPORTED:
-            print(cython_unsupported)
-            raise ImportError('Incompatible Cython Version')
-        if cy_ver > MAX_CYTHON_VERSION:
-            print(cython_max)
-            sleep(1)
-    except ImportError:
-        print(
-            "Cython can be used but is not available in the environment; "
-            "declare it as a setup_requires"
-        )
-        declare_cython = True
+    declare_cython = True
 
 # -----------------------------------------------------------------------------
 # Setup classes
@@ -287,11 +274,7 @@ class KivyBuildExt(build_ext, object):
 
     def __new__(cls, *a, **kw):
         if can_use_cython:
-            try:
-                from Cython.Distutils import build_ext as cython_build_ext
-            except ImportError:
-                return super(KivyBuildExt, cls).__new__(cls)
-
+            from Cython.Distutils import build_ext as cython_build_ext
             build_ext_cls = type(
                 'KivyBuildExt', (KivyBuildExt, cython_build_ext), {})
             return super(KivyBuildExt, cls).__new__(build_ext_cls)
@@ -1026,8 +1009,7 @@ if not build_examples:
     ]
     setup_requires = []
     if declare_cython:
-        setup_requires.append(
-            'cython >=' + MIN_CYTHON_STRING + ', <= ' + MAX_CYTHON_STRING)
+        setup_requires.append(CYTHON_REQUIRES_STRING)
     setup(
         name='Kivy',
         version=get_version(),
