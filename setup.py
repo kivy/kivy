@@ -17,7 +17,7 @@ from os import walk, environ
 from distutils.version import LooseVersion
 from distutils.sysconfig import get_python_inc
 from collections import OrderedDict
-from time import sleep
+from time import sleep, time
 from subprocess import check_output, CalledProcessError
 from datetime import datetime
 
@@ -46,7 +46,8 @@ def get_description():
 
 def get_version(filename='kivy/version.py'):
     VERSION = kivy.__version__
-    DATE = datetime.utcnow().strftime('%Y%m%d')
+    epoch = int(environ.get('SOURCE_DATE_EPOCH', time()))
+    DATE = datetime.utcfromtimestamp(epoch).strftime('%Y%m%d')
     try:
         GIT_REVISION = check_output(
             ['git', 'rev-parse', 'HEAD']
