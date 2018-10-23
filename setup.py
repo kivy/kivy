@@ -273,6 +273,18 @@ src_path = build_path = dirname(__file__)
 class KivyBuildExt(build_ext, object):
 
     def __new__(cls, *a, **kw):
+        # Note how this class is declared as a subclass of distutils
+        # build_ext as the Cython version may not be available in the
+        # environment it is initially started in. However, if Cython
+        # can be used, setuptools will bring Cython into the environment
+        # thus its version of build_ext will become available.
+        # The reason why this is done as a __new__ rather than through a
+        # factory function is because there are distutils functions that check
+        # the values provided by cmdclass with issublcass, and so it would
+        # result in an exception.
+        # The following essentially supply a dynamically generated subclass
+        # that mix in the cython version of build_ext so that the
+        # functionality provided will also be executed.
         if can_use_cython:
             from Cython.Distutils import build_ext as cython_build_ext
             build_ext_cls = type(
