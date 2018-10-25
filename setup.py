@@ -231,25 +231,12 @@ cython_unsupported = '''\
 '''.format(MIN_CYTHON_STRING, MAX_CYTHON_STRING,
            cython_unsupported_append)
 
-# The goal is to not have cython ever be present as _any_ dependency if
-# possible, as we want to make cython a completely optional dependency.
-# However, for packages compiling from source, it needs to be available
-# somehow to ensure the .c files be generated from .pyx files.
-# The following are things to be done:
-# 1) DO NOT add cython to setup_requires for ios/android (author of this
-#    comment has been informed that there are issues with the usage of
-#    Cython to generate sources for kivy on those platforms).
-# 2) DO NOT add cython to setup_requires if Cython can be imported (i.e.
-#    already present in the environment. The reason for this is that
-#    the .whl files produced for kivy must NOT specify Cython its
-#    dependancy as it is a build time dependency (and can cause conflict
-#    for certain platforms).
-# 3) Only have cython listed in setup_requires if neither of the above
-#    conditions apply, so that dependent packages being installed on
-#    systems that the kivy wheel is not available and cython may be
-#    installed, that cython also be installed before pip runs ``setup.py
-#    bdist_wheel`` on the kivy source package when end-users execute
-#    ``pip install kivy`` or any other packages that depend on kivy.
+# We want to be able to install kivy as a wheel without a dependency
+# on cython, but we also want to use cython where possible as a setup
+# time dependency through `setup_requires` if building from source.
+
+# There are issues with using cython at all on some platforms;
+# exclude them from using or declaring cython.
 
 # This determines whether Cython specific functionality may be used.
 can_use_cython = True
