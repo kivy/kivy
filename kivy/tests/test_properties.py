@@ -545,3 +545,96 @@ class PropertiesTestCase(unittest.TestCase):
         self.assertEqual(color.get(wid), [1, 1, 0, 1])
         color.set(wid, (1, 1, 0, 0))
         self.assertEqual(color.get(wid), [1, 1, 0, 0])
+
+    def test_aliasproperty_cache_true_no_bind(self):
+        from kivy.properties import AliasProperty
+
+        called = [0]
+
+        def _get(wid):
+            called[0] += 1
+
+        def _set(wid, value):
+            return True
+
+        alias = AliasProperty(_get, _set, cache=True)
+        alias.link(wid, 'alias')
+        called = [0]
+        assert called[0] == 0
+        alias.set(wid, 1)
+        assert called[0] == 1
+        alias.get(wid)
+        assert called[0] == 1
+
+    def test_aliasproperty_cache_true_bind(self):
+        from kivy.properties import NumericProperty, AliasProperty
+        from itertools import count
+        called = count()
+
+        def _get(wid):
+            next(called)
+            return 1
+
+        def _set(wid, value):
+            return True
+
+        wid.__class__.test_bind = test_bind = NumericProperty(100)
+        test_bind.link(wid, 'test_bind')
+        test_bind.link_deps(wid, 'test_bind')
+
+        wid.__class__.alias = alias = AliasProperty(_get, _set, bind=['test_bind'], cache=True)
+        alias.link(wid, 'alias')
+        alias.link_deps(wid, 'alias')
+
+        wid.test_bind = 0
+        assert str(called) == 'count(1)'
+        alias.get(wid)
+        assert str(called) == 'count(1)'
+        wid.test_bind += 1
+        assert str(called) == 'count(2)'
+        alias.get(wid)
+        assert str(called) == 'count(2)'
+
+    def test_aliasproperty_cache_force_dispatch(self):
+        from kivy.properties import NumericProperty, AliasProperty
+        from itertools import count
+        called = count()
+        called_cb = count()
+        import q
+
+        def _get(wid):
+            next(called)
+            return 1
+
+        def _set(wid, value):
+            return True
+
+        def cb(wid, value):
+            q("called", value)
+            next(called_cb)
+
+        wid.__class__.test_bind = test_bind = NumericProperty(100)
+        test_bind.link(wid, 'test_bind')
+        test_bind.link_deps(wid, 'test_bind')
+
+        wid.__class__.alias = alias = AliasProperty(
+            _get, _set, bind=['test_bind'],
+            cache=True,
+            force_dispatch=True
+        )
+
+        alias.link(wid, 'alias')
+        alias.link_deps(wid, 'alias')
+        wid.bind(alias=cb)
+
+        wid.test_bind = 0
+        assert str(called) == 'count(1)'
+        assert str(called_cb) == 'count(1)'
+        alias.get(wid)
+        assert str(called) == 'count(1)'
+        wid.test_bind = 0
+        assert str(called) == 'count(1)'
+        assert str(called_cb) == 'count(1)'
+        alias.get(wid)
+        assert str(called) == 'count(1)'
+
