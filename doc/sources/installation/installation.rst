@@ -3,44 +3,11 @@
 Installation
 ============
 
-We try not to reinvent the wheel, but to bring something innovative to the
-market. As a consequence, we're focused on our own code and use pre-existing,
-high quality third-party libraries where possible.
+In avoidance of reinventing the wheel, Kivy depends on a lot of third-party libraries. 
+Not all of them have to be installed, and for some of them there are options. 
 
-To support the full, rich set of features that Kivy offers, several other
-libraries are required. If you do not use a specific feature (e.g. video
-playback), you don't need the corresponding dependency.
-
-That said, there is one dependency that Kivy **does** require:
-`Cython <http://cython.org>`_.
-
-In addition, you need a `Python <http://python.org/>`_ 2.x (2.7 <= x < 3.0)
-or 3.x (3.4 <= x) interpreter. If you want to enable features like windowing
-(i.e. open a Window), audio/video playback or spelling correction, additional
-dependencies must be available. For these, we recommend
-`SDL2 <https://www.libsdl.org/download-2.0.php>`_,
-`Gstreamer 1.x <http://www.gstreamer.net/>`_ and
-`PyEnchant <https://pythonhosted.org/pyenchant/>`_ respectively.
-
-Other optional libraries (mutually independent) are:
-
-* `OpenCV 2.0 <http://sourceforge.net/projects/opencvlibrary/>`_
-  -- Camera input,
-* `Pillow <https://python-pillow.github.io/>`_
-  -- Image and text display,
-* `PyEnchant <https://pythonhosted.org/pyenchant/>`_
-  -- Spelling correction.
-
-That said, **DON'T PANIC**!
-
-We don't expect you to install all those things on your own.
-Instead, we have created nice portable packages that you can use directly,
-and they already contain the necessary packages for your platform.
-We just want you to know that there are alternatives to the defaults and give
-you an overview of the things Kivy uses internally.
-
-
-.. _installation_deps:
+To make life a little bit easier though, we have setup pre built packages for your platform that contain
+one possible configuration that supports all features of kivy.
 
 Dependencies
 ------------
