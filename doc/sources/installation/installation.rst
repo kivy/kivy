@@ -3,11 +3,95 @@
 Installation
 ============
 
-In avoidance of reinventing the wheel, Kivy depends on a lot of third-party libraries. 
-Not all of them have to be installed, and for some of them there are options. 
+Kivy depends on a relatively larg amount of other libraries and packages.
+The following list shows methods for installing kivy easily along with all dependencies.
 
-To make life a little bit easier though, we have setup pre built packages for your platform that contain
-one possible configuration that supports all features of kivy.
+Ways to install with fine grained control (for instance for when only a subset of kivy's
+features are required) as well as installations for kivy developers can be be found at the bottom of the page.
+
+Windows
+~~~~~~~~~~~~~~~~~~
+
+Install kivy along with Windows-specific dependencies:
+
+    $ pip3 install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew kivy.deps.gstreamer kivy
+
+Optionally, install examples featured in the `Gallery of Examples <https://kivy.org/doc/stable/examples/gallery.html>`_::
+
+    $ pip3 install kivy_examples
+
+OS X
+~~~~~~~~~~~~~~~~~~
+
+First, install necessary packages using homebrew:
+
+    $ brew install pkg-config sdl2 sdl2_image sdl2_ttf sdl2_mixer gstreamer
+
+Then install kivy using pip::
+
+    $ pip install Cython==0.26.1 kivy
+
+Optionally, install examples featured in the `Gallery of Examples <https://kivy.org/doc/stable/examples/gallery.html>`_::
+
+    $ pip install kivy_examples
+
+
+Linux
+~~~~~~~~~~~~~~~~~~
+
+Ubuntu based Distros (Ubuntu, Mint, Bhodi)    
++++++++
+
+Add kivy PPA::
+
+    $ sudo add-apt-repository ppa:kivy-team/kivy
+
+Update packages list of apt::
+
+    $ sudo apt update
+
+Install kivy dependencies (leave out the `3` for Python 2.x)::
+
+    $ sudo apt-get install python3-kivy
+
+Optionally, install some examples featured in the `Gallery of Examples <https://kivy.org/doc/stable/examples/gallery.html>`_::
+
+    $ sudo apt install kivy-examples
+
+
+Debian (Jessie or newer)
+++++++++
+
+Add kivy PPA::
+
+    $ deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu xenial main
+
+Add GPG to your apt keyring for our repository::
+
+    $ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6
+
+Update package list of apt::
+
+    $ sudo apt update
+
+Install kivy dependencies (leave out the `3` for Python 2.x)::
+
+    $ sudo apt-get install python3-kivy
+
+Optionally, install some examples featured in the `Gallery of Examples <https://kivy.org/doc/stable/examples/gallery.html>`_::
+
+    $ sudo apt install kivy-examples
+
+Raspberri Pi
++++++++++
+
+Installation on a Raspberri Pi is a little complicated, its instructions can be found on a separate page: :ref:`installation_rpi`.
+
+
+.. TODO: Include reference to virtualenv-installation instructions for other distributions
+
+
+.. _installation_deps:
 
 Dependencies
 ------------
