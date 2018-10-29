@@ -7,8 +7,10 @@ from kivy.uix.label import Label
 from kivy.base import EventLoop
 from kivy.clock import Clock
 from time import sleep
+from itertools import count
 
 DEBUG = False
+touch_id = count()
 
 
 class UTMotionEvent(MotionEvent):
@@ -102,7 +104,7 @@ class ScrollViewTestCase(GraphicUnitTest):
             x, y, nx, ny, pos_x, pos_y, border_check = point
             scroll.bar_pos = (pos_x, pos_y)
 
-            touch = UTMotionEvent("unittest", 1, {
+            touch = UTMotionEvent("unittest", next(touch_id), {
                 "x": x / float(win.width),
                 "y": y / float(win.height),
             })
@@ -298,6 +300,66 @@ class ScrollViewTestCase(GraphicUnitTest):
         ]
         self.process_points(scroll, points)
         self.render(scroll)
+
+    def test_smooth_scroll_end(self):
+        EventLoop.ensure_window()
+        win = EventLoop.window
+        grid = TestGrid()
+        scroll = ScrollView(smooth_scroll_end=10)
+
+        assert scroll.smooth_scroll_end == 10
+        scroll.add_widget(grid)
+
+        # XXX this shouldn't be needed, but previous tests apparently
+        # don't cleanup
+        while win.children:
+            win.remove_widget(win.children[0])
+
+        win.add_widget(scroll)
+
+        # get widgets ready
+        EventLoop.idle()
+
+        e = scroll.effect_y
+        assert e.velocity == 0
+
+        touch = UTMotionEvent("unittest", next(touch_id), {
+            "x": scroll.center_x / float(win.width),
+            "y": scroll.center_y / float(win.height),
+        })
+
+        touch.profile.append('button')
+        touch.button = 'scrollup'
+
+        EventLoop.post_dispatch_input("begin", touch)
+        # EventLoop.post_dispatch_input("update", touch)
+        assert e.velocity == 10 * scroll.scroll_wheel_distance
+        EventLoop.idle()
+        assert 0 < e.velocity < 10 * scroll.scroll_wheel_distance
+        EventLoop.post_dispatch_input("end", touch)
+        EventLoop.idle()
+        assert 0 < e.velocity < 10 * scroll.scroll_wheel_distance
+
+        # wait for velocity to die off
+        while e.velocity:
+            EventLoop.idle()
+
+        touch = UTMotionEvent("unittest", next(touch_id), {
+            "x": scroll.center_x / float(win.width),
+            "y": scroll.center_y / float(win.height),
+        })
+        touch.profile.append('button')
+        touch.button = 'scrolldown'
+
+        EventLoop.post_dispatch_input("begin", touch)
+        # EventLoop.post_dispatch_input("update", touch)
+        assert e.velocity == -10 * scroll.scroll_wheel_distance
+        EventLoop.idle()
+        assert 0 > e.velocity > -10 * scroll.scroll_wheel_distance
+        EventLoop.post_dispatch_input("end", touch)
+        EventLoop.idle()
+        assert 0 > e.velocity > -10 * scroll.scroll_wheel_distance
+
 
 
 if __name__ == '__main__':
