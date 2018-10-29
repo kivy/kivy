@@ -120,7 +120,7 @@ class CameraOpenCV(CameraBase):
 
         if self.fps == 0:
             self.fps = 1 / 30
-        elif self.fps > 0:
+        elif self.fps > 1:
             self.fps = 1 / self.fps
 
         if not self.stopped:
