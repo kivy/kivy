@@ -139,8 +139,12 @@ if ndkplatform is not None and environ.get('LIBLINK'):
 kivy_ios_root = environ.get('KIVYIOSROOT', None)
 if kivy_ios_root is not None:
     platform = 'ios'
+# proprietary broadcom video core drivers
 if exists('/opt/vc/include/bcm_host.h'):
     platform = 'rpi'
+# use mesa video core drivers
+if environ.get('VIDEOCOREMESA', None):
+    platform = 'vc'
 if exists('/usr/lib/arm-linux-gnueabihf/libMali.so'):
     platform = 'mali'
 
@@ -149,7 +153,6 @@ if exists('/usr/lib/arm-linux-gnueabihf/libMali.so'):
 #
 c_options = OrderedDict()
 c_options['use_rpi'] = platform == 'rpi'
-c_options['use_mali'] = platform == 'mali'
 c_options['use_egl'] = False
 c_options['use_opengl_es2'] = None
 c_options['use_opengl_mock'] = environ.get('READTHEDOCS', None) == 'True'
@@ -388,7 +391,7 @@ except ImportError:
     print('User distribution detected, avoid portable command.')
 
 # Detect which opengl version headers to use
-if platform in ('android', 'darwin', 'ios', 'rpi', 'mali'):
+if platform in ('android', 'darwin', 'ios', 'rpi', 'mali', 'vc'):
     c_options['use_opengl_es2'] = True
 elif c_options['use_opengl_es2'] is None:
     c_options['use_opengl_es2'] = \
@@ -627,7 +630,7 @@ def determine_gl_flags():
                 'for rpi platform, falling back to EGL and GLESv2.')
             gl_libs = ['EGL', 'GLESv2']
         flags['libraries'] = ['bcm_host'] + gl_libs
-    elif platform == 'mali':
+    elif platform in ['mali', 'vc']:
         flags['include_dirs'] = ['/usr/include/']
         flags['library_dirs'] = ['/usr/lib/arm-linux-gnueabihf']
         flags['libraries'] = ['GLESv2']
