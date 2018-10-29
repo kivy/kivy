@@ -59,6 +59,7 @@ class CameraBase(EventDispatcher):
         self.stopped = kwargs.get('stopped')
         self._resolution = kwargs.get('resolution')
         self._index = kwargs.get('index')
+        self._frame_sample_size = kwargs.get('frame_sample_size')
         self._buffer = None
         self._format = 'rgb'
         self._texture = None
