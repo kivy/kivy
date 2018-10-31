@@ -86,7 +86,11 @@ Raspberri Pi
 
 Installation on a Raspberri Pi is a little complicated, its instructions can be found on a separate page: :ref:`installation_rpi`.
 
-.. TODO: Include reference to virtualenv-installation instructions for other distributions
+
+Other Distros
+++++++++
+
+For other distros, we recommend :ref:`installation_in_venv` .
 
 .. _advanced_installation:
 
