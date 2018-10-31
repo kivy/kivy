@@ -1452,7 +1452,8 @@ cdef class AliasProperty(Property):
             self.use_cache = 1
 
     def __read_only(self, _obj, _value):
-        raise AttributeError('property is read-only')
+        raise AttributeError('"{}.{}" property is readonly'
+                             .format(type(_obj).__name__, self._name))
 
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage):
         Property.init_storage(self, obj, storage)
