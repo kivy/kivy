@@ -1,3 +1,5 @@
+.. _installation_in_venv:
+
 Installation in a Virtual Environment
 =====================================
 
