@@ -1386,7 +1386,8 @@ cdef class AliasProperty(Property):
     If you don't find a Property class that fits to your needs, you can make
     your own by creating custom Python getter and setter methods.
 
-    Example from kivy/uix/widget.py::
+    Example from kivy/uix/widget.py where x` and `width` are instances of
+    `NumericProperty`::
 
         def get_right(self):
             return self.x + self.width
@@ -1394,21 +1395,38 @@ cdef class AliasProperty(Property):
             self.x = value - self.width
         right = AliasProperty(get_right, set_right, bind=['x', 'width'])
 
+    If `x` were to be an instance level attribute and not Kivy property then
+    you have to return `True` from setter to dispatch value of `right`::
+
+        def set_right(self, value):
+            self.x = value - self.width
+            return True
+
+    If your want to cache the value returned by getter then pass `cache=True`.
+    This way getter will only be called if new value is set or one of the
+    binded properties changes. In both cases new value of alias property will
+    be cached again.
+
+    To make property readonly pass `None` as setter. This way `AttributeError`
+    will be raised on every set attempt::
+
+        right = AliasProperty(get_right, None, bind=['x', 'width'], cache=True)
+
     :Parameters:
         `getter`: function
-            Function to use as a property getter
+            Function to use as a property getter.
         `setter`: function
-            Function to use as a property setter. Properties listening to the
-            alias property won't be updated when the property is set (e.g.
-            `right = 10`), unless the `setter` returns `True`.
+            Function to use as a property setter. Callbacks listening to the
+            alias property won't be called when the property is set (e.g.
+            `right = 10`), unless the setter returns `True`.
         `bind`: list/tuple
-            Properties to observe for changes, as property name strings
+            Properties to observe for changes, as property name strings.
+            Changing values of this properties will dispatch value of the
+            alias property.
         `cache`: boolean
-            If True, the value will be cached, until one of the binded
-            elements changes. If `bind` collection is empty and `cache` is
-            True, `setter` must return True in order to cache new value and
-            trigger its dispatch.
-        `rebind`: bool, defaults to False
+            If `True`, the value will be cached, until one of the binded
+            elements changes or if setter returns `True`.
+        `rebind`: bool, defaults to `False`
             See :class:`ObjectProperty` for details.
 
     .. versionchanged:: 1.9.0
