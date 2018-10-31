@@ -6,7 +6,10 @@ OpenCV Camera: Implement CameraBase with OpenCV
 # TODO: make usage of thread or multiprocess
 #
 
+from __future__ import division
+
 __all__ = ('CameraOpenCV')
+
 
 from kivy.logger import Logger
 from kivy.clock import Clock
