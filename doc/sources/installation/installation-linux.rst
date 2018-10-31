@@ -117,12 +117,14 @@ Other
 For other distros, we recommend installing via pip as shown below.
 
 
-Installation in a Virtual Environment
-=====================================
+.. _installation_in_venv:
+
+In a Virtual Environment
+~~~~~~~~~~~~~~~~~~~~~~
 
 
 Common dependencies
-~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^
 
 
 Cython
