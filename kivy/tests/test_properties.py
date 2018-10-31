@@ -131,63 +131,6 @@ class PropertiesTestCase(unittest.TestCase):
         a.set(wid, 1)
         self.assertEqual(a.get(wid), 1)
 
-    def test_alias(self):
-        from kivy.properties import NumericProperty, AliasProperty
-
-        wid.__class__.x = x = NumericProperty(0)
-        x.link(wid, 'x')
-        x.link_deps(wid, 'x')
-        wid.__class__.width = width = NumericProperty(100)
-        width.link(wid, 'width')
-        width.link_deps(wid, 'width')
-
-        def get_right(self):
-            return x.get(self) + width.get(self)
-
-        def set_right(self, value):
-            x.set(self, value - width.get(self))
-
-        right = AliasProperty(get_right, set_right, bind=('x', 'width'))
-        right.link(wid, 'right')
-        right.link_deps(wid, 'right')
-
-        self.assertEqual(right.get(wid), 100)
-        x.set(wid, 500)
-        self.assertEqual(right.get(wid), 600)
-        width.set(wid, 50)
-        self.assertEqual(right.get(wid), 550)
-
-        right.set(wid, 100)
-        self.assertEqual(width.get(wid), 50)
-        self.assertEqual(x.get(wid), 50)
-
-        # test observer
-        global observe_called
-        observe_called = 0
-
-        def observe(obj, value):
-            global observe_called
-            observe_called = 1
-        right.bind(wid, observe)
-
-        x.set(wid, 100)
-        self.assertEqual(observe_called, 1)
-        observe_called = 0
-
-        x.set(wid, 100)
-        self.assertEqual(observe_called, 0)
-
-        width.set(wid, 900)
-        self.assertEqual(observe_called, 1)
-        observe_called = 0
-
-        right.set(wid, 700)
-        self.assertEqual(observe_called, 1)
-        observe_called = 0
-
-        right.set(wid, 700)
-        self.assertEqual(observe_called, 0)
-
     def test_reference(self):
         from kivy.properties import NumericProperty, ReferenceListProperty
 
@@ -284,46 +227,6 @@ class PropertiesTestCase(unittest.TestCase):
         observe_called = 0
         x.get(wid).update({'bleh': 5})
         self.assertEqual(observe_called, 1)
-
-    def test_aliasproperty_with_cache(self):
-        from kivy.properties import NumericProperty, AliasProperty
-        global observe_called
-        observe_called = 0
-
-        class CustomAlias(EventDispatcher):
-            basevalue = NumericProperty(1)
-
-            def _get_prop(self):
-                global observe_called
-                observe_called += 1
-                return self.basevalue * 2
-
-            def _set_prop(self, value):
-                self.basevalue = value / 2
-
-            prop = AliasProperty(_get_prop, _set_prop,
-                    bind=('basevalue', ), cache=True)
-
-        # initial checks
-        wid = CustomAlias()
-        self.assertEqual(observe_called, 0)
-        self.assertEqual(wid.basevalue, 1)
-        self.assertEqual(observe_called, 0)
-
-        # change the base value, should trigger an update for the cache
-        wid.basevalue = 4
-        self.assertEqual(observe_called, 1)
-
-        # now read the value again, should use the cache
-        self.assertEqual(wid.prop, 8)
-        self.assertEqual(observe_called, 1)
-
-        # change the prop itself, should trigger an update for the cache
-        wid.prop = 4
-        self.assertEqual(observe_called, 2)
-        self.assertEqual(wid.basevalue, 2)
-        self.assertEqual(wid.prop, 4)
-        self.assertEqual(observe_called, 2)
 
     def test_bounded_numeric_property(self):
         from kivy.properties import BoundedNumericProperty
@@ -546,95 +449,320 @@ class PropertiesTestCase(unittest.TestCase):
         color.set(wid, (1, 1, 0, 0))
         self.assertEqual(color.get(wid), [1, 1, 0, 0])
 
-    def test_aliasproperty_cache_true_no_bind(self):
+    def test_alias_property_without_setter(self):
         from kivy.properties import AliasProperty
 
-        called = [0]
+        expected_value = 5
 
-        def _get(wid):
-            called[0] += 1
+        class CustomAlias(EventDispatcher):
 
-        def _set(wid, value):
-            return True
+            def _get_prop(self):
+                self.getter_called += 1
+                return expected_value
 
-        alias = AliasProperty(_get, _set, cache=True)
-        alias.link(wid, 'alias')
-        called = [0]
-        assert called[0] == 0
-        alias.set(wid, 1)
-        assert called[0] == 1
-        alias.get(wid)
-        assert called[0] == 1
+            prop = AliasProperty(_get_prop, None)
 
-    def test_aliasproperty_cache_true_bind(self):
+            def __init__(self, **kwargs):
+                super(CustomAlias, self).__init__(**kwargs)
+                self.getter_called = 0
+
+        # Initial checks
+        wid = CustomAlias()
+        self.assertEqual(wid.getter_called, 0)
+
+        # Get value, should call getter once
+        value = wid.prop
+        self.assertEqual(value, expected_value)
+        self.assertEqual(wid.getter_called, 1)
+
+        # Setter should raise an AttributeError
+        self.assertRaises(AttributeError, partial(setattr, wid, 'prop', 1))
+
+    def test_alias_property(self):
+        from kivy.properties import AliasProperty
+
+        class CustomAlias(EventDispatcher):
+
+            def _get_prop(self):
+                self.getter_called += 1
+
+            def _set_prop(self, value):
+                self.setter_called += 1
+
+            prop = AliasProperty(_get_prop, _set_prop)
+
+            def __init__(self, **kwargs):
+                super(CustomAlias, self).__init__(**kwargs)
+                self.getter_called = 0
+                self.setter_called = 0
+                self.callback_called = 0
+
+        def callback(widget, value):
+            widget.callback_called += 1
+
+        # Initial checks
+        wid = CustomAlias()
+        wid.bind(prop=callback)
+        self.assertEqual(wid.getter_called, 0)
+        self.assertEqual(wid.setter_called, 0)
+        self.assertEqual(wid.callback_called, 0)
+
+        # Set property, should call setter to set the value
+        # Getter and callback should not be called because `_set_prop` doesn't
+        # returns True
+        wid.prop = 1
+        self.assertEqual(wid.getter_called, 0)
+        self.assertEqual(wid.setter_called, 1)
+        self.assertEqual(wid.callback_called, 0)
+
+        # Set property to same value as before, should only call setter
+        wid.prop = 1
+        self.assertEqual(wid.getter_called, 0)
+        self.assertEqual(wid.setter_called, 2)
+        self.assertEqual(wid.callback_called, 0)
+
+        # Get value of the property, should call getter once
+        self.assertEqual(wid.prop, None)
+        self.assertEqual(wid.getter_called, 1)
+        self.assertEqual(wid.setter_called, 2)
+        self.assertEqual(wid.callback_called, 0)
+
+    def test_alias_property_cache_true(self):
+        from kivy.properties import AliasProperty
+
+        expected_value = 5
+
+        class CustomAlias(EventDispatcher):
+
+            def _get_prop(self):
+                self.getter_called += 1
+                return expected_value
+
+            def _set_prop(self, value):
+                self.setter_called += 1
+                return True
+
+            prop = AliasProperty(_get_prop, _set_prop, cache=True)
+
+            def __init__(self, **kwargs):
+                super(CustomAlias, self).__init__(**kwargs)
+                self.getter_called = 0
+                self.setter_called = 0
+
+        # Initial checks
+        wid = CustomAlias()
+        self.assertEqual(wid.getter_called, 0)
+        self.assertEqual(wid.setter_called, 0)
+
+        # Get value of the property, should call getter once
+        value = wid.prop
+        self.assertEqual(value, expected_value)
+        self.assertEqual(wid.getter_called, 1)
+        self.assertEqual(wid.setter_called, 0)
+
+        # Get value of the property, should return cached value
+        # Getter should not be called
+        value = wid.prop
+        self.assertEqual(value, expected_value)
+        self.assertEqual(wid.getter_called, 1)
+        self.assertEqual(wid.setter_called, 0)
+
+        # Set value of property, should call getter and setter
+        wid.prop = 10
+        value = wid.prop
+        self.assertEqual(value, expected_value)
+        self.assertEqual(wid.setter_called, 1)
+        self.assertEqual(wid.getter_called, 2)
+
+    def test_alias_property_with_bind(self):
         from kivy.properties import NumericProperty, AliasProperty
-        from itertools import count
-        called = count()
 
-        def _get(wid):
-            next(called)
-            return 1
+        class CustomAlias(EventDispatcher):
 
-        def _set(wid, value):
-            return True
+            x = NumericProperty(0)
+            width = NumericProperty(100)
 
-        wid.__class__.test_bind = test_bind = NumericProperty(100)
-        test_bind.link(wid, 'test_bind')
-        test_bind.link_deps(wid, 'test_bind')
+            def get_right(self):
+                return self.x + self.width
 
-        wid.__class__.alias = alias = AliasProperty(_get, _set, bind=['test_bind'], cache=True)
-        alias.link(wid, 'alias')
-        alias.link_deps(wid, 'alias')
+            def set_right(self, value):
+                self.x = value - self.width
 
-        wid.test_bind = 0
-        assert str(called) == 'count(1)'
-        alias.get(wid)
-        assert str(called) == 'count(1)'
-        wid.test_bind += 1
-        assert str(called) == 'count(2)'
-        alias.get(wid)
-        assert str(called) == 'count(2)'
+            right = AliasProperty(get_right, set_right, bind=('x', 'width'))
 
-    def test_aliasproperty_cache_force_dispatch(self):
+            def __init__(self, **kwargs):
+                super(CustomAlias, self).__init__(**kwargs)
+                self.callback_called = 0
+
+        # Assert values when setting x, width or right properties
+        wid = CustomAlias()
+        self.assertEqual(wid.right, 100)
+        wid.x = 500
+        self.assertEqual(wid.right, 600)
+        wid.width = 50
+        self.assertEqual(wid.right, 550)
+        wid.right = 100
+        self.assertEqual(wid.width, 50)
+        self.assertEqual(wid.x, 50)
+
+        def callback(widget, value):
+            widget.callback_called += 1
+
+        wid.bind(right=callback)
+
+        # Callback should be called only when property changes
+        wid.x = 100
+        self.assertEqual(wid.callback_called, 1)
+        wid.x = 100
+        self.assertEqual(wid.callback_called, 1)
+        wid.width = 900
+        self.assertEqual(wid.callback_called, 2)
+        wid.right = 700
+        self.assertEqual(wid.callback_called, 3)
+        wid.right = 700
+        self.assertEqual(wid.callback_called, 3)
+
+    def test_alias_property_with_force_dispatch_true(self):
+        from kivy.properties import AliasProperty
+
+        class CustomAlias(EventDispatcher):
+
+            def _get_prop(self):
+                self.getter_called += 1
+
+            def _set_prop(self, value):
+                self.setter_called += 1
+
+            prop = AliasProperty(_get_prop, _set_prop, force_dispatch=True)
+
+            def __init__(self, **kwargs):
+                super(CustomAlias, self).__init__(**kwargs)
+                self.getter_called = 0
+                self.setter_called = 0
+                self.callback_called = 0
+
+        def callback(widget, value):
+            widget.callback_called += 1
+
+        # Initial checks
+        wid = CustomAlias()
+        wid.bind(prop=callback)
+        self.assertEqual(wid.getter_called, 0)
+        self.assertEqual(wid.setter_called, 0)
+        self.assertEqual(wid.callback_called, 0)
+
+        # Set property, should call setter to set the value and getter to
+        # to get the value for dispatch call
+        wid.prop = 1
+        self.assertEqual(wid.getter_called, 1)
+        self.assertEqual(wid.setter_called, 1)
+        self.assertEqual(wid.callback_called, 1)
+
+        # Set property to same value as before, setter and getter and callback
+        # are called
+        wid.prop = 1
+        self.assertEqual(wid.getter_called, 2)
+        self.assertEqual(wid.setter_called, 2)
+        self.assertEqual(wid.callback_called, 2)
+
+    def test_alias_property_cache_true_with_bind(self):
         from kivy.properties import NumericProperty, AliasProperty
-        from itertools import count
-        called = count()
-        called_cb = count()
-        import q
 
-        def _get(wid):
-            next(called)
-            return 1
+        class CustomAlias(EventDispatcher):
 
-        def _set(wid, value):
-            return True
+            base_value = NumericProperty(1)
 
-        def cb(wid, value):
-            q("called", value)
-            next(called_cb)
+            def _get_prop(self):
+                self.getter_called += 1
+                return self.base_value * 2
 
-        wid.__class__.test_bind = test_bind = NumericProperty(100)
-        test_bind.link(wid, 'test_bind')
-        test_bind.link_deps(wid, 'test_bind')
+            def _set_prop(self, value):
+                self.base_value = value / 2
 
-        wid.__class__.alias = alias = AliasProperty(
-            _get, _set, bind=['test_bind'],
-            cache=True,
-            force_dispatch=True
-        )
+            prop = AliasProperty(_get_prop, _set_prop,
+                                 bind=('base_value',),
+                                 cache=True)
 
-        alias.link(wid, 'alias')
-        alias.link_deps(wid, 'alias')
-        wid.bind(alias=cb)
+            def __init__(self, **kwargs):
+                super(CustomAlias, self).__init__(**kwargs)
+                self.getter_called = 0
 
-        wid.test_bind = 0
-        assert str(called) == 'count(1)'
-        assert str(called_cb) == 'count(1)'
-        alias.get(wid)
-        assert str(called) == 'count(1)'
-        wid.test_bind = 0
-        assert str(called) == 'count(1)'
-        assert str(called_cb) == 'count(1)'
-        alias.get(wid)
-        assert str(called) == 'count(1)'
+        # Initial checks
+        wid = CustomAlias()
+        self.assertEqual(wid.getter_called, 0)
+        self.assertEqual(wid.base_value, 1)
+        self.assertEqual(wid.getter_called, 0)
 
+        # Change the base value, should trigger an update for the cache
+        wid.base_value = 4
+        self.assertEqual(wid.getter_called, 1)
+
+        # Now read the value again, should use the cache
+        self.assertEqual(wid.prop, 8)
+        self.assertEqual(wid.getter_called, 1)
+
+        # Change the prop itself, should trigger an update for the cache
+        wid.prop = 4
+        self.assertEqual(wid.getter_called, 2)
+        self.assertEqual(wid.base_value, 2)
+        self.assertEqual(wid.prop, 4)
+        self.assertEqual(wid.getter_called, 2)
+
+    def test_alias_property_cache_true_force_dispatch_true(self):
+        from kivy.properties import AliasProperty
+
+        class CustomAlias(EventDispatcher):
+
+            def _get_prop(self):
+                self.getter_called += 1
+                return self.base_value * 2
+
+            def _set_prop(self, value):
+                self.setter_called += 1
+                self.base_value = value / 2
+                return True
+
+            prop = AliasProperty(_get_prop, _set_prop,
+                                 cache=True,
+                                 force_dispatch=True)
+
+            def __init__(self, **kwargs):
+                super(CustomAlias, self).__init__(**kwargs)
+                self.base_value = 1
+                self.getter_called = 0
+                self.setter_called = 0
+                self.callback_called = 0
+
+        def callback(widget, value):
+            widget.callback_called += 1
+
+        wid = CustomAlias()
+        wid.bind(prop=callback)
+
+        # Initial checks
+        self.assertEqual(wid.base_value, 1)
+        self.assertEqual(wid.getter_called, 0)
+        self.assertEqual(wid.setter_called, 0)
+        self.assertEqual(wid.callback_called, 0)
+
+        # Set alias property some value, should call setter and then getter to
+        # pass the value to callback
+        wid.prop = 16
+        self.assertEqual(wid.base_value, 8)
+        self.assertEqual(wid.getter_called, 1)
+        self.assertEqual(wid.setter_called, 1)
+        self.assertEqual(wid.callback_called, 1)
+
+        # Same as the step above, should call setter, getter and callback
+        wid.prop = 16
+        self.assertEqual(wid.base_value, 8)
+        self.assertEqual(wid.getter_called, 2)
+        self.assertEqual(wid.setter_called, 2)
+        self.assertEqual(wid.callback_called, 2)
+
+        # Get the value of property, should use cached value
+        value = wid.prop
+        self.assertEqual(value, 16)
+        self.assertEqual(wid.getter_called, 2)
+        self.assertEqual(wid.setter_called, 2)
+        self.assertEqual(wid.callback_called, 2)
