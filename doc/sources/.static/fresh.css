@@ -226,6 +226,10 @@ div.sphinxsidebar li a:hover {
 	font-family: 'Source Code Pro', monospace;
 }
 
+#content h1, h2, h3, h4, h5, h6 {
+	font-weight: bold;
+}
+
 #content h1 {
 	margin-bottom: 25px;
 }
@@ -446,9 +450,20 @@ div.sphinxsidebar .api-index li a {
 	padding: 0px;
 	margin: 0px;
 }
-.toc ul li li li {
+
+.toc ul li li {
 	padding-left: 10px;
 	border-left: 1px solid #e0e0e0;
+}
+
+.toc ul li li li {
+	padding-left: 10px;
+	border-left: 3px double #e0e0e0;
+}
+
+.toc ul li li li li {
+	padding-left: 10px;
+	border-left: 3px double #e0e0e0;
 }
 
 
