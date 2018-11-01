@@ -1,7 +1,7 @@
 .. _installation:
 
 Basic Installation
-============
+==================
 
 Kivy offers a lot of customizability when it comes to installation. The following lists an easy installation method for each platform that should bring
 along all necessary dependencies. Ways to adjust how kivy is installed and how to setup kivy for developement can be read below under the :ref:`advanced_installation` section.
