@@ -1,7 +1,7 @@
 .. _installation:
 
 Basic Installation
-============
+==================
 
 Kivy offers a lot of customizability when it comes to installation. The following lists an easy installation method for each platform that should bring
 along all necessary dependencies. Ways to adjust how kivy is installed and how to setup kivy for developement can be read below under the :ref:`advanced_installation` section.
@@ -20,7 +20,7 @@ Optionally, install examples featured in the `Gallery of Examples <https://kivy.
     $ pip3 install kivy_examples
 
 OS X
-~~~~~~~~~~~~~~~~~~
+~~~~
 
 First, install necessary packages using homebrew::
 
@@ -36,7 +36,7 @@ Optionally, install examples featured in the `Gallery of Examples <https://kivy.
 
 
 Linux
-~~~~~~~~~~~~~~~~~~
+~~~~~
 
 Ubuntu based Distros (Ubuntu, Mint, Bhodi)    
 +++++++
@@ -59,7 +59,7 @@ Optionally, install some examples featured in the `Gallery of Examples <https://
 
 
 Debian (Jessie or newer)
-++++++++
+++++++++++++++++++++
 
 Add kivy PPA::
 
@@ -95,7 +95,7 @@ For other distros, we recommend :ref:`installation_in_venv` .
 .. _advanced_installation:
 
 Advanced Installation
-============
+==================
 
 In trying to avoid reinenting the wheel, we try to use as many third-party packages as possible.
 Not all of them necessarily have to be installed if only a subset of kivy's features are desired. 
@@ -118,7 +118,7 @@ Methods with fine-grained control over kivy's installation can be found under th
     installation-rpi
 
 Development Version
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 The development version is for developers and testers. Note that when
 running a development version, you're running potentially broken code at
