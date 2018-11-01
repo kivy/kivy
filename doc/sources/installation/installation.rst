@@ -59,7 +59,7 @@ Optionally, install some examples featured in the `Gallery of Examples <https://
 
 
 Debian (Jessie or newer)
-++++++++
+++++++++++++++++++++
 
 Add kivy PPA::
 
