@@ -372,10 +372,10 @@ table.field-list td.field-body dl.docutils dd {
 form.search input {
 	line-height: 2em;
 	border: 1px solid #d0d0d0;
-	width: 211px;
+	width: 100%;
 	display: block;
 	font-size: 1.1em;
-	padding: 5px 8px;
+	padding: 5px 0px;
 }
 
 form.search {
@@ -423,7 +423,6 @@ div.sphinxsidebar .api-index li a {
 
 /** TOC **/
 .toc {
-	width: auto;
 	background-color: #f5f5f5;
 	border: 1px solid #e0e0e0;
 	padding: 10px;
