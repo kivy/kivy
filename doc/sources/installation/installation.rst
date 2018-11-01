@@ -20,7 +20,7 @@ Optionally, install examples featured in the `Gallery of Examples <https://kivy.
     $ pip3 install kivy_examples
 
 OS X
-~~~~~~~~~~~~~~~~~~
+~~~~
 
 First, install necessary packages using homebrew::
 
