@@ -36,7 +36,7 @@ Optionally, install examples featured in the `Gallery of Examples <https://kivy.
 
 
 Linux
-~~~~~~~~~~~~~~~~~~
+~~~~~
 
 Ubuntu based Distros (Ubuntu, Mint, Bhodi)    
 +++++++
