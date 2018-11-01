@@ -118,7 +118,7 @@ Methods with fine-grained control over kivy's installation can be found under th
     installation-rpi
 
 Development Version
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 The development version is for developers and testers. Note that when
 running a development version, you're running potentially broken code at
