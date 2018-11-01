@@ -329,18 +329,8 @@ specifying these devices, normally something like::
 
     Permission denied:'/dev/input/eventX'
 
-In order to use these devices, you need to grant the user or group permission.
-This can be done via::
-
-    $ sudo chmod u+r /dev/input/eventX
-
-for the user or::
-
-    $ sudo chmod g+r /dev/input/eventX
-
-for the group. These permissions will only be effective for the duration of
-your current session. A more permanent solution is to add the user to a group
-that has these permissions. For example, in Ubuntu, you can add the user to
+In order to use these devices, you can add your user to a group
+that has the required permissions. For example, in Ubuntu, you can add the user to
 the 'input' group::
 
     $ sudo adduser $USER input
