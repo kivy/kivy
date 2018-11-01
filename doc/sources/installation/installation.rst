@@ -95,7 +95,7 @@ For other distros, we recommend :ref:`installation_in_venv` .
 .. _advanced_installation:
 
 Advanced Installation
-============
+==================
 
 In trying to avoid reinenting the wheel, we try to use as many third-party packages as possible.
 Not all of them necessarily have to be installed if only a subset of kivy's features are desired. 
