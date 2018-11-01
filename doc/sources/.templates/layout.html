@@ -174,6 +174,7 @@
 {%- block document %}
 <div id="contentall">
     {%- block sidebar1 %}{{ sidebar() }}{% endblock %}
+    <div class="toc"><h2>{{ _('Table Of Contents') }}</h2>{{ toc }}</div>
     <div id="content">
     <div class="wrapper">
       <div class="documentwrapper">
@@ -181,7 +182,6 @@
         <div class="bodywrapper">
       {%- endif %}{% endif %}
           <div class="body">
-            <div class="toc"><h2>{{ _('Table Of Contents') }}</h2>{{ toc }}</div>
             {% block body %} {% endblock %}
             <div class="footerlinks">
             {%- if prev or next %}

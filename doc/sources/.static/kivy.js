@@ -26,7 +26,7 @@ $(document).ready(function () {
 		pagename = pagename.substr(4, pagename.length - 9);
 
 		ensure_bodyshortcut();
-		var modulename = $('<div class="left">Module: <a href="#">' + pagename + '</a></div>')
+		var modulename = $('<span class="left">Module: <a href="#">' + pagename + '</a></span>')
 		modulename.appendTo($('div.bodyshortcut'));
 		is_api = true;
 	}
@@ -247,7 +247,7 @@ $(document).ready(function () {
 
 		// get module version
 		var module_version = read_version($('div.body > div.section > div.versionadded'), '1.0.0');
-		var html_version = '<span class="versionadded">Added in <span>' + module_version + '</span></span>';
+		var html_version = '<span class="right versionadded">Added in <span>' + module_version + '</span></span>';
 		$('div.bodyshortcut').append(html_version);
 
 		// resolve class version, default to module if nothing has been found

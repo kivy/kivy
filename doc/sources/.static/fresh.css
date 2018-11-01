@@ -143,7 +143,7 @@ a:hover {
 
 
 div.sphinxsidebar {
-	width: 230px;
+	width: 15%;
 	float: left;
 }
 
@@ -214,8 +214,10 @@ div.sphinxsidebar li a:hover {
 }
 
 #content {
-	margin-left: 250px;
-	margin-top: -8px;
+	margin: auto;
+	width: 950px;
+	min-width: 50%;
+	max-width: 95%;
 }
 
 #content pre {
@@ -423,6 +425,7 @@ div.sphinxsidebar .api-index li a {
 
 /** TOC **/
 .toc {
+	width: auto;
 	background-color: #f5f5f5;
 	border: 1px solid #e0e0e0;
 	padding: 10px;
@@ -469,7 +472,6 @@ table.highlighttable td.linenos {
 /** version added in method/class/attribute/module **/
 span.versionadded {
 	font-size: 12px;
-	position: absolute;
 	right: 2.5em;
 }
 
