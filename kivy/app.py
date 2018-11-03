@@ -666,7 +666,6 @@ class App(EventDispatcher):
             activity = autoclass('org.kivy.android.PythonActivity').mActivity
             defaultpath = join(
                 activity.getFilesDir().getAbsolutePath(),
-                'app',
                 '.%(appname)s.ini'
             )
 
