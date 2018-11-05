@@ -2,7 +2,7 @@
 .. _installation_devel:
 
 Installation for Developement
-===========================
+=============================
 
 Development Version
 -------------------
