@@ -9,7 +9,7 @@ along all necessary dependencies. Ways to adjust how kivy is installed and how t
 Note that Kivy runs on even more platforms than the ones listed below. See :ref:`packaging` for a list of all supported target platforms.
 
 Windows
-~~~~~~~~~~~~~~~~~~
+~~~~~~~
 
 Install kivy along with Windows-specific dependencies::
 
@@ -39,7 +39,7 @@ Linux
 ~~~~~
 
 Ubuntu based Distros (Ubuntu, Mint, Bhodi)    
-+++++++
+++++++++++++++++++++++++++++++++++++++++++
 
 Add kivy PPA::
 
@@ -59,7 +59,7 @@ Optionally, install some examples featured in the `Gallery of Examples <https://
 
 
 Debian (Jessie or newer)
-++++++++++++++++++++
+++++++++++++++++++++++++
 
 Add kivy PPA::
 
@@ -82,20 +82,20 @@ Optionally, install some examples featured in the `Gallery of Examples <https://
     $ sudo apt install kivy-examples
 
 Raspberri Pi
-+++++++++
+++++++++++++
 
 Installation on a Raspberri Pi is a little complicated, its instructions can be found on a separate page: :ref:`installation_rpi`.
 
 
 Other Distros
-++++++++
++++++++++++++
 
 For other distros, we recommend :ref:`installation_in_venv` .
 
 .. _advanced_installation:
 
 Advanced Installation
-==================
+=====================
 
 In trying to avoid reinenting the wheel, we try to use as many third-party packages as possible.
 Not all of them necessarily have to be installed if only a subset of kivy's features are desired. 
@@ -104,7 +104,7 @@ Finally, for some platforms, there are multiple ways to installing certain depen
 method than the one listed above, the following guides might also be of interest for you.
 
 Stable Builds
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~
 
 Methods with fine-grained control over kivy's installation can be found under the following links:
 
