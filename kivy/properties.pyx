@@ -1416,7 +1416,7 @@ cdef class AliasProperty(Property):
         `getter`: function
             Function to use as a property getter.
         `setter`: function
-            Function to use as a property setter. Callbacks listening to the
+            Function to use as a property setter. Callbacks bound to the
             alias property won't be called when the property is set (e.g.
             `right = 10`), unless the setter returns `True`.
         `bind`: list/tuple
