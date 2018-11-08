@@ -122,17 +122,17 @@ Manual installation (On Arch Linux ARM)
     cd kivy
     makepkg -Asri
 
+#. Images to use::
+
+    http://raspex.exton.se/?p=859 (recommended)  
+    https://archlinuxarm.org/
+
 .. note::
 
     On versions of kivy prior to 1.10.1, Mesa library naming changes can result
     in "Unable to find any valuable Window provider" errors. If you experience
     this issue, please upgrade or consult `ticket #5360.
     <https://github.com/kivy/kivy/issues/5360>`_
-.. (Images to use)::
-
-    http://raspex.exton.se/?p=859 (recommended)  
-    https://archlinuxarm.org/
-  _
 
 KivyPie distribution
 --------------------
