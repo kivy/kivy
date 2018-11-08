@@ -91,6 +91,48 @@ Manual installation (On Raspbian Wheezy)
     echo "export PYTHONPATH=$(pwd):\$PYTHONPATH" >> ~/.profile
     source ~/.profile
 
+Manual installation (On Arch Linux ARM)
+------------------------------------------------
+
+#. Install the dependencies::
+
+    sudo pacman -Syu
+    sudo pacman -S sdl2 sdl2_gfx sdl2_image sdl2_net sdl2_ttf sdl2_mixer python-setuptools
+
+    Note: python-setuptools needs to be installed through pacman or it will result with conflicts!
+
+#. Install pip from source::
+
+    wget https://raw.github.com/pypa/pip/master/contrib/get-pip.py
+    sudo python get-pip.py
+
+#. Install a new enough version of Cython:
+
+    .. parsed-literal::
+
+        sudo pip install -U |cython_install|
+
+#. Install Kivy globally on your system::
+
+    sudo pip install git+https://github.com/kivy/kivy.git@master
+
+#. Or build and use kivy inplace (best for development)::
+
+    git clone https://github.com/kivy/kivy
+    cd kivy
+    makepkg -Asri
+
+Images to use::
+
+    http://raspex.exton.se/?p=859 (recommended)  
+    https://archlinuxarm.org/
+
+.. note::
+
+    On versions of kivy prior to 1.10.1, Mesa library naming changes can result
+    in "Unable to find any valuable Window provider" errors. If you experience
+    this issue, please upgrade or consult `ticket #5360.
+    <https://github.com/kivy/kivy/issues/5360>`_
 
 KivyPie distribution
 --------------------
