@@ -132,7 +132,7 @@ Manual installation (On Arch Linux ARM)
 
     http://raspex.exton.se/?p=859 (recommended)  
     https://archlinuxarm.org/
-  
+  _
 
 KivyPie distribution
 --------------------
