@@ -122,7 +122,8 @@ Manual installation (On Arch Linux ARM)
     cd kivy
     makepkg -Asri
 
-Images to use
+Images to use  
+
 ```code
     [Exton's RaspArch](http://raspex.exton.se/?p=859) (recommended)  
     [archlinuxarm.org](https://archlinuxarm.org/)
