@@ -38,7 +38,7 @@
             texture: root.parent._bk_img.texture if root.parent else None
             size: self.size
             pos: self.pos
-            auto_scale: True
+            auto_scale: root.parent.border_auto_scale if self.parent else 'off'
 
 <BubbleButton>:
     background_normal: 'atlas://data/images/defaulttheme/bubble_btn'
