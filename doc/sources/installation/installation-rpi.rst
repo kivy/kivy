@@ -128,7 +128,7 @@ Manual installation (On Arch Linux ARM)
     in "Unable to find any valuable Window provider" errors. If you experience
     this issue, please upgrade or consult `ticket #5360.
     <https://github.com/kivy/kivy/issues/5360>`_
-.. Images to use::
+.. (Images to use)::
 
     http://raspex.exton.se/?p=859 (recommended)  
     https://archlinuxarm.org/
