@@ -130,7 +130,7 @@ Manual installation (On Arch Linux ARM)
     <https://github.com/kivy/kivy/issues/5360>`_
 
     Images to use:
-       http://raspex.exton.se/?p=859 (recommended)  
+       http://raspex.exton.se/?p=859 (recommended)\
        https://archlinuxarm.org/
   
 
