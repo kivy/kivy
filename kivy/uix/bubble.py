@@ -180,12 +180,12 @@ class Bubble(GridLayout):
             'x_full_y_lower', 'both_lower'
         ]
     )
-    '''Specifies the auto_scale value on the background BorderImage.
+    '''Specifies the :attr:`kivy.graphics.BorderImage.auto_scale`
+    value on the background BorderImage.
 
     .. versionadded:: 1.11.0
 
     :attr:`border_auto_scale` is a
-
     :class:`~kivy.properties.OptionProperty` and defaults to
     'both_lower'.
     '''
