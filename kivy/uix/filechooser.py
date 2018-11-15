@@ -818,7 +818,15 @@ class FileChooserController(RelativeLayout):
         # generate an entries to go back to previous
         if not is_root and not have_parent:
             back = '..' + sep
-            pardir = self._create_entry_widget(dict(
+            if platform == 'win':
+                new_path = path[:path.rfind(sep)]
+                if sep not in new_path:
+                    new_path+= sep
+                pardir = self._create_entry_widget(dict(
+                name=back, size='', path=new_path, controller=ref(self),
+                isdir=True, parent=None, sep=sep, get_nice_size=lambda: ''))
+            else:
+                pardir = self._create_entry_widget(dict(
                 name=back, size='', path=back, controller=ref(self),
                 isdir=True, parent=None, sep=sep, get_nice_size=lambda: ''))
             yield 0, 1, pardir
