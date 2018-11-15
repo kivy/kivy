@@ -1386,8 +1386,8 @@ cdef class AliasProperty(Property):
     If you don't find a Property class that fits to your needs, you can make
     your own by creating custom Python getter and setter methods.
 
-    Example from kivy/uix/widget.py where x` and `width` are instances of
-    `NumericProperty`::
+    Example from kivy/uix/widget.py where `x` and `width` are instances of
+    :class:`NumericProperty`::
 
         def get_right(self):
             return self.x + self.width
@@ -1452,8 +1452,12 @@ cdef class AliasProperty(Property):
             self.use_cache = 1
 
     def __read_only(self, _obj, _value):
-        raise AttributeError('"{}.{}" property is readonly'
-                             .format(type(_obj).__name__, self._name))
+        raise AttributeError(
+            '"{}.{}" property is readonly'.format(
+                type(_obj).__name__,
+                self._name
+            )
+        )
 
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage):
         Property.init_storage(self, obj, storage)
