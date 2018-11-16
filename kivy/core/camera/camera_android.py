@@ -126,7 +126,7 @@ class CameraAndroid(CameraBase):
         with self._buflock:
             self._buffer = None
         for k in range(2):  # double buffer
-            buf = '\x00' * self._bufsize
+            buf = b'\x00' * self._bufsize
             self._android_camera.addCallbackBuffer(buf)
         self._android_camera.setPreviewCallbackWithBuffer(self._preview_cb)
 
