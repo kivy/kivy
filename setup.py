@@ -141,7 +141,10 @@ if kivy_ios_root is not None:
     platform = 'ios'
 if exists('/opt/vc/include/bcm_host.h'):
     platform = 'rpi'
-if exists('/usr/lib/arm-linux-gnueabihf/libMali.so'):
+if(
+    exists('/usr/lib/arm-linux-gnueabihf/libMali.so')
+    or exists('/usr/local/mali-egi/libmali.so')
+):
     platform = 'mali'
 
 # -----------------------------------------------------------------------------
