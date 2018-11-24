@@ -478,7 +478,9 @@ class RstDocument(ScrollView):
     def _set_bgc(self, value):
         self.colors.background = get_hex_from_color(value)[1:]
 
-    background_color = AliasProperty(_get_bgc, _set_bgc, bind=('colors',))
+    background_color = AliasProperty(_get_bgc, _set_bgc,
+                                     bind=('colors',),
+                                     cache=True)
     '''Specifies the background_color to be used for the RstDocument.
 
     .. versionadded:: 1.8.0

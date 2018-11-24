@@ -955,7 +955,8 @@ class ScreenManager(FloatLayout):
         return [s.name for s in self.screens]
 
     screen_names = AliasProperty(_get_screen_names,
-                                 None, bind=('screens', ))
+                                 bind=('screens',),
+                                 cache=True)
     '''List of the names of all the :class:`Screen` widgets added. The list
     is read only.
 
@@ -971,7 +972,7 @@ class ScreenManager(FloatLayout):
         self.fbind('pos', self._update_pos)
 
     def _screen_name_changed(self, screen, name):
-        self.property('screen_names').dispatch(self)
+        self.property('screens').dispatch(self)
         if screen == self.current_screen:
             self.current = name
 

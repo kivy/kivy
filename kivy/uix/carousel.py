@@ -86,8 +86,9 @@ class Carousel(StencilView):
     def _get_slides_container(self):
         return [x.parent for x in self.slides]
 
-    slides_container = AliasProperty(_get_slides_container, None,
-                                     bind=('slides', ))
+    slides_container = AliasProperty(_get_slides_container,
+                                     bind=('slides',),
+                                     cache=True)
 
     direction = OptionProperty('right',
                                options=('right', 'left', 'top', 'bottom'))
@@ -149,7 +150,10 @@ class Carousel(StencilView):
             self._index = value % len(self.slides)
         else:
             self._index = None
-    index = AliasProperty(_get_index, _set_index, bind=('_index', 'slides'))
+
+    index = AliasProperty(_get_index, _set_index,
+                          bind=('_index', 'slides'),
+                          cache=True)
     '''Get/Set the current slide based on the index.
 
     :attr:`index` is an :class:`~kivy.properties.AliasProperty` and defaults
@@ -172,7 +176,9 @@ class Carousel(StencilView):
         if index > 0:
             return slides[index - 1]
 
-    previous_slide = AliasProperty(_prev_slide, None, bind=('slides', 'index'))
+    previous_slide = AliasProperty(_prev_slide,
+                                   bind=('slides', 'index', 'loop'),
+                                   cache=True)
     '''The previous slide in the Carousel. It is None if the current slide is
     the first slide in the Carousel. This ordering reflects the order in which
     the slides are added: their presentation varies according to the
@@ -188,7 +194,10 @@ class Carousel(StencilView):
     def _curr_slide(self):
         if len(self.slides):
             return self.slides[self.index]
-    current_slide = AliasProperty(_curr_slide, None, bind=('slides', 'index'))
+
+    current_slide = AliasProperty(_curr_slide,
+                                  bind=('slides', 'index'),
+                                  cache=True)
     '''The currently shown slide.
 
     :attr:`current_slide` is an :class:`~kivy.properties.AliasProperty`.
@@ -210,7 +219,10 @@ class Carousel(StencilView):
             return self.slides[0]
         if self.index < len(self.slides) - 1:
             return self.slides[self.index + 1]
-    next_slide = AliasProperty(_next_slide, None, bind=('slides', 'index'))
+
+    next_slide = AliasProperty(_next_slide,
+                               bind=('slides', 'index', 'loop'),
+                               cache=True)
     '''The next slide in the Carousel. It is None if the current slide is
     the last slide in the Carousel. This ordering reflects the order in which
     the slides are added: their presentation varies according to the

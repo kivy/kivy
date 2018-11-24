@@ -117,7 +117,7 @@ class Image(Widget):
     to False.
     '''
 
-    image_ratio = AliasProperty(get_image_ratio, None, bind=('texture', ))
+    image_ratio = AliasProperty(get_image_ratio, bind=('texture',), cache=True)
     '''Ratio of the image (width / float(height).
 
     :attr:`image_ratio` is an :class:`~kivy.properties.AliasProperty` and is
@@ -223,11 +223,12 @@ class Image(Widget):
             else:
                 ih = min(h, th)
             iw = ih * ratio
-
         return iw, ih
 
-    norm_image_size = AliasProperty(get_norm_image_size, None, bind=(
-        'texture', 'size', 'image_ratio', 'allow_stretch'))
+    norm_image_size = AliasProperty(get_norm_image_size,
+                                    bind=('texture', 'size', 'image_ratio',
+                                          'allow_stretch'),
+                                    cache=True)
     '''Normalized image size within the widget box.
 
     This size will always fit the widget size and will preserve the image

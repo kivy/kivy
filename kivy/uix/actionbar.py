@@ -84,7 +84,9 @@ class ActionItem(object):
     def get_pack_width(self):
         return max(self.minimum_width, self.width)
 
-    pack_width = AliasProperty(get_pack_width, bind=('minimum_width', 'width'))
+    pack_width = AliasProperty(get_pack_width,
+                               bind=('minimum_width', 'width'),
+                               cache=True)
     '''
     (read-only) The actual width to use when packing the items. Equal to the
     greater of minimum_width and width.
