@@ -431,6 +431,14 @@ cdef class EventDispatcher(ObjectWithUid):
         '''Unbind properties from callback functions with similar usage as
         :meth:`bind`.
 
+        If you used::
+
+            button.bind(on_press=callback)
+
+        then you should use::
+
+            button.unbind(on_press=callback)
+
         If a callback has been bound to a given event or property multiple
         times, only the first occurrence will be unbound.
 
