@@ -143,7 +143,8 @@ if exists('/opt/vc/include/bcm_host.h'):
     platform = 'rpi'
 if(
     exists('/usr/lib/arm-linux-gnueabihf/libMali.so')
-    or exists('/usr/local/mali-egi/libmali.so')
+    or exists('/usr/lib/arm-linux-gnueabihf/mali-egl/libmali.so')
+    or exists('/usr/local/mali-egl/libmali.so')
 ):
     platform = 'mali'
 
