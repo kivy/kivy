@@ -120,8 +120,7 @@ Manual installation (On Arch Linux ARM)
 
     git clone https://github.com/kivy/kivy
     cd kivy
-    makepkg -Asri
-    pacman -S python-kivy
+    python setup.py install
 
 Images to use::
 
