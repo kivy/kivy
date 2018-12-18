@@ -58,11 +58,10 @@ If you want a synchronous request, you can call the wait() method.
 
 from base64 import b64encode
 from collections import deque
-from threading import Thread
+from threading import Thread, Event
 from json import loads
 from time import sleep
 from kivy.compat import PY2
-from kivy.config import Config
 
 if PY2:
     from httplib import HTTPConnection
@@ -135,6 +134,8 @@ class UrlRequest(Thread):
             download. `total_size` might be -1 if no Content-Length has been
             reported in the http response.
             This callback will be called after each `chunk_size` is read.
+        `on_kill`: callback(request)
+            Callback function to call if user request to kill the thread.
         `req_body`: str, defaults to None
             Data to sent in the request. If it's not None, a POST will be done
             instead of a GET.
@@ -175,10 +176,10 @@ class UrlRequest(Thread):
 
     def __init__(self, url, on_success=None, on_redirect=None,
                  on_failure=None, on_error=None, on_progress=None,
-                 req_body=None, req_headers=None, chunk_size=8192,
-                 timeout=None, method=None, decode=True, debug=False,
-                 file_path=None, ca_file=None, verify=True, proxy_host=None,
-                 proxy_port=None, proxy_headers=None, user_agent=None):
+                 on_kill=None, req_body=None, req_headers=None,
+                 chunk_size=8192, timeout=None, method=None, decode=True,
+                 debug=False, file_path=None, ca_file=None, verify=True,
+                 proxy_host=None, proxy_port=None, proxy_headers=None):
         super(UrlRequest, self).__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
@@ -188,6 +189,7 @@ class UrlRequest(Thread):
         self.on_failure = WeakMethod(on_failure) if on_failure else None
         self.on_error = WeakMethod(on_error) if on_error else None
         self.on_progress = WeakMethod(on_progress) if on_progress else None
+        self.on_kill = WeakMethod(on_kill) if on_kill else None
         self.decode = decode
         self.file_path = file_path
         self._debug = debug
@@ -205,6 +207,7 @@ class UrlRequest(Thread):
         self._proxy_host = proxy_host
         self._proxy_port = proxy_port
         self._proxy_headers = proxy_headers
+        self._kill_event = Event()
 
         #: Url of the request
         self.url = url
@@ -224,13 +227,7 @@ class UrlRequest(Thread):
         q = self._queue.appendleft
         url = self.url
         req_body = self.req_body
-        req_headers = self.req_headers or {}
-        if (
-            Config.has_section('network')
-            and 'useragent' in Config.items('network')
-        ):
-            useragent = Config.get('network', 'useragent')
-            req_headers.setdefault('User-Agent', useragent)
+        req_headers = self.req_headers
 
         try:
             result, resp = self._fetch_url(url, req_body, req_headers, q)
@@ -239,7 +236,10 @@ class UrlRequest(Thread):
         except Exception as e:
             q(('error', None, e))
         else:
-            q(('success', resp, result))
+            if not self._kill_event.is_set():
+                q(('success', resp, result))
+            else:
+                q(('killed', None, None))
 
         # using trigger can result in a missed on_success event
         self._trigger_result()
@@ -252,6 +252,9 @@ class UrlRequest(Thread):
         # ok, authorize the GC to clean us.
         if self in g_requests:
             g_requests.remove(self)
+
+    def stop(self):
+        self._kill_event.set()
 
     def _parse_url(self, url):
         parse = urlparse(url)
@@ -378,6 +381,8 @@ class UrlRequest(Thread):
                     if report_progress:
                         q(('progress', resp, (bytes_so_far, total_size)))
                         trigger()
+                    if self._kill_event.is_set():
+                        break
                 return bytes_so_far, result
 
             if file_path is not None:
@@ -508,6 +513,14 @@ class UrlRequest(Thread):
                     func = self.on_progress()
                     if func:
                         func(self, data[0], data[1])
+
+            elif result == 'killed':
+                if self._debug:
+                    Logger.debug('UrlRequest killed by user')
+                if self.on_kill:
+                    func = self.on_kill()
+                    if func:
+                        func(self)
 
             else:
                 assert(0)
