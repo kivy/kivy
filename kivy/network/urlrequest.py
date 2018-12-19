@@ -516,7 +516,7 @@ class UrlRequest(Thread):
 
             elif result == 'killed':
                 if self._debug:
-                    Logger.debug('UrlRequest killed by user')
+                    Logger.debug('UrlRequest: killed by user')
                 if self.on_kill:
                     func = self.on_kill()
                     if func:
