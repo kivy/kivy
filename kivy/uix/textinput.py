@@ -3353,6 +3353,47 @@ class TextInput(FocusBehavior, Widget):
     defaults to `True`.
     '''
 
+class MaskedTextInput(TextInput):
+
+    mask = ''
+    capital = False
+
+    def __init__(self, **kwargs):
+        super(MaskedTextInput, self).__init__(**kwargs)
+
+    def insert_text(self, substring, from_undo=False):
+        first = False
+        s = ''
+        if self.mask == '':
+            s = substring
+        else:
+            mask = self.mask
+            col, row = self.cursor
+            if col < len(mask):
+                if mask[col] == '#':
+                    numbers = '1234567890'
+                    if substring in numbers:
+                        s = substring
+                elif mask[col] == 'A':
+                    letters = 'QWERTYUIOPASDFGHJKLÇZXCVBNMqwertyuiopasdfghjklçzxcvbnm'
+                    if substring in letters:
+                        s = substring
+                elif mask[col] == substring:
+                    s = substring
+                else:
+                    s = mask[col]
+                    first = True
+                if col < len(mask)-1:
+                    if mask[col+1] != '#' and mask[col+1] != 'A':
+                        s += mask[col+1]
+                    if first:
+                        s += substring
+
+        if self.capital:
+            s = substring.upper()
+
+        return super(MaskedTextInput, self).insert_text(s,from_undo=from_undo)
+
 
 if __name__ == '__main__':
     from kivy.app import App
