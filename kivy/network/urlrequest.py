@@ -134,9 +134,6 @@ class UrlRequest(Thread):
             download. `total_size` might be -1 if no Content-Length has been
             reported in the http response.
             This callback will be called after each `chunk_size` is read.
-        `on_cancel`: callback(request)
-            Callback function to call if user requested to cancel the download
-            operation via the .cancel() method.
         `req_body`: str, defaults to None
             Data to sent in the request. If it's not None, a POST will be done
             instead of a GET.
@@ -173,14 +170,17 @@ class UrlRequest(Thread):
         `proxy_headers`: dict, defaults to None
             If set, and `proxy_host` is also set, the headers to send to the
             proxy server in the ``CONNECT`` request.
+        `on_cancel`: callback(request)
+            Callback function to call if user requested to cancel the download
+            operation via the .cancel() method.
     '''
 
     def __init__(self, url, on_success=None, on_redirect=None,
                  on_failure=None, on_error=None, on_progress=None,
-                 on_cancel=None, req_body=None, req_headers=None,
-                 chunk_size=8192, timeout=None, method=None, decode=True,
-                 debug=False, file_path=None, ca_file=None, verify=True,
-                 proxy_host=None, proxy_port=None, proxy_headers=None):
+                 req_body=None, req_headers=None, chunk_size=8192,
+                 timeout=None, method=None, decode=True, debug=False,
+                 file_path=None, ca_file=None, verify=True, proxy_host=None,
+                 proxy_port=None, proxy_headers=None, on_cancel=None):
         super(UrlRequest, self).__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
