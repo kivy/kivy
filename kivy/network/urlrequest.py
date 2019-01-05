@@ -228,7 +228,13 @@ class UrlRequest(Thread):
         q = self._queue.appendleft
         url = self.url
         req_body = self.req_body
-        req_headers = self.req_headers
+        req_headers = self.req_headers or {}
+        if (
+            Config.has_section('network')
+            and 'useragent' in Config.items('network')
+        ):
+            useragent = Config.get('network', 'useragent')
+            req_headers.setdefault('User-Agent', useragent)
 
         try:
             result, resp = self._fetch_url(url, req_body, req_headers, q)
