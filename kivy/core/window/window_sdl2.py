@@ -208,7 +208,6 @@ class WindowSDL(WindowBase):
         from kivy.app import App
         if action == 'app_terminating':
             EventLoop.quit = True
-            self.close()
 
         elif action == 'app_lowmemory':
             self.dispatch('on_memorywarning')
@@ -490,7 +489,6 @@ class WindowSDL(WindowBase):
                 if self.dispatch('on_request_close'):
                     continue
                 EventLoop.quit = True
-                self.close()
                 break
 
             elif action in ('fingermotion', 'fingerdown', 'fingerup'):
@@ -708,7 +706,6 @@ class WindowSDL(WindowBase):
             action, args = event[0], event[1:]
             if action == 'quit':
                 EventLoop.quit = True
-                self.close()
                 break
             elif action == 'app_willenterforeground':
                 break
@@ -733,6 +730,8 @@ class WindowSDL(WindowBase):
                     raise
                 else:
                     pass
+        Logger.info("WindowSDL: exiting mainloop and closing.")
+        self.close()
 
     #
     # Pygame wrapper

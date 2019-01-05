@@ -38,6 +38,7 @@
             texture: root.parent._bk_img.texture if root.parent else None
             size: self.size
             pos: self.pos
+            auto_scale: root.parent.border_auto_scale if self.parent else 'off'
 
 <BubbleButton>:
     background_normal: 'atlas://data/images/defaulttheme/bubble_btn'
@@ -1009,7 +1010,7 @@
     image_loading: 'data/images/image-loading.gif'
     Image:
         source: root.source
-        color: (.5, .5, .5, 1)
+        color: (.5, .5, .5, 1) if root.source else (0, 0, 0, 0)
         pos_hint: {'x': 0, 'y': 0}
     Image:
         source: root.image_overlay_play if not root.click_done else root.image_loading
