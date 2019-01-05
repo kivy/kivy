@@ -135,7 +135,6 @@ class WindowSDL(WindowBase):
     _do_resize_ev = None
 
     def __init__(self, **kwargs):
-        Logger.info("window_sdl2.py: instantiating SDL2 window")
         self._pause_loop = False
         self._win = _WindowSDL2Storage()
         super(WindowSDL, self).__init__()
@@ -486,9 +485,6 @@ class WindowSDL(WindowBase):
                 continue
 
             action, args = event[0], event[1:]
-            if "mouse" not in action:
-                Logger.info("window_sdl2.py: _mainloop action = {0}".format(
-                    action))
             if action == 'quit':
                 if self.dispatch('on_request_close'):
                     continue
@@ -734,7 +730,7 @@ class WindowSDL(WindowBase):
                     raise
                 else:
                     pass
-        Logger.info("window_sdl2.py: exiting mainloop. Calling close")
+        Logger.info("WindowSDL: exiting mainloop and closing.")
         self.close()
 
     #
