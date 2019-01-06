@@ -307,13 +307,13 @@ Here is a simple example of how on_pause() should be used::
 
     Both `on_pause` and `on_stop` must save important data because after
     `on_pause` is called, `on_resume` may not be called at all.
-
 '''
 
 __all__ = ('App', )
 
 import os
 from inspect import getfile
+from shutil import copyfile
 from os.path import dirname, join, exists, sep, expanduser, isfile
 from kivy.config import ConfigParser
 from kivy.base import runTouchApp, stopTouchApp
@@ -624,13 +624,21 @@ class App(EventDispatcher):
             defaultpath parameter for desktop OS's (not applicable to iOS
             and Android.)
 
+        .. versionchanged:: 1.10.1
+            Android Application config path is changed to the the path
+            provided by Context.getFilesDir() + '/app/.<appname>.ini'.
+            By default no `WRITE_EXTERNAL_STORAGE` permission is required now.
+
         Return the filename of your application configuration. Depending
         on the platform, the application file will be stored in
         different locations:
 
-            - on iOS: <appdir>/Documents/.<appname>.ini
-            - on Android: /sdcard/.<appname>.ini
-            - otherwise: <appdir>/<appname>.ini
+            - on iOS: `<appdir>/Documents/.<appname>.ini`
+            - on Android: `Context.getFilesDir() + '/app/.<appname>.ini'`
+
+              for example `/data/data/<app dir>/files/app/.<appname>.ini`
+
+            - otherwise: `<appdir>/<appname>.ini`
 
         When you are distributing your application on Desktops, please
         note that if the application is meant to be installed
@@ -652,7 +660,27 @@ class App(EventDispatcher):
         '''
 
         if platform == 'android':
-            defaultpath = '/sdcard/.%(appname)s.ini'
+            from jnius import autoclass
+            activity = autoclass('org.kivy.android.PythonActivity').mActivity
+            defaultpath = join(
+                activity.getFilesDir().getAbsolutePath(),
+                '.%(appname)s.ini'
+            )
+
+            old_path = '/sdcard/.%(appname)s.ini' % {'appname': self.name}
+            new_path = defaultpath % {'appname': self.name}
+
+            # if it's already moved, ignore whatever was on sdcard before
+            if exists(old_path) and not exists(new_path):
+                Logger.warning(
+                    'App: get_application_config sdcard path is deprecated, '
+                    'moving to the new one - %s.' % new_path
+                )
+                if not exists(dirname(new_path)):
+                    # recursive mkdir, just in case
+                    os.makedirs(dirname(new_path))
+                copyfile(old_path, new_path)
+
         elif platform == 'ios':
             defaultpath = '~/Documents/%(appname)s.ini'
         elif platform == 'win':
