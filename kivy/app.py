@@ -765,7 +765,11 @@ class App(EventDispatcher):
         if platform == 'ios':
             data_dir = join('~/Documents', self.name)
         elif platform == 'android':
-            data_dir = join('/sdcard', self.name)
+            from jnius import autoclass, cast
+            PythonActivity = autoclass('org.kivy.android.PythonActivity')
+            context = cast('android.content.Context', PythonActivity.mActivity)
+            file_p = cast('java.io.File', context.getFilesDir())
+            data_dir = file_p.getAbsolutePath()
         elif platform == 'win':
             data_dir = os.path.join(os.environ['APPDATA'], self.name)
         elif platform == 'macosx':
