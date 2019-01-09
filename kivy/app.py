@@ -760,6 +760,14 @@ class App(EventDispatcher):
         On OS X, `~/Library/Application Support/<app_name>` is returned.
 
         On Linux, `$XDG_CONFIG_HOME/<app_name>` is returned.
+
+        On Android, `Context.GetFilesDir` is returned.
+
+        .. versionchanged:: 2.0.0
+
+            This function used to return `/sdcard/<app_name>`, which has become
+            read-only on later versions of Android.
+
         '''
         data_dir = ""
         if platform == 'ios':
