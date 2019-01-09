@@ -761,12 +761,15 @@ class App(EventDispatcher):
 
         On Linux, `$XDG_CONFIG_HOME/<app_name>` is returned.
 
-        On Android, `Context.GetFilesDir` is returned.
+        On Android, `Context.GetFilesDir
+        <https://developer.android.com/reference/android/content/\
+Context.html#getFilesDir()>` is returned.
 
         .. versionchanged:: 2.0.0
 
-            This function used to return `/sdcard/<app_name>`, which has become
-            read-only on later versions of Android.
+            On Android, this function previously returned
+            `/sdcard/<app_name>`. This folder became read-only by default
+            on later versions of Android.
 
         '''
         data_dir = ""
