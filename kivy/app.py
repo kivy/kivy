@@ -744,7 +744,7 @@ class App(EventDispatcher):
         # Determine and return the user_data_dir.
         data_dir = ""
         if platform == 'ios':
-            data_dir = join('~/Documents', self.name)
+            data_dir = expanduser(join('~/Documents', self.name))
         elif platform == 'android':
             from jnius import autoclass, cast
             PythonActivity = autoclass('org.kivy.android.PythonActivity')
@@ -755,10 +755,10 @@ class App(EventDispatcher):
             data_dir = os.path.join(os.environ['APPDATA'], self.name)
         elif platform == 'macosx':
             data_dir = '~/Library/Application Support/{}'.format(self.name)
+            data_dir = expanduser(data_dir)
         else:  # _platform == 'linux' or anything else...:
             data_dir = os.environ.get('XDG_CONFIG_HOME', '~/.config')
-            data_dir = join(data_dir, self.name)
-        data_dir = expanduser(data_dir)
+            data_dir = expanduser(join(data_dir, self.name))
         if not exists(data_dir):
             os.mkdir(data_dir)
         return data_dir
