@@ -767,8 +767,8 @@ Context.html#getFilesDir()>`_ is returned.
 
             On Android, this function previously returned
             `/sdcard/<app_name>`. This folder became read-only by default
-            in Android API 26 and the user_dir has therefore been moved to
-            a writeable location.
+            in Android API 26 and the user_data_dir has therefore been moved
+            to a writeable location.
 
         '''
         data_dir = ""
