@@ -753,8 +753,6 @@ class App(EventDispatcher):
         On iOS, `~/Documents/<app_name>` is returned (which is inside the
         app's sandbox).
 
-        On Android, `/sdcard/<app_name>` is returned.
-
         On Windows, `%APPDATA%/<app_name>` is returned.
 
         On OS X, `~/Library/Application Support/<app_name>` is returned.
@@ -763,13 +761,14 @@ class App(EventDispatcher):
 
         On Android, `Context.GetFilesDir
         <https://developer.android.com/reference/android/content/\
-Context.html#getFilesDir()>` is returned.
+Context.html#getFilesDir()>`_ is returned.
 
         .. versionchanged:: 2.0.0
 
             On Android, this function previously returned
             `/sdcard/<app_name>`. This folder became read-only by default
-            on later versions of Android.
+            in Android API 26 and the user_dir has therefore been moved to
+            a writeable location.
 
         '''
         data_dir = ""
