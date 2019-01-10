@@ -789,7 +789,7 @@ class App(EventDispatcher):
         <https://developer.android.com/reference/android/content/\
 Context.html#getFilesDir()>`_ is returned.
 
-        .. versionchanged:: 2.0.0
+        .. versionchanged:: 1.11.0
 
             On Android, this function previously returned
             `/sdcard/<app_name>`. This folder became read-only by default
