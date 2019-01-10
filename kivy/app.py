@@ -463,6 +463,9 @@ class App(EventDispatcher):
     __events__ = ('on_start', 'on_stop', 'on_pause', 'on_resume',
                   'on_config_change', )
 
+    # Stored so that we only need to determine this once
+    _user_data_dir = ""
+
     def __init__(self, **kwargs):
         App._running_app = self
         self._app_directory = None
@@ -737,6 +740,29 @@ class App(EventDispatcher):
                 self._app_directory = '.'
         return self._app_directory
 
+    def _get_user_data_dir(self):
+        # Determine and return the user_data_dir.
+        data_dir = ""
+        if platform == 'ios':
+            data_dir = join('~/Documents', self.name)
+        elif platform == 'android':
+            from jnius import autoclass, cast
+            PythonActivity = autoclass('org.kivy.android.PythonActivity')
+            context = cast('android.content.Context', PythonActivity.mActivity)
+            file_p = cast('java.io.File', context.getFilesDir())
+            data_dir = file_p.getAbsolutePath()
+        elif platform == 'win':
+            data_dir = os.path.join(os.environ['APPDATA'], self.name)
+        elif platform == 'macosx':
+            data_dir = '~/Library/Application Support/{}'.format(self.name)
+        else:  # _platform == 'linux' or anything else...:
+            data_dir = os.environ.get('XDG_CONFIG_HOME', '~/.config')
+            data_dir = join(data_dir, self.name)
+        data_dir = expanduser(data_dir)
+        if not exists(data_dir):
+            os.mkdir(data_dir)
+        return data_dir
+
     @property
     def user_data_dir(self):
         '''
@@ -771,26 +797,9 @@ Context.html#getFilesDir()>`_ is returned.
             to a writeable location.
 
         '''
-        data_dir = ""
-        if platform == 'ios':
-            data_dir = join('~/Documents', self.name)
-        elif platform == 'android':
-            from jnius import autoclass, cast
-            PythonActivity = autoclass('org.kivy.android.PythonActivity')
-            context = cast('android.content.Context', PythonActivity.mActivity)
-            file_p = cast('java.io.File', context.getFilesDir())
-            data_dir = file_p.getAbsolutePath()
-        elif platform == 'win':
-            data_dir = os.path.join(os.environ['APPDATA'], self.name)
-        elif platform == 'macosx':
-            data_dir = '~/Library/Application Support/{}'.format(self.name)
-        else:  # _platform == 'linux' or anything else...:
-            data_dir = os.environ.get('XDG_CONFIG_HOME', '~/.config')
-            data_dir = join(data_dir, self.name)
-        data_dir = expanduser(data_dir)
-        if not exists(data_dir):
-            os.mkdir(data_dir)
-        return data_dir
+        if self._user_data_dir == "":
+            self._user_data_dir = self._get_user_data_dir()
+        return self._user_data_dir
 
     @property
     def name(self):
