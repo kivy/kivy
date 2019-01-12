@@ -620,19 +620,13 @@ class App(EventDispatcher):
             return resource_find(self.icon)
 
     def get_application_config(self, defaultpath='%(appdir)s/%(appname)s.ini'):
-        '''.. versionadded:: 1.0.7
-
-        .. versionchanged:: 1.4.0
-            Customized the default path for iOS and Android platforms. Added a
-            defaultpath parameter for desktop OS's (not applicable to iOS
-            and Android.)
-
+        '''
         Return the filename of your application configuration. Depending
         on the platform, the application file will be stored in
         different locations:
 
             - on iOS: <appdir>/Documents/.<appname>.ini
-            - on Android: /sdcard/.<appname>.ini
+            - on Android: <user_data_dir>/.<appname>.ini
             - otherwise: <appdir>/<appname>.ini
 
         When you are distributing your application on Desktops, please
@@ -652,12 +646,24 @@ class App(EventDispatcher):
         - The tilda '~' will be expanded to the user directory.
         - %(appdir)s will be replaced with the application :attr:`directory`
         - %(appname)s will be replaced with the application :attr:`name`
+
+        .. versionadded:: 1.0.7
+
+        .. versionchanged:: 1.4.0
+            Customized the defaultpath for iOS and Android platforms. Added a
+            defaultpath parameter for desktop OS's (not applicable to iOS
+            and Android.)
+
+        .. versionchanged:: 1.11.0
+            Changed the Android version to make use of the
+            :attr:`~App.user_data_dir` and added a missing dot to the iOS
+            config file name.
         '''
 
         if platform == 'android':
-            defaultpath = '/sdcard/.%(appname)s.ini'
+            return join(self.user_data_dir, '.{0}.ini'.format(self.name))
         elif platform == 'ios':
-            defaultpath = '~/Documents/%(appname)s.ini'
+            defaultpath = '~/Documents/.%(appname)s.ini'
         elif platform == 'win':
             defaultpath = defaultpath.replace('/', sep)
         return expanduser(defaultpath) % {
