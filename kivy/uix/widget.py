@@ -250,6 +250,9 @@ from kivy.context import get_current_context
 from kivy.weakproxy import WeakProxy
 from functools import partial
 from itertools import islice
+from io import BytesIO
+from PIL import Image
+import base64
 
 
 # References to all the widget destructors (partial method with widget uid as
@@ -688,15 +691,8 @@ class Widget(WidgetBase):
 
                 .. versionadded:: 1.11.0
         '''
-        try:
-            from PIL import Image
-        except ImportError as error:
-            raise Exception(error)
-        from io import BytesIO
-
-        import base64
         scale = kwargs.get('scale', 1)
-        
+
         if self.parent is not None:
             canvas_parent_index = self.parent.canvas.indexof(self.canvas)
             if canvas_parent_index > -1:
@@ -704,14 +700,14 @@ class Widget(WidgetBase):
 
         fbo = Fbo(size=(self.width * scale, self.height * scale),
                   with_stencilbuffer=True)
-        
+
         with fbo:
             ClearColor(0, 0, 0, 0)
             ClearBuffers()
             Scale(1, -1, 1)
             Scale(scale, scale, 1)
             Translate(-self.x, -self.y - self.height, 0)
-        
+
         fbo.add(self.canvas)
         fbo.draw()
         bytesio = BytesIO()

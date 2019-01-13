@@ -428,7 +428,7 @@ class Base64Image(Image):
                 image64 = source.split(';base64,')[1]
                 type64 = source.split('data:image/')[1] \
                                 .split(';base64,')[0]
-            except:
+            except IndexError:
                 raise Exception('Wrong type of base64 image.')
             base64l = base64.b64decode(image64)
             self._coreimage = image = CoreImage(
@@ -443,7 +443,7 @@ class Base64Image(Image):
 
     def _on_source_load(self, value):
         image = self._coreimage.image
-        if not image:
+        if image is None:
             return
         self.texture = image.texture
         self.dispatch('on_load')
