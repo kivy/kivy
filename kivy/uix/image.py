@@ -53,7 +53,8 @@ from kivy.properties import StringProperty, ObjectProperty, ListProperty, \
     AliasProperty, BooleanProperty, NumericProperty
 from kivy.logger import Logger
 from kivy.compat import PY2
-
+from io import BytesIO
+import base64
 # delayed imports
 Loader = None
 
@@ -400,3 +401,74 @@ class AsyncImage(Image):
             Loader.remove_from_cache(source)
 
         super(AsyncImage, self).reload()
+
+
+class Base64Image(Image):
+
+    __events__ = ('on_error', 'on_load')
+
+    def __init__(self, **kwargs):
+        self._coreimage = None
+        super(Base64Image, self).__init__(**kwargs)
+        self.fbind('source', self._load_source)
+        if self.source:
+            self._load_source()
+        self.on_anim_delay(self, kwargs.get('anim_delay', .25))
+
+    def _load_source(self, *args):
+        source = self.source
+        if not source:
+            if self._coreimage is not None:
+                self._coreimage.unbind(on_texture=self._on_tex_change)
+                self._coreimage.unbind(on_load=self._on_source_load)
+            self.texture = None
+            self._coreimage = None
+        else:
+            try:
+                image64 = source.split(';base64,')[1]
+                type64 = source.split('data:image/')[1] \
+                                .split(';base64,')[0]
+            except:
+                raise Exception('Wrong type of base64 image.')
+            base64l = base64.b64decode(image64)
+            self._coreimage = image = CoreImage(
+                BytesIO(base64l), ext = type64,
+                nocache=self.nocache, mipmap=self.mipmap,
+                anim_delay=self.anim_delay)
+
+            image.bind(on_load=self._on_source_load)
+            image.bind(on_error=self._on_source_error)
+            image.bind(on_texture=self._on_tex_change)
+            self.texture = image.texture
+
+    def _on_source_load(self, value):
+        image = self._coreimage.image
+        if not image:
+            return
+        self.texture = image.texture
+        self.dispatch('on_load')
+
+    def _on_source_error(self, instance, error=None):
+        self.dispatch('on_error', error)
+
+    def on_error(self, error):
+        pass
+
+    def on_load(self, *args):
+        pass
+
+    def _on_tex_change(self, *largs):
+        if self._coreimage:
+            self.texture = self._coreimage.texture
+
+    def texture_update(self, *largs):
+        pass
+
+    def reload(self):
+        if Loader:
+            source = self.source
+            if not self.is_uri(source):
+                source = resource_find(source)
+            Loader.remove_from_cache(source)
+
+        super(Base64Image, self).reload()
