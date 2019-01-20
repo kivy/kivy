@@ -13,7 +13,7 @@ if "--build_examples" in sys.argv:
 from copy import deepcopy
 import os
 from os.path import join, dirname, sep, exists, basename, isdir
-from os import walk, environ
+from os import walk, environ, makedirs
 from distutils.version import LooseVersion
 from distutils.sysconfig import get_python_inc
 from collections import OrderedDict
@@ -156,6 +156,7 @@ c_options['use_opengl_mock'] = environ.get('READTHEDOCS', None) == 'True'
 c_options['use_sdl2'] = None
 c_options['use_pangoft2'] = None
 c_options['use_ios'] = False
+c_options['use_android'] = False
 c_options['use_mesagl'] = False
 c_options['use_x11'] = False
 c_options['use_wayland'] = False
@@ -328,6 +329,9 @@ class KivyBuildExt(build_ext):
             with open(fn) as fd:
                 need_update = fd.read() != content
         if need_update:
+            directory_name = dirname(fn)
+            if not exists(directory_name):
+                makedirs(directory_name)
             with open(fn, 'w') as fd:
                 fd.write(content)
         return need_update
@@ -403,6 +407,9 @@ if platform == 'ios':
     print('Kivy-IOS project located at {0}'.format(kivy_ios_root))
     c_options['use_ios'] = True
     c_options['use_sdl2'] = True
+
+elif platform == 'android':
+    c_options['use_android'] = True
 
 elif platform == 'darwin':
     if c_options['use_osx_frameworks']:
