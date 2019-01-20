@@ -76,7 +76,13 @@ cdef class _WindowSDL2Storage:
                 self.win_flags |= SDL_WINDOW_RESIZABLE
             if borderless:
                 self.win_flags |= SDL_WINDOW_BORDERLESS
-            if fullscreen == 'auto':
+
+            if USE_ANDROID:
+                # Android is handled separately because it is important to create the window with
+                # the same fullscreen setting as AndroidManifest.xml.
+                if environ.get('P4A_IS_WINDOWED', 'True') == 'False':
+                    self.win_flags |= SDL_WINDOW_FULLSCREEN
+            elif fullscreen == 'auto':
                 self.win_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP
             elif fullscreen is True:
                 self.win_flags |= SDL_WINDOW_FULLSCREEN
@@ -118,7 +124,6 @@ cdef class _WindowSDL2Storage:
         # var. Note that this takes priority over any other setting.
         orientations = environ.get('KIVY_ORIENTATION', orientations)
 
-        # SDL_SetHint(SDL_HINT_ORIENTATIONS, <bytes>(orientations.encode('utf-8')))
         SDL_SetHint(SDL_HINT_ORIENTATIONS, <bytes>(orientations.encode('utf-8')))
 
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
