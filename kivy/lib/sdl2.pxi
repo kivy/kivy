@@ -224,6 +224,11 @@ cdef extern from "SDL.h":
         SDL_WINDOWEVENT_CLOSE           #< The window manager requests that the
                                         # window be closed */
 
+    ctypedef enum SDL_HintPriority:
+        SDL_HINT_DEFAULT
+        SDL_HINT_NORMAL
+        SDL_HINT_OVERRIDE
+
     ctypedef enum SDL_RendererFlip:
         SDL_FLIP_NONE = 0x00000000
         SDL_FLIP_HORIZONTAL = 0x00000001
@@ -440,6 +445,7 @@ cdef extern from "SDL.h":
     cdef char *SDL_HINT_ORIENTATIONS
     cdef char *SDL_HINT_VIDEO_WIN_D3DCOMPILER
     cdef char *SDL_HINT_ACCELEROMETER_AS_JOYSTICK
+    cdef char *SDL_HINT_ANDROID_TRAP_BACK_BUTTON
 
     cdef int SDL_QUERY               = -1
     cdef int SDL_IGNORE              =  0
@@ -505,6 +511,7 @@ cdef extern from "SDL.h":
     cdef int SDL_SetTextureAlphaMod(SDL_Texture * texture, Uint8 alpha)
     cdef char * SDL_GetError()
     cdef SDL_bool SDL_SetHint(char *name, char *value)
+    cdef SDL_bool SDL_SetHintWithPriority(char *name, char *value, SDL_HintPriority priority)
     cdef Uint8 SDL_GetMouseState(int* x,int* y)
     cdef SDL_GLContext SDL_GL_CreateContext(SDL_Window* window)
     cdef int SDL_GetNumVideoDisplays()
