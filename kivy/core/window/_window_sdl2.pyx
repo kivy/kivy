@@ -69,14 +69,20 @@ cdef class _WindowSDL2Storage:
                      resizable, state):
         self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
 
-        IF USE_IOS:
+        if USE_IOS:
             self.win_flags |= SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN_DESKTOP
-        ELSE:
+        else:
             if resizable:
                 self.win_flags |= SDL_WINDOW_RESIZABLE
             if borderless:
                 self.win_flags |= SDL_WINDOW_BORDERLESS
-            if fullscreen == 'auto':
+
+            if USE_ANDROID:
+                # Android is handled separately because it is important to create the window with
+                # the same fullscreen setting as AndroidManifest.xml.
+                if environ.get('P4A_IS_WINDOWED', 'True') == 'False':
+                    self.win_flags |= SDL_WINDOW_FULLSCREEN
+            elif fullscreen == 'auto':
                 self.win_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP
             elif fullscreen is True:
                 self.win_flags |= SDL_WINDOW_FULLSCREEN
@@ -89,28 +95,39 @@ cdef class _WindowSDL2Storage:
 
         SDL_SetHint(SDL_HINT_ACCELEROMETER_AS_JOYSTICK, b'0')
 
+        SDL_SetHintWithPriority(b'SDL_ANDROID_TRAP_BACK_BUTTON', b'1',
+                                SDL_HINT_OVERRIDE)
+
         if SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0:
             self.die()
 
         # Set default orientation (force landscape for now)
-        cdef bytes orientations
-        if PY3:
-            orientations = bytes(environ.get(
-                'KIVY_ORIENTATION',
-                'LandscapeLeft LandscapeRight'
-            ), encoding='utf8')
-        elif USE_IOS:
-            # ios should use all if available
-            orientations = <bytes>environ.get(
-                'KIVY_ORIENTATION',
-                'LandscapeLeft LandscapeRight Portrait PortraitUpsideDown'
-            )
-        else:
-            orientations = <bytes>environ.get(
-                'KIVY_ORIENTATION',
-                'LandscapeLeft LandscapeRight'
-            )
-        SDL_SetHint(SDL_HINT_ORIENTATIONS, <bytes>orientations)
+        orientations = 'LandscapeLeft LandscapeRight'
+
+        # Set larger set of iOS default orientations if applicable
+        if USE_IOS:
+            orientations = 'LandscapeLeft LandscapeRight Portrait PortraitUpsideDown'
+
+        # Override the Android orientation based on what p4a was built with, if available.
+        # This may be overridden again by $KIVY_ORIENTATION.
+        if USE_ANDROID:
+            env_orientations = environ.get('P4A_ORIENTATION', orientations)
+
+            if env_orientations == 'portrait':
+                orientations = 'Portrait'
+            elif env_orientations == 'landscape':
+                orientations = 'LandscapeLeft'
+            else:
+                Logger.warning(('Could not satisfy Android orientation "{}", only '
+                               '{{portrait,landscape}} are currently supported. '
+                                'Defaulting to portrait').format(orientations))
+                orientations = 'Portrait'
+
+        # Override the orientation based on the KIVY_ORIENTATION env
+        # var. Note that this takes priority over any other setting.
+        orientations = environ.get('KIVY_ORIENTATION', orientations)
+
+        SDL_SetHint(SDL_HINT_ORIENTATIONS, <bytes>(orientations.encode('utf-8')))
 
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16)
