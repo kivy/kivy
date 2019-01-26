@@ -2505,10 +2505,12 @@ class TextInput(FocusBehavior, Widget):
                 elif key == ord('r'):  # redo
                     self.do_redo()
             else:
-                if EventLoop.window.__class__.__module__ == \
-                    'kivy.core.window.window_sdl2':
-                    if not (text == ' ' and platform == 'android'):
-                        return
+                is_sdl2 = (EventLoop.window.__class__.__module__ ==
+                           'kivy.core.window.window_sdl2')
+                if is_sdl2 and platform == 'android':
+                    # On Android we expect to get key input via on_textinput
+                    # The keydown/keyup events are redundant
+                    return
                 if self._selection:
                     self.delete_selection()
                 self.insert_text(text)
