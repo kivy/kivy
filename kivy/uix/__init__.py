@@ -54,9 +54,3 @@ Kivy widgets can be categorized as follows:
 
 ----
 '''
-from kivy.config import Config
-
-
-__theme_path = Config.get("kivy", "theme_path")
-if __theme_path != "/":
-    __path__ = [__theme_path]
