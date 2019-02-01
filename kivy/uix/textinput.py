@@ -2507,9 +2507,8 @@ class TextInput(FocusBehavior, Widget):
             else:
                 is_sdl2 = (EventLoop.window.__class__.__module__ ==
                            'kivy.core.window.window_sdl2')
-                if is_sdl2 and platform == 'android':
-                    # On Android we expect to get key input via on_textinput
-                    # The keydown/keyup events are redundant
+                if is_sdl2:
+                    # we expect to get managed key input via on_textinput
                     return
                 if self._selection:
                     self.delete_selection()
