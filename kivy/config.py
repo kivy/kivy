@@ -103,6 +103,9 @@ Available configuration tokens
         Path of the window icon. Use this if you want to replace the default
         pygame icon.
 
+    `theme_path`: string
+        Path of the widgets theme. Use this to replace widgets imported via kivy.uixc
+
 :postproc:
 
     `double_tap_distance`: float
@@ -852,6 +855,9 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 20:
             Config.setdefault('network', 'useragent', 'curl')
+
+        elif version == 21:
+            Config.setdefault('kivy', 'theme_path', '/')
 
         else:
             # for future.
