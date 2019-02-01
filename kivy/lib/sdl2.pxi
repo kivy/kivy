@@ -423,7 +423,7 @@ cdef extern from "SDL.h":
         SDL_RWops_union_unknown unknown
 
     cdef struct SDL_RWops:
-        long (* seek) (SDL_RWops * context, long offset,int whence)
+        Sint64 (* seek) (SDL_RWops * context, Sint64 offset,int whence)
         size_t(* read) ( SDL_RWops * context, void *ptr, size_t size, size_t maxnum)
         size_t(* write) (SDL_RWops * context, void *ptr,size_t size, size_t num)
         int (* close) (SDL_RWops * context)

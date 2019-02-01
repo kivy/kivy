@@ -14,10 +14,11 @@ cdef struct SDL_RWops:
     int (* close) (SDL_RWops * context)
 
 
-cdef size_t rwops_bytesio_write(SDL_RWops *context, void *ptr, size_t size, size_t num):
+cdef size_t rwops_bytesio_write(SDL_RWops *context, const void *ptr, size_t size, size_t num):
     cdef char *c_string = <char *>ptr
     byteio = <object>context.hidden.unknown.data1
-    byteio.write(<bytes>c_string[:size * num])
+    byteio.write(c_string[:size * num])
+    return size * num
 
 
 cdef int rwops_bytesio_close(SDL_RWops *context):
@@ -29,6 +30,8 @@ cdef SDL_RWops *rwops_bridge_to_bytesio(byteio):
     # works only for write.
     cdef SDL_RWops *rwops = SDL_AllocRW()
     rwops.hidden.unknown.data1 = <void *>byteio
+    rwops.seek = NULL
+    rwops.read = NULL
     rwops.write = &rwops_bytesio_write
     rwops.close =&rwops_bytesio_close
     return rwops
@@ -50,13 +53,19 @@ def init():
 
     _is_init = 1
 
-def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=7):
+def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=90):
     cdef bytes c_filename = None
     cdef SDL_RWops *rwops
     if not isinstance(filename, io.BytesIO):
         c_filename = filename.encode('utf-8')
     cdef int pitch
-    pitch = w * 4
+
+    if pixelfmt == "rgb":
+        pitch = w * 3
+    elif pixelfmt == "rgba":
+        pitch = w * 4
+    else:
+        raise Exception("IMG SDL2 supports only pixelfmt rgb and rgba")
 
     cdef int lng, top, bot
     cdef list rng
@@ -82,19 +91,33 @@ def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=7):
         pixels = bytes(bytearray(pixels))
 
     cdef char *c_pixels = pixels
-    cdef SDL_Surface *image = SDL_CreateRGBSurfaceFrom(c_pixels, w, h, 32, pitch, 0x00000000ff, 0x0000ff00, 0x00ff0000, 0xff000000)
+    cdef SDL_Surface *image
+
+    if pixelfmt == "rgba":
+        image = SDL_CreateRGBSurfaceFrom(
+            c_pixels, w, h, 32, pitch,
+            0x00000000ff, 0x0000ff00, 0x00ff0000, 0xff000000)
+    elif pixelfmt == "rgb":
+        image = SDL_CreateRGBSurfaceFrom(
+            c_pixels, w, h, 24, pitch,
+            0x0000ff, 0x00ff00, 0xff0000, 0)
 
     if c_filename is not None:
         if imagefmt == "png":
+            print("save to png")
             IMG_SavePNG(image, c_filename)
         elif imagefmt == "jpg":
+            print("save to jpg")
             IMG_SaveJPG(image, c_filename, quality)
     else:
         rwops = rwops_bridge_to_bytesio(filename)
         if imagefmt == "png":
+            print("save to png with rwops")
             IMG_SavePNG_RW(image, rwops, 1)
         elif imagefmt == "jpg":
+            print("save to jpg with rwops")
             IMG_SaveJPG_RW(image, rwops, 1, quality)
+        SDL_FreeRW(rwops)
 
     SDL_FreeSurface(image)
 

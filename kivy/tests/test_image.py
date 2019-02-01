@@ -40,16 +40,27 @@ class ImageTestCase(unittest.TestCase):
         # save it in png
         bio = io.BytesIO()
         self.assertTrue(img.save(bio, fmt="png"))  # if False, then there is no provider
-        self.assertTrue(len(bio.read()) > 0)
+        pngdata = bio.read()
+        self.assertTrue(len(pngdata) > 0)
+
+        # try to save in a filename
+        filename = "/tmp/test.png"
+        self.assertTrue(img.save(filename, fmt="png"))
+        with open(filename, "rb") as fd2:
+            pngdatafile = fd2.read()
+
+        # check the png file data is the same as bytesio
+        print(len(pngdata), len(pngdatafile))
+        print(pngdata == pngdatafile)
+        print(repr(pngdata[:80]))
+        print(repr(pngdatafile[:80]))
+        assert(0)
+
 
         # save it in jpeg
         bio = io.BytesIO()
         self.assertTrue(img.save(bio, fmt="jpg"))  # if False, then there is no provider
         self.assertTrue(len(bio.read()) > 0)
-
-        # try to save in a filename
-        with tempfile.NamedTemporaryFile(suffix=".png") as fd:
-            self.assertTrue(img.save(fd.name))
 
         with tempfile.NamedTemporaryFile(suffix=".jpg") as fd:
             self.assertTrue(img.save(fd.name))

@@ -838,12 +838,12 @@ class Image(EventDispatcher):
             Filename can now be a BytesIO object.
 
         '''
+        is_bytesio = False
         if isinstance(filename, BytesIO):
             is_bytesio = True
             if not fmt:
                 raise Exception("You must specify a format to save into a BytesIO object")
         elif fmt is None:
-            is_bytesio = False
             fmt = self._find_format_from_filename(filename)
 
         pixels = None
@@ -887,9 +887,9 @@ class Image(EventDispatcher):
 
     def _find_format_from_filename(self, filename):
         ext = filename.rsplit(".", 1)[-1].lower()
-        if ext in (
+        if ext in {
             'bmp', 'jpe', 'lbm', 'pcx', 'png', 'pnm',
-            'tga', 'tiff', 'webp', 'xcf', 'xpm', 'xv'):
+            'tga', 'tiff', 'webp', 'xcf', 'xpm', 'xv'}:
             return ext
         elif ext in ('jpg', 'jpeg'):
             return 'jpg'
