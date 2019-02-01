@@ -210,8 +210,11 @@ class ImageLoaderBase(object):
         return None
 
     @staticmethod
-    def can_save():
+    def can_save(fmt, is_bytesio=False):
         '''Indicate if the loader can save the Image object
+
+        .. versionchanged:: 1.11.0
+            Parameter `fmt` and `is_bytesio` added
         '''
         return False
 
@@ -222,7 +225,7 @@ class ImageLoaderBase(object):
         return False
 
     @staticmethod
-    def save():
+    def save(*largs, **kwargs):
         raise NotImplementedError()
 
     def populate(self):
@@ -801,7 +804,7 @@ class Image(EventDispatcher):
         '''
         return self._nocache
 
-    def save(self, filename, flipped=False):
+    def save(self, filename, flipped=False, fmt=None):
         '''Save image texture to file.
 
         The filename should have the '.png' extension because the texture data
@@ -830,10 +833,23 @@ class Image(EventDispatcher):
             Parameter `flipped` added to flip the image before saving, default
             to False.
 
+        .. versionchanged:: 1.11.0
+            Parameter `fmt` added to force the output format of the file
+            Filename can now be a BytesIO object.
+
         '''
+        if isinstance(filename, BytesIO):
+            is_bytesio = True
+            if not fmt:
+                raise Exception("You must specify a format to save into a BytesIO object")
+        elif fmt is None:
+            is_bytesio = False
+            fmt = self._find_format_from_filename(filename)
+
         pixels = None
         size = None
-        loaders = [x for x in ImageLoader.loaders if x.can_save()]
+        loaders = [x for x in ImageLoader.loaders if x.can_save(
+            fmt, is_bytesio=is_bytesio)]
         if not loaders:
             return False
         loader = loaders[0]
@@ -862,12 +878,24 @@ class Image(EventDispatcher):
 
         l_pixels = len(pixels)
         if l_pixels == size[0] * size[1] * 3:
-            fmt = 'rgb'
+            pixelfmt = 'rgb'
         elif l_pixels == size[0] * size[1] * 4:
-            fmt = 'rgba'
+            pixelfmt = 'rgba'
         else:
             raise Exception('Unable to determine the format of the pixels')
-        return loader.save(filename, size[0], size[1], fmt, pixels, flipped)
+        return loader.save(filename, size[0], size[1], pixelfmt, pixels, flipped, fmt)
+
+    def _find_format_from_filename(self, filename):
+        ext = filename.rsplit(".", 1)[-1].lower()
+        if ext in (
+            'bmp', 'jpe', 'lbm', 'pcx', 'png', 'pnm',
+            'tga', 'tiff', 'webp', 'xcf', 'xpm', 'xv'):
+            return ext
+        elif ext in ('jpg', 'jpeg'):
+            return 'jpg'
+        elif ext in ('b64', 'base64'):
+            return 'base64'
+        return None
 
     def read_pixel(self, x, y):
         '''For a given local x/y position, return the pixel color at that

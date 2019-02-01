@@ -416,11 +416,19 @@ cdef extern from "SDL.h":
         int refresh_rate
         void *driverdata
 
+    cdef struct SDL_RWops_union_unknown:
+        void *data1
+
+    cdef union SDL_RWops_union:
+        SDL_RWops_union_unknown unknown
+
     cdef struct SDL_RWops:
         long (* seek) (SDL_RWops * context, long offset,int whence)
         size_t(* read) ( SDL_RWops * context, void *ptr, size_t size, size_t maxnum)
         size_t(* write) (SDL_RWops * context, void *ptr,size_t size, size_t num)
         int (* close) (SDL_RWops * context)
+        int type
+        SDL_RWops_union hidden
 
     cdef enum SDL_Keymod:
         KMOD_NONE
@@ -502,6 +510,7 @@ cdef extern from "SDL.h":
     cdef SDL_RWops * SDL_RWFromFile(char *file, char *mode)
     cdef SDL_RWops * SDL_RWFromMem(void *mem, int size)
     cdef SDL_RWops * SDL_RWFromConstMem(void *mem, int size)
+    cdef SDL_RWops * SDL_AllocRW()
     cdef void SDL_FreeRW(SDL_RWops *area)
     cdef int SDL_GetRendererInfo(SDL_Renderer *renderer, SDL_RendererInfo *info)
     cdef int SDL_RenderSetViewport(SDL_Renderer * renderer, SDL_Rect * rect)
@@ -689,7 +698,10 @@ cdef extern from "SDL_image.h":
     cdef SDL_Surface *IMG_Load(char *file)
     cdef SDL_Surface *IMG_Load_RW(SDL_RWops *src, int freesrc)
     cdef SDL_Surface *IMG_LoadTyped_RW(SDL_RWops *src, int freesrc, char *type)
-    cdef int *IMG_SavePNG(SDL_Surface *src, char *file)
+    cdef int IMG_SavePNG(SDL_Surface *src, char *file)
+    cdef int IMG_SavePNG_RW(SDL_Surface *surface, SDL_RWops *dst, int freedst)
+    cdef int IMG_SaveJPG(SDL_Surface *surface, const char *file, int quality)
+    cdef int IMG_SaveJPG_RW(SDL_Surface *surface, SDL_RWops *dst, int freedst, int quality)
 
 
 cdef extern from "SDL_ttf.h":

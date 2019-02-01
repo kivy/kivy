@@ -1,11 +1,38 @@
 include '../../lib/sdl2.pxi'
 
-
+import io
 from kivy.logger import Logger
 from libc.string cimport memset
 from libc.stdlib cimport malloc
 
 cdef int _is_init = 0
+
+cdef struct SDL_RWops:
+    long (* seek) (SDL_RWops * context, long offset,int whence)
+    size_t(* read) ( SDL_RWops * context, void *ptr, size_t size, size_t maxnum)
+    size_t(* write) (SDL_RWops * context, void *ptr,size_t size, size_t num)
+    int (* close) (SDL_RWops * context)
+
+
+cdef size_t rwops_bytesio_write(SDL_RWops *context, void *ptr, size_t size, size_t num):
+    cdef char *c_string = <char *>ptr
+    byteio = <object>context.hidden.unknown.data1
+    byteio.write(<bytes>c_string[:size * num])
+
+
+cdef int rwops_bytesio_close(SDL_RWops *context):
+    byteio = <object>context.hidden.unknown.data1
+    byteio.seek(0)
+
+
+cdef SDL_RWops *rwops_bridge_to_bytesio(byteio):
+    # works only for write.
+    cdef SDL_RWops *rwops = SDL_AllocRW()
+    rwops.hidden.unknown.data1 = <void *>byteio
+    rwops.write = &rwops_bytesio_write
+    rwops.close =&rwops_bytesio_close
+    return rwops
+
 
 def init():
     global _is_init
@@ -23,9 +50,11 @@ def init():
 
     _is_init = 1
 
-def save(filename, w, h, fmt, pixels, flipped):
-    # this only saves in png for now.
-    cdef bytes c_filename = filename.encode('utf-8')
+def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=7):
+    cdef bytes c_filename = None
+    cdef SDL_RWops *rwops
+    if not isinstance(filename, io.BytesIO):
+        c_filename = filename.encode('utf-8')
     cdef int pitch
     pitch = w * 4
 
@@ -55,7 +84,18 @@ def save(filename, w, h, fmt, pixels, flipped):
     cdef char *c_pixels = pixels
     cdef SDL_Surface *image = SDL_CreateRGBSurfaceFrom(c_pixels, w, h, 32, pitch, 0x00000000ff, 0x0000ff00, 0x00ff0000, 0xff000000)
 
-    IMG_SavePNG(image, c_filename)
+    if c_filename is not None:
+        if imagefmt == "png":
+            IMG_SavePNG(image, c_filename)
+        elif imagefmt == "jpg":
+            IMG_SaveJPG(image, c_filename, quality)
+    else:
+        rwops = rwops_bridge_to_bytesio(filename)
+        if imagefmt == "png":
+            IMG_SavePNG_RW(image, rwops, 1)
+        elif imagefmt == "jpg":
+            IMG_SaveJPG_RW(image, rwops, 1, quality)
+
     SDL_FreeSurface(image)
 
 # NOTE: This must be kept up to date with ImageData supported formats. If you
@@ -68,7 +108,7 @@ def save(filename, w, h, fmt, pixels, flipped):
 cdef load_from_surface(SDL_Surface *image):
     cdef SDL_Surface *image2 = NULL
     cdef SDL_Surface *fimage = NULL
-    cdef int want_rgba = 0, want_bgra = 0, target_fmt = 0, n = 0
+    cdef int want_rgba = 0, want_bgra = 0, target_pixel = 0, n = 0
     cdef bytes pixels
 
     if image == NULL:

@@ -632,7 +632,15 @@ class Widget(WidgetBase):
 
                 .. versionadded:: 1.11.0
         '''
+        self.export_as_image().save(filename, flipped=False)
 
+    def export_as_image(self, *args, **kwargs):
+        '''Return an core :class:`~kivy.core.image.Image` of the actual
+        widget.
+
+        .. versionadded:: 1.11.0
+        '''
+        from kivy.core.image import Image
         scale = kwargs.get('scale', 1)
 
         if self.parent is not None:
@@ -652,13 +660,13 @@ class Widget(WidgetBase):
 
         fbo.add(self.canvas)
         fbo.draw()
-        fbo.texture.save(filename, flipped=False)
+        img = Image(self)
         fbo.remove(self.canvas)
 
         if self.parent is not None and canvas_parent_index > -1:
             self.parent.canvas.insert(canvas_parent_index, self.canvas)
 
-        return True
+        return img
 
     def get_root_window(self):
         '''Return the root window.
