@@ -660,7 +660,7 @@ class Widget(WidgetBase):
 
         fbo.add(self.canvas)
         fbo.draw()
-        img = Image(self)
+        img = Image(fbo.texture)
         fbo.remove(self.canvas)
 
         if self.parent is not None and canvas_parent_index > -1:
