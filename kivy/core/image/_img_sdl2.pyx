@@ -104,18 +104,14 @@ def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=90):
 
     if c_filename is not None:
         if imagefmt == "png":
-            print("save to png")
             IMG_SavePNG(image, c_filename)
         elif imagefmt == "jpg":
-            print("save to jpg")
             IMG_SaveJPG(image, c_filename, quality)
     else:
         rwops = rwops_bridge_to_bytesio(filename)
         if imagefmt == "png":
-            print("save to png with rwops")
             IMG_SavePNG_RW(image, rwops, 1)
         elif imagefmt == "jpg":
-            print("save to jpg with rwops")
             IMG_SaveJPG_RW(image, rwops, 1, quality)
         SDL_FreeRW(rwops)
 
