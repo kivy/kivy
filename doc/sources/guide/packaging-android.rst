@@ -26,8 +26,6 @@ accomplish vibration, sensor access, texting etc. These, along with
 information on debugging on the device, are documented at the
 :doc:`main Android page </guide/android>`.
 
-.. note:: Python 3 support on Android is now available experimentally.
-
 .. _Buildozer:
 
 Buildozer
