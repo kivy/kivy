@@ -821,14 +821,14 @@ class FileChooserController(RelativeLayout):
             if platform == 'win':
                 new_path = path[:path.rfind(sep)]
                 if sep not in new_path:
-                    new_path+= sep
+                    new_path += sep
                 pardir = self._create_entry_widget(dict(
-                name=back, size='', path=new_path, controller=ref(self),
-                isdir=True, parent=None, sep=sep, get_nice_size=lambda: ''))
+                    name=back, size='', path=new_path, controller=ref(self),
+                    isdir=True, parent=None, sep=sep, get_nice_size=lambda: ''))
             else:
                 pardir = self._create_entry_widget(dict(
-                name=back, size='', path=back, controller=ref(self),
-                isdir=True, parent=None, sep=sep, get_nice_size=lambda: ''))
+                    name=back, size='', path=back, controller=ref(self),
+                    isdir=True, parent=None, sep=sep, get_nice_size=lambda: ''))
             yield 0, 1, pardir
 
         # generate all the entries for files
