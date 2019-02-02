@@ -4,6 +4,7 @@ include "../../include/config.pxi"
 from libc.string cimport memcpy
 from os import environ
 from kivy.config import Config
+from kivy.core.image import Image, ImageLoader
 from kivy.logger import Logger
 from kivy import platform
 from kivy.graphics.cgl import cgl_get_backend_name
@@ -423,11 +424,20 @@ cdef class _WindowSDL2Storage:
         elif mode == 'colorkey':
             sdl_window_mode.mode = ShapeModeColorKey
 
-        sdl_shape = IMG_Load(<bytes>shape.encode('utf-8'))
-        if not sdl_shape:
+        try:
+            image = Image.load(shape, nocache=True)
+        except Exception:
             Logger.error(
-                'Window: Shape image "%s" could not be loaded!' % shape
+                'Window: Shape image "%s" could not be loaded!' % (shape,)
             )
+            return
+
+        sdl_shape = surface_from_core_image(image)
+        if sdl_shape == NULL:
+            Logger.error(
+                'Window: Shape image "%s" does not have a texture' % (shape,)
+            )
+            return
 
         result = SDL_SetWindowShape(self.win, sdl_shape, &sdl_window_mode)
 
@@ -454,8 +464,23 @@ cdef class _WindowSDL2Storage:
     # twb end
 
     def set_window_icon(self, filename):
-        icon = IMG_Load(<bytes>filename.encode('utf-8'))
-        SDL_SetWindowIcon(self.win, icon)
+        try:
+            image = Image.load(filename, nocache=True)
+        except Exception:
+            Logger.warn(
+                'Window: Icon "%s" could not be loaded' % (filename,)
+            )
+            return
+
+        cdef SDL_Surface *icon_surface = surface_from_core_image(image)
+        if icon_surface == NULL:
+            Logger.warn(
+                'Window: Icon "%s" does not have a texture' % (filename,)
+                )
+            return
+
+        SDL_SetWindowIcon(self.win, icon_surface)
+        SDL_FreeSurface(icon_surface)
 
     def teardown_window(self):
         if self.ctx != NULL:
@@ -651,17 +676,13 @@ cdef class _WindowSDL2Storage:
         SDL_GL_SwapWindow(self.win)
 
     def save_bytes_in_png(self, filename, data, int width, int height):
-        cdef SDL_Surface *surface = SDL_CreateRGBSurfaceFrom(
-            <char *>data, width, height, 24, width * 3,
-            0x0000ff, 0x00ff00, 0xff0000, 0
-        )
-        cdef bytes bytes_filename = <bytes>filename.encode('utf-8')
-        cdef char *real_filename = <char *>bytes_filename
-
-        cdef SDL_Surface *flipped_surface = flipVert(surface)
-        IMG_SavePNG(flipped_surface, real_filename)
-        SDL_FreeSurface(surface)
-        SDL_FreeSurface(flipped_surface)
+        try:
+            loader = next(l for l in ImageLoader.loaders
+                          if l.can_save() and 'png' in l.extensions())
+        except StopIteration:
+            Logger.error('Window: No image provider can save PNG files')
+            return
+        loader.save(filename, width, height, 'RGB', data, flipped=True)
 
     def grab_mouse(self, grab):
         SDL_SetWindowGrab(self.win, SDL_TRUE if grab else SDL_FALSE)
@@ -703,3 +724,36 @@ cdef SDL_Surface* flipVert(SDL_Surface* sfc):
         memcpy(&rpixels[pos], &pixels[(pxlength - pos) - pitch], pitch)
 
     return result
+
+cdef SDL_Surface* surface_from_core_image(core_image):
+    # Create an SDL_Surface from a core image's texture pixels. Use
+    # SDL_FreeSurface(surface) to deallocate.
+    #
+    # Returns NULL if the core image has no texture pixels, or if
+    # there's a problem with the creation of an SDL Surface.
+    cdef int width, height
+    width, height = core_image.size
+    cdef int pitch = width * 4
+    cdef bytes pixels
+    cdef char* sdl_error
+    try:
+        pixels = core_image.image.texture.pixels
+    except AttributeError:
+        return NULL
+
+    if pixels == None:
+        return NULL
+
+    cdef Uint8 *c_pixels = pixels
+    cdef SDL_Surface *surface
+    surface = SDL_CreateRGBSurface(0, width, height, 32,
+        0x00000000ff, 0x0000ff00, 0x00ff0000, 0xff000000)
+    if surface == NULL:
+        sdl_error = SDL_GetError()
+        Logger.warn(
+            "Window: Can't create a surface from a core image: %s" % sdl_error
+        )
+        return NULL
+
+    memcpy(surface.pixels, c_pixels, pitch * height)
+    return surface
