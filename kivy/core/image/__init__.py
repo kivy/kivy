@@ -41,6 +41,24 @@ will be used only for caching)::
     data = io.BytesIO(open("image.png", "rb").read())
     im = CoreImage(data, ext="png", filename="image.png")
 
+Saving an image
+---------------
+
+A CoreImage can be saved to a file::
+
+    from kivy.core.image import Image as CoreImage
+    image = CoreImage(...)
+    image.save("/tmp/test.png")
+
+Or you can get the bytes (new in `1.11.0`):
+
+    import io
+    from kivy.core.image import Image as CoreImage
+    data = io.BytesIO()
+    image = CoreImage(...)
+    image.save(data, fmt="png")
+    png_bytes = data.read()
+
 '''
 import re
 from base64 import b64decode
@@ -848,8 +866,10 @@ class Image(EventDispatcher):
 
         pixels = None
         size = None
-        loaders = [x for x in ImageLoader.loaders if x.can_save(
-            fmt, is_bytesio=is_bytesio)]
+        loaders = [
+            x for x in ImageLoader.loaders
+            if x.can_save(fmt, is_bytesio=is_bytesio)
+        ]
         if not loaders:
             return False
         loader = loaders[0]

@@ -30,13 +30,10 @@ class ImageTestCase(unittest.TestCase):
         img = Image.load("data/logo/kivy-icon-512.png")
         self.assertIsNotNone(img)
 
-        # try to save with missing format
-        try:
+        # try to save without any format
+        with self.assertRaises(Exception) as context:
             bio = io.BytesIO()
-            self.assertTrue(img.save(bio))  # if False, then there is no provider
-            self.fail('Image.save() with bytesio')
-        except Exception:
-            pass
+            img.save(bio)
 
         # save it in png
         bio = io.BytesIO()
