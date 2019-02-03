@@ -566,6 +566,9 @@ class WindowSDL(WindowBase):
                 else:
                     ev()
 
+            elif action == 'windowmoved':
+                self.dispatch('on_move')
+
             elif action == 'windowrestored':
                 self.dispatch('on_restore')
                 self.canvas.ask_update()

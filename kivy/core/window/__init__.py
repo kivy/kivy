@@ -820,7 +820,7 @@ class WindowBase(EventDispatcher):
         pos = self._get_window_pos()
         self._set_window_pos(pos[0], value)
 
-    top = AliasProperty(_get_top, _set_top)
+    top = AliasProperty(_get_top, _set_top, bind=('on_move', ))
     '''Top position of the window.
 
     .. note:: It's an SDL2 property with `[0, 0]` in the top-left corner.
@@ -834,7 +834,7 @@ class WindowBase(EventDispatcher):
     the position set in :class:`~kivy.config.Config`.
     '''
 
-    left = AliasProperty(_get_left, _set_left)
+    left = AliasProperty(_get_left, _set_left, bind=('on_move', ))
     '''Left position of the window.
 
     .. note:: It's an SDL2 property with `[0, 0]` in the top-left corner.
@@ -860,15 +860,15 @@ class WindowBase(EventDispatcher):
     trigger_create_window = None
 
     __events__ = (
-        'on_draw', 'on_flip', 'on_rotate', 'on_resize', 'on_close',
-        'on_minimize', 'on_maximize', 'on_restore', 'on_hide', 'on_show',
-        'on_motion', 'on_touch_down', 'on_touch_move', 'on_touch_up',
-        'on_mouse_down', 'on_mouse_move', 'on_mouse_up', 'on_keyboard',
-        'on_key_down', 'on_key_up', 'on_textinput', 'on_dropfile',
-        'on_request_close', 'on_cursor_enter', 'on_cursor_leave',
-        'on_joy_axis', 'on_joy_hat', 'on_joy_ball',
-        'on_joy_button_down', 'on_joy_button_up', 'on_memorywarning',
-        'on_textedit')
+        'on_draw', 'on_flip', 'on_rotate', 'on_resize', 'on_move',
+        'on_close', 'on_minimize', 'on_maximize', 'on_restore',
+        'on_hide', 'on_show', 'on_motion', 'on_touch_down',
+        'on_touch_move', 'on_touch_up', 'on_mouse_down',
+        'on_mouse_move', 'on_mouse_up', 'on_keyboard', 'on_key_down',
+        'on_key_up', 'on_textinput', 'on_dropfile', 'on_request_close',
+        'on_cursor_enter', 'on_cursor_leave', 'on_joy_axis',
+        'on_joy_hat', 'on_joy_ball', 'on_joy_button_down',
+        'on_joy_button_up', 'on_memorywarning', 'on_textedit')
 
     def __new__(cls, **kwargs):
         if cls.__instance is None:
@@ -1403,6 +1403,9 @@ class WindowBase(EventDispatcher):
     def on_resize(self, width, height):
         '''Event called when the window is resized.'''
         self.update_viewport()
+
+    def on_move(self):
+        pass
 
     def update_viewport(self):
         from kivy.graphics.opengl import glViewport

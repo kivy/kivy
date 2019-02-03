@@ -1466,8 +1466,11 @@ cdef class AliasProperty(Property):
     cpdef link_deps(self, EventDispatcher obj, str name):
         cdef Property oprop
         for prop in self.bind_objects:
-            oprop = getattr(obj.__class__, prop)
-            oprop.fbind(obj, self.trigger_change, 0)
+            if prop in obj.__events__:
+                obj.fbind(prop, self.trigger_change, 0)
+            else:
+                oprop = getattr(obj.__class__, prop)
+                oprop.fbind(obj, self.trigger_change, 0)
 
     cpdef trigger_change(self, EventDispatcher obj, value):
         cdef PropertyStorage ps = obj.__storage[self._name]
