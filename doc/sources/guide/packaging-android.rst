@@ -44,7 +44,7 @@ You can get buildozer at `<https://github.com/kivy/buildozer>`_::
 
     git clone https://github.com/kivy/buildozer.git
     cd buildozer
-    sudo python2.7 setup.py install
+    sudo python setup.py install
 
 This will install buildozer in your system. Afterwards, navigate to
 your project directory and run::
