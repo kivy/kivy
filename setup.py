@@ -40,8 +40,8 @@ if PY3:  # fix error with py3's LooseVersion comparisons
 
 
 def get_description():
-    with open(join(dirname(__file__), 'README.md')) as fileh:
-        return fileh.read()
+    with open(join(dirname(__file__), 'README.md'), 'rb') as fileh:
+        return fileh.read().decode("utf8")
 
 
 def get_version(filename='kivy/version.py'):
