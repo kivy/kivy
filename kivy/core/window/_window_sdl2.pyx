@@ -117,9 +117,11 @@ cdef class _WindowSDL2Storage:
                 orientations = 'Portrait'
             elif env_orientations == 'landscape':
                 orientations = 'LandscapeLeft'
+            elif env_orientations == 'sensor':
+                orientations = 'sensor'
             else:
                 Logger.warning(('Could not satisfy Android orientation "{}", only '
-                               '{{portrait,landscape}} are currently supported. '
+                               '{{portrait,landscape and sensor}} are currently supported. '
                                 'Defaulting to portrait').format(orientations))
                 orientations = 'Portrait'
 
