@@ -43,7 +43,8 @@ class ImageTestCase(unittest.TestCase):
 
         # save it in png
         bio = io.BytesIO()
-        self.assertTrue(img.save(bio, fmt="png"))  # if False, then there is no provider
+        # if False, then there is no provider
+        self.assertTrue(img.save(bio, fmt="png"))
         pngdata = bio.read()
         self.assertTrue(len(pngdata) > 0)
 
@@ -64,7 +65,8 @@ class ImageTestCase(unittest.TestCase):
 
         # save it in jpeg
         bio = io.BytesIO()
-        self.assertTrue(img.save(bio, fmt="jpg"))  # if False, then there is no provider
+        # if False, then there is no provider
+        self.assertTrue(img.save(bio, fmt="jpg"))
         self.assertTrue(len(bio.read()) > 0)
 
         with tempfile.NamedTemporaryFile(suffix=".jpg") as fd:

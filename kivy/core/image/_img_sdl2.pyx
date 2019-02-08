@@ -127,7 +127,7 @@ def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=90):
 cdef load_from_surface(SDL_Surface *image):
     cdef SDL_Surface *image2 = NULL
     cdef SDL_Surface *fimage = NULL
-    cdef int want_rgba = 0, want_bgra = 0, target_pixel = 0, n = 0
+    cdef int want_rgba = 0, want_bgra = 0, target_fmt = 0, n = 0
     cdef bytes pixels
 
     if image == NULL:

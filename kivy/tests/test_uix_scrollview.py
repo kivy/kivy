@@ -361,7 +361,6 @@ class ScrollViewTestCase(GraphicUnitTest):
         assert 0 > e.velocity > -10 * scroll.scroll_wheel_distance
 
 
-
 if __name__ == '__main__':
     import unittest
     unittest.main()
