@@ -23,8 +23,8 @@ class ImageLoaderSDL2(ImageLoaderBase):
                 'tga', 'tiff', 'webp', 'xcf', 'xpm', 'xv')
 
     @staticmethod
-    def can_save():
-        return True
+    def can_save(fmt, is_bytesio):
+        return fmt in ('jpg', 'png')
 
     @staticmethod
     def can_load_memory():
@@ -50,8 +50,9 @@ class ImageLoaderSDL2(ImageLoaderBase):
             rowlength=rowlength)]
 
     @staticmethod
-    def save(filename, width, height, fmt, pixels, flipped):
-        _img_sdl2.save(filename, width, height, fmt, pixels, flipped)
+    def save(filename, width, height, pixelfmt, pixels, flipped, imagefmt):
+        _img_sdl2.save(filename, width, height, pixelfmt, pixels, flipped,
+                       imagefmt)
         return True
 
 

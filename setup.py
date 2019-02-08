@@ -13,7 +13,7 @@ if "--build_examples" in sys.argv:
 from copy import deepcopy
 import os
 from os.path import join, dirname, sep, exists, basename, isdir
-from os import walk, environ
+from os import walk, environ, makedirs
 from distutils.version import LooseVersion
 from distutils.sysconfig import get_python_inc
 from collections import OrderedDict
@@ -40,8 +40,8 @@ if PY3:  # fix error with py3's LooseVersion comparisons
 
 
 def get_description():
-    with open(join(dirname(__file__), 'README.md')) as fileh:
-        return fileh.read()
+    with open(join(dirname(__file__), 'README.md'), 'rb') as fileh:
+        return fileh.read().decode("utf8")
 
 
 def get_version(filename='kivy/version.py'):
@@ -139,13 +139,17 @@ if ndkplatform is not None and environ.get('LIBLINK'):
 kivy_ios_root = environ.get('KIVYIOSROOT', None)
 if kivy_ios_root is not None:
     platform = 'ios'
+# proprietary broadcom video core drivers
 if exists('/opt/vc/include/bcm_host.h'):
     platform = 'rpi'
-if(
-    exists('/usr/lib/arm-linux-gnueabihf/libMali.so')
-    or exists('/usr/lib/arm-linux-gnueabihf/mali-egl/libmali.so')
-    or exists('/usr/local/mali-egl/libmali.so')
-):
+# use mesa video core drivers
+if environ.get('VIDEOCOREMESA', None):
+    platform = 'vc'
+mali_paths = (
+  '/usr/lib/arm-linux-gnueabihf/libMali.so',
+  '/usr/lib/arm-linux-gnueabihf/mali-egl/libmali.so',
+  '/usr/local/mali-egl/libmali.so')
+if any((exists(path) for path in mali_paths)):
     platform = 'mali'
 
 # -----------------------------------------------------------------------------
@@ -153,13 +157,13 @@ if(
 #
 c_options = OrderedDict()
 c_options['use_rpi'] = platform == 'rpi'
-c_options['use_mali'] = platform == 'mali'
 c_options['use_egl'] = False
 c_options['use_opengl_es2'] = None
 c_options['use_opengl_mock'] = environ.get('READTHEDOCS', None) == 'True'
 c_options['use_sdl2'] = None
 c_options['use_pangoft2'] = None
 c_options['use_ios'] = False
+c_options['use_android'] = False
 c_options['use_mesagl'] = False
 c_options['use_x11'] = False
 c_options['use_wayland'] = False
@@ -332,6 +336,9 @@ class KivyBuildExt(build_ext):
             with open(fn) as fd:
                 need_update = fd.read() != content
         if need_update:
+            directory_name = dirname(fn)
+            if not exists(directory_name):
+                makedirs(directory_name)
             with open(fn, 'w') as fd:
                 fd.write(content)
         return need_update
@@ -392,7 +399,7 @@ except ImportError:
     print('User distribution detected, avoid portable command.')
 
 # Detect which opengl version headers to use
-if platform in ('android', 'darwin', 'ios', 'rpi', 'mali'):
+if platform in ('android', 'darwin', 'ios', 'rpi', 'mali', 'vc'):
     c_options['use_opengl_es2'] = True
 elif c_options['use_opengl_es2'] is None:
     c_options['use_opengl_es2'] = \
@@ -407,6 +414,9 @@ if platform == 'ios':
     print('Kivy-IOS project located at {0}'.format(kivy_ios_root))
     c_options['use_ios'] = True
     c_options['use_sdl2'] = True
+
+elif platform == 'android':
+    c_options['use_android'] = True
 
 elif platform == 'darwin':
     if c_options['use_osx_frameworks']:
@@ -631,7 +641,7 @@ def determine_gl_flags():
                 'for rpi platform, falling back to EGL and GLESv2.')
             gl_libs = ['EGL', 'GLESv2']
         flags['libraries'] = ['bcm_host'] + gl_libs
-    elif platform == 'mali':
+    elif platform in ['mali', 'vc']:
         flags['include_dirs'] = ['/usr/include/']
         flags['library_dirs'] = ['/usr/lib/arm-linux-gnueabihf']
         flags['libraries'] = ['GLESv2']
