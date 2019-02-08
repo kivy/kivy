@@ -922,7 +922,8 @@ cdef class Texture:
 
         # need conversion, do check here because it seems to be faster ?
         if not gl_has_texture_native_format(colorfmt):
-            pbuffer, colorfmt = convert_to_gl_format(pbuffer, colorfmt)
+            pbuffer, colorfmt = convert_to_gl_format(pbuffer, colorfmt, 
+                                                     size[0], size[1])
         cdef char [:] char_view
         cdef short [:] short_view
         cdef unsigned short [:] ushort_view
