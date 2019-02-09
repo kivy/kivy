@@ -146,9 +146,9 @@ if exists('/opt/vc/include/bcm_host.h'):
 if environ.get('VIDEOCOREMESA', None):
     platform = 'vc'
 mali_paths = (
-  '/usr/lib/arm-linux-gnueabihf/libMali.so',
-  '/usr/lib/arm-linux-gnueabihf/mali-egl/libmali.so',
-  '/usr/local/mali-egl/libmali.so')
+    '/usr/lib/arm-linux-gnueabihf/libMali.so',
+    '/usr/lib/arm-linux-gnueabihf/mali-egl/libmali.so',
+    '/usr/local/mali-egl/libmali.so')
 if any((exists(path) for path in mali_paths)):
     platform = 'mali'
 
