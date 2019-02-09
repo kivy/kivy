@@ -143,7 +143,8 @@ class CameraOpenCV(CameraBase):
             try:
                 self._buffer = frame.imageData
             except AttributeError:
-                # frame is already of type ndarray which can be reshaped to 1-d.
+                # frame is already of type ndarray
+                # which can be reshaped to 1-d.
                 self._buffer = frame.reshape(-1)
             self._copy_to_gpu()
         except:
