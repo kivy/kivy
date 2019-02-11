@@ -386,6 +386,7 @@ else:
             self.queue = collections.deque()
             self.dispatch_queue = []
             self.thread = threading.Thread(
+                name=self.__class__.__name__,
                 target=self._thread_run,
                 kwargs=dict(
                     queue=self.queue,
