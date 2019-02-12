@@ -30,6 +30,18 @@ Manual installation (On Raspbian Jessie/Stretch)
 
     sudo pip install git+https://github.com/kivy/kivy.git@master
 
+    # Note: on recent Raspian stretch, using git with root user gives you a warning
+    # and prevent you to correctly use this.
+    
+    # Method 1: delete /root/bin/git as the message explained
+    sudo rm /root/bin/git
+    sudo pip install git+https://github.com/kivy/kivy.git@master
+    
+    # Method 2: clone locally then pip install
+    git clone https://github.com/kivy/kivy
+    cd kivy
+    sudo pip install .
+
 #. Or build and use kivy inplace (best for development)::
 
     git clone https://github.com/kivy/kivy
