@@ -168,7 +168,7 @@ c_options['use_mesagl'] = False
 c_options['use_x11'] = False
 c_options['use_wayland'] = False
 c_options['use_gstreamer'] = None
-c_options['use_avfoundation'] = platform == 'darwin'
+c_options['use_avfoundation'] = platform in ['darwin', 'ios']
 c_options['use_osx_frameworks'] = platform == 'darwin'
 c_options['debug_gl'] = False
 
@@ -863,7 +863,7 @@ if platform in ('darwin', 'ios'):
 if c_options['use_avfoundation']:
     import platform as _platform
     mac_ver = [int(x) for x in _platform.mac_ver()[0].split('.')[:2]]
-    if mac_ver >= [10, 7]:
+    if mac_ver >= [10, 7] or platform == 'ios':
         osx_flags = {
             'extra_link_args': ['-framework', 'AVFoundation'],
             'extra_compile_args': ['-ObjC++'],
