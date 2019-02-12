@@ -136,7 +136,7 @@ class CameraBase(EventDispatcher):
 # Load the appropriate providers
 providers = ()
 
-if platform == 'macosx':
+if platform in ['macosx', 'ios']:
     providers += (('avfoundation', 'camera_avfoundation',
                    'CameraAVFoundation'), )
 elif platform == 'android':
