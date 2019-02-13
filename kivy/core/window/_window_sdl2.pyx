@@ -109,22 +109,10 @@ cdef class _WindowSDL2Storage:
         if USE_IOS:
             orientations = 'LandscapeLeft LandscapeRight Portrait PortraitUpsideDown'
 
-        # Override the Android orientation based on what p4a was built with, if available.
-        # This may be overridden again by $KIVY_ORIENTATION.
         if USE_ANDROID:
-            env_orientations = environ.get('P4A_ORIENTATION', orientations)
-
-            if env_orientations == 'portrait':
-                orientations = 'Portrait'
-            elif env_orientations == 'landscape':
-                orientations = 'LandscapeLeft'
-            elif env_orientations == 'sensor':
-                orientations = 'sensor'
-            else:
-                Logger.warning(('Could not satisfy Android orientation "{}", only '
-                               '{{portrait,landscape and sensor}} are currently supported. '
-                                'Defaulting to portrait').format(orientations))
-                orientations = 'Portrait'
+            # Do not hint anything: by default the value in the AndroidManifest.xml will be used
+            # Note that the user can still override this via $KIVY_ORIENTATION if they wish
+            orientations = ''
 
         # Override the orientation based on the KIVY_ORIENTATION env
         # var. Note that this takes priority over any other setting.
