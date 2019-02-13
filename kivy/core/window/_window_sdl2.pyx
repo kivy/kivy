@@ -117,7 +117,7 @@ cdef class _WindowSDL2Storage:
             if env_orientations == 'portrait':
                 orientations = 'Portrait'
             elif env_orientations == 'landscape':
-                orientations = 'LandscapeLeft'
+                orientations = 'LandscapeRight'
             elif env_orientations == 'sensor':
                 orientations = 'sensor'
             else:
