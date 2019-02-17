@@ -71,7 +71,7 @@ install:
         sudo apt-get -y install python-dev libsmpeg-dev libswscale-dev libavformat-dev libavcodec-dev libjpeg-dev libtiff4-dev libX11-dev libmtdev-dev;
         sudo apt-get -y install python-setuptools build-essential libgl1-mesa-dev libgles2-mesa-dev;
         sudo apt-get -y install xvfb pulseaudio xsel;
-        pip install --upgrade cython pillow nose coveralls docutils;
+        pip install --upgrade cython pillow nose coveralls docutils PyInstaller;
       fi;
       if [ "${RUN}" == "docs" ]; then
         pip install --upgrade sphinxcontrib-blockdiag sphinxcontrib-seqdiag sphinxcontrib-actdiag sphinxcontrib-nwdiag;
@@ -115,10 +115,10 @@ install:
            curl -O -L https://www.python.org/ftp/python/3.5.2/python-3.5.2-macosx10.6.pkg;
            sudo installer -package python-3.5.2-macosx10.6.pkg -target /;
            python3 get-pip.py --user;
-           python3 -m pip install --upgrade --user cython pillow nose mock docutils;
+           python3 -m pip install --upgrade --user cython pillow nose mock docutils PyInstaller;
         else
            python get-pip.py --user;
-           python -m pip install --upgrade --user cython pillow nose mock docutils;
+           python -m pip install --upgrade --user cython pillow nose mock docutils PyInstaller;
         fi;
       fi;
     fi;
@@ -227,7 +227,7 @@ script:
           python$pyver_short -m pip install git+http://github.com/tito/osxrelocator --user;
 
           python$pyver_short -m pip install --upgrade --user pip;
-          python$pyver_short -m pip install --upgrade --user cython nose wheel pillow mock docutils;
+          python$pyver_short -m pip install --upgrade --user cython nose wheel pillow mock docutils PyInstaller;
           python$pyver_short -m pip install --upgrade delocate;
 
           USE_SDL2=1 USE_GSTREAMER=1 python$pyver_short setup.py build_ext --inplace>output.txt;
