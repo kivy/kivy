@@ -89,7 +89,7 @@ image-testsuite:
 
 test:
 	-rm -rf kivy/tests/build
-	$(PYTEST) -v kivy/tests
+	env KIVY_NO_ARGS=1 $(PYTEST) -v kivy/tests
 
 cover:
 	coverage html --include='$(KIVY_DIR)*' --omit '$(KIVY_DIR)data/*,$(KIVY_DIR)lib/*,$(KIVY_DIR)tools/*,$(KIVY_DIR)tests/*'
