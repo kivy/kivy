@@ -322,6 +322,7 @@ class WindowSDL(WindowBase):
     def close(self):
         self._win.teardown_window()
         self.dispatch('on_close')
+        self.initialized = False
 
     def maximize(self):
         if self._is_desktop:

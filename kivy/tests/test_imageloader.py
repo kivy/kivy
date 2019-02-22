@@ -156,7 +156,7 @@ def match_prediction(pixels, fmt, fd, pitch):
     return (len(errors) == 0, errors)
 
 
-class TestContext(object):
+class _TestContext(object):
     def __init__(self, loadercls):
         self.loadercls = loadercls
         self._fd = None
@@ -278,7 +278,7 @@ class ImageLoaderTestCase(unittest.TestCase):
         if not extensions:
             extensions = loadercls.extensions()
 
-        ctx = TestContext(loadercls)
+        ctx = _TestContext(loadercls)
         self._context = ctx
         for filename in sorted(self._image_files.keys()):
             filedata = self._image_files[filename]
