@@ -3,9 +3,9 @@ from kivy.tests.common import GraphicUnitTest
 from kivy.uix.rst import RstDocument
 
 
-class TestRstReplace(RstDocument):
+class _TestRstReplace(RstDocument):
     def __init__(self, **kwargs):
-        super(TestRstReplace, self).__init__(**kwargs)
+        super(_TestRstReplace, self).__init__(**kwargs)
         self.text = '''
 .. |uni| unicode:: 0xe4
 .. |nbsp| unicode:: 0xA0
@@ -19,7 +19,7 @@ class TestRstReplace(RstDocument):
 
 class RstSubstitutionTestCase(GraphicUnitTest):
     def test_rst_replace(self):
-        rst = TestRstReplace()
+        rst = _TestRstReplace()
         self.render(rst)
 
         # RstDocument > Scatter > GridLayout > RstParagraph
