@@ -63,7 +63,6 @@ before_install:
 install:
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" != "wheels" ]; then
       if [ "${RUN}" != "pep8" ]; then
-        # previously ppa:zoogie/sdl2-snapshots, but we need SDL2_image >= 2.0.5
         yes | sudo add-apt-repository ppa:vict1971/qtsky;
         yes | sudo add-apt-repository ppa:gstreamer-developers/ppa;
         sudo apt-get update;
