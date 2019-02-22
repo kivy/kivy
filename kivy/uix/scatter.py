@@ -361,7 +361,7 @@ class Scatter(Widget):
     def set_right(self, value):
         self.x = value - self.bbox[1][0]
 
-    right = AliasProperty(get_right, set_right, bind=('x', 'width'))
+    right = AliasProperty(get_right, set_right, bind=('x', 'bbox'))
 
     def get_top(self):
         return self.y + self.bbox[1][1]
@@ -369,7 +369,7 @@ class Scatter(Widget):
     def set_top(self, value):
         self.y = value - self.bbox[1][1]
 
-    top = AliasProperty(get_top, set_top, bind=('y', 'height'))
+    top = AliasProperty(get_top, set_top, bind=('y', 'bbox'))
 
     def get_center_x(self):
         return self.x + self.bbox[1][0] / 2.
@@ -377,7 +377,7 @@ class Scatter(Widget):
     def set_center_x(self, value):
         self.x = value - self.bbox[1][0] / 2.
 
-    center_x = AliasProperty(get_center_x, set_center_x, bind=('x', 'width'))
+    center_x = AliasProperty(get_center_x, set_center_x, bind=('x', 'bbox'))
 
     def get_center_y(self):
         return self.y + self.bbox[1][1] / 2.
@@ -385,7 +385,7 @@ class Scatter(Widget):
     def set_center_y(self, value):
         self.y = value - self.bbox[1][1] / 2.
 
-    center_y = AliasProperty(get_center_y, set_center_y, bind=('y', 'height'))
+    center_y = AliasProperty(get_center_y, set_center_y, bind=('y', 'bbox'))
 
     def __init__(self, **kwargs):
         self._touches = []

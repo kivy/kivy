@@ -226,8 +226,8 @@ class Image(Widget):
         return iw, ih
 
     norm_image_size = AliasProperty(get_norm_image_size,
-                                    bind=('texture', 'size', 'image_ratio',
-                                          'allow_stretch'),
+                                    bind=('texture', 'size', 'allow_stretch',
+                                          'image_ratio', 'keep_ratio'),
                                     cache=True)
     '''Normalized image size within the widget box.
 
