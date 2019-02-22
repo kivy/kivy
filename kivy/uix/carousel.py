@@ -86,9 +86,7 @@ class Carousel(StencilView):
     def _get_slides_container(self):
         return [x.parent for x in self.slides]
 
-    slides_container = AliasProperty(_get_slides_container,
-                                     bind=('slides',),
-                                     cache=True)
+    slides_container = AliasProperty(_get_slides_container, bind=('slides',))
 
     direction = OptionProperty('right',
                                options=('right', 'left', 'top', 'bottom'))

@@ -3107,7 +3107,7 @@ class TextInput(FocusBehavior, Widget):
         self._refresh_text(text)
         self.cursor = self.get_cursor_from_index(len(text))
 
-    text = AliasProperty(_get_text, _set_text, bind=('_lines',), cache=True)
+    text = AliasProperty(_get_text, _set_text, bind=('_lines',))
     '''Text of the widget.
 
     Creation of a simple hello world::
