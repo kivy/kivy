@@ -252,7 +252,6 @@ class WindowSDL(WindowBase):
                            "borderless Config option instead.")
 
         if not self.initialized:
-
             if self.position == 'auto':
                 pos = None, None
             elif self.position == 'custom':
@@ -321,7 +320,7 @@ class WindowSDL(WindowBase):
 
     def close(self):
         self._win.teardown_window()
-        self.dispatch('on_close')
+        super(WindowSDL, self).close()
         self.initialized = False
 
     def maximize(self):
