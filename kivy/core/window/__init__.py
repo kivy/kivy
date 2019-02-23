@@ -1083,7 +1083,21 @@ class WindowBase(EventDispatcher):
 
     def close(self):
         '''Close the window'''
-        pass
+        self.dispatch('on_close')
+
+        # Prevent any leftover that can crash the app later
+        # like if there is still some GL referenced values
+        # they may be collected later, but because it was already
+        # gone in the system, it may collect invalid GL resources
+        # Just clear everything to force reloading later on.
+        from kivy.cache import Cache
+        from kivy.graphics.context import get_context
+        Cache.remove('kv.loader')
+        Cache.remove('kv.image')
+        Cache.remove('kv.shader')
+        Cache.remove('kv.texture')
+        get_context().flush()
+
 
     shape_image = StringProperty('')
     '''An image for the window shape (only works for sdl2 window provider).
