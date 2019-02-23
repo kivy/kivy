@@ -3,8 +3,9 @@ from kivy.tests.common import GraphicUnitTest
 from kivy.lang import Builder
 from kivy.base import EventLoop
 from kivy.weakproxy import WeakProxy
-from kivy.uix.dropdown import DropDown
 from kivy.input.motionevent import MotionEvent
+
+DropDown = None
 
 
 KV = '''
@@ -81,6 +82,9 @@ class ActionBarTestCase(GraphicUnitTest):
     framecount = 0
 
     def setUp(self):
+        global DropDown
+        from kivy.uix.dropdown import DropDown
+
         # kill KV lang logging (too long test)
         import kivy.lang.builder as builder
 
