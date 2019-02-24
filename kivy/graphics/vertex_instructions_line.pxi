@@ -298,7 +298,7 @@ cdef class Line(VertexInstruction):
         self.batch.set_mode('triangles')
         cdef unsigned long vertices_count = (count - 1) * 4
         cdef unsigned long indices_count = (count - 1) * 6
-        cdef unsigned int iv = 0, ii = 0
+        cdef unsigned int iv = 0, ii = 0, siv = 0
 
         if self._joint == LINE_JOINT_BEVEL:
             indices_count += (count - 2) * 3
