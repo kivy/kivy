@@ -37,11 +37,11 @@ cdef void __stdcall gil_dbgAttachShader (GLuint program, GLuint shader) with gil
     cgl_native.glAttachShader ( program, shader)
     gl_check_error()
 
-cdef void __stdcall dbgBindAttribLocation (GLuint program, GLuint index,  GLchar* name) nogil:
+cdef void __stdcall dbgBindAttribLocation (GLuint program, GLuint index, const GLchar* name) nogil:
     with gil:
         gil_dbgBindAttribLocation(program, index, name)
 
-cdef void __stdcall gil_dbgBindAttribLocation (GLuint program, GLuint index,  GLchar* name) with gil:
+cdef void __stdcall gil_dbgBindAttribLocation (GLuint program, GLuint index, const GLchar* name) with gil:
     gl_debug_print("GL glBindAttribLocation( program = ", program, ", index = ", index, ", name*=", <bytes>name, ", )")
     cgl_native.glBindAttribLocation ( program, index, name)
     gl_check_error()
@@ -127,18 +127,18 @@ cdef void __stdcall gil_dbgBlendFuncSeparate (GLenum srcRGB, GLenum dstRGB, GLen
     cgl_native.glBlendFuncSeparate ( srcRGB, dstRGB, srcAlpha, dstAlpha)
     gl_check_error()
 
-cdef void __stdcall dbgBufferData (GLenum target, GLsizeiptr size,  GLvoid* data, GLenum usage) nogil:
+cdef void __stdcall dbgBufferData (GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usage) nogil:
     with gil:
-        gil_dbgBufferData(target, size,  data, usage)
+        gil_dbgBufferData(target, size, data, usage)
 
-cdef void __stdcall gil_dbgBufferData (GLenum target, GLsizeiptr size,  GLvoid* data, GLenum usage) with gil:
+cdef void __stdcall gil_dbgBufferData (GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usage) with gil:
     gl_debug_print("GL glBufferData( target = ", target, ", size = ", size, ", data*=", repr(hex(<long> data)), ", usage = ", usage, ", )")
     cgl_native.glBufferData ( target, size, data, usage)
     gl_check_error()
 
-cdef void __stdcall dbgBufferSubData (GLenum target, GLintptr offset, GLsizeiptr size,  GLvoid* data) nogil:
+cdef void __stdcall dbgBufferSubData (GLenum target, GLintptr offset, GLsizeiptr size, const GLvoid* data) nogil:
     with gil:
-        gil_dbgBufferSubData(target, offset, size, data)
+        gil_dbgBufferSubData(target, offset, size, <GLvoid *>data)
 
 cdef void __stdcall gil_dbgBufferSubData (GLenum target, GLintptr offset, GLsizeiptr size,  GLvoid* data) with gil:
     gl_debug_print("GL glBufferSubData( target = ", target, ", offset = ", offset, ", size = ", size, ", data*=", repr(hex(<long> data)), ", )")
@@ -211,18 +211,18 @@ cdef void __stdcall gil_dbgCompileShader (GLuint shader) with gil:
     cgl_native.glCompileShader ( shader)
     gl_check_error()
 
-cdef void __stdcall dbgCompressedTexImage2D (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize,  GLvoid* data) nogil:
+cdef void __stdcall dbgCompressedTexImage2D (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const GLvoid* data) nogil:
     with gil:
         gil_dbgCompressedTexImage2D(target, level, internalformat, width, height, border, imageSize, data)
 
-cdef void __stdcall gil_dbgCompressedTexImage2D (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize,  GLvoid* data) with gil:
+cdef void __stdcall gil_dbgCompressedTexImage2D (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const GLvoid* data) with gil:
     gl_debug_print("GL glCompressedTexImage2D( target = ", target, ", level = ", level, ", internalformat = ", internalformat, ", width = ", width, ", height = ", height, ", border = ", border, ", imageSize = ", imageSize, ", data*=", repr(hex(<long> data)), ", )")
     cgl_native.glCompressedTexImage2D ( target, level, internalformat, width, height, border, imageSize, data)
     gl_check_error()
 
-cdef void __stdcall dbgCompressedTexSubImage2D (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize,  GLvoid* data) nogil:
+cdef void __stdcall dbgCompressedTexSubImage2D (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const GLvoid* data) nogil:
     with gil:
-        gil_dbgCompressedTexSubImage2D(target, level, xoffset, yoffset, width, height, format, imageSize, data)
+        gil_dbgCompressedTexSubImage2D(target, level, xoffset, yoffset, width, height, format, imageSize, <GLvoid*>data)
 
 cdef void __stdcall gil_dbgCompressedTexSubImage2D (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize,  GLvoid* data) with gil:
     gl_debug_print("GL glCompressedTexSubImage2D( target = ", target, ", level = ", level, ", xoffset = ", xoffset, ", yoffset = ", yoffset, ", width = ", width, ", height = ", height, ", format = ", format, ", imageSize = ", imageSize, ", data*=", repr(hex(<long> data)), ", )")
@@ -276,20 +276,20 @@ cdef void __stdcall gil_dbgCullFace (GLenum mode) with gil:
     cgl_native.glCullFace ( mode)
     gl_check_error()
 
-cdef void __stdcall dbgDeleteBuffers (GLsizei n,  GLuint* buffers) nogil:
+cdef void __stdcall dbgDeleteBuffers (GLsizei n, const GLuint* buffers) nogil:
     with gil:
         gil_dbgDeleteBuffers(n, buffers)
 
-cdef void __stdcall gil_dbgDeleteBuffers (GLsizei n,  GLuint* buffers) with gil:
+cdef void __stdcall gil_dbgDeleteBuffers (GLsizei n, const GLuint* buffers) with gil:
     gl_debug_print("GL glDeleteBuffers( n = ", n, ", buffers*=", repr(hex(<long> buffers)), ", )")
     cgl_native.glDeleteBuffers ( n, buffers)
     gl_check_error()
 
-cdef void __stdcall dbgDeleteFramebuffers (GLsizei n,  GLuint* framebuffers) nogil:
+cdef void __stdcall dbgDeleteFramebuffers (GLsizei n, const GLuint* framebuffers) nogil:
     with gil:
-        gil_dbgDeleteFramebuffers(n,  framebuffers)
+        gil_dbgDeleteFramebuffers(n, framebuffers)
 
-cdef void __stdcall gil_dbgDeleteFramebuffers (GLsizei n,  GLuint* framebuffers) with gil:
+cdef void __stdcall gil_dbgDeleteFramebuffers (GLsizei n, const GLuint* framebuffers) with gil:
     gl_debug_print("GL glDeleteFramebuffers( n = ", n, ", framebuffers*=", repr(hex(<long> framebuffers)), ", )")
     cgl_native.glDeleteFramebuffers ( n, framebuffers)
     gl_check_error()
@@ -303,11 +303,11 @@ cdef void __stdcall gil_dbgDeleteProgram (GLuint program) with gil:
     cgl_native.glDeleteProgram ( program)
     gl_check_error()
 
-cdef void __stdcall dbgDeleteRenderbuffers (GLsizei n,  GLuint* renderbuffers) nogil:
+cdef void __stdcall dbgDeleteRenderbuffers (GLsizei n, const GLuint* renderbuffers) nogil:
     with gil:
-        gil_dbgDeleteRenderbuffers(n,  renderbuffers)
+        gil_dbgDeleteRenderbuffers(n, renderbuffers)
 
-cdef void __stdcall gil_dbgDeleteRenderbuffers (GLsizei n,  GLuint* renderbuffers) with gil:
+cdef void __stdcall gil_dbgDeleteRenderbuffers (GLsizei n, const GLuint* renderbuffers) with gil:
     gl_debug_print("GL glDeleteRenderbuffers( n = ", n, ", renderbuffers*=", repr(hex(<long> renderbuffers)), ", )")
     cgl_native.glDeleteRenderbuffers ( n, renderbuffers)
     gl_check_error()
@@ -321,11 +321,11 @@ cdef void __stdcall gil_dbgDeleteShader (GLuint shader) with gil:
     cgl_native.glDeleteShader ( shader)
     gl_check_error()
 
-cdef void __stdcall dbgDeleteTextures (GLsizei n,  GLuint* textures) nogil:
+cdef void __stdcall dbgDeleteTextures (GLsizei n, const GLuint* textures) nogil:
     with gil:
-        gil_dbgDeleteTextures(n,  textures)
+        gil_dbgDeleteTextures(n, textures)
 
-cdef void __stdcall gil_dbgDeleteTextures (GLsizei n,  GLuint* textures) with gil:
+cdef void __stdcall gil_dbgDeleteTextures (GLsizei n, const GLuint* textures) with gil:
     gl_debug_print("GL glDeleteTextures( n = ", n, ", textures*=", repr(hex(<long> textures)), ", )")
     cgl_native.glDeleteTextures ( n, textures)
     gl_check_error()
@@ -394,9 +394,9 @@ cdef void __stdcall gil_dbgDrawArrays (GLenum mode, GLint first, GLsizei count) 
     cgl_native.glDrawArrays ( mode, first, count)
     gl_check_error()
 
-cdef void __stdcall dbgDrawElements (GLenum mode, GLsizei count, GLenum type,  GLvoid* indices) nogil:
+cdef void __stdcall dbgDrawElements (GLenum mode, GLsizei count, GLenum type, const GLvoid* indices) nogil:
     with gil:
-        gil_dbgDrawElements(mode, count, type, indices)
+        gil_dbgDrawElements(mode, count, type, <GLvoid*>indices)
 
 cdef void __stdcall gil_dbgDrawElements (GLenum mode, GLsizei count, GLenum type,  GLvoid* indices) with gil:
     gl_debug_print("GL glDrawElements( mode = ", mode, ", count = ", count, ", type = ", type, ", indices*=", repr(hex(<long> indices)), ", )")
@@ -538,9 +538,9 @@ cdef void __stdcall gil_dbgGetAttachedShaders (GLuint program, GLsizei maxcount,
     cgl_native.glGetAttachedShaders ( program, maxcount, count, shaders)
     gl_check_error()
 
-cdef int  __stdcall dbgGetAttribLocation (GLuint program,  GLchar* name) nogil:
+cdef int  __stdcall dbgGetAttribLocation (GLuint program, const GLchar* name) nogil:
     with gil:
-        gil_dbgGetAttribLocation(program,   name)
+        gil_dbgGetAttribLocation(program,  <GLchar*>name)
 
 cdef int  __stdcall gil_dbgGetAttribLocation (GLuint program,  GLchar* name) with gil:
     gl_debug_print("GL glGetAttribLocation( program = ", program, ", name*=", repr(hex(<long> name)), ", )")
@@ -656,13 +656,13 @@ cdef void __stdcall gil_dbgGetShaderSource (GLuint shader, GLsizei bufsize, GLsi
     cgl_native.glGetShaderSource ( shader, bufsize, length, source)
     gl_check_error()
 
-cdef   GLubyte* __stdcall dbgGetString (GLenum name) nogil:
+cdef  const GLubyte* __stdcall dbgGetString (GLenum name) nogil:
     with gil:
         return gil_dbgGetString(name)
 
-cdef   GLubyte* __stdcall gil_dbgGetString (GLenum name) with gil:
+cdef  const GLubyte* __stdcall gil_dbgGetString (GLenum name) with gil:
     gl_debug_print("GL glGetString( name = ", name, ", )")
-    return <GLubyte*><char*>cgl_native.glGetString ( name)
+    return <const GLubyte*><const char*>cgl_native.glGetString ( name)
 
 cdef void __stdcall dbgGetTexParameterfv (GLenum target, GLenum pname, GLfloat* params) nogil:
     with gil:
@@ -700,7 +700,7 @@ cdef void __stdcall gil_dbgGetUniformiv (GLuint program, GLint location, GLint* 
     cgl_native.glGetUniformiv ( program, location, params)
     gl_check_error()
 
-cdef int  __stdcall dbgGetUniformLocation (GLuint program,  GLchar* name) nogil:
+cdef int  __stdcall dbgGetUniformLocation (GLuint program, const GLchar* name) nogil:
     with gil:
         return gil_dbgGetUniformLocation(program,   <bytes>name)
 
@@ -883,11 +883,11 @@ cdef void __stdcall gil_dbgScissor (GLint x, GLint y, GLsizei width, GLsizei hei
     gl_check_error()
 # Skipping generation of: "#cdef void __stdcall dbgShaderBinary (cgl_native.GLsizei n,  cgl_native.GLuint* shaders, cgl_native.GLenum binaryformat,  cgl_native.GLvoid* binary, cgl_native.GLsizei length)"
 
-cdef void __stdcall dbgShaderSource (GLuint shader, GLsizei count,  GLchar** string,  GLint* length) nogil:
+cdef void __stdcall dbgShaderSource (GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length) nogil:
     with gil:
         gil_dbgShaderSource(shader, count, string, length)
 
-cdef void __stdcall gil_dbgShaderSource (GLuint shader, GLsizei count,  GLchar** string,  GLint* length) with gil:
+cdef void __stdcall gil_dbgShaderSource (GLuint shader, GLsizei count,  const GLchar* const* string, const GLint* length) with gil:
     gl_debug_print("GL glShaderSource( shader = ", shader, ", count = ", count, ", string**=", repr(hex(<long> string)), ", length*=", repr(hex(<long> length)), ", )")
     cgl_native.glShaderSource ( shader, count, <const_char_ptr*>string, length)
     gl_check_error()
@@ -946,11 +946,11 @@ cdef void __stdcall gil_dbgStencilOpSeparate (GLenum face, GLenum fail, GLenum z
     cgl_native.glStencilOpSeparate ( face, fail, zfail, zpass)
     gl_check_error()
 
-cdef void __stdcall dbgTexImage2D (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type,  GLvoid* pixels) nogil:
+cdef void __stdcall dbgTexImage2D (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid* pixels) nogil:
     with gil:
         gil_dbgTexImage2D(target, level, internalformat, width, height, border, format, type,   pixels)
 
-cdef void __stdcall gil_dbgTexImage2D (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type,  GLvoid* pixels) with gil:
+cdef void __stdcall gil_dbgTexImage2D (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid* pixels) with gil:
     gl_debug_print("GL glTexImage2D( target = ", target, ", level = ", level, ", internalformat = ", internalformat, ", width = ", width, ", height = ", height, ", border = ", border, ", format = ", format, ", type = ", type, ", pixels*=", repr(hex(<long> pixels)), ", )")
     cgl_native.glTexImage2D ( target, level, internalformat, width, height, border, format, type, pixels)
     gl_check_error()
@@ -993,11 +993,11 @@ cdef void __stdcall gil_dbgTexParameteri (GLenum target, GLenum pname, GLint par
 #     ret = cgl_native.glGetError()
 #     if ret: print("OpenGL Error %d / %x" % (ret, ret))
 #
-cdef void __stdcall dbgTexSubImage2D (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type,  GLvoid* pixels) nogil:
+cdef void __stdcall dbgTexSubImage2D (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid* pixels) nogil:
     with gil:
         gil_dbgTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type,   pixels)
 
-cdef void __stdcall gil_dbgTexSubImage2D (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type,  GLvoid* pixels) with gil:
+cdef void __stdcall gil_dbgTexSubImage2D (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid* pixels) with gil:
     gl_debug_print("GL glTexSubImage2D( target = ", target, ", level = ", level, ", xoffset = ", xoffset, ", yoffset = ", yoffset, ", width = ", width, ", height = ", height, ", format = ", format, ", type = ", type, ", pixels*=", repr(hex(<long> pixels)), ", )")
     cgl_native.glTexSubImage2D ( target, level, xoffset, yoffset, width, height, format, type, pixels)
     gl_check_error()
@@ -1011,11 +1011,11 @@ cdef void __stdcall gil_dbgUniform1f (GLint location, GLfloat x) with gil:
     cgl_native.glUniform1f ( location, x)
     gl_check_error()
 
-cdef void __stdcall dbgUniform1fv (GLint location, GLsizei count,  GLfloat* v) nogil:
+cdef void __stdcall dbgUniform1fv (GLint location, GLsizei count, const GLfloat* v) nogil:
     with gil:
         gil_dbgUniform1fv(location, count,   v)
 
-cdef void __stdcall gil_dbgUniform1fv (GLint location, GLsizei count,  GLfloat* v) with gil:
+cdef void __stdcall gil_dbgUniform1fv (GLint location, GLsizei count, const GLfloat* v) with gil:
     gl_debug_print("GL glUniform1fv( location = ", location, ", count = ", count, ", v*=", repr(hex(<long> v)), ", )")
     cgl_native.glUniform1fv ( location, count, v)
     gl_check_error()
@@ -1029,11 +1029,11 @@ cdef void __stdcall gil_dbgUniform1i (GLint location, GLint x) with gil:
     cgl_native.glUniform1i ( location, x)
     gl_check_error()
 
-cdef void __stdcall dbgUniform1iv (GLint location, GLsizei count,  GLint* v) nogil:
+cdef void __stdcall dbgUniform1iv (GLint location, GLsizei count, const GLint* v) nogil:
     with gil:
         gil_dbgUniform1iv(location, count,   v)
 
-cdef void __stdcall gil_dbgUniform1iv (GLint location, GLsizei count,  GLint* v) with gil:
+cdef void __stdcall gil_dbgUniform1iv (GLint location, GLsizei count, const GLint* v) with gil:
     gl_debug_print("GL glUniform1iv( location = ", location, ", count = ", count, ", v*=", repr(hex(<long> v)), ", )")
     cgl_native.glUniform1iv ( location, count, v)
     gl_check_error()
@@ -1047,11 +1047,11 @@ cdef void __stdcall gil_dbgUniform2f (GLint location, GLfloat x, GLfloat y) with
     cgl_native.glUniform2f ( location, x, y)
     gl_check_error()
 
-cdef void __stdcall dbgUniform2fv (GLint location, GLsizei count,  GLfloat* v) nogil:
+cdef void __stdcall dbgUniform2fv (GLint location, GLsizei count, const GLfloat* v) nogil:
     with gil:
         gil_dbgUniform2fv(location, count,   v)
 
-cdef void __stdcall gil_dbgUniform2fv (GLint location, GLsizei count,  GLfloat* v) with gil:
+cdef void __stdcall gil_dbgUniform2fv (GLint location, GLsizei count, const GLfloat* v) with gil:
     gl_debug_print("GL glUniform2fv( location = ", location, ", count = ", count, ", v*=", repr(hex(<long> v)), ", )")
     cgl_native.glUniform2fv ( location, count, v)
     gl_check_error()
@@ -1065,11 +1065,11 @@ cdef void __stdcall gil_dbgUniform2i (GLint location, GLint x, GLint y) with gil
     cgl_native.glUniform2i ( location, x, y)
     gl_check_error()
 
-cdef void __stdcall dbgUniform2iv (GLint location, GLsizei count,  GLint* v) nogil:
+cdef void __stdcall dbgUniform2iv (GLint location, GLsizei count, const GLint* v) nogil:
     with gil:
         gil_dbgUniform2iv(location, count,   v)
 
-cdef void __stdcall gil_dbgUniform2iv (GLint location, GLsizei count,  GLint* v) with gil:
+cdef void __stdcall gil_dbgUniform2iv (GLint location, GLsizei count, const GLint* v) with gil:
     gl_debug_print("GL glUniform2iv( location = ", location, ", count = ", count, ", v*=", repr(hex(<long> v)), ", )")
     cgl_native.glUniform2iv ( location, count, v)
     gl_check_error()
@@ -1083,11 +1083,11 @@ cdef void __stdcall gil_dbgUniform3f (GLint location, GLfloat x, GLfloat y, GLfl
     cgl_native.glUniform3f ( location, x, y, z)
     gl_check_error()
 
-cdef void __stdcall dbgUniform3fv (GLint location, GLsizei count,  GLfloat* v) nogil:
+cdef void __stdcall dbgUniform3fv (GLint location, GLsizei count, const GLfloat* v) nogil:
     with gil:
         gil_dbgUniform3fv(location, count,   v)
 
-cdef void __stdcall gil_dbgUniform3fv (GLint location, GLsizei count,  GLfloat* v) with gil:
+cdef void __stdcall gil_dbgUniform3fv (GLint location, GLsizei count, const GLfloat* v) with gil:
     gl_debug_print("GL glUniform3fv( location = ", location, ", count = ", count, ", v*=", repr(hex(<long> v)), ", )")
     cgl_native.glUniform3fv ( location, count, v)
     gl_check_error()
@@ -1101,11 +1101,11 @@ cdef void __stdcall gil_dbgUniform3i (GLint location, GLint x, GLint y, GLint z)
     cgl_native.glUniform3i ( location, x, y, z)
     gl_check_error()
 
-cdef void __stdcall dbgUniform3iv (GLint location, GLsizei count,  GLint* v) nogil:
+cdef void __stdcall dbgUniform3iv (GLint location, GLsizei count, const GLint* v) nogil:
     with gil:
         gil_dbgUniform3iv(location, count,   v)
 
-cdef void __stdcall gil_dbgUniform3iv (GLint location, GLsizei count,  GLint* v) with gil:
+cdef void __stdcall gil_dbgUniform3iv (GLint location, GLsizei count, const GLint* v) with gil:
     gl_debug_print("GL glUniform3iv( location = ", location, ", count = ", count, ", v*=", repr(hex(<long> v)), ", )")
     cgl_native.glUniform3iv ( location, count, v)
     gl_check_error()
@@ -1119,11 +1119,11 @@ cdef void __stdcall gil_dbgUniform4f (GLint location, GLfloat x, GLfloat y, GLfl
     cgl_native.glUniform4f ( location, x, y, z, w)
     gl_check_error()
 
-cdef void __stdcall dbgUniform4fv (GLint location, GLsizei count,  GLfloat* v) nogil:
+cdef void __stdcall dbgUniform4fv (GLint location, GLsizei count, const GLfloat* v) nogil:
     with gil:
         gil_dbgUniform4fv(location, count,   v)
 
-cdef void __stdcall gil_dbgUniform4fv (GLint location, GLsizei count,  GLfloat* v) with gil:
+cdef void __stdcall gil_dbgUniform4fv (GLint location, GLsizei count, const GLfloat* v) with gil:
     gl_debug_print("GL glUniform4fv( location = ", location, ", count = ", count, ", v*=", repr(hex(<long> v)), ", )")
     cgl_native.glUniform4fv ( location, count, v)
     gl_check_error()
@@ -1137,11 +1137,11 @@ cdef void __stdcall gil_dbgUniform4i (GLint location, GLint x, GLint y, GLint z,
     cgl_native.glUniform4i ( location, x, y, z, w)
     gl_check_error()
 
-cdef void __stdcall dbgUniform4iv (GLint location, GLsizei count,  GLint* v) nogil:
+cdef void __stdcall dbgUniform4iv (GLint location, GLsizei count, const GLint* v) nogil:
     with gil:
         gil_dbgUniform4iv(location, count,   v)
 
-cdef void __stdcall gil_dbgUniform4iv (GLint location, GLsizei count,  GLint* v) with gil:
+cdef void __stdcall gil_dbgUniform4iv (GLint location, GLsizei count, const GLint* v) with gil:
     gl_debug_print("GL glUniform4iv( location = ", location, ", count = ", count, ", v*=", repr(hex(<long> v)), ", )")
     cgl_native.glUniform4iv ( location, count, v)
     gl_check_error()
@@ -1166,11 +1166,11 @@ cdef void __stdcall gil_dbgUniform4iv (GLint location, GLsizei count,  GLint* v)
 #     ret = cgl_native.glGetError()
 #     if ret: print("OpenGL Error %d / %x" % (ret, ret))
 
-cdef void __stdcall dbgUniformMatrix4fv (GLint location, GLsizei count, GLboolean transpose,  GLfloat* value) nogil:
+cdef void __stdcall dbgUniformMatrix4fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) nogil:
     with gil:
         gil_dbgUniformMatrix4fv(location, count, transpose,   value)
 
-cdef void __stdcall gil_dbgUniformMatrix4fv (GLint location, GLsizei count, GLboolean transpose,  GLfloat* value) with gil:
+cdef void __stdcall gil_dbgUniformMatrix4fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) with gil:
     gl_debug_print("GL glUniformMatrix4fv( location = ", location, ", count = ", count, ", transpose = ", transpose, ", value*=", repr(hex(<long> value)), ", )")
     cgl_native.glUniformMatrix4fv ( location, count, transpose, value)
     gl_check_error()
@@ -1269,9 +1269,9 @@ cdef void __stdcall gil_dbgVertexAttrib4f (GLuint indx, GLfloat x, GLfloat y, GL
 #     ret = cgl_native.glGetError()
 #     if ret: print("OpenGL Error %d / %x" % (ret, ret))
 #
-cdef void __stdcall dbgVertexAttribPointer (GLuint indx, GLint size, GLenum type, GLboolean normalized, GLsizei stride,  GLvoid* ptr) nogil:
+cdef void __stdcall dbgVertexAttribPointer (GLuint indx, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* ptr) nogil:
     with gil:
-        gil_dbgVertexAttribPointer(indx, size, type, normalized, stride,   ptr)
+        gil_dbgVertexAttribPointer(indx, size, type, normalized, stride, <GLvoid*>ptr)
 
 cdef void __stdcall gil_dbgVertexAttribPointer (GLuint indx, GLint size, GLenum type, GLboolean normalized, GLsizei stride,  GLvoid* ptr) with gil:
     gl_debug_print("GL glVertexAttribPointer( indx = ", indx, ", size = ", size, ", type = ", type, ", normalized = ", normalized, ", stride = ", stride, ", ptr*=", repr(hex(<long> ptr)), ", )")
