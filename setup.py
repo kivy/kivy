@@ -856,10 +856,10 @@ if c_options['use_pangoft2'] in (None, True) and platform not in (
     if pango_flags and 'libraries' in pango_flags:
         print('Pango: pangoft2 found via pkg-config')
         c_options['use_pangoft2'] = True
-        pango_depends = {'depends': ['lib/pangoft2.pxi',
-                                     'lib/pangoft2.h']}
+        pango_depends = {'depends': ['lib/pango/pangoft2.pxi']}
         sources['core/text/_text_pango.pyx'] = merge(
                 base_flags, pango_flags, pango_depends)
+        print(sources['core/text/_text_pango.pyx'])
 
 if platform in ('darwin', 'ios'):
     # activate ImageIO provider for our core image
