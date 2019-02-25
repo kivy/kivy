@@ -50,7 +50,9 @@
     #endif
     #define GL_EXT_texture_border_clamp
     #define GL_EXT_texture_buffer
+    #ifndef GL_EXT_texture_storage
     #define GL_EXT_texture_storage
+    #endif
 
 #else
 
