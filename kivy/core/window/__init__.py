@@ -1102,7 +1102,6 @@ class WindowBase(EventDispatcher):
         Cache.remove('kv.texture')
         get_context().flush()
 
-
     shape_image = StringProperty('')
     '''An image for the window shape (only works for sdl2 window provider).
 

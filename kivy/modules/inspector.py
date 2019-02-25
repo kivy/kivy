@@ -745,7 +745,8 @@ def create_inspector(win, ctx, *l):
 
 
 def start(win, ctx):
-    ctx.ev_late_create = Clock.schedule_once(partial(create_inspector, win, ctx))
+    ctx.ev_late_create = Clock.schedule_once(
+        partial(create_inspector, win, ctx))
 
 
 def stop(win, ctx):
