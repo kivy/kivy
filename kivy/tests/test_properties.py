@@ -7,11 +7,11 @@ from kivy.event import EventDispatcher
 from functools import partial
 
 
-class TestProperty(EventDispatcher):
+class _TestProperty(EventDispatcher):
     pass
 
 
-wid = TestProperty()
+wid = _TestProperty()
 
 
 class PropertiesTestCase(unittest.TestCase):
