@@ -966,11 +966,7 @@ class WindowBase(EventDispatcher):
 
         # configure the window
         self.create_window()
-
-        # attach modules + listener event
-        EventLoop.set_window(self)
-        Modules.register_window(self)
-        EventLoop.add_event_listener(self)
+        self.register()
 
         # manage keyboard(s)
         self.configure_keyboards()
@@ -993,6 +989,14 @@ class WindowBase(EventDispatcher):
                 'fullscreen', 'borderless', 'position', 'top',
                 'left', '_size', 'system_size'):
             self.unbind(**{prop: self.trigger_create_window})
+
+    def register(self):
+        if self.initialized:
+            return
+        # attach modules + listener event
+        EventLoop.set_window(self)
+        Modules.register_window(self)
+        EventLoop.add_event_listener(self)
 
     @deprecated
     def toggle_fullscreen(self):
