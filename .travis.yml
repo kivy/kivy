@@ -181,10 +181,10 @@ script:
       if [ "${RUN}" == "unit" ]; then
         if [ "${PY}" == "3" ]; then
           python3 setup.py build_ext --inplace;
-          env KIVY_NO_ARGS=1 pytest --boxed -v kivy/tests;
+          env KIVY_NO_ARGS=1 pytest -v kivy/tests;
         else
           make;
-          env KIVY_NO_ARGS=1 pytest --boxed -v kivy/tests;
+          env KIVY_NO_ARGS=1 pytest -v kivy/tests;
         fi;
       elif [ "${RUN}" == "app" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]  && ([ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ]  || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build app osx]" ]]); then
           openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
