@@ -111,13 +111,13 @@ install:
       fi;
       if [ "${RUN}" == "unit" ]; then
         if [ "${PY}" == "3" ]; then
-           export PATH=$PATH:$HOME/Library/Python/3.5/bin
+           export PATH=$PATH:$HOME/Library/Python/3.5/bin;
            curl -O -L https://www.python.org/ftp/python/3.5.2/python-3.5.2-macosx10.6.pkg;
            sudo installer -package python-3.5.2-macosx10.6.pkg -target /;
            python3 get-pip.py --user;
            python3 -m pip install --upgrade --user cython pillow pytest mock docutils PyInstaller;
         else
-           export PATH=$PATH:$HOME/Library/Python/2.7/bin
+           export PATH=$PATH:$HOME/Library/Python/2.7/bin;
            python get-pip.py --user;
            python -m pip install --upgrade --user cython pillow pytest mock docutils PyInstaller;
         fi;
