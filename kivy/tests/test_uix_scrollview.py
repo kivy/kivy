@@ -22,12 +22,12 @@ class UTMotionEvent(MotionEvent):
         super(UTMotionEvent, self).depack(args)
 
 
-class TestGrid(GridLayout):
+class _TestGrid(GridLayout):
     def __init__(self, **kwargs):
         kwargs['cols'] = 1
         kwargs['spacing'] = 10
         kwargs['size_hint'] = (None, None)
-        super(TestGrid, self).__init__(**kwargs)
+        super(_TestGrid, self).__init__(**kwargs)
         self.bind(minimum_height=self.setter('height'))
         self.bind(minimum_width=self.setter('width'))
 
@@ -39,53 +39,53 @@ class TestGrid(GridLayout):
             ))
 
 
-class TestScrollbarHorizontal(ScrollView):
+class _TestScrollbarHorizontal(ScrollView):
     def __init__(self, **kwargs):
         kwargs['scroll_type'] = ["bars"]
         kwargs['bar_width'] = 20
         kwargs['do_scroll_y'] = False
-        super(TestScrollbarHorizontal, self).__init__(**kwargs)
+        super(_TestScrollbarHorizontal, self).__init__(**kwargs)
 
 
-class TestScrollbarVertical(ScrollView):
+class _TestScrollbarVertical(ScrollView):
     def __init__(self, **kwargs):
         kwargs['scroll_type'] = ["bars"]
         kwargs['bar_width'] = 20
         kwargs['do_scroll_x'] = False
-        super(TestScrollbarVertical, self).__init__(**kwargs)
+        super(_TestScrollbarVertical, self).__init__(**kwargs)
 
 
-class TestScrollbarBoth(ScrollView):
+class _TestScrollbarBoth(ScrollView):
     def __init__(self, **kwargs):
         kwargs['scroll_type'] = ["bars"]
         kwargs['bar_width'] = 20
-        super(TestScrollbarBoth, self).__init__(**kwargs)
+        super(_TestScrollbarBoth, self).__init__(**kwargs)
 
 
-class TestScrollbarHorizontalMargin(ScrollView):
+class _TestScrollbarHorizontalMargin(ScrollView):
     def __init__(self, **kwargs):
         kwargs['scroll_type'] = ["bars"]
         kwargs['bar_margin'] = 40
         kwargs['bar_width'] = 20
         kwargs['do_scroll_y'] = False
-        super(TestScrollbarHorizontalMargin, self).__init__(**kwargs)
+        super(_TestScrollbarHorizontalMargin, self).__init__(**kwargs)
 
 
-class TestScrollbarVerticalMargin(ScrollView):
+class _TestScrollbarVerticalMargin(ScrollView):
     def __init__(self, **kwargs):
         kwargs['scroll_type'] = ["bars"]
         kwargs['bar_margin'] = 40
         kwargs['bar_width'] = 20
         kwargs['do_scroll_x'] = False
-        super(TestScrollbarVerticalMargin, self).__init__(**kwargs)
+        super(_TestScrollbarVerticalMargin, self).__init__(**kwargs)
 
 
-class TestScrollbarBothMargin(ScrollView):
+class _TestScrollbarBothMargin(ScrollView):
     def __init__(self, **kwargs):
         kwargs['scroll_type'] = ["bars"]
         kwargs['bar_margin'] = 40
         kwargs['bar_width'] = 20
-        super(TestScrollbarBothMargin, self).__init__(**kwargs)
+        super(_TestScrollbarBothMargin, self).__init__(**kwargs)
 
 
 class ScrollViewTestCase(GraphicUnitTest):
@@ -157,8 +157,8 @@ class ScrollViewTestCase(GraphicUnitTest):
     def test_scrollbar_horizontal(self):
         EventLoop.ensure_window()
         win = EventLoop.window
-        grid = TestGrid()
-        scroll = TestScrollbarHorizontal()
+        grid = _TestGrid()
+        scroll = _TestScrollbarHorizontal()
         scroll.add_widget(grid)
         win.add_widget(scroll)
 
@@ -178,8 +178,8 @@ class ScrollViewTestCase(GraphicUnitTest):
     def test_scrollbar_vertical(self):
         EventLoop.ensure_window()
         win = EventLoop.window
-        grid = TestGrid()
-        scroll = TestScrollbarVertical()
+        grid = _TestGrid()
+        scroll = _TestScrollbarVertical()
         scroll.add_widget(grid)
         win.add_widget(scroll)
 
@@ -199,8 +199,8 @@ class ScrollViewTestCase(GraphicUnitTest):
     def test_scrollbar_both(self):
         EventLoop.ensure_window()
         win = EventLoop.window
-        grid = TestGrid()
-        scroll = TestScrollbarBoth()
+        grid = _TestGrid()
+        scroll = _TestScrollbarBoth()
         scroll.add_widget(grid)
         win.add_widget(scroll)
 
@@ -222,8 +222,8 @@ class ScrollViewTestCase(GraphicUnitTest):
     def test_scrollbar_horizontal_margin(self):
         EventLoop.ensure_window()
         win = EventLoop.window
-        grid = TestGrid()
-        scroll = TestScrollbarHorizontalMargin()
+        grid = _TestGrid()
+        scroll = _TestScrollbarHorizontalMargin()
         margin = scroll.bar_margin
         scroll.add_widget(grid)
         win.add_widget(scroll)
@@ -248,8 +248,8 @@ class ScrollViewTestCase(GraphicUnitTest):
     def test_scrollbar_vertical_margin(self):
         EventLoop.ensure_window()
         win = EventLoop.window
-        grid = TestGrid()
-        scroll = TestScrollbarVerticalMargin()
+        grid = _TestGrid()
+        scroll = _TestScrollbarVerticalMargin()
         margin = scroll.bar_margin
         scroll.add_widget(grid)
         win.add_widget(scroll)
@@ -274,8 +274,8 @@ class ScrollViewTestCase(GraphicUnitTest):
     def test_scrollbar_both_margin(self):
         EventLoop.ensure_window()
         win = EventLoop.window
-        grid = TestGrid()
-        scroll = TestScrollbarBothMargin()
+        grid = _TestGrid()
+        scroll = _TestScrollbarBothMargin()
         margin = scroll.bar_margin
         scroll.add_widget(grid)
         win.add_widget(scroll)
@@ -304,7 +304,7 @@ class ScrollViewTestCase(GraphicUnitTest):
     def test_smooth_scroll_end(self):
         EventLoop.ensure_window()
         win = EventLoop.window
-        grid = TestGrid()
+        grid = _TestGrid()
         scroll = ScrollView(smooth_scroll_end=10)
 
         assert scroll.smooth_scroll_end == 10

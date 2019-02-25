@@ -339,9 +339,9 @@ def deprecated(func):
                     func.__code__.co_firstlineno + 1,
                     file, line, caller))
             from kivy.logger import Logger
-            Logger.warn(warning)
+            Logger.warning(warning)
             if func.__doc__:
-                Logger.warn(func.__doc__)
+                Logger.warning(func.__doc__)
         return func(*args, **kwargs)
     return new_func
 
