@@ -151,8 +151,8 @@ build_script:
       python setup.py sdist --formats=gztar -d "$env:WHEEL_DIR"
       Check-Error
     }
-    
-    pip install mock cython pygments docutils nose kivy.deps.glew_dev kivy.deps.glew kivy.deps.gstreamer_dev kivy.deps.sdl2_dev kivy.deps.sdl2
+
+    pip install mock cython pygments docutils pytest kivy.deps.glew_dev kivy.deps.glew kivy.deps.gstreamer_dev kivy.deps.sdl2_dev kivy.deps.sdl2
 
     pip --no-cache-dir install kivy.deps.gstreamer
 
@@ -239,6 +239,6 @@ test_script:
       } else {
         $env:KIVY_GL_BACKEND = "mock"
       }
-      python -m nose.core kivy/tests
+      python -m pytest kivy/tests
       Check-Error
     }
