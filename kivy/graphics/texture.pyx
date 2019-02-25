@@ -1052,7 +1052,7 @@ cdef class Texture:
 
     cdef void reload(self):
         cdef Texture texture
-        if self._id != (GLuint)-1:
+        if self._id != <GLuint>-1:
             return
         if self._source is None:
             # manual texture recreation
