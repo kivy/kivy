@@ -120,11 +120,15 @@ class GraphicUnitTest(_base):
 
         # bind ourself for the later screenshot
         from kivy.core.window import Window
+        self.Window = Window
         Window.bind(on_flip=self.on_window_flip)
 
         # ensure our window is correctly created
         Window.create_window()
+        Window.register()
+        Window.initialized = True
         Window.canvas.clear()
+        Window.close = lambda *s: True
 
     def on_window_flip(self, window):
         '''Internal method to be called when the window have just displayed an
