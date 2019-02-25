@@ -240,6 +240,10 @@ cdef class _WindowSDL2Storage:
         SDL_ShowCursor(value)
 
     def set_system_cursor(self, str name):
+        # prevent the compiler to not be happy because of
+        # an unitialized value (return False in Cython is not a direct
+        # return 0 in C)
+        num = 0
         if name == 'arrow':
             num = SDL_SYSTEM_CURSOR_ARROW
         elif name == 'ibeam':
