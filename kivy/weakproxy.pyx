@@ -8,6 +8,8 @@ It effectively enhances the
 `weakref.proxy <https://docs.python.org/2/library/weakref.html#weakref.proxy>`_
 by adding comparison support.
 """
+
+include "include/config.pxi"
 import weakref
 import operator
 
@@ -72,8 +74,9 @@ cdef class WeakProxy(object):
     def __nonzero__(self):
         return bool(self.__ref__())
 
-    def __bool__(self):
-        return bool(self.__ref__())
+    if not PY3:
+        def __bool__(self):
+            return bool(self.__ref__())
 
     def __add__(self, other):
         return self.__ref__() + other
