@@ -652,7 +652,8 @@ cdef class Line(VertexInstruction):
             ii += 1
 
         # compute bbox
-        for i in xrange(vertices_count):
+        cdef unsigned long iul
+        for iul in xrange(vertices_count):
             if vertices[i].x < self._bxmin:
                 self._bxmin = vertices[i].x
             if vertices[i].x > self._bxmax:
