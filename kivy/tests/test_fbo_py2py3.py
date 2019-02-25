@@ -34,7 +34,6 @@ class FboTest(Widget):
 class FBOPy2Py3TestCase(GraphicUnitTest):
     def test_fbo_get_pixel_color(self):
         fbow = FboTest()
-        self.render(fbow)
         render_error = 2
         values = (
             # out of bounds of FBO

@@ -440,6 +440,13 @@ cdef class Matrix:
 
     cpdef tuple transform_point(Matrix self, double x, double y, double z,
             t=None):
+        '''Transforms the point by the matrix and returns the transformed point
+        as a ``(x, y, z)`` tuple. If the point is a vector ``v``, the returned
+        values is ``v2 = matrix * v``.
+        
+        If ``t`` is provided, it multiplies it with the last column of the matrix
+        and returns the transformed ``(x, y, z, t)``.
+        '''
         cdef double tx, ty, tz, tt
         tx = x * self.mat[0] + y * self.mat[4] + z * self.mat[ 8] + self.mat[12];
         ty = x * self.mat[1] + y * self.mat[5] + z * self.mat[ 9] + self.mat[13];

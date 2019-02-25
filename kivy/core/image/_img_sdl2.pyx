@@ -1,11 +1,41 @@
 include '../../lib/sdl2.pxi'
 
-
+import io
 from kivy.logger import Logger
 from libc.string cimport memset
 from libc.stdlib cimport malloc
 
 cdef int _is_init = 0
+
+cdef struct SDL_RWops:
+    long (* seek) (SDL_RWops * context, long offset,int whence)
+    size_t(* read) ( SDL_RWops * context, void *ptr, size_t size, size_t maxnum)
+    size_t(* write) (SDL_RWops * context, void *ptr,size_t size, size_t num)
+    int (* close) (SDL_RWops * context)
+
+
+cdef size_t rwops_bytesio_write(SDL_RWops *context, const void *ptr, size_t size, size_t num):
+    cdef char *c_string = <char *>ptr
+    byteio = <object>context.hidden.unknown.data1
+    byteio.write(c_string[:size * num])
+    return size * num
+
+
+cdef int rwops_bytesio_close(SDL_RWops *context):
+    byteio = <object>context.hidden.unknown.data1
+    byteio.seek(0)
+
+
+cdef SDL_RWops *rwops_bridge_to_bytesio(byteio):
+    # works only for write.
+    cdef SDL_RWops *rwops = SDL_AllocRW()
+    rwops.hidden.unknown.data1 = <void *>byteio
+    rwops.seek = NULL
+    rwops.read = NULL
+    rwops.write = &rwops_bytesio_write
+    rwops.close =&rwops_bytesio_close
+    return rwops
+
 
 def init():
     global _is_init
@@ -23,11 +53,19 @@ def init():
 
     _is_init = 1
 
-def save(filename, w, h, fmt, pixels, flipped):
-    # this only saves in png for now.
-    cdef bytes c_filename = filename.encode('utf-8')
+def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=90):
+    cdef bytes c_filename = None
+    cdef SDL_RWops *rwops
+    if not isinstance(filename, io.BytesIO):
+        c_filename = filename.encode('utf-8')
     cdef int pitch
-    pitch = w * 4
+
+    if pixelfmt == "rgb":
+        pitch = w * 3
+    elif pixelfmt == "rgba":
+        pitch = w * 4
+    else:
+        raise Exception("IMG SDL2 supports only pixelfmt rgb and rgba")
 
     cdef int lng, top, bot
     cdef list rng
@@ -53,9 +91,30 @@ def save(filename, w, h, fmt, pixels, flipped):
         pixels = bytes(bytearray(pixels))
 
     cdef char *c_pixels = pixels
-    cdef SDL_Surface *image = SDL_CreateRGBSurfaceFrom(c_pixels, w, h, 32, pitch, 0x00000000ff, 0x0000ff00, 0x00ff0000, 0xff000000)
+    cdef SDL_Surface *image
 
-    IMG_SavePNG(image, c_filename)
+    if pixelfmt == "rgba":
+        image = SDL_CreateRGBSurfaceFrom(
+            c_pixels, w, h, 32, pitch,
+            0x00000000ff, 0x0000ff00, 0x00ff0000, 0xff000000)
+    elif pixelfmt == "rgb":
+        image = SDL_CreateRGBSurfaceFrom(
+            c_pixels, w, h, 24, pitch,
+            0x0000ff, 0x00ff00, 0xff0000, 0)
+
+    if c_filename is not None:
+        if imagefmt == "png":
+            IMG_SavePNG(image, c_filename)
+        elif imagefmt == "jpg":
+            IMG_SaveJPG(image, c_filename, quality)
+    else:
+        rwops = rwops_bridge_to_bytesio(filename)
+        if imagefmt == "png":
+            IMG_SavePNG_RW(image, rwops, 1)
+        elif imagefmt == "jpg":
+            IMG_SaveJPG_RW(image, rwops, 1, quality)
+        SDL_FreeRW(rwops)
+
     SDL_FreeSurface(image)
 
 # NOTE: This must be kept up to date with ImageData supported formats. If you

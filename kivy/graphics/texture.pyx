@@ -922,7 +922,8 @@ cdef class Texture:
 
         # need conversion, do check here because it seems to be faster ?
         if not gl_has_texture_native_format(colorfmt):
-            pbuffer, colorfmt = convert_to_gl_format(pbuffer, colorfmt)
+            pbuffer, colorfmt = convert_to_gl_format(pbuffer, colorfmt, 
+                                                     size[0], size[1])
         cdef char [:] char_view
         cdef short [:] short_view
         cdef unsigned short [:] ushort_view
@@ -1124,7 +1125,7 @@ cdef class Texture:
                 continue
             callback()(self)
 
-    def save(self, filename, flipped=True):
+    def save(self, filename, flipped=True, fmt=None):
         '''Save the texture content to a file. Check
         :meth:`kivy.core.image.Image.save` for more information.
 
@@ -1138,9 +1139,14 @@ cdef class Texture:
             Parameter `flipped` added, defaults to True. All the OpenGL Texture
             are readed from bottom / left, it need to be flipped before saving.
             If you don't want to flip the image, set flipped to False.
+
+        .. versionchanged:: 1.11.0
+
+            Parameter `fmt` added, to pass the final format to the image provider.
+            Used if filename is a BytesIO
         '''
         from kivy.core.image import Image
-        return Image(self).save(filename, flipped=flipped)
+        return Image(self).save(filename, flipped=flipped, fmt=fmt)
 
     def __repr__(self):
         return '<Texture hash=%r id=%d size=%r colorfmt=%r bufferfmt=%r source=%r observers=%d>' % (

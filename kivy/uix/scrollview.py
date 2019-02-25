@@ -442,6 +442,20 @@ class ScrollView(StencilView):
     defaults to ['content'].
     '''
 
+    smooth_scroll_end = NumericProperty(None, allownone=True)
+    '''Whether smooth scroll end should be used when scrolling with the
+    mouse-wheel and the factor of transforming the scroll distance to
+    velocity. This option also enables velocity addition meaning if you
+    scroll more, you will scroll faster and further. The recommended value
+    is `10`. The velocity is calculated as :attr:`scroll_wheel_distance` *
+    :attr:`smooth_scroll_end`.
+
+    .. versionadded:: 1.11.0
+
+    :attr:`smooth_scroll_end` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to None.
+    '''
+
     # private, for internal use only
 
     _viewport = ObjectProperty(None, allownone=True)
@@ -681,11 +695,17 @@ class ScrollView(StencilView):
 
             if e:
                 if btn in ('scrolldown', 'scrollleft'):
-                    e.value = max(e.value - m, e.min)
-                    e.velocity = 0
+                    if self.smooth_scroll_end:
+                        e.velocity -= m * self.smooth_scroll_end
+                    else:
+                        e.value = max(e.value - m, e.min)
+                        e.velocity = 0
                 elif btn in ('scrollup', 'scrollright'):
-                    e.value = min(e.value + m, e.max)
-                    e.velocity = 0
+                    if self.smooth_scroll_end:
+                        e.velocity += m * self.smooth_scroll_end
+                    else:
+                        e.value = min(e.value + m, e.max)
+                        e.velocity = 0
                 touch.ud[self._get_uid('svavoid')] = True
                 e.trigger_velocity_update()
             return True
@@ -1143,7 +1163,7 @@ if __name__ == '__main__':
                 btn = Button(text=str(i), size_hint=(None, None),
                              size=(200, 100))
                 layout1.add_widget(btn)
-            scrollview1 = ScrollView(bar_width='2dp')
+            scrollview1 = ScrollView(bar_width='2dp', smooth_scroll_end=10)
             scrollview1.add_widget(layout1)
 
             layout2 = GridLayout(cols=4, spacing=10, size_hint=(None, None))

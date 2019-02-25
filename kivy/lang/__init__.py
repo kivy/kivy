@@ -116,6 +116,7 @@ instance.
   multiple of the number of spaces used on the first indented line. Spaces
   are encouraged: mixing tabs and spaces is not recommended.
 - The value of a property must be given on a single line (for now at least).
+- Keep class names capitalized to avoid syntax errors.
 - The `canvas` property is special: you can put graphics instructions in it
   to create a graphical representation of the current class.
 
