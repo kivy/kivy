@@ -243,7 +243,7 @@ cdef class _WindowSDL2Storage:
         # prevent the compiler to not be happy because of
         # an unitialized value (return False in Cython is not a direct
         # return 0 in C)
-        num = 0
+        cdef SDL_SystemCursor num = SDL_SYSTEM_CURSOR_ARROW
         if name == 'arrow':
             num = SDL_SYSTEM_CURSOR_ARROW
         elif name == 'ibeam':
@@ -253,7 +253,7 @@ cdef class _WindowSDL2Storage:
         elif name == 'crosshair':
             num = SDL_SYSTEM_CURSOR_CROSSHAIR
         elif name == 'wait_arrow':
-            SDL_SYSTEM_CURSOR_WAITARROW
+            num = SDL_SYSTEM_CURSOR_WAITARROW
         elif name == 'size_nwse':
             num = SDL_SYSTEM_CURSOR_SIZENWSE
         elif name == 'size_nesw':
