@@ -340,11 +340,11 @@ class InspectorTestCase(GraphicUnitTest):
             self.advance_frames(1)
 
         # fixed order, first opened - last closed
-        modals = (
+        modals = [
             Factory.ThirdModal,
             Factory.SecondModal,
             Factory.FirstModal
-        )
+        ]
         for mod in modals:
             # start inspecting
             ins.inspect_enabled = True
