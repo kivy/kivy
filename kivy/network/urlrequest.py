@@ -180,7 +180,8 @@ class UrlRequest(Thread):
                  req_body=None, req_headers=None, chunk_size=8192,
                  timeout=None, method=None, decode=True, debug=False,
                  file_path=None, ca_file=None, verify=True, proxy_host=None,
-                 proxy_port=None, proxy_headers=None, on_cancel=None):
+                 proxy_port=None, proxy_headers=None, user_agent=None,
+                 on_cancel=None):
         super(UrlRequest, self).__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
