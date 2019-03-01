@@ -9,23 +9,99 @@ Action Bar
 
 The ActionBar widget is like Android's `ActionBar
 <http://developer.android.com/guide/topics/ui/actionbar.html>`_, where items
-are stacked horizontally. When the area becomes to small, widgets are moved
+are stacked horizontally. When the area becomes too small, widgets are moved
 into the :class:`ActionOverflow` area.
 
-An :class:`ActionBar` contains an :class:`ActionView` with various
-:class:`ContextualActionViews <kivy.uix.actionbar.ContextualActionView>`.
-An :class:`ActionView` will contain an :class:`ActionPrevious` having title,
-app_icon and previous_icon properties. An :class:`ActionView` will contain
-subclasses of :class:`ActionItems <ActionItem>`. Some predefined ones include
-an :class:`ActionButton`, an :class:`ActionToggleButton`, an
-:class:`ActionCheck`, an :class:`ActionSeparator` and an :class:`ActionGroup`.
+To get started, create an :class:`ActionBar` containing an :class:`ActionView`
+with an :class:`ActionPrevious` button::
+
+    ActionBar:
+        ActionView:
+            ActionPrevious:
+            ...
+
+This initial structure is required, but you don't need to worry about an
+:class:`ActionOverflow`, because each :class:`ActionView` and
+:class:`ContextualActionView` have one by default. It is only made visible
+when necessary, i.e. the available area is too small to fit all the widgets.
+
+Example
+-------
+
+.. image:: images/actionbar-example.png
+    :align: right
+
+You may want to create a simple application with a few
+:class:`ActionButtons <ActionButton>` to get a feeling for how this behaves::
+
+    from kivy.base import runTouchApp
+    from kivy.lang import Builder
+
+    KV = """\\
+    <ActionBarExample@BoxLayout>:
+        orientation: 'vertical'
+
+        ActionBar:
+            ActionView:
+                ActionPrevious:
+                ActionButton:
+                    text: 'Button 1'
+                ActionButton:
+                    text: 'Now see, this Button 2 takes more space'
+                ActionButton:
+                    text: 'Button 3'
+
+    ActionBarExample:
+        Label:
+            text: 'Add content here'
+    """
+
+    actionbar_example = Builder.load_string(KV)
+    runTouchApp(actionbar_example)
+
+
+Overview
+--------
+
+An :class:`ActionBar` always contains an :class:`ActionView`. Various
+:class:`ContextualActionViews <kivy.uix.actionbar.ContextualActionView>` can
+optionally be layered on top, using the :meth:`ActionBar.add_widget` method.
+Subsequently, :class:`ContextualActionViews <ContextualActionView>` are removed
+one by one when pressing the :class:`ActionPrevious` button.
+:class:`ContextualActionView` is a subclass of :class:`ActionView`.
+
+The :class:`ActionPrevious` button has the properties
+:attr:`title <ActionPrevious.title>`,
+:attr:`app_icon <ActionPrevious.app_icon>`
+and :attr:`previous_image <ActionPrevious.previous_image>`, among others.
+
+An :class:`ActionView` or :class:`ContextualActionView` requires that each
+item is a subclass of :class:`ActionItem`. Some predefined ones include an
+:class:`ActionButton`, an :class:`ActionToggleButton`, an :class:`ActionCheck`,
+an :class:`ActionSeparator` and an :class:`ActionGroup`.
 
 An :class:`ActionGroup` is used to display :class:`ActionItems <ActionItem>`
-in a group. An :class:`ActionView` will always display an :class:`ActionGroup`
-after other :class:`ActionItems <ActionItem>`. An :class:`ActionView` contains
-an :class:`ActionOverflow`, but this is only made visible when required i.e.
-the available area is too small to fit all the widgets. A
-:class:`ContextualActionView` is a subclass of an:class:`ActionView`.
+in a group, conditionally as a dropdown. An :class:`ActionView` will always
+display an :class:`ActionGroup` after other :class:`ActionItems <ActionItem>`.
+Adjust :attr:`ActionGroup.dropdown_width` if some items need more space to be
+fully displayed.
+
+To add your own custom items, inherit from both your desired widget and
+:class:`ActionItem`, for example like so::
+
+    class ActionLabel(Label, ActionItem):
+        pass
+
+By default, a view's :class:`ActionOverflow` (see
+:attr:`overflow_group <ActionView.overflow_group>`) is hidden and will be shown
+on the right side when necessary. Use the :attr:`ActionOverflow.overflow_image`
+property to change the icon.
+
+.. note::
+
+    You can run this module directly for another, more complete example::
+
+        python -m kivy.uix.actionbar
 
 .. versionchanged:: 1.10.1
     :class:`ActionGroup` core rewritten from :class:`Spinner` to pure
@@ -51,6 +127,7 @@ from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty, \
     StringProperty, ListProperty, OptionProperty, AliasProperty
 from kivy.metrics import sp
 from kivy.lang import Builder
+from kivy.logger import Logger
 from functools import partial
 
 
@@ -108,6 +185,22 @@ class ActionItem(object):
 
     :attr:`inside_group` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
+    '''
+
+    _remembered_outside_group_width = NumericProperty(0)
+
+    def get_outside_group_width(self):
+        if not self.inside_group:
+            self._remembered_outside_group_width = self.width
+        return self._remembered_outside_group_width
+
+    outside_group_width = AliasProperty(
+        get_outside_group_width, bind=('width',))
+    '''
+    (read-only) The width an ActionItem does or would take when displayed
+    outside an ActionGroup.
+
+    :attr:`pack_width` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     background_normal = StringProperty(
@@ -492,7 +585,7 @@ class ActionOverflow(ActionGroup):
 
         if not isinstance(action_item, ActionItem):
             raise ActionBarException('ActionView only accepts ActionItem'
-                                     ' (got {!r}'.format(action_item))
+                                     ' (got {!r})'.format(action_item))
 
         else:
             if index == 0:
@@ -512,7 +605,7 @@ class ActionView(BoxLayout):
     ActionView class, see module documentation for more information.
     '''
 
-    action_previous = ObjectProperty(None)
+    action_previous = ObjectProperty(None, baseclass=ActionPrevious)
     '''
     Previous button for an ActionView.
 
@@ -545,7 +638,7 @@ class ActionView(BoxLayout):
     defaults to False.
     '''
 
-    overflow_group = ObjectProperty(None)
+    overflow_group = ObjectProperty(None, baseclass=ActionOverflow)
     '''
     Widget to be used for the overflow.
 
@@ -554,15 +647,18 @@ class ActionView(BoxLayout):
     '''
 
     def __init__(self, **kwargs):
+        super(ActionView, self).__init__(**kwargs)
         self._list_action_items = []
         self._list_action_group = []
-        super(ActionView, self).__init__(**kwargs)
         self._state = ''
         if not self.overflow_group:
             self.overflow_group = ActionOverflow(
                 use_separator=self.use_separator)
 
     def on_action_previous(self, instance, value):
+        if value is not None and not isinstance(value, ActionPrevious):
+            error_fmt = 'action_previous must be an ActionPrevious (got {!r})'
+            raise ActionBarException(error_fmt.format(self.action_previous))
         self._list_action_items.insert(0, value)
 
     def add_widget(self, action_item, index=0):
@@ -571,7 +667,7 @@ class ActionView(BoxLayout):
 
         if not isinstance(action_item, ActionItem):
             raise ActionBarException('ActionView only accepts ActionItem'
-                                     ' (got {!r}'.format(action_item))
+                                     ' (got {!r})'.format(action_item))
 
         elif isinstance(action_item, ActionOverflow):
             self.overflow_group = action_item
@@ -727,43 +823,105 @@ class ActionView(BoxLayout):
             if not self.overflow_group.parent:
                 super_add(overflow_group)
 
+
     def on_width(self, width, *args):
         # determine the layout to use
 
         # can we display all of them?
         total_width = 0
         for child in self._list_action_items:
-            total_width += child.pack_width
+            if isinstance(child, ActionPrevious):
+                total_width += child.minimum_width + sp(100)
+            else:
+                total_width += child.outside_group_width
         for group in self._list_action_group:
             for child in group.list_action_item:
-                total_width += child.pack_width
+                total_width += child.outside_group_width
+        # TODO: remove print() in final revision
+        print('required width (strategy: all):', total_width,
+              'self.width:', self.width)
         if total_width <= self.width:
             if self._state != 'all':
+                Logger.debug("ActionView: Layout strategy: 'all'")
                 self._layout_all()
             return
 
         # can we display them per group?
         total_width = 0
         for child in self._list_action_items:
-            total_width += child.pack_width
+            if isinstance(child, ActionPrevious):
+                total_width += child.minimum_width + sp(100)
+            else:
+                total_width += child.outside_group_width
         for group in self._list_action_group:
             total_width += group.pack_width
+        # TODO: remove print() in final revision
+        print('required width (strategy: group):', total_width,
+              'self.width:', self.width)
         if total_width < self.width:
             # ok, we can display all the items grouped
             if self._state != 'group':
+                Logger.debug("ActionView: Layout strategy: 'group'")
                 self._layout_group()
             return
 
         # none of the solutions worked, display them in pack mode
+        Logger.debug("ActionView: Layout strategy: 'random'")
         self._layout_random()
 
 
 class ContextualActionView(ActionView):
     '''
-    ContextualActionView class, see the module documentation for more
-    information.
+    A ContextualActionView's API is the same as that of the
+    :class:`ActionView`, but it is handled in a different way by the
+    :class:`ActionBar`.
+
+    Whereas there's only ever one :class:`ActionView`, several
+    ContextualActionViews can be stacked on top of it. One is removed whenever
+    the :class:`ActionPrevious` button is pressed.
+
+    Please see the module documentation for more information.
     '''
-    pass
+
+    def __init__(self, **kwargs):
+        super(ContextualActionView, self).__init__(**kwargs)
+        # current parent and current action_previous need to be tracked to
+        # keep the action_previous event bindings up-to-date
+        self._current_parent = self.parent
+        self._current_action_previous = self.action_previous
+
+    def on_parent(self, instance, parent):
+        if self.action_previous is None:
+            # nothing to do; binding will be manipulated in on_action_previous
+            self._current_parent = parent
+            return
+        # else:
+        if not isinstance(self.action_previous, ActionPrevious):
+            error_fmt = 'action_previous must be an ActionPrevious (got {!r})'
+            raise ActionBarException(error_fmt.format(self.action_previous))
+        # unbind from old parent, if necessary:
+        if isinstance(self._current_parent, ActionBar):
+            self.action_previous.unbind(
+                on_release=self._current_parent._emit_previous)
+        # bind to new parent, if necessary:
+        if isinstance(parent, ActionBar):
+            self.action_previous.bind(on_release=parent._emit_previous)
+        self._current_parent = parent
+
+    def on_action_previous(self, instance, value):
+        super(ContextualActionView, self).on_action_previous(instance, value)
+        if self.parent is None:
+            self._current_action_previous = value
+            # nothing to do; binding will be manipulated in on_action_previous
+            return
+        # else: unbind old action_previous, if necessary:
+        if self._current_action_previous is not None:
+            self._current_action_previous.unbind(
+                on_release=self.parent._emit_previous)
+        # then bind new action_previous, if necessary:
+        if value is not None:
+            value.bind(on_release=self.parent._emit_previous)
+        self._current_action_previous = value
 
 
 class ActionBar(BoxLayout):
@@ -780,7 +938,7 @@ class ActionBar(BoxLayout):
     Please see the module documentation for more information.
     '''
 
-    action_view = ObjectProperty(None)
+    action_view = ObjectProperty(None, baseclass=ActionView)
     '''
     action_view of the ActionBar.
 
@@ -818,39 +976,72 @@ class ActionBar(BoxLayout):
 
     def __init__(self, **kwargs):
         super(ActionBar, self).__init__(**kwargs)
+        self._current_action_view = self.action_view
         self._stack_cont_action_view = []
         self._emit_previous = partial(self.dispatch, 'on_previous')
 
     def add_widget(self, view):
-        if isinstance(view, ContextualActionView):
-            self._stack_cont_action_view.append(view)
-            if view.action_previous is not None:
-                view.action_previous.unbind(on_release=self._emit_previous)
-                view.action_previous.bind(on_release=self._emit_previous)
-            self.clear_widgets()
-            super(ActionBar, self).add_widget(view)
-
-        elif isinstance(view, ActionView):
-            self.action_view = view
-            super(ActionBar, self).add_widget(view)
-
-        else:
+        if not isinstance(view, ActionView):
             raise ActionBarException(
                 'ActionBar can only add ContextualActionView or ActionView')
+        elif isinstance(view, ContextualActionView):
+            self._stack_cont_action_view.append(view)
+            self._ensure_view_is_single_child(view)
+        else:
+            self.action_view = view
+
+    def remove_widget(self, view):
+        if isinstance(view, ContextualActionView) \
+                and view in self._stack_cont_action_view:
+            if view in self.children:
+                self._pop_contextual_action_view()
+            else:
+                self._stack_cont_action_view.remove(view)
+        elif view is self.action_view:
+            self.action_view = None  # will raise a ValueError
+
+    def on_action_view(self, *args):
+        # ensure no ContextualActionView can be set as ActionView
+        if isinstance(self.action_view, ContextualActionView):
+            self.action_view = self._current_action_view
+            raise ActionBarException(
+                'action_view must not be a ContextualActionView')
+        # else:
+        self._current_action_view = self.action_view
+        if self._stack_cont_action_view:
+            return  # stop here if there are stacked ContextualActionViews
+        # else:
+        self._ensure_view_is_single_child(self.action_view)
 
     def on_previous(self, *args):
         self._pop_contextual_action_view()
 
     def _pop_contextual_action_view(self):
-        '''Remove the current ContextualActionView and display either the
-           previous one or the ActionView.
         '''
-        self._stack_cont_action_view.pop()
-        self.clear_widgets()
-        if self._stack_cont_action_view == []:
-            super(ActionBar, self).add_widget(self.action_view)
+        Remove the current ContextualActionView and display either the previous
+        one or the ActionView.
+        '''
+        cav_count = len(self._stack_cont_action_view)
+        if cav_count >= 1:
+            self._stack_cont_action_view.pop()
+            cav_count -= 1
+        if cav_count == 0:
+            self._ensure_view_is_single_child(self.action_view)
         else:
-            super(ActionBar, self).add_widget(self._stack_cont_action_view[-1])
+            self._ensure_view_is_single_child(self._stack_cont_action_view[-1])
+
+    def _ensure_view_is_single_child(self, view):
+        '''
+        Make view the only child, if it is an ActionView.
+        '''
+        if view is None or not isinstance(view, ActionView):
+            return
+        # else:
+        # there should only ever be one child view at a time, but it
+        # doesn't hurt to make sure by removing all existing children:
+        for child in self.children[:]:
+            super(ActionBar, self).remove_widget(child)
+        super(ActionBar, self).add_widget(view)
 
 
 if __name__ == "__main__":

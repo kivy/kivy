@@ -621,7 +621,6 @@
 
 <ActionPrevious>:
     size_hint_x: 1
-    minimum_width: layout.minimum_width + min(sp(100), title.width)
     important: True
     GridLayout:
         id: layout
@@ -630,6 +629,7 @@
         size_hint_x: None
         width: self.minimum_width
         ActionPreviousButton:
+            id: button
             on_press: root.dispatch('on_press')
             on_release: root.dispatch('on_release')
             size_hint_x: None
