@@ -92,6 +92,21 @@ class LoaderBase(object):
     '''
     _trigger_update = None
 
+    '''Alias for mimetype extensions.
+
+    If you have trouble to have the right extension to be detected,
+    you can either add #.EXT at the end of the url, or use this array
+    to correct the detection.
+    For example, a zip-file on Windows can be detected as pyz.
+
+    By default, '.pyz' is translated to '.zip'
+
+    .. versionadded:: 1.11.0
+    '''
+    EXT_ALIAS = {
+        '.pyz': '.zip'
+    }
+
     def __init__(self):
         self._loading_image = None
         self._error_image = None
@@ -332,6 +347,7 @@ class LoaderBase(object):
             else:
                 ctype = gettype(fd.info())
                 suffix = mimetypes.guess_extension(ctype)
+                suffix = LoaderBase.EXT_ALIAS.get(suffix, suffix)
                 if not suffix:
                     # strip query string and split on path
                     parts = filename.split('?')[0].split('/')[1:]
