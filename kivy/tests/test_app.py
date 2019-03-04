@@ -3,9 +3,10 @@ from kivy.app import App
 from kivy.clock import Clock
 import os.path
 from kivy import lang
+from kivy.tests.common import GraphicUnitTest
 
 
-class AppTest(unittest.TestCase):
+class AppTest(GraphicUnitTest):
     def test_start_raw_app(self):
         lang._delayed_start = None
         a = App()
