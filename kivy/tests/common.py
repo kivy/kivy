@@ -73,13 +73,26 @@ def ensure_web_server():
 class GraphicUnitTest(_base):
     framecount = 0
 
+    def _force_refresh(self, *largs):
+        # this prevent in some case to be stuck if the screen doesn't refresh
+        # and we wait for a number of self.framecount that never goes down
+        from kivy.base import EventLoop
+        win = EventLoop.window
+        if win and win.canvas:
+            win.canvas.ask_update()
+
     def render(self, root, framecount=1):
         '''Call rendering process using the `root` widget.
         The screenshot will be done in `framecount` frames.
         '''
         from kivy.base import runTouchApp
+        from kivy.clock import Clock
         self.framecount = framecount
-        runTouchApp(root)
+        try:
+            Clock.schedule_interval(self._force_refresh, 1)
+            runTouchApp(root)
+        finally:
+            Clock.unschedule(self._force_refresh)
 
         # reset for the next test, but nobody will know if it will be used :/
         if self.test_counter != 0:
