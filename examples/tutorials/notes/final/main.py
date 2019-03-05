@@ -13,7 +13,7 @@ from os.path import join, exists
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition
 from kivy.properties import ListProperty, StringProperty, \
-        NumericProperty, BooleanProperty
+        NumericProperty, BooleanProperty, AliasProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.clock import Clock
@@ -63,11 +63,6 @@ class NoteView(Screen):
 
 
 class NoteListItem(BoxLayout):
-
-    def __init__(self, **kwargs):
-        print(kwargs)
-        del kwargs['index']
-        super(NoteListItem, self).__init__(**kwargs)
     note_content = StringProperty()
     note_title = StringProperty()
     note_index = NumericProperty()
@@ -77,11 +72,14 @@ class Notes(Screen):
 
     data = ListProperty()
 
-    def args_converter(self, row_index, item):
-        return {
-            'note_index': row_index,
+    def _get_data_for_widgets(self):
+        return [{
+            'note_index': index,
             'note_content': item['content'],
             'note_title': item['title']}
+            for index, item in enumerate(self.data)]
+
+    data_for_widgets = AliasProperty(_get_data_for_widgets, bind=['data'])
 
 
 class NoteApp(App):

@@ -76,6 +76,7 @@ devices = {
     'phone_nexus_5x': ('Nexus 5X', 1920, 1080, 432, 2.6),
     'phone_nexus_6': ('Nexus 6', 2560, 1440, 496, 3.5),
     'phone_nexus_6p': ('Nexus 6P', 2560, 1440, 514, 3.5),
+    'phone_oneplus_3t': ('OnePlus 3t', 1863, 1080, 380, 2.375),
     'phone_samsung_galaxy_note_4': ('Samsung Galaxy Note 4',
                                     2560, 1440, 514, 3.0),
     'phone_samsung_galaxy_s5': ('Samsung Galaxy S5', 1920, 1080, 372, 3.0),
@@ -102,7 +103,9 @@ devices = {
     'tablet_sony_xperia_z3_tablet': ('Sony Xperia Z3 Tablet',
                                      1920, 1200, 282, 2.0),
     'tablet_sony_xperia_z4_tablet': ('Sony Xperia Z4 Tablet',
-                                     2560, 1600, 297, 2.0)
+                                     2560, 1600, 297, 2.0),
+    'tablet_huawei_mediapad_m3_lite_10': ('HUAWEI MediaPad M3 Lite 10',
+                                          1920, 1200, 320, 2.25)
 
 }
 

@@ -1,6 +1,6 @@
 <!--
 The issue tracker is a tool to address bugs.
-Please use the #kivy IRC channel on freenode or Stack Overflow for
+Please use the #support Discord channel at https://chat.kivy.org/ or Stack Overflow for
 support questions, more information at https://git.io/vM1yQ.
 
 Before opening a new issue, make sure you do the following:

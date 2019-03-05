@@ -163,14 +163,18 @@ class Cache(object):
         try:
             if key is not None:
                 del Cache._objects[category][key]
+                Logger.trace('Cache: Removed %s:%s from cache' %
+                             (category, key))
             else:
                 Cache._objects[category] = {}
+                Logger.trace('Cache: Flushed category %s from cache' %
+                             category)
         except Exception:
             pass
 
     @staticmethod
     def _purge_oldest(category, maxpurge=1):
-        print('PURGE', category)
+        Logger.trace('Cache: Remove oldest in %s' % category)
         import heapq
         time = Clock.get_time()
         heap_list = []
@@ -179,13 +183,14 @@ class Cache(object):
             if obj['lastaccess'] == obj['timestamp'] == time:
                 continue
             heapq.heappush(heap_list, (obj['lastaccess'], key))
-            print('<<<', obj['lastaccess'])
+            Logger.trace('Cache: <<< %f' % obj['lastaccess'])
         n = 0
         while n <= maxpurge:
             try:
                 n += 1
                 lastaccess, key = heapq.heappop(heap_list)
-                print(n, '=>', key, lastaccess, Clock.get_time())
+                Logger.trace('Cache: %d => %s %f %f' %
+                             (n, key, lastaccess, Clock.get_time()))
             except Exception:
                 return
             Cache.remove(category, key)
@@ -221,6 +226,8 @@ class Cache(object):
                     continue
 
                 if curtime - lastaccess > timeout:
+                    Logger.trace('Cache: Removed %s:%s from cache due to '
+                                 'timeout' % (category, key))
                     Cache.remove(category, key)
 
     @staticmethod

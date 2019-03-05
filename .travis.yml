@@ -3,50 +3,53 @@ env:
     - KIVY_USE_SETUPTOOLS=1
     - KIVY_SPLIT_EXAMPLES=1
     - SERVER_IP=159.203.106.198
+    - DOC_VERSIONS="stable master"
+
+osx_image: xcode10
+
 matrix:
   fast_finish: true
   include:
     - language: python
       python: 2.7
-      env: RUN=unit
+      env: RUN=unit USE_PANGOFT2=0
       os: linux
-      dist: trusty
+      dist: bionic
     - language: python
       python: 3.5
-      env: RUN=unit COVERALLS=true
+      env: RUN=unit COVERALLS=true USE_PANGOFT2=0
       os: linux
-      dist: trusty
+      dist: bionic
     - language: python
       python: 3.5
-      env: RUN=pep8
+      env: RUN=pep8 USE_PANGOFT2=0
       os: linux
-      dist: trusty
+      dist: bionic
     - language: python
       python: 3.5
-      env: RUN=docs
+      env: RUN=docs USE_PANGOFT2=0
       os: linux
-      dist: trusty
+      dist: bionic
     - language: python
       sudo: required
-      env: RUN=wheels DOCKER_IMAGE=markrwilliams/manylinux2:x86_64
+      env: RUN=wheels DOCKER_IMAGE=markrwilliams/manylinux2:x86_64 USE_PANGOFT2=0
       services:
         - docker
     - language: generic
-      env: RUN=unit PY=2
+      env: RUN=unit PY=2 USE_PANGOFT2=0
       os: osx
     - language: generic
-      env: RUN=unit PY=3
+      env: RUN=unit PY=3 USE_PANGOFT2=0
       os: osx
     - language: generic
       os: osx
-      env: PYVERS="3.5.4 3.6.5 3.7.0 2.7.10 2.7.15" PY=3 RUN=wheels
+      env: PYVERS="3.5.4 3.6.5 3.7.0 2.7.10 2.7.15" PY=3 RUN=wheels USE_PANGOFT2=0
     - language: generic
-      env: RUN=app PY=2
+      env: RUN=app PY=2 USE_PANGOFT2=0
       os: osx
     - language: generic
-      env:  PYVERS="3.5.4 3.6.5 3.7.0" PY=3 RUN=app
+      env: PYVERS="3.5.4 3.6.5 3.7.0" PY=3 RUN=app USE_PANGOFT2=0
       os: osx
-      #osx_image: xcode9.2
 
 before_install:
   # https://github.com/travis-ci/travis-ci/issues/6307
@@ -60,15 +63,14 @@ before_install:
 install:
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" != "wheels" ]; then
       if [ "${RUN}" != "pep8" ]; then
-        yes | sudo add-apt-repository ppa:zoogie/sdl2-snapshots;
         yes | sudo add-apt-repository ppa:gstreamer-developers/ppa;
         sudo apt-get update;
         sudo apt-get -y install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libsdl2-mixer-dev;
         sudo apt-get -y install libgstreamer1.0-dev gstreamer1.0-alsa gstreamer1.0-plugins-base;
         sudo apt-get -y install python-dev libsmpeg-dev libswscale-dev libavformat-dev libavcodec-dev libjpeg-dev libtiff4-dev libX11-dev libmtdev-dev;
         sudo apt-get -y install python-setuptools build-essential libgl1-mesa-dev libgles2-mesa-dev;
-        sudo apt-get -y install xvfb pulseaudio;
-        pip install --upgrade cython pillow nose coveralls docutils;
+        sudo apt-get -y install xvfb pulseaudio xsel;
+        pip install --upgrade cython pillow pytest coveralls docutils PyInstaller;
       fi;
       if [ "${RUN}" == "docs" ]; then
         pip install --upgrade sphinxcontrib-blockdiag sphinxcontrib-seqdiag sphinxcontrib-actdiag sphinxcontrib-nwdiag;
@@ -109,13 +111,15 @@ install:
       fi;
       if [ "${RUN}" == "unit" ]; then
         if [ "${PY}" == "3" ]; then
+           export PATH=$PATH:$HOME/Library/Python/3.5/bin;
            curl -O -L https://www.python.org/ftp/python/3.5.2/python-3.5.2-macosx10.6.pkg;
            sudo installer -package python-3.5.2-macosx10.6.pkg -target /;
            python3 get-pip.py --user;
-           python3 -m pip install --upgrade --user cython pillow nose mock docutils;
+           python3 -m pip install --upgrade --user cython pillow pytest mock docutils PyInstaller;
         else
+           export PATH=$PATH:$HOME/Library/Python/2.7/bin;
            python get-pip.py --user;
-           python -m pip install --upgrade --user cython pillow nose mock docutils;
+           python -m pip install --upgrade --user cython pillow pytest mock docutils PyInstaller;
         fi;
       fi;
     fi;
@@ -177,10 +181,10 @@ script:
       if [ "${RUN}" == "unit" ]; then
         if [ "${PY}" == "3" ]; then
           python3 setup.py build_ext --inplace;
-          python3 -m nose.core kivy/tests;
+          env KIVY_NO_ARGS=1 pytest -v kivy/tests;
         else
           make;
-          make test;
+          env KIVY_NO_ARGS=1 pytest -v kivy/tests;
         fi;
       elif [ "${RUN}" == "app" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]  && ([ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ]  || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build app osx]" ]]); then
           openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
@@ -200,7 +204,7 @@ script:
              mkdir app;
              mv Kivy3.dmg app/"Kivy-$app_ver-$git_tag-$app_date"-python3.6.5.dmg;
           else
-             ./create-osx-bundle.sh python2 master > output.txt;            
+             ./create-osx-bundle.sh python2 master > output.txt;
               app_ver=$(Kivy.app/Contents/Resources/script -c 'import kivy; print(kivy.__version__)');
               mv Kivy.app Kivy2.app;
              ./create-osx-dmg.sh Kivy2.app;
@@ -224,7 +228,7 @@ script:
           python$pyver_short -m pip install git+http://github.com/tito/osxrelocator --user;
 
           python$pyver_short -m pip install --upgrade --user pip;
-          python$pyver_short -m pip install --upgrade --user cython nose wheel pillow mock docutils;
+          python$pyver_short -m pip install --upgrade --user cython pytest wheel pillow mock docutils PyInstaller;
           python$pyver_short -m pip install --upgrade delocate;
 
           USE_SDL2=1 USE_GSTREAMER=1 python$pyver_short setup.py build_ext --inplace>output.txt;
@@ -283,18 +287,15 @@ script:
 
 
 after_success:
-  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" == "docs" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ] && [ "${TRAVIS_BRANCH}" == "master" ]; then
-      openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
-      chmod 600 ~/.ssh/id_rsa;
-      echo -e "Host $SERVER_IP\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
-      rsync --delete --force -r -e "ssh -p 2457" ./doc/build/html/ root@$SERVER_IP:/web/docs/;
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" == "docs" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
+      for version in $DOC_VERSIONS; do
+        if [ $version == ${TRAVIS_BRANCH} ]; then
+          openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
+          chmod 600 ~/.ssh/id_rsa;
+          echo -e "Host $SERVER_IP\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
+          echo "[$(echo $DOC_VERSIONS|tr ' ' ', '|sed -s 's/\([^,]\+\)/"\1"/g')]" > versions.json;
+          rsync --force -e "ssh -p 2457" versions.json root@$SERVER_IP:/web/doc/;
+          rsync --delete --force -r -e "ssh -p 2457" ./doc/build/html/ root@$SERVER_IP:/web/doc/$version;
+        fi;
+      done;
     fi;
-
-notifications:
-  webhooks:
-    urls:
-      - https://kivy.org:5000/travisevent
-    on_success: always
-    on_failure: always
-    on_start: always
-

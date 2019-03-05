@@ -10,9 +10,10 @@ Create a package for IOS
 
 The overall process for creating a package for IOS can be explained in 4 steps:
 
-#. Compile python + modules for IOS
-#. Create an Xcode project and link your source code
-#. Customize
+#. :ref:`Compile the distribution` (python + modules for IOS)
+#. :ref:`Create an Xcode project` (and link your source code)
+#. :ref:`Update the Xcode project`
+#. :ref:`Customize`
 
 Prerequisites
 -------------
@@ -78,8 +79,10 @@ Then click on `Play`, and enjoy.
     the `<title>-ios/YourApp` directory. Don't make changes in the -ios
     directory directly.
 
-Updating an Xcode project
--------------------------
+.. _Update the Xcode project:
+
+Update the Xcode project
+------------------------
 
 Let's say you want to add numpy to your project but you did not compile it
 prior to creating your XCode project. First, ensure it is built::
@@ -95,8 +98,8 @@ added to your Xcode project.
 
 .. _Customize:
 
-Customize
----------
+Customize the Xcode project
+---------------------------
 
 There are various ways to customize and configure your app. Please refer
 to the `kivy-ios <http://www.github.com/kivy/kivy-ios>`_ documentation

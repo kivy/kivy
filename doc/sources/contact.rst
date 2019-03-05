@@ -32,23 +32,22 @@ Kivy framework code on the
 `kivy-dev Google Group <https://groups.google.com/group/kivy-dev>`_.
 
 
-IRC
----
+Discord
+---------
 
-**#Kivy on irc.freenode.net**
+**Kivy on Discord at https://chat.kivy.org**
 
-IRC is great for real-time communication, but please make sure to **wait** after
+Discord is great for real-time communication, but please make sure to **wait** after
 you asked your question. If you just join, ask and quit we have **no way** of
 knowing who you were and where we're supposed to send our answer. Also, keep
 in mind we're mostly based in Europe, so take into account any timezone issues.
 If you're unlucky more than once, try the mailing list.
 
-If you don't have an IRC client, you can also use
-`Freenode's web chat <http://webchat.freenode.net/>`_, but please, don't close
-the browser window too soon. Just enter ``#kivy`` in the channels field.
+If you don't have the Discord app, you can also use
+`Discord's web client <https://chat.kivy.org>`_, but please, don't leave
+too soon. Just make sure to ask on the ``#support`` channel.
 
 
 Please read our
 `Community Guidelines <https://github.com/kivy/kivy/wiki/Community-Guidelines/>`_
-before asking for help on the mailing list or IRC channel.
-
+before asking for help on the mailing list or Discord channel.

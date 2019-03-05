@@ -191,7 +191,7 @@ class WindowPygame(WindowBase):
 
     def close(self):
         pygame.display.quit()
-        self.dispatch('on_close')
+        super(WindowPygame, self).close()
 
     def on_title(self, instance, value):
         if self.initialized:

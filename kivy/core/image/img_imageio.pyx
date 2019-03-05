@@ -337,16 +337,19 @@ class ImageLoaderImageIO(ImageLoaderBase):
         return [ImageData(w, h, imgtype, data, source=filename)]
 
     @staticmethod
-    def can_save():
-        return True
+    def can_save(fmt, is_bytesio):
+        if is_bytesio:
+            return False
+        return fmt in ImageLoaderImageIO.extensions()
 
     @staticmethod
     def can_load_memory():
         return True
 
     @staticmethod
-    def save(filename, width, height, fmt, pixels, flipped=False):
-        save_image(filename, width, height, fmt, pixels, flipped)
+    def save(filename, width, height, pixelfmt, pixels, flipped=False,
+             imagefmt=None):
+        save_image(filename, width, height, pixelfmt, pixels, flipped)
         return True
 
 # register
