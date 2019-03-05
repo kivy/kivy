@@ -4,7 +4,7 @@ from bcm cimport DISPMANX_ELEMENT_HANDLE_T, ElementHandle
 cimport bcm
 import bcm
 
-cdef extern from "/opt/vc/include/EGL/egl.h":
+cdef extern from "EGL/egl.h":
     ctypedef int EGLint ###maybe wrong
     ctypedef unsigned int EGLBoolean
     ctypedef unsigned int EGLenum
