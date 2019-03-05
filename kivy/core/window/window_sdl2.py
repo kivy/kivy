@@ -678,7 +678,7 @@ class WindowSDL(WindowBase):
     def _do_resize(self, dt):
         Logger.debug('Window: Resize window to %s' % str(self.size))
         self._win.resize_window(*self._size)
-        self.dispatch('on_resize', *self.size)
+        self.dispatch('on_pre_resize', *self.size)
 
     def do_pause(self):
         # should go to app pause mode (desktop style)

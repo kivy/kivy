@@ -115,7 +115,7 @@ cdef int event_callback(XEvent *event):
     elif event.type == ConfigureNotify:
         if (event.xconfigure.width != _window_object.system_size[0]) or (event.xconfigure.height != _window_object.system_size[1]):
             _window_object._size = event.xconfigure.width, event.xconfigure.height
-            _window_object.dispatch('on_resize', event.xconfigure.width, event.xconfigure.height)
+            _window_object.dispatch('on_pre_resize', event.xconfigure.width, event.xconfigure.height)
 
     # mouse motion
     elif event.type == ButtonPress or event.type == ButtonRelease:
