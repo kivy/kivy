@@ -51,14 +51,19 @@ class InputPostprocCalibration(object):
             Value to add to X
         `yoffset`: float
             Value to add to Y
-        'auto': str
-            if true, then the touch is transformed from screen-relative
+        `auto`: str
+            If set, then the touch is transformed from screen-relative
             to window-relative The value is used as an indication of
-            screen size, e.g for fullHD.
-            auto=1920x1080
-            if present, this setting overrides all the others.
+            screen size, e.g for fullHD:
+            
+                auto=1920x1080
+            
+            If present, this setting overrides all the others.
             This assumes the input device exactly covers the display
             area, if they are different, the computations will be wrong.
+            
+    .. versionchanged:: 1.11.0
+        Added `auto` parameter
     '''
 
     def __init__(self):
