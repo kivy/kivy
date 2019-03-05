@@ -6,7 +6,10 @@ OpenCV Camera: Implement CameraBase with OpenCV
 # TODO: make usage of thread or multiprocess
 #
 
+from __future__ import division
+
 __all__ = ('CameraOpenCV')
+
 
 from kivy.logger import Logger
 from kivy.clock import Clock
@@ -68,7 +71,7 @@ class CameraOpenCV(CameraBase):
 
     def init_camera(self):
         # consts have changed locations between versions 2 and 3
-        if self.opencvMajorVersion == 3:
+        if self.opencvMajorVersion in (3, 4):
             PROPERTY_WIDTH = cv2.CAP_PROP_FRAME_WIDTH
             PROPERTY_HEIGHT = cv2.CAP_PROP_FRAME_HEIGHT
             PROPERTY_FPS = cv2.CAP_PROP_FPS
@@ -101,7 +104,7 @@ class CameraOpenCV(CameraBase):
             # get fps
             self.fps = cv.GetCaptureProperty(self._device, cv.CV_CAP_PROP_FPS)
 
-        elif self.opencvMajorVersion == 2 or self.opencvMajorVersion == 3:
+        elif self.opencvMajorVersion in (2, 3, 4):
             # create the device
             self._device = cv2.VideoCapture(self._index)
             # Set preferred resolution
@@ -118,8 +121,10 @@ class CameraOpenCV(CameraBase):
             # get fps
             self.fps = self._device.get(PROPERTY_FPS)
 
-        if self.fps <= 0:
-            self.fps = 1 / 30.
+        if self.fps == 0 or self.fps == 1:
+            self.fps = 1.0 / 30
+        elif self.fps > 1:
+            self.fps = 1.0 / self.fps
 
         if not self.stopped:
             self.start()
@@ -138,9 +143,9 @@ class CameraOpenCV(CameraBase):
             try:
                 self._buffer = frame.imageData
             except AttributeError:
-                # On OSX there is no imageData attribute but a tostring()
-                # method.
-                self._buffer = frame.tostring()
+                # frame is already of type ndarray
+                # which can be reshaped to 1-d.
+                self._buffer = frame.reshape(-1)
             self._copy_to_gpu()
         except:
             Logger.exception('OpenCV: Couldn\'t get image from Camera')

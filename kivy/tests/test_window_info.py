@@ -1,6 +1,7 @@
 from kivy.tests.common import GraphicUnitTest
 from kivy import setupconfig
 
+
 class WindowInfoTest(GraphicUnitTest):
     def test_window_info_nonzero(self):
         from kivy.core.window import Window
@@ -26,4 +27,3 @@ class WindowInfoTest(GraphicUnitTest):
             if isinstance(window_info, WindowInfoWindows):
                 self.assertNotEqual(window_info.HWND, 0)
                 self.assertNotEqual(window_info.HDC, 0)
-

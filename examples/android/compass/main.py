@@ -23,6 +23,7 @@ import kivy
 kivy.require('1.7.0')
 
 from jnius import autoclass
+from math import floor
 from kivy.app import App
 from kivy.properties import NumericProperty
 from kivy.clock import Clock
@@ -47,6 +48,14 @@ class CompassApp(App):
 
         # calculate the angle
         needle_angle = Vector(x, y).angle((0, 1)) + 90.
+
+        # fix animation transition around the unit circle
+        if (self.needle_angle % 360) - needle_angle > 180:
+            needle_angle += 360
+        elif (self.needle_angle % 360) - needle_angle < -180:
+            needle_angle -= 360
+        # add the number of revolutions to the result
+        needle_angle += 360 * floor(self.needle_angle / 360.)
 
         # animate the needle
         if self._anim:

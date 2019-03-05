@@ -300,6 +300,7 @@ else:
         'numpadmul': '*',
         'numpaddivide': '/',
         'numpadadd': '+',
+        'numpaddecimal': '.',
         'numpadsubstract': '-',
     }
 
@@ -313,6 +314,8 @@ else:
         options = ('min_position_x', 'max_position_x',
                    'min_position_y', 'max_position_y',
                    'min_pressure', 'max_pressure',
+                   'min_abs_x', 'max_abs_x',
+                   'min_abs_y', 'max_abs_y',
                    'invert_x', 'invert_y', 'rotation')
 
         def __init__(self, device, args):
@@ -383,6 +386,7 @@ else:
             self.queue = collections.deque()
             self.dispatch_queue = []
             self.thread = threading.Thread(
+                name=self.__class__.__name__,
                 target=self._thread_run,
                 kwargs=dict(
                     queue=self.queue,
@@ -605,8 +609,8 @@ else:
             fd = open(input_fn, 'rb')
 
             # get the controler name (EVIOCGNAME)
-            device_name = str(fcntl.ioctl(fd, EVIOCGNAME + (256 << 16),
-                                      " " * 256)).split('\x00')[0]
+            device_name = fcntl.ioctl(fd, EVIOCGNAME + (256 << 16),
+                                      " " * 256).decode().strip()
             Logger.info('HIDMotionEvent: using <%s>' % device_name)
 
             # get abs infos

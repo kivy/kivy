@@ -40,15 +40,15 @@ class BaseClass(object):
         return True
 
 
-class TestClass(BaseClass):
+class TLangClass(BaseClass):
     obj = None
 
 
-class TestClass2(BaseClass):
+class TLangClass2(BaseClass):
     obj = None
 
 
-class TestClass3(BaseClass):
+class TLangClass3(BaseClass):
     obj = None
 
 
@@ -58,9 +58,9 @@ class LangTestCase(unittest.TestCase):
         from kivy.factory import Factory
         from kivy.lang import BuilderBase
         Builder = BuilderBase()
-        Factory.register('TestClass', cls=TestClass)
-        Factory.register('TestClass2', cls=TestClass2)
-        Factory.register('TestClass3', cls=TestClass3)
+        Factory.register('TLangClass', cls=TLangClass)
+        Factory.register('TLangClass2', cls=TLangClass2)
+        Factory.register('TLangClass3', cls=TLangClass3)
         return Builder
 
     def test_loading_failed_1(self):
@@ -69,7 +69,7 @@ class LangTestCase(unittest.TestCase):
         from kivy.lang import ParserException
         try:
             Builder.load_string('''#:kivy 1.0
-            <TestClass>:
+            <TLangClass>:
             ''')
             self.fail('Invalid indentation.')
         except ParserException:
@@ -77,27 +77,27 @@ class LangTestCase(unittest.TestCase):
 
     def test_parser_numeric_1(self):
         Builder = self.import_builder()
-        Builder.load_string('<TestClass>:\n\tobj: (.5, .5, .5)')
-        wid = TestClass()
+        Builder.load_string('<TLangClass>:\n\tobj: (.5, .5, .5)')
+        wid = TLangClass()
         Builder.apply(wid)
         self.assertEqual(wid.obj, (0.5, 0.5, 0.5))
 
     def test_parser_numeric_2(self):
         Builder = self.import_builder()
-        Builder.load_string('<TestClass>:\n\tobj: (0.5, 0.5, 0.5)')
-        wid = TestClass()
+        Builder.load_string('<TLangClass>:\n\tobj: (0.5, 0.5, 0.5)')
+        wid = TLangClass()
         Builder.apply(wid)
         self.assertEqual(wid.obj, (0.5, 0.5, 0.5))
 
     def test_references(self):
         Builder = self.import_builder()
         Builder.load_string('''
-<TestClass>:
+<TLangClass>:
     textinput: textinput
-    TestClass2:
+    TLangClass2:
         id: textinput
         ''')
-        wid = TestClass()
+        wid = TLangClass()
         Builder.apply(wid)
 
         self.assertTrue(hasattr(wid, 'textinput'))
@@ -106,16 +106,16 @@ class LangTestCase(unittest.TestCase):
     def test_references_with_template(self):
         Builder = self.import_builder()
         Builder.load_string('''
-[Item@TestClass3]:
+[Item@TLangClass3]:
     title: ctx.title
-<TestClass>:
+<TLangClass>:
     textinput: textinput
     Item:
         title: 'bleh'
-    TestClass2:
+    TLangClass2:
         id: textinput
         ''')
-        wid = TestClass()
+        wid = TLangClass()
         Builder.apply(wid)
 
         self.assertTrue(hasattr(wid, 'textinput'))
@@ -124,16 +124,16 @@ class LangTestCase(unittest.TestCase):
     def test_references_with_template_case_2(self):
         Builder = self.import_builder()
         Builder.load_string('''
-[Item@TestClass3]:
+[Item@TLangClass3]:
     title: ctx.title
-<TestClass>:
+<TLangClass>:
     textinput: textinput
-    TestClass2:
+    TLangClass2:
         id: textinput
         Item:
             title: 'bleh'
         ''')
-        wid = TestClass()
+        wid = TLangClass()
         Builder.apply(wid)
 
         self.assertTrue(hasattr(wid, 'textinput'))
@@ -142,18 +142,18 @@ class LangTestCase(unittest.TestCase):
     def test_references_with_template_case_3(self):
         Builder = self.import_builder()
         Builder.load_string('''
-[Item@TestClass3]:
+[Item@TLangClass3]:
     title: ctx.title
-<TestClass>:
+<TLangClass>:
     textinput: textinput
-    TestClass2:
+    TLangClass2:
         Item:
             title: 'bleh'
-        TestClass2:
-            TestClass2:
+        TLangClass2:
+            TLangClass2:
                 id: textinput
         ''')
-        wid = TestClass()
+        wid = TLangClass()
         Builder.apply(wid)
 
         self.assertTrue(hasattr(wid, 'textinput'))
@@ -162,87 +162,87 @@ class LangTestCase(unittest.TestCase):
     def test_with_multiline(self):
         Builder = self.import_builder()
         Builder.load_string('''
-<TestClass>:
+<TLangClass>:
     on_press:
         print('hello world')
         print('this is working !')
         self.a = 1
 ''')
-        wid = TestClass()
+        wid = TLangClass()
         Builder.apply(wid)
         wid.a = 0
 
         self.assertTrue('on_press' in wid.binded_func)
         wid.binded_func['on_press']()
-        self.assertEquals(wid.a, 1)
+        self.assertEqual(wid.a, 1)
 
     def test_with_eight_spaces(self):
         Builder = self.import_builder()
         Builder.load_string('''
-<TestClass>:
+<TLangClass>:
         on_press:
                 print('hello world')
                 print('this is working !')
                 self.a = 1
 ''')
-        wid = TestClass()
+        wid = TLangClass()
         Builder.apply(wid)
         wid.a = 0
 
         self.assertTrue('on_press' in wid.binded_func)
         wid.binded_func['on_press']()
-        self.assertEquals(wid.a, 1)
+        self.assertEqual(wid.a, 1)
 
     def test_with_one_space(self):
         Builder = self.import_builder()
         Builder.load_string('''
-<TestClass>:
+<TLangClass>:
  on_press:
   print('hello world')
   print('this is working !')
   self.a = 1
 ''')
-        wid = TestClass()
+        wid = TLangClass()
         Builder.apply(wid)
         wid.a = 0
 
         self.assertTrue('on_press' in wid.binded_func)
         wid.binded_func['on_press']()
-        self.assertEquals(wid.a, 1)
+        self.assertEqual(wid.a, 1)
 
     def test_with_two_spaces(self):
         Builder = self.import_builder()
         Builder.load_string('''
-<TestClass>:
+<TLangClass>:
   on_press:
     print('hello world')
     print('this is working !')
     self.a = 1
 ''')
-        wid = TestClass()
+        wid = TLangClass()
         Builder.apply(wid)
         wid.a = 0
 
         self.assertTrue('on_press' in wid.binded_func)
         wid.binded_func['on_press']()
-        self.assertEquals(wid.a, 1)
+        self.assertEqual(wid.a, 1)
 
     def test_property_trailingspace(self):
         Builder = self.import_builder()
         Builder.load_string('''
-<TestClass>:
+<TLangClass>:
     text : 'original'
     on_press : self.text = 'changed'
 ''')
-        wid = TestClass()
+        wid = TLangClass()
         Builder.apply(wid)
 
         self.assertTrue('on_press' in wid.binded_func)
-        self.assertEquals(wid.text, 'original')
+        self.assertEqual(wid.text, 'original')
 
         # call the on_press and check the result
         wid.binded_func['on_press']()
-        self.assertEquals(wid.text, 'changed')
+        self.assertEqual(wid.text, 'changed')
 
     def test_kv_python_init(self):
         from kivy.factory import Factory
@@ -280,11 +280,11 @@ class LangTestCase(unittest.TestCase):
 
     def test_apply_rules(self):
         Builder = self.import_builder()
-        Builder.load_string('<TestClassCustom>:\n\tobj: 42')
-        wid = TestClass()
+        Builder.load_string('<TLangClassCustom>:\n\tobj: 42')
+        wid = TLangClass()
         Builder.apply(wid)
         self.assertIsNone(wid.obj)
-        Builder.apply_rules(wid, 'TestClassCustom')
+        Builder.apply_rules(wid, 'TLangClassCustom')
         self.assertEqual(wid.obj, 42)
 
 

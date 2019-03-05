@@ -88,13 +88,13 @@ class Layout(Widget):
         '''
         raise NotImplementedError('Must be implemented in subclasses.')
 
-    def add_widget(self, widget, index=0):
+    def add_widget(self, widget, index=0, canvas=None):
         fbind = widget.fbind
         fbind('size', self._trigger_layout)
         fbind('size_hint', self._trigger_layout)
         fbind('size_hint_max', self._trigger_layout)
         fbind('size_hint_min', self._trigger_layout)
-        return super(Layout, self).add_widget(widget, index)
+        return super(Layout, self).add_widget(widget, index, canvas)
 
     def remove_widget(self, widget):
         funbind = widget.funbind

@@ -169,7 +169,7 @@ from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.image import Image
 
 from kivy.properties import StringProperty, NumericProperty, \
-    BooleanProperty, AliasProperty, \
+    BooleanProperty, AliasProperty, OptionProperty, \
     ListProperty, ObjectProperty, VariableListProperty
 
 Cache_register = Cache.register
@@ -459,6 +459,8 @@ class TextInput(FocusBehavior, Widget):
     __events__ = ('on_text_validate', 'on_double_tap', 'on_triple_tap',
                   'on_quad_touch')
 
+    _resolved_base_dir = None
+
     def __init__(self, **kwargs):
         self._update_graphics_ev = Clock.create_trigger(
             self._update_graphics, -1)
@@ -522,9 +524,14 @@ class TextInput(FocusBehavior, Widget):
         fbind = self.fbind
         refresh_line_options = self._trigger_refresh_line_options
         update_text_options = self._update_text_options
+        trigger_update_graphics = self._trigger_update_graphics
 
         fbind('font_size', refresh_line_options)
         fbind('font_name', refresh_line_options)
+        fbind('font_context', refresh_line_options)
+        fbind('font_family', refresh_line_options)
+        fbind('base_direction', refresh_line_options)
+        fbind('text_language', refresh_line_options)
 
         def handle_readonly(instance, value):
             if value and (not _is_desktop or not self.allow_copy):
@@ -543,7 +550,8 @@ class TextInput(FocusBehavior, Widget):
         fbind('password', update_text_options)
         fbind('password_mask', update_text_options)
 
-        fbind('pos', self._trigger_update_graphics)
+        fbind('pos', trigger_update_graphics)
+        fbind('halign', trigger_update_graphics)
         fbind('readonly', handle_readonly)
         fbind('focus', self._on_textinput_focused)
         handle_readonly(self, self.readonly)
@@ -1196,8 +1204,19 @@ class TextInput(FocusBehavior, Widget):
         _get_text_width = self._get_text_width
         _tab_width = self.tab_width
         _label_cached = self._label_cached
+        # Offset for horizontal text alignment
+        xoff = 0
+        halign = self.halign
+        base_dir = self.base_direction or self._resolved_base_dir
+        auto_halign_r = halign == 'auto' and base_dir and 'rtl' in base_dir
+        if halign == 'center':
+            viewport_width = self.width - padding_left - self.padding[2]  # _r
+            xoff = int((viewport_width - self._get_row_width(cy)) / 2)
+        elif halign == 'right' or auto_halign_r:
+            viewport_width = self.width - padding_left - self.padding[2]  # _r
+            xoff = viewport_width - self._get_row_width(cy)
         for i in range(0, len(l[cy])):
-            if _get_text_width(l[cy][:i], _tab_width, _label_cached) + \
+            if xoff + _get_text_width(l[cy][:i], _tab_width, _label_cached) + \
                   _get_text_width(l[cy][i], _tab_width, _label_cached) * 0.6 +\
                   padding_left > cx + scrl_x:
                 cx = i
@@ -1970,6 +1989,11 @@ class TextInput(FocusBehavior, Widget):
         y = self.top - padding_top + sy
         miny = self.y + padding_bottom
         maxy = self.top - padding_top
+        halign = self.halign
+        base_dir = self.base_direction
+        find_base_dir = Label.find_base_direction
+        auto_halign_r = halign == 'auto' and base_dir and 'rtl' in base_dir
+
         for line_num, value in enumerate(lines):
             if miny <= y <= maxy + dy:
                 texture = labels[line_num]
@@ -2023,9 +2047,20 @@ class TextInput(FocusBehavior, Widget):
                     tcx,
                     tcy)
 
+                # Horizontal alignment
+                xoffset = 0
+                if not base_dir:
+                    base_dir = self._resolved_base_dir = find_base_dir(value)
+                    if base_dir and halign == 'auto':
+                        auto_halign_r = 'rtl' in base_dir
+                if halign == 'center':
+                    xoffset = int((vw - size[0]) / 2.)
+                elif halign == 'right' or auto_halign_r:
+                    xoffset = max(0, int(vw - size[0]))
+
                 # add rectangle.
                 r = rects[line_num]
-                r.pos = int(x), int(y - mlh)
+                r.pos = int(xoffset + x), int(y - mlh)
                 r.size = size
                 r.texture = texture
                 r.tex_coords = texc
@@ -2116,16 +2151,41 @@ class TextInput(FocusBehavior, Widget):
         self._refresh_hint_text()
         self.scroll_x = self.scroll_y = 0
 
+    def _get_row_width(self, row):
+        # Get the pixel width of the given row.
+        _labels = self._lines_labels
+        if row < len(_labels):
+            return _labels[row].width
+        return 0
+
     def _get_cursor_pos(self):
         # return the current cursor x/y from the row/col
         dy = self.line_height + self.line_spacing
         padding_left = self.padding[0]
         padding_top = self.padding[1]
+        padding_right = self.padding[2]
         left = self.x + padding_left
         top = self.top - padding_top
         y = top + self.scroll_y
         y -= self.cursor_row * dy
-        x, y = left + self.cursor_offset() - self.scroll_x, y
+
+        # Horizontal alignment
+        halign = self.halign
+        viewport_width = self.width - padding_left - padding_right
+        cursor_offset = self.cursor_offset()
+        base_dir = self.base_direction or self._resolved_base_dir
+        auto_halign_r = halign == 'auto' and base_dir and 'rtl' in base_dir
+        if halign == 'center':
+            row_width = self._get_row_width(self.cursor_row)
+            x = left + int((viewport_width - row_width) / 2) \
+                     + cursor_offset - self.scroll_x
+        elif halign == 'right' or auto_halign_r:
+            row_width = self._get_row_width(self.cursor_row)
+            x = left + viewport_width - row_width \
+                     + cursor_offset - self.scroll_x
+        else:
+            x = left + cursor_offset - self.scroll_x
+
         if x < left:
             self.scroll_x = 0
             x = left
@@ -2140,6 +2200,10 @@ class TextInput(FocusBehavior, Widget):
             self._line_options = kw = {
                 'font_size': self.font_size,
                 'font_name': self.font_name,
+                'font_context': self.font_context,
+                'font_family': self.font_family,
+                'text_language': self.text_language,
+                'base_direction': self.base_direction,
                 'anchor_x': 'left',
                 'anchor_y': 'top',
                 'padding_x': 0,
@@ -2441,10 +2505,11 @@ class TextInput(FocusBehavior, Widget):
                 elif key == ord('r'):  # redo
                     self.do_redo()
             else:
-                if EventLoop.window.__class__.__module__ == \
-                    'kivy.core.window.window_sdl2':
-                    if not (text == ' ' and platform == 'android'):
-                        return
+                is_sdl2 = (EventLoop.window.__class__.__module__ ==
+                           'kivy.core.window.window_sdl2')
+                if is_sdl2:
+                    # we expect to get managed key input via on_textinput
+                    return
                 if self._selection:
                     self.delete_selection()
                 self.insert_text(text)
@@ -2755,6 +2820,18 @@ class TextInput(FocusBehavior, Widget):
     defaults to [6, 6, 6, 6].
     '''
 
+    halign = OptionProperty('auto', options=['left', 'center', 'right',
+                            'auto'])
+    '''Horizontal alignment of the text.
+
+    :attr:`halign` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to 'auto'. Available options are : auto, left, center and right.
+    Auto will attempt to autodetect horizontal alignment for RTL text (Pango
+    only), otherwise it behaves like `left`.
+
+    .. versionadded:: 1.10.1
+    '''
+
     scroll_x = NumericProperty(0)
     '''X scrolling value of the viewport. The scrolling is automatically
     updated when the cursor is moved or text changed. If there is no
@@ -3026,6 +3103,93 @@ class TextInput(FocusBehavior, Widget):
     :attr:`font_size` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 15\ :attr:`~kivy.metrics.sp`.
     '''
+
+    font_context = StringProperty(None, allownone=True)
+    '''Font context. `None` means the font is used in isolation, so you are
+    guaranteed to be drawing with the TTF file resolved by :attr:`font_name`.
+    Specifying a value here will load the font file into a named context,
+    enabling fallback between all fonts in the same context. If a font
+    context is set, you are not guaranteed that rendering will actually use
+    the specified TTF file for all glyphs (Pango will pick the one it
+    thinks is best).
+
+    If Kivy is linked against a system-wide installation of FontConfig,
+    you can load the system fonts by specifying a font context starting
+    with the special string `system://`. This will load the system
+    fontconfig configuration, and add your application-specific fonts on
+    top of it (this imposes a signifficant risk of family name collision,
+    Pango may not use your custom font file, but pick one from the system)
+
+    .. note::
+        This feature requires the Pango text provider.
+
+    .. versionadded:: 1.10.1
+
+    :attr:`font_context` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+    '''
+
+    font_family = StringProperty(None, allownone=True)
+    '''Font family, this is only applicable when using :attr:`font_context`
+    option. The specified font family will be requested, but note that it may
+    not be available, or there could be multiple fonts registered with the
+    same family. The value can be a family name (string) available in the
+    font context (for example a system font in a `system://` context, or a
+    custom font file added using :class:`kivy.core.text.FontContextManager`).
+    If set to `None`, font selection is controlled by the :attr:`font_name`
+    setting.
+
+    .. note::
+        If using :attr:`font_name` to reference a custom font file, you
+        should leave this as `None`. The family name is managed automatically
+        in this case.
+
+    .. note::
+        This feature requires the Pango text provider.
+
+    .. versionadded:: 1.10.1
+
+    :attr:`font_family` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+    '''
+
+    base_direction = OptionProperty(None,
+                     options=['ltr', 'rtl', 'weak_rtl', 'weak_ltr', None],
+                     allownone=True)
+    '''Base direction of text, this impacts horizontal alignment when
+    :attr:`halign` is `auto` (the default). Available options are: None,
+    "ltr" (left to right), "rtl" (right to left) plus "weak_ltr" and
+    "weak_rtl".
+
+    .. note::
+        This feature requires the Pango text provider.
+
+    .. note::
+        Weak modes are currently not implemented in Kivy text layout, and
+        have the same effect as setting strong mode.
+
+    .. versionadded:: 1.10.1
+
+    :attr:`base_direction` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to None (autodetect RTL if possible, otherwise LTR).
+    '''
+
+    text_language = StringProperty(None, allownone=True)
+    '''Language of the text, if None Pango will determine it from locale.
+    This is an RFC-3066 format language tag (as a string), for example
+    "en_US", "zh_CN", "fr" or "ja". This can impact font selection, metrics
+    and rendering. For example, the same bytes of text can look different
+    for `ur` and `ar` languages, though both use Arabic script.
+
+    .. note::
+        This feature requires the Pango text provider.
+
+    .. versionadded:: 1.10.1
+
+    :attr:`text_language` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+    '''
+
     _hint_text = StringProperty('')
 
     def _set_hint_text(self, value):
@@ -3093,7 +3257,8 @@ class TextInput(FocusBehavior, Widget):
     minimum_height = AliasProperty(_get_min_height, None,
                                    bind=('_lines', 'line_spacing', 'padding',
                                          'font_size', 'font_name', 'password',
-                                         'hint_text', 'line_height'))
+                                         'font_context', 'hint_text',
+                                         'line_height'))
     '''Minimum height of the content inside the TextInput.
 
     .. versionadded:: 1.8.0

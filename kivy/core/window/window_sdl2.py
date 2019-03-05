@@ -208,7 +208,6 @@ class WindowSDL(WindowBase):
         from kivy.app import App
         if action == 'app_terminating':
             EventLoop.quit = True
-            self.close()
 
         elif action == 'app_lowmemory':
             self.dispatch('on_memorywarning')
@@ -253,7 +252,6 @@ class WindowSDL(WindowBase):
                            "borderless Config option instead.")
 
         if not self.initialized:
-
             if self.position == 'auto':
                 pos = None, None
             elif self.position == 'custom':
@@ -322,7 +320,8 @@ class WindowSDL(WindowBase):
 
     def close(self):
         self._win.teardown_window()
-        self.dispatch('on_close')
+        super(WindowSDL, self).close()
+        self.initialized = False
 
     def maximize(self):
         if self._is_desktop:
@@ -490,7 +489,6 @@ class WindowSDL(WindowBase):
                 if self.dispatch('on_request_close'):
                     continue
                 EventLoop.quit = True
-                self.close()
                 break
 
             elif action in ('fingermotion', 'fingerdown', 'fingerup'):
@@ -669,6 +667,10 @@ class WindowSDL(WindowBase):
                 text = args[0]
                 self.dispatch('on_textinput', text)
 
+            elif action == 'textedit':
+                text = args[0]
+                self.dispatch('on_textedit', text)
+
             # unhandled event !
             else:
                 Logger.trace('WindowSDL: Unhandled event %s' % str(event))
@@ -704,7 +706,6 @@ class WindowSDL(WindowBase):
             action, args = event[0], event[1:]
             if action == 'quit':
                 EventLoop.quit = True
-                self.close()
                 break
             elif action == 'app_willenterforeground':
                 break
@@ -729,6 +730,8 @@ class WindowSDL(WindowBase):
                     raise
                 else:
                     pass
+        Logger.info("WindowSDL: exiting mainloop and closing.")
+        self.close()
 
     #
     # Pygame wrapper

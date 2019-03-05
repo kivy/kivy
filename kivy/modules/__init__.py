@@ -19,6 +19,7 @@ loading of modules is managed by the config file. Currently, we include:
     * :class:`~kivy.modules.webdebugger`: Realtime examination of your app
       internals via a web browser.
     * :class:`~kivy.modules.joycursor`: Navigate in your app with a joystick.
+    * :class:`~kivy.modules.showborder`: Show widget's border.
 
 Modules are automatically loaded from the Kivy path and User path:
 

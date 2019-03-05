@@ -1,9 +1,3 @@
-# Configuration for new-issue-welcome - https://github.com/behaviorbot/new-issue-welcome
-
-# Comment to be posted to on first time issues
-newIssueWelcomeComment: |
-  👋 Thanks for opening your first issue here! Be sure to follow the issue template!
-
 # Configuration for new-pr-welcome - https://github.com/behaviorbot/new-pr-welcome
 
 # Comment to be posted to on PRs from first time contributors in your repository

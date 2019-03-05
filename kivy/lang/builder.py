@@ -335,7 +335,25 @@ class BuilderBase(object):
             `rulesonly`: bool, defaults to False
                 If True, the Builder will raise an exception if you have a root
                 widget inside the definition.
+            `filename`: str, defaults to None
+                If specified, the filename used to index the kv rules.
+
+        The filename parameter can be used to unload kv strings in the same way
+        as you unload kv files. This can be achieved using pseudo file names
+        e.g.::
+
+            Build.load_string("""
+                <MyRule>:
+                    Label:
+                        text="Hello"
+            """, filename="myrule.kv")
+
+        can be unloaded via::
+
+            Build.unload_file("myrule.kv")
+
         '''
+
         kwargs.setdefault('rulesonly', False)
         self._current_filename = fn = kwargs.get('filename', None)
 

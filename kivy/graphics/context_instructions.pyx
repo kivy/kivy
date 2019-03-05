@@ -111,17 +111,21 @@ cdef class PushState(ContextInstruction):
         ContextInstruction.__init__(self, **kwargs)
         self.context_push = list(args)
 
-    property state:
-        def __get__(self):
-            return ','.join(self.context_push)
-        def __set__(self, value):
-            self.context_push = value.split(',')
+    @property
+    def state(self):
+        return ','.join(self.context_push)
 
-    property states:
-        def __get__(self):
-            return self.context_push
-        def __set__(self, value):
-            self.context_push = list(value)
+    @state.setter
+    def state(self, value):
+        self.context_push = value.split(',')
+
+    @property
+    def states(self):
+        return self.context_push
+
+    @states.setter
+    def states(self, value):
+        self.context_push = list(value)
 
 
 cdef class ChangeState(ContextInstruction):
@@ -134,11 +138,13 @@ cdef class ChangeState(ContextInstruction):
         ContextInstruction.__init__(self, **kwargs)
         self.context_state.update(**kwargs)
 
-    property changes:
-        def __get__(self):
-            return self.context_state
-        def __set__(self, value):
-            self.context_state = dict(value)
+    @property
+    def changes(self):
+        return self.context_state
+
+    @changes.setter
+    def changes(self, value):
+        self.context_state = dict(value)
 
 
 cdef class PopState(ContextInstruction):
@@ -151,17 +157,21 @@ cdef class PopState(ContextInstruction):
         ContextInstruction.__init__(self, **kwargs)
         self.context_pop = list(args)
 
-    property state:
-        def __get__(self):
-            return ','.join(self.context_pop)
-        def __set__(self, value):
-            self.context_pop = value.split(',')
+    @property
+    def state(self):
+        return ','.join(self.context_pop)
 
-    property states:
-        def __get__(self):
-            return self.context_pop
-        def __set__(self, value):
-            self.context_pop = list(value)
+    @state.setter
+    def state(self, value):
+        self.context_pop = value.split(',')
+
+    @property
+    def states(self):
+        return self.context_pop
+
+    @states.setter
+    def states(self, value):
+        self.context_pop = list(value)
 
 
 cdef class Color(ContextInstruction):
@@ -253,76 +263,105 @@ cdef class Color(ContextInstruction):
             if property_name in kwargs:
                 setattr(self, property_name, kwargs[property_name])
 
-    property rgba:
+    @property
+    def rgba(self):
         '''RGBA color, list of 4 values in 0-1 range.
         '''
-        def __get__(self):
-            return self.context_state['color']
-        def __set__(self, rgba):
-            self.set_state('color', [float(x) for x in rgba])
-    property rgb:
+        return self.context_state['color']
+
+    @rgba.setter
+    def rgba(self, rgba):
+        self.set_state('color', [float(x) for x in rgba])
+
+    @property
+    def rgb(self):
         '''RGB color, list of 3 values in 0-1 range. The alpha will be 1.
         '''
-        def __get__(self):
-            return self.rgba[:-1]
-        def __set__(self, rgb):
-            self.rgba = (rgb[0], rgb[1], rgb[2], 1.0)
-    property r:
+        return self.rgba[:-1]
+
+    @rgb.setter
+    def rgb(self, rgb):
+        self.rgba = (rgb[0], rgb[1], rgb[2], 1.0)
+
+    @property
+    def r(self):
         '''Red component, between 0 and 1.
         '''
-        def __get__(self):
-            return self.rgba[0]
-        def __set__(self, r):
-            self.rgba = [r, self.g, self.b, self.a]
-    property g:
+        return self.rgba[0]
+
+    @r.setter
+    def r(self, r):
+        self.rgba = [r, self.g, self.b, self.a]
+
+    @property
+    def g(self):
         '''Green component, between 0 and 1.
         '''
-        def __get__(self):
-            return self.rgba[1]
-        def __set__(self, g):
-            self.rgba = [self.r, g, self.b, self.a]
-    property b:
+        return self.rgba[1]
+
+    @g.setter
+    def g(self, g):
+        self.rgba = [self.r, g, self.b, self.a]
+
+    @property
+    def b(self):
         '''Blue component, between 0 and 1.
         '''
-        def __get__(self):
-            return self.rgba[2]
-        def __set__(self, b):
-            self.rgba = [self.r, self.g, b, self.a]
-    property a:
+        return self.rgba[2]
+
+    @b.setter
+    def b(self, b):
+        self.rgba = [self.r, self.g, b, self.a]
+
+    @property
+    def a(self):
         '''Alpha component, between 0 and 1.
         '''
-        def __get__(self):
-            return self.rgba[3]
-        def __set__(self, a):
-            self.rgba = [self.r, self.g, self.b, a]
-    property hsv:
+        return self.rgba[3]
+
+    @a.setter
+    def a(self, a):
+        self.rgba = [self.r, self.g, self.b, a]
+
+    @property
+    def hsv(self):
         '''HSV color, list of 3 values in 0-1 range, alpha will be 1.
         '''
-        def __get__(self):
-            return rgb_to_hsv(self.r, self.g, self.b)
-        def __set__(self, x):
-            self.rgb = hsv_to_rgb(x[0], x[1], x[2])
-    property h:
+        return rgb_to_hsv(self.r, self.g, self.b)
+
+    @hsv.setter
+    def hsv(self, x):
+        self.rgb = hsv_to_rgb(x[0], x[1], x[2])
+
+    @property
+    def h(self):
         '''Hue component, between 0 and 1.
         '''
-        def __get__(self):
-            return self.hsv[0]
-        def __set__(self, x):
-            self.hsv = [x, self.s, self.v]
-    property s:
+        return self.hsv[0]
+
+    @h.setter
+    def h(self, x):
+        self.hsv = [x, self.s, self.v]
+
+    @property
+    def s(self):
         '''Saturation component, between 0 and 1.
         '''
-        def __get__(self):
-            return self.hsv[1]
-        def __set__(self, x):
-            self.hsv = [self.h, x, self.v]
-    property v:
+        return self.hsv[1]
+
+    @s.setter
+    def s(self, x):
+        self.hsv = [self.h, x, self.v]
+
+    @property
+    def v(self):
         '''Value component, between 0 and 1.
         '''
-        def __get__(self):
-            return self.hsv[2]
-        def __set__(self, x):
-            self.hsv = [self.h, self.s, x]
+        return self.hsv[2]
+
+    @v.setter
+    def v(self, x):
+        self.hsv = [self.h, self.s, x]
 
 
 cdef class BindTexture(ContextInstruction):
@@ -351,41 +390,47 @@ cdef class BindTexture(ContextInstruction):
         cdef RenderContext context = self.get_context()
         context.set_texture(self._index, self._texture)
 
-    property texture:
-        def __get__(self):
-            return self._texture
-        def __set__(self, object texture):
-            if texture is None:
-                texture = get_default_texture()
-            if self._texture is texture:
-                return
-            self._texture = texture
-            self.flag_update()
+    @property
+    def texture(self):
+        return self._texture
 
-    property index:
-        def __get__(self):
-            return self._index
-        def __set__(self, int index):
-            if self._index == index:
-                return
-            self._index = index
-            self.flag_update()
+    @texture.setter
+    def texture(self, object texture):
+        if texture is None:
+            texture = get_default_texture()
+        if self._texture is texture:
+            return
+        self._texture = texture
+        self.flag_update()
 
-    property source:
+    @property
+    def index(self):
+        return self._index
+
+    @index.setter
+    def index(self, int index):
+        if self._index == index:
+            return
+        self._index = index
+        self.flag_update()
+
+    @property
+    def source(self):
         '''Set/get the source (filename) to load for the texture.
         '''
-        def __get__(self):
-            return self._source
-        def __set__(self, filename):
-            self._source = resource_find(filename)
-            if self._source:
-                tex = Cache.get('kv.texture', filename)
-                if not tex:
-                    tex = Image(self._source).texture
-                    Cache.append('kv.texture', filename, tex)
-                self.texture = tex
-            else:
-                self.texture = None
+        return self._source
+
+    @source.setter
+    def source(self, filename):
+        self._source = resource_find(filename)
+        if self._source:
+            tex = Cache.get('kv.texture', filename)
+            if not tex:
+                tex = Image(self._source).texture
+                Cache.append('kv.texture', filename, tex)
+            self.texture = tex
+        else:
+            self.texture = None
 
 
 cdef double radians(double degrees):
@@ -401,17 +446,19 @@ cdef class LoadIdentity(ContextInstruction):
     def __init__(self, **kwargs):
         self.stack = kwargs.get('stack', 'modelview_mat')
 
-    property stack:
+    @property
+    def stack(self):
         '''Name of the matrix stack to use. Can be 'modelview_mat',
         'projection_mat' or 'frag_modelview_mat'.
         '''
-        def __get__(self):
-            if PY2:
-                return self.context_state.keys()[0]
-            else:
-                return list(self.context_state.keys())[0]
-        def __set__(self, value):
-            self.context_state = {value: Matrix()}
+        if PY2:
+            return self.context_state.keys()[0]
+        else:
+            return list(self.context_state.keys())[0]
+
+    @stack.setter
+    def stack(self, value):
+        self.context_state = {value: Matrix()}
 
 
 cdef class PushMatrix(ContextInstruction):
@@ -421,17 +468,19 @@ cdef class PushMatrix(ContextInstruction):
         ContextInstruction.__init__(self, **kwargs)
         self.stack = kwargs.get('stack', 'modelview_mat')
 
-    property stack:
+    @property
+    def stack(self):
         '''Name of the matrix stack to use. Can be 'modelview_mat',
         'projection_mat' or 'frag_modelview_mat'.
 
         .. versionadded:: 1.6.0
         '''
-        def __get__(self):
-            return self.context_push[0]
-        def __set__(self, value):
-            value = value or 'modelview_mat'
-            self.context_push = [value]
+        return self.context_push[0]
+
+    @stack.setter
+    def stack(self, value):
+        value = value or 'modelview_mat'
+        self.context_push = [value]
 
 
 cdef class PopMatrix(ContextInstruction):
@@ -441,17 +490,19 @@ cdef class PopMatrix(ContextInstruction):
         ContextInstruction.__init__(self, **kwargs)
         self.stack = kwargs.get('stack', 'modelview_mat')
 
-    property stack:
+    @property
+    def stack(self):
         '''Name of the matrix stack to use. Can be 'modelview_mat',
         'projection_mat' or 'frag_modelview_mat'.
 
         .. versionadded:: 1.6.0
         '''
-        def __get__(self):
-            return self.context_push[0]
-        def __set__(self, value):
-            value = value or 'modelview_mat'
-            self.context_pop = [value]
+        return self.context_push[0]
+
+    @stack.setter
+    def stack(self, value):
+        value = value or 'modelview_mat'
+        self.context_pop = [value]
 
 
 cdef class ApplyContextMatrix(ContextInstruction):
@@ -470,27 +521,31 @@ cdef class ApplyContextMatrix(ContextInstruction):
         m = m.multiply(context.get_state(self._source_stack))
         context.set_state(self._target_stack, m)
 
-    property target_stack:
+    @property
+    def target_stack(self):
         '''Name of the matrix stack to use as a target.
         Can be 'modelview_mat', 'projection_mat' or 'frag_modelview_mat'.
 
         .. versionadded:: 1.6.0
         '''
-        def __get__(self):
-            return self._target_stack
-        def __set__(self, value):
-            self._target_stack = value or 'modelview_mat'
+        return self._target_stack
 
-    property source_stack:
+    @target_stack.setter
+    def target_stack(self, value):
+        self._target_stack = value or 'modelview_mat'
+
+    @property
+    def source_stack(self):
         '''Name of the matrix stack to use as a source.
         Can be 'modelview_mat', 'projection_mat' or 'frag_modelview_mat'.
 
         .. versionadded:: 1.6.0
         '''
-        def __get__(self):
-            return self._source_stack
-        def __set__(self, value):
-            self._source_stack = value or 'modelview_mat'
+        return self._source_stack
+
+    @source_stack.setter
+    def source_stack(self, value):
+        self._source_stack = value or 'modelview_mat'
 
 
 cdef class UpdateNormalMatrix(ContextInstruction):
@@ -524,30 +579,34 @@ cdef class MatrixInstruction(ContextInstruction):
         mvm = context.get_state(self._stack)
         context.set_state(self._stack, mvm.multiply(self.matrix))
 
-    property matrix:
+    @property
+    def matrix(self):
         ''' Matrix property. Matrix from the transformation module.
         Setting the matrix using this property when a change is made
         is important because it will notify the context about the update.
         '''
-        def __get__(self):
-            if self._matrix == None:
-                self._matrix = Matrix()
-            return self._matrix
-        def __set__(self, x):
-            self._matrix = x
-            self.flag_update()
+        if self._matrix == None:
+            self._matrix = Matrix()
+        return self._matrix
 
-    property stack:
+    @matrix.setter
+    def matrix(self, x):
+        self._matrix = x
+        self.flag_update()
+
+    @property
+    def stack(self):
         '''Name of the matrix stack to use. Can be 'modelview_mat',
         'projection_mat' or 'frag_modelview_mat'.
 
         .. versionadded:: 1.6.0
         '''
-        def __get__(self):
-            return self._stack
-        def __set__(self, value):
-            value = value or "modelview_mat"
-            self._stack = value
+        return self._stack
+
+    @stack.setter
+    def stack(self, value):
+        value = value or "modelview_mat"
+        self._stack = value
 
 
 cdef class Transform(MatrixInstruction):
@@ -647,43 +706,49 @@ cdef class Rotate(Transform):
         matrix = matrix.multiply(Matrix().translate(-ox, -oy, -oz))
         self.matrix = matrix
 
-    property angle:
+    @property
+    def angle(self):
         '''Property for getting/setting the angle of the rotation.
         '''
-        def __get__(self):
-            return self._angle
-        def __set__(self, a):
-            self._angle = a
-            self.compute()
+        return self._angle
 
-    property axis:
+    @angle.setter
+    def angle(self, a):
+        self._angle = a
+        self.compute()
+
+    @property
+    def axis(self):
         '''Property for getting/setting the axis of the rotation.
 
         The format of the axis is (x, y, z).
         '''
-        def __get__(self):
-            return self._axis
-        def __set__(self, axis):
-            self._axis = axis
-            self.compute()
+        return self._axis
 
-    property origin:
+    @axis.setter
+    def axis(self, axis):
+        self._axis = axis
+        self.compute()
+
+    @property
+    def origin(self):
         '''Origin of the rotation.
 
         .. versionadded:: 1.7.0
 
         The format of the origin can be either (x, y) or (x, y, z).
         '''
-        def __get__(self):
-            return self._origin
-        def __set__(self, origin):
-            if len(origin) == 3:
-                self._origin = tuple(origin)
-            elif len(origin) == 2:
-                self._origin = (origin[0], origin[1], 0.)
-            else:
-                raise Exception('invalid number of components in origin')
-            self.compute()
+        return self._origin
+
+    @origin.setter
+    def origin(self, origin):
+        if len(origin) == 3:
+            self._origin = tuple(origin)
+        elif len(origin) == 2:
+            self._origin = (origin[0], origin[1], 0.)
+        else:
+            raise Exception('invalid number of components in origin')
+        self.compute()
 
 
 cdef class Scale(Transform):
@@ -733,83 +798,95 @@ cdef class Scale(Transform):
         matrix = matrix.multiply(Matrix().translate(-ox, -oy, -oz))
         self.matrix = matrix
 
-    property scale:
+    @property
+    def scale(self):
         '''Property for getting/setting the scale.
 
         .. deprecated:: 1.6.0
             Deprecated in favor of per axis scale properties x,y,z, xyz, etc.
         '''
-        def __get__(self):
-            if self._x == self._y == self._z:
-                Logger.warning("scale property is deprecated, use xyz, x, " +\
-                    "y, z, etc properties to get scale factor based on axis.")
-                return self._x
-            else:
-                raise Exception("trying to access deprecated property" +\
-                    " 'scale' on Scale instruction with non uniform scaling!")
-
-        def __set__(self, s):
+        if self._x == self._y == self._z:
             Logger.warning("scale property is deprecated, use xyz, x, " +\
                 "y, z, etc properties to get scale factor based on axis.")
-            self.set_scale(s,s,s)
+            return self._x
+        else:
+            raise Exception("trying to access deprecated property" +\
+                " 'scale' on Scale instruction with non uniform scaling!")
 
-    property x:
+
+    @scale.setter
+    def scale(self, s):
+        Logger.warning("scale property is deprecated, use xyz, x, " +\
+            "y, z, etc properties to get scale factor based on axis.")
+        self.set_scale(s,s,s)
+
+    @property
+    def x(self):
         '''Property for getting/setting the scale on the X axis.
 
         .. versionchanged:: 1.6.0
         '''
-        def __get__(self):
-            return self._x
-        def __set__(self, double x):
-            self.set_scale(x, self._y, self._z)
+        return self._x
 
-    property y:
+    @x.setter
+    def x(self, double x):
+        self.set_scale(x, self._y, self._z)
+
+    @property
+    def y(self):
         '''Property for getting/setting the scale on the Y axis.
 
         .. versionchanged:: 1.6.0
         '''
-        def __get__(self):
-            return self._y
-        def __set__(self, double y):
-            self.set_scale(self._x, y, self._z)
+        return self._y
 
-    property z:
+    @y.setter
+    def y(self, double y):
+        self.set_scale(self._x, y, self._z)
+
+    @property
+    def z(self):
         '''Property for getting/setting the scale on Z axis.
 
         .. versionchanged:: 1.6.0
         '''
-        def __get__(self):
-            return self._z
-        def __set__(self, double z):
-            self.set_scale(self._x, self._y, z)
+        return self._z
 
-    property xyz:
+    @z.setter
+    def z(self, double z):
+        self.set_scale(self._x, self._y, z)
+
+    @property
+    def xyz(self):
         '''3 tuple scale vector in 3D in x, y, and z axis.
 
         .. versionchanged:: 1.6.0
         '''
-        def __get__(self):
-            return self._x, self._y, self._z
-        def __set__(self, c):
-            self.set_scale(c[0], c[1], c[2])
+        return self._x, self._y, self._z
 
-    property origin:
+    @xyz.setter
+    def xyz(self, c):
+        self.set_scale(c[0], c[1], c[2])
+
+    @property
+    def origin(self):
         '''Origin of the scale.
 
         .. versionadded:: 1.9.0
 
         The format of the origin can be either (x, y) or (x, y, z).
         '''
-        def __get__(self):
-            return self._origin
-        def __set__(self, origin):
-            if len(origin) == 3:
-                self._origin = tuple(origin)
-            elif len(origin) == 2:
-                self._origin = (origin[0], origin[1], 0.)
-            else:
-                raise Exception('invalid number of components in origin')
-            self.set_scale(self._x, self._y, self._z)
+        return self._origin
+
+    @origin.setter
+    def origin(self, origin):
+        if len(origin) == 3:
+            self._origin = tuple(origin)
+        elif len(origin) == 2:
+            self._origin = (origin[0], origin[1], 0.)
+        else:
+            raise Exception('invalid number of components in origin')
+        self.set_scale(self._x, self._y, self._z)
 
 
 cdef class Translate(Transform):
@@ -836,44 +913,54 @@ cdef class Translate(Transform):
         self._y = y
         self._z = z
 
-    property x:
+    @property
+    def x(self):
         '''Property for getting/setting the translation on the X axis.
         '''
-        def __get__(self):
-            return self._x
-        def __set__(self, double x):
-            self.set_translate(x, self._y, self._z)
+        return self._x
 
-    property y:
+    @x.setter
+    def x(self, double x):
+        self.set_translate(x, self._y, self._z)
+
+    @property
+    def y(self):
         '''Property for getting/setting the translation on the Y axis.
         '''
-        def __get__(self):
-            return self._y
-        def __set__(self, double y):
-            self.set_translate(self._x, y, self._z)
+        return self._y
 
-    property z:
+    @y.setter
+    def y(self, double y):
+        self.set_translate(self._x, y, self._z)
+
+    @property
+    def z(self):
         '''Property for getting/setting the translation on the Z axis.
         '''
-        def __get__(self):
-            return self._z
-        def __set__(self, double z):
-            self.set_translate(self._x, self._y, z)
+        return self._z
 
-    property xy:
+    @z.setter
+    def z(self, double z):
+        self.set_translate(self._x, self._y, z)
+
+    @property
+    def xy(self):
         '''2 tuple with translation vector in 2D for x and y axis.
         '''
-        def __get__(self):
-            return self._x, self._y
-        def __set__(self, c):
-            self.set_translate(c[0], c[1], self._z)
+        return self._x, self._y
 
-    property xyz:
+    @xy.setter
+    def xy(self, c):
+        self.set_translate(c[0], c[1], self._z)
+
+    @property
+    def xyz(self):
         '''3 tuple translation vector in 3D in x, y, and z axis.
         '''
-        def __get__(self):
-            return self._x, self._y, self._z
-        def __set__(self, c):
-            self.set_translate(c[0], c[1], c[2])
+        return self._x, self._y, self._z
+
+    @xyz.setter
+    def xyz(self, c):
+        self.set_translate(c[0], c[1], c[2])
 
 

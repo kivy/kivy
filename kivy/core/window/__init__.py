@@ -321,6 +321,13 @@ class WindowBase(EventDispatcher):
             You can listen to this one, and clean whatever you can.
 
             .. versionadded:: 1.9.0
+
+        `on_textedit(self, text)`:
+            Fired when inputting with IME.
+            The string inputting with IME is set as the parameter of
+            this event.
+
+            .. versionadded:: 1.10.1
     '''
 
     __instance = None
@@ -624,7 +631,7 @@ class WindowBase(EventDispatcher):
     Will return 0 if not on mobile platform or if IME is not active.
 
     .. note:: This property returns 0 with SDL2 on Android, but setting
-              Window.softinput_mode does works.
+              Window.softinput_mode does work.
 
     .. versionadded:: 1.9.0
 
@@ -860,7 +867,8 @@ class WindowBase(EventDispatcher):
         'on_key_down', 'on_key_up', 'on_textinput', 'on_dropfile',
         'on_request_close', 'on_cursor_enter', 'on_cursor_leave',
         'on_joy_axis', 'on_joy_hat', 'on_joy_ball',
-        'on_joy_button_down', 'on_joy_button_up', 'on_memorywarning')
+        'on_joy_button_down', 'on_joy_button_up', 'on_memorywarning',
+        'on_textedit')
 
     def __new__(cls, **kwargs):
         if cls.__instance is None:
@@ -958,11 +966,7 @@ class WindowBase(EventDispatcher):
 
         # configure the window
         self.create_window()
-
-        # attach modules + listener event
-        EventLoop.set_window(self)
-        Modules.register_window(self)
-        EventLoop.add_event_listener(self)
+        self.register()
 
         # manage keyboard(s)
         self.configure_keyboards()
@@ -985,6 +989,14 @@ class WindowBase(EventDispatcher):
                 'fullscreen', 'borderless', 'position', 'top',
                 'left', '_size', 'system_size'):
             self.unbind(**{prop: self.trigger_create_window})
+
+    def register(self):
+        if self.initialized:
+            return
+        # attach modules + listener event
+        EventLoop.set_window(self)
+        Modules.register_window(self)
+        EventLoop.add_event_listener(self)
 
     @deprecated
     def toggle_fullscreen(self):
@@ -1075,7 +1087,20 @@ class WindowBase(EventDispatcher):
 
     def close(self):
         '''Close the window'''
-        pass
+        self.dispatch('on_close')
+
+        # Prevent any leftover that can crash the app later
+        # like if there is still some GL referenced values
+        # they may be collected later, but because it was already
+        # gone in the system, it may collect invalid GL resources
+        # Just clear everything to force reloading later on.
+        from kivy.cache import Cache
+        from kivy.graphics.context import get_context
+        Cache.remove('kv.loader')
+        Cache.remove('kv.image')
+        Cache.remove('kv.shader')
+        Cache.remove('kv.texture')
+        get_context().flush()
 
     shape_image = StringProperty('')
     '''An image for the window shape (only works for sdl2 window provider).
@@ -1240,6 +1265,13 @@ class WindowBase(EventDispatcher):
 
     def add_widget(self, widget, canvas=None):
         '''Add a widget to a window'''
+        if widget.parent:
+            from kivy.uix.widget import WidgetException
+            raise WidgetException(
+                'Cannot add %r to window, it already has a parent %r' %
+                (widget, widget.parent)
+            )
+
         widget.parent = self
         self.children.insert(0, widget)
         canvas = self.canvas.before if canvas == 'before' else \
@@ -1627,7 +1659,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0'''
         pass
 
-    def on_joy_ball(self, stickid, ballid, value):
+    def on_joy_ball(self, stickid, ballid, xvalue, yvalue):
         '''Event called when a joystick has a ball moved.
 
         .. versionadded:: 1.9.0'''
@@ -1730,6 +1762,15 @@ class WindowBase(EventDispatcher):
         iOS and Android.
 
         .. versionadded:: 1.9.0
+        '''
+        pass
+
+    def on_textedit(self, text):
+        '''Event called when inputting with IME.
+        The string inputting with IME is set as the parameter of
+        this event.
+
+        .. versionadded:: 1.10.1
         '''
         pass
 

@@ -531,7 +531,7 @@ class Widget(WidgetBase):
                                   % (widget, parent))
         widget.parent = parent = self
         # Child will be disabled if added to a disabled parent.
-        widget._disabled_count = self._disabled_count
+        widget.inc_disabled(self._disabled_count)
 
         canvas = self.canvas.before if canvas == 'before' else \
             self.canvas.after if canvas == 'after' else self.canvas
@@ -584,6 +584,7 @@ class Widget(WidgetBase):
         elif widget.canvas in self.canvas.before.children:
             self.canvas.before.remove(widget.canvas)
         widget.parent = None
+        widget.dec_disabled(self._disabled_count)
 
     def clear_widgets(self, children=None):
         '''
@@ -602,7 +603,7 @@ class Widget(WidgetBase):
         for child in children[:]:
             remove_widget(child)
 
-    def export_to_png(self, filename, *args):
+    def export_to_png(self, filename, *args, **kwargs):
         '''Saves an image of the widget and its children in png format at the
         specified filename. Works by removing the widget canvas from its
         parent, rendering to an :class:`~kivy.graphics.fbo.Fbo`, and calling
@@ -622,30 +623,50 @@ class Widget(WidgetBase):
             extension in your filename.
 
         .. versionadded:: 1.9.0
+
+        :Parameters:
+            `filename`: str
+                The filename with which to save the png.
+            `scale`: float
+                The amount by which to scale the saved image, defaults to 1.
+
+                .. versionadded:: 1.11.0
         '''
+        self.export_as_image().save(filename, flipped=False)
+
+    def export_as_image(self, *args, **kwargs):
+        '''Return an core :class:`~kivy.core.image.Image` of the actual
+        widget.
+
+        .. versionadded:: 1.11.0
+        '''
+        from kivy.core.image import Image
+        scale = kwargs.get('scale', 1)
 
         if self.parent is not None:
             canvas_parent_index = self.parent.canvas.indexof(self.canvas)
             if canvas_parent_index > -1:
                 self.parent.canvas.remove(self.canvas)
 
-        fbo = Fbo(size=self.size, with_stencilbuffer=True)
+        fbo = Fbo(size=(self.width * scale, self.height * scale),
+                  with_stencilbuffer=True)
 
         with fbo:
             ClearColor(0, 0, 0, 0)
             ClearBuffers()
             Scale(1, -1, 1)
+            Scale(scale, scale, 1)
             Translate(-self.x, -self.y - self.height, 0)
 
         fbo.add(self.canvas)
         fbo.draw()
-        fbo.texture.save(filename, flipped=False)
+        img = Image(fbo.texture)
         fbo.remove(self.canvas)
 
         if self.parent is not None and canvas_parent_index > -1:
             self.parent.canvas.insert(canvas_parent_index, self.canvas)
 
-        return True
+        return img
 
     def get_root_window(self):
         '''Return the root window.
@@ -1026,15 +1047,20 @@ class Widget(WidgetBase):
     '''
 
     id = StringProperty(None, allownone=True)
-    '''Unique identifier of the widget in the tree.
+    '''Identifier of the widget in the tree.
 
     :attr:`id` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.
 
+    .. note::
+
+        The :attr:`id` is not the same as ``id`` in the kv language. For the
+        latter, see :attr:`ids` and :ref:`Kivy Language: ids <kv-lang-ids>`.
+
     .. warning::
 
-        If the :attr:`id` is already used in the tree, an exception will
-        be raised.
+        The :attr:`id` property has been deprecated and will be removed
+        completely in future versions.
     '''
 
     children = ListProperty([])
@@ -1313,23 +1339,27 @@ class Widget(WidgetBase):
                 self.inc_disabled()
             else:
                 self.dec_disabled()
+            return True
 
-    def inc_disabled(self):
-        self._disabled_count += 1
-        if self._disabled_count == 1:
+    def inc_disabled(self, count=1):
+        self._disabled_count += count
+        if self._disabled_count - count < 1 <= self._disabled_count:
             self.property('disabled').dispatch(self)
         for c in self.children:
-            c.inc_disabled()
+            c.inc_disabled(count)
 
-    def dec_disabled(self):
-        self._disabled_count -= 1
-        if self._disabled_count == 0:
+    def dec_disabled(self, count=1):
+        self._disabled_count -= count
+        if self._disabled_count <= 0 < self._disabled_count + count:
             self.property('disabled').dispatch(self)
         for c in self.children:
-            c.dec_disabled()
+            c.dec_disabled(count)
 
     disabled = AliasProperty(get_disabled, set_disabled)
     '''Indicates whether this widget can interact with input or not.
+
+    :attr:`disabled` is an :class:`~kivy.properties.AliasProperty` and
+    defaults to False.
 
     .. note::
 
@@ -1340,11 +1370,10 @@ class Widget(WidgetBase):
 
     .. versionadded:: 1.8.0
 
-    :attr:`disabled` is a :class:`~kivy.properties.BooleanProperty` and
-    defaults to False.
-
     .. versionchanged:: 1.10.1
-    :attr:`disabled` is now an :class:`~kivy.properties.AliasProperty`
-    which allows to remember the previous disabled state when a parent's
-    disabled state is changed.
+
+        :attr:`disabled` was changed from a
+        :class:`~kivy.properties.BooleanProperty` to an
+        :class:`~kivy.properties.AliasProperty` to allow access to its
+        previous state when a parent's disabled state is changed.
     '''

@@ -39,8 +39,8 @@ from kivy.logger import Logger, LOG_LEVELS
 from kivy.utils import platform
 
 MAJOR = 1
-MINOR = 10
-MICRO = 1
+MINOR = 11
+MICRO = 0
 RELEASE = False
 
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
@@ -221,7 +221,7 @@ kivy_options = {
         'avplayer'),
     'image': ('tex', 'imageio', 'dds', 'sdl2', 'pygame', 'pil', 'ffpy', 'gif'),
     'camera': ('opencv', 'gi', 'avfoundation',
-               'android'),
+               'android', 'picamera'),
     'spelling': ('enchant', 'osxappkit', ),
     'clipboard': (
         'android', 'winctypes', 'xsel', 'xclip', 'dbusklipper', 'nspaste',

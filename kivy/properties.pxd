@@ -21,6 +21,7 @@ cdef class Property:
     cdef str _name
     cdef int allownone
     cdef int force_dispatch
+    cdef object comparator
     cdef object errorvalue
     cdef object errorhandler
     cdef int errorvalue_set

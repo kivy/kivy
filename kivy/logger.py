@@ -37,7 +37,7 @@ The Logger can be controlled via the Kivy configuration file::
     log_enable = 1
     log_dir = logs
     log_name = kivy_%y-%m-%d_%_.txt
-    log_maxfile = 100
+    log_maxfiles = 100
 
 More information about the allowed values are described in the
 :mod:`kivy.config` module.

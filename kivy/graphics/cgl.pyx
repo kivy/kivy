@@ -56,7 +56,7 @@ cpdef cgl_get_backend_name():
     if name:
         return name.lower()
 
-    for name in ('glew', 'gl', 'sdl2', 'mock'):
+    for name in ('glew', 'sdl2', 'gl', 'mock'):
         mod = importlib.import_module("kivy.graphics.cgl_backend.cgl_{}".format(name))
         if mod.is_backend_supported():
             return name

@@ -476,6 +476,8 @@ class Scatter(Widget):
             return changed
 
         angle = radians(new_line.angle(old_line)) * self.do_rotation
+        if angle:
+            changed = True
         self.apply_transform(Matrix().rotate(angle, 0, 0, 1), anchor=anchor)
 
         if self.do_scale:

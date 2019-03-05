@@ -18,7 +18,7 @@ pattern.
 * Model: The model is formed by :attr:`~RecycleView.data` you pass in via a
   list of dicts.
 * View: The View is split across layout and views and implemented using
-  adaters.
+  adapters.
 * Controller: The controller determines the logical interaction and is
   implemented by :class:`RecycleViewBehavior`.
 

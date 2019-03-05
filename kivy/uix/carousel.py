@@ -438,27 +438,21 @@ class Carousel(StencilView):
         if self._skip_slide is not None or index is None:
             return
 
-        if direction[0] == 'r':
-            if _offset <= -width:
-                index += 1
-            if _offset >= width:
-                index -= 1
-        if direction[0] == 'l':
-            if _offset <= -width:
-                index -= 1
-            if _offset >= width:
-                index += 1
-        if direction[0] == 't':
-            if _offset <= - height:
-                index += 1
-            if _offset >= height:
-                index -= 1
-        if direction[0] == 'b':
-            if _offset <= -height:
-                index -= 1
-            if _offset >= height:
-                index += 1
-        self.index = index
+        # Move to next slide?
+        if (direction[0] == 'r' and _offset <= -width) or \
+                (direction[0] == 'l' and _offset >= width) or \
+                (direction[0] == 't' and _offset <= - height) or \
+                (direction[0] == 'b' and _offset >= height):
+            if self.next_slide:
+                self.index += 1
+
+        # Move to previous slide?
+        if (direction[0] == 'r' and _offset >= width) or \
+                (direction[0] == 'l' and _offset <= -width) or \
+                (direction[0] == 't' and _offset >= height) or \
+                (direction[0] == 'b' and _offset <= -height):
+            if self.previous_slide:
+                self.index -= 1
 
     def _start_animation(self, *args, **kwargs):
         # compute target offset for ease back, next or prev
@@ -535,13 +529,13 @@ class Carousel(StencilView):
                 if abs(touch.oy - touch.y) < self.scroll_distance:
                     if abs(touch.ox - touch.x) > self.scroll_distance:
                         self._change_touch_mode()
-                        self.touchModeChange = True
+                        self.touch_mode_change = True
             elif self.ignore_perpendicular_swipes and \
                     self.direction in ('right', 'left'):
                 if abs(touch.ox - touch.x) < self.scroll_distance:
                     if abs(touch.oy - touch.y) > self.scroll_distance:
                         self._change_touch_mode()
-                        self.touchModeChange = True
+                        self.touch_mode_change = True
 
         if self._get_uid('cavoid') in touch.ud:
             return
@@ -615,10 +609,10 @@ class Carousel(StencilView):
             super(Carousel, self).on_touch_down(touch)
             return
 
-    def add_widget(self, widget, index=0):
+    def add_widget(self, widget, index=0, canvas=None):
         slide = RelativeLayout(size=self.size, x=self.x - self.width, y=self.y)
         slide.add_widget(widget)
-        super(Carousel, self).add_widget(slide, index)
+        super(Carousel, self).add_widget(slide, index, canvas)
         if index != 0:
             self.slides.insert(index - len(self.slides), widget)
         else:

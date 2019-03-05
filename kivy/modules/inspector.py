@@ -82,6 +82,7 @@ from kivy.properties import ObjectProperty, BooleanProperty, ListProperty, \
 from kivy.graphics.texture import Texture
 from kivy.clock import Clock
 from kivy.lang import Builder
+from kivy.weakproxy import WeakProxy
 
 
 Builder.load_string('''
@@ -375,7 +376,7 @@ class Inspector(FloatLayout):
         return ret
 
     def on_window_children(self, win, children):
-        if self.avoid_bring_to_top:
+        if self.avoid_bring_to_top or not self.activated:
             return
         self.avoid_bring_to_top = True
         win.remove_widget(self)
@@ -530,7 +531,10 @@ class Inspector(FloatLayout):
         keys = list(widget.properties().keys())
         keys.sort()
         node = None
-        wk_widget = weakref.ref(widget)
+        if type(widget) is WeakProxy:
+            wk_widget = widget.__ref__
+        else:
+            wk_widget = weakref.ref(widget)
         for key in keys:
             node = TreeViewProperty(key=key, widget_ref=wk_widget)
             node.bind(is_selected=self.show_property)
@@ -741,11 +745,15 @@ def create_inspector(win, ctx, *l):
 
 
 def start(win, ctx):
-    Clock.schedule_once(partial(create_inspector, win, ctx))
+    ctx.ev_late_create = Clock.schedule_once(
+        partial(create_inspector, win, ctx))
 
 
 def stop(win, ctx):
     '''Stop and unload any active Inspectors for the given *ctx*.'''
+    if hasattr(ctx, 'ev_late_create'):
+        Clock.unschedule(ctx.ev_late_create)
+        del ctx.ev_late_create
     if hasattr(ctx, 'inspector'):
         win.unbind(children=ctx.inspector.on_window_children,
                    on_keyboard=ctx.inspector.keyboard_shortcut)

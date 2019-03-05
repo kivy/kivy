@@ -239,7 +239,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         elif self.alt_touch is not None and 'alt' not in modifiers:
             # alt just released ?
             is_double_tap = 'shift' in modifiers
-            cur = self.create_touch(rx, ry, is_double_tap, True)
+            cur = self.create_touch(rx, ry, is_double_tap, True, [])
         return True
 
     def on_mouse_press(self, win, x, y, button, modifiers):

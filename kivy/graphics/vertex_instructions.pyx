@@ -209,7 +209,8 @@ cdef class Bezier(VertexInstruction):
         free(vertices)
         free(indices)
 
-    property points:
+    @property
+    def points(self):
         '''Property for getting/settings the points of the triangle.
 
         .. warning::
@@ -217,49 +218,56 @@ cdef class Bezier(VertexInstruction):
             This will always reconstruct the whole graphic from the new points
             list. It can be very CPU intensive.
         '''
-        def __get__(self):
-            return self._points
-        def __set__(self, points):
-            self._points = list(points)
-            if self._loop:
-                self._points.extend(points[:2])
-            self.flag_update()
+        return self._points
 
-    property segments:
+    @points.setter
+    def points(self, points):
+        self._points = list(points)
+        if self._loop:
+            self._points.extend(points[:2])
+        self.flag_update()
+
+    @property
+    def segments(self):
         '''Property for getting/setting the number of segments of the curve.
         '''
-        def __get__(self):
-            return self._segments
-        def __set__(self, value):
-            if value <= 1:
-                raise GraphicException('Invalid segments value, must be >= 2')
-            self._segments = value
-            self.flag_update()
+        return self._segments
 
-    property dash_length:
+    @segments.setter
+    def segments(self, value):
+        if value <= 1:
+            raise GraphicException('Invalid segments value, must be >= 2')
+        self._segments = value
+        self.flag_update()
+
+    @property
+    def dash_length(self):
         '''Property for getting/setting the length of the dashes in the curve.
         '''
-        def __get__(self):
-            return self._dash_length
+        return self._dash_length
 
-        def __set__(self, value):
-            if value < 0:
-                raise GraphicException('Invalid dash_length value, must be >= 0')
-            self._dash_length = value
-            self.flag_update()
 
-    property dash_offset:
+    @dash_length.setter
+    def dash_length(self, value):
+        if value < 0:
+            raise GraphicException('Invalid dash_length value, must be >= 0')
+        self._dash_length = value
+        self.flag_update()
+
+    @property
+    def dash_offset(self):
         '''Property for getting/setting the offset between the dashes in the
         curve.
         '''
-        def __get__(self):
-            return self._dash_offset
+        return self._dash_offset
 
-        def __set__(self, value):
-            if value < 0:
-                raise GraphicException('Invalid dash_offset value, must be >= 0')
-            self._dash_offset = value
-            self.flag_update()
+
+    @dash_offset.setter
+    def dash_offset(self, value):
+        if value < 0:
+            raise GraphicException('Invalid dash_offset value, must be >= 0')
+        self._dash_offset = value
+        self.flag_update()
 
 
 cdef class StripMesh(VertexInstruction):
@@ -359,7 +367,7 @@ cdef class Mesh(VertexInstruction):
 
             which will allow mapping vertex data to the glsl instructions.
 
-                [(b'v_pos', 2, b'float'), (b'v_tc', 2, b'float'),]
+                [(b'v_pos', 2, 'float'), (b'v_tc', 2, 'float'),]
 
             will allow using
 
@@ -452,44 +460,50 @@ cdef class Mesh(VertexInstruction):
         self.batch.set_data(&self._pvertices[0], <int>(self.vcount / vsize),
                             &self._pindices[0], <int>self.icount)
 
-    property vertices:
+    @property
+    def vertices(self):
         '''List of x, y, u, v coordinates used to construct the Mesh. Right now,
         the Mesh instruction doesn't allow you to change the format of the
         vertices, which means it's only x, y + one texture coordinate.
         '''
-        def __get__(self):
-            return self._vertices
-        def __set__(self, value):
-            self._vertices, self._fvertices = _ensure_float_view(value,
-                &self._pvertices)
-            self.vcount = len(self._vertices)
-            self.flag_update()
+        return self._vertices
 
-    property indices:
+    @vertices.setter
+    def vertices(self, value):
+        self._vertices, self._fvertices = _ensure_float_view(value,
+            &self._pvertices)
+        self.vcount = len(self._vertices)
+        self.flag_update()
+
+    @property
+    def indices(self):
         '''Vertex indices used to specify the order when drawing the
         mesh.
         '''
-        def __get__(self):
-            return self._indices
-        def __set__(self, value):
-            if gles_limts and len(value) > 65535:
-                raise GraphicException(
-                    'Cannot upload more than 65535 indices (OpenGL ES 2'
-                    ' limitation - consider setting KIVY_GLES_LIMITS)')
-            self._indices, self._lindices = _ensure_ushort_view(value,
-                &self._pindices)
-            self.icount = len(self._indices)
-            self.flag_update()
+        return self._indices
 
-    property mode:
+    @indices.setter
+    def indices(self, value):
+        if gles_limts and len(value) > 65535:
+            raise GraphicException(
+                'Cannot upload more than 65535 indices (OpenGL ES 2'
+                ' limitation - consider setting KIVY_GLES_LIMITS)')
+        self._indices, self._lindices = _ensure_ushort_view(value,
+            &self._pindices)
+        self.icount = len(self._indices)
+        self.flag_update()
+
+    @property
+    def mode(self):
         '''VBO Mode used for drawing vertices/indices. Can be one of 'points',
         'line_strip', 'line_loop', 'lines', 'triangles', 'triangle_strip' or
         'triangle_fan'.
         '''
-        def __get__(self):
-            return self.batch.get_mode()
-        def __set__(self, mode):
-            self.batch.set_mode(mode)
+        return self.batch.get_mode()
+
+    @mode.setter
+    def mode(self, mode):
+        self.batch.set_mode(mode)
 
 
 
@@ -630,33 +644,37 @@ cdef class Point(VertexInstruction):
         if self.parent is not None:
             self.parent.flag_update()
 
-    property points:
+    @property
+    def points(self):
         '''Property for getting/settings the center points in the points list.
         Each pair of coordinates specifies the center of a new point.
         '''
-        def __get__(self):
-            return self._points
-        def __set__(self, points):
-            if self._points == points:
-                return
-            cdef list _points = list(points)
-            if len(_points) > 2**15-2:
-                raise GraphicException('Too many elements (limit is 2^15-2)')
-            self._points = list(points)
-            self.flag_update()
+        return self._points
 
-    property pointsize:
+    @points.setter
+    def points(self, points):
+        if self._points == points:
+            return
+        cdef list _points = list(points)
+        if len(_points) > 2**15-2:
+            raise GraphicException('Too many elements (limit is 2^15-2)')
+        self._points = list(points)
+        self.flag_update()
+
+    @property
+    def pointsize(self):
         '''Property for getting/setting point size.
         The size is measured from the center to the edge, so a value of 1.0
         means the real size will be 2.0 x 2.0.
         '''
-        def __get__(self):
-            return self._pointsize
-        def __set__(self, float pointsize):
-            if self._pointsize == pointsize:
-                return
-            self._pointsize = pointsize
-            self.flag_update()
+        return self._pointsize
+
+    @pointsize.setter
+    def pointsize(self, float pointsize):
+        if self._pointsize == pointsize:
+            return
+        self._pointsize = pointsize
+        self.flag_update()
 
 
 cdef class Triangle(VertexInstruction):
@@ -698,14 +716,16 @@ cdef class Triangle(VertexInstruction):
 
         self.batch.set_data(vertices, 3, indices, 3)
 
-    property points:
+    @property
+    def points(self):
         '''Property for getting/settings points of the triangle.
         '''
-        def __get__(self):
-            return self._points
-        def __set__(self, points):
-            self._points = list(points)
-            self.flag_update()
+        return self._points
+
+    @points.setter
+    def points(self, points):
+        self._points = list(points)
+        self.flag_update()
 
 
 cdef class Quad(VertexInstruction):
@@ -752,18 +772,20 @@ cdef class Quad(VertexInstruction):
 
         self.batch.set_data(vertices, 4, indices, 6)
 
-    property points:
+    @property
+    def points(self):
         '''Property for getting/settings points of the quad.
         '''
-        def __get__(self):
-            return self._points
-        def __set__(self, points):
-            self._points = list(points)
-            if len(self._points) != 8:
-                raise GraphicException(
-                    'Quad: invalid number of points (%d instead of 8)' % len(
-                    self._points))
-            self.flag_update()
+        return self._points
+
+    @points.setter
+    def points(self, points):
+        self._points = list(points)
+        if len(self._points) != 8:
+            raise GraphicException(
+                'Quad: invalid number of points (%d instead of 8)' % len(
+                self._points))
+        self.flag_update()
 
 
 cdef class Rectangle(VertexInstruction):
@@ -812,33 +834,37 @@ cdef class Rectangle(VertexInstruction):
 
         self.batch.set_data(vertices, 4, indices, 6)
 
-    property pos:
+    @property
+    def pos(self):
         '''Property for getting/settings the position of the rectangle.
         '''
-        def __get__(self):
-            return (self.x, self.y)
-        def __set__(self, pos):
-            cdef float x, y
-            x, y = pos
-            if self.x == x and self.y == y:
-                return
-            self.x = x
-            self.y = y
-            self.flag_update()
+        return (self.x, self.y)
 
-    property size:
+    @pos.setter
+    def pos(self, pos):
+        cdef float x, y
+        x, y = pos
+        if self.x == x and self.y == y:
+            return
+        self.x = x
+        self.y = y
+        self.flag_update()
+
+    @property
+    def size(self):
         '''Property for getting/settings the size of the rectangle.
         '''
-        def __get__(self):
-            return (self.w, self.h)
-        def __set__(self, size):
-            cdef float w, h
-            w, h = size
-            if self.w == w and self.h == h:
-                return
-            self.w = w
-            self.h = h
-            self.flag_update()
+        return (self.w, self.h)
+
+    @size.setter
+    def size(self, size):
+        cdef float w, h
+        w, h = size
+        if self.w == w and self.h == h:
+            return
+        self.w = w
+        self.h = h
+        self.flag_update()
 
 
 
@@ -1052,34 +1078,40 @@ cdef class BorderImage(Rectangle):
         self.batch.set_data(<vertex_t *>vertices, 16, indices, 54)
 
 
-    property border:
+    @property
+    def border(self):
         '''Property for getting/setting the border of the class.
         '''
-        def __get__(self):
-            return self._border
-        def __set__(self, b):
-            self._border = list(b)
-            self.flag_update()
+        return self._border
 
-    property auto_scale:
+    @border.setter
+    def border(self, b):
+        self._border = list(b)
+        self.flag_update()
+
+    @property
+    def auto_scale(self):
         '''Property for setting if the corners are automatically scaled
         when the BorderImage is too small.
         '''
-        def __get__(self):
-            return self._auto_scale
+        return self._auto_scale
 
-        def __set__(self, str value):
-            self._auto_scale = value
-            self.flag_update()
 
-    property display_border:
+    @auto_scale.setter
+    def auto_scale(self, str value):
+        self._auto_scale = value
+        self.flag_update()
+
+    @property
+    def display_border(self):
         '''Property for getting/setting the border display size.
         '''
-        def __get__(self):
-            return self._display_border
-        def __set__(self, b):
-            self._display_border = list(b)
-            self.flag_update()
+        return self._display_border
+
+    @display_border.setter
+    def display_border(self, b):
+        self._display_border = list(b)
+        self.flag_update()
 
 cdef class Ellipse(Rectangle):
     '''A 2D ellipse.
@@ -1196,32 +1228,38 @@ cdef class Ellipse(Rectangle):
         free(vertices)
         free(indices)
 
-    property segments:
+    @property
+    def segments(self):
         '''Property for getting/setting the number of segments of the ellipse.
         '''
-        def __get__(self):
-            return self._segments
-        def __set__(self, value):
-            self._segments = value
-            self.flag_update()
+        return self._segments
 
-    property angle_start:
+    @segments.setter
+    def segments(self, value):
+        self._segments = value
+        self.flag_update()
+
+    @property
+    def angle_start(self):
         '''Start angle of the ellipse in degrees, defaults to 0.
         '''
-        def __get__(self):
-            return self._angle_start
-        def __set__(self, value):
-            self._angle_start = value
-            self.flag_update()
+        return self._angle_start
 
-    property angle_end:
+    @angle_start.setter
+    def angle_start(self, value):
+        self._angle_start = value
+        self.flag_update()
+
+    @property
+    def angle_end(self):
         '''End angle of the ellipse in degrees, defaults to 360.
         '''
-        def __get__(self):
-            return self._angle_end
-        def __set__(self, value):
-            self._angle_end = value
-            self.flag_update()
+        return self._angle_end
+
+    @angle_end.setter
+    def angle_end(self, value):
+        self._angle_end = value
+        self.flag_update()
 
 
 cdef class RoundedRectangle(Rectangle):
@@ -1514,20 +1552,24 @@ cdef class RoundedRectangle(Rectangle):
 
         return points
 
-    property segments:
+    @property
+    def segments(self):
         '''Property for getting/setting the number of segments for each corner.
         '''
-        def __get__(self):
-            return self._segments
-        def __set__(self, value):
-            self._segments = self._check_segments(value)
-            self.flag_update()
+        return self._segments
 
-    property radius:
+    @segments.setter
+    def segments(self, value):
+        self._segments = self._check_segments(value)
+        self.flag_update()
+
+    @property
+    def radius(self):
         '''Corner radii of the rounded rectangle, defaults to [10,].
         '''
-        def __get__(self):
-            return self._radius
-        def __set__(self, value):
-            self._radius = self._check_radius(value)
-            self.flag_update()
+        return self._radius
+
+    @radius.setter
+    def radius(self, value):
+        self._radius = self._check_radius(value)
+        self.flag_update()

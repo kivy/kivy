@@ -335,7 +335,7 @@ from weakref import ref
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 20
+KIVY_CONFIG_VERSION = 21
 
 Config = None
 '''The default Kivy configuration object. This is a :class:`ConfigParser`
@@ -686,6 +686,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     Config.adddefaultsection('postproc')
     Config.adddefaultsection('widgets')
     Config.adddefaultsection('modules')
+    Config.adddefaultsection('network')
 
     # Upgrade default configuration until we have the current version
     need_save = False
@@ -849,8 +850,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
                 'data/images/defaultshape.png'
             )
 
-        # elif version == 1:
-        #    # add here the command for upgrading from configuration 0 to 1
+        elif version == 20:
+            Config.setdefault('network', 'useragent', 'curl')
 
         else:
             # for future.
