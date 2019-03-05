@@ -6,6 +6,9 @@ env:
     - DOC_VERSIONS="stable master"
 
 osx_image: xcode10
+cache:
+  - ccache
+  - pip
 
 matrix:
   fast_finish: true
@@ -77,6 +80,9 @@ install:
       fi;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
+      brew install ccache;
+      export PATH="/usr/local/opt/ccache/libexec:$PATH";
+
       curl -O -L https://github.com/aria2/aria2/releases/download/release-1.29.0/aria2-1.29.0-osx-darwin.dmg;
       hdiutil attach aria2-1.29.0-osx-darwin.dmg;
       sudo installer -package "/Volumes/aria2 1.29.0 Intel/aria2.pkg" -target /;
