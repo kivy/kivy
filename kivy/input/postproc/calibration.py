@@ -78,13 +78,13 @@ class InputPostprocCalibration(object):
             If set, then the touch is transformed from screen-relative
             to window-relative The value is used as an indication of
             screen size, e.g for fullHD:
-            
+
                 auto=1920x1080
-            
+
             If present, this setting overrides all the others.
             This assumes the input device exactly covers the display
             area, if they are different, the computations will be wrong.
-            
+
     .. versionchanged:: 1.11.0
         Added `auto` parameter
     '''
