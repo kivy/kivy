@@ -14,7 +14,7 @@ Wheels are precompiled binaries for the specific platform you are on.
 All you need to do to install kivy using wheels on osx is ::
 
     $ python -m pip install kivy
-   
+
 If you would like to use media playback with kivy, you should install `ffpyplayer` like so ::
 
     $ python -m pip install ffpyplayer
@@ -43,7 +43,7 @@ Using The Kivy.app
     For versions prior to 10.7 or 10.7 32-bit, you have to install the
     components yourself.
 
-For OS X 10.7 and later, we provide packages with all dependencies
+For OS X > 10.13.5 and later, we provide packages with all dependencies
 bundled in a virtual environment, including a Python interpreter for
 python3 version. These bundles are primarily used for rapid prototyping,
 and currently serve as containers for packaging Kivy apps with Buildozer.
