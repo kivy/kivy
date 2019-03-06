@@ -367,12 +367,17 @@ class KivyBuildExt(build_ext, object):
 
 
 def _check_and_fix_sdl2_mixer(f_path):
+    # Between SDL_mixer 2.0.1 and 2.0.4, the included frameworks changed
+    # smpeg2 have been replaced with mpg123, but there is no need to fix.
+    smpeg2_path = ("{}/Versions/A/Frameworks/smpeg2.framework"
+                   "/Versions/A/smpeg2").format(f_path)
+    if not exists(smpeg2_path):
+        return
+
     print("Check if SDL2_mixer smpeg2 have an @executable_path")
     rpath_from = ("@executable_path/../Frameworks/SDL2.framework"
                   "/Versions/A/SDL2")
     rpath_to = "@rpath/../../../../SDL2.framework/Versions/A/SDL2"
-    smpeg2_path = ("{}/Versions/A/Frameworks/smpeg2.framework"
-                   "/Versions/A/smpeg2").format(f_path)
     output = getoutput(("otool -L '{}'").format(smpeg2_path)).decode('utf-8')
     if "@executable_path" not in output:
         return
