@@ -54,6 +54,7 @@ matrix:
 before_install:
   # https://github.com/travis-ci/travis-ci/issues/6307
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
+      travis_wait brew update
       brew install gpg2;
       brew uninstall gpg;
       gpg2 --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3;
