@@ -47,7 +47,12 @@ cdef class _WindowSDL2Storage:
         cdef str name = None
         if not self.event_filter:
             return 1
-        if event.type == SDL_APP_TERMINATING:
+        if event.type == SDL_WINDOWEVENT:
+            if event.window.event == SDL_WINDOWEVENT_RESIZED:
+                action = ('windowresized',
+                          event.window.data1, event.window.data2)
+                return self.event_filter(*action)
+        elif event.type == SDL_APP_TERMINATING:
             name = 'app_terminating'
         elif event.type == SDL_APP_LOWMEMORY:
             name = 'app_lowmemory'
@@ -523,7 +528,6 @@ cdef class _WindowSDL2Storage:
     def poll(self):
         cdef SDL_Event event
         cdef int rv
-
         with nogil:
             rv = SDL_PollEvent(&event)
         if rv == 0:

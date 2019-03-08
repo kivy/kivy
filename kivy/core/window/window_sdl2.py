@@ -204,7 +204,7 @@ class WindowSDL(WindowBase):
     def _set_allow_screensaver(self, *args):
         self._win.set_allow_screensaver(self.allow_screensaver)
 
-    def _event_filter(self, action):
+    def _event_filter(self, action, *largs):
         from kivy.app import App
         if action == 'app_terminating':
             EventLoop.quit = True
@@ -236,6 +236,12 @@ class WindowSDL(WindowBase):
                 self._pause_loop = False
                 app = App.get_running_app()
                 app.dispatch('on_resume')
+
+        elif action == 'windowresized':
+            self._size = largs
+            self._win.resize_window(*self._size)
+            # Force kivy to render the frame now, so that the canvas is drawn.
+            EventLoop.idle()
 
         return 0
 
