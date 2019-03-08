@@ -549,11 +549,14 @@ cdef class _WindowSDL2Storage:
             action = 'mousebuttondown' if event.type == SDL_MOUSEBUTTONDOWN else 'mousebuttonup'
             return (action, x, y, button)
         elif event.type == SDL_MOUSEWHEEL:
-            x = event.button.x
-            y = event.button.y
-            button = event.button.button
-            action = 'mousewheel' + ('down' if x > 0 else 'up') if x != 0 else ('left' if y < 0 else 'right')
-            return (action, x, y, button)
+            x = event.wheel.x
+            y = event.wheel.y
+            if x != 0:
+                suffix = 'left' if x > 0 else 'right'
+            else:
+                suffix = 'down' if y > 0 else 'up'
+            action = 'mousewheel' + suffix
+            return (action, x, y, None)
         elif event.type == SDL_FINGERMOTION:
             fid = event.tfinger.fingerId
             x = event.tfinger.x
