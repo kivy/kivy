@@ -192,10 +192,10 @@ every time you intend to push a change. If you think something was broken
 in Kivy, perhaps a test will show this. (If not, it might be a good time to write
 one.)
 
-Kivy tests are based on nosetest, which you can install from your package
+Kivy tests are based on pytest, which you can install from your package
 manager or using pip::
 
-  $ pip install nose
+  $ pip install pytest
 
 To run the test suite, do::
 
