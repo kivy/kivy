@@ -117,9 +117,9 @@ class UrlRequest(Thread):
     .. versionchanged:: 1.10.0
 
         Parameters `proxy_host`, `proxy_port` and `proxy_headers` added.
-        
+
     .. versionchanged:: 1.11.0
-    
+
         Parameters `on_cancel` added.
 
     :Parameters:
@@ -596,7 +596,7 @@ class UrlRequest(Thread):
         '''Cancel the current request. It will be aborted, and the result
         will not be dispatched. Once cancelled, the callback on_cancel will
         be called.
-        
+
         .. versionadded:: 1.11.0
         '''
         self._cancel_event.set()
