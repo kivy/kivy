@@ -116,6 +116,10 @@ class UrlRequest(Thread):
     .. versionchanged:: 1.10.0
 
         Parameters `proxy_host`, `proxy_port` and `proxy_headers` added.
+        
+    .. versionchanged:: 1.11.0
+    
+        Parameters `on_cancel` added.
 
     :Parameters:
         `url`: str
@@ -134,6 +138,9 @@ class UrlRequest(Thread):
             download. `total_size` might be -1 if no Content-Length has been
             reported in the http response.
             This callback will be called after each `chunk_size` is read.
+        `on_cancel`: callback(request)
+            Callback function to call if user requested to cancel the download
+            operation via the .cancel() method.
         `req_body`: str, defaults to None
             Data to sent in the request. If it's not None, a POST will be done
             instead of a GET.
@@ -170,9 +177,6 @@ class UrlRequest(Thread):
         `proxy_headers`: dict, defaults to None
             If set, and `proxy_host` is also set, the headers to send to the
             proxy server in the ``CONNECT`` request.
-        `on_cancel`: callback(request)
-            Callback function to call if user requested to cancel the download
-            operation via the .cancel() method.
     '''
 
     def __init__(self, url, on_success=None, on_redirect=None,
@@ -260,9 +264,6 @@ class UrlRequest(Thread):
         # ok, authorize the GC to clean us.
         if self in g_requests:
             g_requests.remove(self)
-
-    def cancel(self):
-        self._cancel_event.set()
 
     def _parse_url(self, url):
         parse = urlparse(url)
@@ -589,6 +590,15 @@ class UrlRequest(Thread):
         while self.resp_status is None:
             self._dispatch_result(delay)
             sleep(delay)
+
+    def cancel(self):
+        '''Cancel the current request. It will be aborted, and the result
+        will not be dispatched. Once cancelled, the callback on_cancel will
+        be called.
+        
+        .. versionadded:: 1.11.0
+        '''
+        self._cancel_event.set()
 
 
 if __name__ == '__main__':
