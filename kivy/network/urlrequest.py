@@ -62,6 +62,7 @@ from threading import Thread, Event
 from json import loads
 from time import sleep
 from kivy.compat import PY2
+from kivy.config import Config
 
 if PY2:
     from httplib import HTTPConnection
