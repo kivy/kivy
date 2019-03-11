@@ -49,6 +49,31 @@ For information on configuring your :class:`~kivy.app.App`, please see the
     converted from ascii to unicode only when needed. The method get() returns
     utf-8 strings.
 
+Changing configuration with environment variables
+-------------------------------------------------
+
+Since 1.11.0, it is now possible to change the configuration using
+environment variables. They take precedence on the loaded config.ini.
+The format is::
+
+    KCFG_<section>_<key> = <value>
+
+For example:
+
+    KCFG_GRAPHICS_FULLSCREEN=auto ...
+    KCFG_KIVY_LOG_LEVEL=warning ...
+
+Or in your file before any kivy import:
+
+    import os
+    os.environ["KCFG_KIVY_LOG_LEVEL"] = "warning"
+
+If you don't want to map any environment variables, you can disable
+the behavior::
+
+    os.environ["KIVY_NO_ENV_CONFIG"] = "1"
+
+
 .. _configuration-tokens:
 
 Available configuration tokens
@@ -874,3 +899,16 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.write()
         except Exception as e:
             Logger.exception('Core: Error while saving default config file')
+
+    # Load configuration from env
+    if 'KIVY_NO_ENV_CONFIG' not in environ:
+        for key, value in environ.items():
+            if not key.startswith("KCFG_"):
+                continue
+            try:
+                _, section, name = key.split("_", 2)
+            except ValueError:
+                raise
+            section = section.lower()
+            name = name.lower()
+            Config.set(section, name, value)
