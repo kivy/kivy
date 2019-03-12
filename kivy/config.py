@@ -27,7 +27,7 @@ Alternatively, you can save these settings permanently using
 restart the app for the changes to take effect. Note that this approach will
 effect all Kivy apps system wide.
 
-Please note that no underscore (`_`) is allowed in the section name.
+Please note that no underscores (`_`) are allowed in the section name.
 
 Usage of the Config object
 --------------------------
