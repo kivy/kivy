@@ -926,8 +926,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
             # extract and check the option name
             name = name.lower()
-            sections_to_check = (
-                "kivy", "graphics", "widgets", "postproc", "network")
+            sections_to_check = {
+                "kivy", "graphics", "widgets", "postproc", "network"}
             if (section in sections_to_check and
                     not Config.has_option(section, name)):
                 Logger.warning((
