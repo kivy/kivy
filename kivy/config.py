@@ -911,7 +911,30 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             try:
                 _, section, name = key.split("_", 2)
             except ValueError:
-                raise
+                Logger.warning((
+                    "Environ `{}` invalid format, "
+                    "must be KCFG_section_name").format(key))
+                continue
+
+            # extract and check section
             section = section.lower()
+            if not Config.has_section(section):
+                Logger.warning(
+                    "Environ `{}`: unknown section `{}`".format(
+                        key, section))
+                continue
+
+            # extract and check the option name
             name = name.lower()
+            sections_to_check = (
+                "kivy", "graphics", "widgets", "postproc", "network")
+            if (section in sections_to_check and
+                    not Config.has_option(section, name)):
+                Logger.warning((
+                    "Environ `{}` unknown `{}` option in `{}` section.")
+                    .format(key, name, section))
+                # we don't avoid to set an unknown option, because maybe
+                # an external modules or widgets (in garden?) may want to
+                # save its own configuration here.
+
             Config.set(section, name, value)
