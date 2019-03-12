@@ -741,7 +741,6 @@ class Image(EventDispatcher):
                 self._set_filename(value)
             else:
                 self._texture = None
-                self._img_iterate()
             return
         else:
             # if we already got a texture, it will be automatically reloaded.
