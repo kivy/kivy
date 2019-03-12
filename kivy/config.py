@@ -27,6 +27,8 @@ Alternatively, you can save these settings permanently using
 restart the app for the changes to take effect. Note that this approach will
 effect all Kivy apps system wide.
 
+Please note that no underscore (`_`) is allowed in the section name.
+
 Usage of the Config object
 --------------------------
 
@@ -539,6 +541,7 @@ class ConfigParser(PythonConfigParser, object):
     def adddefaultsection(self, section):
         '''Add a section if the section is missing.
         '''
+        assert("_" not in section)
         if self.has_section(section):
             return
         self.add_section(section)
