@@ -27,6 +27,8 @@ Alternatively, you can save these settings permanently using
 restart the app for the changes to take effect. Note that this approach will
 effect all Kivy apps system wide.
 
+Please note that no underscores (`_`) are allowed in the section name.
+
 Usage of the Config object
 --------------------------
 
@@ -48,6 +50,31 @@ For information on configuring your :class:`~kivy.app.App`, please see the
     The ConfigParser should work correctly with utf-8 now. The values are
     converted from ascii to unicode only when needed. The method get() returns
     utf-8 strings.
+
+Changing configuration with environment variables
+-------------------------------------------------
+
+Since 1.11.0, it is now possible to change the configuration using
+environment variables. They take precedence on the loaded config.ini.
+The format is::
+
+    KCFG_<section>_<key> = <value>
+
+For example:
+
+    KCFG_GRAPHICS_FULLSCREEN=auto ...
+    KCFG_KIVY_LOG_LEVEL=warning ...
+
+Or in your file before any kivy import:
+
+    import os
+    os.environ["KCFG_KIVY_LOG_LEVEL"] = "warning"
+
+If you don't want to map any environment variables, you can disable
+the behavior::
+
+    os.environ["KIVY_NO_ENV_CONFIG"] = "1"
+
 
 .. _configuration-tokens:
 
@@ -514,6 +541,7 @@ class ConfigParser(PythonConfigParser, object):
     def adddefaultsection(self, section):
         '''Add a section if the section is missing.
         '''
+        assert("_" not in section)
         if self.has_section(section):
             return
         self.add_section(section)
@@ -874,3 +902,40 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.write()
         except Exception as e:
             Logger.exception('Core: Error while saving default config file')
+
+    # Load configuration from env
+    if 'KIVY_NO_ENV_CONFIG' not in environ:
+        for key, value in environ.items():
+            if not key.startswith("KCFG_"):
+                continue
+            try:
+                _, section, name = key.split("_", 2)
+            except ValueError:
+                Logger.warning((
+                    "Config: Environ `{}` invalid format, "
+                    "must be KCFG_section_name").format(key))
+                continue
+
+            # extract and check section
+            section = section.lower()
+            if not Config.has_section(section):
+                Logger.warning(
+                    "Config: Environ `{}`: unknown section `{}`".format(
+                        key, section))
+                continue
+
+            # extract and check the option name
+            name = name.lower()
+            sections_to_check = {
+                "kivy", "graphics", "widgets", "postproc", "network"}
+            if (section in sections_to_check and
+                    not Config.has_option(section, name)):
+                Logger.warning((
+                    "Config: Environ `{}` unknown `{}` "
+                    "option in `{}` section.").format(
+                        key, name, section))
+                # we don't avoid to set an unknown option, because maybe
+                # an external modules or widgets (in garden?) may want to
+                # save its own configuration here.
+
+            Config.set(section, name, value)
