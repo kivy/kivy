@@ -19,7 +19,7 @@ advantages / constraints that you should consider:
    :mod:`~kivy.uix.relativelayout.RelativeLayout`. So when dragging the
    scatter, the position of the children don't change, only the position of
    the scatter does.
-#. The scatter size has no impact on the size of it's children.
+#. The scatter size has no impact on the size of its children.
 #. If you want to resize the scatter, use scale, not size (read #2). Scale
    transforms both the scatter and its children, but does not change size.
 #. The scatter is not a layout. You must manage the size of the children
