@@ -54,7 +54,13 @@ To install Kivy, you must:
        https://kivy.org/downloads/ and download `Kivy-*-osx-python*.dmg`.
     2. Open the dmg
     3. Copy the Kivy.app to /Applications.
-    4. Create a symlink by running the `makesymlinks` in the window that opens when you open the dmg
+    4. Create a symlink by running the `makesymlinks` in the window that opens when you open the dmg.
+    
+    If you have trouble running this script, you can try right-click->Open or just add the link manually
+    by running the following command::
+        `sudo ln -s /Applications/Kivy<version>/Contents/Resources/script /usr/local/bin/kivy<version>`
+    version is either 2/3 based on which version of the app did you download.
+    
     5. Examples and all the normal kivy tools are present in the Kivy.app/Contents/Resources/kivy directory.
 
 You should now have a `kivy` script that you can use to launch your kivy app from the terminal.
