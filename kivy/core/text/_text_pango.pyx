@@ -421,7 +421,7 @@ cdef ContextContainer _get_or_create_cc(bytes font_context, bytes font_name_r):
     # (it represents an "ideal font", ie what you *want* to draw with)
     cc.fontdesc = pango_font_description_new()
 
-    # Create font map and set it's FcConfig if Pango supports it (v1.38+).
+    # Create font map and set its FcConfig if Pango supports it (v1.38+).
     # Older versions swapping the current FcConfig in _set_cc_options()
     cc.fontmap = pango_ft2_font_map_new()
     if not cc.fontmap:

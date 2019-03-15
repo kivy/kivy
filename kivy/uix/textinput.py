@@ -1078,7 +1078,7 @@ class TextInput(FocusBehavior, Widget):
             self._selection_callback = Clock.schedule_once(cb)
 
     def do_cursor_movement(self, action, control=False, alt=False):
-        '''Move the cursor relative to it's current position.
+        '''Move the cursor relative to its current position.
         Action can be one of :
 
             - cursor_left: move the cursor to the left

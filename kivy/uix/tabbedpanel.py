@@ -763,7 +763,7 @@ class TabbedPanel(GridLayout):
 
             lentab_pos = len(tab_pos)
 
-            # Update scatter's top when it's pos changes.
+            # Update scatter's top when its pos changes.
             # Needed for repositioning scatter to the correct place after its
             # added to the parent. Use clock_schedule_once to ensure top is
             # calculated after the parent's pos on canvas has been calculated.

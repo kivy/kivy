@@ -134,7 +134,7 @@ class ModeScreen(Screen):
         p3 = "[b][color=#ff0000]Warning:[/color][/b] This is a system-wide " \
             "setting and will affect all Kivy apps. If you change the\n" \
             " keyboard mode, please use this app" \
-            " to reset this value to it's original one."
+            " to reset this value to its original one."
 
         self.center_label.text = "".join([p1, p2, p3])
 

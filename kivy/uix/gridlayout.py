@@ -129,7 +129,7 @@ class GridLayout(Layout):
     '''
 
     padding = VariableListProperty([0, 0, 0, 0])
-    '''Padding between the layout box and it's children: [padding_left,
+    '''Padding between the layout box and its children: [padding_left,
     padding_top, padding_right, padding_bottom].
 
     padding also accepts a two argument form [padding_horizontal,

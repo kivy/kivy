@@ -454,7 +454,7 @@ class VideoPlayer(GridLayout):
 
     .. warning::
 
-        The re-add operation doesn't care about the index position of it's
+        The re-add operation doesn't care about the index position of its
         children within the parent.
 
     :attr:`fullscreen` is a :class:`~kivy.properties.BooleanProperty`
