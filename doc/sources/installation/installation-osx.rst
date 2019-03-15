@@ -58,7 +58,7 @@ To install Kivy, you must:
     
     If you have trouble running this script, you can try right-click->Open or just add the link manually
     by running the following command::
-        `ln -s /Applications/Kivy<version>/Contents/Resources/script /usr/local/bin/kivy<version>`
+        `sudo ln -s /Applications/Kivy<version>/Contents/Resources/script /usr/local/bin/kivy<version>`
     version is either 2/3 based on which version of the app did you download.
     
     5. Examples and all the normal kivy tools are present in the Kivy.app/Contents/Resources/kivy directory.
