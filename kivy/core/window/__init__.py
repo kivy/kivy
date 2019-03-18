@@ -62,11 +62,12 @@ class Keyboard(EventDispatcher):
         # specials keys
         'backspace': 8, 'tab': 9, 'enter': 13, 'rshift': 303, 'shift': 304,
         'alt': 308, 'rctrl': 306, 'lctrl': 305,
-        'super': 309, 'alt-gr': 307, 'compose': 311, 'pipe': 310,
+        'lmeta': 309, 'rmeta': 310, 'alt-gr': 307, 'compose': 311,
         'capslock': 301, 'escape': 27, 'spacebar': 32, 'pageup': 280,
         'pagedown': 281, 'end': 279, 'home': 278, 'left': 276, 'up':
         273, 'right': 275, 'down': 274, 'insert': 277, 'delete': 127,
         'numlock': 300, 'print': 144, 'screenlock': 145, 'pause': 19,
+        'menu': 319,
 
         # a-z keys
         'a': 97, 'b': 98, 'c': 99, 'd': 100, 'e': 101, 'f': 102, 'g': 103,

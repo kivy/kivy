@@ -15,21 +15,22 @@ TODO:
 
 __all__ = ('WindowSDL2', )
 
-from os.path import join
 import sys
+from collections import deque
+from os.path import join
+
 from kivy import kivy_data_dir
-from kivy.logger import Logger
 from kivy.base import EventLoop, ExceptionManager, stopTouchApp
 from kivy.clock import Clock
+from kivy.compat import unichr
 from kivy.config import Config
 from kivy.core.window import WindowBase
 from kivy.core.window._window_sdl2 import _WindowSDL2Storage
-from kivy.input.provider import MotionEventProvider
 from kivy.input.motionevent import MotionEvent
+from kivy.input.provider import MotionEventProvider
+from kivy.logger import Logger
 from kivy.resources import resource_find
 from kivy.utils import platform, deprecated
-from kivy.compat import unichr
-from collections import deque
 
 KMOD_LCTRL = 64
 KMOD_RCTRL = 128
@@ -54,7 +55,8 @@ SDLK_HOME = 1073741898
 SDLK_END = 1073741901
 SDLK_PAGEUP = 1073741899
 SDLK_PAGEDOWN = 1073741902
-SDLK_SUPER = 1073742051
+SDLK_LMETA = 1073742051
+SDLK_RMETA = 1073742055
 SDLK_CAPS = 1073741881
 SDLK_INSERT = 1073741897
 SDLK_KEYPADNUM = 1073741907
@@ -89,6 +91,7 @@ SDLK_F12 = 1073741893
 SDLK_F13 = 1073741894
 SDLK_F14 = 1073741895
 SDLK_F15 = 1073741896
+SDLK_APPLICATION = 1073741925
 
 
 class SDL2MotionEvent(MotionEvent):
@@ -161,7 +164,7 @@ class WindowSDL(WindowBase):
         self.key_map = {SDLK_LEFT: 276, SDLK_RIGHT: 275, SDLK_UP: 273,
                         SDLK_DOWN: 274, SDLK_HOME: 278, SDLK_END: 279,
                         SDLK_PAGEDOWN: 281, SDLK_PAGEUP: 280, SDLK_SHIFTR: 303,
-                        SDLK_SHIFTL: 304, SDLK_SUPER: 309, SDLK_LCTRL: 305,
+                        SDLK_SHIFTL: 304, SDLK_LCTRL: 305,
                         SDLK_RCTRL: 306, SDLK_LALT: 308, SDLK_RALT: 307,
                         SDLK_CAPS: 301, SDLK_INSERT: 277, SDLK_F1: 282,
                         SDLK_F2: 283, SDLK_F3: 284, SDLK_F4: 285, SDLK_F5: 286,
@@ -174,7 +177,14 @@ class WindowSDL(WindowBase):
                         SDLK_KP_DOT: 266, SDLK_KP_0: 256, SDLK_KP_1: 257,
                         SDLK_KP_2: 258, SDLK_KP_3: 259, SDLK_KP_4: 260,
                         SDLK_KP_5: 261, SDLK_KP_6: 262, SDLK_KP_7: 263,
-                        SDLK_KP_8: 264, SDLK_KP_9: 265}
+                        SDLK_KP_8: 264, SDLK_KP_9: 265, SDLK_LMETA: 309,
+                        SDLK_RMETA: 310, SDLK_APPLICATION: 319}
+        # convert numpad keycodes to appropriate text keycodes
+        self.convert_key_map = {
+            256: 48, 257: 49, 258: 50, 259: 51, 260: 52, 261: 53,
+            262: 54, 263: 55, 264: 56, 265: 57, 266: 46, 267: 47,
+            268: 42, 269: 45, 270: 43,
+        }
         if platform == 'ios':
             # XXX ios keyboard suck, when backspace is hit, the delete
             # keycode is sent. fix it.
@@ -624,10 +634,8 @@ class WindowSDL(WindowBase):
             elif action in ('keydown', 'keyup'):
                 mod, key, scancode, kstr = args
 
-                try:
+                if key in self.key_map:
                     key = self.key_map[key]
-                except KeyError:
-                    pass
 
                 if action == 'keydown':
                     self._update_modifiers(mod, key)
@@ -635,11 +643,17 @@ class WindowSDL(WindowBase):
                     # ignore the key, it has been released
                     self._update_modifiers(mod)
 
+                if key in self.convert_key_map:
+                    temp_key = self.convert_key_map[key]
+                else:
+                    temp_key = key
+
                 # if mod in self._meta_keys:
-                if (key not in self._modifiers and
-                        key not in self.command_keys.keys()):
+                if (temp_key not in self._modifiers and
+                        temp_key not in self.command_keys.keys() and
+                        temp_key not in self.key_map.values()):
                     try:
-                        kstr_chr = unichr(key)
+                        kstr_chr = unichr(temp_key)
                         try:
                             # On android, there is no 'encoding' attribute.
                             # On other platforms, if stdout is redirected,
@@ -760,15 +774,14 @@ class WindowSDL(WindowBase):
                 modifiers.add('ctrl')
             if mods & (KMOD_RMETA | KMOD_LMETA):
                 modifiers.add('meta')
-
         if key is not None:
-            if key in (KMOD_RSHIFT, KMOD_LSHIFT):
+            if key in (self.key_map[SDLK_SHIFTL], self.key_map[SDLK_SHIFTR]):
                 modifiers.add('shift')
-            if key in (KMOD_RALT, KMOD_LALT):
+            if key in (self.key_map[SDLK_LALT], self.key_map[SDLK_RALT]):
                 modifiers.add('alt')
-            if key in (KMOD_RCTRL, KMOD_LCTRL):
+            if key in (self.key_map[SDLK_LCTRL], self.key_map[SDLK_RCTRL]):
                 modifiers.add('ctrl')
-            if key in (KMOD_RMETA, KMOD_LMETA):
+            if key in (self.key_map[SDLK_LMETA], self.key_map[SDLK_RMETA]):
                 modifiers.add('meta')
 
         self._modifiers = list(modifiers)
