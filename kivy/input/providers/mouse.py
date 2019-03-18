@@ -235,9 +235,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         cur.clear_graphics(EventLoop.window)
 
     def on_mouse_motion(self, win, x, y, modifiers):
-        width, height = EventLoop.window.system_size
-        rx = x / float(width)
-        ry = 1. - y / float(height)
+        rx, ry = self._coords_to_1range(x, y)
         for cur in self.current_drags:
             cur.move([rx, ry])
             cur.update_graphics(win)
@@ -252,10 +250,8 @@ class MouseMotionEventProvider(MotionEventProvider):
     def on_mouse_press(self, win, x, y, button, modifiers):
         if self.test_activity():
             return
-        width, height = EventLoop.window.system_size
-        rx = x / float(width)
-        ry = 1. - y / float(height)
 
+        rx, ry = self._coords_to_1range(x, y)
         new_me = self.find_touch(self.touches.values(), rx, ry,
                                  multitouch_sim=True)
         if new_me:
@@ -276,10 +272,7 @@ class MouseMotionEventProvider(MotionEventProvider):
             for cur in list(self.touches.values())[:]:
                 self.remove_touch(cur)
 
-        width, height = EventLoop.window.system_size
-        rx = x / float(width)
-        ry = 1. - y / float(height)
-
+        rx, ry = self._coords_to_1range(x, y)
         simple_touch = self.find_touch(self.current_drags, rx, ry,
                                        multitouch_sim=False, button=button)
         if simple_touch:
@@ -319,6 +312,13 @@ class MouseMotionEventProvider(MotionEventProvider):
                 dispatch_fn(*event)
         except IndexError:
             pass
+
+    @staticmethod
+    def _coords_to_1range(x, y):
+        width, height = EventLoop.window.system_size
+        rx = x / float(width)
+        ry = 1. - y / float(height)
+        return rx, ry
 
 
 # registers
