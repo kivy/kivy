@@ -277,15 +277,9 @@ class WindowSDL(WindowBase):
             resizable = Config.getboolean('graphics', 'resizable')
             state = (Config.get('graphics', 'window_state')
                      if self._is_desktop else None)
-            self.system_size = _size = self._win.setup_window(
+            self.system_size = self._win.setup_window(
                 pos[0], pos[1], w, h, self.borderless,
                 self.fullscreen, resizable, state)
-
-            # calculate density
-            sz = self._win._get_gl_size()[0]
-            self._density = density = sz / _size[0]
-            if self._is_desktop and self.size[0] != _size[0]:
-                self.dpi = density * 96.
 
             # never stay with a None pos, application using w.center
             # will be fired.

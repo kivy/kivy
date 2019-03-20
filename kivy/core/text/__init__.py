@@ -81,6 +81,7 @@ from functools import partial
 from copy import copy
 from kivy import kivy_data_dir
 from kivy.config import Config
+from kivy.logger import Logger
 from kivy.utils import platform
 from kivy.graphics.texture import Texture
 from kivy.core import core_select_lib

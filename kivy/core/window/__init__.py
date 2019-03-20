@@ -404,6 +404,14 @@ class WindowBase(EventDispatcher):
         else:
             return False
 
+    def _recalc_dpi(self):
+        # calculate density
+        w, h = self.system_size
+        sw, sh = self._win._get_gl_size()
+        self._density = density = sw / w
+        if self._is_desktop and self.size[0] != w:
+            self.dpi = density * 96.
+
     minimum_width = NumericProperty(0)
     '''The minimum width to restrict the window to.
 
@@ -1440,6 +1448,9 @@ class WindowBase(EventDispatcher):
         from math import radians
 
         w, h = self.system_size
+
+        self._recalc_dpi()
+
         if self._density != 1:
             w, h = self.size
 
