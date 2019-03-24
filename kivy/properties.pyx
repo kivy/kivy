@@ -900,8 +900,8 @@ cdef class DictProperty(Property):
         :class:`DictProperty`, the dict stored in the property is a shallow copy of the
         dict and not the original dict. See :class:`ListProperty` for details.
     '''
-    def __init__(self, defaultvalue=None, rebind=False, **kw):
-        defaultvalue = defaultvalue or {}
+    def __init__(self, defaultvalue=0, rebind=False, **kw):
+        defaultvalue = {} if defaultvalue == 0 else defaultvalue
 
         super(DictProperty, self).__init__(defaultvalue, **kw)
         self.rebind = rebind
@@ -909,7 +909,8 @@ cdef class DictProperty(Property):
     cpdef link(self, EventDispatcher obj, str name):
         Property.link(self, obj, name)
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.value = ObservableDict(self, obj, ps.value)
+        if ps.value is not None:
+            ps.value = ObservableDict(self, obj, ps.value)
 
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
@@ -920,7 +921,8 @@ cdef class DictProperty(Property):
                 self.name))
 
     cpdef set(self, EventDispatcher obj, value):
-        value = ObservableDict(self, obj, value)
+        if value is not None:
+            value = ObservableDict(self, obj, value)
         Property.set(self, obj, value)
 
 
