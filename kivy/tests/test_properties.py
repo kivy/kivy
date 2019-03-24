@@ -779,3 +779,16 @@ def test_dictproperty_is_none():
     d2.link(wid, 'd2')
     d2.set(wid, None)
     assert d2.get(wid) is None
+
+
+def test_listproperty_is_none():
+    from kivy.properties import ListProperty
+
+    l1 = ListProperty(None)
+    l1.link(wid, 'l1')
+    assert l1.get(wid) is None
+
+    l2 = ListProperty([1, 2, 3], allownone=True)
+    l2.link(wid, 'l2')
+    l2.set(wid, None)
+    assert l2.get(wid) is None

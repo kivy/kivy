@@ -794,15 +794,16 @@ cdef class ListProperty(Property):
             [1, 5, {'hi': 'bye'}, 10] [1, 5, {'hi': 'bye'}]
 
     '''
-    def __init__(self, defaultvalue=None, **kw):
-        defaultvalue = defaultvalue or []
+    def __init__(self, defaultvalue=0, **kw):
+        defaultvalue = [] if defaultvalue == 0 else defaultvalue
 
         super(ListProperty, self).__init__(defaultvalue, **kw)
 
     cpdef link(self, EventDispatcher obj, str name):
         Property.link(self, obj, name)
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.value = ObservableList(self, obj, ps.value)
+        if ps.value is not None:
+            ps.value = ObservableList(self, obj, ps.value)
 
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
@@ -813,7 +814,8 @@ cdef class ListProperty(Property):
                 self.name))
 
     cpdef set(self, EventDispatcher obj, value):
-        value = ObservableList(self, obj, value)
+        if value is not None:
+            value = ObservableList(self, obj, value)
         Property.set(self, obj, value)
 
 cdef inline void observable_dict_dispatch(object self):
