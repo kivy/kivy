@@ -17,9 +17,9 @@ Installing Dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 To install Kivy's dependencies, follow the guide below for your platform. You
-might also need these packages for the RST and lexing components::
+will also need these packages for RST, lexing and image handling::
 
-    $ sudo pip install pygments docutils
+    $ sudo pip install pygments docutils pillow
 
 Ubuntu
 ++++++
