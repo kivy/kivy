@@ -888,7 +888,7 @@ cdef class DictProperty(Property):
     '''Property that represents a dict.
 
     :Parameters:
-        `defaultvalue`: dict, defaults to None
+        `defaultvalue`: dict, defaults to {}
             Specifies the default value of the property.
         `rebind`: bool, defaults to False
             See :class:`ObjectProperty` for details.
