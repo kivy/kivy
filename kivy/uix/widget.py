@@ -955,9 +955,9 @@ class Widget(WidgetBase):
         '''(internal)
         TODO: Want someone who fluent in English to write the doc'''
         for widget in self.walk(restrict=True):
-            if not widget._on_kv_post_was_done:
+            if not widget._on_kv_post_was_fired:
                 widget.dispatch('on_kv_post')
-                widget._on_kv_post_was_done = True
+                widget._on_kv_post_was_fired = True
 
     x = NumericProperty(0)
     '''X position of the widget.
@@ -1404,8 +1404,8 @@ class Widget(WidgetBase):
         previous state when a parent's disabled state is changed.
     '''
 
-    _on_kv_post_was_done = BooleanProperty(False)
-    '''(internal) Indicates whether 'on_kv_post' was triggered or not
+    _on_kv_post_was_fired = BooleanProperty(False)
+    '''(internal) Indicates whether 'on_kv_post' was fired or not
 
     .. versionadded:: 1.11.0
     '''
