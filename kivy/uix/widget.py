@@ -297,6 +297,10 @@ class Widget(WidgetBase):
             Fired when an existing touch moves
         `on_touch_up`:
             Fired when an existing touch disappears
+        `on_kv_pre`:
+            Fired before kv rules are applied
+        `on_kv_post`:
+            Fired after kv rules are applied
 
     .. warning::
         Adding a `__del__` method to a class derived from Widget with Python
@@ -316,7 +320,8 @@ class Widget(WidgetBase):
     '''
 
     __metaclass__ = WidgetMetaclass
-    __events__ = ('on_touch_down', 'on_touch_move', 'on_touch_up')
+    __events__ = ('on_touch_down', 'on_touch_move', 'on_touch_up',
+                  'on_kv_pre', 'on_kv_post')
     _proxy_ref = None
 
     def __init__(self, **kwargs):
@@ -328,9 +333,12 @@ class Widget(WidgetBase):
             self._context = get_current_context()
 
         no_builder = '__no_builder' in kwargs
+        is_there_a_rootrule = '__rootrule' in kwargs
         self._disabled_value = False
         if no_builder:
             del kwargs['__no_builder']
+        if is_there_a_rootrule:
+            del kwargs['__rootrule']
         on_args = {k: v for k, v in kwargs.items() if k[:3] == 'on_'}
         for key in on_args:
             del kwargs[key]
@@ -343,9 +351,13 @@ class Widget(WidgetBase):
         if self.canvas is None:
             self.canvas = Canvas(opacity=self.opacity)
 
+        self.dispatch('on_kv_pre')
+
         # Apply all the styles.
         if not no_builder:
             Builder.apply(self, ignored_consts=self._kwargs_applied_init)
+            if not is_there_a_rootrule:
+                self._dispatch_on_kv_post_recursively()
 
         # Bind all the events.
         if on_args:
@@ -481,6 +493,12 @@ class Widget(WidgetBase):
         for child in self.children[:]:
             if child.dispatch('on_touch_up', touch):
                 return True
+
+    def on_kv_pre(self):
+        pass
+
+    def on_kv_post(self):
+        pass
 
     #
     # Tree management
@@ -933,6 +951,14 @@ class Widget(WidgetBase):
         m = self._apply_transform(m)
         return m
 
+    def _dispatch_on_kv_post_recursively(self):
+        '''(internal)
+        TODO: Want someone who fluent in English to write the doc'''
+        for widget in self.walk(restrict=True):
+            if not widget._on_kv_post_was_done:
+                widget.dispatch('on_kv_post')
+                widget._on_kv_post_was_done = True
+
     x = NumericProperty(0)
     '''X position of the widget.
 
@@ -1376,4 +1402,10 @@ class Widget(WidgetBase):
         :class:`~kivy.properties.BooleanProperty` to an
         :class:`~kivy.properties.AliasProperty` to allow access to its
         previous state when a parent's disabled state is changed.
+    '''
+
+    _on_kv_post_was_done = BooleanProperty(False)
+    '''(internal) Indicates whether 'on_kv_post' was triggered or not
+
+    .. versionadded:: 1.11.0
     '''
