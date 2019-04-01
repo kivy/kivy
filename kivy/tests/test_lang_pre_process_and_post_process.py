@@ -184,7 +184,7 @@ class LangTestCase(unittest.TestCase):
                 TestBoxLayout:
         '''))
 
-    def test_order(self):  # TODO: need a good method name
+    def test_property_is_evaluated_before_on_kv_post_is_fired(self):
         ae = self.assertEqual
 
         class TestLabel(Factory.Label):

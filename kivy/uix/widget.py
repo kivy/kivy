@@ -952,8 +952,7 @@ class Widget(WidgetBase):
         return m
 
     def _dispatch_on_kv_post_recursively(self):
-        '''(internal)
-        TODO: Want someone who fluent in English to write the doc'''
+        '''(internal)'''
         for widget in self.walk(restrict=True):
             if not widget._on_kv_post_was_fired:
                 widget.dispatch('on_kv_post')
