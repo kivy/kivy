@@ -137,27 +137,51 @@ class LangTestCase(unittest.TestCase):
 
         class TestBoxLayout(Factory.BoxLayout):
             def on_kv_post(self):
+                # ---------------
+                # test children
+                # ---------------
                 ids = self.ids
                 tc.assertIn('textinput', ids)
                 tc.assertIn('label', ids)
                 tc.assertIn('button', ids)
-
+                
+                # check property binding
                 textinput = ids.textinput
                 label = ids.label
                 label.text = 'A'
                 textinput.text = 'B'
                 tc.assertEqual(label.text, 'B')
 
+                # check event handler
                 button = ids.button
                 button.text = ''
                 button.dispatch('on_press')
                 tc.assertEqual(button.text, 'pressed')
 
-                tc.assertTrue(self.parent is not None)
+                # ---------------
+                # test parent
+                # ---------------
+                parent = self.parent
+
+                # check 'parent' property
+                tc.assertTrue(parent is not None)
+
+                # check property binding
+                parent.height = 1
+                parent.width = 50
+                tc.assertEqual(parent.height, 100)
+
+                # check event handler
+                parent.height = 1
+                parent.dispatch('on_press')
+                tc.assertEqual(parent.height, 123)
 
         root = Builder.load_string(textwrap.dedent('''
         Widget:
-            TestBoxLayout:
+            Button:
+                height: self.width * 2
+                on_press: self.height = 123
+                TestBoxLayout:
         '''))
 
     def test_order(self):  # TODO: need a good method name
