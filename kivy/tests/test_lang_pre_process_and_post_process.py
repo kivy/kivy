@@ -144,7 +144,7 @@ class LangTestCase(unittest.TestCase):
                 tc.assertIn('textinput', ids)
                 tc.assertIn('label', ids)
                 tc.assertIn('button', ids)
-                
+
                 # check property binding
                 textinput = ids.textinput
                 label = ids.label
