@@ -106,11 +106,11 @@ class LangTestCase(unittest.TestCase):
                 ae(self._n_post_from_c, 1)
                 ae(self._n_post_from_d, 1)
 
-        # Test #1: Without root rule
+        # case #1: Without root rule
         root = EventCounter(does_have_root_rule=False)
         root.assert_all_handlers_were_called_correctly()
 
-        # Test #2: With root rule
+        # case #2: With root rule
         root = Builder.load_string(textwrap.dedent('''
         EventCounter:
             on_kv_pre: self.on_kv_pre_from_r()  # won't be excuted
@@ -123,14 +123,21 @@ class LangTestCase(unittest.TestCase):
         root.assert_all_handlers_were_called_correctly()
         root.ids.child.assert_all_handlers_were_called_correctly()
 
-        # Test #3: If the user add a widget during 'on_kv_pre()',
-        #          is 'on_kv_post' still dispatched once on that widget?
+        # case #3: If the user add a widget during 'on_kv_pre()' and
+        #          '__init__()', is 'on_kv_post' still fired exactly
+        #          once on that widget?
         class TestWidget(Factory.Widget):
+            def __init__(self, **kwargs):
+                super(TestWidget, self).__init__(**kwargs)
+                self._ec1 = EventCounter(does_have_root_rule=False)
+                self.add_widget(self._ec1)
+
             def on_kv_pre(self):
-                self._ec = EventCounter(does_have_root_rule=False)
-                self.add_widget(self._ec)
+                self._ec2 = EventCounter(does_have_root_rule=False)
+                self.add_widget(self._ec2)
         root = TestWidget()
-        root._ec.assert_all_handlers_were_called_correctly()
+        root._ec1.assert_all_handlers_were_called_correctly()
+        root._ec2.assert_all_handlers_were_called_correctly()
 
     def test_rule_is_applied_on_kv_post(self):
         tc = self
