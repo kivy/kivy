@@ -247,13 +247,14 @@ cdef class Color(ContextInstruction):
                 self.a = args[3]
             elif vec_size == 3:
                 self.hsv = args
+                self.a = 1.
             else:
                 self.set_state('color', [1.0, 1.0, 1.0, 1.0])
         else:
             if vec_size == 4:
                 self.rgba = args
             elif vec_size == 3:
-                self.rgb = args
+                self.rgb = [args[0], args[1], args[2], 1.]
             else:
                 self.set_state('color', [1.0, 1.0, 1.0, 1.0])
 
@@ -281,7 +282,7 @@ cdef class Color(ContextInstruction):
 
     @rgb.setter
     def rgb(self, rgb):
-        self.rgba = (rgb[0], rgb[1], rgb[2], 1.0)
+        self.rgba = (rgb[0], rgb[1], rgb[2], self.a)
 
     @property
     def r(self):
