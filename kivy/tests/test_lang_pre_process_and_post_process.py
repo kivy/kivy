@@ -111,7 +111,7 @@ class LangTestCase(unittest.TestCase):
         root._ec1.assert_all_handlers_were_called_correctly()
         root._ec2.assert_all_handlers_were_called_correctly()
 
-    def test_rule_is_applied_on_kv_post(self):
+    def test_all_rules_are_applied_before_on_kv_post_is_fired(self):
         tc = self
 
         class TestBoxLayout(Factory.BoxLayout):
@@ -163,7 +163,7 @@ class LangTestCase(unittest.TestCase):
             on_press: self.height = 123
         '''))
 
-    def test_property_is_evaluated_before_on_kv_post_is_fired(self):
+    def test_all_properties_are_evaluated_before_on_kv_post_is_fired(self):
         ae = self.assertEqual
 
         Builder.load_string(textwrap.dedent('''
