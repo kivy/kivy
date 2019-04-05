@@ -7,6 +7,7 @@ import unittest
 
 from kivy.tests.common import GraphicUnitTest
 from kivy.uix.textinput import TextInput
+from kivy.uix.widget import Widget
 from kivy.clock import Clock
 
 
@@ -352,6 +353,41 @@ class TextInputGraphicTest(GraphicUnitTest):
         for i in range(30):
             self.advance_frames(int(0.01 * Clock._max_fps) + 1)
             self.assertTrue(ti._do_blink_cursor_ev.is_triggered)
+
+    def test_visible_lines_range(self):
+        text = '\n'.join(map(str, range(30)))
+        ti = TextInput(text=text)
+        ti.focus = True
+
+        # use container to have flexible TextInput size
+        container = Widget()
+        container.add_widget(ti)
+        self.render(container)
+
+        ti.height = ti_height_for_x_lines(ti, 10)
+        self.advance_frames(1)
+        assert ti._visible_lines_range == (20, 30)
+
+        ti.height = ti_height_for_x_lines(ti, 2.5)
+        ti.do_cursor_movement('cursor_home', control=True)
+        self.advance_frames(1)
+        assert ti._visible_lines_range == (0, 3)
+
+        ti.height = ti_height_for_x_lines(ti, 0)
+        self.advance_frames(1)
+        assert ti._visible_lines_range == (0, 0)
+
+
+def ti_height_for_x_lines(ti, x):
+    """Calculate TextInput height required to display x lines in viewport.
+
+    ti -- TextInput object being used
+    x -- number of lines to display
+    """
+    padding_top = ti.padding[1]
+    padding_bottom = ti.padding[3]
+    return int((ti.line_height + ti.line_spacing) * x
+               + padding_top + padding_bottom)
 
 
 if __name__ == '__main__':

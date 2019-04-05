@@ -499,6 +499,11 @@ class TextInput(FocusBehavior, Widget):
         self._do_blink_cursor_ev = Clock.create_trigger(
             self._do_blink_cursor, .5, interval=True)
         self._refresh_line_options_ev = None
+
+        # [from; to) range of lines being partially or fully rendered
+        # in TextInput's viewport
+        self._visible_lines_range = 0, 0
+
         self.interesting_keys = {
             8: 'backspace',
             13: 'enter',
@@ -1994,8 +1999,12 @@ class TextInput(FocusBehavior, Widget):
         find_base_dir = Label.find_base_direction
         auto_halign_r = halign == 'auto' and base_dir and 'rtl' in base_dir
 
+        fst_visible_ln = None
         for line_num, value in enumerate(lines):
-            if miny <= y <= maxy + dy:
+            if miny < y < maxy + dy:
+                if fst_visible_ln is None:
+                    fst_visible_ln = line_num
+
                 texture = labels[line_num]
                 size = list(texture.size)
                 texc = texture.tex_coords[:]
@@ -2065,8 +2074,16 @@ class TextInput(FocusBehavior, Widget):
                 r.texture = texture
                 r.tex_coords = texc
                 add(r)
+            elif y <= miny:
+                line_num -= 1
+                break
 
             y -= dy
+
+        if fst_visible_ln is not None:
+            self._visible_lines_range = (fst_visible_ln, line_num + 1)
+        else:
+            self._visible_lines_range = 0, 0
 
         self._update_graphics_selection()
 
