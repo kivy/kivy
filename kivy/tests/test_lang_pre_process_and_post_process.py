@@ -95,7 +95,7 @@ class LangTestCase(unittest.TestCase):
         root.assert_all_handlers_were_called_correctly()
         root.ids.child.assert_all_handlers_were_called_correctly()
 
-        # case #3: If the user add a widget during 'on_kv_pre()' and
+        # case #3: If the user add a widget during 'on_kv_pre()' or
         #          '__init__()', is 'on_kv_post' still fired exactly
         #          once on that widget?
         class TestWidget(Factory.Widget):

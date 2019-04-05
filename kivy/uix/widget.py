@@ -948,7 +948,14 @@ class Widget(WidgetBase):
         return m
 
     def _dispatch_on_kv_post_recursively(self):
-        '''(internal)'''
+        '''(internal)
+        NOTE: This method might be optimizable because::
+
+            if some_widget._on_post_was_fired:
+                # don't have to 'walk()' some_widget.children
+            else:
+                # have to 'walk()' some_widget.children
+        '''
         for widget in self.walk(restrict=True):
             if not widget._on_kv_post_was_fired:
                 widget.dispatch('on_kv_post')
