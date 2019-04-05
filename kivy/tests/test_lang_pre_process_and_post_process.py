@@ -5,49 +5,6 @@ from kivy.factory import Factory
 from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty
 
 
-KV_CODE = '''
-<EventCounter>:
-    on_kv_pre: self.on_kv_pre_from_c()  # This line won't be excuted
-    on_kv_post: self.on_kv_post_from_c()
-
-<TestBoxLayout>:
-    Label:
-        id: label
-        text: textinput.text
-    TextInput:
-        id: textinput
-    Button:
-        id: button
-        on_press: self.text = 'pressed'
-
-<TestLabel>:
-    text: 'A'
-    on_kv_post: self.text += 'B'
-    Label:
-        text: root.assert_the_text_hasnt_changed_yet() or 'hello'
-<OtherTestLabel@TestLabel>:
-    on_kv_post: self.text += 'C'
-    height: self.assert_the_text_hasnt_changed_yet() or 200
-    Label:
-        text: root.assert_the_text_hasnt_changed_yet() or 'hello2'
-'''
-KV_FILENAME = 'test_kv_filename'
-
-
-def setUpModule():
-    Builder.load_string(KV_CODE, filename=KV_FILENAME)
-
-
-def tearDownModule():
-    Builder.unload_file(KV_FILENAME)
-    u = Factory.unregister
-    u('EventCounter')
-    u('TestWidget')
-    u('TestBoxLayout')
-    u('TestLabel')
-    u('OtherTestLabel')
-
-
 class LangTestCase(unittest.TestCase):
 
     def test_how_may_times_handlers_are_called(self):
@@ -105,6 +62,21 @@ class LangTestCase(unittest.TestCase):
                 ae(self._n_post_from_r, 1 if self.does_have_root_rule else 0)
                 ae(self._n_post_from_c, 1)
                 ae(self._n_post_from_d, 1)
+
+        Builder.load_string(textwrap.dedent('''
+        <EventCounter>:
+            on_kv_pre: self.on_kv_pre_from_c()  # This line won't be excuted
+            on_kv_post: self.on_kv_post_from_c()
+        <TestBoxLayout>:
+            Label:
+                id: label
+                text: textinput.text
+            TextInput:
+                id: textinput
+            Button:
+                id: button
+                on_press: self.text = 'pressed'
+        '''))
 
         # case #1: Without root rule
         root = EventCounter(does_have_root_rule=False)
@@ -193,6 +165,19 @@ class LangTestCase(unittest.TestCase):
 
     def test_property_is_evaluated_before_on_kv_post_is_fired(self):
         ae = self.assertEqual
+
+        Builder.load_string(textwrap.dedent('''
+        <TestLabel>:
+            text: 'A'
+            on_kv_post: self.text += 'B'
+            Label:
+                text: root.assert_the_text_hasnt_changed_yet() or 'hello'
+        <OtherTestLabel@TestLabel>:
+            on_kv_post: self.text += 'C'
+            height: self.assert_the_text_hasnt_changed_yet() or 200
+            Label:
+                text: root.assert_the_text_hasnt_changed_yet() or 'hello2'
+        '''))
 
         class TestLabel(Factory.Label):
             def assert_the_text_hasnt_changed_yet(self):
