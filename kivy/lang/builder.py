@@ -396,7 +396,8 @@ class BuilderBase(object):
                 self.files.append(fn)
 
             if parser.root:
-                widget = Factory.get(parser.root.name)(__rootrule=True)
+                widget = Factory.get(parser.root.name)(__no_builder=True)
+                self.apply(widget)
                 self._apply_rule(widget, parser.root, parser.root)
                 widget._dispatch_on_kv_post_recursively()
                 return widget

@@ -333,12 +333,9 @@ class Widget(WidgetBase):
             self._context = get_current_context()
 
         no_builder = '__no_builder' in kwargs
-        is_there_a_rootrule = '__rootrule' in kwargs
         self._disabled_value = False
         if no_builder:
             del kwargs['__no_builder']
-        if is_there_a_rootrule:
-            del kwargs['__rootrule']
         on_args = {k: v for k, v in kwargs.items() if k[:3] == 'on_'}
         for key in on_args:
             del kwargs[key]
@@ -356,8 +353,7 @@ class Widget(WidgetBase):
         # Apply all the styles.
         if not no_builder:
             Builder.apply(self, ignored_consts=self._kwargs_applied_init)
-            if not is_there_a_rootrule:
-                self._dispatch_on_kv_post_recursively()
+            self._dispatch_on_kv_post_recursively()
 
         # Bind all the events.
         if on_args:
