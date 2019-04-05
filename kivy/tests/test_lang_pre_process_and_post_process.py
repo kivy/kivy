@@ -184,11 +184,11 @@ class LangTestCase(unittest.TestCase):
                 tc.assertEqual(parent.height, 123)
 
         root = Builder.load_string(textwrap.dedent('''
-        Widget:
-            Button:
-                height: self.width * 2
-                on_press: self.height = 123
-                TestBoxLayout:
+        <TestButton@Button>:
+            TestBoxLayout:
+        TestButton:
+            height: self.width * 2
+            on_press: self.height = 123
         '''))
 
     def test_property_is_evaluated_before_on_kv_post_is_fired(self):
