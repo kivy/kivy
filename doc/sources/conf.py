@@ -23,6 +23,11 @@ sys.path.insert(0, os.path.abspath('sphinxext'))
 base_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(base_dir))
 
+# ensure that the modules in this kivy clone get imported rather than
+# a system installed kivy
+sys.path.insert(0, os.path.abspath(os.path.join(base_dir, '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(base_dir, '..', '..')))
+
 # General configuration
 # ---------------------
 
@@ -61,7 +66,7 @@ copyright = '2010, The Kivy Authors'
 #
 os.environ['KIVY_DOC_INCLUDE'] = '1'
 import kivy
-print(kivy.__file__)
+print('producing documentation for', os.path.dirname(kivy.__file__))
 
 version = kivy.__version__
 release = kivy.__version__
