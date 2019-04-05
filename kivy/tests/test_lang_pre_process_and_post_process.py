@@ -67,15 +67,6 @@ class LangTestCase(unittest.TestCase):
         <EventCounter>:
             on_kv_pre: self.on_kv_pre_from_c()  # This line won't be excuted
             on_kv_post: self.on_kv_post_from_c()
-        <TestBoxLayout>:
-            Label:
-                id: label
-                text: textinput.text
-            TextInput:
-                id: textinput
-            Button:
-                id: button
-                on_press: self.text = 'pressed'
         '''))
 
         # case #1: Without root rule
@@ -156,6 +147,15 @@ class LangTestCase(unittest.TestCase):
                 tc.assertEqual(parent.height, 123)
 
         root = Builder.load_string(textwrap.dedent('''
+        <TestBoxLayout>:
+            Label:
+                id: label
+                text: textinput.text
+            TextInput:
+                id: textinput
+            Button:
+                id: button
+                on_press: self.text = 'pressed'
         <TestButton@Button>:
             TestBoxLayout:
         TestButton:
