@@ -2211,6 +2211,24 @@ class TextInput(FocusBehavior, Widget):
             self.scroll_y = 0
         return x, y
 
+    def _get_cursor_visual_height(self):
+        # Return the height of the cursor's visible part
+        _, cy = map(int, self.cursor_pos)
+        max_y = self.top - self.padding[1]
+        min_y = self.y + self.padding[3]
+
+        lh = self.line_height
+        if cy > max_y:
+            return lh - min(lh, cy - max_y)
+        else:
+            return min(lh, max(0, cy - min_y))
+
+    def _get_cursor_visual_pos(self):
+        # Return the position of the cursor's top visible point
+        cx, cy = map(int, self.cursor_pos)
+        max_y = self.top - self.padding[3]
+        return [cx, min(max_y, cy)]
+
     def _get_line_options(self):
         # Get or create line options, to be used for Label creation
         if self._line_options is None:
@@ -2592,6 +2610,12 @@ class TextInput(FocusBehavior, Widget):
     _insert_int_pat = re.compile(u'^-?[0-9]*$')
     _insert_float_pat = re.compile(u'^-?[0-9]*\\.?[0-9]*$')
     _cursor_blink = BooleanProperty(False)
+    _cursor_visual_pos = AliasProperty(
+        _get_cursor_visual_pos, None, bind=['cursor_pos']
+    )
+    _cursor_visual_height = AliasProperty(
+        _get_cursor_visual_height, None, bind=['cursor_pos']
+    )
 
     readonly = BooleanProperty(False)
     '''If True, the user will not be able to change the content of a textinput.
