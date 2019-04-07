@@ -16,7 +16,7 @@ class LangTestCase(unittest.TestCase):
         NP = NumericProperty
 
         class EventCounter(Factory.Widget):
-            does_have_root_rule = BooleanProperty(True)
+            there_is_a_rootrule = BooleanProperty(True)
             _n_pre_from_d = NP(0)  # 'd' stands for 'default handler'
             _n_post_from_r = NP(0)  # 'r' stands for 'root rule'
             _n_post_from_c = NP(0)  # 'c' stands for 'class rule'
@@ -42,12 +42,12 @@ class LangTestCase(unittest.TestCase):
             def on_kv_post_from_c(self):
                 self._n_post_from_c += 1
                 ae(self._n_pre_from_d, 1)
-                ae(self._n_post_from_r, 1 if self.does_have_root_rule else 0)
+                ae(self._n_post_from_r, 1 if self.there_is_a_rootrule else 0)
                 ae(self._n_post_from_c, 1)
                 ae(self._n_post_from_d, 0)
 
             def on_kv_post_from_r(self):
-                if not self.does_have_root_rule:
+                if not self.there_is_a_rootrule:
                     testcase.fail(
                         "Strange. The handler was called even though "
                         "the widget doesn't have root rule.")
@@ -59,7 +59,7 @@ class LangTestCase(unittest.TestCase):
 
             def assert_all_handlers_were_called_correctly(self):
                 ae(self._n_pre_from_d, 1)
-                ae(self._n_post_from_r, 1 if self.does_have_root_rule else 0)
+                ae(self._n_post_from_r, 1 if self.there_is_a_rootrule else 0)
                 ae(self._n_post_from_c, 1)
                 ae(self._n_post_from_d, 1)
 
@@ -70,7 +70,7 @@ class LangTestCase(unittest.TestCase):
         '''))
 
         # case #1: Without root rule
-        root = EventCounter(does_have_root_rule=False)
+        root = EventCounter(there_is_a_rootrule=False)
         root.assert_all_handlers_were_called_correctly()
 
         # case #2: With root rule
@@ -92,11 +92,11 @@ class LangTestCase(unittest.TestCase):
         class TestWidget(Factory.Widget):
             def __init__(self, **kwargs):
                 super(TestWidget, self).__init__(**kwargs)
-                self._ec1 = EventCounter(does_have_root_rule=False)
+                self._ec1 = EventCounter(there_is_a_rootrule=False)
                 self.add_widget(self._ec1)
 
             def on_kv_pre(self):
-                self._ec2 = EventCounter(does_have_root_rule=False)
+                self._ec2 = EventCounter(there_is_a_rootrule=False)
                 self.add_widget(self._ec2)
         root = TestWidget()
         root._ec1.assert_all_handlers_were_called_correctly()
