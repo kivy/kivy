@@ -7,7 +7,7 @@ from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty
 
 class LangTestCase(unittest.TestCase):
 
-    def test_how_may_times_handlers_are_called(self):
+    def test_how_many_times_handlers_are_called(self):
         '''NOTE: Event handlers are supposed to be called in the order below:
                  'root rule' -> 'class rule' -> 'default handler'
         '''
