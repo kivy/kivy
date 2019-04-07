@@ -50,7 +50,7 @@ class LangTestCase(unittest.TestCase):
                 if not self.there_is_a_rootrule:
                     testcase.fail(
                         "Strange. The handler was called even though "
-                        "the widget doesn't have root rule.")
+                        "there is no root rule.")
                 self._n_post_from_r += 1
                 ae(self._n_pre_from_d, 1)
                 ae(self._n_post_from_r, 1)
