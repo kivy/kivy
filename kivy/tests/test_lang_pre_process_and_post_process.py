@@ -107,6 +107,8 @@ class LangTestCase(unittest.TestCase):
 
         class TestBoxLayout(Factory.BoxLayout):
             def on_kv_post(self):
+                self._the_handler_was_actually_called = True
+
                 # ---------------
                 # test children
                 # ---------------
@@ -162,6 +164,8 @@ class LangTestCase(unittest.TestCase):
             height: self.width * 2
             on_press: self.height = 123
         '''))
+        tc.assertTrue(hasattr(root.children[0],
+                              '_the_handler_was_actually_called'))
 
     def test_all_properties_are_evaluated_before_on_kv_post_is_fired(self):
         ae = self.assertEqual
