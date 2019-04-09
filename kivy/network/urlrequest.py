@@ -460,6 +460,17 @@ class UrlRequest(Thread):
             except IndexError:
                 return
             if resp:
+                # Small workaround in order to prevent the situation mentioned
+                # in the comment below
+                final_cookies = ""
+                parsed_headers = []
+                for key, value in resp.getheaders():
+                    if key == "Set-Cookie":
+                        final_cookies += "{};".format(value)
+                    else:
+                        parsed_headers.append((key, value))
+                parsed_headers.append(("Set-Cookie", final_cookies[:-1]))
+
                 # XXX usage of dict can be dangerous if multiple headers
                 # are set even if it's invalid. But it look like it's ok
                 # ?  http://stackoverflow.com/questions/2454494/..
