@@ -7,7 +7,6 @@ from kivy.config import Config
 from kivy.logger import Logger
 from kivy import platform
 from kivy.graphics.cgl import cgl_get_backend_name
-from kivy.graphics.cgl cimport *
 
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 
@@ -650,10 +649,7 @@ cdef class _WindowSDL2Storage:
             pass
 
     def flip(self):
-        win = self.win
-        with nogil:
-            SDL_GL_SwapWindow(win)
-            cgl.glFinish()
+        SDL_GL_SwapWindow(self.win)
 
     def save_bytes_in_png(self, filename, data, int width, int height):
         cdef SDL_Surface *surface = SDL_CreateRGBSurfaceFrom(
