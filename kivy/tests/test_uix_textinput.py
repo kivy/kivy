@@ -377,6 +377,43 @@ class TextInputGraphicTest(GraphicUnitTest):
         self.advance_frames(1)
         assert ti._visible_lines_range == (0, 0)
 
+    def test_keyboard_scroll(self):
+        text = '\n'.join(map(str, range(30)))
+        ti = TextInput(text=text)
+        ti.focus = True
+
+        # use container to have flexible TextInput size
+        container = Widget()
+        container.add_widget(ti)
+        self.render(container)
+        ti.height = height_for_x_lines(ti, 10)
+
+        prev_cursor = ti.cursor
+        ti.do_cursor_movement('cursor_home', control=True)
+        self.advance_frames(1)
+        assert ti._visible_lines_range == (0, 10)
+        assert prev_cursor != ti.cursor
+
+        prev_cursor = ti.cursor
+        ti.do_cursor_movement('cursor_down', control=True)
+        self.advance_frames(1)
+        assert ti._visible_lines_range == (1, 11)
+        # cursor position (col and row) should not be
+        # changed by "ctrl + cursor_down" and "ctrl + cursor_up"
+        assert prev_cursor == ti.cursor
+
+        prev_cursor = ti.cursor
+        ti.do_cursor_movement('cursor_up', control=True)
+        self.advance_frames(1)
+        assert ti._visible_lines_range == (0, 10)
+        assert prev_cursor == ti.cursor
+
+        prev_cursor = ti.cursor
+        ti.do_cursor_movement('cursor_end', control=True)
+        self.advance_frames(1)
+        assert ti._visible_lines_range == (20, 30)
+        assert prev_cursor != ti.cursor
+
 
 def ti_height_for_x_lines(ti, x):
     """Calculate TextInput height required to display x lines in viewport.

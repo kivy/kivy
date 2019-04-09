@@ -1191,7 +1191,12 @@ class TextInput(FocusBehavior, Widget):
                         row += 1
                 else:
                     col, row = col + 1, row
-        self.cursor = (col, row)
+
+        dont_move_cursor = control and action in ['cursor_up', 'cursor_down']
+        if dont_move_cursor:
+            self._trigger_update_graphics()
+        else:
+            self.cursor = (col, row)
 
     def get_cursor_from_xy(self, x, y):
         '''Return the (row, col) of the cursor from an (x, y) position.
@@ -2203,12 +2208,6 @@ class TextInput(FocusBehavior, Widget):
         else:
             x = left + cursor_offset - self.scroll_x
 
-        if x < left:
-            self.scroll_x = 0
-            x = left
-        if y > top:
-            y = top
-            self.scroll_y = 0
         return x, y
 
     def _get_cursor_visual_height(self):
