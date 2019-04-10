@@ -35,7 +35,7 @@ class LangTestCase(unittest.TestCase):
             def on_kv_pre_from_r(self):
                 testcase.fail('This method is not supposed to be called')
 
-            def on_kv_post(self):
+            def on_kv_post(self, root_widget):
                 self._n_post_from_d += 1
                 self.assert_all_handlers_were_called_correctly()
 
@@ -106,7 +106,7 @@ class LangTestCase(unittest.TestCase):
         tc = self
 
         class TestBoxLayout(Factory.BoxLayout):
-            def on_kv_post(self):
+            def on_kv_post(self, root_widget):
                 self._the_handler_was_actually_called = True
 
                 # ---------------

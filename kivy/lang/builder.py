@@ -397,9 +397,15 @@ class BuilderBase(object):
 
             if parser.root:
                 widget = Factory.get(parser.root.name)(__no_builder=True)
-                self.apply(widget)
-                self._apply_rule(widget, parser.root, parser.root)
-                widget._dispatch_on_kv_post_recursively()
+                rule_children = []
+                self.apply(widget, rule_children=rule_children)
+                self._apply_rule(
+                    widget, parser.root, parser.root,
+                    rule_children=rule_children)
+
+                for child in rule_children:
+                    child.dispatch('on_kv_post', widget)
+                widget.dispatch('on_kv_post', widget)
                 return widget
         finally:
             self._current_filename = None
@@ -435,7 +441,8 @@ class BuilderBase(object):
         self._apply_rule(widget, rule, rule, template_ctx=proxy_ctx)
         return widget
 
-    def apply_rules(self, widget, rule_name, ignored_consts=set()):
+    def apply_rules(
+            self, widget, rule_name, ignored_consts=set(), rule_children=None):
         '''Search all the rules that match `rule_name` widget
         and apply them to `widget`.
 
@@ -452,9 +459,11 @@ class BuilderBase(object):
         if not rules:
             return
         for rule in rules:
-            self._apply_rule(widget, rule, rule, ignored_consts=ignored_consts)
+            self._apply_rule(
+                widget, rule, rule, ignored_consts=ignored_consts,
+                rule_children=rule_children)
 
-    def apply(self, widget, ignored_consts=set()):
+    def apply(self, widget, ignored_consts=set(), rule_children=None):
         '''Search all the rules that match the widget and apply them.
 
         `ignored_consts` is a set or list type whose elements are property
@@ -468,14 +477,16 @@ class BuilderBase(object):
         if not rules:
             return
         for rule in rules:
-            self._apply_rule(widget, rule, rule, ignored_consts=ignored_consts)
+            self._apply_rule(
+                widget, rule, rule, ignored_consts=ignored_consts,
+                rule_children=rule_children)
 
     def _clear_matchcache(self):
         BuilderBase._match_cache = {}
         BuilderBase._match_name_cache = {}
 
     def _apply_rule(self, widget, rule, rootrule, template_ctx=None,
-                    ignored_consts=set()):
+                    ignored_consts=set(), rule_children=None):
         # widget: the current instantiated widget
         # rule: the current rule
         # rootrule: the current root rule (for children of a rule)
@@ -583,8 +594,12 @@ class BuilderBase(object):
                 # apply(), and so, we could use "self.parent".
                 child = cls(__no_builder=True)
                 widget.add_widget(child)
-                self.apply(child)
-                self._apply_rule(child, crule, rootrule)
+                self.apply(child, rule_children=rule_children)
+                self._apply_rule(
+                    child, crule, rootrule, rule_children=rule_children)
+
+                if rule_children is not None:
+                    rule_children.append(child)
 
         # append the properties and handlers to our final resolution task
         if rule.properties:

@@ -352,8 +352,14 @@ class Widget(WidgetBase):
 
         # Apply all the styles.
         if not no_builder:
-            Builder.apply(self, ignored_consts=self._kwargs_applied_init)
-            self._dispatch_on_kv_post_recursively()
+            rule_children = []
+            Builder.apply(
+                self, ignored_consts=self._kwargs_applied_init,
+                rule_children=rule_children)
+
+            for widget in rule_children:
+                widget.dispatch('on_kv_post', self)
+            self.dispatch('on_kv_post', self)
 
         # Bind all the events.
         if on_args:
@@ -493,7 +499,7 @@ class Widget(WidgetBase):
     def on_kv_pre(self):
         pass
 
-    def on_kv_post(self):
+    def on_kv_post(self, root_widget):
         pass
 
     #
@@ -947,20 +953,6 @@ class Widget(WidgetBase):
         m = self._apply_transform(m)
         return m
 
-    def _dispatch_on_kv_post_recursively(self):
-        '''(internal)
-        NOTE: This method might be optimizable because::
-
-            if some_widget._on_post_was_fired:
-                # don't have to 'walk()' some_widget.children
-            else:
-                # have to 'walk()' some_widget.children
-        '''
-        for widget in self.walk(restrict=True):
-            if not widget._on_kv_post_was_fired:
-                widget.dispatch('on_kv_post')
-                widget._on_kv_post_was_fired = True
-
     x = NumericProperty(0)
     '''X position of the widget.
 
@@ -1404,10 +1396,4 @@ class Widget(WidgetBase):
         :class:`~kivy.properties.BooleanProperty` to an
         :class:`~kivy.properties.AliasProperty` to allow access to its
         previous state when a parent's disabled state is changed.
-    '''
-
-    _on_kv_post_was_fired = BooleanProperty(False)
-    '''(internal) Indicates whether 'on_kv_post' was fired or not
-
-    .. versionadded:: 1.11.0
     '''
