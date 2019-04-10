@@ -346,7 +346,9 @@ class VideoFFPy(VideoBase):
                 self._filename, callback=self._player_callback,
                 thread_lib='SDL',
                 loglevel='info', ff_opts=ff_opts)
-        self._ffplayer.set_volume(self._volume)
+
+        # Disabled as an attempt to fix kivy issue #6210
+        # self._ffplayer.set_volume(self._volume)
 
         self._thread = Thread(target=self._next_frame_run, name='Next frame')
         self._thread.daemon = True
