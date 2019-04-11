@@ -32,7 +32,7 @@ matrix:
       dist: bionic
     - language: python
       sudo: required
-      env: RUN=wheels DOCKER_IMAGE=markrwilliams/manylinux2:x86_64 USE_PANGOFT2=0
+      env: RUN=wheels DOCKER_IMAGE=quay.io/pypa/manylinux2010_x86_64
       services:
         - docker
     - language: generic
