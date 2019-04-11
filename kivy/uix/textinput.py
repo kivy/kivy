@@ -1374,27 +1374,29 @@ class TextInput(FocusBehavior, Widget):
 
         # Check for scroll wheel
         if 'button' in touch.profile and touch.button.startswith('scroll'):
+            # TODO: implement 'scrollleft' and 'scrollright'
             scroll_type = touch.button[6:]
             if scroll_type == 'down':
                 if self.multiline:
-                    if self.scroll_y <= 0:
-                        return True
-                    self.scroll_y -= self.line_height
+                    if self.scroll_y > 0:
+                        self.scroll_y -= self.line_height
+                        self._trigger_update_graphics()
                 else:
-                    if self.scroll_x <= 0:
-                        return True
-                    self.scroll_x -= self.line_height
+                    if self.scroll_x > 0:
+                        self.scroll_x -= self.line_height
+                        self._trigger_update_graphics()
             if scroll_type == 'up':
                 if self.multiline:
-                    if (self._lines_rects[-1].pos[1] > self.y +
+                    if (self._lines_rects[-1].pos[1] <= self.y +
                             self.line_height):
-                        return True
-                    self.scroll_y += self.line_height
+                        self.scroll_y += self.line_height
+                        self._trigger_update_graphics()
                 else:
-                    if (self.scroll_x + self.width >=
+                    if (self.scroll_x + self.width <
                             self._lines_rects[-1].texture.size[0]):
-                        return True
-                    self.scroll_x += self.line_height
+                        self.scroll_x += self.line_height
+                        self._trigger_update_graphics()
+            return True
 
         touch.grab(self)
         self._touch_count += 1

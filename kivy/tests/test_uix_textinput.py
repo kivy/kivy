@@ -4,11 +4,14 @@ uix.textinput tests
 '''
 
 import unittest
+from itertools import count
 
-from kivy.tests.common import GraphicUnitTest
+from kivy.tests.common import GraphicUnitTest, UTMotionEvent
 from kivy.uix.textinput import TextInput
 from kivy.uix.widget import Widget
 from kivy.clock import Clock
+
+touch_id = count()
 
 
 class TextInputTest(unittest.TestCase):
@@ -413,6 +416,35 @@ class TextInputGraphicTest(GraphicUnitTest):
         self.advance_frames(1)
         assert ti._visible_lines_range == (20, 30)
         assert prev_cursor != ti.cursor
+
+    def test_scroll_doesnt_move_cursor(self):
+        text = '\n'.join(map(str, range(30)))
+        ti = TextInput(text=text)
+        ti.focus = True
+
+        # use container to have flexible TextInput size
+        container = Widget()
+        container.add_widget(ti)
+        self.render(container)
+        ti.height = height_for_x_lines(ti, 10)
+        self.advance_frames(1)
+
+        from kivy.base import EventLoop
+        win = EventLoop.window
+        touch = UTMotionEvent("unittest", next(touch_id), {
+            "x": ti.center_x / float(win.width),
+            "y": ti.center_y / float(win.height),
+        })
+        touch.profile.append('button')
+        touch.button = 'scrolldown'
+
+        prev_cursor = ti.cursor
+        assert ti._visible_lines_range == (20, 30)
+        EventLoop.post_dispatch_input("begin", touch)
+        EventLoop.post_dispatch_input("end", touch)
+        self.advance_frames(1)
+        assert ti._visible_lines_range == (19, 29)
+        assert ti.cursor == prev_cursor
 
 
 def ti_height_for_x_lines(ti, x):
