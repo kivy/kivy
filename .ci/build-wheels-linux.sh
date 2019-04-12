@@ -51,5 +51,5 @@ done
 
 for name in /io/wheelhouse/*.whl; do
     echo "Fixing $name";
-    auditwheel repair $name -w /io/wheelhouse/;
+    auditwheel repair --plat manylinux2010_x86_64 $name -w /io/wheelhouse/;
 done
