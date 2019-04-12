@@ -100,7 +100,7 @@ install:
       sudo installer -package gstreamer-1.0-1.10.2-x86_64.pkg -target /;
       sudo installer -package gstreamer-1.0-devel-1.10.2-x86_64.pkg -target /;
       curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py;
-      if [ "${RUN}" == "app" ]  && ([ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ]  || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build app osx]" ]]); then
+      if [ "${RUN}" == "app" ]  && ([ "${TRAVIS_EVENT_TYPE}" == "crony" ] || [ "${TRAVIS_TAG}" != "" ]  || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build app osx]" ]]); then
           curl -O -L http://www.sveinbjorn.org/files/software/platypus/platypus4.8.zip;
           unzip platypus4.8.zip;
           mkdir -p /usr/local/bin;
@@ -187,7 +187,7 @@ script:
           make;
           env KIVY_NO_ARGS=1 pytest -v kivy/tests;
         fi;
-      elif [ "${RUN}" == "app" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]  && ([ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ]  || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build app osx]" ]]); then
+      elif [ "${RUN}" == "app" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]  && ([ "${TRAVIS_EVENT_TYPE}" == "crony" ] || [ "${TRAVIS_TAG}" != "" ]  || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build app osx]" ]]); then
           openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
           chmod 600 ~/.ssh/id_rsa;
           echo -e "Host $SERVER_IP\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
@@ -214,7 +214,7 @@ script:
           fi;
           yes | rsync -avh -e "ssh -p 2458" --include="*/" --include="*.dmg" --exclude="*" "./app/" "root@$SERVER_IP:/web/downloads/ci/osx/app/";
           popd;
-      elif [ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel]" ]] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel osx]" ]]; then
+      elif [ "${TRAVIS_EVENT_TYPE}" == "crony" ] || [ "${TRAVIS_TAG}" != "" ] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel]" ]] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel osx]" ]]; then
         mkdir ../wheelhouse;
 
         for pyver in $PYVERS; do
