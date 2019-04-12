@@ -446,6 +446,65 @@ class TextInputGraphicTest(GraphicUnitTest):
         assert ti._visible_lines_range == (19, 29)
         assert ti.cursor == prev_cursor
 
+    def test_vertical_scroll_doesnt_depend_on_lines_rendering(self):
+        # TextInput.on_touch_down was checking the possibility to scroll_up
+        # using the positions of the rendered lines' rects. These positions
+        # don't change when the lines are skipped (e.g. during fast scroll
+        # or ctrl+cursor_home) which lead to scroll freeze
+        text = '\n'.join(map(str, range(30)))
+        ti = TextInput(text=text)
+        ti.focus = True
+
+        # use container to have flexible TextInput size
+        container = Widget()
+        container.add_widget(ti)
+        self.render(container)
+        ti.height = height_for_x_lines(ti, 10)
+        self.advance_frames(1)
+
+        # move viewport to the first line
+        ti.do_cursor_movement('cursor_home', control=True)
+        self.advance_frames(1)
+        assert ti._visible_lines_range == (0, 10)
+
+        from kivy.base import EventLoop
+        win = EventLoop.window
+
+        # slowly scroll to the last line to render all lines at least once
+        for _ in range(30):  # little overscroll is important for detection
+            touch = UTMotionEvent("unittest", next(touch_id), {
+                "x": ti.center_x / float(win.width),
+                "y": ti.center_y / float(win.height),
+            })
+            touch.profile.append('button')
+            touch.button = 'scrollup'
+
+            EventLoop.post_dispatch_input("begin", touch)
+            EventLoop.post_dispatch_input("end", touch)
+            self.advance_frames(1)
+        assert ti._visible_lines_range == (20, 30)
+
+        # jump to the first line again
+        ti.do_cursor_movement('cursor_home', control=True)
+
+        # temp fix: only change of cursor position triggers update as for now
+        ti._trigger_update_graphics()
+
+        self.advance_frames(1)
+        assert ti._visible_lines_range == (0, 10)
+
+        # scrolling up should work now
+        touch = UTMotionEvent("unittest", next(touch_id), {
+            "x": ti.center_x / float(win.width),
+            "y": ti.center_y / float(win.height),
+        })
+        touch.profile.append('button')
+        touch.button = 'scrollup'
+        EventLoop.post_dispatch_input("begin", touch)
+        EventLoop.post_dispatch_input("end", touch)
+        self.advance_frames(1)
+        assert ti._visible_lines_range == (1, 11)
+
 
 def ti_height_for_x_lines(ti, x):
     """Calculate TextInput height required to display x lines in viewport.

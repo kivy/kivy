@@ -1387,8 +1387,11 @@ class TextInput(FocusBehavior, Widget):
                         self._trigger_update_graphics()
             if scroll_type == 'up':
                 if self.multiline:
-                    if (self._lines_rects[-1].pos[1] <= self.y +
-                            self.line_height):
+                    viewport_height = self.height\
+                                      - self.padding[1] - self.padding[3]
+                    text_height = len(self._lines) * (self.line_height
+                                                      + self.line_spacing)
+                    if viewport_height < text_height - self.scroll_y:
                         self.scroll_y += self.line_height
                         self._trigger_update_graphics()
                 else:
