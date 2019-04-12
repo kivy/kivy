@@ -358,17 +358,7 @@ class TextInputGraphicTest(GraphicUnitTest):
             self.assertTrue(ti._do_blink_cursor_ev.is_triggered)
 
     def test_visible_lines_range(self):
-        text = '\n'.join(map(str, range(30)))
-        ti = TextInput(text=text)
-        ti.focus = True
-
-        # use container to have flexible TextInput size
-        container = Widget()
-        container.add_widget(ti)
-        self.render(container)
-
-        ti.height = ti_height_for_x_lines(ti, 10)
-        self.advance_frames(1)
+        ti = self.make_scrollable_text_input()
         assert ti._visible_lines_range == (20, 30)
 
         ti.height = ti_height_for_x_lines(ti, 2.5)
@@ -381,15 +371,7 @@ class TextInputGraphicTest(GraphicUnitTest):
         assert ti._visible_lines_range == (0, 0)
 
     def test_keyboard_scroll(self):
-        text = '\n'.join(map(str, range(30)))
-        ti = TextInput(text=text)
-        ti.focus = True
-
-        # use container to have flexible TextInput size
-        container = Widget()
-        container.add_widget(ti)
-        self.render(container)
-        ti.height = height_for_x_lines(ti, 10)
+        ti = self.make_scrollable_text_input()
 
         prev_cursor = ti.cursor
         ti.do_cursor_movement('cursor_home', control=True)
@@ -418,16 +400,7 @@ class TextInputGraphicTest(GraphicUnitTest):
         assert prev_cursor != ti.cursor
 
     def test_scroll_doesnt_move_cursor(self):
-        text = '\n'.join(map(str, range(30)))
-        ti = TextInput(text=text)
-        ti.focus = True
-
-        # use container to have flexible TextInput size
-        container = Widget()
-        container.add_widget(ti)
-        self.render(container)
-        ti.height = height_for_x_lines(ti, 10)
-        self.advance_frames(1)
+        ti = self.make_scrollable_text_input()
 
         from kivy.base import EventLoop
         win = EventLoop.window
@@ -451,16 +424,7 @@ class TextInputGraphicTest(GraphicUnitTest):
         # using the positions of the rendered lines' rects. These positions
         # don't change when the lines are skipped (e.g. during fast scroll
         # or ctrl+cursor_home) which lead to scroll freeze
-        text = '\n'.join(map(str, range(30)))
-        ti = TextInput(text=text)
-        ti.focus = True
-
-        # use container to have flexible TextInput size
-        container = Widget()
-        container.add_widget(ti)
-        self.render(container)
-        ti.height = height_for_x_lines(ti, 10)
-        self.advance_frames(1)
+        ti = self.make_scrollable_text_input()
 
         # move viewport to the first line
         ti.do_cursor_movement('cursor_home', control=True)
@@ -504,6 +468,27 @@ class TextInputGraphicTest(GraphicUnitTest):
         EventLoop.post_dispatch_input("end", touch)
         self.advance_frames(1)
         assert ti._visible_lines_range == (1, 11)
+
+    def make_scrollable_text_input(self, num_of_lines=30, n_lines_to_show=10):
+        """Prepare and start rendering the scrollable text input.
+
+           num_of_lines -- amount of dummy lines used as contents
+           n_lines_to_show -- amount of lines to fit in viewport
+        """
+        # create TextInput instance with dummy contents
+        text = '\n'.join(map(str, range(num_of_lines)))
+        ti = TextInput(text=text)
+        ti.focus = True
+
+        # use container to have flexible TextInput size
+        container = Widget()
+        container.add_widget(ti)
+        self.render(container)
+
+        # change TextInput's size to contain the needed amount of lines
+        ti.height = ti_height_for_x_lines(ti, n_lines_to_show)
+        self.advance_frames(1)
+        return ti
 
 
 def ti_height_for_x_lines(ti, x):
