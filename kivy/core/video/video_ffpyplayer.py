@@ -341,6 +341,7 @@ class VideoFFPy(VideoBase):
             'paused': True,
             'out_fmt': self._out_fmt,
             'sn': True,
+            'volume': self._volume,
         }
         self._ffplayer = MediaPlayer(
                 self._filename, callback=self._player_callback,
