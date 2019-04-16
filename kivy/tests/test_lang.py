@@ -29,6 +29,9 @@ class BaseClass(object):
         self.children.append(widget)
         widget.parent = self
 
+    def dispatch(self, event_type, *largs, **kwargs):
+        pass
+
     def create_property(self, name, value=None):
         pass
 
