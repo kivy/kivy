@@ -116,6 +116,7 @@ class LangTestCase(unittest.TestCase):
                 textinput = ids.textinput
                 label = ids.label
                 label.text = 'A'
+                textinput.text = ''
                 textinput.text = 'B'
                 tc.assertEqual(label.text, 'B')
 
@@ -132,10 +133,11 @@ class LangTestCase(unittest.TestCase):
                 assertEqual = tc.assertNotEqual if reverse else tc.assertEqual
 
                 # check 'parent' property
-                assertTrue(parent is not None)
+                tc.assertTrue(parent is not None)
 
                 # check property binding
                 parent.x = 0
+                parent.y = 0
                 parent.y = 50
                 assertEqual(parent.x, 150)
 
@@ -151,10 +153,11 @@ class LangTestCase(unittest.TestCase):
                 assertEqual = tc.assertNotEqual if reverse else tc.assertEqual
 
                 # check 'parent' property
-                assertTrue(parent is not None)
+                tc.assertTrue(parent is not None)
 
                 # check property binding
                 parent.height = 1
+                parent.width = 0
                 parent.width = 50
                 assertEqual(parent.height, 100)
 
@@ -163,8 +166,15 @@ class LangTestCase(unittest.TestCase):
                 parent.dispatch('on_press')
                 assertEqual(parent.height, 123)
 
+            def on_kv_applied(self):
+                self._on_kv_applied_was_actually_fired = True
+                self.assert_my_own_rule_is_applied()
+                self.assert_the_rule_i_participate_in_is_applied(reverse=True)
+                self.assert_the_rule_i_dont_participate_in_is_applied(
+                    reverse=True)
+
             def on_kv_post(self, root_widget):
-                self._the_handler_was_actually_called = True
+                self._on_kv_post_was_actually_fired = True
                 self.assert_my_own_rule_is_applied()
                 self.assert_the_rule_i_participate_in_is_applied()
                 self.assert_the_rule_i_dont_participate_in_is_applied()
@@ -187,4 +197,6 @@ class LangTestCase(unittest.TestCase):
             on_press: self.height = 123
         '''))
         tc.assertTrue(hasattr(root.children[0],
-                              '_the_handler_was_actually_called'))
+                              '_on_kv_applied_was_actually_fired'))
+        tc.assertTrue(hasattr(root.children[0],
+                              '_on_kv_post_was_actually_fired'))
