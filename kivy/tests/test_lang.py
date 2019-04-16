@@ -29,12 +29,6 @@ class BaseClass(object):
         self.children.append(widget)
         widget.parent = self
 
-    def on_kv_pre(self):
-        pass
-
-    def on_kv_post(self, root_widget):
-        pass
-
     def dispatch(self, event_type, *largs, **kwargs):
         pass
 
