@@ -297,6 +297,12 @@ class Widget(WidgetBase):
             Fired when an existing touch moves
         `on_touch_up`:
             Fired when an existing touch disappears
+        `on_kv_pre`:
+            Fired before kv rules are applied
+        `on_kv_applied`:
+            Fired after its own kv rules are applied
+        `on_kv_post`:
+            Fired after all kv rules are applied
 
     .. warning::
         Adding a `__del__` method to a class derived from Widget with Python
@@ -316,7 +322,8 @@ class Widget(WidgetBase):
     '''
 
     __metaclass__ = WidgetMetaclass
-    __events__ = ('on_touch_down', 'on_touch_move', 'on_touch_up')
+    __events__ = ('on_touch_down', 'on_touch_move', 'on_touch_up',
+                  'on_kv_pre', 'on_kv_applied', 'on_kv_post')
     _proxy_ref = None
 
     def __init__(self, **kwargs):
@@ -343,9 +350,18 @@ class Widget(WidgetBase):
         if self.canvas is None:
             self.canvas = Canvas(opacity=self.opacity)
 
+        self.dispatch('on_kv_pre')
+
         # Apply all the styles.
         if not no_builder:
-            Builder.apply(self, ignored_consts=self._kwargs_applied_init)
+            rule_children = []
+            Builder.apply(
+                self, ignored_consts=self._kwargs_applied_init,
+                rule_children=rule_children)
+            self.dispatch('on_kv_applied')
+            for widget in rule_children:
+                widget.dispatch('on_kv_post', self)
+            self.dispatch('on_kv_post', self)
 
         # Bind all the events.
         if on_args:
@@ -481,6 +497,15 @@ class Widget(WidgetBase):
         for child in self.children[:]:
             if child.dispatch('on_touch_up', touch):
                 return True
+
+    def on_kv_pre(self):
+        pass
+
+    def on_kv_applied(self):
+        pass
+
+    def on_kv_post(self, root_widget):
+        pass
 
     #
     # Tree management
