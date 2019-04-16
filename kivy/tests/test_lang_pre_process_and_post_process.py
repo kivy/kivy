@@ -102,16 +102,11 @@ class LangTestCase(unittest.TestCase):
         root._ec1.assert_all_handlers_were_called_correctly()
         root._ec2.assert_all_handlers_were_called_correctly()
 
-    def test_all_rules_are_applied_before_on_kv_post_is_fired(self):
+    def test_each_rule_is_applied_at_proper_timing(self):
         tc = self
 
         class TestBoxLayout(Factory.BoxLayout):
-            def on_kv_post(self, root_widget):
-                self._the_handler_was_actually_called = True
-
-                # ---------------
-                # test children
-                # ---------------
+            def assert_my_own_rule_is_applied(self):
                 ids = self.ids
                 tc.assertIn('textinput', ids)
                 tc.assertIn('label', ids)
@@ -130,24 +125,49 @@ class LangTestCase(unittest.TestCase):
                 button.dispatch('on_press')
                 tc.assertEqual(button.text, 'pressed')
 
-                # ---------------
-                # test parent
-                # ---------------
+            def assert_the_rule_i_participate_in_is_applied(
+                    self, reverse=False):
                 parent = self.parent
+                assertTrue = tc.assertFalse if reverse else tc.assertTrue
+                assertEqual = tc.assertNotEqual if reverse else tc.assertEqual
 
                 # check 'parent' property
-                tc.assertTrue(parent is not None)
+                assertTrue(parent is not None)
+
+                # check property binding
+                parent.x = 0
+                parent.y = 50
+                assertEqual(parent.x, 150)
+
+                # check event handler
+                parent.x = 0
+                parent.dispatch('on_press')
+                assertEqual(parent.x, 200)
+
+            def assert_the_rule_i_dont_participate_in_is_applied(
+                    self, reverse=False):
+                parent = self.parent
+                assertTrue = tc.assertFalse if reverse else tc.assertTrue
+                assertEqual = tc.assertNotEqual if reverse else tc.assertEqual
+
+                # check 'parent' property
+                assertTrue(parent is not None)
 
                 # check property binding
                 parent.height = 1
                 parent.width = 50
-                tc.assertEqual(parent.height, 100)
+                assertEqual(parent.height, 100)
 
                 # check event handler
                 parent.height = 1
                 parent.dispatch('on_press')
-                tc.assertEqual(parent.height, 123)
+                assertEqual(parent.height, 123)
 
+            def on_kv_post(self, root_widget):
+                self._the_handler_was_actually_called = True
+                self.assert_my_own_rule_is_applied()
+                self.assert_the_rule_i_participate_in_is_applied()
+                self.assert_the_rule_i_dont_participate_in_is_applied()
         root = Builder.load_string(textwrap.dedent('''
         <TestBoxLayout>:
             Label:
@@ -159,6 +179,8 @@ class LangTestCase(unittest.TestCase):
                 id: button
                 on_press: self.text = 'pressed'
         <TestButton@Button>:
+            x: self.y + 100
+            on_press: self.x = 200
             TestBoxLayout:
         TestButton:
             height: self.width * 2
