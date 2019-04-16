@@ -166,31 +166,3 @@ class LangTestCase(unittest.TestCase):
         '''))
         tc.assertTrue(hasattr(root.children[0],
                               '_the_handler_was_actually_called'))
-
-    def test_all_properties_are_evaluated_before_on_kv_post_is_fired(self):
-        ae = self.assertEqual
-
-        Builder.load_string(textwrap.dedent('''
-        <TestLabel>:
-            text: 'A'
-            on_kv_post: self.text += 'B'
-            Label:
-                text: root.assert_the_text_hasnt_changed_yet() or 'hello'
-        <OtherTestLabel@TestLabel>:
-            on_kv_post: self.text += 'C'
-            height: self.assert_the_text_hasnt_changed_yet() or 200
-            Label:
-                text: root.assert_the_text_hasnt_changed_yet() or 'hello2'
-        '''))
-
-        class TestLabel(Factory.Label):
-            def assert_the_text_hasnt_changed_yet(self):
-                ae(self.text, 'A')
-
-        root = Builder.load_string(textwrap.dedent('''
-        BoxLayout:
-            OtherTestLabel:
-                id: label
-                on_kv_post: self.text += 'D'
-        '''))
-        ae(root.ids.label.text, 'ADCB')
