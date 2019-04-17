@@ -291,18 +291,25 @@ class Widget(WidgetBase):
     '''Widget class. See module documentation for more information.
 
     :Events:
-        `on_touch_down`:
-            Fired when a new touch event occurs
-        `on_touch_move`:
-            Fired when an existing touch moves
-        `on_touch_up`:
-            Fired when an existing touch disappears
-        `on_kv_pre`:
-            Fired before kv rules are applied
-        `on_kv_applied`:
-            Fired after its own kv rules are applied
-        `on_kv_post`:
-            Fired after all kv rules are applied
+        `on_touch_down`: `(touch, )`
+            Fired when a new touch event occurs. `touch` is the touch object.
+        `on_touch_move`: `(touch, )`
+            Fired when an existing touch moves. `touch` is the touch object.
+        `on_touch_up`: `(touch, )`
+            Fired when an existing touch disappears. `touch` is the touch
+            object.
+        `on_kv_pre`: `()`
+            Fired before kv rules are applied. It doesn't pass any parameters.
+        `on_kv_applied`: `(root_widget, )`
+            Fired after all the kv rules of the widget is applied.
+            `root_widget` is the widget at the root of the kv rule that
+            instantiated this widget, or `None` if it wasn't part of a rule
+            because it is instantiated in python.
+        `on_kv_post`: `(base_widget, )`
+            Fired after all the kv rules associated with the widget
+            and all other widgets that are in any of those rules have had
+            all their kv rules applied. `base_widget` is the base-most widget
+            whose instantiation triggered the kv rules.
 
     .. warning::
         Adding a `__del__` method to a class derived from Widget with Python
@@ -358,7 +365,7 @@ class Widget(WidgetBase):
             Builder.apply(
                 self, ignored_consts=self._kwargs_applied_init,
                 rule_children=rule_children)
-            self.dispatch('on_kv_applied')
+            self.dispatch('on_kv_applied', None)
             for widget in rule_children:
                 widget.dispatch('on_kv_post', self)
             self.dispatch('on_kv_post', self)
@@ -501,10 +508,10 @@ class Widget(WidgetBase):
     def on_kv_pre(self):
         pass
 
-    def on_kv_applied(self):
+    def on_kv_applied(self, root_widget):
         pass
 
-    def on_kv_post(self, root_widget):
+    def on_kv_post(self, base_widget):
         pass
 
     #
