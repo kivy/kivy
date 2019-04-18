@@ -1,16 +1,17 @@
 import unittest
 import textwrap
-from kivy.lang import Builder
-from kivy.factory import Factory
-from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty
+from collections import defaultdict
 
 
-class LangTestCase(unittest.TestCase):
+class LangTestCase(object):
 
     def test_how_many_times_handlers_are_called(self):
         '''NOTE: Event handlers are supposed to be called in the order below:
                  'root rule' -> 'class rule' -> 'default handler'
         '''
+        from kivy.lang import Builder
+        from kivy.factory import Factory
+        from kivy.properties import NumericProperty, BooleanProperty
         testcase = self
         ae = self.assertEqual
         NP = NumericProperty
@@ -103,6 +104,8 @@ class LangTestCase(unittest.TestCase):
         root._ec2.assert_all_handlers_were_called_correctly()
 
     def test_each_rule_is_applied_at_proper_timing(self):
+        from kivy.lang import Builder
+        from kivy.factory import Factory
         tc = self
 
         class TestBoxLayout(Factory.BoxLayout):
@@ -200,3 +203,281 @@ class LangTestCase(unittest.TestCase):
                               '_on_kv_applied_was_actually_fired'))
         tc.assertTrue(hasattr(root.children[0],
                               '_on_kv_post_was_actually_fired'))
+
+
+class TrackCallbacks(object):
+
+    kv_pre_events = []
+
+    kv_applied_events = []
+
+    kv_post_events = []
+
+    events_in_pre = []
+
+    events_in_applied = []
+
+    events_in_post = []
+
+    instantiated_widgets = []
+
+    root_widget = None
+
+    base_widget = None
+
+    actual_root_widget = None
+
+    actual_base_widget = None
+
+    name = 'none'
+
+    def __init__(self, name='none', **kwargs):
+        self.kv_pre_events = self.kv_pre_events[:]
+        self.kv_applied_events = self.kv_applied_events[:]
+        self.kv_post_events = self.kv_post_events[:]
+        self.events_in_pre = self.events_in_pre[:]
+        self.events_in_applied = self.events_in_applied[:]
+        self.events_in_post = self.events_in_post[:]
+
+        self.name = name
+
+        super(TrackCallbacks, self).__init__(**kwargs)
+        self.instantiated_widgets.append(self)
+
+    def add(self, name, event):
+        events = getattr(self, 'kv_{}_events'.format(event))
+        events.append(name)
+
+    @classmethod
+    def check(cls, testcase):
+        for widget in cls.instantiated_widgets:
+            for event in ('pre', 'applied', 'post'):
+                cls.check_event(widget, event, testcase)
+
+            testcase.assertIs(
+                widget.root_widget and widget.root_widget.__self__,
+                widget.actual_root_widget and
+                widget.actual_root_widget.__self__,
+                'expected "{}", got "{}" instead for root_widget'.format(
+                    widget.root_widget and widget.root_widget.name,
+                    widget.actual_root_widget and
+                    widget.actual_root_widget.name))
+            testcase.assertIs(
+                widget.base_widget and widget.base_widget.__self__,
+                widget.actual_base_widget and
+                widget.actual_base_widget.__self__,
+                'expected "{}", got "{}" instead for base_widget'.format(
+                    widget.base_widget and widget.base_widget.name,
+                    widget.actual_base_widget and
+                    widget.actual_base_widget.name))
+
+    @staticmethod
+    def check_event(widget, event_name, testcase):
+        events = getattr(widget, 'kv_{}_events'.format(event_name))
+        should_be_in = getattr(widget, 'events_in_{}'.format(event_name))
+
+        counter = defaultdict(int)
+        for name in events:
+            counter[name] += 1
+
+        for name, value in counter.items():
+            testcase.assertEqual(
+                value, 1,
+                '"{}" was present "{}" times for event "{}" for widget "{} '
+                '({})"'.format(name, value, event_name, widget.name, widget))
+
+        testcase.assertEqual(
+            set(should_be_in), set(events),
+            'Expected and actual event callbacks do not match for event "{}" '
+            'for widget "{} ({})"'.format(
+                event_name, widget.name, widget))
+
+    @staticmethod
+    def get_base_class():
+        from kivy.uix.widget import Widget
+
+        class TestEventsBase(TrackCallbacks, Widget):
+            instantiated_widgets = []
+
+            events_in_pre = [1, ]
+            events_in_applied = [1, ]
+            events_in_post = [1, ]
+
+            def on_kv_pre(self):
+                self.add(1, 'pre')
+
+            def on_kv_applied(self, root_widget):
+                self.add(1, 'applied')
+                self.actual_root_widget = root_widget
+
+            def on_kv_post(self, base_widget):
+                self.add(1, 'post')
+                self.actual_base_widget = base_widget
+
+        return TestEventsBase
+
+    def __repr__(self):
+        module = type(self).__module__
+        qualname = type(self).__qualname__
+        return '<Name: "{}" {}.{} object at {}>'.format(
+            self.name, module, qualname, hex(id(self)))
+
+
+class TestKvEvents(unittest.TestCase):
+
+    def test_pure_python_auto_binding(self):
+        class TestEventsPureAuto(TrackCallbacks.get_base_class()):
+            instantiated_widgets = []
+
+        widget = TestEventsPureAuto()
+        widget.root_widget = None
+        widget.base_widget = widget
+        TestEventsPureAuto.check(self)
+
+    def test_pure_python_callbacks(self):
+        class TestEventsPure(TrackCallbacks.get_base_class()):
+            instantiated_widgets = []
+
+            events_in_pre = [1, 2]
+            events_in_applied = [1, 2]
+            events_in_post = [1, 2]
+
+            def __init__(self, **kwargs):
+                self.fbind('on_kv_pre', lambda _: self.add(2, 'pre'))
+                self.fbind(
+                    'on_kv_applied', lambda _, x: self.add(2, 'applied'))
+                self.fbind('on_kv_post', lambda _, x: self.add(2, 'post'))
+
+                super(TestEventsPure, self).__init__(**kwargs)
+
+        widget = TestEventsPure()
+        widget.root_widget = None
+        widget.base_widget = widget
+
+        widget.fbind('on_kv_pre', lambda _: widget.add(3, 'pre'))
+        widget.fbind('on_kv_applied', lambda _, x: widget.add(3, 'applied'))
+        widget.fbind('on_kv_post', lambda _, x: widget.add(3, 'post'))
+
+        TestEventsPure.check(self)
+
+    def test_instantiate_from_kv(self):
+        from kivy.lang import Builder
+
+        class TestEventsFromKV(TrackCallbacks.get_base_class()):
+            instantiated_widgets = []
+
+        widget = Builder.load_string('TestEventsFromKV')
+        self.assertIsInstance(widget, TestEventsFromKV)
+        widget.root_widget = widget
+        widget.base_widget = widget
+
+        widget.check(self)
+
+    def test_instantiate_from_kv_with_event(self):
+        from kivy.lang import Builder
+
+        class TestEventsFromKVEvent(TrackCallbacks.get_base_class()):
+            instantiated_widgets = []
+
+        widget = Builder.load_string(textwrap.dedent("""
+        TestEventsFromKVEvent:
+            events_in_post: [1, 2]
+            on_kv_pre: self.add(2, 'pre')
+            on_kv_applied: self.add(2, 'applied')
+            on_kv_post: self.add(2, 'post')
+            root_widget: self
+            base_widget: self
+        """))
+
+        self.assertIsInstance(widget, TestEventsFromKVEvent)
+        widget.check(self)
+
+    def test_instantiate_from_kv_with_child(self):
+        from kivy.lang import Builder
+
+        class TestEventsFromKVChild(TrackCallbacks.get_base_class()):
+            instantiated_widgets = []
+
+        widget = Builder.load_string(textwrap.dedent("""
+        TestEventsFromKVChild:
+            events_in_post: [1, 2]
+            on_kv_pre: self.add(2, 'pre')
+            on_kv_applied: self.add(2, 'applied')
+            on_kv_post: self.add(2, 'post')
+            root_widget: self
+            base_widget: self
+            name: 'root'
+            TestEventsFromKVChild:
+                events_in_post: [1, 2]
+                on_kv_pre: self.add(2, 'pre')
+                on_kv_applied: self.add(2, 'applied')
+                on_kv_post: self.add(2, 'post')
+                root_widget: root
+                base_widget: root
+                name: 'child'
+        """))
+
+        self.assertIsInstance(widget, TestEventsFromKVChild)
+        widget.check(self)
+
+    def test_instantiate_from_kv_with_child_inherit(self):
+        from kivy.lang import Builder
+
+        class TestEventsFromKVChildInherit(TrackCallbacks.get_base_class()):
+            instantiated_widgets = []
+
+        widget = Builder.load_string(textwrap.dedent("""
+        <TestEventsFromKVChildInherit2@TestEventsFromKVChildInherit>:
+            on_kv_pre: self.add(3, 'pre')
+            on_kv_applied: self.add(3, 'applied')
+            on_kv_post: self.add(3, 'post')
+
+        <TestEventsFromKVChildInherit3@TestEventsFromKVChildInherit2>:
+            on_kv_pre: self.add(4, 'pre')
+            on_kv_applied: self.add(4, 'applied')
+            on_kv_post: self.add(4, 'post')
+            TestEventsFromKVChildInherit2:
+                events_in_applied: [1, 2, 3]
+                events_in_post: [1, 2, 3, 4]
+                on_kv_pre: self.add(4, 'pre')
+                on_kv_applied: self.add(4, 'applied')
+                on_kv_post: self.add(4, 'post')
+                root_widget: root
+                base_widget: self.parent.parent
+                name: 'third child'
+
+        <TestEventsFromKVChildInherit>:
+            on_kv_pre: self.add(2, 'pre')
+            on_kv_applied: self.add(2, 'applied')
+            on_kv_post: self.add(2, 'post')
+
+        TestEventsFromKVChildInherit:
+            events_in_applied: [1, 2]
+            events_in_post: [1, 2, 3]
+            on_kv_pre: self.add(3, 'pre')
+            on_kv_applied: self.add(3, 'applied')
+            on_kv_post: self.add(3, 'post')
+            root_widget: self
+            base_widget: self
+            name: 'root'
+            TestEventsFromKVChildInherit:
+                events_in_applied: [1, 2]
+                events_in_post: [1, 2, 3]
+                on_kv_pre: self.add(3, 'pre')
+                on_kv_applied: self.add(3, 'applied')
+                on_kv_post: self.add(3, 'post')
+                root_widget: root
+                base_widget: root
+                name: 'first child'
+            TestEventsFromKVChildInherit3:
+                events_in_applied: [1, 2, 3, 4]
+                events_in_post: [1, 2, 3, 4, 5]
+                on_kv_pre: self.add(5, 'pre')
+                on_kv_applied: self.add(5, 'applied')
+                on_kv_post: self.add(5, 'post')
+                root_widget: root
+                base_widget: root
+                name: 'second child'
+        """))
+
+        widget.check(self)
