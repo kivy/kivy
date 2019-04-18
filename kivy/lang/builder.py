@@ -399,11 +399,11 @@ class BuilderBase(object):
                 widget = Factory.get(parser.root.name)(__no_builder=True)
                 rule_children = []
                 self.apply(widget, rule_children=rule_children)
+                widget.dispatch('on_kv_applied', widget)
                 self._apply_rule(
                     widget, parser.root, parser.root,
                     rule_children=rule_children)
 
-                widget.dispatch('on_kv_applied', widget)
                 for child in rule_children:
                     child.dispatch('on_kv_post', widget)
                 widget.dispatch('on_kv_post', widget)
@@ -596,9 +596,9 @@ class BuilderBase(object):
                 child = cls(__no_builder=True)
                 widget.add_widget(child)
                 self.apply(child, rule_children=rule_children)
+                child.dispatch('on_kv_applied', rctx['ids']['root'])
                 self._apply_rule(
                     child, crule, rootrule, rule_children=rule_children)
-                child.dispatch('on_kv_applied', rctx['ids']['root'])
 
                 if rule_children is not None:
                     rule_children.append(child)
