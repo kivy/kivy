@@ -298,18 +298,12 @@ class Widget(WidgetBase):
         `on_touch_up`: `(touch, )`
             Fired when an existing touch disappears. `touch` is the touch
             object.
-        `on_kv_pre`: `()`
-            Fired before kv rules are applied. It doesn't pass any parameters.
-        `on_kv_applied`: `(root_widget, )`
-            Fired after all the kv rules of the widget is applied.
-            `root_widget` is the widget at the root of the kv rule that
-            instantiated this widget, or `None` if it wasn't part of a rule
-            because it is instantiated in python.
         `on_kv_post`: `(base_widget, )`
             Fired after all the kv rules associated with the widget
             and all other widgets that are in any of those rules have had
             all their kv rules applied. `base_widget` is the base-most widget
-            whose instantiation triggered the kv rules.
+            whose instantiation triggered the kv rules (i.e. the widget
+            instantiated from Python, e.g. ``MyWidget()``).
 
     .. warning::
         Adding a `__del__` method to a class derived from Widget with Python
@@ -329,8 +323,8 @@ class Widget(WidgetBase):
     '''
 
     __metaclass__ = WidgetMetaclass
-    __events__ = ('on_touch_down', 'on_touch_move', 'on_touch_up',
-                  'on_kv_pre', 'on_kv_applied', 'on_kv_post')
+    __events__ = (
+        'on_touch_down', 'on_touch_move', 'on_touch_up', 'on_kv_post')
     _proxy_ref = None
 
     def __init__(self, **kwargs):
@@ -357,15 +351,13 @@ class Widget(WidgetBase):
         if self.canvas is None:
             self.canvas = Canvas(opacity=self.opacity)
 
-        self.dispatch('on_kv_pre')
-
         # Apply all the styles.
         if not no_builder:
             rule_children = []
-            Builder.apply(
-                self, ignored_consts=self._kwargs_applied_init,
+            self.apply_class_lang_rules(
+                ignored_consts=self._kwargs_applied_init,
                 rule_children=rule_children)
-            self.dispatch('on_kv_applied', None)
+
             for widget in rule_children:
                 widget.dispatch('on_kv_post', self)
             self.dispatch('on_kv_post', self)
@@ -401,6 +393,12 @@ class Widget(WidgetBase):
     @property
     def __self__(self):
         return self
+
+    def apply_class_lang_rules(
+            self, root=None, ignored_consts=set(), rule_children=None):
+        Builder.apply(
+            self, ignored_consts=ignored_consts,
+            rule_children=rule_children)
 
     #
     # Collision
@@ -504,12 +502,6 @@ class Widget(WidgetBase):
         for child in self.children[:]:
             if child.dispatch('on_touch_up', touch):
                 return True
-
-    def on_kv_pre(self):
-        pass
-
-    def on_kv_applied(self, root_widget):
-        pass
 
     def on_kv_post(self, base_widget):
         pass

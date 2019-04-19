@@ -297,6 +297,9 @@ class TrackCallbacks(object):
         from kivy.uix.widget import Widget
 
         class TestEventsBase(TrackCallbacks, Widget):
+
+            __events__ = ('on_kv_pre', 'on_kv_applied')
+
             instantiated_widgets = []
 
             events_in_pre = [1, ]
@@ -313,6 +316,12 @@ class TrackCallbacks(object):
             def on_kv_post(self, base_widget):
                 self.add(1, 'post')
                 self.actual_base_widget = base_widget
+
+            def apply_class_lang_rules(self, root=None, **kwargs):
+                self.dispatch('on_kv_pre')
+                super(TestEventsBase, self).apply_class_lang_rules(
+                    root=root, **kwargs)
+                self.dispatch('on_kv_applied', root)
 
         return TestEventsBase
 
