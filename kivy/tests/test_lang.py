@@ -42,6 +42,10 @@ class BaseClass(object):
         self.binded_func[name] = partial(func, *largs)
         return True
 
+    def apply_class_lang_rules(
+            self, root=None, ignored_consts=set(), rule_children=None):
+        pass
+
 
 class TLangClass(BaseClass):
     obj = None

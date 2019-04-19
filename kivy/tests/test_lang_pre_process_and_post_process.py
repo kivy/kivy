@@ -3,233 +3,85 @@ import textwrap
 from collections import defaultdict
 
 
-class LangTestCase(object):
-
-    def test_how_many_times_handlers_are_called(self):
-        '''NOTE: Event handlers are supposed to be called in the order below:
-                 'root rule' -> 'class rule' -> 'default handler'
-        '''
-        from kivy.lang import Builder
-        from kivy.factory import Factory
-        from kivy.properties import NumericProperty, BooleanProperty
-        testcase = self
-        ae = self.assertEqual
-        NP = NumericProperty
-
-        class EventCounter(Factory.Widget):
-            there_is_a_rootrule = BooleanProperty(True)
-            _n_pre_from_d = NP(0)  # 'd' stands for 'default handler'
-            _n_post_from_r = NP(0)  # 'r' stands for 'root rule'
-            _n_post_from_c = NP(0)  # 'c' stands for 'class rule'
-            _n_post_from_d = NP(0)
-
-            def on_kv_pre(self):
-                self._n_pre_from_d += 1
-                ae(self._n_pre_from_d, 1)
-                ae(self._n_post_from_r, 0)
-                ae(self._n_post_from_c, 0)
-                ae(self._n_post_from_d, 0)
-
-            def on_kv_pre_from_c(self):
-                testcase.fail('This method is not supposed to be called')
-
-            def on_kv_pre_from_r(self):
-                testcase.fail('This method is not supposed to be called')
-
-            def on_kv_post(self, root_widget):
-                self._n_post_from_d += 1
-                self.assert_all_handlers_were_called_correctly()
-
-            def on_kv_post_from_c(self):
-                self._n_post_from_c += 1
-                ae(self._n_pre_from_d, 1)
-                ae(self._n_post_from_r, 1 if self.there_is_a_rootrule else 0)
-                ae(self._n_post_from_c, 1)
-                ae(self._n_post_from_d, 0)
-
-            def on_kv_post_from_r(self):
-                if not self.there_is_a_rootrule:
-                    testcase.fail(
-                        "Strange. The handler was called even though "
-                        "there is no root rule.")
-                self._n_post_from_r += 1
-                ae(self._n_pre_from_d, 1)
-                ae(self._n_post_from_r, 1)
-                ae(self._n_post_from_c, 0)
-                ae(self._n_post_from_d, 0)
-
-            def assert_all_handlers_were_called_correctly(self):
-                ae(self._n_pre_from_d, 1)
-                ae(self._n_post_from_r, 1 if self.there_is_a_rootrule else 0)
-                ae(self._n_post_from_c, 1)
-                ae(self._n_post_from_d, 1)
-
-        Builder.load_string(textwrap.dedent('''
-        <EventCounter>:
-            on_kv_pre: self.on_kv_pre_from_c()  # This line won't be excuted
-            on_kv_post: self.on_kv_post_from_c()
-        '''))
-
-        # case #1: Without root rule
-        root = EventCounter(there_is_a_rootrule=False)
-        root.assert_all_handlers_were_called_correctly()
-
-        # case #2: With root rule
-        root = Builder.load_string(textwrap.dedent('''
-        EventCounter:
-            on_kv_pre: self.on_kv_pre_from_r()  # won't be excuted
-            on_kv_post: self.on_kv_post_from_r()
-            EventCounter:
-                id: child
-                on_kv_pre: self.on_kv_pre_from_r()  # won't be excuted
-                on_kv_post: self.on_kv_post_from_r()
-        '''))
-        root.assert_all_handlers_were_called_correctly()
-        root.ids.child.assert_all_handlers_were_called_correctly()
-
-        # case #3: If the user add a widget during 'on_kv_pre()' or
-        #          '__init__()', is 'on_kv_post' still fired exactly
-        #          once on that widget?
-        class TestWidget(Factory.Widget):
-            def __init__(self, **kwargs):
-                super(TestWidget, self).__init__(**kwargs)
-                self._ec1 = EventCounter(there_is_a_rootrule=False)
-                self.add_widget(self._ec1)
-
-            def on_kv_pre(self):
-                self._ec2 = EventCounter(there_is_a_rootrule=False)
-                self.add_widget(self._ec2)
-        root = TestWidget()
-        root._ec1.assert_all_handlers_were_called_correctly()
-        root._ec2.assert_all_handlers_were_called_correctly()
-
-    def test_each_rule_is_applied_at_proper_timing(self):
-        from kivy.lang import Builder
-        from kivy.factory import Factory
-        tc = self
-
-        class TestBoxLayout(Factory.BoxLayout):
-            def assert_my_own_rule_is_applied(self):
-                ids = self.ids
-                tc.assertIn('textinput', ids)
-                tc.assertIn('label', ids)
-                tc.assertIn('button', ids)
-
-                # check property binding
-                textinput = ids.textinput
-                label = ids.label
-                label.text = 'A'
-                textinput.text = ''
-                textinput.text = 'B'
-                tc.assertEqual(label.text, 'B')
-
-                # check event handler
-                button = ids.button
-                button.text = ''
-                button.dispatch('on_press')
-                tc.assertEqual(button.text, 'pressed')
-
-            def assert_the_rule_i_participate_in_is_applied(
-                    self, reverse=False):
-                parent = self.parent
-                assertTrue = tc.assertFalse if reverse else tc.assertTrue
-                assertEqual = tc.assertNotEqual if reverse else tc.assertEqual
-
-                # check 'parent' property
-                tc.assertTrue(parent is not None)
-
-                # check property binding
-                parent.x = 0
-                parent.y = 0
-                parent.y = 50
-                assertEqual(parent.x, 150)
-
-                # check event handler
-                parent.x = 0
-                parent.dispatch('on_press')
-                assertEqual(parent.x, 200)
-
-            def assert_the_rule_i_dont_participate_in_is_applied(
-                    self, reverse=False):
-                parent = self.parent
-                assertTrue = tc.assertFalse if reverse else tc.assertTrue
-                assertEqual = tc.assertNotEqual if reverse else tc.assertEqual
-
-                # check 'parent' property
-                tc.assertTrue(parent is not None)
-
-                # check property binding
-                parent.height = 1
-                parent.width = 0
-                parent.width = 50
-                assertEqual(parent.height, 100)
-
-                # check event handler
-                parent.height = 1
-                parent.dispatch('on_press')
-                assertEqual(parent.height, 123)
-
-            def on_kv_applied(self):
-                self._on_kv_applied_was_actually_fired = True
-                self.assert_my_own_rule_is_applied()
-                self.assert_the_rule_i_participate_in_is_applied(reverse=True)
-                self.assert_the_rule_i_dont_participate_in_is_applied(
-                    reverse=True)
-
-            def on_kv_post(self, root_widget):
-                self._on_kv_post_was_actually_fired = True
-                self.assert_my_own_rule_is_applied()
-                self.assert_the_rule_i_participate_in_is_applied()
-                self.assert_the_rule_i_dont_participate_in_is_applied()
-        root = Builder.load_string(textwrap.dedent('''
-        <TestBoxLayout>:
-            Label:
-                id: label
-                text: textinput.text
-            TextInput:
-                id: textinput
-            Button:
-                id: button
-                on_press: self.text = 'pressed'
-        <TestButton@Button>:
-            x: self.y + 100
-            on_press: self.x = 200
-            TestBoxLayout:
-        TestButton:
-            height: self.width * 2
-            on_press: self.height = 123
-        '''))
-        tc.assertTrue(hasattr(root.children[0],
-                              '_on_kv_applied_was_actually_fired'))
-        tc.assertTrue(hasattr(root.children[0],
-                              '_on_kv_post_was_actually_fired'))
-
-
 class TrackCallbacks(object):
 
     kv_pre_events = []
+    '''Stores values added during the pre event dispatched callbacks.
+    '''
 
     kv_applied_events = []
+    '''Stores values added during the applied event dispatched callbacks.
+    '''
 
     kv_post_events = []
+    '''Stores values added during the post event dispatched callbacks.
+    '''
 
     events_in_pre = []
+    '''List of expected events that should be in kv_pre_events after all the
+    callbacks has been executed.
+    '''
 
     events_in_applied = []
+    '''List of expected events that should be in kv_applied_events after all
+    the callbacks has been executed.
+    '''
 
     events_in_post = []
+    '''List of expected events that should be in kv_post_events after all the
+    callbacks has been executed.
+    '''
 
     instantiated_widgets = []
+    '''Whenever a widget of this class is instantiated, it is added to this
+    list, which is class specific.
+
+    It lets us iterate through all the instance of this class and assert for
+    all of them as needed.
+    '''
 
     root_widget = None
+    '''The expected root widget in the kv rule as dispatched in on_kv_applied.
+    '''
 
     base_widget = None
+    '''The expected base widget as dispatched in on_kv_post.
+    '''
 
     actual_root_widget = None
+    '''The actual root widget in the kv rule as dispatched in on_kv_applied.
+    '''
 
     actual_base_widget = None
+    '''The actual base widget as dispatched in on_kv_post.
+    '''
 
     name = 'none'
+    '''Optional name given to the widget to help it identify during a test
+    failure.
+    '''
+
+    my_roots_expected_ids = {}
+    '''Dictionary containing the expected ids as stored in the root
+    widget's `ids`. The root being this widget's root widget from kv.
+    '''
+
+    actual_ids = {}
+    '''Dictionary containing the actual ids as stored in the root
+    widget's `ids`. The root being this widget's root widget from kv.
+
+    The ids is saved here during the `on_kv_post` callback.
+    '''
+
+    expected_prop_values = {}
+    '''A dict of property names and the values they are expected to have
+    during the on_kv_post dispatch.
+    '''
+
+    actual_prop_values = {}
+    '''A dict of property names and the values they actually had
+    during the on_kv_post dispatch.
+    '''
 
     def __init__(self, name='none', **kwargs):
         self.kv_pre_events = self.kv_pre_events[:]
@@ -245,15 +97,28 @@ class TrackCallbacks(object):
         self.instantiated_widgets.append(self)
 
     def add(self, name, event):
+        '''Add name to the list of the names added in the callbacks for this
+        event.
+        '''
         events = getattr(self, 'kv_{}_events'.format(event))
         events.append(name)
 
     @classmethod
     def check(cls, testcase):
+        '''Checks that all the widgets of this class pass all the assertions.
+        '''
         for widget in cls.instantiated_widgets:
+            # check that all the events match
             for event in ('pre', 'applied', 'post'):
                 cls.check_event(widget, event, testcase)
 
+            # check that the ids are properly saved during on_kv_post dispatch
+            expected = {
+                k: v.__self__ for k, v in widget.my_roots_expected_ids.items()}
+            actual = {k: v.__self__ for k, v in widget.actual_ids.items()}
+            testcase.assertEqual(expected, actual)
+
+            # check that the root widget is as expected
             testcase.assertIs(
                 widget.root_widget and widget.root_widget.__self__,
                 widget.actual_root_widget and
@@ -262,6 +127,8 @@ class TrackCallbacks(object):
                     widget.root_widget and widget.root_widget.name,
                     widget.actual_root_widget and
                     widget.actual_root_widget.name))
+
+            # check that the base widget is as expected
             testcase.assertIs(
                 widget.base_widget and widget.base_widget.__self__,
                 widget.actual_base_widget and
@@ -271,8 +138,14 @@ class TrackCallbacks(object):
                     widget.actual_base_widget and
                     widget.actual_base_widget.name))
 
+            # check that the properties have expected values
+            testcase.assertEqual(
+                widget.expected_prop_values, widget.actual_prop_values)
+
     @staticmethod
     def check_event(widget, event_name, testcase):
+        '''Check that the names are added as expected for this event.
+        '''
         events = getattr(widget, 'kv_{}_events'.format(event_name))
         should_be_in = getattr(widget, 'events_in_{}'.format(event_name))
 
@@ -294,6 +167,9 @@ class TrackCallbacks(object):
 
     @staticmethod
     def get_base_class():
+        '''The base class to use for widgets during testing so we can use
+        this class variables to ease testing.
+        '''
         from kivy.uix.widget import Widget
 
         class TestEventsBase(TrackCallbacks, Widget):
@@ -316,6 +192,12 @@ class TrackCallbacks(object):
             def on_kv_post(self, base_widget):
                 self.add(1, 'post')
                 self.actual_base_widget = base_widget
+                self.actual_prop_values = {
+                    k: getattr(self, k) for k in self.expected_prop_values}
+
+                if self.actual_root_widget is not None:
+                    # make a copy of the ids at the current moment
+                    self.actual_ids = dict(self.actual_root_widget.ids)
 
             def apply_class_lang_rules(self, root=None, **kwargs):
                 self.dispatch('on_kv_pre')
@@ -327,7 +209,10 @@ class TrackCallbacks(object):
 
     def __repr__(self):
         module = type(self).__module__
-        qualname = type(self).__qualname__
+        try:
+            qualname = type(self).__qualname__
+        except AttributeError:  # python 2
+            qualname = ''
         return '<Name: "{}" {}.{} object at {}>'.format(
             self.name, module, qualname, hex(id(self)))
 
@@ -416,6 +301,7 @@ class TestKvEvents(unittest.TestCase):
             root_widget: self
             base_widget: self
             name: 'root'
+            my_roots_expected_ids: {'child_widget': child_widget}
             TestEventsFromKVChild:
                 events_in_post: [1, 2]
                 on_kv_pre: self.add(2, 'pre')
@@ -424,6 +310,8 @@ class TestKvEvents(unittest.TestCase):
                 root_widget: root
                 base_widget: root
                 name: 'child'
+                id: child_widget
+                my_roots_expected_ids: {'child_widget': self}
         """))
 
         self.assertIsInstance(widget, TestEventsFromKVChild)
@@ -445,6 +333,7 @@ class TestKvEvents(unittest.TestCase):
             on_kv_pre: self.add(4, 'pre')
             on_kv_applied: self.add(4, 'applied')
             on_kv_post: self.add(4, 'post')
+            some_value: 'fruit'
             TestEventsFromKVChildInherit2:
                 events_in_applied: [1, 2, 3]
                 events_in_post: [1, 2, 3, 4]
@@ -454,11 +343,14 @@ class TestKvEvents(unittest.TestCase):
                 root_widget: root
                 base_widget: self.parent.parent
                 name: 'third child'
+                id: third_child
+                my_roots_expected_ids: {'third_child': self}
 
         <TestEventsFromKVChildInherit>:
             on_kv_pre: self.add(2, 'pre')
             on_kv_applied: self.add(2, 'applied')
             on_kv_post: self.add(2, 'post')
+            another_value: 'apple'
 
         TestEventsFromKVChildInherit:
             events_in_applied: [1, 2]
@@ -469,6 +361,8 @@ class TestKvEvents(unittest.TestCase):
             root_widget: self
             base_widget: self
             name: 'root'
+            my_roots_expected_ids: \
+                {'second_child': second_child, 'first_child': first_child}
             TestEventsFromKVChildInherit:
                 events_in_applied: [1, 2]
                 events_in_post: [1, 2, 3]
@@ -478,6 +372,9 @@ class TestKvEvents(unittest.TestCase):
                 root_widget: root
                 base_widget: root
                 name: 'first child'
+                id: first_child
+                my_roots_expected_ids: \
+                    {'second_child': second_child, 'first_child': self}
             TestEventsFromKVChildInherit3:
                 events_in_applied: [1, 2, 3, 4]
                 events_in_post: [1, 2, 3, 4, 5]
@@ -487,6 +384,11 @@ class TestKvEvents(unittest.TestCase):
                 root_widget: root
                 base_widget: root
                 name: 'second child'
+                some_value: first_child.another_value
+                expected_prop_values: {'some_value': 'apple'}
+                id: second_child
+                my_roots_expected_ids: \
+                    {'second_child': self, 'first_child': first_child}
         """))
 
         widget.check(self)
