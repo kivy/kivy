@@ -398,8 +398,8 @@ class BuilderBase(object):
             if parser.root:
                 widget = Factory.get(parser.root.name)(__no_builder=True)
                 rule_children = []
-                self.apply(widget, rule_children=rule_children)
-                widget.dispatch('on_kv_applied', widget)
+                widget.apply_class_lang_rules(
+                    root=widget, rule_children=rule_children)
                 self._apply_rule(
                     widget, parser.root, parser.root,
                     rule_children=rule_children)
@@ -595,8 +595,8 @@ class BuilderBase(object):
                 # apply(), and so, we could use "self.parent".
                 child = cls(__no_builder=True)
                 widget.add_widget(child)
-                self.apply(child, rule_children=rule_children)
-                child.dispatch('on_kv_applied', rctx['ids']['root'])
+                child.apply_class_lang_rules(
+                    root=rctx['ids']['root'], rule_children=rule_children)
                 self._apply_rule(
                     child, crule, rootrule, rule_children=rule_children)
 
