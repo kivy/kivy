@@ -68,6 +68,10 @@ class HIDMotionEvent(MotionEvent):
         if 'pressure' in args:
             self.pressure = args['pressure']
             self.profile.append('pressure')
+        if 'button' in args:
+            self.button = args['button']
+            self.profile.append('button')
+
         super(HIDMotionEvent, self).depack(args)
 
     def __str__(self):
@@ -200,14 +204,14 @@ else:
         0x35: ('/', '?'),
         0x36: ('shift', ),
         0x56: ('pipe', ),
-        0x1d: ('ctrl', ),
+        0x1d: ('lctrl', ),
         0x7D: ('super', ),
         0x38: ('alt', ),
         0x39: ('spacebar', ),
         0x64: ('alt-gr', ),
         0x7e: ('super', ),
         0x7f: ('compose', ),
-        0x61: ('ctrl', ),
+        0x61: ('rctrl', ),
         0x45: ('numlock', ),
         0x47: ('numpad7', 'home'),
         0x4b: ('numpad4', 'left'),
@@ -498,6 +502,13 @@ else:
                 if ev_type == EV_SYN:
                     if ev_code == SYN_REPORT:
                         process([point])
+                        if 'button' in point and point['button'].startswith('scroll'):
+                            # for scrolls we need to remove it as there is no up key
+                            del point['button']
+                            point['id'] += 1
+                            point['_avoid'] = True
+                            process([point])
+
                 elif ev_type == EV_REL:
                     if ev_code == 0:
                         assign_rel_coord(point,
@@ -507,6 +518,15 @@ else:
                         assign_rel_coord(point,
                             min(1., max(-1., ev_value / 1000.)),
                             invert_y, 'yx')
+                    elif ev_code == 8: # Wheel
+                        # translates the wheel move to a button
+                        b= "scrollup" if ev_value < 0 else "scrolldown"
+                        if 'button' not in point:
+                            point['button'] = b
+                            point['id'] += 1
+                            if '_avoid' in point:
+                                del point['_avoid']
+
                 elif ev_type != EV_KEY:
                     if ev_code == ABS_X:
                         val = normalize(ev_value,
@@ -553,6 +573,9 @@ else:
                                 if 'shift' in Window._modifiers else 0]
                             if z == 'shift' or z == 'alt':
                                 Window._modifiers.append(z)
+                            elif z.endswith('ctrl'):
+                                Window._modifiers.append('ctrl')
+
                             dispatch_queue.append(('key_down', (
                                 Keyboard.keycodes[z.lower()], ev_code,
                                 keys_str.get(z, z), Window._modifiers)))
@@ -562,8 +585,11 @@ else:
                             dispatch_queue.append(('key_up', (
                                 Keyboard.keycodes[z.lower()], ev_code,
                                 keys_str.get(z, z), Window._modifiers)))
-                            if z == 'shift':
-                                Window._modifiers.remove('shift')
+                            if z == 'shift' or z == 'alt':
+                                Window._modifiers.remove(z)
+                            elif z.endswith('ctrl'):
+                                Window._modifiers.remove('ctrl')
+
 
             def process(points):
                 if not is_multitouch:
