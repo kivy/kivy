@@ -572,7 +572,7 @@ else:
                                 point['id'] += 1
                                 point['_avoid'] = True
                     else:
-                        if ev_value < 0 or ev_value > 1:
+                        if not 0 <= ev_value <= 1:
                             return
 
                         if ev_code not in keyboard_keys:
