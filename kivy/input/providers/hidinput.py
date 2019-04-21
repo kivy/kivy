@@ -502,12 +502,13 @@ else:
                         point['size_h'] = ev_value
 
             def process_as_mouse_or_keyboard(
-                tv_sec, tv_usec, ev_type, ev_code, ev_value):
+                    tv_sec, tv_usec, ev_type, ev_code, ev_value):
                 if ev_type == EV_SYN:
                     if ev_code == SYN_REPORT:
                         process([point])
                         if 'button' in point and point['button'].startswith('scroll'):
-                            # for scrolls we need to remove it as there is no up key
+                            # for scrolls we need to remove it as there is
+                            # no up key
                             del point['button']
                             point['id'] += 1
                             point['_avoid'] = True
@@ -516,12 +517,12 @@ else:
                 elif ev_type == EV_REL:
                     if ev_code == 0:
                         assign_rel_coord(point,
-                            min(1., max(-1., ev_value / 1000.)),
-                            invert_x, 'xy')
+                                         min(1., max(-1., ev_value / 1000.)),
+                                         invert_x, 'xy')
                     elif ev_code == 1:
                         assign_rel_coord(point,
-                            min(1., max(-1., ev_value / 1000.)),
-                            invert_y, 'yx')
+                                         min(1., max(-1., ev_value / 1000.)),
+                                         invert_y, 'yx')
                     elif ev_code == 8:  # Wheel
                         # translates the wheel move to a button
                         b = "scrollup" if ev_value < 0 else "scrolldown"
@@ -576,8 +577,8 @@ else:
                             return
 
                         if ev_code not in keyboard_keys:
-                            # we don't want to crash if an unknown key is pressed
-                            Logger.warn('HIDInput: unhandled HID code: {}'.format(ev_code))
+                            Logger.warn('HIDInput: unhandled HID code: {}'.
+                                        format(ev_code))
                             return
 
                         z = keyboard_keys[ev_code][-1 if 'shift' in Window._modifiers else 0]
