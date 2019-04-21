@@ -524,7 +524,7 @@ else:
                             invert_y, 'yx')
                     elif ev_code == 8: # Wheel
                         # translates the wheel move to a button
-                        b= "scrollup" if ev_value < 0 else "scrolldown"
+                        b = "scrollup" if ev_value < 0 else "scrolldown"
                         if 'button' not in point:
                             point['button'] = b
                             point['id'] += 1
