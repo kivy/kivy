@@ -506,7 +506,8 @@ else:
                 if ev_type == EV_SYN:
                     if ev_code == SYN_REPORT:
                         process([point])
-                        if 'button' in point and point['button'].startswith('scroll'):
+                        if ('button' in point and
+                                point['button'].startswith('scroll')):
                             # for scrolls we need to remove it as there is
                             # no up key
                             del point['button']
@@ -581,10 +582,12 @@ else:
                                         format(ev_code))
                             return
 
-                        z = keyboard_keys[ev_code][-1 if 'shift' in Window._modifiers else 0]
+                        z = keyboard_keys[ev_code][-1 if 'shift' in
+                                                   Window._modifiers else 0]
                         if z.lower() not in Keyboard.keycodes:
                             # or if it is not in this LUT
-                            Logger.warn('HIDInput: unhandled character: {}'.format(z))
+                            Logger.warn('HIDInput: unhandled character: {}'.
+                                        format(z))
                             return
 
                         keycode = Keyboard.keycodes[z.lower()]
@@ -602,9 +605,11 @@ else:
                             dispatch_queue.append(('key_up', (
                                 keycode, ev_code,
                                 keys_str.get(z, z), Window._modifiers)))
-                            if (z == 'shift' or z == 'alt') and z in Window._modifiers:
+                            if ((z == 'shift' or z == 'alt') and
+                                    (z in Window._modifiers)):
                                 Window._modifiers.remove(z)
-                            elif z.endswith('ctrl') and 'ctrl' in Window._modifiers:
+                            elif (z.endswith('ctrl') and
+                                  'ctrl' in Window._modifiers):
                                 Window._modifiers.remove('ctrl')
 
             def process(points):
