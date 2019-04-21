@@ -568,22 +568,32 @@ else:
                                 point['id'] += 1
                                 point['_avoid'] = True
                     else:
+                        if ev_value < 0 or ev_value > 1:
+                            return
+
+                        if ev_code not in keyboard_keys:
+                            # we don't want to crash if an unknown key is pressed
+                            return
+
+                        z = keyboard_keys[ev_code][-1 if 'shift' in Window._modifiers else 0]
+                        if z.lower() not in Keyboard.keycodes:
+                            # or if it is not in this LUT
+                            return
+
+                        keycode= Keyboard.keycodes[z.lower()]
+
                         if ev_value == 1:
-                            z = keyboard_keys[ev_code][-1
-                                if 'shift' in Window._modifiers else 0]
                             if z == 'shift' or z == 'alt':
                                 Window._modifiers.append(z)
                             elif z.endswith('ctrl'):
                                 Window._modifiers.append('ctrl')
 
                             dispatch_queue.append(('key_down', (
-                                Keyboard.keycodes[z.lower()], ev_code,
+                                keycode, ev_code,
                                 keys_str.get(z, z), Window._modifiers)))
                         elif ev_value == 0:
-                            z = keyboard_keys[ev_code][-1
-                                if 'shift' in Window._modifiers else 0]
                             dispatch_queue.append(('key_up', (
-                                Keyboard.keycodes[z.lower()], ev_code,
+                                keycode, ev_code,
                                 keys_str.get(z, z), Window._modifiers)))
                             if z == 'shift' or z == 'alt':
                                 Window._modifiers.remove(z)
