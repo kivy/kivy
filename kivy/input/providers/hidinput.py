@@ -595,9 +595,9 @@ else:
                             dispatch_queue.append(('key_up', (
                                 keycode, ev_code,
                                 keys_str.get(z, z), Window._modifiers)))
-                            if z == 'shift' or z == 'alt':
+                            if (z == 'shift' or z == 'alt') and z in Window._modifiers:
                                 Window._modifiers.remove(z)
-                            elif z.endswith('ctrl'):
+                            elif z.endswith('ctrl') and 'ctrl' in Window._modifiers:
                                 Window._modifiers.remove('ctrl')
 
 
