@@ -42,12 +42,12 @@ max_position_y=32768
     `rotation` configuration token added.
 
 '''
-
-__all__ = ('HIDInputMotionEventProvider', 'HIDMotionEvent')
-
 import os
 from kivy.input.motionevent import MotionEvent
 from kivy.input.shape import ShapeRect
+
+__all__ = ('HIDInputMotionEventProvider', 'HIDMotionEvent')
+
 # late imports
 Window = None
 Keyboard = None
