@@ -573,11 +573,13 @@ else:
 
                         if ev_code not in keyboard_keys:
                             # we don't want to crash if an unknown key is pressed
+                            Logger.warn('HIDInput: unhandled HID code: {}'.format(ev_code))
                             return
 
                         z = keyboard_keys[ev_code][-1 if 'shift' in Window._modifiers else 0]
                         if z.lower() not in Keyboard.keycodes:
                             # or if it is not in this LUT
+                            Logger.warn('HIDInput: unhandled character: {}'.format(z))
                             return
 
                         keycode= Keyboard.keycodes[z.lower()]
