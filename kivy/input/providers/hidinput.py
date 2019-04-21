@@ -454,6 +454,10 @@ else:
                 elif rotation == 270:
                     point[cy] += -value
 
+                # limit it to the screen area 0-1
+                point['x'] = min(1., max(0., point['x']))
+                point['y'] = min(1., max(0., point['y']))
+
             def process_as_multitouch(tv_sec, tv_usec, ev_type,
                                       ev_code, ev_value):
                 # sync event
