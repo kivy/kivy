@@ -522,7 +522,7 @@ else:
                         assign_rel_coord(point,
                             min(1., max(-1., ev_value / 1000.)),
                             invert_y, 'yx')
-                    elif ev_code == 8: # Wheel
+                    elif ev_code == 8:  # Wheel
                         # translates the wheel move to a button
                         b = "scrollup" if ev_value < 0 else "scrolldown"
                         if 'button' not in point:
@@ -586,7 +586,7 @@ else:
                             Logger.warn('HIDInput: unhandled character: {}'.format(z))
                             return
 
-                        keycode= Keyboard.keycodes[z.lower()]
+                        keycode = Keyboard.keycodes[z.lower()]
 
                         if ev_value == 1:
                             if z == 'shift' or z == 'alt':
@@ -605,7 +605,6 @@ else:
                                 Window._modifiers.remove(z)
                             elif z.endswith('ctrl') and 'ctrl' in Window._modifiers:
                                 Window._modifiers.remove('ctrl')
-
 
             def process(points):
                 if not is_multitouch:
