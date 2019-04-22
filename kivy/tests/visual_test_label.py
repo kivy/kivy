@@ -141,7 +141,7 @@ kv = '''
             text: 'valign: '
         TSpinner:
             name: 'valign'
-            values: ['top', 'middle', 'bottom']
+            values: ['top', 'middle', 'center', 'bottom']
             text: 'bottom'
         TBoolButton:
             text: 'markup'
@@ -270,6 +270,7 @@ def annotate(pre, post, callable, words):
             words[i] = post.format(words[i])
         state = not state
         i += random.randint(1, 7)
+
 
 annotate('[size={0}]{1}', '{0}[/size]', partial(random.randint, 8, 24), words)
 annotate('[b]{1}', '{0}[/b]', str, words)

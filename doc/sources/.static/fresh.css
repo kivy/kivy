@@ -350,10 +350,11 @@ table.field-list tr {
 }
 table.field-list td.field-body {
 	padding: 10px;
-	padding-top: 0px;
+	padding-bottom: 0px;
+	padding-top: 5px;
 }
 table.field-list td.field-body dl.docutils {
-	margin-top: 0px;
+	margin-top: -6px;
 	margin-left: -10px;
 }
 
@@ -483,4 +484,13 @@ div.navlink {
 	text-align: right;
 	top: -30px;
 	height: 0px;
+}
+
+#version_selector {
+	width: 100%;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	border: 1px solid #d0d0d0;
+	padding: 0.5em 1em;
+	background: #ffffff00 url('disclosure_down.png') top right no-repeat;
 }

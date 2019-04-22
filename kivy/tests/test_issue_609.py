@@ -1,7 +1,7 @@
 from kivy.tests.common import GraphicUnitTest
 
 
-class Issue609(GraphicUnitTest):
+class Issue609(object):
 
     def test_markup_pos(self):
         from kivy.uix.label import Label

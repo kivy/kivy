@@ -4,12 +4,12 @@ uix.gridlayout tests
 '''
 
 import unittest
+from kivy.tests.common import GraphicUnitTest
 
 from kivy.uix.gridlayout import GridLayout
-from kivy.uix.widget import Widget
 
 
-class UixGridLayoutTest(unittest.TestCase):
+class GridLayoutTest(unittest.TestCase):
 
     def test_gridlayout_get_max_widgets_cols_rows_None(self):
         gl = GridLayout()
@@ -38,3 +38,19 @@ class UixGridLayoutTest(unittest.TestCase):
         expected = 15
         value = gl.get_max_widgets()
         self.assertEqual(expected, value)
+
+
+class UixGridLayoutTest(GraphicUnitTest):
+
+    def test_rows_cols_sizes(self):
+        # ref github issue #5278 _init_rows_cols_sizes fix
+        # this combination could trigger an error
+        gl = GridLayout()
+        gl.cols = 1
+        gl.cols_minimum = {i: 10 for i in range(10)}
+        gl.add_widget(GridLayout())
+        self.render(gl)
+
+
+if __name__ == '__main__':
+    unittest.main()

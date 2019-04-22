@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.factory import Factory
@@ -55,10 +54,11 @@ class Root(FloatLayout):
 class Editor(App):
     pass
 
+
 Factory.register('Root', cls=Root)
 Factory.register('LoadDialog', cls=LoadDialog)
 Factory.register('SaveDialog', cls=SaveDialog)
 
+
 if __name__ == '__main__':
     Editor().run()
-

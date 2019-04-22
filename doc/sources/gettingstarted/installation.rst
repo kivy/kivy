@@ -16,8 +16,8 @@ specific platform:
     :class: gs-osimage
 
 .. image:: ../images/macosx.png
-    :alt: MacOSX
-    :target: ../installation/installation-macosx.html
+    :alt: OS X
+    :target: ../installation/installation-osx.html
     :class: gs-osimage
 
 .. image:: ../images/linux.png

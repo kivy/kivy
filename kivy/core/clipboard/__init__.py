@@ -5,23 +5,16 @@ Clipboard
 Core class for accessing the Clipboard. If we are not able to access the
 system clipboard, a fake one will be used.
 
-Usage example::
+Usage example:
 
-    >>> from kivy.core.clipboard import Clipboard
-    >>> Clipboard.get_types()
-    ['TIMESTAMP', 'TARGETS', 'MULTIPLE', 'SAVE_TARGETS', 'UTF8_STRING',
-    'COMPOUND_TEXT', 'TEXT', 'STRING', 'text/plain;charset=utf-8',
-    'text/plain']
-    >>> Clipboard.get('TEXT')
-    'Hello World'
-    >>> Clipboard.put('Great', 'UTF8_STRING')
-    >>> Clipboard.get_types()
-    ['UTF8_STRING']
-    >>> Clipboard.get('UTF8_STRING')
-    'Great'
+.. code-block:: kv
 
-.. note:: The main implementation relies on Pygame and works well with
-          text/strings. Anything else might not work the same on all platforms.
+    #:import Clipboard kivy.core.clipboard.Clipboard
+
+    Button:
+        on_release:
+            self.text = Clipboard.paste()
+            Clipboard.copy('Data')
 '''
 
 __all__ = ('ClipboardBase', 'Clipboard')
@@ -38,7 +31,7 @@ class ClipboardBase(object):
         '''Get the current data in clipboard, using the mimetype if possible.
         You not use this method directly. Use :meth:`paste` instead.
         '''
-        return None
+        pass
 
     def put(self, data, mimetype):
         '''Put data on the clipboard, and attach a mimetype.
@@ -88,14 +81,9 @@ class ClipboardBase(object):
         return self._paste()
 
     def _copy(self, data):
-        # explicitly terminate strings with a null character
-        # so as to avoid putting spurious data after the end.
-        # MS windows issue.
         self._ensure_clipboard()
         if not isinstance(data, bytes):
             data = data.encode(self._encoding)
-        if platform == 'win':
-            data += b'\x00'
         self.put(data, self._clip_mime_type)
 
     def _paste(self):
@@ -132,13 +120,13 @@ elif platform == 'win':
         ('winctypes', 'clipboard_winctypes', 'ClipboardWindows'))
 elif platform == 'linux':
     _clipboards.append(
-        ('dbusklipper', 'clipboard_dbusklipper', 'ClipboardDbusKlipper'))
-    _clipboards.append(
-        ('gtk3', 'clipboard_gtk3', 'ClipboardGtk3'))
-    _clipboards.append(
         ('xclip', 'clipboard_xclip', 'ClipboardXclip'))
     _clipboards.append(
         ('xsel', 'clipboard_xsel', 'ClipboardXsel'))
+    _clipboards.append(
+        ('dbusklipper', 'clipboard_dbusklipper', 'ClipboardDbusKlipper'))
+    _clipboards.append(
+        ('gtk3', 'clipboard_gtk3', 'ClipboardGtk3'))
 
 if USE_SDL2:
     _clipboards.append(
@@ -162,7 +150,8 @@ if platform == 'linux':
     if Clipboard.__class__.__name__ in (c[2] for c in _cutbuffers):
         CutBuffer = Clipboard
     else:
-        CutBuffer = core_select_lib('clipboard', _cutbuffers, True)
+        CutBuffer = core_select_lib('cutbuffer', _cutbuffers, True,
+                                    basemodule='clipboard')
 
     if CutBuffer:
         Logger.info('CutBuffer: cut buffer support enabled')

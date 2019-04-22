@@ -5,8 +5,8 @@ Video Gstplayer
 .. versionadded:: 1.8.0
 
 Implementation of a VideoBase with Kivy :class:`~kivy.lib.gstplayer.GstPlayer`
-This player is the prefered player, using Gstreamer 1.0, working on both Python
-2 and 3.
+This player is the preferred player, using Gstreamer 1.0, working on both
+Python 2 and 3.
 '''
 
 from kivy.lib.gstplayer import GstPlayer, get_gst_version
@@ -88,7 +88,7 @@ class VideoGstplayer(VideoBase):
         self.player.set_volume(self.volume)
         self.player.play()
 
-    def seek(self, percent):
+    def seek(self, percent, precise=True):
         self.player.seek(percent)
 
     def _get_position(self):
@@ -96,9 +96,6 @@ class VideoGstplayer(VideoBase):
 
     def _get_duration(self):
         return self.player.get_duration()
-
-    def _get_volume(self):
-        return self._volume
 
     def _set_volume(self, value):
         self._volume = value
@@ -132,6 +129,6 @@ class VideoGstplayer(VideoBase):
         uri = self.filename
         if not uri:
             return
-        if not '://' in uri:
+        if '://' not in uri:
             uri = 'file:' + pathname2url(realpath(uri))
         return uri

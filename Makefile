@@ -1,7 +1,7 @@
 PYTHON = python
 CHECKSCRIPT = kivy/tools/pep8checker/pep8kivy.py
 KIVY_DIR = kivy/
-NOSETESTS = $(PYTHON) -m nose.core
+PYTEST = $(PYTHON) -m pytest
 KIVY_USE_DEFAULTCONFIG = 1
 HOSTPYTHON = $(KIVYIOSROOT)/tmp/Python-$(PYTHON_VERSION)/hostpython
 
@@ -11,12 +11,12 @@ IOSPATH := $(PATH):/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin
 
 BUILD_OPTS       = build_ext --inplace
 BUILD_OPTS_FORCE = $(BUILD_OPTS) -f
-BUILD_OPTS_DEBUG = $(BUILD_OPTS_FORCE)-g
+BUILD_OPTS_DEBUG = $(BUILD_OPTS_FORCE) -g --cython-gdb
 
 INSTALL_OPTIONS  = install
-INSTALL_ROOT     = 
-INSTALL_PREFIX   = 
-INSTALL_LAYOUT   = 
+INSTALL_ROOT     =
+INSTALL_PREFIX   =
+INSTALL_LAYOUT   =
 
 ifneq ($(INSTALL_ROOT),)
 	INSTALL_OPTIONS += --root=$(INSTALL_ROOT)
@@ -29,7 +29,7 @@ ifneq ($(INSTALL_LAYOUT),)
 endif
 
 
-.PHONY: build force mesabuild pdf style stylereport hook test batchtest cover clean distclean theming
+.PHONY: build force mesabuild pdf style hook test batchtest cover clean distclean theming
 
 build:
 	$(PYTHON) setup.py $(BUILD_OPTS)
@@ -38,7 +38,7 @@ force:
 	$(PYTHON) setup.py $(BUILD_OPTS_FORCE)
 
 debug:
-	$(PYTHON) setup.py $(BUILD_OPTS_DEBUG)
+	env CFLAGS="-Og" $(PYTHON) setup.py $(BUILD_OPTS_DEBUG)
 
 mesabuild:
 	env USE_MESAGL=1 $(PYTHON) setup.py $(BUILD_OPTS)
@@ -64,6 +64,7 @@ ios:
 	cp -R "iosbuild/usr/local/lib/python2.7/site-packages/kivy" "$(BUILDROOT)/python/lib/python2.7/site-packages"
 
 pdf: build
+	-cd doc && $(MAKE) pdf
 	cd doc && $(MAKE) pdf
 
 html: build
@@ -76,18 +77,19 @@ html-embedded:
 style:
 	$(PYTHON) $(CHECKSCRIPT) .
 
-stylereport:
-	$(PYTHON) $(CHECKSCRIPT) -html .
-
 hook:
 	# Install pre-commit git hook to check your changes for styleguide
 	# consistency.
 	cp kivy/tools/pep8checker/pre-commit.githook .git/hooks/pre-commit
 	chmod +x .git/hooks/pre-commit
 
+image-testsuite:
+	mkdir -p "${KIVY_DIR}tests/image-testsuite"
+	-${KIVY_DIR}tools/image-testsuite/imagemagick-testsuite.sh "${KIVY_DIR}tests/image-testsuite"
+
 test:
 	-rm -rf kivy/tests/build
-	$(NOSETESTS) kivy/tests
+	env KIVY_NO_ARGS=1 $(PYTEST) kivy/tests
 
 cover:
 	coverage html --include='$(KIVY_DIR)*' --omit '$(KIVY_DIR)data/*,$(KIVY_DIR)lib/*,$(KIVY_DIR)tools/*,$(KIVY_DIR)tests/*'
@@ -130,8 +132,7 @@ help:
 	@echo "  html           to make standalone HTML files"
 	@echo "  install        run a setup.py install"
 	@echo "  mesabuild      for a build with MesaGL"
-	@echo "  style          to check Python code for style hints."
-	@echo "  style-report   make html version of style hints"
+	@echo "  style          to check Python code for style issues"
 	@echo "  test           run unittests (nosetests)"
 	@echo "  theming        create a default theme atlas"
 	@echo "  "

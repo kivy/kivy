@@ -12,7 +12,6 @@ __all__ = ('InputPostprocTripleTap', )
 from time import time
 from kivy.config import Config
 from kivy.vector import Vector
-from kivy.clock import Clock
 
 
 class InputPostprocTripleTap(object):
@@ -69,7 +68,6 @@ class InputPostprocTripleTap(object):
                 continue
             touch.triple_tap_distance = distance
             return touch
-        return None
 
     def process(self, events):
         if self.triple_tap_distance == 0 or self.triple_tap_time == 0:
@@ -88,7 +86,7 @@ class InputPostprocTripleTap(object):
                     distance = triple_tap.triple_tap_distance
                     touch.triple_tap_distance = distance
 
-            # add the touch internaly
+            # add the touch internally
             self.touches[touch.uid] = (etype, touch)
 
         # second, check if up-touch is timeout for triple tap

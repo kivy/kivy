@@ -7,14 +7,17 @@ Scissor Instructions
 
 Scissor instructions clip your drawing area into a rectangular region.
 
-- class:`ScissorPush`: Begins clipping, sets the bounds of the clip space
-- class:`ScissorPop`: Ends clipping
+- :class:`ScissorPush`: Begins clipping, sets the bounds of the clip space
+- :class:`ScissorPop`: Ends clipping
+
 The area provided to clip is in screenspace pixels and must be provided as
 integer values not floats.
 
 The following code will draw a circle ontop of our widget while clipping
 the circle so it does not expand beyond the widget borders.
+
 .. code-block:: python
+
     with self.canvas.after:
         #If our widget is inside another widget that modified the coordinates
         #spacing (such as ScrollView) we will want to convert to Window coords
@@ -30,12 +33,10 @@ the circle so it does not expand beyond the widget borders.
             pos=self.center)
         ScissorPop()
 '''
-include "config.pxi"
+include "../include/config.pxi"
 include "opcodes.pxi"
 
-from kivy.graphics.c_opengl cimport *
-IF USE_OPENGL_DEBUG == 1:
-    from kivy.graphics.c_opengl_debug cimport *
+from kivy.graphics.cgl cimport *
 from kivy.graphics.instructions cimport Instruction
 
 cdef class Rect:
@@ -76,13 +77,13 @@ cdef class ScissorStack:
     def __init__(self):
         self._stack = []
 
-    property empty:
-        def __get__(self):
-            return True if len(self._stack) is 0 else False
+    @property
+    def empty(self):
+        return True if len(self._stack) is 0 else False
 
-    property back:
-        def __get__(self):
-            return self._stack[-1]
+    @property
+    def back(self):
+        return self._stack[-1]
 
     def push(self, element):
         self._stack.append(element)
@@ -109,53 +110,65 @@ cdef class ScissorPush(Instruction):
     cdef int _height
     cdef Rect _rect
 
-    property x:
-        def __get__(self):
-            return self._x
-        def __set__(self, value):
-            self._x = value
-            self._rect = Rect(self._x, self._y, self._width, self._height)
-            self.flag_update()
+    @property
+    def x(self):
+        return self._x
 
-    property y:
-        def __get__(self):
-            return self._y
-        def __set__(self, value):
-            self._y = value
-            self._rect = Rect(self._x, self._y, self._width, self._height)
-            self.flag_update()
+    @x.setter
+    def x(self, value):
+        self._x = value
+        self._rect = Rect(self._x, self._y, self._width, self._height)
+        self.flag_update()
 
-    property width:
-        def __get__(self):
-            return self._width
-        def __set__(self, value):
-            self._width = value
-            self._rect = Rect(self._x, self._y, self._width, self._height)
-            self.flag_update()
+    @property
+    def y(self):
+        return self._y
 
-    property height:
-        def __get__(self):
-            return self._height
-        def __set__(self, value):
-            self._height = value
-            self._rect = Rect(self._x, self._y, self._width, self._height)
-            self.flag_update()
+    @y.setter
+    def y(self, value):
+        self._y = value
+        self._rect = Rect(self._x, self._y, self._width, self._height)
+        self.flag_update()
 
-    property pos:
-        def __get__(self):
-            return self._x, self._y
-        def __set__(self, value):
-            self._x, self._y = value
-            self._rect = Rect(self._x, self._y, self._width, self._height)
-            self.flag_update()
+    @property
+    def width(self):
+        return self._width
 
-    property size:
-        def __get__(self):
-            return self._width, self._height
-        def __set__(self, value):
-            self._width, self._height = value
-            self._rect = Rect(self._x, self._y, self._width, self._height)
-            self.flag_update()
+    @width.setter
+    def width(self, value):
+        self._width = value
+        self._rect = Rect(self._x, self._y, self._width, self._height)
+        self.flag_update()
+
+    @property
+    def height(self):
+        return self._height
+
+    @height.setter
+    def height(self, value):
+        self._height = value
+        self._rect = Rect(self._x, self._y, self._width, self._height)
+        self.flag_update()
+
+    @property
+    def pos(self):
+        return self._x, self._y
+
+    @pos.setter
+    def pos(self, value):
+        self._x, self._y = value
+        self._rect = Rect(self._x, self._y, self._width, self._height)
+        self.flag_update()
+
+    @property
+    def size(self):
+        return self._width, self._height
+
+    @size.setter
+    def size(self, value):
+        self._width, self._height = value
+        self._rect = Rect(self._x, self._y, self._width, self._height)
+        self.flag_update()
 
     def __init__(self, **kwargs):
         self._x, self._y = kwargs.pop(
@@ -179,15 +192,15 @@ cdef class ScissorPush(Instruction):
         cdef Rect back
         if scissor_stack.empty:
             scissor_stack.push(rect)
-            glEnable(GL_SCISSOR_TEST)
-            glScissor(self._x, self._y, self._width, self._height)
+            cgl.glEnable(GL_SCISSOR_TEST)
+            cgl.glScissor(self._x, self._y, self._width, self._height)
         else:
             new_scissor_rect = Rect(rect._x, rect._y,
                 rect._width, rect._height)
             back = scissor_stack.back
             new_scissor_rect.intersect(back)
             scissor_stack.push(new_scissor_rect)
-            glScissor(new_scissor_rect._x, new_scissor_rect._y,
+            cgl.glScissor(new_scissor_rect._x, new_scissor_rect._y,
                 new_scissor_rect._width, new_scissor_rect._height)
 
 cdef class ScissorPop(Instruction):
@@ -199,8 +212,8 @@ cdef class ScissorPop(Instruction):
         scissor_stack.pop()
         cdef Rect new_scissor_rect
         if scissor_stack.empty:
-            glDisable(GL_SCISSOR_TEST)
+            cgl.glDisable(GL_SCISSOR_TEST)
         else:
             new_scissor_rect = scissor_stack.back
-            glScissor(new_scissor_rect._x, new_scissor_rect._y,
+            cgl.glScissor(new_scissor_rect._x, new_scissor_rect._y,
                 new_scissor_rect._width, new_scissor_rect._height)

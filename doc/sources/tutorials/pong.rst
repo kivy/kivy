@@ -73,7 +73,7 @@ Add Simple Graphics
 We will use a .kv file to define the look and feel of the ``PongGame`` class.
 Since our :class:`~kivy.app.App` class is called ``PongApp``, we can simply create a file
 called ``pong.kv`` in the same directory that will be automatically loaded
-when the application is run. So create a new file called ``*pong.kv*`` and add
+when the application is run. So create a new file called *``pong.kv``* and add
 the following contents.
 
 .. literalinclude:: ../../../examples/tutorials/pong/steps/step2/pong.kv
@@ -444,8 +444,8 @@ think about how you could improve the game. Here are a few ideas of things
 you could do:
 
 * Add some nicer graphics / images. (Hint: check out the
-  :attribute:`~kivy.graphics.instructions.Instruction.source` property on
-  the graphics instructions like :class:`~kivy.graphics.Circle` or
+  :attr:`~kivy.graphics.instructions.VertexInstruction.source` property on
+  the graphics instructions like :attr:`~kivy.graphics.Line.circle` or
   :class:`~kivy.graphics.Rectangle`, to set an image as the
   texture.)
 

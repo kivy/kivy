@@ -3,9 +3,10 @@ from kivy.app import App
 from kivy.clock import Clock
 import os.path
 from kivy import lang
+from kivy.tests.common import GraphicUnitTest
 
 
-class AppTest(unittest.TestCase):
+class AppTest(GraphicUnitTest):
     def test_start_raw_app(self):
         lang._delayed_start = None
         a = App()
@@ -26,4 +27,3 @@ class AppTest(unittest.TestCase):
         data_dir = a.user_data_dir
         if not os.path.exists(data_dir):
             raise Exception("user_data_dir didnt exists")
-

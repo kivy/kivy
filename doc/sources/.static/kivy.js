@@ -1,6 +1,13 @@
 $(document).ready(function () {
-	var height = $(document).height();
-	$('#content').css('min-height', function(){ return height; });
+	// get real height of all elements inside div#content
+	function getRealHeight() {
+		var realHeight = 0;
+		$("#content").children().each(function(){
+			realHeight = realHeight + $(this).outerHeight(true);
+		});
+		return realHeight;
+	}
+	$('#content').css('min-height', getRealHeight());
 
 	var bodyshortcut = false;
 	function ensure_bodyshortcut() {
@@ -27,7 +34,7 @@ $(document).ready(function () {
 	// insert breaker only for the first data/class/function found.
 	var apibreaker = false;
 	$('div.body dl[class]').each(function (i1, elem) {
-		// theses are first level class: attribute and method are inside class.
+		// these are first level class: attribute and method are inside class.
 		if (!$(elem).hasClass('data') &&
 			!$(elem).hasClass('class') &&
 			!$(elem).hasClass('exception') &&
@@ -88,6 +95,7 @@ $(document).ready(function () {
 			$('div.body dl.api-level > dd ul').hide();
 			$(this).removeClass('showed');
 			$(this).html('Show Descriptions &dArr;');
+			$('#content').css('min-height',getRealHeight());
 			$.cookie('kivy.toggledesc', 'true');
 		} else {
 			$('div.body dl.api-level > dd p').show();
@@ -96,6 +104,7 @@ $(document).ready(function () {
 			$('div.body dl.api-level > dd ul').show();
 			$(this).addClass('showed');
 			$(this).html('Hide Descriptions &uArr;');
+			$('#content').css('min-height',getRealHeight());
 			$.cookie('kivy.toggledesc', 'false');
 		}
 	});
@@ -247,7 +256,7 @@ $(document).ready(function () {
 			var class_version = read_version(
 				rel_class.find('> dd > div.versionadded'), module_version);
 
-			var html_version = '<span class="versionadded">Added in <span>' + class_version + '</span></span>';	
+			var html_version = '<span class="versionadded">Added in <span>' + class_version + '</span></span>';
 			rel_class.find('> dt').append(html_version);
 
 			// resolve method / attr version
@@ -255,31 +264,12 @@ $(document).ready(function () {
 				var rel_methattr = $(el_methattr);
 				var methattr_version = read_version(
 					rel_methattr.find('> dd > div.versionadded'), class_version);
-				var html_version = '<span class="versionadded">Added in <span>' + methattr_version + '</span></span>';	
+				var html_version = '<span class="versionadded">Added in <span>' + methattr_version + '</span></span>';
 				rel_methattr.find('> dt').append(html_version);
 			});
 		});
 
 	} else {
-		var divscroll = $('div.sphinxsidebar');
-		var initial_offset = divscroll.offset();
-		var jwindow = $(window);
-		var b = divscroll.position().top + divscroll.height();
-
-		function update_sidebar() {
-			var ywindow = jwindow.scrollTop();
-			var ymintop = initial_offset.top;
-			var a = ywindow + jwindow.height();
-			if ( ywindow > b ) {
-				var current = $('li.toctree-l1.current').position().top;
-				divscroll.css('position', 'fixed').css('top', -current);
-			} else {
-				divscroll.css('position', 'relative').css('top', 0);
-			}
-		}
-
-		$(window).scroll(update_sidebar).bind('resize', update_sidebar);
-		update_sidebar();
 
 		if ($('.toc > ul > li> ul').length < 1)
 			$('.toc').hide();

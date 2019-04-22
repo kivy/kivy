@@ -12,4 +12,5 @@ class ScatterApp(App):
         s.top = 500
         return s
 
+
 ScatterApp().run()

@@ -116,6 +116,11 @@ Examples
 .. |rst_desc| replace:: An RST editor for the
                         :class:`RstDocument <kivy.uix.rst.RstDocument>` Widget
 
+.. |set_dir| replace::  ./examples/settings
+.. |set_file| replace:: main.py
+.. |set_desc| replace:: How to use the :class:`~kivy.uix.settings.Settings`
+                        classes.
+
 .. |sdr_dir| replace::  ./examples/shader
 .. |sdr_file| replace:: plasma.py
 .. |sdr_file1| replace:: shadertree.py
@@ -247,6 +252,8 @@ Examples
 |- |kvd_dir| | - |kvd_file|  |- |kvd_desc|            |
 +------------+---------------+------------------------+
 |- |rst_dir| | - |rst_file|  |- |rst_desc|            |
++------------+---------------+------------------------+
+|- |set_dir| | - |set_file|  |- |set_desc|            |
 +------------+---------------+------------------------+
 |- |sdr_dir| | - |sdr_file|  |- |sdr_desc|            |
 |            | - |sdr_file1| |                        |

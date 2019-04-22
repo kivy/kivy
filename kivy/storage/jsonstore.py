@@ -2,30 +2,42 @@
 JSON store
 ==========
 
-Can be used to save/load key-value pairs from a json file.
+A :mod:`Storage <kivy.storage>` module used to save/load key-value pairs from
+a json file.
 '''
 
 __all__ = ('JsonStore', )
 
 
-from os.path import exists
+import errno
+from os.path import exists, abspath, dirname
 from kivy.compat import iteritems
 from kivy.storage import AbstractStore
 from json import loads, dump
 
 
 class JsonStore(AbstractStore):
-    '''Store implementation using a json file for storing the keys-value pairs.
+    '''Store implementation using a json file for storing the key-value pairs.
     See the :mod:`kivy.storage` module documentation for more information.
     '''
-    def __init__(self, filename, **kwargs):
+    def __init__(self, filename, indent=None, sort_keys=False, **kwargs):
         self.filename = filename
+        self.indent = indent
+        self.sort_keys = sort_keys
         self._data = {}
         self._is_changed = True
         super(JsonStore, self).__init__(**kwargs)
 
     def store_load(self):
         if not exists(self.filename):
+            folder = abspath(dirname(self.filename))
+            if not exists(folder):
+                not_found = IOError(
+                    "The folder '{}' doesn't exist!"
+                    "".format(folder)
+                )
+                not_found.errno = errno.ENOENT
+                raise not_found
             return
         with open(self.filename) as fd:
             data = fd.read()
@@ -34,10 +46,14 @@ class JsonStore(AbstractStore):
             self._data = loads(data)
 
     def store_sync(self):
-        if self._is_changed is False:
+        if not self._is_changed:
             return
         with open(self.filename, 'w') as fd:
-            dump(self._data, fd)
+            dump(
+                self._data, fd,
+                indent=self.indent,
+                sort_keys=self.sort_keys
+            )
         self._is_changed = False
 
     def store_exists(self, key):
@@ -73,4 +89,4 @@ class JsonStore(AbstractStore):
         return len(self._data)
 
     def store_keys(self):
-        return self._data.keys()
+        return list(self._data.keys())

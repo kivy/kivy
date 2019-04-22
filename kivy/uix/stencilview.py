@@ -2,6 +2,9 @@
 Stencil View
 ============
 
+.. image:: images/stencilview.gif
+    :align: right
+
 .. versionadded:: 1.0.4
 
 :class:`StencilView` limits the drawing of child widgets to the StencilView's
@@ -12,7 +15,7 @@ provides an efficient way to clip the drawing area of children.
 
 .. note::
 
-    As with the stencil graphics instructions, you cannot stack more than 8
+    As with the stencil graphics instructions, you cannot stack more than 128
     stencil-aware widgets.
 
 .. note::

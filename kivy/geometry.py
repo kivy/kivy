@@ -16,11 +16,11 @@ def circumcircle(a, b, c):
     See: http://en.wikipedia.org/wiki/Circumscribed_circle
 
     :Parameters:
-        `a` : iterable containing at least 2 values (for x and y)
+        `a`: iterable containing at least 2 values (for x and y)
             The 1st point of the triangle.
-        `b` : iterable containing at least 2 values (for x and y)
+        `b`: iterable containing at least 2 values (for x and y)
             The 2nd point of the triangle.
-        `c` : iterable containing at least 2 values (for x and y)
+        `c`: iterable containing at least 2 values (for x and y)
             The 3rd point of the triangle.
 
     :Return:
@@ -35,8 +35,8 @@ def circumcircle(a, b, c):
     mPQ = (P + Q) * .5
     mQR = (Q + R) * .5
 
-    numer = -(- mPQ.y * R.y + mPQ.y * Q.y + mQR.y * R.y - mQR.y * Q.y
-              - mPQ.x * R.x + mPQ.x * Q.x + mQR.x * R.x - mQR.x * Q.x)
+    numer = -(- mPQ.y * R.y + mPQ.y * Q.y + mQR.y * R.y - mQR.y * Q.y -
+              mPQ.x * R.x + mPQ.x * Q.x + mQR.x * R.x - mQR.x * Q.x)
     denom = (-Q.x * R.y + P.x * R.y - P.x * Q.y +
              Q.y * R.x - P.y * R.x + P.y * Q.x)
 
@@ -61,7 +61,7 @@ def minimum_bounding_circle(points):
     See: http://tinyurl.com/6e4n5yb
 
     :Parameters:
-        `points` : iterable
+        `points`: iterable
             A list of points (2 tuple with x,y coordinates)
 
     :Return:

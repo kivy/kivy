@@ -5,13 +5,13 @@ Camera
 Core class for acquiring the camera and converting its input into a
 :class:`~kivy.graphics.texture.Texture`.
 
+.. versionchanged:: 1.10.0
+    The pygst and videocapture providers have been removed.
+
 .. versionchanged:: 1.8.0
     There is now 2 distinct Gstreamer implementation: one using Gi/Gst
     working for both Python 2+3 with Gstreamer 1.0, and one using PyGST
     working only for Python 2 + Gstreamer 0.10.
-    If you have issue with GStreamer, have a look at
-    :ref:`gstreamer-compatibility`
-
 '''
 
 __all__ = ('CameraBase', 'Camera')
@@ -32,10 +32,10 @@ class CameraBase(EventDispatcher):
     :Parameters:
         `index`: int
             Source index of the camera.
-        `size` : tuple (int, int)
+        `size`: tuple (int, int)
             Size at which the image is drawn. If no size is specified,
             it defaults to the resolution of the camera image.
-        `resolution` : tuple (int, int)
+        `resolution`: tuple (int, int)
             Resolution to try to request from the camera.
             Used in the gstreamer pipeline by forcing the appsink caps
             to this resolution. If the camera doesnt support the resolution,
@@ -45,7 +45,7 @@ class CameraBase(EventDispatcher):
         `on_load`
             Fired when the camera is loaded and the texture has become
             available.
-        `on_frame`
+        `on_texture`
             Fired each time the camera texture is updated.
     '''
 
@@ -132,20 +132,18 @@ class CameraBase(EventDispatcher):
     def on_load(self):
         pass
 
+
 # Load the appropriate providers
 providers = ()
 
-if platform == 'win':
-    providers += (('videocapture', 'camera_videocapture',
-                   'CameraVideoCapture'), )
-elif platform == 'macosx':
+if platform in ['macosx', 'ios']:
     providers += (('avfoundation', 'camera_avfoundation',
                    'CameraAVFoundation'), )
 elif platform == 'android':
     providers += (('android', 'camera_android', 'CameraAndroid'), )
 else:
-    #providers += (('gi', 'camera_gi', 'CameraGi'), )
-    providers += (('pygst', 'camera_pygst', 'CameraPyGst'), )
+    providers += (('picamera', 'camera_picamera', 'CameraPiCamera'), )
+    providers += (('gi', 'camera_gi', 'CameraGi'), )
 
 providers += (('opencv', 'camera_opencv', 'CameraOpenCV'), )
 

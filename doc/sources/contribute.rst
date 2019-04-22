@@ -10,6 +10,34 @@ improvements, advertisement & advocating, testing, graphics contributions and
 many other ideas. Just talk to us if you want to help, and we will help you
 help us.
 
+Discussions
+-----------
+
+Discussions around Kivy development happens on Github's issues and pull
+requests for specific things. For things that don't fit in either, discussions
+happen on the `#dev Discord channel <https://chat.kivy.org/>`_, and on the
+`kivy-dev google group <https://groups.google.com/forum/#!forum/kivy-dev>`_.
+Please come ask for guidance if you are unsure about how to contribute, or you
+want confirmation about your ideas fitting in the project before working on
+them. If you want to ask for — or contribute — support, you can join the
+`#support Discord channel <https://chat.kivy.org/>`_,
+and the `kivy-users google group <https://groups.google.com/forum/#!forum/kivy-users>`_.
+
+
+Code of Conduct
+---------------
+
+In the interest of fostering an open and welcoming community, we as
+contributors and maintainers need to ensure participation in our project and our
+sister projects is a harassment-free and postive experience for everyone.
+
+As such, it is vital that all interaction is conducted in a manner conveying
+respect, open-mindedness and gratitude. For a more comprehensive discussion of
+these guidelines, please refer to the `Contributor Covenant
+<https://www.contributor-covenant.org/version/1/4/code-of-conduct.html>`_. This
+document provides an accurate description of what is expected of you, both as a
+core developer or a first time contributor.
+
 Feedback
 --------
 
@@ -137,7 +165,7 @@ Now, whenever you want to create a patch, you follow the following steps:
 
         git checkout -b new_feature
 
-    #. Modify the code to do what you want (e.g., fix it).
+    #. Modify the code to do what you want (e.g. fix it).
     #. Test the code. Try to do this even for small fixes. You never know
        whether you have introduced some weird bug without testing.
     #. Do one or more minimal, atomic commits per fix or per feature.
@@ -252,7 +280,6 @@ Examples::
 Will result in:
 
     def my_new_feature(self, arg):
-        """
         New feature is awesome
 
         .. versionadded:: 1.1.4
@@ -261,10 +288,9 @@ Will result in:
 
         .. warning:: Please take a seat before trying this feature
 
-        """
 
 
-When refering to other parts of the api use:
+When referring to other parts of the api use:
 
 - ``:mod:`~kivy.module``` to refer to a module
 - ``:class:`~kivy.module.Class``` to refer to a class
@@ -273,7 +299,7 @@ When refering to other parts of the api use:
   for a class and a method)
 
 Obviously replacing `module` `Class` and `method` with their real name, and
-using using '.' to separate modules refering to imbricated modules, e.g::
+using using '.' to separate modules referring to imbricated modules, e.g::
 
     :mod:`~kivy.uix.floatlayout`
     :class:`~kivy.uix.floatlayout.FloatLayout`
@@ -288,7 +314,7 @@ Will result in:
     :doc:`/api-kivy.core.window`
 
 `:doc:` and `:mod:` are essentially the same, except for an anchor in the url
-which makes `:doc:` prefered for the cleaner url.
+which makes `:doc:` preferred for the cleaner url.
 
 To build your documentation, run::
 

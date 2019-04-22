@@ -39,9 +39,7 @@ You should always respect this scheme:
 
     StencilUnUse
 
-    # PHASE 3: drawing instructions wil now be drawn without clipping but the
-    # mask will still be on the stack. You can return to PHASE 2 at any
-    # time by issuing another *StencilUse* command.
+    # PHASE 3: put the same drawing instruction here as you did in PHASE 1
 
     StencilPop
 
@@ -95,18 +93,21 @@ Here is an example, in kv style::
 
 __all__ = ('StencilPush', 'StencilPop', 'StencilUse', 'StencilUnUse')
 
-include "config.pxi"
+include "../include/config.pxi"
 include "opcodes.pxi"
 include "gl_debug_logger.pxi"
 
-from kivy.graphics.c_opengl cimport *
-IF USE_OPENGL_DEBUG == 1:
-    from kivy.graphics.c_opengl_debug cimport *
+from kivy.graphics.cgl cimport *
+from kivy.compat import PY2
 from kivy.graphics.instructions cimport Instruction
 
-cdef int _stencil_level = 0
-cdef int _stencil_in_push = 0
+cdef dict DEFAULT_STATE = {
+    "level": 0,
+    "in_push": False,
+    "op": None,
+    "gl_stencil_func": None}
 
+cdef dict _stencil_state = DEFAULT_STATE.copy()
 
 cdef dict _gl_stencil_op = {
     'never': GL_NEVER, 'less': GL_LESS, 'equal': GL_EQUAL,
@@ -121,7 +122,100 @@ cdef inline int _stencil_op_to_gl(x):
     try:
         return _gl_stencil_op[x]
     except KeyError:
-        raise Exception('Unknow <%s> stencil op' % x)
+        raise Exception('Unknown <%s> stencil op' % x)
+
+
+cdef get_stencil_state():
+    global _stencil_state
+    return _stencil_state.copy()
+
+
+cdef void restore_stencil_state(dict state):
+    global _stencil_state
+    _stencil_state = state.copy()
+    stencil_apply_state(_stencil_state, True)
+
+
+cdef void reset_stencil_state():
+    restore_stencil_state(DEFAULT_STATE)
+
+
+cdef void stencil_apply_state(dict state, restore_only):
+    # apply state for stencil here. This allow to reapply a state
+    # easily when using FBO, or linking to other GL subprogram
+    if state["op"] is None:
+        cgl.glDisable(GL_STENCIL_TEST)
+
+    elif state["op"] == "push":
+        # Push the stencil stack, ready to draw a mask
+
+        if not restore_only:
+            state["level"] += 1
+            state["in_push"] = True
+
+        if state["level"] == 1:
+            cgl.glStencilMask(0xff)
+            log_gl_error('StencilPush.apply-glStencilMask')
+            cgl.glClearStencil(0)
+            log_gl_error('StencilPush.apply-glClearStencil')
+            cgl.glClear(GL_STENCIL_BUFFER_BIT)
+            log_gl_error('StencilPush.apply-glClear(GL_STENCIL_BUFFER_BIT)')
+        elif state["level"] > 128:
+            raise Exception('Cannot push more than 128 level of stencil.'
+                            ' (stack overflow)')
+
+        cgl.glEnable(GL_STENCIL_TEST)
+        log_gl_error('StencilPush.apply-glEnable(GL_STENCIL_TEST)')
+        cgl.glStencilFunc(GL_ALWAYS, 1, 0xff)
+        log_gl_error('StencilPush.apply-glStencilFunc')
+        cgl.glStencilOp(GL_INCR, GL_INCR, GL_INCR)
+        log_gl_error('StencilPush.apply-glStencilOp')
+        cgl.glColorMask(False, False, False, False)
+        log_gl_error('StencilPush.apply-glColorMask')
+
+
+    elif state["op"] == "pop":
+        # Pop the stencil stack
+
+        if not restore_only:
+            if state["level"] == 0:
+                raise Exception('Too much StencilPop (stack underflow)')
+            state["level"] -= 1
+            state["in_push"] = False
+
+        cgl.glColorMask(True, True, True, True)
+        log_gl_error('StencilPop.apply-glColorMask')
+        if state["level"] == 0:
+            cgl.glDisable(GL_STENCIL_TEST)
+            log_gl_error('StencilPop.apply-glDisable')
+            return
+        # reset for previous
+        cgl.glStencilFunc(GL_EQUAL, state["level"], 0xff)
+        log_gl_error('StencilPop.apply-glStencilFunc')
+        cgl.glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+        log_gl_error('StencilPop.apply-glStencilOp')
+
+
+    elif state["op"] == "use":
+        # Use the current stencil buffer to cut the drawing
+        if not restore_only:
+            state["in_push"] = False
+        cgl.glColorMask(True, True, True, True)
+        log_gl_error('StencilUse.apply-glColorMask')
+        cgl.glStencilFunc(state["gl_stencil_func"], state["level"], 0xff)
+        log_gl_error('StencilUse.apply-glStencilFunc')
+        cgl.glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+        cgl.glEnable(GL_STENCIL_TEST)
+        log_gl_error('StencilUse.apply-glStencilOp')
+
+    elif state["op"] == "unuse":
+        # Ready to undraw the mask
+        cgl.glStencilFunc(GL_GREATER, 0xff, 0xff)
+        log_gl_error('StencilUnUse.apply-glStencilFunc')
+        cgl.glStencilOp(GL_DECR, GL_DECR, GL_DECR)
+        log_gl_error('StencilUnUse.apply-glStencilOp')
+        cgl.glColorMask(False, False, False, False)
+        log_gl_error('StencilUnUse.apply-glColorMask')
 
 
 cdef class StencilPush(Instruction):
@@ -129,54 +223,17 @@ cdef class StencilPush(Instruction):
     information.
     '''
     cdef int apply(self) except -1:
-        global _stencil_level, _stencil_in_push
-        if _stencil_in_push:
-            raise Exception('Cannot use StencilPush inside another '
-                            'StencilPush.\nUse StencilUse before.')
-        _stencil_in_push = 1
-        _stencil_level += 1
-
-        if _stencil_level == 1:
-            glStencilMask(0xff)
-            log_gl_error('StencilPush.apply-glStencilMask')
-            glClearStencil(0)
-            log_gl_error('StencilPush.apply-glClearStencil')
-            glClear(GL_STENCIL_BUFFER_BIT)
-            log_gl_error('StencilPush.apply-glClear(GL_STENCIL_BUFFER_BIT)')
-        if _stencil_level > 128:
-            raise Exception('Cannot push more than 128 level of stencil.'
-                            ' (stack overflow)')
-
-        glEnable(GL_STENCIL_TEST)
-        log_gl_error('StencilPush.apply-glEnable(GL_STENCIL_TEST)')
-        glStencilFunc(GL_ALWAYS, 0, 0)
-        log_gl_error('StencilPush.apply-glStencilFunc')
-        glStencilOp(GL_INCR, GL_INCR, GL_INCR)
-        log_gl_error('StencilPush.apply-glStencilOp')
-        glColorMask(0, 0, 0, 0)
-        log_gl_error('StencilPush.apply-glColorMask')
+        _stencil_state["op"] = "push"
+        stencil_apply_state(_stencil_state, False)
         return 0
+
 
 cdef class StencilPop(Instruction):
     '''Pop the stencil stack. See the module documentation for more information.
     '''
     cdef int apply(self) except -1:
-        global _stencil_level, _stencil_in_push
-        if _stencil_level == 0:
-            raise Exception('Too much StencilPop (stack underflow)')
-        _stencil_level -= 1
-        _stencil_in_push = 0
-        glColorMask(1, 1, 1, 1)
-        log_gl_error('StencilPop.apply-glColorMask')
-        if _stencil_level == 0:
-            glDisable(GL_STENCIL_TEST)
-            log_gl_error('StencilPop.apply-glDisable')
-            return 0
-        # reset for previous
-        glStencilFunc(GL_EQUAL, _stencil_level, 0xff)
-        log_gl_error('StencilPop.apply-glStencilFunc')
-        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
-        log_gl_error('StencilPop.apply-glStencilOp')
+        _stencil_state["op"] = "pop"
+        stencil_apply_state(_stencil_state, False)
         return 0
 
 
@@ -192,17 +249,13 @@ cdef class StencilUse(Instruction):
             self._op = GL_EQUAL
 
     cdef int apply(self) except -1:
-        global _stencil_in_push
-        _stencil_in_push = 0
-        glColorMask(1, 1, 1, 1)
-        log_gl_error('StencilUse.apply-glColorMask')
-        glStencilFunc(self._op, _stencil_level, 0xff)
-        log_gl_error('StencilUse.apply-glStencilFunc')
-        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
-        log_gl_error('StencilUse.apply-glStencilOp')
+        _stencil_state["gl_stencil_func"] = self._op
+        _stencil_state["op"] = "use"
+        stencil_apply_state(_stencil_state, False)
         return 0
 
-    property func_op:
+    @property
+    def func_op(self):
         '''Determine the stencil operation to use for glStencilFunc(). Can be
         one of 'never', 'less', 'equal', 'lequal', 'greater', 'notequal',
         'gequal' or 'always'.
@@ -212,25 +265,24 @@ cdef class StencilUse(Instruction):
         .. versionadded:: 1.5.0
         '''
 
-        def __get__(self):
-            index = _gl_stencil_op.values().index(self._op)
+        index = _gl_stencil_op.values().index(self._op)
+        if PY2:
             return _gl_stencil_op.keys()[index]
+        else:
+            return list(_gl_stencil_op.keys())[index]
 
-        def __set__(self, x):
-            cdef int op = _stencil_op_to_gl(x)
-            if op != self._op:
-                self._op = op
-                self.flag_update()
+    @func_op.setter
+    def func_op(self, x):
+        cdef int op = _stencil_op_to_gl(x)
+        if op != self._op:
+            self._op = op
+            self.flag_update()
 
 
 cdef class StencilUnUse(Instruction):
     '''Use current stencil buffer to unset the mask.
     '''
     cdef int apply(self) except -1:
-        glStencilFunc(GL_ALWAYS, 0, 0)
-        log_gl_error('StencilUnUse.apply-glStencilFunc')
-        glStencilOp(GL_DECR, GL_DECR, GL_DECR)
-        log_gl_error('StencilUnUse.apply-glStencilOp')
-        glColorMask(0, 0, 0, 0)
-        log_gl_error('StencilUnUse.apply-glColorMask')
+        _stencil_state["op"] = "unuse"
+        stencil_apply_state(_stencil_state, False)
         return 0

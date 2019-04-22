@@ -7,8 +7,8 @@ from kivy.uix.widget import Widget
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
-from kivy.graphics import Color, Line, Rectangle
-from kivy.properties import ObjectProperty, BooleanProperty, NumericProperty
+from kivy.graphics import Color, Line
+from kivy.properties import ObjectProperty, BooleanProperty
 from kivy.compat import PY2
 
 # local libraries
@@ -274,4 +274,3 @@ class GestureVisualizer(Widget):
 
     def on_deselect(self, *l):
         pass
-

@@ -45,12 +45,13 @@ class VideoFFMpeg(VideoBase):
         if self._player:
             self.unload()
         self._player = ffmpeg.FFVideo(self._filename)
+        self._player.set_volume(self._volume)
         self._do_load = True
 
     def stop(self):
         self.unload()
 
-    def seek(self, percent):
+    def seek(self, percent, precise=True):
         if self._player is None:
             return
         self._player.seek(percent)
@@ -69,7 +70,7 @@ class VideoFFMpeg(VideoBase):
         player = self._player
         if player is None:
             return
-        if player.is_open is False:
+        if not player.is_open:
             self._do_eos()
             return
 
@@ -99,13 +100,7 @@ class VideoFFMpeg(VideoBase):
             return 0
         return self._player.get_position()
 
-    def _get_volume(self):
-        if self._player is None:
-            return 0
-        self._volume = self._player.get_volume()
-        return self._volume
-
-    def _set_volume(self, volume):
-        if self._player is None:
-            return
-        self._player.set_volume(volume)
+    def _set_volume(self, value):
+        self._volume = value
+        if self._player:
+            self._player.set_volume(self._volume)

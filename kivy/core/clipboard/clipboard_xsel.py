@@ -1,5 +1,6 @@
 '''
-Clipboard xsel: an implementation of the Clipboard using xsel command line tool.
+Clipboard xsel: an implementation of the Clipboard using xsel command line
+                tool.
 '''
 
 __all__ = ('ClipboardXsel', )
@@ -26,4 +27,3 @@ class ClipboardXsel(ClipboardExternalBase):
         io = inout[0]
         return subprocess.Popen(
             ['xsel', '-' + sel + io], **pipe)
-

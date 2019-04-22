@@ -8,16 +8,29 @@ __all__ = ('WindowEglRpi', )
 
 from kivy.logger import Logger
 from kivy.core.window import WindowBase
-from kivy.base import EventLoop
+from kivy.base import EventLoop, ExceptionManager, stopTouchApp
 from kivy.lib.vidcore_lite import bcm, egl
+from os import environ
+
+# Default display IDs.
+(DISPMANX_ID_MAIN_LCD,
+ DISPMANX_ID_AUX_LCD,
+ DISPMANX_ID_HDMI,
+ DISPMANX_ID_SDTV,
+ DISPMANX_ID_FORCE_LCD,
+ DISPMANX_ID_FORCE_TV,
+ DISPMANX_ID_FORCE_OTHER) = range(7)
 
 
 class WindowEglRpi(WindowBase):
 
+    _rpi_dispmanx_id = int(environ.get("KIVY_BCM_DISPMANX_ID", "0"))
+    _rpi_dispmanx_layer = int(environ.get("KIVY_BCM_DISPMANX_LAYER", "0"))
+
     def create_window(self):
         bcm.host_init()
 
-        w, h = bcm.graphics_get_display_size(0)
+        w, h = bcm.graphics_get_display_size(self._rpi_dispmanx_id)
         Logger.debug('Window: Actual display size: {}x{}'.format(
             w, h))
         self._size = w, h
@@ -28,9 +41,10 @@ class WindowEglRpi(WindowBase):
     def _create_window(self, w, h):
         dst = bcm.Rect(0, 0, w, h)
         src = bcm.Rect(0, 0, w << 16, h << 16)
-        display = egl.bcm_display_open(0)
+        display = egl.bcm_display_open(self._rpi_dispmanx_id)
         update = egl.bcm_update_start(0)
-        element = egl.bcm_element_add(update, display, 0, dst, src)
+        element = egl.bcm_element_add(
+            update, display, self._rpi_dispmanx_layer, dst, src)
         self.win = egl.NativeWindow(element, w, h)
         egl.bcm_update_submit_sync(update)
 
@@ -66,7 +80,8 @@ class WindowEglRpi(WindowBase):
         egl.Terminate(self.egl_info[0])
 
     def flip(self):
-        egl.SwapBuffers(self.egl_info[0], self.egl_info[1])
+        if not EventLoop.quit:
+            egl.SwapBuffers(self.egl_info[0], self.egl_info[1])
 
     def _mainloop(self):
         EventLoop.idle()
@@ -76,13 +91,10 @@ class WindowEglRpi(WindowBase):
             try:
                 self._mainloop()
             except BaseException as inst:
-                raise
-                '''
                 # use exception manager first
                 r = ExceptionManager.handle_exception(inst)
                 if r == ExceptionManager.RAISE:
-                    #stopTouchApp()
+                    stopTouchApp()
                     raise
                 else:
                     pass
-                '''

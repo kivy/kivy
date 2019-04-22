@@ -24,6 +24,7 @@ Don't use it unless you know what you are doing.
 
 __all__ = ('Sandbox', )
 
+from functools import wraps
 from kivy.context import Context
 from kivy.base import ExceptionManagerBase
 from kivy.clock import Clock
@@ -34,6 +35,7 @@ from kivy.lang import Builder
 
 
 def sandbox(f):
+    @wraps(f)
     def _f2(self, *args, **kwargs):
         ret = None
         with self:
@@ -133,7 +135,7 @@ class Sandbox(FloatLayout):
 
     @sandbox
     def _clock_sandbox(self, dt):
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         Clock.tick()
         Builder.sync()
 
@@ -146,6 +148,7 @@ class Sandbox(FloatLayout):
     def _call_draw(self, dt):
         self.main_clock.schedule_once(self._clock_sandbox_draw, -1)
 
+
 if __name__ == '__main__':
     from kivy.base import runTouchApp
     from kivy.uix.button import Button
@@ -153,11 +156,11 @@ if __name__ == '__main__':
     class TestButton(Button):
 
         def on_touch_up(self, touch):
-            #raise Exception('fdfdfdfdfdfdfd')
+            # raise Exception('fdfdfdfdfdfdfd')
             return super(TestButton, self).on_touch_up(touch)
 
         def on_touch_down(self, touch):
-            #raise Exception('')
+            # raise Exception('')
             return super(TestButton, self).on_touch_down(touch)
 
     s = Sandbox()
@@ -179,10 +182,10 @@ if __name__ == '__main__':
             texture: self.texture
 
     # invalid... for testing.
-    #on_touch_up: root.d()
-    #on_touch_down: root.f()
+    # on_touch_up: root.d()
+    # on_touch_down: root.f()
     on_release: root.args()
-    #on_press: root.args()
+    # on_press: root.args()
 ''')
         b = TestButton(text='Hello World')
         s.add_widget(b)

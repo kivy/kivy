@@ -73,15 +73,15 @@ cdef class Matrix:
 
     def tolist(Matrix self):
         '''Retrieve the value of the current matrix in numpy format.
-        for example m.tolist() will return 
+        for example m.tolist() will return::
 
-                [[1.000000, 0.000000, 0.000000, 0.000000],
-                [0.000000, 1.000000, 0.000000, 0.000000],
-                [0.000000, 0.000000, 1.000000, 0.000000],
-                [0.000000, 0.000000, 0.000000, 1.000000]]
+            [[1.000000, 0.000000, 0.000000, 0.000000],
+            [0.000000, 1.000000, 0.000000, 0.000000],
+            [0.000000, 0.000000, 1.000000, 0.000000],
+            [0.000000, 0.000000, 0.000000, 1.000000]]
 
-        you can use this format to plug the result straight into numpy 
-        in this way numpy.array(m.get()) 
+        you can use this format to plug the result straight into numpy
+        in this way numpy.array(m.tolist())
 
         .. versionadded:: 1.9.0
         '''
@@ -101,13 +101,14 @@ cdef class Matrix:
 
     def set(Matrix self, flat=None, array=None):
         '''Insert custom values into the matrix in a flat list format
-        or 4x4 array format like below
+        or 4x4 array format like below::
 
-        m.set(array=[
-            [1.0, 0.0, 0.0, 0.0],
-            [0.0, 1.0, 0.0, 0.0],
-            [0.0, 0.0, 1.0, 0.0],
-            [0.0, 0.0, 0.0, 1.0]])
+            m.set(array=[
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0]]
+            )
 
         .. versionadded:: 1.9.0
         '''
@@ -208,11 +209,11 @@ cdef class Matrix:
 
         :Parameters:
             `x`: float
-                The scale factor along the X axis         
+                The scale factor along the X axis
             `y`: float
                 The scale factor along the Y axis
             `z`: float
-                The scale factor along the Z axis        
+                The scale factor along the Z axis
         '''
         with nogil:
             self.mat[ 0] *= x;
@@ -225,7 +226,7 @@ cdef class Matrix:
 
         :Parameters:
             `x`: float
-                The translation factor along the X axis         
+                The translation factor along the X axis
             `y`: float
                 The translation factor along the Y axis
             `z`: float
@@ -332,7 +333,7 @@ cdef class Matrix:
                 self.mat[13] = (top+bottom)/(bottom-top)
                 self.mat[2]  = 0.0
                 self.mat[6]  = 0.0
-                self.mat[10] = 2.0/(far-near)
+                self.mat[10] = -2.0/(far-near)
                 self.mat[14] = (far+near)/(near-far)
                 self.mat[3]  = 0.0
                 self.mat[7]  = 0.0
@@ -439,6 +440,13 @@ cdef class Matrix:
 
     cpdef tuple transform_point(Matrix self, double x, double y, double z,
             t=None):
+        '''Transforms the point by the matrix and returns the transformed point
+        as a ``(x, y, z)`` tuple. If the point is a vector ``v``, the returned
+        values is ``v2 = matrix * v``.
+        
+        If ``t`` is provided, it multiplies it with the last column of the matrix
+        and returns the transformed ``(x, y, z, t)``.
+        '''
         cdef double tx, ty, tz, tt
         tx = x * self.mat[0] + y * self.mat[4] + z * self.mat[ 8] + self.mat[12];
         ty = x * self.mat[1] + y * self.mat[5] + z * self.mat[ 9] + self.mat[13];
@@ -540,7 +548,7 @@ cdef class Matrix:
         the result (not inplace)::
 
             m.multiply(n) -> n * m
-            
+
         :Parameters:
             `ma`: Matrix
                 The matrix to multiply by
@@ -571,7 +579,7 @@ cdef class Matrix:
     cpdef project(Matrix self, double objx, double objy, double objz, Matrix model, Matrix proj,
             double vx, double vy, double vw, double vh):
         '''Project a point from 3d space into a 2d viewport.
-        
+
         :Parameters:
             `objx`: float
                 Points X co-ordinate
@@ -619,7 +627,3 @@ cdef class Matrix:
                    m[4], m[5], m[6], m[7],
                    m[8], m[9], m[10], m[11],
                    m[12], m[13], m[14], m[15])
-
-
-
-

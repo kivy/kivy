@@ -55,9 +55,13 @@ cdef class Svg(RenderContext):
     cdef double last_cy
     cdef Texture line_texture
     cdef StripMesh last_mesh
+    cdef bint closed
+    cdef float vbox_x, vbox_y, vbox_width, vbox_height
+    cdef str _filename
 
+    cdef void reload(self) except *
     cdef parse_tree(self, tree)
-    cdef parse_element(seld, e)
+    cdef parse_element(self, e)
     cdef list parse_transform(self, transform_def)
     cdef parse_path(self, pathdef)
     cdef void new_path(self)
@@ -65,11 +69,12 @@ cdef class Svg(RenderContext):
     cdef void set_position(self, float x, float y, int absolute=*)
     cdef arc_to(self, float rx, float ry, float phi, float large_arc,
             float sweep, float x, float y)
+    cdef void quadratic_bezier_curve_to(self, float cx, float cy, float x, float y)
     cdef void curve_to(self, float x1, float y1, float x2, float y2,
             float x, float y)
     cdef void end_path(self)
     cdef void push_mesh(self, float[:] path, fill, Matrix transform, mode)
     cdef void push_strip_mesh(self, float *vertices, int vindex, int count,
                               int mode=*)
-    cdef void push_line_mesh(self, float[:] path, fill, Matrix transform)
+    cdef void push_line_mesh(self, float[:] path, fill, Matrix transform, float width)
     cdef void render(self)

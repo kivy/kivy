@@ -2,16 +2,16 @@
 #:import win kivy.core.window
 
 Widget:
-	canvas:
-		Color:
-			rgb: .85, .87, .88
-		Rectangle:
-			size: self.size
+    canvas:
+        Color:
+            rgb: .85, .87, .88
+        Rectangle:
+            size: self.size
 
     Button:
         text: 'Take a picture'
-		width: self.texture_size[0] + dp(40)
-		height: '48dp'
+        width: self.texture_size[0] + dp(40)
+        height: '48dp'
         on_release: app.take_picture()
 
 <Picture>:

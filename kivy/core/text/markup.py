@@ -4,24 +4,43 @@ Text Markup
 
 .. versionadded:: 1.1.0
 
+.. versionchanged:: 1.10.1
+
+    Added `font_context`, `font_features` and `text_language` (Pango only)
+
 We provide a simple text-markup for inline text styling. The syntax look the
 same as the `BBCode <http://en.wikipedia.org/wiki/BBCode>`_.
 
-A tag is defined as ``[tag]``, and might have a closed tag associated:
-``[/tag]``. Example of a markup text::
+A tag is defined as ``[tag]``, and should have a corresponding
+``[/tag]`` closing tag. For example::
 
-    [b]Hello [color=ff0000]world[/b][/color]
+    [b]Hello [color=ff0000]world[/color][/b]
 
-The following tags are availables:
+The following tags are available:
 
 ``[b][/b]``
     Activate bold text
 ``[i][/i]``
     Activate italic text
+``[u][/u]``
+    Underlined text
+``[s][/s]``
+    Strikethrough text
 ``[font=<str>][/font]``
-    Change the font
-``[size=<integer>][/size]``
-    Change the font size
+    Change the font (note: this refers to a TTF file or registered alias)
+``[font_context=<str>][/font_context]``
+    Change context for the font, use string value "none" for isolated context.
+``[font_family=<str>][/font_family]``
+    Font family to request for drawing. This is only valid when using a
+    font context, and takes precedence over `[font]`. See
+    :class:`kivy.uix.label.Label` for details.
+``[font_features=<str>][/font_features]``
+    OpenType font features, in CSS format, this is passed straight
+    through to Pango. The effects of requesting a feature depends on loaded
+    fonts, library versions, etc. Pango only, requires v1.38 or later.
+``[size=<size>][/size]``
+    Change the font size. <size> should be an integer, optionally with a
+    unit (i.e. ``16sp``)
 ``[color=#<color>][/color]``
     Change the text color
 ``[ref=<str>][/ref]``
@@ -34,6 +53,12 @@ The following tags are availables:
     Display the text at a subscript position relative to the text before it.
 ``[sup][/sup]``
     Display the text at a superscript position relative to the text before it.
+``[text_language=<str>][/text_language]``
+    Language of the text, this is an RFC-3066 format language tag (as string),
+    for example "en_US", "zh_CN", "fr" or "ja". This can impact font selection,
+    metrics and rendering. For example, the same bytes of text can look
+    different for `ur` and `ar` languages, though both use Arabic script.
+    Use the string `'none'` to revert to locale detection. Pango only.
 
 If you need to escape the markup from the current text, use
 :func:`kivy.utils.escape_markup`.
@@ -48,7 +73,6 @@ from kivy.logger import Logger
 from kivy.core.text import Label, LabelBase
 from kivy.core.text.text_layout import layout_text, LayoutWord, LayoutLine
 from copy import copy
-from math import ceil
 from functools import partial
 
 # We need to do this trick when documentation is generated
@@ -100,7 +124,7 @@ class MarkupLabel(MarkupLabelBase):
         return s
 
     def _push_style(self, k):
-        if not k in self._style_stack:
+        if k not in self._style_stack:
             self._style_stack[k] = []
         self._style_stack[k].append(self.options[k])
 
@@ -116,7 +140,7 @@ class MarkupLabel(MarkupLabelBase):
         if not real:
             ret = self._pre_render()
         else:
-            ret = self._real_render()
+            ret = self._render_real()
         self.options = options
         return ret
 
@@ -132,7 +156,7 @@ class MarkupLabel(MarkupLabelBase):
         uw, uh = self.text_size
         spush = self._push_style
         spop = self._pop_style
-        opts = options = self.options
+        options = self.options
         options['_ref'] = None
         options['_anchor'] = None
         options['script'] = 'normal'
@@ -142,9 +166,12 @@ class MarkupLabel(MarkupLabelBase):
         # mid-word will have space mid-word when lines are joined
         uw_temp = None if shorten else uw
         xpad = options['padding_x']
-        uhh = (None if uh is not None and options['valign'][-1] != 'p' or
+        uhh = (None if uh is not None and options['valign'] != 'top' or
                options['shorten'] else uh)
-        options['strip'] = options['strip'] or options['halign'][-1] == 'y'
+        options['strip'] = options['strip'] or options['halign'] == 'justify'
+        find_base_dir = Label.find_base_direction
+        base_dir = options['base_direction']
+        self._resolved_base_dir = None
         for item in self.markup:
             if item == '[b]':
                 spush('bold')
@@ -159,6 +186,20 @@ class MarkupLabel(MarkupLabelBase):
                 self.resolve_font_name()
             elif item == '[/i]':
                 spop('italic')
+                self.resolve_font_name()
+            elif item == '[u]':
+                spush('underline')
+                options['underline'] = True
+                self.resolve_font_name()
+            elif item == '[/u]':
+                spop('underline')
+                self.resolve_font_name()
+            elif item == '[s]':
+                spush('strikethrough')
+                options['strikethrough'] = True
+                self.resolve_font_name()
+            elif item == '[/s]':
+                spop('strikethrough')
                 self.resolve_font_name()
             elif item[:6] == '[size=':
                 item = item[6:-1]
@@ -188,6 +229,32 @@ class MarkupLabel(MarkupLabelBase):
             elif item == '[/font]':
                 spop('font_name')
                 self.resolve_font_name()
+            elif item[:13] == '[font_family=':
+                spush('font_family')
+                options['font_family'] = item[13:-1]
+            elif item == '[/font_family]':
+                spop('font_family')
+            elif item[:14] == '[font_context=':
+                fctx = item[14:-1]
+                if not fctx or fctx.lower() == 'none':
+                    fctx = None
+                spush('font_context')
+                options['font_context'] = fctx
+            elif item == '[/font_context]':
+                spop('font_context')
+            elif item[:15] == '[font_features=':
+                spush('font_features')
+                options['font_features'] = item[15:-1]
+            elif item == '[/font_features]':
+                spop('font_features')
+            elif item[:15] == '[text_language=':
+                lang = item[15:-1]
+                if not lang or lang.lower() == 'none':
+                    lang = None
+                spush('text_language')
+                options['text_language'] = lang
+            elif item == '[/text_language]':
+                spop('text_language')
             elif item[:5] == '[sub]':
                 spush('font_size')
                 spush('script')
@@ -215,19 +282,30 @@ class MarkupLabel(MarkupLabelBase):
             elif not clipped:
                 item = item.replace('&bl;', '[').replace(
                     '&br;', ']').replace('&amp;', '&')
+                if not base_dir:
+                    base_dir = self._resolved_base_dir = find_base_dir(item)
                 opts = copy(options)
                 extents = self.get_cached_extents()
                 opts['space_width'] = extents(' ')[0]
-                w, h, clipped = layout_text(item, lines, (w, h),
-                    (uw_temp, uhh), opts, extents, True, False)
+                w, h, clipped = layout_text(
+                    item, lines, (w, h), (uw_temp, uhh),
+                    opts, extents,
+                    append_down=True,
+                    complete=False
+                )
 
         if len(lines):  # remove any trailing spaces from the last line
             old_opts = self.options
             self.options = copy(opts)
-            w, h, clipped = layout_text('', lines, (w, h), (uw_temp, uhh),
-                self.options, self.get_cached_extents(), True, True)
+            w, h, clipped = layout_text(
+                '', lines, (w, h), (uw_temp, uhh),
+                self.options, self.get_cached_extents(),
+                append_down=True,
+                complete=True
+            )
             self.options = old_opts
 
+        self.is_shortened = False
         if shorten:
             options['_ref'] = None  # no refs for you!
             options['_anchor'] = None
@@ -236,7 +314,7 @@ class MarkupLabel(MarkupLabelBase):
         # when valign is not top, for markup we layout everything (text_size[1]
         # is temporarily set to None) and after layout cut to size if too tall
         elif uh != uhh and h > uh and len(lines) > 1:
-            if options['valign'][-1] == 'm':  # bottom
+            if options['valign'] == 'bottom':
                 i = 0
                 while i < len(lines) - 1 and h > uh:
                     h -= lines[i].h
@@ -256,9 +334,9 @@ class MarkupLabel(MarkupLabelBase):
                 del lines[i + 1:]
 
         # now justify the text
-        if options['halign'][-1] == 'y' and uw is not None:
+        if options['halign'] == 'justify' and uw is not None:
             # XXX: update refs to justified pos
-            # when justify, each line shouldv'e been stripped already
+            # when justify, each line should've been stripped already
             split = partial(re.split, re.compile('( +)'))
             uww = uw - 2 * xpad
             chr = type(self.text)
@@ -270,7 +348,7 @@ class MarkupLabel(MarkupLabelBase):
                 words = line.words
                 # if there's nothing to justify, we're done
                 if (not line.w or int(uww - line.w) <= 0 or not len(words) or
-                    line.is_last_line):
+                        line.is_last_line):
                     continue
 
                 done = False
@@ -333,10 +411,18 @@ class MarkupLabel(MarkupLabelBase):
                     # split that word into left/right and push right till uww
                     l_text = empty.join(parts[w][:idxs[w][-1]])
                     r_text = empty.join(parts[w][idxs[w][-1]:])
-                    left = LayoutWord(word.options,
-                        self.get_extents(l_text)[0], word.lh, l_text)
-                    right = LayoutWord(word.options,
-                        self.get_extents(r_text)[0], word.lh, r_text)
+                    left = LayoutWord(
+                        word.options,
+                        self.get_extents(l_text)[0],
+                        word.lh,
+                        l_text
+                    )
+                    right = LayoutWord(
+                        word.options,
+                        self.get_extents(r_text)[0],
+                        word.lh,
+                        r_text
+                    )
                     left.lw = max(left.lw, word.lw + diff - right.lw)
                     self.options = old_opts
 
@@ -366,44 +452,21 @@ class MarkupLabel(MarkupLabelBase):
             h = 1
         return int(w), int(h)
 
-    def _real_render(self):
-        lines = self._cached_lines
-        options = None
-        for line in lines:
-            if len(line.words):  # get opts from first line, first word
-                options = line.words[0].options
-                break
-        if not options:  # there was no text to render
-            self._render_begin()
-            data = self._render_end()
-            assert(data)
-            if data is not None and data.width > 1:
-                self.texture.blit_data(data)
-            return
-
-        old_opts = self.options
-        render_text = self._render_text
-        xpad, ypad = options['padding_x'], options['padding_y']
-        x, y = xpad, ypad   # pos in the texture
-        iw, ih = self._internal_size  # the real size of text, not texture
-        w, h = self.size
+    def render_lines(self, lines, options, render_text, y, size):
+        xpad = options['padding_x']
+        w = size[0]
         halign = options['halign']
-        valign = options['valign']
         refs = self._refs
         anchors = self._anchors
-        self._render_begin()
-
-        if valign == 'bottom':
-            y = h - ih + ypad
-        elif valign == 'middle':
-            y = int((h - ih) / 2 + ypad)
+        base_dir = options['base_direction'] or self._resolved_base_dir
+        auto_halign_r = halign == 'auto' and base_dir and 'rtl' in base_dir
 
         for layout_line in lines:  # for plain label each line has only one str
             lw, lh = layout_line.w, layout_line.h
             x = xpad
-            if halign[0] == 'c':  # center
+            if halign == 'center':
                 x = int((w - lw) / 2.)
-            elif halign[0] == 'r':  # right
+            elif halign == 'right' or auto_halign_r:
                 x = max(0, int(w - lw - xpad))
             layout_line.x = x
             layout_line.y = y
@@ -431,27 +494,18 @@ class MarkupLabel(MarkupLabelBase):
                 # should we record refs ?
                 ref = options['_ref']
                 if ref is not None:
-                    if not ref in refs:
+                    if ref not in refs:
                         refs[ref] = []
                     refs[ref].append((x, y, x + word.lw, y + wh))
 
                 # Should we record anchors?
                 anchor = options['_anchor']
                 if anchor is not None:
-                    if not anchor in anchors:
+                    if anchor not in anchors:
                         anchors[anchor] = (x, y)
                 x += word.lw
             y += lh
-
-        self.options = old_opts
-        # get data from provider
-        data = self._render_end()
-        assert(data)
-
-        # If the text is 1px width, usually, the data is black.
-        # Don't blit that kind of data, otherwise, you have a little black bar.
-        if data is not None and data.width > 1:
-            self.texture.blit_data(data)
+        return y
 
     def shorten_post(self, lines, w, h, margin=2):
         ''' Shortens the text to a single line according to the label options.
@@ -640,24 +694,47 @@ class MarkupLabel(MarkupLabelBase):
         lw = sum([word.lw for word in line])
         if lw <= uw:
             lh = max([word.lh for word in line] + [0]) * line_height
-            return lw + 2 * xpad, lh + 2 * ypad, [LayoutLine(0, 0,
-            lw, lh, 1, 0, line)]
+            self.is_shortened = False
+            return (
+                lw + 2 * xpad,
+                lh + 2 * ypad,
+                [LayoutLine(0, 0, lw, lh, 1, 0, line)]
+            )
 
+        elps_opts = copy(old_opts)
+        if 'ellipsis_options' in old_opts:
+            elps_opts.update(old_opts['ellipsis_options'])
+
+        # Set new opts for ellipsis
+        self.options = elps_opts
         # find the size of ellipsis that'll fit
         elps_s = textwidth('...')
         if elps_s[0] > uw:  # even ellipsis didn't fit...
+            self.is_shortened = True
             s = textwidth('..')
             if s[0] <= uw:
-                return (s[0] + 2 * xpad, s[1] * line_height + 2 * ypad,
-                    [LayoutLine(0, 0, s[0], s[1], 1, 0, [LayoutWord(old_opts,
-                    s[0], s[1], '..')])])
+                return (
+                    s[0] + 2 * xpad,
+                    s[1] * line_height + 2 * ypad,
+                    [LayoutLine(
+                        0, 0, s[0], s[1], 1, 0,
+                        [LayoutWord(old_opts, s[0], s[1], '..')])]
+                )
+
             else:
                 s = textwidth('.')
-                return (s[0] + 2 * xpad, s[1] * line_height + 2 * ypad,
-                    [LayoutLine(0, 0, s[0], s[1], 1, 0, [LayoutWord(old_opts,
-                    s[0], s[1], '.')])])
-        elps = LayoutWord(old_opts, elps_s[0], elps_s[1], '...')
+                return (
+                    s[0] + 2 * xpad,
+                    s[1] * line_height + 2 * ypad,
+                    [LayoutLine(
+                        0, 0, s[0], s[1], 1, 0,
+                        [LayoutWord(old_opts, s[0], s[1], '.')])]
+                )
+
+        elps = LayoutWord(elps_opts, elps_s[0], elps_s[1], '...')
         uw -= elps_s[0]
+        # Restore old opts
+        self.options = old_opts
 
         # now find the first left and right words that fit
         w1, e1, l1, clipped1 = n_restricted(line, uw, c)
@@ -672,6 +749,7 @@ class MarkupLabel(MarkupLabelBase):
                     old_opts['split_str'] = ''
                     res = self.shorten_post(lines, w, h, margin)
                     self.options['split_str'] = c
+                    self.is_shortened = True
                     return res
                 line1 = line[:w1]
                 last_word = line[w1]
@@ -687,8 +765,12 @@ class MarkupLabel(MarkupLabelBase):
                 lw = sum([word.lw for word in line1])
                 lh = max([word.lh for word in line1]) * line_height
                 self.options = old_opts
-                return lw + 2 * xpad, lh + 2 * ypad, [LayoutLine(0, 0,
-                    lw, lh, 1, 0, line1)]
+                self.is_shortened = True
+                return (
+                    lw + 2 * xpad,
+                    lh + 2 * ypad,
+                    [LayoutLine(0, 0, lw, lh, 1, 0, line1)]
+                )
 
             # now we know that both the first and last word fit, and that
             # there's at least one instances of the split_str in the line
@@ -731,6 +813,7 @@ class MarkupLabel(MarkupLabelBase):
                     old_opts['split_str'] = ''
                     res = self.shorten_post(lines, w, h, margin)
                     self.options['split_str'] = c
+                    self.is_shortened = True
                     return res
                 first_word = line[w2]
                 first_text = first_word.text[s2 + 1:]
@@ -745,8 +828,12 @@ class MarkupLabel(MarkupLabelBase):
                 lw = sum([word.lw for word in line1])
                 lh = max([word.lh for word in line1]) * line_height
                 self.options = old_opts
-                return lw + 2 * xpad, lh + 2 * ypad, [LayoutLine(0, 0,
-                    lw, lh, 1, 0, line1)]
+                self.is_shortened = True
+                return (
+                    lw + 2 * xpad,
+                    lh + 2 * ypad,
+                    [LayoutLine(0, 0, lw, lh, 1, 0, line1)]
+                )
 
             # now we know that both the first and last word fit, and that
             # there's at least one instances of the split_str in the line
@@ -783,5 +870,10 @@ class MarkupLabel(MarkupLabelBase):
         lw = sum([word.lw for word in line1])
         lh = max([word.lh for word in line1]) * line_height
         self.options = old_opts
-        return lw + 2 * xpad, lh + 2 * ypad, [LayoutLine(0, 0,
-            lw, lh, 1, 0, line1)]
+        if uw < lw:
+            self.is_shortened = True
+        return (
+            lw + 2 * xpad,
+            lh + 2 * ypad,
+            [LayoutLine(0, 0, lw, lh, 1, 0, line1)]
+        )

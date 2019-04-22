@@ -44,8 +44,8 @@ class TestBuildApp(App):
 class TestKVFileApp(App):
     """
     Empty class, but name used to find .kv file. The filename is the lowercase
-    version of the class, i.e., 'testkvfileapp.kv'. If not found, it strips
-    off the final 'app', i.e., 'testkvfile.kv'. If not file is found, and no
+    version of the class, i.e. 'testkvfileapp.kv'. If not found, it strips
+    off the final 'app', i.e. 'testkvfile.kv'. If not file is found, and no
     other method sets the self.root, the program will run with an empty screen.
     """
     pass
@@ -94,7 +94,7 @@ class TestPrebuiltApp(App):
 
 
 def print_class(class_name):
-    """ Read this file and print the section with the class name specified.) """
+    """ Read this file and print the section with the class name specified.)"""
     filename = sys.argv[0]
     with open(filename) as f:
         data = f.read()
@@ -102,6 +102,7 @@ def print_class(class_name):
         match = re.search(regex, data, flags=re.MULTILINE | re.DOTALL)
         if match:
             print(match.group(1))
+
 
 # the __name__ idiom executes when run from command line but not from import.
 if __name__ == '__main__':

@@ -15,6 +15,7 @@ DEF LINE_MODE_ROUNDED_RECTANGLE = 4
 DEF LINE_MODE_BEZIER = 5
 
 from kivy.graphics.stencil_instructions cimport StencilUse, StencilUnUse, StencilPush, StencilPop
+import itertools
 
 cdef float PI = 3.1415926535
 
@@ -43,11 +44,11 @@ cdef class Line(VertexInstruction):
     #. If the :attr:`width` is 1.0, then the standard GL_LINE drawing from
        OpenGL will be used. :attr:`dash_length` and :attr:`dash_offset` will
        work, while properties for cap and joint have no meaning here.
-    #. If the :attr:`width` is > 1.0, then a custom drawing method will be used,
-       based on triangles. :attr:`dash_length` and :attr:`dash_offset` do not
-       work in this mode.
-       Additionally, if the current color has an alpha < 1.0, a stencil will be
-       used internally to draw the line.
+    #. If the :attr:`width` is greater than 1.0, then a custom drawing method,
+       based on triangulation, will be used. :attr:`dash_length` and
+       :attr:`dash_offset` do not work in this mode.
+       Additionally, if the current color has an alpha less than 1.0, a
+       stencil will be used internally to draw the line.
 
     .. image:: images/line-instruction.png
         :align: center
@@ -58,7 +59,7 @@ cdef class Line(VertexInstruction):
         `dash_length`: int
             Length of a segment (if dashed), defaults to 1.
         `dash_offset`: int
-            Offset between the end of a segments and the begining of the
+            Offset between the end of a segment and the beginning of the
             next one, defaults to 0. Changing this makes it dashed.
         `width`: float
             Width of the line, defaults to 1.0.
@@ -76,22 +77,22 @@ cdef class Line(VertexInstruction):
         `close`: bool, defaults to False
             If True, the line will be closed.
         `circle`: list
-            If set, the :attr:`points` will be set to build a circle. Check
+            If set, the :attr:`points` will be set to build a circle. See
             :attr:`circle` for more information.
         `ellipse`: list
-            If set, the :attr:`points` will be set to build an ellipse. Check
+            If set, the :attr:`points` will be set to build an ellipse. See
             :attr:`ellipse` for more information.
         `rectangle`: list
-            If set, the :attr:`points` will be set to build a rectangle. Check
+            If set, the :attr:`points` will be set to build a rectangle. See
             :attr:`rectangle` for more information.
         `bezier`: list
-            If set, the :attr:`points` will be set to build a bezier line. Check
+            If set, the :attr:`points` will be set to build a bezier line. See
             :attr:`bezier` for more information.
         `bezier_precision`: int, defaults to 180
             Precision of the Bezier drawing.
 
     .. versionchanged:: 1.0.8
-        `dash_offset` and `dash_length` have been added
+        `dash_offset` and `dash_length` have been added.
 
     .. versionchanged:: 1.4.1
         `width`, `cap`, `joint`, `cap_precision`, `joint_precision`, `close`,
@@ -330,7 +331,7 @@ cdef class Line(VertexInstruction):
         self.batch.set_mode('triangles')
         cdef unsigned long vertices_count = (count - 1) * 4
         cdef unsigned long indices_count = (count - 1) * 6
-        cdef unsigned int iv = 0, ii = 0
+        cdef unsigned int iv = 0, ii = 0, siv = 0
 
         if self._joint == LINE_JOINT_BEVEL:
             indices_count += (count - 2) * 3
@@ -364,7 +365,7 @@ cdef class Line(VertexInstruction):
         cdef double pcx, pcy, px1, py1, px2, py2, px3, py3, px4, py4, pangle, pangle2
         cdef double w = self._width
         cdef double ix, iy
-        cdef unsigned int piv, pii2, piv2
+        cdef unsigned int piv, pii2, piv2, skip = 0
         cdef double jangle
         angle = sangle = 0
         piv = pcx = pcy = cx = cy = ii = iv = ix = iy = 0
@@ -378,7 +379,11 @@ cdef class Line(VertexInstruction):
             bx = p[i * 2 + 2]
             _by = p[i * 2 + 3]
 
-            if i > 0 and self._joint != LINE_JOINT_NONE:
+            if (ax, ay) == (bx, _by):
+                skip += 1
+                continue
+
+            if i - skip > 0 and self._joint != LINE_JOINT_NONE:
                 pcx = cx
                 pcy = cy
                 px1 = x1
@@ -416,7 +421,7 @@ cdef class Line(VertexInstruction):
             x3 = bx + cos2
             y3 = _by + sin2
 
-            if i == 0:
+            if i - skip == 0:
                 sx1 = x1
                 sy1 = y1
                 sx4 = x4
@@ -453,7 +458,7 @@ cdef class Line(VertexInstruction):
             iv += 1
 
             # joint generation
-            if i == 0 or self._joint == LINE_JOINT_NONE:
+            if i - skip == 0 or self._joint == LINE_JOINT_NONE:
                 continue
 
             # calculate the angle of the previous and current segment
@@ -529,8 +534,6 @@ cdef class Line(VertexInstruction):
                     indices[ii + 5] = iv + 1
                     ii += 6
                     iv += 2
-
-
 
             elif self._joint == LINE_JOINT_ROUND:
 
@@ -676,24 +679,28 @@ cdef class Line(VertexInstruction):
             indices[ii + 2] = piv + 2
             ii += 3
 
+        while ii < indices_count:
+            # make all the remaining indices point to the last vertice
+            indices[ii] = siv
+            ii += 1
+
         # compute bbox
-        for i in xrange(vertices_count):
-            if vertices[i].x < self._bxmin:
-                self._bxmin = vertices[i].x
-            if vertices[i].x > self._bxmax:
-                self._bxmax = vertices[i].x
-            if vertices[i].y < self._bymin:
-                self._bymin = vertices[i].y
-            if vertices[i].y > self._bymax:
-                self._bymax = vertices[i].y
+        cdef unsigned long iul
+        for iul in xrange(vertices_count):
+            if vertices[iul].x < self._bxmin:
+                self._bxmin = vertices[iul].x
+            if vertices[iul].x > self._bxmax:
+                self._bxmax = vertices[iul].x
+            if vertices[iul].y < self._bymin:
+                self._bymin = vertices[iul].y
+            if vertices[iul].y > self._bymax:
+                self._bymax = vertices[iul].y
 
         self.batch.set_data(vertices, <int>vertices_count,
                            indices, <int>indices_count)
 
         free(vertices)
         free(indices)
-
-
 
     property points:
         '''Property for getting/settings points of the line
@@ -705,8 +712,13 @@ cdef class Line(VertexInstruction):
         '''
         def __get__(self):
             return self._points
+
         def __set__(self, points):
-            self._points = list(points)
+            if points and isinstance(points[0], (list, tuple)):
+                self._points = list(itertools.chain(*points))
+            else:
+                self._points = list(points)
+
             self.flag_update()
 
     property dash_length:
@@ -861,9 +873,9 @@ cdef class Line(VertexInstruction):
         * x and y represent the bottom left of the ellipse
         * width and height represent the size of the ellipse
         * (optional) angle_start and angle_end are in degree. The default
-            value is 0 and 360.
+          value is 0 and 360.
         * (optional) segments is the precision of the ellipse. The default
-            value is calculated from the range between angle.
+          value is calculated from the range between angle.
 
         Note that it's up to you to :attr:`close` the ellipse or not.
 
@@ -935,7 +947,7 @@ cdef class Line(VertexInstruction):
 
 
     property circle:
-        '''Use this property to build a circle, without calculate the
+        '''Use this property to build a circle, without calculating the
         :attr:`points`. You can only set this property, not get it.
 
         The argument must be a tuple of (center_x, center_y, radius, angle_start,
@@ -944,9 +956,9 @@ cdef class Line(VertexInstruction):
         * center_x and center_y represent the center of the circle
         * radius represent the radius of the circle
         * (optional) angle_start and angle_end are in degree. The default
-            value is 0 and 360.
+          value is 0 and 360.
         * (optional) segments is the precision of the ellipse. The default
-            value is calculated from the range between angle.
+          value is calculated from the range between angle.
 
         Note that it's up to you to :attr:`close` the circle or not.
 
@@ -1018,8 +1030,7 @@ cdef class Line(VertexInstruction):
         '''Use this property to build a rectangle, without calculating the
         :attr:`points`. You can only set this property, not get it.
 
-        The argument must be a tuple of (x, y, width, height)
-        angle_end, segments):
+        The argument must be a tuple of (x, y, width, height):
 
         * x and y represent the bottom-left position of the rectangle
         * width and height represent the size
@@ -1077,7 +1088,7 @@ cdef class Line(VertexInstruction):
         * x and y represent the bottom-left position of the rectangle
         * width and height represent the size
         * corner_radius is the number of pixels between two borders and the center of the circle arc joining them
-        * resolution is the numper of line segment that will be used to draw the circle arc at each corner (defaults to 30)
+        * resolution is the number of line segment that will be used to draw the circle arc at each corner (defaults to 30)
 
         The line is automatically closed.
 
@@ -1224,19 +1235,19 @@ cdef class Line(VertexInstruction):
 
 
 cdef class SmoothLine(Line):
-    '''Experimental line using over-draw method to get better antialiasing
+    '''Experimental line using over-draw methods to get better anti-aliasing
     results. It has few drawbacks:
 
-    - drawing line with alpha will unlikely doesn't give the intended result if
-      the line cross itself
-    - no cap or joint are supported
-    - it use a custom texture with premultiplied alpha
-    - dash is not supported
-    - line under 1px width are not supported, it will look the same
+    - drawing a line with alpha will probably not have the intended result if
+      the line crosses itself.
+    - :attr:`~Line.cap`, :attr:`~Line.joint` and :attr:`~Line.dash` properties
+      are not supported.
+    - it uses a custom texture with a premultiplied alpha.
+    - lines under 1px in width are not supported: they will look the same.
 
     .. warning::
 
-        This is an unfinished work, experimental, subject to crash.
+        This is an unfinished work, experimental, and subject to crashes.
 
     .. versionadded:: 1.9.0
     '''
@@ -1244,7 +1255,7 @@ cdef class SmoothLine(Line):
     cdef float _owidth
 
     def __init__(self, **kwargs):
-        VertexInstruction.__init__(self, **kwargs)
+        Line.__init__(self, **kwargs)
         self._owidth = kwargs.get("overdraw_width") or 1.2
         self.batch.set_mode("triangles")
         self.texture = self.premultiplied_texture()
@@ -1511,12 +1522,12 @@ cdef class SmoothLine(Line):
 
         self.batch.set_data(vertices, <int>vcount, indices, <int>icount)
 
-        #free(vertices)
-        #free(indices)
+        free(vertices)
+        free(indices)
 
 
     property overdraw_width:
-        '''Determine the overdraw width of the line, defaults to 1.2
+        '''Determine the overdraw width of the line, defaults to 1.2.
         '''
         def __get__(self):
             return self._owidth

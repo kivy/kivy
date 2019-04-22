@@ -9,6 +9,8 @@ Color Picker
     This widget is experimental. Its use and API can change at any time until
     this warning is removed.
 
+.. image:: images/colorpicker.png
+    :align: right
 
 The ColorPicker widget allows a user to select a color from a chromatic
 wheel where pinch and zoom can be used to change the wheel's saturation.
@@ -27,6 +29,7 @@ Usage::
         print "HEX = ", str(instance.hex_color)
 
     clr_picker.bind(color=on_color)
+
 
 '''
 
@@ -225,9 +228,9 @@ class ColorWheel(Widget):
         if touch.grab_current is not self:
             return
         r = self._get_touch_r(touch.pos)
-        goal_sv_idx = (touch.ud['orig_sv_idx']
-                       - int((r - touch.ud['anchor_r'])
-                             / (float(self._radius) / self._piece_divisions)))
+        goal_sv_idx = (touch.ud['orig_sv_idx'] -
+                       int((r - touch.ud['anchor_r']) /
+                            (float(self._radius) / self._piece_divisions)))
 
         if (
             goal_sv_idx != self.sv_idx and
@@ -251,14 +254,14 @@ class ColorWheel(Widget):
                 if self.sv_idx > touch.ud['orig_sv_idx']:
                     Clock.schedule_once(
                         self.inertial_incr_sv_idx,
-                        (Clock.get_time() - touch.ud['orig_time'])
-                        / (self.sv_idx - touch.ud['orig_sv_idx']))
+                        (Clock.get_time() - touch.ud['orig_time']) /
+                        (self.sv_idx - touch.ud['orig_sv_idx']))
 
                 if self.sv_idx < touch.ud['orig_sv_idx']:
                     Clock.schedule_once(
                         self.inertial_decr_sv_idx,
-                        (Clock.get_time() - touch.ud['orig_time'])
-                        / (self.sv_idx - touch.ud['orig_sv_idx']))
+                        (Clock.get_time() - touch.ud['orig_time']) /
+                        (self.sv_idx - touch.ud['orig_sv_idx']))
 
                 self._pinch_flag = False
                 return
@@ -276,16 +279,9 @@ class ColorWheel(Widget):
             # _hsv based on the selected ColorArc
             piece = int((theta / (2 * pi)) * self._pieces_of_pie)
             division = int((r / self._radius) * self._piece_divisions)
-            self._hsv = \
-                self.arcs[self._pieces_of_pie * division + piece].color
-
-    def on__hsv(self, instance, value):
-        c_hsv = Color(*value, mode='hsv')
-        self.r = c_hsv.r
-        self.g = c_hsv.g
-        self.b = c_hsv.b
-        self.a = c_hsv.a
-        self.rgba = (self.r, self.g, self.b, self.a)
+            hsva = list(
+                self.arcs[self._pieces_of_pie * division + piece].color)
+            self.color = list(hsv_to_rgb(*hsva[:3])) + hsva[-1:]
 
     def _get_touch_r(self, pos):
         return distance(pos, self._origin)
@@ -293,7 +289,7 @@ class ColorWheel(Widget):
 
 class _ColorArc(InstructionGroup):
     def __init__(self, r_min, r_max, theta_min, theta_max,
-                 color=(0, 0, 1, 1), origin = (0, 0), **kwargs):
+                 color=(0, 0, 1, 1), origin=(0, 0), **kwargs):
         super(_ColorArc, self).__init__(**kwargs)
         self.origin = origin
         self.r_min = r_min
@@ -366,11 +362,11 @@ class ColorPicker(RelativeLayout):
     See module documentation.
     '''
 
-    font_name = StringProperty('data/fonts/DroidSansMono.ttf')
+    font_name = StringProperty('data/fonts/RobotoMono-Regular.ttf')
     '''Specifies the font used on the ColorPicker.
 
     :attr:`font_name` is a :class:`~kivy.properties.StringProperty` and
-    defaults to 'data/fonts/DroidSansMono.ttf'.
+    defaults to 'data/fonts/RobotoMono-Regular.ttf'.
     '''
 
     color = ListProperty((1, 1, 1, 1))
@@ -380,7 +376,15 @@ class ColorPicker(RelativeLayout):
     (1, 1, 1, 1).
     '''
 
-    hsv = ListProperty((1, 1, 1))
+    def _get_hsv(self):
+        return rgb_to_hsv(*self.color[:3])
+
+    def _set_hsv(self, value):
+        if self._updating_clr:
+            return
+        self.set_color(value)
+
+    hsv = AliasProperty(_get_hsv, _set_hsv, bind=('color', ))
     '''The :attr:`hsv` holds the color currently selected in hsv format.
 
     :attr:`hsv` is a :class:`~kivy.properties.ListProperty` and defaults to
@@ -390,7 +394,9 @@ class ColorPicker(RelativeLayout):
         return get_hex_from_color(self.color)
 
     def _set_hex(self, value):
-        self.color = get_color_from_hex(value)[:4]
+        if self._updating_clr:
+            return
+        self.set_color(get_color_from_hex(value)[:4])
 
     hex_color = AliasProperty(_get_hex, _set_hex, bind=('color', ))
     '''The :attr:`hex_color` holds the currently selected color in hex.
@@ -406,46 +412,63 @@ class ColorPicker(RelativeLayout):
     defaults to None.
     '''
 
+    _update_clr_ev = _update_hex_ev = None
+
     # now used only internally.
     foreground_color = ListProperty((1, 1, 1, 1))
 
-    def on_color(self, instance, value):
-        if not self._updating_clr:
-            self._updating_clr = True
-            self.hsv = rgb_to_hsv(*value[:3])
-            self._updating_clr = False
-
-    def on_hsv(self, instance, value):
-        if not self._updating_clr:
-            self._updating_clr = True
-            self.color[:3] = hsv_to_rgb(*value)
-            self._updating_clr = False
-
     def _trigger_update_clr(self, mode, clr_idx, text):
+        if self._updating_clr:
+            return
+        self._updating_clr = True
         self._upd_clr_list = mode, clr_idx, text
-        Clock.unschedule(self._update_clr)
-        Clock.schedule_once(self._update_clr)
+        ev = self._update_clr_ev
+        if ev is None:
+            ev = self._update_clr_ev = Clock.create_trigger(self._update_clr)
+        ev()
 
     def _update_clr(self, dt):
+        # to prevent interaction between hsv/rgba, we work internaly using rgba
         mode, clr_idx, text = self._upd_clr_list
         try:
             text = min(255, max(0, float(text)))
             if mode == 'rgb':
                 self.color[clr_idx] = float(text) / 255.
             else:
-                self.hsv[clr_idx] = float(text) / 255.
+                hsv = list(self.hsv[:])
+                hsv[clr_idx] = float(text) / 255.
+                self.color[:3] = hsv_to_rgb(*hsv)
         except ValueError:
             Logger.warning('ColorPicker: invalid value : {}'.format(text))
+        finally:
+            self._updating_clr = False
 
     def _update_hex(self, dt):
-        if len(self._upd_hex_list) != 9:
-            return
-        self.hex_color = self._upd_hex_list
+        try:
+            if len(self._upd_hex_list) != 9:
+                return
+            self._updating_clr = False
+            self.hex_color = self._upd_hex_list
+        finally:
+            self._updating_clr = False
 
     def _trigger_update_hex(self, text):
+        if self._updating_clr:
+            return
+        self._updating_clr = True
         self._upd_hex_list = text
-        Clock.unschedule(self._update_hex)
-        Clock.schedule_once(self._update_hex)
+        ev = self._update_hex_ev
+        if ev is None:
+            ev = self._update_hex_ev = Clock.create_trigger(self._update_hex)
+        ev()
+
+    def set_color(self, color):
+        self._updating_clr = True
+        if len(color) == 3:
+            self.color[:3] = color
+        else:
+            self.color = color
+        self._updating_clr = False
 
     def __init__(self, **kwargs):
         self._updating_clr = False

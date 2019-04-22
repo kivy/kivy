@@ -9,7 +9,7 @@ The p1, p2, p3 are automatically calculated from the position and the size of
 the Widget bounding box. We are using them to draw the triangle shape.
 (Please note in the kv the special case for Scatter.)
 
-Then, we need to setup a new collision function to collide only on the triangle.
+Then we need to setup a new collision function to collide only on the triangle.
 We are using a external method that will check if a point is inside a polygon
 (we consider our triangle as a polygon).
 '''
@@ -75,6 +75,7 @@ class Triangle(Scatter):
         x, y = self.to_local(x, y)
         return point_inside_polygon(x, y,
                 self.p1 + self.p2 + self.p3)
+
 
 if __name__ == '__main__':
     from kivy.base import runTouchApp

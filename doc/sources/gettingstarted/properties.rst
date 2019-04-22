@@ -14,7 +14,7 @@ After, using Kivy's properties::
     class MyClass(EventDispatcher):
         numeric_var = NumericProperty(1)
 
-Theses properties implement the `Observer pattern
+These properties implement the `Observer pattern
 <http://en.wikipedia.org/wiki/Observer_pattern>`_. They help you to:
 
 - Easily manipulate widgets defined in the :doc:`/guide/lang`
@@ -41,4 +41,4 @@ Kivy provides the following properties:
     :mod:`~kivy.properties.AliasProperty`,
     :mod:`~kivy.properties.DictProperty`,
 
-For an in-depth explaination, take a look at :doc:`/api-kivy.properties`.
+For an in-depth explanation, take a look at :doc:`/api-kivy.properties`.

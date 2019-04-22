@@ -132,7 +132,7 @@ cdef inline void final_strip(LayoutLine line):
     ''' Ensures that the line does not end with trailing spaces.
 
     Given the line, it'll start from the last word and strip from the
-    right. If the word becomes empty, it'll remove it and trip the word
+    right. If the word becomes empty, it'll remove it and strip the word
     previous to that and so on.
     '''
     cdef int diff
@@ -275,7 +275,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
 
     The function is designed to be called many times, each time new text is
     appended to the last line (or first line if appending upwards), unless a
-    newline is present in the text. Each text appended is described by it's own
+    newline is present in the text. Each text appended is described by its own
     options which can change between successive calls. If the text is
     constrained, we stop as soon as the constraint is reached.
 
@@ -358,7 +358,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
         ... False)
         >>> w, h, clipped
         (46, 90, False)
-        # now add text from bottom up, and constrain witdh only be 100
+        # now add text from bottom up, and constrain width only be 100
         >>> w, h, clipped = layout_text('\\nyay, more text\\n', lines, (w, h),
         ... (100, None), l.options, l.get_cached_extents(), False, True)
         >>> w, h, clipped
@@ -389,7 +389,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
     cdef int xpad = options['padding_x'], ypad = options['padding_y']
     cdef int max_lines = int(options.get('max_lines', 0))
     cdef float line_height = options['line_height']
-    cdef int strip = options['strip'] or options['halign'][-1] == 'y'
+    cdef int strip = options['strip'] or options['halign'] == 'justify'
     cdef int ref_strip = options['strip_reflow']
     cdef int w = size[0], h = size[1]  # width and height of the texture so far
     cdef list new_lines

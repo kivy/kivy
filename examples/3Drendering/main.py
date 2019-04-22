@@ -43,13 +43,13 @@ class Renderer(Widget):
     def reset_gl_context(self, *args):
         glDisable(GL_DEPTH_TEST)
 
-    def update_glsl(self, *largs):
+    def update_glsl(self, delta):
         asp = self.width / float(self.height)
         proj = Matrix().view_clip(-asp, asp, -1, 1, 1, 100, 1)
         self.canvas['projection_mat'] = proj
         self.canvas['diffuse_light'] = (1.0, 1.0, 0.8)
         self.canvas['ambient_light'] = (0.1, 0.1, 0.1)
-        self.rot.angle += 1
+        self.rot.angle += delta * 100
 
     def setup_scene(self):
         Color(1, 1, 1, 1)
@@ -70,6 +70,7 @@ class Renderer(Widget):
 class RendererApp(App):
     def build(self):
         return Renderer()
+
 
 if __name__ == "__main__":
     RendererApp().run()

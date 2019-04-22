@@ -1,9 +1,0 @@
-usr/lib/python3/dist-packages/kivy/*.so
-usr/lib/python3/dist-packages/kivy/core/clipboard/*.so
-usr/lib/python3/dist-packages/kivy/graphics/*.so
-usr/lib/python3/dist-packages/kivy/core/audio/*.so
-usr/lib/python3/dist-packages/kivy/core/image/*.so
-usr/lib/python3/dist-packages/kivy/core/text/*.so
-usr/lib/python3/dist-packages/kivy/core/text/*.so
-usr/lib/python3/dist-packages/kivy/core/window/*.so
-usr/lib/python3/dist-packages/kivy/lib/gstplayer/*.so

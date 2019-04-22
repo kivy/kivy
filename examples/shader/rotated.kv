@@ -1,0 +1,91 @@
+#:kivy 1.10.1
+
+<TiltedWidget@Widget>:
+    canvas.before:
+        PushMatrix
+        Rotate:
+            angle: 45
+            origin: self.center
+    canvas.after:
+        PopMatrix
+
+<TiltedShiftedWidget@Widget>:
+    canvas.before:
+        PushMatrix
+        PushMatrix:
+            stack: 'frag_modelview_mat'
+        Rotate:
+            angle: 45
+            origin: self.center
+        Rotate:
+            stack: 'frag_modelview_mat'
+            angle: 45
+            origin: self.center
+    canvas.after:
+        PopMatrix
+        PopMatrix:
+            stack: 'frag_modelview_mat'
+
+<SmallLabel@Label>:
+    font_size: 30
+    outline_width: 1
+    pos_hint: {'center_x': .5, 'center_y': .5}
+
+<LargeTiltedLabel@TiltedWidget+Label>:
+    font_size: 60
+    outline_width: 3
+
+<MiniShaderWidget@ShaderWidget>:
+    size_hint: .3, .3
+    pos_hint: {'center_x': .25, 'center_y': .25}
+    canvas:
+        Color:
+            rgb: 1., .6, .3
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<PhaseShiftedWidget@TiltedShiftedWidget+FloatLayout>:
+    size_hint: .3, .3
+    pos_hint: {'center_x': .75, 'center_y': .75}
+    canvas:
+        Color:
+            rgb: .3, .6, .9
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    SmallLabel:
+        text: 'Phase Shifted'
+
+<InPhaseWidget@TiltedWidget+FloatLayout>:
+    size_hint: .3, .3
+    pos_hint: {'center_x': .25, 'center_y': .75}
+    canvas:
+        Color:
+            rgb: .3, .6, .9
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    SmallLabel:
+        text: 'In Phase'
+
+<MainWidget@ShaderWidget+FloatLayout>:
+    mini: mini
+    canvas:
+        Color:
+            rgb: .9, .6, .3
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    LargeTiltedLabel:
+        text: 'far out'
+        pos_hint: {'center_x': .75, 'center_y': .25}
+
+    MiniShaderWidget
+        id: mini
+
+    PhaseShiftedWidget
+    InPhaseWidget

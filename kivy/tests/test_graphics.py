@@ -100,5 +100,29 @@ class FBOInstructionTestCase(GraphicUnitTest):
             Ellipse(pos=(100, 100), size=(100, 100))
         fbo.draw()
         data = fbo.pixels
-
         fbo.texture.save('results.png')
+
+
+class TransformationsTestCase(GraphicUnitTest):
+
+    def test_identity_creation(self):
+        from kivy.graphics import LoadIdentity
+        mat = LoadIdentity()
+        self.assertTrue(mat.stack)
+
+
+class CallbackInstructionTest(GraphicUnitTest):
+
+    def test_from_kv(self):
+        from textwrap import dedent
+        from kivy.lang import Builder
+
+        root = Builder.load_string(dedent("""\
+        Widget:
+            canvas:
+                Callback:
+                    callback: lambda __: setattr(self, 'callback_test', 'TEST')
+        """))
+        r = self.render
+        r(root)
+        self.assertTrue(root.callback_test == 'TEST')

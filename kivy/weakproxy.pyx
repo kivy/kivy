@@ -1,5 +1,18 @@
+"""
+Weak Proxy
+==========
+
+In order to allow garbage collection, the weak proxy provides
+`weak references <https://en.wikipedia.org/wiki/Weak_reference>`_ to objects.
+It effectively enhances the
+`weakref.proxy <https://docs.python.org/2/library/weakref.html#weakref.proxy>`_
+by adding comparison support.
+"""
+
+include "include/config.pxi"
 import weakref
 import operator
+
 
 cdef class WeakProxy(object):
     '''Replacement for weakref.proxy to support comparisons
@@ -24,9 +37,9 @@ cdef class WeakProxy(object):
     def __delattr__(self, name):
         delattr(self.__ref__(), name)
 
-    property __class__:
-        def __get__(self):
-            return self.__ref__().__class__
+    @property
+    def __class__(self):
+        return self.__ref__().__class__
 
     def __dir__(self):
         r = self.__ref()
@@ -61,8 +74,9 @@ cdef class WeakProxy(object):
     def __nonzero__(self):
         return bool(self.__ref__())
 
-    def __bool__(self):
-        return bool(self.__ref__())
+    if not PY3:
+        def __bool__(self):
+            return bool(self.__ref__())
 
     def __add__(self, other):
         return self.__ref__() + other

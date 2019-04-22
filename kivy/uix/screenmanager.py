@@ -1,6 +1,9 @@
 '''Screen Manager
 ==============
 
+.. image:: images/screenmanager.gif
+    :align: right
+
 .. versionadded:: 1.4.0
 
 The screen manager is a widget dedicated to managing multiple screens for your
@@ -114,7 +117,7 @@ example, this can be accomplished like so::
             Button:
                 text: 'Quit'
 
-    <SettingScreen>:
+    <SettingsScreen>:
         BoxLayout:
             Button:
                 text: 'My settings button'
@@ -153,6 +156,8 @@ You have multiple transitions available by default, such as:
 
 - :class:`NoTransition` - switches screens instantly with no animation
 - :class:`SlideTransition` - slide the screen in/out, from any direction
+- :class:`CardTransition` - new screen slides on the previous
+  or the old one slides off the new one depending on the mode
 - :class:`SwapTransition` - implementation of the iOS swap transition
 - :class:`FadeTransition` - shader to fade the screen in/out
 - :class:`WipeTransition` - shader to wipe the screens from right to left
@@ -182,7 +187,8 @@ You can easily switch transitions by changing the
 __all__ = ('Screen', 'ScreenManager', 'ScreenManagerException',
            'TransitionBase', 'ShaderTransition', 'SlideTransition',
            'SwapTransition', 'FadeTransition', 'WipeTransition',
-           'FallOutTransition', 'RiseInTransition', 'NoTransition')
+           'FallOutTransition', 'RiseInTransition', 'NoTransition',
+           'CardTransition')
 
 from kivy.compat import iteritems
 from kivy.logger import Logger
@@ -197,7 +203,7 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.lang import Builder
 from kivy.graphics import (RenderContext, Rectangle, Fbo,
                            ClearColor, ClearBuffers, BindTexture, PushMatrix,
-                           PopMatrix, Translate, Callback)
+                           PopMatrix, Translate, Callback, Scale)
 
 
 class ScreenManagerException(Exception):
@@ -249,7 +255,7 @@ class Screen(RelativeLayout):
 
     transition_progress = NumericProperty(0.)
     '''Value that represents the completion of the current transition, if any
-    is occuring.
+    is occurring.
 
     If a transition is in progress, whatever the mode, the value will change
     from 0 to 1. If you want to know if it's an entering or leaving animation,
@@ -265,7 +271,7 @@ class Screen(RelativeLayout):
     - 'in' if the transition is going to show your screen
     - 'out' if the transition is going to hide your screen
 
-    After the transition is complete, the state will retain it's last value (in
+    After the transition is complete, the state will retain its last value (in
     or out).
 
     :attr:`transition_state` is an :class:`~kivy.properties.OptionProperty` and
@@ -300,7 +306,7 @@ class TransitionBase(EventDispatcher):
         `on_progress`: Transition object, progression float
             Fired during the animation of the transition.
         `on_complete`: Transition object
-            Fired when the transition is fininshed.
+            Fired when the transition is finished.
     '''
 
     screen_out = ObjectProperty()
@@ -463,7 +469,7 @@ class ShaderTransition(TransitionBase):
     and defaults to [0, 0, 0, 1].'''
 
     def make_screen_fbo(self, screen):
-        fbo = Fbo(size=screen.size)
+        fbo = Fbo(size=screen.size, with_stencilbuffer=True)
         with fbo:
             ClearColor(*self.clearcolor)
             ClearBuffers()
@@ -483,9 +489,9 @@ class ShaderTransition(TransitionBase):
         super(ShaderTransition, self).on_complete()
 
     def _remove_out_canvas(self, *args):
-        if (self.screen_out
-                and self.screen_out.canvas in self.manager.canvas.children
-                and self.screen_out not in self.manager.children):
+        if (self.screen_out and
+                self.screen_out.canvas in self.manager.canvas.children and
+                self.screen_out not in self.manager.children):
             self.manager.canvas.remove(self.screen_out.canvas)
 
     def add_screen(self, screen):
@@ -589,19 +595,110 @@ class SlideTransition(TransitionBase):
         super(SlideTransition, self).on_complete()
 
 
+class CardTransition(SlideTransition):
+    '''Card transition that looks similar to Android 4.x application drawer
+    interface animation.
+
+    It supports 4 directions like SlideTransition: left, right, up and down,
+    and two modes, pop and push. If push mode is activated, the previous
+    screen does not move, and the new one slides in from the given direction.
+    If the pop mode is activated, the previous screen slides out, when the new
+    screen is already on the position of the ScreenManager.
+
+    .. versionadded:: 1.10
+    '''
+
+    mode = OptionProperty('push', options=['pop', 'push'])
+    '''Indicates if the transition should push or pop
+    the screen on/off the ScreenManager.
+
+    - 'push' means the screen slides in in the given direction
+    - 'pop' means the screen slides out in the given direction
+
+    :attr:`mode` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to 'push'.
+    '''
+
+    def start(self, manager):
+        '''(internal) Starts the transition. This is automatically
+        called by the :class:`ScreenManager`.
+        '''
+        super(CardTransition, self).start(manager)
+        mode = self.mode
+        a = self.screen_in
+        b = self.screen_out
+        # ensure that the correct widget is "on top"
+        if mode == 'push':
+            manager.canvas.remove(a.canvas)
+            manager.canvas.add(a.canvas)
+        elif mode == 'pop':
+            manager.canvas.remove(b.canvas)
+            manager.canvas.add(b.canvas)
+
+    def on_progress(self, progression):
+        a = self.screen_in
+        b = self.screen_out
+        manager = self.manager
+        x, y = manager.pos
+        width, height = manager.size
+        direction = self.direction
+        mode = self.mode
+        al = AnimationTransition.out_quad
+        progression = al(progression)
+        if mode == 'push':
+            b.pos = x, y
+            if direction == 'left':
+                a.pos = x + width * (1 - progression), y
+            elif direction == 'right':
+                a.pos = x - width * (1 - progression), y
+            elif direction == 'down':
+                a.pos = x, y + height * (1 - progression)
+            elif direction == 'up':
+                a.pos = x, y - height * (1 - progression)
+        elif mode == 'pop':
+            a.pos = x, y
+            if direction == 'left':
+                b.pos = x - width * progression, y
+            elif direction == 'right':
+                b.pos = x + width * progression, y
+            elif direction == 'down':
+                b.pos = x, y - height * progression
+            elif direction == 'up':
+                b.pos = x, y + height * progression
+
+
 class SwapTransition(TransitionBase):
     '''Swap transition that looks like iOS transition when a new window
     appears on the screen.
     '''
+    def __init__(self, **kwargs):
+        super(SwapTransition, self).__init__(**kwargs)
+        self.scales = {}
+
+    def start(self, manager):
+        for screen in self.screen_in, self.screen_out:
+            with screen.canvas.before:
+                PushMatrix(group='swaptransition_scale')
+                scale = Scale(group='swaptransition_scale')
+            with screen.canvas.after:
+                PopMatrix(group='swaptransition_scale')
+
+            screen.bind(center=self.update_scale)
+            self.scales[screen] = scale
+        super(SwapTransition, self).start(manager)
+
+    def update_scale(self, screen, center):
+        self.scales[screen].origin = center
 
     def add_screen(self, screen):
         self.manager.real_add_widget(screen, 1)
 
     def on_complete(self):
-        self.screen_in.scale = 1.
-        self.screen_out.scale = 1.
         self.screen_in.pos = self.manager.pos
         self.screen_out.pos = self.manager.pos
+        for screen in self.screen_in, self.screen_out:
+            for canvas in screen.canvas.before, screen.canvas.after:
+                canvas.remove_group('swaptransition_scale')
         super(SwapTransition, self).on_complete()
 
     def on_progress(self, progression):
@@ -609,8 +706,8 @@ class SwapTransition(TransitionBase):
         b = self.screen_out
         manager = self.manager
 
-        b.scale = 1. - progression * 0.7
-        a.scale = 0.5 + progression * 0.5
+        self.scales[b].xyz = [1. - progression * 0.7 for xyz in 'xyz']
+        self.scales[a].xyz = [0.5 + progression * 0.5 for xyz in 'xyz']
         a.center_y = b.center_y = manager.center_y
 
         al = AnimationTransition.in_out_sine
@@ -789,10 +886,11 @@ class ScreenManager(FloatLayout):
     By default, the manager will show only one screen at a time.
     '''
 
-    current = StringProperty(None)
-    '''Name of the screen currently shown, or the screen to show.
+    current = StringProperty(None, allownone=True)
+    '''
+    Name of the screen currently shown, or the screen to show.
 
-  ::
+    ::
 
         from kivy.uix.screenmanager import ScreenManager, Screen
 
@@ -803,14 +901,17 @@ class ScreenManager(FloatLayout):
         # By default, the first added screen will be shown. If you want to
         # show another one, just set the 'current' property.
         sm.current = 'second'
+
+    :attr:`current` is a :class:`~kivy.properties.StringProperty` and defaults
+    to None.
     '''
 
-    transition = ObjectProperty(SlideTransition(), baseclass=TransitionBase)
-    '''Transition object to use for animating the screen that will be hidden
-    and the screen that will be shown. By default, an instance of
-    :class:`SlideTransition` will be given.
+    transition = ObjectProperty(baseclass=TransitionBase)
+    '''Transition object to use for animating the transition from the current
+    screen to the next one being shown.
 
-    For example, if you want to change to a :class:`WipeTransition`::
+    For example, if you want to use a :class:`WipeTransition` between
+    slides::
 
         from kivy.uix.screenmanager import ScreenManager, Screen,
         WipeTransition
@@ -823,6 +924,9 @@ class ScreenManager(FloatLayout):
         # show another one, just set the 'current' property.
         sm.current = 'second'
 
+    :attr:`transition` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to a :class:`SlideTransition`.
+
     .. versionchanged:: 1.8.0
 
         Default transition has been changed from :class:`SwapTransition` to
@@ -830,14 +934,15 @@ class ScreenManager(FloatLayout):
     '''
 
     screens = ListProperty()
-    '''List of all the :class:`Screen` widgets added. You must not change the
-    list manually. Use :meth:`Screen.add_widget` instead.
+    '''List of all the :class:`Screen` widgets added. You should not change
+    this list manually. Use the
+    :meth:`add_widget <kivy.uix.widget.Widget.add_widget>` method instead.
 
     :attr:`screens` is a :class:`~kivy.properties.ListProperty` and defaults to
     [], read-only.
     '''
 
-    current_screen = ObjectProperty(None)
+    current_screen = ObjectProperty(None, allownone=True)
     '''Contains the currently displayed screen. You must not change this
     property manually, use :attr:`current` instead.
 
@@ -859,6 +964,8 @@ class ScreenManager(FloatLayout):
     '''
 
     def __init__(self, **kwargs):
+        if 'transition' not in kwargs:
+            self.transition = SlideTransition()
         super(ScreenManager, self).__init__(**kwargs)
         self.fbind('pos', self._update_pos)
 
@@ -889,32 +996,47 @@ class ScreenManager(FloatLayout):
         screen = l[0]
         if not isinstance(screen, Screen):
             raise ScreenManagerException(
-                'ScreenManager uses remove_widget only to remove' +
-                'screens added via add_widget! use real_remove_widget.')
+                'ScreenManager uses remove_widget only for removing Screens.')
 
-        if not screen in self.screens:
+        if screen not in self.screens:
             return
+
         if self.current_screen == screen:
             other = next(self)
-            if other:
+            if screen.name == other:
+                self.current = None
+                screen.parent.real_remove_widget(screen)
+            else:
                 self.current = other
+
         screen.manager = None
         screen.unbind(name=self._screen_name_changed)
         self.screens.remove(screen)
 
-    def real_add_widget(self, *l):
-        # ensure screen is removed from it's previous parent before adding'
-        if l[0].parent:
-            l[0].parent.remove_widget(l[0])
-        super(ScreenManager, self).add_widget(*l)
+    def clear_widgets(self, screens=None):
+        if not screens:
+            screens = self.screens
+        remove_widget = self.remove_widget
+        for screen in screens:
+            remove_widget(screen)
 
-    def real_remove_widget(self, *l):
-        super(ScreenManager, self).remove_widget(*l)
+    def real_add_widget(self, screen, *args):
+        # ensure screen is removed from its previous parent
+        parent = screen.parent
+        if parent:
+            parent.real_remove_widget(screen)
+        super(ScreenManager, self).add_widget(screen)
+
+    def real_remove_widget(self, screen, *args):
+        super(ScreenManager, self).remove_widget(screen)
 
     def on_current(self, instance, value):
-        screen = self.get_screen(value)
-        if not screen:
+        if value is None:
+            self.transition.stop()
+            self.current_screen = None
             return
+
+        screen = self.get_screen(value)
         if screen == self.current_screen:
             return
 
@@ -953,7 +1075,7 @@ class ScreenManager(FloatLayout):
         return bool([s for s in self.screens if s.name == name])
 
     def __next__(self):
-        '''Py2K backwards compatability without six or other lib.
+        '''Py2K backwards compatibility without six or other lib.
         '''
         screens = self.screens
         if not screens:
@@ -1017,7 +1139,7 @@ class ScreenManager(FloatLayout):
         self.transition.stop()
 
         # ensure the screen name will be unique
-        if screen not in self.children:
+        if screen not in self.screens:
             if self.has_screen(screen.name):
                 screen.name = self._generate_screen_name()
 
@@ -1078,6 +1200,7 @@ class ScreenManager(FloatLayout):
             return False
         return super(ScreenManager, self).on_touch_up(touch)
 
+
 if __name__ == '__main__':
     from kivy.app import App
     from kivy.uix.button import Button
@@ -1104,9 +1227,9 @@ if __name__ == '__main__':
     class TestApp(App):
 
         def change_view(self, *l):
-            #d = ('left', 'up', 'down', 'right')
-            #di = d.index(self.sm.transition.direction)
-            #self.sm.transition.direction = d[(di + 1) % len(d)]
+            # d = ('left', 'up', 'down', 'right')
+            # di = d.index(self.sm.transition.direction)
+            # self.sm.transition.direction = d[(di + 1) % len(d)]
             self.sm.current = next(self.sm)
 
         def remove_screen(self, *l):

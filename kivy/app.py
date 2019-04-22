@@ -50,21 +50,21 @@ Contents of 'main.py':
 
 See :file:`kivy/examples/application/app_with_kv.py`.
 
-The relation between main.py and test.kv is explained in :meth:`App.load_kv`.
+The relationship between main.py and test.kv is explained in
+:meth:`App.load_kv`.
 
+.. _Application configuration:
 
 Application configuration
 -------------------------
 
-.. versionadded:: 1.0.7
-
 Use the configuration file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Your application might want to have its own configuration file. The
-:class:`App` is able to handle an INI file automatically. You add your
-section/key/value in the :meth:`App.build_config` method by using the `config`
-parameter (which is an instance of :class:`~kivy.config.ConfigParser`)::
+Your application might need its own configuration file. The
+:class:`App` class handles 'ini' files automatically if you add
+the section key-value pair to the :meth:`App.build_config` method using the
+`config` parameter (an instance of :class:`~kivy.config.ConfigParser`)::
 
     class TestApp(App):
         def build_config(self, config):
@@ -73,9 +73,10 @@ parameter (which is an instance of :class:`~kivy.config.ConfigParser`)::
                 'key2': '42'
             })
 
-As soon as you add one section in the config, a file is created on the
-disk and named from the mangled name of your class. "TestApp" will give
-a config file-name "test.ini" with the content::
+As soon as you add one section to the config, a file is created on the
+disk (see :attr:`~App.get_application_config` for its location) and
+named based your class name. "TestApp" will give a config file named
+"test.ini" with the content::
 
     [section1]
     key1 = value1
@@ -168,9 +169,9 @@ user in order to adapt or reload your UI. You can then overload the
             if config is self.config:
                 token = (section, key)
                 if token == ('section1', 'key1'):
-                    print('Our key1 have been changed to', value)
+                    print('Our key1 has been changed to', value)
                 elif token == ('section1', 'key2'):
-                    print('Our key2 have been changed to', value)
+                    print('Our key2 has been changed to', value)
 
 The Kivy configuration panel is added by default to the settings
 instance. If you don't want this panel, you can declare your Application as
@@ -187,6 +188,8 @@ altogether, you can do this::
     class TestApp(App):
         def open_settings(self, *largs):
             pass
+
+.. versionadded:: 1.0.7
 
 Profiling with on_start and on_stop
 -----------------------------------
@@ -281,9 +284,9 @@ The currently implemented Pause mechanism is:
        System due to the user switching to another application, a phone
        shutdown or any other reason.
     #. :meth:`App.on_pause` is called:
-    #. If False is returned (default case), then :meth:`App.on_stop` is
-       called.
-    #. Otherwise the application will sleep until the OS resumes our App
+    #. If False is returned, then :meth:`App.on_stop` is called.
+    #. If True is returned (default case), the application will sleep until
+       the OS resumes our App.
     #. When the app is resumed, :meth:`App.on_resume` is called.
     #. If our app memory has been reclaimed by the OS, then nothing will be
        called.
@@ -320,12 +323,10 @@ from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.resources import resource_find
-from kivy.utils import platform as core_platform
+from kivy.utils import platform
 from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty, StringProperty
-
-
-platform = core_platform
+from kivy.setupconfig import USE_SDL2
 
 
 class App(EventDispatcher):
@@ -362,8 +363,8 @@ class App(EventDispatcher):
     .. versionadded:: 1.0.5
 
     .. versionchanged:: 1.8.0
-        `title` is now a :class:`~kivy.properties.StringProperty`. Don't set the
-        title in the class as previously stated in the documentation.
+        `title` is now a :class:`~kivy.properties.StringProperty`. Don't
+        set the title in the class as previously stated in the documentation.
 
     .. note::
 
@@ -381,8 +382,8 @@ class App(EventDispatcher):
 
     icon = StringProperty(None)
     '''Icon of your application.
-    The icon can be located in the same directory as your main file. You can set
-    this as follows::
+    The icon can be located in the same directory as your main file. You can
+    set this as follows::
 
         class MyApp(App):
             def build(self):
@@ -401,10 +402,10 @@ class App(EventDispatcher):
             class MyApp(App):
                 icon = 'customicon.png'
 
-         Recommended 256x256 or 1024x1024? for GNU/Linux and Mac OSX
-         32x32 for Windows7 or less. <= 256x256 for windows 8
-         256x256 does work (on Windows 8 at least), but is scaled
-         down and doesn't look as good as a 32x32 icon.
+        Recommended 256x256 or 1024x1024? for GNU/Linux and Mac OSX
+        32x32 for Windows7 or less. <= 256x256 for windows 8
+        256x256 does work (on Windows 8 at least), but is scaled
+        down and doesn't look as good as a 32x32 icon.
     '''
 
     use_kivy_settings = True
@@ -431,8 +432,8 @@ class App(EventDispatcher):
 
     :attr:`~App.settings_cls` is an :class:`~kivy.properties.ObjectProperty`
     and defaults to :class:`~kivy.uix.settings.SettingsWithSpinner` which
-    displays settings panels with a spinner to switch between them. If you set a
-    string, the :class:`~kivy.factory.Factory` will be used to resolve the
+    displays settings panels with a spinner to switch between them. If you set
+    a string, the :class:`~kivy.factory.Factory` will be used to resolve the
     class.
 
     '''
@@ -459,7 +460,11 @@ class App(EventDispatcher):
     # Return the current running App instance
     _running_app = None
 
-    __events__ = ('on_start', 'on_stop', 'on_pause', 'on_resume')
+    __events__ = ('on_start', 'on_stop', 'on_pause', 'on_resume',
+                  'on_config_change', )
+
+    # Stored so that we only need to determine this once
+    _user_data_dir = ""
 
     def __init__(self, **kwargs):
         App._running_app = self
@@ -615,19 +620,13 @@ class App(EventDispatcher):
             return resource_find(self.icon)
 
     def get_application_config(self, defaultpath='%(appdir)s/%(appname)s.ini'):
-        '''.. versionadded:: 1.0.7
-
-        .. versionchanged:: 1.4.0
-            Customized the default path for iOS and Android platforms. Added a
-            defaultpath parameter for desktop OS's (not applicable to iOS
-            and Android.)
-
+        '''
         Return the filename of your application configuration. Depending
         on the platform, the application file will be stored in
         different locations:
 
             - on iOS: <appdir>/Documents/.<appname>.ini
-            - on Android: /sdcard/.<appname>.ini
+            - on Android: <user_data_dir>/.<appname>.ini
             - otherwise: <appdir>/<appname>.ini
 
         When you are distributing your application on Desktops, please
@@ -635,7 +634,7 @@ class App(EventDispatcher):
         system-wide, the user might not have write-access to the
         application directory. If you want to store user settings, you
         should overload this method and change the default behavior to
-        save the configuration file in the user directory.::
+        save the configuration file in the user directory. ::
 
             class TestApp(App):
                 def get_application_config(self):
@@ -647,12 +646,24 @@ class App(EventDispatcher):
         - The tilda '~' will be expanded to the user directory.
         - %(appdir)s will be replaced with the application :attr:`directory`
         - %(appname)s will be replaced with the application :attr:`name`
+
+        .. versionadded:: 1.0.7
+
+        .. versionchanged:: 1.4.0
+            Customized the defaultpath for iOS and Android platforms. Added a
+            defaultpath parameter for desktop OS's (not applicable to iOS
+            and Android.)
+
+        .. versionchanged:: 1.11.0
+            Changed the Android version to make use of the
+            :attr:`~App.user_data_dir` and added a missing dot to the iOS
+            config file name.
         '''
 
         if platform == 'android':
-            defaultpath = '/sdcard/.%(appname)s.ini'
+            return join(self.user_data_dir, '.{0}.ini'.format(self.name))
         elif platform == 'ios':
-            defaultpath = '~/Documents/%(appname)s.ini'
+            defaultpath = '~/Documents/.%(appname)s.ini'
         elif platform == 'win':
             defaultpath = defaultpath.replace('/', sep)
         return expanduser(defaultpath) % {
@@ -735,6 +746,29 @@ class App(EventDispatcher):
                 self._app_directory = '.'
         return self._app_directory
 
+    def _get_user_data_dir(self):
+        # Determine and return the user_data_dir.
+        data_dir = ""
+        if platform == 'ios':
+            data_dir = expanduser(join('~/Documents', self.name))
+        elif platform == 'android':
+            from jnius import autoclass, cast
+            PythonActivity = autoclass('org.kivy.android.PythonActivity')
+            context = cast('android.content.Context', PythonActivity.mActivity)
+            file_p = cast('java.io.File', context.getFilesDir())
+            data_dir = file_p.getAbsolutePath()
+        elif platform == 'win':
+            data_dir = os.path.join(os.environ['APPDATA'], self.name)
+        elif platform == 'macosx':
+            data_dir = '~/Library/Application Support/{}'.format(self.name)
+            data_dir = expanduser(data_dir)
+        else:  # _platform == 'linux' or anything else...:
+            data_dir = os.environ.get('XDG_CONFIG_HOME', '~/.config')
+            data_dir = expanduser(join(data_dir, self.name))
+        if not exists(data_dir):
+            os.mkdir(data_dir)
+        return data_dir
+
     @property
     def user_data_dir(self):
         '''
@@ -748,33 +782,30 @@ class App(EventDispatcher):
         This function implements these conventions. The <app_name> directory
         is created when the property is called, unless it already exists.
 
-        On iOS, `~/Documents<app_name>` is returned (which is inside the
+        On iOS, `~/Documents/<app_name>` is returned (which is inside the
         app's sandbox).
-
-        On Android, `/sdcard/<app_name>` is returned.
 
         On Windows, `%APPDATA%/<app_name>` is returned.
 
-        On Mac OSX, `~/Library/Application Support/<app_name>` is returned.
+        On OS X, `~/Library/Application Support/<app_name>` is returned.
 
         On Linux, `$XDG_CONFIG_HOME/<app_name>` is returned.
+
+        On Android, `Context.GetFilesDir
+        <https://developer.android.com/reference/android/content/\
+Context.html#getFilesDir()>`_ is returned.
+
+        .. versionchanged:: 1.11.0
+
+            On Android, this function previously returned
+            `/sdcard/<app_name>`. This folder became read-only by default
+            in Android API 26 and the user_data_dir has therefore been moved
+            to a writeable location.
+
         '''
-        data_dir = ""
-        if platform == 'ios':
-            data_dir = join('~/Documents', self.name)
-        elif platform == 'android':
-            data_dir = join('/sdcard', self.name)
-        elif platform == 'win':
-            data_dir = os.path.join(os.environ['APPDATA'], self.name)
-        elif platform == 'macosx':
-            data_dir = '~/Library/Application Support/{}'.format(self.name)
-        else:  # _platform == 'linux' or anything else...:
-            data_dir = os.environ.get('XDG_CONFIG_HOME', '~/.config')
-            data_dir = join(data_dir, self.name)
-        data_dir = expanduser(data_dir)
-        if not exists(data_dir):
-            os.mkdir(data_dir)
-        return data_dir
+        if self._user_data_dir == "":
+            self._user_data_dir = self._get_user_data_dir()
+        return self._user_data_dir
 
     @property
     def name(self):
@@ -834,8 +865,9 @@ class App(EventDispatcher):
         stopTouchApp()
 
         # Clear the window children
-        for child in self._app_window.children:
-            self._app_window.remove_widget(child)
+        if self._app_window:
+            for child in self._app_window.children:
+                self._app_window.remove_widget(child)
 
     def on_start(self):
         '''Event handler for the `on_start` event which is fired after
@@ -854,17 +886,19 @@ class App(EventDispatcher):
     def on_pause(self):
         '''Event handler called when Pause mode is requested. You should
         return True if your app can go into Pause mode, otherwise
-        return False and your application will be stopped (the default).
+        return False and your application will be stopped.
 
         You cannot control when the application is going to go into this mode.
         It's determined by the Operating System and mostly used for mobile
         devices (android/ios) and for resizing.
 
-        The default return value is False.
+        The default return value is True.
 
         .. versionadded:: 1.1.0
+        .. versionchanged:: 1.10.0
+            The default return value is now True.
         '''
-        return False
+        return True
 
     def on_resume(self):
         '''Event handler called when your application is resuming from
@@ -891,6 +925,9 @@ class App(EventDispatcher):
     def on_config_change(self, config, section, key, value):
         '''Event handler fired when a configuration token has been changed by
         the settings page.
+
+        .. versionchanged:: 1.10.1
+           Added corresponding ``on_config_change`` event.
         '''
         pass
 
@@ -1010,7 +1047,7 @@ class App(EventDispatcher):
     #
 
     def _on_config_change(self, *largs):
-        self.on_config_change(*largs[1:])
+        self.dispatch('on_config_change', *largs[1:])
 
     def _install_settings_keys(self, window):
         window.bind(on_keyboard=self._on_keyboard_settings)
@@ -1020,7 +1057,7 @@ class App(EventDispatcher):
         setting_key = 282  # F1
 
         # android hack, if settings key is pygame K_MENU
-        if platform == 'android':
+        if platform == 'android' and not USE_SDL2:
             import pygame
             setting_key = pygame.K_MENU
 
@@ -1039,4 +1076,3 @@ class App(EventDispatcher):
     def on_icon(self, instance, icon):
         if self._app_window:
             self._app_window.set_icon(self.get_application_icon())
-

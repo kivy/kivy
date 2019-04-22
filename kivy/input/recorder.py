@@ -74,7 +74,7 @@ Let's say you want to save the angle and pressure of the touch, if available::
 
 Or with modules variables::
 
-    $ python main.py -m recorder,attrs=is_touch:sx:sy:angle:pressure,\
+    $ python main.py -m recorder,attrs=is_touch:sx:sy:angle:pressure, \
             profile_mask=pos:angle:pressure
 
 Known limitations
@@ -112,6 +112,13 @@ class RecorderMotionEvent(MotionEvent):
 
 class Recorder(EventDispatcher):
     '''Recorder class. Please check module documentation for more information.
+
+    :Events:
+        `on_stop`:
+            Fired when the playing stops.
+
+    .. versionchanged:: 1.10.0
+        Event `on_stop` added.
     '''
 
     window = ObjectProperty(None)
@@ -167,6 +174,8 @@ class Recorder(EventDispatcher):
     # internals
     record_fd = ObjectProperty(None)
     record_time = NumericProperty(0.)
+
+    __events__ = ('on_stop',)
 
     def __init__(self, **kwargs):
         super(Recorder, self).__init__(**kwargs)
@@ -262,10 +271,14 @@ class Recorder(EventDispatcher):
                     (len(self.play_data), self.filename))
         EventLoop.add_input_provider(self)
 
+    def on_stop(self):
+        pass
+
     def update(self, dispatch_fn):
         if not self.play_data:
             Logger.info('Recorder: Playing finished.')
             self.play = False
+            self.dispatch('on_stop')
 
         dt = time() - self.play_time
         while self.play_data:

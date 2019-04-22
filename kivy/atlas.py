@@ -11,7 +11,7 @@ processing for creating an atlas from a set of individual PNG files. The
 command line section requires the Pillow library, or the defunct Python Imaging
 Library (PIL), to be installed.
 
-An Atlas is composed of files:
+An Atlas is composed of 2 or more files:
     - a json file (.atlas) that contains the image file names and texture
       locations of the atlas.
     - one or multiple image files containing textures referenced by the .atlas
@@ -81,7 +81,10 @@ You can combine all the png's into one and generate the atlas file with::
     myatlas-0.png
 
 As you can see, we get 2 new files: ``myatlas.atlas`` and ``myatlas-0.png``.
-``myatlas-0.png`` is a new 256x256 .png composed of all your images.
+``myatlas-0.png`` is a new 256x256 .png composed of all your images. If the
+size you specify is not large enough to fit all of the source images, more
+atlas images will be created as required e.g. ``myatlas-1.png``,
+``myatlas-2.png`` etc.
 
 .. note::
 
@@ -92,7 +95,7 @@ As you can see, we get 2 new files: ``myatlas.atlas`` and ``myatlas-0.png``.
     If you need path information included, you should include ``use_path`` as
     follows::
 
-        $ python -m kivy.atlas use_path myatlas 256 *.png
+        $ python -m kivy.atlas -- --use_path myatlas 256 *.png
 
     In which case the id for ``../images/button.png`` will be ``images_button``
 
@@ -100,7 +103,7 @@ As you can see, we get 2 new files: ``myatlas.atlas`` and ``myatlas-0.png``.
 How to use an Atlas
 -------------------
 
-Usually, you would use the atlas as follows::
+Usually, you would specify the images by supplying the path::
 
     a = Button(background_normal='images/button.png',
                background_down='images/button_down.png')
@@ -109,12 +112,13 @@ In our previous example, we have created the atlas containing both images and
 put them in ``images/myatlas.atlas``. You can use url notation to reference
 them::
 
+    a = Button(background_normal='atlas://images/myatlas/button',
+               background_down='atlas://images/myatlas/button_down')
+
+In other words, the path to the images is replaced by::
+
     atlas://path/to/myatlas/id
     # will search for the ``path/to/myatlas.atlas`` and get the image ``id``
-
-In our case, it would be::
-
-    atlas://images/myatlas/button
 
 .. note::
 
@@ -233,7 +237,9 @@ class Atlas(EventDispatcher):
             `filenames`: list
                 List of filenames to put in the atlas.
             `size`: int or list (width, height)
-                Size of the atlas image.
+                Size of the atlas image. If the size is not large enough to
+                fit all of the source images, more atlas images will created
+                as required.
             `padding`: int, defaults to 2
                 Padding to put around each image.
 
@@ -345,7 +351,7 @@ class Atlas(EventDispatcher):
                     numoutimages += 1
 
         # now that we've figured out where everything goes, make the output
-        # images and blit the source images to the approriate locations
+        # images and blit the source images to the appropriate locations
         Logger.info('Atlas: create an {0}x{1} rgba image'.format(size_w,
                                                                  size_h))
         outimages = [Image.new('RGBA', (size_w, size_h))

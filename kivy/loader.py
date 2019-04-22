@@ -41,6 +41,7 @@ from kivy.clock import Clock
 from kivy.cache import Cache
 from kivy.core.image import ImageLoader, Image
 from kivy.compat import PY2, string_types
+from kivy.config import Config
 
 from collections import deque
 from time import sleep
@@ -63,9 +64,12 @@ class ProxyImage(Image):
     :Events:
         `on_load`
             Fired when the image is loaded or changed.
+        `on_error`
+            Fired when the image cannot be loaded.
+            `error`: Exception data that ocurred
     '''
 
-    __events__ = ('on_load', )
+    __events__ = ('on_load', 'on_error')
 
     def __init__(self, arg, **kwargs):
         loaded = kwargs.pop('loaded', False)
@@ -73,6 +77,9 @@ class ProxyImage(Image):
         self.loaded = loaded
 
     def on_load(self):
+        pass
+
+    def on_error(self, error):
         pass
 
 
@@ -83,6 +90,22 @@ class LoaderBase(object):
     The _update() function is called every 1 / 25.s or each frame if we have
     less than 25 FPS.
     '''
+    _trigger_update = None
+
+    '''Alias for mimetype extensions.
+
+    If you have trouble to have the right extension to be detected,
+    you can either add #.EXT at the end of the url, or use this array
+    to correct the detection.
+    For example, a zip-file on Windows can be detected as pyz.
+
+    By default, '.pyz' is translated to '.zip'
+
+    .. versionadded:: 1.11.0
+    '''
+    EXT_ALIAS = {
+        '.pyz': '.zip'
+    }
 
     def __init__(self):
         self._loading_image = None
@@ -100,10 +123,8 @@ class LoaderBase(object):
         self._trigger_update = Clock.create_trigger(self._update)
 
     def __del__(self):
-        try:
-            Clock.unschedule(self._update)
-        except Exception:
-            pass
+        if self._trigger_update is not None:
+            self._trigger_update.cancel()
 
     def _set_num_workers(self, num):
         if num < 2:
@@ -255,7 +276,7 @@ class LoaderBase(object):
         try:
             proto = filename.split(':', 1)[0]
         except:
-            #if blank filename then return
+            # if blank filename then return
             return
         if load_callback is not None:
             data = load_callback(filename)
@@ -293,7 +314,7 @@ class LoaderBase(object):
         if proto == 'smb':
             try:
                 # note: it's important to load SMBHandler every time
-                # otherwise the data is occasionaly not loaded
+                # otherwise the data is occasionally not loaded
                 from smb.SMBHandler import SMBHandler
             except ImportError:
                 Logger.warning(
@@ -309,7 +330,16 @@ class LoaderBase(object):
                 fd = urllib_request.build_opener(SMBHandler).open(filename)
             else:
                 # read from internet
-                fd = urllib_request.urlopen(filename)
+                request = urllib_request.Request(filename)
+                if (
+                    Config.has_section('network')
+                    and 'useragent' in Config.items('network')
+                ):
+                    useragent = Config.get('network', 'useragent')
+                    if useragent:
+                        request.add_header('User-Agent', useragent)
+                opener = urllib_request.build_opener()
+                fd = opener.open(request)
 
             if '#.' in filename:
                 # allow extension override from URL fragment
@@ -317,6 +347,7 @@ class LoaderBase(object):
             else:
                 ctype = gettype(fd.info())
                 suffix = mimetypes.guess_extension(ctype)
+                suffix = LoaderBase.EXT_ALIAS.get(suffix, suffix)
                 if not suffix:
                     # strip query string and split on path
                     parts = filename.split('?')[0].split('/')[1:]
@@ -344,13 +375,24 @@ class LoaderBase(object):
             # FIXME create a clean API for that
             for imdata in data._data:
                 imdata.source = filename
-        except Exception:
+        except Exception as ex:
             Logger.exception('Loader: Failed to load image <%s>' % filename)
             # close file when remote file not found or download error
             try:
-                close(_out_osfd)
+                if _out_osfd:
+                    close(_out_osfd)
             except OSError:
                 pass
+
+            # update client
+            for c_filename, client in self._client[:]:
+                if filename != c_filename:
+                    continue
+                # got one client to update
+                client.image = self.error_image
+                client.dispatch('on_error', error=ex)
+                self._client.remove((c_filename, client))
+
             return self.error_image
         finally:
             if fd:
@@ -450,9 +492,13 @@ class LoaderBase(object):
 
         return client
 
+    def remove_from_cache(self, filename):
+        Cache.remove('kv.loader', filename)
+
 #
 # Loader implementation
 #
+
 
 if 'KIVY_DOC' in environ:
 

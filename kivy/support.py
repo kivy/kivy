@@ -48,6 +48,7 @@ def install_gobject_iteration():
 # -----------------------------------------------------------------------------
 
 g_android_redraw_count = 0
+_redraw_event = None
 
 
 def _android_ask_redraw(*largs):
@@ -95,7 +96,7 @@ def install_android():
         from kivy.base import stopTouchApp
         from kivy.logger import Logger
         from kivy.core.window import Window
-        global g_android_redraw_count
+        global g_android_redraw_count, _redraw_event
 
         # try to get the current running application
         Logger.info('Android: Must go into sleep mode, check the app')
@@ -125,8 +126,12 @@ def install_android():
                 app.dispatch('on_resume')
                 Window.canvas.ask_update()
                 g_android_redraw_count = 25  # 5 frames/seconds for 5 seconds
-                Clock.unschedule(_android_ask_redraw)
-                Clock.schedule_interval(_android_ask_redraw, 1 / 5)
+                if _redraw_event is None:
+                    _redraw_event = Clock.schedule_interval(
+                        _android_ask_redraw, 1 / 5)
+                else:
+                    _redraw_event.cancel()
+                    _redraw_event()
                 Logger.info('Android: App resume completed.')
 
         # app doesn't support pause mode, just stop it.
@@ -161,6 +166,7 @@ def install_twisted_reactor(**kwargs):
         put the twisted distribution (and zope.interface dependency) in your
         application directory.
     '''
+
     import twisted
 
     # prevent installing more than once

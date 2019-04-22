@@ -17,14 +17,14 @@ If you need more background on the Python language, you might be interested in
 these tutorials:
 
 * `The Official Python Tutorial <http://docs.python.org/tutorial/>`_
-* `Learn Python in 10 minutes <http://www.korokithakis.net/tutorials/python/>`_
+* `Learn Python in 10 minutes <https://www.stavros.io/tutorials/python/>`_
 * `Learn Python the hard way <http://learnpythonthehardway.org/>`_
 
 Using Kivy on your computer, you can create apps that run on:
 
-- Desktop computers: MacOSX, Linux, Windows.
-- iOs Devices: iPad, iPhone.
-- Android devices: Tablets, phones.
+- Desktop computers: OS X, Linux, Windows.
+- iOS devices: iPad, iPhone.
+- Android devices: tablets, phones.
 - Any other touch-enabled professional/homebrew devices supporting TUIO
   (Tangible User Interface Objects).
 

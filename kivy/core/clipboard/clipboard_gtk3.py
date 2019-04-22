@@ -11,6 +11,8 @@ from kivy.core.clipboard import ClipboardBase
 if platform != 'linux':
     raise SystemError('unsupported platform for gtk3 clipboard')
 
+import gi
+gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
 clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
 
@@ -38,6 +40,7 @@ class ClipboardGtk3(ClipboardBase):
         if mimetype == 'text/plain;charset=utf-8':
             text = data.decode(self._encoding)
             clipboard.set_text(text, -1)
+            clipboard.store()
 
     def get_types(self):
         self.init()

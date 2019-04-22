@@ -26,11 +26,8 @@ By default, the image is centered and fits inside the widget bounding box.
 If you don't want that, you can set `allow_stretch` to True and `keep_ratio`
 to False.
 
-You can also inherit from Image and create your own style.
-
-
-For example, if you want your image to be greater than,the size of your widget,
-you could do::
+You can also inherit from Image and create your own style. For example, if you
+want your image to be greater than the size of your widget, you could do::
 
     class FullImage(Image):
         pass
@@ -47,7 +44,6 @@ And in your kivy language file::
                 pos: self.x - 10, self.y - 10
 
 '''
-
 __all__ = ('Image', 'AsyncImage')
 
 from kivy.uix.widget import Widget
@@ -56,6 +52,7 @@ from kivy.resources import resource_find
 from kivy.properties import StringProperty, ObjectProperty, ListProperty, \
     AliasProperty, BooleanProperty, NumericProperty
 from kivy.logger import Logger
+from kivy.compat import PY2
 
 # delayed imports
 Loader = None
@@ -74,14 +71,14 @@ class Image(Widget):
 
     texture = ObjectProperty(None, allownone=True)
     '''Texture object of the image. The texture represents the original, loaded
-    image texture. It is streched and positioned during rendering according to
+    image texture. It is stretched and positioned during rendering according to
     the :attr:`allow_stretch` and :attr:`keep_ratio` properties.
 
     Depending of the texture creation, the value will be a
     :class:`~kivy.graphics.texture.Texture` or a
     :class:`~kivy.graphics.texture.TextureRegion` object.
 
-    :attr:`texture` is a :class:`~kivy.properties.ObjectProperty` and defaults
+    :attr:`texture` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
     '''
 
@@ -114,7 +111,7 @@ class Image(Widget):
     image_ratio = AliasProperty(get_image_ratio, None, bind=('texture', ))
     '''Ratio of the image (width / float(height).
 
-    :attr:`image_ratio` is a :class:`~kivy.properties.AliasProperty` and is
+    :attr:`image_ratio` is an :class:`~kivy.properties.AliasProperty` and is
     read-only.
     '''
 
@@ -178,8 +175,8 @@ class Image(Widget):
 
     .. versionadded:: 1.9.0
 
-    :attr:`anim_loop` is a :class:`~kivy.properties.NumericProperty` defaults
-    to 0.
+    :attr:`anim_loop` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.
     '''
 
     nocache = BooleanProperty(False)
@@ -227,8 +224,8 @@ class Image(Widget):
     This size will always fit the widget size and will preserve the image
     ratio.
 
-    :attr:`norm_image_size` is a :class:`~kivy.properties.AliasProperty` and is
-    read-only.
+    :attr:`norm_image_size` is an :class:`~kivy.properties.AliasProperty` and
+    is read-only.
     '''
 
     def __init__(self, **kwargs):
@@ -241,6 +238,7 @@ class Image(Widget):
         fbind('mipmap', update)
         if self.source:
             update()
+        self.on_anim_delay(self, kwargs.get('anim_delay', .25))
 
     def texture_update(self, *largs):
         if not self.source:
@@ -255,11 +253,15 @@ class Image(Widget):
             if self._coreimage is not None:
                 self._coreimage.unbind(on_texture=self._on_tex_change)
             try:
+                if PY2 and isinstance(filename, str):
+                    filename = filename.decode('utf-8')
                 self._coreimage = ci = CoreImage(filename, mipmap=mipmap,
                                                  anim_delay=self.anim_delay,
                                                  keep_data=self.keep_data,
                                                  nocache=self.nocache)
             except:
+                Logger.error('Image: Error loading texture {filename}'.
+                                    format(filename=self.source))
                 self._coreimage = ci = None
 
             if ci:
@@ -308,9 +310,9 @@ class Image(Widget):
         except AttributeError:
             pass
 
-        olsource = self.source
+        oldsource = self.source
         self.source = ''
-        self.source = olsource
+        self.source = oldsource
 
     def on_nocache(self, *args):
         if self.nocache and self._coreimage:
@@ -330,6 +332,8 @@ class AsyncImage(Image):
         on how to handle events around asynchronous image loading.
     '''
 
+    __events__ = ('on_error', 'on_load')
+
     def __init__(self, **kwargs):
         self._coreimage = None
         super(AsyncImage, self).__init__(**kwargs)
@@ -339,12 +343,14 @@ class AsyncImage(Image):
         self.fbind('source', self._load_source)
         if self.source:
             self._load_source()
+        self.on_anim_delay(self, kwargs.get('anim_delay', .25))
 
     def _load_source(self, *args):
         source = self.source
         if not source:
             if self._coreimage is not None:
                 self._coreimage.unbind(on_texture=self._on_tex_change)
+                self._coreimage.unbind(on_load=self._on_source_load)
             self.texture = None
             self._coreimage = None
         else:
@@ -353,7 +359,9 @@ class AsyncImage(Image):
             self._coreimage = image = Loader.image(source,
                 nocache=self.nocache, mipmap=self.mipmap,
                 anim_delay=self.anim_delay)
+
             image.bind(on_load=self._on_source_load)
+            image.bind(on_error=self._on_source_error)
             image.bind(on_texture=self._on_tex_change)
             self.texture = image.texture
 
@@ -362,6 +370,16 @@ class AsyncImage(Image):
         if not image:
             return
         self.texture = image.texture
+        self.dispatch('on_load')
+
+    def _on_source_error(self, instance, error=None):
+        self.dispatch('on_error', error)
+
+    def on_error(self, error):
+        pass
+
+    def on_load(self, *args):
+        pass
 
     def is_uri(self, filename):
         proto = filename.split('://', 1)[0]
@@ -373,3 +391,12 @@ class AsyncImage(Image):
 
     def texture_update(self, *largs):
         pass
+
+    def reload(self):
+        if Loader:
+            source = self.source
+            if not self.is_uri(source):
+                source = resource_find(source)
+            Loader.remove_from_cache(source)
+
+        super(AsyncImage, self).reload()

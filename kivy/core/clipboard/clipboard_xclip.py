@@ -26,4 +26,3 @@ class ClipboardXclip(ClipboardExternalBase):
         pipe = {'std' + inout: subprocess.PIPE}
         return subprocess.Popen(
             ['xclip', '-' + inout, '-selection', selection], **pipe)
-

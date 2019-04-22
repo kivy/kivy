@@ -33,7 +33,8 @@ Here is an example of auto creation::
 By default, ProbeSysfs module will enumerate hardware from the /sys/class/input
 device, and configure hardware with ABS_MT_POSITION_X capability. But for
 example, the wacom screen doesn't support this capability. You can prevent this
-behavior by putting select_all=1 in your config line.
+behavior by putting select_all=1 in your config line. Add use_mouse=1 to also
+include touchscreen hardware that offers core pointer functionality.
 '''
 
 __all__ = ('ProbeSysfsHardwareProbe', )
@@ -46,6 +47,7 @@ if 'KIVY_DOC' in os.environ:
     ProbeSysfsHardwareProbe = None
 
 else:
+    import ctypes
     from re import match, IGNORECASE
     from glob import glob
     from subprocess import Popen, PIPE
@@ -81,9 +83,14 @@ else:
 
         def get_capabilities(self):
             path = os.path.join(self.path, "device", "capabilities", "abs")
-            line = read_line(path)
+            line = "0"
+            try:
+                line = read_line(path)
+            except (IOError, OSError):
+                return []
+
             capabilities = []
-            long_bit = getconf("LONG_BIT")
+            long_bit = ctypes.sizeof(ctypes.c_long) * 8
             for i, word in enumerate(line.split(" ")):
                 word = int(word, 16)
                 subcapabilities = [bool(word & 1 << i)
@@ -105,10 +112,6 @@ else:
             return Popen(args, stdout=PIPE).communicate()[0]
         except OSError:
             return ''
-
-    def getconf(var):
-        output = getout("getconf", var)
-        return int(output)
 
     def query_xinput():
         global _cache_xinput
@@ -160,6 +163,7 @@ else:
             self.match = None
             self.input_path = '/sys/class/input'
             self.select_all = True if _is_rpi else False
+            self.use_mouse = False
             self.use_regex = False
             self.args = []
 
@@ -180,9 +184,11 @@ else:
                 elif key == 'provider':
                     self.provider = value
                 elif key == 'use_regex':
-                    self.use_regex = bool(value)
+                    self.use_regex = bool(int(value))
                 elif key == 'select_all':
-                    self.select_all = bool(value)
+                    self.select_all = bool(int(value))
+                elif key == 'use_mouse':
+                    self.use_mouse = bool(int(value))
                 elif key == 'param':
                     self.args.append(value)
                 else:
@@ -192,8 +198,9 @@ else:
             self.probe()
 
         def should_use_mouse(self):
-            return not any(p for p in EventLoop.input_providers
-                           if isinstance(p, MouseMotionEventProvider))
+            return (self.use_mouse or
+                    not any(p for p in EventLoop.input_providers
+                            if isinstance(p, MouseMotionEventProvider)))
 
         def probe(self):
             global EventLoop
@@ -206,8 +213,8 @@ else:
 
             if not self.select_all:
                 inputs = [x for x in inputs if
-                          x.has_capability(ABS_MT_POSITION_X)
-                          and (use_mouse or not x.is_mouse)]
+                          x.has_capability(ABS_MT_POSITION_X) and
+                          (use_mouse or not x.is_mouse)]
             for device in inputs:
                 Logger.debug('ProbeSysfs: found device: %s at %s' % (
                     device.name, device.device))

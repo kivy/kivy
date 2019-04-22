@@ -48,7 +48,7 @@ enum TessWindingRule
 };
 
 // The contents of the tessGetElements() depends on element type being passed to tessTesselate().
-// Tesselation result element types:
+// Tessellation result element types:
 // TESS_POLYGONS
 //   Each element in the element array is polygon defined as 'polySize' number of vertex indices.
 //   If a polygon has than 'polySize' vertices, the remaining indices are stored as TESS_UNDEF.
@@ -67,7 +67,7 @@ enum TessWindingRule
 //
 // TESS_CONNECTED_POLYGONS
 //   Each element in the element array is polygon defined as 'polySize' number of vertex indices,
-//   followed by 'polySize' indices to neighour polygons, that is each element is 'polySize' * 2 indices.
+//   followed by 'polySize' indices to neighbour polygons, that is each element is 'polySize' * 2 indices.
 //   If a polygon has than 'polySize' vertices, the remaining indices are stored as TESS_UNDEF.
 //   If a polygon edge is a boundary, that is, not connected to another polygon, the neighbour index is TESS_UNDEF.
 //   Example, flood fill based on seed polygon:
@@ -128,15 +128,15 @@ typedef struct TESSalloc TESSalloc;
 // as well as dictionary nodes and active regions in buckets and uses simple
 // freelist to speed up the allocation. The bucket size should roughly match your
 // expected input data. For example if you process only hundreds of vertices,
-// a bucket size of 128 might be ok, where as when processing thousands of vertices
-// bucket size of 1024 might be approproate. The bucket size is a compromise between
+// a bucket size of 128 might be ok, whereas when processing thousands of vertices
+// bucket size of 1024 might be appropriate. The bucket size is a compromise between
 // how often to allocate memory from the system versus how much extra space the system
-// should allocate. Reasonable defaults are show in commects below, they will be used if
+// should allocate. Reasonable defaults are shown in comments below, they will be used if
 // the bucket sizes are zero.
 // 
 // The use may left the memrealloc to be null. In that case, the tesselator will not try to
 // dynamically grow int's internal arrays. The tesselator only needs the reallocation when it
-// has found intersecting segments and needs to add new vertex. This defency can be cured by
+// has found intersecting segments and needs to add new vertex. This deficiency can be cured by
 // allocating some extra vertices beforehand. The 'extraVertices' variable allows to specify
 // number of expected extra vertices.  
 struct TESSalloc
@@ -187,10 +187,10 @@ void tessAddContour( TESStesselator *tess, int size, const void* pointer, int st
 // tessTesselate() - tesselate contours.
 // Parameters:
 //   tess - pointer to tesselator object.
-//   windingRule - winding rules used for tesselation, must be one of TessWindingRule.
-//   elementType - defines the tesselation result element type, must be one of TessElementType.
+//   windingRule - winding rules used for tessellation, must be one of TessWindingRule.
+//   elementType - defines the tessellation result element type, must be one of TessElementType.
 //   polySize - defines maximum vertices per polygons if output is polygons.
-//   vertexSize - defines the number of coordinates in tesselation result vertex, must be 2 or 3.
+//   vertexSize - defines the number of coordinates in tessellation result vertex, must be 2 or 3.
 //   normal - defines the normal of the input contours, of null the normal is calculated automatically.
 // Returns:
 //   1 if succeed, 0 if failed.

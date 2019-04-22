@@ -3,36 +3,28 @@ Tree shader
 ===========
 
 This example is an experimentation to show how we can use shader for a tree
-subset. Here, we made a ShaderTreeWidget, different than the ShaderWidget in the
-plasma.py example.
+subset. Here, we made a ShaderTreeWidget, different than the ShaderWidget
+in the plasma.py example.
 
-The ShaderTree widget create a Frambuffer, render his children on it, and render
-the Framebuffer with a specific Shader.
+The ShaderTree widget create a Frambuffer, render his children on it, and
+render the Framebuffer with a specific Shader.
 With this way, you can apply cool effect on your widgets :)
 
 '''
 
 from kivy.clock import Clock
 from kivy.app import App
-from kivy.uix.button import Button
-from kivy.uix.scatter import Scatter
 from kivy.uix.floatlayout import FloatLayout
-from kivy.core.window import Window
+from kivy.core.window import Window  # side effects needed by Shader
 from kivy.properties import StringProperty, ObjectProperty
-from kivy.graphics import RenderContext, Fbo, Color, Rectangle
+from kivy.graphics import (RenderContext, Fbo, Color, ClearColor, ClearBuffers,
+        Rectangle)
+
+import itertools
 
 
 header = '''
-#ifdef GL_ES
-precision highp float;
-#endif
-
-/* Outputs from the vertex shader */
-varying vec4 frag_color;
-varying vec2 tex_coord0;
-
-/* uniform texture samplers */
-uniform sampler2D texture0;
+$HEADER$
 
 uniform vec2 resolution;
 uniform float time;
@@ -43,7 +35,7 @@ shader_pulse = header + '''
 void main(void)
 {
     vec2 halfres = resolution.xy/2.0;
-    vec2 cPos = gl_FragCoord.xy;
+    vec2 cPos = vec4(frag_modelview_mat * gl_FragCoord).xy;
 
     cPos.x -= 0.5*halfres.x*sin(time/2.0)+0.3*halfres.x*cos(time)+halfres.x;
     cPos.y -= 0.4*halfres.y*sin(time/5.0)+0.3*halfres.y*cos(time)+halfres.y;
@@ -109,17 +101,18 @@ class ShaderWidget(FloatLayout):
     def __init__(self, **kwargs):
         # Instead of using canvas, we will use a RenderContext,
         # and change the default shader used.
-        self.canvas = RenderContext(use_parent_projection=True)
+        self.canvas = RenderContext(use_parent_projection=True,
+                                    use_parent_modelview=True,
+                                    use_parent_frag_modelview=True)
 
-        # We create a framebuffer at the size of the window
-        # FIXME: this should be created at the size of the widget
         with self.canvas:
-            self.fbo = Fbo(size=Window.size, use_parent_projection=True)
+            self.fbo = Fbo(size=self.size)
+            self.fbo_color = Color(1, 1, 1, 1)
+            self.fbo_rect = Rectangle()
 
-        # Set the fbo background to black.
         with self.fbo:
-            Color(0, 0, 0)
-            Rectangle(size=Window.size)
+            ClearColor(0, 0, 0, 0)
+            ClearBuffers()
 
         # call the constructor of parent
         # if they are any graphics object, they will be added on our new canvas
@@ -127,9 +120,6 @@ class ShaderWidget(FloatLayout):
 
         # We'll update our glsl variables in a clock
         Clock.schedule_interval(self.update_glsl, 0)
-
-        # Don't forget to set the texture property to the texture of framebuffer
-        self.texture = self.fbo.texture
 
     def update_glsl(self, *largs):
         self.canvas['time'] = Clock.get_boottime()
@@ -161,44 +151,43 @@ class ShaderWidget(FloatLayout):
         super(ShaderWidget, self).remove_widget(widget)
         self.canvas = c
 
+    def on_size(self, instance, value):
+        self.fbo.size = value
+        self.texture = self.fbo.texture
+        self.fbo_rect.size = value
 
-class ScatterImage(Scatter):
-    source = StringProperty(None)
+    def on_pos(self, instance, value):
+        self.fbo_rect.pos = value
+
+    def on_texture(self, instance, value):
+        self.fbo_rect.texture = value
+
+
+class RootWidget(FloatLayout):
+    shader_btn = ObjectProperty(None)
+    shader_widget = ObjectProperty(None)
+
+    def __init__(self, **kwargs):
+        super(RootWidget, self).__init__(**kwargs)
+
+        # prepare shader list
+        available_shaders = [
+                shader_pulse,
+                shader_postprocessing,
+                shader_monochrome,
+        ]
+        self.shaders = itertools.cycle(available_shaders)
+
+        self.shader_btn.bind(on_release=self.change)
+
+    def change(self, *largs):
+        self.shader_widget.fs = next(self.shaders)
 
 
 class ShaderTreeApp(App):
     def build(self):
-        # prepare shader list
-        available_shaders = (
-            shader_pulse, shader_postprocessing, shader_monochrome)
-        self.shader_index = 0
+        return RootWidget()
 
-        # create our widget tree
-        root = FloatLayout()
-        sw = ShaderWidget()
-        root.add_widget(sw)
-
-        # add a button and scatter image inside the shader widget
-        btn = Button(text='Hello world', size_hint=(None, None),
-                     pos_hint={'center_x': .25, 'center_y': .5})
-        sw.add_widget(btn)
-
-        center = Window.width * 0.75 - 256, Window.height * 0.5 - 256
-        scatter = ScatterImage(source='tex3.jpg', size_hint=(None, None),
-                               size=(512, 512), pos=center)
-        sw.add_widget(scatter)
-
-        # create a button outside the shader widget, to change the current used
-        # shader
-        btn = Button(text='Change fragment shader', size_hint=(1, None),
-                     height=50)
-
-        def change(*largs):
-            sw.fs = available_shaders[self.shader_index]
-            self.shader_index = (self.shader_index + 1) % len(available_shaders)
-        btn.bind(on_release=change)
-        root.add_widget(btn)
-        return root
 
 if __name__ == '__main__':
     ShaderTreeApp().run()

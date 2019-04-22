@@ -85,11 +85,20 @@ class ModalView(AnchorLayout):
     '''ModalView class. See module documentation for more information.
 
     :Events:
+        `on_pre_open`:
+            Fired before the ModalView is opened. When this event is fired
+            ModalView is not yet added to window.
         `on_open`:
             Fired when the ModalView is opened.
+        `on_pre_dismiss`:
+            Fired before the ModalView is closed.
         `on_dismiss`:
             Fired when the ModalView is closed. If the callback returns True,
             the dismiss will be canceled.
+
+    .. versionchanged:: 1.11.0
+        Added events `on_pre_open` and `on_pre_dismiss`.
+
     '''
 
     auto_dismiss = BooleanProperty(True)
@@ -130,7 +139,7 @@ class ModalView(AnchorLayout):
     :attr:`background_down` properties. Can be used when using custom
     backgrounds.
 
-    It must be a list of four values: (top, right, bottom, left). Read the
+    It must be a list of four values: (bottom, right, top, left). Read the
     BorderImage instructions for more information about how to use it.
 
     :attr:`border` is a :class:`~kivy.properties.ListProperty` and defaults to
@@ -143,9 +152,9 @@ class ModalView(AnchorLayout):
 
     _anim_duration = NumericProperty(.1)
 
-    _window = ObjectProperty(None, allownone=True)
+    _window = ObjectProperty(None, allownone=True, rebind=True)
 
-    __events__ = ('on_open', 'on_dismiss')
+    __events__ = ('on_pre_open', 'on_open', 'on_pre_dismiss', 'on_dismiss')
 
     def __init__(self, **kwargs):
         self._parent = None
@@ -163,38 +172,41 @@ class ModalView(AnchorLayout):
             window = Window
         return window
 
-    def open(self, *largs):
+    def open(self, *largs, **kwargs):
         '''Show the view window from the :attr:`attach_to` widget. If set, it
         will attach to the nearest window. If the widget is not attached to any
         window, the view will attach to the global
         :class:`~kivy.core.window.Window`.
+
+        When the view is opened, it will be faded in with an animation. If you
+        don't want the animation, use::
+
+            view.open(animation=False)
+
         '''
         if self._window is not None:
             Logger.warning('ModalView: you can only open once.')
-            return self
+            return
         # search window
         self._window = self._search_window()
         if not self._window:
             Logger.warning('ModalView: cannot open view, no window found.')
-            return self
+            return
+        self.dispatch('on_pre_open')
         self._window.add_widget(self)
         self._window.bind(
             on_resize=self._align_center,
             on_keyboard=self._handle_keyboard)
         self.center = self._window.center
-        self.fbind('size', self._update_center)
-        a = Animation(_anim_alpha=1., d=self._anim_duration)
-        a.bind(on_complete=lambda *x: self.dispatch('on_open'))
-        a.start(self)
-        return self
-
-    def _update_center(self, *args):
-        if not self._window:
-            return
-        # XXX HACK DONT REMOVE OR FOUND AND FIX THE ISSUE
-        # It seems that if we don't access to the center before assigning a new
-        # value, no dispatch will be done >_>
-        self.center = self._window.center
+        self.fbind('center', self._align_center)
+        self.fbind('size', self._align_center)
+        if kwargs.get('animation', True):
+            a = Animation(_anim_alpha=1., d=self._anim_duration)
+            a.bind(on_complete=lambda *x: self.dispatch('on_open'))
+            a.start(self)
+        else:
+            self._anim_alpha = 1.
+            self.dispatch('on_open')
 
     def dismiss(self, *largs, **kwargs):
         '''Close the view if it is open. If you really want to close the
@@ -202,7 +214,7 @@ class ModalView(AnchorLayout):
         argument:
         ::
 
-            view = ModalView(...)
+            view = ModalView()
             view.dismiss(force=True)
 
         When the view is dismissed, it will be faded out before being
@@ -212,27 +224,20 @@ class ModalView(AnchorLayout):
 
         '''
         if self._window is None:
-            return self
+            return
+        self.dispatch('on_pre_dismiss')
         if self.dispatch('on_dismiss') is True:
             if kwargs.get('force', False) is not True:
-                return self
+                return
         if kwargs.get('animation', True):
             Animation(_anim_alpha=0., d=self._anim_duration).start(self)
         else:
             self._anim_alpha = 0
             self._real_remove_widget()
-        return self
-
-    def on_size(self, instance, value):
-        self._align_center()
 
     def _align_center(self, *l):
         if self._window:
             self.center = self._window.center
-            # hack to resize dark background on window resize
-            _window = self._window
-            self._window = None
-            self._window = _window
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -263,7 +268,13 @@ class ModalView(AnchorLayout):
             on_keyboard=self._handle_keyboard)
         self._window = None
 
+    def on_pre_open(self):
+        pass
+
     def on_open(self):
+        pass
+
+    def on_pre_dismiss(self):
         pass
 
     def on_dismiss(self):

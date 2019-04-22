@@ -11,6 +11,29 @@ The following document tries to answer some of them.
 Technical FAQ
 -------------
 
+Unable to get a Window, abort.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If Kivy cannot instantiate a Window core provider (mostly SDL2), you'll see
+this. The underlaying issue depends on many things:
+
+- Check your installation. Twice.
+- Check that your graphics driver support OpenGL 2.1 at the minimum. Otherwise, Kivy can't run.
+- If you use windows and ANGLE (``KIVY_GL_BACKEND=angle_sdl2``), check that you have DirectX 9 support.
+- If your platform doesn't supports OpenGL, SDL2 cannot initialize OpenGL.
+- Don't mix the architecture of the dependencies (e.g. Python 64-bit and 32-bit extensions/SDL2)
+- Don't mix python installation: e.g. if you have Python and Anaconda installed, the Python actually run may be different than you think. Similarly, if you have multiple Python versions available on the ``PATH``, they may clash.
+- Check your PATH to ensure that other programs in it don't provide the same dlls as Kivy/Python, or bad stuff can happen.
+  
+  - This commonly happens if some other program that uses similar dependecies as Kivy adds itself to the ``PATH`` so that Kivy's dependecies clash with theirs.
+  - Please read `this <https://superuser.com/questions/284342/what-are-path-and-other-environment-variables-and-how-can-i-set-or-use-them>`_ and `this <https://www.digitalcitizen.life/simple-questions-what-are-environment-variables>`_ for more details on ``PATH``.
+  - The best tool to troubleshoot this is with `Dependency Walker <http://www.dependencywalker.com/>`_ explained `here <https://www.thewindowsclub.com/dependency-walker-download>`_ and `here <https://kb.froglogic.com/display/KB/Analyzing+dependencies+with+Dependency+Walker>`_. 
+  - But ensure that you're launching it from the identical environment that you start Python.
+- Ensure you have all dependencies installed (like ``kivy.deps.sdl2``).
+- Maybe your drivers have some missing OpenGL symbols? Try to switch to another graphics backend with ``KIVY_GL_BACKEND``.
+- Maybe your `Pycharm configuration is incorrect <https://stackoverflow.com/questions/49466785/kivy-error-python-2-7-sdl2-import-error>`_.
+
+
 Fatal Python error: (pygame parachute) Segmentation Fault
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -49,65 +72,6 @@ using it. In the kivy directory, do::
 
     make force
 
-Pip installation failed
-~~~~~~~~~~~~~~~~~~~~~~~
-
-Installing Kivy using Pip is not currently supported. Because Pip forces the
-usage of setuptools, setuptools hacks build_ext to use pyrex for generating .c,
-meaning there is no clean solution to hack against both weird behaviors to use
-Cython. (Reference: http://mail.scipy.org/pipermail/nipy-devel/2011-March/005709.html)
-
-Solution: use `easy_install`, as our documentation said.
-
-.. _gstreamer-compatibility:
-
-GStreamer compatibility
-~~~~~~~~~~~~~~~~~~~~~~~
-
-Starting from 1.8.0 version, Kivy now use by default the Gi bindings, on the
-platforms that have Gi. We are still in a transition, as Gstreamer 0.10 is now
-unmaintained by the Gstreamer team. But 1.0 is not accessible with Python
-everywhere. Here is the compatibility table you can use.
-
-    ================= ======== ====== =========================================
-    Gstreamer version Bindings Status Remarks
-    ----------------- -------- ------ -----------------------------------------
-    0.10              pygst    Works  Lot of issues remain with 0.10
-    0.10              gi       Buggy  Internal issues with pygobject, and video
-                                      doesn't play.
-    1.0               pygst    -      No pygst bindings exists for 1.0
-    1.0               gi       Works* Linux: works
-                                      OSX: works with brew
-                                      Windows: No python bindings available
-    ================= ======== ====== =========================================
-
-Also, we have no reliable way to check if you have 1.0 installed on your
-system. Trying to import gi, and then pygst, will fail.
-
-So currently:
-
-- if you are on Windows: stay on Gstreamer 0.10 with pygst.
-- if you are on OSX/Linux: install Gstreamer 1.0.x
-- if you are on OSX/Linux and doesn't want to install 1.0:
-  `export KIVY_VIDEO=pygst`
-
-If you are on OSX, Brew now have `pygobject3`. You must install it, and
-re-install gstreamer with introspection options::
-
-    $ brew install pygobject3
-    $ brew install gstreamer --with-gobject-introspection
-    $ brew install gst-plugins-base --with-gobject-introspection
-    $ brew install gst-plugins-good --with-gobject-introspection
-    $ brew install gst-plugins-bad --with-gobject-introspection
-    $ brew install gst-plugins-ugly --with-gobject-introspection
-
-    # then add the gi into your PYTHONPATH (as they don't do it for you)
-    $ export PYTHONPATH=$PYTHONPATH:/usr/local/opt/pygobject3/lib/python2.7/site-packages
-
-    # test it
-    $ python -c 'import gi; from gi.repository import Gst; print Gst.version()'
-    (1L, 2L, 1L, 0L)
-
 
 Android FAQ
 -----------
@@ -131,7 +95,7 @@ There have been reports of crashes on Adreno 200/205 based devices.
 Apps otherwise run fine but crash when interacted with/through the screen.
 
 These reports also mentioned the issue being resolved when moving to an ICS or
-higher rom.
+higher ROM.
 
 Is it possible to have a kiosk app on android 3.0 ?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -146,11 +110,11 @@ lines to the xml configuration, and you're done.
 What's the difference between python-for-android from Kivy and SL4A?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Despite having the same name, Kivy's python-for-android is not related to the 
-python-for-android project from SL4A, Py4A, or android-python27. They are 
-distinctly different projects with different goals. You may be able to use 
-Py4A with Kivy, but no code or effort has been made to do so. The Kivy team 
-feels that our python-for-android is the best solution for us going forward, 
+Despite having the same name, Kivy's python-for-android is not related to the
+python-for-android project from SL4A, Py4A, or android-python27. They are
+distinctly different projects with different goals. You may be able to use
+Py4A with Kivy, but no code or effort has been made to do so. The Kivy team
+feels that our python-for-android is the best solution for us going forward,
 and attempts to integrate with and support Py4A is not a good use of our time.
 
 
@@ -193,7 +157,7 @@ you and implemented the portions of our code, where efficiency really
 is critical, on the C level.
 
 For graphics drawing, we also leverage today's GPUs which are, for
-some tasks such as graphics rasterization, much more efficent than a
+some tasks such as graphics rasterization, much more efficient than a
 CPU. Kivy does as much as is reasonable on the GPU to maximize
 performance. If you use our Canvas API to do the drawing, there is
 even a compiler that we invented which optimizes your drawing code
@@ -210,31 +174,19 @@ But even if this is not sufficient, you still have the option of using
 Cython for your own code to *greatly* speed it up.
 
 Trust us when we say that we have given this very careful thought.
-We have performed many different benchmarks and come up with some 
+We have performed many different benchmarks and come up with some
 clever optimizations to make your application run smoothly.
 
 
 Does Kivy support Python 3.x?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Yes! As of version 1.8.0 Kivy supports both Python >= 2.7 and Python >= 3.3
-with the same codebase.
+Yes! As of version 1.8.0 Kivy supports both Python >= 2.7 and Python
+>= 3.4 with the same codebase. Python 3 is also now supported by
+python-for-android.
 
-However, be aware that while Kivy will run in Python 3.3+, packaging support
-is not yet complete. If you plan to create mobile apps for Android or iOS,
-you should use Python 2.7 for now.
-
-
-I've already started with Python 3.x! Is there anything I can do?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Be patient. We're working on it. :)
-
-If you can't wait, you could try using the 3to2_ tool, which converts valid
-Python 3 syntax to Python 2. However, be warned that this tool does not work
-for all Python 3 code.
-
-.. _3to2: https://pypi.python.org/pypi/3to2
+However, be aware that while Kivy will run in Python 3.4+, our iOS
+build tools still require Python 2.7.
 
 
 How is Kivy related to PyMT?
@@ -246,7 +198,7 @@ still is) a project named PyMT that was led by our core developers.
 We learned a great deal from that project during the time that we
 developed it. In the more than two years of research and development
 we found many interesting ways to improve the design of our
-framework. We have performed numerous benchmarks and as it turns out, 
+framework. We have performed numerous benchmarks and as it turns out,
 to achieve the great speed and flexibility that Kivy has, we had to
 rewrite quite a big portion of the codebase, making this a
 backwards-incompatible but future-proof decision.
@@ -313,11 +265,10 @@ Here's a checklist:
   the current state is (very roughly), what you would like to improve and how,
   etc.
 * Discuss that proposal with us in a timely manner. Get feedback.
-* Be patient! Especially on IRC. We will try to get to you if we're available.
+* Be patient! Especially on Discord. We will try to get to you if we're available.
   If not, send an email and just wait. Most questions are already answered in
   the docs or somewhere else and can be found with some research. If your
   questions don't reflect that you've actually thought through what you're
   asking, it might not be well received.
 
 Good luck! :-)
-

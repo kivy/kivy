@@ -98,8 +98,8 @@ class SvgApp(App):
             effect.add_widget(wid)
 
         if 1:
-            #from kivy.uix.image import Image
-            #root.add_widget(Image(source='data/logo/kivy-icon-512.png',
+            # from kivy.uix.image import Image
+            # root.add_widget(Image(source='data/logo/kivy-icon-512.png',
             #                      size=(800, 600)))
 
             filenames = sys.argv[1:]
@@ -149,6 +149,7 @@ class SvgApp(App):
                 self.effect.add_widget(child)
             self.label.text = self.effect.__class__.__name__
             Window.title = self.label.text
+
 
 if __name__ == '__main__':
     SvgApp().run()

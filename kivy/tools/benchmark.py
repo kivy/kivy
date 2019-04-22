@@ -2,6 +2,12 @@
 Benchmark
 =========
 
+This script performs and displays the results of a set of benchmarks. These
+provide a set of metrics mainly aimed at gauging the OpenGL performance of your
+system.
+
+It also provides more specs regarding your graphics card setup together with
+more comprehensive system information.
 '''
 
 from __future__ import print_function
@@ -110,7 +116,8 @@ class bench_button_creation:
     def __init__(self):
         labels = []
         for x in xrange(10000):
-            button = map(lambda x: chr(randint(ord('a'), ord('z'))), xrange(10))
+            button = map(lambda x: chr(randint(ord('a'), ord('z'))),
+                         xrange(10))
             labels.append(''.join(button))
         self.labels = labels
 
@@ -144,7 +151,8 @@ class bench_button_creation_with_tick:
     def __init__(self):
         labels = []
         for x in xrange(10000):
-            button = map(lambda x: chr(randint(ord('a'), ord('z'))), xrange(10))
+            button = map(lambda x: chr(randint(ord('a'), ord('z'))),
+                         xrange(10))
             labels.append(''.join(button))
         self.labels = labels
 

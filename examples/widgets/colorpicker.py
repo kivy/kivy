@@ -3,7 +3,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scatter import Scatter
 from kivy.uix.popup import Popup
 from kivy.properties import ObjectProperty, StringProperty
-from kivy.graphics import Line, Color, Point
+from kivy.graphics import Color, Point
 
 from math import sqrt
 from os import walk
@@ -78,8 +78,8 @@ Builder.load_string('''
         halign: 'center'
         height: self.texture.size[1] if self.texture else 10
         text:
-            ("Selected Image:\\n' + app.current_image.source.split(os.sep)[2] "
-            "if app.current_image else 'None'")
+            ("Selected Image:\\n" + app.current_image.source.split(os.sep)[-1]
+            if app.current_image else 'None')
     Button:
         text: 'Brush'
         size_hint_y: None
@@ -99,7 +99,7 @@ Builder.load_string('''
     Button:
         text: 'clear'
         on_release:
-            app.current_image.canvas.after.clear()
+            app.handle_clear()
 
 <MainRootWidget>
     current_image: None
@@ -120,7 +120,7 @@ def calculate_points(x1, y1, x2, y2, steps=5):
     dy = y2 - y1
     dist = sqrt(dx * dx + dy * dy)
     if dist < steps:
-        return None
+        return
     o = []
     m = dist / steps
     for i in range(1, int(m)):
@@ -148,7 +148,7 @@ class Picture(Scatter):
     def on_touch_down(self, touch):
         _app = self._app
         if (_app.color_mode[0] == 'c' or
-            not self.collide_point(*touch.pos)):
+                not self.collide_point(*touch.pos)):
             return super(Picture, self).on_touch_down(touch)
         ud = touch.ud
         ud['group'] = g = str(touch.uid)
@@ -157,7 +157,7 @@ class Picture(Scatter):
         with self.ids.img.canvas.after:
             ud['color'] = Color(*_app.color_selector.color, group=g)
             ud['lines'] = Point(points=(_pos),
-                            source='../examples/demo/touchtracer/particle.png',
+                            source='../demo/touchtracer/particle.png',
                             pointsize=5, group=g)
         touch.grab(self)
         return True
@@ -224,6 +224,10 @@ class MainApp(App):
         self.color_selector = ColorSelector()
         self.main_root_widget = MainRootWidget()
         return self.main_root_widget
+
+    def handle_clear(self):
+        if self.current_image:
+            self.current_image.canvas.after.clear()
 
 
 if __name__ == '__main__':

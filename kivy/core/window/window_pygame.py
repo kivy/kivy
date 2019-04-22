@@ -19,7 +19,6 @@ from kivy.logger import Logger
 from kivy.base import stopTouchApp, EventLoop
 from kivy.utils import platform, deprecated
 from kivy.resources import resource_find
-from kivy.clock import Clock
 
 try:
     android = None
@@ -41,7 +40,7 @@ class WindowPygame(WindowBase):
 
         # force display to show (available only for fullscreen)
         displayidx = Config.getint('graphics', 'display')
-        if not 'SDL_VIDEO_FULLSCREEN_HEAD' in environ and displayidx != -1:
+        if 'SDL_VIDEO_FULLSCREEN_HEAD' not in environ and displayidx != -1:
             environ['SDL_VIDEO_FULLSCREEN_HEAD'] = '%d' % displayidx
 
         # init some opengl, same as before.
@@ -155,7 +154,7 @@ class WindowPygame(WindowBase):
 
         info = pygame.display.Info()
         self._size = (info.current_w, info.current_h)
-        #self.dispatch('on_resize', *self._size)
+        # self.dispatch('on_resize', *self._size)
 
         # in order to debug futur issue with pygame/display, let's show
         # more debug output.
@@ -183,17 +182,16 @@ class WindowPygame(WindowBase):
         super(WindowPygame, self).create_window()
 
         # set mouse visibility
-        pygame.mouse.set_visible(
-            Config.getboolean('graphics', 'show_cursor'))
+        self._set_cursor_state(self.show_cursor)
 
-        # if we are on android platform, automaticly create hooks
+        # if we are on android platform, automatically create hooks
         if android:
             from kivy.support import install_android
             install_android()
 
     def close(self):
         pygame.display.quit()
-        self.dispatch('on_close')
+        super(WindowPygame, self).close()
 
     def on_title(self, instance, value):
         if self.initialized:
@@ -252,6 +250,9 @@ class WindowPygame(WindowBase):
         win32api.SendMessage(
             hwnd, win32con.WM_SETICON, win32con.ICON_BIG, icon_big)
         return True
+
+    def _set_cursor_state(self, value):
+        pygame.mouse.set_visible(value)
 
     def screenshot(self, *largs, **kwargs):
         global glReadPixels, GL_RGBA, GL_UNSIGNED_BYTE
@@ -338,7 +339,8 @@ class WindowPygame(WindowBase):
 
             # joystick action
             elif event.type == pygame.JOYAXISMOTION:
-                self.dispatch('on_joy_axis', event.joy, event.axis, event.value)
+                self.dispatch('on_joy_axis', event.joy, event.axis,
+                                event.value)
 
             elif event.type == pygame.JOYHATMOTION:
                 self.dispatch('on_joy_hat', event.joy, event.hat, event.value)

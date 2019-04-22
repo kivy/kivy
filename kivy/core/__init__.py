@@ -30,10 +30,12 @@ class CoreCriticalException(Exception):
     pass
 
 
-def core_select_lib(category, llist, create_instance=False, base='kivy.core'):
+def core_select_lib(category, llist, create_instance=False,
+                    base='kivy.core', basemodule=None):
     if 'KIVY_DOC' in os.environ:
         return
     category = category.lower()
+    basemodule = basemodule or category
     libs_ignored = []
     errs = []
     for option, modulename, classname in llist:
@@ -51,7 +53,7 @@ def core_select_lib(category, llist, create_instance=False, base='kivy.core'):
 
             # import module
             mod = __import__(name='{2}.{0}.{1}'.format(
-                category, modulename, base),
+                basemodule, modulename, base),
                 globals=globals(),
                 locals=locals(),
                 fromlist=[modulename], level=0)
@@ -91,7 +93,7 @@ def core_select_lib(category, llist, create_instance=False, base='kivy.core'):
     err = '\n'.join(['{} - {}: {}\n{}'.format(opt, e.__class__.__name__, e,
                    ''.join(traceback.format_tb(tb))) for opt, e, tb in errs])
     Logger.critical(
-        '{0}: Unable to find any valuable {0} provider at all!\n{1}'.format(
+        '{0}: Unable to find any valuable {0} provider.\n{1}'.format(
             category.capitalize(), err))
 
 

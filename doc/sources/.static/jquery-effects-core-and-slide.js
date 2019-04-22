@@ -165,7 +165,7 @@ function getElementStyles() {
 		key,
 		camelCase;
 
-	// webkit enumerates style porperties
+	// webkit enumerates style properties
 	if (style && style.length && style[0] && style[style[0]]) {
 		var len = style.length;
 		while (len--) {

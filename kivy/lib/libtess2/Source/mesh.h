@@ -126,7 +126,7 @@ struct TESSface {
 
 	/* Internal data (keep hidden) */
 	TESSface *trail;     /* "stack" for conversion to strips */
-	TESSindex n;		/* to allow identiy unique faces */
+	TESSindex n;		/* to allow identify unique faces */
 	char marked;     /* flag for conversion to strips */
 	char inside;     /* this face is in the polygon interior */
 };

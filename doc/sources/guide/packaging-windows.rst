@@ -1,95 +1,138 @@
 Create a package for Windows
 ============================
 
+.. note::
+
+    This document only applies for kivy ``1.9.1`` and greater.
+
 Packaging your application for the Windows platform can only be done inside the
-Windows OS. The following process has been tested on Windows 7 and the portable
-package of Kivy.
+Windows OS. The following process has been tested on Windows with the Kivy
+**wheels** installation, see at the end for alternate installations.
 
 The package will be either 32 or 64 bits depending on which version of Python
 you ran it with.
-
-+-----------------------------------------------------------------------------+
-| NOTE: Currently, packages for Windows can be generated with Python 2.7 and  |
-| Python 3.3+. However, Python 3.3+ support is still experimental             |
-+-----------------------------------------------------------------------------+
 
 .. _packaging-windows-requirements:
 
 Requirements
 ------------
 
-    * Latest Kivy (the whole portable package, not only the github sourcecode)
-    * PyInstaller 2.1 (`pip install pyinstaller`) for Python 2.7, and experimental
-      PyInstaller 3.0 (`pip install https://github.com/pyinstaller/pyinstaller/archive/python3.zip`)
-      for Python 3.3+.
+    * Latest Kivy (installed as described in :ref:`installation_windows`).
+    * PyInstaller 3.1+ (``pip install --upgrade pyinstaller``).
 
 .. _Create-the-spec-file:
 
-Create the spec file
---------------------
+PyInstaller default hook
+========================
 
-.. note::
-    The following instructions is written for python 2.7, for other versions of
-    python one should replace all instances of 2.7 or 27 with the appropriate
-    version.
+This section applies to PyInstaller (>= 3.1) that includes the kivy hooks.
+To overwrite the default hook the
+following examples need to be slightly modified. See :ref:`overwrite-win-hook`.
 
-For this example, we'll package the touchtracer example and embed a custom icon.
-The touchtracer example is the `kivy27\\examples\\demo\\touchtracer` directory and
-the main file is named `main.py`.
+Packaging a simple app
+----------------------
 
-#. Double click on the Kivy-2.7.bat and a console will open.
-#. Create a folder into which the packaged app will be created and create the
-   initial spec. For example create a TouchApp directory in the same directory
-   as Kivy-2.7.bat and do::
+For this example, we'll package the **touchtracer** example project and embed
+a custom icon. The location of the kivy examples is, when using the wheels,
+installed to ``python\\share\\kivy-examples`` and when using the github source
+code installed as ``kivy\\examples``. We'll just refer to the full path leading
+to the examples as ``examples-path``. The touchtracer example is in
+``examples-path\\demo\\touchtracer`` and the main file is named ``main.py``.
 
-    cd TouchApp
-    pyinstaller --name touchtracer ..\kivy27\examples\demo\touchtracer\main.py
+#. Open your command line shell and ensure that python is on the path (i.e.
+   ``python`` works).
+#. Create a folder into which the packaged app will be created. For example
+   create a ``TouchApp`` folder and `change to that directory
+   <http://www.computerhope.com/cdhlp.htm>`_ with e.g. ``cd TouchApp``.
+   Then type::
 
-   You can also add an `icon.ico` file to the application folder in order to create an icon
-   for the executable. If you don't have a .ico file available, you can convert your
-   `icon.png` file to ico using the web app `ConvertICO <http://www.convertico.com>`_.
-   Save the `icon.ico` in the touchtracer directory and type::
+    python -m PyInstaller --name touchtracer examples-path\demo\touchtracer\main.py
 
-    pyinstaller --name touchtracer --icon ..\kivy27\examples\demo\touchtracer\icon.ico ..\kivy27\examples\demo\touchtracer\main.py
+   You can also add an `icon.ico` file to the application folder in order to
+   create an icon for the executable. If you don't have a .ico file available,
+   you can convert your `icon.png` file to ico using the web app
+   `ConvertICO <http://www.convertico.com>`_. Save the `icon.ico` in the
+   touchtracer directory and type::
+
+    python -m PyInstaller --name touchtracer --icon examples-path\demo\touchtracer\icon.ico examples-path\demo\touchtracer\main.py
 
    For more options, please consult the
-   `PyInstaller 2.1 Manual <http://pythonhosted.org/PyInstaller/>`_.
+   `PyInstaller Manual <http://pythonhosted.org/PyInstaller/>`_.
 
-#. The spec file will be `touchtracer.spec` located in TouchApp. Now we need to
-   edit the spec file to add kivy hooks to correctly build the exe.
-   Open the spec file with your favorite editor and add theses lines at the
-   beginning of the spec::
+#. The spec file will be ``touchtracer.spec`` located in ``TouchApp``. Now we
+   need to edit the spec file to add the dependencies hooks to correctly build
+   the exe. Open the spec file with your favorite editor and add these lines
+   at the beginning of the spec (assuming sdl2 is used, the default now)::
 
-    from kivy.tools.packaging.pyinstaller_hooks import install_hooks
-    import os
-    install_hooks(globals())
+    from kivy.deps import sdl2, glew
 
-   In the `Analysis()` function, remove the `hookspath=None` parameter.
-   If you don't do this, the kivy package hook will not be used at all.
+   Then, find ``COLLECT()`` and add the data for touchtracer
+   (`touchtracer.kv`, `particle.png`, ...): Change the line to add a ``Tree()``
+   object, e.g. ``Tree('examples-path\\demo\\touchtracer\\')``. This Tree will
+   search and add every file found in the touchtracer directory to your final
+   package.
 
-   Then you need to change the `COLLECT()` call to add the data for touchtracer
-   (`touchtracer.kv`, `particle.png`, ...). Change the line to add a `Tree()`
-   object. This Tree will search and add every file found in the touchtracer
-   directory to your final package::
+   To add the dependencies, before the first keyword argument in COLLECT add a
+   Tree object for every path of the dependencies. E.g.
+   ``*[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)]`` so it'll look
+   something like::
 
-    coll = COLLECT( exe, Tree('../kivy27/examples/demo/touchtracer/'),
+    coll = COLLECT(exe, Tree('examples-path\\demo\\touchtracer\\'),
                    a.binaries,
-                   #...
-                   )
+                   a.zipfiles,
+                   a.datas,
+                   *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
+                   strip=False,
+                   upx=True,
+                   name='touchtracer')
 
-   If SDL2 is used the SDL2 dlls also needs to be included; so add the following
-   Tree object to collect::
+#. Now we build the spec file in ``TouchApp`` with::
 
-    Tree([f for f in os.environ.get('KIVY_SDL2_PATH', '').split(';') if 'bin' in f][0])
+    python -m PyInstaller touchtracer.spec
+
+#. The compiled package will be in the `TouchApp\\dist\\touchtracer` directory.
+
+Packaging a video app with gstreamer
+------------------------------------
+
+Following we'll slightly modify the example above to package a app that uses
+gstreamer for video. We'll use the ``videoplayer`` example found at
+``examples-path\widgets\videoplayer.py``. Create a folder somewhere called
+``VideoPlayer`` and on the command line change your current directory to that
+folder and do::
+
+    python -m PyInstaller --name gstvideo examples-path\widgets\videoplayer.py
+
+to create the ``gstvideo.spec`` file. Edit as above and this time include the
+gstreamer dependency as well::
+
+    from kivy.deps import sdl2, glew, gstreamer
+
+and add the ``Tree()`` to include the video files, e.g.
+``Tree('examples-path\\widgets')`` as well as the gstreamer dependencies so it
+should look something like::
+
+    coll = COLLECT(exe, Tree('examples-path\\widgets'),
+                   a.binaries,
+                   a.zipfiles,
+                   a.datas,
+                   *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins + gstreamer.dep_bins)],
+                   strip=False,
+                   upx=True,
+                   name='gstvideo')
+
+Then build the spec file in ``VideoPlayer`` with::
+
+    python -m PyInstaller gstvideo.spec
+
+and you should find gstvideo.exe in ``VideoPlayer\dist\gstvideo``,
+which when run will play a video.
 
 .. note::
 
-    Until 1.9.0, the windows distribution used PyGame for the core providers.
-    From 1.9.0 and on, the windows distribution uses SDL2 instead and does not
-    come with a PyGame installation. If you're using the 1.8.0 package with 1.9.0
-    or later code, or if you're using the 1.9.0 or later package, but downloaded
-    and need PyGame in your packaging app, you'll have to add the following code
-    to your spec file due to kivy issue #1638. After the imports add the following::
+    If you're using Pygame and need PyGame in your packaging app, you'll have
+    to add the following code to your spec file due to kivy issue #1638. After
+    the imports add the following::
 
         def getResource(identifier, *args, **kwargs):
             if identifier == 'pygame_icon.tiff':
@@ -100,82 +143,88 @@ the main file is named `main.py`.
         _original_getResource = pygame.pkgdata.getResource
         pygame.pkgdata.getResource = getResource
 
-#. We are done. Your spec is ready to be executed!
+.. _overwrite-win-hook:
 
-.. _Build-the-spec:
+Overwriting the default hook
+============================
 
-Build the spec
---------------
+Including/excluding video and audio and reducing app size
+---------------------------------------------------------
 
-#. Double click on `Kivy-2.7.bat`
-#. Go to the TouchApp directory, and build the spec::
+PyInstaller includes a hook for kivy that by default adds **all** the core
+modules used by kivy, e.g. audio, video, spelling etc (you still need to
+package the gstreamer dlls manually with ``Tree()`` - see the example above)
+and their dependencies. If the hook is not installed or to reduce app size some
+of these modules may be excluded, e.g. if no audio/video is used, with
+an alternative hook.
 
-    cd TouchApp
-    pyinstaller touchtracer.spec
+Kivy provides the alternate hook at
+:func:`~kivy.tools.packaging.pyinstaller_hooks.hookspath`. In addition, if and
+only if PyInstaller doesn't have the default hooks
+:func:`~kivy.tools.packaging.pyinstaller_hooks.runtime_hooks` must also be
+provided. When overwriting the hook, the latter one typically is not required
+to be overwritten.
 
-#. The package will be in the `TouchApp\\dist\\touchtracer` directory.
+The alternate :func:`~kivy.tools.packaging.pyinstaller_hooks.hookspath` hook
+does not include any of the kivy providers. To add them, they have to be added
+with
+:func:`~kivy.tools.packaging.pyinstaller_hooks.get_deps_minimal` or
+:func:`~kivy.tools.packaging.pyinstaller_hooks.get_deps_all`. See
+their documentation and :mod:`~kivy.tools.packaging.pyinstaller_hooks` for more
+details. But essentially,
+:func:`~kivy.tools.packaging.pyinstaller_hooks.get_deps_all` add all the
+providers like in the default hook while
+:func:`~kivy.tools.packaging.pyinstaller_hooks.get_deps_minimal` only adds
+those that are loaded when the app is run. Each method provides a list of
+hidden kivy imports and excluded imports that can be passed on to ``Analysis``.
 
-Including Gstreamer
--------------------
+One can also generate a alternate hook which literally lists every kivy
+provider module and those not required can be commented out. See
+:mod:`~kivy.tools.packaging.pyinstaller_hooks`.
 
-If you wish to use Gstreamer, you'll need to further modify the spec file.
+To use the the alternate hooks with the examples above modify as following to
+add the hooks with ``hookspath()`` and ``runtime_hooks`` (if required)
+and ``**get_deps_minimal()`` or ``**get_deps_all()`` to specify the providers.
 
-#. Kivy does some magic when trying to find which version of gstreamer
-   and its bindings are available. In order for pyinstaller to find the
-   correct gstreamer modules, you have to import core.video in the spec file
-   before doing anything::
+For example, add the import statement::
 
-       from kivy.tools.packaging.pyinstaller_hooks import install_hooks
-       import kivy.core.video
+ from kivy.tools.packaging.pyinstaller_hooks import get_deps_minimal, get_deps_all, hookspath, runtime_hooks
 
-#. You'll need to include the gstreamer directory, found in the kivy distribution,
-   in the COLLECT call. You can specify the direct path, or get it from the
-   environment. In addition, the contents of the gstreamer/bin directory
-   need to be included in the top level directory, otherwise the build process
-   may have trouble finding dlls (this will create a second copy of the contents
-   of bin)::
+and then modify ``Analysis`` as follows::
 
-       import os
-       gst_plugin_path = os.environ.get('GST_PLUGIN_PATH').split('lib')[0]
-       COLLECT(exe, Tree(...),
-               Tree(gst_plugin_path),
-               Tree(os.path.join(gst_plugin_path, 'bin')),
-               ...)
+    a = Analysis(['examples-path\\demo\\touchtracer\\main.py'],
+                 ...
+                 hookspath=hookspath(),
+                 runtime_hooks=runtime_hooks(),
+                 ...
+                 **get_deps_all())
 
-Following is an example of how to bundle the videoplayer at `kivy27/examples/widgets/videoplayer.py`.
-From kivy-2.7.bat. Create the VideoPlayer directory alongside kivy-2.7.bat::
+to include everything like the default hook. Or::
 
-    cd VideoPlayer
-    pyinstaller --name gstvideo ..\kivy27\examples\widgets\videoplayer.py
+    a = Analysis(['examples-path\\demo\\touchtracer\\main.py'],
+                 ...
+                 hookspath=hookspath(),
+                 runtime_hooks=runtime_hooks(),
+                 ...
+                 **get_deps_minimal(video=None, audio=None))
 
-Now edit the spec file. At the top of the file add::
+e.g. to exclude the audio and video providers and for the other core modules
+only use those loaded.
 
-    import os
-    from kivy.tools.packaging.pyinstaller_hooks import install_hooks
-    import kivy.core.video
+The key points is to provide the alternate
+:func:`~kivy.tools.packaging.pyinstaller_hooks.hookspath` which does not list
+by default all the kivy providers and instead manually to hiddenimports
+add the required providers while removing the undesired ones (audio and
+video in this example) with
+:func:`~kivy.tools.packaging.pyinstaller_hooks.get_deps_minimal`.
 
-    install_hooks(globals())
-    gst_plugin_path = os.environ.get('GST_PLUGIN_PATH').split('lib')[0]
+Alternate installations
+-----------------------
 
-Remove the `hookspath=None` parameter, and change::
-
-    coll = COLLECT(exe,
-                   a.binaries,
-                   ...
-
-to (remove the SDL2 part if SDL2 is not used)::
-
-    coll = COLLECT(exe, Tree('../kivy27/examples/widgets'),
-                   Tree([f for f in os.environ.get('KIVY_SDL2_PATH', '').split(';') if 'bin' in f][0]),
-                   Tree(gst_plugin_path),
-                   Tree(os.path.join(gst_plugin_path, 'bin')),
-                   a.binaries,
-                   ...
-
-This will include gstreamer and the example video files in examples/widgets.
-To build, run::
-
-    pyinstaller gstvideo.spec
-
-Then you should find gstvideo.exe in `VideoPlayer\\dist\\gstvideo`,
-which when run will play a video.
+The previous examples used e.g.
+``*[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins + gstreamer.dep_bins)],``
+to make PyInstaller add all the dlls used by these dependencies. If kivy
+was not installed using the wheels method these commands will not work and e.g.
+``kivy.deps.sdl2`` will fail to import. Instead, one must find the location
+of these dlls and manually pass them to the ``Tree`` class in a similar fashion
+as the example.

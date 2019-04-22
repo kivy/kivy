@@ -21,7 +21,7 @@ will automatically load the associated annotation file if it exists.
 An annotation file is JSON-based, providing a list of label dictionary items.
 The key and value must match one of the :class:`VideoPlayerAnnotation` items.
 For example, here is a short version of a jsa file that you can find in
-`examples/widgets/softboy.jsa`::
+`examples/widgets/cityCC0.jsa`::
 
 
     [
@@ -32,14 +32,14 @@ For example, here is a short version of a jsa file that you can find in
         "text": "You can change the background color"}
     ]
 
-For our softboy.avi example, the result will be:
+For our cityCC0.mpg example, the result will be:
 
 .. image:: images/videoplayer-annotation.jpg
     :align: center
 
 If you want to experiment with annotation files, test with::
 
-    python -m kivy.uix.videoplayer examples/widgets/softboy.avi
+    python -m kivy.uix.videoplayer examples/widgets/cityCC0.mpg
 
 Fullscreen
 ----------
@@ -454,7 +454,7 @@ class VideoPlayer(GridLayout):
 
     .. warning::
 
-        The re-add operation doesn't care about the index position of it's
+        The re-add operation doesn't care about the index position of its
         children within the parent.
 
     :attr:`fullscreen` is a :class:`~kivy.properties.BooleanProperty`
@@ -480,6 +480,8 @@ class VideoPlayer(GridLayout):
     # internals
     container = ObjectProperty(None)
 
+    _video_load_ev = None
+
     def __init__(self, **kwargs):
         self._video = None
         self._image = None
@@ -493,8 +495,11 @@ class VideoPlayer(GridLayout):
             self._trigger_video_load()
 
     def _trigger_video_load(self, *largs):
-        Clock.unschedule(self._do_video_load)
-        Clock.schedule_once(self._do_video_load, -1)
+        ev = self._video_load_ev
+        if ev is None:
+            ev = self._video_load_ev = Clock.schedule_once(self._do_video_load,
+                                                           -1)
+        ev()
 
     def on_source(self, instance, value):
         # we got a value, try to see if we have an image for it
@@ -521,6 +526,8 @@ class VideoPlayer(GridLayout):
         if not thumbnail:
             filename = self.source.rsplit('.', 1)
             thumbnail = filename[0] + '.png'
+            if not exists(thumbnail):
+                thumbnail = ''
         self._image = VideoPlayerPreview(source=thumbnail, video=self)
         self.container.add_widget(self._image)
 
@@ -579,17 +586,27 @@ class VideoPlayer(GridLayout):
             elif label.parent is None:
                 self.container.add_widget(label)
 
-    def seek(self, percent):
-        '''Change the position to a percentage of the duration. Percentage must
-        be a value between 0-1.
+    def seek(self, percent, precise=True):
+        '''Change the position to a percentage of duration.
+
+        :Parameters:
+            `percent`: float or int
+                Position to seek, must be between 0-1.
+            `precise`: bool, defaults to True
+                Precise seeking is slower, but seeks to exact requested
+                percent.
 
         .. warning::
+            Calling seek() before the video is loaded has no effect.
 
-            Calling seek() before video is loaded has no effect.
+        .. versionadded:: 1.2.0
+
+        .. versionchanged:: 1.10.1
+            The `precise` keyword argument has been added.
         '''
         if not self._video:
             return
-        self._video.seek(percent)
+        self._video.seek(percent, precise=precise)
 
     def _play_started(self, instance, value):
         self.container.clear_widgets()
@@ -637,7 +654,7 @@ class VideoPlayer(GridLayout):
             window.add_widget(self)
 
             # ensure the video widget is in 0, 0, and the size will be
-            # reajusted
+            # readjusted
             self.pos = (0, 0)
             self.size = (100, 100)
             self.pos_hint = {}

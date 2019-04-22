@@ -2,9 +2,9 @@
 Custom Keyboards
 ================
 
-This demo shows how to create and display custom keyboards on screen. Note that
-the new "input_type" property of the TextInput means that this is rarely needed.
-We provide this demo for the sake of completeness.
+This demo shows how to create and display custom keyboards on screen.
+Note that the new "input_type" property of the TextInput means that this
+is rarely needed. We provide this demo for the sake of completeness.
 """
 # Author: Zen-CODE
 from kivy.app import App
@@ -18,8 +18,8 @@ from kivy.config import Config
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy import require
 
-# This example uses features introduced in Kivy 1.8.0, namely being able to load
-# custom json files from the app folder
+# This example uses features introduced in Kivy 1.8.0, namely being able
+# to load custom json files from the app folder.
 require("1.8.0")
 
 Builder.load_string('''
@@ -45,7 +45,7 @@ Builder.load_string('''
         Button:
             text: "Back"
             size_hint_y: 0.1
-            on_release: root.parent.current = "mode"
+            on_release: root.manager.current = "mode"
         Widget:
             # Just a space taker to allow for the popup keyboard
             size_hint_y: 0.5
@@ -134,7 +134,7 @@ class ModeScreen(Screen):
         p3 = "[b][color=#ff0000]Warning:[/color][/b] This is a system-wide " \
             "setting and will affect all Kivy apps. If you change the\n" \
             " keyboard mode, please use this app" \
-            " to reset this value to it's original one."
+            " to reset this value to its original one."
 
         self.center_label.text = "".join([p1, p2, p3])
 
@@ -147,7 +147,7 @@ class ModeScreen(Screen):
 
     def next(self):
         """ Continue to the main screen """
-        self.manager.switch_to(KeyboardScreen())
+        self.manager.current = "keyboard"
 
 
 class KeyboardScreen(Screen):
@@ -166,9 +166,9 @@ class KeyboardScreen(Screen):
     def _add_keyboards(self):
         """ Add a buttons for each available keyboard layout. When clicked,
         the buttons will change the keyboard layout to the one selected. """
-        layouts = VKeyboard().available_layouts.keys()
-        layouts.append("numeric.json")  # Add the file in our app directory
-                                        # Note the .json extension is required
+        layouts = list(VKeyboard().available_layouts.keys())
+        # Add the file in our app directory, the .json extension is required.
+        layouts.append("numeric.json")
         for key in layouts:
             self.kbContainer.add_widget(
                 Button(
@@ -199,11 +199,16 @@ class KeyboardScreen(Screen):
 
     def key_down(self, keyboard, keycode, text, modifiers):
         """ The callback function that catches keyboard events. """
-        self.displayLabel.text = "Key pressed - {0}".format(text)
+        self.displayLabel.text = u"Key pressed - {0}".format(text)
 
-    def key_up(self, keyboard, keycode, text, modifiers):
+    # def key_up(self, keyboard, keycode):
+    def key_up(self, keyboard, keycode, *args):
         """ The callback function that catches keyboard events. """
-        self.displayLabel.text += " (up {0})".format(text)
+        # system keyboard keycode: (122, 'z')
+        # dock keyboard keycode: 'z'
+        if isinstance(keycode, tuple):
+            keycode = keycode[1]
+        self.displayLabel.text += u" (up {0})".format(keycode)
 
 
 class KeyboardDemo(App):
@@ -215,6 +220,7 @@ class KeyboardDemo(App):
         self.sm.add_widget(KeyboardScreen(name="keyboard"))
         self.sm.current = "mode"
         return self.sm
+
 
 if __name__ == "__main__":
     KeyboardDemo().run()

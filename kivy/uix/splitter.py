@@ -6,7 +6,7 @@
 .. image:: images/splitter.jpg
     :align: right
 
-The :class:`Splitter` is a widget that helps you re-size it's child
+The :class:`Splitter` is a widget that helps you re-size its child
 widget/layout by letting you re-size it via dragging the boundary or
 double tapping the boundary. This widget is similar to the
 :class:`~kivy.uix.scrollview.ScrollView` in that it allows only one
@@ -28,7 +28,9 @@ To change its appearance::
     splitter.strip_cls = your_custom_class
 
 You can also change the appearance of the `strip_cls`, which defaults to
-:class:`SplitterStrip`, by overriding the `kv` rule in your app::
+:class:`SplitterStrip`, by overriding the `kv` rule in your app:
+
+.. code-block:: kv
 
     <SplitterStrip>:
         horizontal: True if self.parent and self.parent.sizable_from[0] \
@@ -77,7 +79,7 @@ class Splitter(BoxLayout):
     :class:`~kivy.graphics.vertex_instructions.BorderImage`
     graphics instruction.
 
-    This must be a list of four values: (top, right, bottom, left).
+    This must be a list of four values: (bottom, right, top, left).
     Read the BorderImage instructions for more information about how
     to use it.
 
@@ -100,8 +102,8 @@ class Splitter(BoxLayout):
 
     sizable_from = OptionProperty('left', options=(
         'left', 'right', 'top', 'bottom'))
-    '''Specifies whether the widget is resizable. Options are::
-        `left`, `right`, `top` or `bottom`
+    '''Specifies whether the widget is resizable. Options are:
+    `left`, `right`, `top` or `bottom`
 
     :attr:`sizable_from` is an :class:`~kivy.properties.OptionProperty`
     and defaults to `left`.
@@ -271,11 +273,14 @@ class Splitter(BoxLayout):
         self.rescale_parent_proportion()
 
     def rescale_parent_proportion(self, *args):
+        if not self.parent:
+            return
         if self.rescale_with_parent:
             parent_proportion = self._parent_proportion
             if self.sizable_from in ('top', 'bottom'):
                 new_height = parent_proportion * self.parent.height
-                self.height = max(self.min_size, min(new_height, self.max_size))
+                self.height = max(self.min_size,
+                                 min(new_height, self.max_size))
             else:
                 new_width = parent_proportion * self.parent.width
                 self.width = max(self.min_size, min(new_width, self.max_size))
@@ -384,8 +389,8 @@ if __name__ == '__main__':
             bx2.add_widget(Button())
             spl = Splitter(
                 size_hint=(1, .25),
-                pos_hint = {'top': 1},
-                sizable_from = 'bottom')
+                pos_hint={'top': 1},
+                sizable_from='bottom')
             spl1 = Splitter(
                 sizable_from='left',
                 size_hint=(None, 1), width=90)

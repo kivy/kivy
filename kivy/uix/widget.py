@@ -28,13 +28,13 @@ This widget class was designed with a couple of principles in mind:
   Often you want to know if a certain point is within the bounds of your
   widget. An example would be a button widget where you only want to
   trigger an action when the button itself is actually touched.
-  For this, you can use the :meth:`Widget.collide_point` method, which
+  For this, you can use the :meth:`~Widget.collide_point` method, which
   will return True if the point you pass to it is inside the axis-aligned
   bounding box defined by the widget's position and size.
   If a simple AABB is not sufficient, you can override the method to
   perform the collision checks with more complex shapes, e.g. a polygon.
   You can also check if a widget collides with another widget with
-  :meth:`Widget.collide_widget`.
+  :meth:`~Widget.collide_widget`.
 
 
 We also have some default values and behaviors that you should be aware of:
@@ -52,9 +52,9 @@ We also have some default values and behaviors that you should be aware of:
 * The default size_hint is (1, 1). If the parent is a :class:`Layout`, then the
   widget size will be the parent layout's size.
 
-* :meth:`Widget.on_touch_down`, :meth:`Widget.on_touch_move`,
-  :meth:`Widget.on_touch_up` don't do any sort of collisions. If you want to
-  know if the touch is inside your widget, use :meth:`Widget.collide_point`.
+* :meth:`~Widget.on_touch_down`, :meth:`~Widget.on_touch_move`,
+  :meth:`~Widget.on_touch_up` don't do any sort of collisions. If you want to
+  know if the touch is inside your widget, use :meth:`~Widget.collide_point`.
 
 Using Properties
 ----------------
@@ -98,7 +98,9 @@ for your widget, you can do the following:
 size=self.size)
     widget.bind(pos=redraw, size=redraw)
 
-To draw a background in kv::
+To draw a background in kv:
+
+.. code-block:: kv
 
     Widget:
         canvas:
@@ -116,29 +118,55 @@ Widget touch event bubbling
 ---------------------------
 
 When you catch touch events between multiple widgets, you often
-need to be aware of the order in which these events are propogated. In Kivy,
-events bubble up from the most recently added widget and then backwards through
-its children (from the most recently added back to the first child). This order
-is the same for the `on_touch_move` and `on_touch_up` events.
+need to be aware of the order in which these events are propagated. In Kivy,
+events bubble up from the first child upwards through the other children.
+If a widget has children, the event is passed through its children before
+being passed on to the widget after it.
 
-If you want to reverse this order, you can raise events in the children before
-the parent by using the `super` command. For example:
+As the :meth:`~kivy.uix.widget.Widget.on_touch_up` method inserts widgets at
+index 0 by default, this means the event goes from the most recently added
+widget back to the first one added. Consider the following:
 
 .. code-block:: python
 
-    class MyWidget(Widget):
-        def on_touch_down(self, touch):
-            super(MyWidget, self).on_touch_down(touch)
-            # Do stuff here
+    box = BoxLayout()
+    box.add_widget(Label(text="a"))
+    box.add_widget(Label(text="b"))
+    box.add_widget(Label(text="c"))
 
-In general, this would seldom be the best approach as every event bubbles all
-the way through event time and there is no way of determining if it has been
-handled. In order to stop this event bubbling, one of these methods must
-return `True`. At this point, Kivy assumes the event has been handled and the
-propogation stops.
+The label with text "c" gets the event first, "b" second and "a" last. You can
+reverse this order by manually specifying the index:
 
-This means that the recommended approach is to let the event bubble naturally
-but swallow the event if it has been handled. For example:
+.. code-block:: python
+
+    box = BoxLayout()
+    box.add_widget(Label(text="a"), index=0)
+    box.add_widget(Label(text="b"), index=1)
+    box.add_widget(Label(text="c"), index=2)
+
+Now the order would be "a", "b" then "c". One thing to keep in mind when using
+kv is that declaring a widget uses the
+:meth:`~kivy.uix.widget.Widget.add_widget` method for insertion. Hence, using
+
+.. code-block:: kv
+
+    BoxLayout:
+        MyLabel:
+            text: "a"
+        MyLabel:
+            text: "b"
+        MyLabel:
+            text: "c"
+
+would result in the event order "c", "b" then "a" as "c" was actually the last
+added widget. It thus has index 0, "b" index 1 and "a" index 2. Effectively,
+the child order is the reverse of its listed order.
+
+This ordering is the same for the :meth:`~kivy.uix.widget.Widget.on_touch_move`
+and :meth:`~kivy.uix.widget.Widget.on_touch_up` events.
+
+In order to stop this event bubbling, a method can return `True`. This tells
+Kivy the event has been handled and the event propagation stops. For example:
 
 .. code-block:: python
 
@@ -148,23 +176,22 @@ but swallow the event if it has been handled. For example:
                 # Do stuff here and kill the event
                 return True
             else:
-                # Continue normal event bubbling
                 return super(MyWidget, self).on_touch_down(touch)
 
 This approach gives you good control over exactly how events are dispatched
 and managed. Sometimes, however, you may wish to let the event be completely
-propogated before taking action. You can use the
+propagated before taking action. You can use the
 :class:`~kivy.clock.Clock` to help you here:
 
 .. code-block:: python
 
-    class MyLabel(Label):
+    class MyWidget(Label):
         def on_touch_down(self, touch, after=False):
             if after:
                 print "Fired after the event has been dispatched!"
             else:
                 Clock.schedule_once(lambda dt: self.on_touch_down(touch, True))
-                return super(MyLabel, self).on_touch_down(touch)
+                return super(MyWidget, self).on_touch_down(touch)
 
 Usage of :attr:`Widget.center`, :attr:`Widget.right`, and :attr:`Widget.top`
 ----------------------------------------------------------------------------
@@ -173,7 +200,7 @@ A common mistake when using one of the computed properties such as
 :attr:`Widget.right` is to use it to make a widget follow its parent with a
 KV rule such as `right: self.parent.right`. Consider, for example:
 
-.. code-block:: python
+.. code-block:: kv
 
     FloatLayout:
         id: layout
@@ -301,11 +328,14 @@ class Widget(WidgetBase):
             self._context = get_current_context()
 
         no_builder = '__no_builder' in kwargs
+        self._disabled_value = False
         if no_builder:
             del kwargs['__no_builder']
         on_args = {k: v for k, v in kwargs.items() if k[:3] == 'on_'}
         for key in on_args:
             del kwargs[key]
+
+        self._disabled_count = 0
 
         super(Widget, self).__init__(**kwargs)
 
@@ -315,13 +345,7 @@ class Widget(WidgetBase):
 
         # Apply all the styles.
         if not no_builder:
-            #current_root = Builder.idmap.get('root')
-            #Builder.idmap['root'] = self
-            Builder.apply(self)
-            #if current_root is not None:
-            #    Builder.idmap['root'] = current_root
-            #else:
-            #    Builder.idmap.pop('root')
+            Builder.apply(self, ignored_consts=self._kwargs_applied_init)
 
         # Bind all the events.
         if on_args:
@@ -359,45 +383,49 @@ class Widget(WidgetBase):
     # Collision
     #
     def collide_point(self, x, y):
-        '''Check if a point (x, y) is inside the widget's axis aligned bounding
+        '''
+        Check if a point (x, y) is inside the widget's axis aligned bounding
         box.
 
         :Parameters:
             `x`: numeric
-                X position of the point (in window coordinates)
+                x position of the point (in parent coordinates)
             `y`: numeric
-                Y position of the point (in window coordinates)
+                y position of the point (in parent coordinates)
 
         :Returns:
-            bool, True if the point is inside the bounding box.
+            A bool. True if the point is inside the bounding box, False
+            otherwise.
 
-    .. code-block:: python
+        .. code-block:: python
 
-        >>> Widget(pos=(10, 10), size=(50, 50)).collide_point(40, 40)
-        True
+            >>> Widget(pos=(10, 10), size=(50, 50)).collide_point(40, 40)
+            True
         '''
         return self.x <= x <= self.right and self.y <= y <= self.top
 
     def collide_widget(self, wid):
-        '''Check if the other widget collides with this widget.
-        Performs an axis-aligned bounding box intersection test by default.
+        '''
+        Check if another widget collides with this widget. This function
+        performs an axis-aligned bounding box intersection test by default.
 
         :Parameters:
             `wid`: :class:`Widget` class
-                Widget to collide with.
+                Widget to test collision with.
 
         :Returns:
-            bool, True if the other widget collides with this widget.
+            bool. True if the other widget collides with this widget, False
+            otherwise.
 
-    .. code-block:: python
+        .. code-block:: python
 
-        >>> wid = Widget(size=(50, 50))
-        >>> wid2 = Widget(size=(50, 50), pos=(25, 25))
-        >>> wid.collide_widget(wid2)
-        True
-        >>> wid2.pos = (55, 55)
-        >>> wid.collide_widget(wid2)
-        False
+            >>> wid = Widget(size=(50, 50))
+            >>> wid2 = Widget(size=(50, 50), pos=(25, 25))
+            >>> wid.collide_widget(wid2)
+            True
+            >>> wid2.pos = (55, 55)
+            >>> wid.collide_widget(wid2)
+            False
         '''
         if self.right < wid.x:
             return False
@@ -421,8 +449,10 @@ class Widget(WidgetBase):
                 :mod:`~kivy.uix.relativelayout` for a discussion on
                 coordinate systems.
 
-        :Returns:
-            bool. If True, the dispatching of the touch event will stop.
+        :Returns: bool
+            If True, the dispatching of the touch event will stop.
+            If False, the event will continue to be dispatched to the rest
+            of the widget tree.
         '''
         if self.disabled and self.collide_point(*touch.pos):
             return True
@@ -452,10 +482,6 @@ class Widget(WidgetBase):
             if child.dispatch('on_touch_up', touch):
                 return True
 
-    def on_disabled(self, instance, value):
-        for child in self.children:
-            child.disabled = value
-
     #
     # Tree management
     #
@@ -466,7 +492,11 @@ class Widget(WidgetBase):
             `widget`: :class:`Widget`
                 Widget to add to our list of children.
             `index`: int, defaults to 0
-                Index to insert the widget in the list.
+                Index to insert the widget in the list. Notice that the default
+                of 0 means the widget is inserted at the beginning of the list
+                and will thus be drawn on top of other sibling widgets. For a
+                full discussion of the index and widget hierarchy, please see
+                the :doc:`Widgets Programming Guide <guide/widgets>`.
 
                 .. versionadded:: 1.0.5
             `canvas`: str, defaults to None
@@ -501,8 +531,7 @@ class Widget(WidgetBase):
                                   % (widget, parent))
         widget.parent = parent = self
         # Child will be disabled if added to a disabled parent.
-        if parent.disabled:
-            widget.disabled = True
+        widget.inc_disabled(self._disabled_count)
 
         canvas = self.canvas.before if canvas == 'before' else \
             self.canvas.after if canvas == 'after' else self.canvas
@@ -515,7 +544,7 @@ class Widget(WidgetBase):
             children = self.children
             if index >= len(children):
                 index = len(children)
-                next_index = 0
+                next_index = canvas.indexof(children[-1].canvas)
             else:
                 next_child = children[index]
                 next_index = canvas.indexof(next_child.canvas)
@@ -555,14 +584,17 @@ class Widget(WidgetBase):
         elif widget.canvas in self.canvas.before.children:
             self.canvas.before.remove(widget.canvas)
         widget.parent = None
+        widget.dec_disabled(self._disabled_count)
 
     def clear_widgets(self, children=None):
-        '''Remove all widgets added to this widget.
+        '''
+        Remove all (or the specified) :attr:`~Widget.children` of this widget.
+        If the 'children' argument is specified, it should be a list (or
+        filtered list) of children of the current widget.
 
         .. versionchanged:: 1.8.0
-            `children` argument can be used to select the children we want to
-            remove. It should be a list of children (or filtered list) of the
-            current widget.
+            The `children` argument can be used to specify the children you
+            want to remove.
         '''
 
         if not children:
@@ -571,7 +603,7 @@ class Widget(WidgetBase):
         for child in children[:]:
             remove_widget(child)
 
-    def export_to_png(self, filename, *args):
+    def export_to_png(self, filename, *args, **kwargs):
         '''Saves an image of the widget and its children in png format at the
         specified filename. Works by removing the widget canvas from its
         parent, rendering to an :class:`~kivy.graphics.fbo.Fbo`, and calling
@@ -582,8 +614,8 @@ class Widget(WidgetBase):
             The image includes only this widget and its children. If you want
             to include widgets elsewhere in the tree, you must call
             :meth:`~Widget.export_to_png` from their common parent, or use
-            :meth:`~kivy.core.window.Window.screenshot` to capture the whole
-            window.
+            :meth:`~kivy.core.window.WindowBase.screenshot` to capture the
+            whole window.
 
         .. note::
 
@@ -591,29 +623,50 @@ class Widget(WidgetBase):
             extension in your filename.
 
         .. versionadded:: 1.9.0
+
+        :Parameters:
+            `filename`: str
+                The filename with which to save the png.
+            `scale`: float
+                The amount by which to scale the saved image, defaults to 1.
+
+                .. versionadded:: 1.11.0
         '''
+        self.export_as_image().save(filename, flipped=False)
+
+    def export_as_image(self, *args, **kwargs):
+        '''Return an core :class:`~kivy.core.image.Image` of the actual
+        widget.
+
+        .. versionadded:: 1.11.0
+        '''
+        from kivy.core.image import Image
+        scale = kwargs.get('scale', 1)
 
         if self.parent is not None:
             canvas_parent_index = self.parent.canvas.indexof(self.canvas)
-            self.parent.canvas.remove(self.canvas)
+            if canvas_parent_index > -1:
+                self.parent.canvas.remove(self.canvas)
 
-        fbo = Fbo(size=self.size, with_stencilbuffer=True)
+        fbo = Fbo(size=(self.width * scale, self.height * scale),
+                  with_stencilbuffer=True)
 
         with fbo:
-            ClearColor(0, 0, 0, 1)
+            ClearColor(0, 0, 0, 0)
             ClearBuffers()
             Scale(1, -1, 1)
+            Scale(scale, scale, 1)
             Translate(-self.x, -self.y - self.height, 0)
 
         fbo.add(self.canvas)
         fbo.draw()
-        fbo.texture.save(filename, flipped=False)
+        img = Image(fbo.texture)
         fbo.remove(self.canvas)
 
-        if self.parent is not None:
+        if self.parent is not None and canvas_parent_index > -1:
             self.parent.canvas.insert(canvas_parent_index, self.canvas)
 
-        return True
+        return img
 
     def get_root_window(self):
         '''Return the root window.
@@ -686,7 +739,9 @@ class Widget(WidgetBase):
             A generator that walks the tree, returning widgets in the
             forward layout order.
 
-        For example, given a tree with the following structure::
+        For example, given a tree with the following structure:
+
+        .. code-block:: kv
 
             GridLayout:
                 Button
@@ -773,7 +828,9 @@ class Widget(WidgetBase):
             A generator that walks the tree, returning widgets in the
             reverse layout order.
 
-        For example, given a tree with the following structure::
+        For example, given a tree with the following structure:
+
+        .. code-block:: kv
 
             GridLayout:
                 Button
@@ -990,15 +1047,20 @@ class Widget(WidgetBase):
     '''
 
     id = StringProperty(None, allownone=True)
-    '''Unique identifier of the widget in the tree.
+    '''Identifier of the widget in the tree.
 
     :attr:`id` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.
 
+    .. note::
+
+        The :attr:`id` is not the same as ``id`` in the kv language. For the
+        latter, see :attr:`ids` and :ref:`Kivy Language: ids <kv-lang-ids>`.
+
     .. warning::
 
-        If the :attr:`id` is already used in the tree, an exception will
-        be raised.
+        The :attr:`id` property has been deprecated and will be removed
+        completely in future versions.
     '''
 
     children = ListProperty([])
@@ -1012,19 +1074,18 @@ class Widget(WidgetBase):
     what you are doing.
     '''
 
-    parent = ObjectProperty(None, allownone=True)
-    '''Parent of this widget.
+    parent = ObjectProperty(None, allownone=True, rebind=True)
+    '''Parent of this widget. The parent of a widget is set when the widget
+    is added to another widget and unset when the widget is removed from its
+    parent.
 
     :attr:`parent` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
-
-    The parent of a widget is set when the widget is added to another widget
-    and unset when the widget is removed from its parent.
     '''
 
     size_hint_x = NumericProperty(1, allownone=True)
-    '''X size hint. Represents how much space the widget should use in the
-    direction of the X axis relative to its parent's width.
+    '''x size hint. Represents how much space the widget should use in the
+    direction of the x axis relative to its parent's width.
     Only the :class:`~kivy.uix.layout.Layout` and
     :class:`~kivy.core.window.Window` classes make use of the hint.
 
@@ -1049,7 +1110,7 @@ class Widget(WidgetBase):
     '''
 
     size_hint_y = NumericProperty(1, allownone=True)
-    '''Y size hint.
+    '''y size hint.
 
     :attr:`size_hint_y` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1.
@@ -1090,6 +1151,86 @@ class Widget(WidgetBase):
     containing a dict.
     '''
 
+    size_hint_min_x = NumericProperty(None, allownone=True)
+    '''When not None, the x-direction minimum size (in pixels,
+    like :attr:`width`) when :attr:`size_hint_x` is also not None.
+
+    When :attr:`size_hint_x` is not None, it is the minimum width that the
+    widget will be set due to the :attr:`size_hint_x`. I.e. when a smaller size
+    would be set, :attr:`size_hint_min_x` is the value used instead for the
+    widget width. When None, or when :attr:`size_hint_x` is None,
+    :attr:`size_hint_min_x` doesn't do anything.
+
+    Only the :class:`~kivy.uix.layout.Layout` and
+    :class:`~kivy.core.window.Window` classes make use of the hint.
+
+    :attr:`size_hint_min_x` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to None.
+
+    .. versionadded:: 1.10.0
+    '''
+
+    size_hint_min_y = NumericProperty(None, allownone=True)
+    '''When not None, the y-direction minimum size (in pixels,
+    like :attr:`height`) when :attr:`size_hint_y` is also not None.
+
+    When :attr:`size_hint_y` is not None, it is the minimum height that the
+    widget will be set due to the :attr:`size_hint_y`. I.e. when a smaller size
+    would be set, :attr:`size_hint_min_y` is the value used instead for the
+    widget height. When None, or when :attr:`size_hint_y` is None,
+    :attr:`size_hint_min_y` doesn't do anything.
+
+    Only the :class:`~kivy.uix.layout.Layout` and
+    :class:`~kivy.core.window.Window` classes make use of the hint.
+
+    :attr:`size_hint_min_y` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to None.
+
+    .. versionadded:: 1.10.0
+    '''
+
+    size_hint_min = ReferenceListProperty(size_hint_min_x, size_hint_min_y)
+    '''Minimum size when using :attr:`size_hint`.
+
+    :attr:`size_hint_min` is a :class:`~kivy.properties.ReferenceListProperty`
+    of (:attr:`size_hint_min_x`, :attr:`size_hint_min_y`) properties.
+
+    .. versionadded:: 1.10.0
+    '''
+
+    size_hint_max_x = NumericProperty(None, allownone=True)
+    '''When not None, the x-direction maximum size (in pixels,
+    like :attr:`width`) when :attr:`size_hint_x` is also not None.
+
+    Similar to :attr:`size_hint_min_x`, except that it sets the maximum width.
+
+    :attr:`size_hint_max_x` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to None.
+
+    .. versionadded:: 1.10.0
+    '''
+
+    size_hint_max_y = NumericProperty(None, allownone=True)
+    '''When not None, the y-direction maximum size (in pixels,
+    like :attr:`height`) when :attr:`size_hint_y` is also not None.
+
+    Similar to :attr:`size_hint_min_y`, except that it sets the maximum height.
+
+    :attr:`size_hint_max_y` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to None.
+
+    .. versionadded:: 1.10.0
+    '''
+
+    size_hint_max = ReferenceListProperty(size_hint_max_x, size_hint_max_y)
+    '''Maximum size when using :attr:`size_hint`.
+
+    :attr:`size_hint_max` is a :class:`~kivy.properties.ReferenceListProperty`
+    of (:attr:`size_hint_max_x`, :attr:`size_hint_max_y`) properties.
+
+    .. versionadded:: 1.10.0
+    '''
+
     ids = DictProperty({})
     '''This is a dictionary of ids defined in your kv language. This will only
     be populated if you use ids in your kv language code.
@@ -1100,7 +1241,9 @@ class Widget(WidgetBase):
     empty dict {}.
 
     The :attr:`ids` are populated for each root level widget definition. For
-    example::
+    example:
+
+    .. code-block:: kv
 
         # in kv
         <MyWidget@Widget>:
@@ -1186,8 +1329,37 @@ class Widget(WidgetBase):
     See :class:`~kivy.graphics.Canvas` for more information about the usage.
     '''
 
-    disabled = BooleanProperty(False)
+    def get_disabled(self):
+        return self._disabled_count > 0
+
+    def set_disabled(self, value):
+        if value != self._disabled_value:
+            self._disabled_value = value
+            if value:
+                self.inc_disabled()
+            else:
+                self.dec_disabled()
+            return True
+
+    def inc_disabled(self, count=1):
+        self._disabled_count += count
+        if self._disabled_count - count < 1 <= self._disabled_count:
+            self.property('disabled').dispatch(self)
+        for c in self.children:
+            c.inc_disabled(count)
+
+    def dec_disabled(self, count=1):
+        self._disabled_count -= count
+        if self._disabled_count <= 0 < self._disabled_count + count:
+            self.property('disabled').dispatch(self)
+        for c in self.children:
+            c.dec_disabled(count)
+
+    disabled = AliasProperty(get_disabled, set_disabled)
     '''Indicates whether this widget can interact with input or not.
+
+    :attr:`disabled` is an :class:`~kivy.properties.AliasProperty` and
+    defaults to False.
 
     .. note::
 
@@ -1198,6 +1370,10 @@ class Widget(WidgetBase):
 
     .. versionadded:: 1.8.0
 
-    :attr:`disabled` is a :class:`~kivy.properties.BooleanProperty` and
-    defaults to False.
+    .. versionchanged:: 1.10.1
+
+        :attr:`disabled` was changed from a
+        :class:`~kivy.properties.BooleanProperty` to an
+        :class:`~kivy.properties.AliasProperty` to allow access to its
+        previous state when a parent's disabled state is changed.
     '''

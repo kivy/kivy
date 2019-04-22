@@ -2,36 +2,43 @@
 Carousel
 ========
 
+.. image:: images/carousel.gif
+    :align: right
+
 .. versionadded:: 1.4.0
 
 The :class:`Carousel` widget provides the classic mobile-friendly carousel view
 where you can swipe between slides.
-You can add any content to the carousel and use it horizontally or verticaly.
-The carousel can display pages in loop or not.
+You can add any content to the carousel and have it move horizontally or
+vertically. The carousel can display pages in a sequence or a loop.
 
 Example::
 
-    class Example1(App):
+    from kivy.app import App
+    from kivy.uix.carousel import Carousel
+    from kivy.uix.image import AsyncImage
 
+
+    class CarouselApp(App):
         def build(self):
             carousel = Carousel(direction='right')
             for i in range(10):
                 src = "http://placehold.it/480x270.png&text=slide-%d&.png" % i
-                image = Factory.AsyncImage(source=src, allow_stretch=True)
+                image = AsyncImage(source=src, allow_stretch=True)
                 carousel.add_widget(image)
             return carousel
 
-    Example1().run()
+
+    CarouselApp().run()
 
 .. versionchanged:: 1.5.0
     The carousel now supports active children, like the
     :class:`~kivy.uix.scrollview.ScrollView`. It will detect a swipe gesture
-    according to :attr:`Carousel.scroll_timeout` and
-    :attr:`Carousel.scroll_distance`.
+    according to the :attr:`Carousel.scroll_timeout` and
+    :attr:`Carousel.scroll_distance` properties.
 
-    In addition, the container used for adding a slide is now hidden in
-    the API. We made a mistake by exposing it to the user. The impacted
-    properties are:
+    In addition, the slide container is no longer exposed by the API.
+    The impacted properties are
     :attr:`Carousel.slides`, :attr:`Carousel.current_slide`,
     :attr:`Carousel.previous_slide` and :attr:`Carousel.next_slide`.
 
@@ -54,8 +61,8 @@ class Carousel(StencilView):
     '''
 
     slides = ListProperty([])
-    '''List of slides inside the Carousel. The slides are added when a
-    widget is added to Carousel using add_widget().
+    '''List of slides inside the Carousel. The slides are the
+    widgets added to the Carousel using the :attr:`add_widget` method.
 
     :attr:`slides` is a :class:`~kivy.properties.ListProperty` and is
     read-only.
@@ -69,22 +76,23 @@ class Carousel(StencilView):
 
     direction = OptionProperty('right',
                                options=('right', 'left', 'top', 'bottom'))
-    '''Specifies the direction in which the slides are ordered i.e. the
-    direction from which the user swipes to go from one slide to the next.
-    Can be `right`, `left`, 'top', or `bottom`. For example, with
+    '''Specifies the direction in which the slides are ordered. This
+    corresponds to the direction from which the user swipes to go from one
+    slide to the next. It
+    can be `right`, `left`, `top`, or `bottom`. For example, with
     the default value of `right`, the second slide is to the right
     of the first and the user would swipe from the right towards the
     left to get to the second slide.
 
-    :attr:`direction` is a :class:`~kivy.properties.OptionProperty` and
+    :attr:`direction` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'right'.
     '''
 
     min_move = NumericProperty(0.2)
-    '''Defines the minimal distance from the edge where the movement is
-    considered a swipe gesture and the Carousel will change its content.
-    This is a percentage of the Carousel width.
-    If the movement doesn't reach this minimal value, then the movement is
+    '''Defines the minimum distance to be covered before the touch is
+    considered a swipe gesture and the Carousel content changed.
+    This is a expressed as a fraction of the Carousel's width.
+    If the movement doesn't reach this minimum value, the movement is
     cancelled and the content is restored to its original position.
 
     :attr:`min_move` is a :class:`~kivy.properties.NumericProperty` and
@@ -100,16 +108,17 @@ class Carousel(StencilView):
 
     anim_cancel_duration = NumericProperty(0.3)
     '''Defines the duration of the animation when a swipe movement is not
-    accepted. This is generally when the user doesnt swipe enough.
-    See :attr:`min_move`.
+    accepted. This is generally when the user does not make a large enough
+    swipe. See :attr:`min_move`.
 
     :attr:`anim_cancel_duration` is a :class:`~kivy.properties.NumericProperty`
     and defaults to 0.3.
     '''
 
     loop = BooleanProperty(False)
-    '''Allow the Carousel to swipe infinitely. When the user reaches the last
-    page, they will return to first page when trying to swipe to the next.
+    '''Allow the Carousel to loop infinitely. If True, when the user tries to
+    swipe beyond last page, it will return to the first. If False, it will
+    remain on the last page.
 
     :attr:`loop` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
@@ -126,9 +135,9 @@ class Carousel(StencilView):
         else:
             self._index = None
     index = AliasProperty(_get_index, _set_index, bind=('_index', 'slides'))
-    '''Get/Set the current visible slide based on the index.
+    '''Get/Set the current slide based on the index.
 
-    :attr:`index` is a :class:`~kivy.properties.AliasProperty` and defaults
+    :attr:`index` is an :class:`~kivy.properties.AliasProperty` and defaults
     to 0 (the first item).
     '''
 
@@ -150,15 +159,15 @@ class Carousel(StencilView):
 
     previous_slide = AliasProperty(_prev_slide, None, bind=('slides', 'index'))
     '''The previous slide in the Carousel. It is None if the current slide is
-    the first slide in the Carousel. If :attr:`orientation` is 'horizontal',
-    the previous slide is to the left. If :attr:`orientation` is 'vertical',
-    the previous slide towards the bottom.
+    the first slide in the Carousel. This ordering reflects the order in which
+    the slides are added: their presentation varies according to the
+    :attr:`direction` property.
 
-    :attr:`previous_slide` is a :class:`~kivy.properties.AliasProperty`.
+    :attr:`previous_slide` is an :class:`~kivy.properties.AliasProperty`.
 
     .. versionchanged:: 1.5.0
-        This property doesn't expose the container used for storing the slide.
-        It returns the widget you have added.
+        This property no longer exposes the slides container. It returns
+        the widget you have added.
     '''
 
     def _curr_slide(self):
@@ -170,8 +179,8 @@ class Carousel(StencilView):
     :attr:`current_slide` is an :class:`~kivy.properties.AliasProperty`.
 
     .. versionchanged:: 1.5.0
-        The property doesn't expose the container used for storing the slide.
-        It returns widget you have added.
+        The property no longer exposes the slides container. It returns
+        the widget you have added.
     '''
 
     def _next_slide(self):
@@ -188,21 +197,21 @@ class Carousel(StencilView):
             return self.slides[self.index + 1]
     next_slide = AliasProperty(_next_slide, None, bind=('slides', 'index'))
     '''The next slide in the Carousel. It is None if the current slide is
-    the last slide in the Carousel. If :attr:`orientation` is 'horizontal',
-    the next slide is to the right. If :attr:`orientation` is 'vertical',
-    the next slide is towards the bottom.
+    the last slide in the Carousel. This ordering reflects the order in which
+    the slides are added: their presentation varies according to the
+    :attr:`direction` property.
 
-    :attr:`next_slide` is a :class:`~kivy.properties.AliasProperty`.
+    :attr:`next_slide` is an :class:`~kivy.properties.AliasProperty`.
 
     .. versionchanged:: 1.5.0
-        The property doesn't expose the container used for storing the slide.
+        The property no longer exposes the slides container.
         It returns the widget you have added.
     '''
 
     scroll_timeout = NumericProperty(200)
     '''Timeout allowed to trigger the :attr:`scroll_distance`, in milliseconds.
     If the user has not moved :attr:`scroll_distance` within the timeout,
-    the scrolling will be disabled and the touch event will go to the children.
+    no scrolling will occur and the touch event will go to the children.
 
     :attr:`scroll_timeout` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 200 (milliseconds)
@@ -224,12 +233,26 @@ class Carousel(StencilView):
     '''
 
     anim_type = StringProperty('out_quad')
-    '''Type of animation to use while animating in the next/previous slide.
+    '''Type of animation to use while animating to the next/previous slide.
+    This should be the name of an
+    :class:`~kivy.animation.AnimationTransition` function.
+
+    :attr:`anim_type` is a :class:`~kivy.properties.StringProperty` and
+    defaults to 'out_quad'.
 
     .. versionadded:: 1.8.0
     '''
 
-    #### private properties, for internal use only ###
+    ignore_perpendicular_swipes = BooleanProperty(False)
+    '''Ignore swipes on axis perpendicular to direction.
+
+    :attr:`ignore_perpendicular_swipes` is a
+    :class:`~kivy.properties.BooleanProperty` and defaults to False.
+
+    .. versionadded:: 1.10.0
+    '''
+
+    # private properties, for internal use only ###
     _index = NumericProperty(0, allownone=True)
     _prev = ObjectProperty(None, allownone=True)
     _current = ObjectProperty(None, allownone=True)
@@ -237,11 +260,14 @@ class Carousel(StencilView):
     _offset = NumericProperty(0)
     _touch = ObjectProperty(None, allownone=True)
 
+    _change_touch_mode_ev = None
+
     def __init__(self, **kwargs):
         self._trigger_position_visible_slides = Clock.create_trigger(
             self._position_visible_slides, -1)
         super(Carousel, self).__init__(**kwargs)
         self._skip_slide = None
+        self.touch_mode_change = False
 
     def load_slide(self, slide):
         '''Animate to the slide that is passed as the argument.
@@ -269,11 +295,11 @@ class Carousel(StencilView):
         self.load_next(mode='prev')
 
     def load_next(self, mode='next'):
-        '''Animate to next slide.
+        '''Animate to the next slide.
 
         .. versionadded:: 1.7.0
         '''
-        if not self.index is None:
+        if self.index is not None:
             w, h = self.size
             _direction = {
                 'top': -h / 2,
@@ -314,9 +340,9 @@ class Carousel(StencilView):
         for container in self.slides_container:
             super_remove(container)
 
-        if self._prev:
+        if self._prev and self._prev.parent is not self:
             super(Carousel, self).add_widget(self._prev)
-        if self._next:
+        if self._next and self._next.parent is not self:
             super(Carousel, self).add_widget(self._next)
         if self._current:
             super(Carousel, self).add_widget(self._current)
@@ -412,27 +438,21 @@ class Carousel(StencilView):
         if self._skip_slide is not None or index is None:
             return
 
-        if direction[0] == 'r':
-            if _offset <= -width:
-                index += 1
-            if _offset >= width:
-                index -= 1
-        if direction[0] == 'l':
-            if _offset <= -width:
-                index -= 1
-            if _offset >= width:
-                index += 1
-        if direction[0] == 't':
-            if _offset <= - height:
-                index += 1
-            if _offset >= height:
-                index -= 1
-        if direction[0] == 'b':
-            if _offset <= -height:
-                index -= 1
-            if _offset >= height:
-                index += 1
-        self.index = index
+        # Move to next slide?
+        if (direction[0] == 'r' and _offset <= -width) or \
+                (direction[0] == 'l' and _offset >= width) or \
+                (direction[0] == 't' and _offset <= - height) or \
+                (direction[0] == 'b' and _offset >= height):
+            if self.next_slide:
+                self.index += 1
+
+        # Move to previous slide?
+        if (direction[0] == 'r' and _offset >= width) or \
+                (direction[0] == 'l' and _offset <= -width) or \
+                (direction[0] == 't' and _offset >= height) or \
+                (direction[0] == 'b' and _offset <= -height):
+            if self.previous_slide:
+                self.index -= 1
 
     def _start_animation(self, *args, **kwargs):
         # compute target offset for ease back, next or prev
@@ -497,11 +517,26 @@ class Carousel(StencilView):
         touch.ud[uid] = {
             'mode': 'unknown',
             'time': touch.time_start}
-        Clock.schedule_once(self._change_touch_mode,
-                            self.scroll_timeout / 1000.)
+        self._change_touch_mode_ev = Clock.schedule_once(
+            self._change_touch_mode, self.scroll_timeout / 1000.)
+        self.touch_mode_change = False
         return True
 
     def on_touch_move(self, touch):
+        if not self.touch_mode_change:
+            if self.ignore_perpendicular_swipes and \
+                    self.direction in ('top', 'bottom'):
+                if abs(touch.oy - touch.y) < self.scroll_distance:
+                    if abs(touch.ox - touch.x) > self.scroll_distance:
+                        self._change_touch_mode()
+                        self.touch_mode_change = True
+            elif self.ignore_perpendicular_swipes and \
+                    self.direction in ('right', 'left'):
+                if abs(touch.ox - touch.x) < self.scroll_distance:
+                    if abs(touch.oy - touch.y) > self.scroll_distance:
+                        self._change_touch_mode()
+                        self.touch_mode_change = True
+
         if self._get_uid('cavoid') in touch.ud:
             return
         if self._touch is not touch:
@@ -517,7 +552,9 @@ class Carousel(StencilView):
             else:
                 distance = abs(touch.oy - touch.y)
             if distance > self.scroll_distance:
-                Clock.unschedule(self._change_touch_mode)
+                ev = self._change_touch_mode_ev
+                if ev is not None:
+                    ev.cancel()
                 ud['mode'] = 'scroll'
         else:
             if direction[0] in ('r', 'l'):
@@ -534,7 +571,9 @@ class Carousel(StencilView):
             self._touch = None
             ud = touch.ud[self._get_uid()]
             if ud['mode'] == 'unknown':
-                Clock.unschedule(self._change_touch_mode)
+                ev = self._change_touch_mode_ev
+                if ev is not None:
+                    ev.cancel()
                 super(Carousel, self).on_touch_down(touch)
                 Clock.schedule_once(partial(self._do_touch_up, touch), .1)
             else:
@@ -570,12 +609,12 @@ class Carousel(StencilView):
             super(Carousel, self).on_touch_down(touch)
             return
 
-    def add_widget(self, widget, index=0):
+    def add_widget(self, widget, index=0, canvas=None):
         slide = RelativeLayout(size=self.size, x=self.x - self.width, y=self.y)
         slide.add_widget(widget)
-        super(Carousel, self).add_widget(slide, index)
+        super(Carousel, self).add_widget(slide, index, canvas)
         if index != 0:
-            self.slides.insert(index, widget)
+            self.slides.insert(index - len(self.slides), widget)
         else:
             self.slides.append(widget)
 

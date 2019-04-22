@@ -16,5 +16,6 @@ class LabelWithMarkup(App):
     def build(self):
         return root
 
+
 if __name__ == '__main__':
     LabelWithMarkup().run()

@@ -2,9 +2,7 @@
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.graphics import Color, Ellipse, Rectangle, RoundedRectangle
-from kivy.uix.label import Label
 from kivy.lang import Builder
-from kivy.factory import Factory
 
 TEXTURE = 'kiwi.jpg'
 YELLOW = (1, .7, 0)
@@ -54,7 +52,8 @@ class RoundedRectangleWidget(Widget):
 
             # With different radiuses:
             RoundedRectangle(
-                pos=(425, 275), radius=[(10, 20), (20, 30), (30, 40), (40, 50)])
+                pos=(425, 275),
+                radius=[(10, 20), (20, 30), (30, 40), (40, 50)])
 
             # Default ellipses
             Color(*WHITE)
@@ -148,6 +147,7 @@ Widget:
         kvrect = Builder.load_string(kv)
         widget.add_widget(kvrect)
         return widget
+
 
 if __name__ == '__main__':
     DrawRoundedRectanglesApp().run()

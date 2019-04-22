@@ -31,7 +31,7 @@ An example usage::
 __all__ = ('CheckBox', )
 
 from kivy.uix.widget import Widget
-from kivy.properties import BooleanProperty, StringProperty
+from kivy.properties import BooleanProperty, StringProperty, ListProperty
 from kivy.uix.behaviors import ToggleButtonBehavior
 
 
@@ -142,6 +142,19 @@ class CheckBox(ToggleButtonBehavior, Widget):
     'atlas://data/images/defaulttheme/checkbox_radio_disabled_on'.
     '''
 
+    color = ListProperty([1, 1, 1, 1])
+    '''Color is used for tinting the default graphical representation
+    of checkbox and radio button (images).
+
+    Color is in the format (r, g, b, a).
+
+    .. versionadded:: 1.10.0
+
+    :attr:`color` is a
+    :class:`~kivy.properties.ListProperty` and defaults to
+    '[1, 1, 1, 1]'.
+    '''
+
     def on_state(self, instance, value):
         if value == 'down':
             self.active = True
@@ -153,3 +166,14 @@ class CheckBox(ToggleButtonBehavior, Widget):
 
     def on_active(self, instance, value):
         self.state = 'down' if value else 'normal'
+
+
+if __name__ == '__main__':
+    from random import uniform
+    from kivy.base import runTouchApp
+    from kivy.uix.gridlayout import GridLayout
+    x = GridLayout(cols=4)
+    for i in range(36):
+        r, g, b = [uniform(0.2, 1.0) for j in range(3)]
+        x.add_widget(CheckBox(group='1' if i % 2 else '', color=[r, g, b, 2]))
+    runTouchApp(x)

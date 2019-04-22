@@ -3,172 +3,209 @@
 Installation on Windows
 =======================
 
-For Windows, we provide what we call a 'portable package'. This is the easiest
-way to get Kivy running as you don't have to install anything "system" wide.
-You can just unzip & run it.
+Prerequisites
+-------------
 
-This installation method is simple because it bundles the Python interpreter
-together with the Kivy environment and libraries. If you wish to install Kivy
-into an existing Python environment or install the development environment,
-please see the :ref:`Other Environments <other_environments>` section below.
+Kivy is written in
+`Python <https://en.wikipedia.org/wiki/Python_%28programming_language%29>`_
+and as such, to use Kivy, you need an existing
+installation of `Python <https://www.python.org/downloads/windows/>`_.
+Multiple versions of Python can be installed side by side, but Kivy needs to
+be installed in each Python version that you want to use Kivy in.
 
-Installing the portable version
--------------------------------
-#. Download the latest version from http://kivy.org/#download
+Beginning with 1.9.1 we provide binary
+`wheels <https://wheel.readthedocs.org/en/latest/>`_
+for Kivy and all its dependencies to be used with an existing Python
+installation. See :ref:`install-win-dist`.
 
-    .. image:: images/win-step1.png
-        :scale: 75%
+We also provide nightly wheels generated using Kivy
+`master <https://github.com/kivy/kivy>`_. See :ref:`install-nightly-win-dist`.
+See also :ref:`upgrade-win-dist`. If installing kivy to an **alternate
+location** and not to site-packages, please see :ref:`alternate-win`.
 
-#. Unzip the package
+.. note::
 
-    .. image:: images/win-step3.png
-        :scale: 75%
+    For Python < 3.5 we use the MinGW compiler. However, for Python 3.5+ on
+    Windows we currently only support the MSVC compiler
+    because of the following Python
+    `issue 4709 <http://bugs.python.org/issue4709>`_ about MinGW.
+    Generally this should make no difference when using precompiled wheels.
 
-#. In the folder where you unzipped the package, you have a script called `kivy.bat`.
-   Use this file for launching any kivy application as described below.
-   
+.. _install-win-dist:
+
+Installation
+------------
+
+Now that python is installed, open the :ref:`windows-run-app` and make sure
+python is available by typing ``python --version``. Then, do the following to
+install.
+
+#. Ensure you have the latest pip and wheel::
+
+     python -m pip install --upgrade pip wheel setuptools
+
+#. Install the dependencies (skip gstreamer (~120MB) if not needed, see
+   :ref:`kivy-dependencies`)::
+
+     python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew
+     python -m pip install kivy.deps.gstreamer
+
    .. note::
-       Launching the kivy.bat file will open a command window already set up to run kivy's
-       Python. The environment settings are only changed for this command window and will
-       not effect the system environment.
+
+       If you encounter a `MemoryError` while installing, add after
+       `pip install` an option `--no-cache-dir`.
+
+   For Python 3.5+, you can also use the angle backend instead of glew. This
+   can be installed with::
+
+     python -m pip install kivy.deps.angle
+
+#. Install kivy::
+
+     python -m pip install kivy
+
+#. (Optionally) Install the kivy examples::
+
+     python -m pip install kivy_examples
+
+   The examples are installed in the share directory under the root directory where python is installed.
+
+That's it. You should now be able to ``import kivy`` in python or run a basic
+example if you installed the kivy examples::
+
+    python share\kivy-examples\demo\showcase\main.py
+
+.. note::
+
+    If you encounter any **permission denied** errors, try opening the
+    `Command prompt as administrator
+    <https://technet.microsoft.com/en-us/library/cc947813%28v=ws.10%29.aspx>`_
+    and trying again.
+
+What are wheels, pip and wheel
+------------------------------
+
+In Python, packages such as Kivy can be installed with the python package
+manager, `pip <https://pip.pypa.io/en/stable/>`_. Some packages such as Kivy
+require additional steps, such as compilation, when installing using the Kivy
+source code with pip. Wheels (with a ``.whl`` extension) are pre-built
+distributions of a package that has already been compiled and do not require
+additional steps to install.
+
+When hosted on `pypi <https://pypi.python.org/pypi>`_ one installs a wheel
+using ``pip``, e.g. ``python -m pip install kivy``. When downloading and
+installing a wheel directly, ``python -m pip install wheel_file_name`` is used,
+such as::
+
+    python -m pip install C:\Kivy-1.9.1.dev-cp27-none-win_amd64.whl
+
+.. _install-nightly-win-dist:
+
+Nightly wheel installation
+--------------------------
+
+.. |cp27_win32| replace:: Python 2.7, 32bit
+.. _cp27_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp27-cp27m-win32.whl
+.. |cp27_amd64| replace:: Python 2.7, 64bit
+.. _cp27_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp27-cp27m-win_amd64.whl
+.. |cp35_win32| replace:: Python 3.5, 32bit
+.. _cp35_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp35-cp35m-win32.whl
+.. |cp35_amd64| replace:: Python 3.5, 64bit
+.. _cp35_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp35-cp35m-win_amd64.whl
+.. |cp36_win32| replace:: Python 3.6, 32bit
+.. _cp36_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp36-cp36m-win32.whl
+.. |cp36_amd64| replace:: Python 3.6, 64bit
+.. _cp36_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp36-cp36m-win_amd64.whl
+.. |cp37_win32| replace:: Python 3.7, 32bit
+.. _cp37_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp37-cp37m-win32.whl
+.. |cp37_amd64| replace:: Python 3.7, 64bit
+.. _cp37_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp37-cp37m-win_amd64.whl
+.. |examples_whl| replace:: Kivy examples
+.. _examples_whl: https://kivy.org/downloads/appveyor/kivy/Kivy_examples-1.11.0.dev0-py2.py3-none-any.whl
+
+.. warning::
+
+    Using the latest development version can be risky and you might encounter
+    issues during development. If you encounter any bugs, please report them.
+
+Snapshot wheels of current Kivy master are created on every commit to the
+`master` branch of kivy repository. They can be found
+`here <https://kivy.org/downloads/appveyor/kivy>`_. To use them, instead of
+doing ``python -m pip install kivy`` we'll install one of these wheels as
+follows.
+
++ |cp27_win32|_
++ |cp35_win32|_
++ |cp36_win32|_
++ |cp37_win32|_
+
+- |cp27_amd64|_
+- |cp35_amd64|_
+- |cp36_amd64|_
+- |cp37_amd64|_
+
+#. Perform steps 1 and 2 of the above Installation section.
+#. Download the appropriate wheel for your system.
+#. Install it with ``python -m pip install wheel-name`` where ``wheel-name``
+   is the name of the renamed file and add deps to the `PATH`.
+
+Kivy examples are separated from the core because of their size. The examples
+can be installed separately on both Python 2 and 3 with this single wheel:
+
+- |examples_whl|_
+
+.. _kivy-dependencies:
+
+Kivy's dependencies
+-------------------
+
+We offer wheels for Kivy and its dependencies separately so only desired
+dependencies need be installed. The dependencies are offered as
+optional sub-packages of kivy.deps, e.g. ``kivy.deps.sdl2``.
+
+Currently on Windows, we provide the following dependency wheels:
+
+* `gstreamer <https://gstreamer.freedesktop.org>`_ for audio and video
+* `glew <http://glew.sourceforge.net/>`_ and/or
+  `angle (3.5 only) <https://github.com/Microsoft/angle>`_ for OpenGL
+* `sdl2 <https://libsdl.org>`_ for control and/or OpenGL.
+
+One can select which of these to use for OpenGL use using the
+`KIVY_GL_BACKEND` envrionment variable by setting it to `glew`
+(the default), `angle`, or `sdl2`. `angle` is currently
+in an experimental phase as a substitute for `glew` on Python
+3.5 only.
+
+`gstreamer` is an optional dependency which only needs to be
+installed if video display or audio is desired. `ffpyplayer`
+is an alternate dependency for audio or video.
 
 .. _windows-run-app:
 
-Start a Kivy Application
-------------------------
+Command line
+------------
 
-Send-to method
-~~~~~~~~~~~~~~
+Know your command line. To execute any of the ``pip``
+or ``wheel`` commands, one needs a command line tool with python on the path.
+The default command line on Windows is
+`Command Prompt <http://www.computerhope.com/issues/chusedos.htm>`_, and the
+quickest way to open it is to press `Win+R` on your keyboard, type ``cmd``
+in the window that opens, and then press enter.
 
-You can launch a .py file with our Python using the Send-to menu:
+Alternate linux style command shells that we recommend is
+`Git for Windows <https://git-for-windows.github.io/>`_ which offers a bash
+command line as `well <http://rogerdudler.github.io/git-guide/>`_ as
+`git <https://try.github.io>`_. Note, CMD can still be used even if bash is
+installed.
 
-#. Copy the kivy.bat file to the Clipboard
+Walking the path! To add your python to the path, simply open your command line
+and then use the ``cd`` command to change the current directory to where python
+is installed, e.g. ``cd C:\Python27``. Alternatively if you only have one
+python version installed, permanently add the python directory to the path for
+`cmd <http://www.computerhope.com/issues/ch000549.htm>`_ or
+`bash <http://stackoverflow.com/q/14637979>`_.
 
-    .. image:: images/win-step4.png
-        :scale: 75%
-
-#. Open Windows explorer (File explorer in Windows 8), and to go the address 'shell:sendto'
-
-    .. image:: images/win-step5.png
-        :scale: 75%
-
-#. You should get the special Windows directory `SendTo`
-
-    .. image:: images/win-step6.png
-        :scale: 75%
-
-#. Paste the previously copied kivy.bat file **as a shortcut**
-
-    .. image:: images/win-step7.png
-        :scale: 75%
-
-#. Rename it to Kivy <kivy-version>
-
-    .. image:: images/win-step8.png
-        :scale: 75%
-
-You can now execute your application by right clicking on the .py file ->
-"Send To" -> "Kivy <version>".
-
-    .. image:: images/win-step9.png
-        :scale: 75%
-
-Double-click method
-~~~~~~~~~~~~~~~~~~~
-
-There are some simple steps that you need to complete in order to be able
-to launch Kivy applications by just double-clicking them:
-
-    #. Right click on the main Python file (.py file extention) of the application you want to launch
-    #. From the context menu that appears, select *Open With*
-    #. Browse your hard disk drive and find the file ``kivy.bat`` from the portable package. Select it.
-    #. Select "Always open the file with..." if you don't want to repeat this procedure every time you
-       double click a .py file.
-    #. You are done. Open the file.
-
-The next time you double click a .py file, it will be executed with the version
-of Python that Kivy ships with.
-
-.. note::
-   On Windows we have to ship our own version of Python since it's not
-   installed by default on Windows (unlike Mac OS X and Linux). By
-   following the steps above, you will set Kivy's version of Python as the
-   default for opening .py files for your user.
-   Normally this should not be harmful as it's just a normal version of
-   Python with the :ref:`necessary third party libraries <winpackagecontents>`
-   added to the module search path.
-   If you do encounter unexpected problems, please :ref:`contact`.
-
-
-Start from the Command-line (using bash)
-----------------------------------------
-
-If you just want to use or develop with the latest stable Kivy version, this can
-be achieved using the console. You will need a minimalist GNU system installed.
-We recommend `msysGit <http://code.google.com/p/msysgit/>`_.
-
-When you install msysGit, you must select these options:
-
-    * Don't replace windows shell
-    * Checkout as-is, commit as-is (no CLRF replacement!)
-
-You'll have an icon "Git bash" on your desktop. This is the console we want:
-
-    #. Start "Git bash"
-    #. ``cd <directory of portable kivy>``
-    #. ``source kivyenv.sh <full directory path of portable kivy>`` # (don't use .)
-
-You are now ready to launch Python/Kivy from the command-line! Just do::
-
-    python <filename.py>
-
-Also, all other scripts and binaries are available, such as:
-
-    * cython
-    * gcc / make...
-    * easy_install
-    * gst-inspect-0.10
-
-Start from the Command-line or Double-click (using Python launcher for Windows)
--------------------------------------------------------------------------------
-
-The Python launcher for Windows is available as a separate download
-from `pylauncher <https://bitbucket.org/vinay.sajip/pylauncher>`_,
-but is most conveniently installed by simply installing Python 3.3 (or later).
-Don't worry, this installation is designed to cause minimum disruption, it will run your latest Python 2 by default.
-
-The launcher defines a ``PY`` command which can launch scripts for any version of Python installed on the workstation.
-It also connects itself as the default processor for all files with a .py extension.
-It scans the Python file to see if the first line starts with the string "#!" and, if it does, uses that string to
-select the appropriate version of Python to run. We will define a customized command so that we can tell it to
-start the correct version of python for Kivy.
-
-Create a file named ``py.ini`` and place it either in your users ``application data`` directory, or in ``C:\Windows``.
-It will contain the path used to start Kivy.  I put my Kivy installation at ``C:\utils\kivy`` so my copy says::
-
-    [commands]
-    kivy="c:\utils\kivy\kivy.bat"
-
-(You could also add commands to start other script interpreters, such as jython or IronPython.)
-
-Now add a new first line to your ``main.py`` specifying your Python of choice::
-
-    #!/usr/bin/kivy
-
-You can now launch your Kivy (or any other Python script) either by double-clicking or typing::
-
-    py <filename.py>
-
-Programs without a ``#!`` first line will continue to be run be the default Python version 2 interpreter.
-Programs beginning with ``#!/usr/bin/python3`` will launch Python 3.
-
-The ``/usr/bin`` part will be ignored by the Windows launcher, we add it so that Linux users will also be able to
-pick a specific Python version. (On my Linux workstation, ``/usr/bin/kivy`` is soft-linked to a virtualenv.)
-NOTE: In order to work correctly on Linux, your Python file must be saved with Unix-style (LF-only) line endings.
-
-Full documentation can be found at:
-`Python3.3 docs <http://docs.python.org/3.3/using/windows.html#launcher>`_ and
-`PEP 397 <http://www.python.org/dev/peps/pep-0397/>`_.
+.. _dev-install-win:
 
 Use development Kivy
 --------------------
@@ -178,53 +215,169 @@ Use development Kivy
     Using the latest development version can be risky and you might encounter
     issues during development. If you encounter any bugs, please report them.
 
-If you want to use the latest development version of Kivy, you can follow these steps:
+To compile and install kivy using the kivy
+`source code <https://github.com/kivy/kivy/archive/master.zip>`_  or to use
+kivy with git rather than a wheel there are some additional steps:
 
-#. Download and install Kivy for Windows as explained above
-#. Go into the portable Kivy directory. This contains the `kivy.bat` file and the `Python`, `kivy`, `Mingw` folders etc.
-#. Rename the kivy directory to kivy.stable
-#. `Download the latest development version of Kivy from GitHub <https://github.com/kivy/kivy/archive/master.zip>`_
-#. Extract the zip into the Kivy portable directory
-#. Rename the directory named "kivy-<some hash>" to just "kivy"
-#. Launch kivy.bat
-#. Go to the Kivy portable directory/kivy
-#. Type::
+#. Both the ``python`` and the ``Python\Scripts`` directories **must** be on
+   the path. They must be on the path every time you recompile kivy.
 
-    make force
+#. Ensure you have the latest pip and wheel with::
 
-#. That's all, you have a latest development version!
+     python -m pip install --upgrade pip wheel setuptools
 
-.. note::
+#. Get the compiler.
+   For Python < 3.5 we use mingwpy as follows.
 
-    If you get errors you may need to upgrade Cython:
+   #. Create the
+      ``python\Lib\distutils\distutils.cfg`` file and add the two lines::
 
-    1.  Launch kivy.bat
-    2. ``pip install --upgrade cython``
+        [build]
+        compiler = mingw32
 
-.. _other_environments:
+   #. Install MinGW with::
 
-Other Environments
-------------------
+        python -m pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy
 
-`Using Kivy with an existing Python installation
-<https://github.com/kivy/kivy/wiki/Using-Kivy-with-an-existing-Python-installation-on-Windows-%2864-or-32-bit%29>`_.
+   For Python 3.5 we use the MSVC compiler. For 3.5,
+   `Visual Studio 2015 <https://www.visualstudio.com/downloads/>`_ is
+   required, which is availible for free. Just download and install it and
+   you'll be good to go.
 
-`Creating a 64 bit development environment with MinGW
-<https://github.com/kivy/kivy/wiki/Creating-a-64-bit-development-environment-with-MinGW-on-Windows>`_.
+   Visual Studio is very big so you can also use the smaller,
+   `Visual C Build Tools instead
+   <https://github.com/kivy/kivy/wiki/Using-Visual-C---Build-Tools-instead-of-Visual-Studio-on-Windows>`_.
 
-.. _winpackagecontents:
+#. Set the environment variables. On windows do::
 
-Package Contents
-----------------
+     set USE_SDL2=1
+     set USE_GSTREAMER=1
 
-The latest Windows package contains:
+   In bash do::
 
-    * Latest stable kivy version
-    * Python 2.7.1
-    * Glew 1.5.7
-    * Pygame 1.9.2
-    * Cython 0.14
-    * MinGW
-    * GStreamer
-    * Setuptools
+     export USE_SDL2=1
+     export USE_GSTREAMER=1
 
+   These variables must be set everytime you recompile kivy.
+
+#. Install the other dependencies as well as their dev versions (you can skip
+   gstreamer and gstreamer_dev if you aren't going to use video/audio):
+
+   .. parsed-literal::
+
+     python -m pip install |cython_install| docutils pygments pypiwin32 kivy.deps.sdl2 \
+     kivy.deps.glew kivy.deps.gstreamer kivy.deps.glew_dev kivy.deps.sdl2_dev \
+     kivy.deps.gstreamer_dev
+
+#. If you downloaded or cloned kivy to an alternate location and don't want to
+   install it to site-packages read the next section.
+
+#. Finally compile and install kivy with ``pip install filename``, where
+   ``filename`` can be a url such as
+   ``https://github.com/kivy/kivy/archive/master.zip`` for kivy master, or the
+   full path to a local copy of a kivy.
+
+Compile Kivy
+^^^^^^^^^^^^
+
+#. Start installation of Kivy cloned from GitHub::
+
+    python -m pip install kivy\.
+
+If the compilation succeeds without any error, Kivy should be good to go. You
+can test it with running a basic example::
+
+    python share\kivy-examples\demo\showcase\main.py
+
+.. _alternate-win:
+
+Installing Kivy to an alternate location
+----------------------------------------
+
+In development Kivy is often installed to an alternate location and then
+installed with::
+
+    python -m pip install -e location
+
+That allows Kivy to remain in its original location while being available
+to python, which is useful for tracking changes you make in Kivy for example
+directly with Git.
+
+To achieve using Kivy in an alternate location extra tweaking is required.
+Due to this `issue <https://github.com/pypa/pip/issues/2677>`_ ``wheel`` and
+``pip`` install the dependency wheels to ``python\Lib\site-packages\kivy``. So
+they need to be moved to your actual kivy installation from site-packages.
+
+After installing the kivy dependencies and downloading or cloning kivy to your
+favorite location, do the following:
+
+#. Move the contents of ``python\Lib\site-packages\kivy\deps`` to
+   ``your-path\kivy\deps`` where ``your-path`` is the path where your kivy is
+   located. That means if you cloned from GitHub, the ``deps`` have to end up
+   in the **inner** ``kivy`` folder.
+#. Remove the ``python\Lib\site-packages\kivy`` directory altogether.
+#. From ``python\Lib\site-packages`` move **all** ``kivy.deps.*.dist-info``
+   directories to ``your-path`` right next to ``kivy``.
+
+Now you can safely compile kivy in its current location with one of these
+commands::
+
+> make
+> mingw32-make
+> python -m pip install -e .
+> python setup.py build_ext --inplace
+
+**If kivy fails to be imported,** you probably didn't delete all the
+``*.dist-info`` folders and and the kivy or ``kivy.deps*`` folders from
+site-packages.
+
+Making Python available anywhere
+--------------------------------
+
+There are two methods for launching python on your ``*.py`` files.
+
+Double-click method
+^^^^^^^^^^^^^^^^^^^
+
+If you only have one Python installed, you can associate all ``*.py`` files
+with your python, if it isn't already, and then run it by double clicking. Or
+you can only do it once if you want to be able to choose each time:
+
+#. Right click on the Python file (.py file extension) of the application you
+   want to launch
+
+#. From the context menu that appears, select *Open With*
+#. Browse your hard disk drive and find the file ``python.exe`` that you want
+   to use. Select it.
+
+#. Select "Always open the file with..." if you don't want to repeat this
+   procedure every time you double click a .py file.
+
+#. You are done. Open the file.
+
+Send-to method
+^^^^^^^^^^^^^^
+
+You can launch a .py file with our Python using the Send-to menu:
+
+#. Browse to the ``python.exe`` file you want to use. Right click on it and
+   copy it.
+
+#. Open Windows explorer (File explorer in Windows 8), and to go the address
+   'shell:sendto'. You should get the special Windows directory `SendTo`
+
+#. Paste the previously copied ``python.exe`` file **as a shortcut**.
+#. Rename it to python <python-version>. E.g. ``python27-x64``
+
+You can now execute your application by right clicking on the `.py` file ->
+"Send To" -> "python <python-version>".
+
+.. _upgrade-win-dist:
+
+Upgrading from a previous Kivy dist
+-----------------------------------
+
+To install the new wheels to a previous Kivy distribution all the files and
+folders, except for the python folder should be deleted from the distribution.
+This python folder will then be treated as a normal system installed python and
+all the steps described in :ref:`Installation` can then be continued.

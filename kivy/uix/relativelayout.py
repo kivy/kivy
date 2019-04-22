@@ -33,7 +33,9 @@ widget's parent stack. When widget.pos is read or a touch is received,
 the coordinate values are in parent coordinates, but as mentioned, these are
 identical to window coordinates, even in complex widget stacks.
 
-For example::
+For example:
+
+.. code-block:: kv
 
     BoxLayout:
         Label:
@@ -75,7 +77,9 @@ coordinates if there are none** (as in the first example). We call these
 coordinates parent coordinates.
 
 
-For example::
+For example:
+
+.. code-block:: kv
 
     BoxLayout:
         Label:
@@ -111,7 +115,9 @@ including itself. When expressed in local or widget coordinates, the widgets
 themselves are also included.
 
 Changing the above example to transform the parent coordinates into local
-coordinates::
+coordinates:
+
+.. code-block:: kv
 
     BoxLayout:
         Label:
@@ -180,7 +186,7 @@ Take the following kv code for example:
 
         actual result
 
-.. code::
+.. code-block:: kv
 
     FloatLayout:
         Widget:
@@ -213,7 +219,9 @@ of the :class:`RelativeLayout` is already transformed, so the use of
 `pos: 0, 0` or omitting `pos` completely will provide the expected result.
 
 This also applies to the position of sub-widgets. Instead of positioning a
-:class:`~kivy.uix.widget.Widget` based on the layout's own position::
+:class:`~kivy.uix.widget.Widget` based on the layout's own position:
+
+.. code-block:: kv
 
     RelativeLayout:
         Widget:
@@ -221,7 +229,9 @@ This also applies to the position of sub-widgets. Instead of positioning a
         Widget:
             center: self.parent.center
 
-...use the :attr:`pos_hint` property::
+use the :attr:`pos_hint` property:
+
+.. code-block:: kv
 
     RelativeLayout:
         Widget:
@@ -237,7 +247,7 @@ This also applies to the position of sub-widgets. Instead of positioning a
     supports relative positions (and can't be rotated, scaled or translated on
     a multitouch system using two or more fingers). This was done so that the
     implementation could be optimized and avoid the heavier calculations of
-    :class:`Scatter` (e.g. inverse matrix, recaculating multiple properties
+    :class:`Scatter` (e.g. inverse matrix, recalculating multiple properties
     etc.)
 
 '''

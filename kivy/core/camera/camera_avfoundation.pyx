@@ -21,6 +21,7 @@ from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
 from kivy.core.camera import CameraBase
+from kivy.utils import platform
 
 
 cdef class _AVStorage:
@@ -36,6 +37,7 @@ class CameraAVFoundation(CameraBase):
 
     def __init__(self, **kwargs):
         self._storage = _AVStorage()
+        self._update_ev = None
         super(CameraAVFoundation, self).__init__(**kwargs)
 
     def init_camera(self):
@@ -61,7 +63,10 @@ class CameraAVFoundation(CameraBase):
         self._resolution = (width, height)
 
         if self._texture is None or self._texture.size != self._resolution:
-            self._texture = Texture.create(self._resolution)
+            if platform == 'ios':
+                self._texture = Texture.create(self._resolution, colorfmt='bgra')
+            else:
+                self._texture = Texture.create(self._resolution)
             self._texture.flip_vertical()
             self.dispatch('on_load')
 
@@ -72,14 +77,17 @@ class CameraAVFoundation(CameraBase):
     def start(self):
         cdef _AVStorage storage = <_AVStorage>self._storage
         super(CameraAVFoundation, self).start()
-        Clock.unschedule(self._update)
-        Clock.schedule_interval(self._update, 1 / 30.)
+        if self._update_ev is not None:
+            self._update_ev.cancel()
+        self._update_ev = Clock.schedule_interval(self._update, 1 / 30.)
         avf_camera_start(storage.camera)
 
     def stop(self):
         cdef _AVStorage storage = <_AVStorage>self._storage
         super(CameraAVFoundation, self).stop()
-        Clock.unschedule(self._update)
+        if self._update_ev is not None:
+            self._update_ev.cancel()
+            self._update_ev = None
         avf_camera_stop(storage.camera)
 
 

@@ -4,9 +4,6 @@ EffectWidget
 
 .. versionadded:: 1.9.0
 
-    This code is still experimental, and its API is subject to change in a
-    future version.
-
 The :class:`EffectWidget` is able to apply a variety of fancy
 graphical effects to
 its children. It works by rendering to a series of
@@ -14,6 +11,10 @@ its children. It works by rendering to a series of
 As such, effects can freely do almost anything, from inverting the
 colors of the widget, to anti-aliasing, to emulating the appearance of a
 crt monitor!
+
+.. warning::
+    This code is still experimental, and its API is subject to change in a
+    future version.
 
 The basic usage is as follows::
 
@@ -584,6 +585,7 @@ class EffectFbo(Fbo):
     attempts to set a new shader. See :meth:`set_fs`.
     '''
     def __init__(self, *args, **kwargs):
+        kwargs.setdefault("with_stencilbuffer", True)
         super(EffectFbo, self).__init__(*args, **kwargs)
         self.texture_rectangle = None
 
@@ -607,12 +609,12 @@ class EffectWidget(RelativeLayout):
     setting effects and creating your own.
     '''
 
-    background_color = ListProperty((0, 0, 0, 1))
+    background_color = ListProperty((0, 0, 0, 0))
     '''This defines the background color to be used for the fbo in the
     EffectWidget.
 
     :attr:`background_color` is a :class:`ListProperty` defaults to
-    (0, 0, 0, 1)
+    (0, 0, 0, 0)
     '''
 
     texture = ObjectProperty(None)
@@ -742,6 +744,10 @@ class EffectWidget(RelativeLayout):
 
         self.fbo_list[0].texture_rectangle.texture = self.fbo.texture
         self.texture = self.fbo_list[-1].texture
+
+        for fbo in self.fbo_list:
+            fbo.draw()
+        self.fbo.draw()
 
     def add_widget(self, widget):
         # Add the widget to our Fbo instead of the normal canvas

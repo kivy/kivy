@@ -76,4 +76,5 @@ class ShortenText(App):
     def build(self):
         return Builder.load_string(kv)
 
+
 ShortenText().run()

@@ -1,0 +1,26 @@
+# Configuration for support-requests - https://github.com/dessant/support-requests
+
+# Label used to mark issues as support requests
+supportLabel: support
+# Comment to post on issues marked as support requests. Add a link
+# to a support page, or set to `false` to disable
+supportComment: >
+  👋 We use the issue tracker exclusively for bug reports and feature requests.
+  However, this issue appears to be a support request. Please use our
+  [support channels](https://github.com/kivy/kivy/blob/master/README.md#support)
+  to get help with the project.
+  
+  
+  If you're having trouble installing Kivy,
+  make sure to check out the installation docs for
+  [Windows](https://kivy.org/docs/installation/installation-windows.html),
+  [Linux](https://kivy.org/docs/installation/installation-linux.html) and
+  [macOS](https://kivy.org/docs/installation/installation-osx.html).
+  
+  
+  Let us know if this comment was made in error, and we'll be happy
+  to reopen the issue.
+# Whether to close issues marked as support requests
+close: true
+# Whether to lock issues marked as support requests
+lock: false

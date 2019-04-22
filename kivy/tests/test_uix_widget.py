@@ -84,7 +84,7 @@ class UIXWidgetTestCase(GraphicUnitTest):
         from kivy.uix.floatlayout import FloatLayout
 
         Builder.load_string("""
-<MyWidget>:
+<UIXWidget>:
     Label:
         text: root.title
 
@@ -96,18 +96,18 @@ class UIXWidgetTestCase(GraphicUnitTest):
 
             def __init__(self, **kwargs):
                 super(CallerWidget, self).__init__(**kwargs)
-                self.add_widget(MyWidget(title="Hello World"))
+                self.add_widget(UIXWidget(title="Hello World"))
 
         class NestedWidget(FloatLayout):
             title = StringProperty('aa')
 
-        class MyWidget(NestedWidget):
+        class UIXWidget(NestedWidget):
             pass
 
         class BaseWidget(FloatLayout):
             pass
 
-        Factory.register('MyWidget', cls=MyWidget)
+        Factory.register('UIXWidget', cls=UIXWidget)
         Factory.register('CallerWidget', cls=CallerWidget)
 
         r = self.render

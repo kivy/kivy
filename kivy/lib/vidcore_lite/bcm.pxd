@@ -1,6 +1,6 @@
 
 
-cdef extern from "/opt/vc/include/bcm_host.h":
+cdef extern from "bcm_host.h":
     ctypedef int int32_t
     ctypedef unsigned short int	uint16_t
     ctypedef unsigned int		uint32_t

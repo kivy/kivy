@@ -13,8 +13,10 @@ __all__ = ('gl_get_extensions', 'gl_has_extension',
         'gl_get_version', 'gl_get_version_minor', 'gl_get_version_major',
         'GLCAP_BGRA', 'GLCAP_NPOT', 'GLCAP_S3TC', 'GLCAP_DXT1', 'GLCAP_ETC1')
 
+include "../include/config.pxi"
 include "opengl_utils_def.pxi"
-cimport c_opengl
+
+from kivy.graphics.cgl cimport *
 from kivy.logger import Logger
 from kivy.utils import platform
 from kivy.graphics.opengl import _GL_GET_SIZE
@@ -43,7 +45,7 @@ cpdef list gl_get_extensions():
     global _gl_extensions
     cdef str extensions
     if not _gl_extensions:
-        extensions = <char *>c_opengl.glGetString(c_opengl.GL_EXTENSIONS)
+        extensions = <char *>cgl.glGetString(GL_EXTENSIONS)
         _gl_extensions[:] = [x[3:].lower() if x[:3] == 'GL_' else x.lower()\
                 for x in extensions.split()]
     return _gl_extensions
@@ -59,6 +61,8 @@ cpdef int gl_has_extension(name):
         True
 
     '''
+    if cgl_get_backend_name() == "mock":
+        return True
     name = name.lower()
     if name.startswith('GL_'):
         name = name[3:]
@@ -84,7 +88,7 @@ cpdef gl_register_get_size(int constid, int size):
 cpdef int gl_has_capability(int cap):
     '''Return the status of a OpenGL Capability. This is a wrapper that
     auto-discovers all the capabilities that Kivy might need. The current
-    capabilites tested are:
+    capabilities tested are:
 
         - GLCAP_BGRA: Test the support of BGRA texture format
         - GLCAP_NPOT: Test the support of Non Power of Two texture
@@ -114,7 +118,7 @@ cpdef int gl_has_capability(int cap):
         msg = 'NPOT texture support'
         if _platform == 'ios' or _platform == 'android':
             # Adreno 200 renderer doesn't support NPOT
-            sval = <char *>c_opengl.glGetString(c_opengl.GL_RENDERER)
+            sval = <char *>cgl.glGetString(GL_RENDERER)
             if sval == 'Adreno 200':
                 value = 0
             else:
@@ -218,7 +222,7 @@ cpdef int gl_has_texture_native_format(fmt):
 cpdef int gl_has_texture_conversion(fmt):
     '''Return 1 if the texture can be converted to a native format.
     '''
-    return fmt in ('bgr', 'bgra')
+    return fmt in ('bgr', 'bgra', 'argb', 'abgr')
 
 
 cpdef int gl_has_texture_format(fmt):
@@ -245,7 +249,7 @@ cpdef tuple gl_get_version():
     if _gl_version_major == -1:
 
         _gl_version_minor = _gl_version_major = 0
-        version = str(<char *>c_opengl.glGetString(c_opengl.GL_VERSION))
+        version = <char *>cgl.glGetString(GL_VERSION)
 
         try:
             # same parsing algo as Panda3D
@@ -289,5 +293,3 @@ cpdef int gl_get_version_minor():
     if _gl_version_major == -1:
         gl_get_version()
     return _gl_version_minor
-
-

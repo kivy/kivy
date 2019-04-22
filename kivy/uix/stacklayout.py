@@ -36,6 +36,20 @@ from kivy.properties import NumericProperty, OptionProperty, \
     ReferenceListProperty, VariableListProperty
 
 
+def _compute_size(c, available_size, idx):
+    sh_min = c.size_hint_min[idx]
+    sh_max = c.size_hint_max[idx]
+    val = c.size_hint[idx] * available_size
+
+    if sh_min is not None:
+        if sh_max is not None:
+            return max(min(sh_max, val), sh_min)
+        return max(val, sh_min)
+    if sh_max is not None:
+        return min(sh_max, val)
+    return val
+
+
 class StackLayout(Layout):
     '''Stack layout class. See module documentation for more information.
     '''
@@ -136,6 +150,7 @@ class StackLayout(Layout):
 
     def do_layout(self, *largs):
         if not self.children:
+            self.minimum_size = (0., 0.)
             return
 
         # optimize layout by preventing looking at the same attribute in a loop
@@ -150,8 +165,6 @@ class StackLayout(Layout):
         padding_x = padding_left + padding_right
         padding_y = padding_top + padding_bottom
         spacing_x, spacing_y = self.spacing
-
-        lc = []
 
         # Determine which direction and in what order to place the widgets
         posattr = [0] * 2
@@ -209,18 +222,20 @@ class StackLayout(Layout):
         vrev = (deltav < 0)
         firstchild = self.children[0]
         sizes = []
+        lc = []
         for c in reversed(self.children):
-            if c.size_hint[outerattr]:
-                c.size[outerattr] = max(1,
-                    c.size_hint[outerattr] * (selfsize[outerattr] - padding_v))
+            if c.size_hint[outerattr] is not None:
+                c.size[outerattr] = max(
+                    1, _compute_size(c, selfsize[outerattr] - padding_v,
+                                     outerattr))
 
             # does the widget fit in the row/column?
             ccount = len(lc)
             totalsize = availsize = max(
                 0, selfsize[innerattr] - padding_u - spacing_u * ccount)
             if not lc:
-                if c.size_hint[innerattr]:
-                    childsize = max(1, c.size_hint[innerattr] * totalsize)
+                if c.size_hint[innerattr] is not None:
+                    childsize = max(1, _compute_size(c, totalsize, innerattr))
                 else:
                     childsize = max(0, c.size[innerattr])
                 availsize = selfsize[innerattr] - padding_u - childsize
@@ -232,19 +247,25 @@ class StackLayout(Layout):
                         # no space left but we're trying to add another widget.
                         availsize = -1
                         break
-                    if child.size_hint[innerattr]:
+                    if child.size_hint[innerattr] is not None:
                         testsizes[i] = childsize = max(
-                            1, child.size_hint[innerattr] * totalsize)
+                            1, _compute_size(child, totalsize, innerattr))
                     else:
-                        testsizes[i] = childsize = max(0, child.size[innerattr])
+                        childsize = max(0, child.size[innerattr])
+                        testsizes[i] = childsize
                     availsize -= childsize
-                if c.size_hint[innerattr]:
-                    testsizes[-1] = max(1, c.size_hint[innerattr] * totalsize)
+                if c.size_hint[innerattr] is not None:
+                    testsizes[-1] = max(
+                        1, _compute_size(c, totalsize, innerattr))
                 else:
                     testsizes[-1] = max(0, c.size[innerattr])
                 availsize -= testsizes[-1]
 
-            if availsize >= 0 or not lc:
+            # Tiny value added in order to avoid issues with float precision
+            # causing unexpected children reordering when parent resizes.
+            # e.g. if size is 101 and children size_hint_x is 1./5
+            # 5 children would not fit in one line because 101*(1./5) > 101/5
+            if (availsize + 1e-10) >= 0 or not lc:
                 # even if there's no space, we always add one widget to a row
                 lc.append(c)
                 sizes = testsizes
@@ -253,7 +274,7 @@ class StackLayout(Layout):
 
             # apply the sizes
             for i, child in enumerate(lc):
-                if child.size_hint[innerattr]:
+                if child.size_hint[innerattr] is not None:
                     child.size[innerattr] = sizes[i]
 
             # push the line
@@ -278,9 +299,10 @@ class StackLayout(Layout):
             v += deltav * spacing_v
             lc = [c]
             lv = c.size[outerattr]
-            if c.size_hint[innerattr]:
-                sizes = [max(1, c.size_hint[innerattr] *
-                             (selfsize[innerattr] - padding_u))]
+            if c.size_hint[innerattr] is not None:
+                sizes = [
+                    max(1, _compute_size(c, selfsize[innerattr] - padding_u,
+                                         innerattr))]
             else:
                 sizes = [max(0, c.size[innerattr])]
             u = ustart
@@ -288,7 +310,7 @@ class StackLayout(Layout):
         if lc:
             # apply the sizes
             for i, child in enumerate(lc):
-                if child.size_hint[innerattr]:
+                if child.size_hint[innerattr] is not None:
                     child.size[innerattr] = sizes[i]
 
             # push the last (incomplete) line

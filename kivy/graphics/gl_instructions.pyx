@@ -20,12 +20,10 @@ instructions like this example::
 __all__ = ('ClearColor', 'ClearBuffers')
 
 
-include "config.pxi"
+include "../include/config.pxi"
 include "opcodes.pxi"
 
-from kivy.graphics.c_opengl cimport *
-IF USE_OPENGL_DEBUG == 1:
-    from c_opengl_debug cimport *
+from kivy.graphics.cgl cimport *
 from kivy.graphics.instructions cimport Instruction
 
 
@@ -51,71 +49,83 @@ cdef class ClearColor(Instruction):
         self.a = a
 
     cdef int apply(self) except -1:
-        glClearColor(self.r, self.g, self.b, self.a)
+        cgl.glClearColor(self.r, self.g, self.b, self.a)
         return 0
 
-    property rgba:
+    @property
+    def rgba(self):
         '''RGBA color used for the clear color, a list of 4 values in the 0-1
         range.
         '''
-        def __get__(self):
-            return [self.r, self.b, self.g, self.a]
-        def __set__(self, rgba):
-            cdef list clear_color = [float(x) for x in rgba]
-            self.r = clear_color[0]
-            self.g = clear_color[1]
-            self.b = clear_color[2]
-            self.a = clear_color[3]
-            self.flag_update()
+        return [self.r, self.b, self.g, self.a]
 
-    property rgb:
+    @rgba.setter
+    def rgba(self, rgba):
+        cdef list clear_color = [float(x) for x in rgba]
+        self.r = clear_color[0]
+        self.g = clear_color[1]
+        self.b = clear_color[2]
+        self.a = clear_color[3]
+        self.flag_update()
+
+    @property
+    def rgb(self):
         '''RGB color, a list of 3 values in 0-1 range where alpha will be 1.
         '''
-        def __get__(self):
-            return [self.r, self.g, self.b]
-        def __set__(self, rgb):
-            cdef list clear_color = [float(x) for x in rgb]
-            self.r = clear_color[0]
-            self.g = clear_color[1]
-            self.b = clear_color[2]
-            self.a = 1
-            self.flag_update()
+        return [self.r, self.g, self.b]
 
-    property r:
+    @rgb.setter
+    def rgb(self, rgb):
+        cdef list clear_color = [float(x) for x in rgb]
+        self.r = clear_color[0]
+        self.g = clear_color[1]
+        self.b = clear_color[2]
+        self.a = 1
+        self.flag_update()
+
+    @property
+    def r(self):
         '''Red component, between 0 and 1.
         '''
-        def __get__(self):
-            return self.r
-        def __set__(self, r):
-            self.r = r
-            self.flag_update()
+        return self.r
 
-    property g:
+    @r.setter
+    def r(self, r):
+        self.r = r
+        self.flag_update()
+
+    @property
+    def g(self):
         '''Green component, between 0 and 1.
         '''
-        def __get__(self):
-            return self.g
-        def __set__(self, g):
-            self.g = g
-            self.flag_update()
+        return self.g
 
-    property b:
+    @g.setter
+    def g(self, g):
+        self.g = g
+        self.flag_update()
+
+    @property
+    def b(self):
         '''Blue component, between 0 and 1.
         '''
-        def __get__(self):
-            return self.b
-        def __set__(self, b):
-            self.b = b
-            self.flag_update()
+        return self.b
 
-    property a:
+    @b.setter
+    def b(self, b):
+        self.b = b
+        self.flag_update()
+
+    @property
+    def a(self):
         '''Alpha component, between 0 and 1.
         '''
-        def __get__(self):
-            return self.a
-        def __set__(self, a):
-            self.a = a
-            self.flag_update()
+        return self.a
+
+    @a.setter
+    def a(self, a):
+        self.a = a
+        self.flag_update()
 
 
 cdef class ClearBuffers(Instruction):
@@ -145,38 +155,44 @@ cdef class ClearBuffers(Instruction):
             mask |= GL_STENCIL_BUFFER_BIT
         if self.clear_depth:
             mask |= GL_DEPTH_BUFFER_BIT
-        glClear(mask)
+        cgl.glClear(mask)
         return 0
-        
-    property clear_color:
+
+    @property
+    def clear_color(self):
         '''If True, the color buffer will be cleared.
         '''
-        def __get__(self):
-            return self.clear_color
-        def __set__(self, value):
-            value = int(value)
-            if value == self.clear_color:
-                return
-            self.clear_color = value
+        return self.clear_color
 
-    property clear_stencil:
+    @clear_color.setter
+    def clear_color(self, value):
+        value = int(value)
+        if value == self.clear_color:
+            return
+        self.clear_color = value
+
+    @property
+    def clear_stencil(self):
         '''If True, the stencil buffer will be cleared.
         '''
-        def __get__(self):
-            return self.clear_stencil
-        def __set__(self, value):
-            value = int(value)
-            if value == self.clear_stencil:
-                return
-            self.clear_stencil = value
+        return self.clear_stencil
 
-    property clear_depth:
+    @clear_stencil.setter
+    def clear_stencil(self, value):
+        value = int(value)
+        if value == self.clear_stencil:
+            return
+        self.clear_stencil = value
+
+    @property
+    def clear_depth(self):
         '''If True, the depth buffer will be cleared.
         '''
-        def __get__(self):
-            return self.clear_depth
-        def __set__(self, value):
-            value = int(value)
-            if value == self.clear_depth:
-                return
-            self.clear_depth = value
+        return self.clear_depth
+
+    @clear_depth.setter
+    def clear_depth(self, value):
+        value = int(value)
+        if value == self.clear_depth:
+            return
+        self.clear_depth = value

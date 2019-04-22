@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 from kivy.gesture import GestureDatabase
 
 gdb = GestureDatabase()

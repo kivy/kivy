@@ -16,29 +16,19 @@ from kivy.core.window import Window
 from kivy.graphics import RenderContext
 from kivy.properties import StringProperty
 
-# This header must be not changed, it contain the minimum information from Kivy.
-header = '''
-#ifdef GL_ES
-precision highp float;
-#endif
-
-/* Outputs from the vertex shader */
-varying vec4 frag_color;
-varying vec2 tex_coord0;
-
-/* uniform texture samplers */
-uniform sampler2D texture0;
-'''
 
 # Plasma shader
-plasma_shader = header + '''
+plasma_shader = '''
+$HEADER$
+
 uniform vec2 resolution;
 uniform float time;
 
 void main(void)
 {
-   float x = gl_FragCoord.x;
-   float y = gl_FragCoord.y;
+   vec4 frag_coord = frag_modelview_mat * gl_FragCoord;
+   float x = frag_coord.x;
+   float y = frag_coord.y;
    float mov0 = x+y+cos(sin(time)*2.)*100.+sin(x/100.)*1000.;
    float mov1 = y / resolution.y / 0.2 + time;
    float mov2 = x / resolution.x / 0.2;
@@ -81,12 +71,16 @@ class ShaderWidget(FloatLayout):
         self.canvas['time'] = Clock.get_boottime()
         self.canvas['resolution'] = list(map(float, self.size))
         # This is needed for the default vertex shader.
-        self.canvas['projection_mat'] = Window.render_context['projection_mat']
+        win_rc = Window.render_context
+        self.canvas['projection_mat'] = win_rc['projection_mat']
+        self.canvas['modelview_mat'] = win_rc['modelview_mat']
+        self.canvas['frag_modelview_mat'] = win_rc['frag_modelview_mat']
 
 
 class PlasmaApp(App):
     def build(self):
         return ShaderWidget(fs=plasma_shader)
+
 
 if __name__ == '__main__':
     PlasmaApp().run()

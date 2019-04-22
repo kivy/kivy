@@ -1,185 +1,142 @@
 .. _installation:
 
-Installation
-============
+Basic Installation
+==================
 
-We try not to reinvent the wheel, but to bring something innovative to the
-market. As a consequence, we're focused on our own code and use pre-existing,
-high-quality third-party libraries where possible.
-To support the full, rich set of features that Kivy offers, several other libraries are
-required. If you do not use a specific feature (e.g. video playback), you
-don't need the corresponding dependency.
-That said, there is one dependency that Kivy **does** require:
-`Cython <http://cython.org>`_.
+Kivy offers a lot of customizability when it comes to installation. The following lists an easy installation method for each platform that should bring
+along all necessary dependencies. Ways to adjust how kivy is installed and how to setup kivy for developement can be read below under the :ref:`advanced_installation` section.
 
-|cython_note|
+Note that Kivy runs on even more platforms than the ones listed below. See :ref:`packaging` for a list of all supported target platforms.
 
-In addition, you need a `Python <http://python.org/>`_ 2.x (2.7 <= x < 3.0)
-or 3.x (3.3 <= x)
-interpreter. If you want to enable features like windowing (i.e. open a Window),
-audio/video playback or spelling correction, additional dependencies must
-be available. For these, we recommend `Pygame <http://pygame.org>`_, `Gst-Python
-<http://www.gstreamer.net/modules/gst-python.html>`_ and `Enchant
-<http://www.rfk.id.au/software/pyenchant/>`_, respectively.
+Windows
+~~~~~~~
 
-+--------------------------------------------------------------------------------------------------------------------------+
-| NOTE: Currently, packaging only works with Python 2.7. We are working on Python 3.3+ support, but for now if you plan to |
-| distribute your package on any platform you should use Python 2.7.                                                       |
-+--------------------------------------------------------------------------------------------------------------------------+
+Install kivy along with Windows-specific dependencies::
 
-Other optional libraries (mutually independent) are:
+    $ pip3 install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew kivy.deps.gstreamer kivy
 
-    * `OpenCV 2.0 <http://sourceforge.net/projects/opencvlibrary/>`_ -- Camera input.
-    * `PIL <http://www.pythonware.com/products/pil/index.htm>`_ -- Image and text display.
-    * `PyCairo <http://www.cairographics.org/pycairo/>`_ -- Text display.
-    * `PyEnchant <http://www.rfk.id.au/software/pyenchant/>`_ -- Spelling correction.
-    * `PyGST <http://gstreamer.freedesktop.org/ + http://pygstdocs.berlios.de/>`_ -- Audio/video playback and camera input.
+Optionally, install examples featured in the `Gallery of Examples <https://kivy.org/doc/stable/examples/gallery.html>`_::
 
+    $ pip3 install kivy_examples
 
-That said, **DON'T PANIC**!
+OS X
+~~~~
 
-We don't expect you to install all those things on your own.
-Instead, we have created nice portable packages that you can use directly,
-and they already contain the necessary packages for your platform.
-We just want you to know that there are alternatives to the defaults and give
-you an overview of the things Kivy uses internally.
+First, install necessary packages using homebrew::
+
+    $ brew install pkg-config sdl2 sdl2_image sdl2_ttf sdl2_mixer gstreamer
+
+Then install kivy using pip::
+
+    $ pip install Cython==0.26.1 kivy
+
+Optionally, install examples featured in the `Gallery of Examples <https://kivy.org/doc/stable/examples/gallery.html>`_::
+
+    $ pip install kivy_examples
 
 
-Stable Version
---------------
+Linux
+~~~~~
 
-The latest stable version can be found on Kivy's website at http://kivy.org/#download.
-Please refer to the installation instructions for your specific platform:
+Ubuntu based Distros (Ubuntu, Mint, Bhodi)    
+++++++++++++++++++++++++++++++++++++++++++
+
+Add kivy PPA::
+
+    $ sudo add-apt-repository ppa:kivy-team/kivy
+
+Update packages list of apt::
+
+    $ sudo apt update
+
+Install kivy dependencies (leave out the `3` for Python 2.x)::
+
+    $ sudo apt-get install python3-kivy
+
+Optionally, install some examples featured in the `Gallery of Examples <https://kivy.org/doc/stable/examples/gallery.html>`_::
+
+    $ sudo apt install kivy-examples
+
+
+Debian (Jessie or newer)
+++++++++++++++++++++++++
+
+Add kivy PPA::
+
+    $ deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu xenial main
+
+Add GPG to your apt keyring for our repository::
+
+    $ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6
+
+Update package list of apt::
+
+    $ sudo apt update
+
+Install kivy dependencies (leave out the `3` for Python 2.x)::
+
+    $ sudo apt-get install python3-kivy
+
+Optionally, install some examples featured in the `Gallery of Examples <https://kivy.org/doc/stable/examples/gallery.html>`_::
+
+    $ sudo apt install kivy-examples
+
+Raspberri Pi
+++++++++++++
+
+Installation on a Raspberri Pi is a little complicated, its instructions can be found on a separate page: :ref:`installation_rpi`.
+
+
+Other Distros
++++++++++++++
+
+For other distros, we recommend :ref:`installation_in_venv` .
+
+.. _advanced_installation:
+
+Advanced Installation
+=====================
+
+In trying to avoid reinenting the wheel, we try to use as many third-party packages as possible.
+Not all of them necessarily have to be installed if only a subset of kivy's features are desired. 
+Additionally, some dependencies may be swapped with others if your platform doesn't support one of them.
+Finally, for some platforms, there are multiple ways to installing certain dependencies. If you prefer a different
+method than the one listed above, the following guides might also be of interest for you.
+
+Stable Builds
+~~~~~~~~~~~~~
+
+Methods with fine-grained control over kivy's installation can be found under the following links:
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     installation-windows
-    installation-macosx
+    installation-osx
     installation-linux
     installation-android
     installation-rpi
-    troubleshooting-macosx
-
-
-.. _installation_devel:
 
 Development Version
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 The development version is for developers and testers. Note that when
 running a development version, you're running potentially broken code at
-your own risk.
-To use the development version, you will first need to install the
-dependencies. Thereafter, you will need to set up Kivy on your computer
-in a way that allows for easy development. For that, please see our
-:ref:`contributing` document.
+your own risk. 
 
-Installing Dependencies
-~~~~~~~~~~~~~~~~~~~~~~~
+If that is something of interest to you, read more here:
 
-To install Kivy's dependencies, follow the guide below for your platform.
+.. might later be replaced with a toc listing different platforms, like under Stable Builds
 
-Ubuntu
-++++++
+-  :ref:`installation_devel`
+- `Contributing Guidelines <contributing>`_
 
-For Ubuntu 12.04 and above (tested to 14.04), simply enter the following command
-that will install all necessary packages::
-
-    $ sudo apt-get install python-setuptools python-pygame python-opengl \
-      python-gst0.10 python-enchant gstreamer0.10-plugins-good python-dev \
-      build-essential libgl1-mesa-dev-lts-quantal libgles2-mesa-dev-lts-quantal\ 
-      python-pip
-
-For older versions of Ubuntu, this one should work::
-
-    $ sudo apt-get install python-setuptools python-pygame python-opengl \
-      python-gst0.10 python-enchant gstreamer0.10-plugins-good python-dev \
-      build-essential libgl1-mesa-dev libgles2-mesa-dev zlib1g-dev python-pip
-
-Kivy requires a recent version of Cython, so it's better to use the latest
-supported version from pypi:
-
-.. parsed-literal::
-
-    $ sudo pip install --upgrade |cython_install|
-
-Mac OS X
-++++++++
-
-You will need to install at least the following:
-
-* PyGame - we recommend installing from a binary packaged for your version
-  of Mac OS X. Download it from http://www.pygame.org/download.shtml
-
-If you run into problems, please read :ref:`troubleshooting-macosx`.
-
-.. _dev-install:
-
-Installing Kivy for Development
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Now that you've installed all the required dependencies, it's time to
-download and compile a development version of Kivy::
-
-    $ # Download Kivy from GitHub
-    $ git clone git://github.com/kivy/kivy.git
-    $ cd kivy
-
-    $ # Compile:
-    $ python setup.py build_ext --inplace -f
-
-If you have the ``make`` command available, you can also use the
-following shortcut to compile (does the same as the last command)::
-
-    $ make
-
-.. warning::
-
-  By default, versions 2.7 to 2.7.2 of Python use the gcc compiler which ships
-  with earlier versions of XCode. As of version 4.2, only the clang compiler
-  is shipped with XCode by default. This means that if you build using XCode
-  4.2 or above, you need to ensure you have at least Python 2.7.3 installed,
-  but prefferably the latest version (2.7.5 at the time of writing).
-    
-If you want to modify the Kivy code itself, set up the `PYTHONPATH environment
-variable
-<http://docs.python.org/tutorial/modules.html#the-module-search-path>`_ to
-point at your clone.
-This way you don't have to install (``setup.py install``) after every tiny
-modification. Python will instead import Kivy from your clone.
-
-Alternatively, if you don't want to make any changes to Kivy itself, you can
-also run (as admin, e.g. with sudo)::
-
-    $ python setup.py install
-
-If you want to contribute code (patches, new features) to the Kivy
-code base, please read :ref:`contributing`.
-
-Running the test suite
-~~~~~~~~~~~~~~~~~~~~~~
-
-To help detect issues and behaviour changes in Kivy, a set of unittests are
-provided. A good thing to do is to run them just after your Kivy installation, and
-every time you intend to push a change. If you think something was broken
-in Kivy, perhaps a test will show this? If not, it might be a good time to write
-one .)
-
-Kivy tests are based on nosetest, which you can install from your package
-manager or using pip :
-
-  $ pip install nose
-
-To run the test suite, do :
-
-  $ make test
 
 Uninstalling Kivy
-~~~~~~~~~~~~~~~~~
+=================
 
 If you are mixing multiple Kivy installations, you might be confused about where each Kivy version is
-located.  Please note that you might need to follow these steps multiple times if you have multiple
+located. Please note that you might need to follow these steps multiple times if you have multiple
 Kivy versions installed in the Python library path.
 To find your current installed version, you can use the command line::
 

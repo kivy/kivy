@@ -61,4 +61,5 @@ class RepeatTexture(App):
         self.texture.uvsize = (8, 8)
         return Builder.load_string(kv)
 
+
 RepeatTexture().run()

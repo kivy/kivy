@@ -98,4 +98,5 @@ def get_current_context():
         return _default_context
     return _context_stack[-1]
 
+
 _default_context = Context(init=False)

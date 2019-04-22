@@ -6,12 +6,60 @@ Installation on Raspberry Pi
 You can install Kivy manually, or you can download and boot KivyPie on the
 Raspberry Pi. Both options are described below.
 
-Note that Kivy has been tested with the original Raspberry Pi Model A/B. No
-guarantee is made that it will work on a Raspberry Pi 2.
 
+Manual installation (On Raspbian Jessie/Stretch)
+------------------------------------------------
 
-Manual installation
--------------------
+#. Install the dependencies::
+
+    sudo apt-get update
+    sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
+       pkg-config libgl1-mesa-dev libgles2-mesa-dev \
+       python-setuptools libgstreamer1.0-dev git-core \
+       gstreamer1.0-plugins-{bad,base,good,ugly} \
+       gstreamer1.0-{omx,alsa} python-dev libmtdev-dev \
+       xclip xsel
+
+#. Install a new enough version of Cython:
+
+    .. parsed-literal::
+
+        sudo pip install -U |cython_install|
+
+#. Install Kivy globally on your system::
+
+    sudo pip install git+https://github.com/kivy/kivy.git@master
+
+    # Note: on recent Raspian stretch, using git with root user gives you a warning
+    # and prevent you to correctly use this.
+    
+    # Method 1: delete /root/bin/git as the message explained
+    sudo rm /root/bin/git
+    sudo pip install git+https://github.com/kivy/kivy.git@master
+    
+    # Method 2: clone locally then pip install
+    git clone https://github.com/kivy/kivy
+    cd kivy
+    sudo pip install .
+
+#. Or build and use kivy inplace (best for development)::
+
+    git clone https://github.com/kivy/kivy
+    cd kivy
+
+    make
+    echo "export PYTHONPATH=$(pwd):\$PYTHONPATH" >> ~/.profile
+    source ~/.profile
+
+.. note::
+
+    On versions of kivy prior to 1.10.1, Mesa library naming changes can result
+    in "Unable to find any valuable Window provider" errors. If you experience
+    this issue, please upgrade or consult `ticket #5360.
+    <https://github.com/kivy/kivy/issues/5360>`_
+
+Manual installation (On Raspbian Wheezy)
+----------------------------------------
 
 #. Add APT sources for Gstreamer 1.0 in `/etc/apt/sources.list`::
 
@@ -21,12 +69,13 @@ Manual installation
 
     gpg --recv-keys 0C667A3E
     gpg -a --export 0C667A3E | sudo apt-key add -
-    
+
 #. Install the dependencies::
 
     sudo apt-get update
-    sudo apt-get install pkg-config libgl1-mesa-dev libgles2-mesa-dev \
-       python-pygame python-setuptools libgstreamer1.0-dev git-core \
+    sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
+       pkg-config libgl1-mesa-dev libgles2-mesa-dev \
+       python-setuptools libgstreamer1.0-dev git-core \
        gstreamer1.0-plugins-{bad,base,good,ugly} \
        gstreamer1.0-{omx,alsa} python-dev
 
@@ -35,26 +84,67 @@ Manual installation
     wget https://raw.github.com/pypa/pip/master/contrib/get-pip.py
     sudo python get-pip.py
 
-#. Install Cython from sources (debian package are outdated)::
+#. Install Cython from sources (debian packages are outdated):
 
-    sudo pip install cython
+    .. parsed-literal::
 
-#. Clone and compile Kivy::
+        sudo pip install |cython_install|
+
+#. Install Kivy globally on your system::
+
+    sudo pip install git+https://github.com/kivy/kivy.git@master
+
+#. Or build and use kivy inplace (best for development)::
 
     git clone https://github.com/kivy/kivy
     cd kivy
-
-#. Build and use kivy inplace (best for development)::
 
     make
     echo "export PYTHONPATH=$(pwd):\$PYTHONPATH" >> ~/.profile
     source ~/.profile
 
-#. Or install Kivy globally on your system::
+Manual installation (On Arch Linux ARM)
+------------------------------------------------
 
-    python setup.py build
-    sudo python setup.py install
+#. Install the dependencies::
 
+    sudo pacman -Syu
+    sudo pacman -S sdl2 sdl2_gfx sdl2_image sdl2_net sdl2_ttf sdl2_mixer python-setuptools
+
+    Note: python-setuptools needs to be installed through pacman or it will result with conflicts!
+
+#. Install pip from source::
+
+    wget https://raw.github.com/pypa/pip/master/contrib/get-pip.py
+    sudo python get-pip.py
+
+#. Install a new enough version of Cython:
+
+    .. parsed-literal::
+
+        sudo pip install -U |cython_install|
+
+#. Install Kivy globally on your system::
+
+    sudo pip install git+https://github.com/kivy/kivy.git@master
+
+#. Or build and use kivy inplace (best for development)::
+
+    git clone https://github.com/kivy/kivy
+    cd kivy
+    python setup.py install
+
+Images to use::
+
+    http://raspex.exton.se/?p=859 (recommended)  
+    https://archlinuxarm.org/
+
+.. note::
+
+    On versions of kivy prior to 1.10.1, Mesa library naming changes can result
+    in "Unable to find any valuable Window provider" errors. If you experience
+    this issue, please upgrade or consult `ticket #5360.
+    <https://github.com/kivy/kivy/issues/5360>`_
 
 KivyPie distribution
 --------------------
@@ -81,6 +171,31 @@ You could start the showcase::
     cd kivy/examples/3Drendering
     python main.py
 
+Change the default screen to use
+--------------------------------
+
+You can set an environment variable named `KIVY_BCM_DISPMANX_ID` in order to
+change the display used to run Kivy. For example, to force the display to be
+HDMI, use::
+
+    KIVY_BCM_DISPMANX_ID=2 python main.py
+
+Check :ref:`environment` to see all the possible values.
+
+Using Official RPi touch display
+--------------------------------
+
+If you are using the official Raspberry Pi touch display, you need to
+configure Kivy to use it as an input source. To do this, edit the file
+``~/.kivy/config.ini`` and go to the ``[input]`` section. Add this:
+
+::
+
+    mouse = mouse
+    mtdev_%(name)s = probesysfs,provider=mtdev
+    hid_%(name)s = probesysfs,provider=hidinput
+
+For more information about configuring Kivy, see :ref:`configure kivy`
 
 Where to go ?
 -------------
@@ -91,4 +206,3 @@ adapt the GPIO pin in the code.
 
 A video to see what we were doing with it:
 http://www.youtube.com/watch?v=NVM09gaX6pQ
-

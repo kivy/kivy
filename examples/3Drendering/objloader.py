@@ -48,17 +48,17 @@ class ObjFile:
             norms = f[1]
             tcs = f[2]
             for i in range(3):
-                #get normal components
+                # get normal components
                 n = (0.0, 0.0, 0.0)
                 if norms[i] != -1:
                     n = self.normals[norms[i] - 1]
 
-                #get texture coordinate components
+                # get texture coordinate components
                 t = (0.0, 0.0)
                 if tcs[i] != -1:
                     t = self.texcoords[tcs[i] - 1]
 
-                #get vertex components
+                # get vertex components
                 v = self.vertices[verts[i] - 1]
 
                 data = [v[0], v[1], v[2], n[0], n[1], n[2], t[0], t[1]]
@@ -69,7 +69,7 @@ class ObjFile:
             idx += 3
 
         self.objects[self._current_object] = mesh
-        #mesh.calculate_normals()
+        # mesh.calculate_normals()
         self.faces = []
 
     def __init__(self, filename, swapyz=False):
@@ -94,9 +94,9 @@ class ObjFile:
             if values[0] == 'o':
                 self.finish_object()
                 self._current_object = values[1]
-            #elif values[0] == 'mtllib':
+            # elif values[0] == 'mtllib':
             #    self.mtl = MTL(values[1])
-            #elif values[0] in ('usemtl', 'usemat'):
+            # elif values[0] in ('usemtl', 'usemat'):
             #    material = values[1]
             if values[0] == 'v':
                 v = list(map(float, values[1:4]))

@@ -2,15 +2,16 @@
 Video
 =====
 
-Core class for reading video files and managing the
-:class:`kivy.graphics.texture.Texture` video.
+Core class for reading video files and managing the video
+:class:`~kivy.graphics.texture.Texture`.
+
+.. versionchanged:: 1.10.0
+    The pyglet, pygst and gi providers have been removed.
 
 .. versionchanged:: 1.8.0
-    There is now 2 distinct Gstreamer implementation: one using Gi/Gst
+    There are now 2 distinct Gstreamer implementations: one using Gi/Gst
     working for both Python 2+3 with Gstreamer 1.0, and one using PyGST
     working only for Python 2 + Gstreamer 0.10.
-    If you have issue with GStreamer, have a look at
-    :ref:`gstreamer-compatibility`
 
 .. note::
 
@@ -30,19 +31,19 @@ class VideoBase(EventDispatcher):
     '''VideoBase, a class used to implement a video reader.
 
     :Parameters:
-        `filename` : str
+        `filename`: str
             Filename of the video. Can be a file or an URI.
-        `eos` : str, defaults to 'pause'
+        `eos`: str, defaults to 'pause'
             Action to take when EOS is hit. Can be one of 'pause', 'stop' or
             'loop'.
 
-            .. versionchanged:: unknown
+            .. versionchanged:: 1.4.0
                 added 'pause'
 
-        `async` : bool, defaults to True
+        `async`: bool, defaults to True
             Load the video asynchronously (may be not supported by all
             providers).
-        `autoplay` : bool, defaults to False
+        `autoplay`: bool, defaults to False
             Auto play the video on init.
 
     :Events:
@@ -173,7 +174,7 @@ class VideoBase(EventDispatcher):
         '''
         pass
 
-    def seek(self, percent):
+    def seek(self, percent, precise=True):
         '''Move on percent position'''
         pass
 
@@ -207,15 +208,10 @@ try:
     from kivy.lib.gstplayer import GstPlayer  # NOQA
     video_providers += [('gstplayer', 'video_gstplayer', 'VideoGstplayer')]
 except ImportError:
-    #video_providers += [('gi', 'video_gi', 'VideoGi')]
-    if PY2:
-        # if peoples do not have gi, fallback on pygst, only for python2
-        video_providers += [
-            ('pygst', 'video_pygst', 'VideoPyGst')]
+    pass
 video_providers += [
     ('ffmpeg', 'video_ffmpeg', 'VideoFFMpeg'),
     ('ffpyplayer', 'video_ffpyplayer', 'VideoFFPy'),
-    ('pyglet', 'video_pyglet', 'VideoPyglet'),
     ('null', 'video_null', 'VideoNull')]
 
 

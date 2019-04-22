@@ -51,7 +51,6 @@ cdef extern from "CoreGraphics/CGDataProvider.h" nogil:
 cdef extern from "CoreFoundation/CFBase.h" nogil:
     ctypedef void *CFAllocatorRef
     ctypedef void *CFStringRef
-    ctypedef void *CFURLRef
     ctypedef void *CFTypeRef
     CFStringRef CFStringCreateWithCString(CFAllocatorRef alloc, char *cStr,
             int encoding)
@@ -72,7 +71,8 @@ cdef extern from "CoreFoundation/CFDictionary.h":
 
 cdef extern from "CoreFoundation/CoreFoundation.h" nogil:
     CFDataRef CFDataCreateWithBytesNoCopy(
-                CFAllocatorRef, char *, int length, CFAllocatorRef)
+                CFAllocatorRef, const unsigned char *, int length,
+                CFAllocatorRef)
 
 cdef extern from "CoreGraphics/CGImage.h" nogil:
     ctypedef void *CGImageRef
@@ -96,7 +96,7 @@ cdef extern from "CoreGraphics/CGAffineTransform.h" nogil:
     ctypedef void *CGAffineTransform
     CGAffineTransform CGAffineTransformMake(float a, float b, float c, float d, float tx, float ty)
 
-cdef extern from "CoreGraphics/CGContext.h" nogil: 
+cdef extern from "CoreGraphics/CGContext.h" nogil:
     ctypedef void *CGContextRef
     void CGContextRelease(CGContextRef c)
     void CGContextDrawImage(CGContextRef, CGRect, CGImageRef)
@@ -118,7 +118,7 @@ cdef extern from "ImageIO/CGImageSource.h" nogil:
     CGImageRef CGImageSourceCreateImageAtIndex(
             CGImageSourceRef, size_t, CFDictionaryRef)
     CGImageRef CGImageSourceCreateWithData(
-            CFDataRef data, CFDictionaryRef options) 
+            CFDataRef data, CFDictionaryRef options)
 
 cdef extern from "ImageIO/CGImageDestination.h" nogil:
     ctypedef void *CGImageDestinationRef
@@ -171,7 +171,8 @@ cdef void c_load_image_data(char *_url, char *_data, size_t datalen, size_t *wid
     r_data[0] = NULL
 
     if _data != NULL:
-        dataref = CFDataCreateWithBytesNoCopy(NULL, _data, datalen, NULL)
+        dataref = CFDataCreateWithBytesNoCopy(
+            NULL, <const unsigned char*>_data, datalen, NULL)
         myImageSourceRef = CGImageSourceCreateWithData(dataref, NULL)
         if not myImageSourceRef:
             CFRelease(dataref)
@@ -223,6 +224,7 @@ def save_image_rgba(filename, width, height, data, flipped):
     # compatibility, could be removed i guess
     save_image(filename, width, height, 'rgba', data, flipped)
 
+
 def save_image(filenm, width, height, fmt, data, flipped):
     # save a RGBA string into filename using CoreGraphics
 
@@ -232,12 +234,12 @@ def save_image(filenm, width, height, fmt, data, flipped):
     # the type of the output file. So we need to map the extension of the
     # filename into a CoreGraphics image domain type.
 
-    fileformat = 'public.png'
+    cdef bytes fileformat = b'public.png'
     cdef bytes filename = <bytes>filenm.encode('utf-8')
-    if filename.endswith('.png'):
-        fileformat = 'public.png'
-    if filename.endswith('.jpg') or filename.endswith('.jpeg'):
-        fileformat = 'public.jpeg'
+    if filename.endswith(b'.png'):
+        fileformat = b'public.png'
+    if filename.endswith(b'.jpg') or filename.endswith(b'.jpeg'):
+        fileformat = b'public.jpeg'
 
     cdef char *source = NULL
     if type(data) is array:
@@ -258,8 +260,6 @@ def save_image(filenm, width, height, fmt, data, flipped):
         fmt_length * width, # bytesPerRow
         colorSpace,
         kCGImageAlphaNoneSkipLast)
-
-    fileformat = fileformat.encode('utf-8')
 
     cdef CGImageRef cgImage = CGBitmapContextCreateImage(bitmapContext)
     cdef char *cfilename = <char *>filename
@@ -286,12 +286,12 @@ def save_image(filenm, width, height, fmt, data, flipped):
                                     colorSpace,
                                     kCGImageAlphaNoneSkipLast)
 
-        CGContextConcatCTM(flippedContext, CGAffineTransformMake(1.0, 0.0, 
-                                                                0.0, -1.0, 
+        CGContextConcatCTM(flippedContext, CGAffineTransformMake(1.0, 0.0,
+                                                                0.0, -1.0,
                                                                 0.0, height))
 
-        CGContextDrawImage(flippedContext, 
-                            CGRectMake(0, 0, width, height), 
+        CGContextDrawImage(flippedContext,
+                            CGRectMake(0, 0, width, height),
                             cgImage)
 
         newImageRef = CGBitmapContextCreateImage(flippedContext)
@@ -302,15 +302,16 @@ def save_image(filenm, width, height, fmt, data, flipped):
     else:
         CGImageDestinationAddImage(dest, cgImage, NULL)
         CGImageDestinationFinalize(dest)
-            
-    #Release everything
+
+    # Release everything
     CFRelease(cgImage)
     CFRelease(bitmapContext)
     CFRelease(colorSpace)
     free(pixels)
 
+
 class ImageLoaderImageIO(ImageLoaderBase):
-    '''Image loader based on ImageIO MacOSX Framework
+    '''Image loader based on ImageIO OS X Framework
     '''
 
     @staticmethod
@@ -337,18 +338,20 @@ class ImageLoaderImageIO(ImageLoaderBase):
         return [ImageData(w, h, imgtype, data, source=filename)]
 
     @staticmethod
-    def can_save():
-        return True
+    def can_save(fmt, is_bytesio):
+        if is_bytesio:
+            return False
+        return fmt in ImageLoaderImageIO.extensions()
 
     @staticmethod
     def can_load_memory():
         return True
 
     @staticmethod
-    def save(filename, width, height, fmt, pixels, flipped=False):
-        save_image(filename, width, height, fmt, pixels, flipped)
+    def save(filename, width, height, pixelfmt, pixels, flipped=False,
+             imagefmt=None):
+        save_image(filename, width, height, pixelfmt, pixels, flipped)
         return True
 
 # register
 ImageLoader.register(ImageLoaderImageIO)
-

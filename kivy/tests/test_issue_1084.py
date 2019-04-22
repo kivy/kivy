@@ -5,11 +5,10 @@
 # more weird space due to ascii->utf8 encoding.
 # - create an unicode directory, and select it with Path. -> no more crash at
 # validation.
-# - create an unicode directory, and select it with Path and restart -> the path
-# is still correct.
+# - create an unicode directory, and select it with Path and restart -> the
+# path is still correct.
 
 from kivy.app import App
-from kivy.uix.settings import Settings
 
 data = '''
 [
@@ -38,9 +37,11 @@ class UnicodeIssueSetting(App):
         config.setdefault('test', 'path', '/')
 
     def build(self):
+        from kivy.uix.settings import Settings
         s = Settings()
         s.add_json_panel('Test Panel', self.config, data=data)
         return s
+
 
 if __name__ == '__main__':
     UnicodeIssueSetting().run()

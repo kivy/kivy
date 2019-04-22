@@ -12,7 +12,7 @@ Usage example::
     store = RedisStore(params)
 
 All the key-value pairs will be stored with a prefix 'store' by default.
-You can instanciate the storage with another prefix like this::
+You can instantiate the storage with another prefix like this::
 
 
     from kivy.storage.redisstore import RedisStore
@@ -29,6 +29,7 @@ __all__ = ('RedisStore', )
 
 import os
 from json import loads, dumps
+from kivy.compat import iteritems
 from kivy.properties import StringProperty
 from kivy.storage import AbstractStore
 
@@ -73,7 +74,7 @@ class RedisStore(AbstractStore):
         key = self.prefix + '.d.' + key
         pipe = self.r.pipeline()
         pipe.delete(key)
-        for k, v in values.iteritems():
+        for k, v in iteritems(values):
             pipe.hset(key, k, dumps(v))
         pipe.execute()
         return True
@@ -85,8 +86,8 @@ class RedisStore(AbstractStore):
         return self.r.delete(key)
 
     def store_keys(self):
-        l = len(self.prefix + '.d.')
-        return [x[l:] for x in self.r.keys(self.prefix + '.d.*')]
+        z = len(self.prefix + '.d.')
+        return [x[z:] for x in self.r.keys(self.prefix + '.d.*')]
 
     def store_find(self, filters):
         fkeys = filters.keys()

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.lang import Builder
@@ -7,6 +5,10 @@ from kivy.core.window import Window
 
 
 class KvApp(App):
+    def __init__(self, filename, **kwargs):
+        self.filename = filename
+        super(KvApp, self).__init__(**kwargs)
+
     def _print_fps(self, *largs):
         print('FPS: %2.4f (real draw: %d)' % (
             Clock.get_fps(), Clock.get_rfps()))
@@ -16,13 +18,14 @@ class KvApp(App):
             return
         for child in Window.children[:]:
             Window.remove_widget(child)
-        root = Builder.load_file(self.options['filename'])
+        root = Builder.load_file(self.filename)
         Window.add_widget(root)
 
     def build(self):
         Clock.schedule_interval(self._print_fps, 1)
         Window.bind(on_keyboard=self._reload_keypress)
-        return Builder.load_file(self.options['filename'])
+        return Builder.load_file(self.filename)
+
 
 if __name__ == '__main__':
     import sys
