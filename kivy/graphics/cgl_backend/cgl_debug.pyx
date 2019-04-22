@@ -540,7 +540,7 @@ cdef void __stdcall gil_dbgGetAttachedShaders (GLuint program, GLsizei maxcount,
 
 cdef int  __stdcall dbgGetAttribLocation (GLuint program, const GLchar* name) nogil:
     with gil:
-        gil_dbgGetAttribLocation(program,  <GLchar*>name)
+        return gil_dbgGetAttribLocation(program,  <GLchar*>name)
 
 cdef int  __stdcall gil_dbgGetAttribLocation (GLuint program,  GLchar* name) with gil:
     gl_debug_print("GL glGetAttribLocation( program = ", program, ", name*=", repr(hex(<long> name)), ", )")
