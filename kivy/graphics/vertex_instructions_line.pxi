@@ -42,11 +42,11 @@ cdef class Line(VertexInstruction):
     for optimal results:
 
     #. If the :attr:`width` is 1.0, then the standard GL_LINE drawing from
-       OpenGL will be used. :attr:`dash_length` and :attr:`dash_offset` will
+       OpenGL will be used. :attr:`dash_length`, :attr:`dash_offset`, and :attr:`dashes` will
        work, while properties for cap and joint have no meaning here.
     #. If the :attr:`width` is greater than 1.0, then a custom drawing method,
-       based on triangulation, will be used. :attr:`dash_length` and
-       :attr:`dash_offset` do not work in this mode.
+       based on triangulation, will be used. :attr:`dash_length`,
+       :attr:`dash_offset`, and :attr:`dashes` do not work in this mode.
        Additionally, if the current color has an alpha less than 1.0, a
        stencil will be used internally to draw the line.
 
@@ -61,6 +61,11 @@ cdef class Line(VertexInstruction):
         `dash_offset`: int
             Offset between the end of a segment and the beginning of the
             next one, defaults to 0. Changing this makes it dashed.
+        `dashes`: list of ints
+            List of [ON length, offset, ON length, offset, ...]. E.g. ``[2,4,1,6,8,2]``
+            would create a line with the first dash length 2 then an offset of 4 then
+            a dash lenght of 1 then an offset of 6 and so on. Defaults to ``[]``.
+            Changing this makes it dashed and overrides `dash_length` and `dash_offset`.
         `width`: float
             Width of the line, defaults to 1.0.
         `cap`: str, defaults to 'round'
@@ -101,8 +106,8 @@ cdef class Line(VertexInstruction):
     .. versionchanged:: 1.4.1
         `bezier`, `bezier_precision` have been added.
 
-    .. versionchanged:: 1.9.1
-        `dash_list` have been added
+    .. versionchanged:: 1.11.0
+        `dashes` have been added
 
     '''
     cdef int _cap
@@ -128,9 +133,8 @@ cdef class Line(VertexInstruction):
     def __init__(self, **kwargs):
         super(Line, self).__init__(**kwargs)
         v = kwargs.get('points')
-        dashes = kwargs.get('dash_list')
         self.points = v if v is not None else []
-        self._dash_list = dashes if dashes is not None else []
+        self.dashes = kwargs.get('dashes', [])
         self.batch.set_mode('line_strip')
         self._dash_length = kwargs.get('dash_length') or 1
         self._dash_offset = kwargs.get('dash_offset') or 0
@@ -215,9 +219,9 @@ cdef class Line(VertexInstruction):
         cdef float tex_x
         cdef char *buf = NULL
         cdef Texture texture = self.texture
-        cdef int length
-        cdef int position
-        cdef int total_length
+        cdef int length = 0
+        cdef int position = 0
+        cdef int val
 
         if count < 2:
             self.batch.clear_data()
@@ -228,25 +232,30 @@ cdef class Line(VertexInstruction):
             count += 1
 
         self.batch.set_mode('line_strip')
-        length = sum(self._dash_list) if len(self._dash_list) > 1 else 0
-        if len(self._dash_list) > 1:
+
+        if self._dash_list:
+            length = sum(self._dash_list)
             if texture is None or texture._width != length \
                 or texture._height != 1:
                 self.texture = texture = Texture.create(size=(length, 1))
                 texture.wrap = 'repeat'
-            # create a buffer to fill our texture            
+
+            # create a buffer to fill our texture
             buf = <char *>malloc(4 * length)
-            position = 0
+            memset(buf, 0, 4 * length)
+
             for idx, val in enumerate(self._dash_list):
                 if idx % 2 == 0:
                     memset(buf + position, 255, val * 4)
-                else:
-                    memset(buf + position, 0, val * 4)
                 position += val * 4
+
             p_str = buf[:position]
-            self.texture.blit_buffer(p_str, colorfmt='rgba', bufferfmt='ubyte')
-            free(buf)
+            try:
+                self.texture.blit_buffer(p_str, colorfmt='rgba', bufferfmt='ubyte')
+            finally:
+                free(buf)
         elif self._dash_offset != 0:
+            length = self._dash_length + self._dash_offset
             if texture is None or texture._width != \
                 (self._dash_length + self._dash_offset) or \
                 texture._height != 1:
@@ -261,8 +270,10 @@ cdef class Line(VertexInstruction):
             memset(buf + self._dash_length * 4, 0, self._dash_offset * 4)
             p_str = buf[:(self._dash_length + self._dash_offset) * 4]
 
-            self.texture.blit_buffer(p_str, colorfmt='rgba', bufferfmt='ubyte')
-            free(buf)
+            try:
+                self.texture.blit_buffer(p_str, colorfmt='rgba', bufferfmt='ubyte')
+            finally:
+                free(buf)
 
         elif texture is not None:
             self.texture = None
@@ -277,18 +288,11 @@ cdef class Line(VertexInstruction):
             raise MemoryError('indices')
 
         tex_x = 0
-
-        if len(self._dash_list) > 1:
-            total_length = length
-        else:
-            total_length = self._dash_length + self._dash_offset
-
-        for i in xrange(count):
-            if (self._dash_offset != 0 or len(self._dash_list) > 1) and i > 0:
+        for i in range(count):
+            if (self._dash_offset != 0 or self._dash_list) and i > 0:
                 tex_x += sqrt(
                         pow(p[i * 2]     - p[(i - 1) * 2], 2)  +
-                        pow(p[i * 2 + 1] - p[(i - 1) * 2 + 1], 2)) /\
-                        (total_length)
+                        pow(p[i * 2 + 1] - p[(i - 1) * 2 + 1], 2)) / length
 
                 vertices[i].s0 = tex_x
                 vertices[i].t0 = 0
@@ -311,7 +315,7 @@ cdef class Line(VertexInstruction):
         cdef float tex_x
         cdef int cap
         cdef char *buf = NULL
-        cdef Texture texture = self.texture
+        self.texture = None
 
         self._bxmin = 999999999
         self._bymin = 999999999
@@ -749,6 +753,22 @@ cdef class Line(VertexInstruction):
             self._dash_offset = value
             self.flag_update()
 
+    property dashes:
+        '''Property for getting/setting ``dashes``.
+
+        List of [ON length, offset, ON length, offset, ...]. E.g. ``[2,4,1,6,8,2]``
+        would create a line with the first dash length 2 then an offset of 4 then
+        a dash lenght of 1 then an offset of 6 and so on.
+
+        .. versionadded:: 1.11.0
+        '''
+        def __get__(self):
+            return self._dash_list
+
+        def __set__(self, value):
+            self._dash_list = list(value)
+            self.flag_update()
+
     property width:
         '''Determine the width of the line, defaults to 1.0.
 
@@ -1010,9 +1030,9 @@ cdef class Line(VertexInstruction):
             angle_dir = -1
         if segments == 0:
             segments = int(abs(angle_end - angle_start) / 2) + 3
-        
+
         segmentpoints = segments * 2
-        
+
         # rad = deg * (pi / 180), where pi/180 = 0.0174...
         angle_start = angle_start * 0.017453292519943295
         angle_end = angle_end * 0.017453292519943295
