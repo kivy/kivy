@@ -81,7 +81,7 @@ To access Python modules and classes from kv, use ``#:import`` ::
     #:import isdir os.path.isdir
     #:import np numpy
 
-is equivalent to
+is equivalent to::
 
     from x.y import z as name
     from os.path import isdir
@@ -93,7 +93,7 @@ To set a global value, use ``#:set`` ::
 
     #:set name value
 
-is equivalent to
+is equivalent to::
 
     name = value
 
@@ -102,8 +102,8 @@ in Python.
 Instantiate children
 --------------------
 
-To declare the widget has a child widget that is an instance of some specific
-class, just declare that child inside the rule:
+To declare a widget instance of some class as a child widget, just
+declare that child inside the rule:
 
 .. code-block:: kv
 
