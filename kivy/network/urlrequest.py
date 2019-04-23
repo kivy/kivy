@@ -475,7 +475,7 @@ class UrlRequest(Thread):
                 # are set even if it's invalid. But it look like it's ok
                 # ?  http://stackoverflow.com/questions/2454494/..
                 # ..urllib2-multiple-set-cookie-headers-in-response
-                self._resp_headers = dict(resp.getheaders())
+                self._resp_headers = dict(parsed_headers)
                 self._resp_status = resp.status
             if result == 'success':
                 status_class = resp.status // 100
