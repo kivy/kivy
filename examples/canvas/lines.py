@@ -151,8 +151,10 @@ Builder.load_string('''
                     padding_x: '5dp'
                     on_state:
                         if self.state == 'down': root.dashes = []
-                        if self.state == 'down': root.dash_length = int(dash_len.text or 1)
-                        if self.state == 'down': root.dash_offset = int(dash_offset.text or 0)
+                        if self.state == 'down': root.dash_length = \
+                            int(dash_len.text or 1)
+                        if self.state == 'down': root.dash_offset = \
+                            int(dash_offset.text or 0)
                 Label:
                     text: 'len'
                     size_hint_x: None
@@ -165,7 +167,8 @@ Builder.load_string('''
                     input_filter: 'int'
                     multiline: False
                     text: '1'
-                    on_text: if constant.state == 'down': root.dash_length = int(self.text or 1)
+                    on_text: if constant.state == 'down': \
+                        root.dash_length = int(self.text or 1)
                 Label:
                     text: 'offset'
                     size_hint_x: None
@@ -178,7 +181,8 @@ Builder.load_string('''
                     input_filter: 'int'
                     multiline: False
                     text: '0'
-                    on_text: if constant.state == 'down': root.dash_offset = int(self.text or 0)
+                    on_text: if constant.state == 'down': \
+                        root.dash_offset = int(self.text or 0)
                 ToggleButton:
                     id: dash_list
                     group: 'dashes'
@@ -188,7 +192,8 @@ Builder.load_string('''
                     width: self.texture_size[0]
                     padding_x: '5dp'
                     on_state:
-                        if self.state == 'down': root.dashes = list(map(lambda x: int(x or 0), dash_list_in.text.split(',')))
+                        if self.state == 'down': root.dashes = list(map(lambda\
+                            x: int(x or 0), dash_list_in.text.split(',')))
                         if self.state == 'down': root.dash_length = 1
                         if self.state == 'down': root.dash_offset = 0
                 TextInput:
@@ -197,7 +202,8 @@ Builder.load_string('''
                     width: '180dp'
                     multiline: False
                     text: '4,3,10,15'
-                    on_text: if dash_list.state == 'down': root.dashes = list(map(lambda x: int(x or 0), self.text.split(',')))
+                    on_text: if dash_list.state == 'down': root.dashes = \
+                        list(map(lambda x: int(x or 0), self.text.split(',')))
 
         AnchorLayout:
             GridLayout:
