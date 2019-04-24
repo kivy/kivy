@@ -174,18 +174,7 @@ class CheckBox(ToggleButtonBehavior, Widget):
             self._check_variable = False
 
     def on_group(self, *largs):
-        groups = ToggleButtonBehavior._ToggleButtonBehavior__groups
-        if self._previous_group:
-            group = groups[self._previous_group]
-            for item in group[:]:
-                if item() is self:
-                    group.remove(item)
-                    break
-        group = self._previous_group = self.group
-        if group not in groups:
-            groups[group] = []
-        r = ref(self, ToggleButtonBehavior._clear_groups)
-        groups[group].append(r) 
+        super().on_group(*largs)
         if self.active:
             self._release_group(self)
 
