@@ -230,7 +230,9 @@ cdef class GstPlayer:
         # instantiate the playbin
         self.playbin = gst_element_factory_make('playbin', NULL)
         if self.playbin == NULL:
-            raise GstPlayerException('Unable to create a playbin')
+            raise GstPlayerException(
+                'Unable to create a playbin. Consider setting the environment variable '
+                'GST_REGISTRY to a user accesible path, such as ~/registry.bin')
 
         gst_bin_add(<GstBin *>self.pipeline, self.playbin)
 
