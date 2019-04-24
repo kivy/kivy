@@ -104,8 +104,6 @@ class ToggleButtonBehavior(ButtonBehavior):
             groups[group] = []
         r = ref(self, ToggleButtonBehavior._clear_groups)
         groups[group].append(r)
-        if self.active:
-            self._release_group(self)
 
     def _release_group(self, current):
         if self.group is None:
