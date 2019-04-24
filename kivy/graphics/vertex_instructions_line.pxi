@@ -654,14 +654,14 @@ cdef class Line(VertexInstruction):
         # compute bbox
         cdef unsigned long iul
         for iul in xrange(vertices_count):
-            if vertices[i].x < self._bxmin:
-                self._bxmin = vertices[i].x
-            if vertices[i].x > self._bxmax:
-                self._bxmax = vertices[i].x
-            if vertices[i].y < self._bymin:
-                self._bymin = vertices[i].y
-            if vertices[i].y > self._bymax:
-                self._bymax = vertices[i].y
+            if vertices[iul].x < self._bxmin:
+                self._bxmin = vertices[iul].x
+            if vertices[iul].x > self._bxmax:
+                self._bxmax = vertices[iul].x
+            if vertices[iul].y < self._bymin:
+                self._bymin = vertices[iul].y
+            if vertices[iul].y > self._bymax:
+                self._bymax = vertices[iul].y
 
         self.batch.set_data(vertices, <int>vertices_count,
                            indices, <int>indices_count)

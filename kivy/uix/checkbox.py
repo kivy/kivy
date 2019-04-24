@@ -38,7 +38,6 @@ from kivy.uix.behaviors import ToggleButtonBehavior
 class CheckBox(ToggleButtonBehavior, Widget):
     '''CheckBox class, see module documentation for more information.
     '''
-
     active = BooleanProperty(False)
     '''Indicates if the switch is active or inactive.
 
@@ -156,6 +155,8 @@ class CheckBox(ToggleButtonBehavior, Widget):
     '''
 
     def on_state(self, instance, value):
+        if (not self._check_variable) and self.group:
+            self._toggle_active()
         if value == 'down':
             self.active = True
         else:
@@ -165,7 +166,11 @@ class CheckBox(ToggleButtonBehavior, Widget):
         self._do_press()
 
     def on_active(self, instance, value):
+        if (not self._check_variable) and self.group:
+            self._toggle_active()
         self.state = 'down' if value else 'normal'
+        if self._check_variable:
+            self._check_variable = False
 
 
 if __name__ == '__main__':
