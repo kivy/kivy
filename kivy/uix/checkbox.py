@@ -33,6 +33,7 @@ __all__ = ('CheckBox', )
 from kivy.uix.widget import Widget
 from kivy.properties import BooleanProperty, StringProperty, ListProperty
 from kivy.uix.behaviors import ToggleButtonBehavior
+from weakref import ref
 
 
 class CheckBox(ToggleButtonBehavior, Widget):
@@ -171,6 +172,22 @@ class CheckBox(ToggleButtonBehavior, Widget):
         self.state = 'down' if value else 'normal'
         if self._check_variable:
             self._check_variable = False
+
+    def on_group(self, *largs):
+        groups = ToggleButtonBehavior._ToggleButtonBehavior__groups
+        if self._previous_group:
+            group = groups[self._previous_group]
+            for item in group[:]:
+                if item() is self:
+                    group.remove(item)
+                    break
+        group = self._previous_group = self.group
+        if group not in groups:
+            groups[group] = []
+        r = ref(self, ToggleButtonBehavior._clear_groups)
+        groups[group].append(r) 
+        if self.active:
+            self._release_group(self)
 
 
 if __name__ == '__main__':
