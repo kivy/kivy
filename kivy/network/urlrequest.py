@@ -460,11 +460,22 @@ class UrlRequest(Thread):
             except IndexError:
                 return
             if resp:
+                # Small workaround in order to prevent the situation mentioned
+                # in the comment below
+                final_cookies = ""
+                parsed_headers = []
+                for key, value in resp.getheaders():
+                    if key == "Set-Cookie":
+                        final_cookies += "{};".format(value)
+                    else:
+                        parsed_headers.append((key, value))
+                parsed_headers.append(("Set-Cookie", final_cookies[:-1]))
+
                 # XXX usage of dict can be dangerous if multiple headers
                 # are set even if it's invalid. But it look like it's ok
                 # ?  http://stackoverflow.com/questions/2454494/..
                 # ..urllib2-multiple-set-cookie-headers-in-response
-                self._resp_headers = dict(resp.getheaders())
+                self._resp_headers = dict(parsed_headers)
                 self._resp_status = resp.status
             if result == 'success':
                 status_class = resp.status // 100
