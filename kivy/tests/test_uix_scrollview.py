@@ -1,25 +1,17 @@
 from kivy.tests.common import GraphicUnitTest
 
-from kivy.input.motionevent import MotionEvent
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.label import Label
 from kivy.base import EventLoop
 from kivy.clock import Clock
+from kivy.tests.common import UTMotionEvent
+
 from time import sleep
 from itertools import count
 
 DEBUG = False
 touch_id = count()
-
-
-class UTMotionEvent(MotionEvent):
-    def depack(self, args):
-        self.is_touch = True
-        self.sx = args['x']
-        self.sy = args['y']
-        self.profile = ['pos']
-        super(UTMotionEvent, self).depack(args)
 
 
 class _TestGrid(GridLayout):

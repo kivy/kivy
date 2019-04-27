@@ -10,7 +10,7 @@ The screenshots live in the 'kivy/tests/results' folder and are in PNG format,
 320x240 pixels.
 '''
 
-__all__ = ('GraphicUnitTest', )
+__all__ = ('GraphicUnitTest', 'UTMotionEvent')
 
 import unittest
 import logging
@@ -429,3 +429,12 @@ class UnitTestTouch(MotionEvent):
 
         # run depack after we set the values
         super(UnitTestTouch, self).depack(args)
+
+
+class UTMotionEvent(MotionEvent):
+    def depack(self, args):
+        self.is_touch = True
+        self.sx = args['x']
+        self.sy = args['y']
+        self.profile = ['pos']
+        super(UTMotionEvent, self).depack(args)
