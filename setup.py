@@ -21,6 +21,7 @@ from collections import OrderedDict
 from time import time
 from subprocess import check_output, CalledProcessError
 from datetime import datetime
+from sysconfig import get_paths
 
 try:
     from setuptools import setup, Extension
@@ -478,6 +479,18 @@ if platform not in ('ios', 'android') and (c_options['use_gstreamer']
                     '-Xlinker', '190',
                     '-framework', 'GStreamer'],
                 'include_dirs': [join(f_path, 'Headers')]}
+    elif platform == 'win32':
+        gst_flags = pkgconfig('gstreamer-1.0')
+        if 'libraries' in gst_flags:
+            print('GStreamer found via pkg-config')
+            gstreamer_valid = True
+            c_options['use_gstreamer'] = True
+        elif exists(join(get_paths()['include'], 'gst', 'gst.h')):
+            print('GStreamer found via gst.h')
+            gstreamer_valid = True
+            c_options['use_gstreamer'] = True
+            gst_flags = {
+                'libraries': ['gstreamer-1.0', 'glib-2.0', 'gobject-2.0']}
 
     if not gstreamer_valid:
         # use pkg-config approach instead
@@ -875,7 +888,7 @@ if c_options['use_sdl2'] and sdl2_flags:
             base_flags, sdl2_flags, sdl2_depends)
 
 if c_options['use_pangoft2'] in (None, True) and platform not in (
-                                      'android', 'ios', 'windows'):
+                                      'android', 'ios', 'win32'):
     pango_flags = pkgconfig('pangoft2')
     if pango_flags and 'libraries' in pango_flags:
         print('Pango: pangoft2 found via pkg-config')
@@ -945,9 +958,9 @@ if c_options['use_gstreamer']:
         base_flags, gst_flags, {
             'depends': ['lib/gstplayer/_gstplayer.h']})
 
-
 # -----------------------------------------------------------------------------
 # extension modules
+
 
 def get_dependencies(name, deps=None):
     if deps is None:
