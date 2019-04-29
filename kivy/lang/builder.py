@@ -467,10 +467,20 @@ class BuilderBase(object):
     def apply(self, widget, ignored_consts=set(), rule_children=None):
         '''Search all the rules that match the widget and apply them.
 
-        `ignored_consts` is a set or list type whose elements are property
-        names for which constant KV rules (i.e. those that don't create
-        bindings) of that widget will not be applied. This allows e.g. skipping
-        constant rules that overwrite a value initialized in python.
+        :Parameters:
+
+            `widget`: :class:`~kivy.uix.widget.Widget`
+                The widget whose class rules should be applied to this widget.
+            `ignored_consts`: set
+                A set or list type whose elements are property names for which
+                constant KV rules (i.e. those that don't create bindings) of
+                that widget will not be applied. This allows e.g. skipping
+                constant rules that overwrite a value initialized in python.
+            `rule_children`: list
+                If not ``None``, it should be a list that will be populated
+                with all the widgets created by the kv rules being applied.
+
+                .. versionchanged:: 1.11.0
         '''
         rules = self.match(widget)
         if __debug__:
