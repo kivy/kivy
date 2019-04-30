@@ -35,7 +35,7 @@ Example::
     runTouchApp(spinner)
 
 
-Kv Example:
+Kv Example::
 
     FloatLayout:
         Spinner:

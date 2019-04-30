@@ -23,7 +23,7 @@ To create a slider with a red line tracking the value::
     s = Slider(value_track=True, value_track_color=[1, 0, 0, 1])
 
 
-KV example:
+Kv Example::
 
     BoxLayout:
         Slider:

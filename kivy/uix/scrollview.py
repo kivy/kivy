@@ -87,7 +87,7 @@ the size_hint_y property to None::
     runTouchApp(root)
 
 
-Kv example:
+Kv Example::
 
     ScrollView:
         do_scroll_x: False

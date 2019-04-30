@@ -4,11 +4,11 @@ Image
 
 The :class:`Image` widget is used to display an image::
 
-Examples:
+Example in python::
 
     wimg = Image(source='mylogo.png')
 
-or
+Kv Example::
 
     Image:
         source: 'mylogo.png'

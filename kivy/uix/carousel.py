@@ -32,7 +32,7 @@ Example::
     CarouselApp().run()
 
 
-Kv Example:
+Kv Example::
 
     Carousel:
         direction: 'right'
