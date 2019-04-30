@@ -54,6 +54,7 @@ kivy/deps/*
 !kivy/deps/__init__.py
 kivy.deps*
 kivy/version.py
+results.png
 
 MANIFEST
 

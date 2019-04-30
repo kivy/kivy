@@ -4,7 +4,16 @@ Image
 
 The :class:`Image` widget is used to display an image::
 
+Example in python::
+
     wimg = Image(source='mylogo.png')
+
+Kv Example::
+
+    Image:
+        source: 'mylogo.png'
+        size: self.texture_size
+
 
 Asynchronous Loading
 --------------------

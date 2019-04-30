@@ -370,7 +370,7 @@ class ImageLoader(object):
                         continue
                     break
                 if im is not None:
-                    # append ImageData to local variable before it's
+                    # append ImageData to local variable before its
                     # overwritten
                     image_data.append(im._data[0])
                     image = im
@@ -741,7 +741,6 @@ class Image(EventDispatcher):
                 self._set_filename(value)
             else:
                 self._texture = None
-                self._img_iterate()
             return
         else:
             # if we already got a texture, it will be automatically reloaded.
@@ -860,7 +859,8 @@ class Image(EventDispatcher):
         if isinstance(filename, BytesIO):
             is_bytesio = True
             if not fmt:
-                raise Exception("You must specify a format to save into a BytesIO object")
+                raise Exception(
+                    "You must specify a format to save into a BytesIO object")
         elif fmt is None:
             fmt = self._find_format_from_filename(filename)
 
@@ -903,13 +903,14 @@ class Image(EventDispatcher):
             pixelfmt = 'rgba'
         else:
             raise Exception('Unable to determine the format of the pixels')
-        return loader.save(filename, size[0], size[1], pixelfmt, pixels, flipped, fmt)
+        return loader.save(
+            filename, size[0], size[1], pixelfmt, pixels, flipped, fmt)
 
     def _find_format_from_filename(self, filename):
         ext = filename.rsplit(".", 1)[-1].lower()
         if ext in {
-            'bmp', 'jpe', 'lbm', 'pcx', 'png', 'pnm',
-            'tga', 'tiff', 'webp', 'xcf', 'xpm', 'xv'}:
+                'bmp', 'jpe', 'lbm', 'pcx', 'png', 'pnm',
+                'tga', 'tiff', 'webp', 'xcf', 'xpm', 'xv'}:
             return ext
         elif ext in ('jpg', 'jpeg'):
             return 'jpg'

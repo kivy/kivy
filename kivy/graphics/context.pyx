@@ -51,7 +51,7 @@ cdef class Context:
     def trigger_gl_dealloc(self):
         Clock.schedule_del_safe(self.gl_dealloc)
 
-    cdef void flush(self):
+    cpdef void flush(self):
         gc.collect()
         self.lr_texture = array('I')
         self.lr_canvas = []

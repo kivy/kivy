@@ -271,7 +271,7 @@ class Screen(RelativeLayout):
     - 'in' if the transition is going to show your screen
     - 'out' if the transition is going to hide your screen
 
-    After the transition is complete, the state will retain it's last value (in
+    After the transition is complete, the state will retain its last value (in
     or out).
 
     :attr:`transition_state` is an :class:`~kivy.properties.OptionProperty` and

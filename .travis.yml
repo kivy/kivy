@@ -32,7 +32,7 @@ matrix:
       dist: bionic
     - language: python
       sudo: required
-      env: RUN=wheels DOCKER_IMAGE=markrwilliams/manylinux2:x86_64 USE_PANGOFT2=0
+      env: RUN=wheels DOCKER_IMAGE=quay.io/pypa/manylinux2010_x86_64
       services:
         - docker
     - language: generic
@@ -54,6 +54,7 @@ matrix:
 before_install:
   # https://github.com/travis-ci/travis-ci/issues/6307
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
+      travis_wait brew update
       brew install gpg2;
       brew uninstall gpg;
       gpg2 --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3;
@@ -63,15 +64,14 @@ before_install:
 install:
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" != "wheels" ]; then
       if [ "${RUN}" != "pep8" ]; then
-        yes | sudo add-apt-repository ppa:zoogie/sdl2-snapshots;
         yes | sudo add-apt-repository ppa:gstreamer-developers/ppa;
         sudo apt-get update;
         sudo apt-get -y install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libsdl2-mixer-dev;
         sudo apt-get -y install libgstreamer1.0-dev gstreamer1.0-alsa gstreamer1.0-plugins-base;
         sudo apt-get -y install python-dev libsmpeg-dev libswscale-dev libavformat-dev libavcodec-dev libjpeg-dev libtiff4-dev libX11-dev libmtdev-dev;
         sudo apt-get -y install python-setuptools build-essential libgl1-mesa-dev libgles2-mesa-dev;
-        sudo apt-get -y install xvfb pulseaudio;
-        pip install --upgrade cython pillow nose coveralls docutils;
+        sudo apt-get -y install xvfb pulseaudio xsel;
+        pip install --upgrade cython pillow pytest coveralls docutils PyInstaller;
       fi;
       if [ "${RUN}" == "docs" ]; then
         pip install --upgrade sphinxcontrib-blockdiag sphinxcontrib-seqdiag sphinxcontrib-actdiag sphinxcontrib-nwdiag;
@@ -82,25 +82,25 @@ install:
       hdiutil attach aria2-1.29.0-osx-darwin.dmg;
       sudo installer -package "/Volumes/aria2 1.29.0 Intel/aria2.pkg" -target /;
 
-      curl -O -L https://www.libsdl.org/release/SDL2-2.0.5.dmg;
-      curl -O -L https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.1.dmg;
-      curl -O -L https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-2.0.1.dmg;
-      curl -O -L https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.14.dmg;
+      curl -O -L https://www.libsdl.org/release/SDL2-2.0.9.dmg;
+      curl -O -L https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.4.dmg;
+      curl -O -L https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-2.0.4.dmg;
+      curl -O -L https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.15.dmg;
       /usr/local/aria2/bin/aria2c -x 10 https://gstreamer.freedesktop.org/data/pkg/osx/1.10.2/gstreamer-1.0-1.10.2-x86_64.pkg;
       /usr/local/aria2/bin/aria2c -x 10 https://gstreamer.freedesktop.org/data/pkg/osx/1.10.2/gstreamer-1.0-devel-1.10.2-x86_64.pkg;
 
-      hdiutil attach SDL2-2.0.5.dmg;
+      hdiutil attach SDL2-2.0.9.dmg;
       sudo cp -a /Volumes/SDL2/SDL2.framework /Library/Frameworks/;
-      hdiutil attach SDL2_image-2.0.1.dmg;
+      hdiutil attach SDL2_image-2.0.4.dmg;
       sudo cp -a /Volumes/SDL2_image/SDL2_image.framework /Library/Frameworks/;
-      hdiutil attach SDL2_ttf-2.0.14.dmg;
+      hdiutil attach SDL2_ttf-2.0.15.dmg;
       sudo cp -a /Volumes/SDL2_ttf/SDL2_ttf.framework /Library/Frameworks/;
-      hdiutil attach SDL2_mixer-2.0.1.dmg;
+      hdiutil attach SDL2_mixer-2.0.4.dmg;
       sudo cp -a /Volumes/SDL2_mixer/SDL2_mixer.framework /Library/Frameworks/;
       sudo installer -package gstreamer-1.0-1.10.2-x86_64.pkg -target /;
       sudo installer -package gstreamer-1.0-devel-1.10.2-x86_64.pkg -target /;
       curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py;
-      if [ "${RUN}" == "app" ]  && ([ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ]  || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build app osx]" ]]); then
+      if [ "${RUN}" == "app" ]  && ([ "${TRAVIS_EVENT_TYPE}" == "crony" ] || [ "${TRAVIS_TAG}" != "" ]  || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build app osx]" ]]); then
           curl -O -L http://www.sveinbjorn.org/files/software/platypus/platypus4.8.zip;
           unzip platypus4.8.zip;
           mkdir -p /usr/local/bin;
@@ -112,13 +112,15 @@ install:
       fi;
       if [ "${RUN}" == "unit" ]; then
         if [ "${PY}" == "3" ]; then
+           export PATH=$PATH:$HOME/Library/Python/3.5/bin;
            curl -O -L https://www.python.org/ftp/python/3.5.2/python-3.5.2-macosx10.6.pkg;
            sudo installer -package python-3.5.2-macosx10.6.pkg -target /;
            python3 get-pip.py --user;
-           python3 -m pip install --upgrade --user cython pillow nose mock docutils;
+           python3 -m pip install --upgrade --user cython pillow pytest mock docutils PyInstaller;
         else
+           export PATH=$PATH:$HOME/Library/Python/2.7/bin;
            python get-pip.py --user;
-           python -m pip install --upgrade --user cython pillow nose mock docutils;
+           python -m pip install --upgrade --user cython pillow pytest mock docutils PyInstaller;
         fi;
       fi;
     fi;
@@ -180,12 +182,12 @@ script:
       if [ "${RUN}" == "unit" ]; then
         if [ "${PY}" == "3" ]; then
           python3 setup.py build_ext --inplace;
-          python3 -m nose.core kivy/tests;
+          env KIVY_NO_ARGS=1 pytest -v kivy/tests;
         else
           make;
-          make test;
+          env KIVY_NO_ARGS=1 pytest -v kivy/tests;
         fi;
-      elif [ "${RUN}" == "app" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]  && ([ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ]  || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build app osx]" ]]); then
+      elif [ "${RUN}" == "app" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]  && ([ "${TRAVIS_EVENT_TYPE}" == "crony" ] || [ "${TRAVIS_TAG}" != "" ]  || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build app osx]" ]]); then
           openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
           chmod 600 ~/.ssh/id_rsa;
           echo -e "Host $SERVER_IP\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
@@ -212,7 +214,7 @@ script:
           fi;
           yes | rsync -avh -e "ssh -p 2458" --include="*/" --include="*.dmg" --exclude="*" "./app/" "root@$SERVER_IP:/web/downloads/ci/osx/app/";
           popd;
-      elif [ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel]" ]] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel osx]" ]]; then
+      elif [ "${TRAVIS_EVENT_TYPE}" == "crony" ] || [ "${TRAVIS_TAG}" != "" ] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel]" ]] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel osx]" ]]; then
         mkdir ../wheelhouse;
 
         for pyver in $PYVERS; do
@@ -227,7 +229,7 @@ script:
           python$pyver_short -m pip install git+http://github.com/tito/osxrelocator --user;
 
           python$pyver_short -m pip install --upgrade --user pip;
-          python$pyver_short -m pip install --upgrade --user cython nose wheel pillow mock docutils;
+          python$pyver_short -m pip install --upgrade --user cython pytest wheel pillow mock docutils PyInstaller;
           python$pyver_short -m pip install --upgrade delocate;
 
           USE_SDL2=1 USE_GSTREAMER=1 python$pyver_short setup.py build_ext --inplace>output.txt;

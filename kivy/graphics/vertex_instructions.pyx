@@ -923,7 +923,7 @@ cdef class BorderImage(Rectangle):
             Both X and Y dimensions will be scaled if the BorderImage is
             smaller than the source.
 
-            If the BorderImage's size is less than the sum of it's
+            If the BorderImage's size is less than the sum of its
             borders, horizontally or vertically, and this property is
             set to True, the borders will be rescaled to accommodate for
             the smaller size.

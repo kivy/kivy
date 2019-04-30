@@ -14,7 +14,7 @@ Wheels are precompiled binaries for the specific platform you are on.
 All you need to do to install kivy using wheels on osx is ::
 
     $ python -m pip install kivy
-   
+
 If you would like to use media playback with kivy, you should install `ffpyplayer` like so ::
 
     $ python -m pip install ffpyplayer
@@ -43,7 +43,7 @@ Using The Kivy.app
     For versions prior to 10.7 or 10.7 32-bit, you have to install the
     components yourself.
 
-For OS X 10.7 and later, we provide packages with all dependencies
+For OS X > 10.13.5 and later, we provide packages with all dependencies
 bundled in a virtual environment, including a Python interpreter for
 python3 version. These bundles are primarily used for rapid prototyping,
 and currently serve as containers for packaging Kivy apps with Buildozer.
@@ -54,7 +54,13 @@ To install Kivy, you must:
        https://kivy.org/downloads/ and download `Kivy-*-osx-python*.dmg`.
     2. Open the dmg
     3. Copy the Kivy.app to /Applications.
-    4. Create a symlink by running the `makesymlinks` in the window that opens when you open the dmg
+    4. Create a symlink by running the `makesymlinks` in the window that opens when you open the dmg.
+    
+    If you have trouble running this script, you can try right-click->Open or just add the link manually
+    by running the following command::
+        `sudo ln -s /Applications/Kivy<version>/Contents/Resources/script /usr/local/bin/kivy<version>`
+    version is either 2/3 based on which version of the app did you download.
+    
     5. Examples and all the normal kivy tools are present in the Kivy.app/Contents/Resources/kivy directory.
 
 You should now have a `kivy` script that you can use to launch your kivy app from the terminal.

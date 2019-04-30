@@ -96,15 +96,16 @@ def rgba(s, *args):
     '''
     if isinstance(s, string_types):
         return get_color_from_hex(s)
-    elif isinstance(s, (list, tuple)):
-        s = map(lambda x: x / 255., s)
+    if isinstance(s, (list, tuple)):
+        s = [x / 255. for x in s]
         if len(s) == 3:
-            return list(s) + [1]
+            s.append(1)
         return s
-    elif isinstance(s, (int, float)):
-        s = map(lambda x: x / 255., [s] + list(args))
+    if isinstance(s, (int, float)):
+        s = [s / 255.]
+        s.extend(x / 255. for x in args)
         if len(s) == 3:
-            return list(s) + [1]
+            s.append(1)
         return s
     raise Exception('Invalid value (not a string / list / tuple)')
 
@@ -338,9 +339,9 @@ def deprecated(func):
                     func.__code__.co_firstlineno + 1,
                     file, line, caller))
             from kivy.logger import Logger
-            Logger.warn(warning)
+            Logger.warning(warning)
             if func.__doc__:
-                Logger.warn(func.__doc__)
+                Logger.warning(func.__doc__)
         return func(*args, **kwargs)
     return new_func
 

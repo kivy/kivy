@@ -86,6 +86,21 @@ the size_hint_y property to None::
 
     runTouchApp(root)
 
+
+Kv Example::
+
+    ScrollView:
+        do_scroll_x: False
+        do_scroll_y: True
+
+        Label:
+            size_hint_y: None
+            height: self.texture_size[1]
+            text_size: self.width
+            padding: 10, 10
+            text:
+                'really some amazing text\\n' * 100
+
 Overscroll Effects
 ------------------
 
@@ -764,7 +779,8 @@ class ScrollView(StencilView):
         if touch.grab_current is not self:
             return True
 
-        if touch.ud.get(self._get_uid()) is None:
+        if not any(isinstance(key, str) and key.startswith('sv.')
+                   for key in touch.ud):
             # don't pass on touch to children if outside the sv
             if self.collide_point(*touch.pos):
                 return super(ScrollView, self).on_touch_move(touch)

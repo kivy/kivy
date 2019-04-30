@@ -15,7 +15,6 @@ cdef extern from "glib.h" nogil:
 #    gpointer GUINT_TO_POINTER(guint u)
 #    guint GPOINTER_TO_UINT(gpointer p)
 
-
 # https://www.freetype.org/freetype2/docs/reference/ft2-index.html
 cdef extern from "../../lib/pango/freetype2.h" nogil:
     int FREETYPE_MAJOR
@@ -229,7 +228,6 @@ cdef extern from "pango/pangoft2.h" nogil:
     void pango_ft2_render_layout(FT_Bitmap *bitmap, PangoLayout *layout, int x, int y)
     void pango_ft2_render_layout_subpixel(FT_Bitmap *bitmap, PangoLayout *layout, int x, int y)
     void pango_ft2_font_map_set_default_substitute(PangoFT2FontMap *fontmap, PangoFT2SubstituteFunc func, gpointer data, GDestroyNotify notify)
-    PangoContext *pango_ft2_font_map_create_context(PangoFT2FontMap *fontmap) # < v1.22, now pango_font_map_create_context
     void pango_ft2_font_map_substitute_changed(PangoFT2FontMap *fontmap)
 
 
@@ -269,7 +267,6 @@ cdef extern from "pango/pango-font.h" nogil:
         pass
 
     PangoFontMap *pango_ft2_font_map_new()
-    PangoContext *pango_font_map_create_context(PangoFontMap *fontmap)
     PangoFontDescription* pango_font_description_new()
     PangoFontDescription* pango_font_description_from_string(const char *string)
     void pango_font_description_free(PangoFontDescription *desc)
@@ -364,3 +361,6 @@ cdef extern from "pango/pango-layout.h" nogil:
     gboolean pango_layout_get_justify(PangoLayout *layout)
     void pango_layout_set_single_paragraph_mode(PangoLayout *layout, gboolean setting)
     gboolean pango_layout_get_single_paragraph_mode(PangoLayout *layout)
+
+cdef extern from "../../lib/pango/pangoft2.h" nogil:
+    PangoContext *_pango_font_map_create_context(PangoFontMap *fontmap)

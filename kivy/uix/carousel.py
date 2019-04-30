@@ -31,6 +31,21 @@ Example::
 
     CarouselApp().run()
 
+
+Kv Example::
+
+    Carousel:
+        direction: 'right'
+        AsyncImage:
+            source: 'http://placehold.it/480x270.png&text=slide-1.png'
+        AsyncImage:
+            source: 'http://placehold.it/480x270.png&text=slide-2.png'
+        AsyncImage:
+            source: 'http://placehold.it/480x270.png&text=slide-3.png'
+        AsyncImage:
+            source: 'http://placehold.it/480x270.png&text=slide-4.png'
+
+
 .. versionchanged:: 1.5.0
     The carousel now supports active children, like the
     :class:`~kivy.uix.scrollview.ScrollView`. It will detect a swipe gesture

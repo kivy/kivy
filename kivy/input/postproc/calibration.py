@@ -74,7 +74,19 @@ class InputPostprocCalibration(object):
             Value to add to X
         `yoffset`: float
             Value to add to Y
+        `auto`: str
+            If set, then the touch is transformed from screen-relative
+            to window-relative The value is used as an indication of
+            screen size, e.g for fullHD:
 
+                auto=1920x1080
+
+            If present, this setting overrides all the others.
+            This assumes the input device exactly covers the display
+            area, if they are different, the computations will be wrong.
+
+    .. versionchanged:: 1.11.0
+        Added `auto` parameter
     '''
 
     def __init__(self):
@@ -92,6 +104,10 @@ class InputPostprocCalibration(object):
                 if not param:
                     continue
                 key, value = param.split('=', 1)
+                if key == 'auto':
+                    width, height = [float(x) for x in value.split('x')]
+                    params['auto'] = width, height
+                    break
                 if key not in ('xoffset', 'yoffset', 'xratio', 'yratio'):
                     Logger.error(
                         'Calibration: invalid key provided: {}'.format(key))
@@ -132,6 +148,7 @@ class InputPostprocCalibration(object):
 
         self.frame += 1
         frame = self.frame
+        to_remove = []
         for etype, event in events:
             # frame-based logic below doesn't account for
             # end events having been already processed
@@ -150,8 +167,34 @@ class InputPostprocCalibration(object):
                 event.ud['calibration:frame'] = frame
             elif event.ud['calibration:frame'] == frame:
                 continue
-            params = self.devices[dev]
-            event.sx = event.sx * params['xratio'] + params['xoffset']
-            event.sy = event.sy * params['yratio'] + params['yoffset']
             event.ud['calibration:frame'] = frame
+
+            params = self.devices[dev]
+            if 'auto' in params:
+                event.sx, event.sy = self.auto_calibrate(
+                    event.sx, event.sy, params['auto'])
+                if not (0 <= event.sx <= 1 and 0 <= event.sy <= 1):
+                    to_remove.append((etype, event))
+            else:
+                event.sx = event.sx * params['xratio'] + params['xoffset']
+                event.sy = event.sy * params['yratio'] + params['yoffset']
+
+        for event in to_remove:
+            events.remove(event)
+
         return events
+
+    def auto_calibrate(self, sx, sy, size):
+        from kivy.core.window import Window as W
+        WIDTH, HEIGHT = size
+
+        xratio = WIDTH / W.width
+        yratio = HEIGHT / W.height
+
+        xoffset = - W.left / W.width
+        yoffset = - (HEIGHT - W.top - W.height) / W.height
+
+        sx = sx * xratio + xoffset
+        sy = sy * yratio + yoffset
+
+        return sx, sy

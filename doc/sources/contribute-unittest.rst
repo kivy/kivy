@@ -16,11 +16,11 @@ Unit tests are separated into two cases:
 * Graphical unit tests: these need a GL context, and if requested, work via
   image comparison
 
-To be able to run unit tests, you need to install nose
-(http://code.google.com/p/python-nose/), and coverage
-(http://nedbatchelder.com/code/coverage/). You can use easy_install for that::
+To be able to run unit tests, you need to install pytest (https://pytest.org/),
+and coverage (http://nedbatchelder.com/code/coverage/). You can use pip for
+that::
 
-    sudo easy_install nose coverage
+    sudo pip install pytest coverage
 
 Then, in the kivy directory::
 
@@ -30,7 +30,7 @@ How it works
 ------------
 
 All the tests are located in `kivy/tests`, and the filename starts with
-`test_<name>.py`. Nose will automatically gather all the files and classes
+`test_<name>.py`. Pytest will automatically gather all the files and classes
 inside this folder, and use them to generate test cases.
 
 To write a test, create a file that respects the previous naming, then
@@ -59,7 +59,7 @@ Then, to execute them, just run::
 
 If you want to execute that file only, you can run::
 
-    nosetests kivy/tests/test_yourtestcase.py
+    pytest kivy/tests/test_yourtestcase.py
 
 or include this simple `unittest.main()` call at the end of the file and run
 the test with `python test_yourtestcase.py`::
@@ -78,7 +78,7 @@ various cases of input and interaction with everything that becomes available
 only after the Window is created and Kivy properly initialized.
 
 These tests are executed the same way like the ordinary unit tests i.e. either
-with `nosetests` or via `unittest.main()`.
+with `pytest` or via `unittest.main()`.
 
 Here are two similar examples with different approaches of running the app.
 In the first one you are setting up the required stuff manually and the
@@ -204,7 +204,7 @@ snippet of the associated unit test. It will be generated at:
 .. note::
 
     The build directory is cleaned after each call to `make test`. If you don't
-    want that, just use nosetests command.
+    want that, just use pytest command.
 
 Writing GL Unit tests
 ---------------------

@@ -536,7 +536,7 @@ class KNSpaceBehavior(object):
 
     If that object has a knspace property, then we return its value. Otherwise,
     we go further up, e.g. with `getattr(object, self.knspace_key)` and look
-    for it's `knspace` property.
+    for its `knspace` property.
 
     Finally, if we reach a value of `None`, or :attr:`knspace_key` was `None`,
     the default :attr:`~kivy.uix.behaviors.knspace.knspace` namespace is

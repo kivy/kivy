@@ -149,7 +149,7 @@ class ActionButton(Button, ActionItem):
     and takes care of the padding between elements.
 
     You don't have much control over these properties, so if you want to
-    customize it's appearance, we suggest you create you own button
+    customize its appearance, we suggest you create you own button
     representation. You can do this by creating a class that subclasses an
     existing widget and an :class:`ActionItem`::
 
@@ -500,7 +500,7 @@ class ActionOverflow(ActionGroup):
             self._list_overflow_items.insert(index, action_item)
 
     def show_default_items(self, parent):
-        # display overflow and it's items if widget's directly added to it
+        # display overflow and its items if widget's directly added to it
         if self._list_overflow_items == []:
             return
         self.show_group()

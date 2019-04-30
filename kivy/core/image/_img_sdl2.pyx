@@ -91,7 +91,7 @@ def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=90):
         pixels = bytes(bytearray(pixels))
 
     cdef char *c_pixels = pixels
-    cdef SDL_Surface *image
+    cdef SDL_Surface *image = NULL
 
     if pixelfmt == "rgba":
         image = SDL_CreateRGBSurfaceFrom(
@@ -115,7 +115,8 @@ def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=90):
             IMG_SaveJPG_RW(image, rwops, 1, quality)
         SDL_FreeRW(rwops)
 
-    SDL_FreeSurface(image)
+    if image:
+        SDL_FreeSurface(image)
 
 # NOTE: This must be kept up to date with ImageData supported formats. If you
 # add support for converting/uploading (for example) ARGB, you must ensure
@@ -127,7 +128,8 @@ def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=90):
 cdef load_from_surface(SDL_Surface *image):
     cdef SDL_Surface *image2 = NULL
     cdef SDL_Surface *fimage = NULL
-    cdef int want_rgba = 0, want_bgra = 0, target_pixel = 0, n = 0
+    cdef Uint32 want_rgba = 0, want_bgra = 0, target_fmt = 0
+    cdef int n = 0
     cdef bytes pixels
 
     if image == NULL:

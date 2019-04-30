@@ -745,11 +745,15 @@ def create_inspector(win, ctx, *l):
 
 
 def start(win, ctx):
-    Clock.schedule_once(partial(create_inspector, win, ctx))
+    ctx.ev_late_create = Clock.schedule_once(
+        partial(create_inspector, win, ctx))
 
 
 def stop(win, ctx):
     '''Stop and unload any active Inspectors for the given *ctx*.'''
+    if hasattr(ctx, 'ev_late_create'):
+        Clock.unschedule(ctx.ev_late_create)
+        del ctx.ev_late_create
     if hasattr(ctx, 'inspector'):
         win.unbind(children=ctx.inspector.on_window_children,
                    on_keyboard=ctx.inspector.keyboard_shortcut)

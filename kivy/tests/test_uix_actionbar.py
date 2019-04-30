@@ -3,8 +3,10 @@ from kivy.tests.common import GraphicUnitTest
 from kivy.lang import Builder
 from kivy.base import EventLoop
 from kivy.weakproxy import WeakProxy
-from kivy.uix.dropdown import DropDown
 from kivy.input.motionevent import MotionEvent
+from time import sleep
+
+DropDown = None
 
 
 KV = '''
@@ -81,6 +83,9 @@ class ActionBarTestCase(GraphicUnitTest):
     framecount = 0
 
     def setUp(self):
+        global DropDown
+        from kivy.uix.dropdown import DropDown
+
         # kill KV lang logging (too long test)
         import kivy.lang.builder as builder
 
@@ -168,7 +173,8 @@ class ActionBarTestCase(GraphicUnitTest):
 
             # wait for closed Group DropDown to disappear
             # go to the next frame after the DropDown disappeared
-            self.move_frames(5)
+            sleep(gdd.min_state_time)
+            self.move_frames(1)
 
             # no DropDown is open
             self.assertNotEqual(gdd, self._win.children[0])
@@ -218,7 +224,8 @@ class ActionBarTestCase(GraphicUnitTest):
         # wait for closed Group 2 DropDown to disappear
         # and for Group 1 DropDown to appear (there are 2 DDs now)
         # go to the next frame after the DropDown disappeared
-        self.move_frames(5)
+        sleep(g2dd.min_state_time)
+        self.move_frames(1)
 
         # Group 1 DropDown != value in WeakProxy (Group 2 DD)
         self.assertNotEqual(g2dd, self._win.children[0])
@@ -231,7 +238,8 @@ class ActionBarTestCase(GraphicUnitTest):
 
         # wait for closed Group DropDown to disappear
         # go to the next frame after the DropDown disappeared
-        self.move_frames(5)
+        sleep(g2dd.min_state_time)
+        self.move_frames(1)
 
         # no DropDown present in Window
         self.check_dropdown(present=False)
@@ -293,7 +301,8 @@ class ActionBarTestCase(GraphicUnitTest):
 
             # wait for closed Group DropDown to disappear
             # go to the next frame after the DropDown disappeared
-            self.move_frames(5)
+            sleep(gdd.min_state_time)
+            self.move_frames(1)
 
             # no DropDown is open
             self.assertNotEqual(gdd, self._win.children[0])
@@ -346,7 +355,8 @@ class ActionBarTestCase(GraphicUnitTest):
 
                 # wait for closed Group DropDown to disappear
                 # go to the next frame after the DropDown disappeared
-                self.move_frames(5)
+                sleep(gdd.min_state_time)
+                self.move_frames(1)
 
                 # no DropDown is open
                 self.assertNotEqual(gdd, self._win.children[0])

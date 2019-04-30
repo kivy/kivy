@@ -20,6 +20,7 @@ class AsyncImageTestCase(GraphicUnitTest):
 
     def setUp(self):
         self.maxfps = Config.getint('graphics', 'maxfps')
+        assert(self.maxfps > 0)
         super(AsyncImageTestCase, self).setUp()
 
     def zip_frames(self, path):

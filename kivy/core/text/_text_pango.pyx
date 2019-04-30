@@ -421,7 +421,7 @@ cdef ContextContainer _get_or_create_cc(bytes font_context, bytes font_name_r):
     # (it represents an "ideal font", ie what you *want* to draw with)
     cc.fontdesc = pango_font_description_new()
 
-    # Create font map and set it's FcConfig if Pango supports it (v1.38+).
+    # Create font map and set its FcConfig if Pango supports it (v1.38+).
     # Older versions swapping the current FcConfig in _set_cc_options()
     cc.fontmap = pango_ft2_font_map_new()
     if not cc.fontmap:
@@ -434,11 +434,7 @@ cdef ContextContainer _get_or_create_cc(bytes font_context, bytes font_name_r):
     pango_ft2_font_map_set_default_substitute(PANGO_FT2_FONT_MAP(cc.fontmap),
                 &_ft2subst_callback, <gpointer>&cc.ft2subst_callback_data, NULL)
 
-    # FIXME: Can we avoid deprecation warning?
-    if PANGO_VERSION_CHECK(1, 22, 0):
-        cc.context = pango_font_map_create_context(cc.fontmap)
-    else:
-        cc.context = pango_ft2_font_map_create_context(PANGO_FT2_FONT_MAP(cc.fontmap))
+    cc.context = _pango_font_map_create_context(cc.fontmap)
     if not cc.context:
         Logger.warn("_text_pango: Could not create pango context")
         return

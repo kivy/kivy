@@ -399,7 +399,7 @@ class WindowBase(EventDispatcher):
             else:
                 self._size = size[1], size[0]
 
-            self.dispatch('on_resize', *size)
+            self.dispatch('on_pre_resize', *size)
             return True
         else:
             return False
@@ -531,7 +531,7 @@ class WindowBase(EventDispatcher):
         self._rotation = x
         if not self.initialized:
             return
-        self.dispatch('on_resize', *self.size)
+        self.dispatch('on_pre_resize', *self.size)
         self.dispatch('on_rotate', x)
 
     rotation = AliasProperty(_get_rotation, _set_rotation,
@@ -872,6 +872,8 @@ class WindowBase(EventDispatcher):
         'on_cursor_enter', 'on_cursor_leave', 'on_joy_axis',
         'on_joy_hat', 'on_joy_ball', 'on_joy_button_down',
         'on_joy_button_up', 'on_memorywarning', 'on_textedit')
+        # internal
+        'on_pre_resize')
 
     def __new__(cls, **kwargs):
         if cls.__instance is None:
@@ -969,11 +971,7 @@ class WindowBase(EventDispatcher):
 
         # configure the window
         self.create_window()
-
-        # attach modules + listener event
-        EventLoop.set_window(self)
-        Modules.register_window(self)
-        EventLoop.add_event_listener(self)
+        self.register()
 
         # manage keyboard(s)
         self.configure_keyboards()
@@ -996,6 +994,14 @@ class WindowBase(EventDispatcher):
                 'fullscreen', 'borderless', 'position', 'top',
                 'left', '_size', 'system_size'):
             self.unbind(**{prop: self.trigger_create_window})
+
+    def register(self):
+        if self.initialized:
+            return
+        # attach modules + listener event
+        EventLoop.set_window(self)
+        Modules.register_window(self)
+        EventLoop.add_event_listener(self)
 
     @deprecated
     def toggle_fullscreen(self):
@@ -1086,7 +1092,20 @@ class WindowBase(EventDispatcher):
 
     def close(self):
         '''Close the window'''
-        pass
+        self.dispatch('on_close')
+
+        # Prevent any leftover that can crash the app later
+        # like if there is still some GL referenced values
+        # they may be collected later, but because it was already
+        # gone in the system, it may collect invalid GL resources
+        # Just clear everything to force reloading later on.
+        from kivy.cache import Cache
+        from kivy.graphics.context import get_context
+        Cache.remove('kv.loader')
+        Cache.remove('kv.image')
+        Cache.remove('kv.shader')
+        Cache.remove('kv.texture')
+        get_context().flush()
 
     shape_image = StringProperty('')
     '''An image for the window shape (only works for sdl2 window provider).
@@ -1226,14 +1245,14 @@ class WindowBase(EventDispatcher):
             # XXX check how it's working on embed platform.
             if platform == 'linux' or Window.__class__.__name__ == 'WindowSDL':
                 # on linux, it's safe for just sending a resize.
-                self.dispatch('on_resize', *self.system_size)
+                self.dispatch('on_pre_resize', *self.size)
 
             else:
                 # on other platform, window are recreated, we need to reload.
                 from kivy.graphics.context import get_context
                 get_context().reload()
                 Clock.schedule_once(lambda x: self.canvas.ask_update(), 0)
-                self.dispatch('on_resize', *self.system_size)
+                self.dispatch('on_pre_resize', *self.size)
 
         # ensure the gl viewport is correct
         self.update_viewport()
@@ -1402,6 +1421,13 @@ class WindowBase(EventDispatcher):
         for w in self.children[:]:
             if w.dispatch('on_touch_up', touch):
                 return True
+
+    def on_pre_resize(self, width, height):
+        key = (width, height)
+        if hasattr(self, '_last_resize') and self._last_resize == key:
+            return
+        self._last_resize = key
+        self.dispatch('on_resize', width, height)
 
     def on_resize(self, width, height):
         '''Event called when the window is resized.'''

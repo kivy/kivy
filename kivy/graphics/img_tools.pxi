@@ -7,7 +7,7 @@ from cpython.array cimport array, clone
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef inline convert_to_gl_format(data, fmt):
+cdef inline convert_to_gl_format(data, fmt, width, height):
     ''' Takes data as a bytes object or an instance that implements the python
     buffer interface. If the data format is supported by opengl, the data
     is returned unchanged. Otherwise, the data is converted to a supported
@@ -21,8 +21,10 @@ cdef inline convert_to_gl_format(data, fmt):
     cdef char [::1] view
     cdef int datasize
     cdef str ret_format
-    cdef int i
+    cdef int i, k
     cdef char c, c2
+    cdef int pitch, rowlen
+    cdef int pitchalign = 0
 
     # if native support of this format is available, use it
     if gl_has_texture_native_format(fmt):
@@ -48,14 +50,27 @@ cdef inline convert_to_gl_format(data, fmt):
     if fmt == 'bgr':
         ret_format = 'rgb'
         memcpy(dst_buffer, src_buffer, datasize)
+
+        i = 0
+        rowlen = width * 3
+        pitch = (rowlen + 3) & ~3
+        if rowlen * height < datasize:
+            # FIXME: warn/fail if pitch * height != datasize:
+            pitchalign = pitch - rowlen
+            rowlen -= 1 # to match 0-based k below
+
         # note, this is the fastest copying method. copying element by element
         # from a memoryview is slower then copying the whole buffer and then
         # properly modifying the elements
         with nogil:
-            for i in range(0, datasize, 3):
+            while i < datasize:
                 c = dst_buffer[i]
-                dst_buffer[i] = dst_buffer[i + 2]
-                dst_buffer[i + 2] = c
+                k = i + 2
+                dst_buffer[i] = dst_buffer[k]
+                dst_buffer[k] = c
+                if pitchalign and k % rowlen == 0:
+                    i += pitchalign
+                i += 3
 
     # BGRA -> RGBA
     elif fmt == 'bgra':

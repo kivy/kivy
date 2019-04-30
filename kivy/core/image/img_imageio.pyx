@@ -51,7 +51,6 @@ cdef extern from "CoreGraphics/CGDataProvider.h" nogil:
 cdef extern from "CoreFoundation/CFBase.h" nogil:
     ctypedef void *CFAllocatorRef
     ctypedef void *CFStringRef
-    ctypedef void *CFURLRef
     ctypedef void *CFTypeRef
     CFStringRef CFStringCreateWithCString(CFAllocatorRef alloc, char *cStr,
             int encoding)
@@ -72,7 +71,8 @@ cdef extern from "CoreFoundation/CFDictionary.h":
 
 cdef extern from "CoreFoundation/CoreFoundation.h" nogil:
     CFDataRef CFDataCreateWithBytesNoCopy(
-                CFAllocatorRef, char *, int length, CFAllocatorRef)
+                CFAllocatorRef, const unsigned char *, int length,
+                CFAllocatorRef)
 
 cdef extern from "CoreGraphics/CGImage.h" nogil:
     ctypedef void *CGImageRef
@@ -171,7 +171,8 @@ cdef void c_load_image_data(char *_url, char *_data, size_t datalen, size_t *wid
     r_data[0] = NULL
 
     if _data != NULL:
-        dataref = CFDataCreateWithBytesNoCopy(NULL, _data, datalen, NULL)
+        dataref = CFDataCreateWithBytesNoCopy(
+            NULL, <const unsigned char*>_data, datalen, NULL)
         myImageSourceRef = CGImageSourceCreateWithData(dataref, NULL)
         if not myImageSourceRef:
             CFRelease(dataref)
@@ -223,6 +224,7 @@ def save_image_rgba(filename, width, height, data, flipped):
     # compatibility, could be removed i guess
     save_image(filename, width, height, 'rgba', data, flipped)
 
+
 def save_image(filenm, width, height, fmt, data, flipped):
     # save a RGBA string into filename using CoreGraphics
 
@@ -232,12 +234,12 @@ def save_image(filenm, width, height, fmt, data, flipped):
     # the type of the output file. So we need to map the extension of the
     # filename into a CoreGraphics image domain type.
 
-    fileformat = 'public.png'
+    cdef bytes fileformat = b'public.png'
     cdef bytes filename = <bytes>filenm.encode('utf-8')
-    if filename.endswith('.png'):
-        fileformat = 'public.png'
-    if filename.endswith('.jpg') or filename.endswith('.jpeg'):
-        fileformat = 'public.jpeg'
+    if filename.endswith(b'.png'):
+        fileformat = b'public.png'
+    if filename.endswith(b'.jpg') or filename.endswith(b'.jpeg'):
+        fileformat = b'public.jpeg'
 
     cdef char *source = NULL
     if type(data) is array:
@@ -258,8 +260,6 @@ def save_image(filenm, width, height, fmt, data, flipped):
         fmt_length * width, # bytesPerRow
         colorSpace,
         kCGImageAlphaNoneSkipLast)
-
-    fileformat = fileformat.encode('utf-8')
 
     cdef CGImageRef cgImage = CGBitmapContextCreateImage(bitmapContext)
     cdef char *cfilename = <char *>filename
@@ -303,11 +303,12 @@ def save_image(filenm, width, height, fmt, data, flipped):
         CGImageDestinationAddImage(dest, cgImage, NULL)
         CGImageDestinationFinalize(dest)
 
-    #Release everything
+    # Release everything
     CFRelease(cgImage)
     CFRelease(bitmapContext)
     CFRelease(colorSpace)
     free(pixels)
+
 
 class ImageLoaderImageIO(ImageLoaderBase):
     '''Image loader based on ImageIO OS X Framework

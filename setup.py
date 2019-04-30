@@ -14,17 +14,19 @@ from copy import deepcopy
 import os
 from os.path import join, dirname, sep, exists, basename, isdir
 from os import walk, environ, makedirs
+from distutils.command.build_ext import build_ext
 from distutils.version import LooseVersion
 from distutils.sysconfig import get_python_inc
 from collections import OrderedDict
-from time import sleep, time
+from time import time
 from subprocess import check_output, CalledProcessError
 from datetime import datetime
+from sysconfig import get_paths
 
-if environ.get('KIVY_USE_SETUPTOOLS'):
+try:
     from setuptools import setup, Extension
     print('Using setuptools')
-else:
+except ImportError:
     from distutils.core import setup
     from distutils.extension import Extension
     print('Using distutils')
@@ -77,11 +79,18 @@ def get_version(filename='kivy/version.py'):
 
 MIN_CYTHON_STRING = '0.24'
 MIN_CYTHON_VERSION = LooseVersion(MIN_CYTHON_STRING)
-MAX_CYTHON_STRING = '0.28.5'
+MAX_CYTHON_STRING = '0.29.7'
 MAX_CYTHON_VERSION = LooseVersion(MAX_CYTHON_STRING)
 CYTHON_UNSUPPORTED = (
     # ref https://github.com/cython/cython/issues/1968
     '0.27', '0.27.2'
+)
+CYTHON_REQUIRES_STRING = (
+    'cython>={min_version},<={max_version},{exclusion}'.format(
+        min_version=MIN_CYTHON_STRING,
+        max_version=MAX_CYTHON_STRING,
+        exclusion=','.join('!=%s' % excl for excl in CYTHON_UNSUPPORTED),
+    )
 )
 
 
@@ -145,8 +154,16 @@ if exists('/opt/vc/include/bcm_host.h'):
 # use mesa video core drivers
 if environ.get('VIDEOCOREMESA', None):
     platform = 'vc'
-if exists('/usr/lib/arm-linux-gnueabihf/libMali.so'):
+mali_paths = (
+    '/usr/lib/arm-linux-gnueabihf/libMali.so',
+    '/usr/lib/arm-linux-gnueabihf/mali-egl/libmali.so',
+    '/usr/local/mali-egl/libmali.so')
+if any((exists(path) for path in mali_paths)):
     platform = 'mali'
+
+# Needed when cross-compiling
+if environ.get('KIVY_CROSS_PLATFORM'):
+    platform = environ.get('KIVY_CROSS_PLATFORM')
 
 # -----------------------------------------------------------------------------
 # Detect options
@@ -164,7 +181,7 @@ c_options['use_mesagl'] = False
 c_options['use_x11'] = False
 c_options['use_wayland'] = False
 c_options['use_gstreamer'] = None
-c_options['use_avfoundation'] = platform == 'darwin'
+c_options['use_avfoundation'] = platform in ['darwin', 'ios']
 c_options['use_osx_frameworks'] = platform == 'darwin'
 c_options['debug_gl'] = False
 
@@ -227,35 +244,24 @@ cython_unsupported = '''\
 '''.format(MIN_CYTHON_STRING, MAX_CYTHON_STRING,
            cython_unsupported_append)
 
-have_cython = False
-skip_cython = False
-if platform in ('ios', 'android'):
-    print('\nCython check avoided.')
-    skip_cython = True
-else:
-    try:
-        # check for cython
-        from Cython.Distutils import build_ext
-        have_cython = True
-        import Cython
-        cy_version_str = Cython.__version__
-        cy_ver = LooseVersion(cy_version_str)
-        print('\nDetected Cython version {}'.format(cy_version_str))
-        if cy_ver < MIN_CYTHON_VERSION:
-            print(cython_min)
-            raise ImportError('Incompatible Cython Version')
-        if cy_ver in CYTHON_UNSUPPORTED:
-            print(cython_unsupported)
-            raise ImportError('Incompatible Cython Version')
-        if cy_ver > MAX_CYTHON_VERSION:
-            print(cython_max)
-            sleep(1)
-    except ImportError:
-        print("\nCython is missing, it's required for compiling kivy !\n\n")
-        raise
+# We want to be able to install kivy as a wheel without a dependency
+# on cython, but we also want to use cython where possible as a setup
+# time dependency through `setup_requires` if building from source.
 
-if not have_cython:
-    from distutils.command.build_ext import build_ext
+# There are issues with using cython at all on some platforms;
+# exclude them from using or declaring cython.
+
+# This determines whether Cython specific functionality may be used.
+can_use_cython = True
+# This sets whether or not Cython gets added to setup_requires.
+declare_cython = False
+
+if platform in ('ios', 'android'):
+    # NEVER use or declare cython on these platforms
+    print('Not using cython on %s' % platform)
+    can_use_cython = False
+else:
+    declare_cython = True
 
 # -----------------------------------------------------------------------------
 # Setup classes
@@ -264,10 +270,31 @@ if not have_cython:
 src_path = build_path = dirname(__file__)
 
 
-class KivyBuildExt(build_ext):
+class KivyBuildExt(build_ext, object):
+
+    def __new__(cls, *a, **kw):
+        # Note how this class is declared as a subclass of distutils
+        # build_ext as the Cython version may not be available in the
+        # environment it is initially started in. However, if Cython
+        # can be used, setuptools will bring Cython into the environment
+        # thus its version of build_ext will become available.
+        # The reason why this is done as a __new__ rather than through a
+        # factory function is because there are distutils functions that check
+        # the values provided by cmdclass with issublcass, and so it would
+        # result in an exception.
+        # The following essentially supply a dynamically generated subclass
+        # that mix in the cython version of build_ext so that the
+        # functionality provided will also be executed.
+        if can_use_cython:
+            from Cython.Distutils import build_ext as cython_build_ext
+            build_ext_cls = type(
+                'KivyBuildExt', (KivyBuildExt, cython_build_ext), {})
+            return super(KivyBuildExt, cls).__new__(build_ext_cls)
+        else:
+            return super(KivyBuildExt, cls).__new__(cls)
 
     def finalize_options(self):
-        retval = build_ext.finalize_options(self)
+        retval = super(KivyBuildExt, self).finalize_options()
         global build_path
         if (self.build_lib is not None and exists(self.build_lib) and
                 not self.inplace):
@@ -324,7 +351,7 @@ class KivyBuildExt(build_ext):
             for e in self.extensions:
                 e.extra_link_args += ['-lm']
 
-        build_ext.build_extensions(self)
+        super(KivyBuildExt, self).build_extensions()
 
     def update_if_changed(self, fn, content):
         need_update = True
@@ -341,12 +368,17 @@ class KivyBuildExt(build_ext):
 
 
 def _check_and_fix_sdl2_mixer(f_path):
+    # Between SDL_mixer 2.0.1 and 2.0.4, the included frameworks changed
+    # smpeg2 have been replaced with mpg123, but there is no need to fix.
+    smpeg2_path = ("{}/Versions/A/Frameworks/smpeg2.framework"
+                   "/Versions/A/smpeg2").format(f_path)
+    if not exists(smpeg2_path):
+        return
+
     print("Check if SDL2_mixer smpeg2 have an @executable_path")
     rpath_from = ("@executable_path/../Frameworks/SDL2.framework"
                   "/Versions/A/SDL2")
     rpath_to = "@rpath/../../../../SDL2.framework/Versions/A/SDL2"
-    smpeg2_path = ("{}/Versions/A/Frameworks/smpeg2.framework"
-                   "/Versions/A/smpeg2").format(f_path)
     output = getoutput(("otool -L '{}'").format(smpeg2_path)).decode('utf-8')
     if "@executable_path" not in output:
         return
@@ -447,6 +479,18 @@ if platform not in ('ios', 'android') and (c_options['use_gstreamer']
                     '-Xlinker', '190',
                     '-framework', 'GStreamer'],
                 'include_dirs': [join(f_path, 'Headers')]}
+    elif platform == 'win32':
+        gst_flags = pkgconfig('gstreamer-1.0')
+        if 'libraries' in gst_flags:
+            print('GStreamer found via pkg-config')
+            gstreamer_valid = True
+            c_options['use_gstreamer'] = True
+        elif exists(join(get_paths()['include'], 'gst', 'gst.h')):
+            print('GStreamer found via gst.h')
+            gstreamer_valid = True
+            c_options['use_gstreamer'] = True
+            gst_flags = {
+                'libraries': ['gstreamer-1.0', 'glib-2.0', 'gobject-2.0']}
 
     if not gstreamer_valid:
         # use pkg-config approach instead
@@ -597,6 +641,8 @@ def determine_gl_flags():
     kivy_graphics_include = join(src_path, 'kivy', 'include')
     flags = {'include_dirs': [kivy_graphics_include], 'libraries': []}
     base_flags = {'include_dirs': [kivy_graphics_include], 'libraries': []}
+    cross_sysroot = environ.get('KIVY_CROSS_SYSROOT')
+
     if c_options['use_opengl_mock']:
         return flags, base_flags
     if platform == 'win32':
@@ -618,18 +664,31 @@ def determine_gl_flags():
         flags['library_dirs'] = [join(ndkplatform, 'usr', 'lib')]
         flags['libraries'] = ['GLESv2']
     elif platform == 'rpi':
-        flags['include_dirs'] = [
-            '/opt/vc/include',
-            '/opt/vc/include/interface/vcos/pthreads',
-            '/opt/vc/include/interface/vmcs_host/linux']
-        flags['library_dirs'] = ['/opt/vc/lib']
-        brcm_lib_files = (
-            '/opt/vc/lib/libbrcmEGL.so',
-            '/opt/vc/lib/libbrcmGLESv2.so')
+
+        if not cross_sysroot:
+            flags['include_dirs'] = [
+                '/opt/vc/include',
+                '/opt/vc/include/interface/vcos/pthreads',
+                '/opt/vc/include/interface/vmcs_host/linux']
+            flags['library_dirs'] = ['/opt/vc/lib']
+            brcm_lib_files = (
+                '/opt/vc/lib/libbrcmEGL.so',
+                '/opt/vc/lib/libbrcmGLESv2.so')
+
+        else:
+            print("KIVY_CROSS_SYSROOT: " + cross_sysroot)
+            flags['include_dirs'] = [
+                cross_sysroot + '/usr/include',
+                cross_sysroot + '/usr/include/interface/vcos/pthreads',
+                cross_sysroot + '/usr/include/interface/vmcs_host/linux']
+            flags['library_dirs'] = [cross_sysroot + '/usr/lib']
+            brcm_lib_files = (
+                cross_sysroot + '/usr/lib/libbrcmEGL.so',
+                cross_sysroot + '/usr/lib/libbrcmGLESv2.so')
+
         if all((exists(lib) for lib in brcm_lib_files)):
-            print(
-                'Found brcmEGL and brcmGLES library files'
-                'for rpi platform at /opt/vc/lib/')
+            print('Found brcmEGL and brcmGLES library files'
+                  'for rpi platform at ' + dirname(brcm_lib_files[0]))
             gl_libs = ['brcmEGL', 'brcmGLESv2']
         else:
             print(
@@ -829,15 +888,17 @@ if c_options['use_sdl2'] and sdl2_flags:
             base_flags, sdl2_flags, sdl2_depends)
 
 if c_options['use_pangoft2'] in (None, True) and platform not in (
-                                      'android', 'ios', 'windows'):
+                                      'android', 'ios', 'win32'):
     pango_flags = pkgconfig('pangoft2')
     if pango_flags and 'libraries' in pango_flags:
         print('Pango: pangoft2 found via pkg-config')
         c_options['use_pangoft2'] = True
-        pango_depends = {'depends': ['lib/pangoft2.pxi',
-                                     'lib/pangoft2.h']}
+        pango_depends = {'depends': [
+            'lib/pango/pangoft2.pxi',
+            'lib/pango/pangoft2.h']}
         sources['core/text/_text_pango.pyx'] = merge(
                 base_flags, pango_flags, pango_depends)
+        print(sources['core/text/_text_pango.pyx'])
 
 if platform in ('darwin', 'ios'):
     # activate ImageIO provider for our core image
@@ -859,7 +920,7 @@ if platform in ('darwin', 'ios'):
 if c_options['use_avfoundation']:
     import platform as _platform
     mac_ver = [int(x) for x in _platform.mac_ver()[0].split('.')[:2]]
-    if mac_ver >= [10, 7]:
+    if mac_ver >= [10, 7] or platform == 'ios':
         osx_flags = {
             'extra_link_args': ['-framework', 'AVFoundation'],
             'extra_compile_args': ['-ObjC++'],
@@ -897,9 +958,9 @@ if c_options['use_gstreamer']:
         base_flags, gst_flags, {
             'depends': ['lib/gstplayer/_gstplayer.h']})
 
-
 # -----------------------------------------------------------------------------
 # extension modules
+
 
 def get_dependencies(name, deps=None):
     if deps is None:
@@ -945,7 +1006,8 @@ def get_extensions_from_sources(sources):
         pyx = expand(src_path, pyx)
         depends = [expand(src_path, x) for x in flags.pop('depends', [])]
         c_depends = [expand(src_path, x) for x in flags.pop('c_depends', [])]
-        if not have_cython:
+        if not can_use_cython:
+            # can't use cython, so use the .c files instead.
             pyx = '%s.c' % pyx[:-4]
         if is_graphics:
             depends = resolve_dependencies(pyx, depends)
@@ -994,6 +1056,12 @@ if isdir(binary_deps_path):
 # -----------------------------------------------------------------------------
 # setup !
 if not build_examples:
+    install_requires = [
+        'Kivy-Garden>=0.1.4', 'docutils', 'pygments'
+    ]
+    setup_requires = []
+    if declare_cython:
+        setup_requires.append(CYTHON_REQUIRES_STRING)
     setup(
         name='Kivy',
         version=get_version(),
@@ -1123,15 +1191,11 @@ if not build_examples:
             'Topic :: Software Development :: User Interfaces'],
         dependency_links=[
             'https://github.com/kivy-garden/garden/archive/master.zip'],
-        install_requires=[
-            'Kivy-Garden>=0.1.4', 'docutils', 'pygments'
-        ],
-        extra_requires={
+        install_requires=install_requires,
+        setup_requires=setup_requires,
+        extras_require={
             'tuio': ['oscpy']
-        },
-        setup_requires=[
-            'cython>=' + MIN_CYTHON_STRING
-        ] if not skip_cython else [])
+        })
 else:
     setup(
         name='Kivy-examples',
