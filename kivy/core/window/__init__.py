@@ -820,7 +820,10 @@ class WindowBase(EventDispatcher):
         pos = self._get_window_pos()
         self._set_window_pos(pos[0], value)
 
-    top = AliasProperty(_get_top, _set_top, bind=('on_move', ))
+    _moved = BooleanProperty(True) 
+    # trigger window move changes to properties
+
+    top = AliasProperty(_get_top, _set_top, bind=('_moved', ))
     '''Top position of the window.
 
     .. note:: It's an SDL2 property with `[0, 0]` in the top-left corner.
@@ -834,7 +837,7 @@ class WindowBase(EventDispatcher):
     the position set in :class:`~kivy.config.Config`.
     '''
 
-    left = AliasProperty(_get_left, _set_left, bind=('on_move', ))
+    left = AliasProperty(_get_left, _set_left, bind=('_moved', ))
     '''Left position of the window.
 
     .. note:: It's an SDL2 property with `[0, 0]` in the top-left corner.
@@ -1405,7 +1408,7 @@ class WindowBase(EventDispatcher):
         self.update_viewport()
 
     def on_move(self):
-        pass
+        self._moved = not self._moved
 
     def update_viewport(self):
         from kivy.graphics.opengl import glViewport
