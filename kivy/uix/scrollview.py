@@ -99,7 +99,7 @@ Kv Example::
             text_size: self.width
             padding: 10, 10
             text:
-                'really some amazing text\n' * 100
+                'really some amazing text\\n' * 100
 
 Overscroll Effects
 ------------------
