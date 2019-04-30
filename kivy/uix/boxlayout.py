@@ -37,6 +37,20 @@ Position hints are partially working, depending on the orientation:
 * If the orientation is `vertical`: `x`, `right` and `center_x` will be used.
 * If the orientation is `horizontal`: `y`, `top` and `center_y` will be used.
 
+Kv Example::
+
+    BoxLayout:
+        orientation: 'vertical'
+        Label:
+            text: 'this on top'
+        Label:
+            text: 'this right aligned'
+            size_hint_x: None
+            size: self.texture_size
+            pos_hint: {'right': 1}
+        Label:
+            text: 'this on bottom'
+
 You can check the `examples/widgets/boxlayout_poshint.py` for a live example.
 
 .. note::
