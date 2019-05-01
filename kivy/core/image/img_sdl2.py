@@ -7,7 +7,13 @@ __all__ = ('ImageLoaderSDL2', )
 
 from kivy.logger import Logger
 from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
-from kivy.core.image import _img_sdl2
+try:
+    from kivy.core.image import _img_sdl2
+except ImportError:
+    from kivy.core import handle_win_lib_import_error
+    handle_win_lib_import_error(
+        'image', 'sdl2', 'kivy.core.image._img_sdl2')
+    raise
 
 
 class ImageLoaderSDL2(ImageLoaderBase):
