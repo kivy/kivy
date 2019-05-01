@@ -58,6 +58,27 @@ text at a certain width:
         text_size: root.width, None
         size: self.texture_size
 
+Custom Background:
+
+.. code-block:: kv
+
+    <Bkclr@Widget>
+        background_color: 1, 1, 1, 1
+        canvas.before:
+            Color:
+                rgba: root.background_color
+            Rectangle:
+                size: self.size
+                pos: self.pos
+    
+    # Now you can simply Mix the Bkclr class with almost any other widget... to give it a background.
+    
+    <BkLabel@Label+Bkclr>
+    
+    BkLabel
+        text: 'Hello'
+        background_color: 1, 0, 0, 1
+
 Text alignment and wrapping
 ---------------------------
 
