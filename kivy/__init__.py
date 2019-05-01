@@ -265,24 +265,6 @@ kivy_config_fn = ''
 #: Kivy user modules directory
 kivy_usermodules_dir = ''
 
-# if there are deps, import them so they can do their magic.
-import kivy.deps
-_packages = []
-for importer, modname, ispkg in pkgutil.iter_modules(kivy.deps.__path__):
-    if not ispkg:
-        continue
-    if modname.startswith('gst'):
-        _packages.insert(0, (importer, modname))
-    else:
-        _packages.append((importer, modname))
-
-for importer, modname in _packages:
-    try:
-        importer.find_module(modname).load_module(modname)
-    except ImportError as e:
-        Logger.warning("deps: Error importing dependency: {}".format(str(e)))
-
-
 # Don't go further if we generate documentation
 if any(name in sys.argv[0] for name in ('sphinx-build', 'autobuild.py')):
     environ['KIVY_DOC'] = '1'
@@ -453,7 +435,35 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         Config.set('input', 'androidtouch', 'android')
 
 if RELEASE:
-    Logger.info('Kivy: v%s' % (__version__))
+    Logger.info('Kivy: v%s' % __version__)
 elif not RELEASE and __hash__ and __date__:
     Logger.info('Kivy: v%s, git-%s, %s' % (__version__, __hash__, __date__))
+Logger.info('Kivy: Installed at "{}"'.format(__file__))
 Logger.info('Python: v{}'.format(sys.version))
+Logger.info('Python: Interpreter at "{}"'.format(sys.executable))
+
+# if there are deps, import them so they can do their magic.
+import kivy.deps
+_packages = []
+for importer, modname, ispkg in pkgutil.iter_modules(kivy.deps.__path__):
+    if not ispkg:
+        continue
+    if modname.startswith('gst'):
+        _packages.insert(0, (importer, modname))
+    else:
+        _packages.append((importer, modname))
+
+for importer, modname in _packages:
+    try:
+        mod = importer.find_module(modname).load_module(modname)
+
+        version = ''
+        if hasattr(mod, '__version__'):
+            version = ' {}'.format(mod.__version__)
+        Logger.info(
+            'deps: Successfully imported "kivy.deps.{}"{}'.
+            format(modname, version))
+    except ImportError as e:
+        Logger.warning(
+            'deps: Error importing dependency "kivy.deps.{}": {}'.
+            format(modname, str(e)))
