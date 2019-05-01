@@ -11,6 +11,8 @@ from kivy.graphics.cgl cimport *
 
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 
+is_desktop = Config.get('kivy', 'desktop') == '1'
+
 IF USE_WAYLAND:
     from window_info cimport WindowInfoWayland
 
@@ -48,7 +50,7 @@ cdef class _WindowSDL2Storage:
         if not self.event_filter:
             return 1
         if event.type == SDL_WINDOWEVENT:
-            if event.window.event == SDL_WINDOWEVENT_RESIZED:
+            if is_desktop and event.window.event == SDL_WINDOWEVENT_RESIZED:
                 action = ('windowresized',
                           event.window.data1, event.window.data2)
                 return self.event_filter(*action)
