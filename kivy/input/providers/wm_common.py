@@ -62,8 +62,6 @@ if 'KIVY_DOC' not in os.environ:
                         c_int, c_longlong, c_void_p, Structure,
                         sizeof, byref, cast)
 
-    LONG_PTR = c_longlong
-
     class RECT(Structure):
         _fields_ = [
             ('left', LONG),
@@ -127,6 +125,7 @@ if 'KIVY_DOC' not in os.environ:
         return _closure
 
     try:
+        LONG_PTR = c_longlong
         windll.user32.SetWindowLongPtrW.restype = LONG_PTR
         windll.user32.SetWindowLongPtrW.argtypes = [HWND, c_int, LONG_PTR]
         SetWindowLong_WndProc_wrapper = \
