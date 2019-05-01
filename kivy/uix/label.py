@@ -62,6 +62,7 @@ Custom Background:
 
 .. code-block:: kv
 
+    # Define your background color Template
     <Bkclr@Widget>
         background_color: 1, 1, 1, 1
         canvas.before:
@@ -70,11 +71,13 @@ Custom Background:
             Rectangle:
                 size: self.size
                 pos: self.pos
-    
-    # Now you can simply Mix the Bkclr class with almost any other widget... to give it a background.
-    
+    # Now you can simply Mix the Bkclr class with almost
+    # any other widget... to give it a background.
     <BkLabel@Label+Bkclr>
-    
+        background_color: 0, 0, 0, 0
+        # Default the background color for this label
+        # to r 0, g 0, b 0, a 0 
+    # Use the BkLabel any where in your kv code like below
     BkLabel
         text: 'Hello'
         background_color: 1, 0, 0, 1
