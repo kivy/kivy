@@ -85,8 +85,8 @@ else:
             # inject our own wndProc to handle messages
             # before window manager does
             self.new_windProc = WNDPROC(self._pen_wndProc)
-            self.old_windProc = SetWindowLong_wrapper(
-                self.hwnd, GWL_WNDPROC, self.new_windProc)
+            self.old_windProc = SetWindowLong_WndProc_wrapper(
+                self.hwnd, self.new_windProc)
 
         def update(self, dispatch_fn):
             while True:
@@ -108,6 +108,6 @@ else:
 
         def stop(self):
             self.pen = None
-            SetWindowLong_wrapper(self.hwnd, GWL_WNDPROC, self.old_windProc)
+            SetWindowLong_WndProc_wrapper(self.hwnd, self.old_windProc)
 
     MotionEventFactory.register('wm_pen', WM_PenProvider)
