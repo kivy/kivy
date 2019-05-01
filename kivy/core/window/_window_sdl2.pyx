@@ -11,7 +11,8 @@ from kivy.graphics.cgl cimport *
 
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 
-is_desktop = Config.get('kivy', 'desktop') == '1'
+if not environ.get('KIVY_DOC_INCLUDE'):
+    is_desktop = Config.get('kivy', 'desktop') == '1'
 
 IF USE_WAYLAND:
     from window_info cimport WindowInfoWayland
