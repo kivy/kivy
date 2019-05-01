@@ -76,7 +76,7 @@ Custom Background:
     <BkLabel@Label+Bkclr>
         background_color: 0, 0, 0, 0
         # Default the background color for this label
-        # to r 0, g 0, b 0, a 0 
+        # to r 0, g 0, b 0, a 0
     # Use the BkLabel any where in your kv code like below
     BkLabel
         text: 'Hello'
