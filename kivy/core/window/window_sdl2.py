@@ -23,7 +23,13 @@ from kivy.base import EventLoop, ExceptionManager, stopTouchApp
 from kivy.clock import Clock
 from kivy.config import Config
 from kivy.core.window import WindowBase
-from kivy.core.window._window_sdl2 import _WindowSDL2Storage
+try:
+    from kivy.core.window._window_sdl2 import _WindowSDL2Storage
+except ImportError:
+    from kivy.core import handle_win_lib_import_error
+    handle_win_lib_import_error(
+        'window', 'sdl2', 'kivy.core.window._window_sdl2')
+    raise
 from kivy.input.provider import MotionEventProvider
 from kivy.input.motionevent import MotionEvent
 from kivy.resources import resource_find
