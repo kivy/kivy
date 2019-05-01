@@ -359,8 +359,18 @@ from kivy.config import Config
 from kivy.logger import Logger
 from kivy.compat import clock as _default_time, PY2
 import time
-from kivy._clock import CyClockBase, ClockEvent, FreeClockEvent, \
-    CyClockBaseFree
+try:
+    from kivy._clock import CyClockBase, ClockEvent, FreeClockEvent, \
+        CyClockBaseFree
+except ImportError:
+    Logger.error(
+        'Clock: Unable to import kivy._clock. Have you perhaps forgotten to '
+        'compile kivy? Kivy contains Cython code which needs to be compiled. '
+        'A missing kivy._clock often indicates the Cython code has not been '
+        'compiled. Please follow the installation instructions and make sure '
+        'to compile Kivy')
+    raise
+
 try:
     from multiprocessing import Event as MultiprocessingEvent
 except ImportError:  # https://bugs.python.org/issue3770
