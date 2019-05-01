@@ -58,12 +58,12 @@ text at a certain width:
         text_size: root.width, None
         size: self.texture_size
 
-Custom Background:
+How to have a custom background color in the label:
 
 .. code-block:: kv
 
     # Define your background color Template
-    <Bkclr@Widget>
+    <BackgroundColor@Widget>
         background_color: 1, 1, 1, 1
         canvas.before:
             Color:
@@ -71,14 +71,14 @@ Custom Background:
             Rectangle:
                 size: self.size
                 pos: self.pos
-    # Now you can simply Mix the Bkclr class with almost
+    # Now you can simply Mix the `BackgroundColor` class with almost
     # any other widget... to give it a background.
-    <BkLabel@Label+Bkclr>
+    <BackgroundLabel@Label+BackgroundColor>
         background_color: 0, 0, 0, 0
         # Default the background color for this label
         # to r 0, g 0, b 0, a 0
-    # Use the BkLabel any where in your kv code like below
-    BkLabel
+    # Use the BackgroundLabel any where in your kv code like below
+    BackgroundLabel
         text: 'Hello'
         background_color: 1, 0, 0, 1
 
