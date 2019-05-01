@@ -302,8 +302,6 @@ class DropDown(ScrollView):
         if (self.attach_to and self.attach_to.collide_point(
                 *self.attach_to.to_widget(*touch.pos))):
             return True
-        if self.auto_dismiss:
-            self.dismiss()
 
     def on_touch_up(self, touch):
         if super(DropDown, self).on_touch_up(touch):
