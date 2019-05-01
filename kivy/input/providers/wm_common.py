@@ -57,10 +57,12 @@ QUERYSYSTEMGESTURE_WNDPROC = (
 
 if 'KIVY_DOC' not in os.environ:
     from ctypes.wintypes import (ULONG, HANDLE, DWORD, LONG, UINT,
-                                 WPARAM, LPARAM, BOOL)
+                                 WPARAM, LPARAM, BOOL, HWND)
     from ctypes import (windll, WINFUNCTYPE, POINTER,
-                        c_int, c_long, c_longlong, c_void_p, Structure,
+                        c_int, c_longlong, c_void_p, Structure,
                         sizeof, byref, cast)
+
+    LONG_PTR = c_longlong
 
     class RECT(Structure):
         _fields_ = [
@@ -125,14 +127,14 @@ if 'KIVY_DOC' not in os.environ:
         return _closure
 
     try:
-        windll.user32.SetWindowLongPtrW.restype = c_longlong
-        windll.user32.SetWindowLongPtrW.argtypes = [HANDLE, c_int, c_longlong]
+        windll.user32.SetWindowLongPtrW.restype = LONG_PTR
+        windll.user32.SetWindowLongPtrW.argtypes = [HWND, c_int, LONG_PTR]
         SetWindowLong_WndProc_wrapper = \
             SetWindowLong_WndProc_wrapper_generator(
                 windll.user32.SetWindowLongPtrW)
     except AttributeError:
-        windll.user32.SetWindowLongW.restype = c_long
-        windll.user32.SetWindowLongW.argtypes = [HANDLE, c_int, c_long]
+        windll.user32.SetWindowLongW.restype = LONG
+        windll.user32.SetWindowLongW.argtypes = [HWND, c_int, LONG]
         SetWindowLong_WndProc_wrapper = \
             SetWindowLong_WndProc_wrapper_generator(
                 windll.user32.SetWindowLongW)
