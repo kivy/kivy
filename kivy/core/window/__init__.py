@@ -399,9 +399,6 @@ class WindowBase(EventDispatcher):
             else:
                 self._size = size[1], size[0]
             self.dispatch('on_pre_resize', *size)
-            return True
-        else:
-            return False
 
     minimum_width = NumericProperty(0)
     '''The minimum width to restrict the window to.
