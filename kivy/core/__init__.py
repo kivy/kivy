@@ -241,5 +241,10 @@ def handle_win_lib_import_error(category, provider, mod_name):
         'please contact us at our support channels '
         'https://kivy.org/doc/master/contact.html (not on github, unless '
         'it\'s truly a bug). Make sure to provide the generated file as well '
-        'as the *complete* Kivy log being printed here'.format(
+        'as the *complete* Kivy log being printed here. Keep in mind the '
+        'generated dependency walker log file contains paths to dlls on your '
+        'system used by kivy or its dependencies to help troubleshoot them, '
+        'and these paths may include your name in them. Please view the '
+        'log file in dependency walker before sharing to ensure you are not '
+        'sharing sensitive paths'.format(
             category, temp_file, provider, mod_name, mod_path))
