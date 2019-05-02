@@ -1054,8 +1054,8 @@ class TextInput(FocusBehavior, Widget):
             self._lines_flags = list(reversed(
                 flags[:m1srow] + flags[m2srow:m2erow] + flags[m1srow:m1erow] +
                 flags[m2erow:]))
-            self._lines = (lines[:m1srow] + lines[m2srow:m2erow] +
-                           lines[m1srow:m1erow] + lines[m2erow:])
+            self._lines[:] = (lines[:m1srow] + lines[m2srow:m2erow] +
+                              lines[m1srow:m1erow] + lines[m2erow:])
             self._lines_labels = (labels[:m1srow] + labels[m2srow:m2erow] +
                                   labels[m1srow:m1erow] + labels[m2erow:])
             self._lines_rects = (rects[:m1srow] + rects[m2srow:m2erow] +
@@ -1896,7 +1896,7 @@ class TextInput(FocusBehavior, Widget):
         if mode == 'all':
             self._lines_labels = _lines_labels
             self._lines_rects = _line_rects
-            self._lines = _lines
+            self._lines[:] = _lines
         elif mode == 'del':
             if finish > start:
                 self._insert_lines(start,
@@ -1961,7 +1961,7 @@ class TextInput(FocusBehavior, Widget):
         if len_lines:
             _lins.extend(_lines)
         _lins.extend(self._lines[finish:])
-        self._lines = _lins
+        self._lines[:] = _lins
 
     def _trigger_update_graphics(self, *largs):
         self._update_graphics_ev.cancel()
@@ -3085,10 +3085,11 @@ class TextInput(FocusBehavior, Widget):
         len_l = len(l)
 
         if len(lf) < len_l:
+            lf = lf[:]
             lf.append(1)
 
-        text = u''.join([(u'\n' if (lf[i] & FL_IS_LINEBREAK) else u'') + l[i]
-                        for i in range(len_l)])
+        text = u''.join((u'\n' if (lf[i] & FL_IS_LINEBREAK) else u'') + l[i]
+                        for i in range(len_l))
 
         if encode and not isinstance(text, bytes):
             text = text.encode('utf8')
@@ -3107,7 +3108,7 @@ class TextInput(FocusBehavior, Widget):
         self._refresh_text(text)
         self.cursor = self.get_cursor_from_index(len(text))
 
-    text = AliasProperty(_get_text, _set_text, bind=('_lines',))
+    text = AliasProperty(_get_text, _set_text, bind=('_lines',), cache=True)
     '''Text of the widget.
 
     Creation of a simple hello world::
