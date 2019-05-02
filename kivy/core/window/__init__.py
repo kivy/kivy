@@ -372,7 +372,7 @@ class WindowBase(EventDispatcher):
     def _get_modifiers(self):
         return self._modifiers
 
-    modifiers = AliasProperty(_get_modifiers, None)
+    modifiers = AliasProperty(_get_modifiers, None, bind=('_modifiers',))
     '''List of keyboard modifiers currently active.
 
     .. versionadded:: 1.0.9
@@ -431,7 +431,9 @@ class WindowBase(EventDispatcher):
     and defaults to True.
     '''
 
-    size = AliasProperty(_get_size, _set_size, bind=('_size', '_rotation'))
+    size = AliasProperty(_get_size, _set_size,
+                         bind=('_size', '_rotation', 'softinput_mode',
+                               'keyboard_height'))
     '''Get the rotated size of the window. If :attr:`rotation` is set, then the
     size will change to reflect the rotation.
 
@@ -501,7 +503,9 @@ class WindowBase(EventDispatcher):
             return _size[1] - kb
         return _size[0] - kb
 
-    height = AliasProperty(_get_height, None, bind=('_rotation', '_size'))
+    height = AliasProperty(_get_height, None,
+                           bind=('_rotation', '_size', 'softinput_mode',
+                                 'keyboard_height'))
     '''Rotated window height.
 
     :attr:`height` is a read-only :class:`~kivy.properties.AliasProperty`.
