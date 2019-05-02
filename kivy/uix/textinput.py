@@ -671,8 +671,8 @@ class TextInput(FocusBehavior, Widget):
 
     def _auto_indent(self, substring):
         index = self.cursor_index()
-        _text = self._get_text(encode=False)
         if index > 0:
+            _text = self.text
             line_start = _text.rfind('\n', 0, index)
             if line_start > -1:
                 line = _text[line_start + 1:index]
@@ -1257,7 +1257,7 @@ class TextInput(FocusBehavior, Widget):
         cc, cr = self.cursor
         if not self._selection:
             return
-        v = self._get_text(encode=False)
+        text = self.text
         a, b = self._selection_from, self._selection_to
         if a > b:
             a, b = b, a
@@ -1276,7 +1276,7 @@ class TextInput(FocusBehavior, Widget):
         self.scroll_x = scrl_x
         self.scroll_y = scrl_y
         # handle undo and redo for delete selection
-        self._set_unredo_delsel(a, b, v[a:b], from_undo)
+        self._set_unredo_delsel(a, b, text[a:b], from_undo)
         self.cancel_selection()
 
     def _set_unredo_delsel(self, a, b, substring, from_undo):
@@ -1298,7 +1298,7 @@ class TextInput(FocusBehavior, Widget):
         if a > b:
             a, b = b, a
         self._selection_finished = finished
-        _selection_text = self._get_text(encode=False)[a:b]
+        _selection_text = self.text[a:b]
         self.selection_text = ("" if not self.allow_copy else
                                ((self.password_mask * (b - a)) if
                                 self.password else _selection_text))
@@ -1871,7 +1871,7 @@ class TextInput(FocusBehavior, Widget):
         self._refresh_text_from_property(*largs)
 
     def _refresh_text_from_property(self, *largs):
-        self._refresh_text(self._get_text(encode=False), *largs)
+        self._refresh_text(self.text, *largs)
 
     def _refresh_text(self, text, *largs):
         # Refresh all the lines from a new text.
@@ -2597,7 +2597,7 @@ class TextInput(FocusBehavior, Widget):
             _hint_text_labels.append(lbl)
             _hint_text_rects.append(Rectangle(size=lbl.size))
 
-        self._hint_text_lines = _lines
+        self._hint_text_lines[:] = _lines
         self._hint_text_labels = _hint_text_labels
         self._hint_text_rects = _hint_text_rects
 
@@ -3083,14 +3083,13 @@ class TextInput(FocusBehavior, Widget):
         lf = self._lines_flags
         l = self._lines
         len_l = len(l)
-
         if len(lf) < len_l:
             lf = lf[:]
             lf.append(1)
-
-        text = u''.join((u'\n' if (lf[i] & FL_IS_LINEBREAK) else u'') + l[i]
-                        for i in range(len_l))
-
+        text = u''.join(
+            (u'\n' if (lf[i] & FL_IS_LINEBREAK) else u'') + l[i]
+            for i in range(len_l)
+        )
         if encode and not isinstance(text, bytes):
             text = text.encode('utf8')
         return text
@@ -3098,15 +3097,11 @@ class TextInput(FocusBehavior, Widget):
     def _set_text(self, text):
         if isinstance(text, bytes):
             text = text.decode('utf8')
-
         if self.replace_crlf:
             text = text.replace(u'\r\n', u'\n')
-
-        if self._get_text(encode=False) == text:
-            return
-
-        self._refresh_text(text)
-        self.cursor = self.get_cursor_from_index(len(text))
+        if self.text != text:
+            self._refresh_text(text)
+            self.cursor = self.get_cursor_from_index(len(text))
 
     text = AliasProperty(_get_text, _set_text, bind=('_lines',), cache=True)
     '''Text of the widget.
