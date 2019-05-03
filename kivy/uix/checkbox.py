@@ -30,10 +30,9 @@ An example usage::
 
 __all__ = ('CheckBox', )
 
-from kivy.uix.widget import Widget
 from kivy.properties import BooleanProperty, StringProperty, ListProperty
 from kivy.uix.behaviors import ToggleButtonBehavior
-from weakref import ref
+from kivy.uix.widget import Widget
 
 
 class CheckBox(ToggleButtonBehavior, Widget):
@@ -174,7 +173,7 @@ class CheckBox(ToggleButtonBehavior, Widget):
             self._check_variable = False
 
     def on_group(self, *largs):
-        super().on_group(*largs)
+        super(CheckBox, self).on_group(*largs)
         if self.active:
             self._release_group(self)
 
