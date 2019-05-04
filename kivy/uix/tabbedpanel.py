@@ -560,7 +560,8 @@ class TabbedPanel(GridLayout):
                 Logger.info('TabbedPanel: default tab! can\'t be removed.\n' +
                             'Change `default_tab` to a different tab.')
         else:
-            self._childrens.pop(widget, None)
+            if widget in self._childrens:
+                self._childrens.remove(widget)
             if widget in content.children:
                 content.remove_widget(widget)
 
