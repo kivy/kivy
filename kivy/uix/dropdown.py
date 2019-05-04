@@ -286,10 +286,10 @@ class DropDown(ScrollView):
             return self.container.add_widget(widget, index, canvas)
         return super(DropDown, self).add_widget(widget, index, canvas)
 
-    def remove_widget(self, *largs):
+    def remove_widget(self, widget):
         if self.container:
-            return self.container.remove_widget(*largs)
-        return super(DropDown, self).remove_widget(*largs)
+            return self.container.remove_widget(widget)
+        return super(DropDown, self).remove_widget(widget)
 
     def clear_widgets(self):
         if self.container:

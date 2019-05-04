@@ -996,26 +996,25 @@ class ScreenManager(FloatLayout):
         if self.current is None:
             self.current = widget.name
 
-    def remove_widget(self, *l):
-        screen = l[0]
-        if not isinstance(screen, Screen):
+    def remove_widget(self, widget):
+        if not isinstance(widget, Screen):
             raise ScreenManagerException(
                 'ScreenManager uses remove_widget only for removing Screens.')
 
-        if screen not in self.screens:
+        if widget not in self.screens:
             return
 
-        if self.current_screen == screen:
+        if self.current_screen == widget:
             other = next(self)
-            if screen.name == other:
+            if widget.name == other:
                 self.current = None
-                screen.parent.real_remove_widget(screen)
+                widget.parent.real_remove_widget(widget)
             else:
                 self.current = other
 
-        screen.manager = None
-        screen.unbind(name=self._screen_name_changed)
-        self.screens.remove(screen)
+        widget.manager = None
+        widget.unbind(name=self._screen_name_changed)
+        self.screens.remove(widget)
 
     def clear_widgets(self, screens=None):
         if screens is None:

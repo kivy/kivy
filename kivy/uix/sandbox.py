@@ -116,8 +116,8 @@ class Sandbox(FloatLayout):
         self._container.add_widget(widget, index, canvas)
 
     @sandbox
-    def remove_widget(self, *args, **kwargs):
-        self._container.remove_widget(*args, **kwargs)
+    def remove_widget(self, widget):
+        self._container.remove_widget(widget)
 
     @sandbox
     def clear_widgets(self, *args, **kwargs):

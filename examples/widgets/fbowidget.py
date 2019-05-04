@@ -62,10 +62,10 @@ class FboFloatLayout(FloatLayout):
         self.canvas = _canvas
         return ret
 
-    def remove_widget(self, *largs):
+    def remove_widget(self, widget):
         canvas = self.canvas
         self.canvas = self.fbo
-        super(FboFloatLayout, self).remove_widget(*largs)
+        super(FboFloatLayout, self).remove_widget(widget)
         self.canvas = canvas
 
     def on_size(self, instance, value):
