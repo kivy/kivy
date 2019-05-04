@@ -299,8 +299,10 @@ class Slider(Widget):
         else:
             self.value = min(round((val - vmin) / step) * step + vmin,
                              vmax)
+
     value_normalized = AliasProperty(get_norm_value, set_norm_value,
-                                     bind=('value', 'min', 'max', 'step'))
+                                     bind=('value', 'min', 'max'),
+                                     cache=True)
     '''Normalized value inside the :attr:`range` (min/max) to 0-1 range::
 
         >>> slider = Slider(value=50, min=0, max=100)
@@ -355,9 +357,11 @@ class Slider(Widget):
             else:
                 self.value_normalized = (y - self.y - padding
                                          ) / float(self.height - 2 * padding)
+
     value_pos = AliasProperty(get_value_pos, set_value_pos,
-                              bind=('x', 'y', 'width', 'height', 'min',
-                                    'max', 'value_normalized', 'orientation'))
+                              bind=('pos', 'size', 'min', 'max', 'padding',
+                                    'value_normalized', 'orientation'),
+                              cache=True)
     '''Position of the internal cursor, based on the normalized value.
 
     :attr:`value_pos` is an :class:`~kivy.properties.AliasProperty`.

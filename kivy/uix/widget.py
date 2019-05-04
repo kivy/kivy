@@ -989,7 +989,9 @@ class Widget(WidgetBase):
     def set_right(self, value):
         self.x = value - self.width
 
-    right = AliasProperty(get_right, set_right, bind=('x', 'width'))
+    right = AliasProperty(get_right, set_right,
+                          bind=('x', 'width'),
+                          cache=True)
     '''Right position of the widget.
 
     :attr:`right` is an :class:`~kivy.properties.AliasProperty` of
@@ -1002,7 +1004,9 @@ class Widget(WidgetBase):
     def set_top(self, value):
         self.y = value - self.height
 
-    top = AliasProperty(get_top, set_top, bind=('y', 'height'))
+    top = AliasProperty(get_top, set_top,
+                        bind=('y', 'height'),
+                        cache=True)
     '''Top position of the widget.
 
     :attr:`top` is an :class:`~kivy.properties.AliasProperty` of
@@ -1015,7 +1019,9 @@ class Widget(WidgetBase):
     def set_center_x(self, value):
         self.x = value - self.width / 2.
 
-    center_x = AliasProperty(get_center_x, set_center_x, bind=('x', 'width'))
+    center_x = AliasProperty(get_center_x, set_center_x,
+                             bind=('x', 'width'),
+                             cache=True)
     '''X center position of the widget.
 
     :attr:`center_x` is an :class:`~kivy.properties.AliasProperty` of
@@ -1028,7 +1034,9 @@ class Widget(WidgetBase):
     def set_center_y(self, value):
         self.y = value - self.height / 2.
 
-    center_y = AliasProperty(get_center_y, set_center_y, bind=('y', 'height'))
+    center_y = AliasProperty(get_center_y, set_center_y,
+                             bind=('y', 'height'),
+                             cache=True)
     '''Y center position of the widget.
 
     :attr:`center_y` is an :class:`~kivy.properties.AliasProperty` of

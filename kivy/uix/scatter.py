@@ -150,9 +150,11 @@ class Scatter(Widget):
             self.do_translation_x, self.do_translation_y = value
         else:
             self.do_translation_x = self.do_translation_y = bool(value)
-    do_translation = AliasProperty(
-        _get_do_translation, _set_do_translation,
-        bind=('do_translation_x', 'do_translation_y'))
+
+    do_translation = AliasProperty(_get_do_translation, _set_do_translation,
+                                   bind=('do_translation_x',
+                                         'do_translation_y'),
+                                   cache=True)
     '''Allow translation on the X or Y axis.
 
     :attr:`do_translation` is an :class:`~kivy.properties.AliasProperty` of
@@ -244,8 +246,8 @@ class Scatter(Widget):
             if y > ymax:
                 ymax = y
         return (xmin, ymin), (xmax - xmin, ymax - ymin)
-    bbox = AliasProperty(_get_bbox, None, bind=(
-        'transform', 'width', 'height'))
+
+    bbox = AliasProperty(_get_bbox, bind=('transform', 'width', 'height'))
     '''Bounding box of the widget in parent space::
 
         ((x, y), (w, h))
@@ -265,8 +267,9 @@ class Scatter(Widget):
         r = Matrix().rotate(-radians(angle_change), 0, 0, 1)
         self.apply_transform(r, post_multiply=True,
                              anchor=self.to_local(*self.center))
-    rotation = AliasProperty(_get_rotation, _set_rotation, bind=(
-        'x', 'y', 'transform'))
+
+    rotation = AliasProperty(_get_rotation, _set_rotation,
+                             bind=('x', 'y', 'transform'))
     '''Rotation value of the scatter in degrees moving in a counterclockwise
     direction.
 
@@ -296,6 +299,7 @@ class Scatter(Widget):
         self.apply_transform(Matrix().scale(rescale, rescale, rescale),
                              post_multiply=True,
                              anchor=self.to_local(*self.center))
+
     scale = AliasProperty(_get_scale, _set_scale, bind=('x', 'y', 'transform'))
     '''Scale value of the scatter.
 
@@ -313,7 +317,8 @@ class Scatter(Widget):
         t = Vector(*center) - self.center
         trans = Matrix().translate(t.x, t.y, 0)
         self.apply_transform(trans)
-    center = AliasProperty(_get_center, _set_center, bind=('bbox', ))
+
+    center = AliasProperty(_get_center, _set_center, bind=('bbox',))
 
     def _get_pos(self):
         return self.bbox[0]
@@ -325,7 +330,8 @@ class Scatter(Widget):
         t = Vector(*pos) - _pos
         trans = Matrix().translate(t.x, t.y, 0)
         self.apply_transform(trans)
-    pos = AliasProperty(_get_pos, _set_pos, bind=('bbox', ))
+
+    pos = AliasProperty(_get_pos, _set_pos, bind=('bbox',))
 
     def _get_x(self):
         return self.bbox[0][0]
@@ -335,7 +341,8 @@ class Scatter(Widget):
             return False
         self.pos = (x, self.y)
         return True
-    x = AliasProperty(_get_x, _set_x, bind=('bbox', ))
+
+    x = AliasProperty(_get_x, _set_x, bind=('bbox',))
 
     def _get_y(self):
         return self.bbox[0][1]
@@ -345,7 +352,8 @@ class Scatter(Widget):
             return False
         self.pos = (self.x, y)
         return True
-    y = AliasProperty(_get_y, _set_y, bind=('bbox', ))
+
+    y = AliasProperty(_get_y, _set_y, bind=('bbox',))
 
     def get_right(self):
         return self.x + self.bbox[1][0]
@@ -353,7 +361,7 @@ class Scatter(Widget):
     def set_right(self, value):
         self.x = value - self.bbox[1][0]
 
-    right = AliasProperty(get_right, set_right, bind=('x', 'width'))
+    right = AliasProperty(get_right, set_right, bind=('x', 'bbox'))
 
     def get_top(self):
         return self.y + self.bbox[1][1]
@@ -361,21 +369,23 @@ class Scatter(Widget):
     def set_top(self, value):
         self.y = value - self.bbox[1][1]
 
-    top = AliasProperty(get_top, set_top, bind=('y', 'height'))
+    top = AliasProperty(get_top, set_top, bind=('y', 'bbox'))
 
     def get_center_x(self):
         return self.x + self.bbox[1][0] / 2.
 
     def set_center_x(self, value):
         self.x = value - self.bbox[1][0] / 2.
-    center_x = AliasProperty(get_center_x, set_center_x, bind=('x', 'width'))
+
+    center_x = AliasProperty(get_center_x, set_center_x, bind=('x', 'bbox'))
 
     def get_center_y(self):
         return self.y + self.bbox[1][1] / 2.
 
     def set_center_y(self, value):
         self.y = value - self.bbox[1][1] / 2.
-    center_y = AliasProperty(get_center_y, set_center_y, bind=('y', 'height'))
+
+    center_y = AliasProperty(get_center_y, set_center_y, bind=('y', 'bbox'))
 
     def __init__(self, **kwargs):
         self._touches = []

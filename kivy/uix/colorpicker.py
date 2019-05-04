@@ -398,7 +398,7 @@ class ColorPicker(RelativeLayout):
             return
         self.set_color(get_color_from_hex(value)[:4])
 
-    hex_color = AliasProperty(_get_hex, _set_hex, bind=('color', ))
+    hex_color = AliasProperty(_get_hex, _set_hex, bind=('color',), cache=True)
     '''The :attr:`hex_color` holds the currently selected color in hex.
 
     :attr:`hex_color` is an :class:`~kivy.properties.AliasProperty` and

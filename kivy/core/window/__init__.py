@@ -372,7 +372,7 @@ class WindowBase(EventDispatcher):
     def _get_modifiers(self):
         return self._modifiers
 
-    modifiers = AliasProperty(_get_modifiers, None)
+    modifiers = AliasProperty(_get_modifiers, None, bind=('_modifiers',))
     '''List of keyboard modifiers currently active.
 
     .. versionadded:: 1.0.9
@@ -398,11 +398,7 @@ class WindowBase(EventDispatcher):
                 self._size = size
             else:
                 self._size = size[1], size[0]
-
             self.dispatch('on_pre_resize', *size)
-            return True
-        else:
-            return False
 
     minimum_width = NumericProperty(0)
     '''The minimum width to restrict the window to.
@@ -432,7 +428,9 @@ class WindowBase(EventDispatcher):
     and defaults to True.
     '''
 
-    size = AliasProperty(_get_size, _set_size, bind=('_size', ))
+    size = AliasProperty(_get_size, _set_size,
+                         bind=('_size', '_rotation', 'softinput_mode',
+                               'keyboard_height'))
     '''Get the rotated size of the window. If :attr:`rotation` is set, then the
     size will change to reflect the rotation.
 
@@ -502,7 +500,9 @@ class WindowBase(EventDispatcher):
             return _size[1] - kb
         return _size[0] - kb
 
-    height = AliasProperty(_get_height, None, bind=('_rotation', '_size'))
+    height = AliasProperty(_get_height, None,
+                           bind=('_rotation', '_size', 'softinput_mode',
+                                 'keyboard_height'))
     '''Rotated window height.
 
     :attr:`height` is a read-only :class:`~kivy.properties.AliasProperty`.
@@ -511,7 +511,7 @@ class WindowBase(EventDispatcher):
     def _get_center(self):
         return self.width / 2., self.height / 2.
 
-    center = AliasProperty(_get_center, None, bind=('width', 'height'))
+    center = AliasProperty(_get_center, bind=('width', 'height'), cache=True)
     '''Center of the rotated window.
 
     .. versionadded:: 1.0.9
@@ -625,8 +625,7 @@ class WindowBase(EventDispatcher):
             return self._get_ios_kheight()
         return 0
 
-    keyboard_height = AliasProperty(_get_kheight, None,
-                                    bind=('_keyboard_changed',), cached=True)
+    keyboard_height = AliasProperty(_get_kheight, bind=('_keyboard_changed',))
     '''Returns the height of the softkeyboard/IME on mobile platforms.
     Will return 0 if not on mobile platform or if IME is not active.
 
@@ -668,10 +667,10 @@ class WindowBase(EventDispatcher):
             return self._size[0], self._size[1] - self.keyboard_height
         return self._size
 
-    system_size = AliasProperty(
-        _get_system_size,
-        _set_system_size,
-        bind=('_size', ))
+    system_size = AliasProperty(_get_system_size, _set_system_size,
+                                bind=('_size', 'softinput_mode',
+                                      'keyboard_height'),
+                                cache=True)
     '''Real size of the window ignoring rotation.
 
     .. versionadded:: 1.0.9

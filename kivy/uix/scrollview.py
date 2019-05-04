@@ -266,8 +266,10 @@ class ScrollView(StencilView):
             self.do_scroll_x, self.do_scroll_y = value
         else:
             self.do_scroll_x = self.do_scroll_y = bool(value)
+
     do_scroll = AliasProperty(_get_do_scroll, _set_do_scroll,
-                              bind=('do_scroll_x', 'do_scroll_y'))
+                              bind=('do_scroll_x', 'do_scroll_y'),
+                              cache=True)
     '''Allow scroll on X or Y axis.
 
     :attr:`do_scroll` is a :class:`~kivy.properties.AliasProperty` of
@@ -288,8 +290,10 @@ class ScrollView(StencilView):
         py = (1. - ph) * sy
         return (py, ph)
 
-    vbar = AliasProperty(_get_vbar, None, bind=(
-        'scroll_y', '_viewport', 'viewport_size'))
+    vbar = AliasProperty(_get_vbar,
+                         bind=('scroll_y', '_viewport', 'viewport_size',
+                               'height'),
+                         cache=True)
     '''Return a tuple of (position, size) of the vertical scrolling bar.
 
     .. versionadded:: 1.2.0
@@ -315,8 +319,10 @@ class ScrollView(StencilView):
         px = (1. - pw) * sx
         return (px, pw)
 
-    hbar = AliasProperty(_get_hbar, None, bind=(
-        'scroll_x', '_viewport', 'viewport_size'))
+    hbar = AliasProperty(_get_hbar,
+                         bind=('scroll_x', '_viewport', 'viewport_size',
+                               'width'),
+                         cache=True)
     '''Return a tuple of (position, size) of the horizontal scrolling bar.
 
     .. versionadded:: 1.2.0

@@ -2769,9 +2769,11 @@ class TextInput(FocusBehavior, Widget):
     cursor[1], read-only.
     '''
 
-    cursor_pos = AliasProperty(_get_cursor_pos, None, bind=(
-        'cursor', 'padding', 'pos', 'size', 'focus',
-        'scroll_x', 'scroll_y'))
+    cursor_pos = AliasProperty(_get_cursor_pos, None,
+                               bind=('cursor', 'padding', 'pos', 'size',
+                                     'focus', 'scroll_x', 'scroll_y',
+                                     'line_height', 'line_spacing'),
+                               cache=True)
     '''Current position of the cursor, in (x, y).
 
     :attr:`cursor_pos` is an :class:`~kivy.properties.AliasProperty`,
@@ -3105,7 +3107,7 @@ class TextInput(FocusBehavior, Widget):
         self._refresh_text(text)
         self.cursor = self.get_cursor_from_index(len(text))
 
-    text = AliasProperty(_get_text, _set_text, bind=('_lines', ))
+    text = AliasProperty(_get_text, _set_text, bind=('_lines',))
     '''Text of the widget.
 
     Creation of a simple hello world::
@@ -3299,11 +3301,12 @@ class TextInput(FocusBehavior, Widget):
         return (len(self._lines) * (self.line_height + self.line_spacing) +
                 self.padding[1] + self.padding[3])
 
-    minimum_height = AliasProperty(_get_min_height, None,
+    minimum_height = AliasProperty(_get_min_height,
                                    bind=('_lines', 'line_spacing', 'padding',
                                          'font_size', 'font_name', 'password',
                                          'font_context', 'hint_text',
-                                         'line_height'))
+                                         'line_height'),
+                                   cache=True)
     '''Minimum height of the content inside the TextInput.
 
     .. versionadded:: 1.8.0
