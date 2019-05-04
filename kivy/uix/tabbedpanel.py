@@ -576,14 +576,12 @@ class TabbedPanel(GridLayout):
             if widget in content.children:
                 content.remove_widget(widget)
 
-    def clear_widgets(self, **kwargs):
-        content = self.content
-        if content is None:
-            return
-        if kwargs.get('do_super', False):
-            super(TabbedPanel, self).clear_widgets()
-        else:
-            content.clear_widgets()
+    def clear_widgets(self, children=None):
+        if self.content:
+            self.content.clear_widgets(children)
+
+    def _super_clear_widgets(self):
+        super(TabbedPanel, self).clear_widgets()
 
     def on_strip_image(self, instance, value):
         if not self._tab_layout:
@@ -706,7 +704,7 @@ class TabbedPanel(GridLayout):
         tabs.bind(width=self._partial_update_scrollview)
 
         # remove all widgets from the tab_strip
-        self.clear_widgets(do_super=True)
+        self._super_clear_widgets()
         tab_height = self.tab_height
 
         widget_list = []

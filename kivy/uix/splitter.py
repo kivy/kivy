@@ -252,7 +252,7 @@ class Splitter(BoxLayout):
         if widget == self._container:
             self._container = None
 
-    def clear_widgets(self):
+    def clear_widgets(self, children=None):
         self.remove_widget(self._container)
 
     def strip_down(self, instance, touch):
