@@ -201,7 +201,7 @@ class TabbedPanelItem(TabbedPanelHeader):
     .. versionadded:: 1.5.0
     '''
 
-    def add_widget(self, widget, index=0):
+    def add_widget(self, widget, index=0, canvas=None):
         self.content = widget
         if not self.parent:
             return
@@ -533,7 +533,7 @@ class TabbedPanel(GridLayout):
             self_tabs.width = self_default_tab.width
         self._reposition_tabs()
 
-    def add_widget(self, widget, index=0):
+    def add_widget(self, widget, index=0, canvas=None):
         content = self.content
         if content is None:
             return
@@ -541,7 +541,7 @@ class TabbedPanel(GridLayout):
         if parent:
             parent.remove_widget(widget)
         if widget in (content, self._tab_layout):
-            super(TabbedPanel, self).add_widget(widget, index)
+            super(TabbedPanel, self).add_widget(widget, index, canvas)
         elif isinstance(widget, TabbedPanelHeader):
             self_tabs = self._tab_strip
             self_tabs.add_widget(widget, index)
@@ -551,7 +551,7 @@ class TabbedPanel(GridLayout):
             widget.pos_hint = {'x': 0, 'top': 1}
             self._childrens.append(widget)
             content.disabled = self.current_tab.disabled
-            content.add_widget(widget, index)
+            content.add_widget(widget, index, canvas)
 
     def remove_widget(self, widget):
         content = self.content

@@ -264,10 +264,10 @@ class AccordionItem(FloatLayout):
         fbind('title_args', trigger_title)
         trigger_title()
 
-    def add_widget(self, widget):
+    def add_widget(self, widget, index=0, canvas=None):
         if self.container is None:
             return super(AccordionItem, self).add_widget(widget)
-        return self.container.add_widget(widget)
+        return self.container.add_widget(widget, index, canvas)
 
     def remove_widget(self, widget):
         if self.container:
@@ -369,12 +369,12 @@ class Accordion(Widget):
         fbind('pos', update)
         fbind('min_space', update)
 
-    def add_widget(self, widget, *largs):
+    def add_widget(self, widget, index=0, canvas=None):
         if not isinstance(widget, AccordionItem):
             raise AccordionException('Accordion accept only AccordionItem')
 
         widget.accordion = self
-        ret = super(Accordion, self).add_widget(widget, *largs)
+        ret = super(Accordion, self).add_widget(widget, index, canvas)
         return ret
 
     def select(self, instance):

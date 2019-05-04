@@ -288,10 +288,10 @@ class SettingItem(FloatLayout):
         super(SettingItem, self).__init__(**kwargs)
         self.value = self.panel.get_value(self.section, self.key)
 
-    def add_widget(self, *largs):
+    def add_widget(self, widget, index=0, canvas=None):
         if self.content is None:
-            return super(SettingItem, self).add_widget(*largs)
-        return self.content.add_widget(*largs)
+            return super(SettingItem, self).add_widget(widget, index, canvas)
+        return self.content.add_widget(widget, index, canvas)
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -868,11 +868,11 @@ class ContentPanel(ScrollView):
             return True
         return False  # New uid doesn't exist
 
-    def add_widget(self, widget):
+    def add_widget(self, widget, index=0, canvas=None):
         if self.container is None:
-            super(ContentPanel, self).add_widget(widget)
+            super(ContentPanel, self).add_widget(widget, index, canvas)
         else:
-            self.container.add_widget(widget)
+            self.container.add_widget(widget, index, canvas)
 
     def remove_widget(self, widget):
         self.container.remove_widget(widget)
@@ -1096,11 +1096,11 @@ class InterfaceWithNoMenu(ContentPanel):
     widget.
 
     '''
-    def add_widget(self, widget):
+    def add_widget(self, widget, index=0, canvas=None):
         if self.container is not None and len(self.container.children) > 0:
             raise Exception(
                 'ContentNoMenu cannot accept more than one settings panel')
-        super(InterfaceWithNoMenu, self).add_widget(widget)
+        super(InterfaceWithNoMenu, self).add_widget(widget, index, canvas)
 
 
 class InterfaceWithTabbedPanel(FloatLayout):

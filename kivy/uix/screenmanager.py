@@ -978,23 +978,23 @@ class ScreenManager(FloatLayout):
         if screen == self.current_screen:
             self.current = name
 
-    def add_widget(self, screen):
-        if not isinstance(screen, Screen):
+    def add_widget(self, widget, index=0, canvas=None):
+        if not isinstance(widget, Screen):
             raise ScreenManagerException(
                 'ScreenManager accepts only Screen widget.')
-        if screen.manager:
-            if screen.manager is self:
+        if widget.manager:
+            if widget.manager is self:
                 raise ScreenManagerException(
                     'Screen already managed by this ScreenManager (are you '
                     'calling `switch_to` when you should be setting '
                     '`current`?)')
             raise ScreenManagerException(
                 'Screen already managed by another ScreenManager.')
-        screen.manager = self
-        screen.bind(name=self._screen_name_changed)
-        self.screens.append(screen)
+        widget.manager = self
+        widget.bind(name=self._screen_name_changed)
+        self.screens.append(widget)
         if self.current is None:
-            self.current = screen.name
+            self.current = widget.name
 
     def remove_widget(self, *l):
         screen = l[0]

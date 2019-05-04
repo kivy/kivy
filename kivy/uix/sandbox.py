@@ -112,8 +112,8 @@ class Sandbox(FloatLayout):
     on_touch_up = sandbox(Widget.on_touch_up)
 
     @sandbox
-    def add_widget(self, *args, **kwargs):
-        self._container.add_widget(*args, **kwargs)
+    def add_widget(self, widget, index=0, canvas=None):
+        self._container.add_widget(widget, index, canvas)
 
     @sandbox
     def remove_widget(self, *args, **kwargs):
