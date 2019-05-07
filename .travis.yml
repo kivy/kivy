@@ -11,45 +11,57 @@ matrix:
   fast_finish: true
   include:
     - language: python
+      python: 3.5
+      env: RUN=pep8 USE_PANGOFT2=0
+      os: linux
+      dist: bionic
+      name: "PEP8 verification"
+      stage: pep8
+    - language: python
       python: 2.7
       env: RUN=unit USE_PANGOFT2=0
       os: linux
       dist: bionic
+      name: "Linux - Python 2 tests"
+      stage: test
     - language: python
       python: 3.5
       env: RUN=unit COVERALLS=true USE_PANGOFT2=0
       os: linux
       dist: bionic
-    - language: python
-      python: 3.5
-      env: RUN=pep8 USE_PANGOFT2=0
-      os: linux
-      dist: bionic
+      name: "Linux - Python 3 tests"
+    - language: generic
+      env: RUN=unit PY=2 USE_PANGOFT2=0
+      os: osx
+      name: "OSX - Python 2 tests"
+    - language: generic
+      env: RUN=unit PY=3 USE_PANGOFT2=0
+      os: osx
+      name: "OSX - Python 3 tests"
     - language: python
       python: 3.5
       env: RUN=docs USE_PANGOFT2=0
       os: linux
       dist: bionic
+      name: "Docs generation"
     - language: python
       sudo: required
       env: RUN=wheels DOCKER_IMAGE=quay.io/pypa/manylinux2010_x86_64
+      name: "Linux - wheel generation"
       services:
         - docker
     - language: generic
-      env: RUN=unit PY=2 USE_PANGOFT2=0
-      os: osx
-    - language: generic
-      env: RUN=unit PY=3 USE_PANGOFT2=0
-      os: osx
-    - language: generic
       os: osx
       env: PYVERS="3.5.4 3.6.5 3.7.0 2.7.10 2.7.15" PY=3 RUN=wheels USE_PANGOFT2=0
+      name: "OSX - wheel generation"
     - language: generic
       env: RUN=app PY=2 USE_PANGOFT2=0
       os: osx
+      name: "OSX - Python 2 Kivy.app generation"
     - language: generic
       env: PYVERS="3.5.4 3.6.5 3.7.0" PY=3 RUN=app USE_PANGOFT2=0
       os: osx
+      name: "OSX - Python 3 Kivy.app generation"
 
 before_install:
   # https://github.com/travis-ci/travis-ci/issues/6307
