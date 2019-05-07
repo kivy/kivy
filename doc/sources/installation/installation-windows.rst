@@ -372,12 +372,10 @@ You can launch a .py file with our Python using the Send-to menu:
 You can now execute your application by right clicking on the `.py` file ->
 "Send To" -> "python <python-version>".
 
-.. _upgrade-win-dist:
+Uninstalling Kivy
+^^^^^^^^^^^^^^^^^^
 
-Upgrading from a previous Kivy dist
------------------------------------
+To uninstall Kivy, remove the installed packages with pip. E.g. if you isnatlled kivy following the instructions above, do::
 
-To install the new wheels to a previous Kivy distribution all the files and
-folders, except for the python folder should be deleted from the distribution.
-This python folder will then be treated as a normal system installed python and
-all the steps described in :ref:`Installation` can then be continued.
+     python -m pip uninstall kivy.deps.sdl2 kivy.deps.glew kivy.deps.gstreamer
+     python -m pip uninstall kivy
