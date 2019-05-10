@@ -443,28 +443,58 @@ class BuilderBase(object):
         return widget
 
     def apply_rules(
-            self, widget, rule_name, ignored_consts=set(), rule_children=None):
-        '''Search all the rules that match `rule_name` widget
+            self, widget, rule_name, ignored_consts=set(), rule_children=None,
+            dispatch_kv_post=False):
+        '''Search all the rules that match the name `rule_name`
         and apply them to `widget`.
 
         .. versionadded:: 1.10.0
 
-        `ignored_consts` is a set or list type whose elements are property
-        names for which constant KV rules (i.e. those that don't create
-        bindings) of that widget will not be applied. This allows e.g. skipping
-        constant rules that overwrite a value initialized in python.
+        :Parameters:
+
+            `widget`: :class:`~kivy.uix.widget.Widget`
+                The widget to whom the matching rules should be applied to.
+            `ignored_consts`: set
+                A set or list type whose elements are property names for which
+                constant KV rules (i.e. those that don't create bindings) of
+                that widget will not be applied. This allows e.g. skipping
+                constant rules that overwrite a value initialized in python.
+            `rule_children`: list
+                If not ``None``, it should be a list that will be populated
+                with all the widgets created by the kv rules being applied.
+
+                .. versionchanged:: 1.11.0
+
+            `dispatch_kv_post`: bool
+                Normally the class `Widget` dispatches the `on_kv_post` event
+                to widgets created during kv rule application.
+                But if the rules are manually applied by calling :meth:`apply`,
+                that may not happen, so if this is `True`, we will dispatch the
+                `on_kv_post` event where needed after applying the rules to
+                `widget` (we won't dispatch it for `widget` itself).
+
+                Defaults to False.
+
+                .. versionchanged:: 1.11.0
         '''
         rules = self.match_rule_name(rule_name)
         if __debug__:
             trace('Lang: Found %d rules for %s' % (len(rules), rule_name))
         if not rules:
             return
+
+        if dispatch_kv_post:
+            rule_children = rule_children if rule_children is not None else []
         for rule in rules:
             self._apply_rule(
                 widget, rule, rule, ignored_consts=ignored_consts,
                 rule_children=rule_children)
+        if dispatch_kv_post:
+            for w in rule_children:
+                w.dispatch('on_kv_post', widget)
 
-    def apply(self, widget, ignored_consts=set(), rule_children=None):
+    def apply(self, widget, ignored_consts=set(), rule_children=None,
+              dispatch_kv_post=False):
         '''Search all the rules that match the widget and apply them.
 
         :Parameters:
@@ -481,16 +511,34 @@ class BuilderBase(object):
                 with all the widgets created by the kv rules being applied.
 
                 .. versionchanged:: 1.11.0
+
+            `dispatch_kv_post`: bool
+                Normally the class `Widget` dispatches the `on_kv_post` event
+                to widgets created during kv rule application.
+                But if the rules are manually applied by calling :meth:`apply`,
+                that may not happen, so if this is `True`, we will dispatch the
+                `on_kv_post` event where needed after applying the rules to
+                `widget` (we won't dispatch it for `widget` itself).
+
+                Defaults to False.
+
+                .. versionchanged:: 1.11.0
         '''
         rules = self.match(widget)
         if __debug__:
             trace('Lang: Found %d rules for %s' % (len(rules), widget))
         if not rules:
             return
+
+        if dispatch_kv_post:
+            rule_children = rule_children if rule_children is not None else []
         for rule in rules:
             self._apply_rule(
                 widget, rule, rule, ignored_consts=ignored_consts,
                 rule_children=rule_children)
+        if dispatch_kv_post:
+            for w in rule_children:
+                w.dispatch('on_kv_post', widget)
 
     def _clear_matchcache(self):
         BuilderBase._match_cache = {}
