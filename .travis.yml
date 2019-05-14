@@ -211,14 +211,14 @@ script:
 
           if [ "${PY}" == "3" ]; then
              yes | ./create-osx-bundle.sh python3 master > output.txt;
-             app_ver=$(Kivy.app/Contents/Resources/script -c 'import kivy; print(kivy.__version__)');
+             app_ver=$(KIVY_NO_CONSOLELOG=1 Kivy.app/Contents/Resources/script -c 'import kivy; print(kivy.__version__)');
              mv Kivy.app Kivy3.app;
              ./create-osx-dmg.sh Kivy3.app;
              mkdir app;
              mv Kivy3.dmg app/"Kivy-$app_ver-$git_tag-$app_date"-python3.6.5.dmg;
           else
              ./create-osx-bundle.sh python2 master > output.txt;
-              app_ver=$(Kivy.app/Contents/Resources/script -c 'import kivy; print(kivy.__version__)');
+              app_ver=$(KIVY_NO_CONSOLELOG=1 Kivy.app/Contents/Resources/script -c 'import kivy; print(kivy.__version__)');
               mv Kivy.app Kivy2.app;
              ./create-osx-dmg.sh Kivy2.app;
              mkdir app;
