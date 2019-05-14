@@ -467,3 +467,7 @@ for importer, modname in _packages:
         Logger.warning(
             'deps: Error importing dependency "kivy.deps.{}": {}'.
             format(modname, str(e)))
+
+from kivy.logger import file_log_handler
+if file_log_handler is not None:
+    file_log_handler.purge_logs()
