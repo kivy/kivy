@@ -241,7 +241,7 @@ script:
           python$pyver_short -m pip install git+http://github.com/tito/osxrelocator --user;
 
           python$pyver_short -m pip install --upgrade --user pip;
-          python$pyver_short -m pip install --upgrade --user cython pytest wheel pillow mock docutils PyInstaller;
+          python$pyver_short -m pip install --upgrade --user cython pytest wheel pillow mock docutils;
           python$pyver_short -m pip install --upgrade delocate;
 
           USE_SDL2=1 USE_GSTREAMER=1 python$pyver_short setup.py build_ext --inplace>output.txt;
