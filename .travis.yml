@@ -250,6 +250,8 @@ script:
           /Library/Frameworks/Python.framework/Versions/$pyver_short/bin/delocate-wheel dist/*.whl;
           zip_dir="$(basename dist/*.whl .whl)";
           unzip dist/*.whl -d dist/$zip_dir;
+          echo "sleeping to let the full log display";
+          sleep 10;
           rm dist/$zip_dir/kivy/.dylibs/libg*
           rm dist/$zip_dir/kivy/.dylibs/GStreamer
           cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/FLAC.framework/Versions/A/FLAC dist/$zip_dir/kivy/.dylibs/;
