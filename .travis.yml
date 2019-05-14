@@ -215,6 +215,7 @@ script:
              mv Kivy.app Kivy3.app;
              ./create-osx-dmg.sh Kivy3.app;
              mkdir app;
+             cp Kivy3.dmg app/"Kivy-$app_ver"-python3.6.5.dmg;
              mv Kivy3.dmg app/"Kivy-$app_ver-$git_tag-$app_date"-python3.6.5.dmg;
           else
              ./create-osx-bundle.sh python2 master > output.txt;
@@ -222,6 +223,7 @@ script:
               mv Kivy.app Kivy2.app;
              ./create-osx-dmg.sh Kivy2.app;
              mkdir app;
+             cp Kivy2.dmg app/"Kivy-$app_ver"-python2.dmg;
              mv Kivy2.dmg app/"Kivy-$app_ver-$git_tag-$app_date"-python2.dmg;
           fi;
           yes | rsync -avh -e "ssh -p 2458" --include="*/" --include="*.dmg" --exclude="*" "./app/" "root@$SERVER_IP:/web/downloads/ci/osx/app/";
