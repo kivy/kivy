@@ -252,8 +252,8 @@ script:
           unzip dist/*.whl -d dist/$zip_dir;
           echo "sleeping to let the full log display";
           sleep 10;
-          rm dist/$zip_dir/kivy/.dylibs/libg*
-          rm dist/$zip_dir/kivy/.dylibs/GStreamer
+          rm dist/$zip_dir/kivy/.dylibs/libg*;
+          rm dist/$zip_dir/kivy/.dylibs/GStreamer;
           cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/FLAC.framework/Versions/A/FLAC dist/$zip_dir/kivy/.dylibs/;
           cp /Library/Frameworks/SDL2_ttf.framework/Versions/A/Frameworks/FreeType.framework/Versions/A/freetype dist/$zip_dir/kivy/.dylibs/;
           cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/Ogg.framework/Versions/A/Ogg dist/$zip_dir/kivy/.dylibs/;
