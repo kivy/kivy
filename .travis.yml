@@ -312,3 +312,7 @@ after_success:
         fi;
       done;
     fi;
+
+after_failure:
+  - sleep 10;
+  - echo == End of test log ==
