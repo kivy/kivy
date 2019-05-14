@@ -59,7 +59,10 @@ import kivy.storage.redisstore
 import kivy.network.urlrequest
 import kivy.modules.webdebugger
 import kivy.support
-import kivy.tools.packaging.pyinstaller_hooks
+try:
+    import kivy.tools.packaging.pyinstaller_hooks
+except ImportError:
+    pass
 import kivy.input.recorder
 import kivy.interactive
 import kivy.garden
