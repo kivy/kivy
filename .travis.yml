@@ -269,7 +269,7 @@ script:
           python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/Vorbis.framework/Versions/A/Vorbis @loader_path/Vorbis>output.txt;
           python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/../../../../SDL2.framework/Versions/A/SDL2 @loader_path/SDL2>output.txt;
           python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/Ogg.framework/Versions/A/Ogg @loader_path/Ogg>output.txt;
-          rm dit/$zip_dir.whl;
+          rm dist/$zip_dir.whl;
           pushd dist;
           python$pyver_short -c "from delocate import delocating; delocating.dir2zip('$zip_dir', '$zip_dir.whl')";
           rm -rf $zip_dir;
