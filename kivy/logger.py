@@ -118,7 +118,7 @@ class FileHandler(logging.Handler):
         if randint(0, 20) != 0:
             return
         if not self.log_dir:
-            raise ValueError('Log directory not yet set')
+            return
 
         from kivy.config import Config
         maxfiles = Config.getint('kivy', 'log_maxfiles')
