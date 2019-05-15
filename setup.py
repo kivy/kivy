@@ -34,6 +34,11 @@ except ImportError:
 
 PY3 = sys.version > '3'
 
+try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError  # python 2
+
 if PY3:  # fix error with py3's LooseVersion comparisons
     def ver_equal(self, other):
         return self.version == other
