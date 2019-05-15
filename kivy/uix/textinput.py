@@ -2459,8 +2459,9 @@ class TextInput(FocusBehavior, Widget):
         win = EventLoop.window
 
         # This allows *either* ctrl *or* cmd, but not both.
-        is_shortcut = (modifiers == ['ctrl'] or (
-            _is_osx and modifiers == ['meta']))
+        modifiers = set(modifiers) - {'capslock', 'numlock'}
+        is_shortcut = (modifiers == {'ctrl'} or (
+            _is_osx and modifiers == {'meta'}))
         is_interesting_key = key in (list(self.interesting_keys.keys()) + [27])
 
         if not self.write_tab and super(TextInput,
