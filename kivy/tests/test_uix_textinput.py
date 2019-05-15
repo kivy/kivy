@@ -469,6 +469,39 @@ class TextInputGraphicTest(GraphicUnitTest):
         self.advance_frames(1)
         assert ti._visible_lines_range == (1, 11)
 
+    def test_selectall_copy_paste(self):
+        text = 'test'
+        ti = TextInput(multiline=False, text=text)
+        ti.focus = True
+        self.render(ti)
+
+        from kivy.base import EventLoop
+        win = EventLoop.window
+
+        # select all
+        # win.dispatch(event_name, key, scancode, kstr, modifiers)
+        win.dispatch('on_key_down', 97, 4, 'a', ['capslock', 'ctrl'])
+        win.dispatch('on_key_up', 97, 4)
+        self.advance_frames(1)
+
+        # copy
+        win.dispatch('on_key_down', 99, 6, 'c',
+                     ['capslock', 'numlock', 'ctrl'])
+        win.dispatch('on_key_up', 99, 6)
+        self.advance_frames(1)
+
+        # home
+        win.dispatch('on_key_down', 278, 74, None, ['capslock'])
+        win.dispatch('on_key_up', 278, 74)
+        self.advance_frames(1)
+
+        # paste
+        win.dispatch('on_key_down', 118, 25, 'v', ['numlock', 'ctrl'])
+        win.dispatch('on_key_up', 118, 25)
+        self.advance_frames(1)
+
+        assert ti.text == 'testtest'
+
     def make_scrollable_text_input(self, num_of_lines=30, n_lines_to_show=10):
         """Prepare and start rendering the scrollable text input.
 
