@@ -108,16 +108,16 @@ clean:
 	-find kivy -iname '*.pyd' -exec rm {} \;
 	-find kivy -iname '*.pyc' -exec rm {} \;
 	-find kivy -iname '*.pyo' -exec rm {} \;
-	-find kivy -iname '*.pyx' -exec sh -c 'echo `dirname {}`/`basename {} .pyx`.c' \; | xargs ls -d 2>/dev/null | xargs rm
+	-find kivy -iname '*.pyx' -exec sh -c 'echo `dirname {}`/`basename {} .pyx`.c' \; | xargs ls -d 2>/dev/null | xargs -r rm
 
 distclean: clean
 ifneq ($(GIT_COMMAND),)
-	ifneq ($(git rev-parse --git-dir 2> /dev/null),)
-		@echo "Using GIT at $(GIT_COMMAND) to make a distclean..."
-		-git clean -dxf -e debian
-	else
-		@echo "Not in a git directory to make a distclean..."
-	endif
+ifneq ($(git rev-parse --git-dir 2> /dev/null),)
+	@echo "Using GIT at $(GIT_COMMAND) to make a distclean..."
+	-git clean -dxf -e debian
+else
+	@echo "Not in a git directory to make a distclean..."
+endif
 else
 	@echo "GIT not found to make a distclean..."
 endif
