@@ -1210,5 +1210,6 @@ else:
         url='http://kivy.org',
         license='MIT',
         description=('Kivy examples.'),
+        long_description_content_type='text/markdown',
         long_description=get_description(),
         data_files=list(examples.items()))
