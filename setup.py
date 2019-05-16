@@ -1078,6 +1078,7 @@ if not build_examples:
             'A software library for rapid development of '
             'hardware-accelerated multitouch applications.'),
         long_description=get_description(),
+        long_description_content_type='text/markdown',
         ext_modules=ext_modules,
         cmdclass=cmdclass,
         packages=[
