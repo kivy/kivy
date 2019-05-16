@@ -64,8 +64,11 @@ To install Kivy, you must:
     5. Examples and all the normal kivy tools are present in the Kivy.app/Contents/Resources/kivy directory.
 
 You should now have a `kivy` script that you can use to launch your kivy app from the terminal.
+You might need to add `/usr/local/bin` to your path::
 
-You can just drag and drop your main.py to run your app too.
+    export PATH=/usr/local/bin:$PATH
+
+You can just drag and drop your main.py onto the kivy icon to run your app too.
 
 
 Installing modules
