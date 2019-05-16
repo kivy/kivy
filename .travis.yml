@@ -170,7 +170,7 @@ script:
         mkdir wheelhouse;
         wheel_date=$(python -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))");
         git_tag=$(git rev-parse --short HEAD);
-        tag_name=$(python -c "import kivy; _, tag, n = kivy.parse_kivy_version(kivy.__version__); print(tag + n) if n is not None else print(tag or 'something')"  --config "kivy:log_level:error");
+        tag_name=$(python -c "from __future__ import print_function; import kivy; _, tag, n = kivy.parse_kivy_version(kivy.__version__); print(tag + n) if n is not None else print(tag or 'something')"  --config "kivy:log_level:error");
         wheel_name="$tag_name.$wheel_date.$git_tag-";
 
         chmod +x .ci/build-wheels-linux.sh;
@@ -283,7 +283,7 @@ script:
 
         wheel_date=$(python -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))");
         git_tag=$(git rev-parse --short HEAD);
-        tag_name=$(python -c "import kivy; _, tag, n = kivy.parse_kivy_version(kivy.__version__); print(tag + n) if n is not None else print(tag or 'something')"  --config "kivy:log_level:error");
+        tag_name=$(python -c "from __future__ import print_function; import kivy; _, tag, n = kivy.parse_kivy_version(kivy.__version__); print(tag + n) if n is not None else print(tag or 'something')"  --config "kivy:log_level:error");
         wheel_name="$tag_name.$wheel_date.$git_tag-";
         ls ../wheelhouse/;
 
