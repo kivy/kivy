@@ -20,7 +20,7 @@ See http://kivy.org for more information.
 '''
 
 __all__ = (
-    'require',
+    'require', 'parse_kivy_version',
     'kivy_configure', 'kivy_register_post_configuration',
     'kivy_options', 'kivy_base_dir',
     'kivy_modules_dir', 'kivy_data_dir', 'kivy_shader_dir',
@@ -71,6 +71,23 @@ if platform == 'macosx' and sys.maxsize < 9223372036854775807:
     Logger.critical(r)
 
 
+def parse_kivy_version(version):
+    """Parses the kivy version as described in :func:`require` into a 3-tuple
+    of ([x, y, z], 'rc|a|b|dev', 'N') where N is the tag revision. The last
+    two elements may be None.
+    """
+    m = re.match(
+        '^([0-9]+)\\.([0-9]+)\\.([0-9]+?)(rc|a|b|\\.dev)?([0-9]+)?$',
+        version)
+    if m is None:
+        raise Exception('Revision format must be X.Y.Z[-tag]')
+
+    major, minor, micro, tag, tagrev = m.groups()
+    if tag == '.dev':
+        tag = 'dev'
+    return [int(major), int(minor), int(micro)], tag, tagrev
+
+
 def require(version):
     '''Require can be used to check the minimum version required to run a Kivy
     application. For example, you can start your application code like this::
@@ -101,22 +118,10 @@ def require(version):
 
     '''
 
-    def parse_version(version):
-        m = re.match(
-            '^([0-9]+)\\.([0-9]+)\\.([0-9]+?)(rc|a|b|\\.dev)?([0-9]+)?$',
-            version)
-        if m is None:
-            raise Exception('Revision format must be X.Y.Z[-tag]')
-
-        major, minor, micro, tag, tagrev = m.groups()
-        if tag == '.dev':
-            tag = 'dev'
-        return [int(major), int(minor), int(micro)], tag, tagrev
-
     # user version
-    revision, tag, tagrev = parse_version(version)
+    revision, tag, tagrev = parse_kivy_version(version)
     # current version
-    sysrevision, systag, systagrev = parse_version(__version__)
+    sysrevision, systag, systagrev = parse_kivy_version(__version__)
 
     if tag and not systag:
         Logger.warning('Application requested a dev version of Kivy. '

@@ -170,13 +170,14 @@ script:
         mkdir wheelhouse;
         wheel_date=$(python -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))");
         git_tag=$(git rev-parse --short HEAD);
-        wheel_name="dev0.$wheel_date.$git_tag";
+        tag_name=$(python -c "import kivy; _, tag, n = kivy.parse_kivy_version(kivy.__version__); print(tag + n) if n is not None else print(tag or 'something')"  --config "kivy:log_level:error");
+        wheel_name="$tag_name.$wheel_date.$git_tag-";
 
         chmod +x .ci/build-wheels-linux.sh;
         docker run --rm -v `pwd`:/io $DOCKER_IMAGE "/io/.ci/build-wheels-linux.sh";
         ls wheelhouse/;
         for name in wheelhouse/*manylinux*.whl; do
-          new_name="${name/dev0/$wheel_name}";
+          new_name="${name/$tag_name-/$wheel_name}";
           if [ ! -f "$new_name" ]; then
             cp -n $name $new_name;
           fi;
@@ -282,11 +283,12 @@ script:
 
         wheel_date=$(python -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))");
         git_tag=$(git rev-parse --short HEAD);
-        wheel_name="dev0.$wheel_date.$git_tag";
+        tag_name=$(python -c "import kivy; _, tag, n = kivy.parse_kivy_version(kivy.__version__); print(tag + n) if n is not None else print(tag or 'something')"  --config "kivy:log_level:error");
+        wheel_name="$tag_name.$wheel_date.$git_tag-";
         ls ../wheelhouse/;
 
         for name in ../wheelhouse/*.whl; do
-          new_name="${name/dev0/$wheel_name}";
+          new_name="${name/$tag_name-/$wheel_name}";
           if [ ! -f "$new_name" ]; then
             cp -n "$name" "$new_name";
           fi;
