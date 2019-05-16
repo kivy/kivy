@@ -34,6 +34,7 @@ from getopt import getopt, GetoptError
 from os import environ, mkdir
 from os.path import dirname, join, basename, exists, expanduser
 import pkgutil
+import re
 from kivy.compat import PY2
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.utils import platform
@@ -82,14 +83,14 @@ def require(version):
 
     The Kivy version string is built like this::
 
-        X.Y.Z[-tag[-tagrevision]]
+        X.Y.Z[tag[tagrevision]]
 
         X is the major version
         Y is the minor version
         Z is the bugfixes revision
 
-    The tag is optional, but may be one of 'dev', 'alpha', or 'beta'.
-    The tagrevision is the revision of the tag.
+    The tag is optional, but may be one of '.dev', 'a', 'b', or 'rc'.
+    The tagrevision is the revision number of the tag.
 
     .. warning::
 
@@ -101,37 +102,24 @@ def require(version):
     '''
 
     def parse_version(version):
-        # check for tag
-        tag = None
-        tagrev = None
-        if '-' in version:
-            v = version.split('-')
-            if len(v) == 2:
-                version, tag = v
-            elif len(v) == 3:
-                version, tag, tagrev = v
-            else:
-                raise Exception('Revision format must be X.Y.Z[-tag]')
+        m = re.match(
+            '^([0-9]+)\\.([0-9]+)\\.([0-9]+?)(rc|a|b|\\.dev)?([0-9]+)?$',
+            version)
+        if m is None:
+            raise Exception('Revision format must be X.Y.Z[-tag]')
 
-        # check x y z
-        v = version.split('.')
-        if len(v) != 3:
-            if 'dev0' in v:
-                tag = v.pop()
-            else:
-                raise Exception('Revision format must be X.Y.Z[-tag]')
-        return [int(x) for x in v], tag, tagrev
+        major, minor, micro, tag, tagrev = m.groups()
+        if tag == '.dev':
+            tag = 'dev'
+        return [int(major), int(minor), int(micro)], tag, tagrev
 
     # user version
     revision, tag, tagrev = parse_version(version)
     # current version
     sysrevision, systag, systagrev = parse_version(__version__)
 
-    # ensure that the required version don't contain tag, except dev
-    if tag not in (None, 'dev'):
-        raise Exception('Revision format must not have any tag except "dev"')
-    if tag == 'dev' and systag != 'dev':
-        Logger.warning('Application requested a -dev version of Kivy. '
+    if tag and not systag:
+        Logger.warning('Application requested a dev version of Kivy. '
                        '(You have %s, but the application requires %s)' % (
                            __version__, version))
     # not tag rev (-alpha-1, -beta-x) allowed.
