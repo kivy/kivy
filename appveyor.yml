@@ -127,7 +127,7 @@ build_script:
     # nightly: Kivy-X.Y.Z.dev0-cpAB-cpABm-ARCH.whl (Kivy_examples-X.Y.Z.dev0-py2.py3-none-any.whl)
     # archive: Kivy-X.Y.Z.dev0.YYYYMMDD.githash-cpAB-cpABm-ARCH.whl (Kivy_examples-X.Y.Z.dev0.YYYYMMDD.githash-py2.py3-none-any.whl)
 
-    $TAG_NAME = python -c "import kivy; _, tag, n = kivy.parse_kivy_version(kivy.__version__); print(tag + n) if n is not None else print(tag or 'something')"  --config "kivy:log_level:error"
+    $TAG_NAME = python -c "from __future__ import print_function; import kivy; _, tag, n = kivy.parse_kivy_version(kivy.__version__); print(tag + n) if n is not None else print(tag or 'something')"  --config "kivy:log_level:error"
 
     if ($env:APPVEYOR_REPO_TAG -eq "true"){
       $WHEEL_NAME = "$TAG_NAME-"
