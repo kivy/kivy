@@ -58,6 +58,8 @@ cdef class _SurfaceContainer:
         outline_width = container.options['outline_width']
         if font == NULL:
             return
+
+        c.a = oc.a = 255
         c.r = <int>(color[0] * 255)
         c.g = <int>(color[1] * 255)
         c.b = <int>(color[2] * 255)
