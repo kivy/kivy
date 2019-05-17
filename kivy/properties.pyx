@@ -364,11 +364,18 @@ cdef class Property:
                 When not None, it's called with two values to be compared.
                 The function returns whether they are considered the same.
 
+            `deprecated`: bool
+                When True, a warning will be logged if the property is accessed
+                or set. Defaults to False.
+
     .. versionchanged:: 1.4.2
         Parameters errorhandler and errorvalue added
 
     .. versionchanged:: 1.9.0
         Parameter force_dispatch added
+
+    .. versionchanged:: 1.11.0
+        Parameter deprecated added
     '''
 
     def __cinit__(self):
@@ -380,6 +387,7 @@ cdef class Property:
         self.errorhandler = None
         self.errorvalue_set = 0
         self.comparator = None
+        self.deprecated = 0
 
     def __init__(self, defaultvalue, **kw):
         self.defaultvalue = defaultvalue
@@ -388,6 +396,7 @@ cdef class Property:
         self.errorvalue = kw.get('errorvalue', None)
         self.errorhandler = kw.get('errorhandler', None)
         self.comparator = kw.get('comparator', None)
+        self.deprecated = <int>kw.get('deprecated', 0)
 
         if 'errorvalue' in kw:
             self.errorvalue_set = 1
@@ -480,11 +489,22 @@ cdef class Property:
         ps.observers.unbind_uid(uid)
 
     def __set__(self, EventDispatcher obj, val):
+        if self.deprecated:
+            Logger.warning(
+                'Deprecated property "{}" of object "{}" has been set, it '
+                'will be removed in a future version'.format(self, obj))
+            self.deprecated = 0
         self.set(obj, val)
 
     def __get__(self, EventDispatcher obj, objtype):
         if obj is None:
             return self
+
+        if self.deprecated:
+            Logger.warning(
+                'Deprecated property "{}" of object "{}" was accessed, it '
+                'will be removed in a future version'.format(self, obj))
+            self.deprecated = 0
         return self.get(obj)
 
     cdef compare_value(self, a, b):

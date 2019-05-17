@@ -741,7 +741,7 @@ class BuilderBase(object):
         '''Return a list of :class:`ParserRule` objects matching the widget.
         '''
         cache = BuilderBase._match_cache
-        k = (widget.__class__, widget.id, tuple(widget.cls))
+        k = (widget.__class__, tuple(widget.cls))
         if k in cache:
             return cache[k]
         rules = []

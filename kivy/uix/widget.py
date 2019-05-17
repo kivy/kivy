@@ -1146,7 +1146,7 @@ class Widget(WidgetBase):
     '''Class of the widget, used for styling.
     '''
 
-    id = StringProperty(None, allownone=True)
+    id = StringProperty(None, allownone=True, deprecated=True)
     '''Identifier of the widget in the tree.
 
     :attr:`id` is a :class:`~kivy.properties.StringProperty` and defaults to

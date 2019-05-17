@@ -344,7 +344,7 @@ class VideoPlayer(GridLayout):
     to 'stop'.
     '''
 
-    play = BooleanProperty(False)
+    play = BooleanProperty(False, deprecated=True)
     '''
     .. deprecated:: 1.4.0
         Use :attr:`state` instead.
