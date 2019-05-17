@@ -5,7 +5,7 @@ AudioPygame: implementation of Sound with Pygame
 __all__ = ('SoundPygame', )
 
 from kivy.clock import Clock
-from kivy.utils import platform
+from kivy.utils import platform, deprecated
 from kivy.core.audio import Sound, SoundLoader
 
 _platform = platform
@@ -43,6 +43,7 @@ class SoundPygame(Sound):
             return ('wav', 'ogg', 'mp3', 'm4a')
         return ('wav', 'ogg')
 
+    @deprecated
     def __init__(self, **kwargs):
         self._data = None
         self._channel = None

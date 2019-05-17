@@ -33,6 +33,10 @@ glReadPixels = GL_RGBA = GL_UNSIGNED_BYTE = None
 
 class WindowPygame(WindowBase):
 
+    @deprecated
+    def __init__(self, **kwargs):
+        super(WindowPygame, self).__init__(**kwargs)
+
     def create_window(self, *largs):
         # ensure the mouse is still not up after window creation, otherwise, we
         # have some weird bugs

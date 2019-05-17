@@ -7,6 +7,7 @@ __all__ = ('ImageLoaderPygame', )
 from kivy.logger import Logger
 from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 from os.path import isfile
+from kivy.utils import deprecated
 
 try:
     import pygame
@@ -16,6 +17,10 @@ except:
 
 class ImageLoaderPygame(ImageLoaderBase):
     '''Image loader based on the PIL library'''
+
+    @deprecated
+    def __init__(self, **kwargs):
+        super(ImageLoaderPygame, self).__init__(**kwargs)
 
     @staticmethod
     def extensions():
