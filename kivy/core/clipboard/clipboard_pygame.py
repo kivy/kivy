@@ -1,5 +1,10 @@
 '''
 Clipboard Pygame: an implementation of the Clipboard using pygame.scrap.
+
+.. warning::
+
+    Pygame has been deprecated and will be removed in the release after Kivy
+    1.11.0.
 '''
 
 __all__ = ('ClipboardPygame', )
@@ -27,9 +32,10 @@ class ClipboardPygame(ClipboardBase):
         'text/plain;charset=utf-8': 'UTF8_STRING'
     }
 
-    @deprecated
-    def __init__(self, **kwargs):
-        super(ClipboardPygame, self).__init__(**kwargs)
+    @deprecated(
+        msg='Pygame has been deprecated and will be removed after 1.11.0')
+    def __init__(self, *largs, **kwargs):
+        super(ClipboardPygame, self).__init__(*largs, **kwargs)
 
     def init(self):
         if ClipboardPygame._is_init:

@@ -1,5 +1,10 @@
 '''
 Text Pygame: Draw text with pygame
+
+.. warning::
+
+    Pygame has been deprecated and will be removed in the release after Kivy
+    1.11.0.
 '''
 
 __all__ = ('LabelPygame', )
@@ -27,9 +32,10 @@ except:
 
 class LabelPygame(LabelBase):
 
-    @deprecated
-    def __init__(self, **kwargs):
-        super(LabelPygame, self).__init__(**kwargs)
+    @deprecated(
+        msg='Pygame has been deprecated and will be removed after 1.11.0')
+    def __init__(self, *largs, **kwargs):
+        super(LabelPygame, self).__init__(*largs, **kwargs)
 
     def _get_font_id(self):
         if PY2:

@@ -1,5 +1,10 @@
 '''
 Pygame: Pygame image loader
+
+.. warning::
+
+    Pygame has been deprecated and will be removed in the release after Kivy
+    1.11.0.
 '''
 
 __all__ = ('ImageLoaderPygame', )
@@ -18,9 +23,10 @@ except:
 class ImageLoaderPygame(ImageLoaderBase):
     '''Image loader based on the PIL library'''
 
-    @deprecated
-    def __init__(self, **kwargs):
-        super(ImageLoaderPygame, self).__init__(**kwargs)
+    @deprecated(
+        msg='Pygame has been deprecated and will be removed after 1.11.0')
+    def __init__(self, *largs, **kwargs):
+        super(ImageLoaderPygame, self).__init__(*largs, **kwargs)
 
     @staticmethod
     def extensions():
