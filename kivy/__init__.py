@@ -464,3 +464,9 @@ for importer, modname in _packages:
 from kivy.logger import file_log_handler
 if file_log_handler is not None:
     file_log_handler.purge_logs()
+
+
+if PY2:
+    Logger.warning(
+        'Deprecated: Python 2 Kivy support has been deprecated. The '
+        'Kivy release after 1.11.0 will not support Python 2 anymore')
