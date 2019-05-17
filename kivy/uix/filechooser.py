@@ -481,7 +481,8 @@ class FileChooserController(RelativeLayout):
 
     '''
 
-    file_encodings = ListProperty(['utf-8', 'latin1', 'cp1252'])
+    file_encodings = ListProperty(
+        ['utf-8', 'latin1', 'cp1252'], deprecated=True)
     '''Possible encodings for decoding a filename to unicode. In the case that
     the user has a non-ascii filename, undecodable without knowing its
     initial encoding, we have no other choice than to guess it.

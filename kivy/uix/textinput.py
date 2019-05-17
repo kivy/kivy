@@ -2822,7 +2822,7 @@ class TextInput(FocusBehavior, Widget):
     defaults to 4.
     '''
 
-    padding_x = VariableListProperty([0, 0], length=2)
+    padding_x = VariableListProperty([0, 0], length=2, deprecated=True)
     '''Horizontal padding of the text: [padding_left, padding_right].
 
     padding_x also accepts a one argument form [padding_horizontal].
@@ -2838,7 +2838,7 @@ class TextInput(FocusBehavior, Widget):
         self.padding[0] = value[0]
         self.padding[2] = value[1]
 
-    padding_y = VariableListProperty([0, 0], length=2)
+    padding_y = VariableListProperty([0, 0], length=2, deprecated=True)
     '''Vertical padding of the text: [padding_top, padding_bottom].
 
     padding_y also accepts a one argument form [padding_vertical].
