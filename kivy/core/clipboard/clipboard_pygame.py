@@ -6,6 +6,7 @@ __all__ = ('ClipboardPygame', )
 
 from kivy.utils import platform
 from kivy.core.clipboard import ClipboardBase
+from kivy.utils import deprecated
 
 if platform not in ('win', 'linux', 'macosx'):
     raise SystemError('unsupported platform for pygame clipboard')
@@ -25,6 +26,10 @@ class ClipboardPygame(ClipboardBase):
     _aliases = {
         'text/plain;charset=utf-8': 'UTF8_STRING'
     }
+
+    @deprecated
+    def __init__(self, **kwargs):
+        super(ClipboardPygame, self).__init__(**kwargs)
 
     def init(self):
         if ClipboardPygame._is_init:
