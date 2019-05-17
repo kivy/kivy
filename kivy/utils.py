@@ -315,13 +315,16 @@ colormap = {k: get_color_from_hex(v) for k, v in hex_colormap.items()}
 DEPRECATED_CALLERS = []
 
 
-def deprecated(func):
+def deprecated(func=None, msg=''):
     '''This is a decorator which can be used to mark functions
     as deprecated. It will result in a warning being emitted the first time
     the function is used.'''
 
     import inspect
     import functools
+
+    if func is None:
+        return functools.partial(deprecated, msg=msg)
 
     @functools.wraps(func)
     def new_func(*args, **kwargs):
@@ -338,6 +341,11 @@ def deprecated(func):
                     func.__code__.co_filename,
                     func.__code__.co_firstlineno + 1,
                     file, line, caller))
+
+            if msg:
+                warning = '{}: {}'.format(msg, warning)
+            warning = 'Deprecated: ' + warning
+
             from kivy.logger import Logger
             Logger.warning(warning)
             if func.__doc__:

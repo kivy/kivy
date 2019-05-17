@@ -1,5 +1,10 @@
 '''
 AudioPygame: implementation of Sound with Pygame
+
+.. warning::
+
+    Pygame has been deprecated and will be removed in the release after Kivy
+    1.11.0.
 '''
 
 __all__ = ('SoundPygame', )
@@ -43,7 +48,8 @@ class SoundPygame(Sound):
             return ('wav', 'ogg', 'mp3', 'm4a')
         return ('wav', 'ogg')
 
-    @deprecated
+    @deprecated(
+        msg='Pygame has been deprecated and will be removed after 1.11.0')
     def __init__(self, **kwargs):
         self._data = None
         self._channel = None

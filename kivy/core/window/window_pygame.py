@@ -1,5 +1,10 @@
 '''
 Window Pygame: windowing provider based on Pygame
+
+.. warning::
+
+    Pygame has been deprecated and will be removed in the release after Kivy
+    1.11.0.
 '''
 
 __all__ = ('WindowPygame', )
@@ -33,9 +38,10 @@ glReadPixels = GL_RGBA = GL_UNSIGNED_BYTE = None
 
 class WindowPygame(WindowBase):
 
-    @deprecated
-    def __init__(self, **kwargs):
-        super(WindowPygame, self).__init__(**kwargs)
+    @deprecated(
+        msg='Pygame has been deprecated and will be removed after 1.11.0')
+    def __init__(self, *largs, **kwargs):
+        super(WindowPygame, self).__init__(*largs, **kwargs)
 
     def create_window(self, *largs):
         # ensure the mouse is still not up after window creation, otherwise, we
