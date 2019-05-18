@@ -79,14 +79,6 @@ class ToggleButtonBehavior(ButtonBehavior):
     `True`
     '''
 
-    _check_variable = BooleanProperty(False)
-    '''This private variable is used to check at various places when
-    the state/activeness of togglebutton is changed via code.
-
-    :attr:`_check_variable` is a :class:`BooleanProperty` and defaults to
-    `False`
-    '''
-
     def __init__(self, **kwargs):
         self._previous_group = None
         super(ToggleButtonBehavior, self).__init__(**kwargs)
@@ -115,15 +107,13 @@ class ToggleButtonBehavior(ButtonBehavior):
                 group.remove(item)
             if widget is current:
                 continue
-            widget._check_variable = True
             widget.state = 'normal'
-            widget._check_variable = False
 
     def _do_press(self):
         if (not self.allow_no_selection and
                 self.group and self.state == 'down'):
             return
-        self._check_variable = True
+
         self._release_group(self)
         self.state = 'normal' if self.state == 'down' else 'down'
 
