@@ -74,7 +74,7 @@ if 'KIVY_DOC' not in os.environ:
         raise Exception('Unsupported Window version')
 
     LRESULT = LPARAM
-    WNDPROC = WINFUNCTYPE(LRESULT, HANDLE, UINT, WPARAM, LPARAM)
+    WNDPROC = WINFUNCTYPE(LRESULT, HWND, UINT, WPARAM, LPARAM)
 
     class TOUCHINPUT(Structure):
         _fields_ = [
@@ -135,14 +135,14 @@ if 'KIVY_DOC' not in os.environ:
     windll.user32.GetWindowRect.restype = BOOL
     windll.user32.GetWindowRect.argtypes = [HANDLE, POINTER(RECT_BASE)]
     windll.user32.CallWindowProcW.restype = LRESULT
-    windll.user32.CallWindowProcW.argtypes = [WNDPROC, HANDLE, UINT, WPARAM,
+    windll.user32.CallWindowProcW.argtypes = [WNDPROC, HWND, UINT, WPARAM,
                                               LPARAM]
-    windll.user32.GetActiveWindow.restype = HANDLE
+    windll.user32.GetActiveWindow.restype = HWND
     windll.user32.GetActiveWindow.argtypes = []
     windll.user32.RegisterTouchWindow.restype = BOOL
-    windll.user32.RegisterTouchWindow.argtypes = [HANDLE, ULONG]
+    windll.user32.RegisterTouchWindow.argtypes = [HWND, ULONG]
     windll.user32.UnregisterTouchWindow.restype = BOOL
-    windll.user32.UnregisterTouchWindow.argtypes = [HANDLE]
+    windll.user32.UnregisterTouchWindow.argtypes = [HWND]
     windll.user32.GetTouchInputInfo.restype = BOOL
     windll.user32.GetTouchInputInfo.argtypes = [HANDLE, UINT,
                                                 POINTER(TOUCHINPUT), c_int]
@@ -150,4 +150,4 @@ if 'KIVY_DOC' not in os.environ:
     windll.user32.GetSystemMetrics.argtypes = [c_int]
 
     windll.user32.ClientToScreen.restype = BOOL
-    windll.user32.ClientToScreen.argtypes = [HANDLE, POINTER(POINT)]
+    windll.user32.ClientToScreen.argtypes = [HWND, POINTER(POINT)]
