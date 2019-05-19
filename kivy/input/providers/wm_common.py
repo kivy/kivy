@@ -57,7 +57,8 @@ QUERYSYSTEMGESTURE_WNDPROC = (
 
 if 'KIVY_DOC' not in os.environ:
     from ctypes.wintypes import (ULONG, HANDLE, DWORD, LONG, UINT,
-                                 WPARAM, LPARAM, BOOL, HWND, RECT as RECT_BASE)
+                                 WPARAM, LPARAM, BOOL, HWND, POINT,
+                                 RECT as RECT_BASE)
     from ctypes import (windll, WINFUNCTYPE, POINTER,
                         c_int, c_longlong, c_void_p, Structure,
                         sizeof, byref, cast)
@@ -67,11 +68,6 @@ if 'KIVY_DOC' not in os.environ:
         y = property(lambda self: self.top)
         w = property(lambda self: self.right - self.left)
         h = property(lambda self: self.bottom - self.top)
-
-    class POINT(Structure):
-        _fields_ = [
-            ('x', LONG),
-            ('y', LONG)]
 
     # check availability of RegisterTouchWindow
     if not hasattr(windll.user32, 'RegisterTouchWindow'):
