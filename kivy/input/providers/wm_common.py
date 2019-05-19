@@ -57,18 +57,12 @@ QUERYSYSTEMGESTURE_WNDPROC = (
 
 if 'KIVY_DOC' not in os.environ:
     from ctypes.wintypes import (ULONG, HANDLE, DWORD, LONG, UINT,
-                                 WPARAM, LPARAM, BOOL, HWND)
+                                 WPARAM, LPARAM, BOOL, HWND, RECT as RECT_BASE)
     from ctypes import (windll, WINFUNCTYPE, POINTER,
                         c_int, c_longlong, c_void_p, Structure,
                         sizeof, byref, cast)
 
-    class RECT(Structure):
-        _fields_ = [
-            ('left', LONG),
-            ('top', LONG),
-            ('right', LONG),
-            ('bottom', LONG)]
-
+    class RECT(RECT_BASE):
         x = property(lambda self: self.left)
         y = property(lambda self: self.top)
         w = property(lambda self: self.right - self.left)
@@ -141,9 +135,9 @@ if 'KIVY_DOC' not in os.environ:
     windll.user32.GetMessageExtraInfo.restype = LPARAM
     windll.user32.GetMessageExtraInfo.argtypes = []
     windll.user32.GetClientRect.restype = BOOL
-    windll.user32.GetClientRect.argtypes = [HANDLE, POINTER(RECT)]
+    windll.user32.GetClientRect.argtypes = [HANDLE, POINTER(RECT_BASE)]
     windll.user32.GetWindowRect.restype = BOOL
-    windll.user32.GetWindowRect.argtypes = [HANDLE, POINTER(RECT)]
+    windll.user32.GetWindowRect.argtypes = [HANDLE, POINTER(RECT_BASE)]
     windll.user32.CallWindowProcW.restype = LRESULT
     windll.user32.CallWindowProcW.argtypes = [WNDPROC, HANDLE, UINT, WPARAM,
                                               LPARAM]
