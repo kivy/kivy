@@ -65,6 +65,11 @@ from functools import partial
 __all__ = (
     'Logger', 'LOG_LEVELS', 'COLORS', 'LoggerHistory', 'file_log_handler')
 
+try:
+    PermissionError
+except NameError:  # Python 2
+    PermissionError = OSError, IOError
+
 Logger = None
 
 BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = list(range(8))
