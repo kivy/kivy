@@ -331,10 +331,7 @@ class LoaderBase(object):
             else:
                 # read from internet
                 request = urllib_request.Request(filename)
-                if (
-                    Config.has_section('network')
-                    and 'useragent' in Config.items('network')
-                ):
+                if Config.has_option('network', 'useragent'):
                     useragent = Config.get('network', 'useragent')
                     if useragent:
                         request.add_header('User-Agent', useragent)
