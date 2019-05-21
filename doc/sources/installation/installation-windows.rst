@@ -47,8 +47,8 @@ install.
 #. Install the dependencies (skip gstreamer (~120MB) if not needed, see
    :ref:`kivy-dependencies`)::
 
-     python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew
-     python -m pip install kivy.deps.gstreamer
+     python -m pip install docutils pygments pypiwin32 kivy_deps.sdl2 kivy_deps.glew
+     python -m pip install kivy_deps.gstreamer
 
    .. note::
 
@@ -58,7 +58,7 @@ install.
    For Python 3.5+, you can also use the angle backend instead of glew. This
    can be installed with::
 
-     python -m pip install kivy.deps.angle
+     python -m pip install kivy_deps.angle
 
 #. Install kivy::
 
@@ -161,7 +161,7 @@ Kivy's dependencies
 
 We offer wheels for Kivy and its dependencies separately so only desired
 dependencies need be installed. The dependencies are offered as
-optional sub-packages of kivy.deps, e.g. ``kivy.deps.sdl2``.
+optional sub-packages of kivy_deps, e.g. ``kivy_deps.sdl2``.
 
 Currently on Windows, we provide the following dependency wheels:
 
@@ -265,9 +265,9 @@ kivy with git rather than a wheel there are some additional steps:
 
    .. parsed-literal::
 
-     python -m pip install |cython_install| docutils pygments pypiwin32 kivy.deps.sdl2 \
-     kivy.deps.glew kivy.deps.gstreamer kivy.deps.glew_dev kivy.deps.sdl2_dev \
-     kivy.deps.gstreamer_dev
+     python -m pip install |cython_install| docutils pygments pypiwin32 kivy_deps.sdl2 \
+     kivy_deps.glew kivy_deps.gstreamer kivy_deps.glew_dev kivy_deps.sdl2_dev \
+     kivy_deps.gstreamer_dev
 
 #. If you downloaded or cloned kivy to an alternate location and don't want to
    install it to site-packages read the next section.
@@ -297,39 +297,14 @@ Installing Kivy to an alternate location
 In development Kivy is often installed to an alternate location and then
 installed with::
 
-    python -m pip install -e location
-
-That allows Kivy to remain in its original location while being available
-to python, which is useful for tracking changes you make in Kivy for example
-directly with Git.
-
-To achieve using Kivy in an alternate location extra tweaking is required.
-Due to this `issue <https://github.com/pypa/pip/issues/2677>`_ ``wheel`` and
-``pip`` install the dependency wheels to ``python\Lib\site-packages\kivy``. So
-they need to be moved to your actual kivy installation from site-packages.
-
-After installing the kivy dependencies and downloading or cloning kivy to your
-favorite location, do the following:
-
-#. Move the contents of ``python\Lib\site-packages\kivy\deps`` to
-   ``your-path\kivy\deps`` where ``your-path`` is the path where your kivy is
-   located. That means if you cloned from GitHub, the ``deps`` have to end up
-   in the **inner** ``kivy`` folder.
-#. Remove the ``python\Lib\site-packages\kivy`` directory altogether.
-#. From ``python\Lib\site-packages`` move **all** ``kivy.deps.*.dist-info``
-   directories to ``your-path`` right next to ``kivy``.
+    python -m pip install -e kivy_path
 
 Now you can safely compile kivy in its current location with one of these
 commands::
 
 > make
-> mingw32-make
 > python -m pip install -e .
 > python setup.py build_ext --inplace
-
-**If kivy fails to be imported,** you probably didn't delete all the
-``*.dist-info`` folders and and the kivy or ``kivy.deps*`` folders from
-site-packages.
 
 Making Python available anywhere
 --------------------------------
@@ -377,5 +352,5 @@ Uninstalling Kivy
 
 To uninstall Kivy, remove the installed packages with pip. E.g. if you isnatlled kivy following the instructions above, do::
 
-     python -m pip uninstall kivy.deps.sdl2 kivy.deps.glew kivy.deps.gstreamer
+     python -m pip uninstall kivy_deps.sdl2 kivy_deps.glew kivy_deps.gstreamer
      python -m pip uninstall kivy

@@ -70,6 +70,10 @@ import glob
 
 import kivy
 import kivy.deps
+try:
+    import kivy_deps
+except ImportError:
+    kivy_deps = None
 from kivy.factory import Factory
 from PyInstaller.depend import bindepend
 
@@ -288,6 +292,23 @@ def add_dep_paths():
     '''
     paths = []
     for importer, modname, ispkg in pkgutil.iter_modules(kivy.deps.__path__):
+        if not ispkg:
+            continue
+        try:
+            mod = importer.find_module(modname).load_module(modname)
+        except ImportError as e:
+            logging.warn("deps: Error importing dependency: {}".format(str(e)))
+            continue
+
+        if hasattr(mod, 'dep_bins'):
+            paths.extend(mod.dep_bins)
+    sys.path.extend(paths)
+
+    if kivy_deps is None:
+        return
+
+    paths = []
+    for importer, modname, ispkg in pkgutil.iter_modules(kivy_deps.__path__):
         if not ispkg:
             continue
         try:

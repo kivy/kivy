@@ -154,9 +154,9 @@ build_script:
       Check-Error
     }
 
-    pip install mock cython pygments docutils pytest kivy.deps.glew_dev kivy.deps.glew kivy.deps.gstreamer_dev kivy.deps.sdl2_dev kivy.deps.sdl2
+    pip install mock cython pygments docutils pytest kivy_deps.glew_dev kivy_deps.glew kivy_deps.gstreamer_dev kivy_deps.sdl2_dev kivy_deps.sdl2
 
-    pip --no-cache-dir install kivy.deps.gstreamer
+    pip --no-cache-dir install kivy_deps.gstreamer
 
     Check-Error
 
@@ -168,7 +168,7 @@ build_script:
     }
 
     if ($env:COMPILER -eq "msvc") {
-      pip install kivy.deps.angle
+      pip install kivy_deps.angle
     }
 
     Copy-Item "$PYTHON_ROOT\Lib\site-packages\kivy\deps\*" -destination "$env:APPVEYOR_BUILD_FOLDER\kivy\deps" -recurse
