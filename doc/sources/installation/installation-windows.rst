@@ -33,12 +33,12 @@ location** and not to site-packages, please see :ref:`alternate-win`.
 
 .. _install-win-dist:
 
-Installation
-------------
+Installing the kivy stable release
+-----------------------------------
 
 Now that python is installed, open the :ref:`windows-run-app` and make sure
 python is available by typing ``python --version``. Then, do the following to
-install.
+install the most recent stable kivy release (`1.11.0`) and its dependencies.
 
 #. Ensure you have the latest pip and wheel::
 
@@ -47,8 +47,8 @@ install.
 #. Install the dependencies (skip gstreamer (~120MB) if not needed, see
    :ref:`kivy-dependencies`)::
 
-     python -m pip install docutils pygments pypiwin32 kivy_deps.sdl2 kivy_deps.glew
-     python -m pip install kivy_deps.gstreamer
+     python -m pip install docutils pygments pypiwin32 kivy_deps.sdl2==0.1.21 kivy_deps.glew==0.1.11
+     python -m pip install kivy_deps.gstreamer==0.1.16
 
    .. note::
 
@@ -58,15 +58,15 @@ install.
    For Python 3.5+, you can also use the angle backend instead of glew. This
    can be installed with::
 
-     python -m pip install kivy_deps.angle
+     python -m pip install kivy_deps.angle==0.1.8
 
 #. Install kivy::
 
-     python -m pip install kivy
+     python -m pip install kivy==1.11.0
 
 #. (Optionally) Install the kivy examples::
 
-     python -m pip install kivy_examples
+     python -m pip install kivy_examples==1.11.0
 
    The examples are installed in the share directory under the root directory where python is installed.
 
@@ -170,11 +170,11 @@ Currently on Windows, we provide the following dependency wheels:
   `angle (3.5 only) <https://github.com/Microsoft/angle>`_ for OpenGL
 * `sdl2 <https://libsdl.org>`_ for control and/or OpenGL.
 
-One can select which of these to use for OpenGL use using the
+One can select which of these to use for OpenGL using the
 `KIVY_GL_BACKEND` envrionment variable by setting it to `glew`
 (the default), `angle`, or `sdl2`. `angle` is currently
 in an experimental phase as a substitute for `glew` on Python
-3.5 only.
+3.5+ only.
 
 `gstreamer` is an optional dependency which only needs to be
 installed if video display or audio is desired. `ffpyplayer`
@@ -261,7 +261,9 @@ kivy with git rather than a wheel there are some additional steps:
    These variables must be set everytime you recompile kivy.
 
 #. Install the other dependencies as well as their dev versions (you can skip
-   gstreamer and gstreamer_dev if you aren't going to use video/audio):
+   gstreamer and gstreamer_dev if you aren't going to use video/audio). we don't pin
+   the versions of the dependencies like for the stable kivy because we want the
+   latest:
 
    .. parsed-literal::
 
