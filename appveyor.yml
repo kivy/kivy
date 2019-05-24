@@ -67,7 +67,7 @@ build_script:
     Check-Error
 
 
-    $PYTHONPATH = "$env:APPVEYOR_BUILD_FOLDER;$PYTHONPATH"
+    $env:PYTHONPATH = "$env:APPVEYOR_BUILD_FOLDER;$PYTHONPATH"
 
     echo "Build folder: $env:APPVEYOR_BUILD_FOLDER. Wheel folder: $env:WHEEL_DIR."
 
@@ -155,7 +155,7 @@ build_script:
       Check-Error
     }
 
-    pip install mock cython pygments docutils pytest kivy_deps.glew_dev kivy_deps.glew kivy_deps.gstreamer_dev kivy_deps.sdl2_dev kivy_deps.sdl2
+    pip install mock cython pygments docutils pytest pyinstaller kivy_deps.glew_dev kivy_deps.glew kivy_deps.gstreamer_dev kivy_deps.sdl2_dev kivy_deps.sdl2
 
     pip --no-cache-dir install kivy_deps.gstreamer
 
