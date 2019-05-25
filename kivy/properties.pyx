@@ -1417,14 +1417,21 @@ cdef class AliasProperty(Property):
             self.x = value - self.width
         right = AliasProperty(get_right, set_right, bind=['x', 'width'])
 
-    If `x` were to be an instance level attribute and not Kivy property then
-    you have to return `True` from setter to dispatch value of `right`::
+    If `x` were a non Kivy property then you have to return `True` from setter
+    to dispatch new value of `right`::
 
         def set_right(self, value):
             self.x = value - self.width
             return True
 
-    If your want to cache the value returned by getter then pass `cache=True`.
+    Usually `bind` list should contain all Kivy properties used in getter
+    method. If you return `True` it will cause a dispatch which one should do
+    when the property value has changed, but keep in mind that the property
+    could already have dispatched the changed value if a kivy property the
+    alias property is bound was set in the setter, causing a second dispatch
+    if the setter returns `True`.
+
+    If you want to cache the value returned by getter then pass `cache=True`.
     This way getter will only be called if new value is set or one of the
     binded properties changes. In both cases new value of alias property will
     be cached again.
@@ -1442,11 +1449,11 @@ cdef class AliasProperty(Property):
             alias property won't be called when the property is set (e.g.
             `right = 10`), unless the setter returns `True`.
         `bind`: list/tuple
-            Properties to observe for changes, as property name strings.
+            Properties to observe for changes as property name strings.
             Changing values of this properties will dispatch value of the
             alias property.
         `cache`: boolean
-            If `True`, the value will be cached, until one of the binded
+            If `True`, the value will be cached until one of the binded
             elements changes or if setter returns `True`.
         `rebind`: bool, defaults to `False`
             See :class:`ObjectProperty` for details.
