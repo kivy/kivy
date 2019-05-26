@@ -3,6 +3,22 @@
 Installation on Linux
 =====================
 
+Using Wheels
+------------
+
+Wheels are precompiled binaries for all linux platforms using the manylinux2010 tag.
+All you need to do to install kivy using wheels on linux is ::
+
+    $ python -m pip install kivy
+
+Gstreamer is not included, so if you would like to use media playback with kivy,
+you should install `ffpyplayer` like so ::
+
+    $ python -m pip install ffpyplayer
+
+Make sure to set `KIVY_VIDEO=ffpyplayer` env variable before running the app.
+Only Python 3.5+ is supported.
+
 Using software packages
 ~~~~~~~~~~~~~~~~~~~~~~~
 
