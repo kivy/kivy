@@ -47,18 +47,24 @@ install the most recent stable kivy release (`1.11.0`) and its dependencies.
 #. Install the dependencies (skip gstreamer (~120MB) if not needed, see
    :ref:`kivy-dependencies`)::
 
-     python -m pip install docutils pygments pypiwin32 kivy_deps.sdl2==0.1.21 kivy_deps.glew==0.1.11
-     python -m pip install kivy_deps.gstreamer==0.1.16
+     python -m pip install docutils pygments pypiwin32 kivy_deps.sdl2==0.1.22 kivy_deps.glew==0.1.12
+     python -m pip install kivy_deps.gstreamer==0.1.17
 
    .. note::
 
        If you encounter a `MemoryError` while installing, add after
-       `pip install` an option `--no-cache-dir`.
+       `pip install` the `--no-cache-dir` option.
 
    For Python 3.5+, you can also use the angle backend instead of glew. This
    can be installed with::
 
-     python -m pip install kivy_deps.angle==0.1.8
+     python -m pip install kivy_deps.angle==0.1.9
+
+   .. warning::
+
+       When installing, pin kivy's dependencies to the specific version that was released on pypi
+       when your kivy version was released, like above. Otherwise you may get an incompatible dependency
+       when it is updated in the future.
 
 #. Install kivy::
 
