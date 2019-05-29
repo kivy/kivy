@@ -14,6 +14,7 @@ environment:
   KIVY_SPLIT_EXAMPLES: 1
   MSYSTEM: MINGW64
   CHERE_INVOKING: 1
+  GST_REGISTRY: ~/registry.bin
   matrix:
   - PYVER: 27
     BITTNESS: 86
