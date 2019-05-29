@@ -46,8 +46,8 @@ RELEASE = False
 
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
-if not RELEASE and '.dev0' not in __version__:
-    __version__ += 'rc1'
+if not RELEASE:
+    __version__ += 'rc2'
 
 try:
     from kivy.version import __hash__, __date__
