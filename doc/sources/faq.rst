@@ -24,12 +24,12 @@ this. The underlaying issue depends on many things:
 - Don't mix the architecture of the dependencies (e.g. Python 64-bit and 32-bit extensions/SDL2)
 - Don't mix python installation: e.g. if you have Python and Anaconda installed, the Python actually run may be different than you think. Similarly, if you have multiple Python versions available on the ``PATH``, they may clash.
 - Check your PATH to ensure that other programs in it don't provide the same dlls as Kivy/Python, or bad stuff can happen.
-  
+
   - This commonly happens if some other program that uses similar dependecies as Kivy adds itself to the ``PATH`` so that Kivy's dependecies clash with theirs.
   - Please read `this <https://superuser.com/questions/284342/what-are-path-and-other-environment-variables-and-how-can-i-set-or-use-them>`_ and `this <https://www.digitalcitizen.life/simple-questions-what-are-environment-variables>`_ for more details on ``PATH``.
-  - The best tool to troubleshoot this is with `Dependency Walker <http://www.dependencywalker.com/>`_ explained `here <https://www.thewindowsclub.com/dependency-walker-download>`_ and `here <https://kb.froglogic.com/display/KB/Analyzing+dependencies+with+Dependency+Walker>`_. 
+  - The best tool to troubleshoot this is with `Dependency Walker <http://www.dependencywalker.com/>`_ explained `here <https://www.thewindowsclub.com/dependency-walker-download>`_ and `here <https://kb.froglogic.com/display/KB/Analyzing+dependencies+with+Dependency+Walker>`_.
   - But ensure that you're launching it from the identical environment that you start Python.
-- Ensure you have all dependencies installed (like ``kivy.deps.sdl2``).
+- Ensure you have all dependencies installed (like ``kivy_deps.sdl2``).
 - Maybe your drivers have some missing OpenGL symbols? Try to switch to another graphics backend with ``KIVY_GL_BACKEND``.
 - Maybe your `Pycharm configuration is incorrect <https://stackoverflow.com/questions/49466785/kivy-error-python-2-7-sdl2-import-error>`_.
 

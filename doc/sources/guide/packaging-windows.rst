@@ -64,7 +64,7 @@ to the examples as ``examples-path``. The touchtracer example is in
    the exe. Open the spec file with your favorite editor and add these lines
    at the beginning of the spec (assuming sdl2 is used, the default now)::
 
-    from kivy.deps import sdl2, glew
+    from kivy_deps import sdl2, glew
 
    Then, find ``COLLECT()`` and add the data for touchtracer
    (`touchtracer.kv`, `particle.png`, ...): Change the line to add a ``Tree()``
@@ -106,7 +106,7 @@ folder and do::
 to create the ``gstvideo.spec`` file. Edit as above and this time include the
 gstreamer dependency as well::
 
-    from kivy.deps import sdl2, glew, gstreamer
+    from kivy_deps import sdl2, glew, gstreamer
 
 and add the ``Tree()`` to include the video files, e.g.
 ``Tree('examples-path\\widgets')`` as well as the gstreamer dependencies so it
@@ -225,6 +225,6 @@ The previous examples used e.g.
 ``*[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins + gstreamer.dep_bins)],``
 to make PyInstaller add all the dlls used by these dependencies. If kivy
 was not installed using the wheels method these commands will not work and e.g.
-``kivy.deps.sdl2`` will fail to import. Instead, one must find the location
+``kivy_deps.sdl2`` will fail to import. Instead, one must find the location
 of these dlls and manually pass them to the ``Tree`` class in a similar fashion
 as the example.
