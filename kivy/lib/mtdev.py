@@ -140,7 +140,13 @@ class Device:
         self._fd = -1
         self._device = mtdev()
 
-        self._fd = os.open(filename, os.O_NONBLOCK | os.O_RDONLY)
+        while True:
+            try:
+                self._fd = os.open(filename, os.O_NONBLOCK | os.O_RDONLY)
+            except PermissionError:
+                continue
+            break
+
         ret = mtdev_open(pointer(self._device), self._fd)
         if ret != 0:
             os.close(self._fd)
