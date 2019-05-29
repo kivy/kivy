@@ -38,7 +38,7 @@ Kivy widgets can be categorized as follows:
     :doc:`api-kivy.uix.bubble`, :doc:`api-kivy.uix.dropdown`,
     :doc:`api-kivy.uix.filechooser`, :doc:`api-kivy.uix.popup`,
     :doc:`api-kivy.uix.spinner`,
-    :doc:`api-kivy.uix.listview`,
+    :doc:`api-kivy.uix.recycleview`,
     :doc:`api-kivy.uix.tabbedpanel`, :doc:`api-kivy.uix.videoplayer`,
     :doc:`api-kivy.uix.vkeyboard`,
 

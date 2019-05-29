@@ -57,9 +57,10 @@ QUERYSYSTEMGESTURE_WNDPROC = (
 
 if 'KIVY_DOC' not in os.environ:
     from ctypes.wintypes import (ULONG, HANDLE, DWORD, LONG, UINT,
-                                 WPARAM, LPARAM, BOOL)
+                                 WPARAM, LPARAM, BOOL, HWND)
     from ctypes import (windll, WINFUNCTYPE, POINTER,
-                        c_int, Structure, sizeof, byref)
+                        c_int, c_longlong, c_void_p, Structure,
+                        sizeof, byref, cast)
 
     class RECT(Structure):
         _fields_ = [
@@ -116,14 +117,26 @@ if 'KIVY_DOC' not in os.environ:
                 return 'end'
         event_type = property(_event_type)
 
+    def SetWindowLong_WndProc_wrapper_generator(func):
+        def _closure(hWnd, wndProc):
+            oldAddr = func(hWnd, GWL_WNDPROC, cast(wndProc, c_void_p).value)
+            return cast(c_void_p(oldAddr), WNDPROC)
+
+        return _closure
+
     try:
-        windll.user32.SetWindowLongPtrW.restype = WNDPROC
-        windll.user32.SetWindowLongPtrW.argtypes = [HANDLE, c_int, WNDPROC]
-        SetWindowLong_wrapper = windll.user32.SetWindowLongPtrW
+        LONG_PTR = c_longlong
+        windll.user32.SetWindowLongPtrW.restype = LONG_PTR
+        windll.user32.SetWindowLongPtrW.argtypes = [HWND, c_int, LONG_PTR]
+        SetWindowLong_WndProc_wrapper = \
+            SetWindowLong_WndProc_wrapper_generator(
+                windll.user32.SetWindowLongPtrW)
     except AttributeError:
-        windll.user32.SetWindowLongW.restype = WNDPROC
-        windll.user32.SetWindowLongW.argtypes = [HANDLE, c_int, WNDPROC]
-        SetWindowLong_wrapper = windll.user32.SetWindowLongW
+        windll.user32.SetWindowLongW.restype = LONG
+        windll.user32.SetWindowLongW.argtypes = [HWND, c_int, LONG]
+        SetWindowLong_WndProc_wrapper = \
+            SetWindowLong_WndProc_wrapper_generator(
+                windll.user32.SetWindowLongW)
 
     windll.user32.GetMessageExtraInfo.restype = LPARAM
     windll.user32.GetMessageExtraInfo.argtypes = []

@@ -1,31 +1,25 @@
 from kivy.tests.common import GraphicUnitTest
 
-from kivy.input.motionevent import MotionEvent
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.label import Label
 from kivy.base import EventLoop
 from kivy.clock import Clock
+from kivy.tests.common import UTMotionEvent
+
 from time import sleep
+from itertools import count
 
 DEBUG = False
+touch_id = count()
 
 
-class UTMotionEvent(MotionEvent):
-    def depack(self, args):
-        self.is_touch = True
-        self.sx = args['x']
-        self.sy = args['y']
-        self.profile = ['pos']
-        super(UTMotionEvent, self).depack(args)
-
-
-class TestGrid(GridLayout):
+class _TestGrid(GridLayout):
     def __init__(self, **kwargs):
         kwargs['cols'] = 1
         kwargs['spacing'] = 10
         kwargs['size_hint'] = (None, None)
-        super(TestGrid, self).__init__(**kwargs)
+        super(_TestGrid, self).__init__(**kwargs)
         self.bind(minimum_height=self.setter('height'))
         self.bind(minimum_width=self.setter('width'))
 
@@ -37,53 +31,53 @@ class TestGrid(GridLayout):
             ))
 
 
-class TestScrollbarHorizontal(ScrollView):
+class _TestScrollbarHorizontal(ScrollView):
     def __init__(self, **kwargs):
         kwargs['scroll_type'] = ["bars"]
         kwargs['bar_width'] = 20
         kwargs['do_scroll_y'] = False
-        super(TestScrollbarHorizontal, self).__init__(**kwargs)
+        super(_TestScrollbarHorizontal, self).__init__(**kwargs)
 
 
-class TestScrollbarVertical(ScrollView):
+class _TestScrollbarVertical(ScrollView):
     def __init__(self, **kwargs):
         kwargs['scroll_type'] = ["bars"]
         kwargs['bar_width'] = 20
         kwargs['do_scroll_x'] = False
-        super(TestScrollbarVertical, self).__init__(**kwargs)
+        super(_TestScrollbarVertical, self).__init__(**kwargs)
 
 
-class TestScrollbarBoth(ScrollView):
+class _TestScrollbarBoth(ScrollView):
     def __init__(self, **kwargs):
         kwargs['scroll_type'] = ["bars"]
         kwargs['bar_width'] = 20
-        super(TestScrollbarBoth, self).__init__(**kwargs)
+        super(_TestScrollbarBoth, self).__init__(**kwargs)
 
 
-class TestScrollbarHorizontalMargin(ScrollView):
+class _TestScrollbarHorizontalMargin(ScrollView):
     def __init__(self, **kwargs):
         kwargs['scroll_type'] = ["bars"]
         kwargs['bar_margin'] = 40
         kwargs['bar_width'] = 20
         kwargs['do_scroll_y'] = False
-        super(TestScrollbarHorizontalMargin, self).__init__(**kwargs)
+        super(_TestScrollbarHorizontalMargin, self).__init__(**kwargs)
 
 
-class TestScrollbarVerticalMargin(ScrollView):
+class _TestScrollbarVerticalMargin(ScrollView):
     def __init__(self, **kwargs):
         kwargs['scroll_type'] = ["bars"]
         kwargs['bar_margin'] = 40
         kwargs['bar_width'] = 20
         kwargs['do_scroll_x'] = False
-        super(TestScrollbarVerticalMargin, self).__init__(**kwargs)
+        super(_TestScrollbarVerticalMargin, self).__init__(**kwargs)
 
 
-class TestScrollbarBothMargin(ScrollView):
+class _TestScrollbarBothMargin(ScrollView):
     def __init__(self, **kwargs):
         kwargs['scroll_type'] = ["bars"]
         kwargs['bar_margin'] = 40
         kwargs['bar_width'] = 20
-        super(TestScrollbarBothMargin, self).__init__(**kwargs)
+        super(_TestScrollbarBothMargin, self).__init__(**kwargs)
 
 
 class ScrollViewTestCase(GraphicUnitTest):
@@ -102,7 +96,7 @@ class ScrollViewTestCase(GraphicUnitTest):
             x, y, nx, ny, pos_x, pos_y, border_check = point
             scroll.bar_pos = (pos_x, pos_y)
 
-            touch = UTMotionEvent("unittest", 1, {
+            touch = UTMotionEvent("unittest", next(touch_id), {
                 "x": x / float(win.width),
                 "y": y / float(win.height),
             })
@@ -155,8 +149,8 @@ class ScrollViewTestCase(GraphicUnitTest):
     def test_scrollbar_horizontal(self):
         EventLoop.ensure_window()
         win = EventLoop.window
-        grid = TestGrid()
-        scroll = TestScrollbarHorizontal()
+        grid = _TestGrid()
+        scroll = _TestScrollbarHorizontal()
         scroll.add_widget(grid)
         win.add_widget(scroll)
 
@@ -176,8 +170,8 @@ class ScrollViewTestCase(GraphicUnitTest):
     def test_scrollbar_vertical(self):
         EventLoop.ensure_window()
         win = EventLoop.window
-        grid = TestGrid()
-        scroll = TestScrollbarVertical()
+        grid = _TestGrid()
+        scroll = _TestScrollbarVertical()
         scroll.add_widget(grid)
         win.add_widget(scroll)
 
@@ -197,8 +191,8 @@ class ScrollViewTestCase(GraphicUnitTest):
     def test_scrollbar_both(self):
         EventLoop.ensure_window()
         win = EventLoop.window
-        grid = TestGrid()
-        scroll = TestScrollbarBoth()
+        grid = _TestGrid()
+        scroll = _TestScrollbarBoth()
         scroll.add_widget(grid)
         win.add_widget(scroll)
 
@@ -220,8 +214,8 @@ class ScrollViewTestCase(GraphicUnitTest):
     def test_scrollbar_horizontal_margin(self):
         EventLoop.ensure_window()
         win = EventLoop.window
-        grid = TestGrid()
-        scroll = TestScrollbarHorizontalMargin()
+        grid = _TestGrid()
+        scroll = _TestScrollbarHorizontalMargin()
         margin = scroll.bar_margin
         scroll.add_widget(grid)
         win.add_widget(scroll)
@@ -246,8 +240,8 @@ class ScrollViewTestCase(GraphicUnitTest):
     def test_scrollbar_vertical_margin(self):
         EventLoop.ensure_window()
         win = EventLoop.window
-        grid = TestGrid()
-        scroll = TestScrollbarVerticalMargin()
+        grid = _TestGrid()
+        scroll = _TestScrollbarVerticalMargin()
         margin = scroll.bar_margin
         scroll.add_widget(grid)
         win.add_widget(scroll)
@@ -272,8 +266,8 @@ class ScrollViewTestCase(GraphicUnitTest):
     def test_scrollbar_both_margin(self):
         EventLoop.ensure_window()
         win = EventLoop.window
-        grid = TestGrid()
-        scroll = TestScrollbarBothMargin()
+        grid = _TestGrid()
+        scroll = _TestScrollbarBothMargin()
         margin = scroll.bar_margin
         scroll.add_widget(grid)
         win.add_widget(scroll)
@@ -298,6 +292,65 @@ class ScrollViewTestCase(GraphicUnitTest):
         ]
         self.process_points(scroll, points)
         self.render(scroll)
+
+    def test_smooth_scroll_end(self):
+        EventLoop.ensure_window()
+        win = EventLoop.window
+        grid = _TestGrid()
+        scroll = ScrollView(smooth_scroll_end=10)
+
+        assert scroll.smooth_scroll_end == 10
+        scroll.add_widget(grid)
+
+        # XXX this shouldn't be needed, but previous tests apparently
+        # don't cleanup
+        while win.children:
+            win.remove_widget(win.children[0])
+
+        win.add_widget(scroll)
+
+        # get widgets ready
+        EventLoop.idle()
+
+        e = scroll.effect_y
+        assert e.velocity == 0
+
+        touch = UTMotionEvent("unittest", next(touch_id), {
+            "x": scroll.center_x / float(win.width),
+            "y": scroll.center_y / float(win.height),
+        })
+
+        touch.profile.append('button')
+        touch.button = 'scrollup'
+
+        EventLoop.post_dispatch_input("begin", touch)
+        # EventLoop.post_dispatch_input("update", touch)
+        assert e.velocity == 10 * scroll.scroll_wheel_distance
+        EventLoop.idle()
+        assert 0 < e.velocity < 10 * scroll.scroll_wheel_distance
+        EventLoop.post_dispatch_input("end", touch)
+        EventLoop.idle()
+        assert 0 < e.velocity < 10 * scroll.scroll_wheel_distance
+
+        # wait for velocity to die off
+        while e.velocity:
+            EventLoop.idle()
+
+        touch = UTMotionEvent("unittest", next(touch_id), {
+            "x": scroll.center_x / float(win.width),
+            "y": scroll.center_y / float(win.height),
+        })
+        touch.profile.append('button')
+        touch.button = 'scrolldown'
+
+        EventLoop.post_dispatch_input("begin", touch)
+        # EventLoop.post_dispatch_input("update", touch)
+        assert e.velocity == -10 * scroll.scroll_wheel_distance
+        EventLoop.idle()
+        assert 0 > e.velocity > -10 * scroll.scroll_wheel_distance
+        EventLoop.post_dispatch_input("end", touch)
+        EventLoop.idle()
+        assert 0 > e.velocity > -10 * scroll.scroll_wheel_distance
 
 
 if __name__ == '__main__':

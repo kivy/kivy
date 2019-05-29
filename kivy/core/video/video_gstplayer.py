@@ -9,7 +9,13 @@ This player is the preferred player, using Gstreamer 1.0, working on both
 Python 2 and 3.
 '''
 
-from kivy.lib.gstplayer import GstPlayer, get_gst_version
+try:
+    from kivy.lib.gstplayer import GstPlayer, get_gst_version
+except ImportError:
+    from kivy.core import handle_win_lib_import_error
+    handle_win_lib_import_error(
+        'VideoGstplayer', 'gst', 'kivy.lib.gstplayer._gstplayer')
+    raise
 from kivy.graphics.texture import Texture
 from kivy.core.video import VideoBase
 from kivy.logger import Logger

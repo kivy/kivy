@@ -454,12 +454,15 @@ Consider the following code.
 .. code-block:: python
    :linenos:
 
-    cursor_pos = AliasProperty(_get_cursor_pos, None, bind=(
-        'cursor', 'padding', 'pos', 'size', 'focus',
-        'scroll_x', 'scroll_y'))
+    cursor_pos = AliasProperty(_get_cursor_pos, None,
+                               bind=('cursor', 'padding', 'pos', 'size',
+                                     'focus', 'scroll_x', 'scroll_y',
+                                     'line_height', 'line_spacing'),
+                               cache=True)
     '''Current position of the cursor, in (x, y).
 
-    :attr:`cursor_pos` is a :class:`~kivy.properties.AliasProperty`, read-only.
+    :attr:`cursor_pos` is an :class:`~kivy.properties.AliasProperty`,
+    read-only.
     '''
 
 Here `cursor_pos` is a :class:`~kivy.properties.AliasProperty` which uses the

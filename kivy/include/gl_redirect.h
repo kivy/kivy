@@ -38,13 +38,21 @@
     #define GL_GLEXT_PROTOTYPES
     #define GL_APICALL
     #define GL_APIENTRY
+    #ifndef GL_EXT_blend_func_extended
     #define GL_EXT_blend_func_extended
+    #endif
     #define GL_EXT_disjoint_timer_query
+    #ifndef GL_EXT_geometry_shader
     #define GL_EXT_geometry_shader
+    #endif
+    #ifndef GL_EXT_multisampled_render_to_texture
     #define GL_EXT_multisampled_render_to_texture
+    #endif
     #define GL_EXT_texture_border_clamp
     #define GL_EXT_texture_buffer
+    #ifndef GL_EXT_texture_storage
     #define GL_EXT_texture_storage
+    #endif
 
 #else
 

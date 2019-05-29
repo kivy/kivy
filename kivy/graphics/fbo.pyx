@@ -406,58 +406,62 @@ cdef class Fbo(RenderContext):
                 continue
 
 
-    property size:
+    @property
+    def size(self):
         '''Size of the framebuffer, in (width, height) format.
 
         If you change the size, the framebuffer content will be lost.
         '''
-        def __get__(self):
-            return (self._width, self._height)
-        def __set__(self, x):
-            cdef int w, h
-            w, h = x
-            if w == self._width and h == self._height:
-                return
-            self._width, self._height = x
-            self.delete_fbo()
-            self.create_fbo()
-            self.flag_update()
+        return (self._width, self._height)
 
-    property clear_color:
+    @size.setter
+    def size(self, x):
+        cdef int w, h
+        w, h = x
+        if w == self._width and h == self._height:
+            return
+        self._width, self._height = x
+        self.delete_fbo()
+        self.create_fbo()
+        self.flag_update()
+
+    @property
+    def clear_color(self):
         '''Clear color in (red, green, blue, alpha) format.
         '''
-        def __get__(self):
-            return (self._clear_color[0],
-                    self._clear_color[1],
-                    self._clear_color[2],
-                    self._clear_color[3])
-        def __set__(self, x):
-            x = list(x)
-            if len(x) != 4:
-                raise Exception('clear_color must be a list/tuple of 4 entry.')
-            self._clear_color[0] = x[0]
-            self._clear_color[1] = x[1]
-            self._clear_color[2] = x[2]
-            self._clear_color[3] = x[3]
+        return (self._clear_color[0],
+                self._clear_color[1],
+                self._clear_color[2],
+                self._clear_color[3])
 
-    property texture:
+    @clear_color.setter
+    def clear_color(self, x):
+        x = list(x)
+        if len(x) != 4:
+            raise Exception('clear_color must be a list/tuple of 4 entry.')
+        self._clear_color[0] = x[0]
+        self._clear_color[1] = x[1]
+        self._clear_color[2] = x[2]
+        self._clear_color[3] = x[3]
+
+    @property
+    def texture(self):
         '''Return the framebuffer texture
         '''
-        def __get__(self):
-            return self._texture
+        return self._texture
 
-    property pixels:
+    @property
+    def pixels(self):
         '''Get the pixels texture, in RGBA format only, unsigned byte. The
         origin of the image is at bottom left.
 
         .. versionadded:: 1.7.0
         '''
-        def __get__(self):
-            w, h = self._width, self._height
-            self.bind()
-            data = py_glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE)
-            self.release()
-            return data
+        w, h = self._width, self._height
+        self.bind()
+        data = py_glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE)
+        self.release()
+        return data
 
     cpdef get_pixel_color(self, int wx, int wy):
         """Get the color of the pixel with specified window

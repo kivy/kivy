@@ -82,6 +82,27 @@ KIVY_NO_ARGS
 
     .. versionadded:: 1.9.0
 
+KCFG_section_key
+    If a such format environment name is detected, it will be mapped
+    to the Config object. They are loaded only once when `kivy` is
+    imported. The behavior can be disabled using `KIVY_NO_ENV_CONFIG`.
+
+    ::
+
+        import os
+        os.environ["KCFG_KIVY_LOG_LEVEL"] = "warning"
+        import kivy
+        # during import it will map it to:
+        # Config.set("kivy", "log_level", "warning")
+
+    .. versionadded:: 1.11.0
+
+KIVY_NO_ENV_CONFIG
+    If set, no environment key will be mapped to configuration object.
+    If unset, any `KCFG_section_key=value` will be mapped to Config.
+
+    .. versionadded:: 1.11.0
+
 Restrict core to specific implementation
 ----------------------------------------
 

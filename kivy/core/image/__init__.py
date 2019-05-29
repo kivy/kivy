@@ -6,6 +6,10 @@ Core classes for loading images and converting them to a
 :class:`~kivy.graphics.texture.Texture`. The raw image data can be keep in
 memory for further access.
 
+.. versionchanged:: 1.11.0
+
+    Add support for argb and abgr image data
+
 In-memory image loading
 -----------------------
 
@@ -36,6 +40,24 @@ will be used only for caching)::
     from kivy.core.image import Image as CoreImage
     data = io.BytesIO(open("image.png", "rb").read())
     im = CoreImage(data, ext="png", filename="image.png")
+
+Saving an image
+---------------
+
+A CoreImage can be saved to a file::
+
+    from kivy.core.image import Image as CoreImage
+    image = CoreImage(...)
+    image.save("/tmp/test.png")
+
+Or you can get the bytes (new in `1.11.0`):
+
+    import io
+    from kivy.core.image import Image as CoreImage
+    data = io.BytesIO()
+    image = CoreImage(...)
+    image.save(data, fmt="png")
+    png_bytes = data.read()
 
 '''
 import re
@@ -73,9 +95,9 @@ class ImageData(object):
     '''
 
     __slots__ = ('fmt', 'mipmaps', 'source', 'flip_vertical', 'source_image')
-    _supported_fmts = ('rgb', 'rgba', 'bgr', 'bgra', 's3tc_dxt1', 's3tc_dxt3',
-                       's3tc_dxt5', 'pvrtc_rgb2', 'pvrtc_rgb4', 'pvrtc_rgba2',
-                       'pvrtc_rgba4', 'etc1_rgb8')
+    _supported_fmts = ('rgb', 'bgr', 'rgba', 'bgra', 'argb', 'abgr',
+                       's3tc_dxt1', 's3tc_dxt3', 's3tc_dxt5', 'pvrtc_rgb2',
+                       'pvrtc_rgb4', 'pvrtc_rgba2', 'pvrtc_rgba4', 'etc1_rgb8')
 
     def __init__(self, width, height, fmt, data, source=None,
                  flip_vertical=True, source_image=None,
@@ -206,8 +228,11 @@ class ImageLoaderBase(object):
         return None
 
     @staticmethod
-    def can_save():
+    def can_save(fmt, is_bytesio=False):
         '''Indicate if the loader can save the Image object
+
+        .. versionchanged:: 1.11.0
+            Parameter `fmt` and `is_bytesio` added
         '''
         return False
 
@@ -218,7 +243,7 @@ class ImageLoaderBase(object):
         return False
 
     @staticmethod
-    def save():
+    def save(*largs, **kwargs):
         raise NotImplementedError()
 
     def populate(self):
@@ -345,7 +370,7 @@ class ImageLoader(object):
                         continue
                     break
                 if im is not None:
-                    # append ImageData to local variable before it's
+                    # append ImageData to local variable before its
                     # overwritten
                     image_data.append(im._data[0])
                     image = im
@@ -716,7 +741,6 @@ class Image(EventDispatcher):
                 self._set_filename(value)
             else:
                 self._texture = None
-                self._img_iterate()
             return
         else:
             # if we already got a texture, it will be automatically reloaded.
@@ -797,7 +821,7 @@ class Image(EventDispatcher):
         '''
         return self._nocache
 
-    def save(self, filename, flipped=False):
+    def save(self, filename, flipped=False, fmt=None):
         '''Save image texture to file.
 
         The filename should have the '.png' extension because the texture data
@@ -826,10 +850,26 @@ class Image(EventDispatcher):
             Parameter `flipped` added to flip the image before saving, default
             to False.
 
+        .. versionchanged:: 1.11.0
+            Parameter `fmt` added to force the output format of the file
+            Filename can now be a BytesIO object.
+
         '''
+        is_bytesio = False
+        if isinstance(filename, BytesIO):
+            is_bytesio = True
+            if not fmt:
+                raise Exception(
+                    "You must specify a format to save into a BytesIO object")
+        elif fmt is None:
+            fmt = self._find_format_from_filename(filename)
+
         pixels = None
         size = None
-        loaders = [x for x in ImageLoader.loaders if x.can_save()]
+        loaders = [
+            x for x in ImageLoader.loaders
+            if x.can_save(fmt, is_bytesio=is_bytesio)
+        ]
         if not loaders:
             return False
         loader = loaders[0]
@@ -858,12 +898,25 @@ class Image(EventDispatcher):
 
         l_pixels = len(pixels)
         if l_pixels == size[0] * size[1] * 3:
-            fmt = 'rgb'
+            pixelfmt = 'rgb'
         elif l_pixels == size[0] * size[1] * 4:
-            fmt = 'rgba'
+            pixelfmt = 'rgba'
         else:
             raise Exception('Unable to determine the format of the pixels')
-        return loader.save(filename, size[0], size[1], fmt, pixels, flipped)
+        return loader.save(
+            filename, size[0], size[1], pixelfmt, pixels, flipped, fmt)
+
+    def _find_format_from_filename(self, filename):
+        ext = filename.rsplit(".", 1)[-1].lower()
+        if ext in {
+                'bmp', 'jpe', 'lbm', 'pcx', 'png', 'pnm',
+                'tga', 'tiff', 'webp', 'xcf', 'xpm', 'xv'}:
+            return ext
+        elif ext in ('jpg', 'jpeg'):
+            return 'jpg'
+        elif ext in ('b64', 'base64'):
+            return 'base64'
+        return None
 
     def read_pixel(self, x, y):
         '''For a given local x/y position, return the pixel color at that
@@ -900,8 +953,15 @@ class Image(EventDispatcher):
         raw = bytearray(data.data[index:index + size])
         color = [c / 255.0 for c in raw]
 
-        # conversion for BGR->RGB, BGR->RGBA format
-        if data.fmt in ('bgr', 'bgra'):
+        bgr_flag = False
+        if data.fmt == 'argb':
+            color.reverse()  # bgra
+            bgr_flag = True
+        elif data.fmt == 'abgr':
+            color.reverse()  # rgba
+
+        # conversion for BGR->RGB, BGRA->RGBA format
+        if bgr_flag or data.fmt in ('bgr', 'bgra'):
             color[0], color[2] = color[2], color[0]
 
         return color

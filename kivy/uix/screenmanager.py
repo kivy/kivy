@@ -271,7 +271,7 @@ class Screen(RelativeLayout):
     - 'in' if the transition is going to show your screen
     - 'out' if the transition is going to hide your screen
 
-    After the transition is complete, the state will retain it's last value (in
+    After the transition is complete, the state will retain its last value (in
     or out).
 
     :attr:`transition_state` is an :class:`~kivy.properties.OptionProperty` and
@@ -497,6 +497,7 @@ class ShaderTransition(TransitionBase):
     def add_screen(self, screen):
         self.screen_in.pos = self.screen_out.pos
         self.screen_in.size = self.screen_out.size
+        self.manager.remove_widget(self.screen_out)
         self.manager.real_remove_widget(self.screen_out)
         self.manager.canvas.add(self.screen_out.canvas)
 
@@ -953,8 +954,7 @@ class ScreenManager(FloatLayout):
     def _get_screen_names(self):
         return [s.name for s in self.screens]
 
-    screen_names = AliasProperty(_get_screen_names,
-                                 None, bind=('screens', ))
+    screen_names = AliasProperty(_get_screen_names, bind=('screens',))
     '''List of the names of all the :class:`Screen` widgets added. The list
     is read only.
 

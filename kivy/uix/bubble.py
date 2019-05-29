@@ -173,6 +173,23 @@ class Bubble(GridLayout):
     defaults to 'None'.
     '''
 
+    border_auto_scale = OptionProperty(
+        'both_lower',
+        options=[
+            'off', 'both', 'x_only', 'y_only', 'y_full_x_lower',
+            'x_full_y_lower', 'both_lower'
+        ]
+    )
+    '''Specifies the :attr:`kivy.graphics.BorderImage.auto_scale`
+    value on the background BorderImage.
+
+    .. versionadded:: 1.11.0
+
+    :attr:`border_auto_scale` is a
+    :class:`~kivy.properties.OptionProperty` and defaults to
+    'both_lower'.
+    '''
+
     def __init__(self, **kwargs):
         self._prev_arrow_pos = None
         self._arrow_layout = BoxLayout()

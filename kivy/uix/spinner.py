@@ -28,12 +28,24 @@ Example::
         pos_hint={'center_x': .5, 'center_y': .5})
 
     def show_selected_value(spinner, text):
-        print('The spinner', spinner, 'have text', text)
+        print('The spinner', spinner, 'has text', text)
 
     spinner.bind(text=show_selected_value)
 
     runTouchApp(spinner)
 
+
+Kv Example::
+
+    FloatLayout:
+        Spinner:
+            size_hint: None, none
+            size: 100, 44
+            pos_hint: {'center': (.5, .5)}
+            text: 'Home'
+            values: 'Home', 'Work', 'Other', 'Custom'
+            on_value:
+                print: "The spinner {} has text {}".format(self, self.value)
 '''
 
 __all__ = ('Spinner', 'SpinnerOption')

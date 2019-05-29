@@ -3,6 +3,16 @@
 Installation on Windows
 =======================
 
+Prerequisites
+-------------
+
+Kivy is written in
+`Python <https://en.wikipedia.org/wiki/Python_%28programming_language%29>`_
+and as such, to use Kivy, you need an existing
+installation of `Python <https://www.python.org/downloads/windows/>`_.
+Multiple versions of Python can be installed side by side, but Kivy needs to
+be installed in each Python version that you want to use Kivy in.
+
 Beginning with 1.9.1 we provide binary
 `wheels <https://wheel.readthedocs.org/en/latest/>`_
 for Kivy and all its dependencies to be used with an existing Python
@@ -20,10 +30,6 @@ location** and not to site-packages, please see :ref:`alternate-win`.
     because of the following Python
     `issue 4709 <http://bugs.python.org/issue4709>`_ about MinGW.
     Generally this should make no difference when using precompiled wheels.
-
-To use Kivy you need `Python <https://www.python.org/downloads/windows/>`_.
-Multiple versions of Python can be installed side by side, but Kivy needs to
-be installed for each Python version that you want to use Kivy.
 
 .. _install-win-dist:
 
@@ -99,23 +105,23 @@ Nightly wheel installation
 --------------------------
 
 .. |cp27_win32| replace:: Python 2.7, 32bit
-.. _cp27_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp27-cp27m-win32.whl
-.. |cp34_win32| replace:: Python 3.4, 32bit
-.. _cp34_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp34-cp34m-win32.whl
+.. _cp27_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp27-cp27m-win32.whl
 .. |cp27_amd64| replace:: Python 2.7, 64bit
-.. _cp27_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp27-cp27m-win_amd64.whl
-.. |cp34_amd64| replace:: Python 3.4, 64bit
-.. _cp34_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp34-cp34m-win_amd64.whl
+.. _cp27_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp27-cp27m-win_amd64.whl
 .. |cp35_win32| replace:: Python 3.5, 32bit
-.. _cp35_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp35-cp35m-win32.whl
+.. _cp35_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp35-cp35m-win32.whl
 .. |cp35_amd64| replace:: Python 3.5, 64bit
-.. _cp35_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp35-cp35m-win_amd64.whl
+.. _cp35_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp35-cp35m-win_amd64.whl
 .. |cp36_win32| replace:: Python 3.6, 32bit
-.. _cp36_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp36-cp36m-win32.whl
+.. _cp36_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp36-cp36m-win32.whl
 .. |cp36_amd64| replace:: Python 3.6, 64bit
-.. _cp36_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp36-cp36m-win_amd64.whl
+.. _cp36_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp36-cp36m-win_amd64.whl
+.. |cp37_win32| replace:: Python 3.7, 32bit
+.. _cp37_win32: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp37-cp37m-win32.whl
+.. |cp37_amd64| replace:: Python 3.7, 64bit
+.. _cp37_amd64: https://kivy.org/downloads/appveyor/kivy/Kivy-1.11.0.dev0-cp37-cp37m-win_amd64.whl
 .. |examples_whl| replace:: Kivy examples
-.. _examples_whl: https://kivy.org/downloads/appveyor/kivy/Kivy_examples-1.10.1.dev0-py2.py3-none-any.whl
+.. _examples_whl: https://kivy.org/downloads/appveyor/kivy/Kivy_examples-1.11.0.dev0-py2.py3-none-any.whl
 
 .. warning::
 
@@ -129,14 +135,14 @@ doing ``python -m pip install kivy`` we'll install one of these wheels as
 follows.
 
 + |cp27_win32|_
-+ |cp34_win32|_
 + |cp35_win32|_
 + |cp36_win32|_
++ |cp37_win32|_
 
 - |cp27_amd64|_
-- |cp34_amd64|_
 - |cp35_amd64|_
 - |cp36_amd64|_
+- |cp37_amd64|_
 
 #. Perform steps 1 and 2 of the above Installation section.
 #. Download the appropriate wheel for your system.
@@ -366,12 +372,10 @@ You can launch a .py file with our Python using the Send-to menu:
 You can now execute your application by right clicking on the `.py` file ->
 "Send To" -> "python <python-version>".
 
-.. _upgrade-win-dist:
+Uninstalling Kivy
+^^^^^^^^^^^^^^^^^^
 
-Upgrading from a previous Kivy dist
------------------------------------
+To uninstall Kivy, remove the installed packages with pip. E.g. if you isnatlled kivy following the instructions above, do::
 
-To install the new wheels to a previous Kivy distribution all the files and
-folders, except for the python folder should be deleted from the distribution.
-This python folder will then be treated as a normal system installed python and
-all the steps described in :ref:`Installation` can then be continued.
+     python -m pip uninstall kivy.deps.sdl2 kivy.deps.glew kivy.deps.gstreamer
+     python -m pip uninstall kivy

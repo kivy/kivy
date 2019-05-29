@@ -20,7 +20,7 @@ See http://kivy.org for more information.
 '''
 
 __all__ = (
-    'require',
+    'require', 'parse_kivy_version',
     'kivy_configure', 'kivy_register_post_configuration',
     'kivy_options', 'kivy_base_dir',
     'kivy_modules_dir', 'kivy_data_dir', 'kivy_shader_dir',
@@ -34,6 +34,7 @@ from getopt import getopt, GetoptError
 from os import environ, mkdir
 from os.path import dirname, join, basename, exists, expanduser
 import pkgutil
+import re
 from kivy.compat import PY2
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.utils import platform
@@ -46,7 +47,7 @@ RELEASE = False
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 if not RELEASE and '.dev0' not in __version__:
-    __version__ += '.dev0'
+    __version__ += 'rc1'
 
 try:
     from kivy.version import __hash__, __date__
@@ -70,6 +71,23 @@ if platform == 'macosx' and sys.maxsize < 9223372036854775807:
     Logger.critical(r)
 
 
+def parse_kivy_version(version):
+    """Parses the kivy version as described in :func:`require` into a 3-tuple
+    of ([x, y, z], 'rc|a|b|dev', 'N') where N is the tag revision. The last
+    two elements may be None.
+    """
+    m = re.match(
+        '^([0-9]+)\\.([0-9]+)\\.([0-9]+?)(rc|a|b|\\.dev)?([0-9]+)?$',
+        version)
+    if m is None:
+        raise Exception('Revision format must be X.Y.Z[-tag]')
+
+    major, minor, micro, tag, tagrev = m.groups()
+    if tag == '.dev':
+        tag = 'dev'
+    return [int(major), int(minor), int(micro)], tag, tagrev
+
+
 def require(version):
     '''Require can be used to check the minimum version required to run a Kivy
     application. For example, you can start your application code like this::
@@ -82,14 +100,14 @@ def require(version):
 
     The Kivy version string is built like this::
 
-        X.Y.Z[-tag[-tagrevision]]
+        X.Y.Z[tag[tagrevision]]
 
         X is the major version
         Y is the minor version
         Z is the bugfixes revision
 
-    The tag is optional, but may be one of 'dev', 'alpha', or 'beta'.
-    The tagrevision is the revision of the tag.
+    The tag is optional, but may be one of '.dev', 'a', 'b', or 'rc'.
+    The tagrevision is the revision number of the tag.
 
     .. warning::
 
@@ -100,38 +118,13 @@ def require(version):
 
     '''
 
-    def parse_version(version):
-        # check for tag
-        tag = None
-        tagrev = None
-        if '-' in version:
-            v = version.split('-')
-            if len(v) == 2:
-                version, tag = v
-            elif len(v) == 3:
-                version, tag, tagrev = v
-            else:
-                raise Exception('Revision format must be X.Y.Z[-tag]')
-
-        # check x y z
-        v = version.split('.')
-        if len(v) != 3:
-            if 'dev0' in v:
-                tag = v.pop()
-            else:
-                raise Exception('Revision format must be X.Y.Z[-tag]')
-        return [int(x) for x in v], tag, tagrev
-
     # user version
-    revision, tag, tagrev = parse_version(version)
+    revision, tag, tagrev = parse_kivy_version(version)
     # current version
-    sysrevision, systag, systagrev = parse_version(__version__)
+    sysrevision, systag, systagrev = parse_kivy_version(__version__)
 
-    # ensure that the required version don't contain tag, except dev
-    if tag not in (None, 'dev'):
-        raise Exception('Revision format must not have any tag except "dev"')
-    if tag == 'dev' and systag != 'dev':
-        Logger.warning('Application requested a -dev version of Kivy. '
+    if tag and not systag:
+        Logger.warning('Application requested a dev version of Kivy. '
                        '(You have %s, but the application requires %s)' % (
                            __version__, version))
     # not tag rev (-alpha-1, -beta-x) allowed.
@@ -265,30 +258,12 @@ kivy_config_fn = ''
 #: Kivy user modules directory
 kivy_usermodules_dir = ''
 
-# if there are deps, import them so they can do their magic.
-import kivy.deps
-_packages = []
-for importer, modname, ispkg in pkgutil.iter_modules(kivy.deps.__path__):
-    if not ispkg:
-        continue
-    if modname.startswith('gst'):
-        _packages.insert(0, (importer, modname))
-    else:
-        _packages.append((importer, modname))
-
-for importer, modname in _packages:
-    try:
-        importer.find_module(modname).load_module(modname)
-    except ImportError as e:
-        Logger.warning("deps: Error importing dependency: {}".format(str(e)))
-
-
 # Don't go further if we generate documentation
 if any(name in sys.argv[0] for name in ('sphinx-build', 'autobuild.py')):
     environ['KIVY_DOC'] = '1'
 if 'sphinx-build' in sys.argv[0]:
     environ['KIVY_DOC_INCLUDE'] = '1'
-if any('nosetests' in arg for arg in sys.argv):
+if any(('nosetests' in arg or 'pytest' in arg) for arg in sys.argv):
     environ['KIVY_UNITTEST'] = '1'
 if any('pyinstaller' in arg.lower() for arg in sys.argv):
     environ['KIVY_PACKAGING'] = '1'
@@ -453,7 +428,45 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         Config.set('input', 'androidtouch', 'android')
 
 if RELEASE:
-    Logger.info('Kivy: v%s' % (__version__))
+    Logger.info('Kivy: v%s' % __version__)
 elif not RELEASE and __hash__ and __date__:
     Logger.info('Kivy: v%s, git-%s, %s' % (__version__, __hash__, __date__))
+Logger.info('Kivy: Installed at "{}"'.format(__file__))
 Logger.info('Python: v{}'.format(sys.version))
+Logger.info('Python: Interpreter at "{}"'.format(sys.executable))
+
+# if there are deps, import them so they can do their magic.
+import kivy.deps
+_packages = []
+for importer, modname, ispkg in pkgutil.iter_modules(kivy.deps.__path__):
+    if not ispkg:
+        continue
+    if modname.startswith('gst'):
+        _packages.insert(0, (importer, modname))
+    else:
+        _packages.append((importer, modname))
+
+for importer, modname in _packages:
+    try:
+        mod = importer.find_module(modname).load_module(modname)
+
+        version = ''
+        if hasattr(mod, '__version__'):
+            version = ' {}'.format(mod.__version__)
+        Logger.info(
+            'deps: Successfully imported "kivy.deps.{}"{}'.
+            format(modname, version))
+    except ImportError as e:
+        Logger.warning(
+            'deps: Error importing dependency "kivy.deps.{}": {}'.
+            format(modname, str(e)))
+
+from kivy.logger import file_log_handler
+if file_log_handler is not None:
+    file_log_handler.purge_logs()
+
+
+if PY2:
+    Logger.warning(
+        'Deprecated: Python 2 Kivy support has been deprecated. The '
+        'Kivy release after 1.11.0 will not support Python 2 anymore')

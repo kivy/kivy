@@ -38,6 +38,7 @@
             texture: root.parent._bk_img.texture if root.parent else None
             size: self.size
             pos: self.pos
+            auto_scale: root.parent.border_auto_scale if self.parent else 'off'
 
 <BubbleButton>:
     background_normal: 'atlas://data/images/defaulttheme/bubble_btn'
@@ -189,8 +190,8 @@
                 if self.focus and not self._cursor_blink
                 else (0, 0, 0, 0))
         Rectangle:
-            pos: [int(x) for x in self.cursor_pos]
-            size: root.cursor_width, -self.line_height
+            pos: self._cursor_visual_pos
+            size: root.cursor_width, -self._cursor_visual_height
         Color:
             rgba: self.disabled_foreground_color if self.disabled else (self.hint_text_color if not self.text else self.foreground_color)
 
@@ -436,6 +437,9 @@
         pos_hint: {'x': .2, 'y': .6}
         size_hint: .6, .2
         text: 'Opening %s' % root.path
+        text_size: self.size
+        halign: 'center'
+        valign: 'middle'
     FloatLayout:
         pos_hint: {'x': .2, 'y': .4}
         size_hint: .6, .2
@@ -1009,7 +1013,7 @@
     image_loading: 'data/images/image-loading.gif'
     Image:
         source: root.source
-        color: (.5, .5, .5, 1)
+        color: (.5, .5, .5, 1) if root.source else (0, 0, 0, 0)
         pos_hint: {'x': 0, 'y': 0}
     Image:
         source: root.image_overlay_play if not root.click_done else root.image_loading
@@ -1177,7 +1181,7 @@
     _radius: 0.45 * min(self.size)
 
 <ColorPicker>:
-    foreground_color: (1, 1, 1, 1) if self.hsv[2] * wheel.a < .5 else (0, 0, 0, 1)
+    foreground_color: (1, 1, 1, 1) if self.hsv[2] * root.color[3] < .5 else (0, 0, 0, 1)
     wheel: wheel
     BoxLayout:
         orientation: 'vertical' if root.width < root.height else 'horizontal'
@@ -1197,7 +1201,7 @@
                 mroot: root
                 text: 'R'
                 clr_idx: 0
-                color: wheel.r
+                color: root.color[0]
                 foreground_color: root.foreground_color
                 size_hint_y: None if root.width < root.height else 0.125
                 size_hint_x: .5 if root.width < root.height else 1
@@ -1207,7 +1211,7 @@
                 mroot: root
                 text: 'G'
                 clr_idx: 1
-                color: wheel.g
+                color: root.color[1]
                 foreground_color: root.foreground_color
                 size_hint_y: None if root.width < root.height else 0.125
                 size_hint_x: .5 if root.width < root.height else 1
@@ -1217,7 +1221,7 @@
                 mroot: root
                 text: 'B'
                 clr_idx: 2
-                color: wheel.b
+                color: root.color[2]
                 foreground_color: root.foreground_color
                 size_hint_y: None if root.width < root.height else 0.125
                 size_hint_x: .5 if root.width < root.height else 1
@@ -1288,4 +1292,4 @@
         ColorWheel:
             id: wheel
             color: root.color
-            on_color: root.color[:3] = args[1][:3]
+            on_color: root.set_color(args[1][:3])

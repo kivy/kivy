@@ -58,6 +58,30 @@ text at a certain width:
         text_size: root.width, None
         size: self.texture_size
 
+How to have a custom background color in the label:
+
+.. code-block:: kv
+
+    # Define your background color Template
+    <BackgroundColor@Widget>
+        background_color: 1, 1, 1, 1
+        canvas.before:
+            Color:
+                rgba: root.background_color
+            Rectangle:
+                size: self.size
+                pos: self.pos
+    # Now you can simply Mix the `BackgroundColor` class with almost
+    # any other widget... to give it a background.
+    <BackgroundLabel@Label+BackgroundColor>
+        background_color: 0, 0, 0, 0
+        # Default the background color for this label
+        # to r 0, g 0, b 0, a 0
+    # Use the BackgroundLabel any where in your kv code like below
+    BackgroundLabel
+        text: 'Hello'
+        background_color: 1, 0, 0, 1
+
 Text alignment and wrapping
 ---------------------------
 
@@ -115,7 +139,18 @@ The following tags are available:
 ``[s][/s]``
     Strikethrough text
 ``[font=<str>][/font]``
-    Change the font
+    Change the font (note: this refers to a TTF file or registered alias)
+``[font_context=<str>][/font_context]``
+    Change context for the font, use string value "none" for isolated context
+    (this is equivalent to `None`; if you created a font context named
+    `'none'`, it cannot be referred to using markup)
+``[font_family=<str>][/font_family]``
+    Font family to request for drawing. This is only valid when using a
+    font context, see :class:`kivy.uix.label.Label` for details.
+``[font_features=<str>][/font_features]``
+    OpenType font features, in CSS format, this is passed straight
+    through to Pango. The effects of requesting a feature depends on loaded
+    fonts, library versions, etc. Pango only, requires v1.38 or later.
 ``[size=<integer>][/size]``
     Change the font size
 ``[color=#<color>][/color]``
@@ -130,6 +165,11 @@ The following tags are available:
     Display the text at a subscript position relative to the text before it.
 ``[sup][/sup]``
     Display the text at a superscript position relative to the text before it.
+``[text_language=<str>][/text_language]``
+    Language of the text, this is an RFC-3066 format language tag (as string),
+    for example "en_US", "zh_CN", "fr" or "ja". This can impact font selection
+    and metrics. Use the string "None" to revert to locale detection.
+    Pango only.
 
 If you want to render the markup text with a [ or ] or & character, you need to
 escape them. We created a simple syntax::
@@ -263,14 +303,15 @@ class Label(Widget):
     __events__ = ['on_ref_press']
 
     _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
-                        'underline', 'strikethrough', 'color',
+                        'underline', 'strikethrough', 'font_family', 'color',
                         'disabled_color', 'halign', 'valign', 'padding_x',
                         'padding_y', 'outline_width', 'disabled_outline_color',
                         'outline_color', 'text_size', 'shorten', 'mipmap',
                         'line_height', 'max_lines', 'strip', 'shorten_from',
                         'split_str', 'ellipsis_options', 'unicode_errors',
                         'markup', 'font_hinting', 'font_kerning',
-                        'font_blended')
+                        'font_blended', 'font_context', 'font_features',
+                        'base_direction', 'text_language')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -452,6 +493,92 @@ class Label(Widget):
     defaults to (None, None), meaning no size restriction by default.
     '''
 
+    base_direction = OptionProperty(None,
+                     options=['ltr', 'rtl', 'weak_rtl', 'weak_ltr', None],
+                     allownone=True)
+    '''Base direction of text, this impacts horizontal alignment when
+    :attr:`halign` is `auto` (the default). Available options are: None,
+    "ltr" (left to right), "rtl" (right to left) plus "weak_ltr" and
+    "weak_rtl".
+
+    .. note::
+        This feature requires the Pango text provider.
+
+    .. note::
+        Weak modes are currently not implemented in Kivy text layout, and
+        have the same effect as setting strong mode.
+
+    .. versionadded:: 1.11.0
+
+    :attr:`base_direction` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to None (autodetect RTL if possible, otherwise LTR).
+    '''
+
+    text_language = StringProperty(None, allownone=True)
+    '''Language of the text, if None Pango will determine it from locale.
+    This is an RFC-3066 format language tag (as a string), for example
+    "en_US", "zh_CN", "fr" or "ja". This can impact font selection, metrics
+    and rendering. For example, the same bytes of text can look different
+    for `ur` and `ar` languages, though both use Arabic script.
+
+    .. note::
+        This feature requires the Pango text provider.
+
+    .. versionadded:: 1.11.0
+
+    :attr:`text_language` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+    '''
+
+    font_context = StringProperty(None, allownone=True)
+    '''Font context. `None` means the font is used in isolation, so you are
+    guaranteed to be drawing with the TTF file resolved by :attr:`font_name`.
+    Specifying a value here will load the font file into a named context,
+    enabling fallback between all fonts in the same context. If a font
+    context is set, you are not guaranteed that rendering will actually use
+    the specified TTF file for all glyphs (Pango will pick the one it
+    thinks is best).
+
+    If Kivy is linked against a system-wide installation of FontConfig,
+    you can load the system fonts by specifying a font context starting
+    with the special string `system://`. This will load the system
+    fontconfig configuration, and add your application-specific fonts on
+    top of it (this imposes a signifficant risk of family name collision,
+    Pango may not use your custom font file, but pick one from the system)
+
+    .. note::
+        This feature requires the Pango text provider.
+
+    .. versionadded:: 1.11.0
+
+    :attr:`font_context` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+    '''
+
+    font_family = StringProperty(None, allownone=True)
+    '''Font family, this is only applicable when using :attr:`font_context`
+    option. The specified font family will be requested, but note that it may
+    not be available, or there could be multiple fonts registered with the
+    same family. The value can be a family name (string) available in the
+    font context (for example a system font in a `system://` context, or a
+    custom font file added using :class:`kivy.core.text.FontContextManager`).
+    If set to `None`, font selection is controlled by the :attr:`font_name`
+    setting.
+
+    .. note::
+        If using :attr:`font_name` to reference a custom font file, you
+        should leave this as `None`. The family name is managed automatically
+        in this case.
+
+    .. note::
+        This feature requires the Pango text provider.
+
+    .. versionadded:: 1.11.0
+
+    :attr:`font_family` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+    '''
+
     font_name = StringProperty(DEFAULT_FONT)
     '''Filename of the font to use. The path can be absolute or relative.
     Relative paths are resolved by the :func:`~kivy.resources.resource_find`
@@ -480,6 +607,23 @@ class Label(Widget):
 
     :attr:`font_size` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 15sp.
+    '''
+
+    font_features = StringProperty()
+    '''OpenType font features, in CSS format, this is passed straight
+    through to Pango. The effects of requesting a feature depends on loaded
+    fonts, library versions, etc. For a complete list of features, see:
+
+    https://en.wikipedia.org/wiki/List_of_typographic_features
+
+    .. note::
+        This feature requires the Pango text provider, and Pango library
+        v1.38 or later.
+
+    .. versionadded:: 1.11.0
+
+    :attr:`font_features` is a :class:`~kivy.properties.StringProperty` and
+    defaults to an empty string.
     '''
 
     line_height = NumericProperty(1.0)
@@ -569,13 +713,14 @@ class Label(Widget):
     (:attr:`padding_x`, :attr:`padding_y`) properties.
     '''
 
-    halign = OptionProperty('left', options=['left', 'center', 'right',
-                            'justify'])
+    halign = OptionProperty('auto', options=['left', 'center', 'right',
+                            'justify', 'auto'])
     '''Horizontal alignment of the text.
 
     :attr:`halign` is an :class:`~kivy.properties.OptionProperty` and
-    defaults to 'left'. Available options are : left, center, right and
-    justify.
+    defaults to 'auto'. Available options are : auto, left, center, right and
+    justify. Auto will attempt to autodetect horizontal alignment for RTL text
+    (Pango only), otherwise it behaves like `left`.
 
     .. warning::
 
@@ -583,6 +728,9 @@ class Label(Widget):
         (centered), only the position of the text in this texture. You probably
         want to bind the size of the Label to the :attr:`texture_size` or set a
         :attr:`text_size`.
+
+    .. versionchanged:: 1.10.1
+        Added `auto` option
 
     .. versionchanged:: 1.6.0
         A new option was added to :attr:`halign`, namely `justify`.
@@ -908,7 +1056,7 @@ class Label(Widget):
     Can be one of `'normal'`, `'light'`, `'mono'` or None.
 
     .. note::
-        This feature requires the SDL2 text provider.
+        This feature requires SDL2 or Pango text provider.
 
     .. versionadded:: 1.10.0
 
@@ -917,7 +1065,8 @@ class Label(Widget):
     '''
 
     font_kerning = BooleanProperty(True)
-    '''Whether kerning is enabled for font rendering.
+    '''Whether kerning is enabled for font rendering. You should normally
+    only disable this if rendering is broken with a particular font file.
 
     .. note::
         This feature requires the SDL2 text provider.

@@ -396,8 +396,17 @@ class BuilderBase(object):
                 self.files.append(fn)
 
             if parser.root:
-                widget = Factory.get(parser.root.name)()
-                self._apply_rule(widget, parser.root, parser.root)
+                widget = Factory.get(parser.root.name)(__no_builder=True)
+                rule_children = []
+                widget.apply_class_lang_rules(
+                    root=widget, rule_children=rule_children)
+                self._apply_rule(
+                    widget, parser.root, parser.root,
+                    rule_children=rule_children)
+
+                for child in rule_children:
+                    child.dispatch('on_kv_post', widget)
+                widget.dispatch('on_kv_post', widget)
                 return widget
         finally:
             self._current_filename = None
@@ -433,47 +442,110 @@ class BuilderBase(object):
         self._apply_rule(widget, rule, rule, template_ctx=proxy_ctx)
         return widget
 
-    def apply_rules(self, widget, rule_name, ignored_consts=set()):
-        '''Search all the rules that match `rule_name` widget
+    def apply_rules(
+            self, widget, rule_name, ignored_consts=set(), rule_children=None,
+            dispatch_kv_post=False):
+        '''Search all the rules that match the name `rule_name`
         and apply them to `widget`.
 
         .. versionadded:: 1.10.0
 
-        `ignored_consts` is a set or list type whose elements are property
-        names for which constant KV rules (i.e. those that don't create
-        bindings) of that widget will not be applied. This allows e.g. skipping
-        constant rules that overwrite a value initialized in python.
+        :Parameters:
+
+            `widget`: :class:`~kivy.uix.widget.Widget`
+                The widget to whom the matching rules should be applied to.
+            `ignored_consts`: set
+                A set or list type whose elements are property names for which
+                constant KV rules (i.e. those that don't create bindings) of
+                that widget will not be applied. This allows e.g. skipping
+                constant rules that overwrite a value initialized in python.
+            `rule_children`: list
+                If not ``None``, it should be a list that will be populated
+                with all the widgets created by the kv rules being applied.
+
+                .. versionchanged:: 1.11.0
+
+            `dispatch_kv_post`: bool
+                Normally the class `Widget` dispatches the `on_kv_post` event
+                to widgets created during kv rule application.
+                But if the rules are manually applied by calling :meth:`apply`,
+                that may not happen, so if this is `True`, we will dispatch the
+                `on_kv_post` event where needed after applying the rules to
+                `widget` (we won't dispatch it for `widget` itself).
+
+                Defaults to False.
+
+                .. versionchanged:: 1.11.0
         '''
         rules = self.match_rule_name(rule_name)
         if __debug__:
             trace('Lang: Found %d rules for %s' % (len(rules), rule_name))
         if not rules:
             return
-        for rule in rules:
-            self._apply_rule(widget, rule, rule, ignored_consts=ignored_consts)
 
-    def apply(self, widget, ignored_consts=set()):
+        if dispatch_kv_post:
+            rule_children = rule_children if rule_children is not None else []
+        for rule in rules:
+            self._apply_rule(
+                widget, rule, rule, ignored_consts=ignored_consts,
+                rule_children=rule_children)
+        if dispatch_kv_post:
+            for w in rule_children:
+                w.dispatch('on_kv_post', widget)
+
+    def apply(self, widget, ignored_consts=set(), rule_children=None,
+              dispatch_kv_post=False):
         '''Search all the rules that match the widget and apply them.
 
-        `ignored_consts` is a set or list type whose elements are property
-        names for which constant KV rules (i.e. those that don't create
-        bindings) of that widget will not be applied. This allows e.g. skipping
-        constant rules that overwrite a value initialized in python.
+        :Parameters:
+
+            `widget`: :class:`~kivy.uix.widget.Widget`
+                The widget whose class rules should be applied to this widget.
+            `ignored_consts`: set
+                A set or list type whose elements are property names for which
+                constant KV rules (i.e. those that don't create bindings) of
+                that widget will not be applied. This allows e.g. skipping
+                constant rules that overwrite a value initialized in python.
+            `rule_children`: list
+                If not ``None``, it should be a list that will be populated
+                with all the widgets created by the kv rules being applied.
+
+                .. versionchanged:: 1.11.0
+
+            `dispatch_kv_post`: bool
+                Normally the class `Widget` dispatches the `on_kv_post` event
+                to widgets created during kv rule application.
+                But if the rules are manually applied by calling :meth:`apply`,
+                that may not happen, so if this is `True`, we will dispatch the
+                `on_kv_post` event where needed after applying the rules to
+                `widget` (we won't dispatch it for `widget` itself).
+
+                Defaults to False.
+
+                .. versionchanged:: 1.11.0
         '''
         rules = self.match(widget)
         if __debug__:
             trace('Lang: Found %d rules for %s' % (len(rules), widget))
         if not rules:
             return
+
+        if dispatch_kv_post:
+            rule_children = rule_children if rule_children is not None else []
         for rule in rules:
-            self._apply_rule(widget, rule, rule, ignored_consts=ignored_consts)
+            self._apply_rule(
+                widget, rule, rule, ignored_consts=ignored_consts,
+                rule_children=rule_children)
+        if dispatch_kv_post:
+            for w in rule_children:
+                w.dispatch('on_kv_post', widget)
 
     def _clear_matchcache(self):
         BuilderBase._match_cache = {}
         BuilderBase._match_name_cache = {}
 
     def _apply_rule(self, widget, rule, rootrule, template_ctx=None,
-                    ignored_consts=set()):
+                    ignored_consts=set(), rule_children=None):
         # widget: the current instantiated widget
         # rule: the current rule
         # rootrule: the current root rule (for children of a rule)
@@ -581,8 +653,13 @@ class BuilderBase(object):
                 # apply(), and so, we could use "self.parent".
                 child = cls(__no_builder=True)
                 widget.add_widget(child)
-                self.apply(child)
-                self._apply_rule(child, crule, rootrule)
+                child.apply_class_lang_rules(
+                    root=rctx['ids']['root'], rule_children=rule_children)
+                self._apply_rule(
+                    child, crule, rootrule, rule_children=rule_children)
+
+                if rule_children is not None:
+                    rule_children.append(child)
 
         # append the properties and handlers to our final resolution task
         if rule.properties:
@@ -664,7 +741,7 @@ class BuilderBase(object):
         '''Return a list of :class:`ParserRule` objects matching the widget.
         '''
         cache = BuilderBase._match_cache
-        k = (widget.__class__, widget.id, tuple(widget.cls))
+        k = (widget.__class__, tuple(widget.cls))
         if k in cache:
             return cache[k]
         rules = []

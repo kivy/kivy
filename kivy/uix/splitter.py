@@ -6,7 +6,7 @@
 .. image:: images/splitter.jpg
     :align: right
 
-The :class:`Splitter` is a widget that helps you re-size it's child
+The :class:`Splitter` is a widget that helps you re-size its child
 widget/layout by letting you re-size it via dragging the boundary or
 double tapping the boundary. This widget is similar to the
 :class:`~kivy.uix.scrollview.ScrollView` in that it allows only one

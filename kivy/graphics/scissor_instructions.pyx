@@ -77,13 +77,13 @@ cdef class ScissorStack:
     def __init__(self):
         self._stack = []
 
-    property empty:
-        def __get__(self):
-            return True if len(self._stack) is 0 else False
+    @property
+    def empty(self):
+        return True if len(self._stack) is 0 else False
 
-    property back:
-        def __get__(self):
-            return self._stack[-1]
+    @property
+    def back(self):
+        return self._stack[-1]
 
     def push(self, element):
         self._stack.append(element)
@@ -110,53 +110,65 @@ cdef class ScissorPush(Instruction):
     cdef int _height
     cdef Rect _rect
 
-    property x:
-        def __get__(self):
-            return self._x
-        def __set__(self, value):
-            self._x = value
-            self._rect = Rect(self._x, self._y, self._width, self._height)
-            self.flag_update()
+    @property
+    def x(self):
+        return self._x
 
-    property y:
-        def __get__(self):
-            return self._y
-        def __set__(self, value):
-            self._y = value
-            self._rect = Rect(self._x, self._y, self._width, self._height)
-            self.flag_update()
+    @x.setter
+    def x(self, value):
+        self._x = value
+        self._rect = Rect(self._x, self._y, self._width, self._height)
+        self.flag_update()
 
-    property width:
-        def __get__(self):
-            return self._width
-        def __set__(self, value):
-            self._width = value
-            self._rect = Rect(self._x, self._y, self._width, self._height)
-            self.flag_update()
+    @property
+    def y(self):
+        return self._y
 
-    property height:
-        def __get__(self):
-            return self._height
-        def __set__(self, value):
-            self._height = value
-            self._rect = Rect(self._x, self._y, self._width, self._height)
-            self.flag_update()
+    @y.setter
+    def y(self, value):
+        self._y = value
+        self._rect = Rect(self._x, self._y, self._width, self._height)
+        self.flag_update()
 
-    property pos:
-        def __get__(self):
-            return self._x, self._y
-        def __set__(self, value):
-            self._x, self._y = value
-            self._rect = Rect(self._x, self._y, self._width, self._height)
-            self.flag_update()
+    @property
+    def width(self):
+        return self._width
 
-    property size:
-        def __get__(self):
-            return self._width, self._height
-        def __set__(self, value):
-            self._width, self._height = value
-            self._rect = Rect(self._x, self._y, self._width, self._height)
-            self.flag_update()
+    @width.setter
+    def width(self, value):
+        self._width = value
+        self._rect = Rect(self._x, self._y, self._width, self._height)
+        self.flag_update()
+
+    @property
+    def height(self):
+        return self._height
+
+    @height.setter
+    def height(self, value):
+        self._height = value
+        self._rect = Rect(self._x, self._y, self._width, self._height)
+        self.flag_update()
+
+    @property
+    def pos(self):
+        return self._x, self._y
+
+    @pos.setter
+    def pos(self, value):
+        self._x, self._y = value
+        self._rect = Rect(self._x, self._y, self._width, self._height)
+        self.flag_update()
+
+    @property
+    def size(self):
+        return self._width, self._height
+
+    @size.setter
+    def size(self, value):
+        self._width, self._height = value
+        self._rect = Rect(self._x, self._y, self._width, self._height)
+        self.flag_update()
 
     def __init__(self, **kwargs):
         self._x, self._y = kwargs.pop(

@@ -344,7 +344,7 @@ class VideoPlayer(GridLayout):
     to 'stop'.
     '''
 
-    play = BooleanProperty(False)
+    play = BooleanProperty(False, deprecated=True)
     '''
     .. deprecated:: 1.4.0
         Use :attr:`state` instead.
@@ -454,7 +454,7 @@ class VideoPlayer(GridLayout):
 
     .. warning::
 
-        The re-add operation doesn't care about the index position of it's
+        The re-add operation doesn't care about the index position of its
         children within the parent.
 
     :attr:`fullscreen` is a :class:`~kivy.properties.BooleanProperty`
@@ -526,6 +526,8 @@ class VideoPlayer(GridLayout):
         if not thumbnail:
             filename = self.source.rsplit('.', 1)
             thumbnail = filename[0] + '.png'
+            if not exists(thumbnail):
+                thumbnail = ''
         self._image = VideoPlayerPreview(source=thumbnail, video=self)
         self.container.add_widget(self._image)
 

@@ -28,11 +28,12 @@ cdef extern from "SDL.h":
     int SDL_WINDOWPOS_UNDEFINED
 
     ctypedef enum:
+        SDL_PIXELFORMAT_BGRA8888
         SDL_PIXELFORMAT_ARGB8888
         SDL_PIXELFORMAT_RGBA8888
-        SDL_PIXELFORMAT_RGB888
         SDL_PIXELFORMAT_ABGR8888
-        SDL_PIXELFORMAT_BGR888
+        SDL_PIXELFORMAT_RGB24
+        SDL_PIXELFORMAT_BGR24
 
     ctypedef enum SDL_GLattr:
         SDL_GL_RED_SIZE
@@ -223,6 +224,11 @@ cdef extern from "SDL.h":
         SDL_WINDOWEVENT_CLOSE           #< The window manager requests that the
                                         # window be closed */
 
+    ctypedef enum SDL_HintPriority:
+        SDL_HINT_DEFAULT
+        SDL_HINT_NORMAL
+        SDL_HINT_OVERRIDE
+
     ctypedef enum SDL_RendererFlip:
         SDL_FLIP_NONE = 0x00000000
         SDL_FLIP_HORIZONTAL = 0x00000001
@@ -410,11 +416,19 @@ cdef extern from "SDL.h":
         int refresh_rate
         void *driverdata
 
+    cdef struct SDL_RWops_union_unknown:
+        void *data1
+
+    cdef union SDL_RWops_union:
+        SDL_RWops_union_unknown unknown
+
     cdef struct SDL_RWops:
-        long (* seek) (SDL_RWops * context, long offset,int whence)
+        Sint64 (* seek) (SDL_RWops * context, Sint64 offset,int whence)
         size_t(* read) ( SDL_RWops * context, void *ptr, size_t size, size_t maxnum)
         size_t(* write) (SDL_RWops * context, void *ptr,size_t size, size_t num)
         int (* close) (SDL_RWops * context)
+        int type
+        SDL_RWops_union hidden
 
     cdef enum SDL_Keymod:
         KMOD_NONE
@@ -439,6 +453,7 @@ cdef extern from "SDL.h":
     cdef char *SDL_HINT_ORIENTATIONS
     cdef char *SDL_HINT_VIDEO_WIN_D3DCOMPILER
     cdef char *SDL_HINT_ACCELEROMETER_AS_JOYSTICK
+    cdef char *SDL_HINT_ANDROID_TRAP_BACK_BUTTON
 
     cdef int SDL_QUERY               = -1
     cdef int SDL_IGNORE              =  0
@@ -481,10 +496,9 @@ cdef extern from "SDL.h":
     cdef int SDL_SetTextureBlendMode(SDL_Texture * texture, SDL_BlendMode blendMode)
     cdef int SDL_GetTextureBlendMode(SDL_Texture * texture, SDL_BlendMode *blendMode)
     cdef SDL_Surface * SDL_CreateRGBSurfaceFrom(void *pixels, int width, int height, int depth, int pitch, Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
-    cdef SDL_Surface* SDL_ConvertSurface(SDL_Surface* src, SDL_PixelFormat* fmt, Uint32 flags)
-    cdef SDL_Surface* SDL_ConvertSurfaceFormat(SDL_Surface* src, Uint32
-            pixel_format, Uint32 flags)
+    cdef SDL_Surface* SDL_ConvertSurfaceFormat(SDL_Surface* src, Uint32 pixel_format, Uint32 flags) nogil
     cdef const char* SDL_GetPixelFormatName(Uint32 format)
+    cdef int SDL_GetColorKey(SDL_Surface *surface, Uint32 *key)
     cdef int SDL_Init(Uint32 flags)
     cdef void SDL_Quit()
     cdef int SDL_EnableUNICODE(int enable)
@@ -496,6 +510,7 @@ cdef extern from "SDL.h":
     cdef SDL_RWops * SDL_RWFromFile(char *file, char *mode)
     cdef SDL_RWops * SDL_RWFromMem(void *mem, int size)
     cdef SDL_RWops * SDL_RWFromConstMem(void *mem, int size)
+    cdef SDL_RWops * SDL_AllocRW()
     cdef void SDL_FreeRW(SDL_RWops *area)
     cdef int SDL_GetRendererInfo(SDL_Renderer *renderer, SDL_RendererInfo *info)
     cdef int SDL_RenderSetViewport(SDL_Renderer * renderer, SDL_Rect * rect)
@@ -505,6 +520,7 @@ cdef extern from "SDL.h":
     cdef int SDL_SetTextureAlphaMod(SDL_Texture * texture, Uint8 alpha)
     cdef char * SDL_GetError()
     cdef SDL_bool SDL_SetHint(char *name, char *value)
+    cdef SDL_bool SDL_SetHintWithPriority(char *name, char *value, SDL_HintPriority priority)
     cdef Uint8 SDL_GetMouseState(int* x,int* y)
     cdef SDL_GLContext SDL_GL_CreateContext(SDL_Window* window)
     cdef int SDL_GetNumVideoDisplays()
@@ -588,7 +604,7 @@ cdef extern from "SDL.h":
     cdef SDL_GLContext SDL_GL_GetCurrentContext()
     cdef int SDL_GL_SetSwapInterval(int interval)
     cdef int SDL_GL_GetSwapInterval()
-    cdef void SDL_GL_SwapWindow(SDL_Window * window)
+    cdef void SDL_GL_SwapWindow(SDL_Window * window) nogil
     cdef void SDL_GL_DeleteContext(SDL_GLContext context)
 
     cdef int SDL_NumJoysticks()
@@ -626,6 +642,11 @@ cdef extern from "SDL.h":
     Uint16 AUDIO_F32LSB #0x8120  /**< 32-bit floating point samples */
     Uint16 AUDIO_F32MSB #0x9120  /**< As above, but big-endian byte order */
     Uint16 AUDIO_F32    #AUDIO_F32LSB
+
+    # Endianness
+    Uint16 SDL_BYTEORDER
+    Uint16 SDL_LIL_ENDIAN
+    Uint16 SDL_BIG_ENDIAN
 
 cdef extern from "SDL_shape.h":
     cdef SDL_Window * SDL_CreateShapedWindow(
@@ -677,7 +698,10 @@ cdef extern from "SDL_image.h":
     cdef SDL_Surface *IMG_Load(char *file)
     cdef SDL_Surface *IMG_Load_RW(SDL_RWops *src, int freesrc)
     cdef SDL_Surface *IMG_LoadTyped_RW(SDL_RWops *src, int freesrc, char *type)
-    cdef int *IMG_SavePNG(SDL_Surface *src, char *file)
+    cdef int IMG_SavePNG(SDL_Surface *src, char *file)
+    cdef int IMG_SavePNG_RW(SDL_Surface *surface, SDL_RWops *dst, int freedst)
+    cdef int IMG_SaveJPG(SDL_Surface *surface, const char *file, int quality)
+    cdef int IMG_SaveJPG_RW(SDL_Surface *surface, SDL_RWops *dst, int freedst, int quality)
 
 
 cdef extern from "SDL_ttf.h":

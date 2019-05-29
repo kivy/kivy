@@ -255,10 +255,9 @@ class DropDown(ScrollView):
         '''Remove the dropdown widget from the window and detach it from
         the attached widget.
         '''
-        Clock.schedule_once(lambda dt: self._real_dismiss(),
-                            self.min_state_time)
+        Clock.schedule_once(self._real_dismiss, self.min_state_time)
 
-    def _real_dismiss(self):
+    def _real_dismiss(self, *largs):
         if self.parent:
             self.parent.remove_widget(self)
         if self.attach_to:
@@ -303,8 +302,6 @@ class DropDown(ScrollView):
         if (self.attach_to and self.attach_to.collide_point(
                 *self.attach_to.to_widget(*touch.pos))):
             return True
-        if self.auto_dismiss:
-            self.dismiss()
 
     def on_touch_up(self, touch):
         if super(DropDown, self).on_touch_up(touch):
