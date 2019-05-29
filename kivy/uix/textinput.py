@@ -2109,14 +2109,13 @@ class TextInput(FocusBehavior, Widget):
         y = _top - padding_top + self.scroll_y
         miny = self.y + padding_bottom
         maxy = _top - padding_top
-        draw_selection = self._draw_selection
+        draw_selection_line = self._draw_selection_line
         a, b = self._selection_from, self._selection_to
         if a > b:
             a, b = b, a
         get_cursor_from_index = self.get_cursor_from_index
         s1c, s1r = get_cursor_from_index(a)
         s2c, s2r = get_cursor_from_index(b)
-        s2r += 1
         # pass only the selection lines[]
         # passing all the lines can get slow when dealing with a lot of text
         y -= s1r * dy
@@ -2127,49 +2126,46 @@ class TextInput(FocusBehavior, Widget):
         width = self.width
         padding_left = self.padding[0]
         padding_right = self.padding[2]
-        x = self.x
         canvas_add = self.canvas.add
         selection_color = self.selection_color
-        for line_num, value in enumerate(_lines[s1r:s2r], start=s1r):
+        for line_num in range(s1r, s2r + 1):
             if miny <= y <= maxy + dy:
-                r = rects[line_num]
-                draw_selection(r.pos, r.size, line_num, (s1c, s1r),
-                               (s2c, s2r - 1), _lines, _get_text_width,
-                               tab_width, _label_cached, width,
-                               padding_left, padding_right, x,
-                               canvas_add, selection_color)
+                draw_selection_line(rects[line_num], line_num, s1c, s1r,
+                                    s2c, s2r, _lines, _get_text_width,
+                                    tab_width, _label_cached, width,
+                                    padding_left, padding_right,
+                                    canvas_add, selection_color)
             y -= dy
         self._position_handles('both')
 
-    def _draw_selection(self, *largs):
-        pos, size, line_num, (s1c, s1r), (s2c, s2r),\
+    def _draw_selection_line(self, *largs):
+        rect, line_num, s1c, s1r, s2c, s2r,\
             _lines, _get_text_width, tab_width, _label_cached, width,\
-            padding_left, padding_right, x, canvas_add, selection_color = largs
+            padding_left, padding_right, canvas_add, selection_color = largs
         # Draw the current selection on the widget.
         if line_num < s1r or line_num > s2r:
             return
-        x, y = pos
-        w, h = size
-        x1 = x
-        x2 = x + w
+        x, y = rect.pos
+        w, h = rect.size
+        beg = x
+        end = x + w
         if line_num == s1r:
-            lines = _lines[line_num]
-            x1 -= self.scroll_x
-            x1 += _get_text_width(lines[:s1c], tab_width, _label_cached)
+            line = _lines[line_num]
+            beg -= self.scroll_x
+            beg += _get_text_width(line[:s1c], tab_width, _label_cached)
         if line_num == s2r:
-            lines = _lines[line_num]
-            x2 = (x - self.scroll_x) + _get_text_width(lines[:s2c],
-                                                       tab_width,
-                                                       _label_cached)
+            line = _lines[line_num]
+            end = (x - self.scroll_x) \
+                + _get_text_width(line[:s2c], tab_width, _label_cached)
         width_minus_padding = width - (padding_right + padding_left)
         maxx = x + width_minus_padding
-        if x1 > maxx:
+        if beg > maxx:
             return
-        x1 = max(x1, x)
-        x2 = min(x2, x + width_minus_padding)
+        beg = max(beg, x)
+        end = min(end, x + width_minus_padding)
         canvas_add(Color(*selection_color, group='selection'))
         canvas_add(Rectangle(
-            pos=(x1, pos[1]), size=(x2 - x1, size[1]), group='selection'))
+            pos=(beg, y), size=(end - beg, h), group='selection'))
 
     def on_size(self, instance, value):
         # if the size change, we might do invalid scrolling / text split
