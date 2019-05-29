@@ -12,7 +12,6 @@ information, please refer to
 __all__ = ('AndroidMotionEventProvider', )
 
 import os
-from fnmatch import fnmatch
 
 try:
     import android  # NOQA
@@ -51,19 +50,13 @@ class AndroidMotionEventProvider(MotionEventProvider):
         self.window = None
 
     def create_joystick(self, index):
+        Logger.info('Android: create joystick <%d>' % index)
         js = pygame.joystick.Joystick(index)
         js.init()
         if js.get_numbuttons() == 0:
             Logger.info('Android: discard joystick <%d> cause no button' %
                         index)
-            js.quit()
             return
-#         if not fnmatch(js.get_name(), "Android*touch*"):
-#             Logger.info('Android: discard joystick <%d> cause name not matched' %
-#                         index)
-#             js.quit()
-#             return
-        Logger.info('Android: create joystick <%d>' % index)
         self.joysticks.append(js)
 
     def start(self):
@@ -73,7 +66,6 @@ class AndroidMotionEventProvider(MotionEventProvider):
             self.create_joystick(i)
 
     def stop(self):
-        for joy in self.joysticks: joy.quit()
         self.joysticks = []
 
     def update(self, dispatch_fn):
