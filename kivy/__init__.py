@@ -442,11 +442,23 @@ for importer, modname, ispkg in pkgutil.iter_modules(kivy.deps.__path__):
     if not ispkg:
         continue
     if modname.startswith('gst'):
-        _packages.insert(0, (importer, modname))
+        _packages.insert(0, (importer, modname, 'kivy.deps'))
     else:
-        _packages.append((importer, modname))
+        _packages.append((importer, modname, 'kivy.deps'))
 
-for importer, modname in _packages:
+try:
+    import kivy_deps
+    for importer, modname, ispkg in pkgutil.iter_modules(kivy_deps.__path__):
+        if not ispkg:
+            continue
+        if modname.startswith('gst'):
+            _packages.insert(0, (importer, modname, 'kivy_deps'))
+        else:
+            _packages.append((importer, modname, 'kivy_deps'))
+except ImportError:
+    pass
+
+for importer, modname, package in _packages:
     try:
         mod = importer.find_module(modname).load_module(modname)
 
@@ -454,12 +466,12 @@ for importer, modname in _packages:
         if hasattr(mod, '__version__'):
             version = ' {}'.format(mod.__version__)
         Logger.info(
-            'deps: Successfully imported "kivy.deps.{}"{}'.
-            format(modname, version))
+            'deps: Successfully imported "{}.{}"{}'.
+            format(package, modname, version))
     except ImportError as e:
         Logger.warning(
-            'deps: Error importing dependency "kivy.deps.{}": {}'.
-            format(modname, str(e)))
+            'deps: Error importing dependency "{}.{}": {}'.
+            format(package, modname, str(e)))
 
 from kivy.logger import file_log_handler
 if file_log_handler is not None:
