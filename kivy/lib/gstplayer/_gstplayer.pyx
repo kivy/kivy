@@ -59,6 +59,8 @@ cdef extern from 'gst/gst.h':
     bool gst_bin_remove(GstBin *bin, GstElement *element)
     void gst_object_unref(void *pointer) nogil
     GstElement *gst_pipeline_new(const_gchar *name)
+    GstElement *gst_parse_launch(const_gchar *pipeline_description, GError **error)
+    GstElement *gst_bin_get_by_name(GstBin *bin, const_gchar *name);
     void gst_bus_enable_sync_message_emission(GstBus *bus)
     GstBus *gst_pipeline_get_bus(GstPipeline *pipeline)
     GstStateChangeReturn gst_element_get_state(
@@ -208,15 +210,38 @@ cdef class GstPlayer:
 
     def load(self):
         cdef bytes py_uri
+        cdef GError *error = NULL
 
         # if already loaded before, clean everything.
         if self.pipeline != NULL:
             self.unload()
 
         # create the pipeline
-        self.pipeline = gst_pipeline_new(NULL)
-        if self.pipeline == NULL:
-            raise GstPlayerException('Unable to create a pipeline')
+        if self.uri.split(None, 1)[0] == 'gst-launch-1.0':
+            checklist = [s.split(None, 1)[0].strip() for s in self.uri.split('!') if s]
+            if 'appsink' not in checklist:
+                if 'capsfilter' not in checklist:
+                    self.uri += ' ! capsfilter caps="video/x-raw, format=RGB"'
+                self.uri += ' ! appsink name="sink"'
+            py_uri = <bytes>(self.uri).encode('utf-8')
+            self.pipeline = gst_parse_launch(<char *>py_uri, &error)
+            if self.pipeline != NULL:
+                self.appsink = gst_bin_get_by_name(<GstBin *>self.pipeline, "sink")
+                if self.appsink == NULL:
+                    self.message_cb('error', 'Unable to find name "sink" in pipeline')
+                    gst_object_unref(self.pipeline)
+                    self.pipeline = NULL
+                    return
+            else:
+                self.message_cb('error', 'Unable to parse a pipeline' + (
+                        '' if error == NULL else ', code={} message={}'.format(
+                                error.code, <bytes>error.message) 
+                        ))
+                return
+        else:
+            self.pipeline = gst_pipeline_new(NULL)
+            if self.pipeline == NULL:
+                raise GstPlayerException('Unable to create a pipeline')
 
         self.bus = gst_pipeline_get_bus(<GstPipeline *>self.pipeline)
         if self.bus == NULL:
@@ -227,37 +252,42 @@ cdef class GstPlayer:
             self.hid_message = c_bus_connect_message(
                     self.bus, _on_gstplayer_message, <void *>self)
 
-        # instantiate the playbin
-        self.playbin = gst_element_factory_make('playbin', NULL)
-        if self.playbin == NULL:
-            raise GstPlayerException('Unable to create a playbin')
+        if self.appsink == NULL:
+            # instantiate the playbin
+            self.playbin = gst_element_factory_make('playbin', NULL)
+            if self.playbin == NULL:
+                raise GstPlayerException('Unable to create a playbin')
 
-        gst_bin_add(<GstBin *>self.pipeline, self.playbin)
+            gst_bin_add(<GstBin *>self.pipeline, self.playbin)
 
-        # instantiate an appsink
-        if self.sample_cb:
-            self.appsink = gst_element_factory_make('appsink', NULL)
-            if self.appsink == NULL:
-                raise GstPlayerException('Unable to create an appsink')
-
+            # instantiate an appsink
+            if self.sample_cb:
+                self.appsink = gst_element_factory_make('appsink', NULL)
+                if self.appsink == NULL:
+                    raise GstPlayerException('Unable to create an appsink')
+    
+                g_object_set_void(self.playbin, 'video-sink', self.appsink)
+    
+            else:
+                self.fakesink = gst_element_factory_make('fakesink', NULL)
+                if self.fakesink == NULL:
+                    raise GstPlayerException('Unable to create a fakesink')
+    
+                g_object_set_void(self.playbin, 'video-sink', self.fakesink)
+            
+        if self.appsink != NULL:
             g_object_set_caps(self.appsink, 'video/x-raw,format=RGB')
             g_object_set_int(self.appsink, 'max-buffers', 5)
             g_object_set_int(self.appsink, 'drop', 1)
             g_object_set_int(self.appsink, 'sync', 1)
             g_object_set_int(self.appsink, 'qos', 1)
-            g_object_set_void(self.playbin, 'video-sink', self.appsink)
 
-        else:
-            self.fakesink = gst_element_factory_make('fakesink', NULL)
-            if self.fakesink == NULL:
-                raise GstPlayerException('Unable to create a fakesink')
-
-            g_object_set_void(self.playbin, 'video-sink', self.fakesink)
 
         # configure playbin
         g_object_set_int(self.pipeline, 'async-handling', 1)
-        py_uri = <bytes>self.uri.encode('utf-8')
-        g_object_set_void(self.playbin, 'uri', <char *>py_uri)
+        if self.playbin != NULL:
+            py_uri = <bytes>self.uri.encode('utf-8')
+            g_object_set_void(self.playbin, 'uri', <char *>py_uri)
 
         # attach the callback
         # NOTE no need to create a weakref here, as we manage to grab/release
