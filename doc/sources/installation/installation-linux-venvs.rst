@@ -22,6 +22,7 @@ Kivy       Cython
 1.9.1      0.23.1
 1.10.0     0.25.2
 1.10.1     0.28.2
+1.11.0     0.29.9
 ========   =============
 
 
@@ -78,7 +79,7 @@ You will likely need to do this preliminary step which installs the rpmfusion-fr
 
 .. parsed-literal::
 
-    sudo dnf install -y https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm 
+    sudo dnf install -y https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
 
 After you ensure that a 3rd-party repository containing any packages that dnf is otherwise unable to find, continue installing dependencies:
 
@@ -89,7 +90,7 @@ After you ensure that a 3rd-party repository containing any packages that dnf is
     # Install xclip in case you run a kivy app using your computer, and the app requires a CutBuffer provider:
     sudo dnf install -y xclip
 
-    # 
+    #
     # In case you get the following error preventing kivy install:
     #  annobin: _event.c: Error: plugin built for compiler version (8.0.1) but run with compiler version (8.1.1)
     #  cc1: error: fail to initialize plugin /usr/lib/gcc/86_64-redhat-linux/8/plugin/annobin.so
@@ -101,8 +102,8 @@ After you ensure that a 3rd-party repository containing any packages that dnf is
 
     sudo pip3 install --upgrade pip setuptools
 
-    # Use correct Cython version here (0.28.2 is for 1.10.1):
-    sudo pip3 install Cython==0.28.2
+    # Use correct Cython version here (|cython_install| is for 1.10.1):
+    sudo pip3 install |cython_install|
 
 
 Installation
