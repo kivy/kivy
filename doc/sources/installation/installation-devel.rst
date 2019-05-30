@@ -16,10 +16,13 @@ in a way that allows for easy development. For that, please see our
 Installing Dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~
 
+Linux
+++++++
+
 To install Kivy's dependencies, follow the guide below for your platform. You
 will also need these packages for RST, lexing and image handling::
 
-    $ sudo pip install pygments docutils pillow
+    $ python -m pip install pygments docutils pillow --user
 
 Ubuntu
 ++++++
@@ -55,7 +58,7 @@ Cython installation.
 
 .. parsed-literal::
 
-    $ sudo pip install --upgrade |cython_install|
+    $ python -m pip install --user --upgrade |cython_install|
 
 If you experience compilation problems, please check your version of Cython
 against those in the :doc:`Cython dependencies <deps-cython>` section.
@@ -88,7 +91,7 @@ the following lines in your terminal:
     sudo cp -a /Volumes/SDL2_mixer/SDL2_mixer.framework /Library/Frameworks/
     sudo installer -package gstreamer-1.0-1.7.1-x86_64.pkg -target /
     sudo installer -package gstreamer-1.0-devel-1.7.1-x86_64.pkg -target /
-    pip install --upgrade --user |cython_install| pillow
+    python -m pip install --upgrade --user |cython_install| pillow
 
 Now that you have all the dependencies for kivy, you need to make sure
 you have the command line tools installed::
@@ -175,6 +178,12 @@ point at your clone.
 This way you don't have to install (``setup.py install``) after every tiny
 modification. Python will instead import Kivy from your clone.
 
+This simplest way to do this, is to install it as an editable install with::
+
+    python -m pip install -e .
+
+And then the `PYTHONPATH` does not need to be set.
+
 Alternatively, if you don't want to make any changes to Kivy itself, you can
 also run (as admin, e.g. with sudo)::
 
@@ -195,7 +204,7 @@ one.)
 Kivy tests are based on pytest, which you can install from your package
 manager or using pip::
 
-  $ pip install pytest
+  $ python -m pip install pytest
 
 To run the test suite, do::
 

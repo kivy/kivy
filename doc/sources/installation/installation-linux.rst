@@ -19,6 +19,49 @@ you should install `ffpyplayer` like so ::
 Make sure to set `KIVY_VIDEO=ffpyplayer` env variable before running the app.
 Only Python 3.5+ is supported.
 
+Nightly wheel installation
+--------------------------
+
+.. |cp35_linux| replace:: Python 3.5
+.. _cp35_linux: https://kivy.org/downloads/ci/linux/kivy/Kivy-2.0.0.dev0-cp35-cp35m-manylinux2010_x86_64.whl
+.. |cp36_linux| replace:: Python 3.6
+.. _cp36_linux: https://kivy.org/downloads/ci/linux/kivy/Kivy-2.0.0.dev0-cp36-cp36m-manylinux2010_x86_64.whl
+.. |cp37_linux| replace:: Python 3.7
+.. _cp37_linux: https://kivy.org/downloads/ci/linux/kivy/Kivy-2.0.0.dev0-cp37-cp37m-manylinux2010_x86_64.whl
+.. |examples_whl_linux| replace:: Kivy examples
+.. _examples_whl_linux: https://kivy.org/downloads/appveyor/kivy/Kivy_examples-2.0.0.dev0-py2.py3-none-any.whl
+
+.. warning::
+
+    Using the latest development version can be risky and you might encounter
+    issues during development. If you encounter any bugs, please report them.
+
+Snapshot wheels of current Kivy master are created daily on the
+`master` branch of kivy repository. They can be found
+`here <https://kivy.org/downloads/ci/linux/kivy/>`_. To use them, instead of
+doing ``python -m pip install kivy`` we'll install one of these wheels as
+follows.
+
+- |cp35_linux|_
+- |cp36_linux|_
+- |cp37_linux|_
+
+#. Download the appropriate wheel for your Python version.
+#. Install it with ``python -m pip install wheel-name`` where ``wheel-name``
+   is the name of the file.
+
+Kivy examples are separated from the core because of their size. The examples
+can be installed separately on all Python versions with this single wheel:
+
+- |examples_whl_linux|_
+
+Using Conda
+-----------
+
+If you use Anaconda, you can simply install kivy using::
+
+   $ conda install kivy -c conda-forge
+
 Using software packages
 ~~~~~~~~~~~~~~~~~~~~~~~
 
