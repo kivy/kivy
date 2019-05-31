@@ -102,7 +102,7 @@ After you ensure that a 3rd-party repository containing any packages that dnf is
 
     sudo pip3 install --upgrade pip setuptools
 
-    # Use correct Cython version here (|cython_install| is for 1.10.1):
+    # Use correct Cython version here (|cython_install| is for 1.11.0):
     sudo pip3 install |cython_install|
 
 
