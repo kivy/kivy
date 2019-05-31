@@ -497,7 +497,6 @@ class ShaderTransition(TransitionBase):
     def add_screen(self, screen):
         self.screen_in.pos = self.screen_out.pos
         self.screen_in.size = self.screen_out.size
-        self.manager.remove_widget(self.screen_out)
         self.manager.real_remove_widget(self.screen_out)
         self.manager.canvas.add(self.screen_out.canvas)
 
