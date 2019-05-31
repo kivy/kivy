@@ -72,7 +72,7 @@ Installing the kivy stable release
 
 Now that python is installed, open the :ref:`windows-run-app` and make sure
 python is available by typing ``python --version``. Then, do the following to
-create a new `virtual environment<https://virtualenv.pypa.io/en/latest/>`_
+create a new `virtual environment <https://virtualenv.pypa.io/en/latest/>`_
 (optionally) and install the most recent stable
 kivy release (`1.11.0`) and its dependencies.
 
@@ -80,12 +80,12 @@ kivy release (`1.11.0`) and its dependencies.
 
      python -m pip install --upgrade pip wheel setuptools virtualenv
 
-   Optionally create a new `virtual environment<https://virtualenv.pypa.io/en/latest/>`_
+   Optionally create a new `virtual environment <https://virtualenv.pypa.io/en/latest/>`_
    for your Kivy project. Highly recommended:
 
    #. First create the environment named `kivy_venv` in your current directory::
 
-     python -m virtualenv kivy_venv
+        python -m virtualenv kivy_venv
 
    #. Activate the virtual environment. You'll have to do this step from the current directory
       **every time** you start a new terminal. On windows CMD do::
