@@ -4,12 +4,9 @@ env:
     - KIVY_SPLIT_EXAMPLES=1
     - SERVER_IP=159.203.106.198
     - DOC_VERSIONS="stable master"
-<<<<<<< HEAD
-=======
 
 osx_image: xcode10
 
->>>>>>> master
 matrix:
   fast_finish: true
   include:
