@@ -35,7 +35,6 @@ from os import environ, mkdir
 from os.path import dirname, join, basename, exists, expanduser
 import pkgutil
 import re
-from kivy.compat import PY2
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.utils import platform
 
@@ -71,6 +70,12 @@ if platform == 'macosx' and sys.maxsize < 9223372036854775807:
     details.
     '''
     Logger.critical(r)
+
+if sys.version_info[0] == 2:
+    Logger.critical(
+        'Unsupported Python version detected!: Kivy 2.0.0 and higher does not '
+        'support Python 2. Please upgrade to Python 3, or downgrade Kivy to '
+        '1.11.0 - the last Kivy release that still supports Python 2.')
 
 
 def parse_kivy_version(version):
@@ -282,9 +287,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             user_home_dir = join(expanduser('~'), 'Documents')
         kivy_home_dir = join(user_home_dir, '.kivy')
 
-    if PY2:
-        kivy_home_dir = kivy_home_dir.decode(sys.getfilesystemencoding())
-
     kivy_config_fn = join(kivy_home_dir, 'config.ini')
     kivy_usermodules_dir = join(kivy_home_dir, 'mods')
     icon_dir = join(kivy_home_dir, 'icon')
@@ -478,9 +480,3 @@ for importer, modname, package in _packages:
 from kivy.logger import file_log_handler
 if file_log_handler is not None:
     file_log_handler.purge_logs()
-
-
-if PY2:
-    Logger.warning(
-        'Deprecated: Python 2 Kivy support has been deprecated. The '
-        'Kivy release after 1.11.0 will not support Python 2 anymore')

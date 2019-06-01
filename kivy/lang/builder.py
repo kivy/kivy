@@ -20,7 +20,6 @@ from kivy.logger import Logger
 from kivy.utils import QueryDict
 from kivy.cache import Cache
 from kivy import kivy_data_dir
-from kivy.compat import PY2, iteritems, iterkeys
 from kivy.context import register_context
 from kivy.resources import resource_find
 from kivy._event import Observable, EventDispatcher
@@ -29,12 +28,6 @@ __all__ = ('Observable', 'Builder', 'BuilderBase', 'BuilderException')
 
 
 trace = Logger.trace
-
-# class types to check with isinstance
-if PY2:
-    _cls_type = (type, types.ClassType)
-else:
-    _cls_type = (type, )
 
 # late import
 Instruction = None
@@ -226,7 +219,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                         was_bound = True
                     else:
                         append([f.proxy_ref, val, None, None])
-                elif not isinstance(f, _cls_type):
+                elif not isinstance(f, type):
                     append([getattr(f, 'proxy_ref', f), val, None, None])
                 else:
                     append([f, val, None, None])
@@ -288,15 +281,6 @@ class BuilderBase(object):
         with open(filename, 'r') as fd:
             kwargs['filename'] = filename
             data = fd.read()
-
-            # remove bom ?
-            if PY2:
-                if data.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
-                    raise ValueError('Unsupported UTF16 for kv files.')
-                if data.startswith((codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE)):
-                    raise ValueError('Unsupported UTF32 for kv files.')
-                if data.startswith(codecs.BOM_UTF8):
-                    data = data[len(codecs.BOM_UTF8):]
 
             return self.load_string(data, **kwargs)
 
@@ -379,7 +363,7 @@ class BuilderBase(object):
                                  is_template=True, warn=True)
 
             # register all the dynamic classes
-            for name, baseclasses in iteritems(parser.dynamic_classes):
+            for name, baseclasses in parser.dynamic_classes.items():
                 Factory.register(name, baseclasses=baseclasses, filename=fn,
                                  warn=True)
 
@@ -574,7 +558,7 @@ class BuilderBase(object):
             _ids = dict(rctx['ids'])
             _root = _ids.pop('root')
             _new_ids = _root.ids
-            for _key in iterkeys(_ids):
+            for _key in _ids.keys():
                 if _ids[_key] == _root:
                     # skip on self
                     continue
@@ -937,7 +921,7 @@ if 'KIVY_PROFILE_LANG' in environ:
     def match_rule(fn, index, rule):
         if rule.ctx.filename != fn:
             return
-        for prop, prp in iteritems(rule.properties):
+        for prop, prp in rule.properties.items():
             if prp.line != index:
                 continue
             yield prp

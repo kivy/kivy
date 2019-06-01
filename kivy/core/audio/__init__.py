@@ -50,7 +50,6 @@ __all__ = ('Sound', 'SoundLoader')
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.core import core_register_libs
-from kivy.compat import PY2
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, NumericProperty, OptionProperty, \
     AliasProperty, BooleanProperty, BoundedNumericProperty
