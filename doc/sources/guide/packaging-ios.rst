@@ -6,25 +6,28 @@ Create a package for IOS
 .. note::
 
     Currently, packages for iOS can only be generated with Python 2.7. Python
-    3.3+ support is on the way.
+    3.4+ support is on the way.
 
 The overall process for creating a package for IOS can be explained in 4 steps:
 
-#. Compile python + modules for IOS
-#. Create an Xcode project and link your source code
-#. Customize
+#. :ref:`Compile the distribution` (python + modules for IOS)
+#. :ref:`Create an Xcode project` (and link your source code)
+#. :ref:`Update the Xcode project`
+#. :ref:`Customize`
 
 Prerequisites
 -------------
 
-You need to install some dependencies, like cython, autotools, etc. We
+You need to install some dependencies, like Cython, autotools, etc. We
 encourage you to use `Homebrew <http://mxcl.github.com/homebrew/>`_ to install
-those dependencies::
+those dependencies:
+
+.. parsed-literal::
 
     brew install autoconf automake libtool pkg-config
     brew link libtool
     sudo easy_install pip
-    sudo pip install Cython==0.26.1
+    sudo pip install |cython_install|
 
 For more detail, see :ref:`IOS Prerequisites <packaging_ios_prerequisites>`.
 Just ensure that everything is ok before starting the second step!
@@ -76,8 +79,10 @@ Then click on `Play`, and enjoy.
     the `<title>-ios/YourApp` directory. Don't make changes in the -ios
     directory directly.
 
-Updating an Xcode project
--------------------------
+.. _Update the Xcode project:
+
+Update the Xcode project
+------------------------
 
 Let's say you want to add numpy to your project but you did not compile it
 prior to creating your XCode project. First, ensure it is built::
@@ -93,8 +98,8 @@ added to your Xcode project.
 
 .. _Customize:
 
-Customize
----------
+Customize the Xcode project
+---------------------------
 
 There are various ways to customize and configure your app. Please refer
 to the `kivy-ios <http://www.github.com/kivy/kivy-ios>`_ documentation

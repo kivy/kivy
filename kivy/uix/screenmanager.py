@@ -271,7 +271,7 @@ class Screen(RelativeLayout):
     - 'in' if the transition is going to show your screen
     - 'out' if the transition is going to hide your screen
 
-    After the transition is complete, the state will retain it's last value (in
+    After the transition is complete, the state will retain its last value (in
     or out).
 
     :attr:`transition_state` is an :class:`~kivy.properties.OptionProperty` and
@@ -953,8 +953,7 @@ class ScreenManager(FloatLayout):
     def _get_screen_names(self):
         return [s.name for s in self.screens]
 
-    screen_names = AliasProperty(_get_screen_names,
-                                 None, bind=('screens', ))
+    screen_names = AliasProperty(_get_screen_names, bind=('screens',))
     '''List of the names of all the :class:`Screen` widgets added. The list
     is read only.
 
@@ -1105,8 +1104,8 @@ class ScreenManager(FloatLayout):
             return
 
     def switch_to(self, screen, **options):
-        '''Add a new screen to the ScreenManager and switch to it. The previous
-        screen will be removed from the children. `options` are the
+        '''Add a new or existing screen to the ScreenManager and switch to it.
+        The previous screen will be "switched away" from. `options` are the
         :attr:`transition` options that will be changed before the animation
         happens.
 
@@ -1154,7 +1153,8 @@ class ScreenManager(FloatLayout):
             setattr(self.transition, key, value)
 
         # add and leave if we are set as the current screen
-        self.add_widget(screen)
+        if screen.manager is not self:
+            self.add_widget(screen)
         if self.current_screen is screen:
             return
 

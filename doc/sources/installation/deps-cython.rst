@@ -8,7 +8,9 @@ Cython
 Working versions
 ----------------
 
-* Kivy 1.10.1dev -> Cython==0.27.3
+* Kivy 2.0.0 -> |cython_install|
+* Kivy 1.11.0 -> Cython==0.29.9
+* Kivy 1.10.1 -> Cython==0.28.2
 * Kivy 1.10.0 -> Cython==0.25.2
 * Kivy 1.9.1 -> Cython==0.23.1
 * Kivy 1.9.0 -> Cython==0.21.2

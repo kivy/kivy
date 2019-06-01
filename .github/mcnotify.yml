@@ -1,4 +1,4 @@
-# Configuration for McNotify - https://github.com/dessant/mcnotify
+# Configuration for McNotify - https://github.com/kivy/mcnotify
 
 subscriptions:
   - events:

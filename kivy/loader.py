@@ -41,6 +41,7 @@ from kivy.clock import Clock
 from kivy.cache import Cache
 from kivy.core.image import ImageLoader, Image
 from kivy.compat import PY2, string_types
+from kivy.config import Config
 
 from collections import deque
 from time import sleep
@@ -90,6 +91,21 @@ class LoaderBase(object):
     less than 25 FPS.
     '''
     _trigger_update = None
+
+    '''Alias for mimetype extensions.
+
+    If you have trouble to have the right extension to be detected,
+    you can either add #.EXT at the end of the url, or use this array
+    to correct the detection.
+    For example, a zip-file on Windows can be detected as pyz.
+
+    By default, '.pyz' is translated to '.zip'
+
+    .. versionadded:: 1.11.0
+    '''
+    EXT_ALIAS = {
+        '.pyz': '.zip'
+    }
 
     def __init__(self):
         self._loading_image = None
@@ -314,7 +330,16 @@ class LoaderBase(object):
                 fd = urllib_request.build_opener(SMBHandler).open(filename)
             else:
                 # read from internet
-                fd = urllib_request.urlopen(filename)
+                request = urllib_request.Request(filename)
+                if (
+                    Config.has_section('network')
+                    and 'useragent' in Config.items('network')
+                ):
+                    useragent = Config.get('network', 'useragent')
+                    if useragent:
+                        request.add_header('User-Agent', useragent)
+                opener = urllib_request.build_opener()
+                fd = opener.open(request)
 
             if '#.' in filename:
                 # allow extension override from URL fragment
@@ -322,6 +347,7 @@ class LoaderBase(object):
             else:
                 ctype = gettype(fd.info())
                 suffix = mimetypes.guess_extension(ctype)
+                suffix = LoaderBase.EXT_ALIAS.get(suffix, suffix)
                 if not suffix:
                     # strip query string and split on path
                     parts = filename.split('?')[0].split('/')[1:]

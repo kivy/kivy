@@ -18,7 +18,7 @@ pattern.
 * Model: The model is formed by :attr:`~RecycleView.data` you pass in via a
   list of dicts.
 * View: The View is split across layout and views and implemented using
-  adaters.
+  adapters.
 * Controller: The controller determines the logical interaction and is
   implemented by :class:`RecycleViewBehavior`.
 
@@ -384,8 +384,7 @@ class RecycleViewBehavior(object):
         self.refresh_from_layout()
         return True
 
-    layout_manager = AliasProperty(
-        _get_layout_manager, _set_layout_manager)
+    layout_manager = AliasProperty(_get_layout_manager, _set_layout_manager)
     """
     The Layout manager responsible for positioning views within the
     :class:`RecycleView`.
@@ -522,7 +521,7 @@ class RecycleView(RecycleViewBehavior, ScrollView):
             a.key_viewclass = value
 
     key_viewclass = AliasProperty(_get_key_viewclass, _set_key_viewclass,
-        bind=["layout_manager"])
+                                  bind=["layout_manager"])
     """
     key_viewclass is an :class:`~kivy.properties.AliasProperty` that gets and
     sets the key viewclass for the current

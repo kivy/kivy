@@ -53,7 +53,7 @@ class Video(Image):
     to 'stop'.
     '''
 
-    play = BooleanProperty(False)
+    play = BooleanProperty(False, deprecated=True)
     '''
     .. deprecated:: 1.4.0
         Use :attr:`state` instead.
@@ -201,7 +201,6 @@ class Video(Image):
             if self.eos:
                 self._video.stop()
                 self._video.position = 0.
-                self._video.eos = False
             self.eos = False
             self._video.play()
         elif value == 'pause':
@@ -209,7 +208,6 @@ class Video(Image):
         else:
             self._video.stop()
             self._video.position = 0
-            self._video.eos = False
 
     def _on_video_frame(self, *largs):
         video = self._video

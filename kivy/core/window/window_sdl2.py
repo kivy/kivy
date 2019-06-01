@@ -23,7 +23,13 @@ from kivy.base import EventLoop, ExceptionManager, stopTouchApp
 from kivy.clock import Clock
 from kivy.config import Config
 from kivy.core.window import WindowBase
-from kivy.core.window._window_sdl2 import _WindowSDL2Storage
+try:
+    from kivy.core.window._window_sdl2 import _WindowSDL2Storage
+except ImportError:
+    from kivy.core import handle_win_lib_import_error
+    handle_win_lib_import_error(
+        'window', 'sdl2', 'kivy.core.window._window_sdl2')
+    raise
 from kivy.input.provider import MotionEventProvider
 from kivy.input.motionevent import MotionEvent
 from kivy.resources import resource_find
@@ -31,14 +37,20 @@ from kivy.utils import platform, deprecated
 from kivy.compat import unichr
 from collections import deque
 
-KMOD_LCTRL = 64
-KMOD_RCTRL = 128
-KMOD_RSHIFT = 2
-KMOD_LSHIFT = 1
-KMOD_RALT = 512
-KMOD_LALT = 256
-KMOD_LMETA = 1024
-KMOD_RMETA = 2048
+
+# SDL_keycode.h, https://wiki.libsdl.org/SDL_Keymod
+KMOD_NONE = 0x0000
+KMOD_LSHIFT = 0x0001
+KMOD_RSHIFT = 0x0002
+KMOD_LCTRL = 0x0040
+KMOD_RCTRL = 0x0080
+KMOD_LALT = 0x0100
+KMOD_RALT = 0x0200
+KMOD_LGUI = 0x0400
+KMOD_RGUI = 0x0800
+KMOD_NUM = 0x1000
+KMOD_CAPS = 0x2000
+KMOD_MODE = 0x4000
 
 SDLK_SHIFTL = 1073742049
 SDLK_SHIFTR = 1073742053
@@ -139,9 +151,10 @@ class WindowSDL(WindowBase):
         self._win = _WindowSDL2Storage()
         super(WindowSDL, self).__init__()
         self._mouse_x = self._mouse_y = -1
-        self._meta_keys = (KMOD_LCTRL, KMOD_RCTRL, KMOD_RSHIFT,
-            KMOD_LSHIFT, KMOD_RALT, KMOD_LALT, KMOD_LMETA,
-            KMOD_RMETA)
+        self._meta_keys = (
+            KMOD_LCTRL, KMOD_RCTRL, KMOD_RSHIFT,
+            KMOD_LSHIFT, KMOD_RALT, KMOD_LALT, KMOD_LGUI,
+            KMOD_RGUI, KMOD_NUM, KMOD_CAPS, KMOD_MODE)
         self.command_keys = {
                     27: 'escape',
                     9: 'tab',
@@ -204,11 +217,10 @@ class WindowSDL(WindowBase):
     def _set_allow_screensaver(self, *args):
         self._win.set_allow_screensaver(self.allow_screensaver)
 
-    def _event_filter(self, action):
+    def _event_filter(self, action, *largs):
         from kivy.app import App
         if action == 'app_terminating':
             EventLoop.quit = True
-            self.close()
 
         elif action == 'app_lowmemory':
             self.dispatch('on_memorywarning')
@@ -238,6 +250,12 @@ class WindowSDL(WindowBase):
                 app = App.get_running_app()
                 app.dispatch('on_resume')
 
+        elif action == 'windowresized':
+            self._size = largs
+            self._win.resize_window(*self._size)
+            # Force kivy to render the frame now, so that the canvas is drawn.
+            EventLoop.idle()
+
         return 0
 
     def create_window(self, *largs):
@@ -253,7 +271,6 @@ class WindowSDL(WindowBase):
                            "borderless Config option instead.")
 
         if not self.initialized:
-
             if self.position == 'auto':
                 pos = None, None
             elif self.position == 'custom':
@@ -322,7 +339,8 @@ class WindowSDL(WindowBase):
 
     def close(self):
         self._win.teardown_window()
-        self.dispatch('on_close')
+        super(WindowSDL, self).close()
+        self.initialized = False
 
     def maximize(self):
         if self._is_desktop:
@@ -490,7 +508,6 @@ class WindowSDL(WindowBase):
                 if self.dispatch('on_request_close'):
                     continue
                 EventLoop.quit = True
-                self.close()
                 break
 
             elif action in ('fingermotion', 'fingerdown', 'fingerup'):
@@ -567,6 +584,9 @@ class WindowSDL(WindowBase):
                     self._do_resize_ev = ev
                 else:
                     ev()
+
+            elif action == 'windowmoved':
+                self.dispatch('on_move')
 
             elif action == 'windowrestored':
                 self.dispatch('on_restore')
@@ -680,7 +700,7 @@ class WindowSDL(WindowBase):
     def _do_resize(self, dt):
         Logger.debug('Window: Resize window to %s' % str(self.size))
         self._win.resize_window(*self._size)
-        self.dispatch('on_resize', *self.size)
+        self.dispatch('on_pre_resize', *self.size)
 
     def do_pause(self):
         # should go to app pause mode (desktop style)
@@ -708,7 +728,6 @@ class WindowSDL(WindowBase):
             action, args = event[0], event[1:]
             if action == 'quit':
                 EventLoop.quit = True
-                self.close()
                 break
             elif action == 'app_willenterforeground':
                 break
@@ -733,15 +752,10 @@ class WindowSDL(WindowBase):
                     raise
                 else:
                     pass
+        Logger.info("WindowSDL: exiting mainloop and closing.")
+        self.close()
 
-    #
-    # Pygame wrapper
-    #
     def _update_modifiers(self, mods=None, key=None):
-        # Available mod, from dir(pygame)
-        # 'KMOD_ALT', 'KMOD_CAPS', 'KMOD_CTRL', 'KMOD_LALT',
-        # 'KMOD_LCTRL', 'KMOD_LMETA', 'KMOD_LSHIFT', 'KMOD_META',
-        # 'KMOD_MODE', 'KMOD_NONE'
         if mods is None and key is None:
             return
         modifiers = set()
@@ -749,22 +763,30 @@ class WindowSDL(WindowBase):
         if mods is not None:
             if mods & (KMOD_RSHIFT | KMOD_LSHIFT):
                 modifiers.add('shift')
-            if mods & (KMOD_RALT | KMOD_LALT):
+            if mods & (KMOD_RALT | KMOD_LALT | KMOD_MODE):
                 modifiers.add('alt')
             if mods & (KMOD_RCTRL | KMOD_LCTRL):
                 modifiers.add('ctrl')
-            if mods & (KMOD_RMETA | KMOD_LMETA):
+            if mods & (KMOD_RGUI | KMOD_LGUI):
                 modifiers.add('meta')
+            if mods & KMOD_NUM:
+                modifiers.add('numlock')
+            if mods & KMOD_CAPS:
+                modifiers.add('capslock')
 
         if key is not None:
             if key in (KMOD_RSHIFT, KMOD_LSHIFT):
                 modifiers.add('shift')
-            if key in (KMOD_RALT, KMOD_LALT):
+            if key in (KMOD_RALT, KMOD_LALT, KMOD_MODE):
                 modifiers.add('alt')
             if key in (KMOD_RCTRL, KMOD_LCTRL):
                 modifiers.add('ctrl')
-            if key in (KMOD_RMETA, KMOD_LMETA):
+            if key in (KMOD_RGUI, KMOD_LGUI):
                 modifiers.add('meta')
+            if key == KMOD_NUM:
+                modifiers.add('numlock')
+            if key == KMOD_CAPS:
+                modifiers.add('capslock')
 
         self._modifiers = list(modifiers)
         return

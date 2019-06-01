@@ -62,7 +62,13 @@ from kivy.compat import PY2
 from random import randint
 from functools import partial
 
-__all__ = ('Logger', 'LOG_LEVELS', 'COLORS', 'LoggerHistory')
+__all__ = (
+    'Logger', 'LOG_LEVELS', 'COLORS', 'LoggerHistory', 'file_log_handler')
+
+try:
+    PermissionError
+except NameError:  # Python 2
+    PermissionError = OSError, IOError
 
 Logger = None
 
@@ -107,13 +113,16 @@ class FileHandler(logging.Handler):
     history = []
     filename = 'log.txt'
     fd = None
+    log_dir = ''
 
-    def purge_logs(self, directory):
+    def purge_logs(self):
         '''Purge log is called randomly to prevent the log directory from being
         filled by lots and lots of log files.
         You've a chance of 1 in 20 that purge log will be fired.
         '''
         if randint(0, 20) != 0:
+            return
+        if not self.log_dir:
             return
 
         from kivy.config import Config
@@ -122,12 +131,12 @@ class FileHandler(logging.Handler):
         if maxfiles < 0:
             return
 
-        print('Purge log fired. Analysing...')
+        Logger.info('Logger: Purge log fired. Analysing...')
         join = os.path.join
         unlink = os.unlink
 
         # search all log files
-        lst = [join(directory, x) for x in os.listdir(directory)]
+        lst = [join(self.log_dir, x) for x in os.listdir(self.log_dir)]
         if len(lst) > maxfiles:
             # get creation time on every files
             lst = [{'fn': x, 'ctime': os.path.getctime(x)} for x in lst]
@@ -137,16 +146,17 @@ class FileHandler(logging.Handler):
 
             # get the oldest (keep last maxfiles)
             lst = lst[:-maxfiles] if maxfiles else lst
-            print('Purge %d log files' % len(lst))
+            Logger.info('Logger: Purge %d log files' % len(lst))
 
             # now, unlink every file in the list
             for filename in lst:
                 try:
                     unlink(filename['fn'])
                 except PermissionError as e:
-                    print('Skipped file {0}, {1}'.format(filename['fn'], e))
+                    Logger.info('Logger: Skipped file {0}, {1}'.
+                                format(filename['fn'], e))
 
-        print('Purge finished!')
+        Logger.info('Logger: Purge finished!')
 
     def _configure(self, *largs, **kwargs):
         from time import strftime
@@ -161,8 +171,7 @@ class FileHandler(logging.Handler):
             _dir = os.path.join(_dir, log_dir)
         if not os.path.exists(_dir):
             os.makedirs(_dir)
-
-        self.purge_logs(_dir)
+        self.log_dir = _dir
 
         pattern = log_name.replace('%_', '@@NUMBER@@')
         pattern = os.path.join(_dir, strftime(pattern))
@@ -325,8 +334,10 @@ logging.root = Logger
 
 # add default kivy logger
 Logger.addHandler(LoggerHistory())
+file_log_handler = None
 if 'KIVY_NO_FILELOG' not in os.environ:
-    Logger.addHandler(FileHandler())
+    file_log_handler = FileHandler()
+    Logger.addHandler(file_log_handler)
 
 # Use the custom handler instead of streaming one.
 if 'KIVY_NO_CONSOLELOG' not in os.environ:

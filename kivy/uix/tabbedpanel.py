@@ -560,7 +560,8 @@ class TabbedPanel(GridLayout):
                 Logger.info('TabbedPanel: default tab! can\'t be removed.\n' +
                             'Change `default_tab` to a different tab.')
         else:
-            self._childrens.pop(widget, None)
+            if widget in self._childrens:
+                self._childrens.remove(widget)
             if widget in content.children:
                 content.remove_widget(widget)
 
@@ -763,7 +764,7 @@ class TabbedPanel(GridLayout):
 
             lentab_pos = len(tab_pos)
 
-            # Update scatter's top when it's pos changes.
+            # Update scatter's top when its pos changes.
             # Needed for repositioning scatter to the correct place after its
             # added to the parent. Use clock_schedule_once to ensure top is
             # calculated after the parent's pos on canvas has been calculated.

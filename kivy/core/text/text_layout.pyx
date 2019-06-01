@@ -275,7 +275,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
 
     The function is designed to be called many times, each time new text is
     appended to the last line (or first line if appending upwards), unless a
-    newline is present in the text. Each text appended is described by it's own
+    newline is present in the text. Each text appended is described by its own
     options which can change between successive calls. If the text is
     constrained, we stop as soon as the constraint is reached.
 

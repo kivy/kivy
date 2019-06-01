@@ -922,10 +922,13 @@ cdef class Texture:
 
         # need conversion, do check here because it seems to be faster ?
         if not gl_has_texture_native_format(colorfmt):
-            pbuffer, colorfmt = convert_to_gl_format(pbuffer, colorfmt)
+            pbuffer, colorfmt = convert_to_gl_format(pbuffer, colorfmt, 
+                                                     size[0], size[1])
         cdef char [:] char_view
         cdef short [:] short_view
+        cdef unsigned short [:] ushort_view
         cdef int [:] int_view
+        cdef unsigned int [:] uint_view
         cdef float [:] float_view
         cdef char *cdata = NULL
         cdef long datasize = 0
@@ -937,14 +940,22 @@ cdef class Texture:
                 char_view = pbuffer
                 cdata = &char_view[0]
                 datasize = char_view.nbytes
-            elif glbufferfmt == GL_SHORT or glbufferfmt == GL_UNSIGNED_SHORT:
+            elif glbufferfmt == GL_SHORT:
                 short_view = pbuffer
                 cdata = <char *>&short_view[0]
                 datasize = short_view.nbytes
-            elif glbufferfmt == GL_INT or glbufferfmt == GL_UNSIGNED_INT:
+            elif glbufferfmt == GL_UNSIGNED_SHORT:
+                ushort_view = pbuffer
+                cdata = <char *>&ushort_view[0]
+                datasize = ushort_view.nbytes
+            elif glbufferfmt == GL_INT:
                 int_view = pbuffer
                 cdata = <char *>&int_view[0]
                 datasize = int_view.nbytes
+            elif glbufferfmt == GL_UNSIGNED_INT:
+                uint_view = pbuffer
+                cdata = <char *>&uint_view[0]
+                datasize = uint_view.nbytes
             elif glbufferfmt == GL_FLOAT:
                 float_view = pbuffer
                 cdata = <char *>&float_view[0]
@@ -1041,7 +1052,7 @@ cdef class Texture:
 
     cdef void reload(self):
         cdef Texture texture
-        if self._id != -1:
+        if self._id != <GLuint>-1:
             return
         if self._source is None:
             # manual texture recreation
@@ -1114,7 +1125,7 @@ cdef class Texture:
                 continue
             callback()(self)
 
-    def save(self, filename, flipped=True):
+    def save(self, filename, flipped=True, fmt=None):
         '''Save the texture content to a file. Check
         :meth:`kivy.core.image.Image.save` for more information.
 
@@ -1128,103 +1139,113 @@ cdef class Texture:
             Parameter `flipped` added, defaults to True. All the OpenGL Texture
             are readed from bottom / left, it need to be flipped before saving.
             If you don't want to flip the image, set flipped to False.
+
+        .. versionchanged:: 1.11.0
+
+            Parameter `fmt` added, to pass the final format to the image provider.
+            Used if filename is a BytesIO
         '''
         from kivy.core.image import Image
-        return Image(self).save(filename, flipped=flipped)
+        return Image(self).save(filename, flipped=flipped, fmt=fmt)
 
     def __repr__(self):
         return '<Texture hash=%r id=%d size=%r colorfmt=%r bufferfmt=%r source=%r observers=%d>' % (
             id(self), self._id, self.size, self.colorfmt, self.bufferfmt,
             self._source, len(self.observers))
 
-    property size:
+    @property
+    def size(self):
         '''Return the (width, height) of the texture (readonly).
         '''
-        def __get__(self):
-            return (self.width, self.height)
+        return (self.width, self.height)
 
-    property mipmap:
+    @property
+    def mipmap(self):
         '''Return True if the texture has mipmap enabled (readonly).
         '''
-        def __get__(self):
-            return self._mipmap
+        return self._mipmap
 
-    property id:
+    @property
+    def id(self):
         '''Return the OpenGL ID of the texture (readonly).
         '''
-        def __get__(self):
-            return self._id
+        return self._id
 
-    property target:
+    @property
+    def target(self):
         '''Return the OpenGL target of the texture (readonly).
         '''
-        def __get__(self):
-            return self._target
+        return self._target
 
-    property width:
+    @property
+    def width(self):
         '''Return the width of the texture (readonly).
         '''
-        def __get__(self):
-            return self._width
+        return self._width
 
-    property height:
+    @property
+    def height(self):
         '''Return the height of the texture (readonly).
         '''
-        def __get__(self):
-            return self._height
+        return self._height
 
-    property tex_coords:
+    @property
+    def tex_coords(self):
         '''Return the list of tex_coords (opengl).
         '''
-        def __get__(self):
-            return (
-                self._tex_coords[0],
-                self._tex_coords[1],
-                self._tex_coords[2],
-                self._tex_coords[3],
-                self._tex_coords[4],
-                self._tex_coords[5],
-                self._tex_coords[6],
-                self._tex_coords[7])
+        return (
+            self._tex_coords[0],
+            self._tex_coords[1],
+            self._tex_coords[2],
+            self._tex_coords[3],
+            self._tex_coords[4],
+            self._tex_coords[5],
+            self._tex_coords[6],
+            self._tex_coords[7])
 
-    property uvpos:
+    @property
+    def uvpos(self):
         '''Get/set the UV position inside the texture.
         '''
-        def __get__(self):
-            return (self._uvx, self._uvy)
-        def __set__(self, x):
-            self._uvx, self._uvy = x
-            self.update_tex_coords()
+        return (self._uvx, self._uvy)
 
-    property uvsize:
+    @uvpos.setter
+    def uvpos(self, x):
+        self._uvx, self._uvy = x
+        self.update_tex_coords()
+
+    @property
+    def uvsize(self):
         '''Get/set the UV size inside the texture.
 
         .. warning::
             The size can be negative if the texture is flipped.
         '''
-        def __get__(self):
-            return (self._uvw, self._uvh)
-        def __set__(self, x):
-            self._uvw, self._uvh = x
-            self.update_tex_coords()
+        return (self._uvw, self._uvh)
 
-    property colorfmt:
+    @uvsize.setter
+    def uvsize(self, x):
+        self._uvw, self._uvh = x
+        self.update_tex_coords()
+
+    @property
+    def colorfmt(self):
         '''Return the color format used in this texture (readonly).
 
         .. versionadded:: 1.0.7
         '''
-        def __get__(self):
-            return self._colorfmt
+        return self._colorfmt
 
-    property bufferfmt:
+    @property
+    def bufferfmt(self):
         '''Return the buffer format used in this texture (readonly).
 
         .. versionadded:: 1.2.0
         '''
-        def __get__(self):
-            return self._bufferfmt
+        return self._bufferfmt
 
-    property min_filter:
+    @property
+    def min_filter(self):
         '''Get/set the min filter texture. Available values:
 
         - linear
@@ -1238,12 +1259,14 @@ cdef class Texture:
         of these values :
         http://www.khronos.org/opengles/sdk/docs/man/xhtml/glTexParameter.xml.
         '''
-        def __get__(self):
-            return self._min_filter
-        def __set__(self, x):
-            self.set_min_filter(x)
+        return self._min_filter
 
-    property mag_filter:
+    @min_filter.setter
+    def min_filter(self, x):
+        self.set_min_filter(x)
+
+    @property
+    def mag_filter(self):
         '''Get/set the mag filter texture. Available values:
 
         - linear
@@ -1253,12 +1276,14 @@ cdef class Texture:
         of these values :
         http://www.khronos.org/opengles/sdk/docs/man/xhtml/glTexParameter.xml.
         '''
-        def __get__(self):
-            return self._mag_filter
-        def __set__(self, x):
-            self.set_mag_filter(x)
+        return self._mag_filter
 
-    property wrap:
+    @mag_filter.setter
+    def mag_filter(self, x):
+        self.set_mag_filter(x)
+
+    @property
+    def wrap(self):
         '''Get/set the wrap texture. Available values:
 
         - repeat
@@ -1269,20 +1294,21 @@ cdef class Texture:
         of these values :
         http://www.khronos.org/opengles/sdk/docs/man/xhtml/glTexParameter.xml.
         '''
-        def __get__(self):
-            return self._wrap
-        def __set__(self, wrap):
-            self.set_wrap(wrap)
+        return self._wrap
 
-    property pixels:
+    @wrap.setter
+    def wrap(self, wrap):
+        self.set_wrap(wrap)
+
+    @property
+    def pixels(self):
         '''Get the pixels texture, in RGBA format only, unsigned byte. The
         origin of the image is at bottom left.
 
         .. versionadded:: 1.7.0
         '''
-        def __get__(self):
-            from kivy.graphics.fbo import Fbo
-            return Fbo(size=self.size, texture=self).pixels
+        from kivy.graphics.fbo import Fbo
+        return Fbo(size=self.size, texture=self).pixels
 
 
 cdef class TextureRegion(Texture):
@@ -1338,17 +1364,17 @@ cdef class TextureRegion(Texture):
     cpdef bind(self):
         self.owner.bind()
 
-    property pixels:
-        def __get__(self):
-            from kivy.graphics.fbo import Fbo
-            from kivy.graphics import Color, Rectangle
-            fbo = Fbo(size=self.size)
-            fbo.clear()
-            self.flip_vertical()
-            with fbo:
-                Color(1, 1, 1)
-                Rectangle(size=self.size, texture=self,
-                        tex_coords=self.tex_coords)
-            fbo.draw()
-            self.flip_vertical()
-            return fbo.pixels
+    @property
+    def pixels(self):
+        from kivy.graphics.fbo import Fbo
+        from kivy.graphics import Color, Rectangle
+        fbo = Fbo(size=self.size)
+        fbo.clear()
+        self.flip_vertical()
+        with fbo:
+            Color(1, 1, 1)
+            Rectangle(size=self.size, texture=self,
+                    tex_coords=self.tex_coords)
+        fbo.draw()
+        self.flip_vertical()
+        return fbo.pixels

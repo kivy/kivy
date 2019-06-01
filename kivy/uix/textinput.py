@@ -169,7 +169,7 @@ from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.image import Image
 
 from kivy.properties import StringProperty, NumericProperty, \
-    BooleanProperty, AliasProperty, \
+    BooleanProperty, AliasProperty, OptionProperty, \
     ListProperty, ObjectProperty, VariableListProperty
 
 Cache_register = Cache.register
@@ -459,6 +459,8 @@ class TextInput(FocusBehavior, Widget):
     __events__ = ('on_text_validate', 'on_double_tap', 'on_triple_tap',
                   'on_quad_touch')
 
+    _resolved_base_dir = None
+
     def __init__(self, **kwargs):
         self._update_graphics_ev = Clock.create_trigger(
             self._update_graphics, -1)
@@ -497,6 +499,11 @@ class TextInput(FocusBehavior, Widget):
         self._do_blink_cursor_ev = Clock.create_trigger(
             self._do_blink_cursor, .5, interval=True)
         self._refresh_line_options_ev = None
+
+        # [from; to) range of lines being partially or fully rendered
+        # in TextInput's viewport
+        self._visible_lines_range = 0, 0
+
         self.interesting_keys = {
             8: 'backspace',
             13: 'enter',
@@ -522,9 +529,14 @@ class TextInput(FocusBehavior, Widget):
         fbind = self.fbind
         refresh_line_options = self._trigger_refresh_line_options
         update_text_options = self._update_text_options
+        trigger_update_graphics = self._trigger_update_graphics
 
         fbind('font_size', refresh_line_options)
         fbind('font_name', refresh_line_options)
+        fbind('font_context', refresh_line_options)
+        fbind('font_family', refresh_line_options)
+        fbind('base_direction', refresh_line_options)
+        fbind('text_language', refresh_line_options)
 
         def handle_readonly(instance, value):
             if value and (not _is_desktop or not self.allow_copy):
@@ -543,7 +555,8 @@ class TextInput(FocusBehavior, Widget):
         fbind('password', update_text_options)
         fbind('password_mask', update_text_options)
 
-        fbind('pos', self._trigger_update_graphics)
+        fbind('pos', trigger_update_graphics)
+        fbind('halign', trigger_update_graphics)
         fbind('readonly', handle_readonly)
         fbind('focus', self._on_textinput_focused)
         handle_readonly(self, self.readonly)
@@ -1070,7 +1083,7 @@ class TextInput(FocusBehavior, Widget):
             self._selection_callback = Clock.schedule_once(cb)
 
     def do_cursor_movement(self, action, control=False, alt=False):
-        '''Move the cursor relative to it's current position.
+        '''Move the cursor relative to its current position.
         Action can be one of :
 
             - cursor_left: move the cursor to the left
@@ -1178,7 +1191,12 @@ class TextInput(FocusBehavior, Widget):
                         row += 1
                 else:
                     col, row = col + 1, row
-        self.cursor = (col, row)
+
+        dont_move_cursor = control and action in ['cursor_up', 'cursor_down']
+        if dont_move_cursor:
+            self._trigger_update_graphics()
+        else:
+            self.cursor = (col, row)
 
     def get_cursor_from_xy(self, x, y):
         '''Return the (row, col) of the cursor from an (x, y) position.
@@ -1196,8 +1214,19 @@ class TextInput(FocusBehavior, Widget):
         _get_text_width = self._get_text_width
         _tab_width = self.tab_width
         _label_cached = self._label_cached
+        # Offset for horizontal text alignment
+        xoff = 0
+        halign = self.halign
+        base_dir = self.base_direction or self._resolved_base_dir
+        auto_halign_r = halign == 'auto' and base_dir and 'rtl' in base_dir
+        if halign == 'center':
+            viewport_width = self.width - padding_left - self.padding[2]  # _r
+            xoff = int((viewport_width - self._get_row_width(cy)) / 2)
+        elif halign == 'right' or auto_halign_r:
+            viewport_width = self.width - padding_left - self.padding[2]  # _r
+            xoff = viewport_width - self._get_row_width(cy)
         for i in range(0, len(l[cy])):
-            if _get_text_width(l[cy][:i], _tab_width, _label_cached) + \
+            if xoff + _get_text_width(l[cy][:i], _tab_width, _label_cached) + \
                   _get_text_width(l[cy][i], _tab_width, _label_cached) * 0.6 +\
                   padding_left > cx + scrl_x:
                 cx = i
@@ -1345,27 +1374,32 @@ class TextInput(FocusBehavior, Widget):
 
         # Check for scroll wheel
         if 'button' in touch.profile and touch.button.startswith('scroll'):
+            # TODO: implement 'scrollleft' and 'scrollright'
             scroll_type = touch.button[6:]
             if scroll_type == 'down':
                 if self.multiline:
-                    if self.scroll_y <= 0:
-                        return True
-                    self.scroll_y -= self.line_height
+                    if self.scroll_y > 0:
+                        self.scroll_y -= self.line_height
+                        self._trigger_update_graphics()
                 else:
-                    if self.scroll_x <= 0:
-                        return True
-                    self.scroll_x -= self.line_height
+                    if self.scroll_x > 0:
+                        self.scroll_x -= self.line_height
+                        self._trigger_update_graphics()
             if scroll_type == 'up':
                 if self.multiline:
-                    if (self._lines_rects[-1].pos[1] > self.y +
-                            self.line_height):
-                        return True
-                    self.scroll_y += self.line_height
+                    viewport_height = self.height\
+                                      - self.padding[1] - self.padding[3]
+                    text_height = len(self._lines) * (self.line_height
+                                                      + self.line_spacing)
+                    if viewport_height < text_height - self.scroll_y:
+                        self.scroll_y += self.line_height
+                        self._trigger_update_graphics()
                 else:
-                    if (self.scroll_x + self.width >=
+                    if (self.scroll_x + self.width <
                             self._lines_rects[-1].texture.size[0]):
-                        return True
-                    self.scroll_x += self.line_height
+                        self.scroll_x += self.line_height
+                        self._trigger_update_graphics()
+            return True
 
         touch.grab(self)
         self._touch_count += 1
@@ -1970,8 +2004,17 @@ class TextInput(FocusBehavior, Widget):
         y = self.top - padding_top + sy
         miny = self.y + padding_bottom
         maxy = self.top - padding_top
+        halign = self.halign
+        base_dir = self.base_direction
+        find_base_dir = Label.find_base_direction
+        auto_halign_r = halign == 'auto' and base_dir and 'rtl' in base_dir
+
+        fst_visible_ln = None
         for line_num, value in enumerate(lines):
-            if miny <= y <= maxy + dy:
+            if miny < y < maxy + dy:
+                if fst_visible_ln is None:
+                    fst_visible_ln = line_num
+
                 texture = labels[line_num]
                 size = list(texture.size)
                 texc = texture.tex_coords[:]
@@ -2023,15 +2066,34 @@ class TextInput(FocusBehavior, Widget):
                     tcx,
                     tcy)
 
+                # Horizontal alignment
+                xoffset = 0
+                if not base_dir:
+                    base_dir = self._resolved_base_dir = find_base_dir(value)
+                    if base_dir and halign == 'auto':
+                        auto_halign_r = 'rtl' in base_dir
+                if halign == 'center':
+                    xoffset = int((vw - size[0]) / 2.)
+                elif halign == 'right' or auto_halign_r:
+                    xoffset = max(0, int(vw - size[0]))
+
                 # add rectangle.
                 r = rects[line_num]
-                r.pos = int(x), int(y - mlh)
+                r.pos = int(xoffset + x), int(y - mlh)
                 r.size = size
                 r.texture = texture
                 r.tex_coords = texc
                 add(r)
+            elif y <= miny:
+                line_num -= 1
+                break
 
             y -= dy
+
+        if fst_visible_ln is not None:
+            self._visible_lines_range = (fst_visible_ln, line_num + 1)
+        else:
+            self._visible_lines_range = 0, 0
 
         self._update_graphics_selection()
 
@@ -2116,23 +2178,60 @@ class TextInput(FocusBehavior, Widget):
         self._refresh_hint_text()
         self.scroll_x = self.scroll_y = 0
 
+    def _get_row_width(self, row):
+        # Get the pixel width of the given row.
+        _labels = self._lines_labels
+        if row < len(_labels):
+            return _labels[row].width
+        return 0
+
     def _get_cursor_pos(self):
         # return the current cursor x/y from the row/col
         dy = self.line_height + self.line_spacing
         padding_left = self.padding[0]
         padding_top = self.padding[1]
+        padding_right = self.padding[2]
         left = self.x + padding_left
         top = self.top - padding_top
         y = top + self.scroll_y
         y -= self.cursor_row * dy
-        x, y = left + self.cursor_offset() - self.scroll_x, y
-        if x < left:
-            self.scroll_x = 0
-            x = left
-        if y > top:
-            y = top
-            self.scroll_y = 0
+
+        # Horizontal alignment
+        halign = self.halign
+        viewport_width = self.width - padding_left - padding_right
+        cursor_offset = self.cursor_offset()
+        base_dir = self.base_direction or self._resolved_base_dir
+        auto_halign_r = halign == 'auto' and base_dir and 'rtl' in base_dir
+        if halign == 'center':
+            row_width = self._get_row_width(self.cursor_row)
+            x = left + int((viewport_width - row_width) / 2) \
+                     + cursor_offset - self.scroll_x
+        elif halign == 'right' or auto_halign_r:
+            row_width = self._get_row_width(self.cursor_row)
+            x = left + viewport_width - row_width \
+                     + cursor_offset - self.scroll_x
+        else:
+            x = left + cursor_offset - self.scroll_x
+
         return x, y
+
+    def _get_cursor_visual_height(self):
+        # Return the height of the cursor's visible part
+        _, cy = map(int, self.cursor_pos)
+        max_y = self.top - self.padding[1]
+        min_y = self.y + self.padding[3]
+
+        lh = self.line_height
+        if cy > max_y:
+            return lh - min(lh, cy - max_y)
+        else:
+            return min(lh, max(0, cy - min_y))
+
+    def _get_cursor_visual_pos(self):
+        # Return the position of the cursor's top visible point
+        cx, cy = map(int, self.cursor_pos)
+        max_y = self.top - self.padding[3]
+        return [cx, min(max_y, cy)]
 
     def _get_line_options(self):
         # Get or create line options, to be used for Label creation
@@ -2140,6 +2239,10 @@ class TextInput(FocusBehavior, Widget):
             self._line_options = kw = {
                 'font_size': self.font_size,
                 'font_name': self.font_name,
+                'font_context': self.font_context,
+                'font_family': self.font_family,
+                'text_language': self.text_language,
+                'base_direction': self.base_direction,
                 'anchor_x': 'left',
                 'anchor_y': 'top',
                 'padding_x': 0,
@@ -2356,8 +2459,9 @@ class TextInput(FocusBehavior, Widget):
         win = EventLoop.window
 
         # This allows *either* ctrl *or* cmd, but not both.
-        is_shortcut = (modifiers == ['ctrl'] or (
-            _is_osx and modifiers == ['meta']))
+        modifiers = set(modifiers) - {'capslock', 'numlock'}
+        is_shortcut = (modifiers == {'ctrl'} or (
+            _is_osx and modifiers == {'meta'}))
         is_interesting_key = key in (list(self.interesting_keys.keys()) + [27])
 
         if not self.write_tab and super(TextInput,
@@ -2441,10 +2545,11 @@ class TextInput(FocusBehavior, Widget):
                 elif key == ord('r'):  # redo
                     self.do_redo()
             else:
-                if EventLoop.window.__class__.__module__ == \
-                    'kivy.core.window.window_sdl2':
-                    if not (text == ' ' and platform == 'android'):
-                        return
+                is_sdl2 = (EventLoop.window.__class__.__module__ ==
+                           'kivy.core.window.window_sdl2')
+                if is_sdl2:
+                    # we expect to get managed key input via on_textinput
+                    return
                 if self._selection:
                     self.delete_selection()
                 self.insert_text(text)
@@ -2510,6 +2615,12 @@ class TextInput(FocusBehavior, Widget):
     _insert_int_pat = re.compile(u'^-?[0-9]*$')
     _insert_float_pat = re.compile(u'^-?[0-9]*\\.?[0-9]*$')
     _cursor_blink = BooleanProperty(False)
+    _cursor_visual_pos = AliasProperty(
+        _get_cursor_visual_pos, None, bind=['cursor_pos']
+    )
+    _cursor_visual_height = AliasProperty(
+        _get_cursor_visual_height, None, bind=['cursor_pos']
+    )
 
     readonly = BooleanProperty(False)
     '''If True, the user will not be able to change the content of a textinput.
@@ -2659,9 +2770,11 @@ class TextInput(FocusBehavior, Widget):
     cursor[1], read-only.
     '''
 
-    cursor_pos = AliasProperty(_get_cursor_pos, None, bind=(
-        'cursor', 'padding', 'pos', 'size', 'focus',
-        'scroll_x', 'scroll_y'))
+    cursor_pos = AliasProperty(_get_cursor_pos, None,
+                               bind=('cursor', 'padding', 'pos', 'size',
+                                     'focus', 'scroll_x', 'scroll_y',
+                                     'line_height', 'line_spacing'),
+                               cache=True)
     '''Current position of the cursor, in (x, y).
 
     :attr:`cursor_pos` is an :class:`~kivy.properties.AliasProperty`,
@@ -2709,7 +2822,7 @@ class TextInput(FocusBehavior, Widget):
     defaults to 4.
     '''
 
-    padding_x = VariableListProperty([0, 0], length=2)
+    padding_x = VariableListProperty([0, 0], length=2, deprecated=True)
     '''Horizontal padding of the text: [padding_left, padding_right].
 
     padding_x also accepts a one argument form [padding_horizontal].
@@ -2725,7 +2838,7 @@ class TextInput(FocusBehavior, Widget):
         self.padding[0] = value[0]
         self.padding[2] = value[1]
 
-    padding_y = VariableListProperty([0, 0], length=2)
+    padding_y = VariableListProperty([0, 0], length=2, deprecated=True)
     '''Vertical padding of the text: [padding_top, padding_bottom].
 
     padding_y also accepts a one argument form [padding_vertical].
@@ -2753,6 +2866,18 @@ class TextInput(FocusBehavior, Widget):
 
     :attr:`padding` is a :class:`~kivy.properties.VariableListProperty` and
     defaults to [6, 6, 6, 6].
+    '''
+
+    halign = OptionProperty('auto', options=['left', 'center', 'right',
+                            'auto'])
+    '''Horizontal alignment of the text.
+
+    :attr:`halign` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to 'auto'. Available options are : auto, left, center and right.
+    Auto will attempt to autodetect horizontal alignment for RTL text (Pango
+    only), otherwise it behaves like `left`.
+
+    .. versionadded:: 1.10.1
     '''
 
     scroll_x = NumericProperty(0)
@@ -2983,7 +3108,7 @@ class TextInput(FocusBehavior, Widget):
         self._refresh_text(text)
         self.cursor = self.get_cursor_from_index(len(text))
 
-    text = AliasProperty(_get_text, _set_text, bind=('_lines', ))
+    text = AliasProperty(_get_text, _set_text, bind=('_lines',))
     '''Text of the widget.
 
     Creation of a simple hello world::
@@ -3026,6 +3151,93 @@ class TextInput(FocusBehavior, Widget):
     :attr:`font_size` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 15\ :attr:`~kivy.metrics.sp`.
     '''
+
+    font_context = StringProperty(None, allownone=True)
+    '''Font context. `None` means the font is used in isolation, so you are
+    guaranteed to be drawing with the TTF file resolved by :attr:`font_name`.
+    Specifying a value here will load the font file into a named context,
+    enabling fallback between all fonts in the same context. If a font
+    context is set, you are not guaranteed that rendering will actually use
+    the specified TTF file for all glyphs (Pango will pick the one it
+    thinks is best).
+
+    If Kivy is linked against a system-wide installation of FontConfig,
+    you can load the system fonts by specifying a font context starting
+    with the special string `system://`. This will load the system
+    fontconfig configuration, and add your application-specific fonts on
+    top of it (this imposes a signifficant risk of family name collision,
+    Pango may not use your custom font file, but pick one from the system)
+
+    .. note::
+        This feature requires the Pango text provider.
+
+    .. versionadded:: 1.10.1
+
+    :attr:`font_context` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+    '''
+
+    font_family = StringProperty(None, allownone=True)
+    '''Font family, this is only applicable when using :attr:`font_context`
+    option. The specified font family will be requested, but note that it may
+    not be available, or there could be multiple fonts registered with the
+    same family. The value can be a family name (string) available in the
+    font context (for example a system font in a `system://` context, or a
+    custom font file added using :class:`kivy.core.text.FontContextManager`).
+    If set to `None`, font selection is controlled by the :attr:`font_name`
+    setting.
+
+    .. note::
+        If using :attr:`font_name` to reference a custom font file, you
+        should leave this as `None`. The family name is managed automatically
+        in this case.
+
+    .. note::
+        This feature requires the Pango text provider.
+
+    .. versionadded:: 1.10.1
+
+    :attr:`font_family` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+    '''
+
+    base_direction = OptionProperty(None,
+                     options=['ltr', 'rtl', 'weak_rtl', 'weak_ltr', None],
+                     allownone=True)
+    '''Base direction of text, this impacts horizontal alignment when
+    :attr:`halign` is `auto` (the default). Available options are: None,
+    "ltr" (left to right), "rtl" (right to left) plus "weak_ltr" and
+    "weak_rtl".
+
+    .. note::
+        This feature requires the Pango text provider.
+
+    .. note::
+        Weak modes are currently not implemented in Kivy text layout, and
+        have the same effect as setting strong mode.
+
+    .. versionadded:: 1.10.1
+
+    :attr:`base_direction` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to None (autodetect RTL if possible, otherwise LTR).
+    '''
+
+    text_language = StringProperty(None, allownone=True)
+    '''Language of the text, if None Pango will determine it from locale.
+    This is an RFC-3066 format language tag (as a string), for example
+    "en_US", "zh_CN", "fr" or "ja". This can impact font selection, metrics
+    and rendering. For example, the same bytes of text can look different
+    for `ur` and `ar` languages, though both use Arabic script.
+
+    .. note::
+        This feature requires the Pango text provider.
+
+    .. versionadded:: 1.10.1
+
+    :attr:`text_language` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+    '''
+
     _hint_text = StringProperty('')
 
     def _set_hint_text(self, value):
@@ -3090,10 +3302,12 @@ class TextInput(FocusBehavior, Widget):
         return (len(self._lines) * (self.line_height + self.line_spacing) +
                 self.padding[1] + self.padding[3])
 
-    minimum_height = AliasProperty(_get_min_height, None,
+    minimum_height = AliasProperty(_get_min_height,
                                    bind=('_lines', 'line_spacing', 'padding',
                                          'font_size', 'font_name', 'password',
-                                         'hint_text', 'line_height'))
+                                         'font_context', 'hint_text',
+                                         'line_height'),
+                                   cache=True)
     '''Minimum height of the content inside the TextInput.
 
     .. versionadded:: 1.8.0

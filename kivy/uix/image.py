@@ -4,7 +4,16 @@ Image
 
 The :class:`Image` widget is used to display an image::
 
+Example in python::
+
     wimg = Image(source='mylogo.png')
+
+Kv Example::
+
+    Image:
+        source: 'mylogo.png'
+        size: self.texture_size
+
 
 Asynchronous Loading
 --------------------
@@ -108,7 +117,7 @@ class Image(Widget):
     to False.
     '''
 
-    image_ratio = AliasProperty(get_image_ratio, None, bind=('texture', ))
+    image_ratio = AliasProperty(get_image_ratio, bind=('texture',), cache=True)
     '''Ratio of the image (width / float(height).
 
     :attr:`image_ratio` is an :class:`~kivy.properties.AliasProperty` and is
@@ -214,11 +223,12 @@ class Image(Widget):
             else:
                 ih = min(h, th)
             iw = ih * ratio
-
         return iw, ih
 
-    norm_image_size = AliasProperty(get_norm_image_size, None, bind=(
-        'texture', 'size', 'image_ratio', 'allow_stretch'))
+    norm_image_size = AliasProperty(get_norm_image_size,
+                                    bind=('texture', 'size', 'allow_stretch',
+                                          'image_ratio', 'keep_ratio'),
+                                    cache=True)
     '''Normalized image size within the widget box.
 
     This size will always fit the widget size and will preserve the image

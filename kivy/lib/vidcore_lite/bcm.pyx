@@ -9,33 +9,37 @@ cdef class Rect:
         self._vc_rect.width = width
         self._vc_rect.height = height
         
-    property x:
-        def __get__(self):
-            return self._vc_rect.x
+    @property
+    def x(self):
+        return self._vc_rect.x
             
-        def __set__(self, int32_t x):
-            self._vc_rect.x = x
+    @x.setter
+    def x(self, int32_t x):
+        self._vc_rect.x = x
             
-    property y:
-        def __get__(self):
-            return self._vc_rect.y
+    @property
+    def y(self):
+        return self._vc_rect.y
             
-        def __set__(self, int32_t y):
-            self._vc_rect.y = y
+    @y.setter
+    def y(self, int32_t y):
+        self._vc_rect.y = y
             
-    property width:
-        def __get__(self):
-            return self._vc_rect.width
+    @property
+    def width(self):
+        return self._vc_rect.width
             
-        def __set__(self, int32_t width):
-            self._vc_rect.width = width
+    @width.setter
+    def width(self, int32_t width):
+        self._vc_rect.width = width
             
-    property height:
-        def __get__(self):
-            return self._vc_rect.height
+    @property
+    def height(self):
+        return self._vc_rect.height
             
-        def __set__(self, int32_t h):
-            self._vc_rect.height = h
+    @height.setter
+    def height(self, int32_t h):
+        self._vc_rect.height = h
             
             
 cdef class DisplayHandle:

@@ -37,7 +37,8 @@ class ClipboardNSPaste(ClipboardBase):
     def put(self, data, mimetype='text/plain'):
         pb = self._clipboard
         pb.clearContents()
-        pb.writeObjects_([data])
+        utf8 = NSString.alloc().initWithUTF8String_(data)
+        pb.setString_forType_(utf8, 'public.utf8-plain-text')
 
     def get_types(self):
         return list('text/plain',)

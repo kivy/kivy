@@ -5,11 +5,14 @@ cdef void restore_stencil_state(dict state)
 cdef void reset_stencil_state()
 
 cdef class StencilPush(Instruction):
-    cdef int apply(self) except -1 
+    cdef int apply(self) except -1
+
 cdef class StencilPop(Instruction):
     cdef int apply(self) except -1
+
 cdef class StencilUse(Instruction):
-    cdef unsigned int _op
+    cdef int _op
     cdef int apply(self) except -1
+
 cdef class StencilUnUse(Instruction):
     cdef int apply(self) except -1

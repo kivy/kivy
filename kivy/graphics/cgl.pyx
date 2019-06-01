@@ -20,10 +20,10 @@ At runtime the following backends are available and can be set using
 * ``glew`` -- Available on Windows (the default backend). Unavailable when
   ``USE_OPENGL_MOCK=0``. Requires glew be installed.
 * ``sdl2`` -- Available on Windows/unix (the default when gl/glew is disabled).
-  Unavailable when ``USE_SDL2=0``. Requires ``kivy.deps.sdl2`` be installed.
+  Unavailable when ``USE_SDL2=0``. Requires ``kivy_deps.sdl2`` be installed.
 * ``angle_sdl2`` -- Available on Windows with Python 3.5+.
-  Unavailable when ``USE_SDL2=0``. Requires ``kivy.deps.sdl2`` and
-  ``kivy.deps.angle`` be installed.
+  Unavailable when ``USE_SDL2=0``. Requires ``kivy_deps.sdl2`` and
+  ``kivy_deps.angle`` be installed.
 * ``mock`` -- Always available. Doesn't actually do anything.
 
 
@@ -56,7 +56,7 @@ cpdef cgl_get_backend_name():
     if name:
         return name.lower()
 
-    for name in ('glew', 'gl', 'sdl2', 'mock'):
+    for name in ('glew', 'sdl2', 'gl', 'mock'):
         mod = importlib.import_module("kivy.graphics.cgl_backend.cgl_{}".format(name))
         if mod.is_backend_supported():
             return name

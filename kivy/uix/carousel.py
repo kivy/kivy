@@ -31,6 +31,21 @@ Example::
 
     CarouselApp().run()
 
+
+Kv Example::
+
+    Carousel:
+        direction: 'right'
+        AsyncImage:
+            source: 'http://placehold.it/480x270.png&text=slide-1.png'
+        AsyncImage:
+            source: 'http://placehold.it/480x270.png&text=slide-2.png'
+        AsyncImage:
+            source: 'http://placehold.it/480x270.png&text=slide-3.png'
+        AsyncImage:
+            source: 'http://placehold.it/480x270.png&text=slide-4.png'
+
+
 .. versionchanged:: 1.5.0
     The carousel now supports active children, like the
     :class:`~kivy.uix.scrollview.ScrollView`. It will detect a swipe gesture
@@ -71,8 +86,7 @@ class Carousel(StencilView):
     def _get_slides_container(self):
         return [x.parent for x in self.slides]
 
-    slides_container = AliasProperty(_get_slides_container, None,
-                                     bind=('slides', ))
+    slides_container = AliasProperty(_get_slides_container, bind=('slides',))
 
     direction = OptionProperty('right',
                                options=('right', 'left', 'top', 'bottom'))
@@ -134,7 +148,10 @@ class Carousel(StencilView):
             self._index = value % len(self.slides)
         else:
             self._index = None
-    index = AliasProperty(_get_index, _set_index, bind=('_index', 'slides'))
+
+    index = AliasProperty(_get_index, _set_index,
+                          bind=('_index', 'slides'),
+                          cache=True)
     '''Get/Set the current slide based on the index.
 
     :attr:`index` is an :class:`~kivy.properties.AliasProperty` and defaults
@@ -157,7 +174,9 @@ class Carousel(StencilView):
         if index > 0:
             return slides[index - 1]
 
-    previous_slide = AliasProperty(_prev_slide, None, bind=('slides', 'index'))
+    previous_slide = AliasProperty(_prev_slide,
+                                   bind=('slides', 'index', 'loop'),
+                                   cache=True)
     '''The previous slide in the Carousel. It is None if the current slide is
     the first slide in the Carousel. This ordering reflects the order in which
     the slides are added: their presentation varies according to the
@@ -173,7 +192,10 @@ class Carousel(StencilView):
     def _curr_slide(self):
         if len(self.slides):
             return self.slides[self.index]
-    current_slide = AliasProperty(_curr_slide, None, bind=('slides', 'index'))
+
+    current_slide = AliasProperty(_curr_slide,
+                                  bind=('slides', 'index'),
+                                  cache=True)
     '''The currently shown slide.
 
     :attr:`current_slide` is an :class:`~kivy.properties.AliasProperty`.
@@ -195,7 +217,10 @@ class Carousel(StencilView):
             return self.slides[0]
         if self.index < len(self.slides) - 1:
             return self.slides[self.index + 1]
-    next_slide = AliasProperty(_next_slide, None, bind=('slides', 'index'))
+
+    next_slide = AliasProperty(_next_slide,
+                               bind=('slides', 'index', 'loop'),
+                               cache=True)
     '''The next slide in the Carousel. It is None if the current slide is
     the last slide in the Carousel. This ordering reflects the order in which
     the slides are added: their presentation varies according to the
@@ -438,27 +463,21 @@ class Carousel(StencilView):
         if self._skip_slide is not None or index is None:
             return
 
-        if direction[0] == 'r':
-            if _offset <= -width:
-                index += 1
-            if _offset >= width:
-                index -= 1
-        if direction[0] == 'l':
-            if _offset <= -width:
-                index -= 1
-            if _offset >= width:
-                index += 1
-        if direction[0] == 't':
-            if _offset <= - height:
-                index += 1
-            if _offset >= height:
-                index -= 1
-        if direction[0] == 'b':
-            if _offset <= -height:
-                index -= 1
-            if _offset >= height:
-                index += 1
-        self.index = index
+        # Move to next slide?
+        if (direction[0] == 'r' and _offset <= -width) or \
+                (direction[0] == 'l' and _offset >= width) or \
+                (direction[0] == 't' and _offset <= - height) or \
+                (direction[0] == 'b' and _offset >= height):
+            if self.next_slide:
+                self.index += 1
+
+        # Move to previous slide?
+        if (direction[0] == 'r' and _offset >= width) or \
+                (direction[0] == 'l' and _offset <= -width) or \
+                (direction[0] == 't' and _offset >= height) or \
+                (direction[0] == 'b' and _offset <= -height):
+            if self.previous_slide:
+                self.index -= 1
 
     def _start_animation(self, *args, **kwargs):
         # compute target offset for ease back, next or prev
@@ -535,13 +554,13 @@ class Carousel(StencilView):
                 if abs(touch.oy - touch.y) < self.scroll_distance:
                     if abs(touch.ox - touch.x) > self.scroll_distance:
                         self._change_touch_mode()
-                        self.touchModeChange = True
+                        self.touch_mode_change = True
             elif self.ignore_perpendicular_swipes and \
                     self.direction in ('right', 'left'):
                 if abs(touch.ox - touch.x) < self.scroll_distance:
                     if abs(touch.oy - touch.y) > self.scroll_distance:
                         self._change_touch_mode()
-                        self.touchModeChange = True
+                        self.touch_mode_change = True
 
         if self._get_uid('cavoid') in touch.ud:
             return
@@ -615,10 +634,10 @@ class Carousel(StencilView):
             super(Carousel, self).on_touch_down(touch)
             return
 
-    def add_widget(self, widget, index=0):
+    def add_widget(self, widget, index=0, canvas=None):
         slide = RelativeLayout(size=self.size, x=self.x - self.width, y=self.y)
         slide.add_widget(widget)
-        super(Carousel, self).add_widget(slide, index)
+        super(Carousel, self).add_widget(slide, index, canvas)
         if index != 0:
             self.slides.insert(index - len(self.slides), widget)
         else:

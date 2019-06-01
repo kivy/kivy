@@ -17,13 +17,13 @@ cdef GLuint __stdcall mockCreateProgram() nogil:
     return <GLuint>1
 cdef GLuint __stdcall mockCreateShader(GLenum type) nogil:
     return <GLuint>1
-cdef int __stdcall mockGetAttribLocation(GLuint program, GLchar* name) nogil:
+cdef int __stdcall mockGetAttribLocation(GLuint program, const GLchar* name) nogil:
     return 1
 cdef GLenum __stdcall mockGetError() nogil:
     return GL_NO_ERROR
-cdef GLubyte* __stdcall mockGetString(GLenum name) nogil:
+cdef const GLubyte* __stdcall mockGetString(GLenum name) nogil:
     return empty_str
-cdef int __stdcall mockGetUniformLocation(GLuint program,  GLchar* name) nogil:
+cdef int __stdcall mockGetUniformLocation(GLuint program,  const GLchar* name) nogil:
     1
 cdef GLboolean __stdcall mockIsBuffer(GLuint buffer) nogil:
     return GL_TRUE
@@ -44,7 +44,7 @@ cdef void __stdcall mockActiveTexture(GLenum texture) nogil:
     pass
 cdef void __stdcall mockAttachShader(GLuint program, GLuint shader) nogil:
     pass
-cdef void __stdcall mockBindAttribLocation(GLuint program, GLuint index, GLchar* name) nogil:
+cdef void __stdcall mockBindAttribLocation(GLuint program, GLuint index, const GLchar* name) nogil:
     pass
 cdef void __stdcall mockBindBuffer(GLenum target, GLuint buffer) nogil:
     pass
@@ -64,25 +64,25 @@ cdef void __stdcall mockBlendFunc(GLenum sfactor, GLenum dfactor) nogil:
     pass
 cdef void __stdcall mockBlendFuncSeparate(GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha) nogil:
     pass
-cdef void __stdcall mockBufferData(GLenum target, GLsizeiptr size, GLvoid* data, GLenum usage) nogil:
+cdef void __stdcall mockBufferData(GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usage) nogil:
     pass
-cdef void __stdcall mockBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, GLvoid* data) nogil:
+cdef void __stdcall mockBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const GLvoid* data) nogil:
     pass
 cdef void __stdcall mockClear(GLbitfield mask) nogil:
     pass
 cdef void __stdcall mockClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha) nogil:
     pass
-cdef void __stdcall mockClearDepthf(GLclampf depth) nogil:
-    pass
+# cdef void __stdcall mockClearDepthf(GLclampf depth) nogil:
+#     pass
 cdef void __stdcall mockClearStencil(GLint s) nogil:
     pass
 cdef void __stdcall mockColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha) nogil:
     pass
 cdef void __stdcall mockCompileShader(GLuint shader) nogil:
     pass
-cdef void __stdcall mockCompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, GLvoid* data) nogil:
+cdef void __stdcall mockCompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const GLvoid* data) nogil:
     pass
-cdef void __stdcall mockCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, GLvoid* data) nogil:
+cdef void __stdcall mockCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const GLvoid* data) nogil:
     pass
 cdef void __stdcall mockCopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border) nogil:
     pass
@@ -90,24 +90,24 @@ cdef void __stdcall mockCopyTexSubImage2D(GLenum target, GLint level, GLint xoff
     pass
 cdef void __stdcall mockCullFace(GLenum mode) nogil:
     pass
-cdef void __stdcall mockDeleteBuffers(GLsizei n, GLuint* buffers) nogil:
+cdef void __stdcall mockDeleteBuffers(GLsizei n, const GLuint* buffers) nogil:
     pass
-cdef void __stdcall mockDeleteFramebuffers(GLsizei n, GLuint* framebuffers) nogil:
+cdef void __stdcall mockDeleteFramebuffers(GLsizei n, const GLuint* framebuffers) nogil:
     pass
 cdef void __stdcall mockDeleteProgram(GLuint program) nogil:
     pass
-cdef void __stdcall mockDeleteRenderbuffers(GLsizei n, GLuint* renderbuffers) nogil:
+cdef void __stdcall mockDeleteRenderbuffers(GLsizei n, const GLuint* renderbuffers) nogil:
     pass
 cdef void __stdcall mockDeleteShader(GLuint shader) nogil:
     pass
-cdef void __stdcall mockDeleteTextures(GLsizei n, GLuint* textures) nogil:
+cdef void __stdcall mockDeleteTextures(GLsizei n, const GLuint* textures) nogil:
     pass
 cdef void __stdcall mockDepthFunc(GLenum func) nogil:
     pass
 cdef void __stdcall mockDepthMask(GLboolean flag) nogil:
     pass
-cdef void __stdcall mockDepthRangef(GLclampf zNear, GLclampf zFar) nogil:
-    pass
+# cdef void __stdcall mockDepthRangef(GLclampf zNear, GLclampf zFar) nogil:
+#     pass
 cdef void __stdcall mockDetachShader(GLuint program, GLuint shader) nogil:
     pass
 cdef void __stdcall mockDisable(GLenum cap) nogil:
@@ -116,7 +116,7 @@ cdef void __stdcall mockDisableVertexAttribArray(GLuint index) nogil:
     pass
 cdef void __stdcall mockDrawArrays(GLenum mode, GLint first, GLsizei count) nogil:
     pass
-cdef void __stdcall mockDrawElements(GLenum mode, GLsizei count, GLenum type, GLvoid* indices) nogil:
+cdef void __stdcall mockDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid* indices) nogil:
     pass
 cdef void __stdcall mockEnable(GLenum cap) nogil:
     pass
@@ -168,8 +168,8 @@ cdef void __stdcall mockGetShaderiv(GLuint shader, GLenum pname, GLint* params) 
     pass
 cdef void __stdcall mockGetShaderInfoLog(GLuint shader, GLsizei bufsize, GLsizei* length, GLchar* infolog) nogil:
     pass
-cdef void __stdcall mockGetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype, GLint* range, GLint* precision) nogil:
-    pass
+# cdef void __stdcall mockGetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype, GLint* range, GLint* precision) nogil:
+#     pass
 cdef void __stdcall mockGetShaderSource(GLuint shader, GLsizei bufsize, GLsizei* length, GLchar* source) nogil:
     pass
 cdef void __stdcall mockGetTexParameterfv(GLenum target, GLenum pname, GLfloat* params) nogil:
@@ -184,8 +184,8 @@ cdef void __stdcall mockGetVertexAttribfv(GLuint index, GLenum pname, GLfloat* p
     pass
 cdef void __stdcall mockGetVertexAttribiv(GLuint index, GLenum pname, GLint* params) nogil:
     pass
-cdef void __stdcall mockGetVertexAttribPointerv(GLuint index, GLenum pname, GLvoid** pointer) nogil:
-    pass
+# cdef void __stdcall mockGetVertexAttribPointerv(GLuint index, GLenum pname, GLvoid** pointer) nogil:
+#     pass
 cdef void __stdcall mockHint(GLenum target, GLenum mode) nogil:
     pass
 cdef void __stdcall mockLineWidth(GLfloat width) nogil:
@@ -198,17 +198,17 @@ cdef void __stdcall mockPolygonOffset(GLfloat factor, GLfloat units) nogil:
     pass
 cdef void __stdcall mockReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels) nogil:
     pass
-cdef void __stdcall mockReleaseShaderCompiler() nogil:
-    pass
+# cdef void __stdcall mockReleaseShaderCompiler() nogil:
+#     pass
 cdef void __stdcall mockRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height) nogil:
     pass
 cdef void __stdcall mockSampleCoverage(GLclampf value, GLboolean invert) nogil:
     pass
 cdef void __stdcall mockScissor(GLint x, GLint y, GLsizei width, GLsizei height) nogil:
     pass
-cdef void __stdcall mockShaderBinary(GLsizei n, GLuint* shaders, GLenum binaryformat, GLvoid* binary, GLsizei length) nogil:
+cdef void __stdcall mockShaderBinary(GLsizei n, const GLuint* shaders, GLenum binaryformat, const GLvoid* binary, GLsizei length) nogil:
     pass
-cdef void __stdcall mockShaderSource(GLuint shader, GLsizei count, GLchar** string, GLint* length) nogil:
+cdef void __stdcall mockShaderSource(GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length) nogil:
     pass
 cdef void __stdcall mockStencilFunc(GLenum func, GLint ref, GLuint mask) nogil:
     pass
@@ -222,55 +222,55 @@ cdef void __stdcall mockStencilOp(GLenum fail, GLenum zfail, GLenum zpass) nogil
     pass
 cdef void __stdcall mockStencilOpSeparate(GLenum face, GLenum fail, GLenum zfail, GLenum zpass) nogil:
     pass
-cdef void __stdcall mockTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, GLvoid* pixels) nogil:
+cdef void __stdcall mockTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid* pixels) nogil:
     pass
 cdef void __stdcall mockTexParameterf(GLenum target, GLenum pname, GLfloat param) nogil:
     pass
-cdef void __stdcall mockTexParameterfv(GLenum target, GLenum pname, GLfloat* params) nogil:
-    pass
+# cdef void __stdcall mockTexParameterfv(GLenum target, GLenum pname, GLfloat* params) nogil:
+#     pass
 cdef void __stdcall mockTexParameteri(GLenum target, GLenum pname, GLint param) nogil:
     pass
-cdef void __stdcall mockTexParameteriv(GLenum target, GLenum pname, GLint* params) nogil:
-    pass
-cdef void __stdcall mockTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels) nogil:
+# cdef void __stdcall mockTexParameteriv(GLenum target, GLenum pname, GLint* params) nogil:
+#     pass
+cdef void __stdcall mockTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid* pixels) nogil:
     pass
 cdef void __stdcall mockUniform1f(GLint location, GLfloat x) nogil:
     pass
-cdef void __stdcall mockUniform1fv(GLint location, GLsizei count, GLfloat* v) nogil:
+cdef void __stdcall mockUniform1fv(GLint location, GLsizei count, const GLfloat* v) nogil:
     pass
 cdef void __stdcall mockUniform1i(GLint location, GLint x) nogil:
     pass
-cdef void __stdcall mockUniform1iv(GLint location, GLsizei count, GLint* v) nogil:
+cdef void __stdcall mockUniform1iv(GLint location, GLsizei count, const GLint* v) nogil:
     pass
 cdef void __stdcall mockUniform2f(GLint location, GLfloat x, GLfloat y) nogil:
     pass
-cdef void __stdcall mockUniform2fv(GLint location, GLsizei count, GLfloat* v) nogil:
+cdef void __stdcall mockUniform2fv(GLint location, GLsizei count, const GLfloat* v) nogil:
     pass
 cdef void __stdcall mockUniform2i(GLint location, GLint x, GLint y) nogil:
     pass
-cdef void __stdcall mockUniform2iv(GLint location, GLsizei count, GLint* v) nogil:
+cdef void __stdcall mockUniform2iv(GLint location, GLsizei count, const GLint* v) nogil:
     pass
 cdef void __stdcall mockUniform3f(GLint location, GLfloat x, GLfloat y, GLfloat z) nogil:
     pass
-cdef void __stdcall mockUniform3fv(GLint location, GLsizei count, GLfloat* v) nogil:
+cdef void __stdcall mockUniform3fv(GLint location, GLsizei count, const GLfloat* v) nogil:
     pass
 cdef void __stdcall mockUniform3i(GLint location, GLint x, GLint y, GLint z) nogil:
     pass
-cdef void __stdcall mockUniform3iv(GLint location, GLsizei count, GLint* v) nogil:
+cdef void __stdcall mockUniform3iv(GLint location, GLsizei count, const GLint* v) nogil:
     pass
 cdef void __stdcall mockUniform4f(GLint location, GLfloat x, GLfloat y, GLfloat z, GLfloat w) nogil:
     pass
-cdef void __stdcall mockUniform4fv(GLint location, GLsizei count, GLfloat* v) nogil:
+cdef void __stdcall mockUniform4fv(GLint location, GLsizei count, const GLfloat* v) nogil:
     pass
 cdef void __stdcall mockUniform4i(GLint location, GLint x, GLint y, GLint z, GLint w) nogil:
     pass
-cdef void __stdcall mockUniform4iv(GLint location, GLsizei count, GLint* v) nogil:
+cdef void __stdcall mockUniform4iv(GLint location, GLsizei count, const GLint* v) nogil:
     pass
-cdef void __stdcall mockUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, GLfloat* value) nogil:
-    pass
-cdef void __stdcall mockUniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, GLfloat* value) nogil:
-    pass
-cdef void __stdcall mockUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, GLfloat* value) nogil:
+# cdef void __stdcall mockUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) nogil:
+#     pass
+# cdef void __stdcall mockUniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) nogil:
+#     pass
+cdef void __stdcall mockUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) nogil:
     pass
 cdef void __stdcall mockUseProgram(GLuint program) nogil:
     pass
@@ -278,21 +278,21 @@ cdef void __stdcall mockValidateProgram(GLuint program) nogil:
     pass
 cdef void __stdcall mockVertexAttrib1f(GLuint indx, GLfloat x) nogil:
     pass
-cdef void __stdcall mockVertexAttrib1fv(GLuint indx, GLfloat* values) nogil:
-    pass
+# cdef void __stdcall mockVertexAttrib1fv(GLuint indx, GLfloat* values) nogil:
+#     pass
 cdef void __stdcall mockVertexAttrib2f(GLuint indx, GLfloat x, GLfloat y) nogil:
     pass
-cdef void __stdcall mockVertexAttrib2fv(GLuint indx, GLfloat* values) nogil:
-    pass
+# cdef void __stdcall mockVertexAttrib2fv(GLuint indx, GLfloat* values) nogil:
+#     pass
 cdef void __stdcall mockVertexAttrib3f(GLuint indx, GLfloat x, GLfloat y, GLfloat z) nogil:
     pass
-cdef void __stdcall mockVertexAttrib3fv(GLuint indx, GLfloat* values) nogil:
-    pass
+# cdef void __stdcall mockVertexAttrib3fv(GLuint indx, GLfloat* values) nogil:
+#     pass
 cdef void __stdcall mockVertexAttrib4f(GLuint indx, GLfloat x, GLfloat y, GLfloat z, GLfloat w) nogil:
     pass
-cdef void __stdcall mockVertexAttrib4fv(GLuint indx, GLfloat* values) nogil:
-    pass
-cdef void __stdcall mockVertexAttribPointer(GLuint indx, GLint size, GLenum type, GLboolean normalized, GLsizei stride, GLvoid* ptr) nogil:
+# cdef void __stdcall mockVertexAttrib4fv(GLuint indx, GLfloat* values) nogil:
+#     pass
+cdef void __stdcall mockVertexAttribPointer(GLuint indx, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* ptr) nogil:
     pass
 cdef void __stdcall mockViewport(GLint x, GLint y, GLsizei width, GLsizei height) nogil:
     pass

@@ -162,6 +162,7 @@ else:
             self.uid = 0
             self.queue = collections.deque()
             self.thread = threading.Thread(
+                name=self.__class__.__name__,
                 target=self._thread_run,
                 kwargs=dict(
                     queue=self.queue,
