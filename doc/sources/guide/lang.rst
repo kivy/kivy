@@ -6,15 +6,15 @@ Kv language
 Concept behind the language
 ---------------------------
 
-As your application grow more complex, it's common that the construction of
-widget trees and explicit declaration of bindings, becomes verbose and hard to
-maintain. The `KV` Language is a attempt to overcome these short-comings.
+As your application grows more complex, it's common that the construction of
+widget trees and explicit declaration of bindings becomes verbose and hard to
+maintain. The `KV` Language is an attempt to overcome these shortcomings.
 
-The `KV` language (sometimes called kvlang, or kivy language), allows you to
+The `KV` language, sometimes called kvlang or the kivy language, allows you to
 create your widget tree in a declarative way and to bind widget properties
 to each other or to callbacks in a natural manner. It allows for very fast
-prototyping and agile changes to your UI. It also facilitates a good
-separation between the logic of your application and its User Interface.
+prototypes and agile changes to your UI. It also facilitates separating
+the logic of your application and its User Interface.
 
 How to load KV
 --------------
@@ -44,8 +44,8 @@ There are two ways to load Kv code into your application:
 Rule context
 ------------
 
-A Kv source constitutes of `rules`, which are used to describe the content
-of a Widget, you can have one `root` rule, and any number of `class` or
+A Kv source constitutes of `rules` which are used to describe the content
+of a Widget. You can have one `root` rule, and any number of `class` or
 `template` rules.
 
 The `root` rule is declared by declaring the class of your root widget, without
@@ -55,26 +55,27 @@ App instance::
     Widget:
 
 A `class` rule, declared by the name of a widget class between `< >` and
-followed by `:`, defines how any instance of that class will be
-graphically represented::
+followed by `:`, defines the appearance and behavior of any instance of that
+class::
 
     <MyWidget>:
 
-Rules use indentation for delimitation, as python, indentation should be of
-four spaces per level, like the python good practice recommendations.
+Rules use indentation for delimitation, like Python. Indentation should be
+four spaces per level, like the Python style guide
+`recommends <https://www.python.org/dev/peps/pep-0008/#indentation>`_.
 
-There are three keywords specific to Kv language:
+There are three keywords specific to the Kv language:
 
 - `app`: always refers to the instance of your application.
 - `root`: refers to the base widget/template in the current rule
 - `self`: always refer to the current widget
 
-Special syntaxes
+Special syntax
 ----------------
 
-There are two special syntaxes to define values for the whole Kv context:
+There is a special syntax to define values for the whole Kv context.
 
-To access python modules and classes from kv, ::
+To access Python modules and classes from kv, use ``#:import`` ::
 
     #:import name x.y.z
     #:import isdir os.path.isdir
@@ -86,9 +87,9 @@ is equivalent to::
     from os.path import isdir
     import numpy as np
 
-in python.
+in Python.
 
-To set a global value, ::
+To set a global value, use ``#:set`` ::
 
     #:set name value
 
@@ -96,13 +97,13 @@ is equivalent to::
 
     name = value
 
-in python.
+in Python.
 
 Instantiate children
 --------------------
 
-To declare the widget has a child widget, instance of some class, just declare
-this child inside the rule:
+To declare a widget instance of some class as a child widget, just
+declare that child inside the rule:
 
 .. code-block:: kv
 
@@ -112,11 +113,11 @@ this child inside the rule:
             Button:
 
 The example above defines that our root widget, an instance of `MyRootWidget`,
-which has a child that is an instance of the
-:class:`~kivy.uix.boxlayout.BoxLayout`.  That BoxLayout further has two
+has a child that is an instance of the
+:class:`~kivy.uix.boxlayout.BoxLayout`, and that BoxLayout further has two
 children, instances of the :class:`~kivy.uix.button.Button` class.
 
-A python equivalent of this code could be:
+The Python equivalent of this code might be:
 
 .. code-block:: python
 
@@ -128,7 +129,7 @@ A python equivalent of this code could be:
 
 Which you may find less nice, both to read and to write.
 
-Of course, in python, you can pass keyword arguments to your widgets at
+Of course, in Python, you can pass keyword arguments to your widgets at
 creation to specify their behaviour.  For example, to set the number of columns
 of a :mod:`~kivy.uix.gridlayout`, we would do::
 
@@ -142,9 +143,9 @@ in the rule:
     GridLayout:
         cols: 3
 
-The value is evaluated as a python expression, and all the properties used in
+The value is evaluated as a Python expression, and all the properties used in
 the expression will be observed, that means that if you had something like this
-in python (this assume `self` is a widget with a `data`
+in Python (this assume `self` is a widget with a `data`
 :class:`~kivy.property.ListProperty`)::
 
     grid = GridLayout(cols=len(self.data))
@@ -284,7 +285,7 @@ in this case. The correct way to do this would be:
     <MyWidget>:
         label_widget: label_widget.__self__
 
-Accessing Widgets defined inside Kv lang in your python code
+Accessing Widgets defined inside Kv lang in your Python code
 ------------------------------------------------------------
 
 Consider the code below in my.kv:
@@ -348,7 +349,7 @@ There is a simpler way to access objects with `id` tags in Kv using the
         text: "press to smash loki"
         on_release: root.hulk_smash()
 
-In your python code:
+In your Python code:
 
 .. code-block:: python
 
@@ -454,7 +455,7 @@ In myapp.py:
             self.writing = val
 
 Because both classes share the same .kv style, this design can be simplified
-if we reuse the style for both widgets. You can do this in .kv as follows.
+if we reuse that style for both widgets. You can do this in .kv as follows.
 In my.kv:
 
 .. code-block:: kv
@@ -472,14 +473,14 @@ Designing with the Kivy Language
 --------------------------------
 
 One of aims of the Kivy language is to
-`Separate the concerns <https://en.wikipedia.org/wiki/Separation_of_concerns>`_
+`separate the concerns <https://en.wikipedia.org/wiki/Separation_of_concerns>`_
 of presentation and logic. The presentation (layout) side is addressed by your
-kv file and the logic by your py file.
+kv file and the logic by your .py file.
 
 The code goes in py files
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Let's start with a little example. First, the Python file named `main.py`:
+Let's start with a little example: a Python file named `main.py`:
 
 .. include:: ../../../examples/guide/designwithkv/main.py
    :literal:

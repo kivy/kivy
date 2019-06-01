@@ -145,9 +145,9 @@ cdef class Observable(ObjectWithUid):
             except KeyError:
                 pass
 
-    property proxy_ref:
-        def __get__(self):
-            return self
+    @property
+    def proxy_ref(self):
+        return self
 
 
 cdef class EventDispatcher(ObjectWithUid):
@@ -888,12 +888,12 @@ cdef class EventDispatcher(ObjectWithUid):
             self.__properties[name] = prop
             setattr(self.__class__, name, prop)
 
-    property proxy_ref:
+    @property
+    def proxy_ref(self):
         '''Default implementation of proxy_ref, returns self.
         .. versionadded:: 1.9.0
         '''
-        def __get__(self):
-            return self
+        return self
 
 
 cdef class BoundCallback:

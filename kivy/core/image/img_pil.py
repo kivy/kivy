@@ -43,8 +43,10 @@ class ImageLoaderPIL(ImageLoaderBase):
     '''
 
     @staticmethod
-    def can_save():
-        return True
+    def can_save(fmt, is_bytesio):
+        if is_bytesio:
+            return False
+        return fmt in ImageLoaderPIL.extensions()
 
     @staticmethod
     def can_load_memory():
@@ -108,9 +110,9 @@ class ImageLoaderPIL(ImageLoaderBase):
         return list(self._img_read(im))
 
     @staticmethod
-    def save(filename, width, height, fmt, pixels, flipped=False):
-        image = PILImage.frombytes(fmt.upper(), (width, height), pixels)
-
+    def save(filename, width, height, pixelfmt, pixels, flipped=False,
+             imagefmt=None):
+        image = PILImage.frombytes(pixelfmt.upper(), (width, height), pixels)
         if flipped:
             image = image.transpose(PILImage.FLIP_TOP_BOTTOM)
         image.save(filename)

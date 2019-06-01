@@ -1,4 +1,4 @@
-Cython>=0.23
+Cython>=0.24
 # Frozen Sphinx requirements for easier pip installation
 sphinxcontrib-actdiag
 sphinxcontrib-blockdiag

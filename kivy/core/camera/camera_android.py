@@ -50,6 +50,7 @@ class CameraAndroid(CameraBase):
         params = self._android_camera.getParameters()
         width, height = self._resolution
         params.setPreviewSize(width, height)
+        params.setFocusMode('continuous-picture')
         self._android_camera.setParameters(params)
         # self._android_camera.setDisplayOrientation()
         self.fps = 30.
@@ -66,6 +67,7 @@ class CameraAndroid(CameraBase):
         self._android_camera.setPreviewTexture(self._surface_texture)
 
         self._fbo = Fbo(size=self._resolution)
+        self._fbo['resolution'] = (float(width), float(height))
         self._fbo.shader.fs = '''
             #extension GL_OES_EGL_image_external : require
             #ifdef GL_ES
@@ -79,9 +81,12 @@ class CameraAndroid(CameraBase):
             /* uniform texture samplers */
             uniform sampler2D texture0;
             uniform samplerExternalOES texture1;
+            uniform vec2 resolution;
 
             void main()
             {
+                vec2 coord = vec2(tex_coord0.y * (
+                    resolution.y / resolution.x), 1. -tex_coord0.x);
                 gl_FragColor = texture2D(texture1, tex_coord0);
             }
         '''
@@ -121,7 +126,7 @@ class CameraAndroid(CameraBase):
         with self._buflock:
             self._buffer = None
         for k in range(2):  # double buffer
-            buf = '\x00' * self._bufsize
+            buf = b'\x00' * self._bufsize
             self._android_camera.addCallbackBuffer(buf)
         self._android_camera.setPreviewCallbackWithBuffer(self._preview_cb)
 

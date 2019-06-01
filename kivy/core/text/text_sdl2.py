@@ -9,8 +9,14 @@ __all__ = ('LabelSDL2', )
 
 from kivy.compat import PY2
 from kivy.core.text import LabelBase
-from kivy.core.text._text_sdl2 import (_SurfaceContainer, _get_extents,
-                                       _get_fontdescent, _get_fontascent)
+try:
+    from kivy.core.text._text_sdl2 import (_SurfaceContainer, _get_extents,
+                                           _get_fontdescent, _get_fontascent)
+except ImportError:
+    from kivy.core import handle_win_lib_import_error
+    handle_win_lib_import_error(
+        'text', 'sdl2', 'kivy.core.text._text_sdl2')
+    raise
 
 
 class LabelSDL2(LabelBase):

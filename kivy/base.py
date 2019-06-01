@@ -104,6 +104,7 @@ class EventLoopBase(EventDispatcher):
         self.input_events = []
         self.postproc_modules = []
         self.status = 'idle'
+        self.stopping = False
         self.input_providers = []
         self.input_providers_autoremove = []
         self.event_listeners = []
@@ -188,6 +189,7 @@ class EventLoopBase(EventDispatcher):
         # ensure any restart will not break anything later.
         self.input_events = []
 
+        self.stopping = False
         self.status = 'stopped'
         self.dispatch('on_stop')
 
@@ -508,7 +510,12 @@ def stopTouchApp():
     '''Stop the current application by leaving the main loop'''
     if EventLoop is None:
         return
+    if EventLoop.status in ('stopped', 'closed'):
+        return
     if EventLoop.status != 'started':
+        if not EventLoop.stopping:
+            EventLoop.stopping = True
+            Clock.schedule_once(lambda dt: stopTouchApp(), 0)
         return
     Logger.info('Base: Leaving application in progress...')
     EventLoop.close()

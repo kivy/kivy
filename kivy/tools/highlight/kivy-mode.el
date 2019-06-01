@@ -142,6 +142,9 @@
   (modify-syntax-entry ?\\ "\\" kivy-mode-syntax-table)
   (modify-syntax-entry ?- "_" kivy-mode-syntax-table)
   (modify-syntax-entry ?_ "w" kivy-mode-syntax-table)
+  (modify-syntax-entry ?< "." kivy-mode-syntax-table)
+  (modify-syntax-entry ?> "." kivy-mode-syntax-table)
+  (modify-syntax-entry ?_ "_" kivy-mode-syntax-table)
   )
 
 

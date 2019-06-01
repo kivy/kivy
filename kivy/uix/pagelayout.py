@@ -39,7 +39,7 @@ widgets on that page.
 __all__ = ('PageLayout', )
 
 from kivy.uix.layout import Layout
-from kivy.properties import NumericProperty
+from kivy.properties import NumericProperty, DictProperty
 from kivy.animation import Animation
 
 
@@ -68,6 +68,15 @@ class PageLayout(Layout):
 
     :data:`swipe_threshold` is a :class:`~kivy.properties.NumericProperty`
     and defaults to .5.
+    '''
+
+    anim_kwargs = DictProperty({'d': .5, 't': 'in_quad'})
+    '''The animation kwargs used to construct the animation
+
+    :data:`anim_kwargs` is a :class:`~kivy.properties.DictProperty`
+    and defaults to {'d': .5, 't': 'in_quad'}.
+
+    .. versionadded:: 1.11.0
     '''
 
     def __init__(self, **kwargs):
@@ -116,7 +125,7 @@ class PageLayout(Layout):
             Animation(
                 x=x,
                 y=y_parent,
-                d=.5, t='in_quad').start(c)
+                **self.anim_kwargs).start(c)
 
     def on_touch_down(self, touch):
         if (

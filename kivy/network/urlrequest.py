@@ -58,10 +58,11 @@ If you want a synchronous request, you can call the wait() method.
 
 from base64 import b64encode
 from collections import deque
-from threading import Thread
+from threading import Thread, Event
 from json import loads
 from time import sleep
 from kivy.compat import PY2
+from kivy.config import Config
 
 if PY2:
     from httplib import HTTPConnection
@@ -117,6 +118,10 @@ class UrlRequest(Thread):
 
         Parameters `proxy_host`, `proxy_port` and `proxy_headers` added.
 
+    .. versionchanged:: 1.11.0
+
+        Parameters `on_cancel` added.
+
     :Parameters:
         `url`: str
             Complete url string to call.
@@ -134,6 +139,9 @@ class UrlRequest(Thread):
             download. `total_size` might be -1 if no Content-Length has been
             reported in the http response.
             This callback will be called after each `chunk_size` is read.
+        `on_cancel`: callback(request)
+            Callback function to call if user requested to cancel the download
+            operation via the .cancel() method.
         `req_body`: str, defaults to None
             Data to sent in the request. If it's not None, a POST will be done
             instead of a GET.
@@ -177,7 +185,8 @@ class UrlRequest(Thread):
                  req_body=None, req_headers=None, chunk_size=8192,
                  timeout=None, method=None, decode=True, debug=False,
                  file_path=None, ca_file=None, verify=True, proxy_host=None,
-                 proxy_port=None, proxy_headers=None):
+                 proxy_port=None, proxy_headers=None, user_agent=None,
+                 on_cancel=None):
         super(UrlRequest, self).__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
@@ -187,6 +196,7 @@ class UrlRequest(Thread):
         self.on_failure = WeakMethod(on_failure) if on_failure else None
         self.on_error = WeakMethod(on_error) if on_error else None
         self.on_progress = WeakMethod(on_progress) if on_progress else None
+        self.on_cancel = WeakMethod(on_cancel) if on_cancel else None
         self.decode = decode
         self.file_path = file_path
         self._debug = debug
@@ -204,6 +214,7 @@ class UrlRequest(Thread):
         self._proxy_host = proxy_host
         self._proxy_port = proxy_port
         self._proxy_headers = proxy_headers
+        self._cancel_event = Event()
 
         #: Url of the request
         self.url = url
@@ -223,7 +234,13 @@ class UrlRequest(Thread):
         q = self._queue.appendleft
         url = self.url
         req_body = self.req_body
-        req_headers = self.req_headers
+        req_headers = self.req_headers or {}
+        if (
+            Config.has_section('network')
+            and 'useragent' in Config.items('network')
+        ):
+            useragent = Config.get('network', 'useragent')
+            req_headers.setdefault('User-Agent', useragent)
 
         try:
             result, resp = self._fetch_url(url, req_body, req_headers, q)
@@ -232,7 +249,10 @@ class UrlRequest(Thread):
         except Exception as e:
             q(('error', None, e))
         else:
-            q(('success', resp, result))
+            if not self._cancel_event.is_set():
+                q(('success', resp, result))
+            else:
+                q(('killed', None, None))
 
         # using trigger can result in a missed on_success event
         self._trigger_result()
@@ -371,6 +391,8 @@ class UrlRequest(Thread):
                     if report_progress:
                         q(('progress', resp, (bytes_so_far, total_size)))
                         trigger()
+                    if self._cancel_event.is_set():
+                        break
                 return bytes_so_far, result
 
             if file_path is not None:
@@ -438,11 +460,22 @@ class UrlRequest(Thread):
             except IndexError:
                 return
             if resp:
+                # Small workaround in order to prevent the situation mentioned
+                # in the comment below
+                final_cookies = ""
+                parsed_headers = []
+                for key, value in resp.getheaders():
+                    if key == "Set-Cookie":
+                        final_cookies += "{};".format(value)
+                    else:
+                        parsed_headers.append((key, value))
+                parsed_headers.append(("Set-Cookie", final_cookies[:-1]))
+
                 # XXX usage of dict can be dangerous if multiple headers
                 # are set even if it's invalid. But it look like it's ok
                 # ?  http://stackoverflow.com/questions/2454494/..
                 # ..urllib2-multiple-set-cookie-headers-in-response
-                self._resp_headers = dict(resp.getheaders())
+                self._resp_headers = dict(parsed_headers)
                 self._resp_status = resp.status
             if result == 'success':
                 status_class = resp.status // 100
@@ -501,6 +534,14 @@ class UrlRequest(Thread):
                     func = self.on_progress()
                     if func:
                         func(self, data[0], data[1])
+
+            elif result == 'killed':
+                if self._debug:
+                    Logger.debug('UrlRequest: Cancelled by user')
+                if self.on_cancel:
+                    func = self.on_cancel()
+                    if func:
+                        func(self)
 
             else:
                 assert(0)
@@ -561,6 +602,15 @@ class UrlRequest(Thread):
         while self.resp_status is None:
             self._dispatch_result(delay)
             sleep(delay)
+
+    def cancel(self):
+        '''Cancel the current request. It will be aborted, and the result
+        will not be dispatched. Once cancelled, the callback on_cancel will
+        be called.
+
+        .. versionadded:: 1.11.0
+        '''
+        self._cancel_event.set()
 
 
 if __name__ == '__main__':

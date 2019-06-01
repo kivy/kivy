@@ -7,6 +7,63 @@ Installation on OS X
 
     This guide describes multiple ways for setting up Kivy.
 
+Using Wheels
+------------
+
+Wheels are precompiled binaries for the specific platform you are on.
+All you need to do to install Kivy using wheels on osx is ::
+
+    $ python -m pip install kivy
+
+Gstreamer is not included, so if you would like to use media playback with kivy,
+you should install `ffpyplayer` like so ::
+
+    $ python -m pip install ffpyplayer
+
+Make sure to set `KIVY_VIDEO=ffpyplayer` env variable before running the app.
+
+Nightly wheel installation
+--------------------------
+
+.. |cp35_osx| replace:: Python 3.5
+.. _cp35_osx: https://kivy.org/downloads/ci/osx/kivy/Kivy-2.0.0.dev0-cp35-cp35m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl
+.. |cp36_osx| replace:: Python 3.6
+.. _cp36_osx: https://kivy.org/downloads/ci/osx/kivy/Kivy-2.0.0.dev0-cp36-cp36m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl
+.. |cp37_osx| replace:: Python 3.7
+.. _cp37_osx: https://kivy.org/downloads/ci/osx/kivy/Kivy-2.0.0.dev0-cp37-cp37m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl
+.. |examples_whl_osx| replace:: Kivy examples
+.. _examples_whl_osx: https://kivy.org/downloads/appveyor/kivy/Kivy_examples-2.0.0.dev0-py2.py3-none-any.whl
+
+.. warning::
+
+    Using the latest development version can be risky and you might encounter
+    issues during development. If you encounter any bugs, please report them.
+
+Snapshot wheels of current Kivy master are created daily on the
+`master` branch of kivy repository. They can be found
+`here <https://kivy.org/downloads/ci/osx/kivy/>`_. To use them, instead of
+doing ``python -m pip install kivy`` we'll install one of these wheels as
+follows.
+
+- |cp35_osx|_
+- |cp36_osx|_
+- |cp37_osx|_
+
+#. Download the appropriate wheel for your Python version.
+#. Install it with ``python -m pip install wheel-name`` where ``wheel-name``
+   is the name of the file.
+
+Kivy examples are separated from the core because of their size. The examples
+can be installed separately on all Python versions with this single wheel:
+
+- |examples_whl_osx|_
+
+Using Conda
+-----------
+
+If you use Anaconda, you can simply install kivy using::
+
+   $ conda install kivy -c conda-forge
 
 Using The Kivy.app
 ------------------
@@ -15,9 +72,9 @@ Using The Kivy.app
 
     This method has only been tested on OS X 10.7 and above (64-bit).
     For versions prior to 10.7 or 10.7 32-bit, you have to install the
-    components yourself. 
+    components yourself.
 
-For OS X 10.7 and later, we provide packages with all dependencies
+For OS X > 10.13.5 and later, we provide packages with all dependencies
 bundled in a virtual environment, including a Python interpreter for
 python3 version. These bundles are primarily used for rapid prototyping,
 and currently serve as containers for packaging Kivy apps with Buildozer.
@@ -28,12 +85,21 @@ To install Kivy, you must:
        https://kivy.org/downloads/ and download `Kivy-*-osx-python*.dmg`.
     2. Open the dmg
     3. Copy the Kivy.app to /Applications.
-    4. Create a symlink by running the `makesymlinks` in the window that opens when you open the dmg
+    4. Create a symlink by running the `makesymlinks` in the window that opens when you open the dmg.
+
+    If you have trouble running this script, you can try right-click->Open or just add the link manually
+    by running the following command::
+        `sudo ln -s /Applications/Kivy<version>/Contents/Resources/script /usr/local/bin/kivy<version>`
+    version is either 2/3 based on which version of the app did you download.
+
     5. Examples and all the normal kivy tools are present in the Kivy.app/Contents/Resources/kivy directory.
 
 You should now have a `kivy` script that you can use to launch your kivy app from the terminal.
+You might need to add `/usr/local/bin` to your path::
 
-You can just drag and drop your main.py to run your app too.
+    export PATH=/usr/local/bin:$PATH
+
+You can just drag and drop your main.py onto the kivy icon to run your app too.
 
 
 Installing modules
@@ -124,10 +190,12 @@ You can install Kivy with Homebrew and pip using the following steps:
 
         $ brew install pkg-config sdl2 sdl2_image sdl2_ttf sdl2_mixer gstreamer
 
-    2. Install Cython and Kivy using pip::
+    2. Install Cython and Kivy using pip:
 
-        $ pip install Cython==0.26.1
-        $ pip install kivy
+        .. parsed-literal::
+
+            $ pip install |cython_install|
+            $ pip install kivy
 
     - To install the development version, use this in the second step::
 
@@ -145,14 +213,14 @@ Using MacPorts with pip
 You can install Kivy with macports only:
 
     1. Install `Macports <https://www.macports.org>`_
-    
+
     2. Choose python versions for Kivy, available version 2.7, 3.5, 3.6
-    
+
         $ port install py35-kivy  # for python 3.5
         $ port install py36-kivy  # for python 3.6
-    
+
     3. Check if kivy is available
-    
+
         $ python3.5
         $ >>> import kivy
 
@@ -174,10 +242,12 @@ You can install Kivy with Macports and pip using the following steps:
 
         $ port install libsdl2 libsdl2_image libsdl2_ttf libsdl2_mixer
 
-    5. Install Cython and Kivy using pip::
+    5. Install Cython and Kivy using pip:
 
-        $ pip install Cython==0.26.1
-        $ pip install kivy
+        .. parsed-literal::
+
+            $ pip install |cython_install|
+            $ pip install kivy
 
     - To install the development version, use this in the second step::
 

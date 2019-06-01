@@ -1,6 +1,6 @@
 '''
-Compatibility module for Python 2.7 and > 3.3
-=============================================
+Compatibility module for Python 2.7 and >= 3.4
+==============================================
 
 This module provides a set of utility types and functions for optimization and
 to aid in writing Python 2/3 compatibile code.

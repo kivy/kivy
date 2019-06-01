@@ -1,12 +1,6 @@
 #:kivy 1.4
 #:import KivyLexer kivy.extras.highlight.KivyLexer
 
-[ContainerToggle@ToggleButton]:
-    group: "container_toggle"
-    text: ctx.text
-    on_press: root.parent.parent.parent.show_kv(*args)
-    state: ctx.state if hasattr(ctx, "state") else "normal"
-
 <Container>:
     canvas.before:
         Color:

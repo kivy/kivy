@@ -150,6 +150,16 @@ class RecycleDataAdapter(EventDispatcher):
         'size_hint_min', 'size_hint_min_x', 'size_hint_min_y', 'size_hint_max',
         'size_hint_max_x', 'size_hint_max_y'}
 
+    def __init__(self, **kwargs):
+        """
+        Fix for issue https://github.com/kivy/kivy/issues/5913:
+        Scrolling RV A, then Scrolling RV B, content of A and B seemed
+        to be getting mixed up
+        """
+        self.views = {}
+        self.dirty_views = defaultdict(dict)
+        super(RecycleDataAdapter, self).__init__(**kwargs)
+
     def attach_recycleview(self, rv):
         '''Associates a :class:`~kivy.uix.recycleview.RecycleViewBehavior`
         with this instance. It is stored in :attr:`recycleview`.

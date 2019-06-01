@@ -31,6 +31,6 @@ cdef class Context:
     cdef void dealloc_fbo(self, Fbo fbo)
 
     cdef object trigger_gl_dealloc
-    cdef void flush(self)
+    cpdef void flush(self)
 
 cpdef Context get_context()

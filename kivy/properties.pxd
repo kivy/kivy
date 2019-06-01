@@ -26,6 +26,7 @@ cdef class Property:
     cdef object errorhandler
     cdef int errorvalue_set
     cdef public object defaultvalue
+    cdef int deprecated
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage)
     cpdef link(self, EventDispatcher obj, str name)
     cpdef link_deps(self, EventDispatcher obj, str name)

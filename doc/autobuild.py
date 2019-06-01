@@ -59,12 +59,15 @@ import kivy.storage.redisstore
 import kivy.network.urlrequest
 import kivy.modules.webdebugger
 import kivy.support
-import kivy.tools.packaging.pyinstaller_hooks
+try:
+    import kivy.tools.packaging.pyinstaller_hooks
+except ImportError:
+    pass
 import kivy.input.recorder
 import kivy.interactive
 import kivy.garden
 from kivy.factory import Factory
-from kivy.lib import osc, ddsfile, mtdev
+from kivy.lib import ddsfile, mtdev
 
 # check for silenced build
 BE_QUIET = True

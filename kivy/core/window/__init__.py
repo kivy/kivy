@@ -372,7 +372,7 @@ class WindowBase(EventDispatcher):
     def _get_modifiers(self):
         return self._modifiers
 
-    modifiers = AliasProperty(_get_modifiers, None)
+    modifiers = AliasProperty(_get_modifiers, None, bind=('_modifiers',))
     '''List of keyboard modifiers currently active.
 
     .. versionadded:: 1.0.9
@@ -398,11 +398,7 @@ class WindowBase(EventDispatcher):
                 self._size = size
             else:
                 self._size = size[1], size[0]
-
-            self.dispatch('on_resize', *size)
-            return True
-        else:
-            return False
+            self.dispatch('on_pre_resize', *size)
 
     minimum_width = NumericProperty(0)
     '''The minimum width to restrict the window to.
@@ -432,7 +428,9 @@ class WindowBase(EventDispatcher):
     and defaults to True.
     '''
 
-    size = AliasProperty(_get_size, _set_size, bind=('_size', ))
+    size = AliasProperty(_get_size, _set_size,
+                         bind=('_size', '_rotation', 'softinput_mode',
+                               'keyboard_height'))
     '''Get the rotated size of the window. If :attr:`rotation` is set, then the
     size will change to reflect the rotation.
 
@@ -502,7 +500,9 @@ class WindowBase(EventDispatcher):
             return _size[1] - kb
         return _size[0] - kb
 
-    height = AliasProperty(_get_height, None, bind=('_rotation', '_size'))
+    height = AliasProperty(_get_height, None,
+                           bind=('_rotation', '_size', 'softinput_mode',
+                                 'keyboard_height'))
     '''Rotated window height.
 
     :attr:`height` is a read-only :class:`~kivy.properties.AliasProperty`.
@@ -511,7 +511,7 @@ class WindowBase(EventDispatcher):
     def _get_center(self):
         return self.width / 2., self.height / 2.
 
-    center = AliasProperty(_get_center, None, bind=('width', 'height'))
+    center = AliasProperty(_get_center, bind=('width', 'height'), cache=True)
     '''Center of the rotated window.
 
     .. versionadded:: 1.0.9
@@ -531,7 +531,7 @@ class WindowBase(EventDispatcher):
         self._rotation = x
         if not self.initialized:
             return
-        self.dispatch('on_resize', *self.size)
+        self.dispatch('on_pre_resize', *self.size)
         self.dispatch('on_rotate', x)
 
     rotation = AliasProperty(_get_rotation, _set_rotation,
@@ -625,13 +625,12 @@ class WindowBase(EventDispatcher):
             return self._get_ios_kheight()
         return 0
 
-    keyboard_height = AliasProperty(_get_kheight, None,
-                                    bind=('_keyboard_changed',), cached=True)
+    keyboard_height = AliasProperty(_get_kheight, bind=('_keyboard_changed',))
     '''Returns the height of the softkeyboard/IME on mobile platforms.
     Will return 0 if not on mobile platform or if IME is not active.
 
     .. note:: This property returns 0 with SDL2 on Android, but setting
-              Window.softinput_mode does works.
+              Window.softinput_mode does work.
 
     .. versionadded:: 1.9.0
 
@@ -668,10 +667,10 @@ class WindowBase(EventDispatcher):
             return self._size[0], self._size[1] - self.keyboard_height
         return self._size
 
-    system_size = AliasProperty(
-        _get_system_size,
-        _set_system_size,
-        bind=('_size', ))
+    system_size = AliasProperty(_get_system_size, _set_system_size,
+                                bind=('_size', 'softinput_mode',
+                                      'keyboard_height'),
+                                cache=True)
     '''Real size of the window ignoring rotation.
 
     .. versionadded:: 1.0.9
@@ -860,15 +859,17 @@ class WindowBase(EventDispatcher):
     trigger_create_window = None
 
     __events__ = (
-        'on_draw', 'on_flip', 'on_rotate', 'on_resize', 'on_close',
-        'on_minimize', 'on_maximize', 'on_restore', 'on_hide', 'on_show',
-        'on_motion', 'on_touch_down', 'on_touch_move', 'on_touch_up',
-        'on_mouse_down', 'on_mouse_move', 'on_mouse_up', 'on_keyboard',
-        'on_key_down', 'on_key_up', 'on_textinput', 'on_dropfile',
-        'on_request_close', 'on_cursor_enter', 'on_cursor_leave',
-        'on_joy_axis', 'on_joy_hat', 'on_joy_ball',
-        'on_joy_button_down', 'on_joy_button_up', 'on_memorywarning',
-        'on_textedit')
+        'on_draw', 'on_flip', 'on_rotate', 'on_resize', 'on_move',
+        'on_close', 'on_minimize', 'on_maximize', 'on_restore',
+        'on_hide', 'on_show', 'on_motion', 'on_touch_down',
+        'on_touch_move', 'on_touch_up', 'on_mouse_down',
+        'on_mouse_move', 'on_mouse_up', 'on_keyboard', 'on_key_down',
+        'on_key_up', 'on_textinput', 'on_dropfile', 'on_request_close',
+        'on_cursor_enter', 'on_cursor_leave', 'on_joy_axis',
+        'on_joy_hat', 'on_joy_ball', 'on_joy_button_down',
+        'on_joy_button_up', 'on_memorywarning', 'on_textedit',
+        # internal
+        'on_pre_resize')
 
     def __new__(cls, **kwargs):
         if cls.__instance is None:
@@ -966,11 +967,7 @@ class WindowBase(EventDispatcher):
 
         # configure the window
         self.create_window()
-
-        # attach modules + listener event
-        EventLoop.set_window(self)
-        Modules.register_window(self)
-        EventLoop.add_event_listener(self)
+        self.register()
 
         # manage keyboard(s)
         self.configure_keyboards()
@@ -993,6 +990,14 @@ class WindowBase(EventDispatcher):
                 'fullscreen', 'borderless', 'position', 'top',
                 'left', '_size', 'system_size'):
             self.unbind(**{prop: self.trigger_create_window})
+
+    def register(self):
+        if self.initialized:
+            return
+        # attach modules + listener event
+        EventLoop.set_window(self)
+        Modules.register_window(self)
+        EventLoop.add_event_listener(self)
 
     @deprecated
     def toggle_fullscreen(self):
@@ -1083,7 +1088,20 @@ class WindowBase(EventDispatcher):
 
     def close(self):
         '''Close the window'''
-        pass
+        self.dispatch('on_close')
+
+        # Prevent any leftover that can crash the app later
+        # like if there is still some GL referenced values
+        # they may be collected later, but because it was already
+        # gone in the system, it may collect invalid GL resources
+        # Just clear everything to force reloading later on.
+        from kivy.cache import Cache
+        from kivy.graphics.context import get_context
+        Cache.remove('kv.loader')
+        Cache.remove('kv.image')
+        Cache.remove('kv.shader')
+        Cache.remove('kv.texture')
+        get_context().flush()
 
     shape_image = StringProperty('')
     '''An image for the window shape (only works for sdl2 window provider).
@@ -1223,14 +1241,14 @@ class WindowBase(EventDispatcher):
             # XXX check how it's working on embed platform.
             if platform == 'linux' or Window.__class__.__name__ == 'WindowSDL':
                 # on linux, it's safe for just sending a resize.
-                self.dispatch('on_resize', *self.system_size)
+                self.dispatch('on_pre_resize', *self.size)
 
             else:
                 # on other platform, window are recreated, we need to reload.
                 from kivy.graphics.context import get_context
                 get_context().reload()
                 Clock.schedule_once(lambda x: self.canvas.ask_update(), 0)
-                self.dispatch('on_resize', *self.system_size)
+                self.dispatch('on_pre_resize', *self.size)
 
         # ensure the gl viewport is correct
         self.update_viewport()
@@ -1400,9 +1418,20 @@ class WindowBase(EventDispatcher):
             if w.dispatch('on_touch_up', touch):
                 return True
 
+    def on_pre_resize(self, width, height):
+        key = (width, height)
+        if hasattr(self, '_last_resize') and self._last_resize == key:
+            return
+        self._last_resize = key
+        self.dispatch('on_resize', width, height)
+
     def on_resize(self, width, height):
         '''Event called when the window is resized.'''
         self.update_viewport()
+
+    def on_move(self):
+        self.property('top').dispatch(self)
+        self.property('left').dispatch(self)
 
     def update_viewport(self):
         from kivy.graphics.opengl import glViewport
