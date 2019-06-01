@@ -29,7 +29,7 @@ def test_switching_does_not_affect_a_list_of_screens(transition_cls_name):
     scrmgr = sm.ScreenManager()
     for i in range(3):
         scrmgr.add_widget(sm.Screen(name=str(i)))
-    names = scrmgr.screen_names.copy()
+    names = list(scrmgr.screen_names)
     scrmgr.transition = transition_cls()
     scrmgr.current = '1'
     assert names == scrmgr.screen_names
