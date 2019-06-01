@@ -39,15 +39,17 @@ from kivy.compat import PY2
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.utils import platform
 
-MAJOR = 1
-MINOR = 11
+MAJOR = 2
+MINOR = 0
 MICRO = 0
-RELEASE = True
+RELEASE = False
 
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 if not RELEASE:
-    __version__ += 'rc2'
+    # if it's a rcx release, it's not proceeded by a period. If it is a
+    # devx release, it must start with a period
+    __version__ += '.dev0'
 
 try:
     from kivy.version import __hash__, __date__
