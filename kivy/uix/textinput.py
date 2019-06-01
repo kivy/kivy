@@ -144,6 +144,7 @@ Control + r     redo
 __all__ = ('TextInput', )
 
 
+import math
 import re
 import sys
 from os import environ
@@ -2109,63 +2110,48 @@ class TextInput(FocusBehavior, Widget):
         y = _top - padding_top + self.scroll_y
         miny = self.y + padding_bottom
         maxy = _top - padding_top
-        draw_selection_line = self._draw_selection_line
         a, b = self._selection_from, self._selection_to
         if a > b:
             a, b = b, a
         get_cursor_from_index = self.get_cursor_from_index
         s1c, s1r = get_cursor_from_index(a)
         s2c, s2r = get_cursor_from_index(b)
-        # pass only the selection lines[]
-        # passing all the lines can get slow when dealing with a lot of text
         y -= s1r * dy
         _lines = self._lines
         _get_text_width = self._get_text_width
         tab_width = self.tab_width
         _label_cached = self._label_cached
-        width = self.width
-        padding_left = self.padding[0]
-        padding_right = self.padding[2]
+        width_minus_padding = self.width - (self.padding[0] + self.padding[2])
         canvas_add = self.canvas.add
         selection_color = self.selection_color
-        for line_num in range(s1r, s2r + 1):
-            if miny <= y <= maxy + dy:
-                draw_selection_line(rects[line_num], line_num, s1c, s1r,
-                                    s2c, s2r, _lines, _get_text_width,
-                                    tab_width, _label_cached, width,
-                                    padding_left, padding_right,
-                                    canvas_add, selection_color)
-            y -= dy
-        self._position_handles('both')
 
-    def _draw_selection_line(self, *largs):
-        rect, line_num, s1c, s1r, s2c, s2r,\
-            _lines, _get_text_width, tab_width, _label_cached, width,\
-            padding_left, padding_right, canvas_add, selection_color = largs
-        # Draw the current selection on the widget.
-        if line_num < s1r or line_num > s2r:
-            return
-        x, y = rect.pos
-        w, h = rect.size
-        beg = x
-        end = x + w
-        if line_num == s1r:
-            line = _lines[line_num]
-            beg -= self.scroll_x
-            beg += _get_text_width(line[:s1c], tab_width, _label_cached)
-        if line_num == s2r:
-            line = _lines[line_num]
-            end = (x - self.scroll_x) \
-                + _get_text_width(line[:s2c], tab_width, _label_cached)
-        width_minus_padding = width - (padding_right + padding_left)
-        maxx = x + width_minus_padding
-        if beg > maxx:
-            return
-        beg = max(beg, x)
-        end = min(end, x + width_minus_padding)
-        canvas_add(Color(*selection_color, group='selection'))
-        canvas_add(Rectangle(
-            pos=(beg, y), size=(end - beg, h), group='selection'))
+        fst_visible_ln = math.floor(self.scroll_y / dy)
+        lst_visible_ln = math.ceil((self.scroll_y + maxy - miny) / dy)
+        for line_num in range(max(s1r, fst_visible_ln),
+                              min(s2r + 1, lst_visible_ln)):
+            x, y = rects[line_num].pos
+            w, h = rects[line_num].size
+            beg = x
+            end = x + w
+
+            if line_num == s1r:
+                line = _lines[line_num]
+                beg -= self.scroll_x
+                beg += _get_text_width(line[:s1c], tab_width, _label_cached)
+            if line_num == s2r:
+                line = _lines[line_num]
+                end = (x - self.scroll_x) \
+                    + _get_text_width(line[:s2c], tab_width, _label_cached)
+
+            beg = boundary(beg, x, x + width_minus_padding)
+            end = boundary(end, x, x + width_minus_padding)
+            if beg == end:
+                continue
+
+            canvas_add(Color(*selection_color, group='selection'))
+            canvas_add(Rectangle(
+                pos=(beg, y), size=(end - beg, h), group='selection'))
+        self._position_handles('both')
 
     def on_size(self, instance, value):
         # if the size change, we might do invalid scrolling / text split
