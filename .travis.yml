@@ -86,7 +86,7 @@ install:
         pip install --upgrade cython pillow pytest coveralls docutils PyInstaller;
       fi;
       if [ "${RUN}" == "docs" ]; then
-        pip install --upgrade sphinxcontrib-blockdiag sphinxcontrib-seqdiag sphinxcontrib-actdiag sphinxcontrib-nwdiag;
+        pip install --upgrade sphinx==1.7.9 sphinxcontrib-blockdiag sphinxcontrib-seqdiag sphinxcontrib-actdiag sphinxcontrib-nwdiag;
       fi;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
