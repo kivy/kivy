@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 pacman -S --noconfirm git rsync
 if [ ! -d "/home/appveyor/.ssh" ]; then
   mkdir "/home/appveyor/.ssh"
