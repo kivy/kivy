@@ -17,7 +17,7 @@ from distutils.command.build_ext import build_ext
 from distutils.version import LooseVersion
 from distutils.sysconfig import get_python_inc
 from collections import OrderedDict
-from time import time
+from time import time, sleep
 from subprocess import check_output, CalledProcessError
 from datetime import datetime
 from sysconfig import get_paths
@@ -81,23 +81,6 @@ def get_version(filename='kivy/version.py'):
             'date': DATE
         })
     return VERSION
-
-
-MIN_CYTHON_STRING = '0.24'
-MIN_CYTHON_VERSION = LooseVersion(MIN_CYTHON_STRING)
-MAX_CYTHON_STRING = '0.29.9'
-MAX_CYTHON_VERSION = LooseVersion(MAX_CYTHON_STRING)
-CYTHON_UNSUPPORTED = (
-    # ref https://github.com/cython/cython/issues/1968
-    '0.27', '0.27.2'
-)
-CYTHON_REQUIRES_STRING = (
-    'cython>={min_version},<={max_version},{exclusion}'.format(
-        min_version=MIN_CYTHON_STRING,
-        max_version=MAX_CYTHON_STRING,
-        exclusion=','.join('!=%s' % excl for excl in CYTHON_UNSUPPORTED),
-    )
-)
 
 
 def getoutput(cmd, env=None):
@@ -199,57 +182,7 @@ for key in list(c_options.keys()):
         print('Environ change {0} -> {1}'.format(key, value))
         c_options[key] = value
 
-
 # -----------------------------------------------------------------------------
-# Cython check
-# on python-for-android and kivy-ios, cython usage is external
-
-cython_unsupported_append = '''
-
-  Please note that the following versions of Cython are not supported
-  at all: {}
-'''.format(', '.join(map(str, CYTHON_UNSUPPORTED)))
-
-cython_min = '''\
-  This version of Cython is not compatible with Kivy. Please upgrade to
-  at least version {0}, preferably the newest supported version {1}.
-
-  If your platform provides a Cython package, make sure you have upgraded
-  to the newest version. If the newest version available is still too low,
-  please remove it and install the newest supported Cython via pip:
-
-    pip install -I Cython=={1}{2}\
-'''.format(MIN_CYTHON_STRING, MAX_CYTHON_STRING,
-           cython_unsupported_append if CYTHON_UNSUPPORTED else '')
-
-cython_max = '''\
-  This version of Cython is untested with Kivy. While this version may
-  work perfectly fine, it is possible that you may experience issues. If
-  you do have issues, please downgrade to a supported version. It is
-  best to use the newest supported version, {1}, but the minimum
-  supported version is {0}.
-
-  If your platform provides a Cython package, check if you can downgrade
-  to a supported version. Otherwise, uninstall the platform package and
-  install Cython via pip:
-
-    pip install -I Cython=={1}{2}\
-'''.format(MIN_CYTHON_STRING, MAX_CYTHON_STRING,
-           cython_unsupported_append if CYTHON_UNSUPPORTED else '')
-
-cython_unsupported = '''\
-  This version of Cython suffers from known bugs and is unsupported.
-  Please install the newest supported version, {1}, if possible, but
-  the minimum supported version is {0}.
-
-  If your platform provides a Cython package, check if you can install
-  a supported version. Otherwise, uninstall the platform package and
-  install Cython via pip:
-
-    pip install -I Cython=={1}{2}\
-'''.format(MIN_CYTHON_STRING, MAX_CYTHON_STRING,
-           cython_unsupported_append)
-
 # We want to be able to install kivy as a wheel without a dependency
 # on cython, but we also want to use cython where possible as a setup
 # time dependency through `setup_requires` if building from source.
@@ -411,6 +344,29 @@ def _check_and_fix_sdl2_mixer(f_path):
 # extract version (simulate doc generation, kivy will be not imported)
 environ['KIVY_DOC_INCLUDE'] = '1'
 import kivy
+
+# Cython check
+# on python-for-android and kivy-ios, cython usage is external
+from kivy.tools.packaging.cython_cfg import get_cython_versions, get_cython_msg
+CYTHON_REQUIRES_STRING, MIN_CYTHON_STRING, MAX_CYTHON_STRING, \
+    CYTHON_UNSUPPORTED = get_cython_versions()
+cython_min_msg, cython_max_msg, cython_unsupported_msg = get_cython_msg()
+
+if can_use_cython:
+    import Cython
+    print('\nFound Cython at', Cython.__file__)
+
+    cy_version_str = Cython.__version__
+    cy_ver = LooseVersion(cy_version_str)
+    print('Detected supported Cython version {}'.format(cy_version_str))
+
+    if cy_ver < LooseVersion(MIN_CYTHON_STRING):
+        print(cython_min_msg)
+    elif cy_ver in CYTHON_UNSUPPORTED:
+        print(cython_unsupported_msg)
+    elif cy_ver > LooseVersion(MAX_CYTHON_STRING):
+        print(cython_max_msg)
+    sleep(1)
 
 # extra build commands go in the cmdclass dict {'command-name': CommandClass}
 # see tools.packaging.{platform}.build.py for custom build commands for
