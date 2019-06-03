@@ -651,6 +651,7 @@ class Carousel(StencilView):
         if widget in self.slides:
             slide = widget.parent
             self.slides.remove(widget)
+            super(Carousel, self).remove_widget(slide)
             return slide.remove_widget(widget, *args, **kwargs)
         return super(Carousel, self).remove_widget(widget, *args, **kwargs)
 
