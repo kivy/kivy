@@ -339,7 +339,7 @@ def _find_gst_plugin_path():
         return []
     (stdoutdata, stderrdata) = p.communicate()
 
-    match = re.search(r'\s+(\S+libgstcoreelements\.\S+)', stdoutdata)
+    match = re.search(rb'\s+(\S+libgstcoreelements\.\S+)', stdoutdata)
 
     if not match:
         return []
