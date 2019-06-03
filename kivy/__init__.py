@@ -80,11 +80,11 @@ if sys.version_info[0] == 2:
 
 def parse_kivy_version(version):
     """Parses the kivy version as described in :func:`require` into a 3-tuple
-    of ([x, y, z], 'rc|a|b|dev', 'N') where N is the tag revision. The last
-    two elements may be None.
+    of ([x, y, z], 'rc|a|b|dev|post', 'N') where N is the tag revision. The
+    last two elements may be None.
     """
     m = re.match(
-        '^([0-9]+)\\.([0-9]+)\\.([0-9]+?)(rc|a|b|\\.dev)?([0-9]+)?$',
+        '^([0-9]+)\\.([0-9]+)\\.([0-9]+?)(rc|a|b|\\.dev|\\.post)?([0-9]+)?$',
         version)
     if m is None:
         raise Exception('Revision format must be X.Y.Z[-tag]')
@@ -92,6 +92,8 @@ def parse_kivy_version(version):
     major, minor, micro, tag, tagrev = m.groups()
     if tag == '.dev':
         tag = 'dev'
+    if tag == '.post':
+        tag = 'post'
     return [int(major), int(minor), int(micro)], tag, tagrev
 
 
@@ -113,7 +115,7 @@ def require(version):
         Y is the minor version
         Z is the bugfixes revision
 
-    The tag is optional, but may be one of '.dev', 'a', 'b', or 'rc'.
+    The tag is optional, but may be one of '.dev', '.post', 'a', 'b', or 'rc'.
     The tagrevision is the revision number of the tag.
 
     .. warning::
