@@ -258,6 +258,45 @@ kivy_config_fn = ''
 #: Kivy user modules directory
 kivy_usermodules_dir = ''
 
+# if there are deps, import them so they can do their magic.
+import kivy.deps
+_packages = []
+for importer, modname, ispkg in pkgutil.iter_modules(kivy.deps.__path__):
+    if not ispkg:
+        continue
+    if modname.startswith('gst'):
+        _packages.insert(0, (importer, modname, 'kivy.deps'))
+    else:
+        _packages.append((importer, modname, 'kivy.deps'))
+
+try:
+    import kivy_deps
+    for importer, modname, ispkg in pkgutil.iter_modules(kivy_deps.__path__):
+        if not ispkg:
+            continue
+        if modname.startswith('gst'):
+            _packages.insert(0, (importer, modname, 'kivy_deps'))
+        else:
+            _packages.append((importer, modname, 'kivy_deps'))
+except ImportError:
+    pass
+
+_logging_msgs = []
+for importer, modname, package in _packages:
+    try:
+        mod = importer.find_module(modname).load_module(modname)
+
+        version = ''
+        if hasattr(mod, '__version__'):
+            version = ' {}'.format(mod.__version__)
+        _logging_msgs.append(
+            'deps: Successfully imported "{}.{}"{}'.
+            format(package, modname, version))
+    except ImportError as e:
+        Logger.warning(
+            'deps: Error importing dependency "{}.{}": {}'.
+            format(package, modname, str(e)))
+
 # Don't go further if we generate documentation
 if any(name in sys.argv[0] for name in ('sphinx-build', 'autobuild.py')):
     environ['KIVY_DOC'] = '1'
@@ -427,6 +466,9 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     if platform == 'android':
         Config.set('input', 'androidtouch', 'android')
 
+for msg in _logging_msgs:
+    Logger.info(msg)
+
 if RELEASE:
     Logger.info('Kivy: v%s' % __version__)
 elif not RELEASE and __hash__ and __date__:
@@ -434,44 +476,6 @@ elif not RELEASE and __hash__ and __date__:
 Logger.info('Kivy: Installed at "{}"'.format(__file__))
 Logger.info('Python: v{}'.format(sys.version))
 Logger.info('Python: Interpreter at "{}"'.format(sys.executable))
-
-# if there are deps, import them so they can do their magic.
-import kivy.deps
-_packages = []
-for importer, modname, ispkg in pkgutil.iter_modules(kivy.deps.__path__):
-    if not ispkg:
-        continue
-    if modname.startswith('gst'):
-        _packages.insert(0, (importer, modname, 'kivy.deps'))
-    else:
-        _packages.append((importer, modname, 'kivy.deps'))
-
-try:
-    import kivy_deps
-    for importer, modname, ispkg in pkgutil.iter_modules(kivy_deps.__path__):
-        if not ispkg:
-            continue
-        if modname.startswith('gst'):
-            _packages.insert(0, (importer, modname, 'kivy_deps'))
-        else:
-            _packages.append((importer, modname, 'kivy_deps'))
-except ImportError:
-    pass
-
-for importer, modname, package in _packages:
-    try:
-        mod = importer.find_module(modname).load_module(modname)
-
-        version = ''
-        if hasattr(mod, '__version__'):
-            version = ' {}'.format(mod.__version__)
-        Logger.info(
-            'deps: Successfully imported "{}.{}"{}'.
-            format(package, modname, version))
-    except ImportError as e:
-        Logger.warning(
-            'deps: Error importing dependency "{}.{}": {}'.
-            format(package, modname, str(e)))
 
 from kivy.logger import file_log_handler
 if file_log_handler is not None:
