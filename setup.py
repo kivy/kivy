@@ -85,7 +85,7 @@ def get_version(filename='kivy/version.py'):
 
 MIN_CYTHON_STRING = '0.24'
 MIN_CYTHON_VERSION = LooseVersion(MIN_CYTHON_STRING)
-MAX_CYTHON_STRING = '0.29.9'
+MAX_CYTHON_STRING = '0.29.10'
 MAX_CYTHON_VERSION = LooseVersion(MAX_CYTHON_STRING)
 CYTHON_UNSUPPORTED = (
     # ref https://github.com/cython/cython/issues/1968
