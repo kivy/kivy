@@ -191,7 +191,7 @@ class Carousel(StencilView):
 
     def _curr_slide(self):
         if len(self.slides):
-            return self.slides[self.index]
+            return self.slides[self.index or 0]
 
     current_slide = AliasProperty(_curr_slide,
                                   bind=('slides', 'index'),
