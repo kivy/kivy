@@ -695,9 +695,6 @@ class WindowSDL(WindowBase):
             else:
                 Logger.trace('WindowSDL: Unhandled event %s' % str(event))
 
-        Logger.info("WindowSDL: exiting mainloop and closing.")
-        self.close()
-
     def _do_resize(self, dt):
         Logger.debug('Window: Resize window to %s' % str(self.size))
         self._win.resize_window(*self._size)

@@ -359,6 +359,9 @@ class EventLoopBase(EventDispatcher):
                 else:
                     pass
 
+        Logger.info("Window: exiting mainloop and closing.")
+        self.close()
+
     def idle(self):
         '''This function is called after every frame. By default:
 
