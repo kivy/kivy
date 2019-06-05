@@ -474,9 +474,7 @@ class WindowSDL(WindowBase):
                           (self.system_size[1] - y) * self._density)
         return x, y
 
-    def _mainloop(self):
-        EventLoop.idle()
-
+    def mainloop(self):
         # for android/iOS, we don't want to have any event nor executing our
         # main loop while the pause is going on. This loop wait any event (not
         # handled by the event filter), and remove them from the queue.
@@ -697,6 +695,9 @@ class WindowSDL(WindowBase):
             else:
                 Logger.trace('WindowSDL: Unhandled event %s' % str(event))
 
+        Logger.info("WindowSDL: exiting mainloop and closing.")
+        self.close()
+
     def _do_resize(self, dt):
         Logger.debug('Window: Resize window to %s' % str(self.size))
         self._win.resize_window(*self._size)
@@ -735,25 +736,6 @@ class WindowSDL(WindowBase):
                 break
 
         app.dispatch('on_resume')
-
-    def mainloop(self):
-        # don't known why, but pygame required a resize event
-        # for opengl, before mainloop... window reinit ?
-        # self.dispatch('on_resize', *self.size)
-
-        while not EventLoop.quit and EventLoop.status == 'started':
-            try:
-                self._mainloop()
-            except BaseException as inst:
-                # use exception manager first
-                r = ExceptionManager.handle_exception(inst)
-                if r == ExceptionManager.RAISE:
-                    stopTouchApp()
-                    raise
-                else:
-                    pass
-        Logger.info("WindowSDL: exiting mainloop and closing.")
-        self.close()
 
     def _update_modifiers(self, mods=None, key=None):
         if mods is None and key is None:

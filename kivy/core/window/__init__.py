@@ -999,6 +999,11 @@ class WindowBase(EventDispatcher):
         Modules.register_window(self)
         EventLoop.add_event_listener(self)
 
+    def mainloop(self):
+        '''Called by the EventLoop every frame after it idles.
+        '''
+        pass
+
     @deprecated
     def toggle_fullscreen(self):
         '''Toggle between fullscreen and windowed mode.
