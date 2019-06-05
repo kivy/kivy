@@ -368,7 +368,7 @@ from functools import wraps, partial
 from kivy.context import register_context
 from kivy.config import Config
 from kivy.logger import Logger
-from kivy.compat import clock as _default_time, PY2
+from kivy.compat import clock as _default_time
 import time
 try:
     from kivy._clock import CyClockBase, ClockEvent, FreeClockEvent, \
@@ -382,10 +382,6 @@ except ImportError:
         'to compile Kivy')
     raise
 
-try:
-    from multiprocessing import Event as MultiprocessingEvent
-except ImportError:  # https://bugs.python.org/issue3770
-    from threading import Event as MultiprocessingEvent
 from threading import Event as ThreadingEvent
 
 async_event = None
@@ -705,7 +701,7 @@ class ClockBaseInterruptBehavior(ClockBaseBehavior):
 
     def __init__(self, interupt_next_only=False, **kwargs):
         super(ClockBaseInterruptBehavior, self).__init__(**kwargs)
-        self._event = MultiprocessingEvent() if PY2 else ThreadingEvent()
+        self._event = ThreadingEvent()
         if async_event is not None:
             self._async_event = async_event()
         self.interupt_next_only = interupt_next_only

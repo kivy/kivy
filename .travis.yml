@@ -3,7 +3,7 @@ env:
     - KIVY_USE_SETUPTOOLS=1
     - KIVY_SPLIT_EXAMPLES=1
     - SERVER_IP=159.203.106.198
-    - DOC_VERSIONS="stable master"
+    - DOC_VERSIONS="stable master stable-1.10.1"
 
 osx_image: xcode10
 
@@ -18,22 +18,12 @@ matrix:
       name: "PEP8 verification"
       stage: pep8
     - language: python
-      python: 2.7
-      env: RUN=unit USE_PANGOFT2=0
-      os: linux
-      dist: bionic
-      name: "Linux - Python 2 tests"
-      stage: test
-    - language: python
       python: 3.5
       env: RUN=unit COVERALLS=true USE_PANGOFT2=0
       os: linux
       dist: bionic
       name: "Linux - Python 3 tests"
-    - language: generic
-      env: RUN=unit PY=2 USE_PANGOFT2=0
-      os: osx
-      name: "OSX - Python 2 tests"
+      stage: test
     - language: generic
       env: RUN=unit PY=3 USE_PANGOFT2=0
       os: osx
@@ -52,12 +42,8 @@ matrix:
         - docker
     - language: generic
       os: osx
-      env: PYVERS="3.5.4 3.6.5 3.7.0 2.7.15" PY=3 RUN=wheels USE_PANGOFT2=0
+      env: PYVERS="3.5.7 3.6.8 3.7.3" PY=3 RUN=wheels USE_PANGOFT2=0
       name: "OSX - wheel generation"
-    - language: generic
-      env: RUN=app PY=2 USE_PANGOFT2=0
-      os: osx
-      name: "OSX - Python 2 Kivy.app generation"
     - language: generic
       env: PY=3 RUN=app USE_PANGOFT2=0
       os: osx
@@ -80,13 +66,13 @@ install:
         sudo apt-get update;
         sudo apt-get -y install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libsdl2-mixer-dev;
         sudo apt-get -y install libgstreamer1.0-dev gstreamer1.0-alsa gstreamer1.0-plugins-base;
-        sudo apt-get -y install python-dev libsmpeg-dev libswscale-dev libavformat-dev libavcodec-dev libjpeg-dev libtiff4-dev libX11-dev libmtdev-dev;
-        sudo apt-get -y install python-setuptools build-essential libgl1-mesa-dev libgles2-mesa-dev;
+        sudo apt-get -y install python3 python3-dev libsmpeg-dev libswscale-dev libavformat-dev libavcodec-dev libjpeg-dev libtiff4-dev libX11-dev libmtdev-dev;
+        sudo apt-get -y install python3-setuptools build-essential libgl1-mesa-dev libgles2-mesa-dev;
         sudo apt-get -y install xvfb pulseaudio xsel;
         pip install --upgrade cython pillow pytest coveralls docutils PyInstaller;
       fi;
       if [ "${RUN}" == "docs" ]; then
-        pip install --upgrade sphinxcontrib-blockdiag sphinxcontrib-seqdiag sphinxcontrib-actdiag sphinxcontrib-nwdiag;
+        python3 -m pip install --upgrade sphinx==1.7.9 sphinxcontrib-blockdiag sphinxcontrib-seqdiag sphinxcontrib-actdiag sphinxcontrib-nwdiag;
       fi;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
@@ -123,17 +109,11 @@ install:
           chmod -R 755 /usr/local/share/platypus;
       fi;
       if [ "${RUN}" == "unit" ]; then
-        if [ "${PY}" == "3" ]; then
-           export PATH=$PATH:$HOME/Library/Python/3.5/bin;
-           curl -O -L https://www.python.org/ftp/python/3.5.2/python-3.5.2-macosx10.6.pkg;
-           sudo installer -package python-3.5.2-macosx10.6.pkg -target /;
-           python3 get-pip.py --user;
-           python3 -m pip install --upgrade --user cython pillow pytest mock docutils PyInstaller;
-        else
-           export PATH=$PATH:$HOME/Library/Python/2.7/bin;
-           python get-pip.py --user;
-           python -m pip install --upgrade --user cython pillow pytest mock docutils PyInstaller;
-        fi;
+         export PATH=$PATH:$HOME/Library/Python/3.5/bin;
+         curl -O -L https://www.python.org/ftp/python/3.5.2/python-3.5.2-macosx10.6.pkg;
+         sudo installer -package python-3.5.2-macosx10.6.pkg -target /;
+         python3 get-pip.py --user;
+         python3 -m pip install --upgrade --user cython pillow pytest mock docutils PyInstaller;
       fi;
     fi;
 
@@ -193,13 +173,8 @@ script:
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
       set -ex;
       if [ "${RUN}" == "unit" ]; then
-        if [ "${PY}" == "3" ]; then
-          python3 setup.py build_ext --inplace;
-          env KIVY_NO_ARGS=1 pytest -v kivy/tests;
-        else
-          make;
-          env KIVY_NO_ARGS=1 pytest -v kivy/tests;
-        fi;
+        python3 setup.py build_ext --inplace;
+        env KIVY_NO_ARGS=1 pytest -v kivy/tests;
       elif [ "${RUN}" == "app" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]  && ([ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ]  || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build app osx]" ]]); then
           openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
           chmod 600 ~/.ssh/id_rsa;
@@ -210,23 +185,13 @@ script:
           app_date=$(python -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))");
           git_tag=$(git rev-parse --short HEAD);
 
-          if [ "${PY}" == "3" ]; then
-             yes | ./create-osx-bundle.sh python3 master > output.txt;
-             app_ver=$(KIVY_NO_CONSOLELOG=1 Kivy.app/Contents/Resources/script -c 'import kivy; print(kivy.__version__)');
-             mv Kivy.app Kivy3.app;
-             ./create-osx-dmg.sh Kivy3.app;
-             mkdir app;
-             cp Kivy3.dmg app/"Kivy-$app_ver"-python3.6.5.dmg;
-             mv Kivy3.dmg app/"Kivy-$app_ver-$git_tag-$app_date"-python3.6.5.dmg;
-          else
-             ./create-osx-bundle.sh python2 master > output.txt;
-              app_ver=$(KIVY_NO_CONSOLELOG=1 Kivy.app/Contents/Resources/script -c 'import kivy; print(kivy.__version__)');
-              mv Kivy.app Kivy2.app;
-             ./create-osx-dmg.sh Kivy2.app;
-             mkdir app;
-             cp Kivy2.dmg app/"Kivy-$app_ver"-python2.dmg;
-             mv Kivy2.dmg app/"Kivy-$app_ver-$git_tag-$app_date"-python2.dmg;
-          fi;
+          yes | ./create-osx-bundle.sh python3 master > output.txt;
+          app_ver=$(KIVY_NO_CONSOLELOG=1 Kivy.app/Contents/Resources/script -c 'import kivy; print(kivy.__version__)');
+          mv Kivy.app Kivy3.app;
+          ./create-osx-dmg.sh Kivy3.app;
+          mkdir app;
+          cp Kivy3.dmg app/"Kivy-$app_ver"-python3.6.5.dmg;
+          mv Kivy3.dmg app/"Kivy-$app_ver-$git_tag-$app_date"-python3.6.5.dmg;
           yes | rsync -avh -e "ssh -p 2458" --include="*/" --include="*.dmg" --exclude="*" "./app/" "root@$SERVER_IP:/web/downloads/ci/osx/app/";
           popd;
       elif [ "${RUN}" == "wheels" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]  && ([ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel]" ]] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel osx]" ]]); then
@@ -258,7 +223,7 @@ script:
           rm dist/$zip_dir/kivy/.dylibs/libg*;
           rm dist/$zip_dir/kivy/.dylibs/GStreamer;
           cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/FLAC.framework/Versions/A/FLAC dist/$zip_dir/kivy/.dylibs/;
-          cp /Library/Frameworks/SDL2_ttf.framework/Versions/A/Frameworks/FreeType.framework/Versions/A/freetype dist/$zip_dir/kivy/.dylibs/;
+          cp /Library/Frameworks/SDL2_ttf.framework/Versions/A/Frameworks/FreeType.framework/Versions/A/FreeType dist/$zip_dir/kivy/.dylibs/;
           cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/Ogg.framework/Versions/A/Ogg dist/$zip_dir/kivy/.dylibs/;
           cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/Vorbis.framework/Versions/A/Vorbis dist/$zip_dir/kivy/.dylibs/;
           cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/modplug.framework/Versions/A/modplug dist/$zip_dir/kivy/.dylibs/;
@@ -267,7 +232,7 @@ script:
           python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/FLAC.framework/Versions/A/FLAC @loader_path/FLAC>output.txt;
           python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/modplug.framework/Versions/A/modplug @loader_path/modplug>output.txt;
           python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/mpg123.framework/Versions/A/mpg123 @loader_path/mpg123>output.txt;
-          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/FreeType.framework/Versions/A/FreeType @loader_path/FreeType>output.txt;
+          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/FreeType.framework/Versions/A/FreeType @loader_path/FreeType;
           python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/webp.framework/Versions/A/webp @loader_path/webp>output.txt;
           python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/Vorbis.framework/Versions/A/Vorbis @loader_path/Vorbis>output.txt;
           python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/../../../../SDL2.framework/Versions/A/SDL2 @loader_path/SDL2>output.txt;

@@ -1,5 +1,6 @@
 Cython>=0.24
 # Frozen Sphinx requirements for easier pip installation
+sphinx==1.7.9
 sphinxcontrib-actdiag
 sphinxcontrib-blockdiag
 sphinxcontrib-nwdiag

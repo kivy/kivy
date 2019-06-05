@@ -58,7 +58,6 @@ import logging
 import os
 import sys
 import kivy
-from kivy.compat import PY2
 from random import randint
 from functools import partial
 
@@ -201,21 +200,7 @@ class FileHandler(logging.Handler):
         stream = FileHandler.fd
         fs = "%s\n"
         stream.write('[%-7s] ' % record.levelname)
-        if PY2:
-            try:
-                if (isinstance(msg, unicode) and
-                        getattr(stream, 'encoding', None)):
-                    ufs = u'%s\n'
-                    try:
-                        stream.write(ufs % msg)
-                    except UnicodeEncodeError:
-                        stream.write((ufs % msg).encode(stream.encoding))
-                else:
-                    stream.write(fs % msg)
-            except UnicodeError:
-                stream.write(fs % msg.encode("UTF-8"))
-        else:
-            stream.write(fs % msg)
+        stream.write(fs % msg)
         stream.flush()
 
     def emit(self, message):

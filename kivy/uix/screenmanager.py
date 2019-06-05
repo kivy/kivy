@@ -497,7 +497,6 @@ class ShaderTransition(TransitionBase):
     def add_screen(self, screen):
         self.screen_in.pos = self.screen_out.pos
         self.screen_in.size = self.screen_out.size
-        self.manager.remove_widget(self.screen_out)
         self.manager.real_remove_widget(self.screen_out)
         self.manager.canvas.add(self.screen_out.canvas)
 
@@ -1105,8 +1104,8 @@ class ScreenManager(FloatLayout):
             return
 
     def switch_to(self, screen, **options):
-        '''Add a new screen to the ScreenManager and switch to it. The previous
-        screen will be removed from the children. `options` are the
+        '''Add a new or existing screen to the ScreenManager and switch to it.
+        The previous screen will be "switched away" from. `options` are the
         :attr:`transition` options that will be changed before the animation
         happens.
 
@@ -1154,7 +1153,8 @@ class ScreenManager(FloatLayout):
             setattr(self.transition, key, value)
 
         # add and leave if we are set as the current screen
-        self.add_widget(screen)
+        if screen.manager is not self:
+            self.add_widget(screen)
         if self.current_screen is screen:
             return
 

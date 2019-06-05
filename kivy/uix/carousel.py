@@ -191,7 +191,7 @@ class Carousel(StencilView):
 
     def _curr_slide(self):
         if len(self.slides):
-            return self.slides[self.index]
+            return self.slides[self.index or 0]
 
     current_slide = AliasProperty(_curr_slide,
                                   bind=('slides', 'index'),
@@ -651,6 +651,7 @@ class Carousel(StencilView):
         if widget in self.slides:
             slide = widget.parent
             self.slides.remove(widget)
+            super(Carousel, self).remove_widget(slide)
             return slide.remove_widget(widget, *args, **kwargs)
         return super(Carousel, self).remove_widget(widget, *args, **kwargs)
 

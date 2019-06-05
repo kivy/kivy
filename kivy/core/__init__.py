@@ -27,7 +27,6 @@ import tempfile
 import subprocess
 import kivy
 from kivy.logger import Logger
-from kivy.compat import PY2
 
 
 class CoreCriticalException(Exception):
@@ -160,16 +159,13 @@ def handle_win_lib_import_error(category, provider, mod_name):
     mod_path = os.path.join(kivy_root, *dirs)
 
     # get the full expected path to the compiled pyd file
-    if PY2:
-        mod_path += '.pyd'
-    else:
-        # filename is <debug>.cp<major><minor>-<platform>.pyd
-        # https://github.com/python/cpython/blob/master/Doc/whatsnew/3.5.rst
-        if hasattr(sys, 'gettotalrefcount'):  # debug
-            mod_path += '._d'
-        mod_path += '.cp{}{}-{}.pyd'.format(
-            sys.version_info.major, sys.version_info.minor,
-            sysconfig.get_platform().replace('-', '_'))
+    # filename is <debug>.cp<major><minor>-<platform>.pyd
+    # https://github.com/python/cpython/blob/master/Doc/whatsnew/3.5.rst
+    if hasattr(sys, 'gettotalrefcount'):  # debug
+        mod_path += '._d'
+    mod_path += '.cp{}{}-{}.pyd'.format(
+        sys.version_info.major, sys.version_info.minor,
+        sysconfig.get_platform().replace('-', '_'))
 
     # does the compiled pyd exist at all?
     if not os.path.exists(mod_path):

@@ -3,6 +3,15 @@
 Installation on Windows
 =======================
 
+Using Conda
+-----------
+
+If you use Anaconda, you can simply install kivy using::
+
+   $ conda install kivy -c conda-forge
+
+Otherwise, continue below to install Kivy in a native Python installation.
+
 Prerequisites
 -------------
 
@@ -20,7 +29,7 @@ installation. See :ref:`install-win-dist`.
 
 We also provide nightly wheels generated using Kivy
 `master <https://github.com/kivy/kivy>`_. See :ref:`install-nightly-win-dist`.
-See also :ref:`upgrade-win-dist`. If installing kivy to an **alternate
+If installing kivy to an **alternate
 location** and not to site-packages, please see :ref:`alternate-win`.
 
 .. note::
@@ -31,21 +40,67 @@ location** and not to site-packages, please see :ref:`alternate-win`.
     `issue 4709 <http://bugs.python.org/issue4709>`_ about MinGW.
     Generally this should make no difference when using precompiled wheels.
 
+.. _install-win-dist-upgrade:
+
+Updating Kivy from a previous release
+-------------------------------------
+
+When updating from a previous Kivy release, all the Kivy dependencies must be
+updated first. Typically, just adding `--upgrade` to the `pip install ...` commands below
+is sufficient for pip to update them.
+
+.. warning::
+
+    When updating from Kivy 1.10.1 or lower to 1.11.0 or higher, one **must** manually
+    uninstall all kivy dependencies before upgrading because won't update them properly.
+    This is done with::
+
+        python -m pip uninstall -y kivy.deps.glew kivy.deps.gstreamer kivy.deps.sdl2 kivy.deps.angle
+
+    assuming all the dependencies were previously installed. See :ref:`kivy-dependencies` for more details.
+
+    After uninstalling, continue with the installation below.
+
 .. _install-win-dist:
 
 Installing the kivy stable release
 -----------------------------------
 
+.. warning::
+
+    Kivy 1.11.0 is the last release that supports Python 2.
+
 Now that python is installed, open the :ref:`windows-run-app` and make sure
 python is available by typing ``python --version``. Then, do the following to
-install the most recent stable kivy release (`1.11.0`) and its dependencies.
+create a new `virtual environment <https://virtualenv.pypa.io/en/latest/>`_
+(optionally) and install the most recent stable
+kivy release (`1.11.0`) and its dependencies.
 
-#. Ensure you have the latest pip and wheel::
+#. Ensure you have the latest pip, wheel, and virtualenv::
 
-     python -m pip install --upgrade pip wheel setuptools
+     python -m pip install --upgrade pip wheel setuptools virtualenv
+
+   Optionally create a new `virtual environment <https://virtualenv.pypa.io/en/latest/>`_
+   for your Kivy project. Highly recommended:
+
+   #. First create the environment named `kivy_venv` in your current directory::
+
+        python -m virtualenv kivy_venv
+
+   #. Activate the virtual environment. You'll have to do this step from the current directory
+      **every time** you start a new terminal. On windows CMD do::
+
+        kivy_venv\Scripts\activate
+
+      If you're in a bash terminal, instead do::
+
+        source kivy_venv/Scripts/activate
+
+   Your terminal should now preface the path with something like `(kivy_venv)`, indicating that
+   the `kivy_venv` environment is active. If it doesn't say that, the virtual environment is not active.
 
 #. Install the dependencies (skip gstreamer (~120MB) if not needed, see
-   :ref:`kivy-dependencies`)::
+   :ref:`kivy-dependencies`). If you are upgrading Kivy, see :ref:`install-win-dist-upgrade`::
 
      python -m pip install docutils pygments pypiwin32 kivy_deps.sdl2==0.1.22 kivy_deps.glew==0.1.12
      python -m pip install kivy_deps.gstreamer==0.1.17
@@ -79,14 +134,17 @@ install the most recent stable kivy release (`1.11.0`) and its dependencies.
 That's it. You should now be able to ``import kivy`` in python or run a basic
 example if you installed the kivy examples::
 
-    python share\kivy-examples\demo\showcase\main.py
+    python kivy_venv\share\kivy-examples\demo\showcase\main.py
+
+Replace `kivy_venv` with the path where python is installed if you didn't use a virtualenv.
 
 .. note::
 
     If you encounter any **permission denied** errors, try opening the
     `Command prompt as administrator
     <https://technet.microsoft.com/en-us/library/cc947813%28v=ws.10%29.aspx>`_
-    and trying again.
+    and trying again. The best solution for this is to use a virtual environment
+    instead.
 
 What are wheels, pip and wheel
 ------------------------------
@@ -130,18 +188,16 @@ Nightly wheel installation
     Using the latest development version can be risky and you might encounter
     issues during development. If you encounter any bugs, please report them.
 
-Snapshot wheels of current Kivy master are created on every commit to the
+Snapshot wheels of current Kivy master are created daily on the
 `master` branch of kivy repository. They can be found
 `here <https://kivy.org/downloads/appveyor/kivy>`_. To use them, instead of
 doing ``python -m pip install kivy`` we'll install one of these wheels as
 follows.
 
-+ |cp27_win32|_
 + |cp35_win32|_
 + |cp36_win32|_
 + |cp37_win32|_
 
-- |cp27_amd64|_
 - |cp35_amd64|_
 - |cp36_amd64|_
 - |cp37_amd64|_
@@ -149,7 +205,7 @@ follows.
 #. Perform steps 1 and 2 of the above Installation section.
 #. Download the appropriate wheel for your system.
 #. Install it with ``python -m pip install wheel-name`` where ``wheel-name``
-   is the name of the renamed file and add deps to the `PATH`.
+   is the name of the file.
 
 Kivy examples are separated from the core because of their size. The examples
 can be installed separately on both Python 2 and 3 with this single wheel:
@@ -164,6 +220,16 @@ Kivy's dependencies
 We offer wheels for Kivy and its dependencies separately so only desired
 dependencies need be installed. The dependencies are offered as
 optional sub-packages of kivy_deps, e.g. ``kivy_deps.sdl2``.
+
+.. note::
+
+    In Kivy 1.11.0 we transitioned the kivy Windows dependencies from the
+    `kivy.deps.xxx` namespace stored under `kivy/deps/xxx` to the
+    `kivy_deps.xxx` namespace stored under `kivy_deps/xxx`. Pip is
+    sometimes not able to distinguish between these two formats, so follow the
+    instructions at :ref:`install-win-dist-upgrade` when upgrading from a older Kivy.
+    See `here <https://github.com/kivy/kivy/wiki/Moving-kivy.garden.xxx-to-kivy_garden.xxx-and-kivy.deps.xxx-to-kivy_deps.xxx#kivy-deps>`_
+    for more details.
 
 Currently on Windows, we provide the following dependency wheels:
 
@@ -202,7 +268,7 @@ installed.
 
 Walking the path! To add your python to the path, simply open your command line
 and then use the ``cd`` command to change the current directory to where python
-is installed, e.g. ``cd C:\Python27``. Alternatively if you only have one
+is installed, e.g. ``cd C:\Python37``. Alternatively if you only have one
 python version installed, permanently add the python directory to the path for
 `cmd <http://www.computerhope.com/issues/ch000549.htm>`_ or
 `bash <http://stackoverflow.com/q/14637979>`_.
@@ -284,9 +350,11 @@ kivy with git rather than a wheel there are some additional steps:
 Compile Kivy
 ^^^^^^^^^^^^
 
-#. Start installation of Kivy cloned from GitHub::
+#. Start installation of Kivy cloned or downloaded and extracted from GitHub.
+   You should be in the root directory where kivy is extracted containing the
+   `setup.py` file::
 
-    python -m pip install kivy\.
+    python -m pip install .
 
 If the compilation succeeds without any error, Kivy should be good to go. You
 can test it with running a basic example::
@@ -295,10 +363,10 @@ can test it with running a basic example::
 
 .. _alternate-win:
 
-Installing Kivy to an alternate location
+Installing Kivy and editing it in place
 ----------------------------------------
 
-In development Kivy is often installed to an alternate location and then
+In development, Kivy is often cloned or downloaded to a location and then
 installed with::
 
     python -m pip install -e kivy_path
@@ -306,9 +374,11 @@ installed with::
 Now you can safely compile kivy in its current location with one of these
 commands::
 
-> make
-> python -m pip install -e .
-> python setup.py build_ext --inplace
+    make
+    python setup.py build_ext --inplace
+
+But kivy would be fully installed and available from Python. remember to re-run the above command
+whenever any of the cython files are changed (e.g. if you pulled from GitHub) to recompile.
 
 Making Python available anywhere
 --------------------------------
