@@ -649,9 +649,12 @@ class Carousel(StencilView):
         # added in add_widget(). But it will break if RelativeLayout
         # implementation change.
         # if we passed the real widget
-        if widget in self.slides:
+        slides = self.slides
+        if widget in slides:
+            if self.index >= slides.index(widget):
+                self.index = max(0, self.index - 1)
             container = widget.parent
-            self.slides.remove(widget)
+            slides.remove(widget)
             super(Carousel, self).remove_widget(container)
             return container.remove_widget(widget, *args, **kwargs)
         return super(Carousel, self).remove_widget(widget, *args, **kwargs)
