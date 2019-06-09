@@ -164,11 +164,6 @@ class Carousel(StencilView):
         index = self.index
         if len_slides < 2:  # None, or 1 slide
             return None
-        if len_slides == 2:
-            if index == 0:
-                return None
-            if index == 1:
-                return slides[0]
         if self.loop and index == 0:
             return slides[-1]
         if index > 0:
@@ -208,11 +203,6 @@ class Carousel(StencilView):
     def _next_slide(self):
         if len(self.slides) < 2:  # None, or 1 slide
             return None
-        if len(self.slides) == 2:
-            if self.index == 0:
-                return self.slides[1]
-            if self.index == 1:
-                return None
         if self.loop and self.index == len(self.slides) - 1:
             return self.slides[0]
         if self.index < len(self.slides) - 1:
@@ -284,6 +274,8 @@ class Carousel(StencilView):
     _next = ObjectProperty(None, allownone=True)
     _offset = NumericProperty(0)
     _touch = ObjectProperty(None, allownone=True)
+    _prev_equals_next = BooleanProperty(False)
+    _prioritize_next = BooleanProperty(False)
 
     _change_touch_mode_ev = None
 
@@ -360,6 +352,18 @@ class Carousel(StencilView):
             self._next = get_slide_container(next_slide)
         else:
             self._next = None
+
+        expected_value = self.loop and (len(self.slides) == 2)
+        if self._prev_equals_next != expected_value:
+            from kivy.logger import Logger
+            Logger.error(
+                "Carousel: I expected '_prev_equals_next' to be already "
+                "updated at this point, but it wasn't actually. "
+                "So update it now."
+            )
+            self._prev_equals_next = expected_value
+        if self._prev_equals_next:
+            setattr(self, '_prev' if self._prioritize_next else '_next', None)
 
         super_remove = super(Carousel, self).remove_widget
         for container in self.slides_container:
@@ -446,11 +450,18 @@ class Carousel(StencilView):
         self._trigger_position_visible_slides()
         self._offset = 0
 
+    def on_loop(self, *args):
+        self._insert_visible_slides()
+
     def on_slides(self, *args):
         if self.slides:
             self.index = self.index % len(self.slides)
         self._insert_visible_slides()
         self._trigger_position_visible_slides()
+
+    def on__prioritize_next(self, __, value):
+        if value is (self._next is None):
+            self._prev, self._next = self._next, self._prev
 
     def on__offset(self, *args):
         self._trigger_position_visible_slides()
@@ -472,12 +483,15 @@ class Carousel(StencilView):
                 self.index += 1
 
         # Move to previous slide?
-        if (direction[0] == 'r' and _offset >= width) or \
+        elif (direction[0] == 'r' and _offset >= width) or \
                 (direction[0] == 'l' and _offset <= -width) or \
                 (direction[0] == 't' and _offset >= height) or \
                 (direction[0] == 'b' and _offset <= -height):
             if self.previous_slide:
                 self.index -= 1
+
+        elif self._prev_equals_next:
+            self._prioritize_next = (_offset < 0) is (direction[0] in 'rt')
 
     def _start_animation(self, *args, **kwargs):
         # compute target offset for ease back, next or prev
