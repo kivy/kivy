@@ -274,8 +274,6 @@ class Carousel(StencilView):
     _next = ObjectProperty(None, allownone=True)
     _offset = NumericProperty(0)
     _touch = ObjectProperty(None, allownone=True)
-    _prev_equals_next = BooleanProperty(False)
-    _prioritize_next = BooleanProperty(False)
 
     _change_touch_mode_ev = None
 
@@ -285,6 +283,7 @@ class Carousel(StencilView):
         super(Carousel, self).__init__(**kwargs)
         self._skip_slide = None
         self.touch_mode_change = False
+        self._prioritize_next = False
 
     def load_slide(self, slide):
         '''Animate to the slide that is passed as the argument.
@@ -331,6 +330,10 @@ class Carousel(StencilView):
 
     def get_slide_container(self, slide):
         return slide.parent
+
+    @property
+    def _prev_equals_next(self):
+        return self.loop and len(self.slides) == 2
 
     def _insert_visible_slides(self, _next_slide=None, _prev_slide=None):
         get_slide_container = self.get_slide_container
@@ -459,10 +462,6 @@ class Carousel(StencilView):
         self._insert_visible_slides()
         self._trigger_position_visible_slides()
 
-    def on__prioritize_next(self, __, value):
-        if value is (self._next is None):
-            self._prev, self._next = self._next, self._prev
-
     def on__offset(self, *args):
         self._trigger_position_visible_slides()
         # if reached full offset, switch index to next or prev
@@ -491,7 +490,11 @@ class Carousel(StencilView):
                 self.index -= 1
 
         elif self._prev_equals_next:
-            self._prioritize_next = (_offset < 0) is (direction[0] in 'rt')
+            new_value = (_offset < 0) is (direction[0] in 'rt')
+            if self._prioritize_next is not new_value:
+                self._prioritize_next = new_value
+                if new_value is (self._next is None):
+                    self._prev, self._next = self._next, self._prev
 
     def _start_animation(self, *args, **kwargs):
         # compute target offset for ease back, next or prev
