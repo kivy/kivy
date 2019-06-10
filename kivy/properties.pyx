@@ -699,7 +699,7 @@ cdef class StringProperty(Property):
                 obj.__class__.__name__,
                 self.name))
 
-cdef inline void observable_list_dispatch(object self):
+cdef inline void observable_list_dispatch(object self) except *:
     cdef Property prop = self.prop
     obj = self.obj()
     if obj is not None:
@@ -838,7 +838,7 @@ cdef class ListProperty(Property):
             value = ObservableList(self, obj, value)
         Property.set(self, obj, value)
 
-cdef inline void observable_dict_dispatch(object self):
+cdef inline void observable_dict_dispatch(object self) except *:
     cdef Property prop = self.prop
     prop.dispatch(self.obj)
 
