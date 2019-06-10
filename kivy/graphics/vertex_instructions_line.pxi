@@ -17,7 +17,7 @@ DEF LINE_MODE_BEZIER = 5
 from kivy.graphics.stencil_instructions cimport StencilUse, StencilUnUse, StencilPush, StencilPop
 import itertools
 
-cdef float PI = 3.1415926535
+cdef float PI = <float>3.1415926535
 
 cdef inline int line_intersection(double x1, double y1, double x2, double y2,
         double x3, double y3, double x4, double y4, double *px, double *py):
@@ -212,7 +212,7 @@ cdef class Line(VertexInstruction):
 
     cdef void build_legacy(self):
         cdef int i
-        cdef long count = len(self.points) / 2
+        cdef long count = <int>int(len(self.points) / 2.)
         cdef list p = self.points
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
@@ -290,9 +290,9 @@ cdef class Line(VertexInstruction):
         tex_x = 0
         for i in range(count):
             if (self._dash_offset != 0 or self._dash_list) and i > 0:
-                tex_x += sqrt(
+                tex_x += <float>(sqrt(
                         pow(p[i * 2]     - p[(i - 1) * 2], 2)  +
-                        pow(p[i * 2 + 1] - p[(i - 1) * 2 + 1], 2)) / length
+                        pow(p[i * 2 + 1] - p[(i - 1) * 2 + 1], 2)) / length)
 
                 vertices[i].s0 = tex_x
                 vertices[i].t0 = 0
@@ -308,7 +308,7 @@ cdef class Line(VertexInstruction):
 
     cdef void build_extended(self):
         cdef int i, j
-        cdef long count = len(self.points) / 2
+        cdef long count = <int>int(len(self.points) / 2.)
         cdef list p = self.points
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
@@ -366,7 +366,7 @@ cdef class Line(VertexInstruction):
         cdef double ax, ay, bx, _by, cx, cy, angle, a1, a2
         cdef double x1, y1, x2, y2, x3, y3, x4, y4
         cdef double sx1, sy1, sx4, sy4, sangle
-        cdef double pcx, pcy, px1, py1, px2, py2, px3, py3, px4, py4, pangle, pangle2
+        cdef double pcx, pcy, px1, py1, px2, py2, px3, py3, px4, py4, pangle = 0, pangle2
         cdef double w = self._width
         cdef double ix, iy
         cdef unsigned int piv, pii2, piv2, skip = 0
@@ -440,23 +440,23 @@ cdef class Line(VertexInstruction):
             indices[ii + 5] = iv + 3
             ii += 6
 
-            vertices[iv].x = x1
-            vertices[iv].y = y1
+            vertices[iv].x = <float>x1
+            vertices[iv].y = <float>y1
             vertices[iv].s0 = 0
             vertices[iv].t0 = 0
             iv += 1
-            vertices[iv].x = x2
-            vertices[iv].y = y2
+            vertices[iv].x = <float>x2
+            vertices[iv].y = <float>y2
             vertices[iv].s0 = 1
             vertices[iv].t0 = 0
             iv += 1
-            vertices[iv].x = x3
-            vertices[iv].y = y3
+            vertices[iv].x = <float>x3
+            vertices[iv].y = <float>y3
             vertices[iv].s0 = 1
             vertices[iv].t0 = 1
             iv += 1
-            vertices[iv].x = x4
-            vertices[iv].y = y4
+            vertices[iv].x = <float>x4
+            vertices[iv].y = <float>y4
             vertices[iv].s0 = 0
             vertices[iv].t0 = 1
             iv += 1
@@ -484,8 +484,8 @@ cdef class Line(VertexInstruction):
                 continue
 
             if self._joint == LINE_JOINT_BEVEL:
-                vertices[iv].x = ax
-                vertices[iv].y = ay
+                vertices[iv].x = <float>ax
+                vertices[iv].y = <float>ay
                 vertices[iv].s0 = 0
                 vertices[iv].t0 = 0
                 if jangle < 0:
@@ -500,8 +500,8 @@ cdef class Line(VertexInstruction):
                 iv += 1
 
             elif self._joint == LINE_JOINT_MITER:
-                vertices[iv].x = ax
-                vertices[iv].y = ay
+                vertices[iv].x = <float>ax
+                vertices[iv].y = <float>ay
                 vertices[iv].s0 = 0
                 vertices[iv].t0 = 0
                 if jangle < 0:
@@ -509,8 +509,8 @@ cdef class Line(VertexInstruction):
                         vertices_count -= 2
                         indices_count -= 6
                         continue
-                    vertices[iv + 1].x = ix
-                    vertices[iv + 1].y = iy
+                    vertices[iv + 1].x = <float>ix
+                    vertices[iv + 1].y = <float>iy
                     vertices[iv + 1].s0 = 0
                     vertices[iv + 1].t0 = 0
                     indices[ii] = iv
@@ -526,8 +526,8 @@ cdef class Line(VertexInstruction):
                         vertices_count -= 2
                         indices_count -= 6
                         continue
-                    vertices[iv + 1].x = ix
-                    vertices[iv + 1].y = iy
+                    vertices[iv + 1].x = <float>ix
+                    vertices[iv + 1].y = <float>iy
                     vertices[iv + 1].s0 = 0
                     vertices[iv + 1].t0 = 0
                     indices[ii] = iv
@@ -557,19 +557,19 @@ cdef class Line(VertexInstruction):
                     pivstart = piv
                     pivend = piv2 + 2
                 siv = iv
-                vertices[iv].x = ax
-                vertices[iv].y = ay
+                vertices[iv].x = <float>ax
+                vertices[iv].y = <float>ay
                 vertices[iv].s0 = 0
                 vertices[iv].t0 = 0
                 iv += 1
                 for j in xrange(0, self._joint_precision - 1):
-                    vertices[iv].x = ax - cos(a0 - step * j) * w
-                    vertices[iv].y = ay - sin(a0 - step * j) * w
+                    vertices[iv].x = <float>(ax - cos(a0 - step * j) * w)
+                    vertices[iv].y = <float>(ay - sin(a0 - step * j) * w)
                     vertices[iv].s0 = 0
                     vertices[iv].t0 = 0
                     if j == 0:
                         indices[ii] = siv
-                        indices[ii + 1] = pivstart
+                        indices[ii + 1] = <unsigned short>pivstart
                         indices[ii + 2] = iv
                     else:
                         indices[ii] = siv
@@ -579,17 +579,17 @@ cdef class Line(VertexInstruction):
                     ii += 3
                 indices[ii] = siv
                 indices[ii + 1] = iv - 1
-                indices[ii + 2] = pivend
+                indices[ii + 2] = <unsigned short>pivend
                 ii += 3
 
         # caps
         if cap == LINE_CAP_SQUARE:
-            vertices[iv].x = x2 + cos(angle) * w
-            vertices[iv].y = y2 + sin(angle) * w
+            vertices[iv].x = <float>(x2 + cos(angle) * w)
+            vertices[iv].y = <float>(y2 + sin(angle) * w)
             vertices[iv].s0 = 0
             vertices[iv].t0 = 0
-            vertices[iv + 1].x = x3 + cos(angle) * w
-            vertices[iv + 1].y = y3 + sin(angle) * w
+            vertices[iv + 1].x = <float>(x3 + cos(angle) * w)
+            vertices[iv + 1].y = <float>(y3 + sin(angle) * w)
             vertices[iv + 1].s0 = 0
             vertices[iv + 1].t0 = 0
             indices[ii] = piv + 1
@@ -600,12 +600,12 @@ cdef class Line(VertexInstruction):
             indices[ii + 5] = iv + 1
             ii += 6
             iv += 2
-            vertices[iv].x = sx1 - cos(sangle) * w
-            vertices[iv].y = sy1 - sin(sangle) * w
+            vertices[iv].x = <float>(sx1 - cos(sangle) * w)
+            vertices[iv].y = <float>(sy1 - sin(sangle) * w)
             vertices[iv].s0 = 0
             vertices[iv].t0 = 0
-            vertices[iv + 1].x = sx4 - cos(sangle) * w
-            vertices[iv + 1].y = sy4 - sin(sangle) * w
+            vertices[iv + 1].x = <float>(sx4 - cos(sangle) * w)
+            vertices[iv + 1].y = <float>(sy4 - sin(sangle) * w)
             vertices[iv + 1].s0 = 0
             vertices[iv + 1].t0 = 0
             indices[ii] = 0
@@ -626,14 +626,14 @@ cdef class Line(VertexInstruction):
             siv = iv
             cx = p[0]
             cy = p[1]
-            vertices[iv].x = cx
-            vertices[iv].y = cy
+            vertices[iv].x = <float>cx
+            vertices[iv].y = <float>cy
             vertices[iv].s0 = 0
             vertices[iv].t0 = 0
             iv += 1
             for i in xrange(0, self._cap_precision - 1):
-                vertices[iv].x = cx + cos(a1 + step * i) * w
-                vertices[iv].y = cy + sin(a1 + step * i) * w
+                vertices[iv].x = <float>(cx + cos(a1 + step * i) * w)
+                vertices[iv].y = <float>(cy + sin(a1 + step * i) * w)
                 vertices[iv].s0 = 1
                 vertices[iv].t0 = 1
                 if i == 0:
@@ -658,14 +658,14 @@ cdef class Line(VertexInstruction):
             siv = iv
             cx = p[-2]
             cy = p[-1]
-            vertices[iv].x = cx
-            vertices[iv].y = cy
+            vertices[iv].x = <float>cx
+            vertices[iv].y = <float>cy
             vertices[iv].s0 = 0
             vertices[iv].t0 = 0
             iv += 1
             for i in xrange(0, self._cap_precision - 1):
-                vertices[iv].x = cx + cos(a1 + step * i) * w
-                vertices[iv].y = cy + sin(a1 + step * i) * w
+                vertices[iv].x = <float>(cx + cos(a1 + step * i) * w)
+                vertices[iv].y = <float>(cy + sin(a1 + step * i) * w)
                 vertices[iv].s0 = 0
                 vertices[iv].t0 = 0
                 if i == 0:
@@ -1132,10 +1132,10 @@ cdef class Line(VertexInstruction):
     cdef void prebuild_rounded_rectangle(self):
         cdef float a, px, py, x, y, w, h, c1, c2, c3, c4
         cdef resolution = 30
-        cdef int l = len(self._mode_args)
+        cdef int l = <int>len(self._mode_args)
 
         self._points = []
-        a = -PI
+        a = <float>-PI
         x, y, w, h = self._mode_args [:4]
 
         if l == 5:
@@ -1276,7 +1276,7 @@ cdef class SmoothLine(Line):
 
     def __init__(self, **kwargs):
         Line.__init__(self, **kwargs)
-        self._owidth = kwargs.get("overdraw_width") or 1.2
+        self._owidth = kwargs.get("overdraw_width") or <float>1.2
         self.batch.set_mode("triangles")
         self.texture = self.premultiplied_texture()
 
@@ -1312,23 +1312,23 @@ cdef class SmoothLine(Line):
     cdef void build_smooth(self):
         cdef:
             list p = self.points
-            float width = max(0, (self._width - 1.))
-            float owidth = width + self._owidth
+            double width = max(0, (self._width - 1.))
+            double owidth = width + self._owidth
             vertex_t *vertices = NULL
             unsigned short *indices = NULL
             unsigned short *tindices = NULL
             double ax, ay, bx = 0., by = 0., rx = 0., ry = 0., last_angle = 0., angle, av_angle
-            float cos1, sin1, cos2, sin2, ocos1, ocos2, osin1, osin2
-            long index, vindex, vcount, icount, iv, ii, max_vindex, count
-            unsigned short i0, i1, i2, i3, i4, i5, i6, i7
+            double cos1, sin1, cos2, sin2, ocos1, ocos2, osin1, osin2
+            long index, icount, iv, ii, max_vindex, count
+            unsigned short i0, i1, i2, i3, i4, i5, i6, i7, vindex, vcount
 
         iv = vindex = 0
-        count = len(p) / 2
+        count = <long>int(len(p) / 2.)
         if count < 2:
             self.batch.clear_data()
             return
 
-        vcount = count * 4
+        vcount = <unsigned short>(count * 4)
         icount = (count - 1) * 18
         if self._close:
             icount += 18
@@ -1413,7 +1413,7 @@ cdef class SmoothLine(Line):
                     #print 'ERROR LINE INTERSECTION 1'
                     pass
 
-                l = sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
+                l = <float>sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
 
                 if line_intersection(
                     ox + cos(ra1) * owidth,
@@ -1428,7 +1428,7 @@ cdef class SmoothLine(Line):
                     #print 'ERROR LINE INTERSECTION 2'
                     pass
 
-                ol = sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
+                ol = <float>sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
 
             last_angle = angle
 
@@ -1464,23 +1464,23 @@ cdef class SmoothLine(Line):
             ox2 = ax + ocos2
             oy2 = ay + osin2
 
-            vertices[iv].x = x1
-            vertices[iv].y = y1
+            vertices[iv].x = <float>x1
+            vertices[iv].y = <float>y1
             vertices[iv].s0 = 0.5
             vertices[iv].t0 = 0.25
             iv += 1
-            vertices[iv].x = x2
-            vertices[iv].y = y2
+            vertices[iv].x = <float>x2
+            vertices[iv].y = <float>y2
             vertices[iv].s0 = 0.5
             vertices[iv].t0 = 0.75
             iv += 1
-            vertices[iv].x = ox1
-            vertices[iv].y = oy1
+            vertices[iv].x = <float>ox1
+            vertices[iv].y = <float>oy1
             vertices[iv].s0 = 1
             vertices[iv].t0 = 0
             iv += 1
-            vertices[iv].x = ox2
-            vertices[iv].y = oy2
+            vertices[iv].x = <float>ox2
+            vertices[iv].y = <float>oy2
             vertices[iv].s0 = 1
             vertices[iv].t0 = 1
             iv += 1

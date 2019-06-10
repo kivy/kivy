@@ -36,7 +36,7 @@ cdef class VertexFormat:
             raise VertexFormatException('No format specified')
 
         self.last_shader = None
-        self.vattr_count = len(fmt)
+        self.vattr_count = <long>len(fmt)
         self.vattr = <vertex_attr_t *>malloc(sizeof(vertex_attr_t) * self.vattr_count)
 
         if self.vattr == NULL:

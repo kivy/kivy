@@ -922,7 +922,7 @@ cdef class Texture:
 
         # need conversion, do check here because it seems to be faster ?
         if not gl_has_texture_native_format(colorfmt):
-            pbuffer, colorfmt = convert_to_gl_format(pbuffer, colorfmt, 
+            pbuffer, colorfmt = convert_to_gl_format(pbuffer, colorfmt,
                                                      size[0], size[1])
         cdef char [:] char_view
         cdef short [:] short_view
@@ -934,7 +934,7 @@ cdef class Texture:
         cdef long datasize = 0
         if isinstance(pbuffer, bytes):  # if it's bytes, just use memory
             cdata = <bytes>pbuffer  # explicit bytes
-            datasize = len(pbuffer)
+            datasize = <long>len(pbuffer)
         else:   # if it's a memoryview or buffer type, use start of memory
             if glbufferfmt == GL_UNSIGNED_BYTE or glbufferfmt == GL_BYTE:
                 char_view = pbuffer

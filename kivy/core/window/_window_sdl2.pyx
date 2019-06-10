@@ -15,13 +15,13 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     is_desktop = Config.get('kivy', 'desktop') == '1'
 
 IF USE_WAYLAND:
-    from window_info cimport WindowInfoWayland
+    from .window_info cimport WindowInfoWayland
 
 IF USE_X11:
-    from window_info cimport WindowInfoX11
+    from .window_info cimport WindowInfoX11
 
 IF UNAME_SYSNAME == 'Windows':
-    from window_info cimport WindowInfoWindows
+    from .window_info cimport WindowInfoWindows
 
 cdef int _event_filter(void *userdata, SDL_Event *event) with gil:
     return (<_WindowSDL2Storage>userdata).cb_event_filter(event)
