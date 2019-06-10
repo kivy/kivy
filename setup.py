@@ -182,6 +182,10 @@ for key in list(c_options.keys()):
         print('Environ change {0} -> {1}'.format(key, value))
         c_options[key] = value
 
+use_embed_signature = environ.get('USE_EMBEDSIGNATURE', '0') == '1'
+use_embed_signature = use_embed_signature or bool(
+    platform not in ('ios', 'android'))
+
 # -----------------------------------------------------------------------------
 # We want to be able to install kivy as a wheel without a dependency
 # on cython, but we also want to use cython where possible as a setup
@@ -535,7 +539,7 @@ class CythonExtension(Extension):
         self.cython_directives = {
             'c_string_encoding': 'utf-8',
             'profile': 'USE_PROFILE' in environ,
-            'embedsignature': 'USE_EMBEDSIGNATURE' in environ}
+            'embedsignature': use_embed_signature}
         # XXX with pip, setuptools is imported before distutils, and change
         # our pyx to c, then, cythonize doesn't happen. So force again our
         # sources

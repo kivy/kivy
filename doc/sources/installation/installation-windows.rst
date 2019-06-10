@@ -134,7 +134,9 @@ kivy release (`1.11.0`) and its dependencies.
 That's it. You should now be able to ``import kivy`` in python or run a basic
 example if you installed the kivy examples::
 
-    python share\kivy-examples\demo\showcase\main.py
+    python kivy_venv\share\kivy-examples\demo\showcase\main.py
+
+Replace `kivy_venv` with the path where python is installed if you didn't use a virtualenv.
 
 .. note::
 
