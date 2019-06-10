@@ -357,15 +357,6 @@ class Carousel(StencilView):
         else:
             self._next = None
 
-        expected_value = self.loop and (len(self.slides) == 2)
-        if self._prev_equals_next != expected_value:
-            from kivy.logger import Logger
-            Logger.error(
-                "Carousel: I expected '_prev_equals_next' to be already "
-                "updated at this point, but it wasn't actually. "
-                "So update it now."
-            )
-            self._prev_equals_next = expected_value
         if self._prev_equals_next:
             setattr(self, '_prev' if self._prioritize_next else '_next', None)
 
