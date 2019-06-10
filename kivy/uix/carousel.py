@@ -284,6 +284,7 @@ class Carousel(StencilView):
         self._skip_slide = None
         self.touch_mode_change = False
         self._prioritize_next = False
+        self.fbind('loop', lambda *args: self._insert_visible_slides())
 
     def load_slide(self, slide):
         '''Animate to the slide that is passed as the argument.
@@ -452,9 +453,6 @@ class Carousel(StencilView):
         self._insert_visible_slides()
         self._trigger_position_visible_slides()
         self._offset = 0
-
-    def on_loop(self, *args):
-        self._insert_visible_slides()
 
     def on_slides(self, *args):
         if self.slides:
