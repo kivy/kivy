@@ -298,9 +298,11 @@ class Carousel(StencilView):
 
         self._skip_slide = stop
         if stop > start:
+            self._prioritize_next = True
             self._insert_visible_slides(_next_slide=slide)
             self.load_next()
         else:
+            self._prioritize_next = False
             self._insert_visible_slides(_prev_slide=slide)
             self.load_previous()
 
