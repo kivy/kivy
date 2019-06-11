@@ -176,7 +176,7 @@ script:
       fi;
       if [ "${RUN}" == "rpi" ]; then
         chmod +x .ci/rpi_test.sh;
-        docker run --rm -v `pwd`:/io:rw raspbian/stretch "/io/.ci/rpi_test.sh";
+        docker run --rm -v `pwd`:/io:rw raspbian/stretch /bin/sh -c "apt -y install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libsdl2-mixer-dev python3-setuptools build-essential libgl1-mesa-dev libgles2-mesa-dev";
       fi;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
