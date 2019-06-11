@@ -24,6 +24,11 @@ matrix:
       dist: bionic
       name: "Linux - Python 3 tests"
       stage: test
+    - language: python
+      env: RUN=rpi
+      name: "RPi - Python 3 tests"
+      services:
+        - docker
     - language: generic
       env: RUN=unit PY=3 USE_PANGOFT2=0
       os: osx
@@ -48,15 +53,6 @@ matrix:
       env: PY=3 RUN=app USE_PANGOFT2=0
       os: osx
       name: "OSX - Python 3 Kivy.app generation"
-    - language: python
-      sudo: required
-      python: 3.5
-      env: RUN=rpi
-      os: linux
-      dist: bionic
-      name: "RPi - Python 3 tests"
-      services:
-        - docker
 
 before_install:
   # https://github.com/travis-ci/travis-ci/issues/6307
@@ -179,7 +175,7 @@ script:
         rsync -avh -e "ssh -p 2458" --include="*/" --include="*manylinux*.whl" --exclude="*" "wheelhouse/" "root@$SERVER_IP:/web/downloads/ci/linux/kivy/";
       fi;
       if [ "${RUN}" == "rpi" ]; then
-        docker run --rm -v `pwd`:/io raspbian/stretch "/io/.ci/rpi_test.sh";
+        docker run --rm -v `pwd`:/io:rw raspbian/stretch "/io/.ci/rpi_test.sh";
       fi;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
