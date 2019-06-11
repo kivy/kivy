@@ -48,6 +48,15 @@ matrix:
       env: PY=3 RUN=app USE_PANGOFT2=0
       os: osx
       name: "OSX - Python 3 Kivy.app generation"
+    - language: python
+      sudo: required
+      python: 3.5
+      env: RUN=rpi
+      os: linux
+      dist: bionic
+      name: "RPi - Python 3 tests"
+      services:
+        - docker
 
 before_install:
   # https://github.com/travis-ci/travis-ci/issues/6307
@@ -60,7 +69,7 @@ before_install:
     fi
 
 install:
-  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" != "wheels" ]; then
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" != "wheels" ] && [ "${RUN}" != "rpi" ]; then
       if [ "${RUN}" != "pep8" ]; then
         yes | sudo add-apt-repository ppa:gstreamer-developers/ppa;
         sudo apt-get update;
@@ -118,7 +127,7 @@ install:
     fi;
 
 before_script:
-  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" != "pep8" ] && [ "${RUN}" != "wheels" ]; then
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" != "pep8" ] && [ "${RUN}" != "wheels" ] && [ "${RUN}" != "rpi" ]; then
       export DISPLAY=:99.0;
       /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX;
       export PYTHONPATH=$PYTHONPATH:$(pwd);
@@ -168,6 +177,9 @@ script:
         chmod 600 ~/.ssh/id_rsa;
         echo -e "Host $SERVER_IP\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
         rsync -avh -e "ssh -p 2458" --include="*/" --include="*manylinux*.whl" --exclude="*" "wheelhouse/" "root@$SERVER_IP:/web/downloads/ci/linux/kivy/";
+      fi;
+      if [ "${RUN}" == "rpi" ]; then
+        docker run --rm -v `pwd`:/io raspbian/stretch "/io/.ci/rpi_test.sh";
       fi;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
