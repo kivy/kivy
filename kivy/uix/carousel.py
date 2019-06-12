@@ -379,7 +379,7 @@ class Carousel(StencilView):
         if not slides:
             return
         x, y, width, height = self.x, self.y, self.width, self.height
-        _offset, direction = self._offset, self.direction
+        _offset, direction = self._offset, self.direction[0]
         _prev, _next, _current = self._prev, self._next, self._current
         get_slide_container = self.get_slide_container
         last_slide = get_slide_container(slides[-1])
@@ -387,51 +387,51 @@ class Carousel(StencilView):
         skip_next = False
         _loop = self.loop
 
-        if direction[0] in ['r', 'l']:
+        if direction in 'rl':
             xoff = x + _offset
             x_prev = {'l': xoff + width, 'r': xoff - width}
             x_next = {'l': xoff - width, 'r': xoff + width}
             if _prev:
-                _prev.pos = (x_prev[direction[0]], y)
+                _prev.pos = (x_prev[direction], y)
             elif _loop and _next and index == 0:
                 # if first slide is moving to right with direction set to right
                 # or toward left with direction set to left
-                if ((_offset > 0 and direction[0] == 'r') or
-                        (_offset < 0 and direction[0] == 'l')):
+                if ((_offset > 0 and direction == 'r') or
+                        (_offset < 0 and direction == 'l')):
                     # put last_slide before first slide
-                    last_slide.pos = (x_prev[direction[0]], y)
+                    last_slide.pos = (x_prev[direction], y)
                     skip_next = True
             if _current:
                 _current.pos = (xoff, y)
             if skip_next:
                 return
             if _next:
-                _next.pos = (x_next[direction[0]], y)
+                _next.pos = (x_next[direction], y)
             elif _loop and _prev and index == no_of_slides:
-                if ((_offset < 0 and direction[0] == 'r') or
-                        (_offset > 0 and direction[0] == 'l')):
-                    first_slide.pos = (x_next[direction[0]], y)
-        if direction[0] in ['t', 'b']:
+                if ((_offset < 0 and direction == 'r') or
+                        (_offset > 0 and direction == 'l')):
+                    first_slide.pos = (x_next[direction], y)
+        if direction in 'tb':
             yoff = y + _offset
             y_prev = {'t': yoff - height, 'b': yoff + height}
             y_next = {'t': yoff + height, 'b': yoff - height}
             if _prev:
-                _prev.pos = (x, y_prev[direction[0]])
+                _prev.pos = (x, y_prev[direction])
             elif _loop and _next and index == 0:
-                if ((_offset > 0 and direction[0] == 't') or
-                        (_offset < 0 and direction[0] == 'b')):
-                    last_slide.pos = (x, y_prev[direction[0]])
+                if ((_offset > 0 and direction == 't') or
+                        (_offset < 0 and direction == 'b')):
+                    last_slide.pos = (x, y_prev[direction])
                     skip_next = True
             if _current:
                 _current.pos = (x, yoff)
             if skip_next:
                 return
             if _next:
-                _next.pos = (x, y_next[direction[0]])
+                _next.pos = (x, y_next[direction])
             elif _loop and _prev and index == no_of_slides:
-                if ((_offset < 0 and direction[0] == 't') or
-                        (_offset > 0 and direction[0] == 'b')):
-                    first_slide.pos = (x, y_next[direction[0]])
+                if ((_offset < 0 and direction == 't') or
+                        (_offset > 0 and direction == 'b')):
+                    first_slide.pos = (x, y_next[direction])
 
     def on_size(self, *args):
         size = self.size
@@ -456,7 +456,7 @@ class Carousel(StencilView):
     def on__offset(self, *args):
         self._trigger_position_visible_slides()
         # if reached full offset, switch index to next or prev
-        direction = self.direction
+        direction = self.direction[0]
         _offset = self._offset
         width = self.width
         height = self.height
@@ -465,23 +465,23 @@ class Carousel(StencilView):
             return
 
         # Move to next slide?
-        if (direction[0] == 'r' and _offset <= -width) or \
-                (direction[0] == 'l' and _offset >= width) or \
-                (direction[0] == 't' and _offset <= - height) or \
-                (direction[0] == 'b' and _offset >= height):
+        if (direction == 'r' and _offset <= -width) or \
+                (direction == 'l' and _offset >= width) or \
+                (direction == 't' and _offset <= - height) or \
+                (direction == 'b' and _offset >= height):
             if self.next_slide:
                 self.index += 1
 
         # Move to previous slide?
-        elif (direction[0] == 'r' and _offset >= width) or \
-                (direction[0] == 'l' and _offset <= -width) or \
-                (direction[0] == 't' and _offset >= height) or \
-                (direction[0] == 'b' and _offset <= -height):
+        elif (direction == 'r' and _offset >= width) or \
+                (direction == 'l' and _offset <= -width) or \
+                (direction == 't' and _offset >= height) or \
+                (direction == 'b' and _offset <= -height):
             if self.previous_slide:
                 self.index -= 1
 
         elif self._prev_equals_next:
-            new_value = (_offset < 0) is (direction[0] in 'rt')
+            new_value = (_offset < 0) is (direction in 'rt')
             if self._prioritize_next is not new_value:
                 self._prioritize_next = new_value
                 if new_value is (self._next is None):
@@ -490,8 +490,8 @@ class Carousel(StencilView):
     def _start_animation(self, *args, **kwargs):
         # compute target offset for ease back, next or prev
         new_offset = 0
-        direction = kwargs.get('direction', self.direction)
-        is_horizontal = direction[0] in ['r', 'l']
+        direction = kwargs.get('direction', self.direction)[0]
+        is_horizontal = direction in 'rl'
         extent = self.width if is_horizontal else self.height
         min_move = kwargs.get('min_move', self.min_move)
         _offset = kwargs.get('offset', self._offset)
@@ -512,7 +512,7 @@ class Carousel(StencilView):
         if not self.loop or len_slides == 1:
             is_first = (index == 0)
             is_last = (index == len_slides - 1)
-            if direction[0] in ['r', 't']:
+            if direction in 'rt':
                 towards_prev = (new_offset > 0)
                 towards_next = (new_offset < 0)
             else:
@@ -578,9 +578,9 @@ class Carousel(StencilView):
         if touch.grab_current is not self:
             return True
         ud = touch.ud[self._get_uid()]
-        direction = self.direction
+        direction = self.direction[0]
         if ud['mode'] == 'unknown':
-            if direction[0] in ('r', 'l'):
+            if direction in 'rl':
                 distance = abs(touch.ox - touch.x)
             else:
                 distance = abs(touch.oy - touch.y)
@@ -590,9 +590,9 @@ class Carousel(StencilView):
                     ev.cancel()
                 ud['mode'] = 'scroll'
         else:
-            if direction[0] in ('r', 'l'):
+            if direction in 'rl':
                 self._offset += touch.dx
-            if direction[0] in ('t', 'b'):
+            if direction in 'tb':
                 self._offset += touch.dy
         return True
 
