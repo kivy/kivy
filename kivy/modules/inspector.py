@@ -554,7 +554,8 @@ class Inspector(FloatLayout):
 
     def keyboard_shortcut(self, win, scancode, *largs):
         modifiers = largs[-1]
-        if scancode == 101 and modifiers == ['ctrl']:
+        if scancode == 101 and set(modifiers) & {'ctrl'} and not set(
+                modifiers) & {'shift', 'alt', 'meta'}:
             self.activated = not self.activated
             if self.activated:
                 self.inspect_enabled = True
