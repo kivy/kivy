@@ -641,7 +641,8 @@ ctypedef struct GLES2_Context:
 
 cdef GLES2_Context *cgl
 cdef int kivy_opengl_es2
-cdef void cgl_init() except *
+cpdef cgl_init(allowed=*, ignored=*)
 cdef GLES2_Context *cgl_get_context()
 cdef void cgl_set_context(GLES2_Context* ctx)
-cpdef object cgl_get_backend_name()
+cpdef cgl_get_backend_name(allowed=*, ignored=*)
+cpdef cgl_get_initialized_backend_name()

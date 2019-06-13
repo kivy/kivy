@@ -1552,5 +1552,5 @@ def glViewport(GLint x, GLint y, GLsizei width, GLsizei height):
     cgl.glViewport(x, y, width, height)
 
 
-def gl_init_symbols():
-    cgl_init()
+def gl_init_symbols(allowed=[], ignored=[]):
+    cgl_init(allowed, ignored)
