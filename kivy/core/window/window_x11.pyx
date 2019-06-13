@@ -149,6 +149,8 @@ x11_set_event_callback(event_callback)
 
 class WindowX11(WindowBase):
 
+    gl_backends_ignored = ['sdl2']
+
     def create_window(self, *args):
         global _window_object
         _window_object = self
