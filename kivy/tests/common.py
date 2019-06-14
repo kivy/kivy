@@ -23,6 +23,8 @@ log = logging.getLogger('unittest')
 
 _base = object
 if 'mock' != cgl_get_backend_name():
+    # check what the gl backend might be, we can't know for sure
+    # what it'll be untill actually initialized by the window.
     _base = unittest.TestCase
 
 make_screenshots = os.environ.get('KIVY_UNITTEST_SCREENSHOTS')

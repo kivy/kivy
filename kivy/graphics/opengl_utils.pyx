@@ -61,7 +61,7 @@ cpdef int gl_has_extension(name):
         True
 
     '''
-    if cgl_get_backend_name() == "mock":
+    if cgl_get_initialized_backend_name() == "mock":
         return True
     name = name.lower()
     if name.startswith('GL_'):
