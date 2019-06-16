@@ -746,17 +746,32 @@ class App(EventDispatcher):
                 self._app_directory = '.'
         return self._app_directory
 
+    @staticmethod
+    def get_files_dir():
+        """
+        Wrapper to Android getFilesDir().
+        Works for both PythonActivity and PythonService.
+        https://developer.android.com/reference/android/content/Context.html
+        """
+        from jnius import autoclass, cast
+        PythonActivity = autoclass('org.kivy.android.PythonActivity')
+        activity = PythonActivity.mActivity
+        if activity is None:
+            # assume we're running from the background service
+            PythonService = autoclass('org.kivy.android.PythonService')
+            activity = PythonService.mService
+        context = cast('android.content.Context', activity)
+        file_p = cast('java.io.File', context.getFilesDir())
+        data_dir = file_p.getAbsolutePath()
+        return data_dir
+
     def _get_user_data_dir(self):
         # Determine and return the user_data_dir.
         data_dir = ""
         if platform == 'ios':
             data_dir = expanduser(join('~/Documents', self.name))
         elif platform == 'android':
-            from jnius import autoclass, cast
-            PythonActivity = autoclass('org.kivy.android.PythonActivity')
-            context = cast('android.content.Context', PythonActivity.mActivity)
-            file_p = cast('java.io.File', context.getFilesDir())
-            data_dir = file_p.getAbsolutePath()
+            data_dir = self.get_files_dir()
         elif platform == 'win':
             data_dir = os.path.join(os.environ['APPDATA'], self.name)
         elif platform == 'macosx':
