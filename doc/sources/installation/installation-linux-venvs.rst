@@ -1,7 +1,7 @@
 .. _installation_in_venv:
 
-Installation in a Virtual Environment
-=====================================
+Manually installing Kivy from source
+====================================
 
 
 Common dependencies
@@ -23,6 +23,7 @@ Kivy       Cython
 1.10.0     0.25.2
 1.10.1     0.28.2
 1.11.0     0.29.9
+1.11.1     0.29.9
 ========   =============
 
 
@@ -33,7 +34,7 @@ Dependencies with SDL2
 Ubuntu example
 --------------
 
-In the following command use "python" and "python-dev" for Python 2, or "python3" and "python3-dev" for Python 3.
+In the following commands replace all occurrences of `python` with `python3` for Python 3.
 
 ::
 
@@ -102,39 +103,36 @@ After you ensure that a 3rd-party repository containing any packages that dnf is
 
     sudo pip3 install --upgrade pip setuptools
 
-    # Use correct Cython version here (|cython_install| is for 1.11.0):
+    # Use correct Cython version here (|cython_install| is for 1.11.1):
     sudo pip3 install |cython_install|
 
 
 Installation
 ------------
-(after installing dependencies above specific to your distribution, do the following remaining steps on any distro where no package is available)
-
+After installing dependencies above specific to your distribution, do the following remaining steps.
+Replace `python` with `python3` for Python 3.
 
 .. parsed-literal::
 
-    # Make sure Pip, Virtualenv and Setuptools are updated
-    sudo pip install --upgrade pip virtualenv setuptools
+    # make sure pip, virtualenv and setuptools are updated
+    python -m pip install --upgrade --user pip virtualenv setuptools
 
-    # Then create a virtualenv named "kivyinstall" by either:
+    # then create a virtualenv named "kivy_venv" in your home with:
+    python -m virtualenv ~/kivy_venv
 
-    # 1. using the default interpreter
-    virtualenv --no-site-packages kivyinstall
+    # load the virtualenv
+    source ~/kivy_venv/bin/activate
 
-    # or 2. using a specific interpreter
-    # (this will use the interpreter in /usr/bin/python2.7)
-    virtualenv --no-site-packages -p /usr/bin/python2.7 kivyinstall
+    # if you'd like to be able to use the x11 winodw backend do:
+    export USE_X11=1
 
-    # Enter the virtualenv
-    . kivyinstall/bin/activate
-
-    # Use correct Cython version here
+    # install the correct Cython version
     pip install |cython_install|
 
     # Install stable version of Kivy into the virtualenv
-    pip install kivy
+    pip install --no-binary kivy
     # For the development version of Kivy, use the following command instead
-    # pip install git+https://github.com/kivy/kivy.git@master
+    pip install git+https://github.com/kivy/kivy.git@master
 
 
 Dependencies with legacy PyGame
