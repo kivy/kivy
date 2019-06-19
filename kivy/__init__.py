@@ -41,7 +41,7 @@ from kivy.utils import platform
 
 MAJOR = 1
 MINOR = 11
-MICRO = 0
+MICRO = 1
 RELEASE = True
 
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
