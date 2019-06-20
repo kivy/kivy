@@ -11,14 +11,14 @@ matrix:
   fast_finish: true
   include:
     - language: python
-      python: 3.5
+      python: 3.7
       env: RUN=pep8 USE_PANGOFT2=0
       os: linux
       dist: bionic
       name: "PEP8 verification"
       stage: pep8
     - language: python
-      python: 3.5
+      python: 3.7
       env: RUN=unit COVERALLS=true USE_PANGOFT2=0
       os: linux
       dist: bionic
@@ -29,7 +29,7 @@ matrix:
       os: osx
       name: "OSX - Python 3 tests"
     - language: python
-      python: 3.5
+      python: 3.7
       env: RUN=docs USE_PANGOFT2=0
       os: linux
       dist: bionic
