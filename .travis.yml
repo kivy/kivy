@@ -3,7 +3,7 @@ env:
     - KIVY_USE_SETUPTOOLS=1
     - KIVY_SPLIT_EXAMPLES=1
     - SERVER_IP=159.203.106.198
-    - DOC_VERSIONS="stable master stable-1.10.1"
+    - DOC_VERSIONS="stable master stable-1.10.1 stable-1.11.0"
 
 osx_image: xcode10
 
