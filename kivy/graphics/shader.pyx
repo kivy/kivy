@@ -215,7 +215,7 @@ cdef class Shader:
         log_gl_error('Shader.use-glUseProgram')
         for k, v in self.uniform_values.iteritems():
             self.upload_uniform(k, v)
-        if cgl_get_backend_name() == 'glew':
+        if cgl_get_initialized_backend_name() == 'glew':
             # XXX Very very weird bug. On virtualbox / win7 / glew, if we don't call
             # glFlush or glFinish or glGetIntegerv(GL_CURRENT_PROGRAM, ...), it seem
             # that the pipeline is broken, and we have glitch issue. In order to

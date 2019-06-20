@@ -334,7 +334,7 @@ def _find_gst_plugin_path():
     try:
         p = subprocess.Popen(
             ['gst-inspect-1.0', 'coreelements'],
-            stdout=subprocess.PIPE)
+            stdout=subprocess.PIPE, universal_newlines=True)
     except:
         return []
     (stdoutdata, stderrdata) = p.communicate()

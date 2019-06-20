@@ -68,13 +68,13 @@ Installing the kivy stable release
 
 .. warning::
 
-    Kivy 1.11.0 is the last release that supports Python 2.
+    Kivy 1.11.1 is the last release that supports Python 2.
 
 Now that python is installed, open the :ref:`windows-run-app` and make sure
 python is available by typing ``python --version``. Then, do the following to
 create a new `virtual environment <https://virtualenv.pypa.io/en/latest/>`_
 (optionally) and install the most recent stable
-kivy release (`1.11.0`) and its dependencies.
+kivy release (`1.11.1`) and its dependencies.
 
 #. Ensure you have the latest pip, wheel, and virtualenv::
 
@@ -123,18 +123,20 @@ kivy release (`1.11.0`) and its dependencies.
 
 #. Install kivy::
 
-     python -m pip install kivy==1.11.0
+     python -m pip install kivy==1.11.1
 
 #. (Optionally) Install the kivy examples::
 
-     python -m pip install kivy_examples==1.11.0
+     python -m pip install kivy_examples==1.11.1
 
    The examples are installed in the share directory under the root directory where python is installed.
 
 That's it. You should now be able to ``import kivy`` in python or run a basic
 example if you installed the kivy examples::
 
-    python share\kivy-examples\demo\showcase\main.py
+    python kivy_venv\share\kivy-examples\demo\showcase\main.py
+
+Replace `kivy_venv` with the path where python is installed if you didn't use a virtualenv.
 
 .. note::
 

@@ -84,7 +84,7 @@ def get_version(filename='kivy/version.py'):
 
 MIN_CYTHON_STRING = '0.24'
 MIN_CYTHON_VERSION = LooseVersion(MIN_CYTHON_STRING)
-MAX_CYTHON_STRING = '0.29.9'
+MAX_CYTHON_STRING = '0.29.10'
 MAX_CYTHON_VERSION = LooseVersion(MAX_CYTHON_STRING)
 CYTHON_UNSUPPORTED = (
     # ref https://github.com/cython/cython/issues/1968
@@ -198,6 +198,9 @@ for key in list(c_options.keys()):
         print('Environ change {0} -> {1}'.format(key, value))
         c_options[key] = value
 
+use_embed_signature = environ.get('USE_EMBEDSIGNATURE', '0') == '1'
+use_embed_signature = use_embed_signature or bool(
+    platform not in ('ios', 'android'))
 
 # -----------------------------------------------------------------------------
 # Cython check
@@ -578,7 +581,7 @@ class CythonExtension(Extension):
         self.cython_directives = {
             'c_string_encoding': 'utf-8',
             'profile': 'USE_PROFILE' in environ,
-            'embedsignature': 'USE_EMBEDSIGNATURE' in environ}
+            'embedsignature': use_embed_signature}
         # XXX with pip, setuptools is imported before distutils, and change
         # our pyx to c, then, cythonize doesn't happen. So force again our
         # sources
