@@ -21,22 +21,16 @@ from time import time, sleep
 from subprocess import check_output, CalledProcessError
 from datetime import datetime
 from sysconfig import get_paths
+from pathlib import Path
 import logging
-
-try:
-    from setuptools import setup, Extension
-    print('Using setuptools')
-except ImportError:
-    from distutils.core import setup
-    from distutils.extension import Extension
-    print('Using distutils')
+from setuptools import setup, Extension, find_packages
 
 
 if sys.version_info[0] == 2:
     logging.critical(
         'Unsupported Python version detected!: Kivy 2.0.0 and higher does not '
         'support Python 2. Please upgrade to Python 3, or downgrade Kivy to '
-        '1.11.0 - the last Kivy release that still supports Python 2.')
+        '1.11.1 - the last Kivy release that still supports Python 2.')
 
 
 def ver_equal(self, other):
@@ -1022,6 +1016,19 @@ if isdir(binary_deps_path):
             binary_deps.append(
                 join(root.replace(binary_deps_path, 'binary_deps'), fname))
 
+
+def glob_paths(*patterns, excludes=('.pyc', )):
+    files = []
+    base = Path(join(src_path, 'kivy'))
+
+    for pat in patterns:
+        for f in base.glob(pat):
+            if f.suffix in excludes:
+                continue
+            files.append(str(f.relative_to(base)))
+    return files
+
+
 # -----------------------------------------------------------------------------
 # setup !
 if not build_examples:
@@ -1045,87 +1052,20 @@ if not build_examples:
         long_description_content_type='text/markdown',
         ext_modules=ext_modules,
         cmdclass=cmdclass,
-        packages=[
-            'kivy',
-            'kivy.core',
-            'kivy.core.audio',
-            'kivy.core.camera',
-            'kivy.core.clipboard',
-            'kivy.core.image',
-            'kivy.core.gl',
-            'kivy.core.spelling',
-            'kivy.core.text',
-            'kivy.core.video',
-            'kivy.core.window',
-            'kivy.deps',
-            'kivy.effects',
-            'kivy.graphics',
-            'kivy.graphics.cgl_backend',
-            'kivy.garden',
-            'kivy.input',
-            'kivy.input.postproc',
-            'kivy.input.providers',
-            'kivy.lang',
-            'kivy.lib',
-            'kivy.lib.gstplayer',
-            'kivy.lib.vidcore_lite',
-            'kivy.modules',
-            'kivy.network',
-            'kivy.storage',
-            'kivy.tests',
-            'kivy.tools',
-            'kivy.tools.packaging',
-            'kivy.tools.packaging.pyinstaller_hooks',
-            'kivy.tools.highlight',
-            'kivy.extras',
-            'kivy.uix',
-            'kivy.uix.behaviors',
-            'kivy.uix.recycleview',
-        ],
+        packages=find_packages(include=['kivy*']),
         package_dir={'kivy': 'kivy'},
-        package_data={'kivy': [
-            'setupconfig.py',
-            '*.pxd',
-            '*.pxi',
-            'core/text/*.pxd',
-            'core/text/*.pxi',
-            'core/window/*.pxi',
-            'core/window/*.pxd',
-            'graphics/*.pxd',
-            'graphics/*.pxi',
-            'graphics/*.h',
-            'include/*',
-            'lib/vidcore_lite/*.pxd',
-            'lib/vidcore_lite/*.pxi',
-            'data/*.kv',
-            'data/*.json',
-            'data/fonts/*.ttf',
-            'data/images/*.png',
-            'data/images/*.jpg',
-            'data/images/*.gif',
-            'data/images/*.atlas',
-            'data/keyboards/*.json',
-            'data/logo/*.png',
-            'data/glsl/*.png',
-            'data/glsl/*.vs',
-            'data/glsl/*.fs',
-            'tests/*.zip',
-            'tests/*.kv',
-            'tests/*.png',
-            'tests/*.ttf',
-            'tests/*.ogg',
-            'tools/gles_compat/*',
-            'tools/highlight/*',
-            'tools/packaging/README.txt',
-            'tools/packaging/win32/kivy.bat',
-            'tools/packaging/win32/kivyenv.sh',
-            'tools/packaging/win32/README.txt',
-            'tools/packaging/osx/Info.plist',
-            'tools/packaging/osx/InfoPlist.strings',
-            'tools/packaging/osx/kivy.sh',
-            'tools/pep8checker/*',
-            'tools/theming/defaulttheme/*',
-        ] + binary_deps},
+        package_data={
+            'kivy':
+                glob_paths('**/*.pxd', '**/*.pxi') +
+                glob_paths('data/**/*.*') +
+                glob_paths('include/**/*.*') +
+                glob_paths('tools/**/*.*', excludes=('.pyc', '.enc')) +
+                glob_paths('graphics/**/*.h') +
+                glob_paths('tests/**/*.*') +
+                [
+                    'setupconfig.py',
+                ] + binary_deps
+        },
         data_files=[] if split_examples else list(examples.items()),
         classifiers=[
             'Development Status :: 5 - Production/Stable',
