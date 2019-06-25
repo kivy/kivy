@@ -119,7 +119,8 @@ Manual installation (On Arch Linux ARM)
 
 #. Install pip from source::
 
-    wget https://raw.github.com/pypa/pip/master/contrib/get-pip.py
+    wget https://bootstrap.pypa.io/get-pip.py
+    or curl -O https://bootstrap.pypa.io/get-pip.py
     sudo python get-pip.py
 
 #. Install a new enough version of Cython:
