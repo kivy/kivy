@@ -486,7 +486,7 @@ class ClockBaseBehavior(object):
 
     MIN_SLEEP = 0.005
     '''The minimum time to sleep. If the remaining time is less than this,
-    the event loop will continuo
+    the event loop will continue.
     '''
     SLEEP_UNDERSHOOT = MIN_SLEEP - 0.001
 
