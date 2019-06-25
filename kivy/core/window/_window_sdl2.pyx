@@ -6,7 +6,6 @@ from os import environ
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy import platform
-from kivy.graphics.cgl import cgl_get_backend_name
 from kivy.graphics.cgl cimport *
 
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
@@ -15,13 +14,13 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     is_desktop = Config.get('kivy', 'desktop') == '1'
 
 IF USE_WAYLAND:
-    from window_info cimport WindowInfoWayland
+    from .window_info cimport WindowInfoWayland
 
 IF USE_X11:
-    from window_info cimport WindowInfoX11
+    from .window_info cimport WindowInfoX11
 
 IF UNAME_SYSNAME == 'Windows':
-    from window_info cimport WindowInfoWindows
+    from .window_info cimport WindowInfoWindows
 
 cdef int _event_filter(void *userdata, SDL_Event *event) with gil:
     return (<_WindowSDL2Storage>userdata).cb_event_filter(event)
@@ -75,7 +74,7 @@ cdef class _WindowSDL2Storage:
         raise RuntimeError(<bytes> SDL_GetError())
 
     def setup_window(self, x, y, width, height, borderless, fullscreen,
-                     resizable, state):
+                     resizable, state, gl_backend):
         self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
 
         if USE_IOS:
@@ -138,7 +137,7 @@ cdef class _WindowSDL2Storage:
         SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 0)
         SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1)
 
-        if cgl_get_backend_name() == "angle_sdl2":
+        if gl_backend == "angle_sdl2":
             Logger.info("Window: Activate GLES2/ANGLE context")
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, 4)
             SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "none")
@@ -227,7 +226,7 @@ cdef class _WindowSDL2Storage:
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2)
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0)
 
-        if cgl_get_backend_name() != "mock":
+        if gl_backend != "mock":
             self.ctx = SDL_GL_CreateContext(self.win)
             if not self.ctx:
                 self.die()

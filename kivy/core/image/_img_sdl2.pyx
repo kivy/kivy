@@ -73,7 +73,7 @@ def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=90):
         # if flipped upside down
         # switch bytes(array) to list
         pixels = list(pixels)
-        lng = len(pixels)
+        lng = <int>len(pixels)
         rng = list(range(0, lng, pitch))
 
         while len(rng):
@@ -217,7 +217,7 @@ def load_from_memory(bytes data):
     cdef SDL_Surface *image = NULL
     cdef char *c_data = data
 
-    rw = SDL_RWFromMem(c_data, len(data))
+    rw = SDL_RWFromMem(c_data, <int>len(data))
     if rw == NULL:
         return
 

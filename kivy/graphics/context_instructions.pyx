@@ -78,19 +78,19 @@ cdef tuple rgb_to_hsv(float r, float g, float b):
     cdef float rc = (maxc-r) / (maxc-minc)
     cdef float gc = (maxc-g) / (maxc-minc)
     cdef float bc = (maxc-b) / (maxc-minc)
-    if r == maxc: h = bc-gc
-    elif g == maxc: h = 2.0+rc-bc
-    else: h = 4.0+gc-rc
-    h = (h/6.0) % 1.0
+    if r == maxc: h = bc - gc
+    elif g == maxc: h = <float>2.0 + rc - bc
+    else: h = <float>4.0 + gc - rc
+    h = (h / <float>6.0) % <float>1.0
     return h, s, v
 
 cdef tuple hsv_to_rgb(float h, float s, float v):
     if s == 0.0: return v, v, v
     cdef long i = long(h * 6.0)
-    cdef float f = (h * 6.0) - i
-    cdef float p = v * (1.0 - s)
-    cdef float q = v * (1.0 - s * f)
-    cdef float t = v * (1.0 - s * (1.0 - f))
+    cdef float f = (h * <float>6.0) - i
+    cdef float p = v * (<float>1.0 - s)
+    cdef float q = v * (<float>1.0 - s * f)
+    cdef float t = v * (<float>1.0 - s * (<float>1.0 - f))
     i = i % 6
     if i == 0: return v, t, p
     if i == 1: return q, v, p
@@ -240,7 +240,7 @@ cdef class Color(ContextInstruction):
     '''
     def __init__(self, *args, **kwargs):
         ContextInstruction.__init__(self, **kwargs)
-        cdef long vec_size = len(args)
+        cdef long vec_size = <long>len(args)
         if kwargs.get('mode', '') == 'hsv':
             if vec_size == 4:
                 self.rgba = [0, 0, 0, 1.]
@@ -788,7 +788,7 @@ cdef class Scale(Transform):
             self.set_scale(1.0, 1.0, 1.0)
 
     cdef set_scale(self, double x, double y, double z):
-        cdef float ox, oy, oz
+        cdef double ox, oy, oz
         self._x = x
         self._y = y
         self._z = z

@@ -171,8 +171,8 @@ class SoundSDL2(Sound):
             return 0
         if not Mix_QuerySpec(&freq, &fmt, &channels):
             return 0
-        points = cc.chunk.alen / ((fmt & 0xFF) / 8)
-        frames = points / channels
+        points = <unsigned int>int(cc.chunk.alen / ((fmt & 0xFF) / 8))
+        frames = <unsigned int>int(points / channels)
         return <double>frames / <double>freq
 
     def on_pitch(self, instance, value):

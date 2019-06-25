@@ -150,7 +150,7 @@ cdef class ShaderSource:
         msg = <char *>malloc(info_length * sizeof(char))
         if msg == NULL:
             return ""
-        msg[0] = "\0"
+        msg[0] = b"\0"
         cgl.glGetShaderInfoLog(shader, info_length, NULL, msg)
         py_msg = msg
         free(msg)
@@ -215,7 +215,7 @@ cdef class Shader:
         log_gl_error('Shader.use-glUseProgram')
         for k, v in self.uniform_values.iteritems():
             self.upload_uniform(k, v)
-        if cgl_get_backend_name() == 'glew':
+        if cgl_get_initialized_backend_name() == 'glew':
             # XXX Very very weird bug. On virtualbox / win7 / glew, if we don't call
             # glFlush or glFinish or glGetIntegerv(GL_CURRENT_PROGRAM, ...), it seem
             # that the pipeline is broken, and we have glitch issue. In order to
@@ -282,7 +282,7 @@ cdef class Shader:
         elif val_type is list:
             list_value = value
             val_type = type(list_value[0])
-            vec_size = len(list_value)
+            vec_size = <long>len(list_value)
             if val_type is float:
                 if vec_size == 2:
                     f1, f2 = list_value
@@ -337,7 +337,7 @@ cdef class Shader:
                     free(int_list)
             elif val_type is list:
                 list_size = <int>len(value)
-                vec_size = len(value[0])
+                vec_size = <long>len(value[0])
                 val_type = type(value[0][0])
                 if val_type is float:
                     float_list = <GLfloat *>malloc(
@@ -392,7 +392,7 @@ cdef class Shader:
         elif val_type is tuple:
             tuple_value = value
             val_type = type(tuple_value[0])
-            vec_size = len(tuple_value)
+            vec_size = <long>len(tuple_value)
             if val_type is float:
                 if vec_size == 2:
                     f1, f2 = tuple_value
@@ -427,7 +427,7 @@ cdef class Shader:
                         ' {name}'.format(name=name))
             elif val_type is list:
                 list_size = <int>len(value)
-                vec_size = len(value[0])
+                vec_size = <long>len(value[0])
                 val_type = type(value[0][0])
                 if val_type is float:
                     float_list = <GLfloat *>malloc(
@@ -499,7 +499,7 @@ cdef class Shader:
         return loc
 
     cdef void bind_vertex_format(self, VertexFormat vertex_format):
-        cdef unsigned int i
+        cdef int i
         cdef vertex_attr_t *attr
         cdef bytes name
 
@@ -513,7 +513,7 @@ cdef class Shader:
 
         # unbind the previous vertex format
         if self._current_vertex_format:
-            for i in xrange(self._current_vertex_format.vattr_count):
+            for i in range(self._current_vertex_format.vattr_count):
                 attr = &self._current_vertex_format.vattr[i]
                 if attr.per_vertex == 0:
                     continue
@@ -525,7 +525,7 @@ cdef class Shader:
         # bind the new vertex format
         if vertex_format:
             vertex_format.last_shader = self
-            for i in xrange(vertex_format.vattr_count):
+            for i in range(vertex_format.vattr_count):
                 attr = &vertex_format.vattr[i]
                 if attr.per_vertex == 0:
                     continue
@@ -621,7 +621,7 @@ cdef class Shader:
         '''Return the program log.'''
         cdef char msg[2048]
         cdef GLsizei length
-        msg[0] = '\0'
+        msg[0] = b'\0'
         cgl.glGetProgramInfoLog(shader, 2048, &length, msg)
         # XXX don't use the msg[:length] as a string directly, or the unicode
         # will fail on shitty driver. Ie, some Intel drivers return a static

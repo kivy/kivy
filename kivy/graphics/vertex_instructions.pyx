@@ -162,25 +162,25 @@ cdef class Bezier(VertexInstruction):
             raise MemoryError('indices')
 
         tex_x = x = 0
-        for x in xrange(self._segments):
-            l = x / (1.0 * self._segments)
+        for x in range(self._segments):
+            l = <float>(x / (1.0 * self._segments))
             # http://en.wikipedia.org/wiki/De_Casteljau%27s_algorithm
             # as the list is in the form of (x1, y1, x2, y2...) iteration is
             # done on each item and the current item (xn or yn) in the list is
             # replaced with a calculation of "xn + x(n+1) - xn" x(n+1) is
             # placed at n+2. each iteration makes the list one item shorter
             for i in range(1, len(T)):
-                for j in xrange(len(T) - 2*i):
+                for j in range(len(T) - 2*i):
                     T[j] = T[j] + (T[j+2] - T[j]) * l
 
             # we got the coordinates of the point in T[0] and T[1]
             vertices[x].x = T[0]
             vertices[x].y = T[1]
             if self._dash_offset != 0 and x > 0:
-                tex_x += sqrt(
+                tex_x += <float>(sqrt(
                         pow(vertices[x].x - vertices[x-1].x, 2) +
                         pow(vertices[x].y - vertices[x-1].y, 2)) / (
-                                self._dash_length + self._dash_offset)
+                                self._dash_length + self._dash_offset))
 
                 vertices[x].s0 = tex_x
                 vertices[x].t0 = 0
@@ -191,10 +191,10 @@ cdef class Bezier(VertexInstruction):
         vertices[x+1].x = T[-2]
         vertices[x+1].y = T[-1]
 
-        tex_x += sqrt(
+        tex_x += <float>(sqrt(
                 (vertices[x+1].x - vertices[x].x) ** 2 +
                 (vertices[x+1].y - vertices[x].y) ** 2) / (
-                        self._dash_length + self._dash_offset)
+                        self._dash_length + self._dash_offset))
 
         vertices[x+1].s0 = tex_x
         vertices[x+1].t0 = 0
@@ -310,11 +310,11 @@ cdef class StripMesh(VertexInstruction):
             indices[1] = li
         if mode == 0:
             # polygon
-            for i in range(icount / 2):
+            for i in range(<int>int(icount / 2.)):
                 indices[i * 2 + istart] = li + i
                 indices[i * 2 + istart + 1] = li + (icount - i - 1)
             if icount % 2 == 1:
-                indices[icount + istart - 1] = li + icount / 2
+                indices[icount + istart - 1] = li + <unsigned short>int(icount / 2.)
         elif mode == 1:
             # line
             for i in range(icount):
@@ -443,7 +443,7 @@ cdef class Mesh(VertexInstruction):
         if len(self._vertices) != self.vcount:
             self._vertices, self._fvertices = _ensure_float_view(self._vertices,
                 &self._pvertices)
-            self.vcount = len(self._vertices)
+            self.vcount = <long>len(self._vertices)
 
         if len(self._indices) != self.icount:
             if len(self._indices) > 65535:
@@ -451,7 +451,7 @@ cdef class Mesh(VertexInstruction):
                                        '(OpenGL ES 2 limitation)')
             self._indices, self._lindices = _ensure_ushort_view(self._indices,
                 &self._pindices)
-            self.icount = len(self._indices)
+            self.icount = <long>len(self._indices)
 
         if self.vcount == 0 or self.icount == 0:
             self.batch.clear_data()
@@ -472,7 +472,7 @@ cdef class Mesh(VertexInstruction):
     def vertices(self, value):
         self._vertices, self._fvertices = _ensure_float_view(value,
             &self._pvertices)
-        self.vcount = len(self._vertices)
+        self.vcount = <long>len(self._vertices)
         self.flag_update()
 
     @property
@@ -490,7 +490,7 @@ cdef class Mesh(VertexInstruction):
                 ' limitation - consider setting KIVY_GLES_LIMITS)')
         self._indices, self._lindices = _ensure_ushort_view(value,
             &self._pindices)
-        self.icount = len(self._indices)
+        self.icount = <long>len(self._indices)
         self.flag_update()
 
     @property
@@ -880,10 +880,10 @@ cdef class BorderImage(Rectangle):
         `auto_scale`: string
             .. versionadded:: 1.9.1
 
-            .. versionchanged:: 1.9.2 
+            .. versionchanged:: 1.9.2
 
                 This used to be a bool and has been changed to be a string
-                state. 
+                state.
 
             Can be one of 'off', 'both', 'x_only', 'y_only', 'y_full_x_lower',
             'x_full_y_lower', 'both_lower'.
@@ -903,12 +903,12 @@ cdef class BorderImage(Rectangle):
 
             'both': Scales both x and y dimension borders according to the size
             of the BorderImage, this disables the BorderImage making it render
-            the same as a regular Image. 
+            the same as a regular Image.
 
             'x_only': The Y dimension functions as the default, and the X
             scales to the size of the BorderImage's width.
 
-            'y_only': The X dimension functions as the default, and the Y 
+            'y_only': The X dimension functions as the default, and the Y
             scales to the size of the BorderImage's height.
 
             'y_full_x_lower': Y scales as in 'y_only', Y scales if the
@@ -1143,9 +1143,9 @@ cdef class Ellipse(Rectangle):
     cdef void build(self):
         cdef float *tc = self._tex_coords
         cdef int i, angle_dir
-        cdef float angle_start, angle_end, angle_range
-        cdef float x, y, angle, rx, ry, ttx, tty, tx, ty, tw, th
-        cdef float cx, cy, tangential_factor, radial_factor, fx, fy
+        cdef double angle_start, angle_end, angle_range
+        cdef double x, y, angle, rx, ry, ttx, tty, tx, ty, tw, th
+        cdef double cx, cy, tangential_factor, radial_factor, fx, fy
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
         cdef int count = self._segments
@@ -1186,10 +1186,10 @@ cdef class Ellipse(Rectangle):
         y = self.y + ry
         ttx = ((x - self.x) / self.w) * tw + tx
         tty = ((y - self.y) / self.h) * th + ty
-        vertices[0].x = self.x + rx
-        vertices[0].y = self.y + ry
-        vertices[0].s0 = ttx
-        vertices[0].t0 = tty
+        vertices[0].x = <float>(self.x + rx)
+        vertices[0].y = <float>(self.y + ry)
+        vertices[0].s0 = <float>ttx
+        vertices[0].t0 = <float>tty
         indices[0] = 0
 
         # super fast ellipse drawing
@@ -1205,15 +1205,15 @@ cdef class Ellipse(Rectangle):
         x = r * sin(angle_start)
         y = r * cos(angle_start)
 
-        for i in xrange(1, count + 2):
+        for i in range(1, count + 2):
             ttx = (cx + x) * tw + tx
             tty = (cy + y) * th + ty
             real_x = self.x + (cx + x) * self.w
             real_y = self.y + (cy + y) * self.h
-            vertices[i].x = real_x
-            vertices[i].y = real_y
-            vertices[i].s0 = ttx
-            vertices[i].t0 = tty
+            vertices[i].x = <float>real_x
+            vertices[i].y = <float>real_y
+            vertices[i].s0 = <float>ttx
+            vertices[i].t0 = <float>tty
             indices[i] = i
 
             fx = -y
@@ -1365,8 +1365,8 @@ cdef class RoundedRectangle(Rectangle):
 
             int count, corner, segments, dw, dh, index
             list xradius, yradius
-            float rx, ry, half_w, half_h, angle
-            float tx, ty, tw, th, px, py, x, y
+            double rx, ry, half_w, half_h, angle
+            double tx, ty, tw, th, px, py, x, y
 
         # zero size of the figure
         if self.w == 0 or self.h == 0:
@@ -1404,14 +1404,14 @@ cdef class RoundedRectangle(Rectangle):
         th = tc[5] - ty
 
         # add start vertex in the middle of the figure
-        vertices[0].x = self.x + half_w
-        vertices[0].y = self.y + half_h
-        vertices[0].s0 = tx + tw / 2
-        vertices[0].t0 = ty + th / 2
+        vertices[0].x = <float>(self.x + half_w)
+        vertices[0].y = <float>(self.y + half_h)
+        vertices[0].s0 = <float>(tx + tw / 2)
+        vertices[0].t0 = <float>(ty + th / 2)
         indices[0] = 0
 
         index = 1  # vertex index from 1 to count
-        for corner in xrange(4):
+        for corner in range(4):
             # start angle for the corner. end is 90 degrees lesser (clockwise)
             angle = 180 - 90 * corner
 
@@ -1448,27 +1448,27 @@ cdef class RoundedRectangle(Rectangle):
                 # sharp corner
                 vertices[index].x = self.x + self.w * dw
                 vertices[index].y = self.y + self.h * dh
-                vertices[index].s0 = tx + tw * dw
-                vertices[index].t0 = ty + th * dh
+                vertices[index].s0 = <float>(tx + tw * dw)
+                vertices[index].t0 = <float>(ty + th * dh)
             else:
                 # round corner
                 points = self.draw_arc(px, py, rx, ry, angle, angle - 90, segments)
                 for i, point in enumerate(points, index):
                     x, y = point
-                    vertices[i].x = x
-                    vertices[i].y = y
-                    vertices[i].s0 = (x - self.x) / self.w
-                    vertices[i].t0 = 1 - (y - self.y) / self.h  # flip vertically
+                    vertices[i].x = <float>x
+                    vertices[i].y = <float>y
+                    vertices[i].s0 = <float>((x - self.x) / self.w)
+                    vertices[i].t0 = <float>(1 - (y - self.y) / self.h)  # flip vertically
                     indices[i] = i
                 index += segments
 
                 # Add final vertex that closes the arc, explained below
                 x = px * (dw != dh) + self.x * (dw == dh) + self.w * (dw * dh)
                 y = py * (dw == dh) + self.y * (dw != dh) + self.h * (dh > dw)
-                vertices[index].x = x
-                vertices[index].y = y
-                vertices[index].s0 = (x - self.x) / self.w
-                vertices[index].t0 = 1 - (y - self.y) / self.h  # flip vertically
+                vertices[index].x = <float>x
+                vertices[index].y = <float>y
+                vertices[index].s0 = <float>((x - self.x) / self.w)
+                vertices[index].t0 = <float>(1 - (y - self.y) / self.h)  # flip vertically
 
                 '''
                 We have defined these coefficients for arcs:
@@ -1515,11 +1515,11 @@ cdef class RoundedRectangle(Rectangle):
         free(vertices)
         free(indices)
 
-    cdef object draw_arc(self, float cx, float cy, float rx, float ry,
-                         float angle_start, float angle_end, int segments):
+    cdef object draw_arc(self, double cx, double cy, double rx, double ry,
+                         double angle_start, double angle_end, int segments):
         cdef:
-            float fx, fy, x, y
-            float tangential_factor, radial_factor, theta
+            double fx, fy, x, y
+            double tangential_factor, radial_factor, theta
             list points
 
         # convert to radians
@@ -1538,7 +1538,7 @@ cdef class RoundedRectangle(Rectangle):
         # array of length `segments`
         points = []
 
-        for i in xrange(segments):
+        for i in range(segments):
             real_x = cx + x * rx
             real_y = cy + y * ry
             points.append((real_x, real_y))

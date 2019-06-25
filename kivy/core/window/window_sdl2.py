@@ -286,7 +286,8 @@ class WindowSDL(WindowBase):
                      if self._is_desktop else None)
             self.system_size = _size = self._win.setup_window(
                 pos[0], pos[1], w, h, self.borderless,
-                self.fullscreen, resizable, state)
+                self.fullscreen, resizable, state,
+                self.get_gl_backend_name())
 
             # calculate density
             sz = self._win._get_gl_size()[0]

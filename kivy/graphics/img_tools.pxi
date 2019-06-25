@@ -36,7 +36,7 @@ cdef inline convert_to_gl_format(data, fmt, width, height):
 
     # do appropriate conversion, since we accepted it
     if isinstance(data, bytes):
-        datasize = len(data)
+        datasize = <int>len(data)
         ret_array = clone(array('b'), datasize, False)
         src_buffer = <char *>data
     else:

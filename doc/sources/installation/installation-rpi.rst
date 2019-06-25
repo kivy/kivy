@@ -3,53 +3,57 @@
 Installation on Raspberry Pi
 ============================
 
-You can install Kivy manually, or you can download and boot KivyPie on the
+You can install Kivy manually (recommended), or you can download and boot KivyPie on the
 Raspberry Pi. Both options are described below.
 
 
 Manual installation (On Raspbian Jessie/Stretch)
 ------------------------------------------------
 
+In the following instructions, for Python 3, replace `python` with `python3`.
+
 #. Install the dependencies::
 
-    sudo apt-get update
-    sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
+    sudo apt update
+    sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
        pkg-config libgl1-mesa-dev libgles2-mesa-dev \
        python-setuptools libgstreamer1.0-dev git-core \
        gstreamer1.0-plugins-{bad,base,good,ugly} \
        gstreamer1.0-{omx,alsa} python-dev libmtdev-dev \
-       xclip xsel
+       xclip xsel libjpeg-dev
 
-#. Install a new enough version of Cython:
+#. Install pip dependencies:
 
     .. parsed-literal::
 
-        sudo pip install -U |cython_install|
+        python -m pip install --upgrade --user pip setuptools
+        python -m pip install --upgrade --user |cython_install| pillow
 
-#. Install Kivy globally on your system::
+#. Install Kivy to Python globally
 
-    sudo pip install git+https://github.com/kivy/kivy.git@master
+   You can install it like a normal python package with::
 
-    # Note: on recent Raspian stretch, using git with root user gives you a warning
-    # and prevent you to correctly use this.
+    # to get the last release from pypi
+    python -m pip install --user kivy
+
+    # to install master
+    python -m pip install --user https://github.com/kivy/kivy/archive/master.zip
     
-    # Method 1: delete /root/bin/git as the message explained
-    sudo rm /root/bin/git
-    sudo pip install git+https://github.com/kivy/kivy.git@master
-    
-    # Method 2: clone locally then pip install
+    # or clone locally then pip install
     git clone https://github.com/kivy/kivy
     cd kivy
-    sudo pip install .
+    python -m pip install --user .
 
-#. Or build and use kivy inplace (best for development)::
+   Or build and use kivy inplace in a editable install (best for development)::
 
     git clone https://github.com/kivy/kivy
     cd kivy
 
+    python -m pip install --user -e .
+    # every time you change any cython files remember to manually call:
     make
-    echo "export PYTHONPATH=$(pwd):\$PYTHONPATH" >> ~/.profile
-    source ~/.profile
+    # or to recompile all files
+    make force
 
 .. note::
 
@@ -115,7 +119,8 @@ Manual installation (On Arch Linux ARM)
 
 #. Install pip from source::
 
-    wget https://raw.github.com/pypa/pip/master/contrib/get-pip.py
+    wget https://bootstrap.pypa.io/get-pip.py
+    or curl -O https://bootstrap.pypa.io/get-pip.py
     sudo python get-pip.py
 
 #. Install a new enough version of Cython:

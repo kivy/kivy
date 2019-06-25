@@ -296,7 +296,7 @@ cpdef float dpi2px(value, ext) except *:
         g_dpi = Metrics.dpi
         g_density = Metrics.density
         g_fontscale = Metrics.fontscale
-    cdef float rv = float(value)
+    cdef float rv = <float>float(value)
     if ext == 'in':
         return rv * g_dpi
     elif ext == 'px':
@@ -306,11 +306,11 @@ cpdef float dpi2px(value, ext) except *:
     elif ext == 'sp':
         return rv * g_density * g_fontscale
     elif ext == 'pt':
-        return rv * g_dpi / 72.
+        return rv * g_dpi / <float>72.
     elif ext == 'cm':
-        return rv * g_dpi / 2.54
+        return rv * g_dpi / <float>2.54
     elif ext == 'mm':
-        return rv * g_dpi / 25.4
+        return rv * g_dpi / <float>25.4
 
 cdef class Property:
     '''Base class for building more complex properties.
@@ -662,7 +662,7 @@ cdef class NumericProperty(Property):
         if value[-2:] in NUMERIC_FORMATS:
             return self.parse_list(obj, value[:-2], value[-2:])
         else:
-            return float(value)
+            return <float>float(value)
 
     cdef float parse_list(self, EventDispatcher obj, value, ext) except *:
         cdef PropertyStorage ps = obj.__storage[self._name]
@@ -699,7 +699,7 @@ cdef class StringProperty(Property):
                 obj.__class__.__name__,
                 self.name))
 
-cdef inline void observable_list_dispatch(object self):
+cdef inline void observable_list_dispatch(object self) except *:
     cdef Property prop = self.prop
     obj = self.obj()
     if obj is not None:
@@ -838,7 +838,7 @@ cdef class ListProperty(Property):
             value = ObservableList(self, obj, value)
         Property.set(self, obj, value)
 
-cdef inline void observable_dict_dispatch(object self):
+cdef inline void observable_dict_dispatch(object self) except *:
     cdef Property prop = self.prop
     prop.dispatch(self.obj)
 

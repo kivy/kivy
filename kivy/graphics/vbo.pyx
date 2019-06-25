@@ -106,7 +106,7 @@ cdef class VBO:
                 continue
             if attr.index != <unsigned int>-1:
                 cgl.glVertexAttribPointer(attr.index, attr.size, attr.type,
-                        GL_FALSE, <GLsizei>self.format_size, <GLvoid*><long>offset)
+                        GL_FALSE, <GLsizei>self.format_size, <GLvoid*><unsigned int>offset)
                 log_gl_error('VBO.bind-glVertexAttribPointer')
             offset += attr.bytesize
 

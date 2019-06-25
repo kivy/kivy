@@ -17,26 +17,20 @@ from distutils.command.build_ext import build_ext
 from distutils.version import LooseVersion
 from distutils.sysconfig import get_python_inc
 from collections import OrderedDict
-from time import time
+from time import time, sleep
 from subprocess import check_output, CalledProcessError
 from datetime import datetime
 from sysconfig import get_paths
+from pathlib import Path
 import logging
-
-try:
-    from setuptools import setup, Extension
-    print('Using setuptools')
-except ImportError:
-    from distutils.core import setup
-    from distutils.extension import Extension
-    print('Using distutils')
+from setuptools import setup, Extension, find_packages
 
 
 if sys.version_info[0] == 2:
     logging.critical(
         'Unsupported Python version detected!: Kivy 2.0.0 and higher does not '
         'support Python 2. Please upgrade to Python 3, or downgrade Kivy to '
-        '1.11.0 - the last Kivy release that still supports Python 2.')
+        '1.11.1 - the last Kivy release that still supports Python 2.')
 
 
 def ver_equal(self, other):
@@ -81,23 +75,6 @@ def get_version(filename='kivy/version.py'):
             'date': DATE
         })
     return VERSION
-
-
-MIN_CYTHON_STRING = '0.24'
-MIN_CYTHON_VERSION = LooseVersion(MIN_CYTHON_STRING)
-MAX_CYTHON_STRING = '0.29.10'
-MAX_CYTHON_VERSION = LooseVersion(MAX_CYTHON_STRING)
-CYTHON_UNSUPPORTED = (
-    # ref https://github.com/cython/cython/issues/1968
-    '0.27', '0.27.2'
-)
-CYTHON_REQUIRES_STRING = (
-    'cython>={min_version},<={max_version},{exclusion}'.format(
-        min_version=MIN_CYTHON_STRING,
-        max_version=MAX_CYTHON_STRING,
-        exclusion=','.join('!=%s' % excl for excl in CYTHON_UNSUPPORTED),
-    )
-)
 
 
 def getoutput(cmd, env=None):
@@ -199,57 +176,11 @@ for key in list(c_options.keys()):
         print('Environ change {0} -> {1}'.format(key, value))
         c_options[key] = value
 
+use_embed_signature = environ.get('USE_EMBEDSIGNATURE', '0') == '1'
+use_embed_signature = use_embed_signature or bool(
+    platform not in ('ios', 'android'))
 
 # -----------------------------------------------------------------------------
-# Cython check
-# on python-for-android and kivy-ios, cython usage is external
-
-cython_unsupported_append = '''
-
-  Please note that the following versions of Cython are not supported
-  at all: {}
-'''.format(', '.join(map(str, CYTHON_UNSUPPORTED)))
-
-cython_min = '''\
-  This version of Cython is not compatible with Kivy. Please upgrade to
-  at least version {0}, preferably the newest supported version {1}.
-
-  If your platform provides a Cython package, make sure you have upgraded
-  to the newest version. If the newest version available is still too low,
-  please remove it and install the newest supported Cython via pip:
-
-    pip install -I Cython=={1}{2}\
-'''.format(MIN_CYTHON_STRING, MAX_CYTHON_STRING,
-           cython_unsupported_append if CYTHON_UNSUPPORTED else '')
-
-cython_max = '''\
-  This version of Cython is untested with Kivy. While this version may
-  work perfectly fine, it is possible that you may experience issues. If
-  you do have issues, please downgrade to a supported version. It is
-  best to use the newest supported version, {1}, but the minimum
-  supported version is {0}.
-
-  If your platform provides a Cython package, check if you can downgrade
-  to a supported version. Otherwise, uninstall the platform package and
-  install Cython via pip:
-
-    pip install -I Cython=={1}{2}\
-'''.format(MIN_CYTHON_STRING, MAX_CYTHON_STRING,
-           cython_unsupported_append if CYTHON_UNSUPPORTED else '')
-
-cython_unsupported = '''\
-  This version of Cython suffers from known bugs and is unsupported.
-  Please install the newest supported version, {1}, if possible, but
-  the minimum supported version is {0}.
-
-  If your platform provides a Cython package, check if you can install
-  a supported version. Otherwise, uninstall the platform package and
-  install Cython via pip:
-
-    pip install -I Cython=={1}{2}\
-'''.format(MIN_CYTHON_STRING, MAX_CYTHON_STRING,
-           cython_unsupported_append)
-
 # We want to be able to install kivy as a wheel without a dependency
 # on cython, but we also want to use cython where possible as a setup
 # time dependency through `setup_requires` if building from source.
@@ -411,6 +342,29 @@ def _check_and_fix_sdl2_mixer(f_path):
 # extract version (simulate doc generation, kivy will be not imported)
 environ['KIVY_DOC_INCLUDE'] = '1'
 import kivy
+
+# Cython check
+# on python-for-android and kivy-ios, cython usage is external
+from kivy.tools.packaging.cython_cfg import get_cython_versions, get_cython_msg
+CYTHON_REQUIRES_STRING, MIN_CYTHON_STRING, MAX_CYTHON_STRING, \
+    CYTHON_UNSUPPORTED = get_cython_versions()
+cython_min_msg, cython_max_msg, cython_unsupported_msg = get_cython_msg()
+
+if can_use_cython:
+    import Cython
+    print('\nFound Cython at', Cython.__file__)
+
+    cy_version_str = Cython.__version__
+    cy_ver = LooseVersion(cy_version_str)
+    print('Detected supported Cython version {}'.format(cy_version_str))
+
+    if cy_ver < LooseVersion(MIN_CYTHON_STRING):
+        print(cython_min_msg)
+    elif cy_ver in CYTHON_UNSUPPORTED:
+        print(cython_unsupported_msg)
+    elif cy_ver > LooseVersion(MAX_CYTHON_STRING):
+        print(cython_max_msg)
+    sleep(1)
 
 # extra build commands go in the cmdclass dict {'command-name': CommandClass}
 # see tools.packaging.{platform}.build.py for custom build commands for
@@ -579,7 +533,10 @@ class CythonExtension(Extension):
         self.cython_directives = {
             'c_string_encoding': 'utf-8',
             'profile': 'USE_PROFILE' in environ,
-            'embedsignature': 'USE_EMBEDSIGNATURE' in environ}
+            'embedsignature': use_embed_signature,
+            'language_level': 3,
+            'unraisable_tracebacks': True,
+        }
         # XXX with pip, setuptools is imported before distutils, and change
         # our pyx to c, then, cythonize doesn't happen. So force again our
         # sources
@@ -1059,6 +1016,19 @@ if isdir(binary_deps_path):
             binary_deps.append(
                 join(root.replace(binary_deps_path, 'binary_deps'), fname))
 
+
+def glob_paths(*patterns, excludes=('.pyc', )):
+    files = []
+    base = Path(join(src_path, 'kivy'))
+
+    for pat in patterns:
+        for f in base.glob(pat):
+            if f.suffix in excludes:
+                continue
+            files.append(str(f.relative_to(base)))
+    return files
+
+
 # -----------------------------------------------------------------------------
 # setup !
 if not build_examples:
@@ -1082,87 +1052,20 @@ if not build_examples:
         long_description_content_type='text/markdown',
         ext_modules=ext_modules,
         cmdclass=cmdclass,
-        packages=[
-            'kivy',
-            'kivy.core',
-            'kivy.core.audio',
-            'kivy.core.camera',
-            'kivy.core.clipboard',
-            'kivy.core.image',
-            'kivy.core.gl',
-            'kivy.core.spelling',
-            'kivy.core.text',
-            'kivy.core.video',
-            'kivy.core.window',
-            'kivy.deps',
-            'kivy.effects',
-            'kivy.graphics',
-            'kivy.graphics.cgl_backend',
-            'kivy.garden',
-            'kivy.input',
-            'kivy.input.postproc',
-            'kivy.input.providers',
-            'kivy.lang',
-            'kivy.lib',
-            'kivy.lib.gstplayer',
-            'kivy.lib.vidcore_lite',
-            'kivy.modules',
-            'kivy.network',
-            'kivy.storage',
-            'kivy.tests',
-            'kivy.tools',
-            'kivy.tools.packaging',
-            'kivy.tools.packaging.pyinstaller_hooks',
-            'kivy.tools.highlight',
-            'kivy.extras',
-            'kivy.uix',
-            'kivy.uix.behaviors',
-            'kivy.uix.recycleview',
-        ],
+        packages=find_packages(include=['kivy*']),
         package_dir={'kivy': 'kivy'},
-        package_data={'kivy': [
-            'setupconfig.py',
-            '*.pxd',
-            '*.pxi',
-            'core/text/*.pxd',
-            'core/text/*.pxi',
-            'core/window/*.pxi',
-            'core/window/*.pxd',
-            'graphics/*.pxd',
-            'graphics/*.pxi',
-            'graphics/*.h',
-            'include/*',
-            'lib/vidcore_lite/*.pxd',
-            'lib/vidcore_lite/*.pxi',
-            'data/*.kv',
-            'data/*.json',
-            'data/fonts/*.ttf',
-            'data/images/*.png',
-            'data/images/*.jpg',
-            'data/images/*.gif',
-            'data/images/*.atlas',
-            'data/keyboards/*.json',
-            'data/logo/*.png',
-            'data/glsl/*.png',
-            'data/glsl/*.vs',
-            'data/glsl/*.fs',
-            'tests/*.zip',
-            'tests/*.kv',
-            'tests/*.png',
-            'tests/*.ttf',
-            'tests/*.ogg',
-            'tools/gles_compat/*',
-            'tools/highlight/*',
-            'tools/packaging/README.txt',
-            'tools/packaging/win32/kivy.bat',
-            'tools/packaging/win32/kivyenv.sh',
-            'tools/packaging/win32/README.txt',
-            'tools/packaging/osx/Info.plist',
-            'tools/packaging/osx/InfoPlist.strings',
-            'tools/packaging/osx/kivy.sh',
-            'tools/pep8checker/*',
-            'tools/theming/defaulttheme/*',
-        ] + binary_deps},
+        package_data={
+            'kivy':
+                glob_paths('**/*.pxd', '**/*.pxi') +
+                glob_paths('data/**/*.*') +
+                glob_paths('include/**/*.*') +
+                glob_paths('tools/**/*.*', excludes=('.pyc', '.enc')) +
+                glob_paths('graphics/**/*.h') +
+                glob_paths('tests/**/*.*') +
+                [
+                    'setupconfig.py',
+                ] + binary_deps
+        },
         data_files=[] if split_examples else list(examples.items()),
         classifiers=[
             'Development Status :: 5 - Production/Stable',

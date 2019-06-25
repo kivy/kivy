@@ -690,7 +690,7 @@ def glDrawElements(GLenum mode, GLsizei count, GLenum type, indices):
     if isinstance(indices, bytes):
         ptr = <void *>(<char *>(<bytes>indices))
     elif isinstance(indices, (long, int)):
-        ptr = <void *>(<long>indices)
+        ptr = <void *>(<unsigned int>indices)
     else:
         raise TypeError("Argument 'indices' has incorrect type (expected bytes or int).")
     cgl.glDrawElements(mode, count, type, ptr)
@@ -1540,7 +1540,7 @@ def glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean norma
     if isinstance(data, bytes):
         ptr = <void *>(<char *>(<bytes>data))
     elif isinstance(data, (long, int)):
-        ptr = <void *>(<long>data)
+        ptr = <void *>(<unsigned int>data)
     else:
         raise TypeError("Argument 'data' has incorrect type (expected bytes or int).")
     cgl.glVertexAttribPointer(index, size, type, normalized, stride, ptr)
@@ -1552,5 +1552,5 @@ def glViewport(GLint x, GLint y, GLsizei width, GLsizei height):
     cgl.glViewport(x, y, width, height)
 
 
-def gl_init_symbols():
-    cgl_init()
+def gl_init_symbols(allowed=[], ignored=[]):
+    cgl_init(allowed, ignored)

@@ -39,7 +39,7 @@ include "../include/config.pxi"
 
 from sys import platform
 from os import environ
-from cgl cimport GLES2_Context
+from .cgl cimport GLES2_Context
 import importlib
 from kivy.logger import Logger
 
@@ -49,7 +49,11 @@ cdef object cgl_name = None
 cdef int kivy_opengl_es2 = USE_OPENGL_ES2 or environ.get('KIVY_GRAPHICS', '').lower() == 'gles'
 
 
-cpdef cgl_get_backend_name():
+cpdef cgl_get_initialized_backend_name():
+    return cgl_name
+
+
+cpdef cgl_get_backend_name(allowed=[], ignored=[]):
     if cgl_name:
         return cgl_name
     name = environ.get("KIVY_GL_BACKEND")
@@ -57,6 +61,11 @@ cpdef cgl_get_backend_name():
         return name.lower()
 
     for name in ('glew', 'sdl2', 'gl', 'mock'):
+        if allowed and name not in allowed:
+            continue
+        if name in ignored:
+            continue
+
         mod = importlib.import_module("kivy.graphics.cgl_backend.cgl_{}".format(name))
         if mod.is_backend_supported():
             return name
@@ -72,11 +81,11 @@ cdef void cgl_set_context(GLES2_Context* ctx):
     cgl = ctx
 
 
-cdef void cgl_init() except *:
+cpdef cgl_init(allowed=[], ignored=[]):
     Logger.info('GL: Using the "{}" graphics system'.format(
         'OpenGL ES 2' if kivy_opengl_es2 else 'OpenGL'))
     global cgl_name
-    cgl_name = backend = cgl_get_backend_name()
+    cgl_name = backend = cgl_get_backend_name(allowed, ignored)
 
     # for ANGLE, currently we use sdl2, and only on windows.
     if backend == "angle_sdl2":
