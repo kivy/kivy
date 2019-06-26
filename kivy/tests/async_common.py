@@ -1,10 +1,22 @@
-
+import asyncio
 import random
 import time
-from .conftest import async_sleep
-from .common import UnitTestTouch
 
-__all__ = ('UnitKivyApp', )
+from kivy.tests import UnitTestTouch
+
+__all__ = ('UnitKivyApp', 'async_sleep')
+
+
+try:
+    import pytest_asyncio
+    async_sleep = asyncio.sleep
+except ImportError:
+    try:
+        import trio
+        from pytest_trio import trio_fixture
+        async_sleep = trio.sleep
+    except ImportError:
+        async_sleep = None
 
 
 class AsyncUnitTestTouch(UnitTestTouch):

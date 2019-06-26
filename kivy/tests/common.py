@@ -10,10 +10,11 @@ The screenshots live in the 'kivy/tests/results' folder and are in PNG format,
 320x240 pixels.
 '''
 
-__all__ = ('GraphicUnitTest', 'UTMotionEvent')
+__all__ = ('GraphicUnitTest', 'UnitTestTouch', 'UTMotionEvent', 'async_run')
 
 import unittest
 import logging
+import pytest
 import os
 import threading
 from kivy.graphics.cgl import cgl_get_backend_name
@@ -440,3 +441,40 @@ class UTMotionEvent(MotionEvent):
         self.sy = args['y']
         self.profile = ['pos']
         super(UTMotionEvent, self).depack(args)
+
+
+def async_run(func=None, app_cls_func=None):
+    def inner_func(func):
+        if 'mock' == cgl_get_backend_name():
+            return pytest.mark.skip(
+                reason='Skipping because gl backend is set to mock')(func)
+
+        try:
+            import kivy.tests.async_common
+        except SyntaxError:
+            return pytest.mark.skip(
+                reason='Skipping because graphics tests are not supported on '
+                       'py3.5, only on py3.6+')(func)
+
+        if app_cls_func is not None:
+            func = pytest.mark.parametrize(
+                "kivy_app", [[app_cls_func], ], indirect=True)(func)
+
+        try:
+            import pytest_asyncio
+            return pytest.mark.asyncio(func)
+        except ImportError:
+            try:
+                import trio
+                from pytest_trio import trio_fixture
+                func._force_trio_fixture = True
+                return func
+            except ImportError:
+                return pytest.mark.skip(
+                    reason='Either pytest_asyncio or pytest_trio must be '
+                    'installed to run asyncio tests')(func)
+
+    if func is None:
+        return inner_func
+
+    return inner_func(func)

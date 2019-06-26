@@ -1,18 +1,9 @@
-import unittest
 import os.path
-import pytest
 
 from kivy.app import App
 from kivy.clock import Clock
 from kivy import lang
-from kivy.tests.common import GraphicUnitTest
-from .conftest import async_run, async_sleep
-
-try:
-    from kivy.tests.async_common import UnitKivyApp
-except SyntaxError:
-    # async app tests would be skipped due to their decorator.
-    pass
+from kivy.tests import GraphicUnitTest, async_run, async_sleep
 
 
 class AppTest(GraphicUnitTest):
