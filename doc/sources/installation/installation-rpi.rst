@@ -107,42 +107,35 @@ Manual installation (On Raspbian Wheezy)
     echo "export PYTHONPATH=$(pwd):\$PYTHONPATH" >> ~/.profile
     source ~/.profile
 
-Manual installation (On Arch Linux ARM)
+Manual installation (On Arch Linux based systems)
 ------------------------------------------------
 
 #. Install the dependencies::
 
-    sudo pacman -Syu
-    sudo pacman -S sdl2 sdl2_gfx sdl2_image sdl2_net sdl2_ttf sdl2_mixer python-setuptools
+    pacman -Syu
+    pacman -S sdl2 sdl2_gfx sdl2_image sdl2_net sdl2_ttf sdl2_mixer python-setuptools python-pip
 
     Note: python-setuptools needs to be installed through pacman or it will result with conflicts!
 
-#. Install pip from source::
+#. Upgrading pip::
 
-    wget https://bootstrap.pypa.io/get-pip.py
-    or curl -O https://bootstrap.pypa.io/get-pip.py
-    sudo python get-pip.py
+    python -m pip install --upgrade --user pip
 
 #. Install a new enough version of Cython:
 
     .. parsed-literal::
 
-        sudo pip install -U |cython_install|
+        pip install -U |cython_install|
 
 #. Install Kivy globally on your system::
 
-    sudo pip install git+https://github.com/kivy/kivy.git@master
+    pip install git+https://github.com/kivy/kivy.git@master
 
 #. Or build and use kivy inplace (best for development)::
 
     git clone https://github.com/kivy/kivy
     cd kivy
     python setup.py install
-
-Images to use::
-
-    http://raspex.exton.se/?p=859 (recommended)  
-    https://archlinuxarm.org/
 
 .. note::
 

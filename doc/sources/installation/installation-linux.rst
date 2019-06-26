@@ -184,6 +184,38 @@ Gentoo
    `gstreamer: Standard flag, kivy will be able to use audio/video streaming libraries.`
    `spell: Standard flag, provide enchant to use spelling in kivy apps.`
 
+
+Manual installation (On Arch Linux based systems)
+------------------------------------------------
+
+#. Install the dependencies::
+
+    pacman -Syu
+    pacman -S sdl2 sdl2_gfx sdl2_image sdl2_net sdl2_ttf sdl2_mixer python-setuptools python-pip
+
+    Note: python-setuptools needs to be installed through pacman or it will result with conflicts!
+
+#. Upgrading pip::
+
+    python -m pip install --upgrade --user pip
+
+#. Install a new enough version of Cython:
+
+    .. parsed-literal::
+
+        pip install -U |cython_install|
+
+#. Install Kivy globally on your system::
+
+    pip install git+https://github.com/kivy/kivy.git@master
+
+#. Or build and use kivy inplace (best for development)::
+
+    git clone https://github.com/kivy/kivy
+    cd kivy
+    python setup.py install
+
+
 Manually installing Kivy from source
 ------------------------------------
 
