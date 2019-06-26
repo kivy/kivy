@@ -384,22 +384,6 @@ except ImportError:
 
 from threading import Event as ThreadingEvent
 
-async_event = None
-_async_lib = environ.get('KIVY_EVENTLOOP', 'default')
-if _async_lib == 'trio':
-    import trio
-    async_event = trio.Event
-    _async_lib = trio
-
-    async def wait_for(coro, t):
-        with trio.move_on_after(t):
-            await coro
-elif _async_lib == 'async':
-    import asyncio
-    async_event = asyncio.Event
-    _async_lib = asyncio
-    wait_for = asyncio.wait_for
-
 # some reading: http://gameprogrammingpatterns.com/game-loop.html
 
 
@@ -517,10 +501,37 @@ class ClockBaseBehavior(object):
     '''
     SLEEP_UNDERSHOOT = MIN_SLEEP - 0.001
 
-    def __init__(self, **kwargs):
+    _async_event_cls = None
+
+    _async_lib = None
+
+    _async_wait_for = None
+
+    def __init__(self, async_lib=None, **kwargs):
+        self._init_asyncio(async_lib)
         super(ClockBaseBehavior, self).__init__(**kwargs)
         self._duration_ts0 = self._start_tick = self._last_tick = self.time()
         self._max_fps = float(Config.getint('graphics', 'maxfps'))
+
+    def _init_asyncio(self, lib=None):
+        if lib == 'trio':
+            import trio
+            self._async_event_cls = trio.Event
+            self._async_lib = trio
+
+            async def wait_for(coro, t):
+                with trio.move_on_after(t):
+                    await coro
+            self._async_wait_for = wait_for
+        elif lib == 'async':
+            import asyncio
+            self._async_event_cls = asyncio.Event
+            self._async_lib = asyncio
+            self._async_wait_for = asyncio.wait_for
+        elif lib == 'default':
+            pass
+        else:
+            raise ValueError('async library {} not recognized'.format(lib))
 
     @property
     def frametime(self):
@@ -584,13 +595,13 @@ class ClockBaseBehavior(object):
             done, sleeptime = ready(fps, min_sleep, undershoot)
             while not done:
                 slept = True
-                await _async_lib.sleep(sleeptime)
+                await self._async_lib.sleep(sleeptime)
                 done, sleeptime = ready(fps, min_sleep, undershoot)
 
             if not slept:
-                await _async_lib.sleep(0)
+                await self._async_lib.sleep(0)
         else:
-            await _async_lib.sleep(0)
+            await self._async_lib.sleep(0)
 
         current = self.time()
         self._dt = current - self._last_tick
@@ -702,8 +713,8 @@ class ClockBaseInterruptBehavior(ClockBaseBehavior):
     def __init__(self, interupt_next_only=False, **kwargs):
         super(ClockBaseInterruptBehavior, self).__init__(**kwargs)
         self._event = ThreadingEvent()
-        if async_event is not None:
-            self._async_event = async_event()
+        if self._async_event_cls is not None:
+            self._async_event = self._async_event_cls()
         self.interupt_next_only = interupt_next_only
         self._get_min_timeout_func = self.get_min_timeout
 
@@ -713,7 +724,8 @@ class ClockBaseInterruptBehavior(ClockBaseBehavior):
 
     async def async_usleep(self, microseconds):
         self._async_event.clear()
-        await wait_for(self._async_event.wait(), microseconds / 1000000.)
+        await self._async_wait_for(
+            self._async_event.wait(), microseconds / 1000000.)
 
     def on_schedule(self, event):
         fps = self._max_fps
@@ -758,11 +770,11 @@ class ClockBaseInterruptBehavior(ClockBaseBehavior):
             done, sleeptime = self._check_ready(
                 fps, resolution, 4 / 5. * resolution, event)
             if not done:
-                await wait_for(event.wait(), sleeptime)
+                await self._async_wait_for(event.wait(), sleeptime)
             else:
-                await _async_lib.sleep(0)
+                await self._async_lib.sleep(0)
         else:
-            await _async_lib.sleep(0)
+            await self._async_lib.sleep(0)
 
         current = self.time()
         self._dt = current - self._last_tick
@@ -912,14 +924,15 @@ class ClockBaseFreeInterruptOnly(
                     self._process_free_events(current)
                 else:
                     slept = True
-                    await wait_for(event.wait(), sleeptime - undershoot)
+                    await self._async_wait_for(
+                        event.wait(), sleeptime - undershoot)
                 current = self.time()
                 sleeptime = 1 / fps - (current - self._last_tick)
 
             if not slept:
-                await _async_lib.sleep(0)
+                await self._async_lib.sleep(0)
         else:
-            await _async_lib.sleep(0)
+            await self._async_lib.sleep(0)
 
         self._dt = current - self._last_tick
         self._last_tick = current
@@ -1022,6 +1035,8 @@ else:
             '{} is not a valid kivy clock. Valid clocks are {}'.format(
                 _clk, sorted(_classes.keys())))
 
-    Clock = register_context('Clock', _classes[_clk])
+    Clock = register_context(
+        'Clock', _classes[_clk],
+        async_lib=environ.get('KIVY_EVENTLOOP', 'default'))
     '''The kivy Clock instance. See module documentation for details.
     '''
