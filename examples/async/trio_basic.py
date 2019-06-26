@@ -49,7 +49,7 @@ if __name__ == '__main__':
         async with trio.open_nursery() as nursery:
             '''In trio you create a nursery, in which you schedule async
             functions to be run by the nursery simultaneously as tasks.
-            
+
             This will run all two methods starting in random order
             asynchronously and then block until they are finished or canceled
             at the `with` level. '''
