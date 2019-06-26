@@ -3,7 +3,7 @@ import os.path
 from kivy.app import App
 from kivy.clock import Clock
 from kivy import lang
-from kivy.tests import GraphicUnitTest, async_run, async_sleep
+from kivy.tests import GraphicUnitTest, async_run, async_sleep, UnitKivyApp
 
 
 class AppTest(GraphicUnitTest):

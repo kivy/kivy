@@ -6,11 +6,18 @@ import os.path
 from kivy.tests import async_sleep
 
 try:
-    from pytest_trio import trio_fixture
-except ImportError:
+    import pytest_asyncio
     @pytest.fixture()
     def nursery():
         pass
+except ImportError:
+    try:
+        import trio
+        from pytest_trio import trio_fixture
+    except ImportError:
+        @pytest.fixture()
+        def nursery():
+            pass
 
 
 def pytest_runtest_makereport(item, call):
