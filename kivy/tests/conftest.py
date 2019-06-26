@@ -7,6 +7,7 @@ from kivy.tests import async_sleep
 
 try:
     import pytest_asyncio
+
     @pytest.fixture()
     def nursery():
         pass
