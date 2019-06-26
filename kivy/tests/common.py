@@ -398,7 +398,7 @@ class UnitTestTouch(MotionEvent):
 
         super(UnitTestTouch, self).__init__(
             # device, (tuio) id, args
-            "UnitTestTouch", 99, {
+            self.__class__.__name__, 99, {
                 "x": x / float(win.width),
                 "y": y / float(win.height),
             }
