@@ -15,6 +15,7 @@ __all__ = ('GraphicUnitTest', 'UnitTestTouch', 'UTMotionEvent', 'async_run')
 import unittest
 import logging
 import pytest
+import sys
 import os
 import threading
 from kivy.graphics.cgl import cgl_get_backend_name
@@ -449,9 +450,7 @@ def async_run(func=None, app_cls_func=None):
             return pytest.mark.skip(
                 reason='Skipping because gl backend is set to mock')(func)
 
-        try:
-            import kivy.tests.async_common
-        except SyntaxError:
+        if sys.version_info[0] < 3 or sys.version_info[1] <= 5:
             return pytest.mark.skip(
                 reason='Skipping because graphics tests are not supported on '
                        'py3.5, only on py3.6+')(func)
