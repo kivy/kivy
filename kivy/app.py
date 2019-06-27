@@ -327,7 +327,7 @@ async event loop to run it asynchronously.
 
 '''
 
-__all__ = ('App', )
+__all__ = ('App', 'runTouchApp', 'async_runTouchApp', 'stopTouchApp')
 
 import os
 from inspect import getfile
@@ -879,7 +879,7 @@ Context.html#getFilesDir()>`_ is returned.
         '''Identical to :meth:`run`, but is a coroutine and can be
         scheduled in a running async event loop.
 
-        .. versionadded:: 1.10.1
+        .. versionadded:: 2.0.0
         '''
         self._run_prepare()
         await async_runTouchApp()

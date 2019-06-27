@@ -61,7 +61,7 @@ async def test_button_app(kivy_app):
     assert kivy_app.root.text == 'Hello, World!'
     assert kivy_app.root.state == 'normal'
 
-    async for touch_pos, state in kivy_app.do_touch_down_up(
+    async for state, touch_pos in kivy_app.do_touch_down_up(
             widget=kivy_app.root, widget_jitter=True):
         pass
 
@@ -88,8 +88,64 @@ async def test_drag_app(kivy_app):
     scatter = kivy_app.root
     assert tuple(scatter.pos) == (0, 0)
 
-    async for touch_pos, state in kivy_app.do_touch_drag(
+    async for state, touch_pos in kivy_app.do_touch_drag(
             pos=(100, 100), target_pos=(200, 200)):
         pass
 
     assert tuple(scatter.pos) == (100, 100)
+
+
+def text_app():
+    from kivy.app import App
+    from kivy.uix.textinput import TextInput
+
+    class TestApp(UnitKivyApp, App):
+        def build(self):
+            return TextInput()
+
+    return TestApp()
+
+
+@async_run(app_cls_func=text_app)
+async def test_text_app(kivy_app):
+    text = kivy_app.root
+    assert text.text == ''
+
+    # activate widget
+    async for state, touch_pos in kivy_app.do_touch_down_up(widget=text):
+        pass
+
+    async for state, value in kivy_app.do_keyboard_key(key='A', num_press=4):
+        pass
+    async for state, value in kivy_app.do_keyboard_key(key='q', num_press=3):
+        pass
+
+    assert text.text == 'AAAAqqq'
+
+
+def graphics_app():
+    from kivy.app import App
+    from kivy.uix.widget import Widget
+    from kivy.graphics import Color, Rectangle
+
+    class TestApp(UnitKivyApp, App):
+        def build(self):
+            widget = Widget()
+            with widget.canvas:
+                Color(1, 0, 0, 1)
+                Rectangle(pos=(0, 0), size=(100, 100))
+                Color(0, 1, 0, 1)
+                Rectangle(pos=(100, 0), size=(100, 100))
+            return widget
+
+    return TestApp()
+
+
+@async_run(app_cls_func=graphics_app)
+async def test_graphics_app(kivy_app):
+    widget = kivy_app.root
+    (r1, g1, b1, a1), (r2, g2, b2, a2) = kivy_app.get_widget_pos_pixel(
+        widget, [(50, 50), (150, 50)])
+
+    assert not g1 and not b1 and not r2 and not b2
+    assert r1 > 50 and a1 > 50 and g2 > 50 and a2 > 50

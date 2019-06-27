@@ -19,6 +19,7 @@ BoxLayout:
     BoxLayout:
         Label:
             id: label
+            text: 'Button is "{}"'.format(btn.state)
 '''
 
 
@@ -37,6 +38,8 @@ async def waste_time_freely():
         while True:
             print('Sitting on the beach')
             await trio.sleep(2)
+    except trio.Cancelled as e:
+        print('Wasting time was canceled', e)
     finally:
         # when canceled, print that it finished
         print('Done wasting time')
