@@ -308,20 +308,91 @@ Here is a simple example of how on_pause() should be used::
     Both `on_pause` and `on_stop` must save important data because after
     `on_pause` is called, `on_resume` may not be called at all.
 
-Async app
-------------
+Asynchronous app
+----------------
 
-Experimental async support has been added.
+In addition to running an app normally,
+Kivy can be run within an async event loop such as provided by the standard
+library asyncio package or the trio package (highly recommended).
 
-To run an async app the ``KIVY_EVENTLOOP`` environmental should be set
-to ``'async'``. This will start an async loop when :func:`runTouchApp` or
-:meth:`App.run` are run and will then run the app in this event loop.
-To use the synchronous version set ``KIVY_EVENTLOOP`` to ``'default'``
-or leave it unset.
+Background
+~~~~~~~~~~
 
-Alternatively, rather than running :func:`runTouchApp` or :meth:`App.run`,
-schedule :func:`async_runTouchApp` or :meth:`App.async_run` in your running
-async event loop to run it asynchronously.
+Normally, when a Kivy app is run, it blocks the thread that runs it until the
+app exits. Internally, at each clock iteration it executes all the app
+callbacks, handles graphics and input, and idles by sleeping for any remaining
+time.
+
+To be able to run asynchronously, the Kivy app may not sleep, but instead must
+release control of the running context to the asynchronous event loop running
+the Kivy app. We do this when idling by calling the appropriate functions of
+the async package being used instead of sleeping.
+
+Async configuration
+~~~~~~~~~~~~~~~~~~~
+
+To run an async app, both the ``KIVY_EVENTLOOP`` environmental variable must
+be set appropriately, and :func:`async_runTouchApp` or :meth:`App.async_run`
+must be scheduled to run in the external async package's event loop. The
+variable tells kivy which async library to use when idling and
+:func:`async_runTouchApp` or :meth:`App.async_run` run the actual app.
+
+The environmental variable ``KIVY_EVENTLOOP`` determines which async library
+to use, if at all. It can be set to one of `"sync"` when it should be run
+synchronously like a normal app, `"async"` when the standard library `asyncio`
+should be used, or `"trio"` if the trio library should be used. If not set it
+defaults to `"sync"`.
+
+In the `"async"` or `"trio"` case, one schedules :func:`async_runTouchApp` or
+:meth:`App.async_run` to run within the given library's async event loop as in
+the examples shown below. Kivy is then treated as just another coroutine that
+the given library runs in its event loop.
+
+For a fuller basic and more advanced examples, see the demo apps in
+``examples/async``.
+
+Asyncio example
+~~~~~~~~~~~~~--
+
+.. code-block:: python
+
+    import asyncio
+    import os
+    os.environ['KIVY_EVENTLOOP'] = 'async'
+
+    from kivy.app import async_runTouchApp
+    from kivy.uix.label import Label
+
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(async_runTouchApp(Label(text='Hello, World!')))
+    loop.close()
+
+Trio example
+~~~~~~~~~~--
+
+.. code-block:: python
+
+    import trio
+    import os
+    os.environ['KIVY_EVENTLOOP'] = 'trio'
+
+    from kivy.app import async_runTouchApp
+    from kivy.uix.label import Label
+
+    trio.run(async_runTouchApp, Label(text='Hello, World!'))
+
+Interacting with Kivy app from other coroutines
+-----------------------------------------------
+
+It is fully safe to interact with any kivy object from other coroutines
+running within the same async event loop. This is because they are all running
+from the same thread and the other coroutines are only executed when Kivy
+is idling.
+
+Similarly, the kivy callbacks may safely interact with objects from other
+coroutines running in the same event loop. Normal single threaded rules apply
+to both case.
 
 .. versionadded:: 2.0.0
 
@@ -878,6 +949,8 @@ Context.html#getFilesDir()>`_ is returned.
     async def async_run(self):
         '''Identical to :meth:`run`, but is a coroutine and can be
         scheduled in a running async event loop.
+
+        See :mod:`kivy.app` for example usage.
 
         .. versionadded:: 2.0.0
         '''

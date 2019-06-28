@@ -344,16 +344,22 @@ overwrites the config selection. Its possible values are as follows:
   used.
 
 Async clock support
------------------------
+-------------------
 
 .. versionadded:: 2.0.0
 
-Experimental async support has been added in 1.11.0. The Clock now has an
+Experimental async support has been added in 2.0.0. The Clock now has a
 :meth:`ClockBaseBehavior.async_tick` and :meth:`ClockBaseBehavior.async_idle`
-method which is used by the kivy EventLoop when the kivy EventLoop is
+coroutine method which is used by the kivy EventLoop when the kivy EventLoop is
 executed in a asynchronous manner. When used, the kivy clock does not
 block while idling.
 
+This is selected with the `KIVY_EVENTLOOP` environmental variable and it
+can be one of `"sync"` when it should be run synchronously, `"async"` when
+the standard library `asyncio` should be used, or `"trio"` if the trio library
+should be used. If not set it defaults to `"sync"`.
+
+See :mod:`~kivy.app` for example usage.
 '''
 
 __all__ = (
@@ -474,6 +480,15 @@ except (OSError, ImportError, AttributeError):
 
 class ClockBaseBehavior(object):
     '''The base of the kivy clock.
+
+    :parameters:
+
+        `async_lib`: string
+            The async library to use when the clock is run asynchronously.
+            Can be one of `"sync"` when it's run synchronously,
+            `"async"` when the standard library asyncio should be used, or
+            `"trio"` if the trio library should be used. It defaults to
+            `"sync"`.
     '''
 
     _dt = 0.0001
@@ -507,13 +522,24 @@ class ClockBaseBehavior(object):
 
     _async_wait_for = None
 
-    def __init__(self, async_lib=None, **kwargs):
+    def __init__(self, async_lib='sync', **kwargs):
         self._init_asyncio(async_lib)
         super(ClockBaseBehavior, self).__init__(**kwargs)
         self._duration_ts0 = self._start_tick = self._last_tick = self.time()
         self._max_fps = float(Config.getint('graphics', 'maxfps'))
 
-    def _init_asyncio(self, lib=None):
+    def _init_asyncio(self, lib):
+        """Sets the async library events and coroutines to use internally when
+        running in a asynchronous manner.
+
+        :parameters:
+
+            `lib`: string
+                The async library to use when the clock is run asynchronously.
+                Can be one of `"sync"` when it's run synchronously,
+                `"async"` when the standard library asyncio should be used, or
+                `"trio"` if the trio library should be used.
+        """
         if lib == 'trio':
             import trio
             self._async_event_cls = trio.Event
@@ -1037,6 +1063,6 @@ else:
 
     Clock = register_context(
         'Clock', _classes[_clk],
-        async_lib=environ.get('KIVY_EVENTLOOP', 'default'))
+        async_lib=environ.get('KIVY_EVENTLOOP', 'sync'))
     '''The kivy Clock instance. See module documentation for details.
     '''

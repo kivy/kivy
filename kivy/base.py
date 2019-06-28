@@ -527,6 +527,8 @@ def runTouchApp(widget=None, slave=False):
     '''Static main function that starts the application loop.
     You can access some magic via the following arguments:
 
+    See :mod:`kivy.app` for example usage.
+
     :Parameters:
         `<empty>`
             To make dispatching work, you need at least one
@@ -561,8 +563,10 @@ def runTouchApp(widget=None, slave=False):
 
 
 async def async_runTouchApp(widget=None, slave=False):
-    '''Identical to :func:`runTouchApp` but instead is a coroutine
+    '''Identical to :func:`runTouchApp` but instead it is a coroutine
     that can be run in an existing async event loop.
+
+    See :mod:`kivy.app` for example usage.
 
     .. versionadded:: 2.0.0
     '''
@@ -579,7 +583,10 @@ async def async_runTouchApp(widget=None, slave=False):
 
 
 def stopTouchApp():
-    '''Stop the current application by leaving the main loop'''
+    '''Stop the current application by leaving the main loop.
+
+    See :mod:`kivy.app` for example usage.
+    '''
     if EventLoop is None:
         return
     if EventLoop.status in ('stopped', 'closed'):
