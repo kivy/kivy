@@ -68,7 +68,8 @@ class AsyncApp(App):
             nursery.start_soon(self.waste_time_freely)
 
     async def waste_time_freely(self):
-        '''This method is also run by trio and periodically prints something.'''
+        '''This method is also run by trio and periodically prints something.
+        '''
         try:
             i = 0
             while True:
