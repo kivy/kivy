@@ -554,7 +554,7 @@ class ClockBaseBehavior(object):
             self._async_event_cls = asyncio.Event
             self._async_lib = asyncio
             self._async_wait_for = asyncio.wait_for
-        elif lib == 'default':
+        elif lib == 'sync':
             pass
         else:
             raise ValueError('async library {} not recognized'.format(lib))
