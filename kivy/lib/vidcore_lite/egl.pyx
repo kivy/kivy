@@ -629,7 +629,9 @@ def bcm_element_add(bcm.UpdateHandle update,
                 bcm.Rect src_rect):
     cdef:
         bcm.DISPMANX_ELEMENT_HANDLE_T elem
+        bcm.VC_DISPMANX_ALPHA_T alpha
         bcm.ElementHandle E
+    
     elem = bcm.vc_dispmanx_element_add (update._handle,
                                      display._handle,
                                      layer,
@@ -637,7 +639,7 @@ def bcm_element_add(bcm.UpdateHandle update,
                                      0, #DISPMANX_RESOURCE_HANDLE_T src,
                                      &(src_rect._vc_rect),
                                      0, #DISPMANX_PROTECTION_T protection,
-                                     <bcm.VC_DISPMANX_ALPHA_T *>0, #VC_DISPMANX_ALPHA_T *alpha,
+                                     &alpha, #VC_DISPMANX_ALPHA_T *alpha,
                                      <bcm.DISPMANX_CLAMP_T *>0, #DISPMANX_CLAMP_T *clamp,
                                      <bcm.DISPMANX_TRANSFORM_T>0) #DISPMANX_TRANSFORM_T transform
     E = bcm.ElementHandle()

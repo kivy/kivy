@@ -24,9 +24,20 @@ cdef extern from "bcm_host.h":
         
     ctypedef struct DISPMANX_CLAMP_T:
         pass
-        
+
+    ctypedef enum DISPMANX_FLAGS_ALPHA_T:
+        DISPMANX_FLAGS_ALPHA_FROM_SOURCE=0
+        DISPMANX_FLAGS_ALPHA_FIXED_ALL_PIXELS=1
+        DISPMANX_FLAGS_ALPHA_FIXED_NON_ZERO = 2
+        DISPMANX_FLAGS_ALPHA_FIXED_EXCEED_0X07 = 3
+        DISPMANX_FLAGS_ALPHA_PREMULT = 1 << 16
+        DISPMANX_FLAGS_ALPHA_MIX = 1 << 17
+        DISPMANX_FLAGS_ALPHA_DISCARD_LOWER_LAYERS = 1 << 18
+
     ctypedef struct VC_DISPMANX_ALPHA_T:
-        pass
+        DISPMANX_FLAGS_ALPHA_T flags
+        uint32_t opacity
+        DISPMANX_RESOURCE_HANDLE_T mask
     
     void bcm_host_init()
     void bcm_host_deinit()
