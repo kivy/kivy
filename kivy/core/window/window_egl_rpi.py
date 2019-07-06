@@ -26,6 +26,9 @@ class WindowEglRpi(WindowBase):
 
     _rpi_dispmanx_id = int(environ.get("KIVY_BCM_DISPMANX_ID", "0"))
     _rpi_dispmanx_layer = int(environ.get("KIVY_BCM_DISPMANX_LAYER", "0"))
+    _rpi_dispmanx_overlay = int(environ.get("KIVY_BCM_DISPMANX_OVERLAY", "0"))
+
+
 
     def create_window(self):
         bcm.host_init()
@@ -44,7 +47,7 @@ class WindowEglRpi(WindowBase):
         display = egl.bcm_display_open(self._rpi_dispmanx_id)
         update = egl.bcm_update_start(0)
         element = egl.bcm_element_add(
-            update, display, self._rpi_dispmanx_layer, dst, src)
+            update, display, self._rpi_dispmanx_layer, dst, src, self._rpi_dispmanx_overlay)
         self.win = egl.NativeWindow(element, w, h)
         egl.bcm_update_submit_sync(update)
 
