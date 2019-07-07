@@ -4,8 +4,8 @@ in asyncio event loop as just another async coroutine.
 import asyncio
 import os
 
-os.environ['KIVY_EVENTLOOP'] = 'async'
-'''async needs to be set so that asyncio will be used for the event loop. '''
+os.environ['KIVY_EVENTLOOP'] = 'asyncio'
+'''asyncio needs to be set so that asyncio will be used for the event loop.'''
 
 from kivy.app import async_runTouchApp
 from kivy.lang.builder import Builder
