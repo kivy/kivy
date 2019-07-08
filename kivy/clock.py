@@ -355,7 +355,7 @@ executed in a asynchronous manner. When used, the kivy clock does not
 block while idling.
 
 This is selected with the `KIVY_EVENTLOOP` environmental variable and it
-can be one of `"sync"` when it should be run synchronously, `"async"` when
+can be one of `"sync"` when it should be run synchronously, `"asyncio"` when
 the standard library `asyncio` should be used, or `"trio"` if the trio library
 should be used. If not set it defaults to `"sync"`.
 
@@ -486,7 +486,7 @@ class ClockBaseBehavior(object):
         `async_lib`: string
             The async library to use when the clock is run asynchronously.
             Can be one of `"sync"` when it's run synchronously,
-            `"async"` when the standard library asyncio should be used, or
+            `"asyncio"` when the standard library asyncio should be used, or
             `"trio"` if the trio library should be used. It defaults to
             `"sync"`.
     '''
@@ -537,8 +537,8 @@ class ClockBaseBehavior(object):
             `lib`: string
                 The async library to use when the clock is run asynchronously.
                 Can be one of `"sync"` when it's run synchronously,
-                `"async"` when the standard library asyncio should be used, or
-                `"trio"` if the trio library should be used.
+                `"asyncio"` when the standard library asyncio should be used,
+                or `"trio"` if the trio library should be used.
         """
         if lib == 'trio':
             import trio
@@ -549,7 +549,7 @@ class ClockBaseBehavior(object):
                 with trio.move_on_after(t):
                     await coro
             self._async_wait_for = wait_for
-        elif lib == 'async':
+        elif lib == 'asyncio':
             import asyncio
             self._async_event_cls = asyncio.Event
             self._async_lib = asyncio

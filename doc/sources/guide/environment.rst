@@ -228,7 +228,7 @@ KIVY_EVENTLOOP
 
     ``'sync'``: When the app is run normally in a synchronous manner.
         The default if not set.
-    ``'async'``: When the app is run in an asynchronous manner and the standard
+    ``'asyncio'``: When the app is run in an asynchronous manner and the standard
         library asyncio package should be used.
     ``'trio'``: When the app is run in an asynchronous manner and the `trio`
         package should be used.

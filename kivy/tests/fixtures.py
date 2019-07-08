@@ -29,7 +29,7 @@ async def kivy_app(request, nursery):
 
     try:
         import pytest_asyncio
-        async_lib = 'async'
+        async_lib = 'asyncio'
     except ImportError:
         try:
             import trio
@@ -55,7 +55,7 @@ async def kivy_app(request, nursery):
 
     app = request.param[0]()
 
-    if async_lib == 'async':
+    if async_lib == 'asyncio':
         loop = asyncio.get_event_loop()
         loop.create_task(app.async_run())
     else:

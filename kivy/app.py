@@ -339,11 +339,11 @@ variable tells kivy which async library to use when idling and
 
 The environmental variable ``KIVY_EVENTLOOP`` determines which async library
 to use, if at all. It can be set to one of `"sync"` when it should be run
-synchronously like a normal app, `"async"` when the standard library `asyncio`
-should be used, or `"trio"` if the trio library should be used. If not set it
-defaults to `"sync"`.
+synchronously like a normal app, `"asyncio"` when the standard library
+`asyncio` should be used, or `"trio"` if the trio library should be used.
+If not set it defaults to `"sync"`.
 
-In the `"async"` or `"trio"` case, one schedules :func:`async_runTouchApp` or
+In the `"asyncio"` or `"trio"` case, one schedules :func:`async_runTouchApp` or
 :meth:`App.async_run` to run within the given library's async event loop as in
 the examples shown below. Kivy is then treated as just another coroutine that
 the given library runs in its event loop.
@@ -358,7 +358,7 @@ Asyncio example
 
     import asyncio
     import os
-    os.environ['KIVY_EVENTLOOP'] = 'async'
+    os.environ['KIVY_EVENTLOOP'] = 'asyncio'
 
     from kivy.app import async_runTouchApp
     from kivy.uix.label import Label
