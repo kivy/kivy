@@ -220,7 +220,7 @@ class UnitKivyApp(object):
     async def do_touch_down_up(
             self, pos=None, widget=None, duration=.2, pos_jitter=None,
             widget_jitter=False, jitter_dt=1 / 15., end_on_pos=False):
-        x, y = pos or widget.center
+        x, y = pos or widget.to_window(*widget.to_local(*widget.center))
         touch = AsyncUnitTestTouch(x, y)
 
         ts = time.perf_counter()
@@ -266,8 +266,9 @@ class UnitKivyApp(object):
     async def do_touch_drag(
             self, pos=None, widget=None, target_pos=None, target_widget=None,
             duration=.2, drag_n=10):
-        x, y = pos or widget.center
-        tx, ty = target_pos or target_widget.center
+        x, y = pos or widget.to_window(*widget.to_local(*widget.center))
+        tx, ty = target_pos = target_pos or target_widget.to_window(
+            *target_widget.to_local(*target_widget.center))
         touch = AsyncUnitTestTouch(x, y)
 
         touch.touch_down()
