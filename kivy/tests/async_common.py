@@ -1,6 +1,7 @@
 import asyncio
 import random
 import time
+from collections import deque
 
 from kivy.tests import UnitTestTouch
 
@@ -21,6 +22,11 @@ except ImportError:
 
 class AsyncUnitTestTouch(UnitTestTouch):
 
+    def __init__(self, *largs, **kwargs):
+        self.grab_exclusive_class = None
+        self.is_touch = True
+        super(AsyncUnitTestTouch, self).__init__(*largs, **kwargs)
+
     def touch_down(self, *args):
         self.eventloop._dispatch_input("begin", self)
 
@@ -36,7 +42,115 @@ class AsyncUnitTestTouch(UnitTestTouch):
         self.eventloop._dispatch_input("end", self)
 
 
-_base_widget_flag = object()
+_unique_value = object
+
+
+class WidgetResolver(object):
+    """It assumes that the widget tree strictly forms a DAG.
+    """
+
+    base_widget = None
+
+    matched_widget = None
+
+    _kwargs_filter = {}
+
+    _funcs_filter = []
+
+    def __init__(self, base_widget, **kwargs):
+        self.base_widget = base_widget
+        self._kwargs_filter = {}
+        self._funcs_filter = []
+        super(WidgetResolver, self).__init__(**kwargs)
+
+    def __call__(self):
+        if self.matched_widget is not None:
+            return self.matched_widget
+
+        if not self._kwargs_filter and not self._funcs_filter:
+            return self.base_widget
+        return None
+
+    def match(self, **kwargs_filter):
+        self._kwargs_filter.update(kwargs_filter)
+
+    def match_funcs(self, funcs_filter=()):
+        self._funcs_filter.extend(funcs_filter)
+
+    def check_widget(self, widget):
+        if not all(func(widget) for func in self._funcs_filter):
+            return False
+
+        for attr, val in self._kwargs_filter.items():
+            if getattr(widget, attr, _unique_value) != val:
+                return False
+
+        return True
+
+    def not_found(self, op):
+        raise ValueError(
+            'Cannot find widget matching <{}, {}> starting from base '
+            'widget "{}" doing "{}" traversal'.format(
+                self._kwargs_filter, self._funcs_filter, self.base_widget, op))
+
+    def down(self, **kwargs_filter):
+        self.match(**kwargs_filter)
+        check = self.check_widget
+
+        fifo = deque([self.base_widget])
+        while fifo:
+            widget = fifo.popleft()
+            if check(widget):
+                return WidgetResolver(base_widget=widget)
+
+            fifo.extend(widget.children)
+
+        self.not_found('down')
+
+    def up(self, **kwargs_filter):
+        self.match(**kwargs_filter)
+        check = self.check_widget
+
+        parent = self.base_widget
+        while parent is not None:
+            if check(parent):
+                return WidgetResolver(base_widget=parent)
+
+            new_parent = parent.parent
+            # Window is its own parent oO
+            if new_parent is parent:
+                break
+            parent = new_parent
+
+        self.not_found('up')
+
+    def family_up(self, **kwargs_filter):
+        self.match(**kwargs_filter)
+        check = self.check_widget
+
+        base_widget = self.base_widget
+        already_checked_base = None
+        while base_widget is not None:
+            fifo = deque([base_widget])
+            while fifo:
+                widget = fifo.popleft()
+                # don't check the child we checked before moving up
+                if widget is already_checked_base:
+                    continue
+
+                if check(widget):
+                    return WidgetResolver(base_widget=widget)
+
+                fifo.extend(widget.children)
+
+            already_checked_base = base_widget
+            new_base_widget = base_widget.parent
+            # Window is its own parent oO
+            if new_base_widget is base_widget:
+                break
+            base_widget = new_base_widget
+
+        self.not_found('family_up')
 
 
 class UnitKivyApp(object):
@@ -47,11 +161,8 @@ class UnitKivyApp(object):
 
     app_has_stopped = False
 
-    resolved_widgets_cache = {}
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.resolved_widgets_cache = {}
 
         def started_app(*largs):
             self.app_has_started = True
@@ -61,40 +172,11 @@ class UnitKivyApp(object):
             self.app_has_stopped = True
         self.fbind('on_stop', stopped_app)
 
-    def resolve_widget(
-            self, *match_funcs, base_widget=_base_widget_flag, **attrs):
+    def resolve_widget(self, base_widget=None):
         if base_widget is None:
-            return None
-
-        if base_widget is _base_widget_flag:
-            base_widget = self.root
-
-        for widget in base_widget.walk(restrict=True):
-            if all(match(widget) for match in match_funcs):
-                for attr, val in attrs.items():
-                    if getattr(widget, attr, _base_widget_flag) != val:
-                        break
-                else:
-                    return widget
-        return None
-
-    def resolve_widget_cached(
-            self, *match_funcs, base_widget=_base_widget_flag, **attrs):
-        if base_widget is None:
-            return None
-
-        key = match_funcs, base_widget, attrs
-        widget = self.resolved_widgets_cache.get(key, None)
-        if widget is not None:
-            return widget
-
-        widget = self.resolve_widget(
-            *match_funcs, base_widget=base_widget, **attrs)
-        if widget is None:
-            return None
-
-        self.resolved_widgets_cache[key] = widget
-        return widget
+            from kivy.core.window import Window
+            base_widget = Window
+        return WidgetResolver(base_widget=base_widget)
 
     async def wait_clock_frames(self, n, sleep_time=1 / 60.):
         from kivy.clock import Clock
