@@ -543,6 +543,7 @@ class ScrollView(StencilView):
         fbind('scroll_y', self._update_effect_bounds)
         fbind('scroll_x', self._update_effect_bounds)
 
+        trigger_update_from_scroll()
         update_effect_widget()
         update_effect_x_bounds()
         update_effect_y_bounds()
@@ -1028,6 +1029,7 @@ class ScrollView(StencilView):
         if the size of the content changes.
         '''
         if not self._viewport:
+            self.g_translate.xy = self.pos
             return
         vp = self._viewport
 
