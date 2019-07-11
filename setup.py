@@ -666,7 +666,7 @@ def determine_gl_flags():
         c_options['use_x11'] = True
         c_options['use_egl'] = True
     else:
-        flags['libraries'] = ['GL']
+        flags['libraries'] = ['GL','GLEW']
     return flags, base_flags
 
 
@@ -803,7 +803,7 @@ sources = {
     'graphics/gl_instructions.pyx': merge(base_flags, gl_flags_base),
     'graphics/instructions.pyx': merge(base_flags, gl_flags_base),
     'graphics/opengl.pyx': merge(base_flags, gl_flags_base),
-    'graphics/opengl_utils.pyx': merge(base_flags, gl_flags_base),
+    'graphics/opengl_utils.pyx': merge(base_flags, gl_flags),
     'graphics/shader.pyx': merge(base_flags, gl_flags_base),
     'graphics/stencil_instructions.pyx': merge(base_flags, gl_flags_base),
     'graphics/scissor_instructions.pyx': merge(base_flags, gl_flags_base),
@@ -900,11 +900,14 @@ if c_options['use_rpi']:
         base_flags, gl_flags)
 
 if c_options['use_x11']:
-    libs = ['Xrender', 'X11']
+    libs = ['X11']
     if c_options['use_egl']:
+        if platform == 'linux':
+            # link with GLVND : libOpenGL
+            libs += ['OpenGL']
         libs += ['EGL']
     else:
-        libs += ['GL']
+        libs += ['Xrender', 'GL']
     sources['core/window/window_x11.pyx'] = merge(
         base_flags, gl_flags, {
             # FIXME add an option to depend on them but not compile them
