@@ -1,6 +1,6 @@
 import pytest
 
-TRANSITION_CLASS_NAMES = (
+transition_cls_names = (
     'ShaderTransition', 'SlideTransition', 'SwapTransition', 'FadeTransition',
     'WipeTransition', 'FallOutTransition', 'RiseInTransition', 'NoTransition',
     'CardTransition',
@@ -22,7 +22,7 @@ def test_switch_to():
     manager.switch_to(screen2)
 
 
-@pytest.mark.parametrize('transition_cls_name', TRANSITION_CLASS_NAMES)
+@pytest.mark.parametrize('transition_cls_name', transition_cls_names)
 def test_switching_does_not_affect_a_list_of_screens(transition_cls_name):
     import kivy.uix.screenmanager as sm
     transition_cls = getattr(sm, transition_cls_name)

@@ -1,13 +1,13 @@
 import pytest
 import functools
 
-NON_RELATIVE_TYPE_WIDGET_CLS_NAMES = ('Widget', )
-RELATIVE_TYPE_WIDGET_CLS_NAMES = (
+non_relative_type_widget_cls_names = ('Widget', )
+relative_type_widget_cls_names = (
     'RelativeLayout', 'Scatter', 'ScrollView',
 )
-ALL_WIDGET_CLS_NAMES = \
-    NON_RELATIVE_TYPE_WIDGET_CLS_NAMES + \
-    RELATIVE_TYPE_WIDGET_CLS_NAMES
+all_widget_cls_names = \
+    non_relative_type_widget_cls_names + \
+    relative_type_widget_cls_names
 
 
 @functools.lru_cache(maxsize=1)
@@ -15,7 +15,7 @@ def get_relative_type_widget_classes():
     from kivy.factory import Factory
     return tuple(
         Factory.get(cls_name)
-        for cls_name in RELATIVE_TYPE_WIDGET_CLS_NAMES
+        for cls_name in relative_type_widget_cls_names
     )
 
 
@@ -23,7 +23,7 @@ def is_relative_type(widget):
     return isinstance(widget, get_relative_type_widget_classes())
 
 
-@pytest.mark.parametrize('widget_cls_name', RELATIVE_TYPE_WIDGET_CLS_NAMES)
+@pytest.mark.parametrize('widget_cls_name', relative_type_widget_cls_names)
 def test_to_local_and_to_parent__relative(widget_cls_name):
     from kivy.clock import Clock
     from kivy.factory import Factory
@@ -33,7 +33,7 @@ def test_to_local_and_to_parent__relative(widget_cls_name):
     assert widget.to_parent(0, 0) == (100, 100)
 
 
-@pytest.mark.parametrize('widget_cls_name', NON_RELATIVE_TYPE_WIDGET_CLS_NAMES)
+@pytest.mark.parametrize('widget_cls_name', non_relative_type_widget_cls_names)
 def test_to_local_and_to_parent__not_relative(widget_cls_name):
     from kivy.clock import Clock
     from kivy.factory import Factory
@@ -43,8 +43,8 @@ def test_to_local_and_to_parent__not_relative(widget_cls_name):
     assert widget.to_parent(0, 0) == (0, 0)
 
 
-@pytest.mark.parametrize('root_widget_cls_name', ALL_WIDGET_CLS_NAMES)
-@pytest.mark.parametrize('target_widget_cls_name', ALL_WIDGET_CLS_NAMES)
+@pytest.mark.parametrize('root_widget_cls_name', all_widget_cls_names)
+@pytest.mark.parametrize('target_widget_cls_name', all_widget_cls_names)
 def test_to_window_and_to_widget(root_widget_cls_name, target_widget_cls_name):
     from kivy.clock import Clock
     from textwrap import dedent
