@@ -176,7 +176,10 @@ class ParserRuleProperty(object):
             # if we don't detect any string/key in it, we can eval and give the
             # result
             if re.search(lang_key, tmp) is None:
-                self.co_value = eval(value)
+                value = '\n' * self.line + value
+                self.co_value = eval(
+                    compile(value, self.ctx.filename or '<string>', 'eval')
+                )
                 return
 
         # ok, we can compile.
