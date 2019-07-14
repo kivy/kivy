@@ -1,4 +1,8 @@
 import pytest
+import os
+
+kivy_eventloop = os.environ.get('KIVY_EVENTLOOP', 'asyncio')
+
 try:
     from .fixtures import kivy_app
 except SyntaxError:
@@ -6,20 +10,10 @@ except SyntaxError:
     # it's ok to fail here as it won't be used anyway
     pass
 
-try:
-    import pytest_asyncio
-
+if kivy_eventloop != 'trio':
     @pytest.fixture()
     def nursery():
         pass
-except ImportError:
-    try:
-        import trio
-        from pytest_trio import trio_fixture
-    except ImportError:
-        @pytest.fixture()
-        def nursery():
-            pass
 
 
 def pytest_runtest_makereport(item, call):

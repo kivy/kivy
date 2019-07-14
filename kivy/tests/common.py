@@ -32,6 +32,7 @@ if 'mock' != cgl_get_backend_name():
 make_screenshots = os.environ.get('KIVY_UNITTEST_SCREENSHOTS')
 http_server = None
 http_server_ready = threading.Event()
+kivy_eventloop = os.environ.get('KIVY_EVENTLOOP', 'asyncio')
 
 
 def ensure_web_server():
@@ -459,10 +460,15 @@ def async_run(func=None, app_cls_func=None):
             func = pytest.mark.parametrize(
                 "kivy_app", [[app_cls_func], ], indirect=True)(func)
 
-        try:
-            import pytest_asyncio
-            return pytest.mark.asyncio(func)
-        except ImportError:
+        if kivy_eventloop == 'asyncio':
+            try:
+                import pytest_asyncio
+                return pytest.mark.asyncio(func)
+            except ImportError:
+                return pytest.mark.skip(
+                    reason='KIVY_EVENTLOOP == "asyncio" but '
+                           '"pytest-asyncio" is not installed')(func)
+        elif kivy_eventloop == 'trio':
             try:
                 import trio
                 from pytest_trio import trio_fixture
@@ -470,8 +476,12 @@ def async_run(func=None, app_cls_func=None):
                 return func
             except ImportError:
                 return pytest.mark.skip(
-                    reason='Either pytest_asyncio or pytest_trio must be '
-                    'installed to run asyncio tests')(func)
+                    reason='KIVY_EVENTLOOP == "trio" but '
+                           '"pytest-trio" is not installed')(func)
+        else:
+            return pytest.mark.skip(
+                reason='KIVY_EVENTLOOP must be set to either of "asyncio" or '
+                       '"trio" to run async tests')(func)
 
     if func is None:
         return inner_func

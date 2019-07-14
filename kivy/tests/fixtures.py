@@ -1,6 +1,5 @@
 import pytest
 import gc
-import asyncio
 import time
 import os.path
 from kivy.tests import async_sleep
@@ -27,19 +26,23 @@ async def kivy_app(request, nursery):
     from kivy.base import stopTouchApp
     from kivy import kivy_data_dir
 
-    try:
-        import pytest_asyncio
+    kivy_eventloop = environ.get('KIVY_EVENTLOOP', 'asyncio')
+    if kivy_eventloop == 'asyncio':
+        pytest.importorskip(
+            'pytest_asyncio',
+            reason='KIVY_EVENTLOOP == "asyncio" but '
+                   '"pytest_asyncio" is not installed')
         async_lib = 'asyncio'
-    except ImportError:
-        try:
-            import trio
-            from pytest_trio import trio_fixture
-            async_lib = 'trio'
-        except ImportError:
-            pytest.skip(
-                'Either pytest_asyncio or pytest_trio must be installed to '
-                'run asyncio tests')
-            return
+    elif kivy_eventloop == 'trio':
+        pytest.importorskip(
+            'pytest_trio',
+            reason='KIVY_EVENTLOOP == "trio" but '
+                   '"pytest_trio" is not installed')
+        async_lib = 'trio'
+    else:
+        pytest.skip(
+            reason='KIVY_EVENTLOOP must be set to either of "asyncio" or '
+                   '"trio" to run async tests')
 
     context = Context(init=False)
     context['Clock'] = ClockBase(async_lib=async_lib)
@@ -56,6 +59,7 @@ async def kivy_app(request, nursery):
     app = request.param[0]()
 
     if async_lib == 'asyncio':
+        import asyncio
         loop = asyncio.get_event_loop()
         loop.create_task(app.async_run())
     else:

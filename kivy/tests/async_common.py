@@ -1,6 +1,6 @@
-import asyncio
 import random
 import time
+import os
 from collections import deque
 
 from kivy.tests import UnitTestTouch
@@ -8,16 +8,19 @@ from kivy.tests import UnitTestTouch
 __all__ = ('UnitKivyApp', 'async_sleep')
 
 
+kivy_eventloop = os.environ.get('KIVY_EVENTLOOP', 'asyncio')
+async_sleep = None
 try:
-    import pytest_asyncio
-    async_sleep = asyncio.sleep
-except ImportError:
-    try:
+    if kivy_eventloop == 'asyncio':
+        import asyncio
+        import pytest_asyncio
+        async_sleep = asyncio.sleep
+    elif kivy_eventloop == 'trio':
         import trio
         from pytest_trio import trio_fixture
         async_sleep = trio.sleep
-    except ImportError:
-        async_sleep = None
+except ImportError:
+    pass
 
 
 class AsyncUnitTestTouch(UnitTestTouch):
