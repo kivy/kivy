@@ -13,7 +13,7 @@ Using Precompiled Wheels
 
 Wheels are precompiled binaries for all linux platforms using the manylinux2010 tag.
 In the following, replace `python` with `python3` for Python 3.
-To install first update pip::
+To install first update pip (at least pip v19.0 is required to support a manylinux2010 wheel)::
 
     $ python -m pip install --upgrade --user pip setuptools virtualenv
 
