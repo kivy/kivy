@@ -223,7 +223,13 @@ class UnitKivyApp(object):
     async def do_touch_down_up(
             self, pos=None, widget=None, duration=.2, pos_jitter=None,
             widget_jitter=False, jitter_dt=1 / 15., end_on_pos=False):
-        x, y = pos or widget.to_window(*widget.center)
+        if widget is None:
+            x, y = pos
+        else:
+            if pos is None:
+                x, y = widget.to_window(*widget.center)
+            else:
+                x, y = widget.to_window(*pos, initial=False)
         touch = AsyncUnitTestTouch(x, y)
 
         ts = time.perf_counter()
@@ -235,7 +241,7 @@ class UnitKivyApp(object):
             await async_sleep(duration)
             touch.touch_up()
             await self.wait_clock_frames(1)
-            yield 'move', touch.pos
+            yield 'up', touch.pos
 
             return
 
@@ -267,29 +273,51 @@ class UnitKivyApp(object):
         yield 'up', touch.pos
 
     async def do_touch_drag(
-            self, pos=None, widget=None, target_pos=None, target_widget=None,
-            dx=0, dy=0, duration=.2, drag_n=10):
-        x, y = pos or widget.to_window(*widget.center)
+            self, pos=None, widget=None, dx=0, dy=0, target_pos=None,
+            target_widget=None, long_press=0, duration=.2, drag_n=5):
+        """Note that dx, dy are not scaled by any widget's possible scale
+        factor.
+        """
+        if widget is None:
+            x, y = pos
+            tx, ty = x + dx, y + dy
+        else:
+            if pos is None:
+                x, y = widget.to_window(*widget.center)
+                tx, ty = widget.to_window(
+                    widget.center[0] + dx, widget.center[1] + dy)
+            else:
+                x, y = widget.to_window(*pos, initial=False)
+                tx, ty = widget.to_window(
+                    pos[0] + dx, pos[1] + dy, initial=False)
+
         if target_pos is not None:
-            tx, ty = target_pos
+            if target_widget is None:
+                tx, ty = target_pos
+            else:
+                tx, ty = target_pos = target_widget.to_window(
+                    *target_pos, initial=False)
         elif target_widget is not None:
             tx, ty = target_pos = target_widget.to_window(
                 *target_widget.center)
         else:
-            tx, ty = target_pos = x + dx, y + dy
+            target_pos = tx, ty
 
         touch = AsyncUnitTestTouch(x, y)
 
         touch.touch_down()
         await self.wait_clock_frames(1)
+        if long_press:
+            await async_sleep(long_press)
         yield 'down', touch.pos
 
         dx = (tx - x) / drag_n
         dy = (ty - y) / drag_n
-        dt = duration / drag_n
 
+        ts0 = time.perf_counter()
         for i in range(drag_n):
-            await async_sleep(dt)
+            await async_sleep(
+                max(0., duration - (time.perf_counter() - ts0)) / (drag_n - i))
 
             touch.touch_move(x + (i + 1) * dx, y + (i + 1) * dy)
             await self.wait_clock_frames(1)
@@ -304,13 +332,50 @@ class UnitKivyApp(object):
         await self.wait_clock_frames(1)
         yield 'up', touch.pos
 
+    async def do_touch_drag_path(
+            self, path, axis_widget=None, long_press=0, duration=.2):
+        """Note that the path points are not scaled by any widget's possible
+        scale factor.
+        """
+        if axis_widget is not None:
+            path = [axis_widget.to_window(*p, initial=False) for p in path]
+        x, y = path[0]
+        path = path[1:]
+
+        touch = AsyncUnitTestTouch(x, y)
+
+        touch.touch_down()
+        await self.wait_clock_frames(1)
+        if long_press:
+            await async_sleep(long_press)
+        yield 'down', touch.pos
+
+        ts0 = time.perf_counter()
+        n = len(path)
+        for i, (x2, y2) in enumerate(path):
+            await async_sleep(
+                max(0., duration - (time.perf_counter() - ts0)) / (n - i))
+
+            touch.touch_move(x2, y2)
+            await self.wait_clock_frames(1)
+            yield 'move', touch.pos
+
+        touch.touch_up()
+        await self.wait_clock_frames(1)
+        yield 'up', touch.pos
+
     async def do_keyboard_key(
-            self, key, modifiers=(), duration=.2, num_press=1):
+            self, key, modifiers=(), duration=.05, num_press=1):
         from kivy.core.window import Window
+        if key == ' ':
+            key = 'spacebar'
         key_code = Window._system_keyboard.string_to_keycode(key.lower())
 
-        known_modifiers = (
-            'shift', 'alt', 'ctrl', 'meta', 'numlock', 'capslock')
+        known_modifiers = {'shift', 'alt', 'ctrl', 'meta'}
+        if set(modifiers) - known_modifiers:
+            raise ValueError('Unknown modifiers "{}"'.
+                             format(set(modifiers) - known_modifiers))
+
         special_keys = {
             27: 'escape',
             9: 'tab',
@@ -325,22 +390,28 @@ class UnitKivyApp(object):
             278: 'home',
             279: 'end',
             280: 'pgup',
-            281: 'pgdown'}
+            281: 'pgdown',
+            300: 'numlock',
+            301: 'capslock',
+            145: 'screenlock',
+        }
 
         text = None
-        if (key not in modifiers and key not in known_modifiers and
-                key_code not in special_keys):
-            try:
-                text = chr(key_code)
-            except ValueError:
-                pass
+        try:
+            text = chr(key_code)
+        except ValueError:
+            pass
 
         dt = duration / num_press
         for i in range(num_press):
             await async_sleep(dt)
 
             Window.dispatch('on_key_down', key_code, 0, text, modifiers)
-            Window.dispatch('on_textinput', key)
+            if (key not in known_modifiers and
+                    key_code not in special_keys and
+                    not (known_modifiers & set(modifiers))):
+                Window.dispatch('on_textinput', text)
+
             await self.wait_clock_frames(1)
             yield 'down', (key, key_code, 0, text, modifiers)
 
