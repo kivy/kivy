@@ -523,7 +523,7 @@ class WindowBase(EventDispatcher):
     def _get_center(self):
         return self.width / 2., self.height / 2.
 
-    center = AliasProperty(_get_center, bind=('width', 'height'), cache=False)
+    center = AliasProperty(_get_center, bind=('width', 'height'))  # Do not cache center
     '''Center of the rotated window.
 
     .. versionadded:: 1.0.9
