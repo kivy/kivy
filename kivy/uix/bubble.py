@@ -59,17 +59,19 @@ To change the appearance of the bubble::
 
 __all__ = ('Bubble', 'BubbleButton', 'BubbleContent')
 
-from kivy.uix.image import Image
-from kivy.uix.widget import Widget
-from kivy.uix.scatter import Scatter
-from kivy.uix.gridlayout import GridLayout
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
 from kivy.properties import ObjectProperty, StringProperty, OptionProperty, \
     ListProperty, BooleanProperty
-from kivy.clock import Clock
+
+from kivy.animation import Animation
 from kivy.base import EventLoop
+from kivy.clock import Clock
 from kivy.metrics import dp
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.image import Image
+from kivy.uix.scatter import Scatter
+from kivy.uix.widget import Widget
 
 
 class BubbleButton(Button):
@@ -89,6 +91,14 @@ class BubbleContent(GridLayout):
 
 class Bubble(GridLayout):
     '''Bubble class. See module documentation for more information.
+    '''
+
+    auto_dismiss = BooleanProperty(True)
+    '''This property determines if the widget is automatically
+    removed when the user clicks outside it.
+
+    :attr:`auto_dismiss` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
     '''
 
     background_color = ListProperty([1, 1, 1, 1])
@@ -234,6 +244,33 @@ class Bubble(GridLayout):
             super(Bubble, self).clear_widgets()
         else:
             content.clear_widgets()
+
+    def hide(self, *largs, **kwargs):
+        '''Close the Bubble if it is open.
+        When the view is dismissed, it will be faded out before being
+        removed from the parent. If you don't want animation, use::
+
+            view.dismiss(animation=False)
+
+        '''
+        parent = self.parent
+        if not parent:
+            return
+
+        if kwargs.get('animation', True):
+            anim = Animation(opacity=0, d=.225)
+            anim.bind(on_complete=lambda *args: parent.remove_widget(self))
+            anim.start(self)
+        else:
+            parent.remove_widget(self)
+
+    def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos):
+            if self.auto_dismiss:
+                self.hide()
+                return True
+        super(Bubble, self).on_touch_down(touch)
+        return True
 
     def on_show_arrow(self, instance, value):
         self._arrow_img.opacity = int(value)
