@@ -624,7 +624,11 @@ class ConfigParser(PythonConfigParser, object):
         '''
         try:
             config = ConfigParser._named_configs[name][0]
-            return config() if config else None
+            if config is not None:
+                config = config()
+                if config is not None:
+                    return config
+            del ConfigParser._named_configs[name]
         except KeyError:
             return None
 
@@ -675,7 +679,7 @@ class ConfigParser(PythonConfigParser, object):
             configs[value] = (ref(self), [])
             return
 
-        if config is not None:
+        if config is not None and config() is not None:
             raise ValueError('A parser named {} already exists'.format(value))
         for widget, prop in props:
             widget = widget()
