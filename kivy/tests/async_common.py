@@ -369,7 +369,8 @@ class UnitKivyApp(object):
         from kivy.core.window import Window
         if key == ' ':
             key = 'spacebar'
-        key_code = Window._system_keyboard.string_to_keycode(key.lower())
+        key_lower = key.lower()
+        key_code = Window._system_keyboard.string_to_keycode(key_lower)
 
         known_modifiers = {'shift', 'alt', 'ctrl', 'meta'}
         if set(modifiers) - known_modifiers:
@@ -399,6 +400,8 @@ class UnitKivyApp(object):
         text = None
         try:
             text = chr(key_code)
+            if key_lower != key:
+                text = key
         except ValueError:
             pass
 
