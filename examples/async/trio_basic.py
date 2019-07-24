@@ -2,11 +2,6 @@
 event loop as just another async coroutine.
 '''
 import trio
-import os
-
-os.environ['KIVY_EVENTLOOP'] = 'trio'
-'''trio needs to be set so that it'll be used for the event loop. '''
-
 from kivy.app import async_runTouchApp
 from kivy.lang.builder import Builder
 
@@ -26,7 +21,8 @@ BoxLayout:
 async def run_app_happily(root, nursery):
     '''This method, which runs Kivy, is run by trio as one of the coroutines.
     '''
-    await async_runTouchApp(root)  # run Kivy
+    # trio needs to be set so that it'll be used for the event loop
+    await async_runTouchApp(root, async_lib='trio')  # run Kivy
     print('App done')
     # now cancel all the other tasks that may be running
     nursery.cancel_scope.cancel()

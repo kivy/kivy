@@ -354,10 +354,11 @@ coroutine method which is used by the kivy EventLoop when the kivy EventLoop is
 executed in a asynchronous manner. When used, the kivy clock does not
 block while idling.
 
-This is selected with the `KIVY_EVENTLOOP` environmental variable and it
-can be one of `"sync"` when it should be run synchronously, `"asyncio"` when
-the standard library `asyncio` should be used, or `"trio"` if the trio library
-should be used. If not set it defaults to `"sync"`.
+The async library to use is selected with the `KIVY_EVENTLOOP` environmental
+variable or by  calling :meth:`~kivy.clock.ClockBaseBehavior.init_async_lib`
+directly. The library can be one of `"asyncio"` when the standard library
+`asyncio` should be used, or `"trio"` if the trio library
+should be used. If not set it defaults to `"asyncio"`.
 
 See :mod:`~kivy.app` for example usage.
 '''
@@ -485,10 +486,12 @@ class ClockBaseBehavior(object):
 
         `async_lib`: string
             The async library to use when the clock is run asynchronously.
-            Can be one of `"sync"` when it's run synchronously,
-            `"asyncio"` when the standard library asyncio should be used, or
-            `"trio"` if the trio library should be used. It defaults to
-            `"sync"`.
+            Can be one of, `"asyncio"` when the standard library asyncio
+            should be used, or `"trio"` if the trio library should be used.
+
+            It defaults to `'asyncio'` or the value in the environmental
+            variable `KIVY_EVENTLOOP` if set. :meth:`init_async_lib` can also
+            be called directly to set the library.
     '''
 
     _dt = 0.0001
@@ -516,33 +519,32 @@ class ClockBaseBehavior(object):
     '''
     SLEEP_UNDERSHOOT = MIN_SLEEP - 0.001
 
-    _async_event_cls = None
-
     _async_lib = None
 
     _async_wait_for = None
 
-    def __init__(self, async_lib='sync', **kwargs):
-        self._init_asyncio(async_lib)
+    def __init__(self, async_lib='asyncio', **kwargs):
+        self.init_async_lib(async_lib)
         super(ClockBaseBehavior, self).__init__(**kwargs)
         self._duration_ts0 = self._start_tick = self._last_tick = self.time()
         self._max_fps = float(Config.getint('graphics', 'maxfps'))
 
-    def _init_asyncio(self, lib):
-        """Sets the async library events and coroutines to use internally when
-        running in a asynchronous manner.
+    def init_async_lib(self, lib):
+        """Manually sets the async library to use internally, when running in
+        a asynchronous manner.
+
+        This can be called anytime before the kivy event loop has started,
+        but not once the kivy App is running.
 
         :parameters:
 
             `lib`: string
                 The async library to use when the clock is run asynchronously.
-                Can be one of `"sync"` when it's run synchronously,
-                `"asyncio"` when the standard library asyncio should be used,
-                or `"trio"` if the trio library should be used.
+                Can be one of, `"asyncio"` when the standard library asyncio
+                should be used, or `"trio"` if the trio library should be used.
         """
         if lib == 'trio':
             import trio
-            self._async_event_cls = trio.Event
             self._async_lib = trio
 
             async def wait_for(coro, t):
@@ -551,11 +553,8 @@ class ClockBaseBehavior(object):
             self._async_wait_for = wait_for
         elif lib == 'asyncio':
             import asyncio
-            self._async_event_cls = asyncio.Event
             self._async_lib = asyncio
             self._async_wait_for = asyncio.wait_for
-        elif lib == 'sync':
-            pass
         else:
             raise ValueError('async library {} not recognized'.format(lib))
 
@@ -739,10 +738,22 @@ class ClockBaseInterruptBehavior(ClockBaseBehavior):
     def __init__(self, interupt_next_only=False, **kwargs):
         super(ClockBaseInterruptBehavior, self).__init__(**kwargs)
         self._event = ThreadingEvent()
-        if self._async_event_cls is not None:
-            self._async_event = self._async_event_cls()
         self.interupt_next_only = interupt_next_only
         self._get_min_timeout_func = self.get_min_timeout
+
+    def init_async_lib(self, lib):
+        super(ClockBaseInterruptBehavior, self).init_async_lib(lib)
+        if lib == 'trio':
+            import trio
+            self._async_event = trio.Event()
+            # we don't know if this is called after things have already been
+            # scheduled, so don't delay for a full frame before processing
+            # events
+            self._async_event.set()
+        elif lib == 'asyncio':
+            import asyncio
+            self._async_event = asyncio.Event()
+            self._async_event.set()
 
     def usleep(self, microseconds):
         self._event.clear()
@@ -1063,6 +1074,6 @@ else:
 
     Clock = register_context(
         'Clock', _classes[_clk],
-        async_lib=environ.get('KIVY_EVENTLOOP', 'sync'))
+        async_lib=environ.get('KIVY_EVENTLOOP', 'asyncio'))
     '''The kivy Clock instance. See module documentation for details.
     '''

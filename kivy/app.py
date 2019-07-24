@@ -331,22 +331,29 @@ the async package being used instead of sleeping.
 Async configuration
 ~~~~~~~~~~~~~~~~~~~
 
-To run an async app, both the ``KIVY_EVENTLOOP`` environmental variable must
-be set appropriately, and :func:`async_runTouchApp` or :meth:`App.async_run`
-must be scheduled to run in the external async package's event loop. The
-variable tells kivy which async library to use when idling and
-:func:`async_runTouchApp` or :meth:`App.async_run` run the actual app.
+To run a Kivy app asynchronously, either the :func:`async_runTouchApp` or
+:meth:`App.async_run` coroutine must be scheduled to run in the event loop of
+the async library being used.
 
-The environmental variable ``KIVY_EVENTLOOP`` determines which async library
-to use, if at all. It can be set to one of `"sync"` when it should be run
-synchronously like a normal app, `"asyncio"` when the standard library
-`asyncio` should be used, or `"trio"` if the trio library should be used.
-If not set it defaults to `"sync"`.
+The environmental variable ``KIVY_EVENTLOOP`` or the ``async_lib`` parameter in
+:func:`async_runTouchApp` and :meth:`App.async_run` set the async
+library that Kivy uses internally when the app is run with
+:func:`async_runTouchApp` and :meth:`App.async_run`. It can be set to one of
+`"asyncio"` when the standard library `asyncio` is used, or `"trio"` if the
+trio library is used. If the environment variable is not set and ``async_lib``
+is not provided, the stdlib ``asyncio`` is used.
 
-In the `"asyncio"` or `"trio"` case, one schedules :func:`async_runTouchApp` or
-:meth:`App.async_run` to run within the given library's async event loop as in
-the examples shown below. Kivy is then treated as just another coroutine that
-the given library runs in its event loop.
+:meth:`~kivy.clock.ClockBaseBehavior.init_async_lib` can also be directly
+called to set the async library to use, but it may only be called before the
+app has begun running with :func:`async_runTouchApp` or :meth:`App.async_run`.
+
+To run the app asynchronously, one schedules :func:`async_runTouchApp`
+or :meth:`App.async_run` to run within the given library's async event loop as
+in the examples shown below. Kivy is then treated as just another coroutine
+that the given library runs in its event loop. Internally, Kivy will use the
+specified async library's API, so ``KIVY_EVENTLOOP`` or ``async_lib`` must
+match the async library that is running Kivy.
+
 
 For a fuller basic and more advanced examples, see the demo apps in
 ``examples/async``.
@@ -357,15 +364,14 @@ Asyncio example
 .. code-block:: python
 
     import asyncio
-    import os
-    os.environ['KIVY_EVENTLOOP'] = 'asyncio'
 
     from kivy.app import async_runTouchApp
     from kivy.uix.label import Label
 
 
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(async_runTouchApp(Label(text='Hello, World!')))
+    loop.run_until_complete(
+        async_runTouchApp(Label(text='Hello, World!'), async_lib='asyncio'))
     loop.close()
 
 Trio example
@@ -374,13 +380,11 @@ Trio example
 .. code-block:: python
 
     import trio
-    import os
-    os.environ['KIVY_EVENTLOOP'] = 'trio'
 
     from kivy.app import async_runTouchApp
     from kivy.uix.label import Label
 
-    trio.run(async_runTouchApp, Label(text='Hello, World!'))
+    trio.run(async_runTouchApp, Label(text='Hello, World!'), async_lib='trio')
 
 Interacting with Kivy app from other coroutines
 -----------------------------------------------
@@ -946,7 +950,7 @@ Context.html#getFilesDir()>`_ is returned.
         runTouchApp()
         self.stop()
 
-    async def async_run(self):
+    async def async_run(self, async_lib=None):
         '''Identical to :meth:`run`, but is a coroutine and can be
         scheduled in a running async event loop.
 
@@ -955,7 +959,7 @@ Context.html#getFilesDir()>`_ is returned.
         .. versionadded:: 2.0.0
         '''
         self._run_prepare()
-        await async_runTouchApp()
+        await async_runTouchApp(async_lib=async_lib)
         self.stop()
 
     def stop(self, *largs):

@@ -562,14 +562,17 @@ def runTouchApp(widget=None, slave=False):
         stopTouchApp()
 
 
-async def async_runTouchApp(widget=None, slave=False):
+async def async_runTouchApp(widget=None, slave=False, async_lib=None):
     '''Identical to :func:`runTouchApp` but instead it is a coroutine
     that can be run in an existing async event loop.
 
-    See :mod:`kivy.app` for example usage.
+    ``async_lib`` is the async library to use. See :mod:`kivy.app` for details
+    and example usage.
 
     .. versionadded:: 2.0.0
     '''
+    if async_lib is not None:
+        Clock.init_async_lib(async_lib)
     _runTouchApp_prepare(widget=widget, slave=slave)
 
     # we are in a slave mode, don't do dispatching.

@@ -2,10 +2,6 @@
 event loop as just another async coroutine.
 '''
 import trio
-import os
-
-os.environ['KIVY_EVENTLOOP'] = 'trio'
-'''trio needs to be set so that it'll be used for the event loop. '''
 
 from kivy.app import App
 from kivy.lang.builder import Builder
@@ -60,7 +56,8 @@ class AsyncApp(App):
             self.nursery = nursery
 
             async def run_wrapper():
-                await self.async_run()
+                # trio needs to be set so that it'll be used for the event loop
+                await self.async_run(async_lib='trio')
                 print('App done')
                 nursery.cancel_scope.cancel()
 

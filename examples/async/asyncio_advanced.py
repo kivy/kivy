@@ -2,10 +2,6 @@
 in asyncio event loop as just another async coroutine.
 '''
 import asyncio
-import os
-
-os.environ['KIVY_EVENTLOOP'] = 'asyncio'
-'''asyncio needs to be set so that asyncio will be used for the event loop.'''
 
 from kivy.app import App
 from kivy.lang.builder import Builder
@@ -54,7 +50,9 @@ class AsyncApp(App):
         self.other_task = asyncio.ensure_future(self.waste_time_freely())
 
         async def run_wrapper():
-            await self.async_run()
+            # we don't actually need to set asyncio as the lib because it is
+            # the default, but it doesn't hurt to be explicit
+            await self.async_run(async_lib='asyncio')
             print('App done')
             self.other_task.cancel()
 
