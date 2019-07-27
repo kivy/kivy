@@ -19,6 +19,7 @@ from libc.string cimport memset
 from functools import partial
 from collections import defaultdict
 from kivy.weakmethod import WeakMethod
+from kivy.weakproxy import WeakProxy
 from kivy.compat import string_types
 from kivy.properties cimport (Property, PropertyStorage, ObjectProperty,
     NumericProperty, StringProperty, ListProperty, DictProperty,
@@ -890,10 +891,22 @@ cdef class EventDispatcher(ObjectWithUid):
 
     @property
     def proxy_ref(self):
-        '''Default implementation of proxy_ref, returns self.
+        '''Returns a :class:`~kivy.weakproxy.WeakProxy` reference to the
+        :class:`EventDispatcher`.
+
         .. versionadded:: 1.9.0
+
+        .. versionchanged:: 2.0.0
+
+            Previously it just returned itself, now it actually returns a
+            :class:`~kivy.weakproxy.WeakProxy`.
         '''
-        return self
+        _proxy_ref = self._proxy_ref
+        if _proxy_ref is not None:
+            return _proxy_ref
+
+        self._proxy_ref = _proxy_ref = WeakProxy(self)
+        return _proxy_ref
 
 
 cdef class BoundCallback:
