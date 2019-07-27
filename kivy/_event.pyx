@@ -167,6 +167,7 @@ cdef class EventDispatcher(ObjectWithUid):
 
         self.__event_stack = {}
         self.__storage = {}
+        self._proxy_ref = None.
 
         __cls__ = self.__class__
 
