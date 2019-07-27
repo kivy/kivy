@@ -216,5 +216,21 @@ KIVY_BCM_DISPMANX_ID
 
 KIVY_BCM_DISPMANX_LAYER
     Change the default Raspberry Pi dispmanx layer. Default value is 0.
- 
+
     .. versionadded:: 1.10.1
+
+Event Loop
+----------
+
+KIVY_EVENTLOOP
+    Whether to use an async or synchronous event loop. See :mod:`kivy.app`
+    for example usage.
+
+    ``'sync'``: When the app is run normally in a synchronous manner.
+        The default if not set.
+    ``'asyncio'``: When the app is run in an asynchronous manner and the standard
+        library asyncio package should be used.
+    ``'trio'``: When the app is run in an asynchronous manner and the `trio`
+        package should be used.
+
+    .. versionadded:: 2.0.0

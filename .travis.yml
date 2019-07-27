@@ -61,7 +61,7 @@ install:
         sudo apt-get -y install xvfb pulseaudio xsel;
         export CYTHON_INSTALL=$(KIVY_NO_CONSOLELOG=1 python3 -c "from kivy.tools.packaging.cython_cfg import get_cython_versions; print(get_cython_versions()[0])"  --config "kivy:log_level:error");
         python3 -m pip install -I "$CYTHON_INSTALL";
-        python3 -m pip install --upgrade pillow pytest coveralls docutils PyInstaller;
+        python3 -m pip install --upgrade pillow pytest pytest_asyncio coveralls docutils PyInstaller;
       fi;
       if [ "${RUN}" == "docs" ]; then
         python3 -m pip install --upgrade sphinx==1.7.9 sphinxcontrib-blockdiag sphinxcontrib-seqdiag sphinxcontrib-actdiag sphinxcontrib-nwdiag;
@@ -107,7 +107,7 @@ install:
       python3 get-pip.py --user;
       export CYTHON_INSTALL=$(KIVY_NO_CONSOLELOG=1 python3 -c "from kivy.tools.packaging.cython_cfg import get_cython_versions; print(get_cython_versions()[0])"  --config "kivy:log_level:error");
       python3 -m pip install -I --user "$CYTHON_INSTALL";
-      python3 -m pip install --upgrade --user pillow pytest mock docutils PyInstaller;
+      python3 -m pip install --upgrade --user pillow pytest pytest_asyncio mock docutils PyInstaller;
     fi;
 
 before_script:
@@ -203,7 +203,7 @@ script:
 
           python$pyver_short -m pip install --upgrade --user pip setuptools wheel;
           python$pyver_short -m pip install -I --user "$CYTHON_INSTALL";
-          python$pyver_short -m pip install --upgrade --user pytest wheel pillow mock docutils;
+          python$pyver_short -m pip install --upgrade --user pytest pytest_asyncio wheel pillow mock docutils;
           python$pyver_short -m pip install --upgrade delocate;
 
           USE_SDL2=1 USE_GSTREAMER=1 python$pyver_short setup.py build_ext --inplace>output.txt;

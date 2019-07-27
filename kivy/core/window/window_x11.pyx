@@ -226,22 +226,8 @@ class WindowX11(WindowBase):
         return window_info
 
     def mainloop(self):
-        while not EventLoop.quit and EventLoop.status == 'started':
-            try:
-                self._mainloop()
-            except BaseException, inst:
-                # use exception manager first
-                r = ExceptionManager.handle_exception(inst)
-                if r == ExceptionManager.RAISE:
-                    stopTouchApp()
-                    raise
-                else:
-                    pass
-
-    def _mainloop(self):
-        EventLoop.idle()
         if x11_idle() == 0 and not self.dispatch('on_request_close'):
-                EventLoop.quit = True
+            EventLoop.quit = True
 
     def flip(self):
         x11_gl_swap()
