@@ -22,6 +22,8 @@ async def kivy_app(request, nursery):
     from kivy.core.window import Window
     from kivy.context import Context
     from kivy.clock import ClockBase
+    from kivy.factory import FactoryBase, Factory
+    from kivy.app import App
     from kivy.lang.builder import BuilderBase, Builder
     from kivy.base import stopTouchApp
     from kivy import kivy_data_dir
@@ -46,10 +48,9 @@ async def kivy_app(request, nursery):
 
     context = Context(init=False)
     context['Clock'] = ClockBase(async_lib=async_lib)
-    # context['Builder'] = BuilderBase()
+    context['Factory'] = FactoryBase.create_from(Factory)
+    context['Builder'] = BuilderBase.create_from(Builder)
     context.push()
-    # Builder.load_file(
-    #     os.path.join(kivy_data_dir, 'style.kv'), rulesonly=True)
 
     Window.create_window()
     Window.register()

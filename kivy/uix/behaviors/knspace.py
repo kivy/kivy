@@ -264,11 +264,7 @@ __all__ = ('KNSpace', 'KNSpaceBehavior', 'knspace')
 
 from kivy.event import EventDispatcher
 from kivy.properties import StringProperty, ObjectProperty, AliasProperty
-
-knspace = None
-'''The default :class:`KNSpace` namespace. See :attr:`KNSpaceBehavior.knspace`
-for more details.
-'''
+from kivy.context import register_context
 
 
 class KNSpace(EventDispatcher):
@@ -588,4 +584,7 @@ class KNSpaceBehavior(object):
     '''
 
 
-knspace = KNSpace()
+knspace = register_context('knspace', KNSpace)
+'''The default :class:`KNSpace` namespace. See :attr:`KNSpaceBehavior.knspace`
+for more details.
+'''
