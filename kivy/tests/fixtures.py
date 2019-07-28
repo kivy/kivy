@@ -1,14 +1,24 @@
 import pytest
 import gc
+import weakref
 import time
 import os.path
 from kivy.tests import async_sleep
 
 __all__ = ('kivy_app', )
 
+# keep track of all the kivy app fixtures so that we can check that it
+# properly dies
+apps = []
+
 
 @pytest.fixture()
 async def kivy_app(request, nursery):
+    gc.collect()
+    if apps:
+        last_app = apps.pop()
+        assert last_app() is None
+
     from os import environ
     environ['KIVY_USE_DEFAULTCONFIG'] = '1'
 
@@ -86,4 +96,9 @@ async def kivy_app(request, nursery):
     for child in Window.children[:]:
         Window.remove_widget(child)
     context.pop()
+
+    # release all the resources
+    del context
+    apps.append(weakref.ref(app))
+    del app
     gc.collect()
