@@ -32,7 +32,7 @@ class BaseClass(object):
     def dispatch(self, event_type, *largs, **kwargs):
         pass
 
-    def create_property(self, name, value=None):
+    def create_property(self, name, value=None, default_value=True):
         pass
 
     def is_event_type(self, key):
