@@ -847,37 +847,25 @@ cdef class EventDispatcher(ObjectWithUid):
             True
         '''
         cdef Property prop
+        if value is None:  # shortcut
+            cls = ObjectProperty
+        elif isinstance(value, bool):
+            cls = BooleanProperty
+        elif isinstance(value, (int, float)):
+            cls = NumericProperty
+        elif isinstance(value, string_types):
+            cls = StringProperty
+        elif isinstance(value, (list, tuple)):
+            cls = ListProperty
+        elif isinstance(value, dict):
+            cls = DictProperty
+        else:
+            cls = ObjectProperty
 
         if default_value:
-            if value is None:  # shortcut
-                prop = ObjectProperty(None, *largs, **kwargs)
-            if isinstance(value, bool):
-                prop = BooleanProperty(value, *largs, **kwargs)
-            elif isinstance(value, (int, float)):
-                prop = NumericProperty(value, *largs, **kwargs)
-            elif isinstance(value, string_types):
-                prop = StringProperty(value, *largs, **kwargs)
-            elif isinstance(value, (list, tuple)):
-                prop = ListProperty(value, *largs, **kwargs)
-            elif isinstance(value, dict):
-                prop = DictProperty(value, *largs, **kwargs)
-            else:
-                prop = ObjectProperty(value, *largs, **kwargs)
+            prop = cls(value, *largs, **kwargs)
         else:
-            if value is None:  # shortcut
-                prop = ObjectProperty(*largs, **kwargs)
-            if isinstance(value, bool):
-                prop = BooleanProperty(*largs, **kwargs)
-            elif isinstance(value, (int, float)):
-                prop = NumericProperty(*largs, **kwargs)
-            elif isinstance(value, string_types):
-                prop = StringProperty(*largs, **kwargs)
-            elif isinstance(value, (list, tuple)):
-                prop = ListProperty(*largs, **kwargs)
-            elif isinstance(value, dict):
-                prop = DictProperty(*largs, **kwargs)
-            else:
-                prop = ObjectProperty(*largs, **kwargs)
+            prop = cls(*largs, **kwargs)
 
         prop.link(self, name)
         prop.link_deps(self, name)
