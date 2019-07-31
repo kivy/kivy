@@ -802,7 +802,7 @@ cdef class EventDispatcher(ObjectWithUid):
             ret[x] = p[x]
         return ret
 
-    def create_property(self, str name, value=None, *largs, **kwargs):
+    def create_property(self, str name, value=None, default_value=True, *largs, **kwargs):
         '''Create a new property at runtime.
 
         .. versionadded:: 1.0.9
@@ -819,6 +819,10 @@ cdef class EventDispatcher(ObjectWithUid):
             Also, now and positional and keyword arguments are passed to the
             property when created.
 
+        .. versionchanged:: 2.0.0
+
+            default_value has been added.
+
         .. warning::
 
             This function is designed for the Kivy language, don't use it in
@@ -831,7 +835,10 @@ cdef class EventDispatcher(ObjectWithUid):
             `value`: object, optional
                 Default value of the property. Type is also used for creating
                 more appropriate property types. Defaults to None.
-
+            `default_value`: bool, True by default
+                If True, `value` will be the default for the property. Otherwise,
+                the property will be initialized with the the property type's
+                normal default value, and subsequently set to ``value``.
 
         ::
 
@@ -843,23 +850,32 @@ cdef class EventDispatcher(ObjectWithUid):
         '''
         cdef Property prop
         if value is None:  # shortcut
-            prop = ObjectProperty(None, *largs, **kwargs)
-        if isinstance(value, bool):
-            prop = BooleanProperty(value, *largs, **kwargs)
+            cls = ObjectProperty
+        elif isinstance(value, bool):
+            cls = BooleanProperty
         elif isinstance(value, (int, float)):
-            prop = NumericProperty(value, *largs, **kwargs)
+            cls = NumericProperty
         elif isinstance(value, string_types):
-            prop = StringProperty(value, *largs, **kwargs)
+            cls = StringProperty
         elif isinstance(value, (list, tuple)):
-            prop = ListProperty(value, *largs, **kwargs)
+            cls = ListProperty
         elif isinstance(value, dict):
-            prop = DictProperty(value, *largs, **kwargs)
+            cls = DictProperty
         else:
-            prop = ObjectProperty(value, *largs, **kwargs)
+            cls = ObjectProperty
+
+        if default_value:
+            prop = cls(value, *largs, **kwargs)
+        else:
+            prop = cls(*largs, **kwargs)
+
         prop.link(self, name)
         prop.link_deps(self, name)
         self.__properties[name] = prop
         setattr(self.__class__, name, prop)
+
+        if not default_value:
+            setattr(self, name, value)
 
     def apply_property(self, **kwargs):
         '''Adds properties at runtime to the class. The function accepts
