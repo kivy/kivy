@@ -925,6 +925,10 @@ cdef class EventDispatcher(ObjectWithUid):
         self._proxy_ref = _proxy_ref = WeakProxy(self)
         return _proxy_ref
 
+    @property
+    def __self__(self):
+        return self
+
 
 cdef class BoundCallback:
 

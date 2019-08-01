@@ -16,8 +16,9 @@ apps = []
 async def kivy_app(request, nursery):
     gc.collect()
     if apps:
-        last_app = apps.pop()
-        assert last_app() is None
+        last_app, last_request = apps.pop()
+        assert last_app() is None, \
+            'Memory leak: failed to release app for test ' + repr(last_request)
 
     from os import environ
     environ['KIVY_USE_DEFAULTCONFIG'] = '1'
@@ -53,8 +54,8 @@ async def kivy_app(request, nursery):
         async_lib = 'trio'
     else:
         pytest.skip(
-            reason='KIVY_EVENTLOOP must be set to either of "asyncio" or '
-                   '"trio" to run async tests')
+            'KIVY_EVENTLOOP must be set to either of "asyncio" or '
+            '"trio" to run async tests')
 
     context = Context(init=False)
     context['Clock'] = ClockBase(async_lib=async_lib)
@@ -100,6 +101,6 @@ async def kivy_app(request, nursery):
 
     # release all the resources
     del context
-    apps.append(weakref.ref(app))
+    apps.append((weakref.ref(app), request))
     del app
     gc.collect()

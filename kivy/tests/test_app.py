@@ -1,4 +1,5 @@
 import os.path
+from textwrap import dedent
 
 from kivy.app import App
 from kivy.clock import Clock
@@ -149,3 +150,54 @@ async def test_graphics_app(kivy_app):
 
     assert not g1 and not b1 and not r2 and not b2
     assert r1 > 50 and a1 > 50 and g2 > 50 and a2 > 50
+
+
+def kv_app_ref_app():
+    from kivy.app import App
+    from kivy.lang import Builder
+    from kivy.properties import ObjectProperty
+    from kivy.uix.widget import Widget
+
+    class MyWidget(Widget):
+
+        obj = ObjectProperty(None)
+
+    Builder.load_string(dedent(
+        """
+        <MyWidget>:
+            obj: app.__self__
+        """))
+
+    class TestApp(UnitKivyApp, App):
+        def build(self):
+            return MyWidget()
+
+    return TestApp()
+
+
+@async_run(app_cls_func=kv_app_ref_app)
+async def test_leak_app_kv_property(kivy_app):
+    # just tests whether the app is gc'd after the test is complete
+    pass
+
+
+def kv_app_default_ref_app():
+    from kivy.app import App
+    from kivy.lang import Builder
+
+    class TestApp(UnitKivyApp, App):
+        def build(self):
+            # create property in kv and set app to it
+            return Builder.load_string(dedent(
+                """
+                Widget:
+                    obj: app.__self__
+                """))
+
+    return TestApp()
+
+
+@async_run(app_cls_func=kv_app_default_ref_app)
+async def test_leak_app_default_kv_property(kivy_app):
+    # just tests whether the app is gc'd after the test is complete
+    pass
