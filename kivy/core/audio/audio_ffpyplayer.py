@@ -125,9 +125,9 @@ class SoundFFPy(Sound):
         self._state = 'paused'
         # wait until loaded or failed, shouldn't take long, but just to make
         # sure metadata is available.
-        s = time.clock()
+        s = time.perf_counter()
         while ((not player.get_metadata()['duration']) and
-               not self.quitted and time.clock() - s < 10.):
+               not self.quitted and time.perf_counter() - s < 10.):
             time.sleep(0.005)
 
     def unload(self):
