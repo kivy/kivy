@@ -392,10 +392,6 @@ class Widget(WidgetBase):
     def __hash__(self):
         return id(self)
 
-    @property
-    def __self__(self):
-        return self
-
     def apply_class_lang_rules(
             self, root=None, ignored_consts=set(), rule_children=None):
         '''
