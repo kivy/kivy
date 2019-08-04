@@ -96,7 +96,7 @@ Kv Example::
         Label:
             size_hint_y: None
             height: self.texture_size[1]
-            text_size: self.width
+            text_size: self.width, None
             padding: 10, 10
             text:
                 'really some amazing text\\n' * 100
