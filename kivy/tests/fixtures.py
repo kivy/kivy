@@ -38,6 +38,7 @@ async def kivy_app(request, nursery):
     from kivy.lang.builder import BuilderBase, Builder
     from kivy.base import stopTouchApp
     from kivy import kivy_data_dir
+    from kivy.logger import LoggerHistory
 
     kivy_eventloop = environ.get('KIVY_EVENTLOOP', 'asyncio')
     if kivy_eventloop == 'asyncio':
@@ -101,6 +102,7 @@ async def kivy_app(request, nursery):
 
     # release all the resources
     del context
+    LoggerHistory.clear_history()
     apps.append((weakref.ref(app), request))
     del app
     gc.collect()
