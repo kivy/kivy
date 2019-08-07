@@ -3,7 +3,6 @@ import gc
 import weakref
 import time
 import os.path
-from kivy.tests import async_sleep
 
 __all__ = ('kivy_app', )
 
@@ -60,8 +59,14 @@ async def kivy_app(request, nursery):
 
     context = Context(init=False)
     context['Clock'] = ClockBase(async_lib=async_lib)
-    context['Factory'] = FactoryBase.create_from(Factory)
-    context['Builder'] = BuilderBase.create_from(Builder)
+
+    # have to make sure all global kv files are loaded before this because
+    # globally read kv files (e.g. on module import) will not be loaded again
+    # in the new builder, except if manually loaded, which we don't do
+    # so we don't enable this for now. In the long term, if kivy imports are
+    # less aggressive we can enable it
+    # context['Factory'] = FactoryBase.create_from(Factory)
+    # context['Builder'] = BuilderBase.create_from(Builder)
     context.push()
 
     Window.create_window()
@@ -80,7 +85,7 @@ async def kivy_app(request, nursery):
 
     ts = time.perf_counter()
     while not app.app_has_started:
-        await async_sleep(.1)
+        await app.async_sleep(.1)
         if time.perf_counter() - ts >= 10:
             raise TimeoutError()
 
@@ -92,7 +97,7 @@ async def kivy_app(request, nursery):
 
     ts = time.perf_counter()
     while not app.app_has_stopped:
-        await async_sleep(.1)
+        await app.async_sleep(.1)
         if time.perf_counter() - ts >= 10:
             raise TimeoutError()
 

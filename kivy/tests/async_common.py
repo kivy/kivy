@@ -5,22 +5,7 @@ from collections import deque
 
 from kivy.tests import UnitTestTouch
 
-__all__ = ('UnitKivyApp', 'async_sleep')
-
-
-kivy_eventloop = os.environ.get('KIVY_EVENTLOOP', 'asyncio')
-async_sleep = None
-try:
-    if kivy_eventloop == 'asyncio':
-        import asyncio
-        import pytest_asyncio
-        async_sleep = asyncio.sleep
-    elif kivy_eventloop == 'trio':
-        import trio
-        from pytest_trio import trio_fixture
-        async_sleep = trio.sleep
-except ImportError:
-    pass
+__all__ = ('UnitKivyApp', )
 
 
 class AsyncUnitTestTouch(UnitTestTouch):
@@ -164,6 +149,8 @@ class UnitKivyApp(object):
 
     app_has_stopped = False
 
+    async_sleep = None
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -175,6 +162,13 @@ class UnitKivyApp(object):
             self.app_has_stopped = True
         self.fbind('on_stop', stopped_app)
 
+    async def async_run(self, async_lib=None):
+        from kivy.clock import Clock
+        if async_lib is not None:
+            Clock.init_async_lib(async_lib)
+        self.async_sleep = Clock._async_lib.sleep
+        return await super(UnitKivyApp, self).async_run(async_lib=async_lib)
+
     def resolve_widget(self, base_widget=None):
         if base_widget is None:
             from kivy.core.window import Window
@@ -185,7 +179,7 @@ class UnitKivyApp(object):
         from kivy.clock import Clock
         frames_start = Clock.frames
         while Clock.frames < frames_start + n:
-            await async_sleep(sleep_time)
+            await self.async_sleep(sleep_time)
 
     def get_widget_pos_pixel(self, widget, positions):
         from kivy.graphics import Fbo, ClearColor, ClearBuffers
@@ -238,7 +232,7 @@ class UnitKivyApp(object):
         yield 'down', touch.pos
 
         if not pos_jitter and not widget_jitter:
-            await async_sleep(duration)
+            await self.async_sleep(duration)
             touch.touch_up()
             await self.wait_clock_frames(1)
             yield 'up', touch.pos
@@ -254,7 +248,7 @@ class UnitKivyApp(object):
 
         while time.perf_counter() - ts < duration:
             moved = True
-            await async_sleep(jitter_dt)
+            await self.async_sleep(jitter_dt)
 
             touch.touch_move(
                 x + (random.random() * 2 - 1) * dx,
@@ -308,7 +302,7 @@ class UnitKivyApp(object):
         touch.touch_down()
         await self.wait_clock_frames(1)
         if long_press:
-            await async_sleep(long_press)
+            await self.async_sleep(long_press)
         yield 'down', touch.pos
 
         dx = (tx - x) / drag_n
@@ -316,7 +310,7 @@ class UnitKivyApp(object):
 
         ts0 = time.perf_counter()
         for i in range(drag_n):
-            await async_sleep(
+            await self.async_sleep(
                 max(0., duration - (time.perf_counter() - ts0)) / (drag_n - i))
 
             touch.touch_move(x + (i + 1) * dx, y + (i + 1) * dy)
@@ -347,13 +341,13 @@ class UnitKivyApp(object):
         touch.touch_down()
         await self.wait_clock_frames(1)
         if long_press:
-            await async_sleep(long_press)
+            await self.async_sleep(long_press)
         yield 'down', touch.pos
 
         ts0 = time.perf_counter()
         n = len(path)
         for i, (x2, y2) in enumerate(path):
-            await async_sleep(
+            await self.async_sleep(
                 max(0., duration - (time.perf_counter() - ts0)) / (n - i))
 
             touch.touch_move(x2, y2)
@@ -407,7 +401,7 @@ class UnitKivyApp(object):
 
         dt = duration / num_press
         for i in range(num_press):
-            await async_sleep(dt)
+            await self.async_sleep(dt)
 
             Window.dispatch('on_key_down', key_code, 0, text, modifiers)
             if (key not in known_modifiers and
