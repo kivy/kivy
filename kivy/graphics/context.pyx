@@ -49,7 +49,15 @@ cdef class Context:
         self.flush()
 
     def trigger_gl_dealloc(self):
-        Clock.schedule_del_safe(self.gl_dealloc)
+        # see https://github.com/kivy/kivy/issues/5986
+        # Somehow, the try/except fixes that issue. Calling `self.gl_dealloc()`
+        # directly also caused the `Error in sys.excepthook:`, so it's not just
+        # the Clock. Perhaps this is called after everything has been deleted
+        # and cython objects destroyed, which like a bug in cython/python
+        try:
+            Clock.schedule_del_safe(self.gl_dealloc)
+        except Exception:
+            pass
 
     cpdef void flush(self):
         gc.collect()
