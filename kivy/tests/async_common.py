@@ -153,6 +153,8 @@ class UnitKivyApp(object):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        from kivy.clock import Clock
+        self.async_sleep = Clock._async_lib.sleep
 
         def started_app(*largs):
             self.app_has_started = True
