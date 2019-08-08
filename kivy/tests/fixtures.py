@@ -63,10 +63,8 @@ async def kivy_app(request, nursery):
     # have to make sure all global kv files are loaded before this because
     # globally read kv files (e.g. on module import) will not be loaded again
     # in the new builder, except if manually loaded, which we don't do
-    # so we don't enable this for now. In the long term, if kivy imports are
-    # less aggressive we can enable it
-    # context['Factory'] = FactoryBase.create_from(Factory)
-    # context['Builder'] = BuilderBase.create_from(Builder)
+    context['Factory'] = FactoryBase.create_from(Factory)
+    context['Builder'] = BuilderBase.create_from(Builder)
     context.push()
 
     Window.create_window()
