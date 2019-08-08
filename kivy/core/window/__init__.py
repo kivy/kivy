@@ -132,9 +132,6 @@ class Keyboard(EventDispatcher):
         #: VKeyboard widget, if allowed by the configuration
         self.widget = kwargs.get('widget', None)
 
-    def get_window_info():
-        pass
-
     def on_key_down(self, keycode, text, modifiers):
         pass
 
@@ -150,6 +147,7 @@ class Keyboard(EventDispatcher):
         callback.'''
         if self.window:
             self.window.release_keyboard(self.target)
+            self.target = None
 
     def _on_window_textinput(self, instance, text):
         return self.dispatch('on_textinput', text)
