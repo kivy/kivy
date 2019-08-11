@@ -301,7 +301,7 @@ cdef class Matrix(object):
         elif string is not None:
             i = 0
             for f in string:
-                self.mat[i] = f
+                self.mat[i] = c_int(f)
                 i += 1
 
     cpdef list to_floats(self):
@@ -463,7 +463,7 @@ class Gradient(object):
         # XXX we should check if the parent itself has a parent that has
         # still not been defined, and delay to after all parents got
         # their inheritence sorted
-        print "get params called"
+        print("get params called")
         if parent and not self.stops:
             self.stops = parent.stops
 
@@ -829,10 +829,10 @@ cdef class Svg(RenderContext):
         data = []
         for i, (k, g) in enumerate(self.gradients.items()):
             data.append(g.to_floats())
-            print [x * 255 for x in data[-1]]
+            print([x * 255 for x in data[-1]])
             # start from 1, becaus e0 indicates no gradient
             self.gradient_shader_map[k] = i + 1
-        print self.gradient_shader_map
+        print(self.gradient_shader_map)
 
         l = max(len(x) for x in data)
         size = max(l, len(data))
@@ -843,7 +843,7 @@ cdef class Svg(RenderContext):
         for d in data:
             while len(d) < size:
                 d.append(0.)
-            print d
+            print(d)
 
         data = list(chain(*data))
 
@@ -1118,7 +1118,7 @@ cdef class Svg(RenderContext):
                 tess = Tesselator()
                 path = array('f', [x, y, x + w, y, x + w, y + h, x, y + h])
                 # print "adding {} as implicit clip path".format(path)
-                tess.add_contour_data(path.data.as_voidptr, len(path) / 2)
+                tess.add_contour_data(path.data.as_voidptr, <int>int(len(path) / 2))
                 tess.tesselate()
                 tris = tess.vertices
                 # print "tris", [x for x in tris[0]]
@@ -1591,7 +1591,7 @@ cdef class Svg(RenderContext):
                 vertices[vindex + 6] = 0
                 vertices[vindex + 7] = 0
                 vertices[vindex + 8] = gradient_id
-                print gradient.gradient_units, gradient.__class__.__name__
+                print(gradient.gradient_units, gradient.__class__.__name__)
 
                 # NOTE gradient params, maybe could be uniforms?
                 for i in range(9, 14):
