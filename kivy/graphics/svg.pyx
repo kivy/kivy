@@ -366,13 +366,13 @@ cdef class Svg(RenderContext):
     """Svg class. See module for more informations about the usage.
     """
 
-    def __init__(self, filename, anchor_x=0, anchor_y=0,
+    def __init__(self, source, anchor_x=0, anchor_y=0,
                  bezier_points=BEZIER_POINTS, circle_points=CIRCLE_POINTS,
                  color=None):
         '''
         Creates an SVG object from a .svg or .svgz file.
 
-        :param str filename: The name of the file to be loaded.
+        :param str source: The name of the file to be loaded.
         :param float anchor_x: The horizontal anchor position for scaling and
             rotations. Defaults to 0. The symbolic values 'left', 'center' and
             'right' are also accepted.
@@ -384,6 +384,9 @@ cdef class Svg(RenderContext):
         :param int circle_points: The number of line segments into which to
             subdivide circular and elliptic arcs. Defaults to 10.
         :param color the default color to use for Svg elements that specify "currentColor"
+
+        .. versionchanged:: 2.0.0
+            Parameter `filename` changed to `source`.
         '''
 
         super(Svg, self).__init__(fs=SVG_FS, vs=SVG_VS,
@@ -417,7 +420,7 @@ cdef class Svg(RenderContext):
                 b"\xff\xff\xff\xff\xff\xff\xff\x00", colorfmt="rgba")
 
         self._source = None
-        self.source = filename
+        self.source = source
 
 
     @property
