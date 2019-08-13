@@ -416,8 +416,8 @@ cdef class Svg(RenderContext):
         self.line_texture.blit_buffer(
                 b"\xff\xff\xff\xff\xff\xff\xff\x00", colorfmt="rgba")
 
-        self._filename = None
-        self.filename = filename
+        self._source = None
+        self.source = filename
 
 
     @property
@@ -491,7 +491,7 @@ cdef class Svg(RenderContext):
         .. versionchanged:: 1.10.3
             You can get the used filename
         '''
-        return self._filename
+        return self._source
 
     @source.setter
     def source(self, filename):
@@ -512,7 +512,7 @@ cdef class Svg(RenderContext):
             end = time()
             Logger.debug("Svg: Loaded {} in {:.2f}s".format(filename, end - start))
         finally:
-            self._filename = filename
+            self._source = filename
             fd.close()
 
     cdef void reload(self) except *:
