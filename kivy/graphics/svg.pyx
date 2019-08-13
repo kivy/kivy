@@ -480,18 +480,21 @@ cdef class Svg(RenderContext):
         self.reload()
 
     @property
-    def filename(self):
-        '''filename to load.
+    def source(self):
+        '''Filename / source to load.
 
-        The parsing and rendering is done as soon as you set the filename.
+        The parsing and rendering is done as soon as you set the source.
+
+        .. versionchanged:: 2.0.0
+            The property name is now `source` instead of `filename`
 
         .. versionchanged:: 1.10.3
             You can get the used filename
         '''
         return self._filename
 
-    @filename.setter
-    def filename(self, filename):
+    @source.setter
+    def source(self, filename):
         Logger.debug('Svg: Loading {}'.format(filename))
         # check gzip
         start = time()
