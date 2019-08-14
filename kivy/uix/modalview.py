@@ -99,6 +99,9 @@ class ModalView(AnchorLayout):
     .. versionchanged:: 1.11.0
         Added events `on_pre_open` and `on_pre_dismiss`.
 
+    .. versionchanged:: 2.0.0
+        Added property 'overlay_color'.
+
     '''
 
     auto_dismiss = BooleanProperty(True)
@@ -128,6 +131,10 @@ class ModalView(AnchorLayout):
 
     The :attr:`background_color` is a
     :class:`~kivy.properties.ListProperty` and defaults to [1, 1, 1, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed behavior to affect the background of the widget itself, not the overlay dimming.
+
     '''
 
     background = StringProperty(
@@ -157,6 +164,8 @@ class ModalView(AnchorLayout):
 
     :attr:`overlay_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [0, 0, 0, .7].
+
+    .. versionadded:: 2.0.0
     '''
 
     # Internals properties used for graphical representation.
