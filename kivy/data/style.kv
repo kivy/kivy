@@ -490,7 +490,7 @@
 
 # ModalView widget
 <ModalView>:
-    canvas.before:
+    canvas:
         Color:
             rgba: root.overlay_color[:3] + [root.overlay_color[-1] * self._anim_alpha]
         Rectangle:
