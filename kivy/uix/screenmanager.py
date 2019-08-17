@@ -1013,7 +1013,7 @@ class ScreenManager(FloatLayout):
         self.screens.remove(screen)
 
     def clear_widgets(self, screens=None):
-        if not screens:
+        if screens is None:
             screens = self.screens
 
         # iterate over a copy of screens, as self.remove_widget
