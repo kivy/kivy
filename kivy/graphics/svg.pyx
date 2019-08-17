@@ -66,11 +66,11 @@ DEF OP_IMG = 5
 cdef str SVG_FS, SVG_VS
 
 with open(resource_find('data/glsl/svg_fs.glsl')) as f:
-        SVG_FS = f.read()
+    SVG_FS = f.read()
 
 
 with open(resource_find('data/glsl/svg_vs.glsl')) as f:
-        SVG_VS = f.read()
+    SVG_VS = f.read()
 
 
 cdef set COMMANDS = set('MmZzLlHhVvCcSsQqTtAa')
@@ -114,33 +114,33 @@ cdef inline double angle(double ux, double uy, double vx, double vy):
     return sgn * a
 
 
-cdef float parse_width(txt, float vbox_width):
-    if isinstance(txt, (float, int)):
-        return txt
+cdef float parse_width(value, float vbox_width):
+    if isinstance(value, float):
+        return value
 
-    if txt.endswith('%'):
-        return <float>(vbox_width * txt[:-1] / 100.)
-    return parse_float(txt)
-
-
-cdef float parse_height(txt, float vbox_height):
-    if isinstance(txt, (float, int)):
-        return txt
-
-    if txt.endswith('%'):
-        return <float>(vbox_height * txt[:-1] / 100.)
-    return parse_float(txt)
+    if value.endswith('%'):
+        return <float>(vbox_width * value[:-1] / 100.)
+    return parse_float(value)
 
 
-cdef float parse_float(txt):
-    if isinstance(txt, (float, int)):
-        return txt
+cdef float parse_height(value, float vbox_height):
+    if isinstance(value, (float, int)):
+        return value
 
-    if not txt:
+    if value.endswith('%'):
+        return <float>(vbox_height * value[:-1] / 100.)
+    return parse_float(value)
+
+
+cdef float parse_float(value):
+    if isinstance(value, (float, int)):
+        return value
+
+    if not value:
         return 0.
-    if txt[-2:] in NUMERIC_FORMATS:
-        return dpi2px(txt[:-2], txt[-2:])
-    return <float>float(txt)
+    if value[-2:] in NUMERIC_FORMATS:
+        return dpi2px(value[:-2], value[-2:])
+    return <float>float(value)
 
 
 cdef list parse_list(string):
@@ -312,7 +312,10 @@ cdef class Matrix(object):
         elif string is not None:
             i = 0
             for f in string:
-                self.mat[i] = c_int(f)
+                if isinstance(string, str):
+                    self.mat[i] = c_int(f)
+                elif isinstance(string, (int, float)):
+                    self.mat[i] = float(f)
                 i += 1
 
     cpdef list to_floats(self):
@@ -420,11 +423,9 @@ class Gradient(object):
                 self.get_type_float(),
                 {'pad': 1, 'repeat': 2, 'reflect': 3}[self.spread_method] / 255.,
                 {'userSpaceOnUse': 1, 'objectBoundingBox': 2}[self.gradient_units] / 255.,
-            ] +
-            # self.gradient_transform.to_floats() +
-            # self.get_params_floats() +
-            [len(self.stops) / 255.] +
-            stops
+            ]
+            + [len(self.stops) / 255.]
+            + stops
         )
 
     def interp(self, float x, float y, float w, float h):
@@ -600,7 +601,7 @@ class RadialGradient(Gradient):
 
     def get_gradient_pos(self, x, y, w, h):
         r = self.r
-        if r.endswith('%'):
+        if isinstance(r, str) and r.endswith('%'):
             r = float(r[:-1])
             relative = True
         else:
@@ -608,25 +609,25 @@ class RadialGradient(Gradient):
             relative = False
 
         cx = self.cx
-        if cx.endswith('%'):
+        if isinstance(cx, str) and cx.endswith('%'):
             cx = float(cx[:-1])
         else:
             cx = float(cx) / w
 
         cy = self.cy
-        if cy.endswith('%'):
+        if isinstance(cx, str) and cy.endswith('%'):
             cy = float(cy[:-1])
         else:
             cy = float(cy) / h
 
         fx = self.fx or self.cx
-        if fx.endswith('%'):
+        if isinstance(fx, str) and fx.endswith('%'):
             fx = float(fx[:-1])
         else:
             fx = float(fx) / w
 
         fy = self.fy or self.cy
-        if fy.endswith('%'):
+        if isinstance(fy, str) and fy.endswith('%'):
             fy = float(fy[:-1])
         else:
             fy = float(fy) / h
@@ -695,9 +696,11 @@ cdef class Svg(RenderContext):
         :param color the default color to use for Svg elements that specify "currentColor"
         '''
 
-        super(Svg, self).__init__(fs=SVG_FS, vs=SVG_VS,
-                use_parent_projection=True,
-                use_parent_modelview=True)
+        super(Svg, self).__init__(
+            fs=SVG_FS, vs=SVG_VS,
+            use_parent_projection=True,
+            use_parent_modelview=True
+        )
 
         self.last_mesh = None
         self.operations = []
@@ -906,7 +909,7 @@ cdef class Svg(RenderContext):
             self.width = self.vbox_width
 
         self.opacity = 1.0
-        for e in root.getchildren():
+        for e in root:
             self.parse_element(e)
 
     cdef parse_element(self, e):
@@ -1145,7 +1148,7 @@ cdef class Svg(RenderContext):
                 self.clip_path = clip
                 self.operations.append((OP_CLIP_PUSH, (clip, Matrix())))
 
-        for c in e.getchildren():
+        for c in e:
             self.parse_element(c)
 
         if clip_path:
@@ -1594,21 +1597,21 @@ cdef class Svg(RenderContext):
             else:
                 if isinstance(gradient, LinearGradient):
                     x1, x2, y1, y2 = gradient.get_gradient_pos(xmin, ymin, w, h)
-                    print "2"
-                    print x1, y1, x2, y2
+                    print("2")
+                    print(x1, y1, x2, y2)
                     gradient_transform.transform(x1, y1, &x1, &y1)
                     gradient_transform.transform(x2, y2, &x2, &y2)
-                    print x1, y1, x2, y2
+                    print(x1, y1, x2, y2)
 
                     gradient_params = x1, x2, y1, y2, 0, 0
                 else:
                     cx, cy, r, fx, fy, x, y = gradient.get_gradient_pos(xmin, ymin, w, h)
-                    print "1"
-                    print cx, cy, r, fx, fy
+                    print("1")
+                    print(cx, cy, r, fx, fy)
                     gradient_transform.transform(cx, cy, &cx, &cy)
                     gradient_transform.transform(fx, fy, &fx, &fy)
                     gradient_transform.transform(rx, ry, &rx, &ry)
-                    print cx, cy, r, fx, fy
+                    print(cx, cy, r, fx, fy)
 
                     gradient_params = cx, cy, rx, ry, fx, fy
 
@@ -1840,37 +1843,37 @@ cdef class Svg(RenderContext):
             vertices[vindex + 0 * S + 2] = \
             vertices[vindex + 1 * S + 2] = \
             vertices[vindex + 2 * S + 2] = \
-            vertices[vindex + 3 * S + 2] = 0
+            vertices[vindex + 3 * S + 2] = 0.
 
             vertices[vindex + 0 * S + 3] = \
             vertices[vindex + 1 * S + 3] = \
             vertices[vindex + 2 * S + 3] = \
-            vertices[vindex + 3 * S + 3] = 0
+            vertices[vindex + 3 * S + 3] = 0.
 
             vertices[vindex + 0 * S + 4] = \
             vertices[vindex + 1 * S + 4] = \
             vertices[vindex + 2 * S + 4] = \
-            vertices[vindex + 3 * S + 4] = r
+            vertices[vindex + 3 * S + 4] = <float>r
 
             vertices[vindex + 0 * S + 5] = \
             vertices[vindex + 1 * S + 5] = \
             vertices[vindex + 2 * S + 5] = \
-            vertices[vindex + 3 * S + 5] = g
+            vertices[vindex + 3 * S + 5] = <float>g
 
             vertices[vindex + 0 * S + 6] = \
             vertices[vindex + 1 * S + 6] = \
             vertices[vindex + 2 * S + 6] = \
-            vertices[vindex + 3 * S + 6] = b
+            vertices[vindex + 3 * S + 6] = <float>b
 
             vertices[vindex + 0 * S + 7] = \
             vertices[vindex + 1 * S + 7] = \
             vertices[vindex + 2 * S + 7] = \
-            vertices[vindex + 3 * S + 7] = a
+            vertices[vindex + 3 * S + 7] = <float>a
 
             vertices[vindex + 0 * S + 8] = \
             vertices[vindex + 1 * S + 8] = \
             vertices[vindex + 2 * S + 8] = \
-            vertices[vindex + 3 * S + 8] = gradient_id
+            vertices[vindex + 3 * S + 8] = <float>gradient_id
 
             vertices[vindex + 0 * S + 0] = <float>x1
             vertices[vindex + 0 * S + 1] = <float>y1

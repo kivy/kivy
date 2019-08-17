@@ -3,9 +3,9 @@
     precision highp float;
 #endif
 
-varying vec4 vertex_color;
-varying vec2 texcoord;
 varying vec2 coord;
+varying vec2 texcoord;
+varying vec4 vertex_color;
 varying float gradient;
 varying float gradient_param1;
 varying float gradient_param2;
@@ -30,19 +30,11 @@ uniform float time;
 #define OBJECT_BBOX 2
 
 float linear_gradient(vec2 pos) {
-    float x1 = gradient_param1;
-    float x2 = gradient_param2;
-    float y1 = gradient_param3;
-    float y2 = gradient_param4;
-
-    // return pos.x / 100.;
-    return (
-        (pos.x - x1) * (x2 - x1) +
-        (pos.y - y1) * (y2 - y1)
-    ) / (
-        (x1 - x2) * (x1 - x2) +
-        (y1 - y2) * (y1 - y2)
-    );
+    vec2 x1 = vec2(gradient_param1, gradient_param3);
+    vec2 x2 = vec2(gradient_param2, gradient_param4);
+    vec2 dt = x2 - x1;
+    vec2 pt = pos - x1;
+    return dot(pt, dt) / dot(dt, dt);
 }
 
 float radial_gradient(vec2 pos) {
@@ -108,8 +100,9 @@ vec4 interp() {
 
     // return vec4(coord.x, 0., 0., 1.);
     if (type == LINEAR) {
-        return vec4(1., 1., 0., 1.);
+        /* return vec4(1., 1., 0., 1.); */
         t = linear_gradient(coord);
+        /* return vec4(t, 0., 0., 1.); */
     }
 
     else if (type == RADIAL) {
@@ -129,17 +122,18 @@ vec4 interp() {
     /* return vec4(t, 0., 0., 1); */
 
     int stops = ig(i++);
-    // don't increment for this two calls, to avoid breaking the next
+    // don't increment for these two calls, to avoid breaking the next
     // loop
     float first_stop = g(i);
-    // first index of last stop
+    // first index of last stop XXX is it really though?
     float last_stop = g(i + 5 * (stops - 1));
 
     // now we have first and last stop value, and spread, we can fix it if needed
     if (!(first_stop < t && t < last_stop)) {
         if (spread == PAD)
-            t = min(1., t);
+            t = max(0., min(1., t));
         else if (spread == REPEAT)
+            // XXX check for negative numbers
             t = fract(t);
         else if (spread ==  REFLECT) {
             float n = floor(t);
@@ -154,34 +148,30 @@ vec4 interp() {
     // search the correct stop with a corrected t (between first and
     // last stop)
     float previous_stop = g(i++);
-    // col1 = vec4(g(i++), g(i++), g(i++), g(i++));
-    col1.r = g(i++);
-    col1.g = g(i++);
-    col1.b = g(i++);
-    col1.a = g(i++);
+    col1 = vec4(
+        g(i++), // R
+        g(i++), // G
+        g(i++), // B
+        g(i++)  // A
+    );
 
     if (previous_stop > t)
         return col1;
 
     for (int i_s=1; i_s < stops; i_s++) {
-        float s = g(i++);
+        float stop = g(i++);
 
         col2 = col1;
-        // col1 = vec4(g(i++), g(i++), g(i++), g(i++));
-        col1.r = g(i++);
-        col1.g = g(i++);
-        col1.b = g(i++);
-        col1.a = g(i++);
+        col1 = vec4(g(i++), g(i++), g(i++), g(i++));
 
+        if (previous_stop < t && t < stop)
+            /* return col2; */
+            return mix(col2, col1, (t - previous_stop) * (stop - previous_stop));
 
-        if (previous_stop < t && t < s)
-            // return col1;
-            return mix(col2, col1, (t - previous_stop) / (s - previous_stop));
-
-        else if (t < s)
+        else if (t < stop)
             return col1;
 
-        previous_stop = s;
+        previous_stop = stop;
     }
     // we didn't find a last stop superior to t, so we must be in padding mode
     return col1;

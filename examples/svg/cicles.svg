@@ -14,7 +14,7 @@
    height="810.94922mm"
    width="813.9397mm"
    sodipodi:docname="cicles.svg"
-   inkscape:version="0.92.1 r15371">
+   inkscape:version="0.92.3 (2405546, 2018-03-11)">
   <sodipodi:namedview
      pagecolor="#ffffff"
      bordercolor="#666666"
@@ -24,17 +24,17 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="1244"
-     inkscape:window-height="1035"
+     inkscape:window-width="1920"
+     inkscape:window-height="765"
      id="namedview82"
      showgrid="false"
      fit-margin-top="0"
      fit-margin-left="0"
      fit-margin-right="0"
      fit-margin-bottom="0"
-     inkscape:zoom="0.16422252"
-     inkscape:cx="349.99141"
-     inkscape:cy="995.55138"
+     inkscape:zoom="0.11612286"
+     inkscape:cx="1651.2762"
+     inkscape:cy="298.17046"
      inkscape:window-x="0"
      inkscape:window-y="18"
      inkscape:window-maximized="0"
@@ -170,9 +170,9 @@
        xlink:href="#linearGradient178"
        id="linearGradient1114"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="translate(-29.239887,757.63132)"
-       x1="161.72308"
-       y1="-40.747726"
+       gradientTransform="translate(-55.544578,684.40678)"
+       x1="91.924728"
+       y1="-133.51222"
        x2="232.3559"
        y2="-39.60854"
        spreadMethod="pad" />
@@ -193,8 +193,8 @@
        id="linearGradient1122"
        gradientUnits="userSpaceOnUse"
        gradientTransform="translate(351.46849,826.15853)"
-       x1="232.35588"
-       y1="-39.60849"
+       x1="232.35585"
+       y1="-39.608482"
        x2="71.418427"
        y2="-169.96785"
        spreadMethod="pad" />
@@ -236,7 +236,7 @@
        xlink:href="#linearGradient1044"
        id="linearGradient1138"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="translate(361.72164,331.72888)"
+       gradientTransform="translate(357.16468,336.28583)"
        x1="232.35587"
        y1="-169.96786"
        x2="153.44362"
@@ -273,7 +273,7 @@
        fx="433.03873"
        fy="-2.3372772"
        r="81.597069"
-       gradientTransform="matrix(1.2674002e-7,1.5975988,-1.9723435,2.9710688e-6,-190.52212,-12.360567)"
+       gradientTransform="matrix(1.2674002e-7,1.5975988,-1.9723435,2.9710688e-6,20.36469,-19.239738)"
        gradientUnits="userSpaceOnUse" />
     <radialGradient
        inkscape:collect="always"
@@ -347,8 +347,8 @@
        id="linearGradient5165"
        gradientUnits="userSpaceOnUse"
        gradientTransform="translate(-30.481307,496.9185)"
-       x1="136.65982"
-       y1="-38.46925"
+       x1="205.01414"
+       y1="-122.77293"
        x2="71.418419"
        y2="-39.608513"
        spreadMethod="pad" />
@@ -361,13 +361,21 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
   <g
      id="layer1"
      transform="translate(205.2923,144.67244)" />
+  <rect
+     style="opacity:1;fill:#9f9f9f;fill-opacity:1;stroke:#000000;stroke-width:10;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     id="rect1223"
+     width="1103.6219"
+     height="820.06354"
+     x="-255.50185"
+     y="3.221729"
+     ry="9.7553473" />
   <rect
      y="505.81116"
      x="226.93784"
@@ -398,8 +406,8 @@
      x="40.937119"
      y="326.95062" />
   <rect
-     y="587.66345"
-     x="42.178543"
+     y="514.4389"
+     x="15.873852"
      height="130.35936"
      width="160.93747"
      id="rect1112"
@@ -440,8 +448,8 @@
      id="rect1132"
      style="fill:url(#linearGradient1134);fill-opacity:1;stroke:#000000;stroke-width:2.25667286;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
   <rect
-     y="161.76103"
-     x="433.14005"
+     y="166.31799"
+     x="428.5831"
      height="130.35936"
      width="160.93747"
      id="rect1136"
@@ -494,6 +502,7 @@
      id="rect1027"
      width="160.93747"
      height="130.35936"
-     x="-185.91214"
-     y="679.46155" />
+     x="24.97467"
+     y="672.58228"
+     transform="scale(-1,1)" />
 </svg>
