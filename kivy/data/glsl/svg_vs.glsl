@@ -11,6 +11,7 @@ attribute float v_gradient_param2;
 attribute float v_gradient_param3;
 attribute float v_gradient_param4;
 attribute float v_gradient_param5;
+attribute float v_gradient_param6;
 
 uniform mat4 modelview_mat;
 uniform mat4 projection_mat;
@@ -23,6 +24,7 @@ varying float gradient_param2;
 varying float gradient_param3;
 varying float gradient_param4;
 varying float gradient_param5;
+varying float gradient_param6;
 
 
 void main (void) {
@@ -36,5 +38,6 @@ void main (void) {
     gradient_param3 = v_gradient_param3;
     gradient_param4 = v_gradient_param4;
     gradient_param5 = v_gradient_param5;
+    gradient_param6 = v_gradient_param6;
 }
 

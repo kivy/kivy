@@ -97,6 +97,7 @@ cdef VertexFormat VERTEX_FORMAT = VertexFormat(
     (b'v_gradient_param3', 1, 'float'),
     (b'v_gradient_param4', 1, 'float'),
     (b'v_gradient_param5', 1, 'float'),
+    (b'v_gradient_param6', 1, 'float'),
 )
 
 
@@ -298,6 +299,16 @@ cdef class Matrix(object):
                 value = float(string[len('skewY('):-1]) * pi / 180
                 self.mat[1] = tan(value)
 
+            elif string.startswith('identity'):
+                self.mat[0] = 1.
+                self.mat[1] = 0.
+
+                self.mat[2] = 0.
+                self.mat[3] = 1.
+
+                self.mat[4] = 0.
+                self.mat[5] = 0.
+
         elif string is not None:
             i = 0
             for f in string:
@@ -378,7 +389,9 @@ class Gradient(object):
 
         self.spread_method = element.get('spreadMethod', 'pad')
         self.gradient_units = element.get('gradientUnits', 'objectBoundingBox')
-        self.gradient_transform = transform = Matrix(element.get('gradientTransform'))
+        self.gradient_transform = transform = Matrix(
+            element.get('gradientTransform', 'identity')
+        )
         self.inv_transform = transform.inverse()
 
         inherit = self.element.get('{http://www.w3.org/1999/xlink}href')
@@ -395,21 +408,23 @@ class Gradient(object):
             self.get_params(parent)
 
     def to_floats(self):
+        stops = list(
+            chain(*[
+                (s, r / 255., g / 255., b / 255., a / 255.)
+                for (s, (r, g, b, a)) in self.stops
+            ])
+        )
+        # print stops
         return (
             [
                 self.get_type_float(),
                 {'pad': 1, 'repeat': 2, 'reflect': 3}[self.spread_method] / 255.,
                 {'userSpaceOnUse': 1, 'objectBoundingBox': 2}[self.gradient_units] / 255.,
             ] +
-            self.gradient_transform.to_floats() +
-            self.get_params_floats() +
+            # self.gradient_transform.to_floats() +
+            # self.get_params_floats() +
             [len(self.stops) / 255.] +
-            list(
-                chain(*[
-                    (s, r, g, b, a)
-                    for (s, (r, g, b, a)) in self.stops
-                ])
-            )
+            stops
         )
 
     def interp(self, float x, float y, float w, float h):
@@ -463,7 +478,6 @@ class Gradient(object):
         # XXX we should check if the parent itself has a parent that has
         # still not been defined, and delay to after all parents got
         # their inheritence sorted
-        print("get params called")
         if parent and not self.stops:
             self.stops = parent.stops
 
@@ -827,23 +841,23 @@ cdef class Svg(RenderContext):
         # naive way to concat data to a texture, can probably made a lot
         # faster
         data = []
-        for i, (k, g) in enumerate(self.gradients.items()):
+        for i, (k, g) in enumerate(sorted(self.gradients.items())):
             data.append(g.to_floats())
-            print([x * 255 for x in data[-1]])
+            # print [x * 255 for x in data[-1]]
             # start from 1, becaus e0 indicates no gradient
             self.gradient_shader_map[k] = i + 1
-        print(self.gradient_shader_map)
+        # print self.gradient_shader_map
 
         l = max(len(x) for x in data)
-        size = max(l, len(data))
+        h = len(data)
 
-        while data < l:
-            data.append([])
+        # while data < l:
+        #     data.append([])
 
         for d in data:
-            while len(d) < size:
+            while len(d) < l:
                 d.append(0.)
-            print(d)
+            # print d
 
         data = list(chain(*data))
 
@@ -851,7 +865,7 @@ cdef class Svg(RenderContext):
         arr = array('f', data)
         # now blit the array
         self.gradient_texture = texture = Texture.create(
-            size=(size, size),
+            size=(l, h),
             colorfmt='luminance',
             bufferfmt='float',
         )
@@ -869,7 +883,7 @@ cdef class Svg(RenderContext):
         self['gradients'] = 1
         self['time'] = time()
 
-        self['gradients_size'] = float(size), float(size)
+        self['gradients_size'] = float(l), float(h)
 
     cdef parse_tree(self, tree):
         root = tree._root
@@ -1527,8 +1541,15 @@ cdef class Svg(RenderContext):
         cdef float *vertices
         cdef int index, vindex
         cdef float *f_tris
-        cdef float x, y, r, g, b, a, w, h, xmin, ymin
+        cdef float x, y,\
+                   r, g, b, a,\
+                   xmin, ymin,\
+                   w, h,\
+                   x1, x2, y1, y2,\
+                   cx, cy, rx, ry, fx, fy
+
         cdef Mesh mesh
+        cdef Matrix gradient_transform
 
         cdef int count = <int>int(len(path) / 2.)
         vertices = <float *>malloc(sizeof(float) * count * VERTEX_FORMAT.vbytesize)
@@ -1553,35 +1574,49 @@ cdef class Svg(RenderContext):
 
             gradient_id = self.gradient_shader_map[fill] / 255.
             gradient = self.gradients[fill]
-            transform.transform(xmin, ymin, &xmin, &ymin)
-            transform.transform(w, h, &w, &h)
+            gradient_transform = transform * gradient.gradient_transform
 
-            gradient_params = [0, 0, 0, 0, 0]
+            gradient_params = [0, 0, 0, 0, 0, 0]
             # XXX at least one of these is wrong, check
-            # unljits/transform
+            # units/transform
             if gradient.gradient_units == 'objectBoundingBox':
                 if isinstance(gradient, LinearGradient):
                     x1, x2, y1, y2 = gradient.get_gradient_pos(xmin, ymin, w, h)
-                    print(x1, y1, x2, y2)
-                    gradient_params = x1, x2, y1, y2, 0
+                    gradient_transform.transform(x1, y1, &x1, &y1)
+                    gradient_transform.transform(x2, y2, &x2, &y2)
+                    gradient_params = x1, x2, y1, y2, 0, 0
                 else:
                     cx, cy, r, fx, fy, x, y = gradient.get_gradient_pos(xmin, ymin, w, h)
-                    print(cx, cy, r, fx, fy, x, y)
-                    gradient_params = cx, cy, r, fx, fy
+                    gradient_transform.transform(cx, cy, &cx, &cy)
+                    gradient_transform.transform(fx, fy, &fx, &fy)
+                    gradient_transform.transform(r, r, &rx, &ry)
+                    gradient_params = cx, cy, rx, ry, fx, fy
             else:
                 if isinstance(gradient, LinearGradient):
                     x1, x2, y1, y2 = gradient.get_gradient_pos(xmin, ymin, w, h)
-                    print(x1, y1, x2, y2)
-                    gradient_params = x1, x2, y1, y2, 0
+                    print "2"
+                    print x1, y1, x2, y2
+                    gradient_transform.transform(x1, y1, &x1, &y1)
+                    gradient_transform.transform(x2, y2, &x2, &y2)
+                    print x1, y1, x2, y2
+
+                    gradient_params = x1, x2, y1, y2, 0, 0
                 else:
                     cx, cy, r, fx, fy, x, y = gradient.get_gradient_pos(xmin, ymin, w, h)
-                    print(cx, cy, r, fx, fy, x, y)
-                    gradient_params = cx, cy, r, fx, fy
+                    print "1"
+                    print cx, cy, r, fx, fy
+                    gradient_transform.transform(cx, cy, &cx, &cy)
+                    gradient_transform.transform(fx, fy, &fx, &fy)
+                    gradient_transform.transform(rx, ry, &rx, &ry)
+                    print cx, cy, r, fx, fy
+
+                    gradient_params = cx, cy, rx, ry, fx, fy
 
             # gradient = self.gradients[fill]
             for index in range(count):
                 x = path[index * 2]
                 y = path[index * 2 + 1]
+                transform.transform(x, y, &x, &y)
                 vertices[vindex + 0] = x
                 vertices[vindex + 1] = y
                 vertices[vindex + 2] = x / w
@@ -1591,11 +1626,9 @@ cdef class Svg(RenderContext):
                 vertices[vindex + 6] = 0
                 vertices[vindex + 7] = 0
                 vertices[vindex + 8] = gradient_id
-                print(gradient.gradient_units, gradient.__class__.__name__)
-
                 # NOTE gradient params, maybe could be uniforms?
-                for i in range(9, 14):
-                    vertices[vindex + i] = gradient_params[i]
+                for i, p in enumerate(gradient_params, 9):
+                    vertices[vindex + i] = p
                 vindex += VERTEX_FORMAT.vsize
         else:
             if fill is None:

@@ -99,7 +99,7 @@ class SvgWidget(Scatter):
                     svg = Svg(self.source)
                 self.size = svg.width, svg.height
             except Exception as e:
-                print "unable to load {}: \n {}".format(self.source, e)
+                print("unable to load {}: \n {}".format(self.source, e))
                 Logger.exception(e)
                 app.current_error = str(e)
             else:
@@ -113,11 +113,11 @@ class SvgTestApp(App):
     current_error = StringProperty()
 
     def build(self):
-        print __file__
+        print(__file__)
         self.dirname = join(dirname(__file__), 'svg-tests-2/tavmjong.free.fr/INKSCAPE/W3C_SVG/')
         self.filenames = sorted(basename(x) for x in glob('{}/svggen/*.svg'.format(self.dirname)))
-        print self.dirname
-        print self.filenames
+        print(self.dirname)
+        print(self.filenames)
         return Builder.load_string(KV)
 
 if __name__ == '__main__':

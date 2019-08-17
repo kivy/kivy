@@ -1,4 +1,4 @@
-// #version 130
+#version 130
 #ifdef GL_ES
     precision highp float;
 #endif
@@ -12,7 +12,7 @@ varying float gradient_param2;
 varying float gradient_param3;
 varying float gradient_param4;
 varying float gradient_param5;
-
+varying float gradient_param6;
 
 uniform sampler2D texture0;
 uniform sampler2D gradients;
@@ -30,35 +30,35 @@ uniform float time;
 #define OBJECT_BBOX 2
 
 float linear_gradient(vec2 pos) {
-    // w = 1. / (texcoord.x / pos.x);
-    // h = 1. / (texcoord.y / pos.y);
-
     float x1 = gradient_param1;
     float x2 = gradient_param2;
     float y1 = gradient_param3;
     float y2 = gradient_param4;
 
-    // return pos.x;
+    // return pos.x / 100.;
     return (
         (pos.x - x1) * (x2 - x1) +
         (pos.y - y1) * (y2 - y1)
     ) / (
-        (x1 - x2) * (x2 - x1) +
-        (y1 - y2) * (y2 - y1)
+        (x1 - x2) * (x1 - x2) +
+        (y1 - y2) * (y1 - y2)
     );
 }
 
 float radial_gradient(vec2 pos) {
+    // return 0.;
     float cx = gradient_param1;
     float cy = gradient_param2;
-    float r = gradient_param3;
-    float fx = gradient_param4;
-    float fy = gradient_param5;
+    float rx = gradient_param3;
+    float ry = gradient_param4;
+    float fx = gradient_param5;
+    float fy = gradient_param6;
 
     vec2 d = vec2(fx, fy) - pos;
     vec2 center = vec2(cx, cy);
-    vec2 radius = vec2(r, r);
+    vec2 radius = vec2(rx, ry);
 
+    // return length(d) / 100.;
     float l = length(d);
     center /= l;
     radius /= l;
@@ -79,11 +79,11 @@ float radial_gradient(vec2 pos) {
 
 float g(int index){
     return texture2D(
-        gradients, // coord / gradients_size
+        gradients,
         vec2(
-            float(index),
-            gradient
-        ) / gradients_size
+            float(index) / gradients_size.x,
+            gradient / gradients_size.y
+        )
     ).r;
 }
 
@@ -92,10 +92,8 @@ int ig(int index) {
 }
 
 vec4 interp() {
-    mat3 transform;
     vec4 col1, col2;
     float t;
-    vec2 p;
 
     int i = 0;
     int type = ig(i++);
@@ -105,37 +103,37 @@ vec4 interp() {
     int spread = ig(i++);
     int units = ig(i++);
 
-    // return vec4(float(spread), float(units), 0., 1.);
-    // initiate transformation matrix
-    for (int m=0; m < 2; m++)
-        for (int n=0; n < 3; n++)
-            transform[n][m] = g(i++);
-
-    // 3rd line of the matrix is zeroed
-    for (int n=0; n < 3; n++)
-        transform[n][2] = 0.;
-
-    // TODO apply transform and unit conversion if needed
+    // XXX either use units here, or on python side and remove them from
+    // texture
 
     // return vec4(coord.x, 0., 0., 1.);
     if (type == LINEAR) {
+        return vec4(1., 1., 0., 1.);
         t = linear_gradient(coord);
-        // return vec4(1., 1., 0., 1.);
     }
 
     else if (type == RADIAL) {
+        return vec4(0., 1., 0., 1.);
         t = radial_gradient(coord);
-        // return vec4(0., 1., 0., 1.);
     } else {
         // show that something is wrong
-        return vec4(1., 0., 0., 1.);
+        float xxr, xxg, xxb;
+        xxr = float(type & 4);
+        xxg = float(type & 2);
+        xxb = float(type & 1);
+        return vec4(xxr, xxg, xxb, 1.);
+        // return vec4(1., 0., 1., 1.);
     }
 
-    return vec4(t, 0., 0., 1);
+    // t = 1. - t;
+    /* return vec4(t, 0., 0., 1); */
 
-    int stops = int(g(i++) * 255.);
+    int stops = ig(i++);
+    // don't increment for this two calls, to avoid breaking the next
+    // loop
     float first_stop = g(i);
-    float last_stop = g(i + 5 * stops);
+    // first index of last stop
+    float last_stop = g(i + 5 * (stops - 1));
 
     // now we have first and last stop value, and spread, we can fix it if needed
     if (!(first_stop < t && t < last_stop)) {
@@ -153,23 +151,37 @@ vec4 interp() {
         }
      }
 
-    // repeat the search process with a corrected t
-    for (int i_s=0; i_s < stops; i_s++) {
+    // search the correct stop with a corrected t (between first and
+    // last stop)
+    float previous_stop = g(i++);
+    // col1 = vec4(g(i++), g(i++), g(i++), g(i++));
+    col1.r = g(i++);
+    col1.g = g(i++);
+    col1.b = g(i++);
+    col1.a = g(i++);
+
+    if (previous_stop > t)
+        return col1;
+
+    for (int i_s=1; i_s < stops; i_s++) {
         float s = g(i++);
 
         col2 = col1;
+        // col1 = vec4(g(i++), g(i++), g(i++), g(i++));
         col1.r = g(i++);
         col1.g = g(i++);
         col1.b = g(i++);
         col1.a = g(i++);
 
-        if (0. < last_stop && last_stop < t && t < s)
-            return mix(col1, col2, (t - last_stop) / (s - last_stop));
+
+        if (previous_stop < t && t < s)
+            // return col1;
+            return mix(col2, col1, (t - previous_stop) / (s - previous_stop));
 
         else if (t < s)
             return col1;
 
-        last_stop = s;
+        previous_stop = s;
     }
     // we didn't find a last stop superior to t, so we must be in padding mode
     return col1;
