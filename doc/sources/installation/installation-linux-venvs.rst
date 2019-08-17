@@ -109,7 +109,7 @@ After you ensure that a 3rd-party repository containing any packages that dnf is
 
 Installation
 ------------
-After installing dependencies above specific to your distribution, do the following remaining steps.
+After installing dependencies above specific to your distribution, follow these steps.
 Replace `python` with `python3` for Python 3.
 
 .. parsed-literal::
@@ -123,14 +123,14 @@ Replace `python` with `python3` for Python 3.
     # load the virtualenv
     source ~/kivy_venv/bin/activate
 
-    # if you'd like to be able to use the x11 winodw backend do:
+    # if you'd like to be able to use the x11 window backend do:
     export USE_X11=1
 
     # install the correct Cython version
     pip install |cython_install|
 
     # Install stable version of Kivy into the virtualenv
-    pip install --no-binary kivy
+    pip install kivy
     # For the development version of Kivy, use the following command instead
     pip install git+https://github.com/kivy/kivy.git@master
 
@@ -230,8 +230,8 @@ Installation
 
     pip install |cython_install|
 
-    # If you want to install pygame backend instead of sdl2
-    # you can install pygame using command below and enforce using
+    # If you want to install the pygame backend instead of sdl2
+    # you can install pygame using the command below and enforce it using
     # export USE_SDL2=0. If kivy's setup can't find sdl2 libs it will
     # automatically set this value to 0 then try to build using pygame.
     pip install hg+http://bitbucket.org/pygame/pygame
@@ -295,7 +295,7 @@ for easier access. For example:
 
     $ ln -s <path to kivy-examples> ~/
 
-#. Then, you can access to kivy-examples directly in your home directory::
+#. Then, you can access the kivy-examples directly in your home directory::
 
     $ cd ~/kivy-examples
 
@@ -320,7 +320,7 @@ Device permissions
 
 When you app starts, Kivy uses `Mtdev <http://wiki.ubuntu.com/Multitouch>`_ to
 scan for available multi-touch devices to use for input. Access to these
-devices is typically restricted to users or group with the appropriate
+devices is typically restricted to users or groups with the appropriate
 permissions.
 
 If you do not have access to these devices, Kivy will log an error or warning
