@@ -130,7 +130,7 @@ Replace `python` with `python3` for Python 3.
     pip install |cython_install|
 
     # Install stable version of Kivy into the virtualenv
-    pip install --no-binary kivy .
+    pip install --no-binary kivy kivy
     # For the development version of Kivy, use the following command instead
     pip install git+https://github.com/kivy/kivy.git@master
 
