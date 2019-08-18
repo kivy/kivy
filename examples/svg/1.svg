@@ -20,6 +20,26 @@
   <defs
      id="defs5535">
     <linearGradient
+       inkscape:collect="always"
+       id="linearGradient6852">
+      <stop
+         style="stop-color:#000000;stop-opacity:1"
+         offset="0"
+         id="stop6844" />
+      <stop
+         id="stop6846"
+         offset="0.63543242"
+         style="stop-color:#d34848;stop-opacity:1" />
+      <stop
+         id="stop6848"
+         offset="0.76310259"
+         style="stop-color:#1f7f2e;stop-opacity:1" />
+      <stop
+         style="stop-color:#3f41ff;stop-opacity:1"
+         offset="1"
+         id="stop6850" />
+    </linearGradient>
+    <linearGradient
        id="linearGradient6800"
        inkscape:collect="always">
       <stop
@@ -45,27 +65,30 @@
        id="linearGradient6784"
        x1="111.98593"
        y1="15.297918"
-       x2="161.16353"
-       y2="42.292141"
-       gradientUnits="userSpaceOnUse" />
+       x2="195.90857"
+       y2="58.328312"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-73.522715,171.97153)" />
     <linearGradient
        inkscape:collect="always"
        xlink:href="#linearGradient6800"
        id="linearGradient6812"
        gradientUnits="userSpaceOnUse"
-       x1="105.90781"
-       y1="-28.801552"
-       x2="145.32553"
-       y2="-28.267014" />
+       x1="77.775429"
+       y1="-8.4890604"
+       x2="176.66516"
+       y2="-48.579483"
+       gradientTransform="translate(-76.775429,304.48906)" />
     <linearGradient
        inkscape:collect="always"
-       xlink:href="#linearGradient6800"
+       xlink:href="#linearGradient6852"
        id="linearGradient6842"
        gradientUnits="userSpaceOnUse"
-       x1="135.81841"
-       y1="42.943905"
-       x2="199.29039"
-       y2="41.340286" />
+       x1="81.493607"
+       y1="82.232536"
+       x2="198.29039"
+       y2="0.44804829"
+       gradientTransform="translate(-80.493606,173.7252)" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -74,18 +97,20 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.98994949"
-     inkscape:cx="572.73094"
-     inkscape:cy="979.71825"
+     inkscape:zoom="0.49497475"
+     inkscape:cx="209.53461"
+     inkscape:cy="200.59328"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1393"
-     inkscape:window-height="874"
-     inkscape:window-x="663"
-     inkscape:window-y="128"
+     inkscape:window-width="479"
+     inkscape:window-height="332"
+     inkscape:window-x="0"
+     inkscape:window-y="726"
      inkscape:window-maximized="0"
-     showguides="false" />
+     showguides="false"
+     inkscape:measure-start="286.883,353.553"
+     inkscape:measure-end="286.883,355.574" />
   <metadata
      id="metadata5538">
     <rdf:RDF>
@@ -107,21 +132,23 @@
        id="rect6776"
        width="128.28937"
        height="84.457169"
-       x="75.370003"
-       y="-0.47098425" />
+       x="1.8472874"
+       y="171.50055" />
     <rect
        style="opacity:1;fill:url(#linearGradient6842);fill-opacity:1;stroke:#000000;stroke-width:2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0"
        id="rect6086"
        width="116.79678"
        height="81.784477"
-       x="81.493607"
-       y="0.44804743" />
+       x="1"
+       y="174.17325"
+       inkscape:label="rect6086" />
     <rect
-       style="opacity:1;fill:url(#linearGradient6812);fill-opacity:1.0;stroke:#000000;stroke-width:2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="opacity:1;fill:url(#linearGradient6812);fill-opacity:1;stroke:#000000;stroke-width:2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect6802"
        width="98.889725"
        height="40.090431"
-       x="77.775429"
-       y="-48.579498" />
+       x="1"
+       y="255.90958"
+       ry="0" />
   </g>
 </svg>

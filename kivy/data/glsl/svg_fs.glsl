@@ -30,8 +30,8 @@ uniform float time;
 #define OBJECT_BBOX 2
 
 float linear_gradient(vec2 pos) {
-    vec2 x1 = vec2(gradient_param1, gradient_param3);
-    vec2 x2 = vec2(gradient_param2, gradient_param4);
+    vec2 x1 = vec2(gradient_param1, - gradient_param3);
+    vec2 x2 = vec2(gradient_param2, - gradient_param4);
     vec2 dt = x2 - x1;
     vec2 pt = pos - x1;
     return dot(pt, dt) / dot(dt, dt);
@@ -73,8 +73,8 @@ float g(int index){
     return texture2D(
         gradients,
         vec2(
-            float(index) / gradients_size.x,
-            gradient / gradients_size.y
+            (.5 + float(index)) / gradients_size.x,
+            (.5 + gradient) / gradients_size.y
         )
     ).r;
 }
@@ -84,10 +84,15 @@ int ig(int index) {
 }
 
 vec4 interp() {
-    vec4 col1, col2;
     float t;
 
     int i = 0;
+    /* return vec4( */
+    /*     g(0), */
+    /*     g(1), */
+    /*     g(2), */
+    /*     1.0 */
+    /* ); */
     int type = ig(i++);
     // return texture2D(gradients, texcoord);
     // return vec4(0., 0., float(type), 1.);
@@ -144,37 +149,71 @@ vec4 interp() {
                 t = r;
         }
      }
+    /* return vec4(t, 0., 0., 1.); */
 
     // search the correct stop with a corrected t (between first and
     // last stop)
-    float previous_stop = g(i++);
-    col1 = vec4(
+
+    /*
+    return vec4(
+        float(gradient) / 255,
+        float(gradients_size.x) / 255,
+        float(gradients_size.y) / 255,
+        1.
+    );
+    */
+    /*
+    return vec4(
+        // float(type) / 255,
+        float(spread) / 255.,
+        float(units) / 255.,
+        float(stops) / 255.,
+        1.
+    );
+    */
+    float stop, previous_stop = g(i++);
+    vec4 prev_color, cur_color;
+    cur_color = vec4(
         g(i++), // R
         g(i++), // G
         g(i++), // B
         g(i++)  // A
     );
 
-    if (previous_stop > t)
-        return col1;
+    if (t <= 0.)
+        return cur_color;
 
-    for (int i_s=1; i_s < stops; i_s++) {
-        float stop = g(i++);
+    for (int i_s=1; i_s <= stops; i_s++) {
+        stop = g(i++);
 
-        col2 = col1;
-        col1 = vec4(g(i++), g(i++), g(i++), g(i++));
+        prev_color = cur_color;
+        cur_color = vec4(
+            g(i++), // R
+            g(i++), // G
+            g(i++), // B
+            g(i++)  // A
+        );
 
-        if (previous_stop < t && t < stop)
-            /* return col2; */
-            return mix(col2, col1, (t - previous_stop) * (stop - previous_stop));
+        if (previous_stop < t && t <= stop) {
+            /* return vec4(previous_stop, 0., 0., 1.0); */
+            //return cur_color;
+            /* return vec4(float(i_s), 0., 0., 1.0); */
+            return mix(
+                prev_color,
+                cur_color,
+                (t - previous_stop) / (stop - previous_stop)
+            );
+            return vec4((t - previous_stop) / (stop - previous_stop), 0., 0., 1.);
 
-        else if (t < stop)
-            return col1;
+        /* else if (t < stop) */
+        /*     return col1; */
+        }
 
         previous_stop = stop;
     }
     // we didn't find a last stop superior to t, so we must be in padding mode
-    return col1;
+    return vec4((t - previous_stop) / (stop - previous_stop), 0., 0., 1.);
+    /* return cur_color; */
 }
 
 void main (void) {
@@ -188,7 +227,7 @@ void main (void) {
         // gl_FragColor = vec4(xxr, xxg, xxb, 1.);
 
         // check that the texture is correctly uploaded
-        // gl_FragColor = texture2D(gradients, coord / (gradients_size);
+        // gl_FragColor = texture2D(gradients, coord);
         gl_FragColor = interp();
     } else
         gl_FragColor = texture2D(texture0, texcoord) * (vertex_color / 255.);

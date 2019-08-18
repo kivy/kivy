@@ -392,9 +392,11 @@ class Gradient(object):
 
         self.spread_method = element.get('spreadMethod', 'pad')
         self.gradient_units = element.get('gradientUnits', 'objectBoundingBox')
+        print(self.gradient_units)
         self.gradient_transform = transform = Matrix(
             element.get('gradientTransform', 'identity')
         )
+        print(transform.to_floats())
         self.inv_transform = transform.inverse()
 
         inherit = self.element.get('{http://www.w3.org/1999/xlink}href')
@@ -410,10 +412,29 @@ class Gradient(object):
         if not delay_params:
             self.get_params(parent)
 
+    def get_spread_method_float(self):
+        return {
+            'pad': 1,
+            'repeat': 2,
+            'reflect': 3
+        }[self.spread_method] / 255.
+
+    def get_gradient_units_float(self):
+        return {
+            'userSpaceOnUse': 1,
+            'objectBoundingBox': 2
+        }[self.gradient_units] / 255.
+
     def to_floats(self):
         stops = list(
             chain(*[
-                (s, r / 255., g / 255., b / 255., a / 255.)
+                (
+                    s,
+                    r / 255.,
+                    g / 255.,
+                    b / 255.,
+                    a / 255.
+                )
                 for (s, (r, g, b, a)) in self.stops
             ])
         )
@@ -421,8 +442,8 @@ class Gradient(object):
         return (
             [
                 self.get_type_float(),
-                {'pad': 1, 'repeat': 2, 'reflect': 3}[self.spread_method] / 255.,
-                {'userSpaceOnUse': 1, 'objectBoundingBox': 2}[self.gradient_units] / 255.,
+                self.get_spread_method_float(),
+                self.get_gradient_units_float(),
             ]
             + [len(self.stops) / 255.]
             + stops
@@ -1615,7 +1636,6 @@ cdef class Svg(RenderContext):
 
                     gradient_params = cx, cy, rx, ry, fx, fy
 
-            # gradient = self.gradients[fill]
             for index in range(count):
                 x = path[index * 2]
                 y = path[index * 2 + 1]
