@@ -1013,11 +1013,13 @@ class ScreenManager(FloatLayout):
         self.screens.remove(screen)
 
     def clear_widgets(self, screens=None):
-        if not screens:
+        if screens is None:
             screens = self.screens
-        remove_widget = self.remove_widget
-        for screen in screens:
-            remove_widget(screen)
+
+        # iterate over a copy of screens, as self.remove_widget
+        # modifies self.screens in place
+        for screen in screens[:]:
+            self.remove_widget(screen)
 
     def real_add_widget(self, screen, *args):
         # ensure screen is removed from its previous parent
