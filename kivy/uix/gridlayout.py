@@ -512,6 +512,26 @@ class GridLayout(Layout):
         for i, x, y, w, h in self._iterate_layout(len(children)):
             c = children[i]
             c.pos = x, y
+        
+            center_x_hint = c.pos_hint.get('center_x')
+            if center_x_hint is not None:
+                c.center_x = x + w * center_x_hint
+            center_y_hint = c.pos_hint.get('center_y')
+            if center_y_hint is not None:
+                c.center_y = y + h * center_y_hint
+            x_hint = c.pos_hint.get('x')
+            if x_hint is not None:
+                c.x += x_hint * w
+            y_hint = c.pos_hint.get('y')
+            if y_hint is not None:
+                c.y += y_hint * h
+            right_hint = c.pos_hint.get('right')
+            if right_hint is not None:
+                c.right = x + right_hint * w
+            top_hint = c.pos_hint.get('top')
+            if top_hint is not None:
+                c.top = y + top_hint * h
+                        
             shw, shh = c.size_hint
             shw_min, shh_min = c.size_hint_min
             shw_max, shh_max = c.size_hint_max
