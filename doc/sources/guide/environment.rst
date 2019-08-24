@@ -223,13 +223,11 @@ Event Loop
 ----------
 
 KIVY_EVENTLOOP
-    Whether to use an async or synchronous event loop. See :mod:`kivy.app`
-    for example usage.
+    Which async library should be used when the app is run in an asynchronous
+    manner. See :mod:`kivy.app` for example usage.
 
-    ``'sync'``: When the app is run normally in a synchronous manner.
-        The default if not set.
     ``'asyncio'``: When the app is run in an asynchronous manner and the standard
-        library asyncio package should be used.
+        library asyncio package should be used. The default if not set.
     ``'trio'``: When the app is run in an asynchronous manner and the `trio`
         package should be used.
 
