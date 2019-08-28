@@ -513,24 +513,23 @@ class GridLayout(Layout):
             c = children[i]
             c.pos = x, y
         
-            center_x_hint = c.pos_hint.get('center_x')
-            if center_x_hint is not None:
-                c.center_x = x + w * center_x_hint
-            center_y_hint = c.pos_hint.get('center_y')
-            if center_y_hint is not None:
-                c.center_y = y + h * center_y_hint
-            x_hint = c.pos_hint.get('x')
-            if x_hint is not None:
-                c.x += x_hint * w
-            y_hint = c.pos_hint.get('y')
-            if y_hint is not None:
-                c.y += y_hint * h
-            right_hint = c.pos_hint.get('right')
-            if right_hint is not None:
-                c.right = x + right_hint * w
-            top_hint = c.pos_hint.get('top')
-            if top_hint is not None:
-                c.top = y + top_hint * h
+			for key, value in c.pos_hint.items(): 
+				if key == 'x': 
+					c.x = x + value * w 
+				elif key == 'right': 
+					c.right = x + value * w 
+				elif key == 'pos': 
+					c.pos = x + value[0] * w, y + value[1] * h 
+				elif key == 'y': 
+					c.y = y + value * h 
+				elif key == 'top': 
+					c.top = y + value * h 
+				elif key == 'center': 
+					c.center = x + value[0] * w, y + value[1] * h 
+				elif key == 'center_x': 
+					c.center_x = x + value * w 
+				elif key == 'center_y': 
+					c.center_y = y + value * h 
                         
             shw, shh = c.size_hint
             shw_min, shh_min = c.size_hint_min
