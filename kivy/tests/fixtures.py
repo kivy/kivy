@@ -4,7 +4,7 @@ import weakref
 import time
 import os.path
 
-__all__ = ('kivy_app', )
+__all__ = ('kivy_app', 'tmp_builder')
 
 # keep track of all the kivy app fixtures so that we can check that it
 # properly dies
@@ -109,3 +109,16 @@ async def kivy_app(request, nursery):
     apps.append((weakref.ref(app), request))
     del app
     gc.collect()
+
+
+@pytest.fixture()
+def tmp_builder():
+    from kivy.context import get_current_context, Context
+    from kivy.factory import Factory
+    from kivy.lang import Builder
+    ctx = Context(get_current_context())
+    ctx['Factory'] = Factory.create_from(Factory)
+    ctx['Builder'] = Builder.create_from(Builder)
+    ctx.push()
+    yield Builder
+    ctx.pop()

@@ -10,6 +10,8 @@ except SyntaxError:
     # it's ok to fail here as it won't be used anyway
     pass
 
+from .fixtures import tmp_builder
+
 if kivy_eventloop != 'trio':
     @pytest.fixture()
     def nursery():
