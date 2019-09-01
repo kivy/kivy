@@ -578,6 +578,10 @@ class TextInput(FocusBehavior, Widget):
         # when the gl context is reloaded, trigger the text rendering again.
         _textinput_list.append(ref(self, TextInput._reload_remove_observer))
 
+        EventLoop.window.bind(on_textedit=self._on_textedit)
+        self._editing = False
+        self._edit_range = None
+
         if platform == 'linux':
             self._ensure_clipboard()
 
@@ -1728,6 +1732,15 @@ class TextInput(FocusBehavior, Widget):
             self._do_blink_cursor_ev.cancel()
             self._hide_handles(win)
 
+    def _on_textedit(self, window, text, start, length):
+        if len(text):
+            self._editing = True
+            self._edit_range = (start, length)
+        else:
+            self._editing = False
+            self._edit_range = None
+        self.suggestion_text = text
+
     def _ensure_clipboard(self):
         global Clipboard, CutBuffer
         if not Clipboard:
@@ -2453,6 +2466,10 @@ class TextInput(FocusBehavior, Widget):
             self._alt_r = False
 
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
+        # IME consumes it all
+        if self._editing:
+            return True
+
         # Keycodes on OS X:
         ctrl, cmd = 64, 1024
         key, key_str = keycode
@@ -3022,19 +3039,28 @@ class TextInput(FocusBehavior, Widget):
         if cursor_row >= len(self._lines) or self.canvas is None:
             return
 
-        cursor_pos = self.cursor_pos
+        cursor_col = self.cursor_col
         txt = self._lines[cursor_row]
+        pre = txt[:cursor_col]
+        suf = txt[cursor_col:]
 
         kw = self._get_line_options()
         rct = self._lines_rects[cursor_row]
 
-        lbl = text = None
+        lbl = None
         if value:
+            if self.edit_range:
+                ebeg = self._edit_range[0]
+                eend = ebeg + self._edit_range[1]
+            else:
+                ebeg = 0
+                eend = len(value)
             lbl = MarkupLabel(
-                text=txt + "[b]{}[/b]".format(value), **kw)
+                text="{}[b]{}[u]{}[/u]{}[/b]{}".format(
+                    pre, value[:ebeg], value[ebeg:eend], value[eend:], suf
+                    ), **kw)
         else:
-            lbl = Label(**kw)
-            text = txt
+            lbl = Label(text=txt, **kw)
 
         lbl.refresh()
 
