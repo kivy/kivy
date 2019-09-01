@@ -690,7 +690,9 @@ class WindowSDL(WindowBase):
 
             elif action == 'textedit':
                 text = args[0]
-                self.dispatch('on_textedit', text)
+                start = args[1]
+                length = args[2]
+                self.dispatch('on_textedit', text, start, length)
 
             # unhandled event !
             else:

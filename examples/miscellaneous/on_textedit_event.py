@@ -19,7 +19,7 @@ class TextInputIME(TextInput):
         super(TextInputIME, self).__init__(**kwargs)
         EventLoop.window.bind(on_textedit=self._on_textedit)
 
-    def _on_textedit(self, window, text):
+    def _on_textedit(self, window, text, start, length):
         self.testtext = text
 
 
