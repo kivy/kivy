@@ -3049,7 +3049,7 @@ class TextInput(FocusBehavior, Widget):
 
         lbl = None
         if value:
-            if self.edit_range:
+            if self._edit_range:
                 ebeg = self._edit_range[0]
                 eend = ebeg + self._edit_range[1]
             else:
