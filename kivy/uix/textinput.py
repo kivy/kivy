@@ -3057,8 +3057,8 @@ class TextInput(FocusBehavior, Widget):
                 eend = len(value)
             lbl = MarkupLabel(
                 text="{}[b]{}[u]{}[/u]{}[/b]{}".format(
-                    pre, value[:ebeg], value[ebeg:eend], value[eend:], suf
-                    ), **kw)
+                    pre, value[:ebeg], value[ebeg:eend], value[eend:], suf),
+                **kw)
         else:
             lbl = Label(text=txt, **kw)
 
