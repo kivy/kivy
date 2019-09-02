@@ -578,10 +578,6 @@ class TextInput(FocusBehavior, Widget):
         # when the gl context is reloaded, trigger the text rendering again.
         _textinput_list.append(ref(self, TextInput._reload_remove_observer))
 
-        EventLoop.window.bind(on_textedit=self._on_textedit)
-        self._editing = False
-        self._edit_range = None
-
         if platform == 'linux':
             self._ensure_clipboard()
 
@@ -1732,15 +1728,6 @@ class TextInput(FocusBehavior, Widget):
             self._do_blink_cursor_ev.cancel()
             self._hide_handles(win)
 
-    def _on_textedit(self, window, text, start, length):
-        if len(text):
-            self._editing = True
-            self._edit_range = (start, length)
-        else:
-            self._editing = False
-            self._edit_range = None
-        self.suggestion_text = text
-
     def _ensure_clipboard(self):
         global Clipboard, CutBuffer
         if not Clipboard:
@@ -2466,10 +2453,6 @@ class TextInput(FocusBehavior, Widget):
             self._alt_r = False
 
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
-        # IME consumes it all
-        if self._editing:
-            return True
-
         # Keycodes on OS X:
         ctrl, cmd = 64, 1024
         key, key_str = keycode
@@ -3049,16 +3032,8 @@ class TextInput(FocusBehavior, Widget):
 
         lbl = None
         if value:
-            if self._edit_range:
-                ebeg = self._edit_range[0]
-                eend = ebeg + self._edit_range[1]
-            else:
-                ebeg = 0
-                eend = len(value)
             lbl = MarkupLabel(
-                text="{}[b]{}[u]{}[/u]{}[/b]{}".format(
-                    pre, value[:ebeg], value[ebeg:eend], value[eend:], suf),
-                **kw)
+                text="{}[b]{}[/b]{}".format(pre, value, suf), **kw)
         else:
             lbl = Label(text=txt, **kw)
 
