@@ -1236,7 +1236,7 @@ class Widget(WidgetBase):
 
     pos_hint = ObjectProperty({})
     '''Position hint. This property allows you to set the position of
-    the widget inside its parent layout, in percent (similar to
+    the widget inside its parent layout (similar to
     size_hint).
 
     For example, if you want to set the top of the widget to be at 90%
