@@ -1028,6 +1028,9 @@ def glob_paths(*patterns, excludes=('.pyc', )):
             if f.suffix in excludes:
                 continue
             files.append(str(f.relative_to(base)))
+    import pprint
+    print('patterns: {}, excludes: {}'.format(patterns, excludes))
+    pprint.pprint(files)
     return files
 
 
