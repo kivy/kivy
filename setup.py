@@ -208,6 +208,7 @@ src_path = build_path = dirname(__file__)
 print("Current directory is: {}".format(os.getcwd()))
 print("Source and initial build directory is: {}".format(src_path))
 
+
 class KivyBuildExt(build_ext, object):
 
     def __new__(cls, *a, **kw):
@@ -341,6 +342,7 @@ def _check_and_fix_sdl2_mixer(f_path):
 
 
 # -----------------------------------------------------------------------------
+print("Python path is:\n{}\n".format('\n'.join(sys.path)))
 # extract version (simulate doc generation, kivy will be not imported)
 environ['KIVY_DOC_INCLUDE'] = '1'
 import kivy
@@ -1028,9 +1030,6 @@ def glob_paths(*patterns, excludes=('.pyc', )):
             if f.suffix in excludes:
                 continue
             files.append(str(f.relative_to(base)))
-    import pprint
-    print('patterns: {}, excludes: {}'.format(patterns, excludes))
-    pprint.pprint(files)
     return files
 
 
