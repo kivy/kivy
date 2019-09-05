@@ -205,6 +205,8 @@ else:
 
 # the build path where kivy is being compiled
 src_path = build_path = dirname(__file__)
+print("Current directory is: {}".format(os.getcwd()))
+print("Source and initial build directory is: {}".format(src_path))
 
 
 class KivyBuildExt(build_ext, object):
@@ -236,6 +238,7 @@ class KivyBuildExt(build_ext, object):
         if (self.build_lib is not None and exists(self.build_lib) and
                 not self.inplace):
             build_path = self.build_lib
+            print("Updated build directory to: {}".format(build_path))
         return retval
 
     def build_extensions(self):
@@ -339,6 +342,7 @@ def _check_and_fix_sdl2_mixer(f_path):
 
 
 # -----------------------------------------------------------------------------
+print("Python path is:\n{}\n".format('\n'.join(sys.path)))
 # extract version (simulate doc generation, kivy will be not imported)
 environ['KIVY_DOC_INCLUDE'] = '1'
 import kivy
