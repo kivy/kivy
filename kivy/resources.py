@@ -40,7 +40,7 @@ import kivy
 resource_paths = ['.', dirname(sys.argv[0])]
 if platform == 'ios':
     resource_paths += [join(dirname(sys.argv[0]), 'YourApp')]
-resource_paths += [dirname(kivy.__file__), join(kivy_data_dir, '..')]
+resource_paths += [dirname(kivy.__file__), kivy_data_dir]
 
 
 def resource_find(filename):
