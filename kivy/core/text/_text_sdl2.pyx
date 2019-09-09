@@ -127,10 +127,7 @@ cdef class _SurfaceContainer:
         r.w = st.w
         r.h = st.h
         SDL_SetSurfaceAlphaMod(st, <int>(color[3] * 255))
-        if container.options['font_blended']:
-            SDL_SetSurfaceBlendMode(st, SDL_BLENDMODE_BLEND)
-        else:
-            SDL_SetSurfaceBlendMode(st, SDL_BLENDMODE_NONE)
+        SDL_SetSurfaceBlendMode(st, SDL_BLENDMODE_NONE)
         SDL_BlitSurface(st, NULL, self.surface, &r)
         SDL_FreeSurface(st)
 
