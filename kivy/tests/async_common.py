@@ -1,5 +1,6 @@
 import random
 import time
+import math
 import os
 from collections import deque
 
@@ -269,19 +270,52 @@ class UnitKivyApp(object):
         yield 'up', touch.pos
 
     async def do_touch_drag(
-            self, pos=None, widget=None, dx=0, dy=0, target_pos=None,
-            target_widget=None, long_press=0, duration=.2, drag_n=5):
-        """Note that dx, dy are not scaled by any widget's possible scale
-        factor.
+            self, pos=None, widget=None,
+            widget_loc=('center_x', 'center_y'), dx=0, dy=0,
+            target_pos=None, target_widget=None,
+            target_widget_loc=('center_x', 'center_y'), long_press=0,
+            duration=.2, drag_n=5):
+        """Initiates a touch down, followed by some dragging to a target
+        location, ending with a touch up.
+
+        `origin`: These parameters specify where the drag starts.
+        - If ``widget`` is None, it starts at ``pos`` (in window coordinates).
+          If ``dx``/``dy`` is used, it is in the window coordinate system also.
+        - If ``pos`` is None, it starts on the ``widget`` as specified by
+          ``widget_loc``. If ``dx``/``dy`` is used, it is in the ``widget``
+          coordinate system.
+        - If neither is None, it starts at ``pos``, but in the ``widget``'s
+          coordinate system (:meth:`~kivy.uix.widget.Widget.to_window` is used
+          on it). If ``dx``/``dy`` is used, it is in the ``widget``
+          coordinate system.
+
+        `target`: These parameters specify where the drag ends.
+        - If ``target_pos`` and ``target_widget`` is None, then ``dx`` and
+          ``dy`` is used relative to the position where the drag started.
+        - If ``target_widget`` is None, it ends at ``target_pos``
+          (in window coordinates).
+        - If ``target_pos`` is None, it ends on the ``target_widget`` as
+          specified by ``target_widget_loc``.
+        - If neither is None, it starts at ``target_pos``, but in the
+          ``target_widget``'s coordinate system
+          (:meth:`~kivy.uix.widget.Widget.to_window` is used on it).
+
+        When ``widget`` and/or ``target_widget`` are specified, ``widget_loc``
+        and ``target_widget_loc``, respectively, indicate where on the widget
+        the drag starts/ends. It is a a tuple with property names of the widget
+        to loop up to get the value. The default is
+        ``('center_x', 'center_y')`` so the drag would start/end in the
+        widget's center.
         """
         if widget is None:
             x, y = pos
             tx, ty = x + dx, y + dy
         else:
             if pos is None:
-                x, y = widget.to_window(*widget.center)
-                tx, ty = widget.to_window(
-                    widget.center[0] + dx, widget.center[1] + dy)
+                w_x = getattr(widget, widget_loc[0])
+                w_y = getattr(widget, widget_loc[1])
+                x, y = widget.to_window(w_x, w_y)
+                tx, ty = widget.to_window(w_x + dx, w_y + dy)
             else:
                 x, y = widget.to_window(*pos, initial=False)
                 tx, ty = widget.to_window(
@@ -294,8 +328,9 @@ class UnitKivyApp(object):
                 tx, ty = target_pos = target_widget.to_window(
                     *target_pos, initial=False)
         elif target_widget is not None:
-            tx, ty = target_pos = target_widget.to_window(
-                *target_widget.center)
+            w_x = getattr(target_widget, target_widget_loc[0])
+            w_y = getattr(target_widget, target_widget_loc[1])
+            tx, ty = target_pos = target_widget.to_window(w_x, w_y)
         else:
             target_pos = tx, ty
 
@@ -328,10 +363,106 @@ class UnitKivyApp(object):
         await self.wait_clock_frames(1)
         yield 'up', touch.pos
 
+    async def do_touch_drag_follow(
+            self, pos=None, widget=None,
+            widget_loc=('center_x', 'center_y'),
+            target_pos=None, target_widget=None,
+            target_widget_loc=('center_x', 'center_y'), long_press=0,
+            duration=.2, drag_n=5, max_n=25):
+        """Very similar to :meth:`do_touch_drag`, except it follows the target
+        widget, even if the target widget moves as a result of the drag, the
+        drag will follow it until it's on the target widget.
+
+        `origin`: These parameters specify where the drag starts.
+        - If ``widget`` is None, it starts at ``pos`` (in window coordinates).
+        - If ``pos`` is None, it starts on the ``widget`` as specified by
+          ``widget_loc``.
+        - If neither is None, it starts at ``pos``, but in the ``widget``'s
+          coordinate system (:meth:`~kivy.uix.widget.Widget.to_window` is used
+          on it).
+
+        `target`: These parameters specify where the drag ends.
+        - If ``target_pos`` is None, it ends on the ``target_widget`` as
+          specified by ``target_widget_loc``.
+        - If ``target_pos`` is not None, it starts at ``target_pos``, but in
+          the ``target_widget``'s coordinate system
+          (:meth:`~kivy.uix.widget.Widget.to_window` is used on it).
+
+        When ``widget`` and/or ``target_widget`` are specified, ``widget_loc``
+        and ``target_widget_loc``, respectively, indicate where on the widget
+        the drag starts/ends. It is a a tuple with property names of the widget
+        to loop up to get the value. The default is
+        ``('center_x', 'center_y')`` so the drag would start/end in the
+        widget's center.
+        """
+        if widget is None:
+            x, y = pos
+        else:
+            if pos is None:
+                w_x = getattr(widget, widget_loc[0])
+                w_y = getattr(widget, widget_loc[1])
+                x, y = widget.to_window(w_x, w_y)
+            else:
+                x, y = widget.to_window(*pos, initial=False)
+
+        if target_widget is None:
+            raise ValueError('target_widget must be specified')
+
+        def get_target():
+            if target_pos is not None:
+                return target_widget.to_window(*target_pos, initial=False)
+            else:
+                wt_x = getattr(target_widget, target_widget_loc[0])
+                wt_y = getattr(target_widget, target_widget_loc[1])
+                return target_widget.to_window(wt_x, wt_y)
+
+        touch = AsyncUnitTestTouch(x, y)
+
+        touch.touch_down()
+        await self.wait_clock_frames(1)
+        if long_press:
+            await self.async_sleep(long_press)
+        yield 'down', touch.pos
+
+        ts0 = time.perf_counter()
+        tx, ty = get_target()
+        i = 0
+        while not (math.isclose(touch.x, tx) and math.isclose(touch.y, ty)):
+            if i >= max_n:
+                raise Exception(
+                    'Exceeded the maximum number of iterations, '
+                    'but {} != {}'.format(touch.pos, (tx, ty)))
+
+            rem_i = max(1, drag_n - i)
+            rem_t = max(0., duration - (time.perf_counter() - ts0)) / rem_i
+            i += 1
+            await self.async_sleep(rem_t)
+
+            x, y = touch.pos
+            touch.touch_move(x + (tx - x) / rem_i, y + (ty - y) / rem_i)
+            await self.wait_clock_frames(1)
+            yield 'move', touch.pos
+            tx, ty = get_target()
+
+        touch.touch_up()
+        await self.wait_clock_frames(1)
+        yield 'up', touch.pos
+
     async def do_touch_drag_path(
             self, path, axis_widget=None, long_press=0, duration=.2):
-        """Note that the path points are not scaled by any widget's possible
-        scale factor.
+        """Drags the touch along the specified path.
+
+        :parameters:
+
+            `path`: list
+                A list of position tuples the touch will follow. The first
+                item is used for the touch down and the rest for the move.
+            `axis_widget`: a Widget
+                If None, the path coordinates is in window coordinates,
+                otherwise, we will first transform the path coordinates
+                to window coordinates using
+                :meth:`~kivy.uix.widget.Widget.to_window` of the specified
+                widget.
         """
         if axis_widget is not None:
             path = [axis_widget.to_window(*p, initial=False) for p in path]
