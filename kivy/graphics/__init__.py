@@ -32,7 +32,7 @@ to the canvas object and will be used when the window is drawn.
 
 .. note::
 
-    Kivy drawing instructions are not automatically relative to the position 
+    Kivy drawing instructions are not automatically relative to the position
     or size of the widget. You, therefore, need to consider these factors when
     drawing. In order to make your drawing instructions relative to the widget,
     the instructions need either to be
