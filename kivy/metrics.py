@@ -153,6 +153,9 @@ class MetricsBase(object):
         be taken from the Window provider (Desktop mainly) or from a
         platform-specific module (like android/ios).
         '''
+        if environ.get('KIVY_DOC_INCLUDE', None):
+            return 132.
+
         custom_dpi = environ.get('KIVY_DPI')
         if custom_dpi:
             return float(custom_dpi)
@@ -193,6 +196,9 @@ class MetricsBase(object):
         '''Return the density of the screen. This value is 1 by default
         on desktops but varies on android depending on the screen.
         '''
+        if environ.get('KIVY_DOC_INCLUDE', None):
+            return 1.
+
         custom_density = environ.get('KIVY_METRICS_DENSITY')
         if custom_density:
             return float(custom_density)
