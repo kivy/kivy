@@ -83,7 +83,6 @@ Sister projects
   packaging Kivy applications for iOS.
 - [Audiostream](https://github.com/kivy/audiostream): library for direct access
   to the microphone and speaker.
-- [Kivy Designer](https://github.com/kivy/kivy-designer): UI designer for Kivy.
 - [KivEnt](https://github.com/kivy/kivent): entity-based game engine for Kivy.
 - [Garden](https://github.com/kivy-garden): widgets and libraries created and
   maintained by users.
