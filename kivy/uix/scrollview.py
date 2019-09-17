@@ -998,6 +998,25 @@ class ScrollView(StencilView):
             self.scroll_x = sxp
             self.scroll_y = syp
 
+    def scroll_to_index(self, index):
+        if not self.parent and self._viewport:
+            return
+
+        vp = self._viewport
+        pos = (vp.default_size[1] + vp.spacing) * index
+        dsx, dsy = self.convert_distance_to_scroll(0, pos - (self.height * 0.5))
+        sxp = 1.0 - min(1, max(0, dsx))
+        syp = 1.0 - min(1, max(0, dsy))
+
+        if animate:
+            if animate is True:
+                animate = {'d': 0.2, 't': 'out_quad'}
+            Animation.stop_all(self, 'scroll_x', 'scroll_y')
+            Animation(scroll_x=sxp, scroll_y=syp, **animate).start(self)
+        else:
+            self.scroll_x = sxp
+            self.scroll_y = syp
+
     def convert_distance_to_scroll(self, dx, dy):
         '''Convert a distance in pixels to a scroll distance, depending on the
         content size and the scrollview size.
