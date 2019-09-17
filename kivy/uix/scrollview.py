@@ -1010,7 +1010,8 @@ class ScrollView(StencilView):
 
         vp = self._viewport
         pos = (vp.default_size[1] + vp.spacing) * index
-        dsx,dsy = self.convert_distance_to_scroll(0, pos - (self.height * 0.5))
+        dsx, dsy = self.convert_distance_to_scroll(0, pos - (
+            self.height * 0.5))
         sxp = 1.0 - min(1, max(0, dsx))
         syp = 1.0 - min(1, max(0, dsy))
 
