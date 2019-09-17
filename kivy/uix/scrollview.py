@@ -1000,9 +1000,9 @@ class ScrollView(StencilView):
 
     def scroll_to_index(self, index, animate=True):
         '''Scrolls the viewport to the item at the given index,
-        while trying to place that item at the center of the viewport. 
-        If animate is True (the default), then the default animation 
-        parameters will be used. Otherwise, it should be a dict containing 
+        while trying to place that item at the center of the viewport.
+        If animate is True (the default), then the default animation
+        parameters will be used. Otherwise, it should be a dict containing
         arguments to pass to :class:`~kivy.animation.Animation` constructor.
         '''
         if not self.parent and self._viewport:
@@ -1010,7 +1010,7 @@ class ScrollView(StencilView):
 
         vp = self._viewport
         pos = (vp.default_size[1] + vp.spacing) * index
-        dsx, dsy = self.convert_distance_to_scroll(0, pos - (self.height * 0.5))
+        dsx,dsy = self.convert_distance_to_scroll(0, pos - (self.height * 0.5))
         sxp = 1.0 - min(1, max(0, dsx))
         syp = 1.0 - min(1, max(0, dsy))
 
