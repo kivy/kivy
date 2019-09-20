@@ -811,8 +811,16 @@ class FileChooserController(RelativeLayout):
         else:
             if platform == 'win':
                 is_root = splitdrive(path)[1] in (sep, altsep)
+                if not path:
+                    path = abspath(sep)
+                else:
+                    path = abspath(self.path)
             elif platform in ('macosx', 'linux', 'android', 'ios'):
                 is_root = normpath(expanduser(path)) == sep
+                if not path:
+                    path = abspath(sep)
+                else:
+                    path = abspath(self.path)
             else:
                 # Unknown fs, just always add the .. entry but also log
                 Logger.warning('Filechooser: Unsupported OS: %r' % platform)
