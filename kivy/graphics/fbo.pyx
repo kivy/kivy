@@ -182,7 +182,7 @@ cdef class Fbo(RenderContext):
         self._texture = kwargs['texture']
         self.observers = []
 
-        if is_gles_platform:
+        if IS_GLES_PLATFORM:
             # on GLES/iOS, depthbuffer works with stencil enabled
             # that's how openFrameworks did for all GLES platform in ofFbo.cpp
             if self._depthbuffer_attached:
@@ -232,7 +232,7 @@ cdef class Fbo(RenderContext):
                                   self._width, self._height)
             cgl.glBindRenderbuffer(GL_RENDERBUFFER, old_rid)
 
-            if is_gles_platform:
+            if IS_GLES_PLATFORM:
                 cgl.glFramebufferRenderbuffer(
                     GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
                     GL_RENDERBUFFER, f_id)
