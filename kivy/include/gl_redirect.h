@@ -82,6 +82,9 @@
 #   ifndef GL_DEPTH24_STENCIL8
 #       define GL_DEPTH24_STENCIL8                      GL_DEPTH24_STENCIL8_OES
 #   endif
+#   ifndef GL_DEPTH_STENCIL_ATTACHMENT
+#       define GL_DEPTH_STENCIL_ATTACHMENT              0x821A
+#   endif
 
 #endif /* defined(_WIN32) */
 

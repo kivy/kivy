@@ -90,9 +90,9 @@ cdef list fbo_stack = []
 cdef list fbo_release_list = []
 
 # must be running GLES2 not just the headers
-cdef bool is_gles_platform = USE_OPENGL_ES2
+cdef int IS_GLES_PLATFORM = USE_OPENGL_ES2
 if platform == "darwin":
-    is_gles_platform = False
+    IS_GLES_PLATFORM = 0
 
 
 cdef class Fbo(RenderContext):

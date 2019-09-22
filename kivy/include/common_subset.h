@@ -466,9 +466,7 @@ GL_APICALL void         GL_APIENTRY glViewport (GLint x, GLint y, GLsizei width,
 #define GL_RENDERBUFFER_BINDING           0x8CA7
 #define GL_MAX_RENDERBUFFER_SIZE          0x84E8
 #define GL_INVALID_FRAMEBUFFER_OPERATION  0x0506
-#ifndef GL_DEPTH_STENCIL_ATTACHMENT
-#define GL_DEPTH_STENCIL_ATTACHMENT 0x821A
-#endif
+#define GL_DEPTH_STENCIL_ATTACHMENT       0x821A
 GL_APICALL void         GL_APIENTRY glBindFramebuffer (GLenum target, GLuint framebuffer);
 GL_APICALL void         GL_APIENTRY glBindRenderbuffer (GLenum target, GLuint renderbuffer);
 GL_APICALL void         GL_APIENTRY glBlendEquationSeparate (GLenum modeRGB, GLenum modeAlpha);
