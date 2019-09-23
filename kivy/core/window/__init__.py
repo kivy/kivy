@@ -115,7 +115,7 @@ class Keyboard(EventDispatcher):
         'é': 233, 'è': 232,
     }
 
-    __events__ = ('on_key_down', 'on_key_up', 'on_textinput')
+    __events__ = ('on_key_down', 'on_key_up', 'on_textinput','on_textedit')
 
     def __init__(self, **kwargs):
         super(Keyboard, self).__init__()
@@ -141,6 +141,9 @@ class Keyboard(EventDispatcher):
     def on_textinput(self, text):
         pass
 
+    def on_textedit(self, text):
+        pass
+    
     def release(self):
         '''Call this method to release the current keyboard.
         This will ensure that the keyboard is no longer attached to your
@@ -151,6 +154,9 @@ class Keyboard(EventDispatcher):
 
     def _on_window_textinput(self, instance, text):
         return self.dispatch('on_textinput', text)
+    
+    def _on_window_textedit(self, instance, text):
+        return self.dispatch('on_textedit', text)
 
     def _on_window_key_down(self, instance, keycode, scancode, text,
                             modifiers):
@@ -178,6 +184,9 @@ class Keyboard(EventDispatcher):
 
     def _on_vkeyboard_textinput(self, instance, text):
         return self.dispatch('on_textinput', text)
+    
+    
+
 
     def string_to_keycode(self, value):
         '''Convert a string to a keycode number according to the
@@ -1835,7 +1844,8 @@ class WindowBase(EventDispatcher):
         self.bind(
             on_key_down=sk._on_window_key_down,
             on_key_up=sk._on_window_key_up,
-            on_textinput=sk._on_window_textinput)
+            on_textinput=sk._on_window_textinput,
+            on_textedit=sk._on_window_textedit)
 
         # use the device's real keyboard
         self.use_syskeyboard = True
