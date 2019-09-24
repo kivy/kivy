@@ -503,9 +503,9 @@ class TextInput(FocusBehavior, Widget):
         # [from; to) range of lines being partially or fully rendered
         # in TextInput's viewport
         self._visible_lines_range = 0, 0
-        
+
         # true means input method is working,need to ignore blackspace
-        self._is_textedit = False 
+        self._is_textedit = False
 
         self.interesting_keys = {
             8: 'backspace',
@@ -2403,7 +2403,7 @@ class TextInput(FocusBehavior, Widget):
             if cursor != self.cursor:
                 self.do_backspace(mode='del')
         elif internal_action == 'backspace':
-            if not self._is_textedit:  #检查是否是输入法
+            if not self._is_textedit:  # 检查是否是输入法
                 self.do_backspace()
 
         # handle action keys and text insertion
@@ -2587,8 +2587,8 @@ class TextInput(FocusBehavior, Widget):
         if self._selection:
             self.delete_selection()
         self.insert_text(text, False)
-        self._is_textedit = False  #ready to insert ,finish text edit state.
- 
+        self._is_textedit = False  # ready to insert ,finish text edit state.
+
     def keyboard_on_textedit(self, window, text):
         if len(text) > 0:
             self._is_textedit = True

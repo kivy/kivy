@@ -143,7 +143,7 @@ class Keyboard(EventDispatcher):
 
     def on_textedit(self, text):
         pass
-    
+
     def release(self):
         '''Call this method to release the current keyboard.
         This will ensure that the keyboard is no longer attached to your
@@ -154,7 +154,7 @@ class Keyboard(EventDispatcher):
 
     def _on_window_textinput(self, instance, text):
         return self.dispatch('on_textinput', text)
-    
+
     def _on_window_textedit(self, instance, text):
         return self.dispatch('on_textedit', text)
 
