@@ -115,7 +115,7 @@ class Keyboard(EventDispatcher):
         'é': 233, 'è': 232,
     }
 
-    __events__ = ('on_key_down', 'on_key_up', 'on_textinput','on_textedit')
+    __events__ = ('on_key_down', 'on_key_up', 'on_textinput', 'on_textedit')
 
     def __init__(self, **kwargs):
         super(Keyboard, self).__init__()
