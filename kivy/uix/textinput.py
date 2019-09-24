@@ -504,7 +504,7 @@ class TextInput(FocusBehavior, Widget):
         # in TextInput's viewport
         self._visible_lines_range = 0, 0
 
-        # true means input method is working,need to ignore blackspace
+        # true means input method is working,need to ignore backspace
         self._is_textedit = False
 
         self.interesting_keys = {
@@ -2403,7 +2403,7 @@ class TextInput(FocusBehavior, Widget):
             if cursor != self.cursor:
                 self.do_backspace(mode='del')
         elif internal_action == 'backspace':
-            if not self._is_textedit:  # 检查是否是输入法
+            if not self._is_textedit:  # check input method is working
                 self.do_backspace()
 
         # handle action keys and text insertion
