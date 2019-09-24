@@ -497,7 +497,6 @@ class WindowSDL(WindowBase):
 
         while True:
             event = self._win.poll()
-            #print(event)
             if event is False:
                 break
             if event is None:
