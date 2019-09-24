@@ -2591,7 +2591,7 @@ class TextInput(FocusBehavior, Widget):
         if len(text) > 0:
             self._is_textedit = True
         else:
-            self._is_textedit=False
+            self._is_textedit = False
 
     def on__hint_text(self, instance, value):
         self._refresh_hint_text()
