@@ -1845,7 +1845,8 @@ class WindowBase(EventDispatcher):
             on_key_down=sk._on_window_key_down,
             on_key_up=sk._on_window_key_up,
             on_textinput=sk._on_window_textinput,
-            on_textedit=sk._on_window_textedit)
+            on_textedit=sk._on_window_textedit,
+        )
 
         # use the device's real keyboard
         self.use_syskeyboard = True
