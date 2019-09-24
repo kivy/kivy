@@ -2588,7 +2588,7 @@ class TextInput(FocusBehavior, Widget):
         self._is_textedit=False #准备插入，对束edit状态
  
     def keyboard_on_textedit(self, window, text):
-        if len(text)>0:
+        if len(text) > 0:
             self._is_textedit=True
         else:
             self._is_textedit=False
