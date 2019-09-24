@@ -503,7 +503,7 @@ class TextInput(FocusBehavior, Widget):
         # [from; to) range of lines being partially or fully rendered
         # in TextInput's viewport
         self._visible_lines_range = 0, 0
-        self._is_textedit=False #输入法过程之中
+        self._is_textedit = False # input method is working
 
         self.interesting_keys = {
             8: 'backspace',
@@ -2585,7 +2585,7 @@ class TextInput(FocusBehavior, Widget):
         if self._selection:
             self.delete_selection()
         self.insert_text(text, False)
-        self._is_textedit=False #准备插入，对束edit状态
+        self._is_textedit = False #ready to insert ,finish text edit state.
  
     def keyboard_on_textedit(self, window, text):
         if len(text) > 0:

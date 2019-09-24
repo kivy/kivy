@@ -184,9 +184,6 @@ class Keyboard(EventDispatcher):
 
     def _on_vkeyboard_textinput(self, instance, text):
         return self.dispatch('on_textinput', text)
-    
-    
-
 
     def string_to_keycode(self, value):
         '''Convert a string to a keycode number according to the
