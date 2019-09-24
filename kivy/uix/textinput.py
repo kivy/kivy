@@ -2593,7 +2593,6 @@ class TextInput(FocusBehavior, Widget):
         else:
             self._is_textedit=False
 
-
     def on__hint_text(self, instance, value):
         self._refresh_hint_text()
 
