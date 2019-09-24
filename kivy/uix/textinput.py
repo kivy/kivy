@@ -2589,7 +2589,7 @@ class TextInput(FocusBehavior, Widget):
  
     def keyboard_on_textedit(self, window, text):
         if len(text) > 0:
-            self._is_textedit=True
+            self._is_textedit = True
         else:
             self._is_textedit=False
 
