@@ -411,7 +411,8 @@ class FocusBehavior(object):
         keyboard.bind(on_key_down=self.keyboard_on_key_down,
                       on_key_up=self.keyboard_on_key_up,
                       on_textinput=self.keyboard_on_textinput,
-                      on_textedit=self.keyboard_on_textedit)
+                      on_textedit=self.keyboard_on_textedit,
+                  )
 
     def _unbind_keyboard(self):
         keyboard = self._keyboard
