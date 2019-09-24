@@ -503,7 +503,7 @@ class TextInput(FocusBehavior, Widget):
         # [from; to) range of lines being partially or fully rendered
         # in TextInput's viewport
         self._visible_lines_range = 0, 0
-        self._is_textedit = False # input method is working
+        self._is_textedit = False # true means input method is working,need to ignore blackspace
 
         self.interesting_keys = {
             8: 'backspace',
