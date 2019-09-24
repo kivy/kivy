@@ -431,7 +431,7 @@ class FocusBehavior(object):
 
     def keyboard_on_textinput(self, window, text):
         pass
- 
+
     def keyboard_on_textedit(self, window, text):
         pass
 
