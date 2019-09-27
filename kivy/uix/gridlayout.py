@@ -150,7 +150,7 @@ class GridLayout(Layout):
         longer set this to a negative value.
 
     :attr:`cols` is a :class:`~kivy.properties.NumericProperty` and defaults to
-    0.
+    None.
     '''
 
     rows = BoundedNumericProperty(None, min=0, allownone=True)
@@ -161,7 +161,7 @@ class GridLayout(Layout):
         longer set this to a negative value.
 
     :attr:`rows` is a :class:`~kivy.properties.NumericProperty` and defaults to
-    0.
+    None.
     '''
 
     col_default_width = NumericProperty(0)
