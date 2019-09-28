@@ -1634,8 +1634,7 @@ class TextInput(FocusBehavior, Widget):
         if bubble is None:
             self._bubble = bubble = TextInputCutCopyPaste(textinput=self)
             self.fbind('parent', self._show_cut_copy_paste, pos, win, True)
-            win.bind(
-                size=lambda *args: self._hide_cut_copy_paste(win))
+            self.bind(focus=lambda *args: self._hide_cut_copy_paste(win))
             self.bind(cursor_pos=lambda *args: self._hide_cut_copy_paste(win))
         else:
             win.remove_widget(bubble)
