@@ -2774,7 +2774,7 @@ class TextInput(FocusBehavior, Widget):
                                bind=('cursor', 'padding', 'pos', 'size',
                                      'focus', 'scroll_x', 'scroll_y',
                                      'line_height', 'line_spacing'),
-                               cache=True)
+                               cache=False)
     '''Current position of the cursor, in (x, y).
 
     :attr:`cursor_pos` is an :class:`~kivy.properties.AliasProperty`,
