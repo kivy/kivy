@@ -906,7 +906,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Logger.exception('Core: Error while saving default config file')
 
     # Load configuration from env
-    if environ.get('KIVY_NO_ENV_CONFIG', '0') != '0':
+    if environ.get('KIVY_NO_ENV_CONFIG', '0') != '1':
         for key, value in environ.items():
             if not key.startswith("KCFG_"):
                 continue
