@@ -698,10 +698,7 @@ class App(EventDispatcher):
         '''
         if self.title is not None:
             return self.title
-        clsname = self.__class__.__name__
-        if clsname.endswith('App'):
-            clsname = clsname[:-3]
-        return clsname
+        return self.__class__.__name__
 
     def get_application_icon(self):
         '''Return the icon of the application.
@@ -907,8 +904,6 @@ Context.html#getFilesDir()>`_ is returned.
         '''
         if self._app_name is None:
             clsname = self.__class__.__name__
-            if clsname.endswith('App'):
-                clsname = clsname[:-3]
             self._app_name = clsname.lower()
         return self._app_name
 
