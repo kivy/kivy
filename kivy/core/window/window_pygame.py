@@ -295,9 +295,7 @@ class WindowPygame(WindowBase):
             self.flags |= pygame.FULLSCREEN
         self._pygame_set_mode()
 
-    def _mainloop(self):
-        EventLoop.idle()
-
+    def mainloop(self):
         for event in pygame.event.get():
 
             # kill application (SIG_TERM)
@@ -406,21 +404,8 @@ class WindowPygame(WindowBase):
             else:
                 Logger.debug('WinPygame: Unhandled event %s' % str(event))
             '''
-
-    def mainloop(self):
-        while not EventLoop.quit and EventLoop.status == 'started':
-            try:
-                self._mainloop()
-                if not pygame.display.get_active():
-                    pygame.time.wait(100)
-            except BaseException as inst:
-                # use exception manager first
-                r = ExceptionManager.handle_exception(inst)
-                if r == ExceptionManager.RAISE:
-                    stopTouchApp()
-                    raise
-                else:
-                    pass
+        if not pygame.display.get_active():
+            pygame.time.wait(100)
 
     #
     # Pygame wrapper

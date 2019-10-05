@@ -566,8 +566,10 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
     if max_lines > 0 and len(lines) > max_lines:
         val = True
         if dwn:
+            h-= sum(l.h for l in lines[max_lines:])
             del lines[max_lines:]
         else:
+            h-= sum(l.h for l in lines[:max(0, <int>len(lines) - max_lines)])
             del lines[:max(0, <int>len(lines) - max_lines)]
 
     # now make sure we don't have lines outside specified height

@@ -132,9 +132,6 @@ class Keyboard(EventDispatcher):
         #: VKeyboard widget, if allowed by the configuration
         self.widget = kwargs.get('widget', None)
 
-    def get_window_info():
-        pass
-
     def on_key_down(self, keycode, text, modifiers):
         pass
 
@@ -150,6 +147,7 @@ class Keyboard(EventDispatcher):
         callback.'''
         if self.window:
             self.window.release_keyboard(self.target)
+            self.target = None
 
     def _on_window_textinput(self, instance, text):
         return self.dispatch('on_textinput', text)
@@ -334,9 +332,9 @@ class WindowBase(EventDispatcher):
     __instance = None
     __initialized = False
     _fake_fullscreen = False
-    _density = 1
 
     # private properties
+    _density = NumericProperty(1)
     _size = ListProperty([0, 0])
     _modifiers = ListProperty([])
     _rotation = NumericProperty(0)
@@ -523,7 +521,9 @@ class WindowBase(EventDispatcher):
     def _get_center(self):
         return self.width / 2., self.height / 2.
 
-    center = AliasProperty(_get_center, bind=('width', 'height'), cache=True)
+    center = AliasProperty(_get_center,
+                           bind=('width', 'height', '_density'),
+                           cache=True)
     '''Center of the rotated window.
 
     .. versionadded:: 1.0.9
@@ -1010,6 +1010,11 @@ class WindowBase(EventDispatcher):
         EventLoop.set_window(self)
         Modules.register_window(self)
         EventLoop.add_event_listener(self)
+
+    def mainloop(self):
+        '''Called by the EventLoop every frame after it idles.
+        '''
+        pass
 
     @deprecated
     def toggle_fullscreen(self):

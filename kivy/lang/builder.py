@@ -255,16 +255,35 @@ class BuilderBase(object):
     that you can use to load other kv files in addition to the default ones.
     '''
 
-    _match_cache = {}
-    _match_name_cache = {}
-
     def __init__(self):
         super(BuilderBase, self).__init__()
+        self._match_cache = {}
+        self._match_name_cache = {}
         self.files = []
         self.dynamic_classes = {}
         self.templates = {}
         self.rules = []
         self.rulectx = {}
+
+    @classmethod
+    def create_from(cls, builder):
+        """Creates a instance of the class, and initializes to the state of
+        ``builder``.
+
+        :param builder: The builder to initialize from.
+        :return: A new instance of this class.
+        """
+        obj = cls()
+        obj._match_cache = copy(builder._match_cache)
+        obj._match_name_cache = copy(builder._match_name_cache)
+        obj.files = copy(builder.files)
+        obj.dynamic_classes = copy(builder.dynamic_classes)
+        obj.templates = copy(builder.templates)
+        obj.rules = list(builder.rules)
+        assert not builder.rulectx
+        obj.rulectx = dict(builder.rulectx)
+
+        return obj
 
     def load_file(self, filename, **kwargs):
         '''Insert a file into the language builder and return the root widget
@@ -525,8 +544,8 @@ class BuilderBase(object):
                 w.dispatch('on_kv_post', widget)
 
     def _clear_matchcache(self):
-        BuilderBase._match_cache = {}
-        BuilderBase._match_name_cache = {}
+        self._match_cache.clear()
+        self._match_name_cache.clear()
 
     def _apply_rule(self, widget, rule, rootrule, template_ctx=None,
                     ignored_consts=set(), rule_children=None):
@@ -724,7 +743,7 @@ class BuilderBase(object):
     def match(self, widget):
         '''Return a list of :class:`ParserRule` objects matching the widget.
         '''
-        cache = BuilderBase._match_cache
+        cache = self._match_cache
         k = (widget.__class__, tuple(widget.cls))
         if k in cache:
             return cache[k]
@@ -740,7 +759,7 @@ class BuilderBase(object):
     def match_rule_name(self, rule_name):
         '''Return a list of :class:`ParserRule` objects matching the widget.
         '''
-        cache = BuilderBase._match_name_cache
+        cache = self._match_name_cache
         rule_name = str(rule_name)
         k = rule_name.lower()
         if k in cache:

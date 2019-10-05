@@ -309,36 +309,35 @@ class _ColorArc(InstructionGroup):
 
     def get_mesh(self):
         v = []
-        # first calculate the distance between endpoints of the inner
+        # first calculate the distance between endpoints of the outer
         # arc, so we know how many steps to use when calculating
         # vertices
-        end_point_inner = polar_to_rect(
-            self.origin, self.r_min, self.theta_max)
-
-        d_inner = d_outer = 3.
-        theta_step_inner = (self.theta_max - self.theta_min) / d_inner
-
-        end_point_outer = polar_to_rect(
-            self.origin, self.r_max, self.theta_max)
+        theta_step_outer = 0.1
+        theta = self.theta_max - self.theta_min
+        d_outer = int(theta / theta_step_outer)
+        theta_step_outer = theta / d_outer
 
         if self.r_min == 0:
-            theta_step_outer = (self.theta_max - self.theta_min) / d_outer
-            for x in range(int(d_outer)):
-                v += (polar_to_rect(self.origin, 0, 0) * 2)
-                v += (polar_to_rect(
-                    self.origin, self.r_max,
-                    self.theta_min + x * theta_step_outer) * 2)
+            for x in range(0, d_outer, 2):
+                v += (polar_to_rect(self.origin, self.r_max,
+                                    self.theta_min + x * theta_step_outer
+                                    ) * 2)
+                v += polar_to_rect(self.origin, 0, 0) * 2
+                v += (polar_to_rect(self.origin, self.r_max,
+                                    self.theta_min + (x + 1) * theta_step_outer
+                                    ) * 2)
+            if not d_outer & 1:  # add a last point if d_outer is even
+                v += (polar_to_rect(self.origin, self.r_max,
+                                    self.theta_min + d_outer * theta_step_outer
+                                    ) * 2)
         else:
-            for x in range(int(d_inner + 2)):
-                v += (polar_to_rect(
-                    self.origin, self.r_min - 1,
-                    self.theta_min + x * theta_step_inner) * 2)
-                v += (polar_to_rect(
-                    self.origin, self.r_max + 1,
-                    self.theta_min + x * theta_step_inner) * 2)
-
-        v += (end_point_inner * 2)
-        v += (end_point_outer * 2)
+            for x in range(d_outer + 1):
+                v += (polar_to_rect(self.origin, self.r_min,
+                                    self.theta_min + x * theta_step_outer
+                                    ) * 2)
+                v += (polar_to_rect(self.origin, self.r_max,
+                                    self.theta_min + x * theta_step_outer
+                                    ) * 2)
 
         return Mesh(vertices=v, indices=range(int(len(v) / 4)),
                     mode='triangle_strip')

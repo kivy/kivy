@@ -141,7 +141,7 @@ build_script:
       Check-Error
     }
 
-    pip install mock cython pygments docutils pytest pyinstaller kivy_deps.glew_dev kivy_deps.glew kivy_deps.gstreamer_dev kivy_deps.sdl2_dev kivy_deps.sdl2
+    pip install mock cython pygments docutils pytest pytest_asyncio pyinstaller kivy_deps.glew_dev kivy_deps.glew kivy_deps.gstreamer_dev kivy_deps.sdl2_dev kivy_deps.sdl2
 
     pip --no-cache-dir install kivy_deps.gstreamer
 

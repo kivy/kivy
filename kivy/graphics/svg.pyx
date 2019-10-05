@@ -366,13 +366,13 @@ cdef class Svg(RenderContext):
     """Svg class. See module for more informations about the usage.
     """
 
-    def __init__(self, filename, anchor_x=0, anchor_y=0,
+    def __init__(self, source, anchor_x=0, anchor_y=0,
                  bezier_points=BEZIER_POINTS, circle_points=CIRCLE_POINTS,
                  color=None):
         '''
         Creates an SVG object from a .svg or .svgz file.
 
-        :param str filename: The name of the file to be loaded.
+        :param str source: The name of the file to be loaded.
         :param float anchor_x: The horizontal anchor position for scaling and
             rotations. Defaults to 0. The symbolic values 'left', 'center' and
             'right' are also accepted.
@@ -384,6 +384,9 @@ cdef class Svg(RenderContext):
         :param int circle_points: The number of line segments into which to
             subdivide circular and elliptic arcs. Defaults to 10.
         :param color the default color to use for Svg elements that specify "currentColor"
+
+        .. versionchanged:: 2.0.0
+            Parameter `filename` changed to `source`.
         '''
 
         super(Svg, self).__init__(fs=SVG_FS, vs=SVG_VS,
@@ -416,8 +419,8 @@ cdef class Svg(RenderContext):
         self.line_texture.blit_buffer(
                 b"\xff\xff\xff\xff\xff\xff\xff\x00", colorfmt="rgba")
 
-        self._filename = None
-        self.filename = filename
+        self._source = None
+        self.source = source
 
 
     @property
@@ -480,18 +483,21 @@ cdef class Svg(RenderContext):
         self.reload()
 
     @property
-    def filename(self):
-        '''filename to load.
+    def source(self):
+        '''Filename / source to load.
 
-        The parsing and rendering is done as soon as you set the filename.
+        The parsing and rendering is done as soon as you set the source.
+
+        .. versionchanged:: 2.0.0
+            The property name is now `source` instead of `filename`
 
         .. versionchanged:: 1.10.3
             You can get the used filename
         '''
-        return self._filename
+        return self._source
 
-    @filename.setter
-    def filename(self, filename):
+    @source.setter
+    def source(self, filename):
         Logger.debug('Svg: Loading {}'.format(filename))
         # check gzip
         start = time()
@@ -509,7 +515,7 @@ cdef class Svg(RenderContext):
             end = time()
             Logger.debug("Svg: Loaded {} in {:.2f}s".format(filename, end - start))
         finally:
-            self._filename = filename
+            self._source = filename
             fd.close()
 
     cdef void reload(self) except *:

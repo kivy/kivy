@@ -73,6 +73,7 @@ include "opcodes.pxi"
 from os import environ
 from kivy.compat import PY2
 from kivy.logger import Logger
+from kivy.utils import platform
 from kivy.weakmethod import WeakMethod
 from kivy.graphics.texture cimport Texture
 from kivy.graphics.transformation cimport Matrix
@@ -87,6 +88,16 @@ from kivy.graphics.stencil_instructions cimport (
 
 cdef list fbo_stack = []
 cdef list fbo_release_list = []
+
+# must be running GLES2 not just the headers
+cdef int IS_GLES_PLATFORM = USE_OPENGL_ES2
+if platform == "darwin":
+    IS_GLES_PLATFORM = 0
+
+
+# XXX OpenGL & GLES 3 symbol, but works and requied on "GLES 2" on iOS
+# Adding it to headers can be complicated because it doesn't exists in gl2.h
+cdef int GL_DEPTH_STENCIL_ATTACHMENT = 0x821A
 
 
 cdef class Fbo(RenderContext):
@@ -176,8 +187,11 @@ cdef class Fbo(RenderContext):
         self._texture = kwargs['texture']
         self.observers = []
 
-        if self._depthbuffer_attached and self._stencilbuffer_attached:
-            Logger.warning('Fbo: depth+stencil buffer support is experimental')
+        if IS_GLES_PLATFORM:
+            # on GLES/iOS, depthbuffer works with stencil enabled
+            # that's how openFrameworks did for all GLES platform in ofFbo.cpp
+            if self._depthbuffer_attached:
+                self._stencilbuffer_attached = True
 
         self.create_fbo()
 
@@ -193,6 +207,7 @@ cdef class Fbo(RenderContext):
     cdef void create_fbo(self):
         cdef GLuint f_id = 0
         cdef GLint old_fid = 0
+        cdef GLint old_rid = 0
         cdef int status
         cdef int do_clear = 0
 
@@ -210,18 +225,26 @@ cdef class Fbo(RenderContext):
         cgl.glGetIntegerv(GL_FRAMEBUFFER_BINDING, &old_fid)
         cgl.glBindFramebuffer(GL_FRAMEBUFFER, self.buffer_id)
 
-        # experimental depth+stencil renderbuffer
+        if self._depthbuffer_attached or self._stencilbuffer_attached:
+            cgl.glGetIntegerv(GL_RENDERBUFFER_BINDING, &old_rid)
+
+        # depth+stencil renderbuffer
         if self._depthbuffer_attached and self._stencilbuffer_attached:
             cgl.glGenRenderbuffers(1, &f_id)
             self.depthbuffer_id = self.stencilbuffer_id = f_id
             cgl.glBindRenderbuffer(GL_RENDERBUFFER, f_id)
             cgl.glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_OES,
                                   self._width, self._height)
-            cgl.glBindRenderbuffer(GL_RENDERBUFFER, 0)
-            cgl.glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                                      GL_RENDERBUFFER, f_id)
-            cgl.glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
-                                      GL_RENDERBUFFER, f_id)
+            cgl.glBindRenderbuffer(GL_RENDERBUFFER, old_rid)
+
+            if IS_GLES_PLATFORM:
+                cgl.glFramebufferRenderbuffer(
+                    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                    GL_RENDERBUFFER, f_id)
+            else:
+                cgl.glFramebufferRenderbuffer(
+                    GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+                    GL_RENDERBUFFER, f_id)
 
         # if we need depth, create a renderbuffer
         elif self._depthbuffer_attached:
@@ -230,7 +253,7 @@ cdef class Fbo(RenderContext):
             cgl.glBindRenderbuffer(GL_RENDERBUFFER, self.depthbuffer_id)
             cgl.glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16,
                                   self._width, self._height)
-            cgl.glBindRenderbuffer(GL_RENDERBUFFER, 0)
+            cgl.glBindRenderbuffer(GL_RENDERBUFFER, old_rid)
             cgl.glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
                                       GL_RENDERBUFFER, self.depthbuffer_id)
 
@@ -241,7 +264,7 @@ cdef class Fbo(RenderContext):
             cgl.glBindRenderbuffer(GL_RENDERBUFFER, self.stencilbuffer_id)
             cgl.glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8,
                                   self._width, self._height)
-            cgl.glBindRenderbuffer(GL_RENDERBUFFER, 0)
+            cgl.glBindRenderbuffer(GL_RENDERBUFFER, old_rid)
             cgl.glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
                                       GL_RENDERBUFFER, self.stencilbuffer_id)
 
