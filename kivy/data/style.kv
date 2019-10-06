@@ -72,6 +72,7 @@
         pos: (root.value_pos[0] - root.cursor_width / 2, root.center_y - root.cursor_height / 2) if root.orientation == 'horizontal' else (root.center_x - root.cursor_width / 2, root.value_pos[1] - root.cursor_height / 2)
         size: root.cursor_size
         source: root.cursor_disabled_image if root.disabled else root.cursor_image
+        allow_stretch: True
 
 <ProgressBar>:
     canvas:
