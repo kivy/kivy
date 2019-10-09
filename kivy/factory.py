@@ -141,7 +141,7 @@ class FactoryBase(object):
             if name[0] == name[0].lower():
                 # if trying to access attributes like checking for `bind`
                 # then raise AttributeError
-                raise AttributeError
+                raise AttributeError('First letter of class name <%s> is in lowercase' % name)
             raise FactoryException('Unknown class <%s>' % name)
 
         item = classes[name]
