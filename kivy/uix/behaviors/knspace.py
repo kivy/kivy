@@ -264,11 +264,7 @@ __all__ = ('KNSpace', 'KNSpaceBehavior', 'knspace')
 
 from kivy.event import EventDispatcher
 from kivy.properties import StringProperty, ObjectProperty, AliasProperty
-
-knspace = None
-'''The default :class:`KNSpace` namespace. See :attr:`KNSpaceBehavior.knspace`
-for more details.
-'''
+from kivy.context import register_context
 
 
 class KNSpace(EventDispatcher):
@@ -536,7 +532,7 @@ class KNSpaceBehavior(object):
 
     If that object has a knspace property, then we return its value. Otherwise,
     we go further up, e.g. with `getattr(object, self.knspace_key)` and look
-    for it's `knspace` property.
+    for its `knspace` property.
 
     Finally, if we reach a value of `None`, or :attr:`knspace_key` was `None`,
     the default :attr:`~kivy.uix.behaviors.knspace.knspace` namespace is
@@ -588,4 +584,7 @@ class KNSpaceBehavior(object):
     '''
 
 
-knspace = KNSpace()
+knspace = register_context('knspace', KNSpace)
+'''The default :class:`KNSpace` namespace. See :attr:`KNSpaceBehavior.knspace`
+for more details.
+'''

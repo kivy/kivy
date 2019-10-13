@@ -30,11 +30,17 @@ Builder.load_string('''
             cap: self.cap
             width: self.linewidth
             close: self.close
+            dash_length: self.dash_length
+            dash_offset: self.dash_offset
+            dashes: self.dashes
         Color:
             rgba: .8, .8, .8, root.alpha_controlline
         Line:
             points: self.points
             close: self.close
+            dash_length: self.dash_length
+            dash_offset: self.dash_offset
+            dashes: self.dashes
         Color:
             rgba: 1, .4, .4, root.alpha
         Line:
@@ -43,6 +49,9 @@ Builder.load_string('''
             cap: self.cap
             width: self.linewidth
             close: self.close
+            dash_length: self.dash_length
+            dash_offset: self.dash_offset
+            dashes: self.dashes
 
     GridLayout:
         cols: 2
@@ -116,6 +125,86 @@ Builder.load_string('''
                 text: 'Close line'
                 on_press: root.close = self.state == 'down'
 
+            Label:
+                text: 'Dashes'
+            GridLayout:
+                rows: 1
+                ToggleButton:
+                    group: 'dashes'
+                    text: 'none'
+                    state: 'down'
+                    allow_no_selection: False
+                    size_hint_x: None
+                    width: self.texture_size[0]
+                    padding_x: '5dp'
+                    on_state:
+                        if self.state == 'down': root.dashes = []
+                        if self.state == 'down': root.dash_length = 1
+                        if self.state == 'down': root.dash_offset = 0
+                ToggleButton:
+                    id: constant
+                    group: 'dashes'
+                    text: 'Constant: '
+                    allow_no_selection: False
+                    size_hint_x: None
+                    width: self.texture_size[0]
+                    padding_x: '5dp'
+                    on_state:
+                        if self.state == 'down': root.dashes = []
+                        if self.state == 'down': root.dash_length = \
+                            int(dash_len.text or 1)
+                        if self.state == 'down': root.dash_offset = \
+                            int(dash_offset.text or 0)
+                Label:
+                    text: 'len'
+                    size_hint_x: None
+                    width: self.texture_size[0]
+                    padding_x: '5dp'
+                TextInput:
+                    id: dash_len
+                    size_hint_x: None
+                    width: '30dp'
+                    input_filter: 'int'
+                    multiline: False
+                    text: '1'
+                    on_text: if constant.state == 'down': \
+                        root.dash_length = int(self.text or 1)
+                Label:
+                    text: 'offset'
+                    size_hint_x: None
+                    width: self.texture_size[0]
+                    padding_x: '5dp'
+                TextInput:
+                    id: dash_offset
+                    size_hint_x: None
+                    width: '30dp'
+                    input_filter: 'int'
+                    multiline: False
+                    text: '0'
+                    on_text: if constant.state == 'down': \
+                        root.dash_offset = int(self.text or 0)
+                ToggleButton:
+                    id: dash_list
+                    group: 'dashes'
+                    text: 'List: '
+                    allow_no_selection: False
+                    size_hint_x: None
+                    width: self.texture_size[0]
+                    padding_x: '5dp'
+                    on_state:
+                        if self.state == 'down': root.dashes = list(map(lambda\
+                            x: int(x or 0), dash_list_in.text.split(',')))
+                        if self.state == 'down': root.dash_length = 1
+                        if self.state == 'down': root.dash_offset = 0
+                TextInput:
+                    id: dash_list_in
+                    size_hint_x: None
+                    width: '180dp'
+                    multiline: False
+                    text: '4,3,10,15'
+                    on_text: if dash_list.state == 'down': root.dashes = \
+                        list(map(lambda x: int(x or 0), self.text.split(',')))
+
         AnchorLayout:
             GridLayout:
                 cols: 1
@@ -148,6 +237,9 @@ class LinePlayground(FloatLayout):
     cap = OptionProperty('none', options=('round', 'square', 'none'))
     linewidth = NumericProperty(10.0)
     dt = NumericProperty(0)
+    dash_length = NumericProperty(1)
+    dash_offset = NumericProperty(0)
+    dashes = ListProperty([])
 
     _update_points_animation_ev = None
 

@@ -3,43 +3,57 @@
 Installation on Raspberry Pi
 ============================
 
-You can install Kivy manually, or you can download and boot KivyPie on the
+You can install Kivy manually (recommended), or you can download and boot KivyPie on the
 Raspberry Pi. Both options are described below.
 
 
 Manual installation (On Raspbian Jessie/Stretch)
 ------------------------------------------------
 
+In the following instructions, for Python 3, replace `python` with `python3`.
+
 #. Install the dependencies::
 
-    sudo apt-get update
-    sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
+    sudo apt update
+    sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
        pkg-config libgl1-mesa-dev libgles2-mesa-dev \
        python-setuptools libgstreamer1.0-dev git-core \
        gstreamer1.0-plugins-{bad,base,good,ugly} \
        gstreamer1.0-{omx,alsa} python-dev libmtdev-dev \
-       xclip xsel
+       xclip xsel libjpeg-dev
 
-#. Install a new enough version of Cython:
+#. Install pip dependencies:
 
-   .. parsed-literal::
+    .. parsed-literal::
 
-       sudo pip install -U |cython_install|
+        python -m pip install --upgrade --user pip setuptools
+        python -m pip install --upgrade --user |cython_install| pillow
 
+#. Install Kivy to Python globally
 
-#. Install Kivy globally on your system::
+   You can install it like a normal python package with::
 
-    sudo pip install git+https://github.com/kivy/kivy.git@master
+    # to get the last release from pypi
+    python -m pip install --user kivy
 
+    # to install master
+    python -m pip install --user https://github.com/kivy/kivy/archive/master.zip
+    
+    # or clone locally then pip install
+    git clone https://github.com/kivy/kivy
+    cd kivy
+    python -m pip install --user .
 
-#. Or build and use kivy inplace (best for development)::
+   Or build and use kivy inplace in a editable install (best for development)::
 
     git clone https://github.com/kivy/kivy
     cd kivy
 
+    python -m pip install --user -e .
+    # every time you change any cython files remember to manually call:
     make
-    echo "export PYTHONPATH=$(pwd):\$PYTHONPATH" >> ~/.profile
-    source ~/.profile
+    # or to recompile all files
+    make force
 
 .. note::
 
@@ -74,9 +88,11 @@ Manual installation (On Raspbian Wheezy)
     wget https://raw.github.com/pypa/pip/master/contrib/get-pip.py
     sudo python get-pip.py
 
-#. Install Cython from sources (debian packages are outdated)::
+#. Install Cython from sources (debian packages are outdated):
 
-    sudo pip install Cython==0.26.1
+    .. parsed-literal::
+
+        sudo pip install |cython_install|
 
 #. Install Kivy globally on your system::
 
@@ -91,6 +107,49 @@ Manual installation (On Raspbian Wheezy)
     echo "export PYTHONPATH=$(pwd):\$PYTHONPATH" >> ~/.profile
     source ~/.profile
 
+Manual installation (On Arch Linux ARM)
+------------------------------------------------
+
+#. Install the dependencies::
+
+    sudo pacman -Syu
+    sudo pacman -S sdl2 sdl2_gfx sdl2_image sdl2_net sdl2_ttf sdl2_mixer python-setuptools
+
+    Note: python-setuptools needs to be installed through pacman or it will result with conflicts!
+
+#. Install pip from source::
+
+    wget https://bootstrap.pypa.io/get-pip.py
+    or curl -O https://bootstrap.pypa.io/get-pip.py
+    sudo python get-pip.py
+
+#. Install a new enough version of Cython:
+
+    .. parsed-literal::
+
+        sudo pip install -U |cython_install|
+
+#. Install Kivy globally on your system::
+
+    sudo pip install git+https://github.com/kivy/kivy.git@master
+
+#. Or build and use kivy inplace (best for development)::
+
+    git clone https://github.com/kivy/kivy
+    cd kivy
+    python setup.py install
+
+Images to use::
+
+    http://raspex.exton.se/?p=859 (recommended)  
+    https://archlinuxarm.org/
+
+.. note::
+
+    On versions of kivy prior to 1.10.1, Mesa library naming changes can result
+    in "Unable to find any valuable Window provider" errors. If you experience
+    this issue, please upgrade or consult `ticket #5360.
+    <https://github.com/kivy/kivy/issues/5360>`_
 
 KivyPie distribution
 --------------------

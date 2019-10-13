@@ -15,15 +15,15 @@ class UTMotionEvent(MotionEvent):
         super(UTMotionEvent, self).depack(args)
 
 
-class TestSliderHandle(Slider):
+class _TestSliderHandle(Slider):
     def __init__(self, **kwargs):
-        super(TestSliderHandle, self).__init__(**kwargs)
+        super(_TestSliderHandle, self).__init__(**kwargs)
         self.sensitivity = 'handle'
 
 
-class TestSliderAll(Slider):
+class _TestSliderAll(Slider):
     def __init__(self, **kwargs):
-        super(TestSliderAll, self).__init__(**kwargs)
+        super(_TestSliderAll, self).__init__(**kwargs)
         self.sensitivity = 'all'
 
 
@@ -52,8 +52,8 @@ class SliderMoveTestCase(GraphicUnitTest):
         win = EventLoop.window
         layout = BoxLayout(orientation='vertical')
 
-        s_handle = TestSliderHandle()
-        s_all = TestSliderAll()
+        s_handle = _TestSliderHandle()
+        s_all = _TestSliderAll()
         layout.add_widget(s_handle)
         layout.add_widget(s_all)
         win.add_widget(layout)

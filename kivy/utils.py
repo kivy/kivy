@@ -96,15 +96,16 @@ def rgba(s, *args):
     '''
     if isinstance(s, string_types):
         return get_color_from_hex(s)
-    elif isinstance(s, (list, tuple)):
-        s = map(lambda x: x / 255., s)
+    if isinstance(s, (list, tuple)):
+        s = [x / 255. for x in s]
         if len(s) == 3:
-            return list(s) + [1]
+            s.append(1)
         return s
-    elif isinstance(s, (int, float)):
-        s = map(lambda x: x / 255., [s] + list(args))
+    if isinstance(s, (int, float)):
+        s = [s / 255.]
+        s.extend(x / 255. for x in args)
         if len(s) == 3:
-            return list(s) + [1]
+            s.append(1)
         return s
     raise Exception('Invalid value (not a string / list / tuple)')
 
@@ -314,13 +315,16 @@ colormap = {k: get_color_from_hex(v) for k, v in hex_colormap.items()}
 DEPRECATED_CALLERS = []
 
 
-def deprecated(func):
+def deprecated(func=None, msg=''):
     '''This is a decorator which can be used to mark functions
     as deprecated. It will result in a warning being emitted the first time
     the function is used.'''
 
     import inspect
     import functools
+
+    if func is None:
+        return functools.partial(deprecated, msg=msg)
 
     @functools.wraps(func)
     def new_func(*args, **kwargs):
@@ -337,10 +341,15 @@ def deprecated(func):
                     func.__code__.co_filename,
                     func.__code__.co_firstlineno + 1,
                     file, line, caller))
+
+            if msg:
+                warning = '{}: {}'.format(msg, warning)
+            warning = 'Deprecated: ' + warning
+
             from kivy.logger import Logger
-            Logger.warn(warning)
+            Logger.warning(warning)
             if func.__doc__:
-                Logger.warn(func.__doc__)
+                Logger.warning(func.__doc__)
         return func(*args, **kwargs)
     return new_func
 

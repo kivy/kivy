@@ -27,6 +27,8 @@ Alternatively, you can save these settings permanently using
 restart the app for the changes to take effect. Note that this approach will
 effect all Kivy apps system wide.
 
+Please note that no underscores (`_`) are allowed in the section name.
+
 Usage of the Config object
 --------------------------
 
@@ -49,6 +51,31 @@ For information on configuring your :class:`~kivy.app.App`, please see the
     converted from ascii to unicode only when needed. The method get() returns
     utf-8 strings.
 
+Changing configuration with environment variables
+-------------------------------------------------
+
+Since 1.11.0, it is now possible to change the configuration using
+environment variables. They take precedence on the loaded config.ini.
+The format is::
+
+    KCFG_<section>_<key> = <value>
+
+For example:
+
+    KCFG_GRAPHICS_FULLSCREEN=auto ...
+    KCFG_KIVY_LOG_LEVEL=warning ...
+
+Or in your file before any kivy import:
+
+    import os
+    os.environ["KCFG_KIVY_LOG_LEVEL"] = "warning"
+
+If you don't want to map any environment variables, you can disable
+the behavior::
+
+    os.environ["KIVY_NO_ENV_CONFIG"] = "1"
+
+
 .. _configuration-tokens:
 
 Available configuration tokens
@@ -59,6 +86,11 @@ Available configuration tokens
 
 :kivy:
 
+    `default_font`: list
+        Default fonts used for widgets displaying any text. It defaults to
+        ['Roboto', 'data/fonts/Roboto-Regular.ttf',
+        'data/fonts/Roboto-Italic.ttf', 'data/fonts/Roboto-Bold.ttf',
+        'data/fonts/Roboto-BoldItalic.ttf'].
     `desktop`: int, 0 or 1
         This option controls desktop OS specific features, such as enabling
         drag-able scroll-bar in scroll views, disabling of bubbles in
@@ -82,6 +114,8 @@ Available configuration tokens
         * 'systemanddock' - virtual docked keyboard plus input from real
           keyboard.
         * 'systemandmulti' - analogous.
+    `kivy_clock`: one of `default`, `interrupt`, `free_all`, `free_only`
+        The clock type to use with kivy. See :mod:`kivy.clock`.
     `log_dir`: string
         Path of log directory.
     `log_enable`: int, 0 or 1
@@ -201,15 +235,6 @@ Available configuration tokens
         :class:`~kivy.uix.behaviors.buttonbehavior.ButtonBehavior` to
         make sure they display their current visual state for the given
         time.
-    `kivy_clock`: one of `default`, `interrupt`, `free_all`, `free_only`
-        The clock type to use with kivy. See :mod:`kivy.clock`.
-
-    `default_font`: list
-        Default fonts used for widgets displaying any text. It defaults to
-        ['Roboto', 'data/fonts/Roboto-Regular.ttf',
-        'data/fonts/Roboto-Italic.ttf', 'data/fonts/Roboto-Bold.ttf',
-        'data/fonts/Roboto-BoldItalic.ttf'].
-
     `allow_screensaver`: int, one of 0 or 1, defaults to 1
         Allow the device to show a screen saver, or to go to sleep
         on mobile devices. Only works for the sdl2 window provider.
@@ -335,7 +360,7 @@ from weakref import ref
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 20
+KIVY_CONFIG_VERSION = 21
 
 Config = None
 '''The default Kivy configuration object. This is a :class:`ConfigParser`
@@ -514,6 +539,7 @@ class ConfigParser(PythonConfigParser, object):
     def adddefaultsection(self, section):
         '''Add a section if the section is missing.
         '''
+        assert("_" not in section)
         if self.has_section(section):
             return
         self.add_section(section)
@@ -596,7 +622,11 @@ class ConfigParser(PythonConfigParser, object):
         '''
         try:
             config = ConfigParser._named_configs[name][0]
-            return config() if config else None
+            if config is not None:
+                config = config()
+                if config is not None:
+                    return config
+            del ConfigParser._named_configs[name]
         except KeyError:
             return None
 
@@ -647,7 +677,7 @@ class ConfigParser(PythonConfigParser, object):
             configs[value] = (ref(self), [])
             return
 
-        if config is not None:
+        if config is not None and config() is not None:
             raise ValueError('A parser named {} already exists'.format(value))
         for widget, prop in props:
             widget = widget()
@@ -686,6 +716,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     Config.adddefaultsection('postproc')
     Config.adddefaultsection('widgets')
     Config.adddefaultsection('modules')
+    Config.adddefaultsection('network')
 
     # Upgrade default configuration until we have the current version
     need_save = False
@@ -849,8 +880,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
                 'data/images/defaultshape.png'
             )
 
-        # elif version == 1:
-        #    # add here the command for upgrading from configuration 0 to 1
+        elif version == 20:
+            Config.setdefault('network', 'useragent', 'curl')
 
         else:
             # for future.
@@ -873,3 +904,40 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.write()
         except Exception as e:
             Logger.exception('Core: Error while saving default config file')
+
+    # Load configuration from env
+    if environ.get('KIVY_NO_ENV_CONFIG', '0') != '1':
+        for key, value in environ.items():
+            if not key.startswith("KCFG_"):
+                continue
+            try:
+                _, section, name = key.split("_", 2)
+            except ValueError:
+                Logger.warning((
+                    "Config: Environ `{}` invalid format, "
+                    "must be KCFG_section_name").format(key))
+                continue
+
+            # extract and check section
+            section = section.lower()
+            if not Config.has_section(section):
+                Logger.warning(
+                    "Config: Environ `{}`: unknown section `{}`".format(
+                        key, section))
+                continue
+
+            # extract and check the option name
+            name = name.lower()
+            sections_to_check = {
+                "kivy", "graphics", "widgets", "postproc", "network"}
+            if (section in sections_to_check and
+                    not Config.has_option(section, name)):
+                Logger.warning((
+                    "Config: Environ `{}` unknown `{}` "
+                    "option in `{}` section.").format(
+                        key, name, section))
+                # we don't avoid to set an unknown option, because maybe
+                # an external modules or widgets (in garden?) may want to
+                # save its own configuration here.
+
+            Config.set(section, name, value)

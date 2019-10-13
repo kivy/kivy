@@ -150,7 +150,7 @@ cdef class ShaderSource:
         msg = <char *>malloc(info_length * sizeof(char))
         if msg == NULL:
             return ""
-        msg[0] = "\0"
+        msg[0] = b"\0"
         cgl.glGetShaderInfoLog(shader, info_length, NULL, msg)
         py_msg = msg
         free(msg)
@@ -215,7 +215,7 @@ cdef class Shader:
         log_gl_error('Shader.use-glUseProgram')
         for k, v in self.uniform_values.iteritems():
             self.upload_uniform(k, v)
-        if cgl_get_backend_name() == 'glew':
+        if cgl_get_initialized_backend_name() == 'glew':
             # XXX Very very weird bug. On virtualbox / win7 / glew, if we don't call
             # glFlush or glFinish or glGetIntegerv(GL_CURRENT_PROGRAM, ...), it seem
             # that the pipeline is broken, and we have glitch issue. In order to
@@ -282,7 +282,7 @@ cdef class Shader:
         elif val_type is list:
             list_value = value
             val_type = type(list_value[0])
-            vec_size = len(list_value)
+            vec_size = <long>len(list_value)
             if val_type is float:
                 if vec_size == 2:
                     f1, f2 = list_value
@@ -337,7 +337,7 @@ cdef class Shader:
                     free(int_list)
             elif val_type is list:
                 list_size = <int>len(value)
-                vec_size = len(value[0])
+                vec_size = <long>len(value[0])
                 val_type = type(value[0][0])
                 if val_type is float:
                     float_list = <GLfloat *>malloc(
@@ -392,7 +392,7 @@ cdef class Shader:
         elif val_type is tuple:
             tuple_value = value
             val_type = type(tuple_value[0])
-            vec_size = len(tuple_value)
+            vec_size = <long>len(tuple_value)
             if val_type is float:
                 if vec_size == 2:
                     f1, f2 = tuple_value
@@ -427,7 +427,7 @@ cdef class Shader:
                         ' {name}'.format(name=name))
             elif val_type is list:
                 list_size = <int>len(value)
-                vec_size = len(value[0])
+                vec_size = <long>len(value[0])
                 val_type = type(value[0][0])
                 if val_type is float:
                     float_list = <GLfloat *>malloc(
@@ -499,7 +499,7 @@ cdef class Shader:
         return loc
 
     cdef void bind_vertex_format(self, VertexFormat vertex_format):
-        cdef unsigned int i
+        cdef int i
         cdef vertex_attr_t *attr
         cdef bytes name
 
@@ -513,24 +513,26 @@ cdef class Shader:
 
         # unbind the previous vertex format
         if self._current_vertex_format:
-            for i in xrange(self._current_vertex_format.vattr_count):
+            for i in range(self._current_vertex_format.vattr_count):
                 attr = &self._current_vertex_format.vattr[i]
                 if attr.per_vertex == 0:
                     continue
-                cgl.glDisableVertexAttribArray(attr.index)
+                if attr.index != <unsigned int>-1:
+                  cgl.glDisableVertexAttribArray(attr.index)
                 log_gl_error(
                     'Shader.bind_vertex_format-glDisableVertexAttribArray')
 
         # bind the new vertex format
         if vertex_format:
             vertex_format.last_shader = self
-            for i in xrange(vertex_format.vattr_count):
+            for i in range(vertex_format.vattr_count):
                 attr = &vertex_format.vattr[i]
                 if attr.per_vertex == 0:
                     continue
                 name = <bytes>attr.name
                 attr.index = cgl.glGetAttribLocation(self.program, <char *>name)
-                cgl.glEnableVertexAttribArray(attr.index)
+                if attr.index != <unsigned int>-1:
+                    cgl.glEnableVertexAttribArray(attr.index)
                 log_gl_error(
                     'Shader.bind_vertex_format-glEnableVertexAttribArray')
 
@@ -619,7 +621,7 @@ cdef class Shader:
         '''Return the program log.'''
         cdef char msg[2048]
         cdef GLsizei length
-        msg[0] = '\0'
+        msg[0] = b'\0'
         cgl.glGetProgramInfoLog(shader, 2048, &length, msg)
         # XXX don't use the msg[:length] as a string directly, or the unicode
         # will fail on shitty driver. Ie, some Intel drivers return a static
@@ -642,7 +644,8 @@ cdef class Shader:
     # Python access
     #
 
-    property source:
+    @property
+    def source(self):
         '''glsl  source code.
 
         source should be the filename of a glsl shader that contains both the
@@ -652,66 +655,71 @@ cdef class Shader:
 
         .. versionadded:: 1.6.0
         '''
-        def __get__(self):
-            return self._source
-        def __set__(self, object source):
-            self._source = source
-            if source is None:
-                self.vs = None
-                self.fs = None
-                return
-            self.vert_src = ""
-            self.frag_src = ""
-            glsl_source = "\n"
-            Logger.info('Shader: Read <{}>'.format(self._source))
-            with open(self._source) as fin:
-                glsl_source += fin.read()
-            sections = glsl_source.split('\n---')
-            for section in sections:
-                lines = section.split('\n')
-                if lines[0].lower().startswith("vertex"):
-                    _vs = '\n'.join(lines[1:])
-                    self.vert_src = _vs.replace('$HEADER$', header_vs)
-                if lines[0].lower().startswith("fragment"):
-                    _fs = '\n'.join(lines[1:])
-                    self.frag_src = _fs.replace('$HEADER$', header_fs)
-            self.build_vertex(0)
-            self.build_fragment(0)
-            self.link_program()
+        return self._source
 
-    property vs:
+    @source.setter
+    def source(self, object source):
+        self._source = source
+        if source is None:
+            self.vs = None
+            self.fs = None
+            return
+        self.vert_src = ""
+        self.frag_src = ""
+        glsl_source = "\n"
+        Logger.info('Shader: Read <{}>'.format(self._source))
+        with open(self._source) as fin:
+            glsl_source += fin.read()
+        sections = glsl_source.split('\n---')
+        for section in sections:
+            lines = section.split('\n')
+            if lines[0].lower().startswith("vertex"):
+                _vs = '\n'.join(lines[1:])
+                self.vert_src = _vs.replace('$HEADER$', header_vs)
+            if lines[0].lower().startswith("fragment"):
+                _fs = '\n'.join(lines[1:])
+                self.frag_src = _fs.replace('$HEADER$', header_fs)
+        self.build_vertex(0)
+        self.build_fragment(0)
+        self.link_program()
+
+    @property
+    def vs(self):
         '''Vertex shader source code.
 
         If you set a new vertex shader code source, it will be automatically
         compiled and will replace the current vertex shader.
         '''
-        def __get__(self):
-            return self.vert_src
-        def __set__(self, object source):
-            if source is None:
-                source = default_vs
-            source = source.replace('$HEADER$', header_vs)
-            self.vert_src = source
-            self.build_vertex()
+        return self.vert_src
 
-    property fs:
+    @vs.setter
+    def vs(self, object source):
+        if source is None:
+            source = default_vs
+        source = source.replace('$HEADER$', header_vs)
+        self.vert_src = source
+        self.build_vertex()
+
+    @property
+    def fs(self):
         '''Fragment shader source code.
 
         If you set a new fragment shader code source, it will be automatically
         compiled and will replace the current fragment shader.
         '''
-        def __get__(self):
-            return self.frag_src
-        def __set__(self, object source):
-            if source is None:
-                source = default_fs
-            source = source.replace('$HEADER$', header_fs)
-            self.frag_src = source
-            self.build_fragment()
+        return self.frag_src
 
-    property success:
+    @fs.setter
+    def fs(self, object source):
+        if source is None:
+            source = default_fs
+        source = source.replace('$HEADER$', header_fs)
+        self.frag_src = source
+        self.build_fragment()
+
+    @property
+    def success(self):
         '''Indicate whether the shader loaded successfully and is ready for
         usage or not.
         '''
-        def __get__(self):
-            return self._success
+        return self._success

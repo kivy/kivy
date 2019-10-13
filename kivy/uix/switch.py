@@ -34,6 +34,16 @@ swipe over the widget's bounding box, it will work.
 
     If you want to control the state with a single touch instead of a swipe,
     use the :class:`ToggleButton` instead.
+
+Kv Example::
+
+    BoxLayout:
+        Label:
+            text: 'power up'
+        Switch:
+            id: switch
+        Label:
+            text: 'woooooooooooh' if switch.active else ''
 '''
 
 

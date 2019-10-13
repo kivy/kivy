@@ -254,7 +254,8 @@ cdef class StencilUse(Instruction):
         stencil_apply_state(_stencil_state, False)
         return 0
 
-    property func_op:
+    @property
+    def func_op(self):
         '''Determine the stencil operation to use for glStencilFunc(). Can be
         one of 'never', 'less', 'equal', 'lequal', 'greater', 'notequal',
         'gequal' or 'always'.
@@ -264,18 +265,18 @@ cdef class StencilUse(Instruction):
         .. versionadded:: 1.5.0
         '''
 
-        def __get__(self):
-            index = _gl_stencil_op.values().index(self._op)
-            if PY2:
-                return _gl_stencil_op.keys()[index]
-            else:
-                return list(_gl_stencil_op.keys())[index]
+        index = _gl_stencil_op.values().index(self._op)
+        if PY2:
+            return _gl_stencil_op.keys()[index]
+        else:
+            return list(_gl_stencil_op.keys())[index]
 
-        def __set__(self, x):
-            cdef int op = _stencil_op_to_gl(x)
-            if op != self._op:
-                self._op = op
-                self.flag_update()
+    @func_op.setter
+    def func_op(self, x):
+        cdef int op = _stencil_op_to_gl(x)
+        if op != self._op:
+            self._op = op
+            self.flag_update()
 
 
 cdef class StencilUnUse(Instruction):

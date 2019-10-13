@@ -100,13 +100,14 @@ cdef class Instruction(ObjectWithUid):
         self.flags &= ~GI_NO_APPLY_ONCE
         self.flags &= ~GI_IGNORE
 
-    property needs_redraw:
-        def __get__(self):
-            if (self.flags & GI_NEEDS_UPDATE) > 0:
-                return True
-            return False
+    @property
+    def needs_redraw(self):
+        if (self.flags & GI_NEEDS_UPDATE) > 0:
+            return True
+        return False
 
-    property proxy_ref:
+    @property
+    def proxy_ref(self):
         '''Return a proxy reference to the Instruction i.e. without creating a
         reference of the widget. See `weakref.proxy
         <http://docs.python.org/2/library/weakref.html?highlight=proxy#weakref.proxy>`_
@@ -114,10 +115,9 @@ cdef class Instruction(ObjectWithUid):
 
         .. versionadded:: 1.7.2
         '''
-        def __get__(self):
-            if self.__proxy_ref is None:
-                self.__proxy_ref = proxy(self)
-            return self.__proxy_ref
+        if self.__proxy_ref is None:
+            self.__proxy_ref = proxy(self)
+        return self.__proxy_ref
 
 
 cdef class InstructionGroup(Instruction):
@@ -308,7 +308,8 @@ cdef class VertexInstruction(Instruction):
         instr.set_parent(None)
         self.set_parent(None)
 
-    property texture:
+    @property
+    def texture(self):
         '''Property that represents the texture used for drawing this
         Instruction. You can set a new texture like this::
 
@@ -321,18 +322,20 @@ cdef class VertexInstruction(Instruction):
         Usually, you will use the :attr:`source` attribute instead of the
         texture.
         '''
-        def __get__(self):
-            return self.texture_binding.texture
-        def __set__(self, _tex):
-            cdef Texture tex = _tex
-            self.texture_binding.texture = tex
-            if tex:
-                self.tex_coords = tex.tex_coords
-            else:
-                self.tex_coords = [0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0]
-            self.flag_update()
+        return self.texture_binding.texture
 
-    property source:
+    @texture.setter
+    def texture(self, _tex):
+        cdef Texture tex = _tex
+        self.texture_binding.texture = tex
+        if tex:
+            self.tex_coords = tex.tex_coords
+        else:
+            self.tex_coords = [0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0]
+        self.flag_update()
+
+    @property
+    def source(self):
         '''This property represents the filename to load the texture from.
         If you want to use an image as source, do it like this::
 
@@ -356,13 +359,15 @@ cdef class VertexInstruction(Instruction):
             :func:`kivy.resources.resource_find` function.
 
         '''
-        def __get__(self):
-            return self.texture_binding.source
-        def __set__(self, source):
-            self.texture_binding.source = source
-            self.texture = self.texture_binding._texture
+        return self.texture_binding.source
 
-    property tex_coords:
+    @source.setter
+    def source(self, source):
+        self.texture_binding.source = source
+        self.texture = self.texture_binding._texture
+
+    @property
+    def tex_coords(self):
         '''This property represents the texture coordinates used for drawing the
         vertex instruction. The value must be a list of 8 values.
 
@@ -384,21 +389,22 @@ cdef class VertexInstruction(Instruction):
             the texture coordinates to be faster.
 
         '''
-        def __get__(self):
-            return (
-                self._tex_coords[0],
-                self._tex_coords[1],
-                self._tex_coords[2],
-                self._tex_coords[3],
-                self._tex_coords[4],
-                self._tex_coords[5],
-                self._tex_coords[6],
-                self._tex_coords[7])
-        def __set__(self, tc):
-            cdef int index
-            for index in xrange(8):
-                self._tex_coords[index] = tc[index]
-            self.flag_update()
+        return (
+            self._tex_coords[0],
+            self._tex_coords[1],
+            self._tex_coords[2],
+            self._tex_coords[3],
+            self._tex_coords[4],
+            self._tex_coords[5],
+            self._tex_coords[6],
+            self._tex_coords[7])
+
+    @tex_coords.setter
+    def tex_coords(self, tc):
+        cdef int index
+        for index in xrange(8):
+            self._tex_coords[index] = tc[index]
+        self.flag_update()
 
     cdef void build(self):
         pass
@@ -456,9 +462,9 @@ cdef class Callback(Instruction):
         regarding that, please contact us.
 
     '''
-    def __init__(self, arg, **kwargs):
+    def __init__(self, callback=None, **kwargs):
         Instruction.__init__(self, **kwargs)
-        self.func = arg
+        self.func = callback
         self._reset_context = int(kwargs.get('reset_context', False))
 
     def ask_update(self):
@@ -479,10 +485,11 @@ cdef class Callback(Instruction):
         cgl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
         cgl.glBindBuffer(GL_ARRAY_BUFFER, 0)
 
-        if self.func(self):
+        func = self.func
+        if func is None or func(self):
             self.flag_update_done()
 
-        if self._reset_context:
+        if func is not None and self._reset_context:
             # FIXME do that in a proper way
             cgl.glDisable(GL_DEPTH_TEST)
             cgl.glDisable(GL_CULL_FACE)
@@ -522,18 +529,33 @@ cdef class Callback(Instruction):
         self._shader.use()
         return 0
 
-    property reset_context:
+    @property
+    def reset_context(self):
         '''Set this to True if you want to reset the OpenGL context for Kivy
         after the callback has been called.
         '''
-        def __get__(self):
-            return self._reset_context
-        def __set__(self, value):
-            cdef int ivalue = int(value)
-            if self._reset_context == ivalue:
-                return
-            self._reset_context = ivalue
-            self.flag_update()
+        return self._reset_context
+
+    @reset_context.setter
+    def reset_context(self, value):
+        cdef int ivalue = int(value)
+        if self._reset_context == ivalue:
+            return
+        self._reset_context = ivalue
+        self.flag_update()
+
+    @property
+    def callback(self):
+        '''Property for getting/setting func.
+        '''
+        return self.func
+
+    @callback.setter
+    def callback(self, object func):
+        if self.func == func:
+            return
+        self.func = func
+        self.flag_update()
 
 
 cdef class CanvasBase(InstructionGroup):
@@ -636,44 +658,45 @@ cdef class Canvas(CanvasBase):
         '''
         self.flag_update()
 
-    property before:
+    @property
+    def before(self):
         '''Property for getting the 'before' group.
         '''
-        def __get__(self):
-            if self._before is None:
-                self._before = CanvasBase()
-                self.insert(0, self._before)
-            return self._before
+        if self._before is None:
+            self._before = CanvasBase()
+            self.insert(0, self._before)
+        return self._before
 
-    property after:
+    @property
+    def after(self):
         '''Property for getting the 'after' group.
         '''
-        def __get__(self):
-            cdef CanvasBase c
-            if self._after is None:
-                c = CanvasBase()
-                self.add(c)
-                self._after = c
-            return self._after
+        cdef CanvasBase c
+        if self._after is None:
+            c = CanvasBase()
+            self.add(c)
+            self._after = c
+        return self._after
 
-    property has_before:
+    @property
+    def has_before(self):
         '''Property to see if the :attr:`before` group has already been created.
 
         .. versionadded:: 1.7.0
         '''
-        def __get__(self):
-            return self._before is not None
+        return self._before is not None
 
-    property has_after:
+    @property
+    def has_after(self):
         '''Property to see if the :attr:`after` group has already been created.
 
         .. versionadded:: 1.7.0
         '''
-        def __get__(self):
-            return self._after is not None
+        return self._after is not None
 
 
-    property opacity:
+    @property
+    def opacity(self):
         '''Property to get/set the opacity value of the canvas.
 
         .. versionadded:: 1.4.1
@@ -691,11 +714,12 @@ cdef class Canvas(CanvasBase):
             frag_color = color * vec4(1.0, 1.0, 1.0, opacity);
 
         '''
-        def __get__(self):
-            return self._opacity
-        def __set__(self, value):
-            self._opacity = value
-            self.flag_update()
+        return self._opacity
+
+    @opacity.setter
+    def opacity(self, value):
+        self._opacity = value
+        self.flag_update()
 
 # Active Canvas and getActiveCanvas function is used
 # by instructions, so they know which canvas to add
@@ -723,8 +747,8 @@ cdef popActiveCanvas():
 #TODO: same as canvas, move back to context.pyx..fix circular import
 #on actual import from python problem
 include "common.pxi"
-from vertex cimport *
-#from texture cimport *
+from .vertex cimport *
+#from .texture cimport *
 
 from os.path import join
 from kivy import kivy_shader_dir
@@ -887,13 +911,14 @@ cdef class RenderContext(Canvas):
     def __getitem__(self, key):
         return self._shader.uniform_values[key]
 
-    property shader:
+    @property
+    def shader(self):
         '''Return the shader attached to the render context.
         '''
-        def __get__(self):
-            return self._shader
+        return self._shader
 
-    property use_parent_projection:
+    @property
+    def use_parent_projection(self):
         '''If True, the parent projection matrix will be used.
 
         .. versionadded:: 1.7.0
@@ -906,15 +931,17 @@ cdef class RenderContext(Canvas):
 
             rc = RenderContext(use_parent_projection=True)
         '''
-        def __get__(self):
-            return bool(self._use_parent_projection)
-        def __set__(self, value):
-            cdef cvalue = int(bool(value))
-            if self._use_parent_projection != cvalue:
-                self._use_parent_projection = cvalue
-                self.flag_update()
+        return bool(self._use_parent_projection)
 
-    property use_parent_modelview:
+    @use_parent_projection.setter
+    def use_parent_projection(self, value):
+        cdef cvalue = int(bool(value))
+        if self._use_parent_projection != cvalue:
+            self._use_parent_projection = cvalue
+            self.flag_update()
+
+    @property
+    def use_parent_modelview(self):
         '''If True, the parent modelview matrix will be used.
 
         .. versionadded:: 1.7.0
@@ -927,28 +954,31 @@ cdef class RenderContext(Canvas):
 
             rc = RenderContext(use_parent_modelview=True)
         '''
-        def __get__(self):
-            return bool(self._use_parent_modelview)
-        def __set__(self, value):
-            cdef cvalue = int(bool(value))
-            if self._use_parent_modelview != cvalue:
-                self._use_parent_modelview = cvalue
-                self.flag_update()
+        return bool(self._use_parent_modelview)
 
-    property use_parent_frag_modelview:
+    @use_parent_modelview.setter
+    def use_parent_modelview(self, value):
+        cdef cvalue = int(bool(value))
+        if self._use_parent_modelview != cvalue:
+            self._use_parent_modelview = cvalue
+            self.flag_update()
+
+    @property
+    def use_parent_frag_modelview(self):
         '''If True, the parent fragment modelview matrix will be used.
 
         .. versionadded:: 1.10.1
 
             rc = RenderContext(use_parent_frag_modelview=True)
         '''
-        def __get__(self):
-            return bool(self._use_parent_frag_modelview)
-        def __set__(self, value):
-            cdef cvalue = int(bool(value))
-            if self._use_parent_frag_modelview != cvalue:
-                self._use_parent_frag_modelview = cvalue
-                self.flag_update()
+        return bool(self._use_parent_frag_modelview)
+
+    @use_parent_frag_modelview.setter
+    def use_parent_frag_modelview(self, value):
+        cdef cvalue = int(bool(value))
+        if self._use_parent_frag_modelview != cvalue:
+            self._use_parent_frag_modelview = cvalue
+            self.flag_update()
 
 
 cdef RenderContext ACTIVE_CONTEXT = None

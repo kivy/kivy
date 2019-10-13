@@ -49,16 +49,24 @@ cdef class Context:
         self.flush()
 
     def trigger_gl_dealloc(self):
-        Clock.schedule_del_safe(self.gl_dealloc)
+        # see https://github.com/kivy/kivy/issues/5986
+        # Somehow, the try/except fixes that issue. Calling `self.gl_dealloc()`
+        # directly also caused the `Error in sys.excepthook:`, so it's not just
+        # the Clock. Perhaps this is called after everything has been deleted
+        # and cython objects destroyed, which like a bug in cython/python
+        try:
+            Clock.schedule_del_safe(self.gl_dealloc)
+        except Exception:
+            pass
 
-    cdef void flush(self):
+    cpdef void flush(self):
         gc.collect()
-        self.lr_texture = array('i')
+        self.lr_texture = array('I')
         self.lr_canvas = []
-        self.lr_vbo = array('i')
-        self.lr_fbo_rb = array('i')
-        self.lr_fbo_fb = array('i')
-        self.lr_shadersource = array('i')
+        self.lr_vbo = array('I')
+        self.lr_fbo_rb = array('I')
+        self.lr_fbo_fb = array('I')
+        self.lr_shadersource = array('I')
         self.lr_shader = []
 
     cdef void register_texture(self, Texture texture):
@@ -115,9 +123,9 @@ cdef class Context:
             arr_fb = self.lr_fbo_fb
             arr_fb.append(fbo.buffer_id)
             self.trigger_gl_dealloc()
-        if fbo.depthbuffer_id != 0:
+        if fbo.depthbuffer_id != 0 or fbo.stencilbuffer_id != 0:
             arr_rb = self.lr_fbo_rb
-            arr_rb.append(fbo.depthbuffer_id)
+            arr_rb.append(fbo.depthbuffer_id or fbo.stencilbuffer_id)
             # no need to trigger, depthbuffer required absolutely a buffer.
 
     def add_reload_observer(self, callback, before=False):

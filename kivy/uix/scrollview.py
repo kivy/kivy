@@ -86,6 +86,21 @@ the size_hint_y property to None::
 
     runTouchApp(root)
 
+
+Kv Example::
+
+    ScrollView:
+        do_scroll_x: False
+        do_scroll_y: True
+
+        Label:
+            size_hint_y: None
+            height: self.texture_size[1]
+            text_size: self.width, None
+            padding: 10, 10
+            text:
+                'really some amazing text\\n' * 100
+
 Overscroll Effects
 ------------------
 
@@ -251,8 +266,10 @@ class ScrollView(StencilView):
             self.do_scroll_x, self.do_scroll_y = value
         else:
             self.do_scroll_x = self.do_scroll_y = bool(value)
+
     do_scroll = AliasProperty(_get_do_scroll, _set_do_scroll,
-                              bind=('do_scroll_x', 'do_scroll_y'))
+                              bind=('do_scroll_x', 'do_scroll_y'),
+                              cache=True)
     '''Allow scroll on X or Y axis.
 
     :attr:`do_scroll` is a :class:`~kivy.properties.AliasProperty` of
@@ -273,8 +290,10 @@ class ScrollView(StencilView):
         py = (1. - ph) * sy
         return (py, ph)
 
-    vbar = AliasProperty(_get_vbar, None, bind=(
-        'scroll_y', '_viewport', 'viewport_size'))
+    vbar = AliasProperty(_get_vbar,
+                         bind=('scroll_y', '_viewport', 'viewport_size',
+                               'height'),
+                         cache=True)
     '''Return a tuple of (position, size) of the vertical scrolling bar.
 
     .. versionadded:: 1.2.0
@@ -300,8 +319,10 @@ class ScrollView(StencilView):
         px = (1. - pw) * sx
         return (px, pw)
 
-    hbar = AliasProperty(_get_hbar, None, bind=(
-        'scroll_x', '_viewport', 'viewport_size'))
+    hbar = AliasProperty(_get_hbar,
+                         bind=('scroll_x', '_viewport', 'viewport_size',
+                               'width'),
+                         cache=True)
     '''Return a tuple of (position, size) of the horizontal scrolling bar.
 
     .. versionadded:: 1.2.0
@@ -442,6 +463,20 @@ class ScrollView(StencilView):
     defaults to ['content'].
     '''
 
+    smooth_scroll_end = NumericProperty(None, allownone=True)
+    '''Whether smooth scroll end should be used when scrolling with the
+    mouse-wheel and the factor of transforming the scroll distance to
+    velocity. This option also enables velocity addition meaning if you
+    scroll more, you will scroll faster and further. The recommended value
+    is `10`. The velocity is calculated as :attr:`scroll_wheel_distance` *
+    :attr:`smooth_scroll_end`.
+
+    .. versionadded:: 1.11.0
+
+    :attr:`smooth_scroll_end` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to None.
+    '''
+
     # private, for internal use only
 
     _viewport = ObjectProperty(None, allownone=True)
@@ -508,6 +543,7 @@ class ScrollView(StencilView):
         fbind('scroll_y', self._update_effect_bounds)
         fbind('scroll_x', self._update_effect_bounds)
 
+        trigger_update_from_scroll()
         update_effect_widget()
         update_effect_x_bounds()
         update_effect_y_bounds()
@@ -681,11 +717,17 @@ class ScrollView(StencilView):
 
             if e:
                 if btn in ('scrolldown', 'scrollleft'):
-                    e.value = max(e.value - m, e.min)
-                    e.velocity = 0
+                    if self.smooth_scroll_end:
+                        e.velocity -= m * self.smooth_scroll_end
+                    else:
+                        e.value = max(e.value - m, e.min)
+                        e.velocity = 0
                 elif btn in ('scrollup', 'scrollright'):
-                    e.value = min(e.value + m, e.max)
-                    e.velocity = 0
+                    if self.smooth_scroll_end:
+                        e.velocity += m * self.smooth_scroll_end
+                    else:
+                        e.value = min(e.value + m, e.max)
+                        e.velocity = 0
                 touch.ud[self._get_uid('svavoid')] = True
                 e.trigger_velocity_update()
             return True
@@ -744,10 +786,16 @@ class ScrollView(StencilView):
         if touch.grab_current is not self:
             return True
 
-        if touch.ud.get(self._get_uid()) is None:
+        if not any(isinstance(key, str) and key.startswith('sv.')
+                   for key in touch.ud):
             # don't pass on touch to children if outside the sv
             if self.collide_point(*touch.pos):
-                return super(ScrollView, self).on_touch_move(touch)
+                # touch is in window coordinates
+                touch.push()
+                touch.apply_transform_2d(self.to_local)
+                res = super(ScrollView, self).on_touch_move(touch)
+                touch.pop()
+                return res
             return False
 
         touch.ud['sv.handled'] = {'x': False, 'y': False}
@@ -981,6 +1029,7 @@ class ScrollView(StencilView):
         if the size of the content changes.
         '''
         if not self._viewport:
+            self.g_translate.xy = self.pos
             return
         vp = self._viewport
 
@@ -1143,7 +1192,7 @@ if __name__ == '__main__':
                 btn = Button(text=str(i), size_hint=(None, None),
                              size=(200, 100))
                 layout1.add_widget(btn)
-            scrollview1 = ScrollView(bar_width='2dp')
+            scrollview1 = ScrollView(bar_width='2dp', smooth_scroll_end=10)
             scrollview1.add_widget(layout1)
 
             layout2 = GridLayout(cols=4, spacing=10, size_hint=(None, None))

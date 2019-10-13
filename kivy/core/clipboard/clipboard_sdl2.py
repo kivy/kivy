@@ -14,7 +14,10 @@ try:
     from kivy.core.clipboard._clipboard_sdl2 import (
         _get_text, _has_text, _set_text)
 except ImportError:
-    raise SystemError('extension not compiled?')
+    from kivy.core import handle_win_lib_import_error
+    handle_win_lib_import_error(
+        'Clipboard', 'sdl2', 'kivy.core.clipboard._clipboard_sdl2')
+    raise
 
 
 class ClipboardSDL2(ClipboardBase):

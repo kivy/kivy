@@ -122,7 +122,7 @@ Widgets Z Index
 
 The order of widget drawing is based on the widget's position in
 the widget tree. The :attr:`~kivy.uix.widget.Widget.add_widget`
-method takes an `index` parameter which can be used to specify it's position in
+method takes an `index` parameter which can be used to specify its position in
 the widget tree::
 
     root.add_widget(widget, index)

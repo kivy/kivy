@@ -176,7 +176,10 @@ class ParserRuleProperty(object):
             # if we don't detect any string/key in it, we can eval and give the
             # result
             if re.search(lang_key, tmp) is None:
-                self.co_value = eval(value)
+                value = '\n' * self.line + value
+                self.co_value = eval(
+                    compile(value, self.ctx.filename or '<string>', 'eval')
+                )
                 return
 
         # ok, we can compile.
@@ -278,7 +281,7 @@ class ParserRule(object):
             value = self.properties[name].co_value
             if type(value) is CodeType:
                 value = None
-            widget.create_property(name, value)
+            widget.create_property(name, value, default_value=False)
 
     def _forbid_selectors(self):
         c = self.name[0]
@@ -347,6 +350,15 @@ class ParserRule(object):
 
     def _build_template(self):
         name = self.name
+        exception = ParserException(
+            self.ctx, self.line,
+            'Deprecated Kivy lang template syntax used "{}". Templates will '
+            'be removed in a future version'.format(name))
+        if name not in ('[FileListEntry@FloatLayout+TreeViewNode]',
+                        '[FileIconEntry@Widget]',
+                        '[AccordionItemTitle@Label]'):
+            Logger.warning(exception)
+
         if __debug__:
             trace('Builder: build template for %s' % name)
         if name[0] != '[' or name[-1] != ']':

@@ -1,4 +1,4 @@
-from kivy.graphics.cgl cimport GLuint
+from kivy.graphics.cgl cimport GLuint, GLint
 from kivy.graphics.transformation cimport Matrix
 from kivy.graphics.vertex cimport VertexFormat
 
@@ -15,7 +15,7 @@ cdef class Shader:
 
     cdef int _success
     cdef VertexFormat _current_vertex_format
-    cdef unsigned int program
+    cdef GLint program
     cdef ShaderSource vertex_shader
     cdef ShaderSource fragment_shader
     cdef object _source

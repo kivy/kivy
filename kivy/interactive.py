@@ -50,7 +50,7 @@ Interactive Development
 -----------------------
 
 IPython provides a fast way to learn the Kivy API. The :class:`App` instance
-and all of it's attributes, including methods and the entire widget tree,
+and all of its attributes, including methods and the entire widget tree,
 can be quickly listed by using the '.' operator and pressing 'tab'. Try this
 code in an Ipython shell. ::
 

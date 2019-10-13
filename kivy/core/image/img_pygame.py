@@ -1,5 +1,10 @@
 '''
 Pygame: Pygame image loader
+
+.. warning::
+
+    Pygame has been deprecated and will be removed in the release after Kivy
+    1.11.0.
 '''
 
 __all__ = ('ImageLoaderPygame', )
@@ -7,6 +12,7 @@ __all__ = ('ImageLoaderPygame', )
 from kivy.logger import Logger
 from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 from os.path import isfile
+from kivy.utils import deprecated
 
 try:
     import pygame
@@ -16,6 +22,11 @@ except:
 
 class ImageLoaderPygame(ImageLoaderBase):
     '''Image loader based on the PIL library'''
+
+    @deprecated(
+        msg='Pygame has been deprecated and will be removed after 1.11.0')
+    def __init__(self, *largs, **kwargs):
+        super(ImageLoaderPygame, self).__init__(*largs, **kwargs)
 
     @staticmethod
     def extensions():
@@ -30,8 +41,10 @@ class ImageLoaderPygame(ImageLoaderBase):
                 'tif', 'lbm', 'pbm', 'ppm', 'xpm')
 
     @staticmethod
-    def can_save():
-        return True
+    def can_save(fmt, is_bytesio):
+        if is_bytesio:
+            return False
+        return fmt in ('png', 'jpg')
 
     @staticmethod
     def can_load_memory():
@@ -94,9 +107,10 @@ class ImageLoaderPygame(ImageLoaderBase):
                 fmt, data, source=filename)]
 
     @staticmethod
-    def save(filename, width, height, fmt, pixels, flipped):
+    def save(filename, width, height, pixelfmt, pixels, flipped,
+             imagefmt=None):
         surface = pygame.image.fromstring(
-            pixels, (width, height), fmt.upper(), flipped)
+            pixels, (width, height), pixelfmt.upper(), flipped)
         pygame.image.save(surface, filename)
         return True
 

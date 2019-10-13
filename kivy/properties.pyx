@@ -296,7 +296,7 @@ cpdef float dpi2px(value, ext) except *:
         g_dpi = Metrics.dpi
         g_density = Metrics.density
         g_fontscale = Metrics.fontscale
-    cdef float rv = float(value)
+    cdef float rv = <float>float(value)
     if ext == 'in':
         return rv * g_dpi
     elif ext == 'px':
@@ -306,11 +306,11 @@ cpdef float dpi2px(value, ext) except *:
     elif ext == 'sp':
         return rv * g_density * g_fontscale
     elif ext == 'pt':
-        return rv * g_dpi / 72.
+        return rv * g_dpi / <float>72.
     elif ext == 'cm':
-        return rv * g_dpi / 2.54
+        return rv * g_dpi / <float>2.54
     elif ext == 'mm':
-        return rv * g_dpi / 25.4
+        return rv * g_dpi / <float>25.4
 
 cdef class Property:
     '''Base class for building more complex properties.
@@ -360,11 +360,22 @@ cdef class Property:
             default identical values are not dispatched to avoid infinite
             recursion in two-way binds). Be careful, this is for advanced use only.
 
+            `comparator`: callable or None
+                When not None, it's called with two values to be compared.
+                The function returns whether they are considered the same.
+
+            `deprecated`: bool
+                When True, a warning will be logged if the property is accessed
+                or set. Defaults to False.
+
     .. versionchanged:: 1.4.2
         Parameters errorhandler and errorvalue added
 
     .. versionchanged:: 1.9.0
         Parameter force_dispatch added
+
+    .. versionchanged:: 1.11.0
+        Parameter deprecated added
     '''
 
     def __cinit__(self):
@@ -375,7 +386,8 @@ cdef class Property:
         self.errorvalue = None
         self.errorhandler = None
         self.errorvalue_set = 0
-
+        self.comparator = None
+        self.deprecated = 0
 
     def __init__(self, defaultvalue, **kw):
         self.defaultvalue = defaultvalue
@@ -383,6 +395,8 @@ cdef class Property:
         self.force_dispatch = <int>kw.get('force_dispatch', 0)
         self.errorvalue = kw.get('errorvalue', None)
         self.errorhandler = kw.get('errorhandler', None)
+        self.comparator = kw.get('comparator', None)
+        self.deprecated = <int>kw.get('deprecated', 0)
 
         if 'errorvalue' in kw:
             self.errorvalue_set = 1
@@ -390,9 +404,9 @@ cdef class Property:
         if 'errorhandler' in kw and not callable(self.errorhandler):
             raise ValueError('errorhandler %s not callable' % self.errorhandler)
 
-    property name:
-        def __get__(self):
-            return self._name
+    @property
+    def name(self):
+        return self._name
 
     def __repr__(self):
         return '<{} name={}>'.format(self.__class__.__name__, self._name)
@@ -475,14 +489,28 @@ cdef class Property:
         ps.observers.unbind_uid(uid)
 
     def __set__(self, EventDispatcher obj, val):
+        if self.deprecated:
+            Logger.warning(
+                'Deprecated property "{}" of object "{}" has been set, it '
+                'will be removed in a future version'.format(self, obj))
+            self.deprecated = 0
         self.set(obj, val)
 
     def __get__(self, EventDispatcher obj, objtype):
         if obj is None:
             return self
+
+        if self.deprecated:
+            Logger.warning(
+                'Deprecated property "{}" of object "{}" was accessed, it '
+                'will be removed in a future version'.format(self, obj))
+            self.deprecated = 0
         return self.get(obj)
 
     cdef compare_value(self, a, b):
+        if self.comparator is not None:
+            return self.comparator(a, b)
+
         try:
             return bool(a == b)
         except Exception as e:
@@ -603,9 +631,6 @@ cdef class NumericProperty(Property):
         storage.numeric_fmt = 'px'
         Property.init_storage(self, obj, storage)
 
-    cdef compare_value(self, a, b):
-        return a == b
-
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
@@ -637,7 +662,7 @@ cdef class NumericProperty(Property):
         if value[-2:] in NUMERIC_FORMATS:
             return self.parse_list(obj, value[:-2], value[-2:])
         else:
-            return float(value)
+            return <float>float(value)
 
     cdef float parse_list(self, EventDispatcher obj, value, ext) except *:
         cdef PropertyStorage ps = obj.__storage[self._name]
@@ -666,9 +691,6 @@ cdef class StringProperty(Property):
     def __init__(self, defaultvalue='', **kw):
         super(StringProperty, self).__init__(defaultvalue, **kw)
 
-    cdef compare_value(self, a, b):
-        return a == b
-
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
@@ -677,7 +699,7 @@ cdef class StringProperty(Property):
                 obj.__class__.__name__,
                 self.name))
 
-cdef inline void observable_list_dispatch(object self):
+cdef inline void observable_list_dispatch(object self) except *:
     cdef Property prop = self.prop
     obj = self.obj()
     if obj is not None:
@@ -792,15 +814,16 @@ cdef class ListProperty(Property):
             [1, 5, {'hi': 'bye'}, 10] [1, 5, {'hi': 'bye'}]
 
     '''
-    def __init__(self, defaultvalue=None, **kw):
-        defaultvalue = defaultvalue or []
+    def __init__(self, defaultvalue=0, **kw):
+        defaultvalue = [] if defaultvalue == 0 else defaultvalue
 
         super(ListProperty, self).__init__(defaultvalue, **kw)
 
     cpdef link(self, EventDispatcher obj, str name):
         Property.link(self, obj, name)
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.value = ObservableList(self, obj, ps.value)
+        if ps.value is not None:
+            ps.value = ObservableList(self, obj, ps.value)
 
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
@@ -811,10 +834,11 @@ cdef class ListProperty(Property):
                 self.name))
 
     cpdef set(self, EventDispatcher obj, value):
-        value = ObservableList(self, obj, value)
+        if value is not None:
+            value = ObservableList(self, obj, value)
         Property.set(self, obj, value)
 
-cdef inline void observable_dict_dispatch(object self):
+cdef inline void observable_dict_dispatch(object self) except *:
     cdef Property prop = self.prop
     prop.dispatch(self.obj)
 
@@ -884,7 +908,7 @@ cdef class DictProperty(Property):
     '''Property that represents a dict.
 
     :Parameters:
-        `defaultvalue`: dict, defaults to None
+        `defaultvalue`: dict, defaults to {}
             Specifies the default value of the property.
         `rebind`: bool, defaults to False
             See :class:`ObjectProperty` for details.
@@ -898,8 +922,8 @@ cdef class DictProperty(Property):
         :class:`DictProperty`, the dict stored in the property is a shallow copy of the
         dict and not the original dict. See :class:`ListProperty` for details.
     '''
-    def __init__(self, defaultvalue=None, rebind=False, **kw):
-        defaultvalue = defaultvalue or {}
+    def __init__(self, defaultvalue=0, rebind=False, **kw):
+        defaultvalue = {} if defaultvalue == 0 else defaultvalue
 
         super(DictProperty, self).__init__(defaultvalue, **kw)
         self.rebind = rebind
@@ -907,7 +931,8 @@ cdef class DictProperty(Property):
     cpdef link(self, EventDispatcher obj, str name):
         Property.link(self, obj, name)
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.value = ObservableDict(self, obj, ps.value)
+        if ps.value is not None:
+            ps.value = ObservableDict(self, obj, ps.value)
 
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
@@ -918,7 +943,8 @@ cdef class DictProperty(Property):
                 self.name))
 
     cpdef set(self, EventDispatcher obj, value):
-        value = ObservableDict(self, obj, value)
+        if value is not None:
+            value = ObservableDict(self, obj, value)
         Property.set(self, obj, value)
 
 
@@ -1134,9 +1160,6 @@ cdef class BoundedNumericProperty(Property):
         if ps.bnum_use_max == 2:
             return ps.bnum_f_max
 
-    cdef compare_value(self, a, b):
-        return a == b
-
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
@@ -1167,28 +1190,27 @@ cdef class BoundedNumericProperty(Property):
                     self.name, _f_max))
         return True
 
-    property bounds:
+    @property
+    def bounds(self):
         '''Return min/max of the value.
 
         .. versionadded:: 1.0.9
         '''
+        if self.use_min == 1:
+            _min = self.min
+        elif self.use_min == 2:
+            _min = self.f_min
+        else:
+            _min = None
 
-        def __get__(self):
-            if self.use_min == 1:
-                _min = self.min
-            elif self.use_min == 2:
-                _min = self.f_min
-            else:
-                _min = None
+        if self.use_max == 1:
+            _max = self.max
+        elif self.use_max == 2:
+            _max = self.f_max
+        else:
+            _max = None
 
-            if self.use_max == 1:
-                _max = self.max
-            elif self.use_max == 2:
-                _max = self.f_max
-            else:
-                _max = None
-
-            return _min, _max
+        return _min, _max
 
 
 cdef class OptionProperty(Property):
@@ -1233,14 +1255,13 @@ cdef class OptionProperty(Property):
                              self.name,
                              value, ps.options))
 
-    property options:
+    @property
+    def options(self):
         '''Return the options available.
 
         .. versionadded:: 1.0.9
         '''
-
-        def __get__(self):
-            return self.options
+        return self.options
 
 class ObservableReferenceList(ObservableList):
     def __setitem__(self, key, value, update_properties=True):
@@ -1387,7 +1408,8 @@ cdef class AliasProperty(Property):
     If you don't find a Property class that fits to your needs, you can make
     your own by creating custom Python getter and setter methods.
 
-    Example from kivy/uix/widget.py::
+    Example from kivy/uix/widget.py where `x` and `width` are instances of
+    :class:`NumericProperty`::
 
         def get_right(self):
             return self.x + self.width
@@ -1395,19 +1417,45 @@ cdef class AliasProperty(Property):
             self.x = value - self.width
         right = AliasProperty(get_right, set_right, bind=['x', 'width'])
 
+    If `x` were a non Kivy property then you have to return `True` from setter
+    to dispatch new value of `right`::
+
+        def set_right(self, value):
+            self.x = value - self.width
+            return True
+
+    Usually `bind` list should contain all Kivy properties used in getter
+    method. If you return `True` it will cause a dispatch which one should do
+    when the property value has changed, but keep in mind that the property
+    could already have dispatched the changed value if a kivy property the
+    alias property is bound was set in the setter, causing a second dispatch
+    if the setter returns `True`.
+
+    If you want to cache the value returned by getter then pass `cache=True`.
+    This way getter will only be called if new value is set or one of the
+    binded properties changes. In both cases new value of alias property will
+    be cached again.
+
+    To make property readonly pass `None` as setter. This way `AttributeError`
+    will be raised on every set attempt::
+
+        right = AliasProperty(get_right, None, bind=['x', 'width'], cache=True)
+
     :Parameters:
         `getter`: function
-            Function to use as a property getter
+            Function to use as a property getter.
         `setter`: function
-            Function to use as a property setter. Properties listening to the
-            alias property won't be updated when the property is set (e.g.
-            `right = 10`), unless the `setter` returns `True`.
+            Function to use as a property setter. Callbacks bound to the
+            alias property won't be called when the property is set (e.g.
+            `right = 10`), unless the setter returns `True`.
         `bind`: list/tuple
-            Properties to observe for changes, as property name strings
+            Properties to observe for changes as property name strings.
+            Changing values of this properties will dispatch value of the
+            alias property.
         `cache`: boolean
-            If True, the value will be cached, until one of the binded elements
-            will changes
-        `rebind`: bool, defaults to False
+            If `True`, the value will be cached until one of the binded
+            elements changes or if setter returns `True`.
+        `rebind`: bool, defaults to `False`
             See :class:`ObjectProperty` for details.
 
     .. versionchanged:: 1.9.0
@@ -1433,7 +1481,12 @@ cdef class AliasProperty(Property):
             self.use_cache = 1
 
     def __read_only(self, _obj, _value):
-        raise AttributeError('property is read-only')
+        raise AttributeError(
+            '"{}.{}" property is readonly'.format(
+                type(_obj).__name__,
+                self._name
+            )
+        )
 
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage):
         Property.init_storage(self, obj, storage)
@@ -1449,10 +1502,11 @@ cdef class AliasProperty(Property):
 
     cpdef trigger_change(self, EventDispatcher obj, value):
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.alias_initial = 0
         dvalue = ps.getter(obj)
         if ps.value != dvalue:
-            ps.value = dvalue
+            if self.use_cache:
+                ps.alias_initial = 0
+                ps.value = dvalue
             self.dispatch(obj)
 
     cdef check(self, EventDispatcher obj, value):
@@ -1462,15 +1516,26 @@ cdef class AliasProperty(Property):
         cdef PropertyStorage ps = obj.__storage[self._name]
         if self.use_cache:
             if ps.alias_initial:
-                return ps.getter(obj)
+                ps.alias_initial = 0
+                ps.value = ps.getter(obj)
             return ps.value
         return ps.getter(obj)
 
     cpdef set(self, EventDispatcher obj, value):
         cdef PropertyStorage ps = obj.__storage[self._name]
         if ps.setter(obj, value):
-            ps.value = self.get(obj)
+            if self.use_cache:
+                if ps.alias_initial:
+                    ps.alias_initial = 0
+                ps.value = ps.getter(obj)
             self.dispatch(obj)
+        elif self.force_dispatch:
+            self.dispatch(obj)
+
+    cpdef dispatch(self, EventDispatcher obj):
+        cdef PropertyStorage ps = obj.__storage[self._name]
+        ps.observers.dispatch(obj, self.get(obj), None, None, 0)
+
 
 cdef class VariableListProperty(Property):
     '''A ListProperty that allows you to work with a variable amount of
@@ -1519,9 +1584,6 @@ cdef class VariableListProperty(Property):
         Property.link(self, obj, name)
         cdef PropertyStorage ps = obj.__storage[self._name]
         ps.value = ObservableList(self, obj, ps.value)
-
-    cdef compare_value(self, a, b):
-        return a == b
 
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):

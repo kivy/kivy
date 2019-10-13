@@ -129,7 +129,7 @@ class GridLayout(Layout):
     '''
 
     padding = VariableListProperty([0, 0, 0, 0])
-    '''Padding between the layout box and it's children: [padding_left,
+    '''Padding between the layout box and its children: [padding_left,
     padding_top, padding_right, padding_bottom].
 
     padding also accepts a two argument form [padding_horizontal,
@@ -150,7 +150,7 @@ class GridLayout(Layout):
         longer set this to a negative value.
 
     :attr:`cols` is a :class:`~kivy.properties.NumericProperty` and defaults to
-    0.
+    None.
     '''
 
     rows = BoundedNumericProperty(None, min=0, allownone=True)
@@ -161,7 +161,7 @@ class GridLayout(Layout):
         longer set this to a negative value.
 
     :attr:`rows` is a :class:`~kivy.properties.NumericProperty` and defaults to
-    0.
+    None.
     '''
 
     col_default_width = NumericProperty(0)
@@ -359,10 +359,10 @@ class GridLayout(Layout):
                 rows_sh[row] = nmax(rows_sh[row], shh)
                 if shh_min is not None:
                     has_bound_y = True
-                    rows_sh_min[col] = nmax(rows_sh_min[col], shh_min)
+                    rows_sh_min[row] = nmax(rows_sh_min[row], shh_min)
                 if shh_max is not None:
                     has_bound_y = True
-                    rows_sh_max[col] = nmin(rows_sh_max[col], shh_max)
+                    rows_sh_max[row] = nmin(rows_sh_max[row], shh_max)
         self._has_hint_bound_x = has_bound_x
         self._has_hint_bound_y = has_bound_y
 

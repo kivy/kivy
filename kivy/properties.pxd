@@ -21,10 +21,12 @@ cdef class Property:
     cdef str _name
     cdef int allownone
     cdef int force_dispatch
+    cdef object comparator
     cdef object errorvalue
     cdef object errorhandler
     cdef int errorvalue_set
     cdef public object defaultvalue
+    cdef int deprecated
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage)
     cpdef link(self, EventDispatcher obj, str name)
     cpdef link_deps(self, EventDispatcher obj, str name)

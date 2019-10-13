@@ -26,7 +26,8 @@ class KivyLexer(RegexLexer):
                 bygroups(Name.Class, Text, Punctuation, Text)),
             (r'(.*?)(\s*)(:)(\s*)(.*?)$',
                 bygroups(Name.Attribute, Text, Punctuation, Text,
-                using(PythonLexer)))],
+                using(PythonLexer))),
+            (r'[^:]+?$', using(PythonLexer))],
         'classList': [
             (r'(,)(\s*)([A-Z][A-Za-z0-9]*)',
                 bygroups(Punctuation, Text, Name.Class)),

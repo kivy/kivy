@@ -237,12 +237,12 @@ class VideoFFPy(VideoBase):
 
         # wait until loaded or failed, shouldn't take long, but just to make
         # sure metadata is available.
-        s = time.clock()
+        s = time.perf_counter()
         while not self._ffplayer_need_quit:
             if ffplayer.get_metadata()['src_vid_size'] != (0, 0):
                 break
             # XXX if will fail later then?
-            if time.clock() - s > 10.:
+            if time.perf_counter() - s > 10.:
                 break
             sleep(0.005)
 
@@ -341,12 +341,15 @@ class VideoFFPy(VideoBase):
             'paused': True,
             'out_fmt': self._out_fmt,
             'sn': True,
+            'volume': self._volume,
         }
         self._ffplayer = MediaPlayer(
                 self._filename, callback=self._player_callback,
                 thread_lib='SDL',
                 loglevel='info', ff_opts=ff_opts)
-        self._ffplayer.set_volume(self._volume)
+
+        # Disabled as an attempt to fix kivy issue #6210
+        # self._ffplayer.set_volume(self._volume)
 
         self._thread = Thread(target=self._next_frame_run, name='Next frame')
         self._thread.daemon = True

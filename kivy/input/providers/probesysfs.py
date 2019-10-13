@@ -47,6 +47,7 @@ if 'KIVY_DOC' in os.environ:
     ProbeSysfsHardwareProbe = None
 
 else:
+    import ctypes
     from re import match, IGNORECASE
     from glob import glob
     from subprocess import Popen, PIPE
@@ -85,11 +86,11 @@ else:
             line = "0"
             try:
                 line = read_line(path)
-            except OSError:
+            except (IOError, OSError):
                 return []
 
             capabilities = []
-            long_bit = getconf("LONG_BIT")
+            long_bit = ctypes.sizeof(ctypes.c_long) * 8
             for i, word in enumerate(line.split(" ")):
                 word = int(word, 16)
                 subcapabilities = [bool(word & 1 << i)
@@ -111,10 +112,6 @@ else:
             return Popen(args, stdout=PIPE).communicate()[0]
         except OSError:
             return ''
-
-    def getconf(var):
-        output = getout("getconf", var)
-        return int(output)
 
     def query_xinput():
         global _cache_xinput

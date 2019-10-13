@@ -120,13 +120,13 @@ elif platform == 'win':
         ('winctypes', 'clipboard_winctypes', 'ClipboardWindows'))
 elif platform == 'linux':
     _clipboards.append(
-        ('dbusklipper', 'clipboard_dbusklipper', 'ClipboardDbusKlipper'))
-    _clipboards.append(
-        ('gtk3', 'clipboard_gtk3', 'ClipboardGtk3'))
-    _clipboards.append(
         ('xclip', 'clipboard_xclip', 'ClipboardXclip'))
     _clipboards.append(
         ('xsel', 'clipboard_xsel', 'ClipboardXsel'))
+    _clipboards.append(
+        ('dbusklipper', 'clipboard_dbusklipper', 'ClipboardDbusKlipper'))
+    _clipboards.append(
+        ('gtk3', 'clipboard_gtk3', 'ClipboardGtk3'))
 
 if USE_SDL2:
     _clipboards.append(

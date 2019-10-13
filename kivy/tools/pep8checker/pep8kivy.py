@@ -14,6 +14,7 @@ pep8_ignores = (
     'E402',  # module level import not at top of file
     'E741',  # ambiguous variable name
     'E731',  # do not assign a lambda expression, use a def
+    'W503',  # allow putting binary operators after line split
 )
 
 

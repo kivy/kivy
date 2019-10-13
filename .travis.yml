@@ -1,55 +1,69 @@
+env:
+  global:
+    - KIVY_SPLIT_EXAMPLES=1
+    - SERVER_IP=159.203.106.198
+    - DOC_VERSIONS="stable master stable-1.10.1 stable-1.11.0"
+
+osx_image: xcode10
+
 matrix:
   fast_finish: true
   include:
     - language: python
-      python: 2.7
-      env: RUN=unit
+      python: 3.7
+      env: RUN=pep8 USE_PANGOFT2=0
       os: linux
-      dist: trusty
+      dist: bionic
+      name: "PEP8 verification"
+      stage: pep8
     - language: python
-      python: 3.5
-      env: RUN=unit COVERALLS=true
+      python: 3.7
+      env: RUN=unit COVERALLS=true USE_PANGOFT2=0
       os: linux
-      dist: trusty
-    - language: python
-      python: 3.5
-      env: RUN=pep8
-      os: linux
-      dist: trusty
-    - language: python
-      python: 3.5
-      env: RUN=docs
-      os: linux
-      dist: trusty
+      dist: bionic
+      name: "Linux - Python 3 tests"
+      stage: test
     - language: generic
-      env: RUN=unit PY=2
+      env: RUN=unit PY=3 USE_PANGOFT2=0
       os: osx
+      name: "OSX - Python 3 tests"
+    - language: python
+      python: 3.7
+      env: RUN=docs USE_PANGOFT2=0
+      os: linux
+      dist: bionic
+      name: "Docs generation"
+    - language: python
+      sudo: required
+      env: RUN=wheels DOCKER_IMAGE=quay.io/pypa/manylinux2010_x86_64
+      name: "Linux - wheel generation"
+      services:
+        - docker
     - language: generic
-      env: RUN=unit PY=3
       os: osx
-
-before_install:
-  # https://github.com/travis-ci/travis-ci/issues/6307
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3;
-      rvm get head;
-    fi
+      env: PYVERS="3.5.4 3.6.8 3.7.3" PY=3 RUN=wheels USE_PANGOFT2=0
+      name: "OSX - wheel generation"
+    - language: generic
+      env: PY=3 RUN=app USE_PANGOFT2=0
+      os: osx
+      name: "OSX - Python 3 Kivy.app generation"
 
 install:
-  - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" != "wheels" ]; then
       if [ "${RUN}" != "pep8" ]; then
-        yes | sudo add-apt-repository ppa:zoogie/sdl2-snapshots;
         yes | sudo add-apt-repository ppa:gstreamer-developers/ppa;
         sudo apt-get update;
         sudo apt-get -y install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libsdl2-mixer-dev;
         sudo apt-get -y install libgstreamer1.0-dev gstreamer1.0-alsa gstreamer1.0-plugins-base;
-        sudo apt-get -y install python-dev libsmpeg-dev libswscale-dev libavformat-dev libavcodec-dev libjpeg-dev libtiff4-dev libX11-dev libmtdev-dev;
-        sudo apt-get -y install python-setuptools build-essential libgl1-mesa-dev libgles2-mesa-dev;
-        sudo apt-get -y install xvfb pulseaudio;
-        pip install --upgrade cython pillow nose coveralls;
+        sudo apt-get -y install python3 python3-dev libsmpeg-dev libswscale-dev libavformat-dev libavcodec-dev libjpeg-dev libtiff4-dev libX11-dev libmtdev-dev;
+        sudo apt-get -y install python3-setuptools build-essential libgl1-mesa-dev libgles2-mesa-dev;
+        sudo apt-get -y install xvfb pulseaudio xsel;
+        export CYTHON_INSTALL=$(KIVY_NO_CONSOLELOG=1 python3 -c "from kivy.tools.packaging.cython_cfg import get_cython_versions; print(get_cython_versions()[0])"  --config "kivy:log_level:error");
+        python3 -m pip install -I "$CYTHON_INSTALL";
+        python3 -m pip install --upgrade pillow pytest pytest_asyncio coveralls docutils PyInstaller;
       fi;
       if [ "${RUN}" == "docs" ]; then
-        pip install --upgrade sphinxcontrib-blockdiag sphinxcontrib-seqdiag sphinxcontrib-actdiag sphinxcontrib-nwdiag;
+        python3 -m pip install --upgrade sphinx==1.7.9 sphinxcontrib-blockdiag sphinxcontrib-seqdiag sphinxcontrib-actdiag sphinxcontrib-nwdiag;
       fi;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
@@ -57,34 +71,46 @@ install:
       hdiutil attach aria2-1.29.0-osx-darwin.dmg;
       sudo installer -package "/Volumes/aria2 1.29.0 Intel/aria2.pkg" -target /;
 
-      curl -O -L https://www.libsdl.org/release/SDL2-2.0.5.dmg;
-      curl -O -L https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.1.dmg;
-      curl -O -L https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-2.0.1.dmg;
-      curl -O -L https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.14.dmg;
+      curl -O -L https://www.libsdl.org/release/SDL2-2.0.9.dmg;
+      curl -O -L https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.4.dmg;
+      curl -O -L https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-2.0.4.dmg;
+      curl -O -L https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.15.dmg;
       /usr/local/aria2/bin/aria2c -x 10 https://gstreamer.freedesktop.org/data/pkg/osx/1.10.2/gstreamer-1.0-1.10.2-x86_64.pkg;
       /usr/local/aria2/bin/aria2c -x 10 https://gstreamer.freedesktop.org/data/pkg/osx/1.10.2/gstreamer-1.0-devel-1.10.2-x86_64.pkg;
 
-      hdiutil attach SDL2-2.0.5.dmg;
+      hdiutil attach SDL2-2.0.9.dmg;
       sudo cp -a /Volumes/SDL2/SDL2.framework /Library/Frameworks/;
-      hdiutil attach SDL2_image-2.0.1.dmg;
+      hdiutil attach SDL2_image-2.0.4.dmg;
       sudo cp -a /Volumes/SDL2_image/SDL2_image.framework /Library/Frameworks/;
-      hdiutil attach SDL2_ttf-2.0.14.dmg;
+      hdiutil attach SDL2_ttf-2.0.15.dmg;
       sudo cp -a /Volumes/SDL2_ttf/SDL2_ttf.framework /Library/Frameworks/;
-      hdiutil attach SDL2_mixer-2.0.1.dmg;
+      hdiutil attach SDL2_mixer-2.0.4.dmg;
       sudo cp -a /Volumes/SDL2_mixer/SDL2_mixer.framework /Library/Frameworks/;
       sudo installer -package gstreamer-1.0-1.10.2-x86_64.pkg -target /;
       sudo installer -package gstreamer-1.0-devel-1.10.2-x86_64.pkg -target /;
-      if [ "${PY}" == "3" ]; then
-         curl -O -L https://www.python.org/ftp/python/3.5.2/python-3.5.2-macosx10.6.pkg;
-         sudo installer -package python-3.5.2-macosx10.6.pkg -target /;
-         pip3 install --upgrade --user cython pillow nose mock;
-      else
-         pip install --upgrade --user cython pillow nose mock;
+      curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py;
+
+      if [ "${RUN}" == "app" ]  && ([ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ]  || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build app osx]" ]]); then
+          curl -O -L http://www.sveinbjorn.org/files/software/platypus/platypus4.8.zip;
+          unzip platypus4.8.zip;
+          mkdir -p /usr/local/bin;
+          mkdir -p /usr/local/share/platypus;
+          cp Platypus-4.8/Platypus.app/Contents/Resources/platypus_clt /usr/local/bin/platypus;
+          cp Platypus-4.8/Platypus.app/Contents/Resources/ScriptExec /usr/local/share/platypus/ScriptExec;
+          cp -a Platypus-4.8/Platypus.app/Contents/Resources/MainMenu.nib /usr/local/share/platypus/MainMenu.nib;
+          chmod -R 755 /usr/local/share/platypus;
       fi;
+      export PATH=$PATH:$HOME/Library/Python/3.5/bin;
+      curl -O -L https://www.python.org/ftp/python/3.5.4/python-3.5.4-macosx10.6.pkg;
+      sudo installer -package python-3.5.4-macosx10.6.pkg -target /;
+      python3 get-pip.py --user;
+      export CYTHON_INSTALL=$(KIVY_NO_CONSOLELOG=1 python3 -c "from kivy.tools.packaging.cython_cfg import get_cython_versions; print(get_cython_versions()[0])"  --config "kivy:log_level:error");
+      python3 -m pip install -I --user "$CYTHON_INSTALL";
+      python3 -m pip install --upgrade --user pillow pytest pytest_asyncio mock docutils PyInstaller;
     fi;
 
 before_script:
-  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" != "pep8" ]; then
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" != "pep8" ] && [ "${RUN}" != "wheels" ]; then
       export DISPLAY=:99.0;
       /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX;
       export PYTHONPATH=$PYTHONPATH:$(pwd);
@@ -104,7 +130,7 @@ script:
         make test;
       fi;
       if [ "${COVERALLS}" == "true" ] && [ "${TRAVIS_BRANCH}" == "master" ]; then
-        coveralls;
+        travis_retry coveralls;
       fi;
       if [ "${RUN}" == "pep8" ]; then
         make style;
@@ -112,31 +138,143 @@ script:
       if [ "${RUN}" == "docs" ]; then
         make html;
       fi;
+      if [ "${RUN}" == "wheels" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]  && ([ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel]" ]] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel linux]" ]]); then
+        mkdir wheelhouse;
+        wheel_date=$(python3 -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))");
+        git_tag=$(git rev-parse --short HEAD);
+        tag_name=$(KIVY_NO_CONSOLELOG=1 python3 -c "import kivy; _, tag, n = kivy.parse_kivy_version(kivy.__version__); print(tag + n) if n is not None else print(tag or 'something')"  --config "kivy:log_level:error");
+        wheel_name="$tag_name.$wheel_date.$git_tag-";
+
+        chmod +x .ci/build-wheels-linux.sh;
+        docker run --rm -v `pwd`:/io $DOCKER_IMAGE "/io/.ci/build-wheels-linux.sh";
+        ls wheelhouse/;
+        for name in wheelhouse/*manylinux*.whl; do
+          new_name="${name/$tag_name-/$wheel_name}";
+          if [ ! -f "$new_name" ]; then
+            cp -n $name $new_name;
+          fi;
+        done;
+        ls wheelhouse/;
+
+        openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
+        chmod 600 ~/.ssh/id_rsa;
+        echo -e "Host $SERVER_IP\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
+        rsync -avh -e "ssh -p 2458" --include="*/" --include="*manylinux*.whl" --exclude="*" "wheelhouse/" "root@$SERVER_IP:/web/downloads/ci/linux/kivy/";
+      fi;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
       set -ex;
-      if [ "${PY}" == "3" ]; then
+      if [ "${RUN}" == "unit" ]; then
         python3 setup.py build_ext --inplace;
-        python3 -m nose.core kivy/tests;
-      else
-        make;
-        make test;
+        env KIVY_NO_ARGS=1 pytest -v kivy/tests;
+      elif [ "${RUN}" == "app" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]  && ([ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ]  || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build app osx]" ]]); then
+          openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
+          chmod 600 ~/.ssh/id_rsa;
+          echo -e "Host $SERVER_IP\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
+
+          git clone https://github.com/kivy/kivy-sdk-packager;
+          pushd kivy-sdk-packager/osx;
+          app_date=$(python3 -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))");
+          git_tag=$(git rev-parse --short HEAD);
+
+          yes | ./create-osx-bundle.sh python3 master > output.txt;
+          app_ver=$(KIVY_NO_CONSOLELOG=1 Kivy.app/Contents/Resources/script -c 'import kivy; print(kivy.__version__)');
+          mv Kivy.app Kivy3.app;
+          ./create-osx-dmg.sh Kivy3.app;
+          mkdir app;
+          cp Kivy3.dmg app/"Kivy-$app_ver"-python3.6.5.dmg;
+          mv Kivy3.dmg app/"Kivy-$app_ver-$git_tag-$app_date"-python3.6.5.dmg;
+          yes | rsync -avh -e "ssh -p 2458" --include="*/" --include="*.dmg" --exclude="*" "./app/" "root@$SERVER_IP:/web/downloads/ci/osx/app/";
+          popd;
+      elif [ "${RUN}" == "wheels" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]  && ([ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel]" ]] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel osx]" ]]); then
+        mkdir ../wheelhouse;
+
+        for pyver in $PYVERS; do
+          git reset --hard;
+          git clean -d -x -f;
+          pyver_short=${pyver:0:3};
+
+          curl -O -L https://www.python.org/ftp/python/$pyver/python-$pyver-macosx10.6.pkg;
+          sudo installer -package python-$pyver-macosx10.6.pkg -target /;
+          curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py;
+          python$pyver_short get-pip.py --user;
+          python$pyver_short -m pip install git+http://github.com/tito/osxrelocator --user;
+
+          python$pyver_short -m pip install --upgrade --user pip setuptools wheel;
+          python$pyver_short -m pip install -I --user "$CYTHON_INSTALL";
+          python$pyver_short -m pip install --upgrade --user pytest pytest_asyncio wheel pillow mock docutils;
+          python$pyver_short -m pip install --upgrade delocate;
+
+          USE_SDL2=1 USE_GSTREAMER=1 python$pyver_short setup.py build_ext --inplace>output.txt;
+          USE_SDL2=1 USE_GSTREAMER=1 python$pyver_short setup.py bdist_wheel>output.txt;
+
+          /Library/Frameworks/Python.framework/Versions/$pyver_short/bin/delocate-wheel dist/*.whl;
+          zip_dir="$(basename dist/*.whl .whl)";
+          unzip dist/*.whl -d dist/$zip_dir;
+          echo "sleeping to let the full log display";
+          sleep 10;
+          rm dist/$zip_dir/kivy/.dylibs/libg*;
+          rm dist/$zip_dir/kivy/.dylibs/GStreamer;
+          cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/FLAC.framework/Versions/A/FLAC dist/$zip_dir/kivy/.dylibs/;
+          cp /Library/Frameworks/SDL2_ttf.framework/Versions/A/Frameworks/FreeType.framework/Versions/A/FreeType dist/$zip_dir/kivy/.dylibs/;
+          cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/Ogg.framework/Versions/A/Ogg dist/$zip_dir/kivy/.dylibs/;
+          cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/Vorbis.framework/Versions/A/Vorbis dist/$zip_dir/kivy/.dylibs/;
+          cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/modplug.framework/Versions/A/modplug dist/$zip_dir/kivy/.dylibs/;
+          cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/mpg123.framework/Versions/A/mpg123 dist/$zip_dir/kivy/.dylibs/;
+          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/SDL2.framework/Versions/A/SDL2 @loader_path/SDL2>output.txt;
+          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/FLAC.framework/Versions/A/FLAC @loader_path/FLAC>output.txt;
+          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/modplug.framework/Versions/A/modplug @loader_path/modplug>output.txt;
+          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/mpg123.framework/Versions/A/mpg123 @loader_path/mpg123>output.txt;
+          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/FreeType.framework/Versions/A/FreeType @loader_path/FreeType;
+          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/webp.framework/Versions/A/webp @loader_path/webp>output.txt;
+          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/Vorbis.framework/Versions/A/Vorbis @loader_path/Vorbis>output.txt;
+          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/../../../../SDL2.framework/Versions/A/SDL2 @loader_path/SDL2>output.txt;
+          python$pyver_short -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/Ogg.framework/Versions/A/Ogg @loader_path/Ogg>output.txt;
+          rm dist/$zip_dir.whl;
+          pushd dist;
+          python$pyver_short -c "from delocate import delocating; delocating.dir2zip('$zip_dir', '$zip_dir.whl')";
+          rm -rf $zip_dir;
+          popd;
+          /Library/Frameworks/Python.framework/Versions/$pyver_short/bin/delocate-addplat --rm-orig -x 10_9 -x 10_10 dist/*.whl;
+          cp dist/*.whl ../wheelhouse/;
+        done;
+
+        wheel_date=$(python3 -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))");
+        git_tag=$(git rev-parse --short HEAD);
+        tag_name=$(KIVY_NO_CONSOLELOG=1 python3 -c "import kivy; _, tag, n = kivy.parse_kivy_version(kivy.__version__); print(tag + n) if n is not None else print(tag or 'something')"  --config "kivy:log_level:error");
+        wheel_name="$tag_name.$wheel_date.$git_tag-";
+        ls ../wheelhouse/;
+
+        for name in ../wheelhouse/*.whl; do
+          new_name="${name/$tag_name-/$wheel_name}";
+          if [ ! -f "$new_name" ]; then
+            cp -n "$name" "$new_name";
+          fi;
+        done;
+        ls ../wheelhouse/;
+
+        openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
+        chmod 600 ~/.ssh/id_rsa;
+        echo -e "Host $SERVER_IP\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
+        rsync -avh -e "ssh -p 2458" --include="*/" --include="*.whl" --exclude="*" "../wheelhouse/" "root@$SERVER_IP:/web/downloads/ci/osx/kivy/";
       fi;
     fi;
 
 
 after_success:
-  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" == "docs" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ] && [ "${TRAVIS_BRANCH}" == "master" ]; then
-      openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
-      chmod 600 ~/.ssh/id_rsa;
-      echo -e "Host 159.203.106.198\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
-      rsync --delete --force -r -e "ssh -p 2457" ./doc/build/html/ root@159.203.106.198:/web/docs/;
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" == "docs" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
+      for version in $DOC_VERSIONS; do
+        if [ $version == ${TRAVIS_BRANCH} ]; then
+          openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;
+          chmod 600 ~/.ssh/id_rsa;
+          echo -e "Host $SERVER_IP\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
+          echo "[$(echo $DOC_VERSIONS|tr ' ' ', '|sed -s 's/\([^,]\+\)/"\1"/g')]" > versions.json;
+          rsync --force -e "ssh -p 2457" versions.json root@$SERVER_IP:/web/doc/;
+          rsync --delete --force -r -e "ssh -p 2457" ./doc/build/html/ root@$SERVER_IP:/web/doc/$version;
+        fi;
+      done;
     fi;
 
-notifications:
-  webhooks:
-    urls:
-      - https://kivy.org:5000/travisevent
-    on_success: always
-    on_failure: always
-    on_start: always
+after_failure:
+  - sleep 10;
+  - echo == End of test log ==

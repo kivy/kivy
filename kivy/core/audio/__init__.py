@@ -50,7 +50,6 @@ __all__ = ('Sound', 'SoundLoader')
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.core import core_register_libs
-from kivy.compat import PY2
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, NumericProperty, OptionProperty, \
     AliasProperty, BooleanProperty, BoundedNumericProperty
@@ -151,7 +150,8 @@ class Sound(EventDispatcher):
     #
     def _get_status(self):
         return self.state
-    status = AliasProperty(_get_status, None, bind=('state', ))
+    status = AliasProperty(
+        _get_status, None, bind=('state', ), deprecated=True)
     '''
     .. deprecated:: 1.3.0
         Use :attr:`state` instead.
@@ -159,7 +159,8 @@ class Sound(EventDispatcher):
 
     def _get_filename(self):
         return self.source
-    filename = AliasProperty(_get_filename, None, bind=('source', ))
+    filename = AliasProperty(
+        _get_filename, None, bind=('source', ), deprecated=True)
     '''
     .. deprecated:: 1.3.0
         Use :attr:`source` instead.

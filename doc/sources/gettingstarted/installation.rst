@@ -30,6 +30,11 @@ specific platform:
     :target: ../installation/installation-rpi.html
     :class: gs-osimage gs-osimage-last
 
+.. image:: ../images/android.png
+    :alt: Android
+    :target: ../installation/installation-android.html
+    :class: gs-osimage
+
 Development Version
 ~~~~~~~~~~~~~~~~~~~
 

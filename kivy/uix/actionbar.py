@@ -84,9 +84,11 @@ class ActionItem(object):
     def get_pack_width(self):
         return max(self.minimum_width, self.width)
 
-    pack_width = AliasProperty(get_pack_width, bind=('minimum_width', 'width'))
+    pack_width = AliasProperty(get_pack_width,
+                               bind=('minimum_width', 'width'),
+                               cache=True)
     '''
-    (read-only) The actual width to use when packing the item. Equal to the
+    (read-only) The actual width to use when packing the items. Equal to the
     greater of minimum_width and width.
 
     :attr:`pack_width` is an :class:`~kivy.properties.AliasProperty`.
@@ -149,7 +151,7 @@ class ActionButton(Button, ActionItem):
     and takes care of the padding between elements.
 
     You don't have much control over these properties, so if you want to
-    customize it's appearance, we suggest you create you own button
+    customize its appearance, we suggest you create you own button
     representation. You can do this by creating a class that subclasses an
     existing widget and an :class:`ActionItem`::
 
@@ -176,9 +178,9 @@ class ActionPrevious(BoxLayout, ActionItem):
 
     with_previous = BooleanProperty(True)
     '''
-    Specifies whether clicking on ActionPrevious will load the previous
-    screen or not. If True, the previous_icon will be shown otherwise it
-    will not.
+    Specifies whether the previous_icon will be shown or not. Note that it is
+    up to the user to implement the desired behavior using the *on_press* or
+    similar events.
 
     :attr:`with_previous` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
@@ -500,7 +502,7 @@ class ActionOverflow(ActionGroup):
             self._list_overflow_items.insert(index, action_item)
 
     def show_default_items(self, parent):
-        # display overflow and it's items if widget's directly added to it
+        # display overflow and its items if widget's directly added to it
         if self._list_overflow_items == []:
             return
         self.show_group()
@@ -785,7 +787,7 @@ class ActionBar(BoxLayout):
     action_view of the ActionBar.
 
     :attr:`action_view` is an :class:`~kivy.properties.ObjectProperty` and
-    defaults to an instance of ActionView.
+    defaults to None or the last ActionView instance added to the ActionBar.
     '''
 
     background_color = ListProperty([1, 1, 1, 1])

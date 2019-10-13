@@ -4,10 +4,14 @@ uix.textinput tests
 '''
 
 import unittest
+from itertools import count
 
-from kivy.tests.common import GraphicUnitTest
+from kivy.tests.common import GraphicUnitTest, UTMotionEvent
 from kivy.uix.textinput import TextInput
+from kivy.uix.widget import Widget
 from kivy.clock import Clock
+
+touch_id = count()
 
 
 class TextInputTest(unittest.TestCase):
@@ -352,6 +356,184 @@ class TextInputGraphicTest(GraphicUnitTest):
         for i in range(30):
             self.advance_frames(int(0.01 * Clock._max_fps) + 1)
             self.assertTrue(ti._do_blink_cursor_ev.is_triggered)
+
+    def test_visible_lines_range(self):
+        ti = self.make_scrollable_text_input()
+        assert ti._visible_lines_range == (20, 30)
+
+        ti.height = ti_height_for_x_lines(ti, 2.5)
+        ti.do_cursor_movement('cursor_home', control=True)
+        self.advance_frames(1)
+        assert ti._visible_lines_range == (0, 3)
+
+        ti.height = ti_height_for_x_lines(ti, 0)
+        self.advance_frames(1)
+        assert ti._visible_lines_range == (0, 0)
+
+    def test_keyboard_scroll(self):
+        ti = self.make_scrollable_text_input()
+
+        prev_cursor = ti.cursor
+        ti.do_cursor_movement('cursor_home', control=True)
+        self.advance_frames(1)
+        assert ti._visible_lines_range == (0, 10)
+        assert prev_cursor != ti.cursor
+
+        prev_cursor = ti.cursor
+        ti.do_cursor_movement('cursor_down', control=True)
+        self.advance_frames(1)
+        assert ti._visible_lines_range == (1, 11)
+        # cursor position (col and row) should not be
+        # changed by "ctrl + cursor_down" and "ctrl + cursor_up"
+        assert prev_cursor == ti.cursor
+
+        prev_cursor = ti.cursor
+        ti.do_cursor_movement('cursor_up', control=True)
+        self.advance_frames(1)
+        assert ti._visible_lines_range == (0, 10)
+        assert prev_cursor == ti.cursor
+
+        prev_cursor = ti.cursor
+        ti.do_cursor_movement('cursor_end', control=True)
+        self.advance_frames(1)
+        assert ti._visible_lines_range == (20, 30)
+        assert prev_cursor != ti.cursor
+
+    def test_scroll_doesnt_move_cursor(self):
+        ti = self.make_scrollable_text_input()
+
+        from kivy.base import EventLoop
+        win = EventLoop.window
+        touch = UTMotionEvent("unittest", next(touch_id), {
+            "x": ti.center_x / float(win.width),
+            "y": ti.center_y / float(win.height),
+        })
+        touch.profile.append('button')
+        touch.button = 'scrolldown'
+
+        prev_cursor = ti.cursor
+        assert ti._visible_lines_range == (20, 30)
+        EventLoop.post_dispatch_input("begin", touch)
+        EventLoop.post_dispatch_input("end", touch)
+        self.advance_frames(1)
+        assert ti._visible_lines_range == (19, 29)
+        assert ti.cursor == prev_cursor
+
+    def test_vertical_scroll_doesnt_depend_on_lines_rendering(self):
+        # TextInput.on_touch_down was checking the possibility to scroll_up
+        # using the positions of the rendered lines' rects. These positions
+        # don't change when the lines are skipped (e.g. during fast scroll
+        # or ctrl+cursor_home) which lead to scroll freeze
+        ti = self.make_scrollable_text_input()
+
+        # move viewport to the first line
+        ti.do_cursor_movement('cursor_home', control=True)
+        self.advance_frames(1)
+        assert ti._visible_lines_range == (0, 10)
+
+        from kivy.base import EventLoop
+        win = EventLoop.window
+
+        # slowly scroll to the last line to render all lines at least once
+        for _ in range(30):  # little overscroll is important for detection
+            touch = UTMotionEvent("unittest", next(touch_id), {
+                "x": ti.center_x / float(win.width),
+                "y": ti.center_y / float(win.height),
+            })
+            touch.profile.append('button')
+            touch.button = 'scrollup'
+
+            EventLoop.post_dispatch_input("begin", touch)
+            EventLoop.post_dispatch_input("end", touch)
+            self.advance_frames(1)
+        assert ti._visible_lines_range == (20, 30)
+
+        # jump to the first line again
+        ti.do_cursor_movement('cursor_home', control=True)
+
+        # temp fix: only change of cursor position triggers update as for now
+        ti._trigger_update_graphics()
+
+        self.advance_frames(1)
+        assert ti._visible_lines_range == (0, 10)
+
+        # scrolling up should work now
+        touch = UTMotionEvent("unittest", next(touch_id), {
+            "x": ti.center_x / float(win.width),
+            "y": ti.center_y / float(win.height),
+        })
+        touch.profile.append('button')
+        touch.button = 'scrollup'
+        EventLoop.post_dispatch_input("begin", touch)
+        EventLoop.post_dispatch_input("end", touch)
+        self.advance_frames(1)
+        assert ti._visible_lines_range == (1, 11)
+
+    def test_selectall_copy_paste(self):
+        text = 'test'
+        ti = TextInput(multiline=False, text=text)
+        ti.focus = True
+        self.render(ti)
+
+        from kivy.base import EventLoop
+        win = EventLoop.window
+
+        # select all
+        # win.dispatch(event_name, key, scancode, kstr, modifiers)
+        win.dispatch('on_key_down', 97, 4, 'a', ['capslock', 'ctrl'])
+        win.dispatch('on_key_up', 97, 4)
+        self.advance_frames(1)
+
+        # copy
+        win.dispatch('on_key_down', 99, 6, 'c',
+                     ['capslock', 'numlock', 'ctrl'])
+        win.dispatch('on_key_up', 99, 6)
+        self.advance_frames(1)
+
+        # home
+        win.dispatch('on_key_down', 278, 74, None, ['capslock'])
+        win.dispatch('on_key_up', 278, 74)
+        self.advance_frames(1)
+
+        # paste
+        win.dispatch('on_key_down', 118, 25, 'v', ['numlock', 'ctrl'])
+        win.dispatch('on_key_up', 118, 25)
+        self.advance_frames(1)
+
+        assert ti.text == 'testtest'
+
+    def make_scrollable_text_input(self, num_of_lines=30, n_lines_to_show=10):
+        """Prepare and start rendering the scrollable text input.
+
+           num_of_lines -- amount of dummy lines used as contents
+           n_lines_to_show -- amount of lines to fit in viewport
+        """
+        # create TextInput instance with dummy contents
+        text = '\n'.join(map(str, range(num_of_lines)))
+        ti = TextInput(text=text)
+        ti.focus = True
+
+        # use container to have flexible TextInput size
+        container = Widget()
+        container.add_widget(ti)
+        self.render(container)
+
+        # change TextInput's size to contain the needed amount of lines
+        ti.height = ti_height_for_x_lines(ti, n_lines_to_show)
+        self.advance_frames(1)
+        return ti
+
+
+def ti_height_for_x_lines(ti, x):
+    """Calculate TextInput height required to display x lines in viewport.
+
+    ti -- TextInput object being used
+    x -- number of lines to display
+    """
+    padding_top = ti.padding[1]
+    padding_bottom = ti.padding[3]
+    return int((ti.line_height + ti.line_spacing) * x
+               + padding_top + padding_bottom)
 
 
 if __name__ == '__main__':

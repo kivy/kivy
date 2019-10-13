@@ -1,5 +1,11 @@
 '''
-Enchant Spelling: Implements spelling backend based on enchant.
+Enchant Spelling
+================
+
+Implementation spelling backend based on enchant.
+
+.. warning:: pyenchant doesn't have dedicated build anymore for Windows/x64.
+             See https://github.com/kivy/kivy/issues/5816 for more informations
 '''
 
 

@@ -2,9 +2,9 @@ cdef class LineWidth
 cdef class Color
 cdef class BindTexture
 
-from transformation cimport Matrix
-from instructions cimport ContextInstruction
-from texture cimport Texture
+from .transformation cimport Matrix
+from .instructions cimport ContextInstruction
+from .texture cimport Texture
 
 cdef class PushState(ContextInstruction):
     pass
@@ -66,7 +66,7 @@ cdef class Rotate(Transform):
 
 cdef class Scale(Transform):
     cdef tuple _origin
-    cdef float _x, _y, _z
+    cdef double _x, _y, _z
     cdef int apply(self) except -1
     cdef set_scale(self, double x, double y, double z)
 
