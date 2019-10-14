@@ -132,7 +132,7 @@ kivy_ios_root = environ.get('KIVYIOSROOT', None)
 if kivy_ios_root is not None:
     platform = 'ios'
 # proprietary broadcom video core drivers
-if exists('/opt/vc/include/bcm_host.h'):
+if environ.get('RPI', 1) and exists('/opt/vc/include/bcm_host.h'):
     platform = 'rpi'
 # use mesa video core drivers
 if environ.get('VIDEOCOREMESA', None):
