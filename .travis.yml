@@ -211,13 +211,13 @@ script:
           git_tag=$(git rev-parse --short HEAD);
 
           if [ "${PY}" == "3" ]; then
-             yes | ./create-osx-bundle.sh python3 master > output.txt;
+             yes | ./create-osx-bundle.sh 1.11.1 3.7.4 > output.txt;
              app_ver=$(KIVY_NO_CONSOLELOG=1 Kivy.app/Contents/Resources/script -c 'import kivy; print(kivy.__version__)');
              mv Kivy.app Kivy3.app;
              ./create-osx-dmg.sh Kivy3.app;
              mkdir app;
-             cp Kivy3.dmg app/"Kivy-$app_ver"-python3.6.5.dmg;
-             mv Kivy3.dmg app/"Kivy-$app_ver-$git_tag-$app_date"-python3.6.5.dmg;
+             cp Kivy3.dmg app/"Kivy-$app_ver"-python3.7.4.dmg;
+             mv Kivy3.dmg app/"Kivy-$app_ver-$git_tag-$app_date"-python3.7.4.dmg;
           else
              ./create-osx-bundle.sh python2 master > output.txt;
               app_ver=$(KIVY_NO_CONSOLELOG=1 Kivy.app/Contents/Resources/script -c 'import kivy; print(kivy.__version__)');
