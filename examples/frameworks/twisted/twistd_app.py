@@ -12,7 +12,7 @@ from kivy.lang import Builder
 from twisted.scripts._twistd_unix import UnixApplicationRunner, ServerOptions
 from twisted.application.service import IServiceCollection
 
-TWISTD = 'twistd web -p 8087'
+TWISTD = 'twistd web --listen=tcp:8087'
 
 
 class AndroidApplicationRunner(UnixApplicationRunner):
