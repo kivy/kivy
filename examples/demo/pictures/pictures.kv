@@ -40,8 +40,9 @@ FloatLayout:
         id: image
         source: root.source
 
-        # create initial image to be 400 pixels width
-        size: 400, 400 / self.image_ratio
+        # create initial image with relative size
+        size: win.Window.width * 0.6, win.Window.width * 0.6 / self.image_ratio
+        allow_stretch: True
 
         # add shadow background
         canvas.before:
