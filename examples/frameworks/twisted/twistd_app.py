@@ -48,7 +48,6 @@ class TwistedTwistd(GridLayout):
             IServiceCollection(self.app).stopService()
             self.running = False
         else:
-            sys.exc_clear()
             sys.path.insert(0, os.path.abspath(os.getcwd()))
             sys.argv = TWISTD.split(' ')
             config = ServerOptions()
