@@ -11,6 +11,7 @@ if "--build_examples" in sys.argv:
 
 from copy import deepcopy
 import os
+import re
 from os.path import join, dirname, sep, exists, basename, isdir
 from os import walk, environ, makedirs
 from distutils.command.build_ext import build_ext
@@ -124,6 +125,60 @@ if sys.platform == 'darwin':
     else:
         osx_arch = 'i386'
 
+
+def pi_version():
+    """Detect the version of the Raspberry Pi by reading the revision field
+    value from '/proc/cpuinfo'.
+    See: https://www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
+    Based on: https://github.com/adafruit/Adafruit_Python_GPIO/blob/master/Adafruit_GPIO/Platform.py
+    """  # noqa
+    # Check if file exist
+    if not os.path.isfile('/proc/cpuinfo'):
+        return None
+
+    with open('/proc/cpuinfo', 'r') as f:
+        cpuinfo = f.read()
+
+    # Match a line like 'Revision   : a01041'
+    revision = re.search(r'^Revision\s+:\s+(\w+)$', cpuinfo,
+                         flags=re.MULTILINE | re.IGNORECASE)
+    if not revision:
+        # Couldn't find the hardware revision, assume it is not a Pi
+        return None
+
+    # Determine the Pi version using the processor bits using the new-style
+    # revision format
+    revision = revision.group(1)
+    if int(revision, base=16) & 0x800000:
+        version = ((int(revision, base=16) & 0xF000) >> 12) + 1
+        print('Raspberry Pi revision: {}'.format(version))
+        return version
+
+    # Only look a the last five characters, as the first one changes if the
+    # warranty bit is set
+    revision = revision[-5:]
+    if revision in {'0002', '0003', '0004', '0005', '0006', '0007', '0008',
+                    '0009', '000d', '000e', '000f', '0010', '0012', '0013',
+                    '0015', ' 900032'}:
+        print('Raspberry Pi 1')
+        return 1
+    elif revision in {'01041', '21041', '22042'}:
+        print('Raspberry Pi 2')
+        return 2
+    elif revision in {'02082', '22082', '32082', '220a0', '02082', '020a0'}:
+        print('Raspberry Pi 3, CM3')
+        return 3
+    elif revision in {'02100'}:
+        print('Raspberry CM3+')
+        return 3
+    elif revision in {'03111'}:
+        print('Raspberry Pi 4')
+        return 4
+    else:
+        print('Not a Raspberry Pi: {}'.format(revision))
+        return None
+
+
 # Detect Python for android project (http://github.com/kivy/python-for-android)
 ndkplatform = environ.get('NDKPLATFORM')
 if ndkplatform is not None and environ.get('LIBLINK'):
@@ -133,7 +188,10 @@ if kivy_ios_root is not None:
     platform = 'ios'
 # proprietary broadcom video core drivers
 if exists('/opt/vc/include/bcm_host.h'):
-    platform = 'rpi'
+    # The proprietary broadcom video core drivers are not available on the
+    # Raspberry Pi 4
+    if pi_version() != 4:
+        platform = 'rpi'
 # use mesa video core drivers
 if environ.get('VIDEOCOREMESA', None):
     platform = 'vc'
