@@ -193,7 +193,7 @@ if exists('/opt/vc/include/bcm_host.h'):
     if pi_version() != 4:
         platform = 'rpi'
 # use mesa video core drivers
-if environ.get('VIDEOCOREMESA', None):
+if environ.get('VIDEOCOREMESA', None) == '1':
     platform = 'vc'
 mali_paths = (
     '/usr/lib/arm-linux-gnueabihf/libMali.so',
