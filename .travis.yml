@@ -41,7 +41,7 @@ matrix:
         - docker
     - language: generic
       os: osx
-      env: PYVERS="3.5.4 3.6.8 3.7.3" PY=3 RUN=wheels USE_PANGOFT2=0
+      env: PYVERS="3.5.4 3.6.8 3.7.3 3.8.0" PY=3 RUN=wheels USE_PANGOFT2=0
       name: "OSX - wheel generation"
     - language: generic
       env: PY=3 RUN=app USE_PANGOFT2=0
