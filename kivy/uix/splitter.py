@@ -368,7 +368,9 @@ class Splitter(BoxLayout):
         self.dispatch('on_release')
 
     def on_release(self):
-        pass
+        for slider in self.parent.children:
+            slider.size_hint_y = slider.height / self.parent.height
+            slider.size_hint_x = slider.width / self.parent.width
 
 
 if __name__ == '__main__':
