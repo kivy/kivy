@@ -41,7 +41,7 @@ matrix:
         - docker
     - language: generic
       os: osx
-      env: PYVERS="3.5.4 3.6.8 3.7.3" PY=3 RUN=wheels USE_PANGOFT2=0
+      env: PYVERS="3.5.4 3.6.8 3.7.3 3.8.0" PY=3 RUN=wheels USE_PANGOFT2=0
       name: "OSX - wheel generation"
     - language: generic
       env: PY=3 RUN=app USE_PANGOFT2=0
@@ -177,13 +177,13 @@ script:
           app_date=$(python3 -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))");
           git_tag=$(git rev-parse --short HEAD);
 
-          yes | ./create-osx-bundle.sh python3 master > output.txt;
+          yes | ./create-osx-bundle.sh $TRAVIS_BRANCH 3.7.4 > output.txt;
           app_ver=$(KIVY_NO_CONSOLELOG=1 Kivy.app/Contents/Resources/script -c 'import kivy; print(kivy.__version__)');
           mv Kivy.app Kivy3.app;
           ./create-osx-dmg.sh Kivy3.app;
           mkdir app;
-          cp Kivy3.dmg app/"Kivy-$app_ver"-python3.6.5.dmg;
-          mv Kivy3.dmg app/"Kivy-$app_ver-$git_tag-$app_date"-python3.6.5.dmg;
+          cp Kivy3.dmg app/"Kivy-$app_ver"-python3.7.4.dmg;
+          mv Kivy3.dmg app/"Kivy-$app_ver-$git_tag-$app_date"-python3.7.4.dmg;
           yes | rsync -avh -e "ssh -p 2458" --include="*/" --include="*.dmg" --exclude="*" "./app/" "root@$SERVER_IP:/web/downloads/ci/osx/app/";
           popd;
       elif [ "${RUN}" == "wheels" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]  && ([ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel]" ]] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel osx]" ]]); then

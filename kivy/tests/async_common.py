@@ -272,7 +272,7 @@ class UnitKivyApp(object):
     async def do_touch_drag(
             self, pos=None, widget=None,
             widget_loc=('center_x', 'center_y'), dx=0, dy=0,
-            target_pos=None, target_widget=None,
+            target_pos=None, target_widget=None, target_widget_offset=(0, 0),
             target_widget_loc=('center_x', 'center_y'), long_press=0,
             duration=.2, drag_n=5):
         """Initiates a touch down, followed by some dragging to a target
@@ -295,7 +295,8 @@ class UnitKivyApp(object):
         - If ``target_widget`` is None, it ends at ``target_pos``
           (in window coordinates).
         - If ``target_pos`` is None, it ends on the ``target_widget`` as
-          specified by ``target_widget_loc``.
+          specified by ``target_widget_loc``. ``target_widget_offset``, is an
+          additional ``(x, y)`` offset relative to ``target_widget_loc``.
         - If neither is None, it starts at ``target_pos``, but in the
           ``target_widget``'s coordinate system
           (:meth:`~kivy.uix.widget.Widget.to_window` is used on it).
@@ -328,8 +329,9 @@ class UnitKivyApp(object):
                 tx, ty = target_pos = target_widget.to_window(
                     *target_pos, initial=False)
         elif target_widget is not None:
-            w_x = getattr(target_widget, target_widget_loc[0])
-            w_y = getattr(target_widget, target_widget_loc[1])
+            x_off, y_off = target_widget_offset
+            w_x = getattr(target_widget, target_widget_loc[0]) + x_off
+            w_y = getattr(target_widget, target_widget_loc[1]) + y_off
             tx, ty = target_pos = target_widget.to_window(w_x, w_y)
         else:
             target_pos = tx, ty
@@ -366,7 +368,7 @@ class UnitKivyApp(object):
     async def do_touch_drag_follow(
             self, pos=None, widget=None,
             widget_loc=('center_x', 'center_y'),
-            target_pos=None, target_widget=None,
+            target_pos=None, target_widget=None, target_widget_offset=(0, 0),
             target_widget_loc=('center_x', 'center_y'), long_press=0,
             duration=.2, drag_n=5, max_n=25):
         """Very similar to :meth:`do_touch_drag`, except it follows the target
@@ -383,7 +385,8 @@ class UnitKivyApp(object):
 
         `target`: These parameters specify where the drag ends.
         - If ``target_pos`` is None, it ends on the ``target_widget`` as
-          specified by ``target_widget_loc``.
+          specified by ``target_widget_loc``. ``target_widget_offset``, is an
+          additional ``(x, y)`` offset relative to ``target_widget_loc``.
         - If ``target_pos`` is not None, it starts at ``target_pos``, but in
           the ``target_widget``'s coordinate system
           (:meth:`~kivy.uix.widget.Widget.to_window` is used on it).
@@ -412,8 +415,9 @@ class UnitKivyApp(object):
             if target_pos is not None:
                 return target_widget.to_window(*target_pos, initial=False)
             else:
-                wt_x = getattr(target_widget, target_widget_loc[0])
-                wt_y = getattr(target_widget, target_widget_loc[1])
+                x_off, y_off = target_widget_offset
+                wt_x = getattr(target_widget, target_widget_loc[0]) + x_off
+                wt_y = getattr(target_widget, target_widget_loc[1]) + y_off
                 return target_widget.to_window(wt_x, wt_y)
 
         touch = AsyncUnitTestTouch(x, y)
