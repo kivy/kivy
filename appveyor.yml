@@ -30,6 +30,10 @@ environment:
   - PYVER: 37
     BITTNESS: 64
     BUILD_EXAMPLES_SDIST: 1
+  - PYVER: 38
+    BITTNESS: 86
+  - PYVER: 38
+    BITTNESS: 64
 install:
 - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-desktop.ps1'))
 build_script:
