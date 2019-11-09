@@ -3,6 +3,7 @@ uix.gridlayout tests
 ========================
 '''
 
+import pytest
 import unittest
 from kivy.tests.common import GraphicUnitTest
 
@@ -50,6 +51,21 @@ class UixGridLayoutTest(GraphicUnitTest):
         gl.cols_minimum = {i: 10 for i in range(10)}
         gl.add_widget(GridLayout())
         self.render(gl)
+
+
+def test_fills_a_column_first_when_cols_is_None():
+    # github issue #6538
+    from kivy.uix.gridlayout import GridLayout
+    from kivy.uix.widget import Widget
+    gl = GridLayout(rows=3, size=(300, 300), pos=(0, 0))
+    for i in range(4):
+        gl.add_widget(Widget())
+    gl.do_layout()
+    children = tuple(reversed(gl.children))
+    assert children[0].pos == [0, 200]
+    assert children[1].pos == [0, 100]
+    assert children[2].pos == [0, 0]
+    assert children[3].pos == [150, 200]
 
 
 if __name__ == '__main__':

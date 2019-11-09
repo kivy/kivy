@@ -95,6 +95,7 @@ from kivy.properties import NumericProperty, BooleanProperty, DictProperty, \
     BoundedNumericProperty, ReferenceListProperty, VariableListProperty, \
     ObjectProperty, StringProperty
 from math import ceil
+import itertools
 
 
 def nmax(*args):
@@ -333,13 +334,22 @@ class GridLayout(Layout):
         cols_sh_max, rows_sh_max = self._cols_sh_max, self._rows_sh_max
 
         # calculate minimum size for each columns and rows
-        n_cols = len(cols)
         has_bound_y = has_bound_x = False
-        for i, child in enumerate(reversed(self.children)):
+        if self.cols is None:
+            n_rows = len(rows)
+            row_iter = itertools.cycle(range(n_rows))
+            col_iter = itertools.chain.from_iterable(
+                itertools.repeat(i, n_rows) for i in itertools.count())
+        else:
+            n_cols = len(cols)
+            col_iter = itertools.cycle(range(n_cols))
+            row_iter = itertools.chain.from_iterable(
+                itertools.repeat(i, n_cols) for i in itertools.count())
+        for child in reversed(self.children):
             (shw, shh), (w, h) = child.size_hint, child.size
             shw_min, shh_min = child.size_hint_min
             shw_max, shh_max = child.size_hint_max
-            row, col = divmod(i, n_cols)
+            row, col = next(row_iter), next(col_iter)
 
             # compute minimum size / maximum stretch needed
             if shw is None:
@@ -480,24 +490,35 @@ class GridLayout(Layout):
                     rows[index] += stretch_h * row_stretch / rows_weight
 
     def _iterate_layout(self, count):
-        selfx = self.x
         padding_left = self.padding[0]
         padding_top = self.padding[1]
         spacing_x, spacing_y = self.spacing
 
         i = count - 1
-        y = self.top - padding_top
-        cols = self._cols
-        for row_height in self._rows:
-            x = selfx + padding_left
-            for col_width in cols:
-                if i < 0:
-                    break
-
-                yield i, x, y - row_height, col_width, row_height
-                i = i - 1
-                x = x + col_width + spacing_x
-            y -= row_height + spacing_y
+        if self.cols is None:
+            init_y = self.top - padding_top + spacing_y
+            x = self.x + padding_left
+            for col_width in self._cols:
+                y = init_y
+                for row_height in self._rows:
+                    if i < 0:
+                        break
+                    y -= row_height + spacing_y
+                    yield i, x, y, col_width, row_height
+                    i -= 1
+                x += col_width + spacing_x
+        else:
+            init_x = self.x + padding_left
+            y = self.top - padding_top + spacing_y
+            for row_height in self._rows:
+                x = init_x
+                y -= row_height + spacing_y
+                for col_width in self._cols:
+                    if i < 0:
+                        break
+                    yield i, x, y, col_width, row_height
+                    i -= 1
+                    x += col_width + spacing_x
 
     def do_layout(self, *largs):
         children = self.children
