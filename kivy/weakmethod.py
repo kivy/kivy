@@ -53,7 +53,10 @@ if sys.version > '3':
             '''Returns True if the referenced callable was a bound method and
             the instance no longer exists. Otherwise, return False.
             '''
-            return self.proxy is not None and not bool(dir(self.proxy))
+            try:
+                return self.proxy is not None and not bool(dir(self.proxy))
+            except ReferenceError:
+                return True
 
         def __eq__(self, other):
             try:
