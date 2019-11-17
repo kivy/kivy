@@ -90,7 +90,7 @@ class SoundGstplayer(Sound):
         self.player.set_volume(volume)
 
     def _get_uri(self):
-        uri = self.filename
+        uri = self.source
         if not uri:
             return
         if '://' not in uri:

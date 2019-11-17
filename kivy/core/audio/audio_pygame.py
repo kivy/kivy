@@ -91,9 +91,9 @@ class SoundPygame(Sound):
 
     def load(self):
         self.unload()
-        if self.filename is None:
+        if self.source is None:
             return
-        self._data = mixer.Sound(self.filename)
+        self._data = mixer.Sound(self.source)
 
     def unload(self):
         self.stop()
