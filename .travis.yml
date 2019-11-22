@@ -60,10 +60,7 @@ install:
         sudo apt-get -y install xvfb pulseaudio xsel;
         export CYTHON_INSTALL=$(KIVY_NO_CONSOLELOG=1 python3 -c "from kivy.tools.packaging.cython_cfg import get_cython_versions; print(get_cython_versions()[0])"  --config "kivy:log_level:error");
         python3 -m pip install -I "$CYTHON_INSTALL";
-        python3 -m pip install --upgrade pillow pytest pytest_asyncio coveralls docutils PyInstaller;
-      fi;
-      if [ "${RUN}" == "docs" ]; then
-        python3 -m pip install --upgrade sphinx==1.7.9 sphinxcontrib-blockdiag sphinxcontrib-seqdiag sphinxcontrib-actdiag sphinxcontrib-nwdiag;
+        python3 -m pip install --upgrade coveralls;
       fi;
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
@@ -106,14 +103,12 @@ install:
       python3 get-pip.py --user;
       export CYTHON_INSTALL=$(KIVY_NO_CONSOLELOG=1 python3 -c "from kivy.tools.packaging.cython_cfg import get_cython_versions; print(get_cython_versions()[0])"  --config "kivy:log_level:error");
       python3 -m pip install -I --user "$CYTHON_INSTALL";
-      python3 -m pip install --upgrade --user pillow pytest pytest_asyncio mock docutils PyInstaller;
     fi;
 
 before_script:
   - if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "${RUN}" != "pep8" ] && [ "${RUN}" != "wheels" ]; then
       export DISPLAY=:99.0;
       /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX;
-      export PYTHONPATH=$PYTHONPATH:$(pwd);
     fi;
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
       export CC=clang;
@@ -126,6 +121,7 @@ script:
   - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
       set -ex;
       if [ "${RUN}" == "unit" ]; then
+        python3 -m pip install -e .[dev,full];
         make;
         make test;
       fi;
@@ -136,6 +132,7 @@ script:
         make style;
       fi;
       if [ "${RUN}" == "docs" ]; then
+        python3 -m pip install -e .[dev,full];
         make html;
       fi;
       if [ "${RUN}" == "wheels" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]  && ([ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel]" ]] || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build wheel linux]" ]]); then
@@ -165,7 +162,7 @@ script:
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
       set -ex;
       if [ "${RUN}" == "unit" ]; then
-        python3 setup.py build_ext --inplace;
+        python3 -m pip install -e .[dev,full];
         env KIVY_NO_ARGS=1 pytest -v kivy/tests;
       elif [ "${RUN}" == "app" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ]  && ([ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${TRAVIS_TAG}" != "" ]  || [[ "$TRAVIS_COMMIT_MESSAGE" =~ "[build app osx]" ]]); then
           openssl aes-256-cbc -K $encrypted_675f1a0c317c_key -iv $encrypted_675f1a0c317c_iv -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d;

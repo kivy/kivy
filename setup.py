@@ -200,6 +200,18 @@ if platform in ('ios', 'android'):
 else:
     declare_cython = True
 
+win_gstreamer_version = '0.1'
+win_sdl2_version = '0.1'
+win_angle_version = '0.1'
+win_glew_version = '0.1'
+
+
+def win_dep(package, dev=False):
+    version = globals()['win_{}_version'.format(package)]
+    if dev:
+        return 'kivy_deps.{}_dev=={}'.format(package, version)
+    return 'kivy_deps.{}=={}'.format(package, version)
+
 # -----------------------------------------------------------------------------
 # Setup classes
 
@@ -1036,6 +1048,8 @@ def glob_paths(*patterns, excludes=('.pyc', )):
 # -----------------------------------------------------------------------------
 # setup !
 if not build_examples:
+    base_deps = ['pillow']
+    full_deps = ['pillow']
     install_requires = [
         'Kivy-Garden>=0.1.4', 'docutils', 'pygments'
     ]
@@ -1107,7 +1121,22 @@ if not build_examples:
         install_requires=install_requires,
         setup_requires=setup_requires,
         extras_require={
-            'tuio': ['oscpy']
+            'tuio': ['oscpy'],
+            'base': base_deps,
+            'full': full_deps,
+            'dev': ['pytest>=3.6', 'pytest-cov', 'pytest_asyncio',
+                    'pyinstaller', 'sphinx', 'sphinxcontrib-blockdiag',
+                    'sphinxcontrib-seqdiag', 'sphinxcontrib-actdiag',
+                    'sphinxcontrib-nwdiag'],
+            'win_base': [win_dep('sdl2'), win_dep('glew'), win_dep('angle')
+                         ] + base_deps,
+            'win_full': [win_dep('sdl2'), win_dep('glew'), win_dep('angle'),
+                         win_dep('gstreamer')] + full_deps,
+            'win_base_src': [win_dep('sdl2', dev=True),
+                             win_dep('glew', dev=True)] + base_deps,
+            'win_full_src': [win_dep('sdl2', dev=True),
+                             win_dep('glew', dev=True),
+                             win_dep('gstreamer', dev=True)] + full_deps
         })
 else:
     setup(

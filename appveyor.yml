@@ -59,8 +59,6 @@ build_script:
 
     cd $env:APPVEYOR_BUILD_FOLDER
 
-    $env:PYTHONPATH = "$env:APPVEYOR_BUILD_FOLDER;$PYTHONPATH"
-
     echo "Build folder: $env:KIVY_BUILD_DIR. Project folder: $env:APPVEYOR_BUILD_FOLDER. Wheel folder: $env:WHEEL_DIR."
 
     mkdir "$env:KIVY_BUILD_DIR"
@@ -130,11 +128,7 @@ build_script:
 
     echo "test=$env:DO_TEST, make_wheel=$DO_WHEEL"
 
-    python -m pip install pip wheel setuptools --upgrade
-
-    Check-Error
-
-    pip install cython
+    python -m pip install pip wheel setuptools cython --upgrade
 
     Check-Error
 
@@ -145,13 +139,9 @@ build_script:
       Check-Error
     }
 
-    pip install mock cython pygments docutils pytest pytest_asyncio pyinstaller kivy_deps.glew_dev kivy_deps.glew kivy_deps.gstreamer_dev kivy_deps.sdl2_dev kivy_deps.sdl2
+     python -m pip install -e .[win_full,win_full_src,dev]
 
-    pip --no-cache-dir install kivy_deps.gstreamer
-
-    Check-Error
-
-    pip install kivy_deps.angle
+     Check-Error
 
     if ($env:DO_TEST -eq "True" -or $DO_WHEEL -eq "True") {
       python setup.py build_ext --inplace
