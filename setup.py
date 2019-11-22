@@ -212,6 +212,7 @@ def win_dep(package, dev=False):
         return 'kivy_deps.{}_dev=={}'.format(package, version)
     return 'kivy_deps.{}=={}'.format(package, version)
 
+
 # -----------------------------------------------------------------------------
 # Setup classes
 
