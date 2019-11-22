@@ -73,6 +73,7 @@ async def kivy_app(request, nursery):
     Window.canvas.clear()
 
     app = request.param[0]()
+    app.set_async_lib(async_lib)
 
     if async_lib == 'asyncio':
         import asyncio
@@ -80,6 +81,8 @@ async def kivy_app(request, nursery):
         loop.create_task(app.async_run())
     else:
         nursery.start_soon(app.async_run)
+    from kivy.clock import Clock
+    Clock._max_fps = 0
 
     ts = time.perf_counter()
     while not app.app_has_started:

@@ -154,8 +154,6 @@ class UnitKivyApp(object):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        from kivy.clock import Clock
-        self.async_sleep = Clock._async_lib.sleep
 
         def started_app(*largs):
             self.app_has_started = True
@@ -165,11 +163,14 @@ class UnitKivyApp(object):
             self.app_has_stopped = True
         self.fbind('on_stop', stopped_app)
 
-    async def async_run(self, async_lib=None):
+    def set_async_lib(self, async_lib):
         from kivy.clock import Clock
         if async_lib is not None:
             Clock.init_async_lib(async_lib)
         self.async_sleep = Clock._async_lib.sleep
+
+    async def async_run(self, async_lib=None):
+        self.set_async_lib(async_lib)
         return await super(UnitKivyApp, self).async_run(async_lib=async_lib)
 
     def resolve_widget(self, base_widget=None):
