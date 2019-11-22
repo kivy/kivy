@@ -200,10 +200,10 @@ if platform in ('ios', 'android'):
 else:
     declare_cython = True
 
-win_gstreamer_version = '0.1'
-win_sdl2_version = '0.1'
-win_angle_version = '0.1'
-win_glew_version = '0.1'
+win_gstreamer_version = '0.1.*'
+win_sdl2_version = '0.1.*'
+win_angle_version = '0.1.*'
+win_glew_version = '0.1.*'
 
 
 def win_dep(package, dev=False):
