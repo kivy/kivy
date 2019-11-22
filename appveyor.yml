@@ -132,6 +132,11 @@ build_script:
 
     Check-Error
 
+    # workaround for https://github.com/pyinstaller/pyinstaller/issues/4265 until next release
+    python -m pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip
+
+    Check-Error
+
     # sdist must happen before anything else
 
     if ($DO_WHEEL -eq "True" -and $env:BUILD_EXAMPLES_SDIST -eq "1") {

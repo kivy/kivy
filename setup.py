@@ -1075,6 +1075,7 @@ if not build_examples:
         package_dir={'kivy': 'kivy'},
         package_data={
             'kivy':
+                glob_paths('*.pxd', '*.pxi') +
                 glob_paths('**/*.pxd', '**/*.pxi') +
                 glob_paths('data/**/*.*') +
                 glob_paths('include/**/*.*') +
