@@ -50,10 +50,14 @@ jobs:
       run: |
         . .\.ci\windows_ci.ps1
         Rename-windows-wheels
+    - name: Install MSYS2
+      run: choco install msys2
     - name: Upload wheels to server
       if: github.event_name != 'pull_request'
       env:
         WINDOWS_UPLOAD_KEY: ${{ secrets.WINDOWS_UPLOAD_KEY }}
+        MSYSTEM: MINGW64
+        CHERE_INVOKING: 1
       run: |
         $WINDOWS_UPLOAD_KEY | Out-File -FilePath .ci/id_rsa -Encoding ASCII
         . .\.ci\windows_ci.ps1
