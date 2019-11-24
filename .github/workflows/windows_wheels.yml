@@ -34,6 +34,7 @@ jobs:
         Install-kivy-test-run-win-deps
         Install-kivy-test-run-pip-deps
     - name: Generate sdist/kivy-examples
+      if: matrix.arch == 'x64' && matrix.python == '3.8'
       run: |
         . .\.ci\windows_ci.ps1
         Generate-sdist
