@@ -26,7 +26,6 @@ install_kivy_test_run_pip_deps() {
 }
 
 prepare_env_for_unittest() {
-  export DISPLAY=:99.0
   /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background \
   --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX
 }
