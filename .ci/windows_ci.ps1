@@ -31,19 +31,14 @@ function Rename-windows-wheels {
     }
 }
 
-function Upload-windows-wheels-to-server($encrypted_win_key, $ip) {
-    secure-file\tools\secure-file -decrypt .ci\id_rsa.enc -secret "$encrypted_win_key"
-
+function Upload-windows-wheels-to-server($ip) {
     echo "Uploading Kivy*:"
     dir dist
-
-    $path = (pwd).Path -replace "\\", "/"
-    bash --login -c ".ci/windows-server-upload.sh $ip '$path/dist' 'Kivy*' ci/win/kivy/"
-    Check-Error
+    bash --login -c ".ci/windows-server-upload.sh $ip dist 'Kivy*' ci/win/kivy/"
 }
 
 function Install-kivy-test-run-win-deps {
-    nuget install secure-file -ExcludeVersion
+
 }
 
 function Install-kivy-test-run-pip-deps {

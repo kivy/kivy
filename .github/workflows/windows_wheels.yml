@@ -52,10 +52,11 @@ jobs:
     - name: Upload wheels to server
       if: github.event_name != 'pull_request'
       env:
-        encrypted_win_key: ${{ secrets.encrypted_win_key }}
+        WINDOWS_UPLOAD_KEY: ${{ secrets.WINDOWS_UPLOAD_KEY }}
       run: |
+        $WINDOWS_UPLOAD_KEY | Out-File -FilePath .ci/id_rsa -Encoding ASCII
         . .\.ci\windows_ci.ps1
-        Upload-windows-wheels-to-server -encrypted_win_key "$env:encrypted_win_key" -ip "$env:SERVER_IP"
+        Upload-windows-wheels-to-server -ip "$env:SERVER_IP"
     - name: Upload wheels as artifact
       uses: actions/upload-artifact@master
       if: github.event_name == 'pull_request'

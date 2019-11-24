@@ -89,9 +89,9 @@ jobs:
       if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/stable'))
       env:
         REF_NAME: ${{ github.ref }}
-        encrypted_675f1a0c317c_key: ${{ secrets.encrypted_675f1a0c317c_key }}
-        encrypted_675f1a0c317c_iv: ${{ secrets.encrypted_675f1a0c317c_iv }}
+        UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
       run: |
         branch_name=$(python3 -c "print('$REF_NAME'.split('/')[-1])")
+        printf "%s" "$UBUNTU_UPLOAD_KEY" > ~/.ssh/id_rsa
         source .ci/ubuntu_ci.sh
-        upload_docs_to_server $DOC_VERSIONS $branch_name $encrypted_675f1a0c317c_key $encrypted_675f1a0c317c_iv $SERVER_IP
+        upload_docs_to_server $DOC_VERSIONS $branch_name $SERVER_IP

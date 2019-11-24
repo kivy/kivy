@@ -29,11 +29,11 @@ jobs:
     - name: Upload wheels to server
       if: github.event_name != 'pull_request'
       env:
-        encrypted_675f1a0c317c_key: ${{ secrets.encrypted_675f1a0c317c_key }}
-        encrypted_675f1a0c317c_iv: ${{ secrets.encrypted_675f1a0c317c_iv }}
+        UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
       run: |
         source .ci/ubuntu_ci.sh
-        upload_manylinux2010_to_server $encrypted_675f1a0c317c_key $encrypted_675f1a0c317c_iv $SERVER_IP
+        printf "%s" "$UBUNTU_UPLOAD_KEY" > ~/.ssh/id_rsa
+        upload_manylinux2010_to_server $SERVER_IP
     - name: Upload wheels as artifact
       uses: actions/upload-artifact@master
       if: github.event_name == 'pull_request'

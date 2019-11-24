@@ -58,12 +58,9 @@ generate_docs() {
 upload_docs_to_server() {
   versions=$1
   branch=$2
-  key=$3
-  iv=$4
-  ip=$5
+  ip=$3
   for version in $versions; do
     if [ "$version" == "${branch}" ]; then
-      openssl aes-256-cbc -K "$key" -iv "$iv" -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d
       chmod 600 ~/.ssh/id_rsa
       echo -e "Host $ip\n\tStrictHostKeyChecking no\n" >>~/.ssh/config
       echo "[$(echo $versions | tr ' ' ', ' | sed -s 's/\([^,]\+\)/"\1"/g')]" >versions.json
@@ -97,10 +94,7 @@ generate_manylinux2010_wheels() {
 }
 
 upload_manylinux2010_to_server() {
-  key=$1
-  iv=$2
-  ip=$3
-  openssl aes-256-cbc -K "$key" -iv "$iv" -in ./kivy/tools/travis/id_rsa.enc -out ~/.ssh/id_rsa -d
+  ip=$1
   chmod 600 ~/.ssh/id_rsa
   echo -e "Host $ip\n\tStrictHostKeyChecking no\n" >>~/.ssh/config
   rsync -avh -e "ssh -p 2458" --include="*/" --include="*manylinux*.whl" --exclude="*" "wheelhouse/" "root@$ip:/web/downloads/ci/linux/kivy/"
