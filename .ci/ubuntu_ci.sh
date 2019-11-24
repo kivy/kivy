@@ -32,7 +32,7 @@ prepare_env_for_unittest() {
 }
 
 install_kivy() {
-  python3 -m pip install -e ".[dev,full]"
+  python3 -m pip install -e "$(pwd)[dev,full]"
 }
 
 test_kivy() {
