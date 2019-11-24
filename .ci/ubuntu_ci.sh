@@ -2,7 +2,6 @@
 set -e -x
 
 install_kivy_test_run_apt_deps() {
-  yes | sudo add-apt-repository ppa:gstreamer-developers/ppa
   sudo apt-get update
   sudo apt-get -y install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libsdl2-mixer-dev
   sudo apt-get -y install libgstreamer1.0-dev gstreamer1.0-alsa gstreamer1.0-plugins-base
