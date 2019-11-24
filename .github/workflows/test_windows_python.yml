@@ -8,6 +8,7 @@ env:
   GST_REGISTRY: '~/registry.bin'
   KIVY_GL_BACKEND: 'angle_sdl2'
   KIVY_SPLIT_EXAMPLES: 1
+  INCLUDE: 'C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\ucrt'
 
 jobs:
   unit_test:
@@ -25,7 +26,6 @@ jobs:
         architecture: ${{ matrix.arch }}
     - name: Install dependencies
       run: |
-        ls "C:\Program Files (x86)\Windows Kits\10\Include"
         . .\.ci\windows_ci.ps1
         Install-kivy-test-run-win-deps
         Install-kivy-test-run-pip-deps
