@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-pacman -S --noconfirm git rsync
-if [ ! -d "$HOME/.ssh" ]; then
-  mkdir "$HOME/.ssh"
-fi
+pacman -S --noconfirm git rsync openssl
 
-mv .ci/id_rsa ~/.ssh/id_rsa
+if [ ! -d ~/.ssh ]; then
+  mkdir ~/.ssh
+fi
+printf "%s" "$UBUNTU_UPLOAD_KEY" > ~/.ssh/id_rsa
 chmod 600 ~/.ssh/id_rsa
 
 echo -e "Host $1\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config

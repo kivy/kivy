@@ -59,9 +59,8 @@ jobs:
         MSYSTEM: MINGW64
         CHERE_INVOKING: 1
       run: |
-        $UBUNTU_UPLOAD_KEY | Out-File -FilePath .ci/id_rsa -Encoding ASCII
         . .\.ci\windows_ci.ps1
-        Upload-windows-wheels-to-server -ip "$env:SERVER_IP"
+        Upload-windows-wheels-to-server -ip "$env:SERVER_IP" -msys_bash "C:\tools\msys64\usr\bin\bash"
     - name: Upload wheels as artifact
       uses: actions/upload-artifact@master
       if: github.event_name == 'pull_request'

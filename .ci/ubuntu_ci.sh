@@ -60,6 +60,10 @@ upload_docs_to_server() {
   branch=$2
   ip=$3
 
+  if [ ! -d ~/.ssh ]; then
+    mkdir ~/.ssh
+  fi
+  printf "%s" "$UBUNTU_UPLOAD_KEY" > ~/.ssh/id_rsa
   chmod 600 ~/.ssh/id_rsa
   echo -e "Host $ip\n\tStrictHostKeyChecking no\n" >>~/.ssh/config
 
@@ -97,6 +101,10 @@ generate_manylinux2010_wheels() {
 
 upload_manylinux2010_to_server() {
   ip=$1
+  if [ ! -d ~/.ssh ]; then
+    mkdir ~/.ssh
+  fi
+  printf "%s" "$UBUNTU_UPLOAD_KEY" > ~/.ssh/id_rsa
   chmod 600 ~/.ssh/id_rsa
   echo -e "Host $ip\n\tStrictHostKeyChecking no\n" >>~/.ssh/config
   rsync -avh -e "ssh -p 2458" --include="*/" --include="*manylinux*.whl" --exclude="*" "wheelhouse/" "root@$ip:/web/downloads/ci/linux/kivy/"
