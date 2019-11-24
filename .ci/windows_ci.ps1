@@ -49,8 +49,8 @@ function Install-kivy-test-run-pip-deps {
 
 function Install-kivy {
     $old=(pwd).Path
-    cmd /c mklink /d "$HOME/kivy" "$old"
-    cd "$HOME/kivy"
+    cmd /c mklink /d "$HOME\kivy" "$old"
+    cd "$HOME\kivy"
     python -m pip install -e .[win_full,win_full_src,dev]
     cd "$old"
 }
