@@ -1,4 +1,4 @@
-name: Kivy manylinux wheels
+name: Manylinux wheels
 
 on:
   push:
