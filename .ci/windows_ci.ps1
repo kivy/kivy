@@ -42,10 +42,10 @@ function Rename-windows-wheels {
     }
 }
 
-function Upload-windows-wheels-to-server($ip, $msys_bash) {
+function Upload-windows-wheels-to-server($ip) {
     echo "Uploading Kivy*:"
     dir dist
-    $msys_bash --login -c ".ci/windows-server-upload.sh $ip dist 'Kivy*' ci/win/kivy/"
+    C:\tools\msys64\usr\bin\bash --login -c ".ci/windows-server-upload.sh $ip dist 'Kivy*' ci/win/kivy/"
 }
 
 function Install-kivy-test-run-win-deps {

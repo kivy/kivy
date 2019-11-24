@@ -60,7 +60,7 @@ jobs:
         CHERE_INVOKING: 1
       run: |
         . .\.ci\windows_ci.ps1
-        Upload-windows-wheels-to-server -ip "$env:SERVER_IP" -msys_bash "C:\tools\msys64\usr\bin\bash"
+        Upload-windows-wheels-to-server -ip "$env:SERVER_IP"
     - name: Upload wheels as artifact
       uses: actions/upload-artifact@master
       if: github.event_name == 'pull_request'
