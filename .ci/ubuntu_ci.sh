@@ -17,7 +17,7 @@ install_python() {
 install_kivy_test_run_pip_deps() {
   python3 -m pip install --upgrade pip setuptools wheel
   CYTHON_INSTALL=$(
-    KIVY_NO_CONSOLELOG=1 python3 -c\
+    KIVY_NO_CONSOLELOG=1 python3 -c \
     "from kivy.tools.packaging.cython_cfg import get_cython_versions; print(get_cython_versions()[0])" \
     --config "kivy:log_level:error"
   )
@@ -76,13 +76,13 @@ generate_manylinux2010_wheels() {
 
   wheel_date=$(python3 -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))")
   git_tag=$(git rev-parse --short HEAD)
-  tag_name=$(KIVY_NO_CONSOLELOG=1 python3
-    -c "import kivy; _, tag, n = kivy.parse_kivy_version(kivy.__version__); print(tag + n) if n is not None else print(tag or 'something')"
+  tag_name=$(KIVY_NO_CONSOLELOG=1 python3 \
+    -c "import kivy; _, tag, n = kivy.parse_kivy_version(kivy.__version__); print(tag + n) if n is not None else print(tag or 'something')" \
     --config "kivy:log_level:error")
   wheel_name="$tag_name.$wheel_date.$git_tag-"
 
   chmod +x .ci/build-wheels-linux.sh
-  docker run --rm -v $(pwd):/io "$image" "/io/.ci/build-wheels-linux.sh"
+  docker run --rm -v "$(pwd):/io" "$image" "/io/.ci/build-wheels-linux.sh"
   ls wheelhouse/
   for name in wheelhouse/*manylinux*.whl; do
     new_name="${name/$tag_name-/$wheel_name}"
