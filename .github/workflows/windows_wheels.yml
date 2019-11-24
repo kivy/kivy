@@ -12,14 +12,13 @@ env:
   SERVER_IP: '159.203.106.198'
   USE_SDL2: 1
   USE_GSTREAMER: 1
-  INCLUDE: 'C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\ucrt;C:\Program Files (x86)\Windows Kits\8.1\Include\shared'
 
 jobs:
   windows_wheels:
     runs-on: windows-latest
     strategy:
       matrix:
-        python: [ '3.5', '3.6', '3.7', '3.8' ]
+        python: [ '3.6', '3.7', '3.8' ]
         arch: ['x64', 'x86']
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel win]')
     steps:
