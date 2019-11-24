@@ -1,0 +1,42 @@
+name: Kivy manylinux wheels
+
+on:
+  push:
+  pull_request:
+  create:
+  schedule:
+    - cron:  '23 1 * * *'
+
+env:
+  KIVY_SPLIT_EXAMPLES: 1
+  SERVER_IP: '159.203.106.198'
+  DOCKER_IMAGE: 'quay.io/pypa/manylinux2010_x86_64'
+
+jobs:
+  manylinux2010:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python 3.x
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.x
+    - name: Make wheels
+      if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel linux]')
+      run: |
+        source .ci/ubuntu_ci.sh
+        generate_manylinux2010_wheels $DOCKER_IMAGE
+    - name: Upload wheels to server
+      if: github.event_name != 'pull_request' && success()
+      env:
+        encrypted_675f1a0c317c_key: ${{ secrets.encrypted_675f1a0c317c_key }}
+        encrypted_675f1a0c317c_iv: ${{ secrets.encrypted_675f1a0c317c_iv }}
+      run: |
+        source .ci/ubuntu_ci.sh
+        upload_manylinux2010_to_server $encrypted_675f1a0c317c_key $encrypted_675f1a0c317c_iv $SERVER_IP
+    - name: Upload wheels as artifact
+      uses: actions/upload-artifact@master
+      if: github.event_name == 'pull_request'
+      with:
+        name: manylinux_wheels
+        path: wheelhouse
