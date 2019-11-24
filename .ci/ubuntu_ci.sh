@@ -41,7 +41,7 @@ install_kivy() {
 
 test_kivy() {
   rm -rf kivy/tests/build || true
-  KIVY_NO_ARGS=1 python3 -m pytest --cov=kivy --cov-report term --cov-branch kivy/tests
+  KIVY_NO_ARGS=1 python3 -m pytest --cov=kivy --cov-report term --cov-branch kivy/tests -x
 }
 
 upload_coveralls() {
