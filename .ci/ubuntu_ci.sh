@@ -40,7 +40,7 @@ install_kivy() {
 
 test_kivy() {
   rm -rf kivy/tests/build || true
-  KIVY_NO_ARGS=1 python3 -m pytest --cov=kivy --cov-report term --cov-branch kivy/tests -x
+  KIVY_NO_ARGS=1 python3 -m pytest --cov=kivy --cov-report term --cov-branch kivy/tests
 }
 
 upload_coveralls() {
@@ -75,10 +75,7 @@ upload_docs_to_server() {
 
 generate_manylinux2010_wheels() {
   image=$1
-
-  if [ ! -d "wheelhouse" ]; then
-      mkdir wheelhouse
-  fi
+  mkdir wheelhouse
 
   wheel_date=$(python3 -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))")
   git_tag=$(git rev-parse --short HEAD)

@@ -15,18 +15,15 @@ env:
 jobs:
   manylinux2010:
     runs-on: ubuntu-18.04
+    if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel linux]')
     steps:
     - uses: actions/checkout@v1
     - name: Set up Python 3.x
       uses: actions/setup-python@v1
       with:
         python-version: 3.x
-    - name: Create wheel directory
-      run: mkdir wheelhouse
     - name: Make wheels
-      if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel linux]')
       run: |
-        echo "" > made_wheel
         source .ci/ubuntu_ci.sh
         generate_manylinux2010_wheels $DOCKER_IMAGE
     - name: Upload wheels to server
@@ -36,9 +33,7 @@ jobs:
         encrypted_675f1a0c317c_iv: ${{ secrets.encrypted_675f1a0c317c_iv }}
       run: |
         source .ci/ubuntu_ci.sh
-        if [ -f "made_wheel" ]; then
-          upload_manylinux2010_to_server $encrypted_675f1a0c317c_key $encrypted_675f1a0c317c_iv $SERVER_IP
-        fi
+        upload_manylinux2010_to_server $encrypted_675f1a0c317c_key $encrypted_675f1a0c317c_iv $SERVER_IP
     - name: Upload wheels as artifact
       uses: actions/upload-artifact@master
       if: github.event_name == 'pull_request'

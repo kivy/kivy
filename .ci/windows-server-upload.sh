@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 pacman -S --noconfirm git rsync
-if [ ! -d "/home/appveyor/.ssh" ]; then
-  mkdir "/home/appveyor/.ssh"
+if [ ! -d "$HOME/.ssh" ]; then
+  mkdir "$HOME/.ssh"
 fi
 echo -e "Host $1\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 cp "$(dirname "$0")/id_rsa" ~/.ssh/id_rsa

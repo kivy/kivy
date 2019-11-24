@@ -1,0 +1,64 @@
+name: Windows wheels
+
+on:
+  push:
+  pull_request:
+  create:
+  schedule:
+    - cron:  '23 1 * * *'
+
+env:
+  KIVY_SPLIT_EXAMPLES: 1
+  SERVER_IP: '159.203.106.198'
+  USE_SDL2: 1
+  USE_GSTREAMER: 1
+
+jobs:
+  windows_wheels:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python: [ '3.5' '3.6', '3.7', '3.8' ]
+        arch: ['x64', 'x86']
+    if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel win]')
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python }}
+        architecture: ${{ matrix.arch }}
+    - name: Install dependencies
+      run: |
+        . .\.ci\windows_ci.ps1
+        Install-kivy-test-run-win-deps
+        Install-kivy-test-run-pip-deps
+    - name: Generate sdist/kivy-examples
+      run: |
+        . .\.ci\windows_ci.ps1
+        Generate-sdist
+    - name: Install Kivy
+      run: |
+        . .\.ci\windows_ci.ps1
+        Install-kivy
+    - name: Make wheels
+      run: |
+        . .\.ci\windows_ci.ps1
+        Generate-windows-wheels
+    - name: Fix wheel names
+      run: |
+        . .\.ci\windows_ci.ps1
+        Rename-windows-wheels
+    - name: Upload wheels to server
+      if: github.event_name != 'pull_request'
+      env:
+        encrypted_win_key: ${{ secrets.encrypted_win_key }}
+      run: |
+        . .\.ci\windows_ci.ps1
+        Upload-windows-wheels-to-server -encrypted_win_key "$env:encrypted_win_key" -ip "$env:SERVER_IP"
+    - name: Upload wheels as artifact
+      uses: actions/upload-artifact@master
+      if: github.event_name == 'pull_request'
+      with:
+        name: windows_wheels
+        path: dist
