@@ -268,9 +268,9 @@ kivy_config_fn = ''
 kivy_usermodules_dir = ''
 
 # if there are deps, import them so they can do their magic.
-import kivy.deps
+import kivy.deps as old_deps
 _packages = []
-for importer, modname, ispkg in pkgutil.iter_modules(kivy.deps.__path__):
+for importer, modname, ispkg in pkgutil.iter_modules(old_deps.__path__):
     if not ispkg:
         continue
     if modname.startswith('gst'):

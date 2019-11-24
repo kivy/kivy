@@ -43,3 +43,12 @@ jobs:
       with:
         name: manylinux_wheels
         path: wheelhouse
+
+  always_job:
+    name: Always run job
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Always run
+        run: |
+          echo "This is run to prevent the workflow from showing an error if the wheels job is not run and no jobs run is an error."
+          echo "See https://github.community/t5/GitHub-Actions/Workflow-is-failing-if-no-job-can-be-ran-due-to-condition/m-p/38085"
