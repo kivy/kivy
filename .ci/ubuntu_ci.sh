@@ -71,7 +71,11 @@ upload_docs_to_server() {
 
 generate_manylinux2010_wheels() {
   image=$1
-  mkdir wheelhouse
+
+  if [ ! -d "wheelhouse" ]; then
+      mkdir wheelhouse
+  fi
+
   wheel_date=$(python3 -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))")
   git_tag=$(git rev-parse --short HEAD)
   tag_name=$(KIVY_NO_CONSOLELOG=1 python3
