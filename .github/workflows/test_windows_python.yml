@@ -8,7 +8,7 @@ env:
   GST_REGISTRY: '~/registry.bin'
   KIVY_GL_BACKEND: 'angle_sdl2'
   KIVY_SPLIT_EXAMPLES: 1
-  INCLUDE: 'C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\ucrt'
+  INCLUDE: 'C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\ucrt;C:\Program Files (x86)\Windows Kits\8.1\Include\shared'
 
 jobs:
   unit_test:

@@ -12,7 +12,7 @@ env:
   SERVER_IP: '159.203.106.198'
   USE_SDL2: 1
   USE_GSTREAMER: 1
-  INCLUDE: 'C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\ucrt'
+  INCLUDE: 'C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\ucrt;C:\Program Files (x86)\Windows Kits\8.1\Include\shared'
 
 jobs:
   windows_wheels:
