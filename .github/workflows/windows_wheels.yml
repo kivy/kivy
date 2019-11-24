@@ -55,11 +55,11 @@ jobs:
     - name: Upload wheels to server
       if: github.event_name != 'pull_request'
       env:
-        WINDOWS_UPLOAD_KEY: ${{ secrets.WINDOWS_UPLOAD_KEY }}
+        UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
         MSYSTEM: MINGW64
         CHERE_INVOKING: 1
       run: |
-        $WINDOWS_UPLOAD_KEY | Out-File -FilePath .ci/id_rsa -Encoding ASCII
+        $UBUNTU_UPLOAD_KEY | Out-File -FilePath .ci/id_rsa -Encoding ASCII
         . .\.ci\windows_ci.ps1
         Upload-windows-wheels-to-server -ip "$env:SERVER_IP"
     - name: Upload wheels as artifact
