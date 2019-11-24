@@ -1130,10 +1130,10 @@ if not build_examples:
                     'pyinstaller', 'sphinx', 'sphinxcontrib-blockdiag',
                     'sphinxcontrib-seqdiag', 'sphinxcontrib-actdiag',
                     'sphinxcontrib-nwdiag'],
-            'win_base': [win_dep('sdl2'), win_dep('glew'), win_dep('angle')
-                         ] + base_deps,
+            'win_base': [win_dep('sdl2'), win_dep('glew'), win_dep('angle'),
+                         'pypiwin32'] + base_deps,
             'win_full': [win_dep('sdl2'), win_dep('glew'), win_dep('angle'),
-                         win_dep('gstreamer')] + full_deps,
+                         win_dep('gstreamer'), 'pypiwin32'] + full_deps,
             'win_base_src': [win_dep('sdl2', dev=True),
                              win_dep('glew', dev=True)] + base_deps,
             'win_full_src': [win_dep('sdl2', dev=True),
