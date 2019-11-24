@@ -14,8 +14,19 @@ function Rename-windows-wheels {
     # archive: Kivy-X.Y.Z.dev0.YYYYMMDD.githash-cpAB-cpABm-ARCH.whl (Kivy_examples-X.Y.Z.dev0.YYYYMMDD.githash-py2.py3-none-any.whl)
 
     $WHEEL_DATE = python -c "from datetime import datetime;print(datetime.utcnow().strftime('%Y%m%d'))"
+    echo "Wheel date is: $WHEEL_DATE"
     $GIT_TAG = git rev-parse --short HEAD
-    python -c "import kivy"
+    echo "Git tag is: $GIT_TAG"
+    # powershell interprets writing to stderr as an error, so only raise error if the return code is none-zero
+    try {
+      python -c "import kivy" --config "kivy:log_level:error"
+    } catch {
+      if ($LastExitCode -ne 0) {
+        throw $_
+      } else {
+        echo $_
+      }
+    }
     $WHEEL_VERSION = python -c "import kivy;print(kivy.__version__)" --config "kivy:log_level:error"
     echo "Kivy version is: $WHEEL_VERSION"
     $TAG_NAME = python -c "import kivy; _, tag, n = kivy.parse_kivy_version(kivy.__version__); print(tag + n) if n is not None else print(tag or 'something')"  --config "kivy:log_level:error"
@@ -56,5 +67,5 @@ function Install-kivy {
 }
 
 function Test-kivy {
-    python -m pytest --cov=kivy --cov-report term --cov-branch kivy/tests
+    python -m pytest --cov=kivy --cov-report term --cov-branch "$(pwd)/kivy/tests"
 }

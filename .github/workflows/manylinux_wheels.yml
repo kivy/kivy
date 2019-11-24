@@ -32,6 +32,9 @@ jobs:
         UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
       run: |
         source .ci/ubuntu_ci.sh
+        if [ ! -d ~/.ssh ]; then
+          mkdir ~/.ssh
+        fi
         printf "%s" "$UBUNTU_UPLOAD_KEY" > ~/.ssh/id_rsa
         upload_manylinux2010_to_server $SERVER_IP
     - name: Upload wheels as artifact

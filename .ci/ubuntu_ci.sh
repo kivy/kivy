@@ -40,7 +40,7 @@ install_kivy() {
 
 test_kivy() {
   rm -rf kivy/tests/build || true
-  KIVY_NO_ARGS=1 python3 -m pytest --cov=kivy --cov-report term --cov-branch kivy/tests
+  KIVY_NO_ARGS=1 python3 -m pytest --cov=kivy --cov-report term --cov-branch "$(pwd)/kivy/tests"
 }
 
 upload_coveralls() {
@@ -59,11 +59,13 @@ upload_docs_to_server() {
   versions=$1
   branch=$2
   ip=$3
+
+  chmod 600 ~/.ssh/id_rsa
+  echo -e "Host $ip\n\tStrictHostKeyChecking no\n" >>~/.ssh/config
+
   for version in $versions; do
     if [ "$version" == "${branch}" ]; then
-      chmod 600 ~/.ssh/id_rsa
-      echo -e "Host $ip\n\tStrictHostKeyChecking no\n" >>~/.ssh/config
-      echo "[$(echo $versions | tr ' ' ', ' | sed -s 's/\([^,]\+\)/"\1"/g')]" >versions.json
+      echo "[$(echo $versions | tr ' ' ', ' | sed -s 's/\([^,]\+\)/"\1"/g')]" > versions.json
       rsync --force -e "ssh -p 2457" versions.json root@$ip:/web/doc/
       rsync --delete --force -r -e "ssh -p 2457" ./doc/build/html/ root@$ip:/web/doc/$version
     fi

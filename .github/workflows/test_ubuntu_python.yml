@@ -92,6 +92,9 @@ jobs:
         UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
       run: |
         branch_name=$(python3 -c "print('$REF_NAME'.split('/')[-1])")
+        if [ ! -d ~/.ssh ]; then
+          mkdir ~/.ssh
+        fi
         printf "%s" "$UBUNTU_UPLOAD_KEY" > ~/.ssh/id_rsa
         source .ci/ubuntu_ci.sh
         upload_docs_to_server $DOC_VERSIONS $branch_name $SERVER_IP
