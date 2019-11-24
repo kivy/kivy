@@ -15,6 +15,7 @@ install_python() {
 }
 
 install_kivy_test_run_pip_deps() {
+  python3 -m pip install --upgrade pip setuptools wheel
   CYTHON_INSTALL=$(
     KIVY_NO_CONSOLELOG=1 python3 -c\
     "from kivy.tools.packaging.cython_cfg import get_cython_versions; print(get_cython_versions()[0])" \
