@@ -1,4 +1,4 @@
-name: Kivy Unittests
+name: Kivy Ubuntu Unittests
 
 on: [push, pull_request]
 

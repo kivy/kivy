@@ -5,7 +5,7 @@ install_kivy_test_run_apt_deps() {
   sudo apt-get update
   sudo apt-get -y install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libsdl2-mixer-dev
   sudo apt-get -y install libgstreamer1.0-dev gstreamer1.0-alsa gstreamer1.0-plugins-base
-  sudo apt-get -y install libsmpeg-dev libswscale-dev libavformat-dev libavcodec-dev libjpeg-dev libtiff5-dev libX11-dev libmtdev-dev
+  sudo apt-get -y install libsmpeg-dev libswscale-dev libavformat-dev libavcodec-dev libjpeg-dev libtiff5-dev libx11-dev libmtdev-dev
   sudo apt-get -y install build-essential libgl1-mesa-dev libgles2-mesa-dev
   sudo apt-get -y install xvfb pulseaudio xsel
 }
