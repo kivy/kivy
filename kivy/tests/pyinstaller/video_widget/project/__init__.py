@@ -22,14 +22,14 @@ class VideoApp(App):
 
     def start_player(self, *args):
         self.player.state = 'play'
-        self.start_t = time.clock()
+        self.start_t = time.perf_counter()
 
     def check_position(self, *args):
         if self.player.position > 0.1:
             self.stop_player()
 
     def stop_player(self, *args):
-        if time.clock() - self.start_t > 10:
+        if time.perf_counter() - self.start_t > 10:
             assert self.player.duration > 0
             assert self.player.position > 0
             self.stop()
