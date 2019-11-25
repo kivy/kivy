@@ -30,7 +30,6 @@ download_cache_aria2() {
 }
 
 install_kivy_test_run_sys_deps() {
-  source ./osx_versions.sh
 
   download_cache_curl "aria2-$ARIAL2-osx-darwin.dmg" "osx-cache" "https://github.com/aria2/aria2/releases/download/release-$ARIAL2"
   hdiutil attach aria2-$ARIAL2-osx-darwin.dmg
@@ -58,8 +57,6 @@ install_kivy_test_run_sys_deps() {
 }
 
 install_platypus() {
-  source ./osx_versions.sh
-
   download_cache_curl "platypus$PLATYPUS.zip" "osx-cache" "http://www.sveinbjorn.org/files/software/platypus"
   unzip platypus$PLATYPUS.zip
   mkdir -p /usr/local/bin
