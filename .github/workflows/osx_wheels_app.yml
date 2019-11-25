@@ -26,15 +26,15 @@ jobs:
         python: [ '3.5', '3.6', '3.7', '3.8' ]
     steps:
     - uses: actions/checkout@v1
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python }}
     - name: Cache OSX deps
       uses: actions/cache@v1
       with:
         path: osx-cache
         key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}
-    - name: Set up Python
-      uses: actions/setup-python@v1
-      with:
-        python-version: ${{ matrix.python }}
     - name: Cache OSX gst-devel deps
       uses: actions/cache@v1
       with:
@@ -90,6 +90,11 @@ jobs:
         with:
           path: osx-cache
           key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}
+      - name: Cache OSX gst-devel deps
+        uses: actions/cache@v1
+        with:
+          path: osx-cache-gst-devel
+          key: gst-devel-${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}-gst-devel
       - name: Install dependencies
         run: |
           source .ci/osx_versions.sh

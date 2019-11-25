@@ -25,6 +25,11 @@ jobs:
       with:
         path: osx-cache
         key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}
+    - name: Cache OSX gst-devel deps
+      uses: actions/cache@v1
+      with:
+        path: osx-cache-gst-devel
+        key: gst-devel-${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}-gst-devel
     - name: Install dependencies
       run: |
         source .ci/osx_versions.sh
