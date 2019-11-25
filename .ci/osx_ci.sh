@@ -28,6 +28,8 @@ download_cache_aria2() {
     fi
     /usr/local/aria2/bin/aria2c -x 10 "$url_prefix/$fname"
     cp "$fname" "$key"
+  else
+    cp "$key/$fname" .
   fi
 }
 
