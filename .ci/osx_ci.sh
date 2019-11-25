@@ -173,7 +173,7 @@ generate_osx_app() {
   app_date=$(python3 -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))")
   git_tag=$(git rev-parse --short HEAD)
 
-  yes | ./create-osx-bundle.sh "$branch_name" "$py_version"
+  ./create-osx-bundle.sh "$branch_name" "$py_version"
   app_ver=$(KIVY_NO_CONSOLELOG=1 Kivy.app/Contents/Resources/script -c 'import kivy; print(kivy.__version__)')
   mv Kivy.app Kivy3.app
   ./create-osx-dmg.sh Kivy3.app
