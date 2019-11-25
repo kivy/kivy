@@ -48,7 +48,7 @@ install_kivy_test_run_sys_deps() {
   hdiutil attach SDL2_mixer-$SDL2_MIXER.dmg
   sudo cp -a /Volumes/SDL2_mixer/SDL2_mixer.framework /Library/Frameworks/
 
-  download_cache_aria2 "gstreamer-1.0-$GSTREAMER-x86_64.pkg" "osx-cache-gst" "https://gstreamer.freedesktop.org/data/pkg/osx/$GSTREAMER"
+  download_cache_aria2 "gstreamer-1.0-$GSTREAMER-x86_64.pkg" "osx-cache" "https://gstreamer.freedesktop.org/data/pkg/osx/$GSTREAMER"
   download_cache_aria2 "gstreamer-1.0-devel-$GSTREAMER-x86_64.pkg" "osx-cache-gst-devel" "https://gstreamer.freedesktop.org/data/pkg/osx/$GSTREAMER"
 
   sudo installer -package gstreamer-1.0-$GSTREAMER-x86_64.pkg -target /
