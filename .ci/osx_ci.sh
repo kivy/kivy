@@ -59,12 +59,16 @@ install_kivy_test_run_sys_deps() {
 
 install_platypus() {
   download_cache_curl "platypus$PLATYPUS.zip" "osx-cache" "http://www.sveinbjorn.org/files/software/platypus"
+
   unzip platypus$PLATYPUS.zip
+  gunzip Platypus.app/Contents/Resources/platypus_clt.gz
+  gunzip Platypus.app/Contents/Resources/ScriptExec.gz
+
   mkdir -p /usr/local/bin
   mkdir -p /usr/local/share/platypus
-  cp Platypus-$PLATYPUS/Platypus.app/Contents/Resources/platypus_clt /usr/local/bin/platypus
-  cp Platypus-$PLATYPUS/Platypus.app/Contents/Resources/ScriptExec /usr/local/share/platypus/ScriptExec
-  cp -a Platypus-$PLATYPUS/Platypus.app/Contents/Resources/MainMenu.nib /usr/local/share/platypus/MainMenu.nib
+  cp Platypus.app/Contents/Resources/platypus_clt /usr/local/bin/platypus
+  cp Platypus.app/Contents/Resources/ScriptExec /usr/local/share/platypus/ScriptExec
+  cp -a Platypus.app/Contents/Resources/MainMenu.nib /usr/local/share/platypus/MainMenu.nib
   chmod -R 755 /usr/local/share/platypus
 }
 
