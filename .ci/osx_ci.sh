@@ -12,6 +12,8 @@ download_cache_curl() {
     fi
     curl -O -L "$url_prefix/$fname"
     cp "$fname" "$key"
+  else
+    cp "$key/$fname" .
   fi
 }
 
