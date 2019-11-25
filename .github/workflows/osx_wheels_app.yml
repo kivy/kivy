@@ -78,7 +78,7 @@ jobs:
 
   osx_app:
     runs-on: macOS-latest
-    if: github.event_name != 'pull_request' && (github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build app osx]'))
+    if: false && github.event_name != 'pull_request' && (github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build app osx]'))
     steps:
       - uses: actions/checkout@v1
       - name: Set up Python
