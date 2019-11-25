@@ -8,6 +8,8 @@ env:
   CC: clang
   CXX: clang
   FFLAGS: '-ff2c'
+  USE_SDL2: 1
+  USE_GSTREAMER: 1
 
 jobs:
   unit_test:
