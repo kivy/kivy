@@ -20,7 +20,7 @@ env:
 jobs:
   osx_wheels:
     runs-on: macos-latest
-    if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel linux]')
+    if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel osx]')
     strategy:
       matrix:
         python: [ '3.5', '3.6', '3.7', '3.8' ]
@@ -40,7 +40,6 @@ jobs:
         source .ci/osx_versions.sh
         source .ci/osx_ci.sh
         install_kivy_test_run_sys_deps
-        install_platypus
         install_kivy_test_run_pip_deps
     - name: Install Kivy
       run: |
@@ -71,6 +70,47 @@ jobs:
       with:
         name: osx_wheels
         path: dist
+
+  osx_app:
+    runs-on: macos-latest
+    if: github.event_name != 'pull_request' && (github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build app osx]'))
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.x
+      - name: Cache OSX deps
+        uses: actions/cache@v1
+        with:
+          path: osx-cache
+          key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}
+      - name: Install dependencies
+        run: |
+          source .ci/osx_versions.sh
+          source .ci/osx_ci.sh
+          install_kivy_test_run_sys_deps
+          install_platypus
+          install_kivy_test_run_pip_deps
+      - name: Install Kivy
+        run: |
+          source .ci/osx_versions.sh
+          source .ci/osx_ci.sh
+          install_kivy
+      - name: Make app
+        run: |
+          py_version=$(python3 -c "import platform; print(platform.python_version())")
+          branch_name=$(python3 -c "print('$REF_NAME'.split('/')[-1])")
+          source .ci/osx_versions.sh
+          source .ci/osx_ci.sh
+          generate_osx_app "$py_version" "$branch_name"
+      - name: Upload app to server
+        env:
+          UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
+        run: |
+          source .ci/osx_versions.sh
+          source .ci/osx_ci.sh
+          upload_osx_app_to_server $SERVER_IP
 
   always_job:
     name: Always run job

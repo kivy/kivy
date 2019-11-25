@@ -156,3 +156,33 @@ upload_osx_wheels_to_server() {
   echo -e "Host $ip\n\tStrictHostKeyChecking no\n" >>~/.ssh/config
   rsync -avh -e "ssh -p 2458" --include="*/" --include="*.whl" --exclude="*" "dist/" "root@$ip:/web/downloads/ci/osx/kivy/"
 }
+
+generate_osx_app() {
+  py_version="$1"
+  branch_name="$2"
+  git clone https://github.com/kivy/kivy-sdk-packager
+  pushd kivy-sdk-packager/osx
+  app_date=$(python3 -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))")
+  git_tag=$(git rev-parse --short HEAD)
+
+  yes | ./create-osx-bundle.sh "$branch_name" "$py_version"
+  app_ver=$(KIVY_NO_CONSOLELOG=1 Kivy.app/Contents/Resources/script -c 'import kivy; print(kivy.__version__)')
+  mv Kivy.app Kivy3.app
+  ./create-osx-dmg.sh Kivy3.app
+  mkdir app
+  cp Kivy3.dmg "app/Kivy-$app_ver-python$py_version.dmg"
+  mv Kivy3.dmg "app/Kivy-$app_ver-$git_tag-$app_date-python$py_version.dmg"
+  popd
+}
+
+upload_osx_app_to_server() {
+  ip=$1
+  if [ ! -d ~/.ssh ]; then
+    mkdir ~/.ssh
+  fi
+  printf "%s" "$UBUNTU_UPLOAD_KEY" > ~/.ssh/id_rsa
+  chmod 600 ~/.ssh/id_rsa
+
+  echo -e "Host $ip\n\tStrictHostKeyChecking no\n" >>~/.ssh/config
+  rsync -avh -e "ssh -p 2458" --include="*/" --include="*.dmg" --exclude="*" "app/" "root@$ip:/web/downloads/ci/osx/app/"
+}
