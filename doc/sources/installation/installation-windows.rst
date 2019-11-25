@@ -102,8 +102,8 @@ kivy release (`1.11.1`) and its dependencies.
 #. Install the dependencies (skip gstreamer (~120MB) if not needed, see
    :ref:`kivy-dependencies`). If you are upgrading Kivy, see :ref:`install-win-dist-upgrade`::
 
-     python -m pip install docutils pygments pypiwin32 kivy_deps.sdl2==0.1.22 kivy_deps.glew==0.1.12
-     python -m pip install kivy_deps.gstreamer==0.1.17
+     python -m pip install docutils pygments pypiwin32 kivy_deps.sdl2==0.1.* kivy_deps.glew==0.1.*
+     python -m pip install kivy_deps.gstreamer==0.1.*
 
    .. note::
 
@@ -113,7 +113,7 @@ kivy release (`1.11.1`) and its dependencies.
    For Python 3.5+, you can also use the angle backend instead of glew. This
    can be installed with::
 
-     python -m pip install kivy_deps.angle==0.1.9
+     python -m pip install kivy_deps.angle==0.1.*
 
    .. warning::
 
