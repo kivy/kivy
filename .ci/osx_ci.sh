@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e -x
 
-source ./osx_versions.sh
+source "$(dirname "$0")/osx_versions.sh"
 
 download_cache_curl() {
   fname="$1"
