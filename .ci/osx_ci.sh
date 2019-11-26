@@ -74,31 +74,6 @@ install_platypus() {
   chmod -R 755 /usr/local/share/platypus
 }
 
-install_kivy_test_run_pip_deps() {
-  curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-  python3 get-pip.py --user
-  python3 -m pip install --upgrade pip setuptools wheel
-  CYTHON_INSTALL=$(
-    KIVY_NO_CONSOLELOG=1 python3 -c \
-    "from kivy.tools.packaging.cython_cfg import get_cython_versions; print(get_cython_versions()[0])" \
-    --config "kivy:log_level:error"
-  )
-  python3 -m pip install -I --user "$CYTHON_INSTALL"
-}
-
-install_kivy() {
-  path="$(pwd)"
-  ln -s "$path" ~/base_kivy
-  cd ~/base_kivy
-  python3 -m pip install -e "$(pwd)[dev,full]"
-  cd "$path"
-}
-
-test_kivy() {
-  rm -rf kivy/tests/build || true
-  KIVY_NO_ARGS=1 python3 -m pytest --cov=kivy --cov-report term --cov-branch "$(pwd)/kivy/tests"
-}
-
 generate_osx_wheels() {
   python3 -m pip install git+http://github.com/tito/osxrelocator
   python3 -m pip install --upgrade delocate
@@ -136,35 +111,6 @@ generate_osx_wheels() {
   delocate-addplat --rm-orig -x 10_9 -x 10_10 dist/*.whl
 }
 
-rename_osx_wheels() {
-  wheel_date=$(python3 -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))")
-  git_tag=$(git rev-parse --short HEAD)
-  tag_name=$(KIVY_NO_CONSOLELOG=1 python3 \
-    -c "import kivy; _, tag, n = kivy.parse_kivy_version(kivy.__version__); print(tag + n) if n is not None else print(tag or 'something')"  \
-    --config "kivy:log_level:error")
-  wheel_name="$tag_name.$wheel_date.$git_tag-"
-
-  for name in dist/*.whl; do
-    new_name="${name/$tag_name-/$wheel_name}"
-    if [ ! -f $new_name ]; then
-      cp -n "$name" "$new_name"
-    fi
-  done
-  ls dist/
-}
-
-upload_osx_wheels_to_server() {
-  ip=$1
-  if [ ! -d ~/.ssh ]; then
-    mkdir ~/.ssh
-  fi
-  printf "%s" "$UBUNTU_UPLOAD_KEY" > ~/.ssh/id_rsa
-  chmod 600 ~/.ssh/id_rsa
-
-  echo -e "Host $ip\n\tStrictHostKeyChecking no\n" >>~/.ssh/config
-  rsync -avh -e "ssh -p 2458" --include="*/" --include="*.whl" --exclude="*" "dist/" "root@$ip:/web/downloads/ci/osx/kivy/"
-}
-
 generate_osx_app() {
   py_version="$1"
   branch_name="$2"
@@ -181,16 +127,4 @@ generate_osx_app() {
   cp Kivy3.dmg "app/Kivy-$app_ver-python$py_version.dmg"
   mv Kivy3.dmg "app/Kivy-$app_ver-$git_tag-$app_date-python$py_version.dmg"
   popd
-}
-
-upload_osx_app_to_server() {
-  ip=$1
-  if [ ! -d ~/.ssh ]; then
-    mkdir ~/.ssh
-  fi
-  printf "%s" "$UBUNTU_UPLOAD_KEY" > ~/.ssh/id_rsa
-  chmod 600 ~/.ssh/id_rsa
-
-  echo -e "Host $ip\n\tStrictHostKeyChecking no\n" >>~/.ssh/config
-  rsync -avh -e "ssh -p 2458" --include="*/" --include="*.dmg" --exclude="*" "app/" "root@$ip:/web/downloads/ci/osx/app/"
 }

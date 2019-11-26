@@ -47,6 +47,7 @@ jobs:
         . .\.ci\windows_ci.ps1
         Generate-windows-wheels
     - name: Fix wheel names
+      if: github.event.ref_type != 'tag'
       run: |
         . .\.ci\windows_ci.ps1
         Rename-windows-wheels
@@ -67,6 +68,12 @@ jobs:
       with:
         name: windows_wheels
         path: dist
+    - name: Publish to PyPI
+      if: github.event_name == 'create' && github.event.ref_type == 'tag'
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_password }}
 
   always_job:
     name: Always run job

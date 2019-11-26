@@ -15,14 +15,16 @@ install_python() {
 }
 
 install_kivy_test_run_pip_deps() {
+  curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+  python3 get-pip.py --user
+
   python3 -m pip install --upgrade pip setuptools wheel
   CYTHON_INSTALL=$(
     KIVY_NO_CONSOLELOG=1 python3 -c \
     "from kivy.tools.packaging.cython_cfg import get_cython_versions; print(get_cython_versions()[0])" \
     --config "kivy:log_level:error"
   )
-  python3 -m pip install -I "$CYTHON_INSTALL"
-  python3 -m pip install --upgrade coveralls
+  python3 -m pip install -I "$CYTHON_INSTALL" coveralls
 }
 
 prepare_env_for_unittest() {
@@ -78,34 +80,47 @@ upload_docs_to_server() {
 
 generate_manylinux2010_wheels() {
   image=$1
-  mkdir wheelhouse
-
-  wheel_date=$(python3 -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))")
-  git_tag=$(git rev-parse --short HEAD)
-  tag_name=$(KIVY_NO_CONSOLELOG=1 python3 \
-    -c "import kivy; _, tag, n = kivy.parse_kivy_version(kivy.__version__); print(tag + n) if n is not None else print(tag or 'something')" \
-    --config "kivy:log_level:error")
-  wheel_name="$tag_name.$wheel_date.$git_tag-"
 
   chmod +x .ci/build-wheels-linux.sh
   docker run --rm -v "$(pwd):/io" "$image" "/io/.ci/build-wheels-linux.sh"
-  ls wheelhouse/
-  for name in wheelhouse/*manylinux*.whl; do
+  rm "dist/*-linux*"
+}
+
+rename_wheels() {
+  wheel_date=$(python3 -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))")
+  echo "wheel_date=$wheel_date"
+  git_tag=$(git rev-parse --short HEAD)
+  echo "git_tag=$git_tag"
+  tag_name=$(KIVY_NO_CONSOLELOG=1 python3 \
+    -c "import kivy; _, tag, n = kivy.parse_kivy_version(kivy.__version__); print(tag + n) if n is not None else print(tag or 'something')" \
+    --config "kivy:log_level:error")
+  echo "tag_name=$tag_name"
+  wheel_name="$tag_name.$wheel_date.$git_tag-"
+  echo "wheel_name=$wheel_name"
+
+  ls dist/
+  for name in dist/*.whl; do
     new_name="${name/$tag_name-/$wheel_name}"
     if [ ! -f "$new_name" ]; then
       cp -n "$name" "$new_name"
     fi
   done
-  ls wheelhouse/
+  ls dist/
 }
 
-upload_manylinux2010_to_server() {
-  ip=$1
+upload_file_to_server() {
+  ip="$1"
+  server_path="$2"
+  file_pat=${1:-*.whl}
+  file_path=${1:-dist}
+
   if [ ! -d ~/.ssh ]; then
     mkdir ~/.ssh
   fi
+
   printf "%s" "$UBUNTU_UPLOAD_KEY" > ~/.ssh/id_rsa
   chmod 600 ~/.ssh/id_rsa
+
   echo -e "Host $ip\n\tStrictHostKeyChecking no\n" >>~/.ssh/config
-  rsync -avh -e "ssh -p 2458" --include="*/" --include="*manylinux*.whl" --exclude="*" "wheelhouse/" "root@$ip:/web/downloads/ci/linux/kivy/"
+  rsync -avh -e "ssh -p 2458" --include="*/" --include="$file_pat" --exclude="*" "$file_path/" "root@$ip:/web/downloads/ci/$server_path"
 }

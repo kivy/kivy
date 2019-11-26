@@ -26,19 +26,30 @@ jobs:
       run: |
         source .ci/ubuntu_ci.sh
         generate_manylinux2010_wheels $DOCKER_IMAGE
+    - name: Rename wheels
+      if: github.event.ref_type != 'tag'
+      run: |
+        source .ci/ubuntu_ci.sh
+        rename_wheels
     - name: Upload wheels to server
       if: github.event_name != 'pull_request'
       env:
         UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
       run: |
         source .ci/ubuntu_ci.sh
-        upload_manylinux2010_to_server $SERVER_IP
+        upload_file_to_server "$SERVER_IP" "linux/kivy/"
     - name: Upload wheels as artifact
       uses: actions/upload-artifact@master
       if: github.event_name == 'pull_request'
       with:
         name: manylinux_wheels
-        path: wheelhouse
+        path: dist
+    - name: Publish to PyPI
+      if: github.event_name == 'create' && github.event.ref_type == 'tag'
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_password }}
 
   always_job:
     name: Always run job
