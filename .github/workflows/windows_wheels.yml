@@ -83,3 +83,7 @@ jobs:
         run: |
           echo "This is run to prevent the workflow from showing an error if the wheels job is not run and no jobs run is an error."
           echo "See https://github.community/t5/GitHub-Actions/Workflow-is-failing-if-no-job-can-be-ran-due-to-condition/m-p/38085"
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
