@@ -687,6 +687,7 @@ class FileChooserController(RelativeLayout):
         self._gitems_gen = self._generate_file_entries(
             path=kwargs.get('path', self.path),
             parent=self._gitems_parent)
+        self.path = abspath(self.path)
 
         # cancel any previous clock if exist
         ev = self._create_files_entries_ev
