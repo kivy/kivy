@@ -83,7 +83,7 @@ generate_manylinux2010_wheels() {
 
   chmod +x .ci/build-wheels-linux.sh
   docker run --rm -v "$(pwd):/io" "$image" "/io/.ci/build-wheels-linux.sh"
-  rm "dist/*-linux*"
+  rm dist/*-linux*
 }
 
 rename_wheels() {
@@ -111,8 +111,8 @@ rename_wheels() {
 upload_file_to_server() {
   ip="$1"
   server_path="$2"
-  file_pat=${1:-*.whl}
-  file_path=${1:-dist}
+  file_pat=${3:-*.whl}
+  file_path=${4:-dist}
 
   if [ ! -d ~/.ssh ]; then
     mkdir ~/.ssh
