@@ -83,7 +83,7 @@ generate_manylinux2010_wheels() {
 
   chmod +x .ci/build-wheels-linux.sh
   docker run --rm -v "$(pwd):/io" "$image" "/io/.ci/build-wheels-linux.sh"
-  rm dist/*-linux*
+  sudo rm dist/*-linux*
 }
 
 rename_wheels() {
