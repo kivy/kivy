@@ -85,9 +85,9 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      draft: true
       with:
         files: dist/*
+        draft: true
 
   osx_app:
     runs-on: macOS-latest
@@ -140,9 +140,9 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        draft: true
         with:
           files: app/*
+          draft: true
 
   always_job:
     name: Always run job
