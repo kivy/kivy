@@ -20,7 +20,7 @@ env:
 jobs:
   osx_wheels:
     runs-on: macOS-latest
-    if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel osx]')
+    if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel osx]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel osx]')
     strategy:
       matrix:
         python: [ '3.5', '3.6', '3.7', '3.8' ]
@@ -80,10 +80,18 @@ jobs:
       with:
         user: __token__
         password: ${{ secrets.pypi_password }}
+    - name: Upload to GitHub Release
+      uses: softprops/action-gh-release@37ae17599254696dc8d2bc0f36c8e490a64b1c2b
+      if: startsWith(github.ref, 'refs/tags/')
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      draft: true
+      with:
+        files: dist/*
 
   osx_app:
     runs-on: macOS-latest
-    if: false && github.event_name != 'pull_request' && (github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build app osx]'))
+    if: false && github.event_name != 'pull_request' && (github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build app osx]')) || contains(github.event.pull_request.title, '[build app osx]')
     steps:
       - uses: actions/checkout@v1
       - name: Set up Python
@@ -127,6 +135,14 @@ jobs:
         run: |
           source .ci/ubuntu_ci.sh
           upload_file_to_server "$SERVER_IP" "osx/app/" "*.dmg" "app"
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@37ae17599254696dc8d2bc0f36c8e490a64b1c2b
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        draft: true
+        with:
+          files: app/*
 
   always_job:
     name: Always run job
