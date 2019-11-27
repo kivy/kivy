@@ -81,6 +81,7 @@ upload_docs_to_server() {
 generate_manylinux2010_wheels() {
   image=$1
 
+  mkdir dist
   chmod +x .ci/build-wheels-linux.sh
   docker run --rm -v "$(pwd):/io" "$image" "/io/.ci/build-wheels-linux.sh"
   sudo rm dist/*-linux*
