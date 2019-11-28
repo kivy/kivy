@@ -209,8 +209,10 @@ win_glew_version = '0.1.*'
 def win_dep(package, dev=False):
     version = globals()['win_{}_version'.format(package)]
     if dev:
-        return 'kivy_deps.{}_dev=={}'.format(package, version)
-    return 'kivy_deps.{}=={}'.format(package, version)
+        return 'kivy_deps.{}_dev=={}; sys_platform == "win32"'.\
+            format(package, version)
+    return 'kivy_deps.{}=={}; sys_platform == "win32"'.\
+        format(package, version)
 
 
 # -----------------------------------------------------------------------------
@@ -1124,21 +1126,20 @@ if not build_examples:
         setup_requires=setup_requires,
         extras_require={
             'tuio': ['oscpy'],
-            'base': base_deps,
-            'full': full_deps,
             'dev': ['pytest>=3.6', 'pytest-cov', 'pytest_asyncio',
                     'pyinstaller', 'sphinx', 'sphinxcontrib-blockdiag',
                     'sphinxcontrib-seqdiag', 'sphinxcontrib-actdiag',
                     'sphinxcontrib-nwdiag'],
-            'win_base': [win_dep('sdl2'), win_dep('glew'), win_dep('angle'),
-                         'pypiwin32'] + base_deps,
-            'win_full': [win_dep('sdl2'), win_dep('glew'), win_dep('angle'),
-                         win_dep('gstreamer'), 'pypiwin32'] + full_deps,
-            'win_base_src': [win_dep('sdl2', dev=True),
-                             win_dep('glew', dev=True)] + base_deps,
-            'win_full_src': [win_dep('sdl2', dev=True),
+            'base': [win_dep('sdl2'), win_dep('glew'), win_dep('angle'),
+                     'pypiwin32; sys_platform == "win32"'] + base_deps,
+            'full': [win_dep('sdl2'), win_dep('glew'), win_dep('angle'),
+                     win_dep('gstreamer'),
+                     'pypiwin32; sys_platform == "win32"'] + full_deps,
+            'base_src': [win_dep('sdl2', dev=True),
+                             win_dep('glew', dev=True)],
+            'full_src': [win_dep('sdl2', dev=True),
                              win_dep('glew', dev=True),
-                             win_dep('gstreamer', dev=True)] + full_deps
+                             win_dep('gstreamer', dev=True)]
         })
 else:
     setup(
