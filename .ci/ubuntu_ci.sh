@@ -36,7 +36,7 @@ install_kivy() {
   path="$(pwd)"
   ln -s "$path" ~/base_kivy
   cd ~/base_kivy
-  python3 -m pip install -e "$(pwd)[dev,full]"
+  python3 -m pip install -e "$(pwd)[dev,full,full_src]"
   cd "$path"
 }
 
