@@ -200,6 +200,21 @@ if platform in ('ios', 'android'):
 else:
     declare_cython = True
 
+win_gstreamer_version = '0.1.*'
+win_sdl2_version = '0.1.*'
+win_angle_version = '0.1.*'
+win_glew_version = '0.1.*'
+
+
+def win_dep(package, dev=False):
+    version = globals()['win_{}_version'.format(package)]
+    if dev:
+        return 'kivy_deps.{}_dev=={}; sys_platform == "win32"'.\
+            format(package, version)
+    return 'kivy_deps.{}=={}; sys_platform == "win32"'.\
+        format(package, version)
+
+
 # -----------------------------------------------------------------------------
 # Setup classes
 
@@ -1036,6 +1051,8 @@ def glob_paths(*patterns, excludes=('.pyc', )):
 # -----------------------------------------------------------------------------
 # setup !
 if not build_examples:
+    base_deps = ['pillow']
+    full_deps = ['pillow']
     install_requires = [
         'Kivy-Garden>=0.1.4', 'docutils', 'pygments'
     ]
@@ -1060,6 +1077,7 @@ if not build_examples:
         package_dir={'kivy': 'kivy'},
         package_data={
             'kivy':
+                glob_paths('*.pxd', '*.pxi') +
                 glob_paths('**/*.pxd', '**/*.pxi') +
                 glob_paths('data/**/*.*') +
                 glob_paths('include/**/*.*') +
@@ -1107,7 +1125,21 @@ if not build_examples:
         install_requires=install_requires,
         setup_requires=setup_requires,
         extras_require={
-            'tuio': ['oscpy']
+            'tuio': ['oscpy'],
+            'dev': ['pytest>=3.6', 'pytest-cov', 'pytest_asyncio',
+                    'pyinstaller', 'sphinx', 'sphinxcontrib-blockdiag',
+                    'sphinxcontrib-seqdiag', 'sphinxcontrib-actdiag',
+                    'sphinxcontrib-nwdiag'],
+            'base': [win_dep('sdl2'), win_dep('glew'), win_dep('angle'),
+                     'pypiwin32; sys_platform == "win32"'] + base_deps,
+            'full': [win_dep('sdl2'), win_dep('glew'), win_dep('angle'),
+                     win_dep('gstreamer'),
+                     'pypiwin32; sys_platform == "win32"'] + full_deps,
+            'base_src': [win_dep('sdl2', dev=True),
+                             win_dep('glew', dev=True)],
+            'full_src': [win_dep('sdl2', dev=True),
+                             win_dep('glew', dev=True),
+                             win_dep('gstreamer', dev=True)]
         })
 else:
     setup(

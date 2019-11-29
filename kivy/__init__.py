@@ -268,15 +268,18 @@ kivy_config_fn = ''
 kivy_usermodules_dir = ''
 
 # if there are deps, import them so they can do their magic.
-import kivy.deps
 _packages = []
-for importer, modname, ispkg in pkgutil.iter_modules(kivy.deps.__path__):
-    if not ispkg:
-        continue
-    if modname.startswith('gst'):
-        _packages.insert(0, (importer, modname, 'kivy.deps'))
-    else:
-        _packages.append((importer, modname, 'kivy.deps'))
+try:
+    from kivy import deps as old_deps
+    for importer, modname, ispkg in pkgutil.iter_modules(old_deps.__path__):
+        if not ispkg:
+            continue
+        if modname.startswith('gst'):
+            _packages.insert(0, (importer, modname, 'kivy.deps'))
+        else:
+            _packages.append((importer, modname, 'kivy.deps'))
+except ImportError:
+    pass
 
 try:
     import kivy_deps
