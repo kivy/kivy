@@ -656,8 +656,11 @@ else:
             fd = open(input_fn, 'rb')
 
             # get the controler name (EVIOCGNAME)
-            device_name = fcntl.ioctl(fd, EVIOCGNAME + (256 << 16),
-                                      " " * 256).decode().strip()
+            try:
+                device_name = fcntl.ioctl(fd, EVIOCGNAME + (256 << 16),
+                                        " " * 256).decode().strip()
+            except:
+                device_name = "unknown device"
             Logger.info('HIDMotionEvent: using <%s>' % device_name)
 
             # get abs infos
