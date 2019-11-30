@@ -49,6 +49,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         test_kivy
     - name: Coveralls upload
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
       env:
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
       run: |
