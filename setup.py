@@ -1056,7 +1056,10 @@ if not build_examples:
     install_requires = [
         'Kivy-Garden>=0.1.4', 'docutils', 'pygments'
     ]
-    setup_requires = []
+    setup_requires = [
+        win_dep('sdl2', dev=True), win_dep('glew', dev=True),
+        win_dep('gstreamer', dev=True)
+    ]
     if declare_cython:
         setup_requires.append(CYTHON_REQUIRES_STRING)
     setup(
@@ -1135,11 +1138,6 @@ if not build_examples:
             'full': [win_dep('sdl2'), win_dep('glew'), win_dep('angle'),
                      win_dep('gstreamer'),
                      'pypiwin32; sys_platform == "win32"'] + full_deps,
-            'base_src': [win_dep('sdl2', dev=True),
-                             win_dep('glew', dev=True)],
-            'full_src': [win_dep('sdl2', dev=True),
-                             win_dep('glew', dev=True),
-                             win_dep('gstreamer', dev=True)]
         })
 else:
     setup(
