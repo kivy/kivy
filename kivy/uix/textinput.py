@@ -16,7 +16,7 @@ are supported.
 The :class:`TextInput` uses two different coordinate systems:
 
 * (x, y) - coordinates in pixels, mostly used for rendering on screen.
-* (row, col) - cursor index in characters / lines, used for selection
+* (col, row) - cursor index in characters / lines, used for selection
   and cursor movement.
 
 
@@ -621,7 +621,7 @@ class TextInput(FocusBehavior, Widget):
         return offset
 
     def get_cursor_from_index(self, index):
-        '''Return the (row, col) of the cursor from text index.
+        '''Return the (col, row) of the cursor from text index.
         '''
         index = boundary(index, 0, len(self.text))
         if index <= 0:
@@ -1199,7 +1199,7 @@ class TextInput(FocusBehavior, Widget):
             self.cursor = (col, row)
 
     def get_cursor_from_xy(self, x, y):
-        '''Return the (row, col) of the cursor from an (x, y) position.
+        '''Return the (col, row) of the cursor from an (x, y) position.
         '''
         padding_left = self.padding[0]
         padding_top = self.padding[1]
@@ -2741,8 +2741,8 @@ class TextInput(FocusBehavior, Widget):
         return True
 
     cursor = AliasProperty(_get_cursor, _set_cursor)
-    '''Tuple of (row, col) values indicating the current cursor position.
-    You can set a new (row, col) if you want to move the cursor. The scrolling
+    '''Tuple of (col, row) values indicating the current cursor position.
+    You can set a new (col, row) if you want to move the cursor. The scrolling
     area will be automatically updated to ensure that the cursor is
     visible inside the viewport.
 
