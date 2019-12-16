@@ -9,7 +9,6 @@ from kivy.core.audio import Sound, SoundLoader
 
 
 MediaPlayer = autoclass("android.media.MediaPlayer")
-FileInputStream = autoclass("java.io.FileInputStream")
 AudioManager = autoclass("android.media.AudioManager")
 
 
@@ -26,12 +25,13 @@ class SoundAndroidPlayer(Sound):
         self.unload()
         self._mediaplayer = MediaPlayer()
         self._mediaplayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        self._mediaplayer.setDataSource(self.filename)
+        self._mediaplayer.setDataSource(self.source)
         self._mediaplayer.prepare()
 
     def unload(self):
-        self.stop()
-        self._mediaplayer = None
+        if self._mediaplayer:
+            self._mediaplayer.reset()
+            self._mediaplayer = None
 
     def play(self):
         if not self._mediaplayer:
@@ -42,12 +42,13 @@ class SoundAndroidPlayer(Sound):
     def stop(self):
         if not self._mediaplayer:
             return
-        self._mediaplayer.reset()
+        self._mediaplayer.stop()
+        self._mediaplayer.prepare()
 
     def seek(self, position):
         if not self._mediaplayer:
             return
-        self._mediaplayer.seek(float(position))
+        self._mediaplayer.seekTo(float(position) * 1000)
 
     def get_pos(self):
         if self._mediaplayer:
