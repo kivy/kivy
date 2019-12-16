@@ -15,7 +15,8 @@ AudioManager = autoclass("android.media.AudioManager")
 class SoundAndroidPlayer(Sound):
     @staticmethod
     def extensions():
-        return ("mp3", "mp4", "aac", "3gp", "flac", "mkv", "wav", "ogg", "m4a")
+        return ("mp3", "mp4", "aac", "3gp", "flac", "mkv", "wav", "ogg", "m4a",
+                "gsm", "mid", "xmf", "mxmf", "rtttl", "rtx", "ota", "imy")
 
     def __init__(self, **kwargs):
         self._mediaplayer = None
