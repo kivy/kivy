@@ -30,7 +30,7 @@ class SoundAndroidPlayer(Sound):
 
     def unload(self):
         if self._mediaplayer:
-            self._mediaplayer.reset()
+            self._mediaplayer.release()
             self._mediaplayer = None
 
     def play(self):
