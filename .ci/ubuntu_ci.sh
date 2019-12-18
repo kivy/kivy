@@ -87,6 +87,15 @@ generate_manylinux2010_wheels() {
   sudo rm dist/*-linux*
 }
 
+generate_armv7l_wheels() {
+  image=$1
+
+  mkdir dist
+  docker build -f .ci/Dockerfile.armv7l -t kivy/kivy-armv7l --build-arg image="$image" .
+  docker cp "$(docker create kivy/kivy-armv7l)":/kivy-wheel .
+  cp kivy-wheel/Kivy-* dist/
+}
+
 rename_wheels() {
   wheel_date=$(python3 -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))")
   echo "wheel_date=$wheel_date"
