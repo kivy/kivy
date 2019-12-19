@@ -298,22 +298,20 @@ class DropDown(ScrollView):
 
     def on_touch_down(self, touch):
         self._touch_started_inside = self.collide_point(*touch.pos)
-        super(DropDown, self).on_touch_down(touch)
+        if not self.auto_dismiss or self._touch_started_inside:
+            super(DropDown, self).on_touch_down(touch)
         return True
 
     def on_touch_move(self, touch):
-        super(DropDown, self).on_touch_move(touch)
+        if not self.auto_dismiss or self._touch_started_inside:
+            super(DropDown, self).on_touch_move(touch)
         return True
 
     def on_touch_up(self, touch):
-        if super(DropDown, self).on_touch_up(touch):
-            return True
-        if 'button' in touch.profile and touch.button.startswith('scroll'):
-            return True
-        if self.collide_point(*touch.pos):
-            return True
         if self.auto_dismiss and not self._touch_started_inside:
             self.dismiss()
+            return True
+        super(DropDown, self).on_touch_up(touch)
         return True
 
     def _reposition(self, *largs):

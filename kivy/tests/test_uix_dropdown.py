@@ -56,27 +56,35 @@ async def test_dropdown_app(kivy_app):
     async for _ in kivy_app.do_touch_drag(widget=button, dx=button.width / 4):
         pass
 
+    # open dropdown
     dropdown.open(kivy_app.attach_widget)
     dropdown.pos = 0, 0
     await kivy_app.wait_clock_frames(2)
     assert dropdown.attach_to is not None
 
-    # press within dropdown area
+    # press within dropdown area - should stay open
     async for _ in kivy_app.do_touch_down_up(widget=button):
         pass
     assert dropdown.attach_to is not None
-    # start in dropdown but release outside
+    # start in dropdown but release outside - should stay open
     async for _ in kivy_app.do_touch_drag(widget=button, dx=button.width / 4):
         pass
     assert dropdown.attach_to is not None
-    # start outside but release in dropdown
+
+    # start outside but release in dropdown - should close
     async for _ in kivy_app.do_touch_drag(
             pos=(button.center_x + button.width / 4, button.center_y),
             target_widget=button):
         pass
+    assert dropdown.attach_to is None
+
+    # open dropdown again
+    dropdown.open(kivy_app.attach_widget)
+    dropdown.pos = 0, 0
+    await kivy_app.wait_clock_frames(2)
     assert dropdown.attach_to is not None
 
-    # press outside dropdown area to close it
+    # press outside dropdown area to close it - should close
     async for _ in kivy_app.do_touch_down_up(
             pos=(button.center_x + button.width / 4, button.center_y)):
         pass

@@ -47,28 +47,35 @@ async def test_modal_app(kivy_app):
     async for _ in kivy_app.do_touch_drag(widget=button, dx=button.width / 4):
         pass
 
+    # open modal
     modal.open()
     await kivy_app.wait_clock_frames(2)
     assert modal._window is not None
     assert isclose(modal.center_x, button.center_x, abs_tol=.1)
     assert isclose(modal.center_y, button.center_y, abs_tol=.1)
 
-    # press within modal area
+    # press within modal area - should stay open
     async for _ in kivy_app.do_touch_down_up(widget=button):
         pass
     assert modal._window is not None
-    # start in modal but release outside
+    # start in modal but release outside - should stay open
     async for _ in kivy_app.do_touch_drag(widget=button, dx=button.width / 4):
         pass
     assert modal._window is not None
-    # start outside but release in modal
+
+    # start outside but release in modal - should close
     async for _ in kivy_app.do_touch_drag(
             pos=(button.center_x + button.width / 4, button.center_y),
             target_widget=button):
         pass
+    assert modal._window is None
+
+    # open modal again
+    modal.open()
+    await kivy_app.wait_clock_frames(2)
     assert modal._window is not None
 
-    # press outside modal area to close it
+    # press outside modal area - should close
     async for _ in kivy_app.do_touch_down_up(
             pos=(button.center_x + button.width / 4, button.center_y)):
         pass
