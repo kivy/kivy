@@ -62,7 +62,7 @@ function Install-kivy {
     $old=(pwd).Path
     cmd /c mklink /d "$HOME\kivy" "$old"
     cd "$HOME\kivy"
-    python -m pip install -e .[dev,full,full_src]
+    python -m pip install -e .[dev,full]
     cd "$old"
 }
 

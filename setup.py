@@ -113,6 +113,21 @@ def pkgconfig(*packages, **kw):
     return kw
 
 
+def get_isolated_env_paths():
+    try:
+        # sdl2_dev is installed before setup.py is run, when installing from
+        # source due to pyproject.toml. However, it is installed to a
+        # pip isolated env, which we need to add to compiler
+        import kivy_deps.sdl2_dev as sdl2_dev
+    except ImportError:
+        return [], []
+
+    root = os.path.abspath(join(sdl2_dev.__path__[0], '../../../..'))
+    includes = [join(root, 'Include')] if isdir(join(root, 'Include')) else []
+    libs = [join(root, 'libs')] if isdir(join(root, 'libs')) else []
+    return includes, libs
+
+
 # -----------------------------------------------------------------------------
 # Determine on which platform we are
 
@@ -241,36 +256,18 @@ use_embed_signature = use_embed_signature or bool(
 # -----------------------------------------------------------------------------
 # We want to be able to install kivy as a wheel without a dependency
 # on cython, but we also want to use cython where possible as a setup
-# time dependency through `setup_requires` if building from source.
+# time dependency through `pyproject.toml` if building from source.
 
 # There are issues with using cython at all on some platforms;
 # exclude them from using or declaring cython.
 
 # This determines whether Cython specific functionality may be used.
 can_use_cython = True
-# This sets whether or not Cython gets added to setup_requires.
-declare_cython = False
 
 if platform in ('ios', 'android'):
     # NEVER use or declare cython on these platforms
     print('Not using cython on %s' % platform)
     can_use_cython = False
-else:
-    declare_cython = True
-
-win_gstreamer_version = '0.1.*'
-win_sdl2_version = '0.1.*'
-win_angle_version = '0.1.*'
-win_glew_version = '0.1.*'
-
-
-def win_dep(package, dev=False):
-    version = globals()['win_{}_version'.format(package)]
-    if dev:
-        return 'kivy_deps.{}_dev=={}; sys_platform == "win32"'.\
-            format(package, version)
-    return 'kivy_deps.{}=={}; sys_platform == "win32"'.\
-        format(package, version)
 
 
 # -----------------------------------------------------------------------------
@@ -522,12 +519,17 @@ if platform not in ('ios', 'android') and (c_options['use_gstreamer']
             print('GStreamer found via pkg-config')
             gstreamer_valid = True
             c_options['use_gstreamer'] = True
-        elif exists(join(get_paths()['include'], 'gst', 'gst.h')):
-            print('GStreamer found via gst.h')
-            gstreamer_valid = True
-            c_options['use_gstreamer'] = True
-            gst_flags = {
-                'libraries': ['gstreamer-1.0', 'glib-2.0', 'gobject-2.0']}
+        else:
+            _includes = get_isolated_env_paths()[0] + [get_paths()['include']]
+            for include_dir in _includes:
+                if exists(join(include_dir, 'gst', 'gst.h')):
+                    print('GStreamer found via gst.h')
+                    gstreamer_valid = True
+                    c_options['use_gstreamer'] = True
+                    gst_flags = {
+                        'libraries':
+                            ['gstreamer-1.0', 'glib-2.0', 'gobject-2.0']}
+                    break
 
     if not gstreamer_valid:
         # use pkg-config approach instead
@@ -633,10 +635,12 @@ def merge(d1, *args):
 
 
 def determine_base_flags():
+    includes, libs = get_isolated_env_paths()
+
     flags = {
         'libraries': [],
-        'include_dirs': [join(src_path, 'kivy', 'include')],
-        'library_dirs': [],
+        'include_dirs': [join(src_path, 'kivy', 'include')] + includes,
+        'library_dirs': [] + libs,
         'extra_link_args': [],
         'extra_compile_args': []}
     if c_options['use_ios']:
@@ -757,6 +761,8 @@ def determine_sdl2():
     if sdl2_flags and not sdl2_path and platform == 'darwin':
         return sdl2_flags
 
+    includes, _ = get_isolated_env_paths()
+
     # no pkgconfig info, or we want to use a specific sdl2 path, so perform
     # manual configuration
     flags['libraries'] = ['SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer']
@@ -764,9 +770,11 @@ def determine_sdl2():
     sdl2_paths = sdl2_path.split(split_chr) if sdl2_path else []
 
     if not sdl2_paths:
-        sdl_inc = join(sys.prefix, 'include', 'SDL2')
-        if isdir(sdl_inc):
-            sdl2_paths = [sdl_inc]
+        sdl2_paths = []
+        for include in includes + [join(sys.prefix, 'include')]:
+            sdl_inc = join(include, 'SDL2')
+            if isdir(sdl_inc):
+                sdl2_paths.append(sdl_inc)
         sdl2_paths.extend(['/usr/local/include/SDL2', '/usr/include/SDL2'])
 
     flags['include_dirs'] = sdl2_paths
@@ -1109,14 +1117,6 @@ def glob_paths(*patterns, excludes=('.pyc', )):
 # -----------------------------------------------------------------------------
 # setup !
 if not build_examples:
-    base_deps = ['pillow']
-    full_deps = ['pillow']
-    install_requires = [
-        'Kivy-Garden>=0.1.4', 'docutils', 'pygments'
-    ]
-    setup_requires = []
-    if declare_cython:
-        setup_requires.append(CYTHON_REQUIRES_STRING)
     setup(
         name='Kivy',
         version=get_version(),
@@ -1177,28 +1177,7 @@ if not build_examples:
             'Topic :: Scientific/Engineering :: Visualization',
             ('Topic :: Software Development :: Libraries :: '
              'Application Frameworks'),
-            'Topic :: Software Development :: User Interfaces'],
-        dependency_links=[
-            'https://github.com/kivy-garden/garden/archive/master.zip'],
-        install_requires=install_requires,
-        setup_requires=setup_requires,
-        extras_require={
-            'tuio': ['oscpy'],
-            'dev': ['pytest>=3.6', 'pytest-cov', 'pytest_asyncio',
-                    'pyinstaller', 'sphinx', 'sphinxcontrib-blockdiag',
-                    'sphinxcontrib-seqdiag', 'sphinxcontrib-actdiag',
-                    'sphinxcontrib-nwdiag'],
-            'base': [win_dep('sdl2'), win_dep('glew'), win_dep('angle'),
-                     'pypiwin32; sys_platform == "win32"'] + base_deps,
-            'full': [win_dep('sdl2'), win_dep('glew'), win_dep('angle'),
-                     win_dep('gstreamer'),
-                     'pypiwin32; sys_platform == "win32"'] + full_deps,
-            'base_src': [win_dep('sdl2', dev=True),
-                             win_dep('glew', dev=True)],
-            'full_src': [win_dep('sdl2', dev=True),
-                             win_dep('glew', dev=True),
-                             win_dep('gstreamer', dev=True)]
-        })
+            'Topic :: Software Development :: User Interfaces'])
 else:
     setup(
         name='Kivy-examples',
