@@ -3,12 +3,12 @@
 Installation on Raspberry Pi
 ============================
 
-Raspberry Pi 4 manual installation (On Raspbian Buster)
+Raspberry Pi 4 headless installation on Raspbian Buster
 ------------------------------------------------
 
-#. If you have installed Raspbian with a desktop, then you can skip to `Kivy dependencies`_.
+#. If you have installed Raspbian with a desktop i.e. if you Raspberry Pi boot into a desktop environment, then you can skip to `Raspberry Pi 1-4 installation`_.
 
-   If you are using a the Raspbian Lite, then you first need to install X::
+   If you are using Raspbian Lite, then you first need to install X::
 
     sudo apt-get install xserver-xorg
 
@@ -77,21 +77,10 @@ Raspberry Pi 4 manual installation (On Raspbian Buster)
     echo 'export DISPLAY=:0.0' >> ~/.xsession
     echo "python3 ~/app.py" >> ~/.xsession
 
-#. For installing the _`Kivy dependencies` refer to step 1-2 in the `Raspberry Pi 1-3 manual installation`_ instructions below.
+#. Now simply follow the `Raspberry Pi 1-4 installation`_ instructions to install Kivy.
 
-#. Kivy can be installed either from source or from a precompiled wheel. Refer to step 3 in the `Raspberry Pi 1-3 manual installation`_ instructions below for installing Kivy from source.
-
-   The precompiled wheel can be downloaded from the latest `release <https://github.com/kivy/kivy/releases>`_ or downloaded from the latest `CI build <https://github.com/kivy/kivy/actions?query=workflow%3A%22armv7l+wheels%22>`_ by clicking on a completed "armv7l wheels/armv7l" build and then click on "Artifacts" in the top right corner.
-
-   The wheel can be installed as follows::
-
-    python3 -m pip install --upgrade --user wheel
-    python3 -m pip install --user *armv7l.whl
-
-_`Raspberry Pi 1-3 manual installation` (On Raspbian Jessie/Stretch/Buster)
+_`Raspberry Pi 1-4 installation` on Raspbian Jessie/Stretch/Buster
 ------------------------------------------------
-
-In the following instructions, for Python 2, replace `python3` with `python`.
 
 #. Install the dependencies::
 
@@ -136,6 +125,13 @@ In the following instructions, for Python 2, replace `python3` with `python`.
     # or to recompile all files
     make force
 
+   Or on a Raspberry Pi 4 it is possible to use a precompiled wheel. The precompiled wheel can be downloaded from the latest `release <https://github.com/kivy/kivy/releases>`_. A wheel is also automatically build daily and can be downloaded here: `<https://kivy.org/downloads/ci/armv7l/kivy/>`_.
+
+   The wheel can be installed as follows::
+
+    python3 -m pip install --upgrade --user wheel
+    python3 -m pip install --user *armv7l.whl
+
 .. note::
 
     On versions of kivy prior to 1.10.1, Mesa library naming changes can result
@@ -143,7 +139,7 @@ In the following instructions, for Python 2, replace `python3` with `python`.
     this issue, please upgrade or consult `ticket #5360.
     <https://github.com/kivy/kivy/issues/5360>`_
 
-Manual installation (On Raspbian Wheezy)
+Installation on Raspbian Wheezy
 ----------------------------------------
 
 #. Add APT sources for Gstreamer 1.0 in `/etc/apt/sources.list`::
@@ -188,7 +184,7 @@ Manual installation (On Raspbian Wheezy)
     echo "export PYTHONPATH=$(pwd):\$PYTHONPATH" >> ~/.profile
     source ~/.profile
 
-Manual installation (On Arch Linux ARM)
+Installation on Arch Linux ARM
 ------------------------------------------------
 
 #. Install the dependencies::
