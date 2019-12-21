@@ -29,6 +29,7 @@ by many projects managed by the [Kivy Organization](https://kivy.org/#organizati
 [![OSX Unittests Status](https://github.com/kivy/kivy/workflows/OSX%20Unittests/badge.svg)](https://github.com/kivy/kivy/actions?query=workflow%3A%22OSX+Unittests%22)
 [![Windows wheels Status](https://github.com/kivy/kivy/workflows/Windows%20wheels/badge.svg)](https://github.com/kivy/kivy/actions?query=workflow%3A%22Windows+wheels%22)
 [![Manylinux wheels Status](https://github.com/kivy/kivy/workflows/Manylinux%20wheels/badge.svg)](https://github.com/kivy/kivy/actions?query=workflow%3A%22Manylinux+wheels%22)
+[![Raspberry Pi wheels Status](https://github.com/kivy/kivy/workflows/RPi%20wheels/badge.svg)](https://github.com/kivy/kivy/actions?query=workflow%3A%22RPi+wheels%22)
 [![OSX wheels Status](https://github.com/kivy/kivy/workflows/OSX%20wheels%2Fapp/badge.svg)](https://github.com/kivy/kivy/actions?query=workflow%3A%22OSX+wheels%2Fapp%22)
 
 Installation, Documentation and Examples

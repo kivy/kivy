@@ -1,0 +1,19 @@
+ARG image=balenalib/armv7hf-debian:buster
+FROM $image
+
+COPY . /kivy
+WORKDIR /kivy
+
+RUN [ "cross-build-start" ]
+
+# Install dependencies.
+RUN /bin/bash -c 'source .ci/ubuntu_ci.sh && \
+    export PIP_EXTRA_INDEX_URL="https://www.piwheels.org/simple" && \
+    install_kivy_test_run_apt_deps && \
+    install_python && \
+    install_kivy_test_run_pip_deps'
+
+# Build the wheel.
+RUN KIVY_SPLIT_EXAMPLES=1 VIDEOCOREMESA=1 python3 -m pip -v wheel --extra-index-url https://www.piwheels.org/simple . -w /kivy-wheel
+
+RUN [ "cross-build-end" ]
