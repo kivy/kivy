@@ -125,7 +125,7 @@ _`Raspberry Pi 1-4 installation` on Raspbian Jessie/Stretch/Buster
     # or to recompile all files
     make force
 
-   Or on a Raspberry Pi 4 it is possible to use a precompiled wheel. The precompiled wheel can be downloaded from the latest `release <https://github.com/kivy/kivy/releases>`_. A wheel is also automatically build daily and can be downloaded here: `<https://kivy.org/downloads/ci/armv7l/kivy/>`_.
+   Or on a Raspberry Pi 4 it is possible to use a precompiled wheel. The precompiled wheel can be downloaded from the latest `release <https://github.com/kivy/kivy/releases>`_. A wheel is also automatically build daily and can be downloaded here: `<https://kivy.org/downloads/ci/raspberrypi/kivy>`_.
 
    The wheel can be installed as follows::
 

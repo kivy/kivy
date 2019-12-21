@@ -1,4 +1,4 @@
-name: armv7l wheels
+name: RPi wheels
 
 on:
   push:
@@ -11,7 +11,7 @@ env:
   SERVER_IP: '159.203.106.198'
 
 jobs:
-  armv7l:
+  raspberrypi:
     runs-on: ubuntu-18.04
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel armv7l]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel armv7l]')
     strategy:
@@ -34,7 +34,7 @@ jobs:
         UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
       run: |
         source .ci/ubuntu_ci.sh
-        upload_file_to_server "$SERVER_IP" "armv7l/kivy/"
+        upload_file_to_server "$SERVER_IP" "raspberrypi/kivy/"
     - name: Upload wheels as artifact
       uses: actions/upload-artifact@master
       if: github.event_name == 'pull_request'
