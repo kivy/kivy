@@ -3,9 +3,6 @@
 Installation on Raspberry Pi
 ============================
 
-You can install Kivy manually (recommended), or you can download and boot KivyPie on the
-Raspberry Pi. Both options are described below.
-
 Raspberry Pi 4 manual installation (On Raspbian Buster)
 ------------------------------------------------
 
@@ -234,16 +231,6 @@ Images to use::
     in "Unable to find any valuable Window provider" errors. If you experience
     this issue, please upgrade or consult `ticket #5360.
     <https://github.com/kivy/kivy/issues/5360>`_
-
-KivyPie distribution
---------------------
-
-KivyPie is a compact and lightweight Raspbian based distribution that comes
-with Kivy installed and ready to run. It is the result of applying the manual
-installation steps described above, with a few more extra tools. You can
-download the image from http://kivypie.mitako.eu/kivy-download.html and boot
-it on a Raspberry PI.
-
 
 Running the demo
 ----------------
