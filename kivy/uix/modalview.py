@@ -177,6 +177,8 @@ class ModalView(AnchorLayout):
 
     _window = ObjectProperty(None, allownone=True, rebind=True)
 
+    _touch_started_inside = None
+
     __events__ = ('on_pre_open', 'on_open', 'on_pre_dismiss', 'on_dismiss')
 
     def __init__(self, **kwargs):
@@ -263,18 +265,20 @@ class ModalView(AnchorLayout):
             self.center = self._window.center
 
     def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):
-            if self.auto_dismiss:
-                self.dismiss()
-                return True
-        super(ModalView, self).on_touch_down(touch)
+        self._touch_started_inside = self.collide_point(*touch.pos)
+        if not self.auto_dismiss or self._touch_started_inside:
+            super(ModalView, self).on_touch_down(touch)
         return True
 
     def on_touch_move(self, touch):
-        super(ModalView, self).on_touch_move(touch)
+        if not self.auto_dismiss or self._touch_started_inside:
+            super(ModalView, self).on_touch_move(touch)
         return True
 
     def on_touch_up(self, touch):
+        if self.auto_dismiss and not self._touch_started_inside:
+            self.dismiss()
+            return True
         super(ModalView, self).on_touch_up(touch)
         return True
 
