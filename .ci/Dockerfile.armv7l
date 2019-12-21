@@ -14,6 +14,6 @@ RUN /bin/bash -c 'source .ci/ubuntu_ci.sh && \
     install_kivy_test_run_pip_deps'
 
 # Build the wheel.
-RUN VIDEOCOREMESA=1 python3 -m pip -v wheel --extra-index-url https://www.piwheels.org/simple . -w /kivy-wheel
+RUN KIVY_SPLIT_EXAMPLES=1 VIDEOCOREMESA=1 python3 -m pip -v wheel --extra-index-url https://www.piwheels.org/simple . -w /kivy-wheel
 
 RUN [ "cross-build-end" ]

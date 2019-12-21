@@ -8,7 +8,6 @@ on:
     - cron:  '23 1 * * *'
 
 env:
-  KIVY_SPLIT_EXAMPLES: 1
   SERVER_IP: '159.203.106.198'
   DOCKER_IMAGE: 'balenalib/armv7hf-debian:buster'
 
