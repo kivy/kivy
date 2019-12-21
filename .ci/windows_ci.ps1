@@ -4,7 +4,7 @@ function Generate-sdist {
 }
 
 function Generate-windows-wheels {
-    python setup.py bdist_wheel
+    pip wheel --no-deps . -w dist/
 }
 
 function Rename-windows-wheels {
