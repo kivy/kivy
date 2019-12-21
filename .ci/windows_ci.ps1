@@ -4,7 +4,7 @@ function Generate-sdist {
 }
 
 function Generate-windows-wheels {
-    pip wheel .
+    pip wheel --no-deps . -w dist/
 }
 
 function Rename-windows-wheels {
