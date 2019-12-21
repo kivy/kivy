@@ -9,18 +9,20 @@ on:
 
 env:
   SERVER_IP: '159.203.106.198'
-  DOCKER_IMAGE: 'balenalib/armv7hf-debian:buster'
 
 jobs:
   armv7l:
     runs-on: ubuntu-18.04
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel armv7l]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel armv7l]')
+    strategy:
+      matrix:
+        docker_images: ['balenalib/armv7hf-debian:stretch', 'balenalib/armv7hf-debian:buster']
     steps:
     - uses: actions/checkout@v1
-    - name: Make armv7l wheels
+    - name: Make ${{ matrix.docker_images }} wheel
       run: |
         source .ci/ubuntu_ci.sh
-        generate_armv7l_wheels $DOCKER_IMAGE
+        generate_armv7l_wheels ${{ matrix.docker_images }}
     - name: Rename wheels
       if: github.event.ref_type != 'tag'
       run: |
