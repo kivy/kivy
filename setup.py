@@ -731,12 +731,12 @@ def determine_gl_flags():
                 cross_sysroot + '/usr/lib/libbrcmGLESv2.so')
 
         if all((exists(lib) for lib in brcm_lib_files)):
-            print('Found brcmEGL and brcmGLES library files'
+            print('Found brcmEGL and brcmGLES library files '
                   'for rpi platform at ' + dirname(brcm_lib_files[0]))
             gl_libs = ['brcmEGL', 'brcmGLESv2']
         else:
             print(
-                'Failed to find brcmEGL and brcmGLESv2 library files'
+                'Failed to find brcmEGL and brcmGLESv2 library files '
                 'for rpi platform, falling back to EGL and GLESv2.')
             gl_libs = ['EGL', 'GLESv2']
         flags['libraries'] = ['bcm_host'] + gl_libs
