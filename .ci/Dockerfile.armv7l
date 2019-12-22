@@ -13,7 +13,16 @@ RUN /bin/bash -c 'source .ci/ubuntu_ci.sh && \
     install_python && \
     install_kivy_test_run_pip_deps'
 
+# Download the Raspberry Pi firmware if we are targeting the Raspberry Pi 1-3.
+ARG KIVY_CROSS_PLATFORM=""
+ARG KIVY_CROSS_SYSROOT=""
+RUN if [ "$KIVY_CROSS_PLATFORM" = "rpi" ]; then \
+        apt-get -y install git; \
+        git clone --depth=1 https://github.com/raspberrypi/firmware "$KIVY_CROSS_SYSROOT"; \
+        ln -s "$KIVY_CROSS_SYSROOT"/opt/vc "$KIVY_CROSS_SYSROOT"/usr; \
+    fi
+
 # Build the wheel.
-RUN KIVY_SPLIT_EXAMPLES=1 VIDEOCOREMESA=1 python3 -m pip -v wheel --extra-index-url https://www.piwheels.org/simple . -w /kivy-wheel
+RUN KIVY_SPLIT_EXAMPLES=1 VIDEOCOREMESA=1 KIVY_CROSS_PLATFORM="$KIVY_CROSS_PLATFORM" KIVY_CROSS_SYSROOT="$KIVY_CROSS_SYSROOT" python3 -m pip -v wheel --extra-index-url https://www.piwheels.org/simple . -w /kivy-wheel
 
 RUN [ "cross-build-end" ]

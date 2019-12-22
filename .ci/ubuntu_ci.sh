@@ -90,17 +90,24 @@ generate_manylinux2010_wheels() {
 generate_armv7l_wheels() {
   image=$1
 
-  mkdir dist dist_armv6l
-  docker build -f .ci/Dockerfile.armv7l -t kivy/kivy-armv7l --build-arg image="$image" .
+  mkdir dist
+  docker build -f .ci/Dockerfile.armv7l -t kivy/kivy-armv7l --build-arg image="$image" --build-arg KIVY_CROSS_PLATFORM="$2" --build-arg KIVY_CROSS_SYSROOT="$3" .
   docker cp "$(docker create kivy/kivy-armv7l)":/kivy-wheel .
   cp kivy-wheel/Kivy-* dist/
 
+  # Rename the special wheels for the Raspberry Pi 1-3
+  if [ "$#" -gt 1 ]; then
+    for name in dist/*.whl; do
+      new_name="${name/-cp/.rpi123-cp}"
+      mv -n "$name" "$new_name"
+    done
+  fi
+
   # Create a copy with the armv6l suffix
-  cp dist/*armv7l.whl dist_armv6l/
-  sudo apt-get -y install rename
-  rename 's/armv7l/armv6l/' dist_armv6l/*armv7l.whl
-  mv dist_armv6l/*armv6l.whl dist/
-  rmdir dist_armv6l
+  for name in dist/*.whl; do
+    new_name="${name/armv7l/armv6l}"
+    cp -n "$name" "$new_name"
+  done
 }
 
 rename_wheels() {
@@ -112,12 +119,12 @@ rename_wheels() {
     -c "import kivy; _, tag, n = kivy.parse_kivy_version(kivy.__version__); print(tag + n) if n is not None else print(tag or 'something')" \
     --config "kivy:log_level:error")
   echo "tag_name=$tag_name"
-  wheel_name="$tag_name.$wheel_date.$git_tag-"
+  wheel_name="$tag_name.$wheel_date.$git_tag"
   echo "wheel_name=$wheel_name"
 
   ls dist/
   for name in dist/*.whl; do
-    new_name="${name/$tag_name-/$wheel_name}"
+    new_name="${name/$tag_name/$wheel_name}"
     if [ ! -f "$new_name" ]; then
       cp -n "$name" "$new_name"
     fi
