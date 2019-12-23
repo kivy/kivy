@@ -125,12 +125,19 @@ _`Raspberry Pi 1-4 installation` on Raspbian Jessie/Stretch/Buster
     # or to recompile all files
     make force
 
-   Or on a Raspberry Pi 4 it is possible to use a precompiled wheel. The precompiled wheel can be downloaded from the latest `release <https://github.com/kivy/kivy/releases>`_. A wheel is also automatically build daily and can be downloaded here: `<https://kivy.org/downloads/ci/raspberrypi/kivy>`_.
+   It is also possible to use a precompiled wheel. The precompiled wheel can be downloaded from the latest `release <https://github.com/kivy/kivy/releases>`_. A wheel is also automatically build daily and can be downloaded here: `<https://kivy.org/downloads/ci/raspberrypi/kivy>`_. Note that the wheel for the Raspberry Pi 1-3 has `rpi123` in the filename and will only work on those devices, as it uses proprietary Broadcom drivers.
 
-   The wheel can be installed as follows::
+   First install the wheel dependency::
 
     python3 -m pip install --upgrade --user wheel
-    python3 -m pip install --user *armv7l.whl
+
+   On a Raspberry Pi 1-3 you need the `rpi123` wheel::
+
+    python3 -m pip install --user Kivy-2.0.0.dev0.rpi123-*-linux_armv7l.whl
+
+   On a Raspberry Pi 4 you need the wheel **WITHOUT** the `rpi123` included in the name::
+
+    python3 -m pip install --user Kivy-2.0.0.dev0-*-linux_armv7l.whl
 
 .. note::
 
