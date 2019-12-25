@@ -611,13 +611,15 @@ class TextInput(FocusBehavior, Widget):
         '''Get the cursor x offset on the current line.
         '''
         offset = 0
-        row = self.cursor_row
-        col = self.cursor_col
+        row = int(self.cursor_row)
+        col = int(self.cursor_col)
         _lines = self._lines
         if col and row < len(_lines):
             offset = self._get_text_width(
-                _lines[row][:col], self.tab_width,
-                self._label_cached)
+                _lines[row][:col],
+                self.tab_width,
+                self._label_cached
+            )
         return offset
 
     def get_cursor_from_index(self, index):
@@ -1294,7 +1296,7 @@ class TextInput(FocusBehavior, Widget):
         '''Update selection text and order of from/to if finished is True.
         Can be called multiple times until finished is True.
         '''
-        a, b = self._selection_from, self._selection_to
+        a, b = int(self._selection_from), int(self._selection_to)
         if a > b:
             a, b = b, a
         self._selection_finished = finished
@@ -1331,8 +1333,8 @@ class TextInput(FocusBehavior, Widget):
         different behavior. Alternatively, you can bind to this
         event to provide additional functionality.
         '''
-        ci = self.cursor_index()
-        cc = self.cursor_col
+        ci = int(self.cursor_index())
+        cc = int(self.cursor_col)
         line = self._lines[self.cursor_row]
         len_line = len(line)
         start = max(0, len(line[:cc]) - line[:cc].rfind(u' ') - 1)
