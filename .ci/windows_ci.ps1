@@ -1,6 +1,8 @@
 function Generate-sdist {
+    python3 -m pip install cython
     python setup.py sdist --formats=gztar
     python setup.py bdist_wheel --build_examples --universal
+    python3 -m pip uninstall cython -y
 }
 
 function Generate-windows-wheels {
@@ -53,7 +55,7 @@ function Install-kivy-test-run-win-deps {
 }
 
 function Install-kivy-test-run-pip-deps {
-    python -m pip install pip wheel setuptools cython --upgrade
+    python -m pip install pip wheel setuptools --upgrade
     # workaround for https://github.com/pyinstaller/pyinstaller/issues/4265 until next release
     python -m pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip
 }
