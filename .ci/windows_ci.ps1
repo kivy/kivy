@@ -66,6 +66,41 @@ function Install-kivy {
     cd "$old"
 }
 
+function Install-kivy-wheel {
+    $root=(pwd).Path
+    cd "$HOME"
+
+    python -m pip install pip wheel setuptools --upgrade
+    # workaround for https://github.com/pyinstaller/pyinstaller/issues/4265 until next release
+    python -m pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip
+
+    $version=python -c "import sys; print('{}{}'.format(sys.version_info.major, sys.version_info.minor))"
+    $kivy_fname=(ls $root/dist/Kivy-*$version*.whl).name
+    $kivy_examples_fname=(ls $root/dist/Kivy_examples-*.whl).name
+    python -m pip install "$root/dist/$kivy_fname[full,dev]" "$root/dist/$kivy_examples_fname"
+}
+
+function Install-kivy-sdist {
+    $root=(pwd).Path
+    cd "$HOME"
+
+    python -m pip install pip wheel setuptools --upgrade
+    # workaround for https://github.com/pyinstaller/pyinstaller/issues/4265 until next release
+    python -m pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip
+
+    $kivy_fname=(ls $root/dist/Kivy-*.tar.gz).name
+    python -m pip install "$root/dist/$kivy_fname[full,dev]"
+}
+
 function Test-kivy {
     python -m pytest --cov=kivy --cov-report term --cov-branch "$(pwd)/kivy/tests"
+}
+
+function Test-kivy-installed {
+    python -c 'import kivy'
+    $test_path=python -c 'import kivy.tests as tests; print(tests.__path__[0])'  --config "kivy:log_level:error"
+    cd "$test_path"
+
+    echo "[run]`nplugins = kivy.tools.coverage`n" > .coveragerc
+    python -m pytest .
 }

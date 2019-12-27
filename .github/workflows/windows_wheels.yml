@@ -64,7 +64,6 @@ jobs:
         Upload-windows-wheels-to-server -ip "$env:SERVER_IP"
     - name: Upload wheels as artifact
       uses: actions/upload-artifact@master
-      if: github.event_name == 'pull_request'
       with:
         name: windows_wheels
         path: dist
@@ -82,6 +81,50 @@ jobs:
       with:
         files: dist/*
         draft: true
+
+  windows_wheel_test:
+    runs-on: windows-latest
+    needs: windows_wheels
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.x
+      - uses: actions/download-artifact@v1
+        with:
+          name: windows_wheels
+      - name: Install Kivy Wheel
+        run: |
+          . .\.ci\windows_ci.ps1
+          Install-kivy-wheel
+      - name: Test Kivy Wheel
+        run: |
+          . .\.ci\windows_ci.ps1
+          Test-kivy-installed
+
+  windows_sdist_test:
+    runs-on: windows-latest
+    needs: windows_wheels
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.x
+      - uses: actions/download-artifact@v1
+        with:
+          name: windows_wheels
+      - name: Install Kivy sdist
+        env:
+          KIVY_SPLIT_EXAMPLES: 0
+        run: |
+          . .\.ci\windows_ci.ps1
+          Install-kivy-sdist
+      - name: Test Kivy sdist
+        run: |
+          . .\.ci\windows_ci.ps1
+          Test-kivy-installed
 
   always_job:
     name: Always run job
