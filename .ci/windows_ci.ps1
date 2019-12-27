@@ -1,8 +1,8 @@
 function Generate-sdist {
-    python3 -m pip install cython
+    python -m pip install cython
     python setup.py sdist --formats=gztar
     python setup.py bdist_wheel --build_examples --universal
-    python3 -m pip uninstall cython -y
+    python -m pip uninstall cython -y
 }
 
 function Generate-windows-wheels {
