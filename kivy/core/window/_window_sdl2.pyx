@@ -77,23 +77,25 @@ cdef class _WindowSDL2Storage:
                      resizable, state, gl_backend):
         self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
 
-        if USE_IOS:
-            self.win_flags |= SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN_DESKTOP
-        else:
-            if resizable:
-                self.win_flags |= SDL_WINDOW_RESIZABLE
+        if resizable:
+            self.win_flags |= SDL_WINDOW_RESIZABLE
+
+        if not USE_IOS:
             if borderless:
                 self.win_flags |= SDL_WINDOW_BORDERLESS
 
-            if USE_ANDROID:
-                # Android is handled separately because it is important to create the window with
-                # the same fullscreen setting as AndroidManifest.xml.
-                if environ.get('P4A_IS_WINDOWED', 'True') == 'False':
-                    self.win_flags |= SDL_WINDOW_FULLSCREEN
-            elif fullscreen == 'auto':
-                self.win_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP
-            elif fullscreen is True:
+        if USE_ANDROID:
+            # Android is handled separately because it is important to create the window with
+            # the same fullscreen setting as AndroidManifest.xml.
+            if environ.get('P4A_IS_WINDOWED', 'True') == 'False':
                 self.win_flags |= SDL_WINDOW_FULLSCREEN
+        elif USE_IOS:
+            if environ.get('IOS_IS_WINDOWED', 'True') == 'False':
+                self.win_flags |= SDL_WINDOW_FULLSCREEN | SDL_WINDOW_BORDERLESS
+        elif fullscreen == 'auto':
+            self.win_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP
+        elif fullscreen is True:
+            self.win_flags |= SDL_WINDOW_FULLSCREEN
         if state == 'maximized':
             self.win_flags |= SDL_WINDOW_MAXIMIZED
         elif state == 'minimized':
@@ -652,10 +654,7 @@ cdef class _WindowSDL2Storage:
             pass
 
     def flip(self):
-        win = self.win
-        with nogil:
-            SDL_GL_SwapWindow(win)
-            cgl.glFinish()
+        SDL_GL_SwapWindow(self.win)
 
     def save_bytes_in_png(self, filename, data, int width, int height):
         cdef SDL_Surface *surface = SDL_CreateRGBSurfaceFrom(

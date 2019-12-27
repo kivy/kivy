@@ -94,4 +94,4 @@ jobs:
       run: |
         branch_name=$(python3 -c "print('$REF_NAME'.split('/')[-1])")
         source .ci/ubuntu_ci.sh
-        upload_docs_to_server $DOC_VERSIONS $branch_name $SERVER_IP
+        upload_docs_to_server "$DOC_VERSIONS" "$branch_name" "$SERVER_IP"
