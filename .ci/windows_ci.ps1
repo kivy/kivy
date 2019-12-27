@@ -108,6 +108,7 @@ function Test-kivy {
 }
 
 function Test-kivy-installed {
+    cd "$HOME"
     python -c 'import kivy'
     $test_path=python -c 'import kivy.tests as tests; print(tests.__path__[0])'  --config "kivy:log_level:error"
     cd "$test_path"

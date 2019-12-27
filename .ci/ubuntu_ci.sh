@@ -77,6 +77,7 @@ test_kivy() {
 }
 
 test_kivy_install() {
+  cd ~
   python3 -c 'import kivy'
   test_path=$(KIVY_NO_CONSOLELOG=1 python3 -c 'import kivy.tests as tests; print(tests.__path__[0])'  --config "kivy:log_level:error")
   cd "$test_path"
