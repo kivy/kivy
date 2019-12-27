@@ -1,7 +1,16 @@
 function Generate-sdist {
     python -m pip install cython
     python setup.py sdist --formats=gztar
-    python setup.py bdist_wheel --build_examples --universal
+    # powershell interprets writing to stderr as an error, so only raise error if the return code is none-zero
+    try {
+      python setup.py bdist_wheel --build_examples --universal
+    } catch {
+      if ($LastExitCode -ne 0) {
+        throw $_
+      } else {
+        echo $_
+      }
+    }
     python -m pip uninstall cython -y
 }
 
