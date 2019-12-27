@@ -96,6 +96,7 @@ jobs:
           name: windows_wheels
       - name: Install Kivy Wheel
         run: |
+          mv windows_wheels/* .
           . .\.ci\windows_ci.ps1
           Install-kivy-wheel
       - name: Test Kivy Wheel
@@ -119,6 +120,7 @@ jobs:
         env:
           KIVY_SPLIT_EXAMPLES: 0
         run: |
+          mv windows_wheels/* .
           . .\.ci\windows_ci.ps1
           Install-kivy-sdist
       - name: Test Kivy sdist

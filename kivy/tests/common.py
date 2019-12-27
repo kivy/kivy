@@ -16,6 +16,7 @@ import unittest
 import logging
 import pytest
 import sys
+from functools import partial
 import os
 import threading
 from kivy.graphics.cgl import cgl_get_backend_name
@@ -44,16 +45,11 @@ def ensure_web_server(root=None):
 
     def _start_web_server():
         global http_server
-        try:
-            from SimpleHTTPServer import SimpleHTTPRequestHandler
-            from SocketServer import TCPServer
-        except ImportError:
-            from http.server import SimpleHTTPRequestHandler
-            from socketserver import TCPServer
+        from http.server import SimpleHTTPRequestHandler
+        from socketserver import TCPServer
 
         try:
-            handler = SimpleHTTPRequestHandler
-            handler.directory = root
+            handler = partial(SimpleHTTPRequestHandler, directory=root)
             http_server = TCPServer(
                 ("", 8000), handler, bind_and_activate=False)
             http_server.daemon_threads = True

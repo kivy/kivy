@@ -74,6 +74,7 @@ jobs:
           name: manylinux_wheels
       - name: Install dependencies
         run: |
+          mv manylinux_wheels/* .
           source .ci/ubuntu_ci.sh
           install_kivy_test_run_apt_deps
           install_kivy_test_wheel_run_pip_deps

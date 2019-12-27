@@ -224,7 +224,7 @@ We hope your journey into learning Kivy is exciting and fun!
         a("\n.. |link{num}|  replace:: :doc:`{source}<gen__{dunder}>`")
         a("\n.. |pic{num}| image:: ../images/examples/{dunder}.png"
           "\n    :width:  216pt"
-          "\n    :align:  middle"
+          "\n    :align: ' ' middle"
           "\n    :target: gen__{dunder}.html")
         a("\n.. |title{num}|  replace:: **{title}**")
 
@@ -282,7 +282,7 @@ def make_detail_page(info):
             a('\n' + title)
             a('~' * len(title))
             a('\n.. image:: ../../../examples/' + full_name)
-            a('    :align:  center')
+            a('    :align: ' ' center')
         else:  # code
             title = 'File **' + full_name + '**'
             a('\n' + title)
