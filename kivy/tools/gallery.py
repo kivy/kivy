@@ -13,11 +13,12 @@ import re
 from os.path import sep
 from os.path import join as slash  # just like that name better
 from os.path import dirname, abspath
+import kivy
 from kivy.logger import Logger
 import textwrap
 
 # from here to the kivy top
-base_dir = dirname(dirname(abspath(__file__)))
+base_dir = dirname(dirname(abspath(kivy.__file__)))
 examples_dir = slash(base_dir, 'examples')
 screenshots_dir = slash(base_dir, 'doc/sources/images/examples')
 generation_dir = slash(base_dir, 'doc/sources/examples')
@@ -28,7 +29,7 @@ gallery_filename = slash(generation_dir, 'gallery.rst')
 
 # Info is a dict built up from
 # straight filename information, more from reading the docstring,
-# and more from parsing the description text.  Errors are often
+# and more from parsing the description text. Errors are often
 # shown by setting the key 'error' with the value being the error message.
 #
 # It doesn't quite meet the requirements for a class, but is a vocabulary
@@ -37,7 +38,7 @@ gallery_filename = slash(generation_dir, 'gallery.rst')
 def iter_filename_info(dir_name):
     """
     Yield info (dict) of each matching screenshot found walking the
-    directory dir_name.  A matching screenshot uses double underscores to
+    directory dir_name. A matching screenshot uses double underscores to
     separate fields, i.e. path__to__filename__py.png as the screenshot for
     examples/path/to/filename.py.
 
@@ -66,7 +67,7 @@ def iter_filename_info(dir_name):
 
 def parse_docstring_info(text):
     ''' parse docstring from text (normal string with '\n's) and return an info
-    dict.  A docstring should the first triple quoted string, have a title
+    dict. A docstring should the first triple quoted string, have a title
     followed by a line of equal signs, and then a description at
     least one sentence long.
 
@@ -87,7 +88,7 @@ def parse_docstring_info(text):
 
 def iter_docstring_info(dir_name):
     ''' Iterate over screenshots in directory, yield info from the file
-     name and initial parse of the docstring.  Errors are logged, but
+     name and initial parse of the docstring. Errors are logged, but
      files with errors are skipped.
     '''
     for file_info in iter_filename_info(dir_name):
@@ -116,12 +117,12 @@ def enhance_info_description(info, line_length=79):
 
     info['files'] is the source filename and any filenames referenced by the
     magic words in the description, e.g. 'the file xxx.py' or
-    'The image this.png'.  These are as written in the description, do
+    'The image this.png'. These are as written in the description, do
     not allow ../dir notation, and are relative to the source directory.
 
     info['enhanced_description'] is the description, as an array of
     paragraphs where each paragraph is an array of lines wrapped to width
-    line_length.  This enhanced description include the rst links to
+    line_length. This enhanced description include the rst links to
     the files of info['files'].
     '''
 
@@ -274,7 +275,7 @@ def make_detail_page(info):
         a('\n.. _`' + full_name.replace(sep, '_') + '`:')
         # double separator if building on windows (sphinx skips backslash)
         if '\\' in full_name:
-            full_name = full_name.replace(sep, sep*2)
+            full_name = full_name.replace(sep, sep * 2)
 
         if ext in ['.png', '.jpg', '.jpeg']:
             title = 'Image **' + full_name + '**'
