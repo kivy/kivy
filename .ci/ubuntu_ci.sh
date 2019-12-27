@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e -x
 
+generate_sdist() {
+  python3 setup.py sdist --formats=gztar
+}
+
 install_kivy_test_run_apt_deps() {
   sudo apt-get update
   sudo apt-get -y install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libsdl2-mixer-dev
@@ -27,6 +31,13 @@ install_kivy_test_run_pip_deps() {
   python3 -m pip install -I "$CYTHON_INSTALL" coveralls
 }
 
+install_kivy_test_wheel_run_pip_deps() {
+  curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+  python3 get-pip.py --user
+
+  python3 -m pip install --upgrade pip setuptools wheel
+}
+
 prepare_env_for_unittest() {
   /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background \
   --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX
@@ -40,9 +51,40 @@ install_kivy() {
   cd "$path"
 }
 
+install_kivy_manylinux_wheel() {
+  root="$(pwd)"
+  python3 setup.py install --build_examples
+  cd ~
+
+  version=$(python3 -c "import sys; print('{}{}'.format(sys.version_info.major, sys.version_info.minor))")
+  kivy_fname=$(ls $root/dist/Kivy-*$version*.whl)
+  python3 -m pip install "$kivy_fname[full,dev]"
+}
+
+install_kivy_sdist() {
+  root="$(pwd)"
+  cd ~
+
+  kivy_fname=$(ls $root/dist/Kivy-*.tar.gz)
+  python3 -m pip install "$kivy_fname[full,dev]"
+}
+
 test_kivy() {
   rm -rf kivy/tests/build || true
   KIVY_NO_ARGS=1 python3 -m pytest --cov=kivy --cov-report term --cov-branch "$(pwd)/kivy/tests"
+}
+
+test_kivy_install() {
+  python3 -c 'import kivy'
+  test_path=$(KIVY_NO_CONSOLELOG=1 python3 -c 'import kivy.tests as tests; print(tests.__path__[0])'  --config "kivy:log_level:error")
+  cd "$test_path"
+
+  cat > .coveragerc << 'EOF'
+[run]
+  plugins = kivy.tools.coverage
+
+EOF
+  KIVY_NO_ARGS=1 python3 -m pytest .
 }
 
 upload_coveralls() {

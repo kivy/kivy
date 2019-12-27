@@ -13,7 +13,7 @@ env:
   DOCKER_IMAGE: 'quay.io/pypa/manylinux2010_x86_64'
 
 jobs:
-  manylinux2010:
+  manylinux:
     runs-on: ubuntu-18.04
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel linux]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel linux]')
     steps:
@@ -40,7 +40,6 @@ jobs:
         upload_file_to_server "$SERVER_IP" "linux/kivy/"
     - name: Upload wheels as artifact
       uses: actions/upload-artifact@master
-      if: github.event_name == 'pull_request'
       with:
         name: manylinux_wheels
         path: dist
@@ -59,11 +58,67 @@ jobs:
         files: dist/*
         draft: true
 
-  always_job:
-    name: Always run job
+  manylinux_wheel_test:
     runs-on: ubuntu-18.04
+    needs: manylinux
+    env:
+      DISPLAY: ':99.0'
     steps:
-      - name: Always run
+      - uses: actions/checkout@v1
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.x
+      - uses: actions/download-artifact@master
+        with:
+          name: manylinux_wheels
+      - name: Install dependencies
         run: |
-          echo "This is run to prevent the workflow from showing an error if the wheels job is not run and no jobs run is an error."
-          echo "See https://github.community/t5/GitHub-Actions/Workflow-is-failing-if-no-job-can-be-ran-due-to-condition/m-p/38085"
+          source .ci/ubuntu_ci.sh
+          install_kivy_test_run_apt_deps
+          install_kivy_test_wheel_run_pip_deps
+      - name: Setup env
+        run: |
+          source .ci/ubuntu_ci.sh
+          prepare_env_for_unittest
+      - name: Install Kivy
+        run: |
+          source .ci/ubuntu_ci.sh
+          install_kivy_manylinux_wheel
+      - name: Test Kivy
+        run: |
+          source .ci/ubuntu_ci.sh
+          test_kivy_install
+
+  sdist_test:
+    runs-on: ubuntu-18.04
+    env:
+      DISPLAY: ':99.0'
+      KIVY_SPLIT_EXAMPLES: 0
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.x
+      - name: Generate sdist
+        run: |
+          source .ci/ubuntu_ci.sh
+          generate_sdist
+      - name: Install dependencies
+        run: |
+          source .ci/ubuntu_ci.sh
+          install_kivy_test_run_apt_deps
+          install_kivy_test_wheel_run_pip_deps
+      - name: Setup env
+        run: |
+          source .ci/ubuntu_ci.sh
+          prepare_env_for_unittest
+      - name: Install Kivy
+        run: |
+          source .ci/ubuntu_ci.sh
+          install_kivy_sdist
+      - name: Test Kivy
+        run: |
+          source .ci/ubuntu_ci.sh
+          test_kivy_install
