@@ -2,6 +2,7 @@ from kivy.tests.common import GraphicUnitTest, ensure_web_server
 
 from kivy.uix.image import AsyncImage
 from kivy.config import Config
+from kivy import kivy_examples_dir
 
 from zipfile import ZipFile
 from os.path import join, dirname, abspath
@@ -16,7 +17,7 @@ except ImportError:
 class AsyncImageTestCase(GraphicUnitTest):
     @classmethod
     def setUpClass(cls):
-        ensure_web_server()
+        ensure_web_server(kivy_examples_dir)
 
     def setUp(self):
         self.maxfps = Config.getint('graphics', 'maxfps')
@@ -59,7 +60,7 @@ class AsyncImageTestCase(GraphicUnitTest):
     def test_remote_zipsequence(self):
         # cube ZIP has 63 PNGs used for animation
         ZIP = (
-            'http://localhost:8000/examples/widgets/'
+            'http://localhost:8000/widgets/'
             'sequenced_images/data/images/cube.zip'
         )
 
@@ -79,9 +80,7 @@ class AsyncImageTestCase(GraphicUnitTest):
     def test_local_zipsequence(self):
         # cube ZIP has 63 PNGs used for animation
         ZIP = join(
-            # kivy/examples/.../cube.zip
-            dirname(dirname(dirname(abspath(__file__)))),
-            'examples', 'widgets', 'sequenced_images',
+            kivy_examples_dir, 'widgets', 'sequenced_images',
             'data', 'images', 'cube.zip'
         )
         ZIP_pngs = self.zip_frames(ZIP)

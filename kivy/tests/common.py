@@ -35,9 +35,12 @@ http_server_ready = threading.Event()
 kivy_eventloop = os.environ.get('KIVY_EVENTLOOP', 'asyncio')
 
 
-def ensure_web_server():
+def ensure_web_server(root=None):
     if http_server is not None:
         return True
+
+    if not root:
+        root = os.path.join(os.path.dirname(__file__), "..", "..")
 
     def _start_web_server():
         global http_server
@@ -50,8 +53,7 @@ def ensure_web_server():
 
         try:
             handler = SimpleHTTPRequestHandler
-            handler.directory = os.path.join(
-                os.path.dirname(__file__), "..", "..")
+            handler.directory = root
             http_server = TCPServer(
                 ("", 8000), handler, bind_and_activate=False)
             http_server.daemon_threads = True

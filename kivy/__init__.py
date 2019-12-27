@@ -266,6 +266,12 @@ kivy_home_dir = ''
 kivy_config_fn = ''
 #: Kivy user modules directory
 kivy_usermodules_dir = ''
+#: Kivy examples directory
+kivy_examples_dir = join(dirname(dirname(__file__)), 'examples')
+if not exists(kivy_examples_dir):
+    kivy_examples_dir = join(sys.exec_prefix, 'share', 'kivy-examples')
+    if not exists(kivy_examples_dir):
+        kivy_examples_dir = ''
 
 # if there are deps, import them so they can do their magic.
 _packages = []
