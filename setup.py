@@ -424,11 +424,17 @@ CYTHON_REQUIRES_STRING, MIN_CYTHON_STRING, MAX_CYTHON_STRING, \
     CYTHON_UNSUPPORTED = get_cython_versions()
 cython_min_msg, cython_max_msg, cython_unsupported_msg = get_cython_msg()
 
-if can_use_cython:
-    import Cython
-    print('\nFound Cython at', Cython.__file__)
+try:
+    import Cython as have_cython
+except ImportError:
+    # no reason to require cython now, if we need it and it's not installed
+    # we'll get the error when we actually try to use it
+    have_cython = None
 
-    cy_version_str = Cython.__version__
+if have_cython is not None:
+    print('\nFound Cython at', have_cython.__file__)
+
+    cy_version_str = have_cython.__version__
     cy_ver = LooseVersion(cy_version_str)
     print('Detected supported Cython version {}'.format(cy_version_str))
 
@@ -438,7 +444,6 @@ if can_use_cython:
         print(cython_unsupported_msg)
     elif cy_ver > LooseVersion(MAX_CYTHON_STRING):
         print(cython_max_msg)
-    sleep(1)
 
 # extra build commands go in the cmdclass dict {'command-name': CommandClass}
 # see tools.packaging.{platform}.build.py for custom build commands for

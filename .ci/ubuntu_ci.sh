@@ -2,9 +2,7 @@
 set -e -x
 
 generate_sdist() {
-  python3 -m pip install cython
   python3 setup.py sdist --formats=gztar
-  python3 -m pip uninstall cython -y
 }
 
 install_kivy_test_run_apt_deps() {

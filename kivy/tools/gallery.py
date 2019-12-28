@@ -224,7 +224,7 @@ We hope your journey into learning Kivy is exciting and fun!
         a("\n.. |link{num}|  replace:: :doc:`{source}<gen__{dunder}>`")
         a("\n.. |pic{num}| image:: ../images/examples/{dunder}.png"
           "\n    :width:  216pt"
-          "\n    :align: ' ' middle"
+          "\n    :align: " " middle"
           "\n    :target: gen__{dunder}.html")
         a("\n.. |title{num}|  replace:: **{title}**")
 

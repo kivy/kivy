@@ -42,6 +42,8 @@ def ensure_web_server(root=None):
 
     if not root:
         root = os.path.join(os.path.dirname(__file__), "..", "..")
+    need_chdir = sys.version_info.major == 3 and sys.version_info.minor <= 6
+    curr_dir = os.getcwd()
 
     def _start_web_server():
         global http_server
@@ -49,7 +51,12 @@ def ensure_web_server(root=None):
         from socketserver import TCPServer
 
         try:
-            handler = partial(SimpleHTTPRequestHandler, directory=root)
+            if need_chdir:
+                os.chdir(root)
+                handler = SimpleHTTPRequestHandler
+            else:
+                handler = partial(SimpleHTTPRequestHandler, directory=root)
+
             http_server = TCPServer(
                 ("", 8000), handler, bind_and_activate=False)
             http_server.daemon_threads = True
@@ -64,6 +71,9 @@ def ensure_web_server(root=None):
         finally:
             http_server = None
             http_server_ready.set()
+
+            if need_chdir:
+                os.chdir(curr_dir)
 
     th = threading.Thread(target=_start_web_server)
     th.daemon = True

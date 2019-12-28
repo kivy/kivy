@@ -1,5 +1,4 @@
 function Generate-sdist {
-    python -m pip install cython
     python setup.py sdist --formats=gztar
     # powershell interprets writing to stderr as an error, so only raise error if the return code is none-zero
     try {
@@ -11,7 +10,6 @@ function Generate-sdist {
         echo $_
       }
     }
-    python -m pip uninstall cython -y
 }
 
 function Generate-windows-wheels {
