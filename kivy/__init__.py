@@ -271,6 +271,7 @@ kivy_examples_dir = ''
 for examples_dir in (
         join(dirname(dirname(__file__)), 'examples'),
         join(sys.exec_prefix, 'share', 'kivy-examples'),
+        join(sys.prefix, 'share', 'kivy-examples'),
         '/usr/share/kivy-examples', '/usr/local/share/kivy-examples',
         expanduser('~/.local/share/kivy-examples')):
     if exists(examples_dir):
