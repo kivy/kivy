@@ -1,9 +1,8 @@
-function Generate-sdist {
-    python -m pip install cython
-    python setup.py sdist --formats=gztar
+function raise-only-error{
+    Param([scriptblock]$Func)
     # powershell interprets writing to stderr as an error, so only raise error if the return code is none-zero
     try {
-      python setup.py bdist_wheel --build_examples --universal
+      $Func.Invoke()
     } catch {
       if ($LastExitCode -ne 0) {
         throw $_
@@ -11,6 +10,12 @@ function Generate-sdist {
         echo $_
       }
     }
+}
+
+function Generate-sdist {
+    python -m pip install cython
+    python setup.py sdist --formats=gztar
+    raise-only-error -Func {python setup.py bdist_wheel --build_examples --universal}
     python -m pip uninstall cython -y
 }
 
@@ -28,16 +33,7 @@ function Rename-windows-wheels {
     echo "Wheel date is: $WHEEL_DATE"
     $GIT_TAG = git rev-parse --short HEAD
     echo "Git tag is: $GIT_TAG"
-    # powershell interprets writing to stderr as an error, so only raise error if the return code is none-zero
-    try {
-      python -c "import kivy" --config "kivy:log_level:error"
-    } catch {
-      if ($LastExitCode -ne 0) {
-        throw $_
-      } else {
-        echo $_
-      }
-    }
+    raise-only-error -Func {python -c "import kivy" --config "kivy:log_level:error"}
     $WHEEL_VERSION = python -c "import kivy;print(kivy.__version__)" --config "kivy:log_level:error"
     echo "Kivy version is: $WHEEL_VERSION"
     $TAG_NAME = python -c "import kivy; _, tag, n = kivy.parse_kivy_version(kivy.__version__); print(tag + n) if n is not None else print(tag or 'something')"  --config "kivy:log_level:error"
@@ -114,5 +110,5 @@ function Test-kivy-installed {
     cd "$test_path"
 
     echo "[run]`nplugins = kivy.tools.coverage`n" > .coveragerc
-    python -m pytest .
+    raise-only-error -Func {python -m pytest .}
 }
