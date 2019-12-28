@@ -5,6 +5,9 @@ Audio tests
 
 import unittest
 import os
+import pytest
+if os.environ.get('KIVY_TEST_AUDIO') == '0':
+    pytestmark = pytest.mark.skip("Audio is not available")
 
 SAMPLE_FILE = os.path.join(os.path.dirname(__file__), 'sample1.ogg')
 SAMPLE_LENGTH = 1.402

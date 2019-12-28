@@ -68,7 +68,7 @@ release = kivy.__version__
 base = 'autobuild.py-done'
 if not os.path.exists(os.path.join(os.path.dirname(base_dir), base)):
     import autobuild
-import gallery
+from kivy.tools import gallery
 gallery.write_all_rst_pages()
 
 # There are two options for replacing |today|: either, you set today to some

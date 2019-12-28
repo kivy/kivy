@@ -1,6 +1,22 @@
+function raise-only-error{
+    Param([scriptblock]$Func)
+    # powershell interprets writing to stderr as an error, so only raise error if the return code is none-zero
+    try {
+      $Func.Invoke()
+    } catch {
+      if ($LastExitCode -ne 0) {
+        throw $_
+      } else {
+        echo $_
+      }
+    }
+}
+
 function Generate-sdist {
+    python -m pip install cython
     python setup.py sdist --formats=gztar
-    python setup.py bdist_wheel --build_examples --universal
+    raise-only-error -Func {python setup.py bdist_wheel --build_examples --universal}
+    python -m pip uninstall cython -y
 }
 
 function Generate-windows-wheels {
@@ -17,16 +33,7 @@ function Rename-windows-wheels {
     echo "Wheel date is: $WHEEL_DATE"
     $GIT_TAG = git rev-parse --short HEAD
     echo "Git tag is: $GIT_TAG"
-    # powershell interprets writing to stderr as an error, so only raise error if the return code is none-zero
-    try {
-      python -c "import kivy" --config "kivy:log_level:error"
-    } catch {
-      if ($LastExitCode -ne 0) {
-        throw $_
-      } else {
-        echo $_
-      }
-    }
+    raise-only-error -Func {python -c "import kivy" --config "kivy:log_level:error"}
     $WHEEL_VERSION = python -c "import kivy;print(kivy.__version__)" --config "kivy:log_level:error"
     echo "Kivy version is: $WHEEL_VERSION"
     $TAG_NAME = python -c "import kivy; _, tag, n = kivy.parse_kivy_version(kivy.__version__); print(tag + n) if n is not None else print(tag or 'something')"  --config "kivy:log_level:error"
@@ -53,7 +60,7 @@ function Install-kivy-test-run-win-deps {
 }
 
 function Install-kivy-test-run-pip-deps {
-    python -m pip install pip wheel setuptools cython --upgrade
+    python -m pip install pip wheel setuptools --upgrade
     # workaround for https://github.com/pyinstaller/pyinstaller/issues/4265 until next release
     python -m pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip
 }
@@ -66,6 +73,42 @@ function Install-kivy {
     cd "$old"
 }
 
+function Install-kivy-wheel {
+    $root=(pwd).Path
+    cd "$HOME"
+
+    python -m pip install pip wheel setuptools --upgrade
+    # workaround for https://github.com/pyinstaller/pyinstaller/issues/4265 until next release
+    python -m pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip
+
+    $version=python -c "import sys; print('{}{}'.format(sys.version_info.major, sys.version_info.minor))"
+    $kivy_fname=(ls $root/dist/Kivy-*$version*win_amd64*.whl | Sort-Object -property @{Expression={$_.name.tostring().Length}} | Select-Object -First 1).name
+    $kivy_examples_fname=(ls $root/dist/Kivy_examples-*.whl | Sort-Object -property @{Expression={$_.name.tostring().Length}} | Select-Object -First 1).name
+    python -m pip install "$root/dist/$kivy_fname[full,dev]" "$root/dist/$kivy_examples_fname"
+}
+
+function Install-kivy-sdist {
+    $root=(pwd).Path
+    cd "$HOME"
+
+    python -m pip install pip wheel setuptools --upgrade
+    # workaround for https://github.com/pyinstaller/pyinstaller/issues/4265 until next release
+    python -m pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip
+
+    $kivy_fname=(ls $root/dist/Kivy-*.tar.gz).name
+    python -m pip install "$root/dist/$kivy_fname[full,dev]"
+}
+
 function Test-kivy {
     python -m pytest --cov=kivy --cov-report term --cov-branch "$(pwd)/kivy/tests"
+}
+
+function Test-kivy-installed {
+    cd "$HOME"
+    python -c 'import kivy'
+    $test_path=python -c 'import kivy.tests as tests; print(tests.__path__[0])'  --config "kivy:log_level:error"
+    cd "$test_path"
+
+    echo "[run]`nplugins = kivy.tools.coverage`n" > .coveragerc
+    raise-only-error -Func {python -m pytest .}
 }
