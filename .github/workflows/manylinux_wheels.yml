@@ -24,6 +24,11 @@ jobs:
         python-version: 3.x
     - name: Make wheels
       run: |
+        python3 -m pip install kivy_examples
+        find / -name kivy-examples -type d
+        python3 -m pip uninstall kivy_examples
+        python3 -m pip install kivy_examples --user
+        find / -name kivy-examples -type d
         source .ci/ubuntu_ci.sh
         generate_manylinux2010_wheels $DOCKER_IMAGE
     - name: Rename wheels
