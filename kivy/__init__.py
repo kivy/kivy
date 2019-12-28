@@ -267,13 +267,15 @@ kivy_config_fn = ''
 #: Kivy user modules directory
 kivy_usermodules_dir = ''
 #: Kivy examples directory
-kivy_examples_dir = join(dirname(dirname(__file__)), 'examples')
-if not exists(kivy_examples_dir):
-    kivy_examples_dir = join(sys.exec_prefix, 'share', 'kivy-examples')
-    if not exists(kivy_examples_dir):
-        kivy_examples_dir = '/usr/share/kivy-examples'
-if not exists(kivy_examples_dir):
-    kivy_examples_dir = ''
+kivy_examples_dir = ''
+for examples_dir in (
+        join(dirname(dirname(__file__)), 'examples'),
+        join(sys.exec_prefix, 'share', 'kivy-examples'),
+        '/usr/share/kivy-examples', '/usr/local/share/kivy-examples',
+        expanduser('~/.local/share/kivy-examples')):
+    if exists(examples_dir):
+        kivy_examples_dir = examples_dir
+        break
 
 # if there are deps, import them so they can do their magic.
 _packages = []
