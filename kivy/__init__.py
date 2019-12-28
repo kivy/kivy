@@ -25,7 +25,7 @@ __all__ = (
     'kivy_options', 'kivy_base_dir',
     'kivy_modules_dir', 'kivy_data_dir', 'kivy_shader_dir',
     'kivy_icons_dir', 'kivy_home_dir',
-    'kivy_config_fn', 'kivy_usermodules_dir',
+    'kivy_config_fn', 'kivy_usermodules_dir', 'kivy_examples_dir'
 )
 
 import sys
@@ -266,6 +266,17 @@ kivy_home_dir = ''
 kivy_config_fn = ''
 #: Kivy user modules directory
 kivy_usermodules_dir = ''
+#: Kivy examples directory
+kivy_examples_dir = ''
+for examples_dir in (
+        join(dirname(dirname(__file__)), 'examples'),
+        join(sys.exec_prefix, 'share', 'kivy-examples'),
+        join(sys.prefix, 'share', 'kivy-examples'),
+        '/usr/share/kivy-examples', '/usr/local/share/kivy-examples',
+        expanduser('~/.local/share/kivy-examples')):
+    if exists(examples_dir):
+        kivy_examples_dir = examples_dir
+        break
 
 # if there are deps, import them so they can do their magic.
 _packages = []

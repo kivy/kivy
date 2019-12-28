@@ -101,15 +101,15 @@ class TestVideoWidget(PyinstallerBase):
     @classmethod
     def get_env(cls):
         env = super(TestVideoWidget, cls).get_env()
+        import kivy
         env['__KIVY_VIDEO_TEST_FNAME'] = os.path.abspath(os.path.join(
-            os.path.dirname(__file__), "..", "..", "..", "examples",
-            "widgets", "cityCC0.mpg"))
+            kivy.kivy_examples_dir, "widgets", "cityCC0.mpg"))
         return env
 
     @classmethod
     def get_run_env(cls):
         env = super(TestVideoWidget, cls).get_run_env()
+        import kivy
         env['__KIVY_VIDEO_TEST_FNAME'] = os.path.abspath(os.path.join(
-            os.path.dirname(__file__), "..", "..", "..", "examples",
-            "widgets", "cityCC0.mpg"))
+            kivy.kivy_examples_dir, "widgets", "cityCC0.mpg"))
         return env
