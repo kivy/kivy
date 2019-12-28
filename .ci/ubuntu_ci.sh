@@ -59,7 +59,7 @@ install_kivy_manylinux_wheel() {
   cd ~
 
   version=$(python3 -c "import sys; print('{}{}'.format(sys.version_info.major, sys.version_info.minor))")
-  kivy_fname=$(ls $root/dist/Kivy-*$version*.whl)
+  kivy_fname=$(ls $root/dist/Kivy-*$version*.whl | awk '{ print length, $0 }' | sort -n -s | cut -d" " -f2- | head -n1)
   python3 -m pip install "$kivy_fname[full,dev]"
 }
 

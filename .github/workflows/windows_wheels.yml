@@ -10,8 +10,8 @@ on:
 env:
   KIVY_SPLIT_EXAMPLES: 1
   SERVER_IP: '159.203.106.198'
-  USE_SDL2: 1
-  USE_GSTREAMER: 1
+  GST_REGISTRY: '~/registry.bin'
+  KIVY_GL_BACKEND: 'angle_sdl2'
 
 jobs:
   windows_wheels:
