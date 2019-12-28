@@ -87,7 +87,7 @@ test_kivy_install() {
   plugins = kivy.tools.coverage
 
 EOF
-  KIVY_NO_ARGS=1 python3 -m pytest .
+  SDL_VIDEODRIVER=dummy KIVY_NO_ARGS=1 python3 -m pytest .
 }
 
 upload_coveralls() {
