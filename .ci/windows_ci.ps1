@@ -87,7 +87,7 @@ function Install-kivy-wheel {
 
     $version=python -c "import sys; print('{}{}'.format(sys.version_info.major, sys.version_info.minor))"
     $kivy_fname=(ls $root/dist/Kivy-*$version*win_amd64*.whl | Sort-Object -property @{Expression={$_.name.tostring().Length}} | Select-Object -First 1).name
-    $kivy_examples_fname=(ls $root/dist/Kivy_examples-*.whl).name
+    $kivy_examples_fname=(ls $root/dist/Kivy_examples-*.whl | Sort-Object -property @{Expression={$_.name.tostring().Length}} | Select-Object -First 1).name
     python -m pip install "$root/dist/$kivy_fname[full,dev]" "$root/dist/$kivy_examples_fname"
 }
 
