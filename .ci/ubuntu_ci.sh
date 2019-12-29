@@ -56,9 +56,10 @@ install_kivy() {
 install_kivy_manylinux_wheel() {
   root="$(pwd)"
   python3 -m pip install cython
-  python3 setup.py install --build_examples
-  python3 -m pip uninstall cython -y
+  python setup.py bdist_wheel --build_examples --universal
   cd ~
+  python3 -m pip install $(ls $root/dist/Kivy_examples-*.whl)
+  python3 -m pip uninstall cython -y
 
   version=$(python3 -c "import sys; print('{}{}'.format(sys.version_info.major, sys.version_info.minor))")
   kivy_fname=$(ls $root/dist/Kivy-*$version*.whl | awk '{ print length, $0 }' | sort -n -s | cut -d" " -f2- | head -n1)
