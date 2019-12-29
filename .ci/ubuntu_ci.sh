@@ -30,7 +30,7 @@ install_kivy_test_run_pip_deps() {
     "from kivy.tools.packaging.cython_cfg import get_cython_versions; print(get_cython_versions()[0])" \
     --config "kivy:log_level:error"
   )
-  python3 -m pip install -I "$CYTHON_INSTALL" coveralls
+  python3 -m pip install -I "$CYTHON_INSTALL" coveralls twine
 }
 
 install_kivy_test_wheel_run_pip_deps() {
@@ -127,6 +127,8 @@ upload_docs_to_server() {
 
 generate_manylinux2010_wheels() {
   image=$1
+
+  python3 -m pip install twine
 
   mkdir dist
   chmod +x .ci/build-wheels-linux.sh
