@@ -62,7 +62,7 @@ function Install-kivy-test-run-win-deps {
 function Install-kivy-test-run-pip-deps {
     python -m pip install pip wheel setuptools --upgrade
     # workaround for https://github.com/pyinstaller/pyinstaller/issues/4265 until next release
-    python -m pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip
+    python -m pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip twine
 }
 
 function Install-kivy {

@@ -75,10 +75,11 @@ jobs:
         path: dist
     - name: Publish to PyPI
       if: github.event_name == 'create' && github.event.ref_type == 'tag'
-      uses: pypa/gh-action-pypi-publish@master
-      with:
-        user: __token__
-        password: ${{ secrets.pypi_password }}
+      env:
+        TWINE_USERNAME: "__token__"
+        TWINE_PASSWORD: ${{ secrets.pypi_password }}
+      run: |
+        twine upload --non-interactive dist/*
     - name: Upload to GitHub Release
       uses: softprops/action-gh-release@78c309ef59fdb9557cd6574f2e0be552936ed728
       if: startsWith(github.ref, 'refs/tags/')
