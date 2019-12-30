@@ -44,7 +44,7 @@ LooseVersion.__eq__ = ver_equal
 
 def get_description():
     with open(join(dirname(__file__), 'README.md'), 'rb') as fileh:
-        return fileh.read().decode("utf8")
+        return fileh.read().decode("utf8").replace('\r\n', '\n')
 
 
 def get_version(filename='kivy/version.py'):
