@@ -84,7 +84,7 @@ jobs:
       uses: softprops/action-gh-release@78c309ef59fdb9557cd6574f2e0be552936ed728
       if: startsWith(github.ref, 'refs/tags/')
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.github_release }}
       with:
         files: dist/*
         draft: true
@@ -165,7 +165,7 @@ jobs:
         uses: softprops/action-gh-release@78c309ef59fdb9557cd6574f2e0be552936ed728
         if: startsWith(github.ref, 'refs/tags/')
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.github_release }}
         with:
           files: app/*
           draft: true
