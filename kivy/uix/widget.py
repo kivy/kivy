@@ -1152,23 +1152,6 @@ class Widget(WidgetBase):
     '''Class of the widget, used for styling.
     '''
 
-    id = StringProperty(None, allownone=True, deprecated=True)
-    '''Identifier of the widget in the tree.
-
-    :attr:`id` is a :class:`~kivy.properties.StringProperty` and defaults to
-    None.
-
-    .. note::
-
-        The :attr:`id` is not the same as ``id`` in the kv language. For the
-        latter, see :attr:`ids` and :ref:`Kivy Language: ids <kv-lang-ids>`.
-
-    .. warning::
-
-        The :attr:`id` property has been deprecated and will be removed
-        completely in future versions.
-    '''
-
     children = ListProperty([])
     '''List of children of this widget.
 
