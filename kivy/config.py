@@ -481,9 +481,6 @@ class ConfigParser(PythonConfigParser, object):
         if not isinstance(value, string_types):
             # might be boolean, int, etc.
             e_value = str(value)
-        if PY2:
-            if isinstance(value, unicode):
-                e_value = value.encode('utf-8')
         ret = PythonConfigParser.set(self, section, option, e_value)
         self._do_callbacks(section, option, value)
         return ret

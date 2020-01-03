@@ -71,5 +71,4 @@ class FBOPy2Py3TestCase(GraphicUnitTest):
 
 
 if __name__ == '__main__':
-    import unittest
     unittest.main()

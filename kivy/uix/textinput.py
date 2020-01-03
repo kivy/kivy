@@ -1929,39 +1929,39 @@ class TextInput(FocusBehavior, Widget):
 
     def _insert_lines(self, start, finish, len_lines, _lines_flags,
                       _lines, _lines_labels, _line_rects):
-            self_lines_flags = self._lines_flags
-            _lins_flags = []
-            _lins_flags.extend(self_lines_flags[:start])
-            if len_lines:
-                # if not inserting at first line then
-                if start:
-                    # make sure line flags restored for first line
-                    # _split_smart assumes first line to be not a new line
-                    _lines_flags[0] = self_lines_flags[start]
-                _lins_flags.extend(_lines_flags)
-            _lins_flags.extend(self_lines_flags[finish:])
-            self._lines_flags = _lins_flags
+        self_lines_flags = self._lines_flags
+        _lins_flags = []
+        _lins_flags.extend(self_lines_flags[:start])
+        if len_lines:
+            # if not inserting at first line then
+            if start:
+                # make sure line flags restored for first line
+                # _split_smart assumes first line to be not a new line
+                _lines_flags[0] = self_lines_flags[start]
+            _lins_flags.extend(_lines_flags)
+        _lins_flags.extend(self_lines_flags[finish:])
+        self._lines_flags = _lins_flags
 
-            _lins_lbls = []
-            _lins_lbls.extend(self._lines_labels[:start])
-            if len_lines:
-                _lins_lbls.extend(_lines_labels)
-            _lins_lbls.extend(self._lines_labels[finish:])
-            self._lines_labels = _lins_lbls
+        _lins_lbls = []
+        _lins_lbls.extend(self._lines_labels[:start])
+        if len_lines:
+            _lins_lbls.extend(_lines_labels)
+        _lins_lbls.extend(self._lines_labels[finish:])
+        self._lines_labels = _lins_lbls
 
-            _lins_rcts = []
-            _lins_rcts.extend(self._lines_rects[:start])
-            if len_lines:
-                _lins_rcts.extend(_line_rects)
-            _lins_rcts.extend(self._lines_rects[finish:])
-            self._lines_rects = _lins_rcts
+        _lins_rcts = []
+        _lins_rcts.extend(self._lines_rects[:start])
+        if len_lines:
+            _lins_rcts.extend(_line_rects)
+        _lins_rcts.extend(self._lines_rects[finish:])
+        self._lines_rects = _lins_rcts
 
-            _lins = []
-            _lins.extend(self._lines[:start])
-            if len_lines:
-                _lins.extend(_lines)
-            _lins.extend(self._lines[finish:])
-            self._lines = _lins
+        _lins = []
+        _lins.extend(self._lines[:start])
+        if len_lines:
+            _lins.extend(_lines)
+        _lins.extend(self._lines[finish:])
+        self._lines = _lins
 
     def _trigger_update_graphics(self, *largs):
         self._update_graphics_ev.cancel()

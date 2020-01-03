@@ -3,7 +3,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scatter import Scatter
 from kivy.uix.popup import Popup
 from kivy.properties import ObjectProperty, StringProperty
-from kivy.graphics import Color, Point
+from kivy.graphics import Color, Point, GraphicException
 
 from math import sqrt
 from os import walk

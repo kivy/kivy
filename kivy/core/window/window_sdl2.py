@@ -13,13 +13,13 @@ TODO:
 
 '''
 
-__all__ = ('WindowSDL2', )
+__all__ = ('WindowSDL', )
 
 from os.path import join
 import sys
 from kivy import kivy_data_dir
 from kivy.logger import Logger
-from kivy.base import EventLoop, ExceptionManager, stopTouchApp
+from kivy.base import EventLoop
 from kivy.clock import Clock
 from kivy.config import Config
 from kivy.core.window import WindowBase

@@ -1184,7 +1184,7 @@ class ScreenManager(FloatLayout):
             if self.transition.is_active and \
                 (child == self.transition.screen_in or
                  child == self.transition.screen_out):
-                    continue
+                continue
             child.pos = value
 
     def on_touch_down(self, touch):

@@ -698,7 +698,7 @@ class ParserSelector(object):
         self.key = key.lower()
 
     def match(self, widget):
-        raise NotImplemented()
+        raise NotImplementedError
 
     def __repr__(self):
         return '<%s key=%s>' % (self.__class__.__name__, self.key)

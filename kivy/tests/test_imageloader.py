@@ -477,7 +477,6 @@ class ConverterTestCase(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    import sys
     accept_filter = ['ImageLoader{}'.format(x) for x in sys.argv[1:]]
     if accept_filter:
         LOADERS = {x: LOADERS[x] for x in accept_filter}
