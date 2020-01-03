@@ -41,8 +41,8 @@ lang_str = re.compile(
     '(?:""".*?""")|'
     '(?:(?:(?<!")|""")"(?:[^"]|\\\\")+?"(?:(?!")|""")))', re.DOTALL)
 lang_key = re.compile('([a-zA-Z_]+)')
-lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
-lang_tr = re.compile('(_\()')
+lang_keyvalue = re.compile(r'([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
+lang_tr = re.compile(r'(_\()')
 lang_cls_split_pat = re.compile(', *')
 
 # all the widget handlers, used to correctly unbind all the callbacks then the

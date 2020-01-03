@@ -54,12 +54,12 @@ def parse_color(text):
     '''
     value = [1, 1, 1, 1]
     if text.startswith('rgb'):
-        res = re.match('rgba?\((.*)\)', text)
+        res = re.match(r'rgba?\((.*)\)', text)
         if res:
             try:
                 # default r/g/b values to 1 if greater than 255 else x/255
                 value = [1 if int(x) > 255. else (int(x) / 255.)
-                         for x in re.split(',\ ?', res.groups()[0])]
+                         for x in re.split(', ?', res.groups()[0])]
                 if len(value) < 3:
                     # in case of invalid input like rgb()/rgb(r)/rgb(r, g)
                     raise ValueError

@@ -75,7 +75,7 @@ def strtotuple(s):
 
     '''
     # security
-    if not match('^[,.0-9 ()\[\]]*$', s):
+    if not match(r'^[,.0-9 ()\[\]]*$', s):
         raise Exception('Invalid characters in string for tuple conversion')
     # fast syntax check
     if s.count('(') != s.count(')'):

@@ -667,7 +667,7 @@ class TextInput(FocusBehavior, Widget):
         '''
         self.select_text(0, len(self.text))
 
-    re_indent = re.compile('^(\s*|)')
+    re_indent = re.compile(r'^(\s*|)')
 
     def _auto_indent(self, substring):
         index = self.cursor_index()
@@ -3148,7 +3148,7 @@ class TextInput(FocusBehavior, Widget):
     '''Font size of the text in pixels.
 
     :attr:`font_size` is a :class:`~kivy.properties.NumericProperty` and
-    defaults to 15\ :attr:`~kivy.metrics.sp`.
+    defaults to 15 :attr:`~kivy.metrics.sp`.
     '''
 
     font_context = StringProperty(None, allownone=True)
