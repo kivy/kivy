@@ -14,7 +14,7 @@ env:
   KIVY_GL_BACKEND: 'angle_sdl2'
 
 jobs:
-  windows_wheels:
+  windows_wheels_create:
     runs-on: windows-latest
     strategy:
       matrix:
@@ -46,46 +46,15 @@ jobs:
       run: |
         . .\.ci\windows_ci.ps1
         Generate-windows-wheels
-    - name: Fix wheel names
-      if: github.event.ref_type != 'tag'
-      run: |
-        . .\.ci\windows_ci.ps1
-        Rename-windows-wheels
-    - name: Install MSYS2
-      run: choco install msys2
-    - name: Upload wheels to server
-      if: github.event_name != 'pull_request'
-      env:
-        UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
-        MSYSTEM: MINGW64
-        CHERE_INVOKING: 1
-      run: |
-        . .\.ci\windows_ci.ps1
-        Upload-windows-wheels-to-server -ip "$env:SERVER_IP"
     - name: Upload wheels as artifact
       uses: actions/upload-artifact@master
       with:
         name: windows_wheels
         path: dist
-    - name: Publish to PyPI
-      if: github.event_name == 'create' && github.event.ref_type == 'tag'
-      env:
-        TWINE_USERNAME: "__token__"
-        TWINE_PASSWORD: ${{ secrets.pypi_password }}
-      run: |
-        twine upload dist/*
-    - name: Upload to GitHub Release
-      uses: softprops/action-gh-release@78c309ef59fdb9557cd6574f2e0be552936ed728
-      if: startsWith(github.ref, 'refs/tags/')
-      env:
-        GITHUB_TOKEN: ${{ secrets.github_release }}
-      with:
-        files: dist/*
-        draft: true
 
-  windows_wheel_test:
+  windows_wheel_upload_test:
     runs-on: windows-latest
-    needs: windows_wheels
+    needs: windows_wheels_create
     steps:
       - uses: actions/checkout@v1
       - name: Set up Python
@@ -95,9 +64,41 @@ jobs:
       - uses: actions/download-artifact@v1
         with:
           name: windows_wheels
+      - name: Fix wheel path
+        run: mv windows_wheels dist
+      - name: Fix wheel names
+        if: github.event.ref_type != 'tag'
+        run: |
+          . .\.ci\windows_ci.ps1
+          Rename-windows-wheels
+      - name: Install MSYS2
+        run: choco install msys2
+      - name: Upload wheels to server
+        if: github.event_name != 'pull_request'
+        env:
+          UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
+          MSYSTEM: MINGW64
+          CHERE_INVOKING: 1
+        run: |
+          . .\.ci\windows_ci.ps1
+          Upload-windows-wheels-to-server -ip "$env:SERVER_IP"
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@78c309ef59fdb9557cd6574f2e0be552936ed728
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.github_release }}
+        with:
+          files: dist/*
+          draft: true
+      - name: Publish to PyPI
+        if: github.event_name == 'create' && github.event.ref_type == 'tag'
+        env:
+          TWINE_USERNAME: "__token__"
+          TWINE_PASSWORD: ${{ secrets.pypi_password }}
+        run: |
+          twine upload dist/*
       - name: Install Kivy Wheel
         run: |
-          mv windows_wheels dist
           . .\.ci\windows_ci.ps1
           Install-kivy-wheel
       - name: Test Kivy Wheel
@@ -107,7 +108,7 @@ jobs:
 
   windows_sdist_test:
     runs-on: windows-latest
-    needs: windows_wheels
+    needs: windows_wheels_create
     steps:
       - uses: actions/checkout@v1
       - name: Set up Python
@@ -117,11 +118,12 @@ jobs:
       - uses: actions/download-artifact@v1
         with:
           name: windows_wheels
+      - name: Fix wheel path
+        run: mv windows_wheels dist
       - name: Install Kivy sdist
         env:
           KIVY_SPLIT_EXAMPLES: 0
         run: |
-          mv windows_wheels dist
           . .\.ci\windows_ci.ps1
           Install-kivy-sdist
       - name: Test Kivy sdist
