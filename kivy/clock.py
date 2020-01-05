@@ -408,7 +408,7 @@ try:
 
         _kernel32 = ctypes.windll.kernel32
 
-        def _get_sleep_obj():  # noqa
+        def _get_sleep_obj():  # noqa: F811
             return _kernel32.CreateWaitableTimerA(None, True, None)
 
         def _usleep(microseconds, obj=None):
@@ -460,7 +460,7 @@ try:
 
                 return _time
 
-            _default_time = _libc_clock_gettime_wrapper()  # noqa
+            _default_time = _libc_clock_gettime_wrapper()  # noqa: F811
 
         _libc.usleep.argtypes = [ctypes.c_ulong]
         _libc_usleep = _libc.usleep

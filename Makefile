@@ -1,5 +1,5 @@
 PYTHON = python
-CHECKSCRIPT = -m flake8 --count --ignore=E125,E126,E127,E128,E402,E741,E731,W503,F401,W504,F841,E722 --show-source --statistics --max-line-length=80 --exclude=__pycache__,.tox,.git/,doc/,build/,.eggs/
+CHECKSCRIPT = -m flake8
 KIVY_DIR = kivy/
 PYTEST = $(PYTHON) -m pytest
 KIVY_USE_DEFAULTCONFIG = 1
