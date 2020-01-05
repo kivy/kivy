@@ -38,13 +38,6 @@ class LabelPygame(LabelBase):
         super(LabelPygame, self).__init__(*largs, **kwargs)
 
     def _get_font_id(self):
-        if PY2:
-            try:
-                return '|'.join([unicode(self.options[x]) for x in
-                                 ('font_size', 'font_name_r',
-                                  'bold', 'italic')])
-            except UnicodeDecodeError:
-                pass
         return '|'.join([str(self.options[x]) for x in
                          ('font_size', 'font_name_r', 'bold', 'italic')])
 

@@ -3,11 +3,7 @@
 import unittest
 from kivy.compat import PY2
 from kivy import platform
-
-if PY2:
-    unicode_char = unichr
-else:
-    unicode_char = chr
+unicode_char = chr
 
 
 class FileChooserUnicodeTestCase(unittest.TestCase):

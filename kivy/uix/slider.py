@@ -75,7 +75,7 @@ class Slider(Widget):
     slider bounding box.
 
     By default, padding is 16sp. The range of the slider is reduced from
-    padding \*2 on the screen. It allows drawing the default cursor of 32sp
+    padding \\*2 on the screen. It allows drawing the default cursor of 32sp
     width without having the cursor go out of the widget.
 
     :attr:`padding` is a :class:`~kivy.properties.NumericProperty` and defaults

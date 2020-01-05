@@ -453,7 +453,7 @@ class KNSpaceBehavior(object):
             fbind = parent.fbind
 
             parent_knspace = getattr(parent, 'knspace', 0)
-            if parent_knspace is not 0:
+            if parent_knspace != 0:
                 append((parent, 'knspace', fbind('knspace', clear)))
                 self.__last_knspace = parent_knspace
                 return parent_knspace

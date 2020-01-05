@@ -119,7 +119,7 @@ class MarkupLabel(MarkupLabelBase):
             >>> ('[b]', 'Hello world', '[/b]')
 
         '''
-        s = re.split('(\[.*?\])', self.label)
+        s = re.split(r'(\[.*?\])', self.label)
         s = [x for x in s if x != '']
         return s
 

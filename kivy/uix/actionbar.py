@@ -772,7 +772,7 @@ class ActionBar(BoxLayout):
     '''
     ActionBar class, which acts as the main container for an
     :class:`ActionView` instance. The ActionBar determines the overall
-    styling aspects of the bar. :class:`ActionItem`\s are not added to
+    styling aspects of the bar. :class:`ActionItem`\\s are not added to
     this class directly, but to the contained :class:`ActionView` instance.
 
     :Events:

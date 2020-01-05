@@ -103,6 +103,7 @@ upload_coveralls() {
 }
 
 validate_pep8() {
+  python3 -m pip install flake8
   make style
 }
 

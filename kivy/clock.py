@@ -50,7 +50,7 @@ to write a short function that does accept dt. For Example::
 .. note::
 
     You cannot unschedule an anonymous function unless you keep a
-    reference to it. It's better to add \*args to your function
+    reference to it. It's better to add \\*args to your function
     definition so that it can be called with an arbitrary number of
     parameters.
 
@@ -408,7 +408,7 @@ try:
 
         _kernel32 = ctypes.windll.kernel32
 
-        def _get_sleep_obj():
+        def _get_sleep_obj():  # noqa: F811
             return _kernel32.CreateWaitableTimerA(None, True, None)
 
         def _usleep(microseconds, obj=None):
@@ -460,7 +460,7 @@ try:
 
                 return _time
 
-            _default_time = _libc_clock_gettime_wrapper()
+            _default_time = _libc_clock_gettime_wrapper()  # noqa: F811
 
         _libc.usleep.argtypes = [ctypes.c_ulong]
         _libc_usleep = _libc.usleep

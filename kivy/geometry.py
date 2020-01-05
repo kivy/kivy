@@ -55,7 +55,7 @@ def minimum_bounding_circle(points):
     For a description of the problem being solved, see the `Smallest Circle
     Problem <http://en.wikipedia.org/wiki/Smallest_circle_problem>`_.
 
-    The function uses Applet's Algorithm, the runtime is O\(h^3, \*n\),
+    The function uses Applet's Algorithm, the runtime is ``O(h^3, *n)``,
     where h is the number of points in the convex hull of the set of points.
     **But** it runs in linear time in almost all real world cases.
     See: http://tinyurl.com/6e4n5yb

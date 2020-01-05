@@ -1,5 +1,5 @@
 PYTHON = python
-CHECKSCRIPT = kivy/tools/pep8checker/pep8kivy.py
+CHECKSCRIPT = -m flake8
 KIVY_DIR = kivy/
 PYTEST = $(PYTHON) -m pytest
 KIVY_USE_DEFAULTCONFIG = 1

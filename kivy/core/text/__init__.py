@@ -784,18 +784,7 @@ class LabelBase(object):
             texture.ask_update(self._texture_fill)
 
     def _get_text(self):
-        if PY2:
-            try:
-                if isinstance(self._text, unicode):
-                    return self._text
-                return self._text.decode('utf8')
-            except AttributeError:
-                # python 3 support
-                return str(self._text)
-            except UnicodeDecodeError:
-                return self._text
-        else:
-            return self._text
+        return self._text
 
     def _set_text(self, text):
         if text != self._text:

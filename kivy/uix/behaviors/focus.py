@@ -460,7 +460,7 @@ class FocusBehavior(object):
 
     def _get_focus_next(self, focus_dir):
         current = self
-        walk_tree = 'walk' if focus_dir is 'focus_next' else 'walk_reverse'
+        walk_tree = 'walk' if focus_dir == 'focus_next' else 'walk_reverse'
 
         while 1:
             # if we hit a focusable, walk through focus_xxx
@@ -473,7 +473,7 @@ class FocusBehavior(object):
 
             # hit unfocusable, walk widget tree
             itr = getattr(current, walk_tree)(loopback=True)
-            if focus_dir is 'focus_next':
+            if focus_dir == 'focus_next':
                 next(itr)  # current is returned first  when walking forward
             for current in itr:
                 if isinstance(current, FocusBehavior):
