@@ -341,8 +341,6 @@ class ParserRule(object):
 
                 if rule[0] == '.':
                     crule = ParserSelectorClass(rule[1:])
-                elif rule[0] == '#':
-                    crule = ParserSelectorId(rule[1:])
                 else:
                     crule = ParserSelectorName(rule)
 
@@ -702,13 +700,6 @@ class ParserSelector(object):
 
     def __repr__(self):
         return '<%s key=%s>' % (self.__class__.__name__, self.key)
-
-
-class ParserSelectorId(ParserSelector):
-
-    def match(self, widget):
-        if widget.id:
-            return widget.id.lower() == self.key
 
 
 class ParserSelectorClass(ParserSelector):
