@@ -95,14 +95,6 @@ generate_armv7l_wheels() {
   docker cp "$(docker create kivy/kivy-armv7l)":/kivy-wheel .
   cp kivy-wheel/Kivy-* dist/
 
-  # Rename the special wheels for the Raspberry Pi 1-3
-  if [ "$#" -gt 1 ]; then
-    for name in dist/*.whl; do
-      new_name="${name/-cp/.rpi123-cp}"
-      mv -n "$name" "$new_name"
-    done
-  fi
-
   # Create a copy with the armv6l suffix
   for name in dist/*.whl; do
     new_name="${name/armv7l/armv6l}"
@@ -119,12 +111,12 @@ rename_wheels() {
     -c "import kivy; _, tag, n = kivy.parse_kivy_version(kivy.__version__); print(tag + n) if n is not None else print(tag or 'something')" \
     --config "kivy:log_level:error")
   echo "tag_name=$tag_name"
-  wheel_name="$tag_name.$wheel_date.$git_tag"
+  wheel_name="$tag_name.$wheel_date.$git_tag-"
   echo "wheel_name=$wheel_name"
 
   ls dist/
   for name in dist/*.whl; do
-    new_name="${name/$tag_name/$wheel_name}"
+    new_name="${name/$tag_name-/$wheel_name}"
     if [ ! -f "$new_name" ]; then
       cp -n "$name" "$new_name"
     fi

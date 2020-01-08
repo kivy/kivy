@@ -205,7 +205,7 @@ if kivy_ios_root is not None:
 if exists('/opt/vc/include/bcm_host.h'):
     # The proprietary broadcom video core drivers are not available on the
     # Raspberry Pi 4
-    if pi_version() != 4:
+    if (pi_version() or 4) < 4:
         platform = 'rpi'
 # use mesa video core drivers
 if environ.get('VIDEOCOREMESA', None) == '1':

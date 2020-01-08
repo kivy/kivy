@@ -4,7 +4,7 @@ Installation on Raspberry Pi
 ============================
 
 Raspberry Pi 4 headless installation on Raspbian Buster
-------------------------------------------------
+-------------------------------------------------------
 
 #. If you have installed Raspbian with a desktop i.e. if you Raspberry Pi boot into a desktop environment, then you can skip to `Raspberry Pi 1-4 installation`_.
 
@@ -80,7 +80,7 @@ Raspberry Pi 4 headless installation on Raspbian Buster
 #. Now simply follow the `Raspberry Pi 1-4 installation`_ instructions to install Kivy.
 
 _`Raspberry Pi 1-4 installation` on Raspbian Jessie/Stretch/Buster
-------------------------------------------------
+------------------------------------------------------------------
 
 #. Install the dependencies::
 
@@ -125,19 +125,19 @@ _`Raspberry Pi 1-4 installation` on Raspbian Jessie/Stretch/Buster
     # or to recompile all files
     make force
 
-   It is also possible to use a precompiled wheel. The precompiled wheel can be downloaded from the latest `release <https://github.com/kivy/kivy/releases>`_. A wheel is also automatically build daily and can be downloaded here: `<https://kivy.org/downloads/ci/raspberrypi/kivy>`_. Note that the wheel for the Raspberry Pi 1-3 has `rpi123` in the filename and will only work on those devices, as it uses proprietary Broadcom drivers.
+   It is also possible to use a precompiled wheel. The precompiled wheel can be downloaded from the latest `release <https://github.com/kivy/kivy/releases>`_. A wheel is also automatically build daily and can be downloaded here: `<https://kivy.org/downloads/ci/raspberrypi/kivy>`_.
 
    First install the wheel dependency::
 
     python3 -m pip install --upgrade --user wheel
 
-   On a Raspberry Pi 1-3 you need the `rpi123` wheel::
+   Now simply install the wheel::
 
-    python3 -m pip install --user Kivy-2.0.0.dev0.rpi123-*-linux_armv7l.whl
+    python3 -m pip install --user *armv7l.whl
 
-   On a Raspberry Pi 4 you need the wheel **WITHOUT** the `rpi123` included in the name::
+   It is also possible to install the latest development version like so::
 
-    python3 -m pip install --user Kivy-2.0.0.dev0-*-linux_armv7l.whl
+    python3 -m pip install --pre --user --extra-index-url https://kivy.org/downloads/simple kivy[base]
 
 .. note::
 
