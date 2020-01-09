@@ -10,8 +10,7 @@ per application: please don't try to create more than one.
 
 __all__ = ('Keyboard', 'WindowBase', 'Window')
 
-import re
-from os.path import join, exists, isfile
+from os.path import join, exists
 from os import getcwd
 
 from kivy.core import core_select_lib
@@ -23,7 +22,7 @@ from kivy.modules import Modules
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
     NumericProperty, OptionProperty, StringProperty, BooleanProperty
-from kivy.utils import platform, reify, deprecated
+from kivy.utils import platform, reify, deprecated, pi_version
 from kivy.context import get_current_context
 from kivy.uix.behaviors import FocusBehavior
 from kivy.setupconfig import USE_SDL2
@@ -2060,62 +2059,9 @@ class WindowBase(EventDispatcher):
         pass
 
 
-def pi_version():
-    """Detect the version of the Raspberry Pi by reading the revision field
-    value from '/proc/cpuinfo'.
-    See: https://www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
-    Based on: https://github.com/adafruit/Adafruit_Python_GPIO/blob/master/Adafruit_GPIO/Platform.py
-    """  # noqa
-    # Check if file exist
-    if not isfile('/proc/cpuinfo'):
-        return None
-
-    with open('/proc/cpuinfo', 'r') as f:
-        cpuinfo = f.read()
-
-    # Match a line like 'Revision   : a01041'
-    revision = re.search(r'^Revision\s+:\s+(\w+)$', cpuinfo,
-                         flags=re.MULTILINE | re.IGNORECASE)
-    if not revision:
-        # Couldn't find the hardware revision, assume it is not a Pi
-        return None
-
-    # Determine the Pi version using the processor bits using the new-style
-    # revision format
-    revision = revision.group(1)
-    if int(revision, base=16) & 0x800000:
-        version = ((int(revision, base=16) & 0xF000) >> 12) + 1
-        print('Raspberry Pi revision: {}'.format(version))
-        return version
-
-    # Only look a the last five characters, as the first one changes if the
-    # warranty bit is set
-    revision = revision[-5:]
-    if revision in {'0002', '0003', '0004', '0005', '0006', '0007', '0008',
-                    '0009', '000d', '000e', '000f', '0010', '0012', '0013',
-                    '0015', ' 900032'}:
-        print('Raspberry Pi 1')
-        return 1
-    elif revision in {'01041', '21041', '22042'}:
-        print('Raspberry Pi 2')
-        return 2
-    elif revision in {'02082', '22082', '32082', '220a0', '02082', '020a0'}:
-        print('Raspberry Pi 3, CM3')
-        return 3
-    elif revision in {'02100'}:
-        print('Raspberry CM3+')
-        return 3
-    elif revision in {'03111'}:
-        print('Raspberry Pi 4')
-        return 4
-    else:
-        print('Not a Raspberry Pi: {}'.format(revision))
-        return None
-
-
 #: Instance of a :class:`WindowBase` implementation
 window_impl = []
-if platform == 'linux' and (pi_version() or 4) < 4:
+if platform == 'linux' and (pi_version or 4) < 4:
     window_impl += [('egl_rpi', 'window_egl_rpi', 'WindowEglRpi')]
 if USE_SDL2:
     window_impl += [('sdl2', 'window_sdl2', 'WindowSDL')]
