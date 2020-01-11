@@ -146,6 +146,30 @@ _`Raspberry Pi 1-4 installation` on Raspbian Jessie/Stretch/Buster
     this issue, please upgrade or consult `ticket #5360.
     <https://github.com/kivy/kivy/issues/5360>`_
 
+Raspberry Pi window provider and GL backend
+-------------------------------------------
+
+By default the Raspberry Pi 1-3 will use the ``egl_rpi`` window provider and the ``gl`` GL backend.
+
+Since the ``egl_rpi`` window provider is not available on the Raspberry Pi 4 it uses the ``sdl2`` window provider and the ``sdl2`` GL backend by default.
+
+The window provider and GL backend can be changed at runtime by setting the `KIVY_WINDOW`_ and `KIVY_GL_BACKEND`_ environmental variables.
+
+The table below shows the supported combinations of window provider and GL backend on the 4 platforms:
+
++------------------------------------+-----------------------------------+-------+-------+-------+-------+
+| Window provider (`KIVY_WINDOW`_\=) | GL backend (`KIVY_GL_BACKEND`_\=) | RPi 1 | RPi 2 | RPi 3 | RPi 4 |
++====================================+===================================+=======+=======+=======+=======+
+| sdl2                               | sdl2/gl                           | y     | y     | y     | y     |
++------------------------------------+-----------------------------------+-------+-------+-------+-------+
+| x11                                | gl                                | y     | y     | y     | y     |
++------------------------------------+-----------------------------------+-------+-------+-------+-------+
+| egl_rpi                            | gl                                | y     | y     | y     | n     |
++------------------------------------+-----------------------------------+-------+-------+-------+-------+
+
+.. _KIVY_WINDOW: https://kivy.org/doc/stable/guide/environment.html#restrict-core-to-specific-implementation
+.. _KIVY_GL_BACKEND: https://kivy.org/doc/stable/guide/environment.html#restrict-core-to-specific-implementation
+
 Installation on Raspbian Wheezy
 ----------------------------------------
 
