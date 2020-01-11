@@ -22,7 +22,7 @@ from kivy.modules import Modules
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
     NumericProperty, OptionProperty, StringProperty, BooleanProperty
-from kivy.utils import platform, reify, deprecated
+from kivy.utils import platform, reify, deprecated, pi_version
 from kivy.context import get_current_context
 from kivy.uix.behaviors import FocusBehavior
 from kivy.setupconfig import USE_SDL2
@@ -2061,7 +2061,7 @@ class WindowBase(EventDispatcher):
 
 #: Instance of a :class:`WindowBase` implementation
 window_impl = []
-if platform == 'linux':
+if platform == 'linux' and (pi_version or 4) < 4:
     window_impl += [('egl_rpi', 'window_egl_rpi', 'WindowEglRpi')]
 if USE_SDL2:
     window_impl += [('sdl2', 'window_sdl2', 'WindowSDL')]

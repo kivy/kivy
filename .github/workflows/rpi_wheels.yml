@@ -9,6 +9,8 @@ on:
 
 env:
   SERVER_IP: '159.203.106.198'
+  KIVY_CROSS_PLATFORM: 'rpi'
+  KIVY_CROSS_SYSROOT: '/rpi-firmware'
 
 jobs:
   raspberrypi:
@@ -22,7 +24,7 @@ jobs:
     - name: Make ${{ matrix.docker_images }} wheel
       run: |
         source .ci/ubuntu_ci.sh
-        generate_armv7l_wheels ${{ matrix.docker_images }}
+        generate_armv7l_wheels ${{ matrix.docker_images }} "$KIVY_CROSS_PLATFORM" "$KIVY_CROSS_SYSROOT"
     - name: Rename wheels
       if: github.event.ref_type != 'tag'
       run: |

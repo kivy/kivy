@@ -4,7 +4,7 @@ Installation on Raspberry Pi
 ============================
 
 Raspberry Pi 4 headless installation on Raspbian Buster
-------------------------------------------------
+-------------------------------------------------------
 
 #. If you have installed Raspbian with a desktop i.e. if you Raspberry Pi boot into a desktop environment, then you can skip to `Raspberry Pi 1-4 installation`_.
 
@@ -80,7 +80,7 @@ Raspberry Pi 4 headless installation on Raspbian Buster
 #. Now simply follow the `Raspberry Pi 1-4 installation`_ instructions to install Kivy.
 
 _`Raspberry Pi 1-4 installation` on Raspbian Jessie/Stretch/Buster
-------------------------------------------------
+------------------------------------------------------------------
 
 #. Install the dependencies::
 
@@ -125,12 +125,19 @@ _`Raspberry Pi 1-4 installation` on Raspbian Jessie/Stretch/Buster
     # or to recompile all files
     make force
 
-   Or on a Raspberry Pi 4 it is possible to use a precompiled wheel. The precompiled wheel can be downloaded from the latest `release <https://github.com/kivy/kivy/releases>`_. A wheel is also automatically build daily and can be downloaded here: `<https://kivy.org/downloads/ci/raspberrypi/kivy>`_.
+   It is also possible to use a precompiled wheel. The precompiled wheel can be downloaded from the latest `release <https://github.com/kivy/kivy/releases>`_. A wheel is also automatically build daily and can be downloaded here: `<https://kivy.org/downloads/ci/raspberrypi/kivy>`_.
 
-   The wheel can be installed as follows::
+   First install the wheel dependency::
 
     python3 -m pip install --upgrade --user wheel
+
+   Now simply install the wheel::
+
     python3 -m pip install --user *armv7l.whl
+
+   It is also possible to install the latest development version like so::
+
+    python3 -m pip install --pre --user --extra-index-url https://kivy.org/downloads/simple kivy[base]
 
 .. note::
 
@@ -138,6 +145,30 @@ _`Raspberry Pi 1-4 installation` on Raspbian Jessie/Stretch/Buster
     in "Unable to find any valuable Window provider" errors. If you experience
     this issue, please upgrade or consult `ticket #5360.
     <https://github.com/kivy/kivy/issues/5360>`_
+
+Raspberry Pi window provider and GL backend
+-------------------------------------------
+
+By default the Raspberry Pi 1-3 will use the ``egl_rpi`` window provider and the ``gl`` GL backend.
+
+Since the ``egl_rpi`` window provider is not available on the Raspberry Pi 4 it uses the ``sdl2`` window provider and the ``sdl2`` GL backend by default.
+
+The window provider and GL backend can be changed at runtime by setting the `KIVY_WINDOW`_ and `KIVY_GL_BACKEND`_ environmental variables.
+
+The table below shows the supported combinations of window provider and GL backend on the 4 platforms:
+
++------------------------------------+-----------------------------------+-------+-------+-------+-------+
+| Window provider (`KIVY_WINDOW`_\=) | GL backend (`KIVY_GL_BACKEND`_\=) | RPi 1 | RPi 2 | RPi 3 | RPi 4 |
++====================================+===================================+=======+=======+=======+=======+
+| sdl2                               | sdl2/gl                           | y     | y     | y     | y     |
++------------------------------------+-----------------------------------+-------+-------+-------+-------+
+| x11                                | gl                                | y     | y     | y     | y     |
++------------------------------------+-----------------------------------+-------+-------+-------+-------+
+| egl_rpi                            | gl                                | y     | y     | y     | n     |
++------------------------------------+-----------------------------------+-------+-------+-------+-------+
+
+.. _KIVY_WINDOW: https://kivy.org/doc/stable/guide/environment.html#restrict-core-to-specific-implementation
+.. _KIVY_GL_BACKEND: https://kivy.org/doc/stable/guide/environment.html#restrict-core-to-specific-implementation
 
 Installation on Raspbian Wheezy
 ----------------------------------------
