@@ -5,11 +5,14 @@ AudioAndroid: Kivy audio implementation for Android using native API
 __all__ = ("SoundAndroidPlayer", )
 
 from jnius import autoclass
+from android import api_version
 from kivy.core.audio import Sound, SoundLoader
 
 
 MediaPlayer = autoclass("android.media.MediaPlayer")
 AudioManager = autoclass("android.media.AudioManager")
+if api_version >= 21:
+    AudioAttributesBuilder = autoclass("android.media.AudioAttributes$Builder")
 
 
 class SoundAndroidPlayer(Sound):
@@ -25,7 +28,13 @@ class SoundAndroidPlayer(Sound):
     def load(self):
         self.unload()
         self._mediaplayer = MediaPlayer()
-        self._mediaplayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        if api_version >= 21:
+            self._mediaplayer.setAudioAttributes(
+                AudioAttributesBuilder()
+                .setLegacyStreamType(AudioManager.STREAM_MUSIC)
+                .build())
+        else:
+            self._mediaplayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
         self._mediaplayer.setDataSource(self.source)
         self._mediaplayer.prepare()
 
