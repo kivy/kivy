@@ -366,7 +366,7 @@ cdef class Svg(RenderContext):
     """Svg class. See module for more informations about the usage.
     """
 
-    def __init__(self, source, anchor_x=0, anchor_y=0,
+    def __init__(self, source=None, anchor_x=0, anchor_y=0,
                  bezier_points=BEZIER_POINTS, circle_points=CIRCLE_POINTS,
                  color=None):
         '''
@@ -420,7 +420,8 @@ cdef class Svg(RenderContext):
                 b"\xff\xff\xff\xff\xff\xff\xff\x00", colorfmt="rgba")
 
         self._source = None
-        self.source = source
+        if source:
+            self.source = source
 
 
     @property
@@ -510,13 +511,16 @@ cdef class Svg(RenderContext):
             fd = open(filename, 'rb')
         try:
             #save the tree for later reloading
-            self.tree = parse(fd)
-            self.reload()
+            self.set_tree(parse(fd))
             end = time()
             Logger.debug("Svg: Loaded {} in {:.2f}s".format(filename, end - start))
         finally:
             self._source = filename
             fd.close()
+
+    def set_tree(self, tree):
+        self.tree = tree
+        self.reload()
 
     cdef void reload(self) except *:
             # parse tree
