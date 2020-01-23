@@ -88,7 +88,6 @@ from kivy.clock import Clock
 from kivy.weakmethod import WeakMethod
 from kivy.logger import Logger
 from kivy.utils import platform
-import certifi
 
 
 # list to save UrlRequest and prevent GC on un-referenced objects
@@ -211,13 +210,18 @@ class UrlRequest(Thread):
         self._chunk_size = chunk_size
         self._timeout = timeout
         self._method = method
-        self.ca_file = ca_file if (platform != 'android') else (
-                ca_file or certifi.where())
         self.verify = verify
         self._proxy_host = proxy_host
         self._proxy_port = proxy_port
         self._proxy_headers = proxy_headers
         self._cancel_event = Event()
+
+        try:
+            assert platform == 'android'
+            import certifi
+            self.ca_file = ca_file or certifi.where()
+        except AssertionError as ok:
+            self.ca_file = ca_file
 
         #: Url of the request
         self.url = url
