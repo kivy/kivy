@@ -124,12 +124,9 @@ class LoaderBase(object):
         self._start_wanted = False
         self._trigger_update = Clock.create_trigger(self._update)
 
-        try:
-            assert platform == 'android'
+        if platform == 'android':
             import certifi
             environ['SSL_CERT_FILE'] = certifi.where()
-        except AssertionError as ok:
-            pass
 
     def __del__(self):
         if self._trigger_update is not None:
