@@ -87,6 +87,8 @@ except ImportError:
 from kivy.clock import Clock
 from kivy.weakmethod import WeakMethod
 from kivy.logger import Logger
+from kivy.utils import platform
+import certifi
 
 
 # list to save UrlRequest and prevent GC on un-referenced objects
@@ -209,7 +211,8 @@ class UrlRequest(Thread):
         self._chunk_size = chunk_size
         self._timeout = timeout
         self._method = method
-        self.ca_file = ca_file
+        self.ca_file = ca_file if (platform != 'android') else (
+                ca_file or certifi.where())
         self.verify = verify
         self._proxy_host = proxy_host
         self._proxy_port = proxy_port
