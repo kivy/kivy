@@ -216,11 +216,10 @@ class UrlRequest(Thread):
         self._proxy_headers = proxy_headers
         self._cancel_event = Event()
 
-        try:
-            assert platform == 'android'
+        if platform == 'android':
             import certifi
             self.ca_file = ca_file or certifi.where()
-        except AssertionError as ok:
+        else:
             self.ca_file = ca_file
 
         #: Url of the request
