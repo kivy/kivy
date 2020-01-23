@@ -50,7 +50,7 @@ from os.path import join
 from os import write, close, unlink, environ
 import threading
 import mimetypes
-import certifi
+
 
 # Register a cache for loader
 Cache.register('kv.loader', limit=500, timeout=60)
@@ -126,6 +126,7 @@ class LoaderBase(object):
 
         try:
             assert platform == 'android'
+            import certifi
             environ['SSL_CERT_FILE'] = certifi.where()
         except AssertionError as ok:
             pass
