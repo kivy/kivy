@@ -126,7 +126,7 @@ class LoaderBase(object):
 
         if platform == 'android':
             import certifi
-            environ['SSL_CERT_FILE'] = certifi.where()
+            environ.setdefault('SSL_CERT_FILE', certifi.where())
 
     def __del__(self):
         if self._trigger_update is not None:
