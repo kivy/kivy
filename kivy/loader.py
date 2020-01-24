@@ -42,6 +42,7 @@ from kivy.cache import Cache
 from kivy.core.image import ImageLoader, Image
 from kivy.compat import PY2, string_types
 from kivy.config import Config
+from kivy.utils import platform
 
 from collections import deque
 from time import sleep
@@ -49,6 +50,7 @@ from os.path import join
 from os import write, close, unlink, environ
 import threading
 import mimetypes
+
 
 # Register a cache for loader
 Cache.register('kv.loader', limit=500, timeout=60)
@@ -121,6 +123,10 @@ class LoaderBase(object):
         self._running = False
         self._start_wanted = False
         self._trigger_update = Clock.create_trigger(self._update)
+
+        if platform == 'android':
+            import certifi
+            environ.setdefault('SSL_CERT_FILE', certifi.where())
 
     def __del__(self):
         if self._trigger_update is not None:
