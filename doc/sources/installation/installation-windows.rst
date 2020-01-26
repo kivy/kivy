@@ -268,7 +268,7 @@ Double-click method
 ^^^^^^^^^^^^^^^^^
 
 If you only have one Python installed, and if you installed it using the default options, then ``*.py`` files are already
-associated with your Python. You can run them by double clicking them in the file manager, or by just executing their name in a console window (without having to prepend ``python ``).
+associated with your Python. You can run them by double clicking them in the file manager, or by just executing their name in a console window (without having to prepend ``python``).
 
 Alternatively, if they are not assigned, you can do it the following way:
 
