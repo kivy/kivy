@@ -200,7 +200,7 @@ Installation of the development version from source
     Using the latest development version can be risky and you might encounter
     issues during development. If you encounter any bugs, please report them.
 
-It may be simpler to using a pre-compiled :ref:`nightly-win-wheels`.
+It may be simpler to install a pre-compiled :ref:`nightly-win-wheels`.
 However, to compile and install from `the kivy source code <https://github.com/kivy/kivy>`_ there are some additional steps:
 
 #. Both the ``python`` and the ``python\Scripts`` directories **must** be on the PATH.
