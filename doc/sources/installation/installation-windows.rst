@@ -30,14 +30,9 @@ terminal that has Python available.
 
      python -m pip install --upgrade pip wheel setuptools virtualenv
 
-   **Optional**: Create a new `virtual environment <https://virtualenv.pypa.io/en/latest/>`_
-   for your Kivy project.
+   Optional **(but strongly recommended)**: Create a new `virtual environment <https://virtualenv.pypa.io/en/latest/>`_
+   for your Kivy project. A virtual environment will prevent possible installation conflicts with other Python versions and with other packages.
    
-   .. warning::
-     **We strongly recommend to use virtualenv**. Only this way you can be sure that external factors will not accidently mess up your Kivy installation. For example a typical situation is that someone installs Kivy with say kivy_deps.sdl2 to a global Python. But then, the sdl2 clashes with some other globally installed package that has its own sdl2 or some DLL that is installed globally. This causes Kivy to fail with the infamous "can't create window" error.
-     
-     Further, the uninstallation is simpler - just remove the folder containing the virtual environment. 
-
    #. Create the virtual environment named `kivy_venv` in your current directory::
 
         python -m virtualenv kivy_venv
