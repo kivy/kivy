@@ -204,6 +204,7 @@ from kivy.lang import Builder
 from kivy.graphics import (RenderContext, Rectangle, Fbo,
                            ClearColor, ClearBuffers, BindTexture, PushMatrix,
                            PopMatrix, Translate, Callback, Scale)
+import gc
 
 
 class ScreenManagerException(Exception):
@@ -530,6 +531,10 @@ class ShaderTransition(TransitionBase):
         self.manager.canvas.remove(self.render_ctx)
         self._remove_out_canvas()
         self.manager.real_add_widget(self.screen_in)
+        self.fbo_in = None
+        self.fbo_out = None
+        self.render_ctx = None
+        gc.collect()
 
     def stop(self):
         self._remove_out_canvas()
