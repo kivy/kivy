@@ -30,7 +30,7 @@ terminal that has Python available.
 
      python -m pip install --upgrade pip wheel setuptools virtualenv
 
-   **Optional (But Recommened!)**: Create a new `virtual environment <https://virtualenv.pypa.io/en/latest/>`_
+   **Optional (but recommened!)**: Create a new `virtual environment <https://virtualenv.pypa.io/en/latest/>`_
    for your Kivy project:
 
    #. Create the virtual environment named `kivy_venv` in your current directory::
@@ -38,7 +38,7 @@ terminal that has Python available.
         python -m virtualenv kivy_venv
 
    #. Activate the virtual environment. You will have to do this step from the current directory
-      **every time** you start a new terminal. In the windows commandline do::
+      **every time** you start a new terminal. In the commandline do::
 
         kivy_venv\Scripts\activate
 
@@ -53,9 +53,9 @@ terminal that has Python available.
 
      python -m pip install kivy[base] kivy_examples
 
-   To install kivy with **audio/video** support, replace ``base`` with ``full``. See :ref:`kivy-dependencies`.
+   To install Kivy with **audio/video** support, replace ``base`` with ``full``. See :ref:`kivy-dependencies`.
 
-   To install a **pre-release** of kivy, add ``--pre`` to the pip command. E.g.
+   To install a **pre-release** of Kivy, add ``--pre`` to the pip command. E.g.
    ``python -m pip install --pre kivy[base] kivy_examples``.
 
    :ref:`nightly-win-wheels` can be installed from the Kivy server with::
@@ -67,7 +67,7 @@ example::
 
     python kivy_venv\share\kivy-examples\demo\showcase\main.py
 
-The exact path to the kivy examples directory is ``kivy.kivy_examples_dir``.
+The exact path to the Kivy examples directory is ``kivy.kivy_examples_dir``.
 
 Detailed install instructions for the precompiled Kivy binaries 
 -------------------------------------------------------
@@ -85,12 +85,12 @@ Multiple versions of Python can be installed side by side, but Kivy needs to
 be installed as package under each Python version that you want to use Kivy in.
 
 Once Python is installed, open the :ref:`windows-run-app` and make sure
-python is available by typing ``python --version``.
+Python is available by typing ``python --version``.
 
 .. _windows-run-app:
 
-Aside: What is the Command line
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Aside: How to use the command line
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To execute any of the following ``pip`` or ``wheel`` commands, one needs a command line tool with Python on the `PATH <https://en.wikipedia.org/wiki/PATH_(variable)>`_.
 
@@ -104,11 +104,11 @@ Alternative Linux style command shells that we recommend are
 command line, `as well <http://rogerdudler.github.io/git-guide/>`_ as
 `git <https://try.github.io>`_.
 
-Note, the default windows commandline can still be used, even if a bash is installed.
+Note, the default Windows command line can still be used, even if a bash is installed.
 
 To temporarily add your Python installation to the PATH, simply open your command line and then use the ``cd`` command to change the current directory to where python is installed, e.g. ``cd C:\Python37``.
 
-But if you have installed Python using the default options, then the path to Python will already be permanently on your PATH variable. There is an option in the Installer which lets you do that, and it is enabled by default. We recommend to leave this option checked.
+But if you have installed Python using the default options, then the path to Python will already be permanently on your PATH variable. There is an option in the installer which lets you do that, and it is enabled by default. We recommend to leave this option checked.
 
 If however Python is not on your PATH, follow the these instructions:
 
@@ -141,7 +141,7 @@ When downloading and installing a wheel directly, the command
 Alternative install of a nightly wheel
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Every day we create a snapshot wheel of the current development version of Kivy ('Nightly wheel'). The development version is located in the master branch of the `Kivy Github repository <https://github.com/kivy/kivy>`_.
+Every day we create a snapshot wheel of the current development version of Kivy ('nightly wheel'). The development version is located in the master branch of the `Kivy Github repository <https://github.com/kivy/kivy>`_.
 
 Opposed to the last *stable* release (which we discussed in the previous section), nightly wheels contain all the latest changes to Kivy, including experimental fixes.
 For installation instructions, see :ref:`install-win-dist`. See also :ref:`dev-install-win`.
@@ -167,12 +167,12 @@ dependencies. The dependencies are offered as sub-packages, starting with ``kivy
 
 So, the following are the dependency wheels which we provide for Windows:
 
-* `gstreamer <https://gstreamer.freedesktop.org>`_ (Optional)
+* `gstreamer <https://gstreamer.freedesktop.org>`_ (optional)
 
   `gstreamer` is an optional dependency which is only needed for audio/video support.
   It can be installed with  ``python -m pip install kivy_deps.sdl2``
 
-* `ffpyplayer <https://pypi.org/project/ffpyplayer/>`_ (Optional)
+* `ffpyplayer <https://pypi.org/project/ffpyplayer/>`_ (optional)
 
   `ffpyplayer` is an alternative optional dependency for audio or video.
   It can be installed with ``python -m pip install ffpyplayer``.
@@ -183,7 +183,7 @@ So, the following are the dependency wheels which we provide for Windows:
   These are for `OpenGL <https://en.wikipedia.org/wiki/OpenGL>`_. They can be installed with ``python -m pip install kivy_deps.glew`` and/or ``python -m pip install kivy_deps.angle``.
 
   One can select which of these to use for OpenGL using the
-  ``KIVY_GL_BACKEND`` environment variable by setting it to ``glew``
+  ``KIVY_GL_BACKEND`` environment variable: By setting it to ``glew``
   (the default), ``angle``, or ``sdl2``. Here, ``angle`` is a substitute for ``glew``.
 
 * `sdl2 <https://libsdl.org>`_
@@ -212,7 +212,7 @@ However, to compile and install from `the kivy source code <https://github.com/k
      python -m pip install --upgrade pip wheel setuptools
 
 #. Get the compiler.
-   The *Visual Studio build tools* are required, they are available for free.
+   The *Visual Studio Build Tools* are required, they are available for free.
   
    You can either download and install the complete *Visual Studio IDE*, which contains the build tools, or alternatively just the build tools.
   
@@ -230,15 +230,15 @@ However, to compile and install from `the kivy source code <https://github.com/k
      kivy_deps.glew kivy_deps.angle kivy_deps.gstreamer kivy_deps.glew_dev kivy_deps.sdl2_dev \
      kivy_deps.gstreamer_dev
    
-   Notice, we don't pin the versions of the dependencies like we do for the stable kivy, because we want the
+   Notice, we don't pin the versions of the dependencies like we do for the stable Kivy, because we want the
    latest.
 
-#. Skip to :ref:`alternate-win` if you wish to be able to edit kivy after installing it.
+#. Skip to :ref:`alternate-win` if you wish to be able to edit Kivy after installing it.
 
-   Otherwise, compile and install kivy with ``pip install <filename>``, where
+   Otherwise, compile and install Kivy with ``pip install <filename>``, where
    ``<filename>`` can be a url such as
-   ``https://github.com/kivy/kivy/archive/master.zip`` for kivy master, or the
-   full path to a local copy of a kivy directory or downloaded zip.
+   ``https://github.com/kivy/kivy/archive/master.zip`` for Kivy master, or the
+   full path to a local copy of a Kivy directory or downloaded zip.
 
 .. _alternate-win:
 
@@ -250,7 +250,7 @@ installed with::
 
     python -m pip install -e kivy_path
 
-Now you can safely compile kivy in its current location with one of these
+Now you can safely compile Kivy in its current location with one of these
 commands::
 
     make
@@ -274,8 +274,8 @@ Alternatively, if they are not assigned, you can do it the following way:
 
 #. Right click on the Python file (.py file extension) in the file manager.
 #. From the context menu that appears, select *Open With*
-#. Browse your hard disk drive and find the file ``python.exe`` that you want
-   to use (e.g. the virtual environment). Select it.
+#. Browse your hard disk drive and find the ``python.exe`` file that you want
+   to use (e.g. in the the virtual environment). Select it.
 #. Select "Always open the file with..." if you don't want to repeat this
    procedure every time you double click a .py file.
 #. You are done. Open the file.
@@ -283,11 +283,11 @@ Alternatively, if they are not assigned, you can do it the following way:
 Send-to method
 ^^^^^^^^^^^^
 
-You can launch a .py file with Python using the Send-to menu:
+You can launch a .py file with Python using the *Send to* menu:
 
-#. Browse to the ``python.exe`` file you want to use. Right click on it and
+#. Browse to the ``python.exe`` you want to use. Right click on it and
    copy it.
-#. Open Windows explorer (File explorer in Windows 8), and to go the address
+#. Open Windows Explorer (the file explorer in Windows 8), and to go the address
    'shell:sendto'. You should get the special Windows directory `SendTo`
 #. Paste the previously copied ``python.exe`` file **as a shortcut**.
 #. Rename it to python <python-version>. E.g. ``python27-x64``
