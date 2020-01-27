@@ -18,10 +18,10 @@ If you use `Anaconda <https://en.wikipedia.org/wiki/Anaconda_(Python_distributio
 
 .. _install-win-dist:
 
-Quick install instructions for the precompiled Kivy binaries
------------------------------------------------------
+Installation instructions for the precompiled Kivy binaries
+----------------------------------------------------
 
-*For a more detailed instruction, see the next section.*
+*If you have problems understanding this section, please read the next section first. There we explain Python package installation, wheels, and how to use the commandline.*
 
 Start a new :ref:`windows-run-app`
 terminal that has Python available.
@@ -30,8 +30,13 @@ terminal that has Python available.
 
      python -m pip install --upgrade pip wheel setuptools virtualenv
 
-   **Optional (but recommened!)**: Create a new `virtual environment <https://virtualenv.pypa.io/en/latest/>`_
-   for your Kivy project:
+   **Optional**: Create a new `virtual environment <https://virtualenv.pypa.io/en/latest/>`_
+   for your Kivy project.
+   
+   .. warning::
+     **We strongly recommend to use virtualenv**. Only this way you can be sure that external factors will not accidently mess up your Kivy installation. For example a typical situation is that someone installs Kivy with say kivy_deps.sdl2 to a global Python. But then, the sdl2 clashes with some other globally installed package that has its own sdl2 or some DLL that is installed globally. This causes Kivy to fail with the infamous "can't create window" error.
+     
+     Further, the uninstallation is simpler - just remove the folder containing the virtual environment. 
 
    #. Create the virtual environment named `kivy_venv` in your current directory::
 
@@ -60,7 +65,7 @@ terminal that has Python available.
 
    :ref:`nightly-win-wheels` can be installed from the Kivy server with::
 
-     pip install kivy kivy_examples --pre --extra-index-url https://kivy.org/downloads/simple/
+     pip install kivy[base] kivy_examples --pre --extra-index-url https://kivy.org/downloads/simple/
 
 That's it. You should now be able to ``import kivy`` in Python or, if you installed the Kivy examples, to run a basic
 example::
@@ -69,13 +74,11 @@ example::
 
 The exact path to the Kivy examples directory is ``kivy.kivy_examples_dir``.
 
-Detailed install instructions for the precompiled Kivy binaries 
--------------------------------------------------------
+Introduction to Python package installation, wheels, and the commandline
+---------------------------------------------------------------
 
-*For a shorter instruction see the previous section*
-
-Install Python
-^^^^^^^^^^^^
+Installing Python
+^^^^^^^^^^^^^^^
 
 Kivy is written in
 `Python <https://en.wikipedia.org/wiki/Python_%28programming_language%29>`_
@@ -89,10 +92,10 @@ Python is available by typing ``python --version``.
 
 .. _windows-run-app:
 
-Aside: How to use the command line
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+How to use the command line
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-To execute any of the following ``pip`` or ``wheel`` commands, one needs a command line tool with Python on the `PATH <https://en.wikipedia.org/wiki/PATH_(variable)>`_.
+To execute any of the ``pip`` or ``wheel`` commands given here, you need a command line and Python must be on the `PATH <https://en.wikipedia.org/wiki/PATH_(variable)>`_.
 
 The default command line on Windows is the
 `command prompt <http://www.computerhope.com/issues/chusedos.htm>`_, short *cmd*. The
@@ -108,15 +111,15 @@ Note, the default Windows command line can still be used, even if a bash is inst
 
 To temporarily add your Python installation to the PATH, simply open your command line and then use the ``cd`` command to change the current directory to where python is installed, e.g. ``cd C:\Python37``.
 
-But if you have installed Python using the default options, then the path to Python will already be permanently on your PATH variable. There is an option in the installer which lets you do that, and it is enabled by default. We recommend to leave this option checked.
+If you have installed Python using the default options, then the path to Python will already be permanently on your PATH variable. There is an option in the installer which lets you do that, and it is enabled by default.
 
 If however Python is not on your PATH, follow the these instructions:
 
 * Instructions for `the windows command line <http://www.computerhope.com/issues/ch000549.htm>`_
 * Instructions for `bash command lines <http://stackoverflow.com/q/14637979>`_
 
-Install the Kivy core wheel (Aside: what are wheels)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+What is pip and what are wheels
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In Python, packages such as Kivy can be installed with the python package
 manager, named `pip <https://pip.pypa.io/en/stable/>`_ ("python install package").
@@ -127,23 +130,21 @@ Contrary, wheels (files with a ``.whl`` extension) are pre-built
 distributions of a package that has already been compiled.
 These wheels do not require additional steps when installing them.
 
-When hosted on `pypi.org <https://pypi.python.org/pypi>`_ ("Python Package Index") one installs a wheel
-using ``pip``, for example by executing ``python -m pip install kivy`` in a commandline,
-which automatically finds the wheel on PyPI.
+When a wheel is available on `pypi.org <https://pypi.python.org/pypi>`_ ("Python Package Index") it can be installed with ``pip``. For example when you execute ``python -m pip install kivy`` in a commandline, this will automatically find the appropriate wheel on PyPI.
 
-When downloading and installing a wheel directly, the command
-``python -m pip install <wheel_file_name>`` is used, such as::
+When downloading and installing a wheel directly, use the command
+``python -m pip install <wheel_file_name>``, for example::
 
     python -m pip install C:\Kivy-1.9.1.dev-cp27-none-win_amd64.whl
 
 .. _nightly-win-wheels:
 
-Alternative install of a nightly wheel
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+What are nightly wheels
+^^^^^^^^^^^^^^^^^^^^
 
-Every day we create a snapshot wheel of the current development version of Kivy ('nightly wheel'). The development version is located in the master branch of the `Kivy Github repository <https://github.com/kivy/kivy>`_.
+Every day we create a snapshot wheel of the current development version of Kivy ('nightly wheel'). You can find the development version in the master branch of the `Kivy Github repository <https://github.com/kivy/kivy>`_.
 
-Opposed to the last *stable* release (which we discussed in the previous section), nightly wheels contain all the latest changes to Kivy, including experimental fixes.
+As opposed to the last *stable* release (which we discussed in the previous section), nightly wheels contain all the latest changes to Kivy, including experimental fixes.
 For installation instructions, see :ref:`install-win-dist`. See also :ref:`dev-install-win`.
 
 .. warning::
@@ -156,8 +157,7 @@ For installation instructions, see :ref:`install-win-dist`. See also :ref:`dev-i
 Installing Kivy's dependencies
 --------------------------
 
-We offer the above wheels for the Kivy core and for its below dependencies separately, so that you can install only the desired
-dependencies. The dependencies are offered as sub-packages, starting with ``kivy_deps``, for example ``kivy_deps.sdl2``.
+We offer the wheels for Kivy and the wheels for its dependencies separately, so that you can install only the dependencies you want. The dependencies are offered as sub-packages, starting with ``kivy_deps``, for example ``kivy_deps.sdl2``.
 
 .. note::
 
@@ -165,12 +165,29 @@ dependencies. The dependencies are offered as sub-packages, starting with ``kivy
     See `here <https://github.com/kivy/kivy/wiki/Moving-kivy.garden.xxx-to-kivy_garden.xxx-and-kivy.deps.xxx-to-kivy_deps.xxx#kivy-deps>`_
     for more details.
 
+.. note::
+    depending on the keyword you used in the installation of Kivy itself you may already have some of the below dependencies installed. For example the keyword *full* (``python -m pip install kivy[full]``) installs the dependencies ``sdl2``, ``glew``, ``angle`` and ``gstreamer``.
+    
+    The following table lists which keyword installs what:
+    
+    +---------------------+------+------+------+
+    |                     | none | base | full |
+    +=====================+======+======+======+
+    | kivy_deps.sdl2      | n    | y    | y    |
+    +---------------------+------+------+------+
+    | kivy_deps.glew      | n    | y    | y    |
+    +---------------------+------+------+------+
+    | kivy_deps.angle     | n    | y    | y    |
+    +---------------------+------+------+------+
+    | kivy_deps.gstreamer | n    | n    | y    |
+    +---------------------+------+------+------+
+
 So, the following are the dependency wheels which we provide for Windows:
 
 * `gstreamer <https://gstreamer.freedesktop.org>`_ (optional)
 
   `gstreamer` is an optional dependency which is only needed for audio/video support.
-  It can be installed with  ``python -m pip install kivy_deps.sdl2``
+  It can be installed with  ``python -m pip install kivy_deps.gstreamer``.
 
 * `ffpyplayer <https://pypi.org/project/ffpyplayer/>`_ (optional)
 
@@ -180,7 +197,7 @@ So, the following are the dependency wheels which we provide for Windows:
 * `glew <http://glew.sourceforge.net/>`_ and/or
   `angle <https://github.com/Microsoft/angle>`_
   
-  These are for `OpenGL <https://en.wikipedia.org/wiki/OpenGL>`_. They can be installed with ``python -m pip install kivy_deps.glew`` and/or ``python -m pip install kivy_deps.angle``.
+  These are for `OpenGL <https://en.wikipedia.org/wiki/OpenGL>`_. They can be installed with ``python -m pip install kivy_deps.glew`` and/or ``python -m pip install kivy_deps.angle``. You can install both, that is no problem.
 
   One can select which of these to use for OpenGL using the
   ``KIVY_GL_BACKEND`` environment variable: By setting it to ``glew``
