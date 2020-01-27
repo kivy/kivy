@@ -350,7 +350,7 @@ class FileChooserController(RelativeLayout):
     '''
     filters specifies the filters to be applied to the files in the directory.
     filters is a :class:`~kivy.properties.ListProperty` and defaults to [].
-    This is equivalent to '\*' i.e. nothing is filtered.
+    This is equivalent to '\\*' i.e. nothing is filtered.
 
     The filters are not reset when the path changes. You need to do that
     yourself if desired.
@@ -359,13 +359,13 @@ class FileChooserController(RelativeLayout):
 
     #. Patterns
 
-        e.g. ['\*.png'].
+        e.g. ['\\*.png'].
         You can use the following patterns:
 
             ========== =================================
             Pattern     Meaning
             ========== =================================
-            \*         matches everything
+            \\*         matches everything
             ?          matches any single character
             [seq]      matches any character in seq
             [!seq]     matches any character not in seq
@@ -481,9 +481,10 @@ class FileChooserController(RelativeLayout):
 
     '''
 
-    file_encodings = ListProperty(['utf-8', 'latin1', 'cp1252'])
+    file_encodings = ListProperty(
+        ['utf-8', 'latin1', 'cp1252'], deprecated=True)
     '''Possible encodings for decoding a filename to unicode. In the case that
-    the user has a non-ascii filename, undecodable without knowing it's
+    the user has a non-ascii filename, undecodable without knowing its
     initial encoding, we have no other choice than to guess it.
 
     Please note that if you encounter an issue because of a missing encoding
@@ -818,9 +819,19 @@ class FileChooserController(RelativeLayout):
         # generate an entries to go back to previous
         if not is_root and not have_parent:
             back = '..' + sep
-            pardir = self._create_entry_widget(dict(
-                name=back, size='', path=back, controller=ref(self),
-                isdir=True, parent=None, sep=sep, get_nice_size=lambda: ''))
+            if platform == 'win':
+                new_path = path[:path.rfind(sep)]
+                if sep not in new_path:
+                    new_path += sep
+                pardir = self._create_entry_widget(dict(
+                    name=back, size='', path=new_path, controller=ref(self),
+                    isdir=True, parent=None, sep=sep,
+                    get_nice_size=lambda: ''))
+            else:
+                pardir = self._create_entry_widget(dict(
+                    name=back, size='', path=back, controller=ref(self),
+                    isdir=True, parent=None, sep=sep,
+                    get_nice_size=lambda: ''))
             yield 0, 1, pardir
 
         # generate all the entries for files

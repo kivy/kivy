@@ -79,7 +79,7 @@ static GstFlowReturn c_on_appsink_sample(GstElement *appsink, callback_data_t *d
 	if ( width4 == width3 ) {
 		// we can directly use the buffer in memory
 		cbuffer = (gchar *)mapinfo.data;
-		size = mapinfo.size;
+		size = (gint)mapinfo.size;
 	} else {
 		// need a copy without stride :(
 		// OpenGL ES 2 doesn't support stride without an extension.  We might

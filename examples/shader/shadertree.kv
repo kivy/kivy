@@ -1,16 +1,29 @@
-#:kivy 1.0
-<ShaderWidget>:
-    canvas:
-        Color:
-            rgb: 1, 1, 1
-        Rectangle:
-            texture: self.texture
-            pos: self.pos
-            size: self.size
+#:kivy 1.10.1
 
-<ScatterImage>:
+<ShaderWidget>:
+    Button:
+        text: 'Hello World'
+        pos_hint: {'center_x': .25, 'center_y': .5}
+        size_hint: None, None
+    ScatterImage
+
+<ScatterImage@Scatter>:
     size: image.size
+    pos_hint: {'center_x': .75, 'center_y': .5}
+    size_hint: None, None
     Image:
         id: image
-        source: root.source
+        source: 'tex3.jpg'
         size: self.texture_size
+
+<RootWidget>:
+    shader_btn: shader_btn
+    shader_widget: shader_widget
+
+    ShaderWidget:
+        id: shader_widget
+    Button:
+        id: shader_btn
+        text: 'Change fragment shader'
+        size_hint_y: None
+        height: 50

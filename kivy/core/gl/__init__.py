@@ -31,16 +31,16 @@ if 'KIVY_DOC' not in environ:
         GL_MAX_TEXTURE_IMAGE_UNITS, GL_MAX_TEXTURE_SIZE, \
         GL_SHADING_LANGUAGE_VERSION,\
         glGetString, glGetIntegerv, gl_init_symbols
-    from kivy.graphics.cgl import cgl_get_backend_name
+    from kivy.graphics.cgl import cgl_get_initialized_backend_name
     from kivy.utils import platform
 
-    def init_gl():
-        gl_init_symbols()
+    def init_gl(allowed=[], ignored=[]):
+        gl_init_symbols(allowed, ignored)
         print_gl_version()
         gl_init_resources()
 
     def print_gl_version():
-        backend = cgl_get_backend_name()
+        backend = cgl_get_initialized_backend_name()
         Logger.info('GL: Backend used <{}>'.format(backend))
         version = glGetString(GL_VERSION)
         vendor = glGetString(GL_VENDOR)

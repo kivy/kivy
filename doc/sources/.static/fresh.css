@@ -222,6 +222,7 @@ div.sphinxsidebar li a:hover {
 	background-color: #f0f0f0;
 	padding: 10px 15px;
 	font-family: 'Source Code Pro', monospace;
+	white-space: pre-wrap;
 }
 
 #content h1 {
@@ -484,4 +485,13 @@ div.navlink {
 	text-align: right;
 	top: -30px;
 	height: 0px;
+}
+
+#version_selector {
+	width: 100%;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	border: 1px solid #d0d0d0;
+	padding: 0.5em 1em;
+	background: #ffffff00 url('disclosure_down.png') top right no-repeat;
 }

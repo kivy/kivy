@@ -320,16 +320,16 @@ class AbstractStore(EventDispatcher):
         pass
 
     def store_get(self, key):
-        raise NotImplemented()
+        raise NotImplementedError
 
     def store_put(self, key, value):
-        raise NotImplemented()
+        raise NotImplementedError
 
     def store_exists(self, key):
-        raise NotImplemented()
+        raise NotImplementedError
 
     def store_delete(self, key):
-        raise NotImplemented()
+        raise NotImplementedError
 
     def store_find(self, filters):
         return []

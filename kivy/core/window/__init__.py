@@ -22,11 +22,12 @@ from kivy.modules import Modules
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
     NumericProperty, OptionProperty, StringProperty, BooleanProperty
-from kivy.utils import platform, reify, deprecated
+from kivy.utils import platform, reify, deprecated, pi_version
 from kivy.context import get_current_context
 from kivy.uix.behaviors import FocusBehavior
 from kivy.setupconfig import USE_SDL2
 from kivy.graphics.transformation import Matrix
+from kivy.graphics.cgl import cgl_get_backend_name
 
 # late import
 VKeyboard = None
@@ -146,6 +147,7 @@ class Keyboard(EventDispatcher):
         callback.'''
         if self.window:
             self.window.release_keyboard(self.target)
+            self.target = None
 
     def _on_window_textinput(self, instance, text):
         return self.dispatch('on_textinput', text)
@@ -318,19 +320,37 @@ class WindowBase(EventDispatcher):
             You can listen to this one, and clean whatever you can.
 
             .. versionadded:: 1.9.0
+
+        `on_textedit(self, text)`:
+            Fired when inputting with IME.
+            The string inputting with IME is set as the parameter of
+            this event.
+
+            .. versionadded:: 1.10.1
     '''
 
     __instance = None
     __initialized = False
     _fake_fullscreen = False
-    _density = 1
 
     # private properties
+    _density = NumericProperty(1)
     _size = ListProperty([0, 0])
     _modifiers = ListProperty([])
     _rotation = NumericProperty(0)
     _clearcolor = ObjectProperty([0, 0, 0, 1])
     _focus = BooleanProperty(True)
+
+    gl_backends_allowed = []
+    """
+    A list of Kivy gl backend names, which if not empty, will be the
+    exclusive list of gl backends that can be used with this window.
+    """
+
+    gl_backends_ignored = []
+    """
+    A list of Kivy gl backend names that may not be used with this window.
+    """
 
     children = ListProperty([])
     '''List of the children of this window.
@@ -362,7 +382,7 @@ class WindowBase(EventDispatcher):
     def _get_modifiers(self):
         return self._modifiers
 
-    modifiers = AliasProperty(_get_modifiers, None)
+    modifiers = AliasProperty(_get_modifiers, None, bind=('_modifiers',))
     '''List of keyboard modifiers currently active.
 
     .. versionadded:: 1.0.9
@@ -388,11 +408,7 @@ class WindowBase(EventDispatcher):
                 self._size = size
             else:
                 self._size = size[1], size[0]
-
-            self.dispatch('on_resize', *size)
-            return True
-        else:
-            return False
+            self.dispatch('on_pre_resize', *size)
 
     minimum_width = NumericProperty(0)
     '''The minimum width to restrict the window to.
@@ -422,7 +438,9 @@ class WindowBase(EventDispatcher):
     and defaults to True.
     '''
 
-    size = AliasProperty(_get_size, _set_size, bind=('_size', ))
+    size = AliasProperty(_get_size, _set_size,
+                         bind=('_size', '_rotation', 'softinput_mode',
+                               'keyboard_height'))
     '''Get the rotated size of the window. If :attr:`rotation` is set, then the
     size will change to reflect the rotation.
 
@@ -492,7 +510,9 @@ class WindowBase(EventDispatcher):
             return _size[1] - kb
         return _size[0] - kb
 
-    height = AliasProperty(_get_height, None, bind=('_rotation', '_size'))
+    height = AliasProperty(_get_height, None,
+                           bind=('_rotation', '_size', 'softinput_mode',
+                                 'keyboard_height'))
     '''Rotated window height.
 
     :attr:`height` is a read-only :class:`~kivy.properties.AliasProperty`.
@@ -501,7 +521,9 @@ class WindowBase(EventDispatcher):
     def _get_center(self):
         return self.width / 2., self.height / 2.
 
-    center = AliasProperty(_get_center, None, bind=('width', 'height'))
+    center = AliasProperty(_get_center,
+                           bind=('width', 'height', '_density'),
+                           cache=True)
     '''Center of the rotated window.
 
     .. versionadded:: 1.0.9
@@ -521,7 +543,7 @@ class WindowBase(EventDispatcher):
         self._rotation = x
         if not self.initialized:
             return
-        self.dispatch('on_resize', *self.size)
+        self.dispatch('on_pre_resize', *self.size)
         self.dispatch('on_rotate', x)
 
     rotation = AliasProperty(_get_rotation, _set_rotation,
@@ -534,8 +556,9 @@ class WindowBase(EventDispatcher):
     :attr:`rotation` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
-    softinput_mode = OptionProperty('', options=(
-        '', 'below_target', 'pan', 'scale', 'resize'))
+    softinput_mode = OptionProperty(
+        '', options=('', 'below_target', 'pan', 'scale', 'resize')
+    )
     '''This specifies the behavior of window contents on display of the soft
     keyboard on mobile platforms. It can be one of '', 'pan', 'scale',
     'resize' or 'below_target'. Their effects are listed below.
@@ -559,7 +582,7 @@ class WindowBase(EventDispatcher):
     +----------------+-------------------------------------------------------+
 
     :attr:`softinput_mode` is an :class:`~kivy.properties.OptionProperty` and
-    defaults to `None`.
+    defaults to ''.
 
     .. note:: The `resize` option does not currently work with SDL2 on Android.
 
@@ -571,6 +594,10 @@ class WindowBase(EventDispatcher):
 
     _keyboard_changed = BooleanProperty(False)
     _kheight = NumericProperty(0)
+    _kanimation = None
+
+    def _free_kanimation(self, *largs):
+        WindowBase._kanimation = None
 
     def _animate_content(self):
         '''Animate content to IME height.
@@ -579,10 +606,13 @@ class WindowBase(EventDispatcher):
         global Animation
         if not Animation:
             from kivy.animation import Animation
-        Animation.cancel_all(self)
-        Animation(
+        if WindowBase._kanimation:
+            WindowBase._kanimation.cancel(self)
+        WindowBase._kanimation = kanim = Animation(
             _kheight=self.keyboard_height + self.keyboard_padding,
-            d=kargs['d'], t=kargs['t']).start(self)
+            d=kargs['d'], t=kargs['t'])
+        kanim.bind(on_complete=self._free_kanimation)
+        kanim.start(self)
 
     def _upd_kbd_height(self, *kargs):
         self._keyboard_changed = not self._keyboard_changed
@@ -607,13 +637,12 @@ class WindowBase(EventDispatcher):
             return self._get_ios_kheight()
         return 0
 
-    keyboard_height = AliasProperty(_get_kheight, None,
-                                    bind=('_keyboard_changed',), cached=True)
+    keyboard_height = AliasProperty(_get_kheight, bind=('_keyboard_changed',))
     '''Returns the height of the softkeyboard/IME on mobile platforms.
     Will return 0 if not on mobile platform or if IME is not active.
 
     .. note:: This property returns 0 with SDL2 on Android, but setting
-              Window.softinput_mode does works.
+              Window.softinput_mode does work.
 
     .. versionadded:: 1.9.0
 
@@ -623,12 +652,13 @@ class WindowBase(EventDispatcher):
 
     keyboard_anim_args = {'t': 'in_out_quart', 'd': .5}
     '''The attributes for animating softkeyboard/IME.
-    `t` = `transition`, `d` = `duration`. Will have no effect on desktops.
+    `t` = `transition`, `d` = `duration`. This value will have no effect on
+    desktops.
 
     .. versionadded:: 1.10.0
 
-    :attr:`keyboard_anim_args` is a dict with values
-    't': 'in_out_quart', 'd': `.5`.
+    :attr:`keyboard_anim_args` is a dict and defaults to
+    {'t': 'in_out_quart', 'd': `.5`}.
     '''
 
     keyboard_padding = NumericProperty(0)
@@ -649,10 +679,10 @@ class WindowBase(EventDispatcher):
             return self._size[0], self._size[1] - self.keyboard_height
         return self._size
 
-    system_size = AliasProperty(
-        _get_system_size,
-        _set_system_size,
-        bind=('_size', ))
+    system_size = AliasProperty(_get_system_size, _set_system_size,
+                                bind=('_size', 'softinput_mode',
+                                      'keyboard_height'),
+                                cache=True)
     '''Real size of the window ignoring rotation.
 
     .. versionadded:: 1.0.9
@@ -731,6 +761,52 @@ class WindowBase(EventDispatcher):
     def _set_cursor_state(self, value):
         pass
 
+    def set_system_cursor(self, cursor_name):
+        '''Set type of a mouse cursor in the Window.
+
+        It can be one of 'arrow', 'ibeam', 'wait', 'crosshair', 'wait_arrow',
+        'size_nwse', 'size_nesw', 'size_we', 'size_ns', 'size_all', 'no', or
+        'hand'.
+
+        On some platforms there might not be a specific cursor supported and
+        such an option falls back to one of the substitutable alternatives:
+
+        +------------+-----------+------------+-----------+---------------+
+        |            | Windows   | MacOS      | Linux X11 | Linux Wayland |
+        +============+===========+============+===========+===============+
+        | arrow      | arrow     | arrow      | arrow     | arrow         |
+        +------------+-----------+------------+-----------+---------------+
+        | ibeam      | ibeam     | ibeam      | ibeam     | ibeam         |
+        +------------+-----------+------------+-----------+---------------+
+        | wait       | wait      | arrow      | wait      | wait          |
+        +------------+-----------+------------+-----------+---------------+
+        | crosshair  | crosshair | crosshair  | crosshair | hand          |
+        +------------+-----------+------------+-----------+---------------+
+        | wait_arrow | arrow     | arrow      | wait      | wait          |
+        +------------+-----------+------------+-----------+---------------+
+        | size_nwse  | size_nwse | size_all   | size_all  | hand          |
+        +------------+-----------+------------+-----------+---------------+
+        | size_nesw  | size_nesw | size_all   | size_all  | hand          |
+        +------------+-----------+------------+-----------+---------------+
+        | size_we    | size_we   | size_we    | size_we   | hand          |
+        +------------+-----------+------------+-----------+---------------+
+        | size_ns    | size_ns   | size_ns    | size_ns   | hand          |
+        +------------+-----------+------------+-----------+---------------+
+        | size_all   | size_all  | size_all   | size_all  | hand          |
+        +------------+-----------+------------+-----------+---------------+
+        | no         | no        | no         | no        | ibeam         |
+        +------------+-----------+------------+-----------+---------------+
+        | hand       | hand      | hand       | hand      | hand          |
+        +------------+-----------+------------+-----------+---------------+
+
+        .. versionadded:: 1.10.1
+
+        .. note::
+            This feature requires the SDL2 window provider and is currently
+            only supported on desktop platforms.
+        '''
+        pass
+
     def _get_window_pos(self):
         pass
 
@@ -766,7 +842,7 @@ class WindowBase(EventDispatcher):
     .. versionadded:: 1.9.1
 
     :attr:`top` is an :class:`~kivy.properties.AliasProperty` and defaults to
-    position set in :class:`~kivy.config.Config`.
+    the position set in :class:`~kivy.config.Config`.
     '''
 
     left = AliasProperty(_get_left, _set_left)
@@ -780,7 +856,7 @@ class WindowBase(EventDispatcher):
     .. versionadded:: 1.9.1
 
     :attr:`left` is an :class:`~kivy.properties.AliasProperty` and defaults to
-    position set in :class:`~kivy.config.Config`.
+    the position set in :class:`~kivy.config.Config`.
     '''
 
     @property
@@ -795,14 +871,17 @@ class WindowBase(EventDispatcher):
     trigger_create_window = None
 
     __events__ = (
-        'on_draw', 'on_flip', 'on_rotate', 'on_resize', 'on_close',
-        'on_minimize', 'on_maximize', 'on_restore', 'on_hide', 'on_show',
-        'on_motion', 'on_touch_down', 'on_touch_move', 'on_touch_up',
-        'on_mouse_down', 'on_mouse_move', 'on_mouse_up', 'on_keyboard',
-        'on_key_down', 'on_key_up', 'on_textinput', 'on_dropfile',
-        'on_request_close', 'on_cursor_enter', 'on_cursor_leave',
-        'on_joy_axis', 'on_joy_hat', 'on_joy_ball',
-        'on_joy_button_down', 'on_joy_button_up', 'on_memorywarning')
+        'on_draw', 'on_flip', 'on_rotate', 'on_resize', 'on_move',
+        'on_close', 'on_minimize', 'on_maximize', 'on_restore',
+        'on_hide', 'on_show', 'on_motion', 'on_touch_down',
+        'on_touch_move', 'on_touch_up', 'on_mouse_down',
+        'on_mouse_move', 'on_mouse_up', 'on_keyboard', 'on_key_down',
+        'on_key_up', 'on_textinput', 'on_dropfile', 'on_request_close',
+        'on_cursor_enter', 'on_cursor_leave', 'on_joy_axis',
+        'on_joy_hat', 'on_joy_ball', 'on_joy_button_down',
+        'on_joy_button_up', 'on_memorywarning', 'on_textedit',
+        # internal
+        'on_pre_resize')
 
     def __new__(cls, **kwargs):
         if cls.__instance is None:
@@ -869,8 +948,11 @@ class WindowBase(EventDispatcher):
             self._left = Config.getint('graphics', 'left')
         kwargs['_size'] = (kwargs.pop('width'), kwargs.pop('height'))
         if 'show_cursor' not in kwargs:
-            kwargs['show_cursor'] = Config.getboolean('graphics',
-                                                      'show_cursor')
+            kwargs['show_cursor'] = Config.getboolean(
+                'graphics', 'show_cursor'
+            )
+        if 'shape_image' not in kwargs:
+            kwargs['shape_image'] = Config.get('kivy', 'window_shape')
 
         super(WindowBase, self).__init__(**kwargs)
 
@@ -897,11 +979,7 @@ class WindowBase(EventDispatcher):
 
         # configure the window
         self.create_window()
-
-        # attach modules + listener event
-        EventLoop.set_window(self)
-        Modules.register_window(self)
-        EventLoop.add_event_listener(self)
+        self.register()
 
         # manage keyboard(s)
         self.configure_keyboards()
@@ -924,6 +1002,19 @@ class WindowBase(EventDispatcher):
                 'fullscreen', 'borderless', 'position', 'top',
                 'left', '_size', 'system_size'):
             self.unbind(**{prop: self.trigger_create_window})
+
+    def register(self):
+        if self.initialized:
+            return
+        # attach modules + listener event
+        EventLoop.set_window(self)
+        Modules.register_window(self)
+        EventLoop.add_event_listener(self)
+
+    def mainloop(self):
+        '''Called by the EventLoop every frame after it idles.
+        '''
+        pass
 
     @deprecated
     def toggle_fullscreen(self):
@@ -1014,7 +1105,129 @@ class WindowBase(EventDispatcher):
 
     def close(self):
         '''Close the window'''
-        pass
+        self.dispatch('on_close')
+
+        # Prevent any leftover that can crash the app later
+        # like if there is still some GL referenced values
+        # they may be collected later, but because it was already
+        # gone in the system, it may collect invalid GL resources
+        # Just clear everything to force reloading later on.
+        from kivy.cache import Cache
+        from kivy.graphics.context import get_context
+        Cache.remove('kv.loader')
+        Cache.remove('kv.image')
+        Cache.remove('kv.shader')
+        Cache.remove('kv.texture')
+        get_context().flush()
+
+    shape_image = StringProperty('')
+    '''An image for the window shape (only works for sdl2 window provider).
+
+    .. warning:: The image size has to be the same like the window's size!
+
+    .. versionadded:: 1.10.1
+
+    :attr:`shape_image` is a :class:`~kivy.properties.StringProperty` and
+    defaults to 'data/images/defaultshape.png'. This value is taken from
+    :class:`~kivy.config.Config`.
+    '''
+
+    def on_shape_image(self, instane, value):
+        if self.initialized:
+            self._set_shape(
+                shape_image=value, mode=self.shape_mode,
+                cutoff=self.shape_cutoff, color_key=self.shape_color_key
+            )
+
+    shape_cutoff = BooleanProperty(True)
+    '''The window :attr:`shape_image` cutoff property (only works for sdl2
+    window provider).
+
+    .. versionadded:: 1.10.1
+
+    :attr:`shape_cutoff` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
+    '''
+
+    def on_shape_cutoff(self, instane, value):
+        self._set_shape(
+            shape_image=self.shape_image, mode=self.shape_mode,
+            cutoff=value, color_key=self.shape_color_key
+        )
+
+    def _get_shaped(self):
+        return self._is_shaped()
+
+    shaped = AliasProperty(_get_shaped, None)
+    '''Read only property to check if the window is shapable or not (only works
+    for sdl2 window provider).
+
+    .. versionadded:: 1.10.1
+
+    :attr:`shaped` is an :class:`~kivy.properties.AliasProperty`.
+    '''
+
+    def _get_shape_mode(self):
+        if not self.shaped:
+            return ''
+
+        i = self._get_shaped_mode()['mode']
+        modes = ('default', 'binalpha', 'reversebinalpha', 'colorkey')
+        return modes[i]
+
+    def _set_shape_mode(self, value):
+        self._set_shaped_mode(value)
+
+    shape_mode = AliasProperty(_get_shape_mode, _set_shape_mode)
+    '''Window mode for shaping (only works for sdl2 window provider).
+
+    - can be RGB only
+       - `default` - does nothing special
+       - `colorkey` - hides a color of the :attr:`shape_color_key`
+    - has to contain alpha channel
+       - `binalpha` - hides an alpha channel of the :attr:`shape_image`
+       - `reversebinalpha` - shows only the alpha of the :attr:`shape_image`
+
+    .. note::
+        Before actually setting the mode make sure the Window has the same
+        size like the :attr:`shape_image`, preferably via Config before
+        the Window is actually created.
+
+        If the :attr:`shape_image` isn't set, the default one will be used
+        and the mode might not take the desired visual effect.
+
+    .. versionadded:: 1.10.1
+
+    :attr:`shape_mode` is an :class:`~kivy.properties.AliasProperty`.
+    '''
+
+    shape_color_key = ListProperty([1, 1, 1, 1])
+    '''Color key of the shaped window - sets which color will be hidden from
+    the window :attr:`shape_image` (only works for sdl2 window provider).
+
+    .. versionadded:: 1.10.1
+
+    :attr:`shape_color_key` is a :class:`~kivy.properties.ListProperty`
+    instance and defaults to [1, 1, 1, 1].
+    '''
+    def on_shape_color_key(self, instane, value):
+        self._set_shape(
+            shape_image=self.shape_image, mode=self.shape_mode,
+            cutoff=self.shape_cutoff, color_key=value
+        )
+
+    def get_gl_backend_name(self):
+        """
+        Returns the gl backend that will or is used with this window.
+        """
+        return cgl_get_backend_name(
+            allowed=self.gl_backends_allowed,
+            ignored=self.gl_backends_ignored)
+
+    def initialize_gl(self):
+        from kivy.core.gl import init_gl
+        init_gl(allowed=self.gl_backends_allowed,
+                ignored=self.gl_backends_ignored)
 
     def create_window(self, *largs):
         '''Will create the main window and configure it.
@@ -1043,8 +1256,7 @@ class WindowBase(EventDispatcher):
             self._unbind_create_window()
 
         if not self.initialized:
-            from kivy.core.gl import init_gl
-            init_gl()
+            self.initialize_gl()
 
             # create the render context and canvas, only the first time.
             from kivy.graphics import RenderContext, Canvas
@@ -1058,14 +1270,14 @@ class WindowBase(EventDispatcher):
             # XXX check how it's working on embed platform.
             if platform == 'linux' or Window.__class__.__name__ == 'WindowSDL':
                 # on linux, it's safe for just sending a resize.
-                self.dispatch('on_resize', *self.system_size)
+                self.dispatch('on_pre_resize', *self.size)
 
             else:
                 # on other platform, window are recreated, we need to reload.
                 from kivy.graphics.context import get_context
                 get_context().reload()
                 Clock.schedule_once(lambda x: self.canvas.ask_update(), 0)
-                self.dispatch('on_resize', *self.system_size)
+                self.dispatch('on_pre_resize', *self.size)
 
         # ensure the gl viewport is correct
         self.update_viewport()
@@ -1083,6 +1295,13 @@ class WindowBase(EventDispatcher):
 
     def add_widget(self, widget, canvas=None):
         '''Add a widget to a window'''
+        if widget.parent:
+            from kivy.uix.widget import WidgetException
+            raise WidgetException(
+                'Cannot add %r to window, it already has a parent %r' %
+                (widget, widget.parent)
+            )
+
         widget.parent = self
         self.children.insert(0, widget)
         canvas = self.canvas.before if canvas == 'before' else \
@@ -1228,9 +1447,20 @@ class WindowBase(EventDispatcher):
             if w.dispatch('on_touch_up', touch):
                 return True
 
+    def on_pre_resize(self, width, height):
+        key = (width, height)
+        if hasattr(self, '_last_resize') and self._last_resize == key:
+            return
+        self._last_resize = key
+        self.dispatch('on_resize', width, height)
+
     def on_resize(self, width, height):
         '''Event called when the window is resized.'''
         self.update_viewport()
+
+    def on_move(self):
+        self.property('top').dispatch(self)
+        self.property('left').dispatch(self)
 
     def update_viewport(self):
         from kivy.graphics.opengl import glViewport
@@ -1274,6 +1504,9 @@ class WindowBase(EventDispatcher):
         w2, h2 = w / 2., h / 2.
         modelview_mat = modelview_mat.multiply(Matrix().translate(-w2, -h2, 0))
         self.render_context['modelview_mat'] = modelview_mat
+        frag_modelview_mat = Matrix()
+        frag_modelview_mat.set(flat=modelview_mat.get())
+        self.render_context['frag_modelview_mat'] = frag_modelview_mat
 
         # redraw canvas
         self.canvas.ask_update()
@@ -1336,7 +1569,7 @@ class WindowBase(EventDispatcher):
                     w.center_y = value * height
 
     def screenshot(self, name='screenshot{:04d}.png'):
-        '''Save the actual displayed image in a file
+        '''Save the actual displayed image to a file.
         '''
         i = 0
         path = None
@@ -1356,7 +1589,7 @@ class WindowBase(EventDispatcher):
         pass
 
     def on_close(self, *largs):
-        '''Event called when the window is closed'''
+        '''Event called when the window is closed.'''
         Modules.unregister_window(self)
         EventLoop.remove_event_listener(self)
 
@@ -1444,43 +1677,43 @@ class WindowBase(EventDispatcher):
         pass
 
     def on_mouse_down(self, x, y, button, modifiers):
-        '''Event called when the mouse is used (pressed/released)'''
+        '''Event called when the mouse is used (pressed/released).'''
         pass
 
     def on_mouse_move(self, x, y, modifiers):
-        '''Event called when the mouse is moved with buttons pressed'''
+        '''Event called when the mouse is moved with buttons pressed.'''
         pass
 
     def on_mouse_up(self, x, y, button, modifiers):
-        '''Event called when the mouse is moved with buttons pressed'''
+        '''Event called when the mouse is moved with buttons pressed.'''
         pass
 
     def on_joy_axis(self, stickid, axisid, value):
-        '''Event called when a joystick has a stick or other axis moved
+        '''Event called when a joystick has a stick or other axis moved.
 
         .. versionadded:: 1.9.0'''
         pass
 
     def on_joy_hat(self, stickid, hatid, value):
-        '''Event called when a joystick has a hat/dpad moved
+        '''Event called when a joystick has a hat/dpad moved.
 
         .. versionadded:: 1.9.0'''
         pass
 
-    def on_joy_ball(self, stickid, ballid, value):
-        '''Event called when a joystick has a ball moved
+    def on_joy_ball(self, stickid, ballid, xvalue, yvalue):
+        '''Event called when a joystick has a ball moved.
 
         .. versionadded:: 1.9.0'''
         pass
 
     def on_joy_button_down(self, stickid, buttonid):
-        '''Event called when a joystick has a button pressed
+        '''Event called when a joystick has a button pressed.
 
         .. versionadded:: 1.9.0'''
         pass
 
     def on_joy_button_up(self, stickid, buttonid):
-        '''Event called when a joystick has a button released
+        '''Event called when a joystick has a button released.
 
         .. versionadded:: 1.9.0'''
         pass
@@ -1529,7 +1762,7 @@ class WindowBase(EventDispatcher):
 
     def on_key_up(self, key, scancode=None, codepoint=None,
                   modifier=None, **kwargs):
-        '''Event called when a key is released (same arguments as on_keyboard)
+        '''Event called when a key is released (same arguments as on_keyboard).
         '''
         if 'unicode' in kwargs:
             Logger.warning("The use of the unicode parameter is deprecated, "
@@ -1564,12 +1797,21 @@ class WindowBase(EventDispatcher):
     def on_memorywarning(self):
         '''Event called when the platform have memory issue.
         Your goal is to clear the cache in your app as much as you can,
-        release unused widget, etc.
+        release unused widgets, do garbage collection etc.
 
-        Currently, this event is fired only from SDL2 provider, for
+        Currently, this event is fired only from the SDL2 provider, for
         iOS and Android.
 
         .. versionadded:: 1.9.0
+        '''
+        pass
+
+    def on_textedit(self, text):
+        '''Event called when inputting with IME.
+        The string inputting with IME is set as the parameter of
+        this event.
+
+        .. versionadded:: 1.10.1
         '''
         pass
 
@@ -1819,7 +2061,7 @@ class WindowBase(EventDispatcher):
 
 #: Instance of a :class:`WindowBase` implementation
 window_impl = []
-if platform == 'linux':
+if platform == 'linux' and (pi_version or 4) < 4:
     window_impl += [('egl_rpi', 'window_egl_rpi', 'WindowEglRpi')]
 if USE_SDL2:
     window_impl += [('sdl2', 'window_sdl2', 'WindowSDL')]

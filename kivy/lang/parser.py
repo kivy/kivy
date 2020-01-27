@@ -41,8 +41,8 @@ lang_str = re.compile(
     '(?:""".*?""")|'
     '(?:(?:(?<!")|""")"(?:[^"]|\\\\")+?"(?:(?!")|""")))', re.DOTALL)
 lang_key = re.compile('([a-zA-Z_]+)')
-lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
-lang_tr = re.compile('(_\()')
+lang_keyvalue = re.compile(r'([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
+lang_tr = re.compile(r'(_\()')
 lang_cls_split_pat = re.compile(', *')
 
 # all the widget handlers, used to correctly unbind all the callbacks then the
@@ -176,7 +176,10 @@ class ParserRuleProperty(object):
             # if we don't detect any string/key in it, we can eval and give the
             # result
             if re.search(lang_key, tmp) is None:
-                self.co_value = eval(value)
+                value = '\n' * self.line + value
+                self.co_value = eval(
+                    compile(value, self.ctx.filename or '<string>', 'eval')
+                )
                 return
 
         # ok, we can compile.
@@ -278,7 +281,7 @@ class ParserRule(object):
             value = self.properties[name].co_value
             if type(value) is CodeType:
                 value = None
-            widget.create_property(name, value)
+            widget.create_property(name, value, default_value=False)
 
     def _forbid_selectors(self):
         c = self.name[0]
@@ -338,8 +341,6 @@ class ParserRule(object):
 
                 if rule[0] == '.':
                     crule = ParserSelectorClass(rule[1:])
-                elif rule[0] == '#':
-                    crule = ParserSelectorId(rule[1:])
                 else:
                     crule = ParserSelectorName(rule)
 
@@ -347,6 +348,15 @@ class ParserRule(object):
 
     def _build_template(self):
         name = self.name
+        exception = ParserException(
+            self.ctx, self.line,
+            'Deprecated Kivy lang template syntax used "{}". Templates will '
+            'be removed in a future version'.format(name))
+        if name not in ('[FileListEntry@FloatLayout+TreeViewNode]',
+                        '[FileIconEntry@Widget]',
+                        '[AccordionItemTitle@Label]'):
+            Logger.warning(exception)
+
         if __debug__:
             trace('Builder: build template for %s' % name)
         if name[0] != '[' or name[-1] != ']':
@@ -686,17 +696,10 @@ class ParserSelector(object):
         self.key = key.lower()
 
     def match(self, widget):
-        raise NotImplemented()
+        raise NotImplementedError
 
     def __repr__(self):
         return '<%s key=%s>' % (self.__class__.__name__, self.key)
-
-
-class ParserSelectorId(ParserSelector):
-
-    def match(self, widget):
-        if widget.id:
-            return widget.id.lower() == self.key
 
 
 class ParserSelectorClass(ParserSelector):

@@ -82,6 +82,7 @@ from kivy.properties import ObjectProperty, BooleanProperty, ListProperty, \
 from kivy.graphics.texture import Texture
 from kivy.clock import Clock
 from kivy.lang import Builder
+from kivy.weakproxy import WeakProxy
 
 
 Builder.load_string('''
@@ -243,11 +244,11 @@ class TreeViewProperty(BoxLayout, TreeViewNode):
     def _get_widget(self):
         wr = self.widget_ref
         if wr is None:
-            return None
+            return
         wr = wr()
         if wr is None:
             self.widget_ref = None
-            return None
+            return
         return wr
     widget = AliasProperty(_get_widget, None, bind=('widget_ref', ))
 
@@ -280,7 +281,7 @@ class WidgetTree(TreeView):
                     return node
             except ReferenceError:
                 pass
-        return None
+        return
 
     def update_selected_widget(self, widget):
         if widget:
@@ -375,7 +376,7 @@ class Inspector(FloatLayout):
         return ret
 
     def on_window_children(self, win, children):
-        if self.avoid_bring_to_top:
+        if self.avoid_bring_to_top or not self.activated:
             return
         self.avoid_bring_to_top = True
         win.remove_widget(self)
@@ -388,7 +389,7 @@ class Inspector(FloatLayout):
         # modalviews before others
         win_children = self.win.children
         children = chain(
-            (c for c in reversed(win_children) if isinstance(c, ModalView)),
+            (c for c in win_children if isinstance(c, ModalView)),
             (c for c in reversed(win_children) if not isinstance(c, ModalView))
         )
         for child in children:
@@ -530,7 +531,10 @@ class Inspector(FloatLayout):
         keys = list(widget.properties().keys())
         keys.sort()
         node = None
-        wk_widget = weakref.ref(widget)
+        if type(widget) is WeakProxy:
+            wk_widget = widget.__ref__
+        else:
+            wk_widget = weakref.ref(widget)
         for key in keys:
             node = TreeViewProperty(key=key, widget_ref=wk_widget)
             node.bind(is_selected=self.show_property)
@@ -550,7 +554,8 @@ class Inspector(FloatLayout):
 
     def keyboard_shortcut(self, win, scancode, *largs):
         modifiers = largs[-1]
-        if scancode == 101 and modifiers == ['ctrl']:
+        if scancode == 101 and set(modifiers) & {'ctrl'} and not set(
+                modifiers) & {'shift', 'alt', 'meta'}:
             self.activated = not self.activated
             if self.activated:
                 self.inspect_enabled = True
@@ -741,11 +746,15 @@ def create_inspector(win, ctx, *l):
 
 
 def start(win, ctx):
-    Clock.schedule_once(partial(create_inspector, win, ctx))
+    ctx.ev_late_create = Clock.schedule_once(
+        partial(create_inspector, win, ctx))
 
 
 def stop(win, ctx):
     '''Stop and unload any active Inspectors for the given *ctx*.'''
+    if hasattr(ctx, 'ev_late_create'):
+        ctx.ev_late_create.cancel()
+        del ctx.ev_late_create
     if hasattr(ctx, 'inspector'):
         win.unbind(children=ctx.inspector.on_window_children,
                    on_keyboard=ctx.inspector.keyboard_shortcut)

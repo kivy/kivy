@@ -37,7 +37,7 @@ The Logger can be controlled via the Kivy configuration file::
     log_enable = 1
     log_dir = logs
     log_name = kivy_%y-%m-%d_%_.txt
-    log_maxfile = 100
+    log_maxfiles = 100
 
 More information about the allowed values are described in the
 :mod:`kivy.config` module.
@@ -58,11 +58,16 @@ import logging
 import os
 import sys
 import kivy
-from kivy.compat import PY2
 from random import randint
 from functools import partial
 
-__all__ = ('Logger', 'LOG_LEVELS', 'COLORS', 'LoggerHistory')
+__all__ = (
+    'Logger', 'LOG_LEVELS', 'COLORS', 'LoggerHistory', 'file_log_handler')
+
+try:
+    PermissionError
+except NameError:  # Python 2
+    PermissionError = OSError, IOError
 
 Logger = None
 
@@ -107,13 +112,16 @@ class FileHandler(logging.Handler):
     history = []
     filename = 'log.txt'
     fd = None
+    log_dir = ''
 
-    def purge_logs(self, directory):
+    def purge_logs(self):
         '''Purge log is called randomly to prevent the log directory from being
         filled by lots and lots of log files.
         You've a chance of 1 in 20 that purge log will be fired.
         '''
         if randint(0, 20) != 0:
+            return
+        if not self.log_dir:
             return
 
         from kivy.config import Config
@@ -122,12 +130,12 @@ class FileHandler(logging.Handler):
         if maxfiles < 0:
             return
 
-        print('Purge log fired. Analysing...')
+        Logger.info('Logger: Purge log fired. Analysing...')
         join = os.path.join
         unlink = os.unlink
 
         # search all log files
-        lst = [join(directory, x) for x in os.listdir(directory)]
+        lst = [join(self.log_dir, x) for x in os.listdir(self.log_dir)]
         if len(lst) > maxfiles:
             # get creation time on every files
             lst = [{'fn': x, 'ctime': os.path.getctime(x)} for x in lst]
@@ -137,16 +145,17 @@ class FileHandler(logging.Handler):
 
             # get the oldest (keep last maxfiles)
             lst = lst[:-maxfiles] if maxfiles else lst
-            print('Purge %d log files' % len(lst))
+            Logger.info('Logger: Purge %d log files' % len(lst))
 
             # now, unlink every file in the list
             for filename in lst:
                 try:
                     unlink(filename['fn'])
                 except PermissionError as e:
-                    print('Skipped file {0}, {1}'.format(filename['fn'], e))
+                    Logger.info('Logger: Skipped file {0}, {1}'.
+                                format(filename['fn'], e))
 
-        print('Purge finished!')
+        Logger.info('Logger: Purge finished!')
 
     def _configure(self, *largs, **kwargs):
         from time import strftime
@@ -161,8 +170,7 @@ class FileHandler(logging.Handler):
             _dir = os.path.join(_dir, log_dir)
         if not os.path.exists(_dir):
             os.makedirs(_dir)
-
-        self.purge_logs(_dir)
+        self.log_dir = _dir
 
         pattern = log_name.replace('%_', '@@NUMBER@@')
         pattern = os.path.join(_dir, strftime(pattern))
@@ -192,21 +200,7 @@ class FileHandler(logging.Handler):
         stream = FileHandler.fd
         fs = "%s\n"
         stream.write('[%-7s] ' % record.levelname)
-        if PY2:
-            try:
-                if (isinstance(msg, unicode) and
-                        getattr(stream, 'encoding', None)):
-                    ufs = u'%s\n'
-                    try:
-                        stream.write(ufs % msg)
-                    except UnicodeEncodeError:
-                        stream.write((ufs % msg).encode(stream.encoding))
-                else:
-                    stream.write(fs % msg)
-            except UnicodeError:
-                stream.write(fs % msg.encode("UTF-8"))
-        else:
-            stream.write(fs % msg)
+        stream.write(fs % msg)
         stream.flush()
 
     def emit(self, message):
@@ -244,6 +238,14 @@ class LoggerHistory(logging.Handler):
 
     def emit(self, message):
         LoggerHistory.history = [message] + LoggerHistory.history[:100]
+
+    @classmethod
+    def clear_history(cls):
+        del cls.history[:]
+
+    def flush(self):
+        super(LoggerHistory, self).flush()
+        self.clear_history()
 
 
 class ColoredFormatter(logging.Formatter):
@@ -325,8 +327,10 @@ logging.root = Logger
 
 # add default kivy logger
 Logger.addHandler(LoggerHistory())
+file_log_handler = None
 if 'KIVY_NO_FILELOG' not in os.environ:
-    Logger.addHandler(FileHandler())
+    file_log_handler = FileHandler()
+    Logger.addHandler(file_log_handler)
 
 # Use the custom handler instead of streaming one.
 if 'KIVY_NO_CONSOLELOG' not in os.environ:

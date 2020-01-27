@@ -149,7 +149,7 @@ cdef class Tesselator:
 
         cdata = <char *>&float_view[0]
         datasize = float_view.nbytes
-        self.add_contour_data(cdata, len(points) / 2)
+        self.add_contour_data(cdata, int(len(points) / 2.))
 
     cpdef int tesselate(
             self, int winding_rule=WINDING_ODD,

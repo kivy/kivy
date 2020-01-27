@@ -12,23 +12,16 @@ platform you're working on, they can be a pain to install. For
 Windows and MacOS X, we provide a portable package that you can just
 unzip and use.
 
+Have a look at one of these pages for detailed installation instructions:
+
 * :ref:`installation_windows`
 * :ref:`installation_osx`
 * :ref:`installation_linux`
+* :ref:`installation_rpi`
 
-If you want to install everything yourself, ensure that you have at
-least `Cython <http://cython.org>`_ and `Pygame <http://pygame.org>`_. A
-typical pip installation looks like this::
+Alternatively, instructions for the development version can be found here:
 
-    pip install cython
-    pip install hg+http://bitbucket.org/pygame/pygame
-    pip install kivy
-
-The `development version <https://github.com/kivy/kivy>`_ can be
-installed with git::
-
-    git clone https://github.com/kivy/kivy
-    make
+* :ref:`installation`
 
 .. _quickstart:
 
@@ -205,7 +198,7 @@ at line 9::
 
     class LoginScreen(GridLayout):
 
-At line 12 in the class LoginScreen, we overload the method
+At line 12 in the class LoginScreen, we override the method
 :meth:`~kivy.widget.Widget.__init__` so as to add widgets and to define their
 behavior::
 

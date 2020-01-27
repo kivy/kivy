@@ -1,0 +1,127 @@
+name: Manylinux wheels
+
+on:
+  push:
+  pull_request:
+  create:
+  schedule:
+    - cron:  '23 1 * * *'
+
+env:
+  KIVY_SPLIT_EXAMPLES: 1
+  SERVER_IP: '159.203.106.198'
+  DOCKER_IMAGE: 'quay.io/pypa/manylinux2010_x86_64'
+
+jobs:
+  manylinux_wheel_create:
+    runs-on: ubuntu-18.04
+    if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel linux]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel linux]')
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python 3.x
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.x
+    - name: Make wheels
+      run: |
+        source .ci/ubuntu_ci.sh
+        generate_manylinux2010_wheels $DOCKER_IMAGE
+    - name: Upload wheels as artifact
+      uses: actions/upload-artifact@master
+      with:
+        name: manylinux_wheels
+        path: dist
+
+  manylinux_wheel_upload_test:
+    runs-on: ubuntu-18.04
+    needs: manylinux_wheel_create
+    env:
+      DISPLAY: ':99.0'
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python 3.x
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.x
+    - uses: actions/download-artifact@master
+      with:
+        name: manylinux_wheels
+    - name: Fix wheel path
+      run: mv manylinux_wheels dist
+    - name: Rename wheels
+      if: github.event.ref_type != 'tag'
+      run: |
+        source .ci/ubuntu_ci.sh
+        rename_wheels
+    - name: Upload wheels to server
+      if: github.event_name != 'pull_request'
+      env:
+        UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
+      run: |
+        source .ci/ubuntu_ci.sh
+        upload_file_to_server "$SERVER_IP" "linux/kivy/"
+    - name: Upload to GitHub Release
+      uses: softprops/action-gh-release@78c309ef59fdb9557cd6574f2e0be552936ed728
+      if: startsWith(github.ref, 'refs/tags/')
+      env:
+        GITHUB_TOKEN: ${{ secrets.github_release }}
+      with:
+        files: dist/*
+        draft: true
+    - name: Publish to PyPI
+      if: github.event_name == 'create' && github.event.ref_type == 'tag'
+      env:
+        TWINE_USERNAME: "__token__"
+        TWINE_PASSWORD: ${{ secrets.pypi_password }}
+      run: |
+        twine upload dist/*
+    - name: Install dependencies
+      run: |
+        source .ci/ubuntu_ci.sh
+        install_kivy_test_run_apt_deps
+        install_kivy_test_wheel_run_pip_deps
+    - name: Setup env
+      run: |
+        source .ci/ubuntu_ci.sh
+        prepare_env_for_unittest
+    - name: Install Kivy
+      run: |
+        source .ci/ubuntu_ci.sh
+        install_kivy_manylinux_wheel
+    - name: Test Kivy
+      run: |
+        source .ci/ubuntu_ci.sh
+        test_kivy_install
+
+  sdist_test:
+    runs-on: ubuntu-18.04
+    env:
+      DISPLAY: ':99.0'
+      KIVY_SPLIT_EXAMPLES: 0
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.x
+      - name: Generate sdist
+        run: |
+          source .ci/ubuntu_ci.sh
+          generate_sdist
+      - name: Install dependencies
+        run: |
+          source .ci/ubuntu_ci.sh
+          install_kivy_test_run_apt_deps
+          install_kivy_test_wheel_run_pip_deps
+      - name: Setup env
+        run: |
+          source .ci/ubuntu_ci.sh
+          prepare_env_for_unittest
+      - name: Install Kivy
+        run: |
+          source .ci/ubuntu_ci.sh
+          install_kivy_sdist
+      - name: Test Kivy
+        run: |
+          source .ci/ubuntu_ci.sh
+          test_kivy_install

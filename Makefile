@@ -1,7 +1,7 @@
 PYTHON = python
-CHECKSCRIPT = kivy/tools/pep8checker/pep8kivy.py
+CHECKSCRIPT = -m flake8
 KIVY_DIR = kivy/
-NOSETESTS = $(PYTHON) -m nose.core
+PYTEST = $(PYTHON) -m pytest
 KIVY_USE_DEFAULTCONFIG = 1
 HOSTPYTHON = $(KIVYIOSROOT)/tmp/Python-$(PYTHON_VERSION)/hostpython
 
@@ -11,7 +11,7 @@ IOSPATH := $(PATH):/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin
 
 BUILD_OPTS       = build_ext --inplace
 BUILD_OPTS_FORCE = $(BUILD_OPTS) -f
-BUILD_OPTS_DEBUG = $(BUILD_OPTS_FORCE) -g
+BUILD_OPTS_DEBUG = $(BUILD_OPTS_FORCE) -g --cython-gdb
 
 INSTALL_OPTIONS  = install
 INSTALL_ROOT     =
@@ -38,7 +38,7 @@ force:
 	$(PYTHON) setup.py $(BUILD_OPTS_FORCE)
 
 debug:
-	$(PYTHON) setup.py $(BUILD_OPTS_DEBUG)
+	env CFLAGS="-Og" $(PYTHON) setup.py $(BUILD_OPTS_DEBUG)
 
 mesabuild:
 	env USE_MESAGL=1 $(PYTHON) setup.py $(BUILD_OPTS)
@@ -83,9 +83,13 @@ hook:
 	cp kivy/tools/pep8checker/pre-commit.githook .git/hooks/pre-commit
 	chmod +x .git/hooks/pre-commit
 
+image-testsuite:
+	mkdir -p "${KIVY_DIR}tests/image-testsuite"
+	-${KIVY_DIR}tools/image-testsuite/imagemagick-testsuite.sh "${KIVY_DIR}tests/image-testsuite"
+
 test:
 	-rm -rf kivy/tests/build
-	$(NOSETESTS) kivy/tests
+	env KIVY_NO_ARGS=1 $(PYTEST) kivy/tests
 
 cover:
 	coverage html --include='$(KIVY_DIR)*' --omit '$(KIVY_DIR)data/*,$(KIVY_DIR)lib/*,$(KIVY_DIR)tools/*,$(KIVY_DIR)tests/*'
@@ -101,14 +105,19 @@ clean:
 	-rm -f .noseids
 	-rm -rf kivy/tests/build
 	-find kivy -iname '*.so' -exec rm {} \;
+	-find kivy -iname '*.pyd' -exec rm {} \;
 	-find kivy -iname '*.pyc' -exec rm {} \;
 	-find kivy -iname '*.pyo' -exec rm {} \;
-	-find . -iname '*.pyx' -exec sh -c 'echo `dirname {}`/`basename {} .pyx`.c' \; | xargs rm
+	-find kivy -iname '*.pyx' -exec sh -c 'echo `dirname {}`/`basename {} .pyx`.c' \; | xargs ls -d 2>/dev/null | xargs -r rm
 
 distclean: clean
 ifneq ($(GIT_COMMAND),)
+ifneq ($(git rev-parse --git-dir 2> /dev/null),)
 	@echo "Using GIT at $(GIT_COMMAND) to make a distclean..."
 	-git clean -dxf -e debian
+else
+	@echo "Not in a git directory to make a distclean..."
+endif
 else
 	@echo "GIT not found to make a distclean..."
 endif

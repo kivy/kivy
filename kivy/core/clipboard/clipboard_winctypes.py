@@ -56,7 +56,9 @@ class ClipboardWindows(ClipboardBase):
         user32.OpenClipboard(user32.GetActiveWindow())
         user32.EmptyClipboard()
         hCd = GlobalAlloc(0, len(text) * ctypes.sizeof(ctypes.c_wchar))
-        msvcrt.wcscpy_s(c_wchar_p(hCd), len(text), c_wchar_p(text))
+
+        # ignore null character for strSource pointer
+        msvcrt.wcscpy_s(c_wchar_p(hCd), len(text), c_wchar_p(text[:-1]))
         SetClipboardData(CF_UNICODETEXT, hCd)
         user32.CloseClipboard()
 

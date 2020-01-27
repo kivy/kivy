@@ -11,19 +11,8 @@ import os
 import sys
 import platform as plf
 from time import ctime
-
-try:
-    # PY3
-    from configparser import ConfigParser
-except ImportError:
-    # PY2
-    from ConfigParser import ConfigParser
-
-try:
-    from StringIO import StringIO
-    input = raw_input
-except ImportError:
-    from io import StringIO
+from configparser import ConfigParser
+from io import StringIO
 
 import kivy
 
@@ -206,8 +195,8 @@ print('\n'.join(report_dict['Global'] + report_dict['OpenGL'] +
                 report_dict['Configuration'] +
                 report_dict['InputAvailablity'] +
                 report_dict['Environ'] + report_dict['Options']))
-print()
-print()
+print('\n')
+print('\n')
 
 try:
     print('The report will be sent as an anonymous gist.')
@@ -221,11 +210,11 @@ if reply.lower().strip() in ('', 'y'):
 
     paste_url = send_report(report_dict)
 
-    print()
-    print()
+    print('\n')
+    print('\n')
     print('REPORT posted at %s' % paste_url)
-    print()
-    print()
+    print('\n')
+    print('\n')
 else:
     print('No report posted.')
 

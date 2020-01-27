@@ -3,6 +3,7 @@
 #Permission to use this file is granted under the conditions of the Ignifuga Game Engine License
 #whose terms are available in the LICENSE file or at http://www.ignifuga.org/license
 
+include "../include/config.pxi"
 
 cdef extern from "SDL_joystick.h":
     cdef struct SDL_Joystick
@@ -27,11 +28,12 @@ cdef extern from "SDL.h":
     int SDL_WINDOWPOS_UNDEFINED
 
     ctypedef enum:
+        SDL_PIXELFORMAT_BGRA8888
         SDL_PIXELFORMAT_ARGB8888
         SDL_PIXELFORMAT_RGBA8888
-        SDL_PIXELFORMAT_RGB888
         SDL_PIXELFORMAT_ABGR8888
-        SDL_PIXELFORMAT_BGR888
+        SDL_PIXELFORMAT_RGB24
+        SDL_PIXELFORMAT_BGR24
 
     ctypedef enum SDL_GLattr:
         SDL_GL_RED_SIZE
@@ -57,12 +59,25 @@ cdef extern from "SDL.h":
         SDL_GL_CONTEXT_FLAGS
         SDL_GL_CONTEXT_PROFILE_MASK
 
+    ctypedef enum SDL_SystemCursor:
+        SDL_SYSTEM_CURSOR_ARROW
+        SDL_SYSTEM_CURSOR_IBEAM
+        SDL_SYSTEM_CURSOR_WAIT
+        SDL_SYSTEM_CURSOR_CROSSHAIR
+        SDL_SYSTEM_CURSOR_WAITARROW
+        SDL_SYSTEM_CURSOR_SIZENWSE
+        SDL_SYSTEM_CURSOR_SIZENESW
+        SDL_SYSTEM_CURSOR_SIZEWE
+        SDL_SYSTEM_CURSOR_SIZENS
+        SDL_SYSTEM_CURSOR_SIZEALL
+        SDL_SYSTEM_CURSOR_NO
+        SDL_SYSTEM_CURSOR_HAND
+
     ctypedef enum SDL_BlendMode:
         SDL_BLENDMODE_NONE = 0x00000000
         SDL_BLENDMODE_BLEND = 0x00000001
         SDL_BLENDMODE_ADD = 0x00000002
         SDL_BLENDMODE_MOD = 0x00000004
-
 
     ctypedef enum SDL_TextureAccess:
         SDL_TEXTUREACCESS_STATIC
@@ -78,6 +93,11 @@ cdef extern from "SDL.h":
         SDL_FALSE = 0
         SDL_TRUE = 1
 
+    cdef struct SDL_version:
+        Uint8 major
+        Uint8 minor
+        Uint8 patch
+
     cdef struct SDL_Rect:
         int x, y
         int w, h
@@ -89,7 +109,7 @@ cdef extern from "SDL.h":
         Uint8 r
         Uint8 g
         Uint8 b
-        Uint8 unused
+        Uint8 a
 
     cdef struct SDL_Palette:
         int ncolors
@@ -120,6 +140,8 @@ cdef extern from "SDL.h":
 
 
     cdef struct SDL_BlitMap
+
+    cdef struct SDL_Cursor
 
     cdef struct SDL_Surface:
         Uint32 flags
@@ -201,6 +223,11 @@ cdef extern from "SDL.h":
         SDL_WINDOWEVENT_FOCUS_LOST     #< Window has lost keyboard focus */
         SDL_WINDOWEVENT_CLOSE           #< The window manager requests that the
                                         # window be closed */
+
+    ctypedef enum SDL_HintPriority:
+        SDL_HINT_DEFAULT
+        SDL_HINT_NORMAL
+        SDL_HINT_OVERRIDE
 
     ctypedef enum SDL_RendererFlip:
         SDL_FLIP_NONE = 0x00000000
@@ -389,11 +416,19 @@ cdef extern from "SDL.h":
         int refresh_rate
         void *driverdata
 
+    cdef struct SDL_RWops_union_unknown:
+        void *data1
+
+    cdef union SDL_RWops_union:
+        SDL_RWops_union_unknown unknown
+
     cdef struct SDL_RWops:
-        long (* seek) (SDL_RWops * context, long offset,int whence)
+        Sint64 (* seek) (SDL_RWops * context, Sint64 offset,int whence)
         size_t(* read) ( SDL_RWops * context, void *ptr, size_t size, size_t maxnum)
         size_t(* write) (SDL_RWops * context, void *ptr,size_t size, size_t num)
         int (* close) (SDL_RWops * context)
+        int type
+        SDL_RWops_union hidden
 
     cdef enum SDL_Keymod:
         KMOD_NONE
@@ -418,6 +453,7 @@ cdef extern from "SDL.h":
     cdef char *SDL_HINT_ORIENTATIONS
     cdef char *SDL_HINT_VIDEO_WIN_D3DCOMPILER
     cdef char *SDL_HINT_ACCELEROMETER_AS_JOYSTICK
+    cdef char *SDL_HINT_ANDROID_TRAP_BACK_BUTTON
 
     cdef int SDL_QUERY               = -1
     cdef int SDL_IGNORE              =  0
@@ -432,6 +468,7 @@ cdef extern from "SDL.h":
     cdef int SDL_INIT_EVENTS         = 0x00004000
     cdef int SDL_INIT_NOPARACHUTE    = 0x00100000  # Don't catch fatal signals */
 
+    cdef void SDL_GetVersion(SDL_version * ver)
     cdef SDL_Renderer * SDL_CreateRenderer(SDL_Window * window, int index, Uint32 flags)
     cdef void SDL_DestroyRenderer (SDL_Renderer * renderer)
     cdef SDL_Texture * SDL_CreateTexture(SDL_Renderer * renderer, Uint32 format, int access, int w, int h)
@@ -459,10 +496,9 @@ cdef extern from "SDL.h":
     cdef int SDL_SetTextureBlendMode(SDL_Texture * texture, SDL_BlendMode blendMode)
     cdef int SDL_GetTextureBlendMode(SDL_Texture * texture, SDL_BlendMode *blendMode)
     cdef SDL_Surface * SDL_CreateRGBSurfaceFrom(void *pixels, int width, int height, int depth, int pitch, Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
-    cdef SDL_Surface* SDL_ConvertSurface(SDL_Surface* src, SDL_PixelFormat* fmt, Uint32 flags)
-    cdef SDL_Surface* SDL_ConvertSurfaceFormat(SDL_Surface* src, Uint32
-            pixel_format, Uint32 flags)
+    cdef SDL_Surface* SDL_ConvertSurfaceFormat(SDL_Surface* src, Uint32 pixel_format, Uint32 flags) nogil
     cdef const char* SDL_GetPixelFormatName(Uint32 format)
+    cdef int SDL_GetColorKey(SDL_Surface *surface, Uint32 *key)
     cdef int SDL_Init(Uint32 flags)
     cdef void SDL_Quit()
     cdef int SDL_EnableUNICODE(int enable)
@@ -474,6 +510,7 @@ cdef extern from "SDL.h":
     cdef SDL_RWops * SDL_RWFromFile(char *file, char *mode)
     cdef SDL_RWops * SDL_RWFromMem(void *mem, int size)
     cdef SDL_RWops * SDL_RWFromConstMem(void *mem, int size)
+    cdef SDL_RWops * SDL_AllocRW()
     cdef void SDL_FreeRW(SDL_RWops *area)
     cdef int SDL_GetRendererInfo(SDL_Renderer *renderer, SDL_RendererInfo *info)
     cdef int SDL_RenderSetViewport(SDL_Renderer * renderer, SDL_Rect * rect)
@@ -483,6 +520,7 @@ cdef extern from "SDL.h":
     cdef int SDL_SetTextureAlphaMod(SDL_Texture * texture, Uint8 alpha)
     cdef char * SDL_GetError()
     cdef SDL_bool SDL_SetHint(char *name, char *value)
+    cdef SDL_bool SDL_SetHintWithPriority(char *name, char *value, SDL_HintPriority priority)
     cdef Uint8 SDL_GetMouseState(int* x,int* y)
     cdef SDL_GLContext SDL_GL_CreateContext(SDL_Window* window)
     cdef int SDL_GetNumVideoDisplays()
@@ -538,6 +576,8 @@ cdef extern from "SDL.h":
     cdef void SDL_SetWindowBordered(SDL_Window * window, SDL_bool bordered)
     cdef void SDL_ShowWindow(SDL_Window * window)
     cdef int SDL_ShowCursor(int toggle)
+    cdef void SDL_SetCursor(SDL_Cursor * cursor)
+    cdef SDL_Cursor* SDL_CreateSystemCursor(SDL_SystemCursor id)
     cdef void SDL_HideWindow(SDL_Window * window)
     cdef void SDL_RaiseWindow(SDL_Window * window)
     cdef void SDL_MaximizeWindow(SDL_Window * window)
@@ -603,9 +643,49 @@ cdef extern from "SDL.h":
     Uint16 AUDIO_F32MSB #0x9120  /**< As above, but big-endian byte order */
     Uint16 AUDIO_F32    #AUDIO_F32LSB
 
+    # Endianness
+    Uint16 SDL_BYTEORDER
+    Uint16 SDL_LIL_ENDIAN
+    Uint16 SDL_BIG_ENDIAN
+
 cdef extern from "SDL_shape.h":
-    cdef SDL_Window * SDL_CreateShapedWindow(char *title, unsigned int x,
-            unsigned int y, unsigned int w, unsigned int h, Uint32 flags)
+    cdef SDL_Window * SDL_CreateShapedWindow(
+        char *title,
+        unsigned int x,
+        unsigned int y,
+        unsigned int w,
+        unsigned int h,
+        Uint32 flags
+    )
+
+    # properties, flags, etc
+    ctypedef enum WindowShapeMode:
+        ShapeModeDefault
+        ShapeModeBinarizeAlpha
+        ShapeModeReverseBinarizeAlpha
+        ShapeModeColorKey
+    ctypedef union SDL_WindowShapeParams:
+        Uint8 binarizationCutoff
+        SDL_Color colorKey
+    ctypedef struct SDL_WindowShapeMode:
+        WindowShapeMode mode
+        SDL_WindowShapeParams parameters
+
+    int SDL_NONSHAPEABLE_WINDOW
+    int SDL_INVALID_SHAPE_ARGUMENT
+    int SDL_WINDOW_LACKS_SHAPE
+
+    # set & get
+    cdef SDL_bool SDL_IsShapedWindow(SDL_Window * window)
+    int SDL_SetWindowShape(
+        SDL_Window * window,
+        SDL_Surface * shape,
+        SDL_WindowShapeMode * shape_mode
+    )
+    int SDL_GetShapedWindowMode(
+        SDL_Window * window,
+        SDL_WindowShapeMode * shape_mode
+    )
 
 cdef extern from "SDL_image.h":
     ctypedef enum IMG_InitFlags:
@@ -618,7 +698,10 @@ cdef extern from "SDL_image.h":
     cdef SDL_Surface *IMG_Load(char *file)
     cdef SDL_Surface *IMG_Load_RW(SDL_RWops *src, int freesrc)
     cdef SDL_Surface *IMG_LoadTyped_RW(SDL_RWops *src, int freesrc, char *type)
-    cdef int *IMG_SavePNG(SDL_Surface *src, char *file)
+    cdef int IMG_SavePNG(SDL_Surface *src, char *file)
+    cdef int IMG_SavePNG_RW(SDL_Surface *surface, SDL_RWops *dst, int freedst)
+    cdef int IMG_SaveJPG(SDL_Surface *surface, const char *file, int quality)
+    cdef int IMG_SaveJPG_RW(SDL_Surface *surface, SDL_RWops *dst, int freedst, int quality)
 
 
 cdef extern from "SDL_ttf.h":
@@ -829,10 +912,10 @@ cdef extern from "SDL_mixer.h":
     ctypedef enum MIX_InitFlags:
         MIX_INIT_FLAC        = 0x00000001
         MIX_INIT_MOD         = 0x00000002
-        MIX_INIT_MODPLUG     = 0x00000004
+        MIX_INIT_MODPLUG     = 0x00000004 # Removed in mixer 2.0.2
         MIX_INIT_MP3         = 0x00000008
         MIX_INIT_OGG         = 0x00000010
-        MIX_INIT_FLUIDSYNTH  = 0x00000020
+        MIX_INIT_MID         = 0x00000020 # Previously _FLUIDSYNTH
 
     cdef int MIX_MAX_VOLUME
 
@@ -915,3 +998,56 @@ cdef extern from "SDL_mixer.h":
     cdef Mix_Chunk *  Mix_GetChunk(int channel)
     cdef void  Mix_CloseAudio()
     cdef char * Mix_GetError()
+
+include '../core/window/window_attrs.pxi'
+cdef extern from "SDL_syswm.h":
+    cdef enum SDL_SYSWM_TYPE:
+        SDL_SYSWM_UNKNOWN
+        SDL_SYSWM_WINDOWS
+        SDL_SYSWM_X11
+        SDL_SYSWM_DIRECTFB
+        SDL_SYSWM_COCOA
+        SDL_SYSWM_UIKIT
+        SDL_SYSWM_WAYLAND
+        SDL_SYSWM_MIR
+        SDL_SYSWM_WINRT
+        SDL_SYSWM_ANDROID
+        SDL_SYSWM_VIVANTE
+        SDL_SYSWM_OS2
+
+    IF UNAME_SYSNAME == 'Windows':
+        cdef struct _wm_info_win:
+            HWND window
+            HDC hdc
+    ELSE:
+        cdef struct _wm_info_win:
+            int dummy
+
+    IF USE_WAYLAND:
+        cdef struct _wm_info_wl:
+            wl_display *display
+            wl_surface *surface
+            wl_shell_surface *shell_surface
+    ELSE:
+        cdef struct _wm_info_wl:
+            int dummy
+
+    IF USE_X11:
+        cdef struct _wm_info_x11:
+            Display *display
+            Window window
+    ELSE:
+       cdef struct _wm_info_x11:
+           int dummy
+
+    cdef union _wm_info:
+        _wm_info_win win
+        _wm_info_wl wl
+        _wm_info_x11 x11
+
+    cdef struct SDL_SysWMinfo:
+        SDL_version version
+        SDL_SYSWM_TYPE subsystem
+        _wm_info info
+
+    cdef SDL_bool SDL_GetWindowWMInfo(SDL_Window *window, SDL_SysWMinfo *info)

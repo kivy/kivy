@@ -6,7 +6,10 @@ Support for WM_TOUCH messages (Windows platform)
 __all__ = ('WM_MotionEventProvider', 'WM_MotionEvent')
 
 import os
-from kivy.input.providers.wm_common import *
+from kivy.input.providers.wm_common import WNDPROC, \
+    SetWindowLong_WndProc_wrapper, RECT, POINT, WM_TABLET_QUERYSYSTEMGESTURE, \
+    QUERYSYSTEMGESTURE_WNDPROC, WM_TOUCH, WM_MOUSEMOVE, WM_MOUSELAST, \
+    TOUCHINPUT, PEN_OR_TOUCH_MASK, PEN_OR_TOUCH_SIGNATURE, PEN_EVENT_TOUCH_MASK
 from kivy.input.motionevent import MotionEvent
 from kivy.input.shape import ShapeRect
 
@@ -64,8 +67,8 @@ else:
             # inject our own wndProc to handle messages
             # before window manager does
             self.new_windProc = WNDPROC(self._touch_wndProc)
-            self.old_windProc = SetWindowLong_wrapper(
-                self.hwnd, GWL_WNDPROC, self.new_windProc)
+            self.old_windProc = SetWindowLong_WndProc_wrapper(
+                self.hwnd, self.new_windProc)
 
         def update(self, dispatch_fn):
             c_rect = RECT()
@@ -105,8 +108,8 @@ else:
 
         def stop(self):
             windll.user32.UnregisterTouchWindow(self.hwnd)
-            self.new_windProc = SetWindowLong_wrapper(
-                self.hwnd, GWL_WNDPROC, self.old_windProc)
+            self.new_windProc = SetWindowLong_WndProc_wrapper(
+                self.hwnd, self.old_windProc)
 
         # we inject this wndProc into our main window, to process
         # WM_TOUCH and mouse messages before the window manager does

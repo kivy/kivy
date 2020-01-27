@@ -116,6 +116,7 @@ instance.
   multiple of the number of spaces used on the first indented line. Spaces
   are encouraged: mixing tabs and spaces is not recommended.
 - The value of a property must be given on a single line (for now at least).
+- Keep class names capitalized to avoid syntax errors.
 - The `canvas` property is special: you can put graphics instructions in it
   to create a graphical representation of the current class.
 
@@ -139,7 +140,7 @@ return the root widget defined in your kv file/string. They will also add any
 class and template definitions to the :class:`~kivy.factory.Factory` for later
 usage.
 
-Value Expressions, on_property Expressions, ids and Reserved Keywords
+Value Expressions, on_property Expressions, ids, and Reserved Keywords
 ---------------------------------------------------------------------
 
 When you specify a property's value, the value is evaluated as a Python
@@ -175,6 +176,8 @@ the value can use the values of other properties using reserved keywords.
             TextInput:
                 on_focus: self.insert_text("Focus" if args[1] else "No focus")
 
+.. kv-lang-ids:
+
 ids
 ~~~
 
@@ -189,10 +192,10 @@ Class definitions may contain ids which can be used as a keywords:::
 Please note that the `id` will not be available in the widget instance:
 it is used exclusively for external references. `id` is a weakref to the
 widget, and not the widget itself. The widget itself can be accessed
-with `id.__self__` (`btn1.__self__` in this case).
+with `<id>.__self__` (`btn1.__self__` in this case).
 
 When the kv file is processed, weakrefs to all the widgets tagged with ids are
-added to the root widgets `ids` dictionary. In other words, following on from
+added to the root widget's `ids` dictionary. In other words, following on from
 the example above, the buttons state could also be accessed as follows:
 
 .. code-block:: python
@@ -221,9 +224,9 @@ span a single line, cannot be extended to multiple lines using newline
 escaping, and must return a value. An example of a valid expression is
 ``text: self.state and ('up' if self.state == 'normal' else 'down')``.
 
-In the latter case, multiple single line statements are valid including
-multi-line statements that escape their newline, as long as they don't
-add an indentation level.
+In the latter case, multiple single line statements are valid, including
+those that escape their newline, as long as they don't add an indentation
+level.
 
 Examples of valid statements are:
 
@@ -454,7 +457,7 @@ In Python, you can create an instance of the dynamic class as follows:
 
 .. note::
 
-    Using dynamic classes, a child class can be declared before it's parent.
+    Using dynamic classes, a child class can be declared before its parent.
     This however, leads to the unintuitive situation where the parent
     properties/methods override those of the child. Be careful if you choose
     to do this.
@@ -670,7 +673,6 @@ In myapp.py:
 .. code-block:: python
 
     class MyWidget(Button):
-
         new_background = StringProperty('my_background.png')
 
 and in my.kv:

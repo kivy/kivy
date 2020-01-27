@@ -51,7 +51,7 @@ class VideoFFMpeg(VideoBase):
     def stop(self):
         self.unload()
 
-    def seek(self, percent):
+    def seek(self, percent, precise=True):
         if self._player is None:
             return
         self._player.seek(percent)

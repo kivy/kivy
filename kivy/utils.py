@@ -18,11 +18,11 @@ __all__ = ('intersection', 'difference', 'strtotuple',
            'is_color_transparent', 'hex_colormap', 'colormap', 'boundary',
            'deprecated', 'SafeList',
            'interpolate', 'QueryDict',
-           'platform', 'escape_markup', 'reify', 'rgba')
+           'platform', 'escape_markup', 'reify', 'rgba', 'pi_version')
 
-from os import environ
+from os import environ, path
 from sys import platform as _sys_platform
-from re import match, split
+from re import match, split, search, MULTILINE, IGNORECASE
 from kivy.compat import string_types
 
 
@@ -75,7 +75,7 @@ def strtotuple(s):
 
     '''
     # security
-    if not match('^[,.0-9 ()\[\]]*$', s):
+    if not match(r'^[,.0-9 ()\[\]]*$', s):
         raise Exception('Invalid characters in string for tuple conversion')
     # fast syntax check
     if s.count('(') != s.count(')'):
@@ -96,15 +96,16 @@ def rgba(s, *args):
     '''
     if isinstance(s, string_types):
         return get_color_from_hex(s)
-    elif isinstance(s, (list, tuple)):
-        s = map(lambda x: x / 255., s)
+    if isinstance(s, (list, tuple)):
+        s = [x / 255. for x in s]
         if len(s) == 3:
-            return list(s) + [1]
+            s.append(1)
         return s
-    elif isinstance(s, (int, float)):
-        s = map(lambda x: x / 255., [s] + list(args))
+    if isinstance(s, (int, float)):
+        s = [s / 255.]
+        s.extend(x / 255. for x in args)
         if len(s) == 3:
-            return list(s) + [1]
+            s.append(1)
         return s
     raise Exception('Invalid value (not a string / list / tuple)')
 
@@ -314,13 +315,16 @@ colormap = {k: get_color_from_hex(v) for k, v in hex_colormap.items()}
 DEPRECATED_CALLERS = []
 
 
-def deprecated(func):
+def deprecated(func=None, msg=''):
     '''This is a decorator which can be used to mark functions
     as deprecated. It will result in a warning being emitted the first time
     the function is used.'''
 
     import inspect
     import functools
+
+    if func is None:
+        return functools.partial(deprecated, msg=msg)
 
     @functools.wraps(func)
     def new_func(*args, **kwargs):
@@ -337,10 +341,15 @@ def deprecated(func):
                     func.__code__.co_filename,
                     func.__code__.co_firstlineno + 1,
                     file, line, caller))
+
+            if msg:
+                warning = '{}: {}'.format(msg, warning)
+            warning = 'Deprecated: ' + warning
+
             from kivy.logger import Logger
-            Logger.warn(warning)
+            Logger.warning(warning)
             if func.__doc__:
-                Logger.warn(func.__doc__)
+                Logger.warning(func.__doc__)
         return func(*args, **kwargs)
     return new_func
 
@@ -496,3 +505,36 @@ class reify(object):
         retval = self.func(inst)
         setattr(inst, self.func.__name__, retval)
         return retval
+
+
+def _get_pi_version():
+    """Detect the version of the Raspberry Pi by reading the revision field value from '/proc/cpuinfo'
+    See: https://www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
+    Based on: https://github.com/adafruit/Adafruit_Python_GPIO/blob/master/Adafruit_GPIO/Platform.py
+    """  # noqa
+    # Check if file exist
+    if not path.isfile('/proc/cpuinfo'):
+        return None
+
+    with open('/proc/cpuinfo', 'r') as f:
+        cpuinfo = f.read()
+
+    # Match a line like 'Revision   : a01041'
+    revision = search(r'^Revision\s+:\s+(\w+)$', cpuinfo,
+                      flags=MULTILINE | IGNORECASE)
+    if not revision:
+        # Couldn't find the hardware revision, assume it is not a Pi
+        return None
+
+    # Determine the Pi version using the processor bits using the new-style
+    # revision format
+    revision = int(revision.group(1), base=16)
+    if revision & 0x800000:
+        return ((revision & 0xF000) >> 12) + 1
+
+    # If it is not using the new style revision format,
+    # then it must be a Raspberry Pi 1
+    return 1
+
+
+pi_version = _get_pi_version()

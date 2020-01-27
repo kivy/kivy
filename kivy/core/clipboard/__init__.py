@@ -31,7 +31,7 @@ class ClipboardBase(object):
         '''Get the current data in clipboard, using the mimetype if possible.
         You not use this method directly. Use :meth:`paste` instead.
         '''
-        return None
+        pass
 
     def put(self, data, mimetype):
         '''Put data on the clipboard, and attach a mimetype.
@@ -120,13 +120,13 @@ elif platform == 'win':
         ('winctypes', 'clipboard_winctypes', 'ClipboardWindows'))
 elif platform == 'linux':
     _clipboards.append(
-        ('dbusklipper', 'clipboard_dbusklipper', 'ClipboardDbusKlipper'))
-    _clipboards.append(
-        ('gtk3', 'clipboard_gtk3', 'ClipboardGtk3'))
-    _clipboards.append(
         ('xclip', 'clipboard_xclip', 'ClipboardXclip'))
     _clipboards.append(
         ('xsel', 'clipboard_xsel', 'ClipboardXsel'))
+    _clipboards.append(
+        ('dbusklipper', 'clipboard_dbusklipper', 'ClipboardDbusKlipper'))
+    _clipboards.append(
+        ('gtk3', 'clipboard_gtk3', 'ClipboardGtk3'))
 
 if USE_SDL2:
     _clipboards.append(

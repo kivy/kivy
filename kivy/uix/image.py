@@ -4,7 +4,16 @@ Image
 
 The :class:`Image` widget is used to display an image::
 
+Example in python::
+
     wimg = Image(source='mylogo.png')
+
+Kv Example::
+
+    Image:
+        source: 'mylogo.png'
+        size: self.texture_size
+
 
 Asynchronous Loading
 --------------------
@@ -108,7 +117,7 @@ class Image(Widget):
     to False.
     '''
 
-    image_ratio = AliasProperty(get_image_ratio, None, bind=('texture', ))
+    image_ratio = AliasProperty(get_image_ratio, bind=('texture',), cache=True)
     '''Ratio of the image (width / float(height).
 
     :attr:`image_ratio` is an :class:`~kivy.properties.AliasProperty` and is
@@ -214,11 +223,12 @@ class Image(Widget):
             else:
                 ih = min(h, th)
             iw = ih * ratio
-
         return iw, ih
 
-    norm_image_size = AliasProperty(get_norm_image_size, None, bind=(
-        'texture', 'size', 'image_ratio', 'allow_stretch'))
+    norm_image_size = AliasProperty(get_norm_image_size,
+                                    bind=('texture', 'size', 'allow_stretch',
+                                          'image_ratio', 'keep_ratio'),
+                                    cache=True)
     '''Normalized image size within the widget box.
 
     This size will always fit the widget size and will preserve the image
@@ -332,7 +342,7 @@ class AsyncImage(Image):
         on how to handle events around asynchronous image loading.
     '''
 
-    __events__ = ('on_error', )
+    __events__ = ('on_error', 'on_load')
 
     def __init__(self, **kwargs):
         self._coreimage = None
@@ -350,6 +360,7 @@ class AsyncImage(Image):
         if not source:
             if self._coreimage is not None:
                 self._coreimage.unbind(on_texture=self._on_tex_change)
+                self._coreimage.unbind(on_load=self._on_source_load)
             self.texture = None
             self._coreimage = None
         else:
@@ -369,11 +380,15 @@ class AsyncImage(Image):
         if not image:
             return
         self.texture = image.texture
+        self.dispatch('on_load')
 
     def _on_source_error(self, instance, error=None):
         self.dispatch('on_error', error)
 
     def on_error(self, error):
+        pass
+
+    def on_load(self, *args):
         pass
 
     def is_uri(self, filename):
@@ -386,3 +401,12 @@ class AsyncImage(Image):
 
     def texture_update(self, *largs):
         pass
+
+    def reload(self):
+        if Loader:
+            source = self.source
+            if not self.is_uri(source):
+                source = resource_find(source)
+            Loader.remove_from_cache(source)
+
+        super(AsyncImage, self).reload()

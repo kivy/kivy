@@ -1,0 +1,180 @@
+name: OSX wheels/app
+
+on:
+  push:
+  pull_request:
+  create:
+  schedule:
+    - cron:  '23 1 * * *'
+
+env:
+  KIVY_SPLIT_EXAMPLES: 1
+  SERVER_IP: '159.203.106.198'
+  KIVY_GL_BACKEND: 'mock'
+  CC: clang
+  CXX: clang
+  FFLAGS: '-ff2c'
+  USE_SDL2: 1
+  USE_GSTREAMER: 1
+
+jobs:
+  osx_wheels_create:
+    runs-on: macOS-latest
+    if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel osx]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel osx]')
+    strategy:
+      matrix:
+        python: [ '3.5', '3.6', '3.7', '3.8' ]
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Cache OSX deps
+      uses: actions/cache@v1
+      with:
+        path: osx-cache
+        key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}
+    - name: Cache OSX gst-devel deps
+      uses: actions/cache@v1
+      with:
+        path: osx-cache-gst-devel
+        key: gst-devel-${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}-gst-devel
+    - name: Install dependencies
+      run: |
+        source .ci/ubuntu_ci.sh
+        source .ci/osx_versions.sh
+        source .ci/osx_ci.sh
+        install_kivy_test_run_sys_deps
+        install_kivy_test_run_pip_deps
+    - name: Install Kivy
+      run: |
+        source .ci/ubuntu_ci.sh
+        install_kivy
+    - name: Make wheels
+      run: |
+        source .ci/osx_versions.sh
+        source .ci/osx_ci.sh
+        generate_osx_wheels
+    - name: Upload wheels as artifact
+      uses: actions/upload-artifact@master
+      with:
+        name: osx_wheels
+        path: dist
+
+  osx_wheel_upload_test:
+    runs-on: macOS-latest
+    needs: osx_wheels_create
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python 3.x
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.x
+    - uses: actions/download-artifact@master
+      with:
+        name: osx_wheels
+    - name: Fix wheel path
+      run: mv osx_wheels dist
+    - name: Rename wheels
+      if: github.event.ref_type != 'tag'
+      run: |
+        source .ci/ubuntu_ci.sh
+        rename_wheels
+    - name: Upload wheels to server
+      if: github.event_name != 'pull_request'
+      env:
+        UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
+      run: |
+        source .ci/ubuntu_ci.sh
+        upload_file_to_server "$SERVER_IP" "osx/kivy/"
+    - name: Upload to GitHub Release
+      uses: softprops/action-gh-release@78c309ef59fdb9557cd6574f2e0be552936ed728
+      if: startsWith(github.ref, 'refs/tags/')
+      env:
+        GITHUB_TOKEN: ${{ secrets.github_release }}
+      with:
+        files: dist/*
+        draft: true
+    - name: Publish to PyPI
+      if: github.event_name == 'create' && github.event.ref_type == 'tag'
+      env:
+        TWINE_USERNAME: "__token__"
+        TWINE_PASSWORD: ${{ secrets.pypi_password }}
+      run: twine upload dist/*
+    - name: Install test dependencies
+      run: |
+        source .ci/ubuntu_ci.sh
+        install_kivy_test_wheel_run_pip_deps
+    - name: Install Kivy wheel
+      run: |
+        source .ci/ubuntu_ci.sh
+        install_kivy_manylinux_wheel
+    - name: Test Kivy wheel
+      run: |
+        source .ci/ubuntu_ci.sh
+        test_kivy_install
+
+  osx_app:
+    runs-on: macOS-latest
+    if: false && github.event_name != 'pull_request' && (github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build app osx]')) || contains(github.event.pull_request.title, '[build app osx]')
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.x
+      - name: Cache OSX deps
+        uses: actions/cache@v1
+        with:
+          path: osx-cache
+          key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}
+      - name: Cache OSX gst-devel deps
+        uses: actions/cache@v1
+        with:
+          path: osx-cache-gst-devel
+          key: gst-devel-${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}-gst-devel
+      - name: Install dependencies
+        run: |
+          source .ci/ubuntu_ci.sh
+          source .ci/osx_versions.sh
+          source .ci/osx_ci.sh
+          install_kivy_test_run_sys_deps
+          install_platypus
+          install_kivy_test_run_pip_deps
+      - name: Install Kivy
+        run: |
+          source .ci/ubuntu_ci.sh
+          install_kivy
+      - name: Make app
+        env:
+          REF_NAME: ${{ github.ref }}
+        run: |
+          py_version=$(python3 -c "import platform; print(platform.python_version())")
+          branch_name=$(python3 -c "print('$REF_NAME'.split('/')[-1])")
+          source .ci/osx_versions.sh
+          source .ci/osx_ci.sh
+          generate_osx_app "$py_version" "$branch_name"
+      - name: Upload app to server
+        env:
+          UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
+        run: |
+          source .ci/ubuntu_ci.sh
+          upload_file_to_server "$SERVER_IP" "osx/app/" "*.dmg" "app"
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@78c309ef59fdb9557cd6574f2e0be552936ed728
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.github_release }}
+        with:
+          files: app/*
+          draft: true
+
+  always_job:
+    name: Always run job
+    runs-on: macOS-latest
+    steps:
+      - name: Always run
+        run: |
+          echo "This is run to prevent the workflow from showing an error if the wheels job is not run and no jobs run is an error."
+          echo "See https://github.community/t5/GitHub-Actions/Workflow-is-failing-if-no-job-can-be-ran-due-to-condition/m-p/38085"

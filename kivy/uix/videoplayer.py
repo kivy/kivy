@@ -344,7 +344,7 @@ class VideoPlayer(GridLayout):
     to 'stop'.
     '''
 
-    play = BooleanProperty(False)
+    play = BooleanProperty(False, deprecated=True)
     '''
     .. deprecated:: 1.4.0
         Use :attr:`state` instead.
@@ -454,7 +454,7 @@ class VideoPlayer(GridLayout):
 
     .. warning::
 
-        The re-add operation doesn't care about the index position of it's
+        The re-add operation doesn't care about the index position of its
         children within the parent.
 
     :attr:`fullscreen` is a :class:`~kivy.properties.BooleanProperty`
@@ -526,6 +526,8 @@ class VideoPlayer(GridLayout):
         if not thumbnail:
             filename = self.source.rsplit('.', 1)
             thumbnail = filename[0] + '.png'
+            if not exists(thumbnail):
+                thumbnail = ''
         self._image = VideoPlayerPreview(source=thumbnail, video=self)
         self.container.add_widget(self._image)
 
@@ -584,17 +586,27 @@ class VideoPlayer(GridLayout):
             elif label.parent is None:
                 self.container.add_widget(label)
 
-    def seek(self, percent):
-        '''Change the position to a percentage of the duration. Percentage must
-        be a value between 0-1.
+    def seek(self, percent, precise=True):
+        '''Change the position to a percentage of duration.
+
+        :Parameters:
+            `percent`: float or int
+                Position to seek, must be between 0-1.
+            `precise`: bool, defaults to True
+                Precise seeking is slower, but seeks to exact requested
+                percent.
 
         .. warning::
+            Calling seek() before the video is loaded has no effect.
 
-            Calling seek() before video is loaded has no effect.
+        .. versionadded:: 1.2.0
+
+        .. versionchanged:: 1.10.1
+            The `precise` keyword argument has been added.
         '''
         if not self._video:
             return
-        self._video.seek(percent)
+        self._video.seek(percent, precise=precise)
 
     def _play_started(self, instance, value):
         self.container.clear_widgets()

@@ -85,11 +85,23 @@ class ModalView(AnchorLayout):
     '''ModalView class. See module documentation for more information.
 
     :Events:
+        `on_pre_open`:
+            Fired before the ModalView is opened. When this event is fired
+            ModalView is not yet added to window.
         `on_open`:
             Fired when the ModalView is opened.
+        `on_pre_dismiss`:
+            Fired before the ModalView is closed.
         `on_dismiss`:
             Fired when the ModalView is closed. If the callback returns True,
             the dismiss will be canceled.
+
+    .. versionchanged:: 1.11.0
+        Added events `on_pre_open` and `on_pre_dismiss`.
+
+    .. versionchanged:: 2.0.0
+        Added property 'overlay_color'.
+
     '''
 
     auto_dismiss = BooleanProperty(True)
@@ -109,11 +121,21 @@ class ModalView(AnchorLayout):
     defaults to None.
     '''
 
-    background_color = ListProperty([0, 0, 0, .7])
-    '''Background color in the format (r, g, b, a).
+    background_color = ListProperty([1, 1, 1, 1])
+    '''Background color, in the format (r, g, b, a).
 
-    :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and
-    defaults to [0, 0, 0, .7].
+    This acts as a *multiplier* to the texture colour. The default
+    texture is grey, so just setting the background color will give
+    a darker result. To set a plain color, set the
+    :attr:`background_normal` to ``''``.
+
+    The :attr:`background_color` is a
+    :class:`~kivy.properties.ListProperty` and defaults to [1, 1, 1, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed behavior to affect the background of the widget itself, not
+        the overlay dimming.
+
     '''
 
     background = StringProperty(
@@ -137,6 +159,16 @@ class ModalView(AnchorLayout):
     (16, 16, 16, 16).
     '''
 
+    overlay_color = ListProperty([0, 0, 0, .7])
+    '''Overlay color in the format (r, g, b, a).
+    Used for dimming the window behind the modal view.
+
+    :attr:`overlay_color` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [0, 0, 0, .7].
+
+    .. versionadded:: 2.0.0
+    '''
+
     # Internals properties used for graphical representation.
 
     _anim_alpha = NumericProperty(0)
@@ -145,7 +177,9 @@ class ModalView(AnchorLayout):
 
     _window = ObjectProperty(None, allownone=True, rebind=True)
 
-    __events__ = ('on_open', 'on_dismiss')
+    _touch_started_inside = None
+
+    __events__ = ('on_pre_open', 'on_open', 'on_pre_dismiss', 'on_dismiss')
 
     def __init__(self, **kwargs):
         self._parent = None
@@ -163,11 +197,17 @@ class ModalView(AnchorLayout):
             window = Window
         return window
 
-    def open(self, *largs):
+    def open(self, *largs, **kwargs):
         '''Show the view window from the :attr:`attach_to` widget. If set, it
         will attach to the nearest window. If the widget is not attached to any
         window, the view will attach to the global
         :class:`~kivy.core.window.Window`.
+
+        When the view is opened, it will be faded in with an animation. If you
+        don't want the animation, use::
+
+            view.open(animation=False)
+
         '''
         if self._window is not None:
             Logger.warning('ModalView: you can only open once.')
@@ -177,6 +217,7 @@ class ModalView(AnchorLayout):
         if not self._window:
             Logger.warning('ModalView: cannot open view, no window found.')
             return
+        self.dispatch('on_pre_open')
         self._window.add_widget(self)
         self._window.bind(
             on_resize=self._align_center,
@@ -184,10 +225,13 @@ class ModalView(AnchorLayout):
         self.center = self._window.center
         self.fbind('center', self._align_center)
         self.fbind('size', self._align_center)
-        a = Animation(_anim_alpha=1., d=self._anim_duration)
-        a.bind(on_complete=lambda *x: self.dispatch('on_open'))
-        a.start(self)
-        return
+        if kwargs.get('animation', True):
+            a = Animation(_anim_alpha=1., d=self._anim_duration)
+            a.bind(on_complete=lambda *x: self.dispatch('on_open'))
+            a.start(self)
+        else:
+            self._anim_alpha = 1.
+            self.dispatch('on_open')
 
     def dismiss(self, *largs, **kwargs):
         '''Close the view if it is open. If you really want to close the
@@ -206,6 +250,7 @@ class ModalView(AnchorLayout):
         '''
         if self._window is None:
             return
+        self.dispatch('on_pre_dismiss')
         if self.dispatch('on_dismiss') is True:
             if kwargs.get('force', False) is not True:
                 return
@@ -214,25 +259,26 @@ class ModalView(AnchorLayout):
         else:
             self._anim_alpha = 0
             self._real_remove_widget()
-        return
 
     def _align_center(self, *l):
         if self._window:
             self.center = self._window.center
 
     def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):
-            if self.auto_dismiss:
-                self.dismiss()
-                return True
-        super(ModalView, self).on_touch_down(touch)
+        self._touch_started_inside = self.collide_point(*touch.pos)
+        if not self.auto_dismiss or self._touch_started_inside:
+            super(ModalView, self).on_touch_down(touch)
         return True
 
     def on_touch_move(self, touch):
-        super(ModalView, self).on_touch_move(touch)
+        if not self.auto_dismiss or self._touch_started_inside:
+            super(ModalView, self).on_touch_move(touch)
         return True
 
     def on_touch_up(self, touch):
+        if self.auto_dismiss and not self._touch_started_inside:
+            self.dismiss()
+            return True
         super(ModalView, self).on_touch_up(touch)
         return True
 
@@ -249,7 +295,13 @@ class ModalView(AnchorLayout):
             on_keyboard=self._handle_keyboard)
         self._window = None
 
+    def on_pre_open(self):
+        pass
+
     def on_open(self):
+        pass
+
+    def on_pre_dismiss(self):
         pass
 
     def on_dismiss(self):

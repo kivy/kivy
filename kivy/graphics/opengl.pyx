@@ -690,7 +690,7 @@ def glDrawElements(GLenum mode, GLsizei count, GLenum type, indices):
     if isinstance(indices, bytes):
         ptr = <void *>(<char *>(<bytes>indices))
     elif isinstance(indices, (long, int)):
-        ptr = <void *>(<long>indices)
+        ptr = <void *>(<unsigned int>indices)
     else:
         raise TypeError("Argument 'indices' has incorrect type (expected bytes or int).")
     cgl.glDrawElements(mode, count, type, ptr)
@@ -986,7 +986,7 @@ def glGetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype): #, GLin
 
     .. warning:: Not implemented yet.
     '''
-    raise NotImplemented()
+    raise NotImplementedError
     #cgl.glGetShaderPrecisionFormat(shadertype, precisiontype, range, precision)
 
 def glGetShaderSource(GLuint shader):
@@ -1076,7 +1076,7 @@ def glGetVertexAttribPointerv(GLuint index, GLenum pname):#, GLvoid** pointer):
 
     .. warning:: Not implemented yet.
     '''
-    raise NotImplemented()
+    raise NotImplementedError
     #cgl.glGetVertexAttribPointerv(index, pname, pointer)
 
 def glHint(GLenum target, GLenum mode):
@@ -1192,7 +1192,7 @@ def glReleaseShaderCompiler():
 
     .. warning:: Not implemented yet.
     '''
-    raise NotImplemented()
+    raise NotImplementedError
 #    cgl.glReleaseShaderCompiler()
 
 def glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height):
@@ -1220,7 +1220,7 @@ def glShaderBinary():#GLsizei n,  GLuint* shaders, GLenum binaryformat,  bytes G
     .. warning:: Not implemented yet.
     '''
     #cgl.glShaderBinary(n, shaders, binaryformat, binary, length)
-    raise NotImplemented()
+    raise NotImplementedError
 
 def glShaderSource(GLuint shader, bytes source):
     '''See: `glShaderSource() on Kronos website
@@ -1287,7 +1287,7 @@ def glTexParameterfv(GLenum target, GLenum pname):#,  GLfloat* params):
     .. warning:: Not implemented yet.
     '''
     #cgl.glTexParameterfv(target, pname, params)
-    raise NotImplemented()
+    raise NotImplementedError
 
 def glTexParameteri(GLenum target, GLenum pname, GLint param):
     '''See: `glTexParameteri() on Kronos website
@@ -1302,7 +1302,7 @@ def glTexParameteriv(GLenum target, GLenum pname):#,  GLint* params):
     .. warning:: Not implemented yet.
     '''
     #cgl.glTexParameteriv(target, pname, params)
-    raise NotImplemented()
+    raise NotImplementedError
 
 def glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
                     GLsizei width, GLsizei height, GLenum format, GLenum type,
@@ -1326,7 +1326,7 @@ def glUniform1fv(GLint location, GLsizei count):#,  GLfloat* v):
     .. warning:: Not implemented yet.
     '''
     #cgl.glUniform1fv(location, count, v)
-    raise NotImplemented()
+    raise NotImplementedError
 
 def glUniform1i(GLint location, GLint x):
     '''See: `glUniform1i() on Kronos website
@@ -1341,7 +1341,7 @@ def glUniform1iv(GLint location, GLsizei count):#,  GLint* v):
     .. warning:: Not implemented yet.
     '''
     #cgl.glUniform1iv(location, count, v)
-    raise NotImplemented()
+    raise NotImplementedError
 
 def glUniform2f(GLint location, GLfloat x, GLfloat y):
     '''See: `glUniform2f() on Kronos website
@@ -1356,7 +1356,7 @@ def glUniform2fv(GLint location, GLsizei count):#,  GLfloat* v):
     .. warning:: Not implemented yet.
     '''
     #cgl.glUniform2fv(location, count, v)
-    raise NotImplemented()
+    raise NotImplementedError
 
 def glUniform2i(GLint location, GLint x, GLint y):
     '''See: `glUniform2i() on Kronos website
@@ -1371,7 +1371,7 @@ def glUniform2iv(GLint location, GLsizei count):#,  GLint* v):
     .. warning:: Not implemented yet.
     '''
     #cgl.glUniform2iv(location, count, v)
-    raise NotImplemented()
+    raise NotImplementedError
 
 def glUniform3f(GLint location, GLfloat x, GLfloat y, GLfloat z):
     '''See: `glUniform3f() on Kronos website
@@ -1386,7 +1386,7 @@ def glUniform3fv(GLint location, GLsizei count):#,  GLfloat* v):
     .. warning:: Not implemented yet.
     '''
     #cgl.glUniform3fv(location, count, v)
-    raise NotImplemented()
+    raise NotImplementedError
 
 def glUniform3i(GLint location, GLint x, GLint y, GLint z):
     '''See: `glUniform3i() on Kronos website
@@ -1401,7 +1401,7 @@ def glUniform3iv(GLint location, GLsizei count):#,  GLint* v):
     .. warning:: Not implemented yet.
     '''
     #cgl.glUniform3iv(location, count, v)
-    raise NotImplemented()
+    raise NotImplementedError
 
 def glUniform4f(GLint location, GLfloat x, GLfloat y, GLfloat z, GLfloat w):
     '''See: `glUniform4f() on Kronos website
@@ -1418,7 +1418,7 @@ def glUniform4fv(GLint location, GLsizei count):#,  GLfloat* v):
     .. warning:: Not implemented yet.
     '''
     #cgl.glUniform4fv(location, count, v)
-    raise NotImplemented()
+    raise NotImplementedError
 
 def glUniform4i(GLint location, GLint x, GLint y, GLint z, GLint w):
     '''See: `glUniform4i() on Kronos website
@@ -1433,7 +1433,7 @@ def glUniform4iv(GLint location, GLsizei count):#,  GLint* v):
     .. warning:: Not implemented yet.
     '''
     #cgl.glUniform4iv(location, count, v)
-    raise NotImplemented()
+    raise NotImplementedError
 
 def glUniformMatrix2fv(GLint location, GLsizei count):#, GLboolean transpose, bytes values):
     '''See: `glUniformMatrix2fv() on Kronos website
@@ -1442,7 +1442,7 @@ def glUniformMatrix2fv(GLint location, GLsizei count):#, GLboolean transpose, by
     .. warning:: Not implemented yet.
     '''
     #cgl.glUniformMatrix2fv(location, count, transpose, <GLfloat*>ptr_value)
-    raise NotImplemented()
+    raise NotImplementedError
 
 def glUniformMatrix3fv(GLint location, GLsizei count):#, GLboolean transpose,  bytes values):
     '''See: `glUniformMatrix3fv() on Kronos website
@@ -1451,7 +1451,7 @@ def glUniformMatrix3fv(GLint location, GLsizei count):#, GLboolean transpose,  b
     .. warning:: Not implemented yet.
     '''
     # cgl.glUniformMatrix3fv(location, count, transpose, <GLfloat*>ptr_value)
-    raise NotImplemented()
+    raise NotImplementedError
 
 def glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose,  bytes value):
     '''See: `glUniformMatrix4fv() on Kronos website
@@ -1484,7 +1484,7 @@ def glVertexAttrib1fv(GLuint indx, list values):
     .. warning:: Not implemented yet.
     '''
     #cgl.glVertexAttrib1fv(indx, values)
-    raise NotImplemented()
+    raise NotImplementedError
 
 def glVertexAttrib2f(GLuint indx, GLfloat x, GLfloat y):
     '''See: `glVertexAttrib2f() on Kronos website
@@ -1499,7 +1499,7 @@ def glVertexAttrib2fv(GLuint indx, list values):
     .. warning:: Not implemented yet.
     '''
     #cgl.glVertexAttrib2fv(indx, values)
-    raise NotImplemented()
+    raise NotImplementedError
 
 def glVertexAttrib3f(GLuint indx, GLfloat x, GLfloat y, GLfloat z):
     '''See: `glVertexAttrib3f() on Kronos website
@@ -1514,7 +1514,7 @@ def glVertexAttrib3fv(GLuint indx, list values):
     .. warning:: Not implemented yet.
     '''
     #cgl.glVertexAttrib3fv(indx, values)
-    raise NotImplemented()
+    raise NotImplementedError
 
 def glVertexAttrib4f(GLuint indx, GLfloat x, GLfloat y, GLfloat z, GLfloat w):
     '''See: `glVertexAttrib4f() on Kronos website
@@ -1529,7 +1529,7 @@ def glVertexAttrib4fv(GLuint indx, list values):
     .. warning:: Not implemented yet.
     '''
     #cgl.glVertexAttrib4fv(indx, values)
-    raise NotImplemented()
+    raise NotImplementedError
 
 def glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, data):
     '''See: `glVertexAttribPointer() on Kronos website
@@ -1540,7 +1540,7 @@ def glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean norma
     if isinstance(data, bytes):
         ptr = <void *>(<char *>(<bytes>data))
     elif isinstance(data, (long, int)):
-        ptr = <void *>(<long>data)
+        ptr = <void *>(<unsigned int>data)
     else:
         raise TypeError("Argument 'data' has incorrect type (expected bytes or int).")
     cgl.glVertexAttribPointer(index, size, type, normalized, stride, ptr)
@@ -1552,5 +1552,5 @@ def glViewport(GLint x, GLint y, GLsizei width, GLsizei height):
     cgl.glViewport(x, y, width, height)
 
 
-def gl_init_symbols():
-    cgl_init()
+def gl_init_symbols(allowed=[], ignored=[]):
+    cgl_init(allowed, ignored)

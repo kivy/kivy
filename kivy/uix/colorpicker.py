@@ -279,16 +279,9 @@ class ColorWheel(Widget):
             # _hsv based on the selected ColorArc
             piece = int((theta / (2 * pi)) * self._pieces_of_pie)
             division = int((r / self._radius) * self._piece_divisions)
-            self._hsv = \
-                self.arcs[self._pieces_of_pie * division + piece].color
-
-    def on__hsv(self, instance, value):
-        c_hsv = Color(*value, mode='hsv')
-        self.r = c_hsv.r
-        self.g = c_hsv.g
-        self.b = c_hsv.b
-        self.a = c_hsv.a
-        self.rgba = (self.r, self.g, self.b, self.a)
+            hsva = list(
+                self.arcs[self._pieces_of_pie * division + piece].color)
+            self.color = list(hsv_to_rgb(*hsva[:3])) + hsva[-1:]
 
     def _get_touch_r(self, pos):
         return distance(pos, self._origin)
@@ -316,36 +309,35 @@ class _ColorArc(InstructionGroup):
 
     def get_mesh(self):
         v = []
-        # first calculate the distance between endpoints of the inner
+        # first calculate the distance between endpoints of the outer
         # arc, so we know how many steps to use when calculating
         # vertices
-        end_point_inner = polar_to_rect(
-            self.origin, self.r_min, self.theta_max)
-
-        d_inner = d_outer = 3.
-        theta_step_inner = (self.theta_max - self.theta_min) / d_inner
-
-        end_point_outer = polar_to_rect(
-            self.origin, self.r_max, self.theta_max)
+        theta_step_outer = 0.1
+        theta = self.theta_max - self.theta_min
+        d_outer = int(theta / theta_step_outer)
+        theta_step_outer = theta / d_outer
 
         if self.r_min == 0:
-            theta_step_outer = (self.theta_max - self.theta_min) / d_outer
-            for x in range(int(d_outer)):
-                v += (polar_to_rect(self.origin, 0, 0) * 2)
-                v += (polar_to_rect(
-                    self.origin, self.r_max,
-                    self.theta_min + x * theta_step_outer) * 2)
+            for x in range(0, d_outer, 2):
+                v += (polar_to_rect(self.origin, self.r_max,
+                                    self.theta_min + x * theta_step_outer
+                                    ) * 2)
+                v += polar_to_rect(self.origin, 0, 0) * 2
+                v += (polar_to_rect(self.origin, self.r_max,
+                                    self.theta_min + (x + 1) * theta_step_outer
+                                    ) * 2)
+            if not d_outer & 1:  # add a last point if d_outer is even
+                v += (polar_to_rect(self.origin, self.r_max,
+                                    self.theta_min + d_outer * theta_step_outer
+                                    ) * 2)
         else:
-            for x in range(int(d_inner + 2)):
-                v += (polar_to_rect(
-                    self.origin, self.r_min - 1,
-                    self.theta_min + x * theta_step_inner) * 2)
-                v += (polar_to_rect(
-                    self.origin, self.r_max + 1,
-                    self.theta_min + x * theta_step_inner) * 2)
-
-        v += (end_point_inner * 2)
-        v += (end_point_outer * 2)
+            for x in range(d_outer + 1):
+                v += (polar_to_rect(self.origin, self.r_min,
+                                    self.theta_min + x * theta_step_outer
+                                    ) * 2)
+                v += (polar_to_rect(self.origin, self.r_max,
+                                    self.theta_min + x * theta_step_outer
+                                    ) * 2)
 
         return Mesh(vertices=v, indices=range(int(len(v) / 4)),
                     mode='triangle_strip')
@@ -383,7 +375,15 @@ class ColorPicker(RelativeLayout):
     (1, 1, 1, 1).
     '''
 
-    hsv = ListProperty((1, 1, 1))
+    def _get_hsv(self):
+        return rgb_to_hsv(*self.color[:3])
+
+    def _set_hsv(self, value):
+        if self._updating_clr:
+            return
+        self.set_color(value)
+
+    hsv = AliasProperty(_get_hsv, _set_hsv, bind=('color', ))
     '''The :attr:`hsv` holds the color currently selected in hsv format.
 
     :attr:`hsv` is a :class:`~kivy.properties.ListProperty` and defaults to
@@ -393,9 +393,11 @@ class ColorPicker(RelativeLayout):
         return get_hex_from_color(self.color)
 
     def _set_hex(self, value):
-        self.color = get_color_from_hex(value)[:4]
+        if self._updating_clr:
+            return
+        self.set_color(get_color_from_hex(value)[:4])
 
-    hex_color = AliasProperty(_get_hex, _set_hex, bind=('color', ))
+    hex_color = AliasProperty(_get_hex, _set_hex, bind=('color',), cache=True)
     '''The :attr:`hex_color` holds the currently selected color in hex.
 
     :attr:`hex_color` is an :class:`~kivy.properties.AliasProperty` and
@@ -414,19 +416,10 @@ class ColorPicker(RelativeLayout):
     # now used only internally.
     foreground_color = ListProperty((1, 1, 1, 1))
 
-    def on_color(self, instance, value):
-        if not self._updating_clr:
-            self._updating_clr = True
-            self.hsv = rgb_to_hsv(*value[:3])
-            self._updating_clr = False
-
-    def on_hsv(self, instance, value):
-        if not self._updating_clr:
-            self._updating_clr = True
-            self.color[:3] = hsv_to_rgb(*value)
-            self._updating_clr = False
-
     def _trigger_update_clr(self, mode, clr_idx, text):
+        if self._updating_clr:
+            return
+        self._updating_clr = True
         self._upd_clr_list = mode, clr_idx, text
         ev = self._update_clr_ev
         if ev is None:
@@ -434,27 +427,47 @@ class ColorPicker(RelativeLayout):
         ev()
 
     def _update_clr(self, dt):
+        # to prevent interaction between hsv/rgba, we work internaly using rgba
         mode, clr_idx, text = self._upd_clr_list
         try:
             text = min(255, max(0, float(text)))
             if mode == 'rgb':
                 self.color[clr_idx] = float(text) / 255.
             else:
-                self.hsv[clr_idx] = float(text) / 255.
+                hsv = list(self.hsv[:])
+                hsv[clr_idx] = float(text) / 255.
+                self.color[:3] = hsv_to_rgb(*hsv)
         except ValueError:
             Logger.warning('ColorPicker: invalid value : {}'.format(text))
+        finally:
+            self._updating_clr = False
 
     def _update_hex(self, dt):
-        if len(self._upd_hex_list) != 9:
-            return
-        self.hex_color = self._upd_hex_list
+        try:
+            if len(self._upd_hex_list) != 9:
+                return
+            self._updating_clr = False
+            self.hex_color = self._upd_hex_list
+        finally:
+            self._updating_clr = False
 
     def _trigger_update_hex(self, text):
+        if self._updating_clr:
+            return
+        self._updating_clr = True
         self._upd_hex_list = text
         ev = self._update_hex_ev
         if ev is None:
             ev = self._update_hex_ev = Clock.create_trigger(self._update_hex)
         ev()
+
+    def set_color(self, color):
+        self._updating_clr = True
+        if len(color) == 3:
+            self.color[:3] = color
+        else:
+            self.color = color
+        self._updating_clr = False
 
     def __init__(self, **kwargs):
         self._updating_clr = False

@@ -41,7 +41,6 @@ pointer_alpha = 0.7
 
 def _touch_down(win, touch):
     ud = touch.ud
-    touch.scale_for_screen(win.width, win.height)
     with win.canvas.after:
         ud['tr.color'] = Color(1, 1, 1, pointer_alpha)
         iw, ih = pointer_image.size
@@ -59,6 +58,8 @@ def _touch_down(win, touch):
 
 def _touch_move(win, touch):
     ud = touch.ud
+    if not ud.get('tr.rect', False):
+        _touch_down(win, touch)
     ud['tr.rect'].pos = (
         touch.x - (pointer_image.width / 2. * pointer_scale),
         touch.y - (pointer_image.height / 2. * pointer_scale))

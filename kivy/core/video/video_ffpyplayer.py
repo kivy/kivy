@@ -237,12 +237,12 @@ class VideoFFPy(VideoBase):
 
         # wait until loaded or failed, shouldn't take long, but just to make
         # sure metadata is available.
-        s = time.clock()
+        s = time.perf_counter()
         while not self._ffplayer_need_quit:
             if ffplayer.get_metadata()['src_vid_size'] != (0, 0):
                 break
             # XXX if will fail later then?
-            if time.clock() - s > 10.:
+            if time.perf_counter() - s > 10.:
                 break
             sleep(0.005)
 
@@ -253,17 +253,52 @@ class VideoFFPy(VideoBase):
         self._change_state('playing')
 
         while not self._ffplayer_need_quit:
+            seek_happened = False
             if seek_queue:
                 vals = seek_queue[:]
                 del seek_queue[:len(vals)]
+                percent, precise = vals[-1]
                 ffplayer.seek(
-                    vals[-1] * ffplayer.get_metadata()['duration'],
-                    relative=False)
+                    percent * ffplayer.get_metadata()['duration'],
+                    relative=False,
+                    accurate=precise
+                )
+                seek_happened = True
                 self._next_frame = None
 
-            t1 = time.time()
-            frame, val = ffplayer.get_frame()
-            t2 = time.time()
+            # Get next frame if paused:
+            if seek_happened and ffplayer.get_pause():
+                ffplayer.set_volume(0.0)  # Try to do it silently.
+                ffplayer.set_pause(False)
+                try:
+                    # We don't know concrete number of frames to skip,
+                    # this number worked fine on couple of tested videos:
+                    to_skip = 6
+                    while True:
+                        frame, val = ffplayer.get_frame(show=False)
+                        # Exit loop on invalid val:
+                        if val in ('paused', 'eof'):
+                            break
+                        # Exit loop on seek_queue updated:
+                        if seek_queue:
+                            break
+                        # Wait for next frame:
+                        if frame is None:
+                            sleep(0.005)
+                            continue
+                        # Wait until we skipped enough frames:
+                        to_skip -= 1
+                        if to_skip == 0:
+                            break
+                    # Assuming last frame is actual, just get it:
+                    frame, val = ffplayer.get_frame(force_refresh=True)
+                finally:
+                    ffplayer.set_pause(bool(self._state == 'paused'))
+                    ffplayer.set_volume(self._volume)
+            # Get next frame regular:
+            else:
+                frame, val = ffplayer.get_frame()
+
             if val == 'eof':
                 sleep(0.2)
                 if not did_dispatch_eof:
@@ -281,10 +316,10 @@ class VideoFFPy(VideoBase):
                     val = val if val else (1 / 30.)
                 sleep(val)
 
-    def seek(self, percent):
+    def seek(self, percent, precise=True):
         if self._ffplayer is None:
             return
-        self._seek_queue.append(percent)
+        self._seek_queue.append((percent, precise,))
 
     def stop(self):
         self.unload()
@@ -304,13 +339,17 @@ class VideoFFPy(VideoBase):
         self._out_fmt = 'rgba'
         ff_opts = {
             'paused': True,
-            'out_fmt': self._out_fmt
+            'out_fmt': self._out_fmt,
+            'sn': True,
+            'volume': self._volume,
         }
         self._ffplayer = MediaPlayer(
                 self._filename, callback=self._player_callback,
                 thread_lib='SDL',
                 loglevel='info', ff_opts=ff_opts)
-        self._ffplayer.set_volume(self._volume)
+
+        # Disabled as an attempt to fix kivy issue #6210
+        # self._ffplayer.set_volume(self._volume)
 
         self._thread = Thread(target=self._next_frame_run, name='Next frame')
         self._thread.daemon = True

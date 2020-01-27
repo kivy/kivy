@@ -8,7 +8,7 @@ The adapter part of the RecycleView which together with the layout is the
 view part of the model-view-controller pattern.
 
 The view module handles converting the data to a view using the adapter class
-which is then displayed by the layout. A view is any Widget based class.
+which is then displayed by the layout. A view can be any Widget based class.
 However, inheriting from RecycleDataViewBehavior adds methods for converting
 the data to a view.
 
@@ -149,6 +149,16 @@ class RecycleDataAdapter(EventDispatcher):
         'pos', 'x', 'y', 'center', 'center_x', 'center_y', 'pos_hint',
         'size_hint_min', 'size_hint_min_x', 'size_hint_min_y', 'size_hint_max',
         'size_hint_max_x', 'size_hint_max_y'}
+
+    def __init__(self, **kwargs):
+        """
+        Fix for issue https://github.com/kivy/kivy/issues/5913:
+        Scrolling RV A, then Scrolling RV B, content of A and B seemed
+        to be getting mixed up
+        """
+        self.views = {}
+        self.dirty_views = defaultdict(dict)
+        super(RecycleDataAdapter, self).__init__(**kwargs)
 
     def attach_recycleview(self, rv):
         '''Associates a :class:`~kivy.uix.recycleview.RecycleViewBehavior`

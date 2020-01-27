@@ -68,7 +68,7 @@ release = kivy.__version__
 base = 'autobuild.py-done'
 if not os.path.exists(os.path.join(os.path.dirname(base_dir), base)):
     import autobuild
-import gallery
+from kivy.tools import gallery
 gallery.write_all_rst_pages()
 
 # There are two options for replacing |today|: either, you set today to some
@@ -218,13 +218,16 @@ latex_toplevel_sectioning = 'part'
 
 from kivy import setupconfig
 
+# if used in a code-block, the block has to be marked with
+# .. parse-literal::, otherwise it won't be replaced
+# !!! doesn't work for "::", ".. code::" or ".. code-block::"
 replacements = {
     'cython_install': 'Cython==' + setupconfig.CYTHON_MAX,
     'cython_note': (
-        'This version of **Kivy requires at least Cython version {0}**, '
-        'and has been tested through {1}. Later versions may work, '
+        'Kivy {0} **requires at least Cython version {1}**, '
+        'and has been tested through {2}. Later versions may work, '
         'but as they have not been tested there is no guarantee.'
-    ).format(setupconfig.CYTHON_MIN, setupconfig.CYTHON_MAX)
+    ).format(version, setupconfig.CYTHON_MIN, setupconfig.CYTHON_MAX)
 }
 
 if setupconfig.CYTHON_BAD:

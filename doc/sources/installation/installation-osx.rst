@@ -5,62 +5,65 @@ Installation on OS X
 
 .. note::
 
-    This guide describes multiple ways for setting up Kivy. Installing
-    with Homebrew and pip is recommended for general use.
+    This guide describes multiple ways for setting up Kivy.
 
-Using Homebrew with pip
------------------------
+Using Wheels
+------------
 
-You can install Kivy with Homebrew and pip using the following steps:
+Wheels are precompiled binaries for the specific platform you are on.
+All you need to do to install Kivy using wheels on osx is ::
 
-    1. Install the requirements using `homebrew <http://brew.sh>`_::
+    $ python -m pip install kivy
 
-        $ brew install pkg-config sdl2 sdl2_image sdl2_ttf sdl2_mixer gstreamer
+Gstreamer is not included, so if you would like to use media playback with kivy,
+you should install `ffpyplayer` like so ::
 
-    2. Install Cython and Kivy using pip::
+    $ python -m pip install ffpyplayer
 
-        $ pip install -U Cython
-        $ pip install kivy
+Make sure to set `KIVY_VIDEO=ffpyplayer` env variable before running the app.
 
-    - To install the development version, use this in the second step::
+Nightly wheel installation
+--------------------------
 
-        $ pip install https://github.com/kivy/kivy/archive/master.zip
+.. |cp35_osx| replace:: Python 3.5
+.. _cp35_osx: https://kivy.org/downloads/ci/osx/kivy/Kivy-2.0.0.dev0-cp35-cp35m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl
+.. |cp36_osx| replace:: Python 3.6
+.. _cp36_osx: https://kivy.org/downloads/ci/osx/kivy/Kivy-2.0.0.dev0-cp36-cp36m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl
+.. |cp37_osx| replace:: Python 3.7
+.. _cp37_osx: https://kivy.org/downloads/ci/osx/kivy/Kivy-2.0.0.dev0-cp37-cp37m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl
+.. |examples_whl_osx| replace:: Kivy examples
+.. _examples_whl_osx: https://kivy.org/downloads/appveyor/kivy/Kivy_examples-2.0.0.dev0-py2.py3-none-any.whl
 
-Using MacPorts with pip
------------------------
+.. warning::
 
-.. note::
+    Using the latest development version can be risky and you might encounter
+    issues during development. If you encounter any bugs, please report them.
 
-    You will have to manually install gstreamer support if you wish to
-    support video playback in your Kivy App. The latest port documents show the
-    following `py-gst-python port <https://trac.macports.org/ticket/44813>`_.
+Snapshot wheels of current Kivy master are created daily on the
+`master` branch of kivy repository. They can be found
+`here <https://kivy.org/downloads/ci/osx/kivy/>`_. To use them, instead of
+doing ``python -m pip install kivy`` we'll install one of these wheels as
+follows.
 
-You can install Kivy with Macports and pip using the following steps:
+- |cp35_osx|_
+- |cp36_osx|_
+- |cp37_osx|_
 
-    1. Install `Macports <https://www.macports.org>`_
+#. Download the appropriate wheel for your Python version.
+#. Install it with ``python -m pip install wheel-name`` where ``wheel-name``
+   is the name of the file.
 
-    2. Install and set Python 3.4 as the default::
+Kivy examples are separated from the core because of their size. The examples
+can be installed separately on all Python versions with this single wheel:
 
-        $ port install python34
-        $ port select --set python python34
+- |examples_whl_osx|_
 
-    3. Install and set pip as the default::
+Using Conda
+-----------
 
-        $ port install pip-34
-        $ port select --set pip pip-34
+If you use Anaconda, you can simply install kivy using::
 
-    4. Install the requirements using `Macports <https://www.macports.org>`_::
-
-        $ port install libsdl2 libsdl2_image libsdl2_ttf libsdl2_mixer
-
-    5. Install Cython and Kivy using pip::
-
-        $ pip install -U Cython
-        $ pip install kivy
-
-    - To install the development version, use this in the second step::
-
-        $ USE_OSX_FRAMEWORKS=0 pip install https://github.com/kivy/kivy/archive/master.zip
+   $ conda install kivy -c conda-forge
 
 Using The Kivy.app
 ------------------
@@ -69,33 +72,34 @@ Using The Kivy.app
 
     This method has only been tested on OS X 10.7 and above (64-bit).
     For versions prior to 10.7 or 10.7 32-bit, you have to install the
-    components yourself. We suggest using
-    `homebrew <http://brew.sh>`_ to do that.
+    components yourself.
 
-For OS X 10.7 and later, we provide packages with all dependencies
-bundled in a virtual environment, including a Python 3 interpreter for
-Kivy3.app. These bundles are primarily used for rapid prototyping,
+For OS X > 10.13.5 and later, we provide packages with all dependencies
+bundled in a virtual environment, including a Python interpreter for
+python3 version. These bundles are primarily used for rapid prototyping,
 and currently serve as containers for packaging Kivy apps with Buildozer.
 
 To install Kivy, you must:
 
     1. Navigate to the latest Kivy release at
-       https://kivy.org/downloads/ and download `Kivy-*-osx-python*.7z`.
-    2. Extract it using an archive program like `Keka <http://www.kekaosx.com/>`_.
-    3. Copy the Kivy2.app or Kivy3.app as Kivy.app to /Applications.
-       Paste the following line in the terminal::
+       https://kivy.org/downloads/ and download `Kivy-*-osx-python*.dmg`.
+    2. Open the dmg
+    3. Copy the Kivy.app to /Applications.
+    4. Create a symlink by running the `makesymlinks` in the window that opens when you open the dmg.
 
-        $ sudo mv Kivy2.app /Applications/Kivy.app
-
-    4. Create a symlink named `kivy` to easily launch apps with kivy venv::
-
-        $ ln -s /Applications/Kivy.app/Contents/Resources/script /usr/local/bin/kivy
+    If you have trouble running this script, you can try right-click->Open or just add the link manually
+    by running the following command::
+        `sudo ln -s /Applications/Kivy<version>/Contents/Resources/script /usr/local/bin/kivy<version>`
+    version is either 2/3 based on which version of the app did you download.
 
     5. Examples and all the normal kivy tools are present in the Kivy.app/Contents/Resources/kivy directory.
 
 You should now have a `kivy` script that you can use to launch your kivy app from the terminal.
+You might need to add `/usr/local/bin` to your path::
 
-You can just drag and drop your main.py to run your app too.
+    export PATH=/usr/local/bin:$PATH
+
+You can just drag and drop your main.py onto the kivy icon to run your app too.
 
 
 Installing modules
@@ -175,3 +179,76 @@ after you have dragged the Kivy.app into the Applications folder. To test if it 
        of executing a command like the following::
 
            $ kivy yourapplication.py
+
+
+Using Homebrew with pip
+-----------------------
+
+You can install Kivy with Homebrew and pip using the following steps:
+
+    1. Install the requirements using `homebrew <http://brew.sh>`_::
+
+        $ brew install pkg-config sdl2 sdl2_image sdl2_ttf sdl2_mixer gstreamer
+
+    2. Install Cython and Kivy using pip:
+
+        .. parsed-literal::
+
+            $ pip install |cython_install|
+            $ pip install kivy
+
+    - To install the development version, use this in the second step::
+
+        $ pip install https://github.com/kivy/kivy/archive/master.zip
+
+Using MacPorts with pip
+-----------------------
+
+.. note::
+
+    You will have to manually install gstreamer support if you wish to
+    support video playback in your Kivy App. The latest port documents show the
+    following `py-gst-python port <https://trac.macports.org/ticket/44813>`_.
+
+You can install Kivy with macports only:
+
+    1. Install `Macports <https://www.macports.org>`_
+
+    2. Choose python versions for Kivy, available version 2.7, 3.5, 3.6
+
+        $ port install py35-kivy  # for python 3.5
+        $ port install py36-kivy  # for python 3.6
+
+    3. Check if kivy is available
+
+        $ python3.5
+        $ >>> import kivy
+
+You can install Kivy with Macports and pip using the following steps:
+
+    1. Install `Macports <https://www.macports.org>`_
+
+    2. Install and set Python 3.4 as the default::
+
+        $ port install python34
+        $ port select --set python python34
+
+    3. Install and set pip as the default::
+
+        $ port install pip-34
+        $ port select --set pip pip-34
+
+    4. Install the requirements using `Macports <https://www.macports.org>`_::
+
+        $ port install libsdl2 libsdl2_image libsdl2_ttf libsdl2_mixer
+
+    5. Install Cython and Kivy using pip:
+
+        .. parsed-literal::
+
+            $ pip install |cython_install|
+            $ pip install kivy
+
+    - To install the development version, use this in the second step::
+
+        $ pip install https://github.com/kivy/kivy/archive/master.zip

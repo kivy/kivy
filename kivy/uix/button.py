@@ -33,6 +33,15 @@ to the :attr:`Button.state` property::
     btn1 = Button(text='Hello world 1')
     btn1.bind(state=callback)
 
+Kv Example::
+
+    Button:
+        text: 'press me'
+        on_press: print("ouch! More gently please")
+        on_release: print("ahhh")
+        on_state:
+            print("my current state is {}".format(self.state))
+
 '''
 
 __all__ = ('Button', )

@@ -90,14 +90,19 @@ class EmacsBehavior(object):
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
 
         key, key_str = keycode
-        mod = modifiers[0] if modifiers else None
+
+        # join the modifiers e.g. ['alt', 'ctrl']
+        mod = '+'.join(modifiers) if modifiers else None
         is_emacs_shortcut = False
 
         if key in range(256) and self.key_bindings == 'emacs':
-            is_emacs_shortcut = ((mod == 'ctrl' and
-                                  chr(key) in self.bindings['ctrl'].keys()) or
-                                 (mod == 'alt' and
-                                  chr(key) in self.bindings['alt'].keys()))
+            if mod == 'ctrl' and chr(key) in self.bindings['ctrl'].keys():
+                is_emacs_shortcut = True
+            elif mod == 'alt' and chr(key) in self.bindings['alt'].keys():
+                is_emacs_shortcut = True
+            else:  # e.g. ctrl+alt or alt+ctrl (alt-gr key)
+                is_emacs_shortcut = False
+
         if is_emacs_shortcut:
             # Look up mod and key
             emacs_shortcut = self.bindings[mod][chr(key)]

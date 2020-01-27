@@ -262,7 +262,7 @@ may appeal to you.
 How to Contact devs
 -------------------
 All communication must happen via public channels, private emails
-and IRC messages are discouraged.
+and Discord private messages are discouraged.
 
 Ask your questions on the Kivy Users forum https://groups.google.com/group/kivy-users
 or send a mail at kivy-users@googlegroups.com
@@ -270,11 +270,11 @@ or send a mail at kivy-users@googlegroups.com
 Make sure to join the kivy-dev user group too:
 https://groups.google.com/forum/#!forum/kivy-dev.
 
-You can also try to contact us on IRC (online chat), to get the IRC handles of
+You can also try to contact us on Discord, to get the Discord handles of
 the devs mentioned above visit https://kivy.org/#aboutus.
 
-Make sure to read the `IRC rules <https://kivy.org/docs/contact.html>`_ before
-connecting. `Connect to webchat <http://webchat.freenode.net/?nick=kvuser_GSOC_.&channels=kivy&uio=d4>`_.
+Make sure to read the `Discord rules <https://kivy.org/docs/contact.html>`_ before
+connecting. `Connect to Discord <https://chat.kivy.org>`_.
 
 
 Most of our developers are located in Europe, India, and North America so keep
@@ -313,7 +313,7 @@ Here's a checklist:
   about what you want to do. Include what you understand the current state of
   the project to be, what you would like to improve, how, etc.
 * Discuss that proposal with us in a timely manner. Get feedback.
-* Be patient! Especially on IRC. We will try to get to you if we're available.
+* Be patient! Especially on Discord. We will try to get to you if we're available.
   If not, send an email and just wait. Most questions are already answered in
   the docs or somewhere else and can be found with some research. Your
   questions should reflect that you've actually thought through what you're
@@ -324,7 +324,7 @@ Here's a checklist:
 What to expect if you are chosen
 --------------------------------
 
-* All students should join the #kivy and the #kivy-dev irc channels daily,
+* All students should join the #support and the #dev Discord channels daily,
   this is how the development team communicates both internally and with the
   users.
 * You and your mentors will agree on two week milestones for the duration of

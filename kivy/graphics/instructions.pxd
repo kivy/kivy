@@ -8,10 +8,10 @@ cdef class CanvasBase
 cdef class Canvas
 cdef class RenderContext
 
-from vbo cimport *
-from compiler cimport *
-from shader cimport *
-from texture cimport Texture
+from .vbo cimport *
+from .compiler cimport *
+from .shader cimport *
+from .texture cimport Texture
 from kivy._event cimport ObjectWithUid
 
 cdef void reset_gl_context()
@@ -33,7 +33,7 @@ cdef class Instruction(ObjectWithUid):
         cpdef flag_update(self, int do_parent=?)
     cdef void flag_update_done(self)
     cdef void set_parent(self, Instruction parent)
-    cdef void reload(self)
+    cdef void reload(self) except *
 
     cdef void radd(self, InstructionGroup ig)
     cdef void rinsert(self, InstructionGroup ig, int index)
@@ -44,7 +44,7 @@ cdef class InstructionGroup(Instruction):
     cdef InstructionGroup compiled_children
     cdef GraphicsCompiler compiler
     cdef void build(self)
-    cdef void reload(self)
+    cdef void reload(self) except *
     cpdef add(self, Instruction c)
     cpdef insert(self, int index, Instruction c)
     cpdef remove(self, Instruction c)
@@ -63,7 +63,7 @@ cdef class ContextInstruction(Instruction):
     cdef int pop_state(self, str name) except -1
 
 
-from context_instructions cimport BindTexture
+from .context_instructions cimport BindTexture
 
 cdef class VertexInstruction(Instruction):
     cdef BindTexture texture_binding
@@ -94,7 +94,7 @@ cdef class Canvas(CanvasBase):
     cdef float _opacity
     cdef CanvasBase _before
     cdef CanvasBase _after
-    cdef void reload(self)
+    cdef void reload(self) except *
     cpdef clear(self)
     cpdef add(self, Instruction c)
     cpdef remove(self, Instruction c)
@@ -109,6 +109,7 @@ cdef class RenderContext(Canvas):
     cdef dict bind_texture
     cdef int _use_parent_projection
     cdef int _use_parent_modelview
+    cdef int _use_parent_frag_modelview
 
     cdef void set_texture(self, int index, Texture texture)
     cdef void set_state(self, str name, value, int apply_now=?)
@@ -122,6 +123,6 @@ cdef class RenderContext(Canvas):
     cdef int leave(self) except -1
     cdef int apply(self) except -1
     cpdef draw(self)
-    cdef void reload(self)
+    cdef void reload(self) except *
 
 cdef RenderContext getActiveContext()

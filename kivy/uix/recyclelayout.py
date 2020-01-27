@@ -18,6 +18,9 @@ __all__ = ('RecycleLayout', )
 
 
 class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
+    """
+    RecycleLayout provides the default layout for RecycleViews.
+    """
 
     default_size = ObjectProperty((100, 100))
     '''size as in w, h. They each can be None.

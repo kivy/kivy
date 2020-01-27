@@ -16,7 +16,7 @@ You can use the script as follows::
 This will display the test.kv and automatically update the display when the
 file changes.
 
-.. note: This scripts uses watchdog to listen for fiel changes. To install
+.. note: This scripts uses watchdog to listen for file changes. To install
    watchdog::
 
    pip install watchdog
@@ -71,7 +71,9 @@ class KvViewerApp(App):
         try:
             Window.add_widget(Builder.load_file(join(PATH, TARGET)))
         except Exception as e:
-            Window.add_widget(Label(text=e.message if e.message else str(e)))
+            Window.add_widget(Label(text=(
+                e.message if getattr(e, r'message', None) else str(e)
+            )))
 
 
 if __name__ == '__main__':

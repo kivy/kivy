@@ -27,6 +27,8 @@ class WindowEglRpi(WindowBase):
     _rpi_dispmanx_id = int(environ.get("KIVY_BCM_DISPMANX_ID", "0"))
     _rpi_dispmanx_layer = int(environ.get("KIVY_BCM_DISPMANX_LAYER", "0"))
 
+    gl_backends_ignored = ['sdl2']
+
     def create_window(self):
         bcm.host_init()
 
@@ -82,19 +84,3 @@ class WindowEglRpi(WindowBase):
     def flip(self):
         if not EventLoop.quit:
             egl.SwapBuffers(self.egl_info[0], self.egl_info[1])
-
-    def _mainloop(self):
-        EventLoop.idle()
-
-    def mainloop(self):
-        while not EventLoop.quit and EventLoop.status == 'started':
-            try:
-                self._mainloop()
-            except BaseException as inst:
-                # use exception manager first
-                r = ExceptionManager.handle_exception(inst)
-                if r == ExceptionManager.RAISE:
-                    stopTouchApp()
-                    raise
-                else:
-                    pass

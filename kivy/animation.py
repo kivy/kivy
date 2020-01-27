@@ -231,7 +231,7 @@ class Animation(EventDispatcher):
 
     def stop_property(self, widget, prop):
         '''Even if an animation is running, remove a property. It will not be
-        animated futher. If it was the only/last property being animated,
+        animated further. If it was the only/last property being animated,
         the animation will be stopped (see :attr:`stop`).
         '''
         props = self._widgets.get(widget.uid, None)
@@ -315,7 +315,7 @@ class Animation(EventDispatcher):
         widgets = self._widgets
         transition = self._transition
         calculate = self._calculate
-        for uid in list(widgets.keys())[:]:
+        for uid in list(widgets.keys()):
             anim = widgets[uid]
             widget = anim['widget']
 

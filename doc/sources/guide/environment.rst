@@ -82,6 +82,27 @@ KIVY_NO_ARGS
 
     .. versionadded:: 1.9.0
 
+KCFG_section_key
+    If a such format environment name is detected, it will be mapped
+    to the Config object. They are loaded only once when `kivy` is
+    imported. The behavior can be disabled using `KIVY_NO_ENV_CONFIG`.
+
+    ::
+
+        import os
+        os.environ["KCFG_KIVY_LOG_LEVEL"] = "warning"
+        import kivy
+        # during import it will map it to:
+        # Config.set("kivy", "log_level", "warning")
+
+    .. versionadded:: 1.11.0
+
+KIVY_NO_ENV_CONFIG
+    If set, no environment key will be mapped to configuration object.
+    If unset, any `KCFG_section_key=value` will be mapped to Config.
+
+    .. versionadded:: 1.11.0
+
 Restrict core to specific implementation
 ----------------------------------------
 
@@ -195,5 +216,19 @@ KIVY_BCM_DISPMANX_ID
 
 KIVY_BCM_DISPMANX_LAYER
     Change the default Raspberry Pi dispmanx layer. Default value is 0.
- 
+
     .. versionadded:: 1.10.1
+
+Event Loop
+----------
+
+KIVY_EVENTLOOP
+    Which async library should be used when the app is run in an asynchronous
+    manner. See :mod:`kivy.app` for example usage.
+
+    ``'asyncio'``: When the app is run in an asynchronous manner and the standard
+        library asyncio package should be used. The default if not set.
+    ``'trio'``: When the app is run in an asynchronous manner and the `trio`
+        package should be used.
+
+    .. versionadded:: 2.0.0

@@ -18,6 +18,7 @@ documentation for further details.
     It might change in the future and we advise you don't rely on it in your
     code.
 '''
+# flake8: noqa
 
 import os
 from ctypes import cdll, Structure, c_ulong, c_int, c_ushort, \
@@ -152,13 +153,13 @@ class Device:
         '''
         if self._fd == -1:
             return
-        mtdev_close(POINTER(self._device))
+        mtdev_close(pointer(self._device))
         os.close(self._fd)
         self._fd = -1
 
     def idle(self, ms):
         '''Check state of kernel device
-        
+
         :Parameters:
             `ms`: int
                 Number of milliseconds to wait for activity

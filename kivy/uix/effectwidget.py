@@ -130,6 +130,7 @@ from kivy.graphics import (RenderContext, Fbo, Color, Rectangle,
 from kivy.event import EventDispatcher
 from kivy.base import EventLoop
 from kivy.resources import resource_find
+from kivy.logger import Logger
 
 __all__ = ('EffectWidget', 'EffectBase', 'AdvancedEffectBase',
            'MonochromeEffect', 'InvertEffect', 'ChannelMixEffect',
@@ -585,6 +586,7 @@ class EffectFbo(Fbo):
     attempts to set a new shader. See :meth:`set_fs`.
     '''
     def __init__(self, *args, **kwargs):
+        kwargs.setdefault("with_stencilbuffer", True)
         super(EffectFbo, self).__init__(*args, **kwargs)
         self.texture_rectangle = None
 

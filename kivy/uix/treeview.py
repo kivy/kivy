@@ -360,6 +360,7 @@ class TreeView(Widget):
         '''
         if self._selected_node:
             self._selected_node.is_selected = False
+            self._selected_node = None
 
     def toggle_node(self, node):
         '''Toggle the state of the node (open/collapsed).
@@ -520,7 +521,7 @@ class TreeView(Widget):
 
     .. versionadded:: 1.0.9
 
-    :attr:`minimum_width` is a :class:`kivy.properties.NumericProperty` and
+    :attr:`minimum_width` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
@@ -529,7 +530,7 @@ class TreeView(Widget):
 
     .. versionadded:: 1.0.9
 
-    :attr:`minimum_height` is a :class:`kivy.properties.NumericProperty` and
+    :attr:`minimum_height` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 

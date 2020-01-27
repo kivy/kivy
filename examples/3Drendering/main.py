@@ -18,8 +18,9 @@ from kivy.core.window import Window
 from kivy.uix.widget import Widget
 from kivy.resources import resource_find
 from kivy.graphics.transformation import Matrix
-from kivy.graphics.opengl import *
-from kivy.graphics import *
+from kivy.graphics.opengl import glEnable, glDisable, GL_DEPTH_TEST
+from kivy.graphics import RenderContext, Callback, PushMatrix, PopMatrix, \
+    Color, Translate, Rotate, Mesh, UpdateNormalMatrix
 from objloader import ObjFile
 
 
@@ -43,13 +44,13 @@ class Renderer(Widget):
     def reset_gl_context(self, *args):
         glDisable(GL_DEPTH_TEST)
 
-    def update_glsl(self, *largs):
+    def update_glsl(self, delta):
         asp = self.width / float(self.height)
         proj = Matrix().view_clip(-asp, asp, -1, 1, 1, 100, 1)
         self.canvas['projection_mat'] = proj
         self.canvas['diffuse_light'] = (1.0, 1.0, 0.8)
         self.canvas['ambient_light'] = (0.1, 0.1, 0.1)
-        self.rot.angle += 1
+        self.rot.angle += delta * 100
 
     def setup_scene(self):
         Color(1, 1, 1, 1)

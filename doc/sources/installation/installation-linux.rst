@@ -3,14 +3,87 @@
 Installation on Linux
 =====================
 
-Using software packages
-~~~~~~~~~~~~~~~~~~~~~~~
+Using Precompiled Wheels
+------------------------
 
-For installing distribution relative packages .deb/.rpm/...
+.. note::
+
+    Linux wheels are new and still experimental, if you run into issues, uninstall
+    it and use any of the other installation methods listed further down.
+
+Wheels are precompiled binaries for all linux platforms using the manylinux2010 tag.
+In the following, replace `python` with `python3` for Python 3.
+To install first update pip (at least pip v19.0 is required to support a manylinux2010 wheel)::
+
+    $ python -m pip install --upgrade --user pip setuptools virtualenv
+
+Then make and load the virtualenv. This is optional, but highly recommended::
+
+    $ python -m virtualenv ~/kivy_venv
+    $ source ~/kivy_venv/bin/activate
+
+Finally install the Kivy wheel and optionally the kivy-examples::
+
+    $ python -m pip install kivy
+    $ python -m pip install kivy_examples
+
+Gstreamer is not included, so if you would like to use media playback with kivy,
+you should install `ffpyplayer` like so ::
+
+    $ python -m pip install ffpyplayer
+
+Make sure to set `KIVY_VIDEO=ffpyplayer` env variable before running the app.
+Only Python 3.5+ is supported.
+
+Nightly wheel installation
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |cp35_linux| replace:: Python 3.5
+.. _cp35_linux: https://kivy.org/downloads/ci/linux/kivy/Kivy-2.0.0.dev0-cp35-cp35m-manylinux2010_x86_64.whl
+.. |cp36_linux| replace:: Python 3.6
+.. _cp36_linux: https://kivy.org/downloads/ci/linux/kivy/Kivy-2.0.0.dev0-cp36-cp36m-manylinux2010_x86_64.whl
+.. |cp37_linux| replace:: Python 3.7
+.. _cp37_linux: https://kivy.org/downloads/ci/linux/kivy/Kivy-2.0.0.dev0-cp37-cp37m-manylinux2010_x86_64.whl
+.. |examples_whl_linux| replace:: Kivy examples
+.. _examples_whl_linux: https://kivy.org/downloads/appveyor/kivy/Kivy_examples-2.0.0.dev0-py2.py3-none-any.whl
+
+.. warning::
+
+    Using the latest development version can be risky and you might encounter
+    issues during development. If you encounter any bugs, please report them.
+
+Snapshot wheels of current Kivy master are created daily on the
+`master` branch of kivy repository. They can be found
+`here <https://kivy.org/downloads/ci/linux/kivy/>`_. To use them, instead of
+doing ``python -m pip install kivy`` we'll install one of these wheels as
+follows.
+
+- |cp35_linux|_
+- |cp36_linux|_
+- |cp37_linux|_
+
+#. Download the appropriate wheel for your Python version.
+#. Install it as above but with ``pip install wheel-name`` where ``wheel-name``
+   is the name of the file, instead.
+
+Kivy examples are separated from the core because of their size. The examples
+can be installed separately on all Python versions with this single wheel:
+
+- |examples_whl_linux|_
+
+Using Conda
+-----------
+
+If you use Anaconda, you can simply install kivy using::
+
+   $ conda install kivy -c conda-forge
+
+Using software packages (PPA etc.)
+----------------------------------
 
 
 Ubuntu / Kubuntu / Xubuntu / Lubuntu (Saucy and above)
-------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #. Add one of the PPAs as you prefer
 
@@ -28,30 +101,21 @@ Ubuntu / Kubuntu / Xubuntu / Lubuntu (Saucy and above)
         $ sudo apt-get install python-kivy
     :Python3 - **python3-kivy**:
         $ sudo apt-get install python3-kivy
-    :optionally the examples - **kivy-examples**:
-        $ sudo apt-get install python-kivy-examples
+    :optionally the `gallery of Examples <../examples/gallery.html>`_ - **kivy-examples**:
+        $ sudo apt-get install kivy-examples
 
 
 Debian  (Jessie or newer)
--------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #. Add one of the PPAs to your sources.list in apt manually or via Synaptic
 
-    * Jessie/Testing:
+    :stable builds:
+        deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu xenial main
+    :daily builds:
+        deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu xenial main
 
-        :stable builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu trusty main
-        :daily builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu trusty main
-
-    * Sid/Unstable:
-
-        :stable builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu utopic main
-        :daily builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu utopic main
-
-        **Notice**: Wheezy is not supported - You'll need to upgrade to Jessie at least!
+    **Notice**: Wheezy is not supported - You'll need to upgrade to Jessie at least!
 
 #. Add the GPG key to your apt keyring by executing
 
@@ -68,7 +132,7 @@ Debian  (Jessie or newer)
 
 
 Linux Mint
-----------
+~~~~~~~~~~
 
 #. Find out on which Ubuntu release your installation is based on, using this
    `overview <https://linuxmint.com/download_all.php>`_.
@@ -77,7 +141,7 @@ Linux Mint
 
 
 Bodhi Linux
------------
+~~~~~~~~~~~
 
 #. Find out which version of the distribution you are running and use the table below
    to find out on which Ubuntu LTS it is based.
@@ -96,40 +160,15 @@ Bodhi Linux
 
 
 OpenSuSE
---------
+~~~~~~~~
 
 #. To install kivy go to http://software.opensuse.org/package/python-Kivy and use the "1 Click Install" for your openSuse version. You might need to make the latest kivy version appear in the list by clicking on "Show unstable packages". We prefer to use packages by " devel:languages:python".
 
 #. If you would like access to the examples, please select **python-Kivy-examples** in the upcoming installation wizard.
 
 
-Fedora
-------
-
-#. Adding the repository via the terminal:
-
-    **Fedora 18** ::
-
-        $ sudo yum-config-manager  --add-repo=http://download.opensuse.org\
-        /repositories/home:/thopiekar:/kivy/Fedora_18/home:thopiekar:kivy.repo
-
-    **Fedora 17** ::
-
-        $ sudo yum-config-manager --add-repo=http://download.opensuse.org\
-        /repositories/home:/thopiekar:/kivy/Fedora_17/home:thopiekar:kivy.repo
-
-    **Fedora 16** ::
-
-        $ sudo yum-config-manager --add-repo=http://download.opensuse.org\
-        /repositories/home:/thopiekar:/kivy/Fedora_16/home:thopiekar:kivy.repo
-
-#. Use your preferred package-manager to refresh your packagelists
-
-#. Install **python-Kivy** and optionally the examples, as found in **python-Kivy-examples**
-
-
 Gentoo
-------
+~~~~~~
 
 #. There is a kivy ebuild (kivy stable version)
 
@@ -145,308 +184,7 @@ Gentoo
    `gstreamer: Standard flag, kivy will be able to use audio/video streaming libraries.`
    `spell: Standard flag, provide enchant to use spelling in kivy apps.`
 
+Manually installing Kivy from source
+------------------------------------
 
-Installation in a Virtual Environment
-=====================================
-
-
-Common dependencies
-~~~~~~~~~~~~~~~~~~~
-
-
-Cython
-------
-
-
-Different versions of Kivy have only been tested up to a certain Cython version.
-It may or may not work with a later version.
-
-========   =============
-Kivy       Cython
-========   =============
-1.8        0.20.2
-1.9        0.21.2
-1.9.1      0.23
-========   =============
-
-
-Dependencies with SDL2
-~~~~~~~~~~~~~~~~~~~~~~
-
-
-Ubuntu example
---------------
-
-In the following command use "python" and "python-dev" for Python 2, or "python3" and "python3-dev" for Python 3.
-
-::
-
-    # Install necessary system packages
-    sudo apt-get install -y \
-        python-pip \
-        build-essential \
-        git \
-        python \
-        python-dev \
-        ffmpeg \
-        libsdl2-dev \
-        libsdl2-image-dev \
-        libsdl2-mixer-dev \
-        libsdl2-ttf-dev \
-        libportmidi-dev \
-        libswscale-dev \
-        libavformat-dev \
-        libavcodec-dev \
-        zlib1g-dev
-
-**Note:**  Depending on your Linux version, you may receive error messages related to the "ffmpeg" package.
-In this scenario, use "libav-tools \" in place of "ffmpeg \" (above), or use a PPA (as shown below):
-
-::
-
-- sudo add-apt-repository ppa:mc3man/trusty-media
-- sudo apt-get update
-- sudo apt-get install ffmpeg
-
-
-Installation
-------------
-
-
-::
-
-    # Make sure Pip, Virtualenv and Setuptools are updated
-    sudo pip install --upgrade pip virtualenv setuptools
-    
-    # Then create a virtualenv named "kivyinstall" by either:
-    
-    # 1. using the default interpreter
-    virtualenv --no-site-packages kivyinstall
-    
-    # or 2. using a specific interpreter 
-    # (this will use the interpreter in /usr/bin/python2.7)
-    virtualenv --no-site-packages -p /usr/bin/python2.7 kivyinstall
-
-    # Enter the virtualenv
-    . kivyinstall/bin/activate
-
-    # Use correct Cython version here
-    pip install Cython==0.23
-
-    # Install stable version of Kivy into the virtualenv
-    pip install kivy
-    # For the development version of Kivy, use the following command instead
-    # pip install git+https://github.com/kivy/kivy.git@master
-
-
-Dependencies with legacy PyGame
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-Ubuntu example
---------------
-
-
-::
-
-    # Install necessary system packages
-    sudo apt-get install -y \
-        python-pip \
-        build-essential \
-        mercurial \
-        git \
-        python \
-        python-dev \
-        ffmpeg \
-        libsdl-image1.2-dev \
-        libsdl-mixer1.2-dev \
-        libsdl-ttf2.0-dev \
-        libsmpeg-dev \
-        libsdl1.2-dev \
-        libportmidi-dev \
-        libswscale-dev \
-        libavformat-dev \
-        libavcodec-dev \
-        zlib1g-dev
-
-
-Fedora
-------
-
-::
-
-    $ sudo yum install \
-        make \
-        mercurial \
-        automake \
-        gcc \
-        gcc-c++ \
-        SDL_ttf-devel \
-        SDL_mixer-devel \
-        khrplatform-devel \
-        mesa-libGLES \
-        mesa-libGLES-devel \
-        gstreamer-plugins-good \
-        gstreamer \
-        gstreamer-python \
-        mtdev-devel \
-        python-devel \
-        python-pip
-
-
-OpenSuse
---------
-
-::
-
-    $ sudo zypper install \
-        python-distutils-extra \
-        python-gstreamer-0_10 \
-        python-enchant \
-        gstreamer-0_10-plugins-good \
-        python-devel \
-        Mesa-devel \
-        python-pip
-    $ sudo zypper install -t pattern devel_C_C++
-
-
-Installation
-------------
-
-::
-
-    # Make sure Pip, Virtualenv and Setuptools are updated
-    sudo pip install --upgrade pip virtualenv setuptools
-
-    # Then create a virtualenv named "kivyinstall" by either:
-    
-    # 1. using the default interpreter
-    virtualenv --no-site-packages kivyinstall
-    
-    # or 2. using a specific interpreter 
-    # (this will use the interpreter in /usr/bin/python2.7)
-    virtualenv --no-site-packages -p /usr/bin/python2.7 kivyinstall
-
-    # Enter the virtualenv
-    . kivyinstall/bin/activate
-
-    pip install numpy
-
-    pip install Cython==0.23
-
-    # If you want to install pygame backend instead of sdl2
-    # you can install pygame using command below and enforce using
-    # export USE_SDL2=0. If kivy's setup can't find sdl2 libs it will
-    # automatically set this value to 0 then try to build using pygame.
-    pip install hg+http://bitbucket.org/pygame/pygame
-
-
-
-    # Install stable version of Kivy into the virtualenv
-    pip install kivy
-    # For the development version of Kivy, use the following command instead
-    pip install git+https://github.com/kivy/kivy.git@master
-
-
-Install additional Virtualenv packages
---------------------------------------
-
-::
-
-    # Install development version of buildozer into the virtualenv
-    pip install git+https://github.com/kivy/buildozer.git@master
-
-    # Install development version of plyer into the virtualenv
-    pip install git+https://github.com/kivy/plyer.git@master
-
-    # Install a couple of dependencies for KivyCatalog
-    pip install -U pygments docutils
-
-
-.. _linux-run-app:
-
-
-Start from the Command Line
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-We ship some examples that are ready-to-run. However, these examples are packaged inside the package.
-This means you must first know where easy_install has installed your current kivy package,
-and then go to the examples directory::
-
-    $ python -c "import pkg_resources; print(pkg_resources.resource_filename('kivy', '../share/kivy-examples'))"
-
-And you should have a path similar to::
-
-    /usr/local/lib/python2.6/dist-packages/Kivy-1.0.4_beta-py2.6-linux-x86_64.egg/share/kivy-examples/
-
-Then you can go to the example directory, and run it::
-
-    # launch touchtracer
-    $ cd <path to kivy-examples>
-    $ cd demo/touchtracer
-    $ python main.py
-
-    # launch pictures
-    $ cd <path to kivy-examples>
-    $ cd demo/pictures
-    $ python main.py
-
-If you are familiar with Unix and symbolic links, you can create a link directly in your home directory
-for easier access. For example:
-
-#. Get the example path from the command line above
-#. Paste into your console::
-
-    $ ln -s <path to kivy-examples> ~/
-
-#. Then, you can access to kivy-examples directly in your home directory::
-
-    $ cd ~/kivy-examples
-
-If you wish to start your Kivy programs as scripts (by typing `./main.py`) or by double-clicking them,
-you will want to define the correct version of Python by linking to it. Something like::
-
-    $ sudo ln -s /usr/bin/python2.7 /usr/bin/kivy
-
-Or, if you are running Kivy inside a virtualenv, link to the Python interpreter for it, like::
-
-    $ sudo ln -s /home/your_username/Envs/kivy/bin/python2.7 /usr/bin/kivy
-
-Then, inside each main.py, add a new first line::
-
-    #!/usr/bin/kivy
-
-NOTE: Beware of Python files stored with Windows-style line endings (CR-LF). Linux will not ignore the <CR>
-and will try to use it as part of the file name. This makes confusing error messages. Convert to Unix line endings.
-
-Device permissions
-~~~~~~~~~~~~~~~~~~
-
-When you app starts, Kivy uses `Mtdev <http://wiki.ubuntu.com/Multitouch>`_ to
-scan for available multi-touch devices to use for input. Access to these
-devices is typically restricted to users or group with the appropriate
-permissions.
-
-If you do not have access to these devices, Kivy will log an error or warning
-specifying these devices, normally something like::
-
-    Permission denied:'/dev/input/eventX'
-
-In order to use these devices, you need to grant the user or group permission.
-This can be done via::
-
-    $ sudo chmod u+r /dev/input/eventX
-
-for the user or::
-
-    $ sudo chmod g+r /dev/input/eventX
-
-for the group. These permissions will only be effective for the duration of
-your current session. A more permanent solution is to add the user to a group
-that has these permissions. For example, in Ubuntu, you can add the user to
-the 'input' group::
-
-    $ sudo adduser $USER input
-
-Note that you need to log out then back in again for these permissions to
-be applied.
+For other distros or to manually install Kivy from source, see :ref:`installation_in_venv`.

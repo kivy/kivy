@@ -22,6 +22,20 @@ To create a slider with a red line tracking the value::
     from kivy.uix.slider import Slider
     s = Slider(value_track=True, value_track_color=[1, 0, 0, 1])
 
+
+Kv Example::
+
+    BoxLayout:
+        Slider:
+            id: slider
+            min: 0
+            max: 100
+            step: 1
+            orientation: 'vertical'
+
+        Label:
+            text: str(slider.value)
+
 """
 __all__ = ('Slider', )
 
@@ -61,7 +75,7 @@ class Slider(Widget):
     slider bounding box.
 
     By default, padding is 16sp. The range of the slider is reduced from
-    padding \*2 on the screen. It allows drawing the default cursor of 32sp
+    padding \\*2 on the screen. It allows drawing the default cursor of 32sp
     width without having the cursor go out of the widget.
 
     :attr:`padding` is a :class:`~kivy.properties.NumericProperty` and defaults
@@ -250,12 +264,12 @@ class Slider(Widget):
 
     sensitivity = OptionProperty('all', options=('all', 'handle'))
     """Whether the touch collides with the whole body of the widget
-    or with the slider button part only.
+    or with the slider handle part only.
 
     .. versionadded:: 1.10.1
 
     :attr:`sensitivity` is a :class:`~kivy.properties.OptionProperty`
-    and defaults to 'all'.
+    and defaults to 'all'. Can take a value of 'all' or 'handle'.
     """
 
     # The following two methods constrain the slider's value
@@ -285,8 +299,10 @@ class Slider(Widget):
         else:
             self.value = min(round((val - vmin) / step) * step + vmin,
                              vmax)
+
     value_normalized = AliasProperty(get_norm_value, set_norm_value,
-                                     bind=('value', 'min', 'max', 'step'))
+                                     bind=('value', 'min', 'max'),
+                                     cache=True)
     '''Normalized value inside the :attr:`range` (min/max) to 0-1 range::
 
         >>> slider = Slider(value=50, min=0, max=100)
@@ -341,9 +357,11 @@ class Slider(Widget):
             else:
                 self.value_normalized = (y - self.y - padding
                                          ) / float(self.height - 2 * padding)
+
     value_pos = AliasProperty(get_value_pos, set_value_pos,
-                              bind=('x', 'y', 'width', 'height', 'min',
-                                    'max', 'value_normalized', 'orientation'))
+                              bind=('pos', 'size', 'min', 'max', 'padding',
+                                    'value_normalized', 'orientation'),
+                              cache=True)
     '''Position of the internal cursor, based on the normalized value.
 
     :attr:`value_pos` is an :class:`~kivy.properties.AliasProperty`.
