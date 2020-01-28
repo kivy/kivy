@@ -562,7 +562,7 @@ cdef class _WindowSDL2Storage:
                 text_keyboards = {"text", "url", "mail", "address"}
 
                 if not keyboard_suggestions and input_type in text_keyboards:
-                    input_types |= TYPE_TEXT_FLAG_NO_SUGGESTIONS
+                    input_type_value |= TYPE_TEXT_FLAG_NO_SUGGESTIONS
 
                 mActivity.changeKeyboard(input_type_value)
 
