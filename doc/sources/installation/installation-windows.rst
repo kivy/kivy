@@ -1,7 +1,7 @@
 .. _installation_windows:
 
 Installation on Windows
-====================
+=======================
 
 .. warning::
 
@@ -10,7 +10,7 @@ Installation on Windows
     documentation on the top-left.
 
 Installation using Conda
----------------------
+------------------------
 
 If you use `Anaconda <https://en.wikipedia.org/wiki/Anaconda_(Python_distribution)>`_, you can install Kivy with its package manager `Conda <https://en.wikipedia.org/wiki/Conda_(package_manager)>`_::
 
@@ -19,12 +19,11 @@ If you use `Anaconda <https://en.wikipedia.org/wiki/Anaconda_(Python_distributio
 .. _install-win-dist:
 
 Installation instructions for the precompiled Kivy binaries
-----------------------------------------------------
+-----------------------------------------------------------
 
-*If you have problems understanding this section, please read the next section first. There we explain Python package installation, wheels, and how to use the commandline.*
+*If you have problems understanding this section, please read the next section first. There we explain Python package installation, wheels, and how to use the command line.*
 
-Start a new :ref:`windows-run-app`
-terminal that has Python available.
+Start a new :ref:`console window <windows-run-app>` that has Python available.
 
 #. Ensure you have the latest `pip <https://pypi.org/project/pip/>`_, `wheel <https://pypi.org/project/wheel/>`_, `setuptools <https://pypi.org/project/setuptools/>`_, and `virtualenv <https://pypi.org/project/virtualenv/>`_::
 
@@ -38,7 +37,7 @@ terminal that has Python available.
         python -m virtualenv kivy_venv
 
    #. Activate the virtual environment. You will have to do this step from the current directory
-      **every time** you start a new terminal. In the commandline do::
+      **every time** you start a new terminal. In the command line do::
 
         kivy_venv\Scripts\activate
 
@@ -49,7 +48,7 @@ terminal that has Python available.
    Your terminal should now preface the path with something like ``(kivy_venv)``, indicating that
    the `kivy_venv` environment is active. If it doesn't say that, the virtual environment is not active.
 
-#. Install ``kivy`` and **optionally** ``kivy_examples``::
+#. Install ``kivy`` and optionally ``kivy_examples``::
 
      python -m pip install kivy[base] kivy_examples
 
@@ -58,7 +57,7 @@ terminal that has Python available.
    To install a **pre-release** of Kivy, add ``--pre`` to the pip command. E.g.
    ``python -m pip install --pre kivy[base] kivy_examples``.
 
-   :ref:`nightly-win-wheels` can be installed from the Kivy server with::
+   :ref:`Nightly wheels <nightly-win-wheels>` can be installed from the Kivy server with::
 
      pip install kivy[base] kivy_examples --pre --extra-index-url https://kivy.org/downloads/simple/
 
@@ -69,11 +68,11 @@ example::
 
 The exact path to the Kivy examples directory is ``kivy.kivy_examples_dir``.
 
-Introduction to Python package installation, wheels, and the commandline
----------------------------------------------------------------
+Introduction to Python package installation, wheels, and the command line
+-------------------------------------------------------------------------
 
 Installing Python
-^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^
 
 Kivy is written in
 `Python <https://en.wikipedia.org/wiki/Python_%28programming_language%29>`_
@@ -82,25 +81,24 @@ installation of `Python <https://www.python.org/downloads/windows/>`_.
 Multiple versions of Python can be installed side by side, but Kivy needs to
 be installed as package under each Python version that you want to use Kivy in.
 
-Once Python is installed, open the :ref:`windows-run-app` and make sure
+Once Python is installed, open the :ref:`console <windows-run-app>` and make sure
 Python is available by typing ``python --version``.
 
 .. _windows-run-app:
 
 How to use the command line
-^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To execute any of the ``pip`` or ``wheel`` commands given here, you need a command line and Python must be on the `PATH <https://en.wikipedia.org/wiki/PATH_(variable)>`_.
+To execute any of the ``pip`` or ``wheel`` commands given here, you need a *command line* (here also called *console*, *terminal*, `shell <https://en.wikipedia.org/wiki/Unix_shell>`_ or `bash <https://en.wikipedia.org/wiki/Bash_(Unix_shell)>`_, where the last two refer to Linux style command lines) and Python must be on the `PATH <https://en.wikipedia.org/wiki/PATH_(variable)>`_.
 
 The default command line on Windows is the
 `command prompt <http://www.computerhope.com/issues/chusedos.htm>`_, short *cmd*. The
 quickest way to open it is to press `Win+R` on your keyboard.
 In the window that opens, type ``cmd`` and then press enter.
 
-Alternative Linux style command shells that we recommend are
-`Git for Windows <https://git-for-windows.github.io/>`_ which offers a `bash <https://en.wikipedia.org/wiki/Bash_(Unix_shell)>`_
-command line, `as well <http://rogerdudler.github.io/git-guide/>`_ as
-`git <https://try.github.io>`_.
+Alternative Linux style command lines that we recommend are
+`Git for Windows <https://git-for-windows.github.io/>`_ which offers a bash, `as well <http://rogerdudler.github.io/git-guide/>`_ as
+`git <https://try.github.io>`_. Further there is `Mysys <http://www.mingw.org/wiki/MSYS>`_.
 
 Note, the default Windows command line can still be used, even if a bash is installed.
 
@@ -114,7 +112,7 @@ If however Python is not on your PATH, follow the these instructions:
 * Instructions for `bash command lines <http://stackoverflow.com/q/14637979>`_
 
 What is pip and what are wheels
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In Python, packages such as Kivy can be installed with the python package
 manager, named `pip <https://pip.pypa.io/en/stable/>`_ ("python install package").
@@ -125,7 +123,7 @@ Contrary, wheels (files with a ``.whl`` extension) are pre-built
 distributions of a package that has already been compiled.
 These wheels do not require additional steps when installing them.
 
-When a wheel is available on `pypi.org <https://pypi.python.org/pypi>`_ ("Python Package Index") it can be installed with ``pip``. For example when you execute ``python -m pip install kivy`` in a commandline, this will automatically find the appropriate wheel on PyPI.
+When a wheel is available on `pypi.org <https://pypi.python.org/pypi>`_ ("Python Package Index") it can be installed with ``pip``. For example when you execute ``python -m pip install kivy`` in a command line, this will automatically find the appropriate wheel on PyPI.
 
 When downloading and installing a wheel directly, use the command
 ``python -m pip install <wheel_file_name>``, for example::
@@ -135,7 +133,7 @@ When downloading and installing a wheel directly, use the command
 .. _nightly-win-wheels:
 
 What are nightly wheels
-^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
 
 Every day we create a snapshot wheel of the current development version of Kivy ('nightly wheel'). You can find the development version in the master branch of the `Kivy Github repository <https://github.com/kivy/kivy>`_.
 
@@ -150,7 +148,7 @@ For installation instructions, see :ref:`install-win-dist`. See also :ref:`dev-i
 .. _kivy-dependencies:
 
 Installing Kivy's dependencies
---------------------------
+------------------------------
 
 We offer the wheels for Kivy and the wheels for its dependencies separately, so that you can install only the dependencies you want. The dependencies are offered as sub-packages, starting with ``kivy_deps``, for example ``kivy_deps.sdl2``.
 
@@ -205,14 +203,14 @@ So, the following are the dependency wheels which we provide for Windows:
 .. _dev-install-win:
 
 Installation of the development version from source
----------------------------------------------
+---------------------------------------------------
 
 .. warning::
 
     Using the latest development version can be risky and you might encounter
     issues during development. If you encounter any bugs, please report them.
 
-It may be simpler to install a pre-compiled :ref:`nightly-win-wheels`.
+It may be simpler to install a pre-compiled :ref:`nightly wheel <nightly-win-wheels>`.
 However, to compile and install from `the kivy source code <https://github.com/kivy/kivy>`_ there are some additional steps:
 
 #. Both the ``python`` and the ``python\Scripts`` directories **must** be on the PATH.
@@ -255,7 +253,7 @@ However, to compile and install from `the kivy source code <https://github.com/k
 .. _alternate-win:
 
 Installing Kivy and editing it in place
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For development purposes, Kivy is often cloned or downloaded to a location and then
 installed with::
@@ -272,12 +270,12 @@ This will fully install Kivy and make it and available from Python. To recompile
 whenever any of the Cython files are changed (e.g. if you pulled from GitHub).
 
 Aside: Making Python available anywhere
-----------------------------------
+---------------------------------------
 
 There are two methods for launching Python on your ``*.py`` files.
 
 Double-click method
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^
 
 If you only have one Python installed, and if you installed it using the default options, then ``*.py`` files are already
 associated with your Python. You can run them by double clicking them in the file manager, or by just executing their name in a console window (without having to prepend ``python``).
@@ -293,7 +291,7 @@ Alternatively, if they are not assigned, you can do it the following way:
 #. You are done. Open the file.
 
 Send-to method
-^^^^^^^^^^^^
+^^^^^^^^^^^^^^
 
 You can launch a .py file with Python using the *Send to* menu:
 
@@ -308,7 +306,7 @@ You can now execute your application by right clicking on the `.py` file ->
 "Send To" -> "python <python-version>".
 
 Uninstalling Kivy
-^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^
 
 To uninstall Kivy, remove the installed packages with pip. E.g. if you installed kivy following the instructions above, do::
 
