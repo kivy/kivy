@@ -18,8 +18,10 @@ If you use `Anaconda <https://en.wikipedia.org/wiki/Anaconda_(Python_distributio
 
 .. _install-win-dist:
 
-Installation instructions for the precompiled Kivy binaries
------------------------------------------------------------
+Installation of the precompiled binaries
+----------------------------------------
+
+Here we explain how to install Kivy using precompiled wheels. This is the simplest way to install it.
 
 *If you have problems understanding this section, please read the next section first. There we explain Python package installation, wheels, and how to use the command line.*
 
@@ -68,8 +70,10 @@ example::
 
 The exact path to the Kivy examples directory is ``kivy.kivy_examples_dir``.
 
-Introduction to Python package installation, wheels, and the command line
--------------------------------------------------------------------------
+Python package installation
+---------------------------
+
+Here we explain how to install Python packages, how to use the command line and what wheels are.
 
 Installing Python
 ^^^^^^^^^^^^^^^^^
