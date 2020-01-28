@@ -313,7 +313,7 @@ class EventLoopBase(EventDispatcher):
         providers, pass events to postproc, and dispatch final events.
         '''
 
-        # first, aquire input events
+        # first, acquire input events
         for provider in self.input_providers:
             provider.update(dispatch_fn=self._dispatch_input)
 
