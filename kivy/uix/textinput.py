@@ -454,6 +454,10 @@ class TextInput(FocusBehavior, Widget):
 
     .. versionchanged:: 1.7.0
         `on_double_tap`, `on_triple_tap` and `on_quad_touch` events added.
+
+    .. versionchanged:: 2.0.0
+        :attr:`~kivy.uix.behaviors.FocusBehavior.keyboard_suggestions`
+        is now inherited from :class:`~kivy.uix.behaviors.FocusBehavior`.
     '''
 
     __events__ = ('on_text_validate', 'on_double_tap', 'on_triple_tap',
@@ -2668,16 +2672,6 @@ class TextInput(FocusBehavior, Widget):
 
     :attr:`password_mask` is a :class:`~kivy.properties.StringProperty` and
     defaults to `'*'`.
-    '''
-
-    keyboard_suggestions = BooleanProperty(True)
-    '''If True provides auto suggestions on top of keyboard.
-    This will only work if :attr:`input_type` is set to `text`.
-
-    .. versionadded:: 1.8.0
-
-    :attr:`keyboard_suggestions` is a :class:`~kivy.properties.BooleanProperty`
-    and defaults to True.
     '''
 
     cursor_blink = BooleanProperty(True)
