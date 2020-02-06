@@ -186,7 +186,7 @@ class LoaderBase(object):
 
     def _get_loading_image(self):
         if not self._loading_image:
-            loading_png_fn = join(kivy_data_dir, 'images', 'image-loading.gif')
+            loading_png_fn = join(kivy_data_dir, 'images', 'image-loading.zip')
             self._loading_image = ImageLoader.load(filename=loading_png_fn)
         return self._loading_image
 

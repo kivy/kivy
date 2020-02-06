@@ -375,11 +375,11 @@ class VideoPlayer(GridLayout):
 
     '''
 
-    image_loading = StringProperty('data/images/image-loading.gif')
+    image_loading = StringProperty('data/images/image-loading.zip')
     '''Image filename used when the video is loading.
 
     :attr:`image_loading` is a :class:`~kivy.properties.StringProperty` and
-    defaults to 'data/images/image-loading.gif'.
+    defaults to 'data/images/image-loading.zip'.
     '''
 
     image_play = StringProperty(
