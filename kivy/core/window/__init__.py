@@ -1410,6 +1410,14 @@ class WindowBase(EventDispatcher):
             elif etype == 'end':
                 self.dispatch('on_touch_up', me)
                 FocusBehavior._handle_post_on_touch_up(me)
+        else:
+            w, h = self._get_effective_size()
+            me.scale_for_screen(w, h, rotation=self._rotation,
+                                smode=self.softinput_mode,
+                                kheight=self.keyboard_height)
+            for w in self.children[:]:
+                if w.dispatch('on_motion', etype, me):
+                    return True
 
     def on_touch_down(self, touch):
         '''Event called when a touch down event is initiated.

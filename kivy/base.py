@@ -112,6 +112,7 @@ class EventLoopBase(EventDispatcher):
         self.event_listeners = []
         self.window = None
         self.me_list = []
+        self.hover_events = []
 
     @property
     def touches(self):
@@ -229,10 +230,31 @@ class EventLoopBase(EventDispatcher):
             if me in self.me_list:
                 self.me_list.remove(me)
 
+        if hasattr(me, 'name') and me.name == 'hover':
+            self.hover_events.append(me)
+
         # dispatch to listeners
         if not me.grab_exclusive_class:
             for listener in self.event_listeners:
                 listener.dispatch('on_motion', etype, me)
+
+        if hasattr(me, 'name') \
+                and me.name == 'hover' \
+                and len(self.hover_events) > 1:
+            current = self.hover_events[-1]
+            prev = self.hover_events[-2]
+            for w in set(prev.handled_widgets) - set(current.handled_widgets):
+                # Notify widgets that are no longer handled by current
+                # hover event. This handles the case when two widget are
+                # overlapping and previous one wants to go to non-hovered
+                # state.
+                # TODO: Decide on how to flag this dispatch,
+                # use `etype` argument or attribute in event class
+                widget = w()
+                if widget:
+                    widget.dispatch('on_motion', 'end', current)
+            self.hover_events.pop(0)
+            assert len(self.hover_events) == 1
 
         # dispatch grabbed touch
         me.grab_state = True

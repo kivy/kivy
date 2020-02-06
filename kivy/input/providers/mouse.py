@@ -72,7 +72,7 @@ from collections import deque
 from kivy.logger import Logger
 from kivy.input.provider import MotionEventProvider
 from kivy.input.factory import MotionEventFactory
-from kivy.input.motionevent import MotionEvent
+from kivy.input.motionevent import MotionEvent, HoverEvent
 
 # late binding
 Color = Ellipse = None
@@ -127,6 +127,15 @@ class MouseMotionEvent(MotionEvent):
             win.canvas.after.remove(de[1])
 
 
+class MouseHoverEvent(HoverEvent):
+
+    def depack(self, args):
+        # TODO: Add `positions` later (multi-hover support)
+        self.profile.append('pos')
+        self.sx, self.sy = args[:2]
+        super(MouseHoverEvent, self).depack(args)
+
+
 class MouseMotionEventProvider(MotionEventProvider):
     __handlers__ = {}
 
@@ -163,7 +172,9 @@ class MouseMotionEventProvider(MotionEventProvider):
         EventLoop.window.bind(
             on_mouse_move=self.on_mouse_motion,
             on_mouse_down=self.on_mouse_press,
-            on_mouse_up=self.on_mouse_release)
+            on_mouse_up=self.on_mouse_release,
+            mouse_pos=self.on_mouse_pos
+        )
 
     def stop(self):
         '''Stop the mouse provider'''
@@ -172,7 +183,9 @@ class MouseMotionEventProvider(MotionEventProvider):
         EventLoop.window.unbind(
             on_mouse_move=self.on_mouse_motion,
             on_mouse_down=self.on_mouse_press,
-            on_mouse_up=self.on_mouse_release)
+            on_mouse_up=self.on_mouse_release,
+            on_mouse_pos=self.on_mouse_pos
+        )
 
     def test_activity(self):
         if not self.disable_on_activity:
@@ -292,6 +305,12 @@ class MouseMotionEventProvider(MotionEventProvider):
             self.remove_touch(self.alt_touch)
             self.alt_touch = None
         return True
+
+    def on_mouse_pos(self, win, mouse_pos):
+        width, height = EventLoop.window.system_size
+        args = (mouse_pos[0] / width, mouse_pos[1] / height)
+        event = MouseHoverEvent(self.device, None, args)
+        self.waiting_event.append(('', event))
 
     def update(self, dispatch_fn):
         '''Update the mouse provider (pop event from the queue)'''

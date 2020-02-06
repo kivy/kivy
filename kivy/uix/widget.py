@@ -326,7 +326,9 @@ class Widget(WidgetBase):
 
     __metaclass__ = WidgetMetaclass
     __events__ = (
-        'on_touch_down', 'on_touch_move', 'on_touch_up', 'on_kv_post')
+        'on_touch_down', 'on_touch_move', 'on_touch_up', 'on_kv_post',
+        'on_motion'
+    )
     _proxy_ref = None
 
     def __init__(self, **kwargs):
@@ -346,7 +348,7 @@ class Widget(WidgetBase):
             del kwargs[key]
 
         self._disabled_count = 0
-
+        self.fbind('motion_events', self._update_motion_filter)
         super(Widget, self).__init__(**kwargs)
 
         # Create the default canvas if it does not exist.
@@ -525,6 +527,19 @@ class Widget(WidgetBase):
     #
     # Default event handlers
     #
+    def on_motion(self, etype, me):
+        # Dispatch to all children with non-empty motion_filter
+        # Handles case when child is greater in size than parent
+        if me.name in self.motion_filter:
+            for widget in self.children[:]:
+                if widget.dispatch('on_motion', etype, me):
+                    return True
+        else:
+            if self.collide_point(*self.to_local(*me.pos)):
+                me.handled_by(self)
+                # print('Non hover hander', self)
+                return True
+
     def on_touch_down(self, touch):
         '''Receive a touch down event.
 
@@ -646,6 +661,10 @@ class Widget(WidgetBase):
             if next_index == 0 and canvas.has_before:
                 next_index = 1
             canvas.insert(next_index, widget.canvas)
+        # Add motion events that `widget` needs
+        for event_name in widget.motion_events:
+            self.add_motion_event(widget, event_name)
+        widget.fbind('motion_filter', self._update_motion_filter)
 
     def remove_widget(self, widget):
         '''Remove a widget from the children of this widget.
@@ -671,6 +690,9 @@ class Widget(WidgetBase):
             self.canvas.after.remove(widget.canvas)
         elif widget.canvas in self.canvas.before.children:
             self.canvas.before.remove(widget.canvas)
+        for event_name in widget.motion_filter:
+            self.remove_motion_event(widget, event_name)
+        widget.funbind('motion_filter', self._update_motion_filter)
         widget.parent = None
         widget.dec_disabled(self._disabled_count)
 
@@ -690,6 +712,24 @@ class Widget(WidgetBase):
         remove_widget = self.remove_widget
         for child in children[:]:
             remove_widget(child)
+
+    def _update_motion_filter(self, widget, event_names):
+        for event_name in event_names:
+            self.add_motion_event(widget, event_name)
+
+    def add_motion_event(self, widget, event_name):
+        if event_name not in self.motion_filter:
+            self.motion_filter[event_name] = {widget}
+        else:
+            self.motion_filter[event_name].add(widget)
+            self.property('motion_filter').dispatch(self)
+
+    def remove_motion_event(self, widget, event_name):
+        try:
+            self.motion_filter[event_name].remove(widget)
+            self.property('motion_filter').dispatch(self)
+        except KeyError:
+            pass
 
     def export_to_png(self, filename, *args, **kwargs):
         '''Saves an image of the widget and its children in png format at the
@@ -1465,4 +1505,12 @@ class Widget(WidgetBase):
         :class:`~kivy.properties.BooleanProperty` to an
         :class:`~kivy.properties.AliasProperty` to allow access to its
         previous state when a parent's disabled state is changed.
+    '''
+
+    motion_filter = DictProperty()
+    '''Holds event_name to number_of_children_which_requested_that_event items.
+    '''
+
+    motion_events = ListProperty()
+    '''List of motion events this widget is subscribed on
     '''
