@@ -169,23 +169,21 @@ class MouseMotionEventProvider(MotionEventProvider):
         '''Start the mouse provider'''
         if not EventLoop.window:
             return
-        EventLoop.window.bind(
-            on_mouse_move=self.on_mouse_motion,
-            on_mouse_down=self.on_mouse_press,
-            on_mouse_up=self.on_mouse_release,
-            mouse_pos=self.on_mouse_pos
-        )
+        fbind = EventLoop.window.fbind
+        fbind('on_mouse_move', self.on_mouse_motion)
+        fbind('on_mouse_down', self.on_mouse_press)
+        fbind('on_mouse_up', self.on_mouse_release)
+        fbind('mouse_pos', self.on_mouse_pos)
 
     def stop(self):
         '''Stop the mouse provider'''
         if not EventLoop.window:
             return
-        EventLoop.window.unbind(
-            on_mouse_move=self.on_mouse_motion,
-            on_mouse_down=self.on_mouse_press,
-            on_mouse_up=self.on_mouse_release,
-            on_mouse_pos=self.on_mouse_pos
-        )
+        funbind = EventLoop.window.funbind
+        funbind('on_mouse_move', self.on_mouse_motion)
+        funbind('on_mouse_down', self.on_mouse_press)
+        funbind('on_mouse_up', self.on_mouse_release)
+        funbind('mouse_pos', self.on_mouse_pos)
 
     def test_activity(self):
         if not self.disable_on_activity:
