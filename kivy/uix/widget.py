@@ -348,7 +348,6 @@ class Widget(WidgetBase):
             del kwargs[key]
 
         self._disabled_count = 0
-        self.fbind('motion_events', self._update_motion_filter)
         super(Widget, self).__init__(**kwargs)
 
         # Create the default canvas if it does not exist.
@@ -662,7 +661,7 @@ class Widget(WidgetBase):
                 next_index = 1
             canvas.insert(next_index, widget.canvas)
         # Add motion events that `widget` needs
-        for event_name in widget.motion_events:
+        for event_name in widget.motion_filter:
             self.add_motion_event(widget, event_name)
         widget.fbind('motion_filter', self._update_motion_filter)
 
@@ -725,11 +724,13 @@ class Widget(WidgetBase):
             self.property('motion_filter').dispatch(self)
 
     def remove_motion_event(self, widget, event_name):
-        try:
-            self.motion_filter[event_name].remove(widget)
+        self.motion_filter[event_name].remove(widget)
+        if not self.motion_filter[event_name]:
+            del self.motion_filter[event_name]
+        else:
+            # Dispatch `motion_filter` as removing from set doesn't
+            # dispatch automatically
             self.property('motion_filter').dispatch(self)
-        except KeyError:
-            pass
 
     def export_to_png(self, filename, *args, **kwargs):
         '''Saves an image of the widget and its children in png format at the
@@ -1509,8 +1510,4 @@ class Widget(WidgetBase):
 
     motion_filter = DictProperty()
     '''Holds event_name to number_of_children_which_requested_that_event items.
-    '''
-
-    motion_events = ListProperty()
-    '''List of motion events this widget is subscribed on
     '''
