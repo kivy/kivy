@@ -348,6 +348,7 @@ class Widget(WidgetBase):
             del kwargs[key]
 
         self._disabled_count = 0
+
         super(Widget, self).__init__(**kwargs)
 
         # Create the default canvas if it does not exist.
@@ -527,8 +528,6 @@ class Widget(WidgetBase):
     # Default event handlers
     #
     def on_motion(self, etype, me):
-        # Dispatch to all children with non-empty motion_filter
-        # Handles case when child is greater in size than parent
         if me.name in self.motion_filter:
             for widget in self.children[:]:
                 if widget.dispatch('on_motion', etype, me):
@@ -536,7 +535,6 @@ class Widget(WidgetBase):
         else:
             if self.collide_point(*self.to_local(*me.pos)):
                 me.handled_by(self)
-                # print('Non hover hander', self)
                 return True
 
     def on_touch_down(self, touch):
@@ -1509,5 +1507,7 @@ class Widget(WidgetBase):
     '''
 
     motion_filter = DictProperty()
-    '''Holds event_name to number_of_children_which_requested_that_event items.
+    '''Dict of widgets for each motion event. Keys are event names and values  
+    are sets of widgets. Don't change this property directly, but use  
+    `add_motion_event` or `remove_motion_event` methods.
     '''
