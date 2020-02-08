@@ -140,7 +140,7 @@ class Layout(Widget):
                 Can be None. The length should be the same as ``hint``
             `hint`: list
                 A list whose size is the same as the length of ``sh_min_vals``
-                and ``sh_min_vals`` whose each element is the corresponding
+                and ``sh_max_vals`` whose each element is the corresponding
                 size hint value of that element. This list is updated in place
                 with correct size hints that ensure the constraints are not
                 violated.
