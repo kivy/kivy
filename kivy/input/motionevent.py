@@ -493,12 +493,12 @@ class HoverEvent(MotionEvent):
         self.name = 'hover'
         # A key is needed for each event type (or `isinstance` can be used) in
         # widgets when user overrides `on_motion` and wants to check if this
-        # is a hover event. This key is used in `Widget.motion_events`.
+        # is a hover event. This key is used in `Widget.motion_filter`
+        # property.
         self.handled_widgets = []
 
     def handled_by(self, widget):
         # `widget` handled this event
-        # now other widgets should update their state
-        # TODO: Add a weak ref to widget
+        # TODO: Can it be replaced with `grab` method?
         widget = weakref.ref(widget.__self__)
         self.handled_widgets.append(widget)
