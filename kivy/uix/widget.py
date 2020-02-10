@@ -731,8 +731,9 @@ class Widget(WidgetBase):
         for event, widgets in self.motion_filter.items():
             if child_widget in widgets:
                 old_events.add(event)
-                if event not in child_motion_filter:
-                    self.remove_motion_event(event, child_widget)
+        for event in old_events:
+            if event not in child_motion_filter:
+                self.remove_motion_event(event, child_widget)
         for event in child_motion_filter:
             if event not in old_events:
                 self.add_motion_event(event, child_widget)
