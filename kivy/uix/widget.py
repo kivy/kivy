@@ -659,9 +659,9 @@ class Widget(WidgetBase):
                 next_index = 1
             canvas.insert(next_index, widget.canvas)
         # Add motion events that `widget` needs
-        for event_name in widget.motion_filter:
-            self.add_motion_event(widget, event_name)
-        widget.fbind('motion_filter', self._update_motion_filter)
+        for event in widget.motion_filter:
+            self.add_motion_event(event, widget)
+        widget.fbind('motion_filter', self.update_motion_filter)
 
     def remove_widget(self, widget):
         '''Remove a widget from the children of this widget.
@@ -687,9 +687,9 @@ class Widget(WidgetBase):
             self.canvas.after.remove(widget.canvas)
         elif widget.canvas in self.canvas.before.children:
             self.canvas.before.remove(widget.canvas)
-        for event_name in widget.motion_filter:
-            self.remove_motion_event(widget, event_name)
-        widget.funbind('motion_filter', self._update_motion_filter)
+        for event in widget.motion_filter:
+            self.remove_motion_event(event, widget)
+        widget.funbind('motion_filter', self.update_motion_filter)
         widget.parent = None
         widget.dec_disabled(self._disabled_count)
 
@@ -710,25 +710,68 @@ class Widget(WidgetBase):
         for child in children[:]:
             remove_widget(child)
 
-    def _update_motion_filter(self, widget, event_names):
-        for event_name in event_names:
-            self.add_motion_event(widget, event_name)
+    def update_motion_filter(self, child_widget, child_motion_filter):
+        '''Updates :attr:`motion_filter` using `child_motion_filter` of
+        `child_widget`.
 
-    def add_motion_event(self, widget, event_name):
-        if event_name not in self.motion_filter:
-            self.motion_filter[event_name] = {widget}
-        else:
-            self.motion_filter[event_name].add(widget)
-            self.property('motion_filter').dispatch(self)
+        Method removes events which are present in :attr:`motion_filter` but
+        not in `child_motion_filter` and adds events which are present in
+        `child_motion_filter` but not in :attr:`motion_filter`. This method is
+        bound on every child widget.
 
-    def remove_motion_event(self, widget, event_name):
-        self.motion_filter[event_name].remove(widget)
-        if not self.motion_filter[event_name]:
-            del self.motion_filter[event_name]
+        :Parameters:
+            `child_widget`: :class:`Widget`
+                Child widget of `self` widget
+            `child_motion_filter`: :class:`dict`
+                `motion_filter` of `child_widget`
+
+        .. versionadded:: 2.0.0
+        '''
+        old_events = set()
+        for event, widgets in self.motion_filter.items():
+            if child_widget in widgets:
+                old_events.add(event)
+                if event not in child_motion_filter:
+                    self.remove_motion_event(event, child_widget)
+        for event in child_motion_filter:
+            if event not in old_events:
+                self.add_motion_event(event, child_widget)
+
+    def add_motion_event(self, event, widget=None):
+        '''Adds `widget` to :attr:`motion_filter` for given `event`.
+
+        :Parameters:
+            `event`: `str`
+                Motion event
+            `widget`: :class:`Widget` or `None`
+                If `None` then `self` is used
+
+        .. versionadded:: 2.0.0
+        '''
+        widget = self if widget is None else widget
+        if event not in self.motion_filter:
+            self.motion_filter[event] = {widget}
         else:
-            # Dispatch `motion_filter` as removing from set doesn't
-            # dispatch automatically
-            self.property('motion_filter').dispatch(self)
+            self.motion_filter[event].add(widget)
+
+    def remove_motion_event(self, event, widget=None):
+        '''Removes `widget` from :attr:`motion_filter` for given `event`.
+
+        :Parameters:
+            `event`: `str`
+                Motion event
+            `widget`: :class:`Widget` or `None`
+                If `None` then `self` is used
+        :Raises:
+            `KeyError` if `event` or `widget` don't exist in
+            :attr:`motion_filter`
+
+        .. versionadded:: 2.0.0
+        '''
+        widget = self if widget is None else widget
+        self.motion_filter[event].remove(widget)
+        if not self.motion_filter[event]:
+            del self.motion_filter[event]
 
     def export_to_png(self, filename, *args, **kwargs):
         '''Saves an image of the widget and its children in png format at the
@@ -1507,7 +1550,14 @@ class Widget(WidgetBase):
     '''
 
     motion_filter = DictProperty()
-    '''Dict of widgets for each motion event. Keys are event names and values  
-    are sets of widgets. Don't change this property directly, but use  
-    `add_motion_event` or `remove_motion_event` methods.
+    '''Holds set of widgets for each motion event used by `self` or by child 
+    widgets.
+    
+    Don't change this property directly, but use :meth:`add_motion_event` and 
+    :meth:`remove_motion_event` methods.
+    
+    :attr:`motion_filter` is a :class:`~kivy.properties.DictProperty` and 
+    defaults to empty :class:`dict`.
+    
+    .. versionadded:: 2.0.0
     '''
