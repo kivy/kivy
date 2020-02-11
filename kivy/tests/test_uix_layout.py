@@ -19,9 +19,9 @@ class UixLayoutTest(unittest.TestCase):
 
 @pytest.mark.parametrize(
     "sh_min_vals, sh_max_vals, hint, expected_ratio", [
-        ((50, None, None), (None, None), (1, 1, 1), (2, 1, 1)),
-        ((None, 50, None), (None, None), (1, 1, 1), (1, 2, 1)),
-        ((None, None, 50), (None, None), (1, 1, 1), (1, 1, 2)),
+        ((50, None, None), (None, None, None), (1, 1, 1), (2, 1, 1)),
+        ((None, 50, None), (None, None, None), (1, 1, 1), (1, 2, 1)),
+        ((None, None, 50), (None, None, None), (1, 1, 1), (1, 1, 2)),
     ])
 def test_layout_hint_with_bounds(sh_min_vals, sh_max_vals, hint, expected_ratio):
     from math import isclose
