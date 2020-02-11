@@ -23,7 +23,8 @@ class UixLayoutTest(unittest.TestCase):
         ((None, 50, None), (None, None, None), (1, 1, 1), (1, 2, 1)),
         ((None, None, 50), (None, None, None), (1, 1, 1), (1, 1, 2)),
     ])
-def test_layout_hint_with_bounds(sh_min_vals, sh_max_vals, hint, expected_ratio):
+def test_layout_hint_with_bounds(sh_min_vals, sh_max_vals, hint,
+                                 expected_ratio):
     from math import isclose
     from kivy.uix.layout import Layout
     copied_hint = list(hint)
@@ -35,4 +36,8 @@ def test_layout_hint_with_bounds(sh_min_vals, sh_max_vals, hint, expected_ratio)
     sum_actual = sum(actual_ratio)
     sum_expected = sum(expected_ratio)
     for actual, expected in zip(actual_ratio, expected_ratio):
-        assert isclose(actual / sum_actual, expected / sum_expected, abs_tol=0.01)
+        assert isclose(
+            actual / sum_actual,
+            expected / sum_expected,
+            abs_tol=0.01,
+        )
