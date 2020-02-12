@@ -453,9 +453,7 @@ class GridLayout(Layout):
                     # if the col don't have stretch information, nothing to do
                     if not col_stretch:
                         continue
-                    cols[index] = max(
-                        cols[index],
-                        stretch_w * col_stretch / cols_weight)
+                    cols[index] = stretch_w * col_stretch / cols_weight
 
         # same algo for rows
         if self.row_force_default:
@@ -487,9 +485,7 @@ class GridLayout(Layout):
                     # if the row don't have stretch information, nothing to do
                     if not row_stretch:
                         continue
-                    rows[index] = max(
-                        rows[index],
-                        stretch_h * row_stretch / rows_weight)
+                    rows[index] = stretch_h * row_stretch / rows_weight
 
     def _iterate_layout(self, count):
         selfx = self.x
