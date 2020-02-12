@@ -2,7 +2,7 @@
 uix.gridlayout tests
 ========================
 '''
-
+import pytest
 import unittest
 from kivy.tests.common import GraphicUnitTest
 
@@ -50,6 +50,25 @@ class UixGridLayoutTest(GraphicUnitTest):
         gl.cols_minimum = {i: 10 for i in range(10)}
         gl.add_widget(GridLayout())
         self.render(gl)
+
+
+@pytest.mark.parametrize("cols, rows", [(2, None), (None, 2), (2, 2)])
+@pytest.mark.parametrize("index_of_small_child", range(4))
+def test_one_small_child_as_a_part_of_2x2_does_not_affect_the_entire_layout(
+        cols, rows, index_of_small_child):
+    from kivy.uix.widget import Widget
+    from kivy.uix.gridlayout import GridLayout
+    gl = GridLayout(size=(800, 600), pos=(0, 0), rows=rows, cols=cols)
+    for i in range(4):
+        gl.add_widget(Widget())
+    c = gl.children[index_of_small_child]
+    c.size_hint = (None, None)
+    c.size = (100, 100)
+    gl.do_layout()
+    assert {tuple(c.pos) for c in gl.children} == \
+        {(0, 0), (400, 0), (0, 300), (400, 300)}
+    assert sorted(c.size for c in gl.children) == \
+        [[100, 100], [400, 300], [400, 300], [400, 300]]
 
 
 if __name__ == '__main__':
