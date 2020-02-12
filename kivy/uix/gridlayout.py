@@ -95,7 +95,7 @@ from kivy.properties import NumericProperty, BooleanProperty, DictProperty, \
     BoundedNumericProperty, ReferenceListProperty, VariableListProperty, \
     ObjectProperty, StringProperty
 from math import ceil
-from itertools import compress as itertools_compress, chain as itertools_chain
+from itertools import compress as itertools_compress
 
 
 def nmax(*args):
