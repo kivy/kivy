@@ -439,9 +439,8 @@ class GridLayout(Layout):
                     itertools_compress(cols, (sh is None for sh in cols_sh))
                 ) - self._spacing_and_padding_width)
             cols_sh_min = tuple(
-                None if sh is None else
-                max(col, 0 if sh_min is None else sh_min)
-                for col, sh, sh_min in zip(cols, cols_sh, self._cols_sh_min))
+                None if sh_min is None else max(col, sh_min)
+                for col, sh_min in zip(cols, self._cols_sh_min))
 
             if stretch_w > 1e-9:
                 self.layout_hint_with_bounds(
@@ -470,9 +469,8 @@ class GridLayout(Layout):
                     itertools_compress(rows, (sh is None for sh in rows_sh))
                 ) - self._spacing_and_padding_height)
             rows_sh_min = tuple(
-                None if sh is None else
-                max(row, 0 if sh_min is None else sh_min)
-                for row, sh, sh_min in zip(rows, rows_sh, self._rows_sh_min)
+                None if sh_min is None else max(row, sh_min)
+                for row, sh_min in zip(rows, self._rows_sh_min)
             )
 
             if stretch_h > 1e-9:
