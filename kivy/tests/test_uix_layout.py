@@ -49,6 +49,9 @@ class UixLayoutTest(unittest.TestCase):
         ((30, None, None), (None, None, 40), (1, 2, 3), (3, 3, 4)),
         ((20, None, None), (None, None, 40), (1, 2, 3), (1, 2, 2)),
         ((10, None, None), (None, None, 40), (1, 2, 3), (1, 2, 2)),
+        # There are cases that are hard to predict the ratio. For example:
+        # ((30, None, None), (None, None, 60), (1, 2, 3), (?, ?, ?)),
+        # TODO: Someone who good at math, please add more tests.
     ])
 def test_layout_hint_with_bounds(
         sh_min_vals, sh_max_vals, hint, expected_ratio):
@@ -74,40 +77,3 @@ def test_layout_hint_with_bounds(
             expected / sum_expected,
             abs_tol=0.01,
         )
-
-
-@pytest.mark.parametrize(
-    "sh_min_vals, sh_max_vals, hint", [
-        ((30, None, None), (None, None, 60), (1, 2, 3)),
-    ])
-def test_layout_hint_with_bounds_ambiguous(sh_min_vals, sh_max_vals, hint):
-    '''In some cases, the result is hard to predict. So this only tests that
-    the result doesn't affected by the order of the parameters.'''
-
-    # test the parameters itself bacause `layout_hint_with_bounds()` doesn't
-    # check it.
-    len_param = len(sh_min_vals)
-    assert len_param == len(sh_max_vals)
-    assert len_param == len(hint)
-
-    from kivy.uix.layout import Layout
-    copied_hint = list(hint)
-    Layout.layout_hint_with_bounds(
-        None, sum(hint), 100, sum(v for v in sh_min_vals if v is not None),
-        sh_min_vals, sh_max_vals, copied_hint,
-    )
-    actual_ratio_2x = copied_hint * 2
-    sh_min_vals_2x = sh_min_vals * 2
-    sh_max_vals_2x = sh_max_vals * 2
-    hint_2x = hint * 2
-    index_iter = iter(range(len_param))
-    next(index_iter)
-    for index in index_iter:
-        copied_hint = list(hint_2x[index:index + len_param])
-        Layout.layout_hint_with_bounds(
-            None, sum(hint), 100, sum(v for v in sh_min_vals if v is not None),
-            sh_min_vals_2x[index:index + len_param],
-            sh_max_vals_2x[index:index + len_param],
-            copied_hint,
-        )
-        assert actual_ratio_2x[index:index + len_param] == copied_hint
