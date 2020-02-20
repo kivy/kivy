@@ -241,8 +241,8 @@ class EventLoopBase(EventDispatcher):
         if getattr(me, 'name', None) == 'hover' and len(self.hover_events) > 1:
             current = self.hover_events[-1]
             prev = self.hover_events[-2]
-            for weak_widget in prev.handled_widgets:
-                if weak_widget not in current.handled_widgets:
+            for weak_widget in prev.grab_list:
+                if weak_widget not in current.grab_list:
                     # Notify widgets that are no longer handled by current
                     # hover event. This handles the case when two widget are
                     # overlapping and previous one wants to go to non-hovered

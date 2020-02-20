@@ -491,14 +491,8 @@ class HoverEvent(MotionEvent):
     def __init__(self, device, id, args):
         super().__init__(device, id, args)
         self.name = 'hover'
-        # A key is needed for each event type (or `isinstance` can be used) in
-        # widgets when user overrides `on_motion` and wants to check if this
-        # is a hover event. This key is used in `Widget.motion_filter`
-        # property.
-        self.handled_widgets = []
+        # TODO: Rename `name` attribute to `key` as `key` is more descriptive
 
-    def handled_by(self, widget):
-        # `widget` handled this event
-        # TODO: Can it be replaced with `grab` method?
-        widget = weakref.ref(widget.__self__)
-        self.handled_widgets.append(widget)
+    def grab(self, class_instance, exclusive=False):
+        class_instance = weakref.ref(class_instance.__self__)
+        self.grab_list.append(class_instance)
