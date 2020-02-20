@@ -14,7 +14,8 @@ if platform != 'linux':
 try:
     import subprocess
 
-    p = subprocess.Popen(['xclip', '-version'], stdout=subprocess.PIPE)
+    p = subprocess.Popen(['xclip', '-version'], stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL)
     p.communicate()
 except:
     raise
