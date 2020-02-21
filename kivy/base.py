@@ -110,9 +110,9 @@ class EventLoopBase(EventDispatcher):
         self.input_providers = []
         self.input_providers_autoremove = []
         self.event_listeners = []
+        self.event_managers = {}
         self.window = None
         self.me_list = []
-        self.hover_events = []
 
     @property
     def touches(self):
@@ -158,6 +158,18 @@ class EventLoopBase(EventDispatcher):
         '''
         if listener in self.event_listeners:
             self.event_listeners.remove(listener)
+
+    def add_event_manager(self, manager):
+        '''Add event manager and assign this event loop to it.
+        '''
+        manager.event_loop = self
+        self.event_managers[manager.event_name] = manager
+
+    def remove_event_manager(self, manager):
+        '''Remove event manager and remove event loop from it.
+        '''
+        manager.event_loop = None
+        self.event_managers.pop(manager.event_name, None)
 
     def start(self):
         '''Must be called only once before :meth:`EventLoopBase.run()`.
@@ -223,6 +235,11 @@ class EventLoopBase(EventDispatcher):
         when we want to dispatch an input event. The event is dispatched to
         all listeners and if grabbed, it's dispatched to grabbed widgets.
         '''
+        event_name = getattr(me, 'name', None)
+        manager = self.event_managers.get(event_name, None)
+        if manager:
+            manager.dispatch(etype, me)
+            return
         # update available list
         if etype == 'begin':
             self.me_list.append(me)
@@ -230,31 +247,10 @@ class EventLoopBase(EventDispatcher):
             if me in self.me_list:
                 self.me_list.remove(me)
 
-        if getattr(me, 'name', None) == 'hover':
-            self.hover_events.append(me)
-
         # dispatch to listeners
         if not me.grab_exclusive_class:
             for listener in self.event_listeners:
                 listener.dispatch('on_motion', etype, me)
-
-        if getattr(me, 'name', None) == 'hover' and len(self.hover_events) > 1:
-            current = self.hover_events[-1]
-            prev = self.hover_events[-2]
-            for weak_widget in prev.grab_list:
-                if weak_widget not in current.grab_list:
-                    # Notify widgets that are no longer handled by current
-                    # hover event. This handles the case when two widget are
-                    # overlapping and previous one wants to go to non-hovered
-                    # state.
-                    # TODO: Decide on how to flag this dispatch,
-                    # use `etype` argument or something else. We cannot use
-                    # attribute on current event.
-                    widget = weak_widget()
-                    if widget:
-                        widget.dispatch('on_motion', 'end', current)
-            self.hover_events.pop(0)
-            assert len(self.hover_events) == 1
 
         # dispatch grabbed touch
         me.grab_state = True
