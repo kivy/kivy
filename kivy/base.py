@@ -235,11 +235,6 @@ class EventLoopBase(EventDispatcher):
         when we want to dispatch an input event. The event is dispatched to
         all listeners and if grabbed, it's dispatched to grabbed widgets.
         '''
-        event_name = getattr(me, 'name', None)
-        manager = self.event_managers.get(event_name, None)
-        if manager:
-            manager.dispatch(etype, me)
-            return
         # update available list
         if etype == 'begin':
             self.me_list.append(me)
@@ -340,11 +335,20 @@ class EventLoopBase(EventDispatcher):
             self.input_events = mod.process(events=self.input_events)
 
         # real dispatch input
+        event_managers = self.event_managers
         input_events = self.input_events
         pop = input_events.pop
         post_dispatch_input = self.post_dispatch_input
         while input_events:
-            post_dispatch_input(*pop(0))
+            etype, me = pop(0)
+            event_name = getattr(me, 'name', None)
+            manager = event_managers.get(event_name, None)
+            if manager:
+                manager.update(etype, me)
+            else:
+                post_dispatch_input(etype, me)
+        for manager in event_managers.values():
+            manager.dispatch()
 
     def mainloop(self):
         while not self.quit and self.status == 'started':

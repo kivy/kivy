@@ -131,7 +131,8 @@ class MouseHoverEvent(HoverEvent):
 
     def depack(self, args):
         # TODO: Add `positions` later (multi-hover support)
-        self.profile.append('pos')
+        if not self.profile:
+            self.profile.append('pos')
         self.sx, self.sy = args[:2]
         super(MouseHoverEvent, self).depack(args)
 
@@ -307,8 +308,8 @@ class MouseMotionEventProvider(MotionEventProvider):
     def on_mouse_pos(self, win, mouse_pos):
         width, height = EventLoop.window.system_size
         args = (mouse_pos[0] / width, mouse_pos[1] / height)
-        event = MouseHoverEvent(self.device, None, args)
-        self.waiting_event.append(('', event))
+        event = MouseHoverEvent(self.device, 1, args)
+        self.waiting_event.append(('update', event))
 
     def update(self, dispatch_fn):
         '''Update the mouse provider (pop event from the queue)'''
