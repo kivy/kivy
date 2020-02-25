@@ -528,6 +528,24 @@ class Widget(WidgetBase):
     # Default event handlers
     #
     def on_motion(self, etype, me):
+        '''Receive motion event which type is registered in
+        :attr:`motion_filter`.
+
+        :Parameters:
+            `etype`: :class:`str`
+                Type of motion event `me` which can `begin`, `update` or `end`.
+            `me`: :class:`~kivy.input.motionevent.MotionEvent`
+                Motion event is in parent coordinates. See
+                :mod:`~kivy.uix.relativelayout` for a discussion on
+                coordinate systems.
+
+        :Returns: bool
+            If True, the dispatching of the touch event will stop.
+            If False, the event will continue to be dispatched to the rest
+            of the widget tree.
+
+        .. versionadded:: 2.0.0
+        '''
         if self.disabled and self.collide_point(*me.pos):
             return True
         if me.name in self.motion_filter:
