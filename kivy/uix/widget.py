@@ -528,12 +528,13 @@ class Widget(WidgetBase):
     # Default event handlers
     #
     def on_motion(self, etype, me):
+        if self.disabled and self.collide_point(*me.pos):
+            return True
         if me.name in self.motion_filter:
             for widget in self.children[:]:
                 if widget.dispatch('on_motion', etype, me):
                     return True
         elif self.collide_point(*me.pos):
-            me.grab(self)
             return True
 
     def on_touch_down(self, touch):
