@@ -512,6 +512,15 @@ class Scatter(Widget):
             parent.add_widget(self)
             self.dispatch('on_bring_to_front', touch)
 
+    def on_motion(self, etype, me):
+        if me.name in self.motion_filter:
+            me.push()
+            me.apply_transform_2d(self.to_local)
+            ret = super(Scatter, self).on_motion(etype, me)
+            me.pop()
+            return ret
+        return super(Scatter, self).on_motion(etype, me)
+
     def on_touch_down(self, touch):
         x, y = touch.x, touch.y
 
