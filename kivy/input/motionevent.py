@@ -197,6 +197,12 @@ class MotionEvent(MotionEventBase):
         #: instead.
         self.id = id
 
+        #: Type name of this event, same of all instances and can be the same
+        #: for instances of other MotionEvent subclasses. This name is used by
+        #: EventLoop to register event manager and by Widget to receive
+        #: events. It's usually set by input provider.
+        self.type_name = None
+
         #: Shape of the touch, subclass of
         #: :class:`~kivy.input.shape.Shape`.
         #: By default, the property is set to None
@@ -490,8 +496,7 @@ class HoverEvent(MotionEvent):
 
     def __init__(self, device, id, args):
         super().__init__(device, id, args)
-        self.name = 'hover'
-        # TODO: Rename `name` attribute to `key` as `key` is more descriptive
+        self.type_name = 'hover'
 
     def grab(self, class_instance, exclusive=False):
         class_instance = weakref.ref(class_instance.__self__)

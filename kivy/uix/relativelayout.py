@@ -291,7 +291,7 @@ class RelativeLayout(FloatLayout):
         return super(RelativeLayout, self)._apply_transform(m, (0, 0))
 
     def on_motion(self, etype, me):
-        if me.name in self.motion_filter:
+        if me.type_name in self.motion_filter:
             me.push()
             me.apply_transform_2d(self.to_local)
             ret = super(RelativeLayout, self).on_motion(etype, me)

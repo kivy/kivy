@@ -7,7 +7,7 @@ class HoverEventManager(EventManagerBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.event_name = 'hover'
+        self.type_name = 'hover'
         self.dispatched_events = []
         self.waiting_events = deque()
 
@@ -37,10 +37,7 @@ class HoverEventManager(EventManagerBase):
             for weak_widget in prev.grab_list:
                 if weak_widget not in current.grab_list:
                     # Notify widgets that are no longer handled by current
-                    # hover event.
-                    # TODO: Decide on how to flag this dispatch,
-                    # use `etype` argument or a key in me.ud dict. We cannot
-                    # use attribute on current event.
+                    # hover event
                     widget = weak_widget()
                     if widget:
                         widget.dispatch('on_motion', 'end', current)

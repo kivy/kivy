@@ -16,7 +16,7 @@ class HoverBehavior(object):
     def on_motion(self, etype, me):
         if super().on_motion(etype, me):
             return True
-        if getattr(me, 'name', None) != 'hover':
+        if me.type_name != 'hover':
             return False
         if etype == 'end':
             if self.hovered:

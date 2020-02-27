@@ -163,13 +163,13 @@ class EventLoopBase(EventDispatcher):
         '''Add event manager and assign this event loop to it.
         '''
         manager.event_loop = self
-        self.event_managers[manager.event_name] = manager
+        self.event_managers[manager.type_name] = manager
 
     def remove_event_manager(self, manager):
         '''Remove event manager and remove event loop from it.
         '''
         manager.event_loop = None
-        self.event_managers.pop(manager.event_name, None)
+        self.event_managers.pop(manager.type_name, None)
 
     def start(self):
         '''Must be called only once before :meth:`EventLoopBase.run()`.
@@ -341,8 +341,7 @@ class EventLoopBase(EventDispatcher):
         post_dispatch_input = self.post_dispatch_input
         while input_events:
             etype, me = pop(0)
-            event_name = getattr(me, 'name', None)
-            manager = event_managers.get(event_name, None)
+            manager = event_managers.get(me.type_name, None)
             if manager:
                 manager.update(etype, me)
             else:

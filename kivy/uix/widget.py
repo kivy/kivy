@@ -528,7 +528,7 @@ class Widget(WidgetBase):
     # Default event handlers
     #
     def on_motion(self, etype, me):
-        '''Receive motion event which type is registered in
+        '''Receive motion event which `type_name` is registered in
         :attr:`motion_filter`.
 
         :Parameters:
@@ -548,7 +548,7 @@ class Widget(WidgetBase):
         '''
         if self.disabled and self.collide_point(*me.pos):
             return True
-        if me.name in self.motion_filter:
+        if me.type_name in self.motion_filter:
             for widget in self.children[:]:
                 if widget.dispatch('on_motion', etype, me):
                     return True

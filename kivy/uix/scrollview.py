@@ -645,7 +645,7 @@ class ScrollView(StencilView):
         return ret
 
     def on_motion(self, etype, me):
-        if me.name in self.motion_filter:
+        if me.type_name in self.motion_filter:
             me.push()
             me.apply_transform_2d(self.to_local)
             ret = super(ScrollView, self).on_motion(etype, me)
