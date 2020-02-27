@@ -264,6 +264,10 @@ class ModalView(AnchorLayout):
         if self._window:
             self.center = self._window.center
 
+    def on_motion(self, etype, me):
+        super(ModalView, self).on_motion(etype, me)
+        return True
+
     def on_touch_down(self, touch):
         self._touch_started_inside = self.collide_point(*touch.pos)
         if not self.auto_dismiss or self._touch_started_inside:
