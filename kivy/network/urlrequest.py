@@ -216,7 +216,7 @@ class UrlRequest(Thread):
         self._proxy_headers = proxy_headers
         self._cancel_event = Event()
 
-        if platform == 'android':
+        if platform in ['android', 'ios']:
             import certifi
             self.ca_file = ca_file or certifi.where()
         else:

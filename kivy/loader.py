@@ -124,7 +124,7 @@ class LoaderBase(object):
         self._start_wanted = False
         self._trigger_update = Clock.create_trigger(self._update)
 
-        if platform == 'android':
+        if platform in ['android', 'ios']:
             import certifi
             environ.setdefault('SSL_CERT_FILE', certifi.where())
 
