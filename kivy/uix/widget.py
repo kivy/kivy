@@ -540,7 +540,7 @@ class Widget(WidgetBase):
                 coordinate systems.
 
         :Returns: bool
-            If True, the dispatching of the touch event will stop.
+            If True, the dispatching of the motion event will stop.
             If False, the event will continue to be dispatched to the rest
             of the widget tree.
 
