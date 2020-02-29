@@ -97,7 +97,7 @@ Single File Application
 
 Next, we will modify the example above to package the **touchtracer** example project as a single file application. Following the same steps as above, instead issue the following command::
 
-    python -m PyInstaller --onefile --name touchtracer examples-path\demo\touchtracer\main.py
+     python -m PyInstaller --onefile --name touchtracer examples-path\demo\touchtracer\main.py
     
 #. As before, this will generate touchtracer.spec, which we will edit to add the dependencies. In this instance, edit the arguments to the EXE command so that it will look something like this::
 
@@ -106,9 +106,9 @@ Next, we will modify the example above to package the **touchtracer** example pr
           a.binaries,
           a.zipfiles,
           a.datas,
-		  *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
+          *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
           upx=True
-		  name='touchtracer')
+          name='touchtracer')
           
 #. Now you can build the spec file as before with::
 
