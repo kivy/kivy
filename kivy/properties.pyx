@@ -267,7 +267,8 @@ __all__ = ('Property',
            'NumericProperty', 'StringProperty', 'ListProperty',
            'ObjectProperty', 'BooleanProperty', 'BoundedNumericProperty',
            'OptionProperty', 'ReferenceListProperty', 'AliasProperty',
-           'DictProperty', 'VariableListProperty', 'ConfigParserProperty')
+           'DictProperty', 'VariableListProperty', 'ConfigParserProperty',
+           'ColorProperty')
 
 include "include/config.pxi"
 
