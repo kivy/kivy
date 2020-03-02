@@ -2058,6 +2058,12 @@ class WindowBase(EventDispatcher):
         '''
         pass
 
+    def resume_touch_event(
+            self, *, start_index, event_name, touch):
+        for c in self.children[start_index:]:
+            if c.dispatch(event_name, touch):
+                return
+
 
 #: Instance of a :class:`WindowBase` implementation
 window_impl = []

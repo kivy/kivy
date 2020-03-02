@@ -198,7 +198,14 @@ class DragBehavior(object):
             self._drag_touch = None
             ud = touch.ud[self._get_uid()]
             if ud['mode'] == 'unknown':
-                super(DragBehavior, self).on_touch_down(touch)
+                if not super().on_touch_down(touch):
+                    parent = self.parent
+                    if parent is not None:
+                        parent.resume_touch_event(
+                            event_name='on_touch_down',
+                            start_index=parent.children.index(self) + 1,
+                            touch=touch,
+                        )
                 Clock.schedule_once(partial(self._do_touch_up, touch), .1)
         else:
             if self._drag_touch is not touch:
@@ -206,15 +213,33 @@ class DragBehavior(object):
         return self._get_uid() in touch.ud
 
     def _do_touch_up(self, touch, *largs):
-        super(DragBehavior, self).on_touch_up(touch)
+        parent = self.parent
+        touch.push()
+        if parent is None:
+            touch.apply_transform_2d(self.to_widget)
+            super().on_touch_up(touch)
+        else:
+            touch.apply_transform_2d(parent.to_widget)
+            if not super().on_touch_up(touch):
+                parent.resume_touch_event(
+                    event_name='on_touch_up',
+                    start_index=parent.children.index(self) + 1,
+                    touch=touch,
+                )
+        touch.pop()
         # don't forget about grab event!
         for x in touch.grab_list[:]:
             touch.grab_list.remove(x)
             x = x()
             if not x:
                 continue
+            touch.push()
+            x_parent = x.parent
+            touch.apply_transform_2d(
+                x.to_widget if x_parent is None else x_parent.to_widget)
             touch.grab_current = x
-            super(DragBehavior, self).on_touch_up(touch)
+            x.dispatch('on_touch_up', touch)
+            touch.pop()
         touch.grab_current = None
 
     def _change_touch_mode(self, *largs):
@@ -227,8 +252,18 @@ class DragBehavior(object):
             return
         touch.ungrab(self)
         self._drag_touch = None
+        parent = self.parent
         touch.push()
-        touch.apply_transform_2d(self.parent.to_widget)
-        super(DragBehavior, self).on_touch_down(touch)
+        if parent is None:
+            touch.apply_transform_2d(self.to_widget)
+            super().on_touch_down(touch)
+        else:
+            touch.apply_transform_2d(parent.to_widget)
+            if not super().on_touch_down(touch):
+                parent.resume_touch_event(
+                    event_name='on_touch_down',
+                    start_index=parent.children.index(self) + 1,
+                    touch=touch,
+                )
         touch.pop()
         return

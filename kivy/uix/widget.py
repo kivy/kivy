@@ -952,6 +952,24 @@ class Widget(WidgetBase):
             if node is self:
                 return
 
+    def resume_touch_event(
+            self, *, start_index, event_name, touch):
+        '''Dispatch a touch event from the middle of the widget tree. `touch`
+        needs to be in local coordinates.
+        '''
+        for c in self.children[start_index:]:
+            if c.dispatch(event_name, touch):
+                return
+        parent = self.parent
+        if parent is not None:
+            touch.apply_transform_2d(self.to_parent)
+            siblings = parent.children
+            parent.resume_touch_event(
+                start_index=siblings.index(self) + 1,
+                event_name=event_name,
+                touch=touch,
+            )
+
     def to_widget(self, x, y, relative=False):
         '''Convert the coordinate from window to local (current widget)
         coordinates.
