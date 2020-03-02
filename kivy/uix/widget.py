@@ -962,6 +962,7 @@ class Widget(WidgetBase):
                 return
         parent = self.parent
         if parent is not None:
+            touch.push()
             touch.apply_transform_2d(self.to_parent)
             siblings = parent.children
             parent.resume_touch_event(
@@ -969,6 +970,7 @@ class Widget(WidgetBase):
                 event_name=event_name,
                 touch=touch,
             )
+            touch.pop()
 
     def to_widget(self, x, y, relative=False):
         '''Convert the coordinate from window to local (current widget)
