@@ -1,4 +1,5 @@
 from collections import deque
+from copy import deepcopy
 
 from kivy.input.managers import EventManagerBase
 
@@ -19,10 +20,9 @@ class HoverEventManager(EventManagerBase):
             # Dispatch copied event of last event dispatched
             last_etype, last_event = self.dispatched_events[-1]
             if last_etype == 'update':
-                # TODO: Find better way to make a copy of last event
                 event = type(last_event)(last_event.device,
                                          last_event.id,
-                                         [0, 0])
+                                         deepcopy(last_event.args))
                 last_event.copy_to(event)
                 self.waiting_events.append((last_etype, event))
 

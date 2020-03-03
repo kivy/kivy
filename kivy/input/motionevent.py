@@ -497,6 +497,11 @@ class HoverEvent(MotionEvent):
     def __init__(self, device, id, args):
         super().__init__(device, id, args)
         self.type_name = 'hover'
+        self.args = args
+
+    def depack(self, args):
+        super().depack(args)
+        self.args = args
 
     def grab(self, class_instance, exclusive=False):
         class_instance = weakref.ref(class_instance.__self__)
