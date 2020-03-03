@@ -107,6 +107,7 @@ class Sandbox(FloatLayout):
         traceback.print_tb(_traceback)
         return True
 
+    on_motion = sandbox(Widget.on_motion)
     on_touch_down = sandbox(Widget.on_touch_down)
     on_touch_move = sandbox(Widget.on_touch_move)
     on_touch_up = sandbox(Widget.on_touch_up)
