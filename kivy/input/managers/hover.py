@@ -17,23 +17,27 @@ class HoverEventManager(EventManagerBase):
     def dispatch(self, *args):
         if not self.waiting_events and self.dispatched_events:
             # Dispatch copied event of last event dispatched
-            last_event = self.dispatched_events[-1]
-            event = type(last_event)(last_event.device, last_event.id, [0, 0])
-            last_event.copy_to(event)
-            self.waiting_events.append(('update', event))
+            last_etype, last_event = self.dispatched_events[-1]
+            if last_etype == 'update':
+                # TODO: Find better way to make a copy of last event
+                event = type(last_event)(last_event.device,
+                                         last_event.id,
+                                         [0, 0])
+                last_event.copy_to(event)
+                self.waiting_events.append((last_etype, event))
 
         while self.waiting_events:
-            etype, me = self.waiting_events.popleft()
-            self.dispatched_events.append(me)
-            if not me.grab_exclusive_class:
+            etype_me = self.waiting_events.popleft()
+            self.dispatched_events.append(etype_me)
+            if not etype_me[1].grab_exclusive_class:
                 for listener in self.event_loop.event_listeners:
-                    listener.dispatch('on_motion', etype, me)
+                    listener.dispatch('on_motion', *etype_me)
 
             # Handle grabbed events
             if len(self.dispatched_events) < 2:
                 return
-            current = self.dispatched_events[-1]
-            prev = self.dispatched_events[-2]
+            _, current = self.dispatched_events[-1]
+            _, prev = self.dispatched_events[-2]
             for weak_widget in prev.grab_list:
                 if weak_widget not in current.grab_list:
                     # Notify widgets that are no longer handled by current
