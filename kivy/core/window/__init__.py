@@ -1398,11 +1398,11 @@ class WindowBase(EventDispatcher):
             `me`: :class:`~kivy.input.motionevent.MotionEvent`
                 The Motion Event currently dispatched.
         '''
+        w, h = self._get_effective_size()
+        me.scale_for_screen(w, h, rotation=self._rotation,
+                            smode=self.softinput_mode,
+                            kheight=self.keyboard_height)
         if me.is_touch:
-            w, h = self._get_effective_size()
-            me.scale_for_screen(w, h, rotation=self._rotation,
-                                smode=self.softinput_mode,
-                                kheight=self.keyboard_height)
             if etype == 'begin':
                 self.dispatch('on_touch_down', me)
             elif etype == 'update':
@@ -1411,10 +1411,6 @@ class WindowBase(EventDispatcher):
                 self.dispatch('on_touch_up', me)
                 FocusBehavior._handle_post_on_touch_up(me)
         else:
-            w, h = self._get_effective_size()
-            me.scale_for_screen(w, h, rotation=self._rotation,
-                                smode=self.softinput_mode,
-                                kheight=self.keyboard_height)
             for w in self.children[:]:
                 if w.dispatch('on_motion', etype, me):
                     return True
