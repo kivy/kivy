@@ -552,7 +552,7 @@ class Widget(WidgetBase):
             for widget in self.children[:]:
                 if widget.dispatch('on_motion', etype, me):
                     return True
-        elif self.collide_point(*me.pos):
+        elif me.stop_on_collision and self.collide_point(*me.pos):
             return True
 
     def on_touch_down(self, touch):
