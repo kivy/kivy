@@ -470,6 +470,10 @@ class MotionEvent(MotionEventBase):
         (self.sx, self.sy)'''
         return self.sx, self.sy
 
+    @property
+    def device_id(self):
+        return self.device, self.id
+
     def __str__(self):
         basename = str(self.__class__)
         classname = basename.split('.')[-1].replace('>', '').replace('\'', '')

@@ -1,11 +1,10 @@
-from kivy.properties import BooleanProperty
+from kivy.properties import BooleanProperty, ListProperty
 
 
 class HoverBehavior(object):
-    '''TODO: Multi-hover support
-    '''
 
     hovered = BooleanProperty(False)
+    hover_ids = ListProperty()
 
     __events__ = ('on_hover_start', 'on_hover_move', 'on_hover_end')
 
@@ -19,14 +18,16 @@ class HoverBehavior(object):
         if me.type_name != 'hover':
             return False
         if etype == 'end':
-            if self.hovered:
-                self.hovered = False
+            if me.device_id in self.hover_ids:
+                self.hover_ids.remove(me.device_id)
+                self.hovered = bool(self.hover_ids)
                 self.dispatch('on_hover_end', me)
             return
         if self.collide_point(*me.pos):
-            if self.hovered:
+            if me.device_id in self.hover_ids:
                 self.dispatch('on_hover_move', me)
             else:
+                self.hover_ids.append(me.device_id)
                 self.hovered = True
                 self.dispatch('on_hover_start', me)
             me.grab(self)
