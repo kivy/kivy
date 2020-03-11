@@ -1569,14 +1569,14 @@ class Widget(WidgetBase):
     '''
 
     motion_filter = DictProperty()
-    '''Holds set of widgets for each motion event used by `self` or by child 
+    '''Holds set of widgets for each motion event used by `self` or by child
     widgets.
-    
-    Don't change this property directly, but use :meth:`add_motion_event` and 
+
+    Don't change this property directly, but use :meth:`add_motion_event` and
     :meth:`remove_motion_event` methods.
-    
-    :attr:`motion_filter` is a :class:`~kivy.properties.DictProperty` and 
+
+    :attr:`motion_filter` is a :class:`~kivy.properties.DictProperty` and
     defaults to empty :class:`dict`.
-    
+
     .. versionadded:: 2.0.0
     '''
