@@ -31,13 +31,17 @@ class HoverEventManager(EventManagerBase):
                 return
             _, current = dispatched_events[device_id][-1]
             _, prev = dispatched_events[device_id][-2]
+            current.grab_state = True
             for weak_widget in prev.grab_list:
                 if weak_widget not in current.grab_list:
                     # Notify widgets that are no longer handled by current
                     # hover event
                     widget = weak_widget()
                     if widget:
+                        current.grab_current = widget
                         widget.dispatch('on_motion', 'end', current)
+                        current.grab_current = None
+            current.grab_state = False
             dispatched_events[device_id].pop(0)
 
     def ensure_one_event_per_device(self):
