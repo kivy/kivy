@@ -84,7 +84,7 @@ If you want to select only the fiducials::
 
 '''
 
-__all__ = ('MotionEvent', )
+__all__ = ('MotionEvent', 'HoverEvent')
 
 import weakref
 from inspect import isroutine
