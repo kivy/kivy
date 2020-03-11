@@ -1,10 +1,11 @@
-from kivy.properties import BooleanProperty, ListProperty
+from kivy.properties import BooleanProperty, ListProperty, OptionProperty
 
 
 class HoverBehavior(object):
 
     hovered = BooleanProperty(False)
     hover_ids = ListProperty()
+    hover_mode = OptionProperty('default', options=['default', 'self', 'all'])
 
     __events__ = ('on_hover_start', 'on_hover_move', 'on_hover_end')
 
@@ -18,9 +19,17 @@ class HoverBehavior(object):
         if me.grab_current is self \
                 and self.handle_hover_event_on_self(etype, me):
             return True
-        if super().on_motion(etype, me):
-            return True
-        return self.handle_hover_event_on_self(etype, me)
+        if self.hover_mode == 'default':
+            if super().on_motion(etype, me):
+                return True
+            return self.handle_hover_event_on_self(etype, me)
+        if self.hover_mode == 'self':
+            return self.handle_hover_event_on_self(etype, me)
+        if self.hover_mode == 'all':
+            return any(
+                (super().on_motion(etype, me),
+                 self.handle_hover_event_on_self(etype, me))
+            )
 
     def handle_hover_event_on_self(self, etype, me):
         if me.grab_current is self:
