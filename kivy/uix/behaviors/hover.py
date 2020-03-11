@@ -13,16 +13,22 @@ class HoverBehavior(object):
         super().__init__(**kwargs)
 
     def on_motion(self, etype, me):
+        if me.type_name != 'hover':
+            return super().on_motion(etype, me)
+        if me.grab_current is self \
+                and self.handle_hover_event_on_self(etype, me):
+            return True
         if super().on_motion(etype, me):
             return True
-        if me.type_name != 'hover':
-            return False
-        if etype == 'end':
-            if me.device_id in self.hover_ids:
+        return self.handle_hover_event_on_self(etype, me)
+
+    def handle_hover_event_on_self(self, etype, me):
+        if me.grab_current is self:
+            if etype == 'end':
                 self.hover_ids.remove(me.device_id)
                 self.hovered = bool(self.hover_ids)
                 self.dispatch('on_hover_end', me)
-            return
+            return True
         if self.collide_point(*me.pos):
             if me.device_id in self.hover_ids:
                 self.dispatch('on_hover_move', me)
