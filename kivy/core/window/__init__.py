@@ -1398,10 +1398,11 @@ class WindowBase(EventDispatcher):
             `me`: :class:`~kivy.input.motionevent.MotionEvent`
                 The Motion Event currently dispatched.
         '''
-        w, h = self._get_effective_size()
-        me.scale_for_screen(w, h, rotation=self._rotation,
-                            smode=self.softinput_mode,
-                            kheight=self.keyboard_height)
+        if 'pos' in me.profile:
+            w, h = self._get_effective_size()
+            me.scale_for_screen(w, h, rotation=self._rotation,
+                                smode=self.softinput_mode,
+                                kheight=self.keyboard_height)
         if me.is_touch:
             if etype == 'begin':
                 self.dispatch('on_touch_down', me)

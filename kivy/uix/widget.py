@@ -546,13 +546,15 @@ class Widget(WidgetBase):
 
         .. versionadded:: 2.0.0
         '''
-        if self.disabled and self.collide_point(*me.pos):
+        if self.disabled and 'pos' in me.profile \
+                and self.collide_point(*me.pos):
             return True
         if me.type_name in self.motion_filter:
             for widget in self.children[:]:
                 if widget.dispatch('on_motion', etype, me):
                     return True
-        elif me.stop_on_collision and self.collide_point(*me.pos):
+        elif me.stop_on_collision and 'pos' in me.profile \
+                and self.collide_point(*me.pos):
             return True
 
     def on_touch_down(self, touch):
