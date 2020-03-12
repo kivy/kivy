@@ -146,11 +146,12 @@ cdef class _SurfaceContainer:
         return data
 
 
-cdef TTF_Font *_get_font(self):
+cdef TTF_Font *_get_font(self) except *:
     cdef TTF_Font *fontobject = NULL
     cdef _TTFContainer ttfc
     cdef char *error
     cdef str s_error
+    cdef bytes bytes_fontname
 
     # fast path
     fontid = self._get_font_id()
@@ -172,9 +173,8 @@ cdef TTF_Font *_get_font(self):
                                   int(self.options['font_size']))
     # fallback to search a system font
     if fontobject == NULL:
-        s_error = (<bytes>SDL_GetError()).encode('utf-8')
-        print(s_error)
-        assert(0)
+        s_error = SDL_GetError()
+        raise ValueError('{}: for font {}'.format(s_error, fontname))
 
     # set underline and strikethrough style
     style = TTF_STYLE_NORMAL
