@@ -28,7 +28,7 @@ class HoverEventManager(EventManagerBase):
 
             # Handle grabbed events
             if len(dispatched_events[device_id]) < 2:
-                return
+                continue
             _, current = dispatched_events[device_id][-1]
             _, prev = dispatched_events[device_id][-2]
             current.grab_state = True
@@ -50,9 +50,9 @@ class HoverEventManager(EventManagerBase):
         # Dispatch copied event of last event dispatched
         for device_id, last_events in self.dispatched_events.items():
             last_etype, last_event = last_events[-1]
-            if last_etype == 'update':
+            if last_etype == 'update' or last_etype == 'start':
                 event = type(last_event)(last_event.device,
                                          last_event.id,
                                          deepcopy(last_event.args))
                 last_event.copy_to(event)
-                self.waiting_events.append((last_etype, event))
+                self.waiting_events.append(('update', event))
