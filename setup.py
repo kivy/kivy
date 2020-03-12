@@ -188,6 +188,10 @@ c_options['use_avfoundation'] = platform in ['darwin', 'ios']
 c_options['use_osx_frameworks'] = platform == 'darwin'
 c_options['debug_gl'] = False
 
+# Set the alpha size, this will be 0 on the Raspberry Pi and 8 on all other
+# platforms, so SDL2 works without X11
+c_options['kivy_sdl_gl_alpha_size'] = 8 if pi_version is None else 0
+
 # now check if environ is changing the default values
 for key in list(c_options.keys()):
     ukey = key.upper()

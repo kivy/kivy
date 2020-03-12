@@ -59,33 +59,7 @@ Raspberry Pi 4 headless installation on Raspbian Buster
 
     sudo ldconfig -v
 
-#. Create a small test app::
-
-    cat <<EOF > ~/app.py
-    import os
-    os.environ['KIVY_SDL_GL_ALPHA_SIZE'] = '0'
-
-    from kivy.app import App
-    from kivy.uix.button import Button
-
-
-    class TestApp(App):
-
-        def build(self):
-            return Button(text='hello world')
-
-
-    if __name__ == '__main__':
-        TestApp().run()
-    EOF
-
-   Note that you need to set the ``KIVY_SDL_GL_ALPHA_SIZE`` environmental variable to 0, which is needed in order to use SDL2 without X11.
-
 #. Now simply follow the `Raspberry Pi 1-4 installation`_ instructions to install Kivy.
-
-#. Now run your app::
-
-    python3 ~/app.py
 
 _`Raspberry Pi 1-4 installation` on Raspbian Jessie/Stretch/Buster
 ------------------------------------------------------------------
