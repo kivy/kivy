@@ -91,6 +91,7 @@ if 'KIVY_DOC' not in environ:
         'xml.etree.cElementTree',
         'kivy.core.gl',
         'kivy.weakmethod',
+        'kivy.core.window.window_info',
     ] + collect_submodules('kivy.graphics')
     '''List of kivy modules that are always needed as hiddenimports of
     pyinstaller.
