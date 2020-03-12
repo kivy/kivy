@@ -6,32 +6,65 @@ Installation on Raspberry Pi
 Raspberry Pi 4 headless installation on Raspbian Buster
 -------------------------------------------------------
 
-#. If you have installed Raspbian with a desktop i.e. if you Raspberry Pi boot into a desktop environment, then you can skip to `Raspberry Pi 1-4 installation`_.
+#. If you have installed Raspbian with a desktop i.e. if you Raspberry Pi boots into a desktop environment, then you can skip to `Raspberry Pi 1-4 installation`_.
 
-   If you are using Raspbian Lite, then you first need to install X::
+#. In order to launch Kivy from the console you need to compile ``SDL2`` from source, as the one bundled with Buster is not compiled with the ``kmsdrm`` backend, so it only works under ``X11``.
 
-    sudo apt-get install xserver-xorg
+   Install requirements::
 
-#. Next install nodm from source, so it includes the following fix: `spanezz/nodm#1 <https://github.com/spanezz/nodm/pull/10>`_::
+    sudo apt-get install libfreetype6-dev libgl1-mesa-dev libgles2-mesa-dev libdrm-dev libgbm-dev libudev-dev libasound2-dev liblzma-dev libjpeg-dev libtiff-dev libwebp-dev git build-essential
+    sudo apt-get install gir1.2-ibus-1.0 libdbus-1-dev libegl1-mesa-dev libibus-1.0-5 libibus-1.0-dev libice-dev libsm-dev libsndio-dev libwayland-bin libwayland-dev libxi-dev libxinerama-dev libxkbcommon-dev libxrandr-dev libxss-dev libxt-dev libxv-dev x11proto-randr-dev x11proto-scrnsaver-dev x11proto-video-dev x11proto-xinerama-dev
 
-    sudo apt-get install libpam0g-dev help2man libx11-dev debhelper
-    git clone https://github.com/slashblog/nodm.git
-    pushd nodm
-        git checkout d48a8f6266d3f464138e0e95b65896917c35c89f
-        wget http://deb.debian.org/debian/pool/main/n/nodm/nodm_0.13-5.debian.tar.xz
-        tar xf nodm_0.13-5.debian.tar.xz
-        sudo dpkg-buildpackage -us -uc -b
+   Install SDL2::
+
+    wget https://libsdl.org/release/SDL2-2.0.10.tar.gz
+    tar -zxvf SDL2-2.0.10.tar.gz
+    pushd SDL2-2.0.10
+    ./configure --enable-video-kmsdrm --disable-video-opengl --disable-video-x11 --disable-video-rpi
+    make -j$(nproc)
+    sudo make install
     popd
-    sudo dpkg -i nodm_0.13-*_armhf.deb
-    sudo rm -rf nodm*
 
-#. Now enable graphical login::
+   Install SDL2_image::
 
-    sudo systemctl set-default graphical.target
+    wget https://libsdl.org/projects/SDL_image/release/SDL2_image-2.0.5.tar.gz
+    tar -zxvf SDL2_image-2.0.5.tar.gz
+    pushd SDL2_image-2.0.5
+    ./configure
+    make -j$(nproc)
+    sudo make install
+    popd
+
+   Install SDL2_mixer::
+
+    wget https://libsdl.org/projects/SDL_mixer/release/SDL2_mixer-2.0.4.tar.gz
+    tar -zxvf SDL2_mixer-2.0.4.tar.gz
+    pushd SDL2_mixer-2.0.4
+    ./configure
+    make -j$(nproc)
+    sudo make install
+    popd
+
+   Install SDL2_ttf::
+
+    wget https://libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.15.tar.gz
+    tar -zxvf SDL2_ttf-2.0.15.tar.gz
+    pushd SDL2_ttf-2.0.15
+    ./configure
+    make -j$(nproc)
+    sudo make install
+    popd
+
+   Make sure the dynamic libraries cache is updated::
+
+    sudo ldconfig -v
 
 #. Create a small test app::
 
     cat <<EOF > ~/app.py
+    import os
+    os.environ['KIVY_SDL_GL_ALPHA_SIZE'] = '0'
+
     from kivy.app import App
     from kivy.uix.button import Button
 
@@ -46,38 +79,13 @@ Raspberry Pi 4 headless installation on Raspbian Buster
         TestApp().run()
     EOF
 
-#. It is recommend to use the the logger functionality instead of print statements: `<https://kivy.org/doc/stable/api-kivy.logger.html>`_, so they show up in the log.
-
-   A small script can then be used to follow the latest log and restart the application by using the ``--restart`` argument::
-
-    #!/bin/bash -e
-
-    if [[ $* == *--restart* ]]; then
-        sudo service nodm restart
-        inotifywait -q ~/.kivy/logs -e create --format %w%f | xargs tail -f
-    else
-        ls -t -d ~/.kivy/logs/* | head -n1 | xargs tail -f
-    fi
-
-   Note that you need to install `inotify-tools` in order to use the restart functionality.
-
-#. Configure nodm and start your app at boot::
-
-    # Has the same effect as calling 'sudo dpkg-reconfigure nodm'
-    sudo sh -c 'echo "NODM_ENABLED=true" > /etc/default/nodm'
-    sudo sh -c 'echo "NODM_USER=$SUDO_USER" >> /etc/default/nodm' # Note that the variable SUDO_USER is used
-    sudo sh -c 'echo "NODM_FIRST_VT='\''7'\''" >> /etc/default/nodm'
-    sudo sh -c 'echo "NODM_XSESSION=/etc/X11/Xsession" >> /etc/default/nodm'
-    sudo sh -c 'echo "NODM_X_OPTIONS='\''-nolisten tcp'\''" >> /etc/default/nodm'
-    sudo sh -c 'echo "NODM_MIN_SESSION_TIME=60" >> /etc/default/nodm'
-    sudo sh -c 'echo "NODM_X_TIMEOUT=300" >> /etc/default/nodm'
-
-    # Start the app using nodm
-    echo '#!/bin/bash' > ~/.xsession
-    echo 'export DISPLAY=:0.0' >> ~/.xsession
-    echo "python3 ~/app.py" >> ~/.xsession
+   Note that you need to set the ``KIVY_SDL_GL_ALPHA_SIZE`` environmental variable to 0, which is needed in order to use SDL2 without X11.
 
 #. Now simply follow the `Raspberry Pi 1-4 installation`_ instructions to install Kivy.
+
+#. Now run your app::
+
+    python3 ~/app.py
 
 _`Raspberry Pi 1-4 installation` on Raspbian Jessie/Stretch/Buster
 ------------------------------------------------------------------
