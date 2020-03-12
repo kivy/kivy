@@ -175,6 +175,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         fbind('on_mouse_down', self.on_mouse_press)
         fbind('on_mouse_up', self.on_mouse_release)
         fbind('mouse_pos', self.on_mouse_pos)
+        fbind('on_cursor_leave', self.on_cursor_leave)
 
     def stop(self):
         '''Stop the mouse provider'''
@@ -185,6 +186,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         funbind('on_mouse_down', self.on_mouse_press)
         funbind('on_mouse_up', self.on_mouse_release)
         funbind('mouse_pos', self.on_mouse_pos)
+        funbind('on_cursor_leave', self.on_cursor_leave)
 
     def test_activity(self):
         if not self.disable_on_activity:
@@ -306,10 +308,16 @@ class MouseMotionEventProvider(MotionEventProvider):
         return True
 
     def on_mouse_pos(self, win, mouse_pos):
-        width, height = EventLoop.window.system_size
+        width, height = win.system_size
         args = (mouse_pos[0] / width, mouse_pos[1] / height)
         event = MouseHoverEvent(self.device, 1, args)
         self.waiting_event.append(('update', event))
+
+    def on_cursor_leave(self, win):
+        width, height = win.system_size
+        args = (win.mouse_pos[0] / width, win.mouse_pos[1] / height)
+        event = MouseHoverEvent(self.device, 1, args)
+        self.waiting_event.append(('end', event))
 
     def update(self, dispatch_fn):
         '''Update the mouse provider (pop event from the queue)'''
