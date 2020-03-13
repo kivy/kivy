@@ -258,11 +258,18 @@ class KivyBuildExt(build_ext, object):
 
     def finalize_options(self):
         retval = super(KivyBuildExt, self).finalize_options()
+
+        # Build the extensions in parallel if the options has not been set
+        if hasattr(self, 'parallel') and self.parallel is None:
+            self.parallel = True
+            print('Building extensions in parallel')
+
         global build_path
         if (self.build_lib is not None and exists(self.build_lib) and
                 not self.inplace):
             build_path = self.build_lib
             print("Updated build directory to: {}".format(build_path))
+
         return retval
 
     def build_extensions(self):
