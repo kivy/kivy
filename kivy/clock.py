@@ -446,6 +446,8 @@ try:
                     # 12: CLOCK_MONOTONIC_FAST (FreeBSD specific)
                     Logger.debug('clock.py: {{{:s}}} clock ID {:d}'.format(
                         platform, _clockid))
+                elif 'openbsd' in platform:
+                    _clockid = 3  # CLOCK_MONOTONIC
                 else:
                     _clockid = 1  # CLOCK_MONOTONIC
 
