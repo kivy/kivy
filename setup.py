@@ -196,7 +196,10 @@ c_options['kivy_sdl_gl_alpha_size'] = 8 if pi_version is None else 0
 for key in list(c_options.keys()):
     ukey = key.upper()
     if ukey in environ:
-        value = bool(int(environ[ukey]))
+        # kivy_sdl_gl_alpha_size should be an integer, the rest are booleans
+        value = int(environ[ukey])
+        if key != 'kivy_sdl_gl_alpha_size':
+            value = bool(value)
         print('Environ change {0} -> {1}'.format(key, value))
         c_options[key] = value
 
@@ -283,7 +286,9 @@ class KivyBuildExt(build_ext, object):
         # generate content
         print('Build configuration is:')
         for opt, value in c_options.items():
-            value = int(bool(value))
+            # kivy_sdl_gl_alpha_size is already an integer
+            if opt != 'kivy_sdl_gl_alpha_size':
+                value = int(bool(value))
             print(' * {0} = {1}'.format(opt, value))
             opt = opt.upper()
             config_h += '#define __{0} {1}\n'.format(opt, value)
