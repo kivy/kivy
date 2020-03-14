@@ -261,8 +261,11 @@ class KivyBuildExt(build_ext, object):
 
         # Build the extensions in parallel if the options has not been set
         if hasattr(self, 'parallel') and self.parallel is None:
-            self.parallel = True
-            print('Building extensions in parallel')
+            # Use a maximum of 4 cores. If cpu_count returns None, then parallel
+            # build will be disabled
+            self.parallel = min(4, os.cpu_count() or 0)
+            if self.parallel:
+                print('Building extensions in parallel')
 
         global build_path
         if (self.build_lib is not None and exists(self.build_lib) and
