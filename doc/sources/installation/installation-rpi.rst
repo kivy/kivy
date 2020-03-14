@@ -61,6 +61,20 @@ Raspberry Pi 4 headless installation on Raspbian Buster
 
 #. Now simply follow the `Raspberry Pi 1-4 installation`_ instructions to install Kivy.
 
+#. If you are getting output similar to this when running your app::
+
+    [INFO   ] GL: OpenGL vendor <b'VMware, Inc.'>
+    [INFO   ] GL: OpenGL renderer <b'llvmpipe (LLVM 9.0.1, 128 bits)'>
+
+   Then it means that the renderer is **NOT** hardware accelerated. This can be fixed by adding your user to the render group::
+
+    sudo adduser "$USER" render
+
+   You will then see an output similar to this::
+
+    [INFO   ] GL: OpenGL vendor <b'Broadcom'>
+    [INFO   ] GL: OpenGL renderer <b'V3D 4.2'>
+
 _`Raspberry Pi 1-4 installation` on Raspbian Jessie/Stretch/Buster
 ------------------------------------------------------------------
 
