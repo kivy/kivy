@@ -305,6 +305,13 @@ def make_detail_page(info):
 
 def write_file(name, s):
     ''' write the string to the filename '''
+
+    # Make sure all the directories has been created before
+    # trying to write to the file
+    directory = os.path.dirname(name)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
     with open(name, 'w') as f:
         f.write(s)
 
