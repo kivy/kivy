@@ -723,6 +723,7 @@ cdef class Line(VertexInstruction):
             else:
                 self._points = list(points)
 
+            self._mode = LINE_MODE_POINTS
             self.flag_update()
 
     property dash_length:
