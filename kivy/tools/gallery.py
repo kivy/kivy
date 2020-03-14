@@ -178,18 +178,20 @@ def make_gallery_page(infos):
 
     def a(s=''):
         ''' append formatted s to output, which will be joined into lines '''
-        output.append(s.format(**info))
+        for info in infos:
+            output.append(s.format(**info))
 
     def t(left='', right=''):
         ''' append left and right format strings into a table line. '''
-        l = left.format(**info)
-        r = right.format(**info)
-        if len(l) > width1 or len(r) > width2:
-            Logger.error('items to wide for generated table: "%s" and "%s"',
-                         l, r)
-            return
-        output.append('| {0:{w1}} | {1:{w2}} |'
-                      .format(l, r, w1=width1, w2=width2))
+        for info in infos:
+            l = left.format(**info)
+            r = right.format(**info)
+            if len(l) > width1 or len(r) > width2:
+                Logger.error('items to wide for generated table: "%s" and "%s"',
+                             l, r)
+                return
+            output.append('| {0:{w1}} | {1:{w2}} |'
+                          .format(l, r, w1=width1, w2=width2))
 
     gallery_top = '''
 Gallery
@@ -303,6 +305,13 @@ def make_detail_page(info):
 
 def write_file(name, s):
     ''' write the string to the filename '''
+
+    # Make sure all the directories has been created before
+    # trying to write to the file
+    directory = os.path.dirname(name)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
     with open(name, 'w') as f:
         f.write(s)
 
