@@ -8,7 +8,7 @@ Raspberry Pi 4 headless installation on Raspbian Buster
 
 #. If you have installed Raspbian with a desktop i.e. if you Raspberry Pi boots into a desktop environment, then you can skip to `Raspberry Pi 1-4 installation`_.
 
-#. In order to launch Kivy from the console you need to compile ``SDL2`` from source, as the one bundled with Buster is not compiled with the ``kmsdrm`` backend, so it only works under ``X11``.
+#. In order to launch Kivy from the console you need to compile SDL2 from source, as the one bundled with Buster is not compiled with the ``kmsdrm`` backend, so it only works under ``X11``.
 
    Install requirements::
 
@@ -59,7 +59,7 @@ Raspberry Pi 4 headless installation on Raspbian Buster
 
     sudo ldconfig -v
 
-#. Now simply follow the `Raspberry Pi 1-4 installation`_ instructions to install Kivy.
+#. Now simply follow the `Raspberry Pi 1-4 installation`_ instructions to install Kivy, but do **NOT** install the SDL2 packages using apt.
 
 #. If you are getting output similar to this when running your app::
 
@@ -81,12 +81,15 @@ _`Raspberry Pi 1-4 installation` on Raspbian Jessie/Stretch/Buster
 #. Install the dependencies::
 
     sudo apt update
-    sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
-       pkg-config libgl1-mesa-dev libgles2-mesa-dev \
+    sudo apt install pkg-config libgl1-mesa-dev libgles2-mesa-dev \
        python3-setuptools libgstreamer1.0-dev git-core \
        gstreamer1.0-plugins-{bad,base,good,ugly} \
        gstreamer1.0-{omx,alsa} python3-dev libmtdev-dev \
        xclip xsel libjpeg-dev
+
+#. Additional install SDL2 if you have not compiled it from source::
+
+    sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
 
 #. Install pip dependencies:
 
