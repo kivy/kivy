@@ -265,7 +265,8 @@ class KivyBuildExt(build_ext, object):
             # build will be disabled
             self.parallel = min(4, os.cpu_count() or 0)
             if self.parallel:
-                print('Building extensions in parallel')
+                print('Building extensions in parallel using {} cores'.format(
+                    self.parallel))
 
         global build_path
         if (self.build_lib is not None and exists(self.build_lib) and
