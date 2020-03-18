@@ -155,7 +155,7 @@ class MotionEvent(MotionEventBase):
          'time_start',
          'is_double_tap', 'double_tap_time',
          'is_triple_tap', 'triple_tap_time',
-         'ud', 'stop_on_collision')
+         'ud')
 
     def __init__(self, device, id, args):
         if self.__class__ == MotionEvent:
@@ -170,7 +170,7 @@ class MotionEvent(MotionEventBase):
         #: dx, dy, dz, ox, oy, oz, px, py, pz.
         self.push_attrs_stack = []
         self.push_attrs = ('x', 'y', 'z', 'dx', 'dy', 'dz', 'ox', 'oy', 'oz',
-                           'px', 'py', 'pz', 'pos', 'stop_on_collision')
+                           'px', 'py', 'pz', 'pos')
 
         #: Uniq ID of the touch. You can safely use this property, it will be
         #: never the same accross all existing touches.
@@ -289,11 +289,6 @@ class MotionEvent(MotionEventBase):
         #: User data dictionary. Use this dictionary to save your own data on
         #: the touch.
         self.ud = EnhancedDictionary()
-
-        #: For `on_motion` method to use to stop further dispatching of event
-        #: if event.pos collides with widget, assuming that 'pos' is in
-        #: event.profile
-        self.stop_on_collision = True
 
         self.depack(args)
 
