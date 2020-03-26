@@ -30,12 +30,10 @@ class HoverEventManager(EventManagerBase):
             if not etype_me[1].grab_exclusive_class:
                 for listener in self.event_loop.event_listeners:
                     listener.dispatch('on_motion', *etype_me)
-            # Handle grabbed events
-            # Must have 2 dispatched events to detect on which widgets
-            # indicator is no longer hovering
-            if len(dispatched_events[device_id]) < 2:
-                continue
-            dispatch_grabbed_events(device_id)
+            # Must have 2 dispatched events to detect which widgets are not
+            # handling current event `etype_me` (did not grabbed it)
+            if len(dispatched_events[device_id]) > 1:
+                dispatch_grabbed_events(device_id)
 
     def dispatch_grabbed_events(self, device_id):
         current_etype, current = self._dispatched_events[device_id][-1]
@@ -63,22 +61,22 @@ class HoverEventManager(EventManagerBase):
                 if root_window != widget and root_window:
                     current.pop()
         current.grab_state = False
-        if current_etype == 'end':
-            del self._dispatched_events[device_id]
-            del self._event_times[device_id]
-        else:
-            self._dispatched_events[device_id].pop(0)
+        self._dispatched_events[device_id].pop(0)
 
     def ensure_one_event_per_device(self):
         times = self._event_times
-        for device_id, last_events in self._dispatched_events.items():
+        dispatched_events = self._dispatched_events
+        for_removal = []
+        for device_id, last_events in dispatched_events.items():
+            etype, me = last_events[-1]
+            if etype == 'end':
+                for_removal.append(device_id)
+                continue
             if Clock.get_time() - times[device_id] < self.min_wait_time:
                 continue
             # Dispatch copied event of last event dispatched
-            last_etype, last_event = last_events[-1]
-            if last_etype == 'update' or last_etype == 'start':
-                event = type(last_event)(last_event.device,
-                                         last_event.id,
-                                         deepcopy(last_event.args))
-                last_event.copy_to(event)
-                self.update('update', event)
+            event = type(me)(me.device, me.id, deepcopy(me.args))
+            me.copy_to(event)
+            self.update('update', event)
+        for device_id in for_removal:
+            del dispatched_events[device_id]
