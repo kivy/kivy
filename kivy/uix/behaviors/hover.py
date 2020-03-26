@@ -1,4 +1,9 @@
-from kivy.properties import BooleanProperty, ListProperty, OptionProperty
+from kivy.properties import (
+    BooleanProperty,
+    ListProperty,
+    OptionProperty,
+    DictProperty
+)
 
 
 class HoverBehavior(object):
@@ -63,3 +68,44 @@ class HoverBehavior(object):
 
     def on_hover_end(self, me):
         pass
+
+
+class StencilViewHoverMixin(object):
+
+    def on_motion(self, etype, me):
+        if me.type_name != 'hover':
+            return super().on_motion(etype, me)
+        if me.grab_current is self or self.collide_point(*me.pos):
+            return super().on_motion(etype, me)
+
+
+class RecycleLayoutHoverMixin(object):
+
+    last_hover = DictProperty()
+
+    def on_motion(self, etype, me):
+        handled = super().on_motion(etype, me)
+        if handled and me.type_name == 'hover':
+            self.last_hover[me.device_id] = me
+        return handled
+
+    def remove_widget(self, widget):
+        last_hover = self.last_hover
+        if last_hover:
+            hovered_widgets = []
+            for w in widget.walk(restrict=True):
+                if isinstance(w, HoverBehavior) and w.hovered:
+                    hovered_widgets.append((w, w.hover_ids[:]))
+            for w, hover_ids in hovered_widgets:
+                for device_id in hover_ids:
+                    me = last_hover[device_id]
+                    me.grab_state = True
+                    me.push()
+                    me.apply_transform_2d(w.parent.to_widget)
+                    me.grab_current = w
+                    w.dispatch('on_motion', 'end', me)
+                    me.grab_current = None
+                    me.pop()
+                    me.grab_state = False
+            last_hover.clear()
+        super().remove_widget(widget)
