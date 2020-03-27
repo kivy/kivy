@@ -107,5 +107,10 @@ class RecycleLayoutHoverMixin(object):
                     me.grab_current = None
                     me.pop()
                     me.grab_state = False
-            last_hover.clear()
         super().remove_widget(widget)
+
+    def on_children(self, layout, children):
+        if hasattr(super(), 'on_children'):
+            super().on_children(layout, children)
+        if not children:
+            self.last_hover.clear()
