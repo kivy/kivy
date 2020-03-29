@@ -202,7 +202,7 @@ class UtilsTest(unittest.TestCase):
             return False
 
         with patch(target='os.path.exists',
-                   side_effect = modified_path_exists):
+                   side_effect=modified_path_exists):
             pf = _get_platform()
             self.assertTrue(pf == 'android')
         self.assertFalse(os.path.exists('/default.prop'))
