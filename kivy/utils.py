@@ -424,9 +424,12 @@ def format_bytes_to_human(size, precision=2):
 
 def _get_platform():
     # On Android sys.platform returns 'linux2', so prefer to check the
-    # presence of python-for-android environment variables (ANDROID_ARGUMENT
-    # or ANDROID_PRIVATE).
-    if 'ANDROID_ARGUMENT' in environ:
+    # existence of system specific commands and files
+    if (
+            path.exists('/default.prop')
+            and path.exists('/system/bin/logcat')
+            and path.exists('/system/xbin')
+    ):
         return 'android'
     elif environ.get('KIVY_BUILD', '') == 'ios':
         return 'ios'

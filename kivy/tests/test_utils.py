@@ -191,10 +191,21 @@ class UtilsTest(unittest.TestCase):
         assert first == second
 
     def test_Platform_android(self):
-        with patch.dict('os.environ', {'ANDROID_ARGUMENT': ''}):
+        # modified os.path.exists function
+        # for test purpose
+        def modified_path_exists(p):
+            valid_paths = ['/default.prop',
+                           '/system/bin/logcat',
+                           '/system/xbin']
+            if p in valid_paths:
+                return True
+            return False
+
+        with patch(target='os.path.exists',
+                   side_effect=modified_path_exists):
             pf = _get_platform()
             self.assertTrue(pf == 'android')
-        self.assertNotIn('ANDROID_ARGUMENT', os.environ)
+        self.assertFalse(os.path.exists('/default.prop'))
 
     def test_Platform_ios(self):
         with patch.dict('os.environ', {'KIVY_BUILD': 'ios'}):
