@@ -55,9 +55,15 @@ class HoverEventManager(EventManagerBase):
                     except AttributeError:
                         current.pop()
                         continue
-                    current.grab_current = widget
+                current.grab_current = widget
+                widget._context.push()
+                if widget._context.sandbox:
+                    with widget._context.sandbox:
+                        widget.dispatch('on_motion', 'end', current)
+                else:
                     widget.dispatch('on_motion', 'end', current)
-                    current.grab_current = None
+                widget._context.pop()
+                current.grab_current = None
                 if root_window != widget and root_window:
                     current.pop()
         current.grab_state = False

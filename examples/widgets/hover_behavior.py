@@ -1,6 +1,7 @@
 from random import randint
 
 from kivy.config import Config
+
 Config.set('graphics', 'width', 1200)
 
 from kivy.app import App
@@ -9,15 +10,13 @@ from kivy.input.managers.hover import HoverEventManager
 from kivy.lang import Builder
 from kivy.properties import StringProperty, ColorProperty
 from kivy.uix.behaviors import ButtonBehavior
-from kivy.uix.behaviors.hover import HoverBehavior, StencilViewHoverMixin, \
-    RecycleLayoutHoverMixin
+from kivy.uix.behaviors.hover import HoverBehavior, StencilViewHoverMixin
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.dropdown import DropDown
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
-from kivy.uix.recyclegridlayout import RecycleGridLayout
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 
@@ -29,7 +28,7 @@ kv = '''
         Rectangle:
             pos: self.pos
             size: self.size
-    
+
 
 <XHoverButton>:
     text_size: self.size
@@ -179,7 +178,7 @@ kv = '''
         HoverRecycleView:
             id: side_menu
             viewclass: 'HoverButton'
-            HoverRecycleGridLayout:
+            RecycleGridLayout:
                 cols: 1
                 default_size: None, dp(56)
                 default_size_hint: 1, None
@@ -207,7 +206,7 @@ kv = '''
                 id: project_topics
                 viewclass: 'TopicItem'
                 effect_cls: 'ScrollEffect'
-                HoverRecycleGridLayout:
+                RecycleGridLayout:
                     cols: 1
                     default_size: None, dp(30)
                     default_size_hint: 1, None
@@ -264,7 +263,7 @@ kv = '''
                         viewclass: 'ChatItem'
                         effect_cls: 'ScrollEffect'
                         scroll_y: 0
-                        HoverRecycleGridLayout:
+                        RecycleGridLayout:
                             cols: 1
                             spacing: '2dp'
                             default_size: None, dp(80)
@@ -288,7 +287,7 @@ kv = '''
                     width: '240dp'
                     viewclass: 'UserItem'
                     effect_cls: 'ScrollEffect'
-                    HoverRecycleGridLayout:
+                    RecycleGridLayout:
                         cols: 1
                         spacing: '2dp'
                         default_size: None, dp(50)
@@ -380,10 +379,6 @@ class UserItem(HoverBehavior, RecycleDataViewBehavior, BoxLayout):
 
 
 class HoverRecycleView(StencilViewHoverMixin, RecycleView):
-    pass
-
-
-class HoverRecycleGridLayout(RecycleLayoutHoverMixin, RecycleGridLayout):
     pass
 
 
