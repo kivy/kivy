@@ -10,7 +10,7 @@ class HoverEventManager(EventManagerBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.type_name = 'hover'
-        self.min_wait_time = kwargs.get('min_wait_time', 1/30.0)
+        self.min_wait_time = kwargs.get('min_wait_time', 1 / 30.0)
         self._waiting_events = deque()
         self._dispatched_events = defaultdict(list)  # event per device id
         self._event_times = {}  # time of event per device id
