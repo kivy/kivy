@@ -81,7 +81,8 @@ offers:
 __all__ = ('ButtonBehavior', 'ToggleButtonBehavior', 'DragBehavior',
            'FocusBehavior', 'CompoundSelectionBehavior',
            'CodeNavigationBehavior', 'EmacsBehavior', 'CoverBehavior',
-           'TouchRippleBehavior', 'TouchRippleButtonBehavior')
+           'TouchRippleBehavior', 'TouchRippleButtonBehavior',
+           'HoverBehavior', 'StencilViewHoverMixin')
 
 from kivy.uix.behaviors.button import ButtonBehavior
 from kivy.uix.behaviors.togglebutton import ToggleButtonBehavior
@@ -93,3 +94,4 @@ from kivy.uix.behaviors.emacs import EmacsBehavior
 from kivy.uix.behaviors.cover import CoverBehavior
 from kivy.uix.behaviors.touchripple import TouchRippleBehavior
 from kivy.uix.behaviors.touchripple import TouchRippleButtonBehavior
+from kivy.uix.behaviors.hover import HoverBehavior, StencilViewHoverMixin
