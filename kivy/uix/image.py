@@ -419,10 +419,10 @@ class AsyncImage(Image):
         pass
 
     def reload(self):
-        if Loader:
+        if Loader and self.source:
             source = self.source
             if not self.is_uri(source):
                 source = resource_find(source)
-            Loader.remove_from_cache(source)
-
+            if source:
+                Loader.remove_from_cache(source)
         super(AsyncImage, self).reload()
