@@ -252,31 +252,32 @@ class Image(Widget):
 
     def texture_update(self, *largs):
         if not self.source:
-            self.texture = None
-        else:
-            filename = resource_find(self.source)
-            self._loops = 0
-            if filename is None:
-                return Logger.error('Image: Error reading file {filename}'.
-                                    format(filename=self.source))
-            mipmap = self.mipmap
-            if self._coreimage is not None:
-                self._coreimage.unbind(on_texture=self._on_tex_change)
-            try:
-                if PY2 and isinstance(filename, str):
-                    filename = filename.decode('utf-8')
-                self._coreimage = ci = CoreImage(filename, mipmap=mipmap,
-                                                 anim_delay=self.anim_delay,
-                                                 keep_data=self.keep_data,
-                                                 nocache=self.nocache)
-            except:
-                Logger.error('Image: Error loading texture {filename}'.
-                                    format(filename=self.source))
-                self._coreimage = ci = None
-
-            if ci:
-                ci.bind(on_texture=self._on_tex_change)
-                self.texture = ci.texture
+            self._clear_core_image()
+            return
+        self._loops = 0
+        source = resource_find(self.source)
+        if not source:
+            Logger.error('Image: Image not found at %s' % self.source)
+            self._clear_core_image()
+            return
+        mipmap = self.mipmap
+        if self._coreimage:
+            self._coreimage.unbind(on_texture=self._on_tex_change)
+        try:
+            self._coreimage = ci = CoreImage(
+                source,
+                mipmap=mipmap,
+                anim_delay=self.anim_delay,
+                keep_data=self.keep_data,
+                nocache=self.nocache
+            )
+        except Exception:
+            Logger.error('Image: Error loading texture %s' % self.source)
+            self._clear_core_image()
+            ci = self._coreimage
+        if ci:
+            ci.bind(on_texture=self._on_tex_change)
+            self.texture = ci.texture
 
     def on_anim_delay(self, instance, value):
         self._loop = 0
@@ -289,6 +290,12 @@ class Image(Widget):
     def on_texture(self, instance, value):
         if value is not None:
             self.texture_size = list(value.size)
+
+    def _clear_core_image(self):
+        if self._coreimage:
+            self._coreimage.unbind(on_texture=self._on_tex_change)
+        self.texture = None
+        self._coreimage = None
 
     def _on_tex_change(self, *largs):
         # update texture from core image
@@ -358,22 +365,26 @@ class AsyncImage(Image):
     def _load_source(self, *args):
         source = self.source
         if not source:
-            if self._coreimage is not None:
-                self._coreimage.unbind(on_texture=self._on_tex_change)
-                self._coreimage.unbind(on_load=self._on_source_load)
-            self.texture = None
-            self._coreimage = None
-        else:
-            if not self.is_uri(source):
-                source = resource_find(source)
-            self._coreimage = image = Loader.image(source,
-                nocache=self.nocache, mipmap=self.mipmap,
-                anim_delay=self.anim_delay)
-
-            image.bind(on_load=self._on_source_load)
-            image.bind(on_error=self._on_source_error)
-            image.bind(on_texture=self._on_tex_change)
-            self.texture = image.texture
+            self._clear_core_image()
+            return
+        if not self.is_uri(source):
+            source = resource_find(source)
+            if not source:
+                Logger.error('AsyncImage: Image not found at %s' % self.source)
+                self._clear_core_image()
+                return
+        self._coreimage = image = Loader.image(
+            source,
+            nocache=self.nocache,
+            mipmap=self.mipmap,
+            anim_delay=self.anim_delay
+        )
+        image.bind(
+            on_load=self._on_source_load,
+            on_error=self._on_source_error,
+            on_texture=self._on_tex_change
+        )
+        self.texture = image.texture
 
     def _on_source_load(self, value):
         image = self._coreimage.image
@@ -394,6 +405,11 @@ class AsyncImage(Image):
     def is_uri(self, filename):
         proto = filename.split('://', 1)[0]
         return proto in ('http', 'https', 'ftp', 'smb')
+
+    def _clear_core_image(self):
+        if self._coreimage:
+            self._coreimage.unbind(on_load=self._on_source_load)
+        super()._clear_core_image()
 
     def _on_tex_change(self, *largs):
         if self._coreimage:
