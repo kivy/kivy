@@ -201,7 +201,7 @@ class Image(Widget):
 
     def get_norm_image_size(self):
         if not self.texture:
-            return self.size
+            return list(self.size)
         ratio = self.image_ratio
         w, h = self.size
         tw, th = self.texture.size
@@ -209,7 +209,7 @@ class Image(Widget):
         # ensure that the width is always maximized to the containter width
         if self.allow_stretch:
             if not self.keep_ratio:
-                return w, h
+                return [w, h]
             iw = w
         else:
             iw = min(w, tw)
@@ -223,7 +223,7 @@ class Image(Widget):
             else:
                 ih = min(h, th)
             iw = ih * ratio
-        return iw, ih
+        return [iw, ih]
 
     norm_image_size = AliasProperty(get_norm_image_size,
                                     bind=('texture', 'size', 'allow_stretch',
