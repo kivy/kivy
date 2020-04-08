@@ -61,7 +61,6 @@ from kivy.resources import resource_find
 from kivy.properties import StringProperty, ObjectProperty, ListProperty, \
     AliasProperty, BooleanProperty, NumericProperty
 from kivy.logger import Logger
-from kivy.compat import PY2
 
 # delayed imports
 Loader = None
@@ -257,7 +256,7 @@ class Image(Widget):
         self._loops = 0
         source = resource_find(self.source)
         if not source:
-            Logger.error('Image: Image not found at %s' % self.source)
+            Logger.error('Image: Not found <%s>' % self.source)
             self._clear_core_image()
             return
         mipmap = self.mipmap
@@ -272,7 +271,7 @@ class Image(Widget):
                 nocache=self.nocache
             )
         except Exception:
-            Logger.error('Image: Error loading texture %s' % self.source)
+            Logger.error('Image: Error loading <%s>' % self.source)
             self._clear_core_image()
             ci = self._coreimage
         if ci:
@@ -368,7 +367,7 @@ class AsyncImage(Image):
         if not self.is_uri(source):
             source = resource_find(source)
             if not source:
-                Logger.error('AsyncImage: Image not found at %s' % self.source)
+                Logger.error('AsyncImage: Not found <%s>' % self.source)
                 self._clear_core_image()
                 return
         self._coreimage = image = Loader.image(
