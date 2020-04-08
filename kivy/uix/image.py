@@ -287,8 +287,7 @@ class Image(Widget):
             self._coreimage.anim_reset(False)
 
     def on_texture(self, instance, value):
-        if value is not None:
-            self.texture_size = list(value.size)
+        self.texture_size = value.size if value else [0, 0]
 
     def _clear_core_image(self):
         if self._coreimage:
