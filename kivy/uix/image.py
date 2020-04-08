@@ -280,7 +280,6 @@ class Image(Widget):
             self.texture = ci.texture
 
     def on_anim_delay(self, instance, value):
-        self._loop = 0
         if self._coreimage is None:
             return
         self._coreimage.anim_delay = value
