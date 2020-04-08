@@ -318,15 +318,11 @@ class Image(Widget):
             # image will be re-loaded from disk
 
         '''
-        try:
+        if self._coreimage:
             self._coreimage.remove_from_cache()
-
-        except AttributeError:
-            pass
-
-        oldsource = self.source
+        old_source = self.source
         self.source = ''
-        self.source = oldsource
+        self.source = old_source
 
     def on_nocache(self, *args):
         if self.nocache and self._coreimage:
