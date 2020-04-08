@@ -318,16 +318,24 @@ class Image(Widget):
             # image will be re-loaded from disk
 
         '''
-        if self._coreimage:
-            self._coreimage.remove_from_cache()
+        self.remove_from_cache()
         old_source = self.source
         self.source = ''
         self.source = old_source
 
-    def on_nocache(self, *args):
-        if self.nocache and self._coreimage:
+    def remove_from_cache(self):
+        '''Remove image from cache.
+
+        .. versionadded:: 2.0.0
+        '''
+        if self._coreimage:
             self._coreimage.remove_from_cache()
-            self._coreimage._nocache = True
+
+    def on_nocache(self, *args):
+        if self.nocache:
+            self.remove_from_cache()
+            if self._coreimage:
+                self._coreimage._nocache = True
 
 
 class AsyncImage(Image):
@@ -411,11 +419,17 @@ class AsyncImage(Image):
     def texture_update(self, *largs):
         pass
 
-    def reload(self):
-        if Loader and self.source:
-            source = self.source
+    def remove_from_cache(self):
+        source = self.source
+        if source:
+            found_source = None
             if not self.is_uri(source):
-                source = resource_find(source)
-            if source:
-                Loader.remove_from_cache(source)
-        super(AsyncImage, self).reload()
+                found_source = resource_find(source)
+            for_removal = found_source or source
+            if for_removal:
+                # Value `for_removal` might not be on disk, but it can be in
+                # Cache so if it's not uri and cannot be found then try to
+                # remove `source` from Cache. Also, `for_removal` cannot be
+                # `None` as `None` will clear entire kv.loader category.
+                Loader.remove_from_cache(for_removal)
+        super().remove_from_cache()
