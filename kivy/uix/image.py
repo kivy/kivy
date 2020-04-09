@@ -250,19 +250,17 @@ class Image(Widget):
         if not self.source:
             self._clear_core_image()
             return
-        self._loops = 0
         source = resource_find(self.source)
         if not source:
             Logger.error('Image: Not found <%s>' % self.source)
             self._clear_core_image()
             return
-        mipmap = self.mipmap
         if self._coreimage:
             self._coreimage.unbind(on_texture=self._on_tex_change)
         try:
-            self._coreimage = ci = CoreImage(
+            self._coreimage = image = CoreImage(
                 source,
-                mipmap=mipmap,
+                mipmap=self.mipmap,
                 anim_delay=self.anim_delay,
                 keep_data=self.keep_data,
                 nocache=self.nocache
@@ -270,10 +268,10 @@ class Image(Widget):
         except Exception:
             Logger.error('Image: Error loading <%s>' % self.source)
             self._clear_core_image()
-            ci = self._coreimage
-        if ci:
-            ci.bind(on_texture=self._on_tex_change)
-            self.texture = ci.texture
+            image = self._coreimage
+        if image:
+            image.bind(on_texture=self._on_tex_change)
+            self.texture = image.texture
 
     def on_anim_delay(self, instance, value):
         if self._coreimage is None:
@@ -290,6 +288,7 @@ class Image(Widget):
             self._coreimage.unbind(on_texture=self._on_tex_change)
         self.texture = None
         self._coreimage = None
+        self._loops = 0
 
     def _on_tex_change(self, *largs):
         # update texture from core image
