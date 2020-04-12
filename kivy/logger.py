@@ -55,8 +55,8 @@ some solid benefits and useful features. These include:
 * access to log history even if logging is disabled
 * built-in handling of various cross-platform considerations
 
-For these reasons, we advise that you use the Kivy Logger unless you have good
-reasons to choose otherwise.
+Kivys' logger was designed to be used with kivy apps and makes logging from
+Kivy apps more convenient.
 
 Logger Configuration
 --------------------
