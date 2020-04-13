@@ -7,7 +7,7 @@ class HoverBehavior(object):
     hover_ids = ListProperty()
     hover_mode = OptionProperty('default', options=['default', 'self', 'all'])
 
-    __events__ = ('on_hover_start', 'on_hover_move', 'on_hover_end')
+    __events__ = ('on_hover_start', 'on_hover_update', 'on_hover_end')
 
     def __init__(self, **kwargs):
         self.add_motion_event('hover')
@@ -48,7 +48,7 @@ class HoverBehavior(object):
                     self.dispatch('on_hover_end', me)
                 return True
             if me.device_id in self.hover_ids:
-                self.dispatch('on_hover_move', me)
+                self.dispatch('on_hover_update', me)
             else:
                 self.hover_ids.append(me.device_id)
                 self.dispatch('on_hover_start', me)
@@ -58,7 +58,7 @@ class HoverBehavior(object):
     def on_hover_start(self, me):
         pass
 
-    def on_hover_move(self, me):
+    def on_hover_update(self, me):
         pass
 
     def on_hover_end(self, me):
