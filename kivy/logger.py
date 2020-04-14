@@ -2,10 +2,18 @@
 Logger object
 =============
 
-Differents logging levels are available : trace, debug, info, warning, error
-and critical.
+The Kivy `Logger` class provides a singleton logger instance. This instance
+exposes a standard Python
+`logger <https://docs.python.org/3/library/logging.html>`_ object but adds
+some convenient features.
 
-Examples of usage::
+All the standard logging levels are available : `trace`, `debug`, `info`,
+`warning`, `error` and `critical`.
+
+Example Usage
+-------------
+
+Use the `Logger` as you would a standard Python logger. ::
 
     from kivy.logger import Logger
 
@@ -17,9 +25,9 @@ Examples of usage::
     except Exception:
         Logger.exception('Something happened!')
 
-The message passed to the logger is split into two parts, separated by a colon
-(:). The first part is used as a title, and the second part is used as the
-message. This way, you can "categorize" your message easily. ::
+The message passed to the logger is split into two parts separated by a colon
+(:). The first part is used as a title and the second part is used as the
+message. This way, you can "categorize" your messages easily. ::
 
     Logger.info('Application: This is a test')
 
@@ -27,7 +35,30 @@ message. This way, you can "categorize" your message easily. ::
 
     [INFO   ] [Application ] This is a test
 
-Logger configuration
+You can change the logging level at any time using the `setLevel` method. ::
+
+    from kivy.logger import Logger, LOG_LEVELS
+
+    Logger.setLevel(LOG_LEVELS["debug"])
+
+
+Features
+--------
+
+Although you are free to use standard python loggers, the Kivy `Logger` offers
+some solid benefits and useful features. These include:
+
+* simplied usage (single instance, simple configuration, works by default)
+* color-coded output
+* output to `stdout` by default
+* message categorization via colon separation
+* access to log history even if logging is disabled
+* built-in handling of various cross-platform considerations
+
+Kivys' logger was designed to be used with kivy apps and makes logging from
+Kivy apps more convenient.
+
+Logger Configuration
 --------------------
 
 The Logger can be controlled via the Kivy configuration file::
@@ -42,7 +73,7 @@ The Logger can be controlled via the Kivy configuration file::
 More information about the allowed values are described in the
 :mod:`kivy.config` module.
 
-Logger history
+Logger History
 --------------
 
 Even if the logger is not enabled, you still have access to the last 100
