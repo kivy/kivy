@@ -16,10 +16,16 @@ class HoverBehavior(object):
     def on_motion(self, etype, me):
         if me.type_name != 'hover':
             return super().on_motion(etype, me)
-        if me.grab_current is self:
-            if self.handle_hover_event_on_self(etype, me):
-                return True
-            return super().on_motion(etype, me)
+        me.ud['me.etype'] = etype
+        if me.device_id not in self.hover_ids:
+            return self.dispatch('on_hover_start', me)
+        if etype == 'update':
+            return self.dispatch('on_hover_update', me)
+        if etype == 'end':
+            return self.dispatch('on_hover_end', me)
+        me.ud.pop('me.etype', None)
+
+    def handle_hover_event(self, etype, me):
         if self.hover_mode == 'default':
             if super().on_motion(etype, me):
                 return True
@@ -32,37 +38,34 @@ class HoverBehavior(object):
                  self.handle_hover_event_on_self(etype, me))
             )
 
-    def on_hover_ids(self, widget, hover_ids):
-        self.hovered = bool(hover_ids)
-
     def handle_hover_event_on_self(self, etype, me):
         if me.grab_current is self:
             if etype == 'end' and me.device_id in self.hover_ids:
                 self.hover_ids.remove(me.device_id)
-                self.dispatch('on_hover_end', me)
+            return True
+        if self.disabled and self.collide_point(*me.pos):
             return True
         if self.collide_point(*me.pos):
             if etype == 'end':
                 if me.device_id in self.hover_ids:
                     self.hover_ids.remove(me.device_id)
-                    self.dispatch('on_hover_end', me)
                 return True
-            if me.device_id in self.hover_ids:
-                self.dispatch('on_hover_update', me)
-            else:
+            if me.device_id not in self.hover_ids:
                 self.hover_ids.append(me.device_id)
-                self.dispatch('on_hover_start', me)
             me.grab(self)
             return True
 
+    def on_hover_ids(self, widget, hover_ids):
+        self.hovered = bool(hover_ids)
+
     def on_hover_start(self, me):
-        pass
+        return self.handle_hover_event(me.ud['me.etype'], me)
 
     def on_hover_update(self, me):
-        pass
+        return self.handle_hover_event(me.ud['me.etype'], me)
 
     def on_hover_end(self, me):
-        pass
+        return self.handle_hover_event(me.ud['me.etype'], me)
 
 
 class StencilViewHoverMixin(object):
