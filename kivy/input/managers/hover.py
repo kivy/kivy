@@ -27,6 +27,7 @@ class HoverEventManager(EventManagerBase):
             etype_me = self._waiting_events.popleft()
             device_id = etype_me[1].device_id
             dispatched_events[device_id].append(etype_me)
+            etype_me[1].ud['me.etype'] = etype_me[0]
             if not etype_me[1].grab_exclusive_class:
                 for listener in self.event_loop.event_listeners:
                     listener.dispatch('on_motion', *etype_me)
@@ -55,6 +56,7 @@ class HoverEventManager(EventManagerBase):
                     except AttributeError:
                         current.pop()
                         continue
+                current.ud['me.etype'] = 'end'
                 current.grab_current = widget
                 widget._context.push()
                 if widget._context.sandbox:
@@ -64,6 +66,7 @@ class HoverEventManager(EventManagerBase):
                     widget.dispatch('on_motion', 'end', current)
                 widget._context.pop()
                 current.grab_current = None
+                current.ud['me.etype'] = current_etype
                 if root_window != widget and root_window:
                     current.pop()
         current.grab_state = False

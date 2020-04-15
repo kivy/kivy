@@ -16,14 +16,12 @@ class HoverBehavior(object):
     def on_motion(self, etype, me):
         if me.type_name != 'hover':
             return super().on_motion(etype, me)
-        me.ud['me.etype'] = etype
         if me.device_id not in self.hover_ids:
             return self.dispatch('on_hover_start', me)
         if etype == 'update':
             return self.dispatch('on_hover_update', me)
         if etype == 'end':
             return self.dispatch('on_hover_end', me)
-        me.ud.pop('me.etype', None)
 
     def handle_hover_event(self, etype, me):
         if self.hover_mode == 'default':
