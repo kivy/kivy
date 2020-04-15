@@ -41,8 +41,9 @@ class HoverEventManager(EventManagerBase):
         _, prev = self._dispatched_events[device_id][-2]
         transform = self.transform_grabbed_event
         current.grab_state = True
+        current_grab_list = current.grab_list[:]
         for weak_widget in prev.grab_list:
-            if weak_widget not in current.grab_list:
+            if weak_widget not in current_grab_list:
                 # Notify widgets that are no longer handled by current
                 # hover event
                 widget = weak_widget()
