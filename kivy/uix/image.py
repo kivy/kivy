@@ -349,6 +349,7 @@ class AsyncImage(Image):
     __events__ = ('on_error', 'on_load')
 
     def __init__(self, **kwargs):
+        self._found_source = None
         self._coreimage = None
         global Loader
         if not Loader:
@@ -367,6 +368,7 @@ class AsyncImage(Image):
                 Logger.error('AsyncImage: Not found <%s>' % self.source)
                 self._clear_core_image()
                 return
+        self._found_source = source
         self._coreimage = image = Loader.image(
             source,
             nocache=self.nocache,
@@ -404,6 +406,7 @@ class AsyncImage(Image):
         if self._coreimage:
             self._coreimage.unbind(on_load=self._on_source_load)
         super()._clear_core_image()
+        self._found_source = None
 
     def _on_tex_change(self, *largs):
         if self._coreimage:
@@ -413,16 +416,6 @@ class AsyncImage(Image):
         pass
 
     def remove_from_cache(self):
-        source = self.source
-        if source:
-            found_source = None
-            if not self.is_uri(source):
-                found_source = resource_find(source)
-            for_removal = found_source or source
-            if for_removal:
-                # Value `for_removal` might not be on disk, but it can be in
-                # Cache so if it's not uri and cannot be found then try to
-                # remove `source` from Cache. Also, `for_removal` cannot be
-                # `None` as `None` will clear entire kv.loader category.
-                Loader.remove_from_cache(for_removal)
+        if self._found_source:
+            Loader.remove_from_cache(self._found_source)
         super().remove_from_cache()
