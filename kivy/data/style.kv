@@ -60,7 +60,7 @@
             rgba: root.value_track_color if self.value_track and self.orientation == 'horizontal' else [1, 1, 1, 0]
         Line:
             width: self.value_track_width
-            points: self.x + self.padding, self.center_y - self.value_track_width / 2, self.value_pos[0], self.center_y - self.value_track_width / 2
+            points: self.x + self.padding, self.center_y, self.value_pos[0], self.center_y
         Color:
             rgba: root.value_track_color if self.value_track and self.orientation == 'vertical' else [1, 1, 1, 0]
         Line:
