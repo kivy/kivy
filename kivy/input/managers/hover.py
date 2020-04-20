@@ -76,7 +76,8 @@ class HoverEventManager(EventManagerBase):
     def ensure_one_event_per_device(self):
         times = self._event_times
         dispatched_events = self._dispatched_events
-        do_wait = self.min_wait_time != 0
+        do_wait = self.min_wait_time > 0
+        no_copy = self.min_wait_time < 0
         time_now = Clock.get_time()
         for_removal = []
         for device_id, last_events in dispatched_events.items():
@@ -84,9 +85,14 @@ class HoverEventManager(EventManagerBase):
             if etype == 'end':
                 for_removal.append(device_id)
                 continue
-            if do_wait and time_now - times[device_id] < self.min_wait_time:
+            if time_now == times[device_id] or no_copy:
+                # Event from provider already exists in waiting list
+                # or manager is only dispatching provider events
                 continue
-            # Dispatch copied event of last event dispatched
+            if do_wait and time_now - times[device_id] < self.min_wait_time:
+                # Wait for more time to pass
+                continue
+            # Create a copy of last event dispatched and add it to waiting list
             event = type(me)(me.device, me.id, deepcopy(me.args))
             me.copy_to(event)
             self.update('update', event)
