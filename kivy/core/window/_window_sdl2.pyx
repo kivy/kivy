@@ -143,6 +143,8 @@ cdef class _WindowSDL2Storage:
             Logger.info("Window: Activate GLES2/ANGLE context")
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, 4)
             SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "none")
+        elif kivy_opengl_es2:
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES)
 
         if x is None:
             x = SDL_WINDOWPOS_UNDEFINED
