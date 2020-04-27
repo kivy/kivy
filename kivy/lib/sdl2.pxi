@@ -59,6 +59,11 @@ cdef extern from "SDL.h":
         SDL_GL_CONTEXT_FLAGS
         SDL_GL_CONTEXT_PROFILE_MASK
 
+    ctypedef enum SDL_GLprofile:
+        SDL_GL_CONTEXT_PROFILE_CORE = 0x0001
+        SDL_GL_CONTEXT_PROFILE_COMPATIBILITY = 0x0002
+        SDL_GL_CONTEXT_PROFILE_ES = 0x0004
+
     ctypedef enum SDL_SystemCursor:
         SDL_SYSTEM_CURSOR_ARROW
         SDL_SYSTEM_CURSOR_IBEAM
