@@ -27,7 +27,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         generate_manylinux2010_wheels $DOCKER_IMAGE
     - name: Upload wheels as artifact
-      uses: actions/upload-artifact@master
+      uses: actions/upload-artifact@v2
       with:
         name: manylinux_wheels
         path: dist
@@ -43,11 +43,10 @@ jobs:
       uses: actions/setup-python@v1
       with:
         python-version: 3.x
-    - uses: actions/download-artifact@master
+    - uses: actions/download-artifact@v2
       with:
         name: manylinux_wheels
-    - name: Fix wheel path
-      run: mv manylinux_wheels dist
+        path: dist
     - name: Rename wheels
       if: github.event.ref_type != 'tag'
       run: |
