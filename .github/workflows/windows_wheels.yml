@@ -47,7 +47,7 @@ jobs:
         . .\.ci\windows_ci.ps1
         Generate-windows-wheels
     - name: Upload wheels as artifact
-      uses: actions/upload-artifact@master
+      uses: actions/upload-artifact@v2
       with:
         name: windows_wheels
         path: dist
@@ -61,11 +61,10 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: 3.x
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v2
         with:
           name: windows_wheels
-      - name: Fix wheel path
-        run: mv windows_wheels dist
+          path: dist
       - name: Fix wheel names
         if: github.event.ref_type != 'tag'
         run: |
@@ -115,11 +114,10 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: 3.x
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v2
         with:
           name: windows_wheels
-      - name: Fix wheel path
-        run: mv windows_wheels dist
+          path: dist
       - name: Install Kivy sdist
         env:
           KIVY_SPLIT_EXAMPLES: 0

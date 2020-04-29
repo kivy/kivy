@@ -82,7 +82,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         generate_docs
     - name: Upload docs as artifact
-      uses: actions/upload-artifact@master
+      uses: actions/upload-artifact@v2
       with:
         name: docs
         path: doc/build/html
