@@ -109,7 +109,7 @@ class ObjFile:
                     v = v[0], v[2], v[1]
                 self.normals.append(v)
             elif values[0] == 'vt':
-                self.texcoords.append(map(float, values[1:3]))
+                self.texcoords.append(list(map(float, values[1:3])))
             elif values[0] == 'f':
                 face = []
                 texcoords = []
