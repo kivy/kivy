@@ -73,7 +73,8 @@ jobs:
         TWINE_USERNAME: "__token__"
         TWINE_PASSWORD: ${{ secrets.pypi_password }}
       run: |
-        twine upload dist/*
+        source .ci/ubuntu_ci.sh
+        upload_artifacts_to_pypi
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh

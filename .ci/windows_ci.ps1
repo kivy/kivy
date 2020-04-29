@@ -115,3 +115,8 @@ function Test-kivy-installed {
     echo "[run]`nplugins = kivy.tools.coverage`n" > .coveragerc
     raise-only-error -Func {python -m pytest --timeout=300 .}
 }
+
+function Upload-artifacts-to-pypi {
+  python -m pip install twine
+  twine upload dist/*
+}

@@ -196,3 +196,9 @@ upload_file_to_server() {
   echo -e "Host $ip\n\tStrictHostKeyChecking no\n" >>~/.ssh/config
   rsync -avh -e "ssh -p 2458" --include="*/" --include="$file_pat" --exclude="*" "$file_path/" "root@$ip:/web/downloads/ci/$server_path"
 }
+
+
+upload_artifacts_to_pypi() {
+  python3 -m pip install twine
+  twine upload dist/*
+}
