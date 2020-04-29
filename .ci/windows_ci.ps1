@@ -15,7 +15,7 @@ function raise-only-error{
 function Generate-sdist {
     python -m pip install cython
     python setup.py sdist --formats=gztar
-    raise-only-error -Func {python setup.py bdist_wheel --build_examples --universal}
+    python setup.py bdist_wheel --build_examples --universal
     python -m pip uninstall cython -y
 }
 
@@ -113,5 +113,5 @@ function Test-kivy-installed {
     cd "$test_path"
 
     echo "[run]`nplugins = kivy.tools.coverage`n" > .coveragerc
-    raise-only-error -Func {python -m pytest .}
+    raise-only-error -Func {python -m pytest --timeout=300 .}
 }

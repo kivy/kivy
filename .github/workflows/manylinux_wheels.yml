@@ -47,7 +47,9 @@ jobs:
       with:
         name: manylinux_wheels
     - name: Fix wheel path
-      run: mv manylinux_wheels dist
+      run:
+        ls
+        mv manylinux_wheels dist
     - name: Rename wheels
       if: github.event.ref_type != 'tag'
       run: |
