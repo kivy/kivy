@@ -48,7 +48,7 @@ __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 if not RELEASE:
     # if it's a rcx release, it's not proceeded by a period. If it is a
     # devx release, it must start with a period
-    __version__ += 'rc1'
+    __version__ += 'rc2'
 
 try:
     from kivy.version import __hash__, __date__
