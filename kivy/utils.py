@@ -424,8 +424,11 @@ def format_bytes_to_human(size, precision=2):
 
 def _get_platform():
     # On Android sys.platform returns 'linux2', so prefer to check the
-    # existence of system specific commands and files
-    if (
+    # existence of system specific commands and files, but first we check if we
+    # are using python-for-android via `P4A_BOOTSTRAP` environ variable
+    if 'P4A_BOOTSTRAP' in environ:
+        return 'android'
+    elif (
             path.exists('/default.prop')
             and path.exists('/system/bin/logcat')
             and path.exists('/system/xbin')
