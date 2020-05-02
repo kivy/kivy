@@ -423,13 +423,16 @@ def format_bytes_to_human(size, precision=2):
 
 
 def _get_platform():
-    # On Android sys.platform returns 'linux2', so prefer to check the
-    # existence of system specific commands and files
-    if (
-            path.exists('/default.prop')
-            and path.exists('/system/bin/logcat')
-            and path.exists('/system/xbin')
-    ):
+    # The $KIVY_BUILD env var can be used to override what platform
+    # Kivy thinks it's running on, or when running on mobile may be used
+    # to inform Kivy of the platform.
+    env_build_type = environ.get('KIVY_BUILD', None)
+    if env_build_type is not None:
+        return env_build_type
+
+    # Note: iOS detection is handled solely using $KIVY_BUILD
+
+    if 'P4A_BOOTSTRAP' in environ:
         return 'android'
     elif environ.get('KIVY_BUILD', '') == 'ios':
         return 'ios'
