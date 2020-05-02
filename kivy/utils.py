@@ -427,7 +427,7 @@ def _get_platform():
     # existence of environ variables set during Python initialization
     kivy_build = environ.get('KIVY_BUILD', '')
     if kivy_build in {'android', 'ios'}:
-        return environ['KIVY_BUILD']
+        return kivy_build
     elif 'P4A_BOOTSTRAP' in environ:
         return 'android'
     elif 'ANDROID_ARGUMENT' in environ:
