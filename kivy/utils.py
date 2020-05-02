@@ -424,8 +424,7 @@ def format_bytes_to_human(size, precision=2):
 
 def _get_platform():
     # On Android sys.platform returns 'linux2', so prefer to check the
-    # existence of system specific commands and files, but first we check if we
-    # are using python-for-android via `P4A_BOOTSTRAP` environ variable
+    # existence of environ variables set during Python initialization
     kivy_build = environ.get('KIVY_BUILD', '')
     if kivy_build in {'android', 'ios'}:
         return environ['KIVY_BUILD']
