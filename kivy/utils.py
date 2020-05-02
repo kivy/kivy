@@ -426,16 +426,11 @@ def _get_platform():
     # On Android sys.platform returns 'linux2', so prefer to check the
     # existence of system specific commands and files, but first we check if we
     # are using python-for-android via `P4A_BOOTSTRAP` environ variable
-    if 'P4A_BOOTSTRAP' in environ:
+    kivy_build = environ.get('KIVY_BUILD', '')
+    if kivy_build in {'android', 'ios'}:
+        return environ['KIVY_BUILD']
+    elif 'P4A_BOOTSTRAP' in environ:
         return 'android'
-    elif (
-            path.exists('/default.prop')
-            and path.exists('/system/bin/logcat')
-            and path.exists('/system/xbin')
-    ):
-        return 'android'
-    elif environ.get('KIVY_BUILD', '') == 'ios':
-        return 'ios'
     elif _sys_platform in ('win32', 'cygwin'):
         return 'win'
     elif _sys_platform == 'darwin':
