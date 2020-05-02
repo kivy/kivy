@@ -200,6 +200,11 @@ class UtilsTest(unittest.TestCase):
             self.assertEqual(_get_platform(), 'android')
         self.assertNotIn('P4A_BOOTSTRAP', os.environ)
 
+    def test_Platform_android_with_android_argument(self):
+        with patch.dict('os.environ', {'ANDROID_ARGUMENT': ''}):
+            self.assertEqual(_get_platform(), 'android')
+        self.assertNotIn('ANDROID_ARGUMENT', os.environ)
+
     def test_Platform_ios(self):
         with patch.dict('os.environ', {'KIVY_BUILD': 'ios'}):
             pf = _get_platform()

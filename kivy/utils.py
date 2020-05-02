@@ -431,6 +431,11 @@ def _get_platform():
         return environ['KIVY_BUILD']
     elif 'P4A_BOOTSTRAP' in environ:
         return 'android'
+    elif 'ANDROID_ARGUMENT' in environ:
+        # We used to use this method to detect android platform,
+        # leaving it here to be backwards compatible with `pydroid3`
+        # and similar tools outside kivy's ecosystem
+        return 'android'
     elif _sys_platform in ('win32', 'cygwin'):
         return 'win'
     elif _sys_platform == 'darwin':
