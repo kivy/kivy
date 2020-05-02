@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-18.04
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel linux]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel linux]')
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Set up Python 3.x
       uses: actions/setup-python@v1
       with:
@@ -38,7 +38,7 @@ jobs:
     env:
       DISPLAY: ':99.0'
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Set up Python 3.x
       uses: actions/setup-python@v1
       with:
@@ -99,7 +99,7 @@ jobs:
       DISPLAY: ':99.0'
       KIVY_SPLIT_EXAMPLES: 0
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Set up Python 3.x
         uses: actions/setup-python@v1
         with:

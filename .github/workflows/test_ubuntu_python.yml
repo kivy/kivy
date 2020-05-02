@@ -11,7 +11,7 @@ jobs:
   PEP8_test:
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Set up Python 3.x
       uses: actions/setup-python@v1
       with:
@@ -26,7 +26,7 @@ jobs:
     env:
       DISPLAY: ':99.0'
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Set up Python 3.x
       uses: actions/setup-python@v1
       with:
@@ -59,7 +59,7 @@ jobs:
   gen_docs:
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Set up Python 3.x
       uses: actions/setup-python@v1
       with:
