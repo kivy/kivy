@@ -129,7 +129,7 @@ class Animation(EventDispatcher):
     __events__ = ('on_start', 'on_progress', 'on_complete')
 
     def __init__(self, **kw):
-        super(Animation, self).__init__()
+        super().__init__()
         # Initialize
         self._clock_installed = False
         self._duration = kw.pop('d', kw.pop('duration', 1.))
@@ -404,7 +404,7 @@ class CompoundAnimation(Animation):
     def cancel(self, widget):
         self.anim1.cancel(widget)
         self.anim2.cancel(widget)
-        super(CompoundAnimation, self).cancel(widget)
+        super().cancel(widget)
 
     def cancel_property(self, widget, prop):
         '''Even if an animation is running, remove a property. It will not be
@@ -442,7 +442,7 @@ class CompoundAnimation(Animation):
 class Sequence(CompoundAnimation):
 
     def __init__(self, anim1, anim2):
-        super(Sequence, self).__init__()
+        super().__init__()
 
         #: Repeat the sequence. See 'Repeating animation' in the header
         #: documentation.
@@ -466,7 +466,7 @@ class Sequence(CompoundAnimation):
         self.anim2.stop(widget)
         if props:
             self.dispatch('on_complete', widget)
-        super(CompoundAnimation, self).cancel(widget)
+        super().cancel(widget)
 
     def start(self, widget):
         self.stop(widget)
@@ -504,7 +504,7 @@ class Sequence(CompoundAnimation):
 class Parallel(CompoundAnimation):
 
     def __init__(self, anim1, anim2):
-        super(Parallel, self).__init__()
+        super().__init__()
         self.anim1 = anim1
         self.anim2 = anim2
 
@@ -521,7 +521,7 @@ class Parallel(CompoundAnimation):
         props = self._widgets.pop(widget.uid, None)
         if props:
             self.dispatch('on_complete', widget)
-        super(CompoundAnimation, self).cancel(widget)
+        super().cancel(widget)
 
     def start(self, widget):
         self.stop(widget)
@@ -537,7 +537,7 @@ class Parallel(CompoundAnimation):
             self.stop(widget)
 
 
-class AnimationTransition(object):
+class AnimationTransition:
     '''Collection of animation functions to be used with the Animation object.
     Easing Functions ported to Kivy from the Clutter Project
     https://developer.gnome.org/clutter/stable/ClutterAlpha.html
