@@ -84,6 +84,7 @@ already in place in the animation module.
 __all__ = ('Animation', 'AnimationTransition')
 
 from math import sqrt, cos, sin, pi
+from collections import ChainMap
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
 from kivy.compat import string_types, iterkeys
@@ -427,11 +428,9 @@ class CompoundAnimation(Animation):
 
     @property
     def animated_properties(self):
-        # TODO: after kivy drops python2 support, this code can be optimized.
-        #       for example: using ChainMap
-        d = dict(self.anim1.animated_properties)
-        d.update(self.anim2.animated_properties)
-        return d
+        return ChainMap({},
+                        self.anim2.animated_properties,
+                        self.anim1.animated_properties)
 
     @property
     def transition(self):
