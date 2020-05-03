@@ -13,8 +13,8 @@ def ec_cls():
             self.n_progress = 0
             self.n_complete = 0
             anim.bind(on_start=self.on_start,
-                    on_progress=self.on_progress,
-                    on_complete=self.on_complete)
+                      on_progress=self.on_progress,
+                      on_complete=self.on_complete)
 
         def on_start(self, anim, widget):
             self.n_start += 1
