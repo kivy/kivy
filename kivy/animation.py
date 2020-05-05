@@ -492,7 +492,6 @@ class Sequence(CompoundAnimation):
             return
         if self.repeat:
             self.anim1.start(widget)
-            self.anim1.bind(on_complete=self.on_anim1_complete)
         else:
             self.dispatch('on_complete', widget)
             self.cancel(widget)
@@ -518,8 +517,7 @@ class Parallel(CompoundAnimation):
     def stop(self, widget):
         self.anim1.stop(widget)
         self.anim2.stop(widget)
-        props = self._widgets.pop(widget.uid, None)
-        if props:
+        if self._widgets.pop(widget.uid, None):
             self.dispatch('on_complete', widget)
         super().cancel(widget)
 
