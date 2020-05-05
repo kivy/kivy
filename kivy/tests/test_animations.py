@@ -379,7 +379,7 @@ class TestParallel:
         sleep(.5)
 
         # after the animation compeleted
-        ec.assert_(1, False, 1)  # n_progress is still 0 !!
+        ec.assert_(1, False, 1)  # n_progress is still 0 !
         ec1.assert_(1, True, 1)
         ec2.assert_(1, True, 1)
         assert no_animations_being_played()
