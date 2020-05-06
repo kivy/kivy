@@ -40,11 +40,9 @@ The first thing is to ensure you have run the following commands:
 
 .. parsed-literal::
 
-    brew install autoconf automake libtool pkg-config mercurial
-    brew link libtool
-    brew link mercurial
-    sudo easy_install pip
-    sudo pip install |cython_install|
+    $ brew install autoconf automake libtool pkg-config
+    $ brew link libtool
+    $ pip install |cython_install|
 
 If you still receive build errors, check your Homebrew is in a healthy state::
 
