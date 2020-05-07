@@ -5,7 +5,7 @@ Create a package for IOS
 
 .. note::
 
-    Currently, kivy-iOS builds packages with Python 2.7 and 3.7.
+    Currently, kivy-iOS builds packages with Python 3.7.
 
 The overall process for creating a package for IOS can be explained in 4 steps:
 
@@ -23,10 +23,9 @@ those dependencies:
 
 .. parsed-literal::
 
-    brew install autoconf automake libtool pkg-config
-    brew link libtool
-    sudo easy_install pip
-    sudo pip install |cython_install|
+    $ brew install autoconf automake libtool pkg-config
+    $ brew link libtool
+    $ pip install |cython_install|
 
 For more detail, see :ref:`IOS Prerequisites <packaging_ios_prerequisites>`.
 Just ensure that everything is ok before starting the second step!
@@ -38,12 +37,10 @@ Compile the distribution
 
 Open a terminal, and type::
 
-    $ git clone git://github.com/kivy/kivy-ios
-    $ cd kivy-ios
-    $ ./toolchain.py build kivy
+    $ pip install kivy-ios
+    $ toolchain build kivy
 
-Most of the python distribution is packed into `python27.zip`. If you
-experience any issues, please refer to our
+If you experience any issues, please refer to our
 `user group <https://groups.google.com/forum/#!forum/kivy-users>`_ or the
 `kivy-ios project page <https://github.com/kivy/kivy-ios>`_.
 
@@ -56,11 +53,11 @@ Before proceeding to the next step, ensure your application entry point is a fil
 named `main.py`.
 
 We provide a script that creates an initial Xcode project to start with. In the
-command line below, replace `test` with your project name. It must be a
+command line below, replace `title` with your project name. It must be a
 name without any spaces or illegal characters::
 
-    $ ./toolchain.py create <title> <app_directory>
-    $ ./toolchain.py create Touchtracer ~/code/kivy/examples/demo/touchtracer
+    $ toolchain create <title> <app_directory>
+    $ toolchain create Touchtracer ~/code/kivy/examples/demo/touchtracer
 
 .. Note::
     You must use a fully qualified path to your application directory.
@@ -86,11 +83,11 @@ Update the Xcode project
 Let's say you want to add numpy to your project but you did not compile it
 prior to creating your XCode project. First, ensure it is built::
 
-    $ ./toolchain.py build numpy
+    $ toolchain build numpy
 
 Then, update your Xcode project::
 
-    $ ./toolchain.py update touchtracer-ios
+    $ toolchain update touchtracer-ios
 
 All the libraries / frameworks necessary to run all the compiled recipes will be
 added to your Xcode project.
@@ -135,15 +132,15 @@ commenting out this line in `main.m`::
 
 Then you should see all the Kivy logging on the Xcode console.
 
-How can Apple accept a python app ?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+How can Apple accept a python app?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We managed to merge the app binary with all the libraries into a single binary,
 called libpython. This means all binary modules are loaded beforehand, so
 nothing is dynamically loaded.
 
-Have you already submited a Kivy application to the App store ?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Have you already submited a Kivy application to the App store?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Yes, check:
 
