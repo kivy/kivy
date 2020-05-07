@@ -84,6 +84,7 @@ already in place in the animation module.
 __all__ = ('Animation', 'AnimationTransition')
 
 from math import sqrt, cos, sin, pi
+from collections import ChainMap
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
 from kivy.compat import string_types, iterkeys
@@ -128,7 +129,7 @@ class Animation(EventDispatcher):
     __events__ = ('on_start', 'on_progress', 'on_complete')
 
     def __init__(self, **kw):
-        super(Animation, self).__init__()
+        super().__init__()
         # Initialize
         self._clock_installed = False
         self._duration = kw.pop('d', kw.pop('duration', 1.))
@@ -391,41 +392,7 @@ class Animation(EventDispatcher):
         return Parallel(self, animation)
 
 
-class Sequence(Animation):
-
-    def __init__(self, anim1, anim2):
-        super(Sequence, self).__init__()
-
-        #: Repeat the sequence. See 'Repeating animation' in the header
-        #: documentation.
-        self.repeat = False
-
-        self.anim1 = anim1
-        self.anim2 = anim2
-
-        self.anim1.bind(on_start=self.on_anim1_start,
-                        on_progress=self.on_anim1_progress)
-        self.anim2.bind(on_complete=self.on_anim2_complete,
-                        on_progress=self.on_anim2_progress)
-
-    @property
-    def duration(self):
-        return self.anim1.duration + self.anim2.duration
-
-    def start(self, widget):
-        self.stop(widget)
-        self._widgets[widget.uid] = True
-        self._register()
-        self.anim1.start(widget)
-        self.anim1.bind(on_complete=self.on_anim1_complete)
-
-    def stop(self, widget):
-        self.anim1.stop(widget)
-        self.anim2.stop(widget)
-        props = self._widgets.pop(widget.uid, None)
-        if props:
-            self.dispatch('on_complete', widget)
-        super(Sequence, self).cancel(widget)
+class CompoundAnimation(Animation):
 
     def stop_property(self, widget, prop):
         self.anim1.stop_property(widget, prop)
@@ -437,7 +404,7 @@ class Sequence(Animation):
     def cancel(self, widget):
         self.anim1.cancel(widget)
         self.anim2.cancel(widget)
-        super(Sequence, self).cancel(widget)
+        super().cancel(widget)
 
     def cancel_property(self, widget, prop):
         '''Even if an animation is running, remove a property. It will not be
@@ -455,11 +422,62 @@ class Sequence(Animation):
                 not self.anim2.have_properties_to_animate(widget)):
             self.cancel(widget)
 
-    def on_anim1_start(self, instance, widget):
+    def have_properties_to_animate(self, widget):
+        return (self.anim1.have_properties_to_animate(widget) or
+                self.anim2.have_properties_to_animate(widget))
+
+    @property
+    def animated_properties(self):
+        return ChainMap({},
+                        self.anim2.animated_properties,
+                        self.anim1.animated_properties)
+
+    @property
+    def transition(self):
+        # This property is impossible to implement
+        raise AttributeError(
+            "Can't lookup transition attribute of a CompoundAnimation")
+
+
+class Sequence(CompoundAnimation):
+
+    def __init__(self, anim1, anim2):
+        super().__init__()
+
+        #: Repeat the sequence. See 'Repeating animation' in the header
+        #: documentation.
+        self.repeat = False
+
+        self.anim1 = anim1
+        self.anim2 = anim2
+
+        self.anim1.bind(on_complete=self.on_anim1_complete,
+                        on_progress=self.on_anim1_progress)
+        self.anim2.bind(on_complete=self.on_anim2_complete,
+                        on_progress=self.on_anim2_progress)
+
+    @property
+    def duration(self):
+        return self.anim1.duration + self.anim2.duration
+
+    def stop(self, widget):
+        props = self._widgets.pop(widget.uid, None)
+        self.anim1.stop(widget)
+        self.anim2.stop(widget)
+        if props:
+            self.dispatch('on_complete', widget)
+        super().cancel(widget)
+
+    def start(self, widget):
+        self.stop(widget)
+        self._widgets[widget.uid] = True
+        self._register()
         self.dispatch('on_start', widget)
+        self.anim1.start(widget)
 
     def on_anim1_complete(self, instance, widget):
-        self.anim1.unbind(on_complete=self.on_anim1_complete)
+        if widget.uid not in self._widgets:
+            return
         self.anim2.start(widget)
 
     def on_anim1_progress(self, instance, widget, progress):
@@ -470,9 +488,10 @@ class Sequence(Animation):
 
         .. versionadded:: 1.7.1
         '''
+        if widget.uid not in self._widgets:
+            return
         if self.repeat:
             self.anim1.start(widget)
-            self.anim1.bind(on_complete=self.on_anim1_complete)
         else:
             self.dispatch('on_complete', widget)
             self.cancel(widget)
@@ -481,10 +500,10 @@ class Sequence(Animation):
         self.dispatch('on_progress', widget, .5 + progress / 2.)
 
 
-class Parallel(Animation):
+class Parallel(CompoundAnimation):
 
     def __init__(self, anim1, anim2):
-        super(Parallel, self).__init__()
+        super().__init__()
         self.anim1 = anim1
         self.anim2 = anim2
 
@@ -495,6 +514,13 @@ class Parallel(Animation):
     def duration(self):
         return max(self.anim1.duration, self.anim2.duration)
 
+    def stop(self, widget):
+        self.anim1.stop(widget)
+        self.anim2.stop(widget)
+        if self._widgets.pop(widget.uid, None):
+            self.dispatch('on_complete', widget)
+        super().cancel(widget)
+
     def start(self, widget):
         self.stop(widget)
         self.anim1.start(widget)
@@ -503,33 +529,13 @@ class Parallel(Animation):
         self._register()
         self.dispatch('on_start', widget)
 
-    def stop(self, widget):
-        self.anim1.stop(widget)
-        self.anim2.stop(widget)
-        props = self._widgets.pop(widget.uid, None)
-        if props:
-            self.dispatch('on_complete', widget)
-        super(Parallel, self).cancel(widget)
-
-    def stop_property(self, widget, prop):
-        self.anim1.stop_property(widget, prop)
-        self.anim2.stop_property(widget, prop)
-        if (not self.anim1.have_properties_to_animate(widget) and
-                not self.anim2.have_properties_to_animate(widget)):
-            self.stop(widget)
-
-    def cancel(self, widget):
-        self.anim1.cancel(widget)
-        self.anim2.cancel(widget)
-        super(Parallel, self).cancel(widget)
-
     def on_anim_complete(self, instance, widget):
         self._widgets[widget.uid]['complete'] += 1
         if self._widgets[widget.uid]['complete'] == 2:
             self.stop(widget)
 
 
-class AnimationTransition(object):
+class AnimationTransition:
     '''Collection of animation functions to be used with the Animation object.
     Easing Functions ported to Kivy from the Clutter Project
     https://developer.gnome.org/clutter/stable/ClutterAlpha.html
