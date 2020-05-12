@@ -144,6 +144,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         super(MouseMotionEventProvider, self).__init__(device, args)
         self.waiting_event = deque()
         self.touches = {}
+        self.hover_event = None
         self.counter = 0
         self.current_drag = None
         self.alt_touch = None
@@ -310,14 +311,20 @@ class MouseMotionEventProvider(MotionEventProvider):
     def on_mouse_pos(self, win, mouse_pos):
         width, height = win.system_size
         args = (mouse_pos[0] / width, mouse_pos[1] / height)
-        event = MouseHoverEvent(self.device, 1, args)
-        self.waiting_event.append(('update', event))
+        if self.hover_event:
+            self.hover_event.move(args)
+        else:
+            self.hover_event = MouseHoverEvent(self.device, 1, args)
+        self.waiting_event.append(('update', self.hover_event))
 
     def on_cursor_leave(self, win):
         width, height = win.system_size
         args = (win.mouse_pos[0] / width, win.mouse_pos[1] / height)
-        event = MouseHoverEvent(self.device, 1, args)
-        self.waiting_event.append(('end', event))
+        if self.hover_event:
+            self.hover_event.move(args)
+        else:
+            self.hover_event = MouseHoverEvent(self.device, 1, args)
+        self.waiting_event.append(('end', self.hover_event))
 
     def update(self, dispatch_fn):
         '''Update the mouse provider (pop event from the queue)'''

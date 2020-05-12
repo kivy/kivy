@@ -1,5 +1,4 @@
 from collections import deque, defaultdict
-from copy import deepcopy
 
 from kivy.clock import Clock
 from kivy.input.managers import EventManagerBase
@@ -22,27 +21,32 @@ class HoverEventManager(EventManagerBase):
     def dispatch(self, *args):
         self.ensure_one_event_per_device()
         dispatched_events = self._dispatched_events
-        dispatch_grabbed_events = self.dispatch_grabbed_events
+        dispatch_to_grabbed_widgets = self.dispatch_to_grabbed_widgets
         while self._waiting_events:
-            etype_me = self._waiting_events.popleft()
-            device_id = etype_me[1].device_id
+            etype, me = etype_me = self._waiting_events.popleft()
+            device_id = me.device_id
             dispatched_events[device_id].append(etype_me)
-            etype_me[1].ud['me.etype'] = etype_me[0]
-            if not etype_me[1].grab_exclusive_class:
+            # Save grab_list of previous event
+            _, prev_me = dispatched_events[device_id][-1]
+            prev_me_grab_list = prev_me.grab_list[:]
+            del me.grab_list[:]
+            # Set 'me.etype' because it's needed by HoverBehavior
+            me.ud['me.etype'] = etype
+            # Dispatch to listeners
+            if not me.grab_exclusive_class:
                 for listener in self.event_loop.event_listeners:
-                    listener.dispatch('on_motion', *etype_me)
+                    listener.dispatch('on_motion', etype, me)
             # Must have 2 dispatched events to detect which widgets are not
             # handling current event `etype_me` (did not grabbed it)
             if len(dispatched_events[device_id]) > 1:
-                dispatch_grabbed_events(device_id)
+                dispatch_to_grabbed_widgets(etype, me, prev_me_grab_list)
+                dispatched_events[device_id].pop(0)
 
-    def dispatch_grabbed_events(self, device_id):
-        current_etype, current = self._dispatched_events[device_id][-1]
-        _, prev = self._dispatched_events[device_id][-2]
+    def dispatch_to_grabbed_widgets(self, etype, me, prev_me_grab_list):
         transform = self.transform_grabbed_event
-        current.grab_state = True
-        current_grab_list = current.grab_list[:]
-        for weak_widget in prev.grab_list:
+        current_grab_list = me.grab_list[:]
+        me.grab_state = True
+        for weak_widget in prev_me_grab_list:
             if weak_widget not in current_grab_list:
                 # Notify widgets that are no longer handled by current
                 # hover event
@@ -51,27 +55,26 @@ class HoverEventManager(EventManagerBase):
                     continue
                 root_window = widget.get_root_window()
                 if root_window != widget and root_window:
-                    current.push()
+                    me.push()
                     try:
-                        current = transform(root_window, widget, current)
+                        me = transform(root_window, widget, me)
                     except AttributeError:
-                        current.pop()
+                        me.pop()
                         continue
-                current.ud['me.etype'] = 'end'
-                current.grab_current = widget
+                me.ud['me.etype'] = 'end'
+                me.grab_current = widget
                 widget._context.push()
                 if widget._context.sandbox:
                     with widget._context.sandbox:
-                        widget.dispatch('on_motion', 'end', current)
+                        widget.dispatch('on_motion', 'end', me)
                 else:
-                    widget.dispatch('on_motion', 'end', current)
+                    widget.dispatch('on_motion', 'end', me)
                 widget._context.pop()
-                current.grab_current = None
-                current.ud['me.etype'] = current_etype
+                me.grab_current = None
+                me.ud['me.etype'] = etype
                 if root_window != widget and root_window:
-                    current.pop()
-        current.grab_state = False
-        self._dispatched_events[device_id].pop(0)
+                    me.pop()
+        me.grab_state = False
 
     def ensure_one_event_per_device(self):
         times = self._event_times
@@ -92,9 +95,6 @@ class HoverEventManager(EventManagerBase):
             if do_wait and time_now - times[device_id] < self.min_wait_time:
                 # Wait for more time to pass
                 continue
-            # Create a copy of last event dispatched and add it to waiting list
-            event = type(me)(me.device, me.id, deepcopy(me.args))
-            me.copy_to(event)
-            self.update('update', event)
+            self.update('update', me)
         for device_id in for_removal:
             del dispatched_events[device_id]
