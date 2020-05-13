@@ -238,6 +238,7 @@ __all__ = ('Widget', 'WidgetException')
 
 from kivy.event import EventDispatcher
 from kivy.factory import Factory
+import kivy.properties as properties
 from kivy.properties import (
     NumericProperty, StringProperty, AliasProperty, ReferenceListProperty,
     ObjectProperty, ListProperty, DictProperty, BooleanProperty)
@@ -248,9 +249,14 @@ from kivy.base import EventLoop
 from kivy.lang import Builder
 from kivy.context import get_current_context
 from kivy.weakproxy import WeakProxy
+from collections import ChainMap           
 from functools import partial
+from inspect import getfile                
 from itertools import islice
+from os.path import dirname, join, exists  
+from textwrap import dedent                
 
+all_properties = {name: getattr(properties, name) for name in properties.__all__}
 
 # References to all the widget destructors (partial method with widget uid as
 # key).
@@ -274,17 +280,40 @@ class WidgetException(Exception):
 class WidgetMetaclass(type):
     '''Metaclass to automatically register new widgets for the
     :class:`~kivy.factory.Factory`.
-
     .. warning::
         This metaclass is used by the Widget. Do not use it directly!
     '''
-    def __init__(mcs, name, bases, attrs):
-        super(WidgetMetaclass, mcs).__init__(name, bases, attrs)
-        Factory.register(name, cls=mcs)
+    def __prepare__(*args):
+        # "Add" Properties to __dict__
+        return ChainMap({}, all_properties)
+
+    def __new__(metas, name, bases, methods):
+        # Remove Properties from __dict__
+        methods = methods.maps[0]
+        return super(WidgetMetaclass, metas).__new__(metas, name, bases, methods)
+
+    def __init__(cls, name, bases, attrs):
+        super(WidgetMetaclass, cls).__init__(name, bases, attrs)
+        Factory.register(name, cls=cls)
+
+        kv = getattr(cls, '__KV__', None)
+
+        if not kv:
+            directory = dirname(getfile(cls))
+            filename = f'{name.lower()}.kv'
+            kv_path = join(directory, filename)
+
+            if exists(kv_path):
+                with open(kv_path, 'r') as file:
+                    kv = file.read()
+
+        if kv:
+            Builder.load_string(dedent(kv))
 
 
-#: Base class used for Widget, that inherits from :class:`EventDispatcher`
-WidgetBase = WidgetMetaclass('WidgetBase', (EventDispatcher, ), {})
+class WidgetBase(EventDispatcher, metaclass=WidgetMetaclass):
+    '''Base class used for Widget, that inherits from :class:`EventDispatcher`
+    '''
 
 
 class Widget(WidgetBase):
