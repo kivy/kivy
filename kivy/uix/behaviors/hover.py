@@ -23,6 +23,18 @@ class HoverBehavior(object):
         if etype == 'end':
             return self.dispatch('on_hover_end', me)
 
+    def on_hover_start(self, me):
+        return self.handle_hover_event(me.ud['me.etype'], me)
+
+    def on_hover_update(self, me):
+        return self.handle_hover_event(me.ud['me.etype'], me)
+
+    def on_hover_end(self, me):
+        return self.handle_hover_event(me.ud['me.etype'], me)
+
+    def on_hover_ids(self, widget, hover_ids):
+        self.hovered = bool(hover_ids)
+
     def handle_hover_event(self, etype, me):
         if self.hover_mode == 'default':
             if super().on_motion(etype, me):
@@ -52,18 +64,6 @@ class HoverBehavior(object):
                 self.hover_ids.append(me.device_id)
             me.grab(self)
             return True
-
-    def on_hover_ids(self, widget, hover_ids):
-        self.hovered = bool(hover_ids)
-
-    def on_hover_start(self, me):
-        return self.handle_hover_event(me.ud['me.etype'], me)
-
-    def on_hover_update(self, me):
-        return self.handle_hover_event(me.ud['me.etype'], me)
-
-    def on_hover_end(self, me):
-        return self.handle_hover_event(me.ud['me.etype'], me)
 
 
 class StencilViewHoverMixin(object):
