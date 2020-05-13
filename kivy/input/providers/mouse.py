@@ -175,6 +175,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         fbind('on_mouse_down', self.on_mouse_press)
         fbind('on_mouse_up', self.on_mouse_release)
         fbind('mouse_pos', self.on_mouse_pos)
+        fbind('on_cursor_enter', self.on_cursor_enter)
         fbind('on_cursor_leave', self.on_cursor_leave)
 
     def stop(self):
@@ -186,6 +187,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         funbind('on_mouse_down', self.on_mouse_press)
         funbind('on_mouse_up', self.on_mouse_release)
         funbind('mouse_pos', self.on_mouse_pos)
+        funbind('on_cursor_enter', self.on_cursor_enter)
         funbind('on_cursor_leave', self.on_cursor_leave)
 
     def test_activity(self):
@@ -315,6 +317,9 @@ class MouseMotionEventProvider(MotionEventProvider):
             self.remove_touch(self.alt_touch)
             self.alt_touch = None
         return True
+
+    def on_cursor_enter(self, win):
+        self.create_hover('start', win)
 
     def on_mouse_pos(self, win, mouse_pos):
         self.create_hover('update', win)
