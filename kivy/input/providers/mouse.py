@@ -130,7 +130,6 @@ class MouseMotionEvent(MotionEvent):
 class MouseHoverEvent(HoverEvent):
 
     def depack(self, args):
-        # TODO: Add `positions` later (multi-hover support)
         if not self.profile:
             self.profile.append('pos')
         self.sx, self.sy = args[:2]
@@ -242,6 +241,15 @@ class MouseMotionEventProvider(MotionEventProvider):
         self.waiting_event.append(('end', cur))
         cur.clear_graphics(EventLoop.window)
 
+    def create_hover(self, etype, win):
+        width, height = win.system_size
+        args = (win.mouse_pos[0] / width, win.mouse_pos[1] / height)
+        if self.hover_event:
+            self.hover_event.move(args)
+        else:
+            self.hover_event = MouseHoverEvent(self.device, 1, args)
+        self.waiting_event.append((etype, self.hover_event))
+
     def on_mouse_motion(self, win, x, y, modifiers):
         width, height = EventLoop.window.system_size
         rx = x / float(width)
@@ -309,22 +317,10 @@ class MouseMotionEventProvider(MotionEventProvider):
         return True
 
     def on_mouse_pos(self, win, mouse_pos):
-        width, height = win.system_size
-        args = (mouse_pos[0] / width, mouse_pos[1] / height)
-        if self.hover_event:
-            self.hover_event.move(args)
-        else:
-            self.hover_event = MouseHoverEvent(self.device, 1, args)
-        self.waiting_event.append(('update', self.hover_event))
+        self.create_hover('update', win)
 
     def on_cursor_leave(self, win):
-        width, height = win.system_size
-        args = (win.mouse_pos[0] / width, win.mouse_pos[1] / height)
-        if self.hover_event:
-            self.hover_event.move(args)
-        else:
-            self.hover_event = MouseHoverEvent(self.device, 1, args)
-        self.waiting_event.append(('end', self.hover_event))
+        self.create_hover('end', win)
 
     def update(self, dispatch_fn):
         '''Update the mouse provider (pop event from the queue)'''
