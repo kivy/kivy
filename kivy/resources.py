@@ -49,17 +49,15 @@ def resource_find(filename):
     '''
     if not filename:
         return
-    if filename[:8] == 'atlas://':
+    if filename.startswith(('atlas://', 'data:')):
         return filename
-    if exists(abspath(filename)):
-        return abspath(filename)
-    for path in reversed(resource_paths):
-        output = abspath(join(path, filename))
-        if exists(output):
-            return output
-    if filename[:5] == 'data:':
-        return filename
-
+    path = abspath(filename)
+    if exists(path):
+        return path
+    for dir_ in reversed(resource_paths):
+        path = abspath(join(dir_, filename))
+        if exists(path):
+            return path
 
 def resource_add_path(path):
     '''Add a custom path to search in.
