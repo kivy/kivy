@@ -59,6 +59,7 @@ def resource_find(filename):
         if exists(path):
             return path
 
+
 def resource_add_path(path):
     '''Add a custom path to search in.
     '''
