@@ -251,10 +251,10 @@ from kivy.context import get_current_context
 from kivy.weakproxy import WeakProxy
 from collections import ChainMap
 from functools import partial
-from inspect import getfile           
+from inspect import getfile
 from itertools import islice
 from os.path import dirname, join, exists
-from textwrap import dedent  
+from textwrap import dedent
 
 all_properties = {name: getattr(properties, name) for name in properties.__all__}
 
