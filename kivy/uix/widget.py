@@ -289,8 +289,9 @@ class WidgetMetaclass(type):
         return ChainMap({}, all_properties)
 
     def __new__(metas, name, bases, methods):
-        # Remove Properties from __dict__
-        methods = methods.maps[0]
+        if hasattr(methods, 'maps'):
+            # Remove Properties from __dict__
+            methods = methods.maps[0]
         return super(WidgetMetaclass, metas).__new__(metas, name, bases, methods)
 
     def __init__(cls, name, bases, attrs):
