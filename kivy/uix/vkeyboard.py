@@ -562,10 +562,9 @@ class VKeyboard(Scatter):
         texture = Image(background, mipmap=True).texture
 
         with self.active_keys_layer:
-            Color(1, 1, 1)
+            Color(*self.key_background_color)
             for line_nb, index in active_keys.values():
                 pos, size = layout_geometry['LINE_%d' % line_nb][index]
-                Color(*self.key_background_color)
                 BorderImage(texture=texture, pos=pos, size=size,
                             border=self.key_border)
 
@@ -665,9 +664,9 @@ class VKeyboard(Scatter):
                                    self.key_background_normal)
         texture = Image(key_normal, mipmap=True).texture
         with self.background_key_layer:
+            Color(*self.key_background_color)
             for line_nb in range(1, layout_rows + 1):
                 for pos, size in layout_geometry['LINE_%d' % line_nb]:
-                    Color(*self.key_background_color)
                     BorderImage(texture=texture, pos=pos, size=size,
                                 border=self.key_border)
 
