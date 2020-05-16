@@ -92,7 +92,8 @@ class ImageLoaderPIL(ImageLoaderBase):
                     img_tmp = img_ol
                 img_ol = img_tmp
                 yield ImageData(img_tmp.size[0], img_tmp.size[1],
-                                img_tmp.mode.lower(), img_tmp.tobytes())
+                                img_tmp.mode.lower(), img_tmp.tobytes(),
+                                duration=img_tmp.info.get('duration', None))
                 im.seek(im.tell() + 1)
         except EOFError:
             pass

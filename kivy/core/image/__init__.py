@@ -94,14 +94,14 @@ class ImageData(object):
     The container will always have at least the mipmap level 0.
     '''
 
-    __slots__ = ('fmt', 'mipmaps', 'source', 'flip_vertical', 'source_image')
+    __slots__ = ('fmt', 'mipmaps', 'source', 'flip_vertical', 'source_image', 'duration')
     _supported_fmts = ('rgb', 'bgr', 'rgba', 'bgra', 'argb', 'abgr',
                        's3tc_dxt1', 's3tc_dxt3', 's3tc_dxt5', 'pvrtc_rgb2',
                        'pvrtc_rgb4', 'pvrtc_rgba2', 'pvrtc_rgba4', 'etc1_rgb8')
 
     def __init__(self, width, height, fmt, data, source=None,
                  flip_vertical=True, source_image=None,
-                 rowlength=0):
+                 rowlength=0, duration=None):
         assert fmt in ImageData._supported_fmts
 
         #: Decoded image format, one of a available texture format
@@ -119,6 +119,9 @@ class ImageData(object):
 
         # the original image, which we might need to save if it is a memoryview
         self.source_image = source_image
+
+        # animation duration, when image is frame of animated image
+        self.duration = duration
 
     def release_data(self):
         mm = self.mipmaps
@@ -208,7 +211,7 @@ class ImageLoaderBase(object):
     '''Base to implement an image loader.'''
 
     __slots__ = ('_texture', '_data', 'filename', 'keep_data',
-                 '_mipmap', '_nocache', '_ext', '_inline')
+                 '_mipmap', '_nocache', '_ext', '_inline', '_durations')
 
     def __init__(self, filename, **kwargs):
         self._mipmap = kwargs.get('mipmap', False)
@@ -222,6 +225,7 @@ class ImageLoaderBase(object):
         else:
             self._data = self.load(filename)
         self._textures = None
+        self._durations = None
 
     def load(self, filename):
         '''Load an image'''
@@ -248,6 +252,7 @@ class ImageLoaderBase(object):
 
     def populate(self):
         self._textures = []
+        self._durations = []
         fname = self.filename
         if __debug__:
             Logger.trace('Image: %r, populate to textures (%d)' %
@@ -277,6 +282,8 @@ class ImageLoaderBase(object):
 
             # set as our current texture
             self._textures.append(texture)
+
+            self._durations.append(self._data[count].duration)
 
             # release data if ask
             if not self.keep_data:
@@ -319,6 +326,16 @@ class ImageLoaderBase(object):
         if self._textures is None:
             self.populate()
         return self._textures
+
+    @property
+    def durations(self):
+        '''Get the durations list (for animated image)
+
+        .. versionadded:: 1.11.2
+        '''
+        if self._textures is None:
+            self.populate()
+        return self._durations
 
     @property
     def nocache(self):
@@ -499,7 +516,7 @@ class Image(EventDispatcher):
     '''
 
     copy_attributes = ('_size', '_filename', '_texture', '_image',
-                       '_mipmap', '_nocache')
+                       '_mipmap', '_nocache', '_durations')
 
     data_uri_re = re.compile(r'^data:image/([^;,]*)(;[^,]*)?,(.*)$')
 
@@ -521,7 +538,17 @@ class Image(EventDispatcher):
         self._anim_available = False
         self._anim_index = 0
         self._anim_delay = 0
+        # if duration every frame is variable
+        self._durations = None
         self.anim_delay = kwargs.get('anim_delay', .25)
+
+        # if True: get real frame duration from file info if it possible otherwise like False
+        # if False: get anim_delay only from kwargs if it possible or default if not
+        self._auto_anim_delay = kwargs.get('auto_anim_delay', False)
+        durations = kwargs.get('durations', None)
+        if not self._auto_anim_delay and durations:
+            self.durations = [elem * 1000 for elem in durations]
+
         # indicator of images having been loded in cache
         self._iteration_done = False
 
@@ -595,6 +622,9 @@ class Image(EventDispatcher):
             self._anim_index = 0
         self._texture = self.image.textures[self._anim_index]
         self.dispatch('on_texture')
+        if self.durations:
+            self._anim_ev = Clock.schedule_once(self._anim,
+                                                self.durations[self._anim_index])
         self._anim_index += 1
         self._anim_index %= len(self._image.textures)
 
@@ -626,15 +656,26 @@ class Image(EventDispatcher):
             self._anim_ev.cancel()
             self._anim_ev = None
 
+        self._anim_index = 0
         if allow_anim and self._anim_available and self._anim_delay >= 0:
-            self._anim_ev = Clock.schedule_interval(self._anim,
-                                                    self.anim_delay)
+            if not self.durations:
+                self._anim_ev = Clock.schedule_interval(self._anim,
+                                                        self._anim_delay)
+            else:
+                self._anim_ev = Clock.schedule_once(self._anim,
+                                                    self._anim_delay)
             self._anim()
 
     def _get_anim_delay(self):
         return self._anim_delay
 
     def _set_anim_delay(self, x):
+        if type(x) is type(self._anim_delay) and x == self._anim_delay:
+            return
+
+        if isinstance(x, list) and len(x) == 0:
+            raise Exception('Property "anim_delay" can not be an empty list')
+
         if self._anim_delay == x:
             return
         self._anim_delay = x
@@ -644,10 +685,35 @@ class Image(EventDispatcher):
                 self._anim_ev = None
 
             if self._anim_delay >= 0:
-                self._anim_ev = Clock.schedule_interval(self._anim,
+                if not self.durations:
+                    self._anim_ev = Clock.schedule_interval(self._anim,
+                                                            self._anim_delay)
+                else:
+                    self._anim_ev = Clock.schedule_once(self._anim,
                                                         self._anim_delay)
 
     anim_delay = property(_get_anim_delay, _set_anim_delay)
+
+    def _get_durations(self):
+        return self._durations
+
+    def _set_durations(self, x):
+        # Waiting for list of ints or floats in microseconds like in GIF format, not seconds
+        if x is None:
+            self._durations = None
+            return
+        if not(isinstance(x, list) and all(isinstance(elem, (int, float)) for elem in x)) and len(x) > 0:
+            raise Exception('Property durations must be list of int or float with len > 0')
+
+        if all(elem == x[0] for elem in x[1:]):
+            # durations are constant, so we have standart anim_delay case
+            self._durations = None
+        else:
+            self._durations = [elem / 1000 for elem in x]
+
+        self.anim_delay = x[0]
+
+    durations = property(_get_durations, _set_durations)
     '''Delay between each animation frame. A lower value means faster
     animation.
 
@@ -677,6 +743,12 @@ class Image(EventDispatcher):
         imgcount = len(self.image.textures)
         if imgcount > 1:
             self._anim_available = True
+
+            if (self._auto_anim_delay
+                    and imgcount == len(self.image.durations)
+                    and all(isinstance(elem, int) for elem in self.image.durations)):
+                self.durations = self.image.durations
+
             self.anim_reset(True)
         self._texture = self.image.textures[0]
 

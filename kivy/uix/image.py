@@ -169,7 +169,18 @@ class Image(Widget):
     defaults to False.
     '''
 
-    anim_delay = NumericProperty(.25)
+    durations = ListProperty(None, allownone=True)
+    '''Delay the animation if the image is sequenced (like an animated gif).
+    Set if frame delay is variable, not constant.
+    Ignored if anim_delay is set to -1 or auto_anim_delay set to True.
+
+        .. versionadded:: 1.0.8
+
+        :attr:`durations` is a :class:`~kivy.properties.ListProperty` and
+        defaults to None.
+        '''
+
+    anim_delay = NumericProperty(0.25)
     '''Delay the animation if the image is sequenced (like an animated gif).
     If anim_delay is set to -1, the animation will be stopped.
 
@@ -186,6 +197,16 @@ class Image(Widget):
 
     :attr:`anim_loop` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
+    '''
+
+    auto_anim_delay = BooleanProperty(False)
+    '''If this property is set True and image is GIF animation,
+    delay of each frame would be get from GIF-image file.
+    
+    .. versionadded:: 1.6.0
+    
+    :attr:`auto_anim_delay` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
     '''
 
     nocache = BooleanProperty(False)
@@ -268,7 +289,9 @@ class Image(Widget):
                 self._coreimage = ci = CoreImage(filename, mipmap=mipmap,
                                                  anim_delay=self.anim_delay,
                                                  keep_data=self.keep_data,
-                                                 nocache=self.nocache)
+                                                 nocache=self.nocache,
+                                                 durations=self.durations,
+                                                 auto_anim_delay=self.auto_anim_delay)
             except:
                 Logger.error('Image: Error loading texture {filename}'.
                                     format(filename=self.source))
