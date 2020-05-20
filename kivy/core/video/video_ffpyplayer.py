@@ -218,6 +218,12 @@ class VideoFFPy(VideoBase):
         did_dispatch_eof = False
         seek_queue = self._seek_queue
 
+        # Wait for first frame to load before playing so audio doesnt get out of sync too badly
+        frame = None
+        while frame is None:
+            frame, value = ffplayer.get_frame(force_refresh=True)
+            sleep(0.1)
+
         # fast path, if the source video is yuv420p, we'll use a glsl shader
         # for buffer conversion to rgba
         while not self._ffplayer_need_quit:
