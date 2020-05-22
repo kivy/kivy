@@ -174,7 +174,7 @@ class Image(Widget):
     Set if frame delay is variable, not constant.
     Ignored if anim_delay is set to -1 or auto_anim_delay set to True.
 
-        .. versionadded:: 1.0.8
+        .. versionadded:: 2.0.0
 
         :attr:`durations` is a :class:`~kivy.properties.ListProperty` and
         defaults to None.
@@ -203,7 +203,7 @@ class Image(Widget):
     '''If this property is set True and image is GIF animation,
     delay of each frame would be get from GIF-image file.
     
-    .. versionadded:: 1.6.0
+    .. versionadded:: 2.0.0
     
     :attr:`auto_anim_delay` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.

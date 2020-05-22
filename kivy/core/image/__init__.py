@@ -331,7 +331,7 @@ class ImageLoaderBase(object):
     def durations(self):
         '''Get the durations list (for animated image)
 
-        .. versionadded:: 1.11.2
+        .. versionadded:: 2.0.0
         '''
         if self._textures is None:
             self.populate()
@@ -547,7 +547,7 @@ class Image(EventDispatcher):
         self._auto_anim_delay = kwargs.get('auto_anim_delay', False)
         durations = kwargs.get('durations', None)
         if not self._auto_anim_delay and durations:
-            self.durations = [elem * 1000 for elem in durations]
+            self.durations = durations
 
         # indicator of images having been loded in cache
         self._iteration_done = False
@@ -622,9 +622,9 @@ class Image(EventDispatcher):
             self._anim_index = 0
         self._texture = self.image.textures[self._anim_index]
         self.dispatch('on_texture')
-        if self.durations:
+        if self._durations:
             self._anim_ev = Clock.schedule_once(self._anim,
-                                                self.durations[self._anim_index])
+                                                self._durations[self._anim_index])
         self._anim_index += 1
         self._anim_index %= len(self._image.textures)
 
@@ -658,39 +658,25 @@ class Image(EventDispatcher):
 
         self._anim_index = 0
         if allow_anim and self._anim_available and self._anim_delay >= 0:
-            if not self.durations:
-                self._anim_ev = Clock.schedule_interval(self._anim,
-                                                        self._anim_delay)
-            else:
+            if self.durations:
                 self._anim_ev = Clock.schedule_once(self._anim,
                                                     self._anim_delay)
+            else:
+                self._anim_ev = Clock.schedule_interval(self._anim,
+                                                        self._anim_delay)
             self._anim()
 
     def _get_anim_delay(self):
         return self._anim_delay
 
     def _set_anim_delay(self, x):
-        if type(x) is type(self._anim_delay) and x == self._anim_delay:
-            return
-
-        if isinstance(x, list) and len(x) == 0:
-            raise Exception('Property "anim_delay" can not be an empty list')
-
-        if self._anim_delay == x:
+        if self._anim_delay == x and not self._durations:
             return
         self._anim_delay = x
         if self._anim_available:
             if self._anim_ev is not None:
                 self._anim_ev.cancel()
                 self._anim_ev = None
-
-            if self._anim_delay >= 0:
-                if not self.durations:
-                    self._anim_ev = Clock.schedule_interval(self._anim,
-                                                            self._anim_delay)
-                else:
-                    self._anim_ev = Clock.schedule_once(self._anim,
-                                                        self._anim_delay)
 
     anim_delay = property(_get_anim_delay, _set_anim_delay)
 
@@ -709,7 +695,7 @@ class Image(EventDispatcher):
             # durations are constant, so we have standart anim_delay case
             self._durations = None
         else:
-            self._durations = [elem / 1000 for elem in x]
+            self._durations = x
 
         self.anim_delay = x[0]
 
@@ -746,7 +732,8 @@ class Image(EventDispatcher):
 
             if (self._auto_anim_delay
                     and imgcount == len(self.image.durations)
-                    and all(isinstance(elem, int) for elem in self.image.durations)):
+                    and all(isinstance(elem, (int, float))
+                            for elem in self.image.durations)):
                 self.durations = self.image.durations
 
             self.anim_reset(True)
