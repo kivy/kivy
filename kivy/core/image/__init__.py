@@ -657,26 +657,32 @@ class Image(EventDispatcher):
             self._anim_ev = None
 
         self._anim_index = 0
-        if allow_anim and self._anim_available and self._anim_delay >= 0:
-            if self.durations:
+        if allow_anim and self._anim_available:
+            if self._durations:
+                if not len(self._durations) == len(self.image.durations):
+                    raise Exception('Image frames count not equal durations count')
                 self._anim_ev = Clock.schedule_once(self._anim,
-                                                    self._anim_delay)
-            else:
+                                                    self._durations[0])
+            elif self._anim_delay >= 0:
                 self._anim_ev = Clock.schedule_interval(self._anim,
                                                         self._anim_delay)
-            self._anim()
 
     def _get_anim_delay(self):
         return self._anim_delay
 
     def _set_anim_delay(self, x):
-        if self._anim_delay == x and not self._durations:
+        if self._anim_delay == x or self._durations:
             return
         self._anim_delay = x
         if self._anim_available:
             if self._anim_ev is not None:
                 self._anim_ev.cancel()
                 self._anim_ev = None
+
+            # start animation only if durations is empty, otherwise start animation in _set_durations()
+            if self._anim_delay >= 0 and not self._durations:
+                self._anim_ev = Clock.schedule_interval(self._anim,
+                                                        self._anim_delay)
 
     anim_delay = property(_get_anim_delay, _set_anim_delay)
 
@@ -687,17 +693,21 @@ class Image(EventDispatcher):
         # Waiting for list of ints or floats in microseconds like in GIF format, not seconds
         if x is None:
             self._durations = None
+            # if durations set None stop until anim_delay set again
+            self.anim_reset(False)
             return
         if not(isinstance(x, list) and all(isinstance(elem, (int, float)) for elem in x)) and len(x) > 0:
             raise Exception('Property durations must be list of int or float with len > 0')
 
-        if all(elem == x[0] for elem in x[1:]):
+        if all(elem == x[0] for elem in x):
             # durations are constant, so we have standart anim_delay case
             self._durations = None
+            self.anim_delay = x[0]  # anim resets inside _set_anim_delay() if not durations
         else:
+            # reset and stop for error case when durations count  < frames count
+            self.anim_reset(False)
             self._durations = x
-
-        self.anim_delay = x[0]
+            self.anim_reset(True)
 
     durations = property(_get_durations, _set_durations)
     '''Delay between each animation frame. A lower value means faster
@@ -735,8 +745,8 @@ class Image(EventDispatcher):
                     and all(isinstance(elem, (int, float))
                             for elem in self.image.durations)):
                 self.durations = self.image.durations
-
-            self.anim_reset(True)
+            else:
+                self.anim_reset(True)
         self._texture = self.image.textures[0]
 
     def on_texture(self, *largs):
