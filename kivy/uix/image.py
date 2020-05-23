@@ -202,11 +202,11 @@ class Image(Widget):
     auto_anim_delay = BooleanProperty(False)
     '''If this property is set True and image is GIF animation,
     delay of each frame would be get from GIF-image file.
-    
+
     .. versionadded:: 2.0.0
-    
-    :attr:`auto_anim_delay` is a :class:`~kivy.properties.BooleanProperty` and defaults
-    to False.
+
+    :attr:`auto_anim_delay` is a :class:`~kivy.properties.BooleanProperty`
+     and defaults to False.
     '''
 
     nocache = BooleanProperty(False)
@@ -291,7 +291,8 @@ class Image(Widget):
                                                  keep_data=self.keep_data,
                                                  nocache=self.nocache,
                                                  durations=self.durations,
-                                                 auto_anim_delay=self.auto_anim_delay)
+                                                 auto_anim_delay=
+                                                 self.auto_anim_delay)
             except:
                 Logger.error('Image: Error loading texture {filename}'.
                                     format(filename=self.source))

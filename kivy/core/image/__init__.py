@@ -94,7 +94,8 @@ class ImageData(object):
     The container will always have at least the mipmap level 0.
     '''
 
-    __slots__ = ('fmt', 'mipmaps', 'source', 'flip_vertical', 'source_image', 'duration')
+    __slots__ = ('fmt', 'mipmaps', 'source', 'flip_vertical', 'source_image',
+                 'duration')
     _supported_fmts = ('rgb', 'bgr', 'rgba', 'bgra', 'argb', 'abgr',
                        's3tc_dxt1', 's3tc_dxt3', 's3tc_dxt5', 'pvrtc_rgb2',
                        'pvrtc_rgb4', 'pvrtc_rgba2', 'pvrtc_rgba4', 'etc1_rgb8')
@@ -542,8 +543,9 @@ class Image(EventDispatcher):
         self._durations = None
         self.anim_delay = kwargs.get('anim_delay', .25)
 
-        # if True: get real frame duration from file info if it possible otherwise like False
-        # if False: get anim_delay only from kwargs if it possible or default if not
+        # if True: get real frame duration from file info if it possible
+        # otherwise like False
+        # if False: get anim_delay only from kwargs if it possible or default
         self._auto_anim_delay = kwargs.get('auto_anim_delay', False)
         durations = kwargs.get('durations', None)
         if not self._auto_anim_delay and durations:
@@ -623,8 +625,8 @@ class Image(EventDispatcher):
         self._texture = self.image.textures[self._anim_index]
         self.dispatch('on_texture')
         if self._durations:
-            self._anim_ev = Clock.schedule_once(self._anim,
-                                                self._durations[self._anim_index])
+            self._anim_ev = Clock.schedule_once(
+                self._anim, self._durations[self._anim_index])
         self._anim_index += 1
         self._anim_index %= len(self._image.textures)
 
@@ -660,7 +662,8 @@ class Image(EventDispatcher):
         if allow_anim and self._anim_available:
             if self._durations:
                 if not len(self._durations) == len(self.image.durations):
-                    raise Exception('Image frames count not equal durations count')
+                    raise Exception(
+                        'Image frames count not equal durations count')
                 self._anim_ev = Clock.schedule_once(self._anim,
                                                     self._durations[0])
             elif self._anim_delay >= 0:
@@ -679,7 +682,8 @@ class Image(EventDispatcher):
                 self._anim_ev.cancel()
                 self._anim_ev = None
 
-            # start animation only if durations is empty, otherwise start animation in _set_durations()
+            # start animation only if durations is empty,
+            # otherwise start animation in _set_durations()
             if self._anim_delay >= 0 and not self._durations:
                 self._anim_ev = Clock.schedule_interval(self._anim,
                                                         self._anim_delay)
@@ -690,21 +694,25 @@ class Image(EventDispatcher):
         return self._durations
 
     def _set_durations(self, x):
-        # Waiting for list of ints or floats in microseconds like in GIF format, not seconds
+        # Waiting for list of ints or floats in microseconds like in GIF
+        # format, not seconds
         if x is None:
             self._durations = None
             # if durations set None stop until anim_delay set again
             self.anim_reset(False)
             return
-        if not(isinstance(x, list) and all(isinstance(elem, (int, float)) for elem in x)) and len(x) > 0:
-            raise Exception('Property durations must be list of int or float with len > 0')
+        if x and not(isinstance(x, list)
+                     and all(isinstance(elem, (int, float)) for elem in x)):
+            raise Exception('Property durations must be list of int or '
+                            'float with len > 0')
 
         if all(elem == x[0] for elem in x):
             # durations are constant, so we have standart anim_delay case
             self._durations = None
-            self.anim_delay = x[0]  # anim resets inside _set_anim_delay() if not durations
+            self.anim_delay = x[0]  # anim resets inside _set_anim_delay()
+                                    # if not durations
         else:
-            # reset and stop for error case when durations count  < frames count
+            # reset and stop for error case when durations count < frames count
             self.anim_reset(False)
             self._durations = x
             self.anim_reset(True)
