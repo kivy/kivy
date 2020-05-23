@@ -286,12 +286,14 @@ class Image(Widget):
             try:
                 if PY2 and isinstance(filename, str):
                     filename = filename.decode('utf-8')
-                self._coreimage = ci = CoreImage(filename, mipmap=mipmap,
-                                                 anim_delay=self.anim_delay,
-                                                 keep_data=self.keep_data,
-                                                 nocache=self.nocache,
-                                                 durations=self.durations,
-                                                 auto_anim_delay=self.auto_anim_delay)
+                self._coreimage = ci = CoreImage(
+                    filename, mipmap=mipmap,
+                    anim_delay=self.anim_delay,
+                    keep_data=self.keep_data,
+                    nocache=self.nocache,
+                    durations=self.durations,
+                    auto_anim_delay=self.auto_anim_delay
+                )
             except:
                 Logger.error('Image: Error loading texture {filename}'.
                                     format(filename=self.source))
