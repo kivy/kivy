@@ -291,8 +291,7 @@ class Image(Widget):
                                                  keep_data=self.keep_data,
                                                  nocache=self.nocache,
                                                  durations=self.durations,
-                                                 auto_anim_delay=
-                                                 self.auto_anim_delay)
+                                                 auto_anim_delay=self.auto_anim_delay)
             except:
                 Logger.error('Image: Error loading texture {filename}'.
                                     format(filename=self.source))

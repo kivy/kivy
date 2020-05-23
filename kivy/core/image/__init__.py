@@ -658,12 +658,14 @@ class Image(EventDispatcher):
             self._anim_ev.cancel()
             self._anim_ev = None
 
-        self._anim_index = 0
         if allow_anim and self._anim_available:
             if self._durations:
                 if not len(self._durations) == len(self.image.durations):
                     raise Exception(
                         'Image frames count not equal durations count')
+                # there are minimum 2 elements otherwise this is constant case
+                # and durations is None, this index is for the next frame
+                self._anim_index = 1
                 self._anim_ev = Clock.schedule_once(self._anim,
                                                     self._durations[0])
             elif self._anim_delay >= 0:
