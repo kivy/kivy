@@ -90,7 +90,7 @@ def core_select_lib(category, llist, create_instance=False,
             errs.append((option, e, sys.exc_info()[2]))
             libs_ignored.append(modulename)
             Logger.trace('{0}: Unable to use {1}'.format(
-                category.capitalize(), option, category))
+                category.capitalize(), option))
             Logger.trace('', exc_info=e)
 
     err = '\n'.join(['{} - {}: {}\n{}'.format(opt, e.__class__.__name__, e,
