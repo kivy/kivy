@@ -704,6 +704,7 @@ class Image(EventDispatcher):
             self.anim_reset(False)
             return
 
+        self.anim_reset(False)
         self._durations = durations
         self.anim_reset(True)
 
