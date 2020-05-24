@@ -663,9 +663,9 @@ class Image(EventDispatcher):
                 if not len(self._durations) == len(self.image.durations):
                     raise Exception(
                         'Image frames count not equal durations count')
-                # there are minimum 2 elements otherwise this is constant case
-                # and durations is None, this index is for the next frame
                 self._anim_index = 1
+                # do this for the unreal case with animated GIF but one frame
+                self._anim_index %= len(self._image.textures)
                 self._anim_ev = Clock.schedule_once(self._anim,
                                                     self._durations[0])
             elif self._anim_delay >= 0:
@@ -695,29 +695,17 @@ class Image(EventDispatcher):
     def _get_durations(self):
         return self._durations
 
-    def _set_durations(self, x):
+    def _set_durations(self, durations):
         # Waiting for list of ints or floats in microseconds like in GIF
         # format, not seconds
-        if x is None:
+        if durations is None:
             self._durations = None
             # if durations set None stop until anim_delay set again
             self.anim_reset(False)
             return
-        if x and not(isinstance(x, list)
-                     and all(isinstance(elem, (int, float)) for elem in x)):
-            raise Exception('Property durations must be list of int or '
-                            'float with len > 0')
 
-        if all(elem == x[0] for elem in x):
-            # durations are constant, so we have standart anim_delay case
-            self._durations = None
-            self.anim_delay = x[0]  # anim resets inside _set_anim_delay()
-                                    # if not durations
-        else:
-            # reset and stop for error case when durations count < frames count
-            self.anim_reset(False)
-            self._durations = x
-            self.anim_reset(True)
+        self._durations = durations
+        self.anim_reset(True)
 
     durations = property(_get_durations, _set_durations)
     '''Delay between each animation frame. A lower value means faster

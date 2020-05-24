@@ -199,7 +199,7 @@ class Image(Widget):
     defaults to 0.
     '''
 
-    auto_anim_delay = BooleanProperty(False)
+    auto_anim_delay = BooleanProperty(True)
     '''If this property is set True and image is GIF animation,
     delay of each frame would be get from GIF-image file.
 
