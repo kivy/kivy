@@ -451,7 +451,7 @@ class Parser(object):
                                     .format(ref))
                         continue
                     else:
-                        Logger.debug('Lang: Reloading {0} ' +
+                        Logger.debug('Lang: Reloading {0} '
                                      'because include was forced.'
                                      .format(ref))
                         kivy.lang.builder.Builder.unload_file(ref)
