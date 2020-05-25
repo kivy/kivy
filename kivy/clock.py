@@ -1063,7 +1063,7 @@ def triggered(timeout=0, interval=False):
 
 if 'KIVY_DOC_INCLUDE' in environ:
     #: Instance of :class:`ClockBaseBehavior`.
-    Clock = None
+    Clock: ClockBase = None
 else:
     _classes = {'default': ClockBase, 'interrupt': ClockBaseInterrupt,
                 'free_all': ClockBaseFreeInterruptAll,
@@ -1074,7 +1074,7 @@ else:
             '{} is not a valid kivy clock. Valid clocks are {}'.format(
                 _clk, sorted(_classes.keys())))
 
-    Clock = register_context(
+    Clock: ClockBase = register_context(
         'Clock', _classes[_clk],
         async_lib=environ.get('KIVY_EVENTLOOP', 'asyncio'))
     '''The kivy Clock instance. See module documentation for details.

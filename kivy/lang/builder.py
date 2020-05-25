@@ -930,7 +930,7 @@ class BuilderBase(object):
 
 
 #: Main instance of a :class:`BuilderBase`.
-Builder = register_context('Builder', BuilderBase)
+Builder: BuilderBase = register_context('Builder', BuilderBase)
 Builder.load_file(join(kivy_data_dir, 'style.kv'), rulesonly=True)
 
 if 'KIVY_PROFILE_LANG' in environ:

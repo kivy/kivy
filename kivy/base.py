@@ -90,7 +90,8 @@ class ExceptionManagerBase:
 
 
 #: Instance of a :class:`ExceptionManagerBase` implementation.
-ExceptionManager = register_context('ExceptionManager', ExceptionManagerBase)
+ExceptionManager: ExceptionManagerBase = register_context(
+    'ExceptionManager', ExceptionManagerBase)
 
 
 class EventLoopBase(EventDispatcher):
