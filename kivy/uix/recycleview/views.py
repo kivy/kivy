@@ -17,10 +17,13 @@ TODO:
 
 '''
 
-from kivy.properties import StringProperty, ObjectProperty
+from kivy.properties import ObjectProperty
 from kivy.event import EventDispatcher
-from kivy.factory import Factory
 from collections import defaultdict
+
+__all__ = (
+    'RecycleDataViewBehavior', 'RecycleKVIDsDataViewBehavior',
+    'RecycleDataAdapter')
 
 _view_base_cache = {}
 '''Cache whose keys are classes and values is a boolean indicating whether the
@@ -106,6 +109,34 @@ class RecycleDataViewBehavior(object):
 
     def apply_selection(self, rv, index, is_selected):
         pass
+
+
+class RecycleKVIDsDataViewBehavior(RecycleDataViewBehavior):
+    """Similar to :class:`RecycleDataViewBehavior`, except that the data keys
+    can signify properties of objects named with an id in KV.
+
+    E.g. given a KV rule::
+
+        <MyRule@RecycleKVIDsDataViewBehavior+BoxLayout>:
+            Label:
+                id: name
+            Label:
+                id: value
+
+    Then setting the data list with
+    ``rv.data = [{'name.text': 'Kivy user', 'value.text': '12'}]`` would
+    automatically set the corresponding labels.
+    """
+
+    def refresh_view_attrs(self, rv, index, data):
+        sizing_attrs = RecycleDataAdapter._sizing_attrs
+        for key, value in data.items():
+            if key not in sizing_attrs:
+                name, *ids = key.split('.', maxsplit=1)
+                if ids:
+                    setattr(self.ids[name], ids[0], value)
+                else:
+                    setattr(self, name, value)
 
 
 class RecycleDataAdapter(EventDispatcher):
