@@ -1,4 +1,4 @@
-from random import sample
+from random import sample, randint
 from string import ascii_lowercase
 
 from kivy.app import App
@@ -14,8 +14,11 @@ kv = """
         Rectangle:
             size: self.size
             pos: self.pos
+    value: ''
     Label:
         id: name
+    Label:
+        text: root.value
 
 <Test>:
     canvas:
@@ -87,8 +90,10 @@ Builder.load_string(kv)
 class Test(BoxLayout):
 
     def populate(self):
-        self.rv.data = [{'name.text': ''.join(sample(ascii_lowercase, 6))}
-                        for x in range(50)]
+        self.rv.data = [
+            {'name.text': ''.join(sample(ascii_lowercase, 6)),
+             'value': str(randint(0, 2000))}
+            for x in range(50)]
 
     def sort(self):
         self.rv.data = sorted(self.rv.data, key=lambda x: x['name.text'])
@@ -97,7 +102,8 @@ class Test(BoxLayout):
         self.rv.data = []
 
     def insert(self, value):
-        self.rv.data.insert(0, {'name.text': value or 'default value'})
+        self.rv.data.insert(0, {
+            'name.text': value or 'default value', 'value': 'unknown'})
 
     def update(self, value):
         if self.rv.data:
