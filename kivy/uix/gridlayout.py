@@ -351,6 +351,8 @@ class GridLayout(Layout):
         self._rows_sh = [None] * current_rows
         self._rows_sh_min = [None] * current_rows
         self._rows_sh_max = [None] * current_rows
+        self._col_and_row_indices = tuple(_create_col_and_row_index_iter(
+            current_cols, current_rows, self.orientation))
 
         # update minimum size from the dicts
         items = (i for i in self.cols_minimum.items() if i[0] < len(cols))
@@ -369,14 +371,12 @@ class GridLayout(Layout):
         cols_sh_max, rows_sh_max = self._cols_sh_max, self._rows_sh_max
 
         # calculate minimum size for each columns and rows
-        index_iter = _create_col_and_row_index_iter(
-            len(cols), len(rows), self.orientation)
         has_bound_y = has_bound_x = False
-        for child in reversed(self.children):
+        for child, (col, row) in zip(reversed(self.children),
+                                     self._col_and_row_indices):
             (shw, shh), (w, h) = child.size_hint, child.size
             shw_min, shh_min = child.size_hint_min
             shw_max, shh_max = child.size_hint_max
-            col, row = next(index_iter)
 
             # compute minimum size / maximum stretch needed
             if shw is None:

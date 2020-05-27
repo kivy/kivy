@@ -39,16 +39,17 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
         cols_sh_min, rows_sh_min = self._cols_sh_min, self._rows_sh_min
         cols_sh_max, rows_sh_max = self._cols_sh_max, self._rows_sh_max
         self._cols_count = cols_count = [defaultdict(int) for _ in cols]
+        # !! bottom-to-top, the opposite of the other attributes.
         self._rows_count = rows_count = [defaultdict(int) for _ in rows]
 
         # calculate minimum size for each columns and rows
-        n_cols = len(cols)
+        col_and_row_indices = self._col_and_row_indices
         has_bound_y = has_bound_x = False
         for i, opt in enumerate(self.view_opts):
             (shw, shh), (w, h) = opt['size_hint'], opt['size']
             shw_min, shh_min = opt['size_hint_min']
             shw_max, shh_max = opt['size_hint_max']
-            row, col = divmod(i, n_cols)
+            col, row = col_and_row_indices[i]
 
             if shw is None:
                 cols_count[col][w] += 1
@@ -84,7 +85,7 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
         cols_count, rows_count = self._cols_count, self._rows_count
         cols, rows = self._cols, self._rows
         remove_view = self.remove_view
-        n_cols = len(cols_count)
+        col_and_row_indices = self._col_and_row_indices
 
         # this can be further improved to reduce re-comp, but whatever...
         for index, widget, (w, h), (wn, hn), sh, shn, sh_min, shn_min, \
@@ -97,7 +98,7 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
                   (w == wn or sh[0] is not None)):
                 remove_view(widget, index)
             else:  # size hint is None, so check if it can be resized inplace
-                row, col = divmod(index, n_cols)
+                col, row = col_and_row_indices[index]
 
                 if w != wn:
                     col_w = cols[col]
@@ -205,26 +206,35 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
                     break
                 iy += 1
 
-        # gridlayout counts from left to right, top to down
-        iy = len(rows) - iy - 1
-        return iy * len(cols) + ix
+        ori = self.orientation
+        if 'rl' in ori:
+            ix = len(cols) - ix - 1
+        if 'tb' in ori:
+            iy = len(rows) - iy - 1
+        return (iy * len(cols) + ix) if self._fills_row_first else \
+            (ix * len(rows) + iy)
 
     def compute_visible_views(self, data, viewport):
         if self._cols_pos is None:
             return []
         x, y, w, h = viewport
-        # gridlayout counts from left to right, top to down
+        right = x + w
+        top = y + h
         at_idx = self.get_view_index_at
-        bl = at_idx((x, y))
-        br = at_idx((x + w, y))
-        tl = at_idx((x, y + h))
+        # 'tl' is not actually 'top-left' unless 'orientation' is 'lr-tb'.
+        # But we can pretend it is. Same for 'bl' and 'br'.
+        tl, __, bl, br = sorted((
+            at_idx((x, y)),
+            at_idx((right, y)),
+            at_idx((x, top)),
+            at_idx((right, top)),
+        ))
+
         n = len(data)
-
         indices = []
-        row = len(self._cols)
-        if row:
+        stride = len(self._cols) if self._fills_row_first else len(self._rows)
+        if stride:
             x_slice = br - bl + 1
-            for s in range(tl, bl + 1, row):
+            for s in range(tl, bl + 1, stride):
                 indices.extend(range(min(s, n), min(n, s + x_slice)))
-
         return indices
