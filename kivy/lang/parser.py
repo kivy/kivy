@@ -348,14 +348,6 @@ class ParserRule(object):
 
     def _build_template(self):
         name = self.name
-        exception = ParserException(
-            self.ctx, self.line,
-            'Deprecated Kivy lang template syntax used "{}". Templates will '
-            'be removed in a future version'.format(name))
-        if name not in ('[FileListEntry@FloatLayout+TreeViewNode]',
-                        '[FileIconEntry@Widget]',
-                        '[AccordionItemTitle@Label]'):
-            Logger.warning(exception)
 
         if __debug__:
             trace('Builder: build template for %s' % name)
