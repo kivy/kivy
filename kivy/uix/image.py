@@ -244,7 +244,7 @@ class Image(Widget):
         fbind = self.fbind
         fbind('source', update)
         fbind('mipmap', update)
-        super(Image, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def texture_update(self, *largs):
         if not self.source:
@@ -355,7 +355,7 @@ class AsyncImage(Image):
         if not Loader:
             from kivy.loader import Loader
         self.fbind('source', self._load_source)
-        super(AsyncImage, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def _load_source(self, *args):
         source = self.source
