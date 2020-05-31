@@ -87,6 +87,8 @@ __all__ = ('FileChooserListView', 'FileChooserIconView',
 
 from weakref import ref
 from time import time
+
+from kivy.core.text import DEFAULT_FONT
 from kivy.compat import string_types
 from kivy.factory import Factory
 from kivy.clock import Clock
@@ -510,6 +512,16 @@ class FileChooserController(RelativeLayout):
     :class:`FileSystemLocal()`
 
     .. versionadded:: 1.8.0
+    '''
+
+    font_name = StringProperty(DEFAULT_FONT)
+    '''Filename of the font to use in UI components. The path can be
+    absolute or relative.  Relative paths are resolved by the
+    :func:`~kivy.resources.resource_find` function.
+
+    :attr:`font_name` is a :class:`~kivy.properties.StringProperty` and
+    defaults to 'Roboto'. This value is taken
+    from :class:`~kivy.config.Config`.
     '''
 
     _update_files_ev = None
