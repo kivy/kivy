@@ -344,6 +344,12 @@ class AsyncImage(Image):
         want to refer to the :mod:`~kivy.loader` documentation and in
         particular, the :class:`~kivy.loader.ProxyImage` for more detail
         on how to handle events around asynchronous image loading.
+
+    .. note::
+
+        AsyncImage currently does not support properties
+        :attr:`anim_loop` and :attr:`mipmap` and setting those properties will
+        have no effect.
     '''
 
     __events__ = ('on_error', 'on_load')
