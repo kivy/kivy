@@ -3080,16 +3080,18 @@ class TextInput(FocusBehavior, Widget):
                 self._trigger_update_cutbuffer()
 
     def _get_text(self, encode=False):
-        lf = self._lines_flags
-        l = self._lines
-        len_l = len(l)
-        if len(lf) < len_l:
-            lf = lf[:]
-            lf.append(1)
-        text = u''.join(
-            (u'\n' if (lf[i] & FL_IS_LINEBREAK) else u'') + l[i]
-            for i in range(len_l)
+        flags = self._lines_flags
+        lines = self._lines
+        len_lines = len(lines)
+        less_flags = len(flags) < len_lines
+        if less_flags:
+            flags.append(1)
+        text = ''.join(
+            ('\n' if (flags[i] & FL_IS_LINEBREAK) else '') + lines[i]
+            for i in range(len_lines)
         )
+        if less_flags:
+            flags.pop()
         if encode and not isinstance(text, bytes):
             text = text.encode('utf8')
         return text
