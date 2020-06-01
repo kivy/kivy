@@ -239,7 +239,6 @@ class FileHandler(logging.Handler):
         except Exception as e:
             Logger.exception("Unexpected exception in logging", e)
 
-
     def emit(self, message):
         # during the startup, store the message in the history
         if Logger.logfile_activated is None:
