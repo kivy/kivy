@@ -227,12 +227,18 @@ class FileHandler(logging.Handler):
         if FileHandler.fd in (None, False):
             return
 
-        msg = self.format(record)
-        stream = FileHandler.fd
-        fs = "%s\n"
-        stream.write('[%-7s] ' % record.levelname)
-        stream.write(fs % msg)
-        stream.flush()
+        try:
+            msg = self.format(record)
+            stream = FileHandler.fd
+            fs = "%s\n"
+            stream.write('[%-7s] ' % record.levelname)
+            stream.write(fs % msg)
+            stream.flush()
+        except UnicodeError as e:
+            Logger.exception("Codec error while logging", e)
+        except Exception as e:
+            Logger.exception("Unexpected exception in logging", e)
+
 
     def emit(self, message):
         # during the startup, store the message in the history
