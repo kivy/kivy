@@ -219,11 +219,8 @@ class FileHandler(logging.Handler):
         FileHandler.filename = filename
         if FileHandler.fd is not None:
             FileHandler.fd.close()
-        import locale
-        print('opening',filename,locale.getpreferredencoding())
-        FileHandler.fd = open(filename, 'w') #, encoding='utf-8')
+        FileHandler.fd = open(filename, 'w', encoding='utf-8')
         Logger.info('Logger: Record log in %s' % filename)
-
 
     def _write_message(self, record):
         if FileHandler.fd in (None, False):
@@ -235,7 +232,6 @@ class FileHandler(logging.Handler):
         stream.write('[%-7s] ' % record.levelname)
         stream.write(fs % msg)
         stream.flush()
-
 
     def emit(self, message):
         # during the startup, store the message in the history
