@@ -219,25 +219,23 @@ class FileHandler(logging.Handler):
         FileHandler.filename = filename
         if FileHandler.fd is not None:
             FileHandler.fd.close()
-        FileHandler.fd = open(filename, 'w', encoding='utf-8')
-
+        import locale
+        print('opening',filename,locale.getpreferredencoding())
+        FileHandler.fd = open(filename, 'w') #, encoding='utf-8')
         Logger.info('Logger: Record log in %s' % filename)
+
 
     def _write_message(self, record):
         if FileHandler.fd in (None, False):
             return
 
-        try:
-            msg = self.format(record)
-            stream = FileHandler.fd
-            fs = "%s\n"
-            stream.write('[%-7s] ' % record.levelname)
-            stream.write(fs % msg)
-            stream.flush()
-        except UnicodeError as e:
-            Logger.exception("Codec error while logging", e)
-        except Exception as e:
-            Logger.exception("Unexpected exception in logging", e)
+        msg = self.format(record)
+        stream = FileHandler.fd
+        fs = "%s\n"
+        stream.write('[%-7s] ' % record.levelname)
+        stream.write(fs % msg)
+        stream.flush()
+
 
     def emit(self, message):
         # during the startup, store the message in the history
