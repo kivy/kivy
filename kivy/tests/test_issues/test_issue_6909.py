@@ -23,6 +23,6 @@ class CodecLoggingTestCase(unittest.TestCase):
         FileHandler.encoding = "cp949"
         Config.set("kivy", "log_enable", 1)
         Config.set("kivy", "log_level", "trace")
+
         with pytest.raises(UnicodeError):
-            for string in ["한국어", "Niñas and niños"]:
-                Logger.trace("Lang: call_fn => value=%r" % (string,))
+            Logger.trace("Lang: call_fn => value=%r" % ("Niñas and niños",))
