@@ -3081,7 +3081,7 @@ class TextInput(FocusBehavior, Widget):
             if CutBuffer and not self.password:
                 self._trigger_update_cutbuffer()
 
-    def _get_text(self, encode=False):
+    def _get_text(self):
         flags = self._lines_flags
         lines = self._lines
         len_lines = len(lines)
@@ -3094,8 +3094,6 @@ class TextInput(FocusBehavior, Widget):
         )
         if less_flags:
             flags.pop()
-        if encode and not isinstance(text, bytes):
-            text = text.encode('utf8')
         return text
 
     def _set_text(self, text):
