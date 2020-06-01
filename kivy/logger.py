@@ -219,7 +219,7 @@ class FileHandler(logging.Handler):
         FileHandler.filename = filename
         if FileHandler.fd is not None:
             FileHandler.fd.close()
-        FileHandler.fd = open(filename, 'w')
+        FileHandler.fd = open(filename, 'w', encoding='utf-8')
 
         Logger.info('Logger: Record log in %s' % filename)
 
