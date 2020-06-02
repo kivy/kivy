@@ -206,7 +206,7 @@ class Image(Widget):
     .. versionadded:: 2.0.0
 
     :attr:`auto_anim_delay` is a :class:`~kivy.properties.BooleanProperty`
-     and defaults to False.
+     and defaults to True.
     '''
 
     nocache = BooleanProperty(False)

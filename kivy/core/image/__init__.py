@@ -548,7 +548,10 @@ class Image(EventDispatcher):
         # if False: get anim_delay only from kwargs if it possible or default
         self._auto_anim_delay = kwargs.get('auto_anim_delay', False)
         durations = kwargs.get('durations', None)
-        if not self._auto_anim_delay and durations:
+        # It is assumed that if we intentionally set the durations
+        # we do not want autocomplete durations from GIF-file
+        if durations:
+            self._auto_anim_delay = False
             self.durations = durations
 
         # indicator of images having been loded in cache
@@ -705,7 +708,7 @@ class Image(EventDispatcher):
             return
 
         self.anim_reset(False)
-        self._durations = durations
+        self._durations = list(durations)
         self.anim_reset(True)
 
     durations = property(_get_durations, _set_durations)
@@ -739,10 +742,7 @@ class Image(EventDispatcher):
         if imgcount > 1:
             self._anim_available = True
 
-            if (self._auto_anim_delay
-                    and imgcount == len(self.image.durations)
-                    and all(isinstance(elem, (int, float))
-                            for elem in self.image.durations)):
+            if self._auto_anim_delay:
                 self.durations = self.image.durations
             else:
                 self.anim_reset(True)
