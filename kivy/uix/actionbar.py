@@ -48,7 +48,7 @@ from kivy.uix.spinner import Spinner
 from kivy.uix.label import Label
 from kivy.config import Config
 from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty, \
-    StringProperty, ListProperty, OptionProperty, AliasProperty
+    StringProperty, ListProperty, OptionProperty, AliasProperty, ColorProperty
 from kivy.metrics import sp
 from kivy.lang import Builder
 from functools import partial
@@ -211,11 +211,11 @@ class ActionPrevious(BoxLayout, ActionItem):
     and defaults to 0.
     '''
 
-    color = ListProperty([1, 1, 1, 1])
+    color = ColorProperty([1, 1, 1, 1])
     '''
     Text color, in the format (r, g, b, a)
 
-    :attr:`color` is a :class:`~kivy.properties.ListProperty` and defaults
+    :attr:`color` is a :class:`~kivy.properties.ColorProperty` and defaults
     to [1, 1, 1, 1].
     '''
 
@@ -522,11 +522,11 @@ class ActionView(BoxLayout):
     and defaults to None.
     '''
 
-    background_color = ListProperty([1, 1, 1, 1])
+    background_color = ColorProperty([1, 1, 1, 1])
     '''
     Background color in the format (r, g, b, a).
 
-    :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`background_color` is a :class:`~kivy.properties.ColorProperty` and
     defaults to [1, 1, 1, 1].
     '''
 
@@ -790,11 +790,11 @@ class ActionBar(BoxLayout):
     defaults to None or the last ActionView instance added to the ActionBar.
     '''
 
-    background_color = ListProperty([1, 1, 1, 1])
+    background_color = ColorProperty([1, 1, 1, 1])
     '''
     Background color, in the format (r, g, b, a).
 
-    :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`background_color` is a :class:`~kivy.properties.ColorProperty` and
     defaults to [1, 1, 1, 1].
     '''
 

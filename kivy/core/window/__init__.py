@@ -21,7 +21,8 @@ from kivy.base import EventLoop, stopTouchApp
 from kivy.modules import Modules
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
-    NumericProperty, OptionProperty, StringProperty, BooleanProperty
+    NumericProperty, OptionProperty, StringProperty, BooleanProperty, \
+    ColorProperty
 from kivy.utils import platform, reify, deprecated, pi_version
 from kivy.context import get_current_context
 from kivy.uix.behaviors import FocusBehavior
@@ -1201,13 +1202,13 @@ class WindowBase(EventDispatcher):
     :attr:`shape_mode` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
-    shape_color_key = ListProperty([1, 1, 1, 1])
+    shape_color_key = ColorProperty([1, 1, 1, 1])
     '''Color key of the shaped window - sets which color will be hidden from
     the window :attr:`shape_image` (only works for sdl2 window provider).
 
     .. versionadded:: 1.10.1
 
-    :attr:`shape_color_key` is a :class:`~kivy.properties.ListProperty`
+    :attr:`shape_color_key` is a :class:`~kivy.properties.ColorProperty`
     instance and defaults to [1, 1, 1, 1].
     '''
     def on_shape_color_key(self, instane, value):

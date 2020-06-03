@@ -66,7 +66,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.properties import ObjectProperty, StringProperty, OptionProperty, \
-    ListProperty, BooleanProperty
+    ListProperty, BooleanProperty, ColorProperty
 from kivy.clock import Clock
 from kivy.base import EventLoop
 from kivy.metrics import dp
@@ -91,11 +91,11 @@ class Bubble(GridLayout):
     '''Bubble class. See module documentation for more information.
     '''
 
-    background_color = ListProperty([1, 1, 1, 1])
+    background_color = ColorProperty([1, 1, 1, 1])
     '''Background color, in the format (r, g, b, a). To use it you have to set
     either :attr:`background_image` or :attr:`arrow_image` first.
 
-    :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`background_color` is a :class:`~kivy.properties.ColorProperty` and
     defaults to [1, 1, 1, 1].
     '''
 

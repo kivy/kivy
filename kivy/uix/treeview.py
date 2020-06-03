@@ -115,7 +115,7 @@ from kivy.clock import Clock
 from kivy.uix.label import Label
 from kivy.uix.widget import Widget
 from kivy.properties import BooleanProperty, ListProperty, ObjectProperty, \
-    AliasProperty, NumericProperty, ReferenceListProperty
+    AliasProperty, NumericProperty, ReferenceListProperty, ColorProperty
 
 
 class TreeViewException(Exception):
@@ -214,10 +214,10 @@ class TreeViewNode(object):
     to -1.
     '''
 
-    color_selected = ListProperty([.3, .3, .3, 1.])
+    color_selected = ColorProperty([.3, .3, .3, 1.])
     '''Background color of the node when the node is selected.
 
-    :attr:`color_selected` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`color_selected` is a :class:`~kivy.properties.ColorProperty` and
     defaults to [.1, .1, .1, 1].
     '''
 
@@ -229,17 +229,17 @@ class TreeViewNode(object):
     False.
     '''
 
-    odd_color = ListProperty([1., 1., 1., .0])
+    odd_color = ColorProperty([1., 1., 1., .0])
     '''Background color of odd nodes when the node is not selected.
 
-    :attr:`odd_color` is a :class:`~kivy.properties.ListProperty` and defaults
+    :attr:`odd_color` is a :class:`~kivy.properties.ColorProperty` and defaults
     to [1., 1., 1., 0.].
     '''
 
-    even_color = ListProperty([0.5, 0.5, 0.5, 0.1])
+    even_color = ColorProperty([0.5, 0.5, 0.5, 0.1])
     '''Background color of even nodes when the node is not selected.
 
-    :attr:`bg_color` is a :class:`~kivy.properties.ListProperty` ans defaults
+    :attr:`bg_color` is a :class:`~kivy.properties.ColorProperty` ans defaults
     to [.5, .5, .5, .1].
     '''
 
