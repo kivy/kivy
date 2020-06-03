@@ -267,7 +267,8 @@ __all__ = ('Property',
            'NumericProperty', 'StringProperty', 'ListProperty',
            'ObjectProperty', 'BooleanProperty', 'BoundedNumericProperty',
            'OptionProperty', 'ReferenceListProperty', 'AliasProperty',
-           'DictProperty', 'VariableListProperty', 'ConfigParserProperty')
+           'DictProperty', 'VariableListProperty', 'ConfigParserProperty',
+           'ColorProperty')
 
 include "include/config.pxi"
 
@@ -1982,7 +1983,7 @@ cdef class ConfigParserProperty(Property):
 cdef class ColorProperty(Property):
     '''Property that represents a color. The assignment can take either:
 
-    - a list of 3 to 4 float value between 0-1 (kivy default)
+    - a list or tuple of 3 to 4 float values between 0-1 (kivy default)
     - a string in the format #rrggbb or #rrggbbaa
 
     :Parameters:
@@ -2001,16 +2002,20 @@ cdef class ColorProperty(Property):
         tp = type(x)
         if tp is tuple or tp is list:
             if len(x) != 3 and len(x) != 4:
-                raise ValueError('{}.{} must have 3 or 4 components (got {!r})'.format(
-                    obj.__class__.__name__, self.name, x))
+                raise ValueError(
+                    '{}.{} must have 3 or 4 components (got {!r})'
+                    .format(obj.__class__.__name__, self.name, x)
+                )
             if len(x) == 3:
                 return list(x) + [1]
             return list(x)
         elif isinstance(x, string_types):
             return self.parse_str(obj, x)
         else:
-            raise ValueError('{}.{} has an invalid format (got {!r})'.format(
-                obj.__class__.__name__, self.name, x))
+            raise ValueError(
+                '{}.{} has an invalid format (got {!r})'
+                .format(obj.__class__.__name__, self.name, x)
+            )
 
     cdef list parse_str(self, EventDispatcher obj, value):
         return get_color_from_hex(value)
