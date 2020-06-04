@@ -144,6 +144,7 @@ class FileHandler(logging.Handler):
     filename = 'log.txt'
     fd = None
     log_dir = ''
+    encoding = 'utf-8'
 
     def purge_logs(self):
         '''Purge log is called randomly to prevent the log directory from being
@@ -219,8 +220,7 @@ class FileHandler(logging.Handler):
         FileHandler.filename = filename
         if FileHandler.fd is not None:
             FileHandler.fd.close()
-        FileHandler.fd = open(filename, 'w')
-
+        FileHandler.fd = open(filename, 'w', encoding=FileHandler.encoding)
         Logger.info('Logger: Record log in %s' % filename)
 
     def _write_message(self, record):

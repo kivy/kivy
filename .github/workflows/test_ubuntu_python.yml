@@ -11,9 +11,9 @@ jobs:
   PEP8_test:
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Set up Python 3.x
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v2
       with:
         python-version: 3.x
     - name: Validate PEP8
@@ -26,9 +26,9 @@ jobs:
     env:
       DISPLAY: ':99.0'
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Set up Python 3.x
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v2
       with:
         python-version: 3.x
     - name: Install dependencies
@@ -59,9 +59,9 @@ jobs:
   gen_docs:
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Set up Python 3.x
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v2
       with:
         python-version: 3.x
     - name: Install dependencies
@@ -82,7 +82,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         generate_docs
     - name: Upload docs as artifact
-      uses: actions/upload-artifact@master
+      uses: actions/upload-artifact@v2
       with:
         name: docs
         path: doc/build/html

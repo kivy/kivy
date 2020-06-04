@@ -22,9 +22,9 @@ jobs:
         arch: ['x64', 'x86']
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel win]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel win]')
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Set up Python
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
         architecture: ${{ matrix.arch }}
@@ -47,7 +47,7 @@ jobs:
         . .\.ci\windows_ci.ps1
         Generate-windows-wheels
     - name: Upload wheels as artifact
-      uses: actions/upload-artifact@master
+      uses: actions/upload-artifact@v2
       with:
         name: windows_wheels
         path: dist
@@ -56,16 +56,15 @@ jobs:
     runs-on: windows-latest
     needs: windows_wheels_create
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: 3.x
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v2
         with:
           name: windows_wheels
-      - name: Fix wheel path
-        run: mv windows_wheels dist
+          path: dist
       - name: Fix wheel names
         if: github.event.ref_type != 'tag'
         run: |
@@ -96,7 +95,8 @@ jobs:
           TWINE_USERNAME: "__token__"
           TWINE_PASSWORD: ${{ secrets.pypi_password }}
         run: |
-          twine upload dist/*
+          . .\.ci\windows_ci.ps1
+          Upload-artifacts-to-pypi
       - name: Install Kivy Wheel
         run: |
           . .\.ci\windows_ci.ps1
@@ -110,16 +110,15 @@ jobs:
     runs-on: windows-latest
     needs: windows_wheels_create
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: 3.x
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v2
         with:
           name: windows_wheels
-      - name: Fix wheel path
-        run: mv windows_wheels dist
+          path: dist
       - name: Install Kivy sdist
         env:
           KIVY_SPLIT_EXAMPLES: 0

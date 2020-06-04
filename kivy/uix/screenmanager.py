@@ -84,14 +84,14 @@ Here is an example with a 'Menu Screen' and a 'Settings Screen'::
     class SettingsScreen(Screen):
         pass
 
-    # Create the screen manager
-    sm = ScreenManager()
-    sm.add_widget(MenuScreen(name='menu'))
-    sm.add_widget(SettingsScreen(name='settings'))
-
     class TestApp(App):
 
         def build(self):
+            # Create the screen manager
+            sm = ScreenManager()
+            sm.add_widget(MenuScreen(name='menu'))
+            sm.add_widget(SettingsScreen(name='settings'))
+
             return sm
 
     if __name__ == '__main__':

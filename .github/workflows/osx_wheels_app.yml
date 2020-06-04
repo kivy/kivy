@@ -25,9 +25,9 @@ jobs:
       matrix:
         python: [ '3.5', '3.6', '3.7', '3.8' ]
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Set up Python
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
     - name: Cache OSX deps
@@ -57,7 +57,7 @@ jobs:
         source .ci/osx_ci.sh
         generate_osx_wheels
     - name: Upload wheels as artifact
-      uses: actions/upload-artifact@master
+      uses: actions/upload-artifact@v2
       with:
         name: osx_wheels
         path: dist
@@ -66,16 +66,15 @@ jobs:
     runs-on: macOS-latest
     needs: osx_wheels_create
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Set up Python 3.x
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v2
       with:
         python-version: 3.x
-    - uses: actions/download-artifact@master
+    - uses: actions/download-artifact@v2
       with:
         name: osx_wheels
-    - name: Fix wheel path
-      run: mv osx_wheels dist
+        path: dist
     - name: Rename wheels
       if: github.event.ref_type != 'tag'
       run: |
@@ -101,7 +100,9 @@ jobs:
       env:
         TWINE_USERNAME: "__token__"
         TWINE_PASSWORD: ${{ secrets.pypi_password }}
-      run: twine upload dist/*
+      run: |
+        source .ci/ubuntu_ci.sh
+        upload_artifacts_to_pypi
     - name: Install test dependencies
       run: |
         source .ci/ubuntu_ci.sh
@@ -119,9 +120,9 @@ jobs:
     runs-on: macOS-latest
     if: false && github.event_name != 'pull_request' && (github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build app osx]')) || contains(github.event.pull_request.title, '[build app osx]')
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: 3.x
       - name: Cache OSX deps

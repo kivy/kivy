@@ -17,9 +17,9 @@ jobs:
     runs-on: ubuntu-18.04
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel linux]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel linux]')
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Set up Python 3.x
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v2
       with:
         python-version: 3.x
     - name: Make wheels
@@ -27,7 +27,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         generate_manylinux2010_wheels $DOCKER_IMAGE
     - name: Upload wheels as artifact
-      uses: actions/upload-artifact@master
+      uses: actions/upload-artifact@v2
       with:
         name: manylinux_wheels
         path: dist
@@ -38,16 +38,15 @@ jobs:
     env:
       DISPLAY: ':99.0'
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Set up Python 3.x
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v2
       with:
         python-version: 3.x
-    - uses: actions/download-artifact@master
+    - uses: actions/download-artifact@v2
       with:
         name: manylinux_wheels
-    - name: Fix wheel path
-      run: mv manylinux_wheels dist
+        path: dist
     - name: Rename wheels
       if: github.event.ref_type != 'tag'
       run: |
@@ -74,7 +73,8 @@ jobs:
         TWINE_USERNAME: "__token__"
         TWINE_PASSWORD: ${{ secrets.pypi_password }}
       run: |
-        twine upload dist/*
+        source .ci/ubuntu_ci.sh
+        upload_artifacts_to_pypi
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh
@@ -99,9 +99,9 @@ jobs:
       DISPLAY: ':99.0'
       KIVY_SPLIT_EXAMPLES: 0
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Set up Python 3.x
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: 3.x
       - name: Generate sdist

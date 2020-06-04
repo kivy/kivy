@@ -81,7 +81,7 @@ install_kivy_sdist() {
 
 test_kivy() {
   rm -rf kivy/tests/build || true
-  KIVY_NO_ARGS=1 python3 -m pytest --cov=kivy --cov-report term --cov-branch "$(pwd)/kivy/tests"
+  KIVY_NO_ARGS=1 python3 -m pytest --timeout=300 --cov=kivy --cov-report term --cov-branch "$(pwd)/kivy/tests"
 }
 
 test_kivy_install() {
@@ -95,7 +95,7 @@ test_kivy_install() {
   plugins = kivy.tools.coverage
 
 EOF
-  KIVY_TEST_AUDIO=0 KIVY_NO_ARGS=1 python3 -m pytest .
+  KIVY_TEST_AUDIO=0 KIVY_NO_ARGS=1 python3 -m pytest --timeout=300 .
 }
 
 upload_coveralls() {
@@ -195,4 +195,10 @@ upload_file_to_server() {
 
   echo -e "Host $ip\n\tStrictHostKeyChecking no\n" >>~/.ssh/config
   rsync -avh -e "ssh -p 2458" --include="*/" --include="$file_pat" --exclude="*" "$file_path/" "root@$ip:/web/downloads/ci/$server_path"
+}
+
+
+upload_artifacts_to_pypi() {
+  python3 -m pip install twine
+  twine upload dist/*
 }

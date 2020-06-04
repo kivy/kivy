@@ -15,7 +15,7 @@ function raise-only-error{
 function Generate-sdist {
     python -m pip install cython
     python setup.py sdist --formats=gztar
-    raise-only-error -Func {python setup.py bdist_wheel --build_examples --universal}
+    python setup.py bdist_wheel --build_examples --universal
     python -m pip uninstall cython -y
 }
 
@@ -75,6 +75,8 @@ function Install-kivy {
 
 function Install-kivy-wheel {
     $root=(pwd).Path
+    ls $root
+    ls $root/dist
     cd "$HOME"
 
     python -m pip install pip wheel setuptools --upgrade
@@ -84,6 +86,7 @@ function Install-kivy-wheel {
     $version=python -c "import sys; print('{}{}'.format(sys.version_info.major, sys.version_info.minor))"
     $kivy_fname=(ls $root/dist/Kivy-*$version*win_amd64*.whl | Sort-Object -property @{Expression={$_.name.tostring().Length}} | Select-Object -First 1).name
     $kivy_examples_fname=(ls $root/dist/Kivy_examples-*.whl | Sort-Object -property @{Expression={$_.name.tostring().Length}} | Select-Object -First 1).name
+    echo "kivy_fname = $kivy_fname, kivy_examples_fname = $kivy_examples_fname"
     python -m pip install "$root/dist/$kivy_fname[full,dev]" "$root/dist/$kivy_examples_fname"
 }
 
@@ -100,7 +103,7 @@ function Install-kivy-sdist {
 }
 
 function Test-kivy {
-    python -m pytest --cov=kivy --cov-report term --cov-branch "$(pwd)/kivy/tests"
+    python -m pytest --timeout=300 --cov=kivy --cov-report term --cov-branch "$(pwd)/kivy/tests"
 }
 
 function Test-kivy-installed {
@@ -110,5 +113,10 @@ function Test-kivy-installed {
     cd "$test_path"
 
     echo "[run]`nplugins = kivy.tools.coverage`n" > .coveragerc
-    raise-only-error -Func {python -m pytest .}
+    raise-only-error -Func {python -m pytest --timeout=300 .}
+}
+
+function Upload-artifacts-to-pypi {
+  python -m pip install twine
+  twine upload dist/*
 }

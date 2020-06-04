@@ -72,6 +72,8 @@
         pos: (root.value_pos[0] - root.cursor_width / 2, root.center_y - root.cursor_height / 2) if root.orientation == 'horizontal' else (root.center_x - root.cursor_width / 2, root.value_pos[1] - root.cursor_height / 2)
         size: root.cursor_size
         source: root.cursor_disabled_image if root.disabled else root.cursor_image
+        allow_stretch: True
+        keep_ratio: False
 
 <ProgressBar>:
     canvas:
@@ -350,12 +352,13 @@
             halign: 'left'
             shorten: True
             text: ctx.name
+            font_name: ctx.controller().font_name
         Label:
             text_size: self.width, None
             size_hint_x: None
             halign: 'right'
             text: '{}'.format(ctx.get_nice_size())
-
+            font_name: ctx.controller().font_name
 
 <FileChooserIconLayout>:
     on_entry_added: stacklayout.add_widget(args[1])
@@ -411,14 +414,15 @@
         pos: root.x + dp(24), root.y + dp(40)
     Label:
         text: ctx.name
+        font_name: ctx.controller().font_name
         text_size: (root.width, self.height)
         halign: 'center'
         shorten: True
         size: '100dp', '16dp'
         pos: root.x, root.y + dp(16)
-
     Label:
         text: '{}'.format(ctx.get_nice_size())
+        font_name: ctx.controller().font_name
         font_size: '11sp'
         color: .8, .8, .8, 1
         size: '100dp', '16sp'

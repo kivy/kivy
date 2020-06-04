@@ -285,7 +285,7 @@ class BuilderBase(object):
 
         return obj
 
-    def load_file(self, filename, **kwargs):
+    def load_file(self, filename, encoding='utf8', **kwargs):
         '''Insert a file into the language builder and return the root widget
         (if defined) of the kv file.
 
@@ -293,14 +293,16 @@ class BuilderBase(object):
             `rulesonly`: bool, defaults to False
                 If True, the Builder will raise an exception if you have a root
                 widget inside the definition.
+
+            `encoding`: File charcter encoding. Defaults to utf-8,
         '''
         filename = resource_find(filename) or filename
         if __debug__:
-            trace('Lang: load file %s' % filename)
-        with open(filename, 'r') as fd:
-            kwargs['filename'] = filename
-            data = fd.read()
+            trace('Lang: load file %s, using %s encoding', filename, encoding)
 
+        kwargs['filename'] = filename
+        with open(filename, 'r', encoding=encoding) as fd:
+            data = fd.read()
             return self.load_string(data, **kwargs)
 
     def unload_file(self, filename):
@@ -930,7 +932,7 @@ class BuilderBase(object):
 
 
 #: Main instance of a :class:`BuilderBase`.
-Builder = register_context('Builder', BuilderBase)
+Builder: BuilderBase = register_context('Builder', BuilderBase)
 Builder.load_file(join(kivy_data_dir, 'style.kv'), rulesonly=True)
 
 if 'KIVY_PROFILE_LANG' in environ:

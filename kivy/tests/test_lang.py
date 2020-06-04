@@ -4,6 +4,7 @@ Language tests
 '''
 
 import unittest
+import os
 from weakref import proxy
 from functools import partial
 
@@ -293,6 +294,19 @@ class LangTestCase(unittest.TestCase):
         self.assertIsNone(wid.obj)
         Builder.apply_rules(wid, 'TLangClassCustom')
         self.assertEqual(wid.obj, 42)
+
+    def test_load_utf8(self):
+        from tempfile import mkstemp
+        from kivy.lang import Builder
+        fd, name = mkstemp()
+        os.write(fd, '''
+
+Label:
+    text: 'é 😊'
+'''.encode('utf8'))
+        root = Builder.load_file(name)
+        assert root.text == 'é 😊'
+        os.close(fd)
 
 
 if __name__ == '__main__':
