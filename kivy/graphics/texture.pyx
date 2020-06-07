@@ -684,7 +684,8 @@ cdef class Texture:
 
         '''
         for cb in self.observers[:]:
-            if cb.is_dead() or cb() is callback:
+            method = cb()
+            if method is None or method is callback:
                 self.observers.remove(cb)
                 continue
 
@@ -1120,10 +1121,11 @@ cdef class Texture:
 
         # then update content again
         for callback in self.observers[:]:
-            if callback.is_dead():
+            method = callback()
+            if method is None:
                 self.observers.remove(callback)
                 continue
-            callback()(self)
+            method(self)
 
     def save(self, filename, flipped=True, fmt=None):
         '''Save the texture content to a file. Check
@@ -1352,10 +1354,11 @@ cdef class TextureRegion(Texture):
         # then update content again
         self.bind()
         for callback in self.observers[:]:
-            if callback.is_dead():
+            method = callback()
+            if method is None:
                 self.observers.remove(callback)
                 continue
-            callback()(self)
+            method(self)
 
     def ask_update(self, callback):
         # redirect to owner

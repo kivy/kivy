@@ -398,11 +398,12 @@ cdef class Fbo(RenderContext):
         self.create_fbo()
         self.flag_update()
         # notify observers
-        for callback in self.observers:
-            if callback.is_dead():
+        for callback in self.observers[:]:
+            method = callback()
+            if method is None:
                 self.observers.remove(callback)
                 continue
-            callback()(self)
+            method(self)
 
     def add_reload_observer(self, callback):
         '''Add a callback to be called after the whole graphics context has
@@ -424,7 +425,8 @@ cdef class Fbo(RenderContext):
 
         '''
         for cb in self.observers[:]:
-            if cb.is_dead() or cb() is callback:
+            method = cb()
+            if method is None or method is callback:
                 self.observers.remove(cb)
                 continue
 

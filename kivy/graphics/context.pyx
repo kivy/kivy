@@ -155,7 +155,8 @@ cdef class Context:
         '''
         lst = self.observers_before if before else self.observers
         for cb in lst[:]:
-            if cb.is_dead() or cb() is callback:
+            method = cb()
+            if method is None or method is callback:
                 lst.remove(cb)
                 continue
 
@@ -169,10 +170,11 @@ cdef class Context:
         # call reload observers that want to do something after a whole gpu
         # reloading.
         for callback in self.observers_before[:]:
-            if callback.is_dead():
+            method = callback()
+            if method is None:
                 self.observers_before.remove(callback)
                 continue
-            callback()(self)
+            method(self)
 
         # mark all the texture to not delete from the previous reload as to
         # delete now.
@@ -265,10 +267,11 @@ cdef class Context:
         # call reload observers that want to do something after a whole gpu
         # reloading.
         for callback in self.observers[:]:
-            if callback.is_dead():
+            method = callback()
+            if method is None:
                 self.observers.remove(callback)
                 continue
-            callback()(self)
+            method(self)
 
         cgl.glFinish()
         dt = time() - start
