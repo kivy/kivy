@@ -3,129 +3,145 @@ Clock tests
 ===========
 '''
 
-import unittest
-
-counter = 0
+import pytest
 
 
-def callback(dt):
-    global counter
-    counter += 1
+@pytest.fixture
+def kivy_clock():
+    from kivy.context import Context
+    from kivy.clock import ClockBase
+
+    context = Context(init=False)
+    context['Clock'] = ClockBase()
+    context.push()
+
+    from kivy.clock import Clock
+    Clock._max_fps = 0
+
+    try:
+        yield Clock
+    finally:
+        context.pop()
 
 
-class ClockTestCase(unittest.TestCase):
+@pytest.fixture
+def clock_counter():
+    class ClockCounter:
 
-    def setUp(self):
-        from kivy.clock import Clock
-        global counter
         counter = 0
-        Clock._events = [[] for i in range(256)]
 
-    def test_schedule_once(self):
-        from kivy.clock import Clock
-        Clock.schedule_once(callback)
-        Clock.tick()
-        self.assertEqual(counter, 1)
+        def __call__(self, *args, **kwargs):
+            self.counter += 1
 
-    def test_schedule_once_twice(self):
-        from kivy.clock import Clock
-        Clock.schedule_once(callback)
-        Clock.schedule_once(callback)
-        Clock.tick()
-        self.assertEqual(counter, 2)
+    yield ClockCounter()
 
-    def test_schedule_once_draw_after(self):
-        from kivy.clock import Clock
-        Clock.schedule_once(callback, 0)
-        Clock.tick_draw()
-        self.assertEqual(counter, 0)
-        Clock.tick()
-        self.assertEqual(counter, 1)
 
-    def test_schedule_once_draw_before(self):
-        from kivy.clock import Clock
-        Clock.schedule_once(callback, -1)
-        Clock.tick_draw()
-        self.assertEqual(counter, 1)
-        Clock.tick()
-        self.assertEqual(counter, 1)
+def test_schedule_once(kivy_clock, clock_counter):
+    kivy_clock.schedule_once(clock_counter)
+    kivy_clock.tick()
+    assert clock_counter.counter == 1
 
-    def test_unschedule(self):
-        from kivy.clock import Clock
-        Clock.schedule_once(callback)
-        Clock.unschedule(callback)
-        Clock.tick()
-        self.assertEqual(counter, 0)
 
-    def test_unschedule_event(self):
-        from kivy.clock import Clock
-        ev = Clock.schedule_once(callback)
-        Clock.unschedule(ev)
-        Clock.tick()
-        self.assertEqual(counter, 0)
+def test_schedule_once_twice(kivy_clock, clock_counter):
+    kivy_clock.schedule_once(clock_counter)
+    kivy_clock.schedule_once(clock_counter)
+    kivy_clock.tick()
+    assert clock_counter.counter == 2
 
-    def test_unschedule_after_tick(self):
-        from kivy.clock import Clock
-        Clock.schedule_once(callback, 5.)
-        Clock.tick()
-        Clock.unschedule(callback)
-        Clock.tick()
-        self.assertEqual(counter, 0)
 
-    def test_unschedule_draw(self):
-        from kivy.clock import Clock
-        Clock.schedule_once(callback, 0)
-        Clock.tick_draw()
-        self.assertEqual(counter, 0)
-        Clock.unschedule(callback)
-        Clock.tick()
-        self.assertEqual(counter, 0)
+def test_schedule_once_draw_after(kivy_clock, clock_counter):
+    kivy_clock.schedule_once(clock_counter, 0)
+    kivy_clock.tick_draw()
+    assert clock_counter.counter == 0
+    kivy_clock.tick()
+    assert clock_counter.counter == 1
 
-    def test_trigger_create(self):
-        from kivy.clock import Clock
-        trigger = Clock.create_trigger(callback, 0)
-        trigger()
-        self.assertEqual(counter, 0)
-        Clock.tick()
-        self.assertEqual(counter, 1)
 
-    def test_trigger_cancel(self):
-        from kivy.clock import Clock
-        trigger = Clock.create_trigger(callback, 5.)
-        trigger()
-        trigger.cancel()
-        Clock.tick()
-        self.assertEqual(counter, 0)
+def test_schedule_once_draw_before(kivy_clock, clock_counter):
+    kivy_clock.schedule_once(clock_counter, -1)
+    kivy_clock.tick_draw()
+    assert clock_counter.counter == 1
+    kivy_clock.tick()
+    assert clock_counter.counter == 1
 
-    def test_trigger_interval(self):
-        from kivy.clock import Clock
-        trigger = Clock.create_trigger(callback, 0, interval=True)
-        trigger()
-        Clock.tick()
-        self.assertEqual(counter, 1)
-        Clock.tick()
-        self.assertEqual(counter, 2)
 
-    def test_trigger_decorator(self):
-        from kivy.clock import Clock, triggered
+def test_unschedule(kivy_clock, clock_counter):
+    kivy_clock.schedule_once(clock_counter)
+    kivy_clock.unschedule(clock_counter)
+    kivy_clock.tick()
+    assert clock_counter.counter == 0
 
-        @triggered()
-        def triggered_callback():
-            callback(dt=0)
 
-        triggered_callback()
-        self.assertEqual(counter, 0)
-        Clock.tick()
-        self.assertEqual(counter, 1)
+def test_unschedule_event(kivy_clock, clock_counter):
+    ev = kivy_clock.schedule_once(clock_counter)
+    kivy_clock.unschedule(ev)
+    kivy_clock.tick()
+    assert clock_counter.counter == 0
 
-    def test_trigger_decorator_cancel(self):
-        from kivy.clock import Clock, triggered
 
-        @triggered()
-        def triggered_callback():
-            callback(dt=0)
+def test_unschedule_after_tick(kivy_clock, clock_counter):
+    kivy_clock.schedule_once(clock_counter, 5.)
+    kivy_clock.tick()
+    kivy_clock.unschedule(clock_counter)
+    kivy_clock.tick()
+    assert clock_counter.counter == 0
 
-        triggered_callback()
-        triggered_callback.cancel()
-        Clock.tick()
-        self.assertEqual(counter, 0)
+
+def test_unschedule_draw(kivy_clock, clock_counter):
+    kivy_clock.schedule_once(clock_counter, 0)
+    kivy_clock.tick_draw()
+    assert clock_counter.counter == 0
+    kivy_clock.unschedule(clock_counter)
+    kivy_clock.tick()
+    assert clock_counter.counter == 0
+
+
+def test_trigger_create(kivy_clock, clock_counter):
+    trigger = kivy_clock.create_trigger(clock_counter, 0)
+    trigger()
+    assert clock_counter.counter == 0
+    kivy_clock.tick()
+    assert clock_counter.counter == 1
+
+
+def test_trigger_cancel(kivy_clock, clock_counter):
+    trigger = kivy_clock.create_trigger(clock_counter, 5.)
+    trigger()
+    trigger.cancel()
+    kivy_clock.tick()
+    assert clock_counter.counter == 0
+
+
+def test_trigger_interval(kivy_clock, clock_counter):
+    trigger = kivy_clock.create_trigger(clock_counter, 0, interval=True)
+    trigger()
+    kivy_clock.tick()
+    assert clock_counter.counter == 1
+    kivy_clock.tick()
+    assert clock_counter.counter == 2
+
+
+def test_trigger_decorator(kivy_clock, clock_counter):
+    from kivy.clock import triggered
+
+    @triggered()
+    def triggered_callback():
+        clock_counter(dt=0)
+
+    triggered_callback()
+    assert clock_counter.counter == 0
+    kivy_clock.tick()
+    assert clock_counter.counter == 1
+
+
+def test_trigger_decorator_cancel(kivy_clock, clock_counter):
+    from kivy.clock import triggered
+
+    @triggered()
+    def triggered_callback():
+        clock_counter(dt=0)
+
+    triggered_callback()
+    triggered_callback.cancel()
+    kivy_clock.tick()
+    assert clock_counter.counter == 0
