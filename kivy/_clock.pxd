@@ -24,7 +24,19 @@ cdef class ClockEvent(object):
     cdef public double _dt
     cdef public list _del_queue
 
+    cdef public object clock_ended_callback
+    """A Optional callback for this event, which if provided is called by the clock
+    when the clock is stopped and the event was not ticked.
+    """
+    cdef public object weak_clock_ended_callback
+
+    cdef public int release_ref
+    """If True, the event should never release the reference to the callbacks.
+    If False, a weakref may be created instead.
+    """
+
     cpdef get_callback(self)
+    cpdef get_clock_ended_callback(self)
     cpdef cancel(self)
     cpdef release(self)
     cpdef tick(self, double curtime)
@@ -83,22 +95,29 @@ cdef class CyClockBase(object):
     cdef public object _lock_acquire
     cdef public object _lock_release
 
+    cdef public int has_ended
+
     cpdef get_resolution(self)
-    cpdef create_trigger(self, callback, timeout=*, interval=*)
-    cpdef schedule_del_safe(self, callback)
+    cpdef create_trigger(
+        self, callback, timeout=*, interval=*, clock_ended_callback=*, release_ref=*)
+    cpdef schedule_del_safe(self, callback, clock_ended_callback=*)
     cpdef schedule_once(self, callback, timeout=*)
     cpdef schedule_interval(self, callback, timeout)
     cpdef unschedule(self, callback, all=*)
     cpdef _release_references(self)
+    cpdef _process_del_safe_events(self)
     cpdef _process_events(self)
     cpdef _process_events_before_frame(self)
     cpdef get_min_timeout(self)
     cpdef get_events(self)
+    cpdef _process_clock_ended_del_safe_events(self)
+    cpdef _process_clock_ended_callbacks(self)
 
 
 cdef class CyClockBaseFree(CyClockBase):
 
-    cpdef create_trigger_free(self, callback, timeout=*, interval=*)
+    cpdef create_trigger_free(
+        self, callback, timeout=*, interval=*, clock_ended_callback=*, release_ref=*)
     cpdef schedule_once_free(self, callback, timeout=*)
     cpdef schedule_interval_free(self, callback, timeout)
     cpdef _process_free_events(self, double last_tick)

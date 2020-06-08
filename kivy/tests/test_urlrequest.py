@@ -31,7 +31,7 @@ class UrlRequestQueue(object):
         self.queue.append((threading.get_ident(), 'progress', args))
 
 
-def test_callbacks():
+def test_callbacks(kivy_clock):
     if os.environ.get('NONETWORK'):
         return
     from kivy.network.urlrequest import UrlRequest

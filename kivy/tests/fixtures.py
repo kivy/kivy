@@ -4,7 +4,43 @@ import weakref
 import time
 import os.path
 
-__all__ = ('kivy_app', )
+__all__ = ('kivy_clock', 'kivy_exception_manager', 'kivy_app', )
+
+
+@pytest.fixture()
+def kivy_clock():
+    from kivy.context import Context
+    from kivy.clock import ClockBase
+
+    context = Context(init=False)
+    context['Clock'] = ClockBase()
+    context.push()
+
+    from kivy.clock import Clock
+    Clock._max_fps = 0
+
+    try:
+        Clock.start_clock()
+        yield Clock
+        Clock.stop_clock()
+    finally:
+        context.pop()
+
+
+@pytest.fixture()
+def kivy_exception_manager():
+    from kivy.context import Context
+    from kivy.base import ExceptionManagerBase, ExceptionManager
+
+    context = Context(init=False)
+    context['ExceptionManager'] = ExceptionManagerBase()
+    context.push()
+
+    try:
+        yield ExceptionManager
+    finally:
+        context.pop()
+
 
 # keep track of all the kivy app fixtures so that we can check that it
 # properly dies

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # XXX: please be careful to only save this file with an utf-8 editor
 import unittest
-from kivy.compat import PY2
+import pytest
 from kivy import platform
 unicode_char = chr
 
@@ -39,7 +39,7 @@ class FileChooserUnicodeTestCase(unittest.TestCase):
         \xc3\xa0\xc2\xa4\xc2\xb5\xc3\xa0\xc2\xa5\xe2\x82\xactestb',
         b'oor\xff\xff\xff\xff\xee\xfe\xef\x81\x8D\x99testb']
         self.ufiles = [join(basepathu, f) for f in ufiles]
-        self.bfiles = [join(basepathb, f) for f in bfiles] if PY2 else []
+        self.bfiles = []
         if not os.path.isdir(basepathu):
             os.mkdir(basepathu)
         for f in self.ufiles:
@@ -56,6 +56,10 @@ class FileChooserUnicodeTestCase(unittest.TestCase):
             myzip.extractall(path=basepathu)
         for f in self.exitsfiles:
             open(f, 'rb').close()
+
+    @pytest.fixture(autouse=True)
+    def set_clock(self, kivy_clock):
+        self.kivy_clock = kivy_clock
 
     def test_filechooserlistview_unicode(self):
         if self.skip_test:
@@ -74,13 +78,6 @@ class FileChooserUnicodeTestCase(unittest.TestCase):
         # unicode encoding to be able to compare to returned unicode
         for f in self.exitsfiles:
             self.assertIn(f, files)
-
-        if PY2:
-            wid = FileChooserListView(path=self.basepathb)
-            Clock.tick()
-            files = [join(self.basepathb, f) for f in wid.files]
-            for f in self.bfiles:
-                self.assertIn(f, files)
 
     def tearDown(self):
         if self.skip_test:

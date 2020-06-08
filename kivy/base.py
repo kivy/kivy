@@ -40,20 +40,24 @@ class ExceptionHandler(object):
 
         class E(ExceptionHandler):
             def handle_exception(self, inst):
-                Logger.exception('Exception catched by ExceptionHandler')
+                Logger.exception('Exception caught by ExceptionHandler')
                 return ExceptionManager.PASS
 
         ExceptionManager.add_handler(E())
 
-    All exceptions will be set to PASS, and logged to the console!
+    Then, all exceptions will be set to PASS, and logged to the console!
     '''
 
-    def __init__(self):
-        pass
-
     def handle_exception(self, exception):
-        '''Handle one exception, defaults to returning
-        `ExceptionManager.RAISE`.
+        '''Called by :class:`ExceptionManagerBase` to handle a exception.
+
+        Defaults to returning :attr:`ExceptionManager.RAISE` that re-raises the
+        exception. Return :attr:`ExceptionManager.PASS` to indicate that the
+        exception was handled and should be ignored.
+
+        This may be called multiple times with the same exception, if
+        :attr:`ExceptionManager.RAISE` is returned as the exception bubbles
+        through multiple kivy exception handling levels.
         '''
         return ExceptionManager.RAISE
 
@@ -62,7 +66,11 @@ class ExceptionManagerBase:
     '''ExceptionManager manages exceptions handlers.'''
 
     RAISE = 0
+    """The exception should be re-raised.
+    """
     PASS = 1
+    """The exception should be ignored as it was handled by the handler.
+    """
 
     def __init__(self):
         self.handlers = []
@@ -74,7 +82,7 @@ class ExceptionManagerBase:
             self.handlers.append(cls)
 
     def remove_handler(self, cls):
-        '''Remove a exception handler from the stack.'''
+        '''Remove the exception handler from the stack.'''
         if cls in self.handlers:
             self.handlers.remove(cls)
 
@@ -92,6 +100,8 @@ class ExceptionManagerBase:
 #: Instance of a :class:`ExceptionManagerBase` implementation.
 ExceptionManager: ExceptionManagerBase = register_context(
     'ExceptionManager', ExceptionManagerBase)
+"""The :class:`ExceptionManagerBase` instance that handles kivy exceptions.
+"""
 
 
 class EventLoopBase(EventDispatcher):
@@ -164,6 +174,7 @@ class EventLoopBase(EventDispatcher):
         This starts all configured input providers.'''
         self.status = 'started'
         self.quit = False
+        Clock.start_clock()
         for provider in self.input_providers:
             provider.start()
         self.dispatch('on_start')
@@ -192,6 +203,7 @@ class EventLoopBase(EventDispatcher):
         # ensure any restart will not break anything later.
         self.input_events = []
 
+        Clock.stop_clock()
         self.stopping = False
         self.status = 'stopped'
         self.dispatch('on_stop')

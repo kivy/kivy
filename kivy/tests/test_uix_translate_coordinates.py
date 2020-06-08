@@ -24,29 +24,27 @@ def is_relative_type(widget):
 
 
 @pytest.mark.parametrize('widget_cls_name', relative_type_widget_cls_names)
-def test_to_local_and_to_parent__relative(widget_cls_name):
-    from kivy.clock import Clock
+def test_to_local_and_to_parent__relative(widget_cls_name, kivy_clock):
     from kivy.factory import Factory
     widget = Factory.get(widget_cls_name)(pos=(100, 100))
-    Clock.tick()
+    kivy_clock.tick()
     assert widget.to_local(0, 0) == (-100, -100)
     assert widget.to_parent(0, 0) == (100, 100)
 
 
 @pytest.mark.parametrize('widget_cls_name', non_relative_type_widget_cls_names)
-def test_to_local_and_to_parent__not_relative(widget_cls_name):
-    from kivy.clock import Clock
+def test_to_local_and_to_parent__not_relative(widget_cls_name, kivy_clock):
     from kivy.factory import Factory
     widget = Factory.get(widget_cls_name)(pos=(100, 100))
-    Clock.tick()
+    kivy_clock.tick()
     assert widget.to_local(0, 0) == (0, 0)
     assert widget.to_parent(0, 0) == (0, 0)
 
 
 @pytest.mark.parametrize('root_widget_cls_name', all_widget_cls_names)
 @pytest.mark.parametrize('target_widget_cls_name', all_widget_cls_names)
-def test_to_window_and_to_widget(root_widget_cls_name, target_widget_cls_name):
-    from kivy.clock import Clock
+def test_to_window_and_to_widget(
+        root_widget_cls_name, target_widget_cls_name, kivy_clock):
     from textwrap import dedent
     from kivy.lang import Builder
     root = Builder.load_string(dedent('''
@@ -62,7 +60,7 @@ def test_to_window_and_to_widget(root_widget_cls_name, target_widget_cls_name):
                     id: target
                     pos: 0, 100
         ''').format(root_widget_cls_name, target_widget_cls_name))
-    Clock.tick()
+    kivy_clock.tick()
     target = root.ids.target
     if is_relative_type(root):
         assert target.to_window(*target.pos) == (100, 100)
