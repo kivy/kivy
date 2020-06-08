@@ -544,4 +544,4 @@ More documentation
 ------------------
 For a full description of the different components of the `KV` language,
  advanced usage and limitations, see the documentation
- for :class:`~kivy.lang`.
+ for :mod:`~kivy.lang`
