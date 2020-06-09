@@ -250,8 +250,12 @@ class Slider(Widget):
 
     .. versionadded 1.10.0
 
-    :attr:`value_track_color` is a :class:`~kivy.properties.ColorProperty`
+    :attr:`value_track_color` is a :class:`~kivy.properties.ListProperty`
     and defaults to [1, 1, 1, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     """
 
     value_track_width = NumericProperty('3dp')

@@ -130,12 +130,13 @@ class ModalView(AnchorLayout):
     :attr:`background_normal` to ``''``.
 
     The :attr:`background_color` is a
-    :class:`~kivy.properties.ColorProperty` and defaults to [1, 1, 1, 1].
+    :class:`~kivy.properties.ListProperty` and defaults to [1, 1, 1, 1].
 
     .. versionchanged:: 2.0.0
         Changed behavior to affect the background of the widget itself, not
         the overlay dimming.
-
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     background = StringProperty(

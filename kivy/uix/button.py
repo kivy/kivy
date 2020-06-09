@@ -71,7 +71,11 @@ class Button(ButtonBehavior, Label):
     .. versionadded:: 1.0.8
 
     The :attr:`background_color` is a
-    :class:`~kivy.properties.ColorProperty` and defaults to [1, 1, 1, 1].
+    :class:`~kivy.properties.ListProperty` and defaults to [1, 1, 1, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     background_normal = StringProperty(

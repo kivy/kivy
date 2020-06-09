@@ -1208,8 +1208,12 @@ class WindowBase(EventDispatcher):
 
     .. versionadded:: 1.10.1
 
-    :attr:`shape_color_key` is a :class:`~kivy.properties.ColorProperty`
+    :attr:`shape_color_key` is a :class:`~kivy.properties.ListProperty`
     instance and defaults to [1, 1, 1, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
     def on_shape_color_key(self, instane, value):
         self._set_shape(

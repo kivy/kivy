@@ -465,8 +465,13 @@ class ShaderTransition(TransitionBase):
 
     .. versionadded:: 1.9.0
 
-    :attr:`clearcolor` is a :class:`~kivy.properties.ColorProperty`
-    and defaults to [0, 0, 0, 1].'''
+    :attr:`clearcolor` is a :class:`~kivy.properties.ListProperty`
+    and defaults to [0, 0, 0, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
+    '''
 
     def make_screen_fbo(self, screen):
         fbo = Fbo(size=screen.size, with_stencilbuffer=True)

@@ -2787,8 +2787,12 @@ class TextInput(FocusBehavior, Widget):
 
     .. versionadded:: 1.9.0
 
-    :attr:`cursor_color` is a :class:`~kivy.properties.ColorProperty` and
+    :attr:`cursor_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [1, 0, 0, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     cursor_width = NumericProperty('1sp')
@@ -2906,8 +2910,12 @@ class TextInput(FocusBehavior, Widget):
         The color should always have an "alpha" component less than 1
         since the selection is drawn after the text.
 
-    :attr:`selection_color` is a :class:`~kivy.properties.ColorProperty` and
+    :attr:`selection_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [0.1843, 0.6549, 0.8313, .5].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     border = ListProperty([4, 4, 4, 4])
@@ -2961,8 +2969,12 @@ class TextInput(FocusBehavior, Widget):
 
     .. versionadded:: 1.2.0
 
-    :attr:`background_color` is a :class:`~kivy.properties.ColorProperty`
+    :attr:`background_color` is a :class:`~kivy.properties.ListProperty`
     and defaults to [1, 1, 1, 1] (white).
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     foreground_color = ColorProperty([0, 0, 0, 1])
@@ -2970,8 +2982,12 @@ class TextInput(FocusBehavior, Widget):
 
     .. versionadded:: 1.2.0
 
-    :attr:`foreground_color` is a :class:`~kivy.properties.ColorProperty`
+    :attr:`foreground_color` is a :class:`~kivy.properties.ListProperty`
     and defaults to [0, 0, 0, 1] (black).
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     disabled_foreground_color = ColorProperty([0, 0, 0, .5])
@@ -2980,8 +2996,12 @@ class TextInput(FocusBehavior, Widget):
     .. versionadded:: 1.8.0
 
     :attr:`disabled_foreground_color` is a
-    :class:`~kivy.properties.ColorProperty` and
+    :class:`~kivy.properties.ListProperty` and
     defaults to [0, 0, 0, 5] (50% transparent black).
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     use_bubble = BooleanProperty(not _is_desktop)
@@ -3264,8 +3284,12 @@ class TextInput(FocusBehavior, Widget):
 
     .. versionadded:: 1.6.0
 
-    :attr:`hint_text_color` is a :class:`~kivy.properties.ColorProperty` and
+    :attr:`hint_text_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [0.5, 0.5, 0.5, 1.0] (grey).
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     auto_indent = BooleanProperty(False)

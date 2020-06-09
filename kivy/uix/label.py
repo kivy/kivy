@@ -447,8 +447,12 @@ class Label(Widget):
 
     .. versionadded:: 1.8.0
 
-    :attr:`disabled_color` is a :class:`~kivy.properties.ColorProperty` and
+    :attr:`disabled_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [1, 1, 1, .3].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     text = StringProperty('')
@@ -758,8 +762,12 @@ class Label(Widget):
     color = ColorProperty([1, 1, 1, 1])
     '''Text color, in the format (r, g, b, a).
 
-    :attr:`color` is a :class:`~kivy.properties.ColorProperty` and defaults to
+    :attr:`color` is a :class:`~kivy.properties.ListProperty` and defaults to
     [1, 1, 1, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     outline_width = NumericProperty(None, allownone=True)

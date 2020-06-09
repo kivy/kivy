@@ -164,8 +164,12 @@ class CheckBox(ToggleButtonBehavior, Widget):
     .. versionadded:: 1.10.0
 
     :attr:`color` is a
-    :class:`~kivy.properties.ColorProperty` and defaults to
+    :class:`~kivy.properties.ListProperty` and defaults to
     '[1, 1, 1, 1]'.
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     def __init__(self, **kwargs):
