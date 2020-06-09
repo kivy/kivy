@@ -1991,7 +1991,13 @@ cdef class ColorProperty(Property):
             Specifies the default value of the property.
 
     .. versionadded:: 1.10.0
+
+    .. versionchanged:: 2.0.0
+        Color value will be dispatched when set through indexing or slicing,
+        but when setting with slice you must ensure that slice has 4 components
+        with float values between 0-1.
     '''
+
     def __init__(self, defaultvalue=None, **kw):
         defaultvalue = defaultvalue or [1, 1, 1, 1]
         super(ColorProperty, self).__init__(defaultvalue, **kw)
