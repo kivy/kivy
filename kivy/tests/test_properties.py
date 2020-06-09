@@ -449,6 +449,16 @@ class PropertiesTestCase(unittest.TestCase):
         color.set(wid, (1, 1, 0, 0))
         self.assertEqual(color.get(wid), [1, 1, 0, 0])
 
+        color.set(wid, [1, 1, 1, 1])
+        color_value = color.get(wid)
+        color_value[0] = 0.5
+        self.assertEqual(color.get(wid), [0.5, 1, 1, 1])
+
+        color.set(wid, [1, 1, 1, 1])
+        color_value = color.get(wid)
+        color_value[:] = [0, 1, 0, 1]
+        self.assertEqual(color.get(wid), [0, 1, 0, 1])
+
     def test_alias_property_without_setter(self):
         from kivy.properties import AliasProperty
 
