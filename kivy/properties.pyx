@@ -2000,22 +2000,21 @@ cdef class ColorProperty(Property):
         if x is None:
             return x
         tp = type(x)
-        if tp is tuple or tp is list:
-            if len(x) != 3 and len(x) != 4:
-                raise ValueError(
-                    '{}.{} must have 3 or 4 components (got {!r})'
-                    .format(obj.__class__.__name__, self.name, x)
-                )
+        if tp is list or tp is tuple:
+            if len(x) == 4:
+                return ObservableList(self, obj, x)
             if len(x) == 3:
-                return list(x) + [1]
-            return list(x)
-        elif isinstance(x, string_types):
-            return self.parse_str(obj, x)
-        else:
+                return ObservableList(self, obj, list(x) + [1])
             raise ValueError(
-                '{}.{} has an invalid format (got {!r})'
+                '{}.{} must have 3 or 4 components (got {!r})'
                 .format(obj.__class__.__name__, self.name, x)
             )
+        elif isinstance(x, string_types):
+            return ObservableList(self, obj, self.parse_str(obj, x))
+        raise ValueError(
+            '{}.{} has an invalid format (got {!r})'
+            .format(obj.__class__.__name__, self.name, x)
+        )
 
     cdef list parse_str(self, EventDispatcher obj, value):
         return get_color_from_hex(value)
