@@ -191,9 +191,22 @@ def test_exception_caught_handler(
 
 def test_clock_ended_callback(kivy_clock, clock_counter):
     counter2 = ClockCounter()
-    event = kivy_clock.create_trigger(
-        clock_counter, clock_ended_callback=counter2)
+    counter_schedule = ClockCounter()
+
+    kivy_clock.schedule_once(counter_schedule)
+    event = kivy_clock.create_lifecycle_aware_trigger(clock_counter, counter2)
     event()
+
+    kivy_clock.stop_clock()
+    assert counter_schedule.counter == 0
+    assert clock_counter.counter == 0
+    assert counter2.counter == 1
+
+
+def test_clock_ended_del_safe(kivy_clock, clock_counter):
+    counter2 = ClockCounter()
+    kivy_clock.schedule_lifecycle_aware_del_safe(clock_counter, counter2)
+
     kivy_clock.stop_clock()
     assert clock_counter.counter == 0
     assert counter2.counter == 1
@@ -201,16 +214,39 @@ def test_clock_ended_callback(kivy_clock, clock_counter):
 
 def test_clock_ended_raises(kivy_clock, clock_counter):
     from kivy.clock import ClockNotRunningError
+    event = kivy_clock.create_lifecycle_aware_trigger(
+        clock_counter, clock_counter)
+
     kivy_clock.stop_clock()
     with pytest.raises(ClockNotRunningError):
-        kivy_clock.schedule_once(clock_counter)
+        event()
+    assert clock_counter.counter == 0
+
+    # we should be able to create the event
+    event = kivy_clock.create_lifecycle_aware_trigger(
+        clock_counter, clock_counter)
+    with pytest.raises(ClockNotRunningError):
+        event()
+    assert clock_counter.counter == 0
+
+    kivy_clock.schedule_once(clock_counter)
+    assert clock_counter.counter == 0
+
+
+def test_clock_ended_del_safe_raises(kivy_clock, clock_counter):
+    from kivy.clock import ClockNotRunningError
+    counter2 = ClockCounter()
+
+    kivy_clock.stop_clock()
+    with pytest.raises(ClockNotRunningError):
+        kivy_clock.schedule_lifecycle_aware_del_safe(clock_counter, counter2)
     assert clock_counter.counter == 0
 
 
 def test_clock_stop_twice(kivy_clock, clock_counter):
     counter2 = ClockCounter()
-    event = kivy_clock.create_trigger(
-        clock_counter, clock_ended_callback=counter2)
+    event = kivy_clock.create_lifecycle_aware_trigger(
+        clock_counter, counter2)
     event()
 
     kivy_clock.stop_clock()

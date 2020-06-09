@@ -96,11 +96,15 @@ cdef class CyClockBase(object):
     cdef public object _lock_release
 
     cdef public int has_ended
+    cdef public object _del_safe_lock
+    cdef public int _del_safe_done
 
     cpdef get_resolution(self)
-    cpdef create_trigger(
-        self, callback, timeout=*, interval=*, clock_ended_callback=*, release_ref=*)
-    cpdef schedule_del_safe(self, callback, clock_ended_callback=*)
+    cpdef create_lifecycle_aware_trigger(
+        self, callback, clock_ended_callback, timeout=*, interval=*, release_ref=*)
+    cpdef create_trigger(self, callback, timeout=*, interval=*, release_ref=*)
+    cpdef schedule_lifecycle_aware_del_safe(self, callback, clock_ended_callback)
+    cpdef schedule_del_safe(self, callback)
     cpdef schedule_once(self, callback, timeout=*)
     cpdef schedule_interval(self, callback, timeout)
     cpdef unschedule(self, callback, all=*)
@@ -116,8 +120,9 @@ cdef class CyClockBase(object):
 
 cdef class CyClockBaseFree(CyClockBase):
 
-    cpdef create_trigger_free(
-        self, callback, timeout=*, interval=*, clock_ended_callback=*, release_ref=*)
+    cpdef create_lifecycle_aware_trigger_free(
+        self, callback, clock_ended_callback, timeout=*, interval=*, release_ref=*)
+    cpdef create_trigger_free(self, callback, timeout=*, interval=*, release_ref=*)
     cpdef schedule_once_free(self, callback, timeout=*)
     cpdef schedule_interval_free(self, callback, timeout)
     cpdef _process_free_events(self, double last_tick)

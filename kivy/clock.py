@@ -198,22 +198,39 @@ discouraged because it's significantly slower than when using the event.
 Clock Lifecycle
 ---------------
 
-Kivy's clock has a lifecycle - scheduling callbacks after the clock has ended
-will raise a :class:`ClockNotRunningError` because otherwise the callback
-will never be called. By default, events can be scheduled before the clock
-is started because it is assumed the clock will eventually be started when the
-app starts
-.
-:meth:`CyClockBase.create_trigger` accepts a ``clock_ended_callback``
-parameter. If provided and the application exits normally (and the app was
-started), the event wasn't
-canceled, and the callbacks are not garbage collected, it guarantees that
-either the ``callback`` or the ``clock_ended_callback`` will be called.
+Kivy's clock has a lifecycle. By default, scheduling a callback after the Clock
+has ended will not raise an error, even though the callback may never be
+called. That's because most callbacks are like services, e.g. responding to a
+user button press - if the app is running the callbacks need to service the app
+and respond to the input, but once the app has stopped or is stopping, we can
+safely not process these events.
+
+Other events always need to be processed. E.g. another thread may request a
+callback in kivy's thread and then process some result. If the event is not
+processed in Kivy's thread because the app stopped, the second thread may
+block forever hanging the application as it exits.
+
+Consequently, we provide a API
+(:meth:`CyClockBase.create_lifecycle_aware_trigger`) for scheduling callbacks
+that raise a :class:`ClockNotRunningError` if the clock has stopped. If the
+scheduling succeeded it guarantees that one of its callbacks will be called.
+I.e. the new :meth:`CyClockBase.create_lifecycle_aware_trigger` accepts an
+additional ``clock_ended_callback`` parameter. Normally, ``callback`` will be
+called when the event is processed. But, if the clock is stopped before it can
+be processed, if the application exited normally (and the app was started) and
+the event wasn't canceled, and the callbacks are not garbage collected, then
+``clock_ended_callback`` will be called instead when the clock is stopped.
 
 That is, given these conditions, if :class:`ClockNotRunningError` was not
 raised when the event was scheduled, then one of these callbacks will be
 called - either ``callback`` if the event executed normally, or
 ``clock_ended_callback`` if the clock is stopped while the event is scheduled.
+
+By default, events can be scheduled before the clock is started because it is
+assumed the clock will eventually be started when the app starts. I.e.
+calling :meth:`CyClockBase.create_lifecycle_aware_trigger` before the clock
+and application starts will succeed. But if the app never actually starts, then
+neither of the callbacks may be executed.
 
 .. versionadded:: 2.0.0
     The lifecycle was added in 2.0.0
@@ -239,9 +256,17 @@ handles the exception, the app will not crash and will continue as normal.::
     ExceptionManager.add_handler(MyHandler())
 
 Then, all ValueError exceptions will be logged to the console and ignored.
+Similarly, if a scheduled clock callback raises a ValueError, other clock
+events will still be processed normally.
 
 If an event's callback raises an exception, before the exception handler is
 executed, the callback is immediately canceled.
+
+It still is possible for the app to be corrupted if kivy itself is the source
+of the exception. I.e. even with a handler that ignores exceptions and doesn't
+crash, the app may be in a corrupted state if the error originates from within
+Kivy itself. However, the exception handler can help protect the app from
+crashing and can help protect against user callbacks crashing the app.
 
 .. versionchanged:: 2.0.0
     Prior to Kivy 2.0.0, an exception raised in a event's callback would
@@ -259,7 +284,8 @@ Scheduling from ``__del__``
 
 It is not safe to schedule Clock events from a object's ``__del__`` or
 ``__dealloc__`` method. If you must schedule a Clock call from this method, use
-:meth:`CyClockBase.schedule_del_safe` instead.
+:meth:`CyClockBase.schedule_del_safe` or
+:meth:`CyClockBase.schedule_lifecycle_aware_del_safe` instead.
 
 Threading and Callback Order
 -----------------------------
