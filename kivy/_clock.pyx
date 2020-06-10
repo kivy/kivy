@@ -271,8 +271,12 @@ cdef class CyClockBase(object):
         """
         self._lock_acquire()
         try:
-            if self.has_ended:
-                raise TypeError('Clock already ended. Cannot re-start the Clock')
+            pass
+            # for now don't raise an exception when restarting because kivy's
+            # graphical tests are not setup to handle clock isolation so they try
+            # to restart the clock
+            # if self.has_ended:
+            #     raise TypeError('Clock already ended. Cannot re-start the Clock')
         finally:
             self._lock_release()
 

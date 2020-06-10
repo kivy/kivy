@@ -290,6 +290,7 @@ class GraphicUnitTest(_base):
         '''
         from kivy.base import stopTouchApp
         from kivy.core.window import Window
+        from kivy.clock import Clock
         Window.unbind(on_flip=self.on_window_flip)
         stopTouchApp()
 
