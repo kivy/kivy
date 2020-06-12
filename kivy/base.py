@@ -467,10 +467,10 @@ class EventLoopBase(EventDispatcher):
 EventLoop = EventLoopBase()
 
 
-def _runTouchApp_prepare(widget=None, slave=False):
+def _runTouchApp_prepare(widget=None):
     from kivy.input import MotionEventFactory, kivy_postproc_modules
 
-    # Ok, we got one widget, and we are not in slave mode
+    # Ok, we got one widget, and we are not in embedded mode
     # so, user don't create the window, let's create it for him !
     if widget:
         EventLoop.ensure_window()
@@ -511,7 +511,7 @@ def _runTouchApp_prepare(widget=None, slave=False):
     if platform == 'android':
         Clock.schedule_once(EventLoop.remove_android_splash)
 
-    # in non-slave mode, they are 2 issues
+    # in non-embedded mode, there are 2 issues
     #
     # 1. if user created a window, call the mainloop from window.
     #    This is due to glut, it need to be called with
@@ -524,7 +524,7 @@ def _runTouchApp_prepare(widget=None, slave=False):
     #
 
 
-def runTouchApp(widget=None, slave=False):
+def runTouchApp(widget=None, embedded=False):
     '''Static main function that starts the application loop.
     You can access some magic via the following arguments:
 
@@ -541,20 +541,20 @@ def runTouchApp(widget=None, slave=False):
             and your widget will be added to the window as the root
             widget.
 
-        `slave`
+        `embedded`
             No event dispatching is done. This will be your job.
 
-        `widget + slave`
+        `widget + embedded`
             No event dispatching is done. This will be your job but
             we try to get the window (must be created by you beforehand)
             and add the widget to it. Very useful for embedding Kivy
             in another toolkit. (like Qt, check kivy-designed)
 
     '''
-    _runTouchApp_prepare(widget=widget, slave=slave)
+    _runTouchApp_prepare(widget=widget)
 
-    # we are in a slave mode, don't do dispatching.
-    if slave:
+    # we are in embedded mode, don't do dispatching.
+    if embedded:
         return
 
     try:
@@ -563,7 +563,7 @@ def runTouchApp(widget=None, slave=False):
         stopTouchApp()
 
 
-async def async_runTouchApp(widget=None, slave=False, async_lib=None):
+async def async_runTouchApp(widget=None, embedded=False, async_lib=None):
     '''Identical to :func:`runTouchApp` but instead it is a coroutine
     that can be run in an existing async event loop.
 
@@ -574,10 +574,10 @@ async def async_runTouchApp(widget=None, slave=False, async_lib=None):
     '''
     if async_lib is not None:
         Clock.init_async_lib(async_lib)
-    _runTouchApp_prepare(widget=widget, slave=slave)
+    _runTouchApp_prepare(widget=widget)
 
-    # we are in a slave mode, don't do dispatching.
-    if slave:
+    # we are in embedded mode, don't do dispatching.
+    if embedded:
         return
 
     try:
