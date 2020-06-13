@@ -192,8 +192,10 @@ class ButtonBehavior(object):
         This is similar to a quick button press without using any touch events,
         but note that like most kivy code, this is not guaranteed to be safe to
         call from external threads. If needed use
-        :class:`Clock`<kivy.clock.Clock> to safely schedule this function and
+        :class:`Clock <kivy.clock.Clock>` to safely schedule this function and
         the resulting callbacks to be called from the main thread.
+
+
 
         Duration is the length of the press in seconds. Pass 0 if you want
         the action to happen instantly.
