@@ -195,8 +195,6 @@ class ButtonBehavior(object):
         :class:`Clock <kivy.clock.Clock>` to safely schedule this function and
         the resulting callbacks to be called from the main thread.
 
-
-
         Duration is the length of the press in seconds. Pass 0 if you want
         the action to happen instantly.
 
