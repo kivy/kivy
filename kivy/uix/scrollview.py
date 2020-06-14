@@ -151,7 +151,8 @@ from kivy.uix.stencilview import StencilView
 from kivy.metrics import sp, dp
 from kivy.effects.dampedscroll import DampedScrollEffect
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
-    ObjectProperty, ListProperty, ReferenceListProperty, OptionProperty
+    ObjectProperty, ListProperty, ReferenceListProperty, OptionProperty, \
+    ColorProperty
 from kivy.uix.behaviors import FocusBehavior
 
 
@@ -334,16 +335,20 @@ class ScrollView(StencilView):
     :attr:`vbar` is a :class:`~kivy.properties.AliasProperty`, readonly.
     '''
 
-    bar_color = ListProperty([.7, .7, .7, .9])
+    bar_color = ColorProperty([.7, .7, .7, .9])
     '''Color of horizontal / vertical scroll bar, in RGBA format.
 
     .. versionadded:: 1.2.0
 
     :attr:`bar_color` is a :class:`~kivy.properties.ListProperty` and defaults
     to [.7, .7, .7, .9].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
-    bar_inactive_color = ListProperty([.7, .7, .7, .2])
+    bar_inactive_color = ColorProperty([.7, .7, .7, .2])
     '''Color of horizontal / vertical scroll bar (in RGBA format), when no
     scroll is happening.
 
@@ -351,6 +356,10 @@ class ScrollView(StencilView):
 
     :attr:`bar_inactive_color` is a
     :class:`~kivy.properties.ListProperty` and defaults to [.7, .7, .7, .2].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     bar_width = NumericProperty('2dp')

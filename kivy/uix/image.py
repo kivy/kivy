@@ -59,7 +59,7 @@ from kivy.uix.widget import Widget
 from kivy.core.image import Image as CoreImage
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, ObjectProperty, ListProperty, \
-    AliasProperty, BooleanProperty, NumericProperty
+    AliasProperty, BooleanProperty, NumericProperty, ColorProperty
 from kivy.logger import Logger
 
 # delayed imports
@@ -123,7 +123,7 @@ class Image(Widget):
     read-only.
     '''
 
-    color = ListProperty([1, 1, 1, 1])
+    color = ColorProperty([1, 1, 1, 1])
     '''Image color, in the format (r, g, b, a). This attribute can be used to
     'tint' an image. Be careful: if the source image is not gray/white, the
     color will not really work as expected.
@@ -132,6 +132,10 @@ class Image(Widget):
 
     :attr:`color` is a :class:`~kivy.properties.ListProperty` and defaults to
     [1, 1, 1, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     allow_stretch = BooleanProperty(False)

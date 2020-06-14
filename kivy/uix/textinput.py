@@ -170,7 +170,7 @@ from kivy.uix.image import Image
 
 from kivy.properties import StringProperty, NumericProperty, \
     BooleanProperty, AliasProperty, OptionProperty, \
-    ListProperty, ObjectProperty, VariableListProperty
+    ListProperty, ObjectProperty, VariableListProperty, ColorProperty
 
 Cache_register = Cache.register
 Cache_append = Cache.append
@@ -2782,13 +2782,17 @@ class TextInput(FocusBehavior, Widget):
     read-only.
     '''
 
-    cursor_color = ListProperty([1, 0, 0, 1])
+    cursor_color = ColorProperty([1, 0, 0, 1])
     '''Current color of the cursor, in (r, g, b, a) format.
 
     .. versionadded:: 1.9.0
 
     :attr:`cursor_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [1, 0, 0, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     cursor_width = NumericProperty('1sp')
@@ -2898,7 +2902,7 @@ class TextInput(FocusBehavior, Widget):
     defaults to 0.
     '''
 
-    selection_color = ListProperty([0.1843, 0.6549, 0.8313, .5])
+    selection_color = ColorProperty([0.1843, 0.6549, 0.8313, .5])
     '''Current color of the selection, in (r, g, b, a) format.
 
     .. warning::
@@ -2908,6 +2912,10 @@ class TextInput(FocusBehavior, Widget):
 
     :attr:`selection_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [0.1843, 0.6549, 0.8313, .5].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     border = ListProperty([4, 4, 4, 4])
@@ -2956,25 +2964,33 @@ class TextInput(FocusBehavior, Widget):
     defaults to 'atlas://data/images/defaulttheme/textinput_active'.
     '''
 
-    background_color = ListProperty([1, 1, 1, 1])
+    background_color = ColorProperty([1, 1, 1, 1])
     '''Current color of the background, in (r, g, b, a) format.
 
     .. versionadded:: 1.2.0
 
     :attr:`background_color` is a :class:`~kivy.properties.ListProperty`
     and defaults to [1, 1, 1, 1] (white).
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
-    foreground_color = ListProperty([0, 0, 0, 1])
+    foreground_color = ColorProperty([0, 0, 0, 1])
     '''Current color of the foreground, in (r, g, b, a) format.
 
     .. versionadded:: 1.2.0
 
     :attr:`foreground_color` is a :class:`~kivy.properties.ListProperty`
     and defaults to [0, 0, 0, 1] (black).
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
-    disabled_foreground_color = ListProperty([0, 0, 0, .5])
+    disabled_foreground_color = ColorProperty([0, 0, 0, .5])
     '''Current color of the foreground when disabled, in (r, g, b, a) format.
 
     .. versionadded:: 1.8.0
@@ -2982,6 +2998,10 @@ class TextInput(FocusBehavior, Widget):
     :attr:`disabled_foreground_color` is a
     :class:`~kivy.properties.ListProperty` and
     defaults to [0, 0, 0, 5] (50% transparent black).
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     use_bubble = BooleanProperty(not _is_desktop)
@@ -3259,13 +3279,17 @@ class TextInput(FocusBehavior, Widget):
     to ''.
     '''
 
-    hint_text_color = ListProperty([0.5, 0.5, 0.5, 1.0])
+    hint_text_color = ColorProperty([0.5, 0.5, 0.5, 1.0])
     '''Current color of the hint_text text, in (r, g, b, a) format.
 
     .. versionadded:: 1.6.0
 
     :attr:`hint_text_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [0.5, 0.5, 0.5, 1.0] (grey).
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     auto_indent = BooleanProperty(False)

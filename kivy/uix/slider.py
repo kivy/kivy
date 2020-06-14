@@ -42,7 +42,8 @@ __all__ = ('Slider', )
 from kivy.uix.widget import Widget
 from kivy.properties import (NumericProperty, AliasProperty, OptionProperty,
                              ReferenceListProperty, BoundedNumericProperty,
-                             StringProperty, ListProperty, BooleanProperty)
+                             StringProperty, ListProperty, BooleanProperty,
+                             ColorProperty)
 
 
 class Slider(Widget):
@@ -244,13 +245,17 @@ class Slider(Widget):
     and defaults to False.
     """
 
-    value_track_color = ListProperty([1, 1, 1, 1])
+    value_track_color = ColorProperty([1, 1, 1, 1])
     """Color of the :attr:`value_line` in rgba format.
 
     .. versionadded 1.10.0
 
     :attr:`value_track_color` is a :class:`~kivy.properties.ListProperty`
     and defaults to [1, 1, 1, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     """
 
     value_track_width = NumericProperty('3dp')

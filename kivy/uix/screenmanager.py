@@ -197,7 +197,7 @@ from kivy.clock import Clock
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import (StringProperty, ObjectProperty, AliasProperty,
                              NumericProperty, ListProperty, OptionProperty,
-                             BooleanProperty)
+                             BooleanProperty, ColorProperty)
 from kivy.animation import Animation, AnimationTransition
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.lang import Builder
@@ -460,13 +460,18 @@ class ShaderTransition(TransitionBase):
     :attr:`vs` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.'''
 
-    clearcolor = ListProperty([0, 0, 0, 1])
+    clearcolor = ColorProperty([0, 0, 0, 1])
     '''Sets the color of Fbo ClearColor.
 
     .. versionadded:: 1.9.0
 
     :attr:`clearcolor` is a :class:`~kivy.properties.ListProperty`
-    and defaults to [0, 0, 0, 1].'''
+    and defaults to [0, 0, 0, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
+    '''
 
     def make_screen_fbo(self, screen):
         fbo = Fbo(size=screen.size, with_stencilbuffer=True)
