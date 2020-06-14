@@ -286,7 +286,9 @@ class ScrollView(StencilView):
 
     :attr:`always_overscroll` is a
     :class:`~kivy.properties.BooleanProperty` and defaults to `True`.
-    versionadded:: 2.0.0
+
+    .. versionadded:: 2.0.0
+
     The option was added and enabled by default, set to False to get the
     previous behavior of only allowing to overscroll when there is
     enough content to allow scrolling.
@@ -628,14 +630,11 @@ class ScrollView(StencilView):
             sw = vp.width - self._effect_x_start_width
         else:
             sw = vp.width - self.width
-        if sw < 1 and not (
-            self.always_overscroll
-            and self.do_scroll_x
-            and vp.size_hint_x is None
-        ):
+        if sw < 1 and not (self.always_overscroll and self.do_scroll_x):
             return
-        sx = self.effect_x.scroll / sw
-        self.scroll_x = -sx
+        if sw != 0:
+            sx = self.effect_x.scroll / sw
+            self.scroll_x = -sx
         self._trigger_update_from_scroll()
 
     def _update_effect_y(self, *args):
@@ -646,14 +645,12 @@ class ScrollView(StencilView):
             sh = vp.height - self._effect_y_start_height
         else:
             sh = vp.height - self.height
-        if sh < 1 and not (
-            self.always_overscroll
-            and self.do_scroll_y
-            and vp.size_hint_y is None
-        ):
+
+        if sh < 1 and not (self.always_overscroll and self.do_scroll_y):
             return
-        sy = self.effect_y.scroll / sh
-        self.scroll_y = -sy
+        if sh != 0:
+            sy = self.effect_y.scroll / sh
+            self.scroll_y = -sy
         self._trigger_update_from_scroll()
 
     def to_local(self, x, y, **k):
