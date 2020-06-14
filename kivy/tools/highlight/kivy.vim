@@ -11,29 +11,30 @@ syn include @pyth $VIMRUNTIME/syntax/python.vim
 
 syn match kivyComment       /#.*\n/ display contains=pythonTodo,Spell
 syn match kivyPreProc       /^\s*#:.*/
-syn match kivyAttribute     /\I\i*/ nextgroup=kivyValue
-syn match kivyBind          /on_\I\i*:/ nextgroup=kivyValue
-syn match kivyRule          /<-*\I\i*\%([,@]s*\I\i*\)*>:/
+syn match kivyAttribute     /\I\i*/ nextgroup=kivyValue skipwhite
+syn match kivyBind          /on_\I\i*:/
+syn match kivyRule          /<-*\I\i*\%([,@+]\I\i*\)*>:/
+syn match kivyRule          /\[-*\I\i*\%([,@+]\I\i*\)*]:/
 syn match kivyRootRule      /^\I\i*:\s*$/
-syn match kivyInstruction   /^\s\+\u\i*:/ nextgroup=kivyValue
+syn match kivyInstruction   /^\s\+\u\i*:\s*/ contained nextgroup=kivyValue skipwhite skipempty
 syn match kivyWidget        /^\s\+\u\i*:/
 
-syn region kivyAttribute    start=/^\(\z(\s\+\)\)\l\+:\n\1\s\{4\}/ skip=/^\z1\s\{4\}.*$/ end=/^$/ contains=@pyth
+syn region kivyBindBlock    start=/^\(\z(\s\+\)\)on_\I\i*:\s*$/ skip="^\s*$" end="^\%(\z1\s\{4}\)\@!" contains=@pyth,kivyBind
+syn match kivyBindBlock     /on_\i\+:.*$/ contains=@pyth,kivyBind
 
-syn region kivyBind         start=/^\(\z(\s\+\)\)on_\i\+:\n\1\s\{4\}/ skip=/^\z1\s\{4\}.*$/ end=/^$/ contains=@pyth
-syn region kivyBind         start=/^\(\z(\s\+\)\)on_\i\+:\n\1\s\{4\}/ skip="^\s*$\|^\z1\s\{4\}" end="^\%(\z1\s\{4\}\)\@!"me=e-9999 contains=@pyth
-syn region kivyBind         start=/on_\i\+:\s/ end=/$/ contains=@pyth
+syn match kivyValue         /:.*$/ contained contains=@pyth
 
-syn match kivyValue         /\%(id\s*\)\@<!:\s*.*$/ contains=@pyth
-syn match kivyId            /\%(id:\s*\)\@<=\w\+/
+syn match kivyIdLine        /^\s\+id\s*:\s*\w\+\s*/ contains=kivyIdStart
+syn match kivyIdStart       /id\s*:/he=s+2 contained nextgroup=kivyId skipwhite
+syn match kivyId            /\w\+/ contained
 
-syn match kivyCanvas        /^\s*canvas.*:\s*$/ nextgroup=kivyInstruction
-syn region kivyCanvas       start=/^\z(\s\+\)canvas.*:\s*$/ skip="^\s*$\|^\z1\s\{4\}" end="^\%(\z1\s\{4\}\)\@!"me=e-9999 contains=kivyInstruction,kivyValue,kivyPreProc
+syn region kivyCanvas       start=/^\z(\s\+\)canvas.*:\s*$/ skip="^\s*$" end="^\%(\z1\s\{4}\)\@!" contains=kivyInstruction,kivyPreProc,kivyComment
 
 hi def link kivyPreproc     PreProc
 hi def link kivyComment     Comment
 hi def link kivyRule        Type
 hi def link kivyRootRule    Function
+hi def link kivyIdStart     kivyAttribute
 hi def link kivyAttribute   Label
 hi def link kivyBind        Function
 hi def link kivyWidget      Function
