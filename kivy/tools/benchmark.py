@@ -168,6 +168,7 @@ if __name__ == '__main__':
 
     report = []
     report_newline = True
+    Clock.start_clock()
 
     def log(s, newline=True):
         global report_newline
@@ -252,6 +253,7 @@ if __name__ == '__main__':
     log('')
     log('Result: %.6f' % clock_total)
     log('')
+    Clock.stop_clock()
 
 try:
     reply = input(

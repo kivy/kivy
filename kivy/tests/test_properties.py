@@ -3,6 +3,7 @@ Test properties attached to a widget
 '''
 
 import unittest
+import pytest
 from kivy.event import EventDispatcher
 from functools import partial
 
@@ -15,6 +16,10 @@ wid = _TestProperty()
 
 
 class PropertiesTestCase(unittest.TestCase):
+
+    @pytest.fixture(autouse=True)
+    def set_clock(self, kivy_clock):
+        self.kivy_clock = kivy_clock
 
     def test_base(self):
         from kivy.properties import Property

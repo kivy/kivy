@@ -56,8 +56,8 @@ to write a short function that does accept dt. For Example::
 
 .. important::
 
-    The callback is weak-referenced: you are responsible for keeping a
-    reference to your original object/callback. If you don't keep a
+    The class method callback is weak-referenced: you are responsible for
+    keeping a reference to your original object/callback. If you don't keep a
     reference, the ClockBase will never execute your callback. For
     example::
 
@@ -115,12 +115,13 @@ Triggered Events
 
 .. versionadded:: 1.0.5
 
-A triggered event is a way to defer a callback. It functions exactly like
-schedule_once() and schedule_interval() except that it doesn't immediately
+:meth:`CyClockBase.create_trigger` is an advanced method way to defer a
+callback. It functions exactly like :meth:`CyClockBase.schedule_once` and
+:meth:`CyClockBase.schedule_interval` except that it doesn't immediately
 schedule the callback. Instead, one schedules the callback using the
 :class:`ClockEvent` returned by it. This ensures that you can call the event
 multiple times but it won't be scheduled more than once. This is not the case
-with :meth:`Clock.schedule_once`::
+with :meth:`CyClockBase.schedule_once`::
 
     # will run the callback twice before the next frame
     Clock.schedule_once(my_callback)
@@ -137,7 +138,8 @@ with :meth:`Clock.schedule_once`::
     event()
 
 In addition, it is more convenient to create and bind to
-the triggered event than using :meth:`Clock.schedule_once` in a function::
+the triggered event than using :meth:`CyClockBase.schedule_once` in a
+function::
 
     from kivy.clock import Clock
     from kivy.uix.widget import Widget
@@ -152,16 +154,6 @@ the triggered event than using :meth:`Clock.schedule_once` in a function::
             pass
 
 Even if x and y changes within one frame, the callback is only run once.
-
-:meth:`CyClockBase.create_trigger` has a timeout parameter that
-behaves exactly like :meth:`CyClockBase.schedule_once`.
-
-.. versionchanged:: 1.10.0
-
-    :meth:`CyClockBase.create_trigger` now has a ``interval`` parameter.
-    If False, the default, it'll create an event similar to
-    :meth:`CyClockBase.schedule_once`. Otherwise it'll create an event
-    similar to :meth:`CyClockBase.schedule_interval`.
 
 Unscheduling
 -------------
@@ -197,11 +189,103 @@ The best way to unschedule a callback is with :meth:`ClockEvent.cancel`.
 :meth:`CyClockBase.unschedule` is mainly an alias for that for that function.
 However, if the original callback itself is passed to
 :meth:`CyClockBase.unschedule`, it'll unschedule all instances of that
-callback (provided ``all`` is True, the default, other just the first match is
-removed).
+callback (provided ``all`` is True, the default, otherwise only the first match
+is removed).
 
 Calling :meth:`CyClockBase.unschedule` on the original callback is highly
 discouraged because it's significantly slower than when using the event.
+
+Clock Lifecycle
+---------------
+
+Kivy's clock has a lifecycle. By default, scheduling a callback after the Clock
+has ended will not raise an error, even though the callback may never be
+called. That's because most callbacks are like services, e.g. responding to a
+user button press - if the app is running the callbacks need to service the app
+and respond to the input, but once the app has stopped or is stopping, we can
+safely not process these events.
+
+Other events always need to be processed. E.g. another thread may request a
+callback in kivy's thread and then process some result. If the event is not
+processed in Kivy's thread because the app stopped, the second thread may
+block forever hanging the application as it exits.
+
+Consequently, we provide a API
+(:meth:`CyClockBase.create_lifecycle_aware_trigger`) for scheduling callbacks
+that raise a :class:`ClockNotRunningError` if the clock has stopped. If the
+scheduling succeeded it guarantees that one of its callbacks will be called.
+I.e. the new :meth:`CyClockBase.create_lifecycle_aware_trigger` accepts an
+additional ``clock_ended_callback`` parameter. Normally, ``callback`` will be
+called when the event is processed. But, if the clock is stopped before it can
+be processed, if the application exited normally (and the app was started) and
+the event wasn't canceled, and the callbacks are not garbage collected, then
+``clock_ended_callback`` will be called instead when the clock is stopped.
+
+That is, given these conditions, if :class:`ClockNotRunningError` was not
+raised when the event was scheduled, then one of these callbacks will be
+called - either ``callback`` if the event executed normally, or
+``clock_ended_callback`` if the clock is stopped while the event is scheduled.
+
+By default, events can be scheduled before the clock is started because it is
+assumed the clock will eventually be started when the app starts. I.e.
+calling :meth:`CyClockBase.create_lifecycle_aware_trigger` before the clock
+and application starts will succeed. But if the app never actually starts, then
+neither of the callbacks may be executed.
+
+.. versionadded:: 2.0.0
+    The lifecycle was added in 2.0.0
+
+Exception Handling
+------------------
+
+Kivy provides a exception handling manager,
+:attr:`~kivy.base.ExceptionManager`, to handle its internal exceptions
+including exceptions raised by clock callbacks, without crashing the
+application. By default when an exception is raised, the app will crash.
+But, if a handler is registered with the exception manager and the handler
+handles the exception, the app will not crash and will continue as normal.::
+
+    from kivy.base import ExceptionHandler, ExceptionManager
+    class MyHandler(ExceptionHandler):
+        def handle_exception(self, inst):
+            if isinstance(inst, ValueError):
+                Logger.exception('ValueError caught by MyHandler')
+                return ExceptionManager.PASS
+            return ExceptionManager.RAISE
+
+    ExceptionManager.add_handler(MyHandler())
+
+Then, all ValueError exceptions will be logged to the console and ignored.
+Similarly, if a scheduled clock callback raises a ValueError, other clock
+events will still be processed normally.
+
+If an event's callback raises an exception, before the exception handler is
+executed, the callback is immediately canceled.
+
+It still is possible for the app to be corrupted if kivy itself is the source
+of the exception. I.e. even with a handler that ignores exceptions and doesn't
+crash, the app may be in a corrupted state if the error originates from within
+Kivy itself. However, the exception handler can help protect the app from
+crashing and can help protect against user callbacks crashing the app.
+
+.. versionchanged:: 2.0.0
+    Prior to Kivy 2.0.0, an exception raised in a event's callback would
+    cause the clock to crash and subsequent events may or may not be executed.
+    Even if the exception was handled by an
+    :class:`~kivy.base.ExceptionHandler`, there was no guarantee that some
+    scheduled events would not be skipped.
+
+    From 2.0.0 onward, if a event's exception is handled by an
+    :class:`~kivy.base.ExceptionHandler`, other events will be shielded from
+    the exception and will execute normally.
+
+Scheduling from ``__del__``
+---------------------------
+
+It is not safe to schedule Clock events from a object's ``__del__`` or
+``__dealloc__`` method. If you must schedule a Clock call from this method, use
+:meth:`CyClockBase.schedule_del_safe` or
+:meth:`CyClockBase.schedule_lifecycle_aware_del_safe` instead.
 
 Threading and Callback Order
 -----------------------------
@@ -364,7 +448,8 @@ See :mod:`~kivy.app` for example usage.
 '''
 
 __all__ = (
-    'Clock', 'ClockEvent', 'FreeClockEvent', 'CyClockBase', 'CyClockBaseFree',
+    'Clock', 'ClockNotRunningError', 'ClockEvent', 'FreeClockEvent',
+    'CyClockBase', 'CyClockBaseFree',
     'ClockBaseBehavior', 'ClockBaseInterruptBehavior',
     'ClockBaseInterruptFreeBehavior', 'ClockBase', 'ClockBaseInterrupt',
     'ClockBaseFreeInterruptAll', 'ClockBaseFreeInterruptOnly', 'mainthread')
@@ -379,7 +464,7 @@ from kivy.compat import clock as _default_time
 import time
 try:
     from kivy._clock import CyClockBase, ClockEvent, FreeClockEvent, \
-        CyClockBaseFree
+        CyClockBaseFree, ClockNotRunningError
 except ImportError:
     Logger.error(
         'Clock: Unable to import kivy._clock. Have you perhaps forgotten to '
@@ -722,6 +807,12 @@ class ClockBaseBehavior(object):
         return self._last_tick - self._start_tick
 
     time = staticmethod(partial(_default_time))
+
+    def handle_exception(self, e):
+        from kivy.base import ExceptionManager
+
+        if ExceptionManager.handle_exception(e) == ExceptionManager.RAISE:
+            raise
 
 
 ClockBaseBehavior.time.__doc__ = \
