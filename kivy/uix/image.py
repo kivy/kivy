@@ -170,18 +170,26 @@ class Image(Widget):
 
     durations = ListProperty(None, allownone=True)
     '''Delay the animation if the image is sequenced (like an animated gif).
-    Set if frame delay is variable, not constant.
-    Ignored if anim_delay is set to -1 or auto_anim_delay set to True.
+    Set if frame delay is variable, not constant. When `auto_anim_delay` is
+    True and `durations` is not set then `durations` is filled automatically.
+    To reset and stop animation just set it to None during the animation(
+    if you want animation don't start on init you can just set `durations` to
+    None explicitly).
 
-        .. versionadded:: 2.0.0
+    .. versionadded:: 2.0.0
 
-        :attr:`durations` is a :class:`~kivy.properties.ListProperty` and
-        defaults to None.
-        '''
+    :attr:`durations` is a :class:`~kivy.properties.ListProperty` and
+    defaults to None.
+    '''
 
     anim_delay = NumericProperty(0.25)
     '''Delay the animation if the image is sequenced (like an animated gif).
+    Used only if `auto_anim_delay` is False and no `durations`.
     If anim_delay is set to -1, the animation will be stopped.
+    If you want change using `durations` during animation on using
+    'anim_delay`, set `durations` to None and then set `anim_delay` property
+    again(if you want set `anim_delay` to the same value as already in
+    property, just set it -1 and immediately set to necessary).
 
     .. versionadded:: 1.0.8
 
@@ -199,8 +207,13 @@ class Image(Widget):
     '''
 
     auto_anim_delay = BooleanProperty(True)
-    '''If this property is set True and image is GIF animation,
-    delay of each frame would be get from GIF-image file.
+    '''If this property is set to True and image is GIF animation,
+    delay of each frame would be get from GIF-image file and `durations` would
+    be automatically filled if it not set.
+    Used only if no `durations`. Forced to be False on init with `durations`
+    in args.
+    If you want autofill `durations` during animation set it to None and then
+    set `auto_anim_delay` to True.
 
     .. versionadded:: 2.0.0
 
@@ -261,6 +274,14 @@ class Image(Widget):
     def __init__(self, **kwargs):
         self._coreimage = None
         self._loops = 0
+        # the order of these three is important
+        if 'auto_anim_delay' in kwargs:
+            self.auto_anim_delay = kwargs.pop('auto_anim_delay')
+        if 'durations' in kwargs:
+            self.durations = kwargs.pop('durations')
+            self.auto_anim_delay = False
+        if 'anim_delay' in kwargs:
+            self.anim_delay = kwargs.pop('anim_delay')
         update = self.texture_update
         fbind = self.fbind
         fbind('source', update)
@@ -280,6 +301,7 @@ class Image(Widget):
             return
         if self._coreimage:
             self._coreimage.unbind(on_texture=self._on_tex_change)
+            self._coreimage.unbind(on_durations_done=self._on_durations_done)
         try:
             self._coreimage = image = CoreImage(
                 source,
@@ -296,21 +318,40 @@ class Image(Widget):
             image = self._coreimage
         if image:
             image.bind(on_texture=self._on_tex_change)
+            image.bind(on_durations_done=self._on_durations_done)
             self.texture = image.texture
 
     def on_anim_delay(self, instance, value):
         if self._coreimage is None:
             return
         self._coreimage.anim_delay = value
-        if value < 0:
+        if value < 0 and not(self.auto_anim_delay or self.durations):
             self._coreimage.anim_reset(False)
+
+    def on_auto_anim_delay(self, instance, value):
+        if self._coreimage is None:
+            return
+        self._coreimage.auto_anim_delay = value
+
+    def on_durations(self, instance, value):
+        self.auto_anim_delay = False
+        if self._coreimage is None:
+            return
+        self._coreimage.durations = value
 
     def on_texture(self, instance, value):
         self.texture_size = value.size if value else [0, 0]
 
+    def _on_durations_done(self, *largs):
+        self.durations = self._coreimage.durations
+        # we set `auto_anim_delay` to False in on_durations() but in these case
+        # it must be True
+        self.auto_anim_delay = True
+
     def _clear_core_image(self):
         if self._coreimage:
             self._coreimage.unbind(on_texture=self._on_tex_change)
+            self._coreimage.unbind(on_durations_done=self._on_durations_done)
         self.texture = None
         self._coreimage = None
         self._loops = 0
@@ -400,16 +441,20 @@ class AsyncImage(Image):
                 self._clear_core_image()
                 return
         self._found_source = source
+        # it's possible to use image durations only after full image load, so
+        # we set _coreimage `auto_anim_delay` and `durations` in on_load()
         self._coreimage = image = Loader.image(
             source,
             nocache=self.nocache,
             mipmap=self.mipmap,
-            anim_delay=self.anim_delay
+            anim_delay=self.anim_delay,
+            auto_anim_delay=False
         )
         image.bind(
             on_load=self._on_source_load,
             on_error=self._on_source_error,
-            on_texture=self._on_tex_change
+            on_texture=self._on_tex_change,
+            on_durations_done=self._on_durations_done
         )
         self.texture = image.texture
 
@@ -427,7 +472,10 @@ class AsyncImage(Image):
         pass
 
     def on_load(self, *args):
-        pass
+        if self.durations:
+            self._coreimage.durations = self.durations
+        elif self.auto_anim_delay:
+            self._coreimage.auto_anim_delay = True
 
     def is_uri(self, filename):
         proto = filename.split('://', 1)[0]
