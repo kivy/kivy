@@ -88,9 +88,10 @@ class Cache(object):
         if key is None:
             # This check is added because of the case when None is used key and
             # one of purge methods gets called. Then loop in purge method will
-            # call Cache.remove with key None which then removes entire
+            # call Cache.remove with key None which then clears entire
             # category from Cache making next iteration of loop to raise a
             # KeyError.
+            # See: https://github.com/kivy/kivy/pull/6950
             raise ValueError('"None" cannot be used as key in Cache')
         try:
             cat = Cache._categories[category]
