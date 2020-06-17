@@ -74,10 +74,24 @@ class Cache(object):
             `timeout`: double (optional)
                 Time after which to delete the object if it has not been used.
                 If None, no timeout is applied.
+
+        :raises:
+            `ValueError`: If `None` is used as `key`.
+
+        .. versionchanged:: 2.0.0
+            Raises `ValueError` if `None` is used as `key`.
+
         '''
         # check whether obj should not be cached first
         if getattr(obj, '_nocache', False):
             return
+        if key is None:
+            # This check is added because of the case when None is used key and
+            # one of purge methods gets called. Then loop in purge method will
+            # call Cache.remove with key None which then removes entire
+            # category from Cache making next iteration of loop to raise a
+            # KeyError.
+            raise ValueError('"None" cannot be used as key in Cache')
         try:
             cat = Cache._categories[category]
         except KeyError:
