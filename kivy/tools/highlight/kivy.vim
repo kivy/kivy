@@ -16,7 +16,7 @@ syn match kivyBind          /on_\I\i*:/
 syn match kivyRule          /<-*\I\i*\%([,@+]\I\i*\)*>:/
 syn match kivyRule          /\[-*\I\i*\%([,@+]\I\i*\)*]:/
 syn match kivyRootRule      /^\I\i*:\s*$/
-syn match kivyInstruction   /^\s\+\u\i*:\s*/ contained nextgroup=kivyValue skipwhite skipempty
+syn match kivyInstruction   /^\s\+\u\i*:\s*/ contained
 syn match kivyWidget        /^\s\+\u\i*:/
 
 syn region kivyBindBlock    start=/^\(\z(\s\+\)\)on_\I\i*:\s*$/ skip="^\s*$" end="^\%(\z1\s\{4}\)\@!" contains=@pyth,kivyBind
@@ -28,7 +28,7 @@ syn match kivyIdLine        /^\s\+id\s*:\s*\w\+\s*/ contains=kivyIdStart
 syn match kivyIdStart       /id\s*:/he=s+2 contained nextgroup=kivyId skipwhite
 syn match kivyId            /\w\+/ contained
 
-syn region kivyCanvas       start=/^\z(\s\+\)canvas.*:\s*$/ skip="^\s*$" end="^\%(\z1\s\{4}\)\@!" contains=kivyInstruction,kivyPreProc,kivyComment
+syn region kivyCanvas       start=/^\z(\s\+\)canvas.*:\s*$/ skip="^\s*$" end="^\%(\z1\s\{4}\)\@!" contains=kivyInstruction,kivyValue,kivyPreProc,kivyComment
 
 hi def link kivyPreproc     PreProc
 hi def link kivyComment     Comment
