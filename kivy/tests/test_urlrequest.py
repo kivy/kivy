@@ -130,3 +130,29 @@ def test_auth_auto(kivy_clock):
     ensure_called_from_thread(queue)
     check_queue_values(queue)
     assert queue[-1][2] == ({'authenticated': True, 'user': 'user'}, )
+
+
+@pytest.mark.skipif(os.environ.get('nonetwork'), reason="no network")
+@pytest.mark.parametrize("scheme", ("http", "https"))
+def test_ca_file(kivy_clock, scheme):
+    """Passing a `ca_file` should not crash on http scheme, refs #6946"""
+    from kivy.network.urlrequest import UrlRequest
+    import certifi
+    obj = UrlRequestQueue([])
+    queue = obj.queue
+    req = UrlRequest(
+        f"{scheme}://httpbin.org/get",
+        on_success=obj._on_success,
+        on_progress=obj._on_progress,
+        on_error=obj._on_error,
+        on_redirect=obj._on_redirect,
+        ca_file=certifi.where(),
+        debug=True
+    )
+    wait_request_is_finished(kivy_clock, req)
+
+    if req.error and req.error.errno == 11001:
+        pytest.skip('Cannot connect to get address')
+
+    ensure_called_from_thread(queue)
+    check_queue_values(queue)

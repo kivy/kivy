@@ -334,7 +334,8 @@ class UrlRequest(Thread):
         if timeout is not None:
             args['timeout'] = timeout
 
-        if ca_file is not None and hasattr(ssl, 'create_default_context'):
+        if (ca_file is not None and hasattr(ssl, 'create_default_context') and
+                parse.scheme == 'https'):
             ctx = ssl.create_default_context(cafile=ca_file)
             ctx.verify_mode = ssl.CERT_REQUIRED
             args['context'] = ctx
