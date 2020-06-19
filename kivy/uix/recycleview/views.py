@@ -126,6 +126,8 @@ class RecycleKVIDsDataViewBehavior(RecycleDataViewBehavior):
     Then setting the data list with
     ``rv.data = [{'name.text': 'Kivy user', 'value.text': '12'}]`` would
     automatically set the corresponding labels.
+
+    .. versionadded:: 2.0.0
     """
 
     def refresh_view_attrs(self, rv, index, data):
