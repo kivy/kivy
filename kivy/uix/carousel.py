@@ -664,14 +664,16 @@ class Carousel(StencilView):
             container = widget.parent
             slides.remove(widget)
             super(Carousel, self).remove_widget(container)
-            return container.remove_widget(widget)
-        return super(Carousel, self).remove_widget(widget)
+            container.remove_widget(widget)
+        super(Carousel, self).remove_widget(widget)
 
     def clear_widgets(self, children=None):
+        # `children` must be a list of slides or None
         if not children:
             children = self.slides[:]
+        remove_widget = self.remove_widget
         for slide in children:
-            self.remove_widget(slide)
+            remove_widget(slide)
         super(Carousel, self).clear_widgets()
 
 
