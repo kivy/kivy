@@ -1,4 +1,4 @@
-from random import sample
+from random import sample, randint
 from string import ascii_lowercase
 
 from kivy.app import App
@@ -7,7 +7,7 @@ from kivy.uix.boxlayout import BoxLayout
 
 
 kv = """
-<Row@BoxLayout>:
+<Row@RecycleKVIDsDataViewBehavior+BoxLayout>:
     canvas.before:
         Color:
             rgba: 0.5, 0.5, 0.5, 1
@@ -15,6 +15,8 @@ kv = """
             size: self.size
             pos: self.pos
     value: ''
+    Label:
+        id: name
     Label:
         text: root.value
 
@@ -88,21 +90,24 @@ Builder.load_string(kv)
 class Test(BoxLayout):
 
     def populate(self):
-        self.rv.data = [{'value': ''.join(sample(ascii_lowercase, 6))}
-                        for x in range(50)]
+        self.rv.data = [
+            {'name.text': ''.join(sample(ascii_lowercase, 6)),
+             'value': str(randint(0, 2000))}
+            for x in range(50)]
 
     def sort(self):
-        self.rv.data = sorted(self.rv.data, key=lambda x: x['value'])
+        self.rv.data = sorted(self.rv.data, key=lambda x: x['name.text'])
 
     def clear(self):
         self.rv.data = []
 
     def insert(self, value):
-        self.rv.data.insert(0, {'value': value or 'default value'})
+        self.rv.data.insert(0, {
+            'name.text': value or 'default value', 'value': 'unknown'})
 
     def update(self, value):
         if self.rv.data:
-            self.rv.data[0]['value'] = value or 'default new value'
+            self.rv.data[0]['name.text'] = value or 'default new value'
             self.rv.refresh_from_data()
 
     def remove(self):
