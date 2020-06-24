@@ -317,7 +317,7 @@ class ScrollView(StencilView):
     .. versionadded:: 1.2.0
 
     The position and size are normalized between 0-1, and represent a
-    percentage of the current scrollview height. This property is used
+    proportion of the current scrollview height. This property is used
     internally for drawing the little vertical bar when you're scrolling.
 
     :attr:`vbar` is a :class:`~kivy.properties.AliasProperty`, readonly.
@@ -346,7 +346,7 @@ class ScrollView(StencilView):
     .. versionadded:: 1.2.0
 
     The position and size are normalized between 0-1, and represent a
-    percentage of the current scrollview height. This property is used
+    proportion of the current scrollview height. This property is used
     internally for drawing the little horizontal bar when you're scrolling.
 
     :attr:`vbar` is a :class:`~kivy.properties.AliasProperty`, readonly.
