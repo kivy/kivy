@@ -2004,10 +2004,12 @@ cdef class ColorProperty(Property):
         but when setting with slice you must ensure that slice has 4 components
         with float values between 0-1.
         Assingning color name as value is now supported.
+        Value `None` is allowed as default value for property.
     '''
 
-    def __init__(self, defaultvalue=None, **kw):
-        defaultvalue = defaultvalue or [1.0, 1.0, 1.0, 1.0]
+    def __init__(self, defaultvalue=0, **kw):
+        defaultvalue = \
+            [1.0, 1.0, 1.0, 1.0] if defaultvalue == 0 else defaultvalue
         super(ColorProperty, self).__init__(defaultvalue, **kw)
 
     cdef convert(self, EventDispatcher obj, x):
