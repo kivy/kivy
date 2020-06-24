@@ -25,10 +25,10 @@ layouts to manage the sizes of their children. It indicates the size
 relative to the layout's size instead of an absolute size (in
 pixels/points/cm/etc). The format is::
 
-    widget.size_hint = (width_percent, height_percent)
+    widget.size_hint = (width_proportion, height_proportion)
 
-The percent is specified as a floating point number in the range 0-1. For
-example, 0.5 is 50%, 1 is 100%.
+The proportions are specified as floating point numbers in the range 0-1. For
+example, 0.5 represents 50%, 1 represents 100%.
 
 If you want a widget's width to be half of the parent's width and the
 height to be identical to the parent's height, you would do::
