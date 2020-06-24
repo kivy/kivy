@@ -445,6 +445,9 @@ class PropertiesTestCase(unittest.TestCase):
         color2.link_deps(wid, 'color2')
         self.assertEqual(color2.get(wid), [1, 1, 1, 1])
 
+        color.set(wid, 'yellow')
+        self.assertEqual(color.get(wid), [1.0, 1.0, 0.0, 1.0])
+
         color.set(wid, "#00ff00")
         self.assertEqual(color.get(wid), [0, 1, 0, 1])
 

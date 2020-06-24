@@ -280,7 +280,7 @@ from functools import partial
 from kivy.clock import Clock
 from kivy.weakmethod import WeakMethod
 from kivy.logger import Logger
-from kivy.utils import get_color_from_hex
+from kivy.utils import get_color_from_hex, colormap
 
 
 cdef float g_dpi = -1
@@ -1983,11 +1983,18 @@ cdef class ConfigParserProperty(Property):
 cdef class ColorProperty(Property):
     '''Property that represents a color. The assignment can take either:
 
-    - a list or tuple of 3 to 4 float values between 0-1 (kivy default)
+    - a collection of 3 or 4 float values between 0-1 (kivy default)
     - a string in the format #rrggbb or #rrggbbaa
+    - a string representing color name (eg. 'red', 'yellow', 'green')
+
+    Color names definitions can be found at this
+    `link <https://www.w3.org/TR/SVG11/types.html#ColorKeywords>`_. Color can
+    be assinged in different formats, but it will be returned as
+    :class:`kivy.properties.ObservableList` of 4 float elements with values
+    between 0-1.
 
     :Parameters:
-        `defaultvalue`: list or string, defaults to [1, 1, 1, 1]
+        `defaultvalue`: list or string, defaults to [1.0, 1.0, 1.0, 1.0]
             Specifies the default value of the property.
 
     .. versionadded:: 1.10.0
@@ -1996,34 +2003,36 @@ cdef class ColorProperty(Property):
         Color value will be dispatched when set through indexing or slicing,
         but when setting with slice you must ensure that slice has 4 components
         with float values between 0-1.
+        Assingning color name as value is now supported.
     '''
 
     def __init__(self, defaultvalue=None, **kw):
-        defaultvalue = defaultvalue or [1, 1, 1, 1]
+        defaultvalue = defaultvalue or [1.0, 1.0, 1.0, 1.0]
         super(ColorProperty, self).__init__(defaultvalue, **kw)
 
     cdef convert(self, EventDispatcher obj, x):
         if x is None:
             return x
-        if isinstance(x, string_types):
-            return ObservableList(self, obj, self.parse_str(obj, x))
-
+        cdef object color = x
         try:
-            count = len(x)
-        except TypeError as e:
+            if isinstance(x, string_types):
+                color = self.parse_list(obj, self.parse_str(obj, x))
+            color = self.parse_list(obj, color)
+        except Exception as e:
             raise ValueError(
                 '{}.{} has an invalid format (got {!r})'
                 .format(obj.__class__.__name__, self.name, x)
             ) from e
-
-        if count == 4:
-            return ObservableList(self, obj, x)
-        if count == 3:
-            return ObservableList(self, obj, list(x) + [1])
-        raise ValueError(
-            '{}.{} must have 3 or 4 components (got {!r})'
-            .format(obj.__class__.__name__, self.name, x)
-        )
+        return color
 
     cdef list parse_str(self, EventDispatcher obj, value):
-        return get_color_from_hex(value)
+        cdef list color = colormap.get(value)
+        return color if color else get_color_from_hex(value)
+
+    cdef object parse_list(self, EventDispatcher obj, value):
+        cdef int count = len(value)
+        if count == 4:
+            return ObservableList(self, obj, value)
+        if count == 3:
+            return ObservableList(self, obj, list(value) + [1.0])
+        raise ValueError('Invalid value for color (got %r)' % value)

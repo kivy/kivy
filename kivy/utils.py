@@ -120,7 +120,7 @@ def get_color_from_hex(s):
     value = [int(x, 16) / 255.
              for x in split('([0-9a-f]{2})', s.lower()) if x != '']
     if len(value) == 3:
-        value.append(1)
+        value.append(1.0)
     return value
 
 
