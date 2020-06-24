@@ -140,11 +140,13 @@ class Video(Image):
             self._trigger_video_load()
 
     def seek(self, percent, precise=True):
-        '''Change the position to a percentage (strictly, a proportion) of duration.
+        '''Change the position to a percentage (strictly, a proportion)
+           of duration.
 
         :Parameters:
             `percent`: float or int
-                Position to seek as a proportion of the total duration, must be between 0-1.
+                Position to seek as a proportion of the total duration,
+                must be between 0-1.
             `precise`: bool, defaults to True
                 Precise seeking is slower, but seeks to exact requested
                 percent.
