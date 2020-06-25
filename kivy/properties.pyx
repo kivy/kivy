@@ -1987,10 +1987,11 @@ cdef class ColorProperty(Property):
     - a string in the format #rrggbb or #rrggbbaa
     - a string representing color name (eg. 'red', 'yellow', 'green')
 
-    Color names definitions can be found at this
+    Object :obj:`~kivy.utils.colormap` is used to retreive color from color
+    name and names definitions can be found at this
     `link <https://www.w3.org/TR/SVG11/types.html#ColorKeywords>`_. Color can
     be assinged in different formats, but it will be returned as
-    :class:`kivy.properties.ObservableList` of 4 float elements with values
+    :class:`~kivy.properties.ObservableList` of 4 float elements with values
     between 0-1.
 
     :Parameters:
@@ -2018,9 +2019,9 @@ cdef class ColorProperty(Property):
         cdef object color = x
         try:
             if isinstance(x, string_types):
-                color = self.parse_list(obj, self.parse_str(obj, x))
+                color = self.parse_str(obj, x)
             color = self.parse_list(obj, color)
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             raise ValueError(
                 '{}.{} has an invalid format (got {!r})'
                 .format(obj.__class__.__name__, self.name, x)
