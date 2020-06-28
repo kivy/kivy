@@ -98,8 +98,9 @@ class Camera(Image):
         if self.index < 0:
             return
         if self.resolution[0] < 0 or self.resolution[1] < 0:
-            return
-        self._camera = CoreCamera(index=self.index,
+            self._camera = CoreCamera(index=self.index, stopped=True)
+        else:
+            self._camera = CoreCamera(index=self.index,
                                   resolution=self.resolution, stopped=True)
         self._camera.bind(on_load=self._camera_loaded)
         if self.play:
