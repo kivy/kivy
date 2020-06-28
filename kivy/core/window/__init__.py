@@ -307,7 +307,7 @@ class WindowBase(EventDispatcher):
                 The *unicode* parameter has be deprecated in favor of
                 codepoint, and will be removed completely in future versions.
 
-        `on_dropfile`: str
+        `on_dropfile`: filename (bytes):
             Fired when a file is dropped on the application.
 
             .. note::
