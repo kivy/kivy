@@ -16,16 +16,15 @@ syn match kivyRule          /\[-*\I\i*\%([,@+]\I\i*\)*]:/
 syn match kivyRootRule      /^\I\i*:\s*$/
 
 syn region kivyAttrBlock    matchgroup=kivyAttribute start=/^\z(\s\+\)\I\i*\s*:\s*$/ skip="^\s*$" end="^\%(\z1\s\{4}\)\@!" contains=@pyth
-syn region kivyAttrBlock    matchgroup=kivyAttribute start=/^\s\+\I\i*\s*:\%(\s*\S\)\@=/ end="$" oneline contains=@pyth
+syn region kivyAttrBlock    matchgroup=kivyAttribute start=/^\s\+\I\i*\s*:\%(\s*\S\)\@=/ end="$" keepend oneline contains=@pyth
 
-syn match kivyId            /\w\+/ contained
-syn region kivyIdBlock      matchgroup=kivyAttribute start=/^\s\+id\s*:/ end="$" oneline contains=kivyId
+syn region kivyId           matchgroup=kivyAttribute start=/^\s\+id\s*:\s*/ end="\w\+\zs" oneline
 
 syn region kivyBindBlock    matchgroup=kivyBind start=/^\z(\s\+\)on_\I\i*\s*:\s*$/ skip="^\s*$" end="^\%(\z1\s\{4}\)\@!" contains=@pyth
-syn region kivyBindBlock    matchgroup=kivyBind start=/^\s\+on_\i\+\s*:\%(\s*\S\)\@=/ end="$" oneline contains=@pyth
+syn region kivyBindBlock    matchgroup=kivyBind start=/^\s\+on_\i\+\s*:\%(\s*\S\)\@=/ end="$" keepend oneline contains=@pyth
 
 syn region kivyCanvasValue  matchgroup=kivyCanvas start=/^\z(\s\+\)\I\i*\s*:\s*$/ skip="^\s*$" end="^\%(\z1\s\{4}\)\@!" contains=@pyth contained
-syn region kivyCanvasValue  matchgroup=kivyCanvas start=/^\s\+\I\i*\s*:\%(\s*\S\)\@=/ end="$" oneline contains=@pyth contained
+syn region kivyCanvasValue  matchgroup=kivyCanvas start=/^\s\+\I\i*\s*:\%(\s*\S\)\@=/ end="$" keepend oneline contains=@pyth contained
 syn region kivyCanvas       matchgroup=kivyCanvas start=/^\z(\s\+\)canvas.*:\s*$/ skip="^\s*$" end="^\%(\z1\s\{4}\)\@!"
                             \   contains=kivyInstruction,kivyPreProc,kivyComment,kivyCanvasValue
 
