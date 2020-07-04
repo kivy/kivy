@@ -243,7 +243,7 @@ cdef class Color(ContextInstruction):
         cdef long vec_size = <long>len(args)
         if kwargs.get('mode', '') == 'hsv':
             if vec_size == 4:
-                self.rgba = [0, 0, 0, 1.]
+                self.rgba = [0, 0, 0, args[3]]
                 self.hsv = args[:3]
             elif vec_size == 3:
                 self.rgba = [0, 0, 0, 1.]
