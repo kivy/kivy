@@ -357,7 +357,6 @@ class EventLoopBase(EventDispatcher):
                     pass
 
     async def async_mainloop(self):
-        from kivy.base import ExceptionManager, stopTouchApp
         while not self.quit and self.status == 'started':
             try:
                 await self.async_idle()
