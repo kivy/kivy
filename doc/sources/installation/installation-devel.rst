@@ -47,16 +47,11 @@ For Ubuntu 16.04::
       python-gst0.10 python-enchant gstreamer0.10-plugins-good python-dev \
       build-essential python-pip libgl1-mesa-dev libgles2-mesa-dev zlib1g-dev
 
-For Ubuntu 17.10, 18.04 and 20.04::
+For Ubuntu 17.10 and 18.04::
 
-    $ sudo apt-get install python3-setuptools python3-pip python3-opengl \
-      python3-enchant python3-dev build-essential python3-pip libgl1-mesa-dev \
-      libgles2-mesa-dev zlib1g-dev libsdl2-dev libsdl2-image-dev \
-      libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev \
-      libavformat-dev libavcodec-dev
-
-If you wish to use the GStreamer multimedia backend, please consult the official
-[GStreamer Installation instructions](https://gstreamer.freedesktop.org/documentation/installing/on-linux.html)
+    $ sudo apt-get install python-setuptools python-pygame python-opengl \
+      python-enchant python-dev build-essential python-pip libgl1-mesa-dev \
+      libgles2-mesa-dev zlib1g-dev
 
 Kivy requires a recent version of Cython, so you might need to update your
 Cython installation.
