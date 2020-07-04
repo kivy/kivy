@@ -318,7 +318,7 @@ cdef class CyClockBase(object):
         '''
         pass
 
-    cpdef create_lifecycle_aware_trigger(
+    cpdef ClockEvent create_lifecycle_aware_trigger(
             self, callback, clock_ended_callback, timeout=0, interval=False,
             release_ref=True):
         '''Create a Trigger event similarly to :meth:`create_trigger`, but the event
@@ -371,7 +371,7 @@ cdef class CyClockBase(object):
             ev.release()
         return ev
 
-    cpdef create_trigger(
+    cpdef ClockEvent create_trigger(
             self, callback, timeout=0, interval=False, release_ref=True):
         '''Create a Trigger event. It is thread safe but not ``__del__`` or
         ``__dealloc__`` safe (see :meth:`schedule_del_safe`).
@@ -473,7 +473,7 @@ cdef class CyClockBase(object):
         '''
         self._del_queue.append((callback, None))
 
-    cpdef schedule_once(self, callback, timeout=0):
+    cpdef ClockEvent schedule_once(self, callback, timeout=0):
         '''Schedule an event in <timeout> seconds. If <timeout> is unspecified
         or 0, the callback will be called after the next frame is rendered.
         See :meth:`create_trigger` for advanced scheduling and more details.
@@ -501,7 +501,7 @@ cdef class CyClockBase(object):
             self, False, callback, timeout, self._last_tick, None, True)
         return event
 
-    cpdef schedule_interval(self, callback, timeout):
+    cpdef ClockEvent schedule_interval(self, callback, timeout):
         '''Schedule an event to be called every <timeout> seconds.
         See :meth:`create_trigger` for advanced scheduling and more details.
 
@@ -805,7 +805,7 @@ cdef class CyClockBaseFree(CyClockBase):
     for creating a free event.
     '''
 
-    cpdef create_lifecycle_aware_trigger(
+    cpdef FreeClockEvent create_lifecycle_aware_trigger(
             self, callback, clock_ended_callback, timeout=0, interval=False,
             release_ref=True):
         cdef FreeClockEvent event
@@ -819,7 +819,7 @@ cdef class CyClockBaseFree(CyClockBase):
             event.release()
         return event
 
-    cpdef create_trigger(
+    cpdef FreeClockEvent create_trigger(
             self, callback, timeout=0, interval=False, release_ref=True):
         cdef FreeClockEvent event
         if not callable(callback):
@@ -831,7 +831,7 @@ cdef class CyClockBaseFree(CyClockBase):
             event.release()
         return event
 
-    cpdef schedule_once(self, callback, timeout=0):
+    cpdef FreeClockEvent schedule_once(self, callback, timeout=0):
         cdef FreeClockEvent event
         if not callable(callback):
             raise ValueError('callback must be a callable, got %s' % callback)
@@ -840,7 +840,7 @@ cdef class CyClockBaseFree(CyClockBase):
             False, self, False, callback, timeout, self._last_tick, None, True)
         return event
 
-    cpdef schedule_interval(self, callback, timeout):
+    cpdef FreeClockEvent schedule_interval(self, callback, timeout):
         cdef FreeClockEvent event
         if not callable(callback):
             raise ValueError('callback must be a callable, got %s' % callback)
@@ -849,7 +849,7 @@ cdef class CyClockBaseFree(CyClockBase):
             False, self, True, callback, timeout, self._last_tick, None, True)
         return event
 
-    cpdef create_lifecycle_aware_trigger_free(
+    cpdef FreeClockEvent create_lifecycle_aware_trigger_free(
             self, callback, clock_ended_callback, timeout=0, interval=False,
             release_ref=True):
         '''Similar to :meth:`~CyClockBase.create_lifecycle_aware_trigger`, but instead creates
@@ -866,7 +866,7 @@ cdef class CyClockBaseFree(CyClockBase):
             event.release()
         return event
 
-    cpdef create_trigger_free(
+    cpdef FreeClockEvent create_trigger_free(
             self, callback, timeout=0, interval=False, release_ref=True):
         '''Similar to :meth:`~CyClockBase.create_trigger`, but instead creates
         a free event.
@@ -881,7 +881,7 @@ cdef class CyClockBaseFree(CyClockBase):
             event.release()
         return event
 
-    cpdef schedule_once_free(self, callback, timeout=0):
+    cpdef FreeClockEvent schedule_once_free(self, callback, timeout=0):
         '''Similar to :meth:`~CyClockBase.schedule_once`, but instead creates
         a free event.
         '''
@@ -893,7 +893,7 @@ cdef class CyClockBaseFree(CyClockBase):
             True, self, False, callback, timeout, self._last_tick, None, True)
         return event
 
-    cpdef schedule_interval_free(self, callback, timeout):
+    cpdef FreeClockEvent schedule_interval_free(self, callback, timeout):
         '''Similar to :meth:`~CyClockBase.schedule_interval`, but instead creates
         a free event.
         '''
