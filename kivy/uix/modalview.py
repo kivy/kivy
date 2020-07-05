@@ -277,10 +277,12 @@ class ModalView(AnchorLayout):
         return True
 
     def on_touch_up(self, touch):
-        if self.auto_dismiss and not self._touch_started_inside:
+        # Explicitly test for False as None occurs when shown by on_touch_down
+        if self.auto_dismiss and self._touch_started_inside is False:
             self.dismiss()
-            return True
-        super(ModalView, self).on_touch_up(touch)
+        else:
+            super(ModalView, self).on_touch_up(touch)
+        self._touch_started_inside = None
         return True
 
     def on__anim_alpha(self, instance, value):
