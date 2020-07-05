@@ -50,7 +50,7 @@ For Ubuntu 16.04::
 For Ubuntu 17.10, 18.04 and 20.04::
 
     $ sudo apt-get install python3-setuptools python3-pip python3-opengl \
-      python3-enchant python3-dev build-essential python3-pip libgl1-mesa-dev \
+      python3-enchant python3-dev build-essential libgl1-mesa-dev \
       libgles2-mesa-dev zlib1g-dev libsdl2-dev libsdl2-image-dev \
       libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev \
       libavformat-dev libavcodec-dev
