@@ -549,7 +549,6 @@ class Image(EventDispatcher):
     def __init__(self, arg, **kwargs):
         # this event should be fired on animation of sequenced img's
         self.register_event_type('on_texture')
-        self.register_event_type('on_durations_done')
 
         super(Image, self).__init__()
 
