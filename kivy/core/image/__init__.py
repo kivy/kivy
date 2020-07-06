@@ -523,21 +523,18 @@ class Image(EventDispatcher):
             Filename to use in the image cache for raw image data.
         `auto_anim_delay`: bool, defaults to True
             If this property is set to True and image is GIF animation,
-            delay of each frame would be get from GIF-image file and
-            `durations` would be automatically filled if it not set.
-            Used only if no `durations`. Forced to be False on init with
-            `durations` in args.
-            If you want autofill `durations` during animation set it to None
-            and then set `auto_anim_delay` to True.
-            Used only if no `durations`, otherwise it is forced to be False.
+            delay of each frame would be gotten from the GIF-image file
+            and ``durations`` would be automatically set if it hasn't been
+            manually set. I.e. used only if ``durations`` is empty/None. Forced to
+            be False when ``durations`` is specified.
+            If you want autofill ``durations`` during animation, set it to None
+            and then set ``auto_anim_delay`` to True.
         `durations`: list of int or float
-            Delay the animation if the image is sequenced (like an animated
+            Delay the animation if the image is a sequence (like an animated
             gif). Set if frame delay is variable, not constant.
-            When `auto_anim_delay` is True and `durations` is not set then
-            `durations` is filled automatically. To reset and stop animation
-            just set it to None during the animation(if you want animation
-            don't start on init you can just set `durations` to None
-            explicitly).
+            When ``auto_anim_delay`` is True and ``durations`` is not set, then
+            ``durations`` is set automatically. To reset and stop animation
+            just set it to None during the animation.
     '''
 
     copy_attributes = ('_size', '_filename', '_texture', '_image',
