@@ -540,6 +540,8 @@ class Image(EventDispatcher):
     copy_attributes = ('_size', '_filename', '_texture', '_image',
                        '_mipmap', '_nocache', '_durations')
 
+    __events__ = ('on_durations_done', )
+
     data_uri_re = re.compile(r'^data:image/([^;,]*)(;[^,]*)?,(.*)$')
 
     _anim_ev = None
