@@ -510,13 +510,13 @@ class Image(EventDispatcher):
         `anim_delay`: float, defaults to .25
             Delay in seconds between each animation frame. Lower values means
             faster animation.
-            Used only if `auto_anim_delay` is False and no `durations`.
-            If anim_delay is set to -1, the animation will be stopped. If you
-            want change using `durations` during animation on using
-            'anim_delay`, set `durations` to None and then set `anim_delay`
-            property again(if you want set `anim_delay` to the same value as
-            already in property, just set it -1 and immediately set to
-            necessary).
+            Used only if ``auto_anim_delay`` is False and no ``durations``.
+            If ``anim_delay`` is set to ``-1``, the animation will be stopped. If you
+            want to change during animation from using ``durations`` to using
+            ``anim_delay``, set ``durations`` to None and ``anim_delay`` to the
+            desired value (if you want to set ``anim_delay`` to the same value as
+            already in the property, just set it to ``-1`` and immediately set to
+            desired value).
         `ext`: str, only with BytesIO `arg`
             File extension to use in determining how to load raw image data.
         `filename`: str, only with BytesIO `arg`
