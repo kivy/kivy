@@ -140,7 +140,7 @@ All the effects are located in the :mod:`kivy.effects`.
 '''
 
 __all__ = ('ScrollView', )
-
+from typing import Optional, Type
 from functools import partial
 from kivy.animation import Animation
 from kivy.compat import string_types
@@ -149,6 +149,7 @@ from kivy.clock import Clock
 from kivy.factory import Factory
 from kivy.uix.stencilview import StencilView
 from kivy.metrics import sp, dp
+from kivy.effects.scroll import ScrollEffect
 from kivy.effects.dampedscroll import DampedScrollEffect
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
     ObjectProperty, ListProperty, ReferenceListProperty, OptionProperty, \
@@ -428,7 +429,8 @@ class ScrollView(StencilView):
     to 0
     '''
 
-    effect_cls = ObjectProperty(DampedScrollEffect, allownone=True)
+    effect_cls: Optional[Type[ScrollEffect]] = ObjectProperty(
+        DampedScrollEffect, allownone=True)
     '''Class effect to instantiate for X and Y axis.
 
     .. versionadded:: 1.7.0
@@ -442,7 +444,7 @@ class ScrollView(StencilView):
 
     '''
 
-    effect_x = ObjectProperty(None, allownone=True)
+    effect_x: Optional[ScrollEffect] = ObjectProperty(None, allownone=True)
     '''Effect to apply for the X axis. If None is set, an instance of
     :attr:`effect_cls` will be created.
 
@@ -452,7 +454,7 @@ class ScrollView(StencilView):
     defaults to None.
     '''
 
-    effect_y = ObjectProperty(None, allownone=True)
+    effect_y: Optional[ScrollEffect] = ObjectProperty(None, allownone=True)
     '''Effect to apply for the Y axis. If None is set, an instance of
     :attr:`effect_cls` will be created.
 
@@ -799,12 +801,14 @@ class ScrollView(StencilView):
             'time': touch.time_start,
         }
 
-        if self.do_scroll_x and self.effect_x and not ud['in_bar_x']:
+        if (self.do_scroll_x and self.effect_x and not ud['in_bar_x']
+                and not ud['in_bar_y']):
             self._effect_x_start_width = self.width
             self.effect_x.start(touch.x)
             self._scroll_x_mouse = self.scroll_x
 
-        if self.do_scroll_y and self.effect_y and not ud['in_bar_y']:
+        if (self.do_scroll_y and self.effect_y and not ud['in_bar_x']
+                and not ud['in_bar_y']):
             self._effect_y_start_height = self.height
             self.effect_y.start(touch.y)
             self._scroll_y_mouse = self.scroll_y
