@@ -568,8 +568,6 @@ class ScrollView(StencilView):
         fbind('scroll_y', trigger_update_from_scroll)
         fbind('pos', trigger_update_from_scroll)
         fbind('size', trigger_update_from_scroll)
-        fbind('scroll_y', self._update_effect_bounds)
-        fbind('scroll_x', self._update_effect_bounds)
 
         trigger_update_from_scroll()
         update_effect_widget()
@@ -751,6 +749,8 @@ class ScrollView(StencilView):
                 e = self.effect_y if ud['in_bar_y'] else self.effect_x
 
             if e:
+                # make sure the effect's value is synced to scroll value
+                self._update_effect_bounds()
                 if btn in ('scrolldown', 'scrollleft'):
                     if self.smooth_scroll_end:
                         e.velocity -= m * self.smooth_scroll_end
@@ -803,12 +803,18 @@ class ScrollView(StencilView):
 
         if (self.do_scroll_x and self.effect_x and not ud['in_bar_x']
                 and not ud['in_bar_y']):
+            # make sure the effect's value is synced to scroll value
+            self._update_effect_bounds()
+
             self._effect_x_start_width = self.width
             self.effect_x.start(touch.x)
             self._scroll_x_mouse = self.scroll_x
 
         if (self.do_scroll_y and self.effect_y and not ud['in_bar_x']
                 and not ud['in_bar_y']):
+            # make sure the effect's value is synced to scroll value
+            self._update_effect_bounds()
+
             self._effect_y_start_height = self.height
             self.effect_y.start(touch.y)
             self._scroll_y_mouse = self.scroll_y
