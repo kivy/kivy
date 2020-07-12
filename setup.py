@@ -9,6 +9,9 @@ if "--build_examples" in sys.argv:
     build_examples = True
     sys.argv.remove("--build_examples")
 
+# if using setuptools version of distutils (SETUPTOOLS_USE_DISTUTILS is local),
+# we must import setuptools first so it can patch distutils imports
+from setuptools import setup, Extension, find_packages
 from kivy.utils import pi_version
 from copy import deepcopy
 import os
@@ -24,7 +27,6 @@ from datetime import datetime
 from sysconfig import get_paths
 from pathlib import Path
 import logging
-from setuptools import setup, Extension, find_packages
 
 
 if sys.version_info[0] == 2:
