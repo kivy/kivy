@@ -771,8 +771,8 @@ class ObservableList(list):
         self.last_op = 'extend', None
         observable_list_dispatch(self)
 
-    def sort(self, *largs):
-        list.sort(self, *largs)
+    def sort(self, *largs, **kwargs):
+        list.sort(self, *largs, **kwargs)
         self.last_op = 'sort', None
         observable_list_dispatch(self)
 
