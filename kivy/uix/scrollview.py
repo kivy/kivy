@@ -140,6 +140,7 @@ All the effects are located in the :mod:`kivy.effects`.
 '''
 
 __all__ = ('ScrollView', )
+
 from functools import partial
 from kivy.animation import Animation
 from kivy.compat import string_types
