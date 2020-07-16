@@ -179,7 +179,10 @@ def kivy_register_post_configuration(callback):
 
 def kivy_usage():
     '''Kivy Usage: %s [OPTION...]::
-
+        
+            Set KIVY_NO_ARGS=1 in your environment or before you import Kivy to
+            disable Kivy's argument parser.
+        
         -h, --help
             Prints this help message.
         -d, --debug
