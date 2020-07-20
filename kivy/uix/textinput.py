@@ -861,7 +861,7 @@ class TextInput(FocusBehavior, Widget):
             - do nothing, if we are at the start.
 
         '''
-        if self.readonly or self._imo_composition: # IMO system handles it's own backspaces
+        if self.readonly or self._imo_composition: # IMO system handles its own backspaces
             return
         cc, cr = self.cursor
         _lines = self._lines
@@ -2589,8 +2589,10 @@ class TextInput(FocusBehavior, Widget):
             self.delete_selection()
         self.insert_text(text, False)
 
-    _imo_composition = StringProperty("")  # current imo composition in progress by the IME system, or '' if nothing
-    _imo_cursor = ListProperty(None, allownone=True) # cursor position of last IMO event
+    # current imo composition in progress by the IME system, or '' if nothing
+    _imo_composition = StringProperty("")
+    # cursor position of last IMO event
+    _imo_cursor = ListProperty(None, allownone=True)
 
     def _bind_keyboard(self):
         super()._bind_keyboard()
@@ -2605,11 +2607,21 @@ class TextInput(FocusBehavior, Widget):
         if self._imo_composition:
             pcc, pcr = self._imo_cursor
             text = text_lines[pcr]
-            if text[pcc-len(self._imo_composition):pcc] == self._imo_composition: # should always be true
-                remove_old_imo_text = text[:pcc-len(self._imo_composition)] + text[pcc:]
+            if (
+                text[pcc - len(self._imo_composition) : pcc]
+                == self._imo_composition
+            ):  # should always be true
+                remove_old_imo_text = (
+                    text[: pcc - len(self._imo_composition)] + text[pcc:]
+                )
                 ci = self.cursor_index()
-                self._refresh_text_from_property("insert", *self._get_line_from_cursor(pcr, remove_old_imo_text))
-                self.cursor = self.get_cursor_from_index(ci - len(self._imo_composition))
+                self._refresh_text_from_property(
+                    "insert",
+                    *self._get_line_from_cursor(pcr, remove_old_imo_text)
+                )
+                self.cursor = self.get_cursor_from_index(
+                    ci - len(self._imo_composition)
+                )
 
         if imo_input:
             if self._selection:
@@ -2617,8 +2629,12 @@ class TextInput(FocusBehavior, Widget):
             cc, cr = self.cursor
             text = text_lines[cr]
             new_text = text[:cc] + imo_input + text[cc:]
-            self._refresh_text_from_property("insert", *self._get_line_from_cursor(cr, new_text))
-            self.cursor = self.get_cursor_from_index(self.cursor_index() + len(imo_input))
+            self._refresh_text_from_property(
+                "insert", *self._get_line_from_cursor(cr, new_text)
+            )
+            self.cursor = self.get_cursor_from_index(
+                self.cursor_index() + len(imo_input)
+            )
         self._imo_composition = imo_input
         self._imo_cursor = self.cursor
 
