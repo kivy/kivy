@@ -2608,11 +2608,11 @@ class TextInput(FocusBehavior, Widget):
             pcc, pcr = self._imo_cursor
             text = text_lines[pcr]
             if (
-                text[pcc - len(self._imo_composition) : pcc]
+                text[pcc - len(self._imo_composition):pcc]
                 == self._imo_composition
             ):  # should always be true
                 remove_old_imo_text = (
-                    text[: pcc - len(self._imo_composition)] + text[pcc:]
+                    text[:pcc - len(self._imo_composition)] + text[pcc:]
                 )
                 ci = self.cursor_index()
                 self._refresh_text_from_property(
