@@ -511,12 +511,12 @@ class Image(EventDispatcher):
             Delay in seconds between each animation frame. Lower values means
             faster animation.
             Used only if ``auto_anim_delay`` is False and no ``durations``.
-            If ``anim_delay`` is set to ``-1``, the animation will be stopped. If you
-            want to change during animation from using ``durations`` to using
-            ``anim_delay``, set ``durations`` to None and ``anim_delay`` to the
-            desired value (if you want to set ``anim_delay`` to the same value as
-            already in the property, just set it to ``-1`` and immediately set to
-            desired value).
+            If ``anim_delay`` is set to ``-1``, the animation will be stopped.
+            If you want to change during animation from using ``durations`` to
+            using ``anim_delay``, set ``durations`` to None and ``anim_delay``
+            to the desired value (if you want to set ``anim_delay`` to the same
+            value as already in the property, just set it to ``-1`` and
+            immediately set to desired value).
         `ext`: str, only with BytesIO `arg`
             File extension to use in determining how to load raw image data.
         `filename`: str, only with BytesIO `arg`
@@ -525,10 +525,9 @@ class Image(EventDispatcher):
             If this property is set to True and image is GIF animation,
             delay of each frame would be gotten from the GIF-image file
             and ``durations`` would be automatically set if it hasn't been
-            manually set. I.e. used only if ``durations`` is empty/None. Forced to
-            be False when ``durations`` is specified.
-            If you want autofill ``durations`` during animation, set it to None
-            and then set ``auto_anim_delay`` to True.
+            manually set. I.e. used only if ``durations`` is empty/None.
+            If you want autofill ``durations`` during animation, call the
+            self.fill_durations_default() function.
         `durations`: list of int or float
             Delay the animation if the image is a sequence (like an animated
             gif). Set if frame delay is variable, not constant.
@@ -565,12 +564,12 @@ class Image(EventDispatcher):
         self._durations = None
 
         self._auto_anim_delay = kwargs.get('auto_anim_delay', True)
-        durations = kwargs.get('durations', None)
+        self.durations = kwargs.get('durations', None)
+
         # It is assumed that if we intentionally set the durations
         # we do not want autocomplete durations from GIF-file
-        if durations:
-            self._auto_anim_delay = False
-            self.durations = durations
+        self._durations_was_set = bool(self.durations)
+
         self.anim_delay = kwargs.get('anim_delay', .25)
 
         # indicator of images having been loded in cache
@@ -720,9 +719,9 @@ class Image(EventDispatcher):
     def _set_durations(self, durations):
         # Waiting for list of ints or floats in microseconds like in GIF
         # format, not seconds
-        if durations is None:
-            self._durations = None
-            # if durations set None stop until anim_delay set again
+        if not durations:
+            self._durations = durations
+            # if no durations stop until anim_delay set again
             self.anim_reset(False)
             return
 
@@ -738,19 +737,6 @@ class Image(EventDispatcher):
     def _set_auto_anim_delay(self, auto_anim_delay):
         if auto_anim_delay == self._auto_anim_delay:
             return
-        imgcount = len(self.image.textures)
-
-        # autofill `durations` only when it's not filled
-        if (self._iteration_done and auto_anim_delay and imgcount > 1
-                and not self.durations):
-            # check `durations` for AsyncImage/zipsequence
-            try:
-                list(map(float, self.image.durations))
-                self.durations = self.image.durations
-                self.dispatch('on_durations_done')
-            except TypeError:
-                pass
-
         self._auto_anim_delay = bool(auto_anim_delay)
 
     auto_anim_delay = property(_get_auto_anim_delay, _set_auto_anim_delay)
@@ -784,7 +770,7 @@ class Image(EventDispatcher):
         if imgcount > 1:
             self._anim_available = True
 
-            if self._auto_anim_delay:
+            if not self._durations_was_set and self._auto_anim_delay:
                 # check `durations` for AsyncImage/zipsequence
                 try:
                     list(map(float, self.image.durations))
@@ -810,6 +796,19 @@ class Image(EventDispatcher):
         .. versionadded:: 2.0.0
         '''
         pass
+
+    def fill_durations_default(self):
+        '''Fill durations with durations from source image'''
+        imgcount = len(self.image.textures)
+
+        if self._iteration_done and imgcount > 1:
+            # check `durations` for AsyncImage/zipsequence
+            try:
+                list(map(float, self.image.durations))
+                self.durations = self.image.durations
+                self.dispatch('on_durations_done')
+            except TypeError:
+                pass
 
     @staticmethod
     def load(filename, **kwargs):

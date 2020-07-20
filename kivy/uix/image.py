@@ -210,10 +210,9 @@ class Image(Widget):
     '''If this property is set to True and image is GIF animation,
     delay of each frame would be get from GIF-image file and `durations` would
     be automatically filled if it not set.
-    Used only if no `durations`. Forced to be False on init with `durations`
-    in args.
-    If you want autofill `durations` during animation set it to None and then
-    set `auto_anim_delay` to True.
+    Used only if no `durations`.
+    If you want autofill ``durations`` during animation, call the
+    self.fill_durations_default() function.
 
     .. versionadded:: 2.0.0
 
@@ -279,7 +278,6 @@ class Image(Widget):
             self.auto_anim_delay = kwargs.pop('auto_anim_delay')
         if 'durations' in kwargs:
             self.durations = kwargs.pop('durations')
-            self.auto_anim_delay = False
         if 'anim_delay' in kwargs:
             self.anim_delay = kwargs.pop('anim_delay')
         update = self.texture_update
@@ -299,9 +297,11 @@ class Image(Widget):
             Logger.error('Image: Not found <%s>' % self.source)
             self._clear_core_image()
             return
+        core_durations = self.durations
         if self._coreimage:
             self._coreimage.unbind(on_texture=self._on_tex_change)
             self._coreimage.unbind(on_durations_done=self._on_durations_done)
+            core_durations = None
         try:
             self._coreimage = image = CoreImage(
                 source,
@@ -309,7 +309,7 @@ class Image(Widget):
                 anim_delay=self.anim_delay,
                 keep_data=self.keep_data,
                 nocache=self.nocache,
-                durations=self.durations,
+                durations=core_durations,
                 auto_anim_delay=self.auto_anim_delay,
             )
         except Exception:
@@ -334,7 +334,6 @@ class Image(Widget):
         self._coreimage.auto_anim_delay = value
 
     def on_durations(self, instance, value):
-        self.auto_anim_delay = False
         if self._coreimage is None:
             return
         self._coreimage.durations = value
@@ -343,10 +342,13 @@ class Image(Widget):
         self.texture_size = value.size if value else [0, 0]
 
     def _on_durations_done(self, *largs):
-        self.durations = self._coreimage.durations
-        # we set `auto_anim_delay` to False in on_durations() but in these case
-        # it must be True
-        self.auto_anim_delay = True
+        if self._coreimage:
+            self.durations = self._coreimage.durations
+
+    def fill_durations_default(self):
+        '''Fill durations with durations from source image'''
+        if self._coreimage:
+            self._coreimage.fill_durations_default()
 
     def _clear_core_image(self):
         if self._coreimage:
@@ -476,6 +478,7 @@ class AsyncImage(Image):
             self._coreimage.durations = self.durations
         elif self.auto_anim_delay:
             self._coreimage.auto_anim_delay = True
+            self.fill_durations_default()
 
     def is_uri(self, filename):
         proto = filename.split('://', 1)[0]
