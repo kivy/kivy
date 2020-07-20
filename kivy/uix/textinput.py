@@ -154,6 +154,7 @@ from kivy.base import EventLoop
 from kivy.cache import Cache
 from kivy.clock import Clock
 from kivy.config import Config
+from kivy.core.window import Window
 from kivy.metrics import inch
 from kivy.utils import boundary, platform
 from kivy.uix.behaviors import FocusBehavior
@@ -860,7 +861,7 @@ class TextInput(FocusBehavior, Widget):
             - do nothing, if we are at the start.
 
         '''
-        if self.readonly:
+        if self.readonly or self._imo_composition: # IMO system handles it's own backspaces
             return
         cc, cr = self.cursor
         _lines = self._lines
@@ -1912,6 +1913,9 @@ class TextInput(FocusBehavior, Widget):
                 else (finish + 1),
                 len_lines, _lines_flags, _lines, _lines_labels,
                 _line_rects)
+        elif mode == 'imo': # only update graphics, not text
+            self._lines_labels[start:finish+1] = _lines_labels
+            self._lines_rects[start:finish+1] = _line_rects
 
         min_line_ht = self._label_cached.get_extents('_')[1]
         # with markup texture can be of height `1`
@@ -2584,6 +2588,39 @@ class TextInput(FocusBehavior, Widget):
         if self._selection:
             self.delete_selection()
         self.insert_text(text, False)
+
+    _imo_composition = StringProperty("")  # current imo composition in progress by the IME system, or '' if nothing
+    _imo_cursor = ListProperty(None, allownone=True) # cursor position of last IMO event
+
+    def _bind_keyboard(self):
+        super()._bind_keyboard()
+        Window.bind(on_textedit=self.window_on_textedit)
+
+    def _unbind_keyboard(self):
+        super()._unbind_keyboard()
+        Window.unbind(on_textedit=self.window_on_textedit)
+
+    def window_on_textedit(self, window, imo_input):
+        text_lines = self._lines
+        if self._imo_composition:
+            pcc, pcr = self._imo_cursor
+            text = text_lines[pcr]
+            if text[pcc-len(self._imo_composition):pcc] == self._imo_composition: # should always be true
+                remove_old_imo_text = text[:pcc-len(self._imo_composition)] + text[pcc:]
+                ci = self.cursor_index()
+                self._refresh_text_from_property("insert", *self._get_line_from_cursor(pcr, remove_old_imo_text))
+                self.cursor = self.get_cursor_from_index(ci - len(self._imo_composition))
+
+        if imo_input:
+            if self._selection:
+                self.delete_selection()
+            cc, cr = self.cursor
+            text = text_lines[cr]
+            new_text = text[:cc] + imo_input + text[cc:]
+            self._refresh_text_from_property("insert", *self._get_line_from_cursor(cr, new_text))
+            self.cursor = self.get_cursor_from_index(self.cursor_index() + len(imo_input))
+        self._imo_composition = imo_input
+        self._imo_cursor = self.cursor
 
     def on__hint_text(self, instance, value):
         self._refresh_hint_text()
