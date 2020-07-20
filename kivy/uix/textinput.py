@@ -861,7 +861,8 @@ class TextInput(FocusBehavior, Widget):
             - do nothing, if we are at the start.
 
         '''
-        if self.readonly or self._imo_composition: # IMO system handles its own backspaces
+        # IMO system handles its own backspaces
+        if self.readonly or self._imo_composition:
             return
         cc, cr = self.cursor
         _lines = self._lines
@@ -1913,9 +1914,6 @@ class TextInput(FocusBehavior, Widget):
                 else (finish + 1),
                 len_lines, _lines_flags, _lines, _lines_labels,
                 _line_rects)
-        elif mode == 'imo': # only update graphics, not text
-            self._lines_labels[start:finish+1] = _lines_labels
-            self._lines_rects[start:finish+1] = _line_rects
 
         min_line_ht = self._label_cached.get_extents('_')[1]
         # with markup texture can be of height `1`
