@@ -291,7 +291,6 @@ class Image(Widget):
             self._clear_core_image()
             return
 
-        self._loops = 0
         source = resource_find(self.source)
         if not source:
             Logger.error('Image: Not found <%s>' % self.source)
@@ -302,6 +301,7 @@ class Image(Widget):
             self._coreimage.unbind(on_texture=self._on_tex_change)
             self._coreimage.unbind(on_durations_done=self._on_durations_done)
             core_durations = None
+        self._loops = 0
         try:
             self._coreimage = image = CoreImage(
                 source,
@@ -329,14 +329,12 @@ class Image(Widget):
             self._coreimage.anim_reset(False)
 
     def on_auto_anim_delay(self, instance, value):
-        if self._coreimage is None:
-            return
-        self._coreimage.auto_anim_delay = value
+        if self._coreimage:
+            self._coreimage.auto_anim_delay = value
 
     def on_durations(self, instance, value):
-        if self._coreimage is None:
-            return
-        self._coreimage.durations = value
+        if self._coreimage:
+            self._coreimage.durations = value
 
     def on_texture(self, instance, value):
         self.texture_size = value.size if value else [0, 0]
