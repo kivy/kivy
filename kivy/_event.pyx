@@ -423,7 +423,7 @@ cdef class EventDispatcher(ObjectWithUid):
         becomes invalid.
 
         The second is that method's `__name__` attribute must be registered as
-        as attribute on the instance. This will be true for most methodsm but
+        as attribute on the instance. This will be true for most methods, but
         may not be true for decorated methods. Consider the use of Python's
         :class:`functools.wraps` in the decorator's definition to associate 
         the correct name with wrapped functions.
