@@ -861,8 +861,8 @@ class TextInput(FocusBehavior, Widget):
             - do nothing, if we are at the start.
 
         '''
-        # IMO system handles its own backspaces
-        if self.readonly or self._imo_composition:
+        # IME system handles its own backspaces
+        if self.readonly or self._ime_composition:
             return
         cc, cr = self.cursor
         _lines = self._lines
@@ -2587,10 +2587,10 @@ class TextInput(FocusBehavior, Widget):
             self.delete_selection()
         self.insert_text(text, False)
 
-    # current imo composition in progress by the IME system, or '' if nothing
-    _imo_composition = StringProperty("")
-    # cursor position of last IMO event
-    _imo_cursor = ListProperty(None, allownone=True)
+    # current IME composition in progress by the IME system, or '' if nothing
+    _ime_composition = StringProperty('')
+    # cursor position of last IME event
+    _ime_cursor = ListProperty(None, allownone=True)
 
     def _bind_keyboard(self):
         super()._bind_keyboard()
@@ -2600,41 +2600,35 @@ class TextInput(FocusBehavior, Widget):
         super()._unbind_keyboard()
         Window.unbind(on_textedit=self.window_on_textedit)
 
-    def window_on_textedit(self, window, imo_input):
-        text_lines = self._lines
-        if self._imo_composition:
-            pcc, pcr = self._imo_cursor
+    def window_on_textedit(self, window, ime_input):
+        text_lines = self._lines or ['']
+        if self._ime_composition:
+            pcc, pcr = self._ime_cursor
             text = text_lines[pcr]
-            if (
-                text[pcc - len(self._imo_composition):pcc]
-                == self._imo_composition
-            ):  # should always be true
-                remove_old_imo_text = (
-                    text[:pcc - len(self._imo_composition)] + text[pcc:]
-                )
+            len_ime = len(self._ime_composition)
+            if text[pcc - len_ime:pcc] == self._ime_composition:  # always?
+                remove_old_ime_text = text[:pcc - len_ime] + text[pcc:]
                 ci = self.cursor_index()
                 self._refresh_text_from_property(
                     "insert",
-                    *self._get_line_from_cursor(pcr, remove_old_imo_text)
+                    *self._get_line_from_cursor(pcr, remove_old_ime_text)
                 )
-                self.cursor = self.get_cursor_from_index(
-                    ci - len(self._imo_composition)
-                )
+                self.cursor = self.get_cursor_from_index(ci - len_ime)
 
-        if imo_input:
+        if ime_input:
             if self._selection:
                 self.delete_selection()
             cc, cr = self.cursor
             text = text_lines[cr]
-            new_text = text[:cc] + imo_input + text[cc:]
+            new_text = text[:cc] + ime_input + text[cc:]
             self._refresh_text_from_property(
                 "insert", *self._get_line_from_cursor(cr, new_text)
             )
             self.cursor = self.get_cursor_from_index(
-                self.cursor_index() + len(imo_input)
+                self.cursor_index() + len(ime_input)
             )
-        self._imo_composition = imo_input
-        self._imo_cursor = self.cursor
+        self._ime_composition = ime_input
+        self._ime_cursor = self.cursor
 
     def on__hint_text(self, instance, value):
         self._refresh_hint_text()
