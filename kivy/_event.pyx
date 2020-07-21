@@ -422,11 +422,11 @@ cdef class EventDispatcher(ObjectWithUid):
         the desired lifetime. The callback reference is silently removed if it
         becomes invalid.
 
-        The second is that method's :field:`__name__` must be registered as
-        as attribute on the instance. This may not be true for decorated
-        methods. Consider the use of Python's :class:`functools.wraps` in the
-        decorator definition to associate the correct name with wrapped
-        functions.
+        The second is that method's `__name__` attribute must be registered as
+        as attribute on the instance. This will be true for most methodsm but
+        may not be true for decorated methods. Consider the use of Python's
+        :class:`functools.wraps` in the decorator's definition to associate 
+        the correct name with wrapped functions.
         '''
         cdef EventObservers observers
         cdef PropertyStorage ps
