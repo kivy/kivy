@@ -30,7 +30,7 @@ jobs:
     - name: Install Kivy
       run: |
         . .\.ci\windows_ci.ps1
-        oython -m pip install --upgrade https://github.com/pganssle/setuptools/archive/distutils_import_hack.zip
+        python -m pip install --upgrade https://github.com/pganssle/setuptools/archive/distutils_import_hack.zip
         Install-kivy
     - name: Test Kivy
       run: |
