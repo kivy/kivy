@@ -268,11 +268,11 @@ __all__ = ('Property',
            'ObjectProperty', 'BooleanProperty', 'BoundedNumericProperty',
            'OptionProperty', 'ReferenceListProperty', 'AliasProperty',
            'DictProperty', 'VariableListProperty', 'ConfigParserProperty',
-           'ColorProperty')
+           'ColorProperty','VectorProperty')
 
 include "include/config.pxi"
 
-
+import math
 from weakref import ref
 from kivy.compat import string_types
 from kivy.config import ConfigParser
@@ -495,7 +495,7 @@ cdef class Property:
                 'Deprecated property "{}" of object "{}" has been set, it '
                 'will be removed in a future version'.format(self, obj))
             self.deprecated = 0
-        self.set(obj, val)
+        self.set(obj, val)                                                      # method set is called from __set__
 
     def __get__(self, EventDispatcher obj, objtype):
         if obj is None:
@@ -522,6 +522,26 @@ cdef class Property:
 
     cpdef set(self, EventDispatcher obj, value):
         '''Set a new value for the property.
+
+            When a value is assigned to a property 'a'
+
+                >>> Widget.a = 5
+
+            this method is called from the Property's __set__.
+
+            This method then accesses the PropertyStorage(class defined in properties.pxd) of the curresponding Property 'a'
+            from EventDispatcher.__storage. (class EventDispatcher defined in _events.pyx)
+
+              Widget.__storage['a']   --> PropertyStorage of 'a'
+
+            then it sets
+              Widget.__storage['a'].value  = 5 --> PropertyStorage.value = 5
+
+            Then it calls the dispatch function of the Property, passing in the EventDispatcher class its an attribute ofself.
+            a.dispatch(Widget)
+
+            The dispatch will then access the EventObserves to call the Property's observers
+
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
         value = self.convert(obj, value)
@@ -2039,3 +2059,598 @@ cdef class ColorProperty(Property):
         if count == 3:
             return ObservableList(self, obj, list(value) + [1.0])
         raise ValueError('Invalid value for color (got %r)' % value)
+
+
+#------------------------------------------------------------------------
+cdef inline void observable_vector_dispatch(object self) except *:
+    cdef Property prop = self.prop                                              # VectorProperty
+    obj = self.obj()                                                            # EventDispatcher class the property is defined in
+    if obj is not None:                                                         # If EventDispatcher is not None
+        prop.dispatch(obj)                                                      # Dispatch to all observers of the Property
+
+
+class ObservableVector(list):
+    # Internal class to observe changes inside a native python list.
+    def __init__(self, *largs):
+        self.prop = largs[0]
+        self.obj = ref(largs[1])                                                # Referece to the EventDispatcher
+
+        super(ObservableVector, self).__init__(*largs[2:])
+
+    ''' Defining x,y,z as properties.
+        Only till 3 dimensional vectors '''
+
+    ''':attr:`x` represents the first element in the list.
+    >>> v = VectorProperty([12, 23])
+    >>> v[0]
+    12
+    >>> v.x
+    12
+    '''
+    def _get_x(self):
+        return self[0]
+
+    def _set_x(self, x):
+        self[0] = x
+        observable_vector_dispatch(self)
+
+
+    x = property(_get_x, _set_x)
+
+    ''':attr:`y` represents the second element in the Vector(list).
+      >>> v = VectorProperty([12, 23])
+      >>> v[1]
+      23
+      >>> v.y
+      23
+
+    The setters automatically extends the vector if y or z is set on a smaller vector.
+    if
+      >>>v = VectorProperty([1])
+      >>>len(v)
+      1
+      >>>v.z = 5
+      >>>v.y
+      0
+      >>>v.z
+      5
+      >>>len(v)
+      3
+    if y or z value is accessed but the vector did not have those components then zero is returned by its getter.
+    But the size of the vector remains unchanged.
+      >>>v = VectorProperty([1])
+      >>>len(v)
+      1
+      >>>v.y
+      0
+      >>>len(v)
+      1
+      >>>v.z
+      0
+      >>>len(v)
+      1
+
+    This is only true if it is accessed as components(v.y,v.z) and does not work if the value is directly accessed via its index.
+    If accessed it will give the usual list IndexError.
+      >>>v = VectorProperty([1])
+      >>>len(v)
+      1
+      >>>v[1]
+      Traceback (most recent call last):
+
+      File "<ipython-input-2-8bc71255a22e>", line 1, in <module>
+      v[1]
+
+      IndexError: list index out of range
+
+    '''
+    def _get_y(self):
+        if len(self) == 1:
+            return 0
+        return self[1]
+
+    def _set_y(self, y):
+
+        if len(self) = 1:
+            list.extend(self,[y])
+        else:
+            self[1] = y
+
+        observable_vector_dispatch(self)
+
+
+    y = property(_get_y, _set_y)
+
+    ''':attr:`z` represents the second element in the Vector(list).
+    >>> v = VectorProperty([12, 23, 41])
+    >>> v[2]
+    41
+    >>> v.z
+    41
+    '''
+    def _get_z(self):
+
+        if len(self) < 3:
+            return 0
+        return self[2]
+
+    def _set_z(self, z):
+
+        if len(self) ==1:
+            list.extend(self,[0,z])
+        elif len(self)==2:
+            list.extend(self,[z])
+        else:
+            self[2] = z
+
+        observable_vector_dispatch(self)
+
+
+    z = property(_get_z, _set_z)
+
+
+    def __setitem__(self, key, value):
+        list.__setitem__(self, key, value)
+
+        observable_vector_dispatch(self)
+
+    def __delitem__(self, key):
+        list.__delitem__(self, key)
+
+        observable_vector_dispatch(self)
+
+    def __setslice__(self, b, c, v):
+        list.__setslice__(self, b, c, v)
+
+        observable_vector_dispatch(self)
+
+    def __delslice__(self, b, c):
+        list.__delslice__(self, b, c)
+
+        observable_vector_dispatch(self)
+
+    def remove(self, *largs):
+        list.remove(self, *largs)
+        self.last_op = 'remove', None
+        observable_list_dispatch(self)
+
+    def insert(self, i, x):
+        list.insert(self, i, x)
+        self.last_op = 'insert', i
+        observable_list_dispatch(self)
+
+    def pop(self, *largs):
+        cdef object result = list.pop(self, *largs)
+        self.last_op = 'pop', largs
+        observable_list_dispatch(self)
+        return result
+
+    def extend(self, *largs):
+        list.extend(self, *largs)
+        self.last_op = 'extend', None
+        observable_list_dispatch(self)
+
+    def sort(self, *largs, **kwargs):
+        list.sort(self, *largs, **kwargs)
+        self.last_op = 'sort', None
+        observable_list_dispatch(self)
+
+    def reverse(self, *largs):
+        list.reverse(self, *largs)
+        self.last_op = 'reverse', None
+        observable_list_dispatch(self)
+
+    '''
+      Vector multiplication and addition is done componentvise.
+
+        >>>v = VectorProperty([1,2,3,4])
+        >>>w = VectorProperty([2,3,4,1])
+        >>>v+w
+        [3,5,7,5]
+        >>>v*w
+        [2,6,12,4]
+
+      If two vectors of different sizes are added or subtracted,
+      a vector of the larger size will be returned.
+      The calculation is done by adding tailing zeros to the smaller vector.
+
+        >>>v = VectorProperty([1,2,3,4])
+        >>>w = VectorProperty([2,3])
+        >>>v+w
+        [3,5,3,4]
+
+      However in the case of multiplication and division, a vector of smaller size is returned.
+      This is in line with assuming tailing zeros for the smaller vector, as in this case,
+      multiplication by or division of zero will give zero.
+
+      >>>v = VectorProperty([1,2,3,4])
+      >>>w = VectorProperty([2,3])
+      >>>v+w
+      [2,6]
+
+      This would not make any noticable difference if the manipulations only involve vectors.
+    '''
+
+    def __iadd__(self, other):
+        ls = len(self)
+        if type(other) is in (int,float):
+            for i in range(ls):
+                self[i]+=other
+        elif isinstance(other,list):
+            lo = len(other)
+            lendiff = ls - lo
+            maxlen = max(lo,ls)                                                 # Extend the length to match higher vector dimension
+            if lendiff > 0:
+                tmpvec = list.__add__(other, [0 for i in range(lendiff)])
+            elif lendiff < 0:
+                list.extend(self,[0 for i in range(-lendiff)])
+                tmpvec = other
+
+            for i in range(maxlen):
+                self[i]+=tmpvec[i]
+        else:
+            raise TypeError("Adding to an Invalid type. \
+                                      Only numbers, tuples or lists are allowed")
+
+        observable_vector_dispatch(self)
+
+    def __add__(self, other):
+
+        ls = len(self)
+
+        if type(other) is in (int,float):                                         # If added to a number,
+            return VectorProperty([self[i]+ other for i in range(ls)])            # Add that number to all elements
+        elif isinstance(other,list):
+            lo = len(other)
+            lendiff = ls-lo                                                         # If the vectors are of different length
+            if lendiff > 0:
+                tmpvec = list.__add__(other, [0 for i in range(lendiff)])                             # if self is larger extend the length of other
+                return VectorProperty([self[i]+ tmpvec[i] for i in range(ls)])
+            elif lendiff < 0:
+                tmpvec = list.__add__(self, [0 for i in range(-lendiff)])              # need conversion to list as + operator is being redefined here
+                return VectorProperty([tmpvec[i]+ other[i] for i in range(lo)])
+            else:
+                return VectorProperty([self[i]+ other[i] for i in range(ls)])
+
+        else:
+            raise TypeError("Adding to an Invalid type. \
+                                      Only numbers, tuples or lists are allowed")
+    def __radd__(self, other):
+      return self + other
+
+    def __sub__(self, other):
+
+        ls = len(self)
+
+        if type(other) is in (int,float):                                       # If added to a number,
+            return VectorProperty([self[i] - other for i in range(ls)])         # Add that number to all elements
+        elif isinstance(other,list):                                            # If added to an instance of list
+
+            lo = len(other)
+            lendiff = ls-lo                                                         # If the vectors are of different length
+            if lendiff > 0:
+                tmpvec = list.__add__(other,[0 for i in range(lendiff)])
+                return VectorProperty([self[i]- tmpvec[i] for i in range(ls)])
+            elif lendiff < 0:
+                tmpvec = list(self) + [0 for i in range(-lendiff)])              # need conversion to list as + operator for 'self' is not same as list
+                return VectorProperty([tmpvec[i] - other[i] for i in range(lo)])
+            else:
+                return VectorProperty([self[i] - other[i] for i in range(ls)])
+        else:
+            raise TypeError("Adding to an Invalid type. \
+                                      Only numbers, tuples or lists are allowed")
+
+    def __isub__(self, other):
+        ls = len(self)
+        if type(other) is in (int,float):
+            for i in range(ls):
+                self[i]-=other
+        elif isinstance(other,list):
+
+            lo = len(other)
+            lendiff = ls - lo
+            maxlen = max(lo,ls)
+            if lendiff > 0:
+                tmpvec = list.__add__(other,[0 for i in range(lendiff)])
+            elif lendiff < 0:
+                list.extend(self,[0 for i in range(-lendiff)])
+                tmpvec = other
+
+            for i in range(maxlen):
+              self[i]-=tmpvec[i]
+        else:
+            raise TypeError("Adding to an Invalid type. \
+                                      Only numbers, tuples or lists are allowed")
+        self.last_op = '__isub__', None
+        observable_vector_dispatch(self)
+
+    def __neg__(self):
+        return VectorProperty([-x for x in self])
+
+    def __rsub__(self, other):
+        return -self + other
+
+    def __imul__(self, other):
+        if type(other) is in (int,float):
+            for i in range(len(self))
+              self[i]*=other
+        elif isinstance(other,tuple) or isinstance(other,list):
+            minlen = min(len(self),len(other))
+            for i in range(minlen)]
+                self[i]*other[i]
+        else:
+            raise TypeError("Multiplying with an Invalid type. \
+                                          Only numbers, tuples or lists are allowed") self.last_op = '__imul__',None
+        observable_vector_dispatch(self)
+
+    def __rmul__(self, other):
+        return (self*other)
+
+    def __truediv__(self, other):
+        try:
+            if type(other) is in (int,float):
+                return VectorProperty([x / other for x in self])
+            elif isinstance(other,tuple) or isinstance(other,list):
+                minlen = min(len(self),len(other))
+                return VectorProperty([x[i] /y[i] for i in range(minlen)])
+        except Exception :
+            return VectorProperty(self)
+
+    def __div__(self, other):
+        try:
+            if type(other) is in (int,float):
+                return VectorProperty([x / other for x in self])
+            elif isinstance(other,tuple) or isinstance(other,list):
+                minlen = min(len(self),len(other))
+                return VectorProperty([x[i] /y[i] for i in range(minlen)])
+        except Exception :
+            return VectorProperty(self)
+
+    def __rtruediv__(self, other):
+        try:
+            return VectorProperty(other) / self
+        except Exception:                                                         # Is it good to capture the exception like this?
+            return VectorProperty(self)                                           # Wouldn't it be better for it to be alerted?
+
+    def __rdiv__(self, other):
+        try:
+            return VectorProperty(other) / self
+        except Exception:
+            return VectorProperty(self)
+
+    def __idiv__(self, other):
+        if type(other) in (int, float):
+            for i in range(len(self)):
+                self[i]/=other
+        else:
+            minlen = min(len(self),len(other))
+            for i in range(minlen):
+                self.[i]/=other[i]
+        observable_vector_dispatch(self)
+
+    def length(self):
+        '''Returns the length of a vector.
+        >>> v = VectorProperty([10,10])
+        >>> v.length()
+        14.142135623730951
+        '''
+        return math.sqrt(sum([x*x for x in self]))
+
+    def length2(self):
+        '''Returns the length of a vector squared.
+        >>> v = VectorProperty([10,10])
+        >>> v.length2()
+        200
+
+        '''
+        return sum([x*x for x in self])
+
+    def distance(self, to):
+        '''Returns the distance between two points.
+        >>> v = VectorProperty([10,10])
+        >>> v.distance((5, 10))
+        5.
+        >>> b = (76, 34)
+        >>> v.distance(b)
+        14.035668847618199
+
+        '''
+        if type(to) is in (int,float):
+          to = list(to)
+
+        lendiff = len(self) - len(to)
+        if lendiff > 0:                                                             # If the vectors are of different length
+            tmpvec = list.__add__(to , [0 for i in range(lendiff)])                 # Extend the smaller vector by adding extra components with value 0
+            return math.sqrt(sum([(x-y)*(x-y)
+                                  for x in self
+                                          for y in tmpvec ] ))     # square root of sum of squared difference for calculating distance
+        elif lendiff < 0:
+            tmpvec = list.__add__(self , [0 for i in range(-lendiff)])
+            return math.sqrt(sum([(x-y)*(x-y)
+                                      for x in tmpvec
+                                              for y in to]))
+
+        return math.sqrt(sum([(x-y)*(x-y)
+                                    for x in self
+                                            for y in to]))
+
+    def distance2(self, to):
+        '''Returns the distance between two points squared.
+        >>> v = VectorProperty([10,10])
+        >>> v.distance2((5, 10))
+        25
+        '''
+        if type(to) is in (int,float):
+            to = list(to)
+
+        lendiff = len(self) - len(to)
+        if lendiff > 0:
+            tmpvec = list.__add__(to,[0 for i in range(lendiff)] )
+            return sum([(x-y)*(x-y)
+                                for x in self
+                                          for y in tmpvec ])
+        elif lendiff < 0:
+            tmpvec = list.__add__(self, [0 for i in range(-lendiff)])
+            return sum([(x-y)*(x-y)
+                              for x in tmpvec
+                                        for y in to])
+
+        return sum([(x-y)*(x-y)
+                          for x in self
+                                  for y in to])
+
+    def normalize(self):
+        '''Returns a new vector that has the same direction as vec,
+        but has a length of one.
+
+        >>> v = VectorProperty(88, 33).normalize()
+        >>> v
+        [0.93632917756904444, 0.3511234415883917]
+        >>> v.length()
+        1.0
+
+        '''
+        if not any(self):                                                       # If none of the elements are True(non zero) then return self(zero vector)
+            return self
+        return self / self.length()
+
+    def dot(self, other):
+        '''Computes the dot product of a and b.
+        >>> v = VectorProperty([2, 4])
+        >>> v.dot([2, 2])
+        12
+
+        This method requires other to be of type list, int or float.
+        '''
+        if type(other) is in (int,float):
+            other = list(other)
+
+        lendiff = len(self) - len(other)
+        if lendiff > 0:
+            tmpvec = list.__add__(other,[0 for i in range(lendiff)])
+            return sum([x*y for x in self for y in tempvec])
+        elif lendiff < 0:
+            tmpvec = list.__add__(self,[0 for i in range(-lendiff)])
+            return sum([x*y for x in tempvec for y in other])
+
+        return sum([x*y for x in self for y in other])
+
+
+    def cross(self, other):
+      '''
+      Computes the cross product between two vectors.
+      >>> v = VectorProperty([1,2,3])
+      >>> b = [1,1,3]
+      >>> v.cross(b)
+      [3,0,-1]
+
+      b has to be of dimensions 2 or 3
+
+      '''
+
+        ls = len(self)
+        lo = len(other)
+
+        if lo == 2:
+            cross_z = self.x*other[1] - self.y*other[0]
+            return VectorProperty([0,0,cross_z])
+        elif lo == 3:
+            cross_x = self.y*other[2] - self.z*other[1]
+            cross_y = self.z*other[0] - self.x*other[2]
+            cross_z = self.x*other[1] - self.y*other[0]
+            return VectorProperty([cross_x,cross_y,cross_z])
+        else:
+            raise Exception("Invalid vector dimensions. Vector should be of dimensions 2 or 3")
+
+    def rotate2D(self,angle):
+      '''
+        Rotates a 2D vector by input angle.
+
+        Raises an exception is the vetor is not 2D
+
+      '''
+        if len(self) == 2:
+            angle  = math.radians(angle)
+            sina = math.sin(angle)
+            cosa = math.cos(angle)
+
+            x = self.x*coa - self.y*sina
+            y = self.y*cosa + self.x*sina
+
+            return VectorProperty([x,y])
+        else:
+            raise Exception("Vector is not of dimension 2")
+
+    def rotate3D(self,alpha=0,beta=0,gamma=0):
+        '''
+          Returnes a vector rotated by the input angles.
+          :kwargs:
+              alpha: angle to rotate about x axis. Default value 0.
+              beta : angle to rotate about y axis. Default value 0.
+              gamma: angle to rotate about z axis. Default value 0.
+        '''
+        if len(self) <=3:
+            '''
+             Because self.y and self.z will return zero even when the vector is 1D or 2D,
+             we only need to check if the vector is of dimension 3 or lower.
+
+             This wouldn't be possible if instead of self.y, self[1] was used in the rotation equation.
+
+            '''
+            a = math.radians(alpha)
+            b = math.radians(beta)
+            g = math.radians(gamma)
+            sina = math.sin(a)
+            sinb = math.sin(b)
+            sing = math.sin(g)
+            cosa = math.cos(a)
+            cosb = math.cos(b)
+            cosg = math.cos(g)
+
+            rx = cosa*cosb*self.x + (cosa*sinb*sing - sina*cosg)*self.y + (cosa*sinb*cosg + sina*sing)*self.z
+            ry = sina*cosb*self.x + (sina*sinb*sing + cosa*cosg)*self.y + (sina*sinb*cosg - cosa*sing)*self.z
+            rz =     -sinb*self.x +                    cosb*sing*self.y +                    cosb*cosg*self.z
+
+            return VectorProperty([rx,ry,rz])
+        else:
+            raise Exception("Vector should only have three components or lower")
+
+
+
+cdef class VectorProperty(Property):
+    '''Property that represents a Vector.
+
+    :Parameters:
+        `defaultvalue`: Vector, defaults to [0]
+            Specifies the default value of the property.
+
+    .. warning::
+
+        When assigning a list to a :class:`VectorProperty`, the list stored in
+        the property is a shallow copy of the list and not the original list.
+
+    '''
+    def __init__(self, defaultvalue=0, **kw):
+
+        defaultvalue = [0] if defaultvalue == 0 else defaultvalue
+
+        super(VectorProperty, self).__init__(defaultvalue, **kw)
+
+    cpdef link(self, EventDispatcher obj, str name):
+        Property.link(self, obj, name)
+        cdef PropertyStorage ps = obj.__storage[self._name]
+        if ps.value is not None:
+            ps.value = ObservableVector(self, obj, ps.value)
+
+    cdef check(self, EventDispatcher obj, value):
+        if Property.check(self, obj, value):
+            return True
+        if type(value) is not ObservableVector:
+            raise ValueError('%s.%s accept only ObservableVector' % (
+                obj.__class__.__name__,
+                self.name))
+
+    cpdef set(self, EventDispatcher obj, value):
+        if value is not None:
+            value = ObservableVector(self, obj, value)
+        Property.set(self, obj, value)
