@@ -2362,7 +2362,7 @@ class ObservableVector(list):
                 self[i]*other[i]
         else:
             raise TypeError("Multiplying with an Invalid type. \
-                                          Only numbers, tuples or lists are allowed") 
+                                          Only numbers, tuples or lists are allowed")
         observable_vector_dispatch(self)
 
     def __rmul__(self, other):
@@ -2407,7 +2407,7 @@ class ObservableVector(list):
         else:
             minlen = min(len(self),len(other))
             for i in range(minlen):
-                self.[i]/=other[i]
+                self[i]/=other[i]
         observable_vector_dispatch(self)
 
     def length(self):
