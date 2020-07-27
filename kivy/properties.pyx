@@ -2261,7 +2261,7 @@ class ObservableVector(list):
             if lendiff > 0:
                 tmpvec = list.__add__(other,
                                         [0 for i in range(lendiff)]
-                                        )      
+                                        )
             elif lendiff < 0:
                 list.extend(self,
                               [0 for i in range(-lendiff)]
@@ -2358,7 +2358,7 @@ class ObservableVector(list):
               self[i]*=other
         elif isinstance(other,tuple) or isinstance(other,list):
             minlen = min(len(self),len(other))
-            for i in range(minlen)]
+            for i in range(minlen):
                 self[i]*other[i]
         else:
             raise TypeError("Multiplying with an Invalid type. \
