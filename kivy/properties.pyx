@@ -2259,9 +2259,13 @@ class ObservableVector(list):
             lendiff = ls - lo
             maxlen = max(lo,ls)
             if lendiff > 0:
-                tmpvec = list.__add__(other, [0 for i in range(lendiff)])       # Extend the length to match higher vector dimension
+                tmpvec = list.__add__(other,
+                                        [0 for i in range(lendiff)]
+                                        )      
             elif lendiff < 0:
-                list.extend(self,[0 for i in range(-lendiff)])
+                list.extend(self,
+                              [0 for i in range(-lendiff)]
+                              )
                 tmpvec = other
 
             for i in range(maxlen):
@@ -2350,7 +2354,7 @@ class ObservableVector(list):
 
     def __imul__(self, other):
         if type(other) in (int,float):
-            for i in range(len(self))
+            for i in range(len(self)):
               self[i]*=other
         elif isinstance(other,tuple) or isinstance(other,list):
             minlen = min(len(self),len(other))
