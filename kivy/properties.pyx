@@ -2362,7 +2362,7 @@ class ObservableVector(list):
                 self[i]*other[i]
         else:
             raise TypeError("Multiplying with an Invalid type. \
-                                          Only numbers, tuples or lists are allowed") self.last_op = '__imul__',None
+                                          Only numbers, tuples or lists are allowed") 
         observable_vector_dispatch(self)
 
     def __rmul__(self, other):
