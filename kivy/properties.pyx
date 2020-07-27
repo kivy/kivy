@@ -2352,6 +2352,16 @@ class ObservableVector(list):
     def __rsub__(self, other):
         return -self + other
 
+    def __mul__(self,other):
+        try:
+            if type(other) in (int,float):
+                return VectorProperty([x*other for x in self])
+            elif isinstance(other,tuple) or isinstance(other,list):
+                minlen = min(len(self),len(other))
+                return VectorProperty([self[i]*other[i] for i in range(minlen)])
+        except Exception :
+            return VectorProperty(self)
+
     def __imul__(self, other):
         if type(other) in (int,float):
             for i in range(len(self)):
@@ -2374,7 +2384,7 @@ class ObservableVector(list):
                 return VectorProperty([x / other for x in self])
             elif isinstance(other,tuple) or isinstance(other,list):
                 minlen = min(len(self),len(other))
-                return VectorProperty([x[i] /y[i] for i in range(minlen)])
+                return VectorProperty([self[i] /other[i] for i in range(minlen)])
         except Exception :
             return VectorProperty(self)
 
@@ -2384,7 +2394,7 @@ class ObservableVector(list):
                 return VectorProperty([x / other for x in self])
             elif isinstance(other,tuple) or isinstance(other,list):
                 minlen = min(len(self),len(other))
-                return VectorProperty([x[i] /y[i] for i in range(minlen)])
+                return VectorProperty([self[i] /other[i] for i in range(minlen)])
         except Exception :
             return VectorProperty(self)
 
