@@ -2310,7 +2310,7 @@ class ObservableVector(list):
                 tmpvec = list.__add__(other,[0 for i in range(lendiff)])
                 return VectorProperty([self[i]- tmpvec[i] for i in range(ls)])
             elif lendiff < 0:
-                tmpvec = list(self) + [0 for i in range(-lendiff)])
+                tmpvec = list.__add__(self, [0 for i in range(-lendiff)])
                 return VectorProperty([tmpvec[i] - other[i] for i in range(lo)])
             else:
                 return VectorProperty([self[i] - other[i] for i in range(ls)])
