@@ -495,7 +495,7 @@ cdef class Property:
                 'Deprecated property "{}" of object "{}" has been set, it '
                 'will be removed in a future version'.format(self, obj))
             self.deprecated = 0
-        self.set(obj, val)                                                      # method set is called from __set__
+        self.set(obj, val)
 
     def __get__(self, EventDispatcher obj, objtype):
         if obj is None:
@@ -532,10 +532,10 @@ cdef class Property:
             This method then accesses the PropertyStorage(class defined in properties.pxd) of the curresponding Property 'a'
             from EventDispatcher.__storage. (class EventDispatcher defined in _events.pyx)
 
-              Widget.__storage['a']   --> PropertyStorage of 'a'
+              EventDispatcher.__storage['a']   --> PropertyStorage of 'a'
 
             then it sets
-              Widget.__storage['a'].value  = 5 --> PropertyStorage.value = 5
+              EventDispatcher.__storage['a'].value  = 5 --> PropertyStorage.value = 5
 
             Then it calls the dispatch function of the Property, passing in the EventDispatcher class its an attribute ofself.
             a.dispatch(Widget)
@@ -2081,10 +2081,11 @@ class ObservableVector(list):
         Only till 3 dimensional vectors '''
 
     ''':attr:`x` represents the first element in the list.
-    >>> v = VectorProperty([12, 23])
-    >>> v[0]
+        class MyWidget(Widget)
+            v = VectorProperty([12, 23])
+    >>> MyWidget.v[0]
     12
-    >>> v.x
+    >>> MyWidget.v.x
     12
     '''
     def _get_x(self):
@@ -2098,48 +2099,51 @@ class ObservableVector(list):
     x = property(_get_x, _set_x)
 
     ''':attr:`y` represents the second element in the Vector(list).
-      >>> v = VectorProperty([12, 23])
-      >>> v[1]
+       class MyWidget(Widget)
+          v = VectorProperty([12, 23])
+      >>> MyWidget.v[1]
       23
-      >>> v.y
+      >>> MyWidget.y
       23
 
     The setters automatically extends the vector if y or z is set on a smaller vector.
     if
-      >>>v = VectorProperty([1])
-      >>>len(v)
+      class MyWidget(Widget)
+          v = VectorProperty([1])
+      >>> ins = MyWidget()
+      >>>len(ins.v)
       1
-      >>>v.z = 5
-      >>>v.y
+      >>>ins.v.z = 5
+      >>>ins.v.y
       0
-      >>>v.z
+      >>>ins.v.z
       5
       >>>len(v)
       3
     if y or z value is accessed but the vector did not have those components then zero is returned by its getter.
     But the size of the vector remains unchanged.
-      >>>v = VectorProperty([1])
-      >>>len(v)
+
+      >>>len(ins.v)
       1
-      >>>v.y
+      >>>ins.v.y
       0
-      >>>len(v)
+      >>>len(ins.v)
       1
-      >>>v.z
+      >>>ins.v.z
       0
-      >>>len(v)
+      >>>len(ins.v)
       1
 
     This is only true if it is accessed as components(v.y,v.z) and does not work if the value is directly accessed via its index.
     If accessed it will give the usual list IndexError.
       >>>v = VectorProperty([1])
-      >>>len(v)
+      >>>len(ins.v)
       1
-      >>>v[1]
+      >>>ins.v[1]
       Traceback (most recent call last):
 
       File "<ipython-input-2-8bc71255a22e>", line 1, in <module>
-      v[1]
+      ins.v[1]
 
       IndexError: list index out of range
 
@@ -2162,10 +2166,12 @@ class ObservableVector(list):
     y = property(_get_y, _set_y)
 
     ''':attr:`z` represents the second element in the Vector(list).
-    >>> v = VectorProperty([12, 23, 41])
-    >>> v[2]
+    class MyWidget(Widget)
+        v = VectorProperty([12, 23, 41])
+    >>> ins = MyWidget()
+    >>> ins.v[2]
     41
-    >>> v.z
+    >>> ins.v.z
     41
     '''
     def _get_z(self):
@@ -2233,29 +2239,32 @@ class ObservableVector(list):
     '''
       Vector multiplication and addition is done componentwise.
 
-        >>>v = VectorProperty([1,2,3,4])
-        >>>w = VectorProperty([2,3,4,1])
-        >>>v+w
+      class MyWidget(Widget)
+          v = VectorProperty([1,2,3,4])
+          w = VectorProperty([2,3,4,1])
+
+        >>> ins = MyWidget()
+        >>>ins.v + ins.w
         [3,5,7,5]
-        >>>v*w
+        >>>ins.v * ins.w
         [2,6,12,4]
 
       If two vectors of different sizes are added or subtracted,
       a vector of the larger size will be returned.
       The calculation is done by adding tailing zeros to the smaller vector.
 
-        >>>v = VectorProperty([1,2,3,4])
-        >>>w = VectorProperty([2,3])
-        >>>v+w
+            v = VectorProperty([1,2,3,4])
+            w = VectorProperty([2,3])
+        >>>ins.v + ins.w
         [3,5,3,4]
 
       However in the case of multiplication and division, a vector of smaller size is returned.
       This is in line with assuming tailing zeros for the smaller vector, as in this case,
       multiplication by or division of zero will give zero.
 
-      >>>v = VectorProperty([1,2,3,4])
-      >>>w = VectorProperty([2,3])
-      >>>v+w
+          v = VectorProperty([1,2,3,4])
+          w = VectorProperty([2,3])
+      >>>ins.v + ins.w
       [2,6]
 
       This would not make any noticeable difference if the manipulations only involve vectors.
@@ -2420,16 +2429,22 @@ class ObservableVector(list):
 
     def length(self):
         '''Returns the length of a vector.
-        >>> v = VectorProperty([10,10])
-        >>> v.length()
+        class MyWidget(Widget)
+            v = VectorProperty([10,10])
+
+        >>> ins = MyWidget()
+        >>> ins.v.length()
         14.142135623730951
         '''
         return math.sqrt(sum([x*x for x in self]))
 
     def length2(self):
         '''Returns the length of a vector squared.
-        >>> v = VectorProperty([10,10])
-        >>> v.length2()
+        class MyWidget(Widget)
+            v = VectorProperty([10,10])
+
+        >>> ins = MyWidget()
+        >>> ins.v.length2()
         200
 
         '''
@@ -2437,11 +2452,14 @@ class ObservableVector(list):
 
     def distance(self, to):
         '''Returns the distance between two points.
-        >>> v = VectorProperty([10,10])
-        >>> v.distance((5, 10))
+        class MyWidget(Widget)
+            v = VectorProperty([10,10])
+
+        >>> ins = MyWidget()
+        >>> ins.v.distance([5, 10])
         5.
-        >>> b = (76, 34)
-        >>> v.distance(b)
+        >>> b = [76, 34]
+        >>> ins.v.distance(b)
         14.035668847618199
 
         '''
@@ -2466,8 +2484,11 @@ class ObservableVector(list):
 
     def distance2(self, to):
         '''Returns the distance between two points squared.
-        >>> v = VectorProperty([10,10])
-        >>> v.distance2((5, 10))
+        class MyWidget(Widget)
+            v = VectorProperty([10,10])
+
+        >>> ins = MyWidget()
+        >>> ins.v.distance2((5, 10))
         25
         '''
         if type(to) is in (int,float):
@@ -2492,11 +2513,14 @@ class ObservableVector(list):
     def normalize(self):
         '''Returns a new vector that has the same direction as vec,
         but has a length of one.
+        class MyWidget(Widget)
+            v = VectorProperty([88, 33])
 
-        >>> v = VectorProperty(88, 33).normalize()
-        >>> v
+        >>> ins = MyWidget()
+        >>> ins.v = ins.v.normalize()
+        >>> ins.v
         [0.93632917756904444, 0.3511234415883917]
-        >>> v.length()
+        >>> ins.v.length()
         1.0
 
         '''
@@ -2506,11 +2530,14 @@ class ObservableVector(list):
 
     def dot(self, other):
         '''Computes the dot product of a and b.
-        >>> v = VectorProperty([2, 4])
-        >>> v.dot([2, 2])
+        class MyWidget(Widget)
+            v = VectorProperty([2,4])
+
+        >>> ins = MyWidget()
+        >>> ins.v.dot([2, 2])
         12
 
-        This method requires other to be of type list, int or float.
+        This method requires argumrnt 'other' to be of type list, int or float.
         '''
         if type(other) is in (int,float):
             other = list(other)
@@ -2531,9 +2558,11 @@ class ObservableVector(list):
     def cross(self, other):
       '''
       Computes the cross product between two vectors.
-      >>> v = VectorProperty([1,2,3])
+      class MyWidget(Widget)
+          v = VectorProperty([1,2,3])
+      >>> ins = MyWidget()
       >>> b = [1,1,3]
-      >>> v.cross(b)
+      >>> ins.v.cross(b)
       [3,0,-1]
 
       b has to be of dimensions 2 or 3
