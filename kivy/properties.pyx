@@ -2600,6 +2600,7 @@ class ObservableVector(list):
             a = math.radians(alpha)
             b = math.radians(beta)
             g = math.radians(gamma)
+
             sina = math.sin(a)
             sinb = math.sin(b)
             sing = math.sin(g)
@@ -2607,9 +2608,13 @@ class ObservableVector(list):
             cosb = math.cos(b)
             cosg = math.cos(g)
 
-            rx = cosa*cosb*self.x + (cosa*sinb*sing - sina*cosg)*self.y + (cosa*sinb*cosg + sina*sing)*self.z
-            ry = sina*cosb*self.x + (sina*sinb*sing + cosa*cosg)*self.y + (sina*sinb*cosg - cosa*sing)*self.z
-            rz =     -sinb*self.x +                    cosb*sing*self.y +                    cosb*cosg*self.z
+            x = self.x
+            y = self.y
+            z = self.z
+
+            rx = cosa*cosb*x + (cosa*sinb*sing - sina*cosg)*y + (cosa*sinb*cosg + sina*sing)*z
+            ry = sina*cosb*x + (sina*sinb*sing + cosa*cosg)*y + (sina*sinb*cosg - cosa*sing)*z
+            rz =     -sinb*x +                    cosb*sing*y +                    cosb*cosg*z
 
             return VectorProperty([rx,ry,rz])
         else:
