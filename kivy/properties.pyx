@@ -2567,12 +2567,12 @@ class ObservableVector(list):
             raise Exception("Invalid vector dimensions. Vector should be of dimensions 2 or 3")
 
     def rotate2D(self,angle):
-      '''
-        Rotates a 2D vector by input angle.
+        '''
+          Rotates a 2D vector by input angle.
 
-        Raises an exception is the vetor is not 2D
+          Raises an exception is the vetor is not 2D
 
-      '''
+        '''
         if len(self) == 2:
             angle  = math.radians(angle)
             sina = math.sin(angle)
