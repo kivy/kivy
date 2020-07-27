@@ -2543,7 +2543,7 @@ class ObservableVector(list):
             return sum([x*y for x in self for y in tmpvec])
         else:
             tmpvec = list.__add__(self,[0 for i in range(-lendiff)])
-            return sum([x*y for x in tempvec for y in other])
+            return sum([x*y for x in tmpvec for y in other])
 
 
 
