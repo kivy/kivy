@@ -521,7 +521,7 @@ cdef class Property:
             return False
 
     cpdef set(self, EventDispatcher obj, value):
-        
+
         cdef PropertyStorage ps = obj.__storage[self._name]
         value = self.convert(obj, value)
         realvalue = ps.value
@@ -2257,9 +2257,9 @@ class ObservableVector(list):
         elif isinstance(other,list):
             lo = len(other)
             lendiff = ls - lo
-            maxlen = max(lo,ls)                                                 # Extend the length to match higher vector dimension
+            maxlen = max(lo,ls)
             if lendiff > 0:
-                tmpvec = list.__add__(other, [0 for i in range(lendiff)])
+                tmpvec = list.__add__(other, [0 for i in range(lendiff)])       # Extend the length to match higher vector dimension
             elif lendiff < 0:
                 list.extend(self,[0 for i in range(-lendiff)])
                 tmpvec = other
@@ -2276,16 +2276,16 @@ class ObservableVector(list):
 
         ls = len(self)
 
-        if type(other) is in (int,float):                                         # If added to a number,
-            return VectorProperty([self[i]+ other for i in range(ls)])            # Add that number to all elements
+        if type(other) is in (int,float):                                       # If added to a number,
+            return VectorProperty([self[i]+ other for i in range(ls)])          # Add that number to all elements
         elif isinstance(other,list):
             lo = len(other)
-            lendiff = ls-lo                                                         # If the vectors are of different length
+            lendiff = ls-lo                                                     # If the vectors are of different length
             if lendiff > 0:
-                tmpvec = list.__add__(other, [0 for i in range(lendiff)])                             # if self is larger extend the length of other
+                tmpvec = list.__add__(other, [0 for i in range(lendiff)])       # if self is larger extend the length of other
                 return VectorProperty([self[i]+ tmpvec[i] for i in range(ls)])
             elif lendiff < 0:
-                tmpvec = list.__add__(self, [0 for i in range(-lendiff)])              # need conversion to list as + operator is being redefined here
+                tmpvec = list.__add__(self, [0 for i in range(-lendiff)])
                 return VectorProperty([tmpvec[i]+ other[i] for i in range(lo)])
             else:
                 return VectorProperty([self[i]+ other[i] for i in range(ls)])
@@ -2300,17 +2300,17 @@ class ObservableVector(list):
 
         ls = len(self)
 
-        if type(other) is in (int,float):                                       # If added to a number,
-            return VectorProperty([self[i] - other for i in range(ls)])         # Add that number to all elements
-        elif isinstance(other,list):                                            # If added to an instance of list
+        if type(other) is in (int,float):
+            return VectorProperty([self[i] - other for i in range(ls)])
+        elif isinstance(other,list):
 
             lo = len(other)
-            lendiff = ls-lo                                                         # If the vectors are of different length
+            lendiff = ls-lo
             if lendiff > 0:
                 tmpvec = list.__add__(other,[0 for i in range(lendiff)])
                 return VectorProperty([self[i]- tmpvec[i] for i in range(ls)])
             elif lendiff < 0:
-                tmpvec = list(self) + [0 for i in range(-lendiff)])              # need conversion to list as + operator for 'self' is not same as list
+                tmpvec = list(self) + [0 for i in range(-lendiff)])
                 return VectorProperty([tmpvec[i] - other[i] for i in range(lo)])
             else:
                 return VectorProperty([self[i] - other[i] for i in range(ls)])
@@ -2387,8 +2387,8 @@ class ObservableVector(list):
     def __rtruediv__(self, other):
         try:
             return VectorProperty(other) / self
-        except Exception:                                                         # Is it good to capture the exception like this?
-            return VectorProperty(self)                                           # Wouldn't it be better for it to be alerted?
+        except Exception:                                                       # Is it good to capture the exception like this?
+            return VectorProperty(self)                                         # Wouldn't it be better for it to be alerted?
 
     def __rdiv__(self, other):
         try:
@@ -2446,11 +2446,11 @@ class ObservableVector(list):
           to = list(to)
 
         lendiff = len(self) - len(to)
-        if lendiff > 0:                                                             # If the vectors are of different length
-            tmpvec = list.__add__(to , [0 for i in range(lendiff)])                 # Extend the smaller vector by adding extra components with value 0
+        if lendiff > 0:
+            tmpvec = list.__add__(to , [0 for i in range(lendiff)])
             return math.sqrt(sum([(x-y)*(x-y)
                                   for x in self
-                                          for y in tmpvec ] ))     # square root of sum of squared difference for calculating distance
+                                          for y in tmpvec ] ))
         elif lendiff < 0:
             tmpvec = list.__add__(self , [0 for i in range(-lendiff)])
             return math.sqrt(sum([(x-y)*(x-y)
