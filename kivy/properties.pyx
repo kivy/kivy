@@ -521,28 +521,7 @@ cdef class Property:
             return False
 
     cpdef set(self, EventDispatcher obj, value):
-        '''Set a new value for the property.
-
-            When a value is assigned to a property 'a'
-
-                >>> Widget.a = 5
-
-            this method is called from the Property's __set__.
-
-            This method then accesses the PropertyStorage(class defined in properties.pxd) of the curresponding Property 'a'
-            from EventDispatcher.__storage. (class EventDispatcher defined in _events.pyx)
-
-              EventDispatcher.__storage['a']   --> PropertyStorage of 'a'
-
-            then it sets
-              EventDispatcher.__storage['a'].value  = 5 --> PropertyStorage.value = 5
-
-            Then it calls the dispatch function of the Property, passing in the EventDispatcher class its an attribute ofself.
-            a.dispatch(Widget)
-
-            The dispatch will then access the EventObserves to call the Property's observers
-
-        '''
+        
         cdef PropertyStorage ps = obj.__storage[self._name]
         value = self.convert(obj, value)
         realvalue = ps.value
