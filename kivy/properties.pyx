@@ -2539,18 +2539,18 @@ class ObservableVector(list):
 
 
     def cross(self, other):
-      '''
-      Computes the cross product between two vectors.
-      class MyWidget(Widget)
-          v = VectorProperty([1,2,3])
-      >>> ins = MyWidget()
-      >>> b = [1,1,3]
-      >>> ins.v.cross(b)
-      [3,0,-1]
+        '''
+        Computes the cross product between two vectors.
+        class MyWidget(Widget)
+            v = VectorProperty([1,2,3])
+        >>> ins = MyWidget()
+        >>> b = [1,1,3]
+        >>> ins.v.cross(b)
+        [3,0,-1]
 
-      b has to be of dimensions 2 or 3
+        b has to be of dimensions 2 or 3
 
-      '''
+        '''
 
         ls = len(self)
         lo = len(other)
