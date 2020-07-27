@@ -2540,7 +2540,7 @@ class ObservableVector(list):
             return sum([x*y for x in self for y in other])
         elif lendiff > 0:
             tmpvec = list.__add__(other,[0 for i in range(lendiff)])
-            return sum([x*y for x in self for y in tempvec])
+            return sum([x*y for x in self for y in tmpvec])
         else:
             tmpvec = list.__add__(self,[0 for i in range(-lendiff)])
             return sum([x*y for x in tempvec for y in other])
@@ -2588,7 +2588,7 @@ class ObservableVector(list):
             sina = math.sin(angle)
             cosa = math.cos(angle)
 
-            x = self.x*coa - self.y*sina
+            x = self.x*cosa - self.y*sina
             y = self.y*cosa + self.x*sina
 
             return VectorProperty([x,y])
