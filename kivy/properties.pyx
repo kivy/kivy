@@ -2185,63 +2185,53 @@ class ObservableVector(list):
 
         observable_vector_dispatch(self)
 
-
     z = property(_get_z, _set_z)
 
 
     def __setitem__(self, key, value):
         list.__setitem__(self, key, value)
-
         observable_vector_dispatch(self)
 
     def __delitem__(self, key):
         list.__delitem__(self, key)
-
         observable_vector_dispatch(self)
 
     def __setslice__(self, b, c, v):
         list.__setslice__(self, b, c, v)
-
         observable_vector_dispatch(self)
 
     def __delslice__(self, b, c):
         list.__delslice__(self, b, c)
-
         observable_vector_dispatch(self)
 
     def remove(self, *largs):
         list.remove(self, *largs)
-        self.last_op = 'remove', None
         observable_list_dispatch(self)
 
     def insert(self, i, x):
         list.insert(self, i, x)
-        self.last_op = 'insert', i
+
         observable_list_dispatch(self)
 
     def pop(self, *largs):
         cdef object result = list.pop(self, *largs)
-        self.last_op = 'pop', largs
         observable_list_dispatch(self)
         return result
 
     def extend(self, *largs):
         list.extend(self, *largs)
-        self.last_op = 'extend', None
         observable_list_dispatch(self)
 
     def sort(self, *largs, **kwargs):
         list.sort(self, *largs, **kwargs)
-        self.last_op = 'sort', None
         observable_list_dispatch(self)
 
     def reverse(self, *largs):
         list.reverse(self, *largs)
-        self.last_op = 'reverse', None
         observable_list_dispatch(self)
 
     '''
-      Vector multiplication and addition is done componentvise.
+      Vector multiplication and addition is done componentwise.
 
         >>>v = VectorProperty([1,2,3,4])
         >>>w = VectorProperty([2,3,4,1])
@@ -2268,7 +2258,7 @@ class ObservableVector(list):
       >>>v+w
       [2,6]
 
-      This would not make any noticable difference if the manipulations only involve vectors.
+      This would not make any noticeable difference if the manipulations only involve vectors.
     '''
 
     def __iadd__(self, other):
