@@ -2134,7 +2134,7 @@ class ObservableVector(list):
 
     def _set_y(self, y):
 
-        if len(self) = 1:
+        if len(self) == 1:
             list.extend(self,[y])
         else:
             self[1] = y
