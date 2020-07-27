@@ -2251,7 +2251,7 @@ class ObservableVector(list):
 
     def __iadd__(self, other):
         ls = len(self)
-        if type(other) is in (int,float):
+        if type(other) in (int,float):
             for i in range(ls):
                 self[i]+=other
         elif isinstance(other,list):
@@ -2276,7 +2276,7 @@ class ObservableVector(list):
 
         ls = len(self)
 
-        if type(other) is in (int,float):                                       # If added to a number,
+        if type(other) in (int,float):                                       # If added to a number,
             return VectorProperty([self[i]+ other for i in range(ls)])          # Add that number to all elements
         elif isinstance(other,list):
             lo = len(other)
@@ -2300,7 +2300,7 @@ class ObservableVector(list):
 
         ls = len(self)
 
-        if type(other) is in (int,float):
+        if type(other) in (int,float):
             return VectorProperty([self[i] - other for i in range(ls)])
         elif isinstance(other,list):
 
@@ -2320,7 +2320,7 @@ class ObservableVector(list):
 
     def __isub__(self, other):
         ls = len(self)
-        if type(other) is in (int,float):
+        if type(other) in (int,float):
             for i in range(ls):
                 self[i]-=other
         elif isinstance(other,list):
@@ -2349,7 +2349,7 @@ class ObservableVector(list):
         return -self + other
 
     def __imul__(self, other):
-        if type(other) is in (int,float):
+        if type(other) in (int,float):
             for i in range(len(self))
               self[i]*=other
         elif isinstance(other,tuple) or isinstance(other,list):
@@ -2366,7 +2366,7 @@ class ObservableVector(list):
 
     def __truediv__(self, other):
         try:
-            if type(other) is in (int,float):
+            if type(other) in (int,float):
                 return VectorProperty([x / other for x in self])
             elif isinstance(other,tuple) or isinstance(other,list):
                 minlen = min(len(self),len(other))
@@ -2376,7 +2376,7 @@ class ObservableVector(list):
 
     def __div__(self, other):
         try:
-            if type(other) is in (int,float):
+            if type(other) in (int,float):
                 return VectorProperty([x / other for x in self])
             elif isinstance(other,tuple) or isinstance(other,list):
                 minlen = min(len(self),len(other))
@@ -2442,7 +2442,7 @@ class ObservableVector(list):
         14.035668847618199
 
         '''
-        if type(to) is in (int,float):
+        if type(to) in (int,float):
           to = list(to)
 
         lendiff = len(self) - len(to)
@@ -2470,7 +2470,7 @@ class ObservableVector(list):
         >>> ins.v.distance2((5, 10))
         25
         '''
-        if type(to) is in (int,float):
+        if type(to) in (int,float):
             to = list(to)
 
         lendiff = len(self) - len(to)
@@ -2518,7 +2518,7 @@ class ObservableVector(list):
 
         This method requires argumrnt 'other' to be of type list, int or float.
         '''
-        if type(other) is in (int,float):
+        if type(other) in (int,float):
             other = list(other)
 
         lendiff = len(self) - len(other)
