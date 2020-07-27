@@ -2526,14 +2526,16 @@ class ObservableVector(list):
             other = list(other)
 
         lendiff = len(self) - len(other)
-        if lendiff > 0:
+        if lendiff == 0:
+            return sum([x*y for x in self for y in other])
+        elif lendiff > 0:
             tmpvec = list.__add__(other,[0 for i in range(lendiff)])
             return sum([x*y for x in self for y in tempvec])
-        elif lendiff < 0:
+        else:
             tmpvec = list.__add__(self,[0 for i in range(-lendiff)])
             return sum([x*y for x in tempvec for y in other])
 
-        return sum([x*y for x in self for y in other])
+
 
 
     def cross(self, other):
