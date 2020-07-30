@@ -270,7 +270,7 @@ class TabbedPanel(GridLayout):
     background_color = ColorProperty([1, 1, 1, 1])
     '''Background color, in the format (r, g, b, a).
 
-    :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`background_color` is a :class:`~kivy.properties.ColorProperty` and
     defaults to [1, 1, 1, 1].
 
     .. versionchanged:: 2.0.0

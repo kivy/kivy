@@ -176,7 +176,7 @@ class Popup(ModalView):
 
     .. versionadded:: 1.8.0
 
-    :attr:`title_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`title_color` is a :class:`~kivy.properties.ColorProperty` and
     defaults to [1, 1, 1, 1].
 
     .. versionchanged:: 2.0.0
@@ -189,7 +189,7 @@ class Popup(ModalView):
 
     .. versionadded:: 1.1.0
 
-    :attr:`separator_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`separator_color` is a :class:`~kivy.properties.ColorProperty` and
     defaults to [47 / 255., 167 / 255., 212 / 255., 1.].
 
     .. versionchanged:: 2.0.0

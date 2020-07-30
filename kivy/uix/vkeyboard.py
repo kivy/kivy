@@ -240,7 +240,7 @@ class VKeyboard(Scatter):
     '''Background color, in the format (r, g, b, a). If a background is
     set, the color will be combined with the background texture.
 
-    :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`background_color` is a :class:`~kivy.properties.ColorProperty` and
     defaults to [1, 1, 1, 1].
 
     .. versionchanged:: 2.0.0
@@ -272,7 +272,7 @@ class VKeyboard(Scatter):
     '''Key background color, in the format (r, g, b, a). If a key background is
     set, the color will be combined with the key background texture.
 
-    :attr:`key_background_color` is a :class:`~kivy.properties.ListProperty`
+    :attr:`key_background_color` is a :class:`~kivy.properties.ColorProperty`
     and defaults to [1, 1, 1, 1].
 
     .. versionchanged:: 2.0.0

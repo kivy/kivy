@@ -357,7 +357,7 @@ class ScrollView(StencilView):
 
     .. versionadded:: 1.2.0
 
-    :attr:`bar_color` is a :class:`~kivy.properties.ListProperty` and defaults
+    :attr:`bar_color` is a :class:`~kivy.properties.ColorProperty` and defaults
     to [.7, .7, .7, .9].
 
     .. versionchanged:: 2.0.0
@@ -372,7 +372,7 @@ class ScrollView(StencilView):
     .. versionadded:: 1.9.0
 
     :attr:`bar_inactive_color` is a
-    :class:`~kivy.properties.ListProperty` and defaults to [.7, .7, .7, .2].
+    :class:`~kivy.properties.ColorProperty` and defaults to [.7, .7, .7, .2].
 
     .. versionchanged:: 2.0.0
         Changed from :class:`~kivy.properties.ListProperty` to
