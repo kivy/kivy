@@ -465,7 +465,7 @@ class ShaderTransition(TransitionBase):
 
     .. versionadded:: 1.9.0
 
-    :attr:`clearcolor` is a :class:`~kivy.properties.ListProperty`
+    :attr:`clearcolor` is a :class:`~kivy.properties.ColorProperty`
     and defaults to [0, 0, 0, 1].
 
     .. versionchanged:: 2.0.0

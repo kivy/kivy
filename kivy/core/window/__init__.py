@@ -1208,7 +1208,7 @@ class WindowBase(EventDispatcher):
 
     .. versionadded:: 1.10.1
 
-    :attr:`shape_color_key` is a :class:`~kivy.properties.ListProperty`
+    :attr:`shape_color_key` is a :class:`~kivy.properties.ColorProperty`
     instance and defaults to [1, 1, 1, 1].
 
     .. versionchanged:: 2.0.0
