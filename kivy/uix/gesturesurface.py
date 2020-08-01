@@ -22,7 +22,7 @@ from kivy.vector import Vector
 from kivy.uix.floatlayout import FloatLayout
 from kivy.graphics import Color, Line, Rectangle
 from kivy.properties import (NumericProperty, BooleanProperty,
-                             DictProperty, ListProperty)
+                             DictProperty, ColorProperty)
 from colorsys import hsv_to_rgb
 
 # Clock undershoot margin, FIXME: this is probably too high?
@@ -238,9 +238,13 @@ class GestureSurface(FloatLayout):
             Color used to draw the gesture, in RGB. This option does not
             have an effect if :attr:`use_random_color` is True.
 
-            :attr:`draw_timeout` is a
-            :class:`~kivy.properties.ListProperty` and defaults to
-            [1, 1, 1] (white)
+            :attr:`color` is a
+            :class:`~kivy.properties.ColorProperty` and defaults to
+            [1, 1, 1, 1] (white)
+
+            .. versionchanged:: 2.0.0
+                Changed from :class:`~kivy.properties.ListProperty` to
+                :class:`~kivy.properties.ColorProperty`.
 
         `use_random_color`
             Set to True to pick a random color for each gesture, if you do
@@ -310,7 +314,7 @@ class GestureSurface(FloatLayout):
     bbox_margin = NumericProperty(30)
 
     line_width = NumericProperty(2)
-    color = ListProperty([1., 1., 1.])
+    color = ColorProperty([1., 1., 1., 1.])
     use_random_color = BooleanProperty(False)
     draw_bbox = BooleanProperty(False)
     bbox_alpha = NumericProperty(0.1)
