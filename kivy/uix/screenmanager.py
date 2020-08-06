@@ -590,7 +590,7 @@ class SlideTransition(TransitionBase):
             a.y = y + height * (1 - progression)
             b.y = y - height * progression
         elif direction == 'up':
-            a.x = b.x = manager.x
+            a.x = b.x = x
             b.y = y + height * progression
             a.y = y - height * (1 - progression)
 
