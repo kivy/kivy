@@ -154,6 +154,7 @@ from kivy.base import EventLoop
 from kivy.cache import Cache
 from kivy.clock import Clock
 from kivy.config import Config
+from kivy.core.window import Window
 from kivy.metrics import inch
 from kivy.utils import boundary, platform
 from kivy.uix.behaviors import FocusBehavior
@@ -860,7 +861,8 @@ class TextInput(FocusBehavior, Widget):
             - do nothing, if we are at the start.
 
         '''
-        if self.readonly:
+        # IME system handles its own backspaces
+        if self.readonly or self._ime_composition:
             return
         cc, cr = self.cursor
         _lines = self._lines
@@ -2584,6 +2586,49 @@ class TextInput(FocusBehavior, Widget):
         if self._selection:
             self.delete_selection()
         self.insert_text(text, False)
+
+    # current IME composition in progress by the IME system, or '' if nothing
+    _ime_composition = StringProperty('')
+    # cursor position of last IME event
+    _ime_cursor = ListProperty(None, allownone=True)
+
+    def _bind_keyboard(self):
+        super()._bind_keyboard()
+        Window.bind(on_textedit=self.window_on_textedit)
+
+    def _unbind_keyboard(self):
+        super()._unbind_keyboard()
+        Window.unbind(on_textedit=self.window_on_textedit)
+
+    def window_on_textedit(self, window, ime_input):
+        text_lines = self._lines or ['']
+        if self._ime_composition:
+            pcc, pcr = self._ime_cursor
+            text = text_lines[pcr]
+            len_ime = len(self._ime_composition)
+            if text[pcc - len_ime:pcc] == self._ime_composition:  # always?
+                remove_old_ime_text = text[:pcc - len_ime] + text[pcc:]
+                ci = self.cursor_index()
+                self._refresh_text_from_property(
+                    "insert",
+                    *self._get_line_from_cursor(pcr, remove_old_ime_text)
+                )
+                self.cursor = self.get_cursor_from_index(ci - len_ime)
+
+        if ime_input:
+            if self._selection:
+                self.delete_selection()
+            cc, cr = self.cursor
+            text = text_lines[cr]
+            new_text = text[:cc] + ime_input + text[cc:]
+            self._refresh_text_from_property(
+                "insert", *self._get_line_from_cursor(cr, new_text)
+            )
+            self.cursor = self.get_cursor_from_index(
+                self.cursor_index() + len(ime_input)
+            )
+        self._ime_composition = ime_input
+        self._ime_cursor = self.cursor
 
     def on__hint_text(self, instance, value):
         self._refresh_hint_text()
