@@ -1005,7 +1005,7 @@ class Label(Widget):
         def print_it(instance, value):
             print('User click on', value)
         widget = Label(text='Hello [ref=world]World[/ref]', markup=True)
-        widget.on_ref_press(print_it)
+        widget.bind(on_ref_press=print_it)
 
     .. note::
 
