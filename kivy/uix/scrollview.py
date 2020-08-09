@@ -349,7 +349,7 @@ class ScrollView(StencilView):
     proportion of the current scrollview height. This property is used
     internally for drawing the little horizontal bar when you're scrolling.
 
-    :attr:`vbar` is a :class:`~kivy.properties.AliasProperty`, readonly.
+    :attr:`hbar` is a :class:`~kivy.properties.AliasProperty`, readonly.
     '''
 
     bar_color = ColorProperty([.7, .7, .7, .9])
