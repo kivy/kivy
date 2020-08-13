@@ -32,7 +32,7 @@ the callback function of the on_success event.
 Example of fetching JSON::
 
     def got_json(req, result):
-        for key, value in result['headers'].items():
+        for key, value in req.resp_headers.items():
             print('{}: {}'.format(key, value))
 
     req = UrlRequest('https://httpbin.org/headers', got_json)
