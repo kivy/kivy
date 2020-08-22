@@ -496,6 +496,15 @@ class Image(EventDispatcher):
         been introduced. New methods for handling sequenced animation have been
         added.
 
+    .. versionchanged:: 2.0.0
+
+        `durations` attribute has been added. An animated image can have a
+        variable delay.
+
+        `auto_anim_delay` attribute has been added. Autofills `durations`
+        attribute if it possible.
+
+
     :Parameters:
         `arg`: can be a string (str), Texture, BytesIO or Image object
             A string path to the image file or data URI to be loaded; or a
@@ -528,12 +537,14 @@ class Image(EventDispatcher):
             manually set. I.e. used only if ``durations`` is empty/None.
             If you want autofill ``durations`` during animation, call the
             self.fill_durations_default() function.
+            .. versionadded:: 2.0.0
         `durations`: list of int or float
             Delay the animation if the image is a sequence (like an animated
             gif). Set if frame delay is variable, not constant.
             When ``auto_anim_delay`` is True and ``durations`` is not set, then
             ``durations`` is set automatically. To reset and stop animation
             just set it to None during the animation.
+            .. versionadded:: 2.0.0
     '''
 
     copy_attributes = ('_size', '_filename', '_texture', '_image',
@@ -682,7 +693,7 @@ class Image(EventDispatcher):
         if allow_anim and self._anim_available:
             if self._durations:
                 if not len(self._durations) == len(self.image.durations):
-                    raise Exception(
+                    raise ValueError(
                         'Image frames count not equal durations count')
                 self._anim_index = 1
                 # do this for the unreal case with animated GIF but one frame
@@ -798,7 +809,10 @@ class Image(EventDispatcher):
         pass
 
     def fill_durations_default(self):
-        '''Fill durations with durations from source image'''
+        '''Fill durations with durations from source image
+
+        .. versionadded:: 2.0.0
+        '''
         imgcount = len(self.image.textures)
 
         if self._iteration_done and imgcount > 1:
