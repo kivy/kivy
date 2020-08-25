@@ -435,6 +435,10 @@ def _get_platform():
         # leaving it here to be backwards compatible with `pydroid3`
         # and similar tools outside kivy's ecosystem
         return 'android'
+    elif 'ANDROID_DATA' in environ:
+        # Not evry android device has 'ANDROID_ARGUMENT' in environ
+        # but everyone has an 'ANDROID_DATA'
+        return 'android'
     elif _sys_platform in ('win32', 'cygwin'):
         return 'win'
     elif _sys_platform == 'darwin':
