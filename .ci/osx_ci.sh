@@ -114,6 +114,7 @@ generate_osx_wheels() {
 generate_osx_app() {
   py_version="$1"
   branch_name="$2"
+
   git clone https://github.com/kivy/kivy-sdk-packager
   pushd kivy-sdk-packager/osx
   app_date=$(python3 -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))")
@@ -123,8 +124,9 @@ generate_osx_app() {
   app_ver=$(KIVY_NO_CONSOLELOG=1 Kivy.app/Contents/Resources/script -c 'import kivy; print(kivy.__version__)')
   mv Kivy.app Kivy3.app
   ./create-osx-dmg.sh Kivy3.app
-  mkdir app
-  cp Kivy3.dmg "app/Kivy-$app_ver-python$py_version.dmg"
-  mv Kivy3.dmg "app/Kivy-$app_ver-$git_tag-$app_date-python$py_version.dmg"
+
   popd
+  mkdir app
+  cp kivy-sdk-packager/osx/Kivy3.dmg "app/Kivy-$app_ver-python$py_version.dmg"
+  mv kivy-sdk-packager/osx/Kivy3.dmg "app/Kivy-$app_ver-$git_tag-$app_date-python$py_version.dmg"
 }
