@@ -539,6 +539,10 @@ class WindowSDL(WindowBase):
                     btn = 'right'
                 elif button == 2:
                     btn = 'middle'
+                elif button == 4:
+                    btn = "mouse4"
+                elif button == 5:
+                    btn = "mouse5"
                 eventname = 'on_mouse_down'
                 self._mouse_buttons_down.add(button)
                 if action == 'mousebuttonup':
