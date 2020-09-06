@@ -63,6 +63,7 @@ if (platform == 'android' and not USE_SDL2) or 'KIVY_DOC' in os.environ:
 
 try:
     import kivy.input.providers.leapfinger  # NOQA
+        import kivy.input.providers.leaphand  # NOQA
 except:
-    err = 'Input: LeapFinger is not available on your system'
+    err = 'Input: LeapFinger/LeapHand is not available on your system'
     Logger.exception(err)
