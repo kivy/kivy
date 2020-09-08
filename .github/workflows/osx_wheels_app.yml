@@ -148,10 +148,9 @@ jobs:
           REF_NAME: ${{ github.ref }}
         run: |
           py_version=$(python3 -c "import platform; print(platform.python_version())")
-          branch_name=$(python3 -c "print('$REF_NAME'.split('/')[-1])")
           source .ci/osx_versions.sh
           source .ci/osx_ci.sh
-          generate_osx_app "$py_version" "$branch_name"
+          generate_osx_app "$py_version"
       - name: Upload app to server
         env:
           UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
