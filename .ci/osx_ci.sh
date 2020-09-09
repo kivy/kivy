@@ -114,20 +114,23 @@ generate_osx_wheels() {
 generate_osx_app() {
   py_version="$1"
 
-  git clone -b osx https://github.com/kivy/kivy-sdk-packager.git
-  pushd kivy-sdk-packager/osx
   app_date=$(python3 -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))")
   git_tag=$(git rev-parse --short HEAD)
-  app_ver=$(KIVY_NO_CONSOLELOG=1 Kivy.app/Contents/Resources/script -c 'import kivy; print(kivy.__version__)')
+  app_ver=$(PYTHONPATH=. KIVY_NO_CONSOLELOG=1 python3 -c 'import kivy; print(kivy.__version__)')
 
-  ./create-osx-bundle.sh ../../ "$py_version" Kivy "$app_ver" "Kivy Developers" "org.kivy.osxlauncher" data/icon.icns data/script
+  pushd ../
+  git clone -b osx https://github.com/kivy/kivy-sdk-packager.git
+  pushd kivy-sdk-packager/osx
+
+  ./create-osx-bundle.sh -k ../../kivy -p "$py_version" -v "$app_ver"
   ./create-osx-dmg.sh Kivy.app Kivy
 
+  popd
   popd
 
   mkdir app
 
   py_version=${py_version:0:3}
-  cp kivy-sdk-packager/osx/Kivy.dmg "app/Kivy-$app_ver-python$py_version.dmg"
-  mv kivy-sdk-packager/osx/Kivy.dmg "app/Kivy-$app_ver-$git_tag-$app_date-python$py_version.dmg"
+  cp ../kivy-sdk-packager/osx/Kivy.dmg "app/Kivy-$app_ver-python$py_version.dmg"
+  mv ../kivy-sdk-packager/osx/Kivy.dmg "app/Kivy-$app_ver-$git_tag-$app_date-python$py_version.dmg"
 }
