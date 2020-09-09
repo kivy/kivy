@@ -10,12 +10,12 @@ LeapHand vs. LeapFinger Providers
 ---------------------------------
 
 The `LeapFinger` provider generates fine-grained input based on each of the
-fingers tracked by the LeapMotion. Whilst powerful, this provider does not 
+fingers tracked by the LeapMotion. Whilst powerful, this provider does not
 generate any useful events as is, and requires the programmer to explicitley
 capture these events.
 
 The `LeapHand` provider, however, simulates a more traditional pointing device
-in order to generate the traditional `on_touch_down`, `on_touch_move` and 
+in order to generate the traditional `on_touch_down`, `on_touch_move` and
 `on_touch_up` events. It thus aims to be a drop-in alternative for touch
 screen and mouse input.
 
@@ -111,7 +111,7 @@ class LeapHandEventProvider(MotionEventProvider):
         for hand in frame.hands:
             uid = hand.id
             available_uid.append(uid)
-            # position = finger.tip_position  # TODO
+            position = hand.palm_position
             args = (position.x, position.y, position.z)
             if uid not in touches:
                 touch = LeapHandEvent(self.device, uid, args)
@@ -129,4 +129,4 @@ class LeapHandEventProvider(MotionEventProvider):
 
 
 # registers
-MotionEventFactory.register('leaphand', LeapFingerEventProvider)
+MotionEventFactory.register('leaphand', LeapHandEventProvider)
