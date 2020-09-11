@@ -27,8 +27,8 @@ install_kivy_test_run_pip_deps() {
   python3 -m pip install --upgrade pip setuptools wheel
   CYTHON_INSTALL=$(
     KIVY_NO_CONSOLELOG=1 python3 -c \
-    "from kivy.tools.packaging.cython_cfg import get_cython_versions; print(get_cython_versions()[0])" \
-    --config "kivy:log_level:error"
+      "from kivy.tools.packaging.cython_cfg import get_cython_versions; print(get_cython_versions()[0])" \
+      --config "kivy:log_level:error"
   )
   python3 -m pip install -I "$CYTHON_INSTALL" coveralls
   if [ $(python3 -c 'import sys; print("{}{}".format(*sys.version_info))') -le "35" ]; then
@@ -47,7 +47,7 @@ install_kivy_test_wheel_run_pip_deps() {
 
 prepare_env_for_unittest() {
   /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background \
-  --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX
+    --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX
 }
 
 install_kivy() {
@@ -63,12 +63,12 @@ install_kivy_manylinux_wheel() {
   python3 -m pip install cython
   python setup.py bdist_wheel --build_examples --universal
   cd ~
-  python3 -m pip install $(ls $root/dist/Kivy_examples-*.whl)
+  python3 -m pip install "$(ls "$root"/dist/Kivy_examples-*.whl)"
   python3 -m pip uninstall cython -y
 
   version=$(python3 -c "import sys; print('{}{}'.format(sys.version_info.major, sys.version_info.minor))")
-  kivy_fname=$(ls $root/dist/Kivy-*$version*.whl | awk '{ print length, $0 }' | sort -n -s | cut -d" " -f2- | head -n1)
-  python3 -m pip install "$kivy_fname[full,dev]"
+  kivy_fname=$(ls "$root"/dist/Kivy-*$version*.whl | awk '{ print length, $0 }' | sort -n -s | cut -d" " -f2- | head -n1)
+  python3 -m pip install "${kivy_fname}[full,dev]"
 }
 
 install_kivy_sdist() {
@@ -87,10 +87,10 @@ test_kivy() {
 test_kivy_install() {
   cd ~
   python3 -c 'import kivy'
-  test_path=$(KIVY_NO_CONSOLELOG=1 python3 -c 'import kivy.tests as tests; print(tests.__path__[0])'  --config "kivy:log_level:error")
+  test_path=$(KIVY_NO_CONSOLELOG=1 python3 -c 'import kivy.tests as tests; print(tests.__path__[0])' --config "kivy:log_level:error")
   cd "$test_path"
 
-  cat > .coveragerc << 'EOF'
+  cat >.coveragerc <<'EOF'
 [run]
   plugins = kivy.tools.coverage
 
@@ -119,13 +119,13 @@ upload_docs_to_server() {
   if [ ! -d ~/.ssh ]; then
     mkdir ~/.ssh
   fi
-  printf "%s" "$UBUNTU_UPLOAD_KEY" > ~/.ssh/id_rsa
+  printf "%s" "$UBUNTU_UPLOAD_KEY" >~/.ssh/id_rsa
   chmod 600 ~/.ssh/id_rsa
   echo -e "Host $ip\n\tStrictHostKeyChecking no\n" >>~/.ssh/config
 
   for version in $versions; do
     if [ "$version" == "${branch}" ]; then
-      echo "[$(echo $versions | tr ' ' ', ' | sed -s 's/\([^,]\+\)/"\1"/g')]" > versions.json
+      echo "[$(echo $versions | tr ' ' ', ' | sed -s 's/\([^,]\+\)/"\1"/g')]" >versions.json
       rsync --force -e "ssh -p 2457" versions.json root@$ip:/web/doc/
       rsync --delete --force -r -e "ssh -p 2457" ./doc/build/html/ root@$ip:/web/doc/$version
     fi
@@ -190,13 +190,12 @@ upload_file_to_server() {
     mkdir ~/.ssh
   fi
 
-  printf "%s" "$UBUNTU_UPLOAD_KEY" > ~/.ssh/id_rsa
+  printf "%s" "$UBUNTU_UPLOAD_KEY" >~/.ssh/id_rsa
   chmod 600 ~/.ssh/id_rsa
 
   echo -e "Host $ip\n\tStrictHostKeyChecking no\n" >>~/.ssh/config
   rsync -avh -e "ssh -p 2458" --include="*/" --include="$file_pat" --exclude="*" "$file_path/" "root@$ip:/web/downloads/ci/$server_path"
 }
-
 
 upload_artifacts_to_pypi() {
   python3 -m pip install twine

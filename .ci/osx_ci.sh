@@ -114,8 +114,6 @@ generate_osx_wheels() {
 generate_osx_app() {
   py_version="$1"
 
-  app_date=$(python3 -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))")
-  git_tag=$(git rev-parse --short HEAD)
   app_ver=$(PYTHONPATH=. KIVY_NO_CONSOLELOG=1 python3 -c 'import kivy; print(kivy.__version__)')
 
   pushd ../
@@ -123,14 +121,47 @@ generate_osx_app() {
   pushd kivy-sdk-packager/osx
 
   ./create-osx-bundle.sh -k ../../kivy -p "$py_version" -v "$app_ver"
-  ./create-osx-dmg.sh Kivy.app Kivy
+  ./create-osx-dmg.sh Kivy.app Kivy -s 1
 
   popd
   popd
 
   mkdir app
 
-  py_version=${py_version:0:3}
-  cp ../kivy-sdk-packager/osx/Kivy.dmg "app/Kivy-$app_ver-python$py_version.dmg"
-  mv ../kivy-sdk-packager/osx/Kivy.dmg "app/Kivy-$app_ver-$git_tag-$app_date-python$py_version.dmg"
+  mv ../kivy-sdk-packager/osx/Kivy.dmg "app/Kivy.dmg"
+}
+
+rename_osx_app() {
+  py_version=${1:0:3}
+
+  app_date=$(python3 -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))")
+  git_tag=$(git rev-parse --short HEAD)
+  app_ver=$(PYTHONPATH=. KIVY_NO_CONSOLELOG=1 python3 -c 'import kivy; print(kivy.__version__)')
+
+  cp app/Kivy.dmg "app/Kivy-$app_ver-$git_tag-$app_date-python$py_version.dmg"
+}
+
+mount_osx_app() {
+  pushd app
+  hdiutil attach Kivy.dmg -mountroot .
+  cp -r Kivy/Kivy.app Kivy.app
+  popd
+}
+
+activate_osx_app_venv() {
+  pushd app/Kivy.app/Contents/Resources/venv/bin
+  source activate
+  popd
+}
+
+install_kivy_osx_app_deps() {
+  root="$(pwd)"
+  python3 -m pip install cython
+  python setup.py bdist_wheel --build_examples --universal
+  pushd ~
+  python3 -m pip install "$(ls "$root"/dist/Kivy_examples-*.whl)"
+  python3 -m pip uninstall cython -y
+  popd
+
+  python3 -m pip install ".[full,dev]"
 }
