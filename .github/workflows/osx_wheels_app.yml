@@ -16,7 +16,7 @@ env:
   FFLAGS: '-ff2c'
   USE_SDL2: 1
   USE_GSTREAMER: 1
-  DEVELOPER_DIR: /Applications/Xcode_10.3.app/Contents/Developer
+  # DEVELOPER_DIR: /Applications/Xcode_10.3.app/Contents/Developer
 
 jobs:
   osx_wheels_create:
@@ -147,8 +147,6 @@ jobs:
           install_platypus
           install_kivy_test_run_pip_deps
       - name: Make app
-        env:
-          REF_NAME: ${{ github.ref }}
         run: |
           py_version=$(python3 -c "import platform; print(platform.python_version())")
           source .ci/osx_versions.sh
