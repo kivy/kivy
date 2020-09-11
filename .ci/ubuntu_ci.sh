@@ -60,7 +60,7 @@ install_kivy() {
 
 
 create_kivy_examples_wheel() {
-  python setup.py bdist_wheel --build_examples --universal
+  KIVY_BUILD_EXAMPLES=1 python3 -m pip wheel . -w dist/
 }
 
 install_kivy_examples_wheel() {
