@@ -19,6 +19,29 @@ env:
   # DEVELOPER_DIR: /Applications/Xcode_10.3.app/Contents/Developer
 
 jobs:
+  kivy_examples_create:
+    # we need examples wheel for tests, but only windows actually uploads kivy-examples to pypi/server
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.x
+    - name: Install dependencies
+      run: |
+        source .ci/ubuntu_ci.sh
+        install_kivy_test_wheel_run_pip_deps
+    - name: Create wheel
+      run: |
+        source .ci/ubuntu_ci.sh
+        create_kivy_examples_wheel
+    - name: Upload kivy-examples wheel as artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: osx_examples_wheel
+        path: dist
+
   osx_wheels_create:
     runs-on: macOS-latest
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel osx]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel osx]')
@@ -65,7 +88,7 @@ jobs:
 
   osx_wheel_upload_test:
     runs-on: macOS-latest
-    needs: osx_wheels_create
+    needs: [osx_wheels_create, kivy_examples_create]
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.x
@@ -111,7 +134,15 @@ jobs:
     - name: Install Kivy wheel
       run: |
         source .ci/ubuntu_ci.sh
-        install_kivy_manylinux_wheel
+        install_kivy_wheel
+    - uses: actions/download-artifact@v2
+      with:
+        name: osx_examples_wheel
+        path: dist
+    - name: Install kivy-examples wheel
+      run: |
+        source .ci/ubuntu_ci.sh
+        install_kivy_examples_wheel
     - name: Test Kivy wheel
       run: |
         source .ci/ubuntu_ci.sh
@@ -160,7 +191,7 @@ jobs:
 
   osx_app_upload_test:
     runs-on: macOS-latest
-    needs: osx_app_create
+    needs: [osx_app_create, kivy_examples_create]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.x
@@ -195,25 +226,20 @@ jobs:
         run: |
           source .ci/osx_ci.sh
           mount_osx_app
+      - uses: actions/download-artifact@v2
+        with:
+          name: osx_examples_wheel
+          path: dist
       - name: Install test dependencies
         run: |
           source .ci/osx_ci.sh
           source .ci/ubuntu_ci.sh
           activate_osx_app_venv
           install_kivy_test_wheel_run_pip_deps
-          install_kivy_osx_app_deps
+          install_kivy_examples_wheel
       - name: Test Kivy wheel
         run: |
           source .ci/osx_ci.sh
           source .ci/ubuntu_ci.sh
           activate_osx_app_venv
           test_kivy_install
-
-  always_job:
-    name: Always run job
-    runs-on: macOS-latest
-    steps:
-      - name: Always run
-        run: |
-          echo "This is run to prevent the workflow from showing an error if the wheels job is not run and no jobs run is an error."
-          echo "See https://github.community/t5/GitHub-Actions/Workflow-is-failing-if-no-job-can-be-ran-due-to-condition/m-p/38085"

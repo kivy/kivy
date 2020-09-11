@@ -153,15 +153,3 @@ activate_osx_app_venv() {
   source activate
   popd
 }
-
-install_kivy_osx_app_deps() {
-  root="$(pwd)"
-  python3 -m pip install cython
-  python setup.py bdist_wheel --build_examples --universal
-  pushd ~
-  python3 -m pip install "$(ls "$root"/dist/Kivy_examples-*.whl)"
-  python3 -m pip uninstall cython -y
-  popd
-
-  python3 -m pip install ".[full,dev]"
-}
