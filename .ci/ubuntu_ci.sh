@@ -39,9 +39,6 @@ install_kivy_test_run_pip_deps() {
 }
 
 install_kivy_test_wheel_run_pip_deps() {
-  curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-  python3 get-pip.py --user
-
   python3 -m pip install --upgrade pip setuptools wheel
 }
 
