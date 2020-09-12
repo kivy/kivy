@@ -6,6 +6,7 @@ env:
   GST_REGISTRY: '~/registry.bin'
   KIVY_GL_BACKEND: 'angle_sdl2'
   KIVY_SPLIT_EXAMPLES: 1
+  SETUPTOOLS_USE_DISTUTILS: local
 
 jobs:
   unit_test:
