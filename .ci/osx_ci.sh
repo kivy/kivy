@@ -67,6 +67,7 @@ install_platypus() {
   cd Platypus
 
   sed -i '.bak' 's#            build#            build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO#' build_release.sh
+  sed -E -i '.bak' 's#IBTOOL_PATH.*#IBTOOL_PATH               @"/usr/bin/ibtool"#' Common.h
   cat build_release.sh
   ./build_release.sh
   popd
