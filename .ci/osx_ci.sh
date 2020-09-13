@@ -111,19 +111,20 @@ generate_osx_wheels() {
   delocate-addplat --rm-orig -x 10_9 -x 10_10 dist/*.whl
 }
 
-generate_osx_app() {
+generate_osx_app_bundle() {
   py_version="$1"
-
   app_ver=$(PYTHONPATH=. KIVY_NO_CONSOLELOG=1 python3 -c 'import kivy; print(kivy.__version__)')
 
-  pushd ../
+  cd ../
   git clone -b osx https://github.com/kivy/kivy-sdk-packager.git
-  pushd kivy-sdk-packager/osx
+  cd kivy-sdk-packager/osx
 
   ./create-osx-bundle.sh -k ../../kivy -p "$py_version" -v "$app_ver"
-  ./create-osx-dmg.sh Kivy.app Kivy -s 1
+}
 
-  popd
+generate_osx_app_dmg_from_bundle() {
+  pushd ../kivy-sdk-packager/osx
+  ./create-osx-dmg.sh Kivy.app Kivy -s 1
   popd
 
   mkdir app
@@ -144,7 +145,7 @@ rename_osx_app() {
 mount_osx_app() {
   pushd app
   hdiutil attach Kivy.dmg -mountroot .
-  cp -rP Kivy/Kivy.app Kivy.app
+  cp -R Kivy/Kivy.app Kivy.app
   popd
 }
 
