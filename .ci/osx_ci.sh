@@ -69,18 +69,19 @@ install_platypus() {
   sed -i '.bak' 's#            build#            build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO#' build_release.sh
   cat build_release.sh
   ./build_release.sh
-  find . -name '*.zip'
+  popd
+  cp "../Platypus/products/platypus$PLATYPUS.zip" .
 
-#  unzip platypus$PLATYPUS.zip
-#  gunzip Platypus.app/Contents/Resources/platypus_clt.gz
-#  gunzip Platypus.app/Contents/Resources/ScriptExec.gz
-#
-#  mkdir -p /usr/local/bin
-#  mkdir -p /usr/local/share/platypus
-#  cp Platypus.app/Contents/Resources/platypus_clt /usr/local/bin/platypus
-#  cp Platypus.app/Contents/Resources/ScriptExec /usr/local/share/platypus/ScriptExec
-#  cp -a Platypus.app/Contents/Resources/MainMenu.nib /usr/local/share/platypus/MainMenu.nib
-#  chmod -R 755 /usr/local/share/platypus
+  unzip "platypus$PLATYPUS.zip"
+  gunzip Platypus.app/Contents/Resources/platypus_clt.gz
+  gunzip Platypus.app/Contents/Resources/ScriptExec.gz
+
+  mkdir -p /usr/local/bin
+  mkdir -p /usr/local/share/platypus
+  cp Platypus.app/Contents/Resources/platypus_clt /usr/local/bin/platypus
+  cp Platypus.app/Contents/Resources/ScriptExec /usr/local/share/platypus/ScriptExec
+  cp -a Platypus.app/Contents/Resources/MainMenu.nib /usr/local/share/platypus/MainMenu.nib
+  chmod -R 755 /usr/local/share/platypus
 }
 
 generate_osx_wheels() {
