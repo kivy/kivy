@@ -188,7 +188,7 @@ jobs:
           source .ci/osx_versions.sh
           source .ci/osx_ci.sh
           generate_osx_app_dmg_from_bundle
-      - name: Upload wheels as artifact
+      - name: Upload dmg as artifact
         uses: actions/upload-artifact@v2
         with:
           name: osx_app
@@ -243,6 +243,8 @@ jobs:
           install_kivy_test_wheel_run_pip_deps
           install_kivy_examples_wheel
       - name: Test Kivy wheel
+        env:
+          GST_REGISTRY: /Applications/Kivy.app/Contents/Resources/gst.registry
         run: |
           source .ci/osx_ci.sh
           source .ci/ubuntu_ci.sh
