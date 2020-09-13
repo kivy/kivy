@@ -62,16 +62,16 @@ install_kivy_test_run_sys_deps() {
 install_platypus() {
   download_cache_curl "platypus$PLATYPUS.zip" "osx-cache" "http://www.sveinbjorn.org/files/software/platypus"
 
-  pushd ../
-  git clone https://github.com/sveinbjornt/Platypus.git
-  cd Platypus
-
-  sed -i '.bak' 's#            build#            build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO#' build_release.sh
-  sed -E -i '.bak' 's#IBTOOL_PATH.*#IBTOOL_PATH               @"/usr/bin/ibtool"#' Common.h
-  cat build_release.sh
-  ./build_release.sh
-  popd
-  cp "../Platypus/products/platypus$PLATYPUS.zip" .
+#  pushd ../
+#  git clone https://github.com/sveinbjornt/Platypus.git
+#  cd Platypus
+#
+#  sed -i '.bak' 's#            build#            build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO#' build_release.sh
+#  sed -E -i '.bak' 's#IBTOOL_PATH.*#IBTOOL_PATH               @"/usr/bin/ibtool"#' Common.h
+#  cat build_release.sh
+#  ./build_release.sh
+#  popd
+#  cp "../Platypus/products/platypus$PLATYPUS.zip" .
 
   unzip "platypus$PLATYPUS.zip"
   gunzip Platypus.app/Contents/Resources/platypus_clt.gz
