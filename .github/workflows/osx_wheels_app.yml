@@ -16,6 +16,7 @@ env:
   FFLAGS: '-ff2c'
   USE_SDL2: 1
   USE_GSTREAMER: 1
+  DEVELOPER_DIR: /Applications/Xcode_11.3.1.app/Contents/Developer
 
 jobs:
   kivy_examples_create:
@@ -49,9 +50,6 @@ jobs:
         python: [ '3.5', '3.6', '3.7', '3.8' ]
     steps:
     - uses: actions/checkout@v2
-    - uses: maxim-lobanov/setup-xcode@v1.1
-      with:
-        xcode-version: 11.3.1
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
@@ -157,9 +155,6 @@ jobs:
       KIVY_SPLIT_EXAMPLES: 0
     steps:
       - uses: actions/checkout@v2
-      - uses: maxim-lobanov/setup-xcode@v1.1
-        with:
-          xcode-version: 11.3.1
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
@@ -187,6 +182,7 @@ jobs:
           py_version=$(python3 -c "import platform; print(platform.python_version())")
           source .ci/osx_versions.sh
           source .ci/osx_ci.sh
+          sudo find / -name ibtool 2>/dev/null
           generate_osx_app_bundle "$py_version"
       - name: Create dmg from bundle
         run: |
