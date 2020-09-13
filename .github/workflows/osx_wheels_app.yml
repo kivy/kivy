@@ -49,7 +49,7 @@ jobs:
         python: [ '3.5', '3.6', '3.7', '3.8' ]
     steps:
     - name: Switch Xcode version
-      run: xcode-select -switch /Applications/Xcode_11.3.1.app/Contents/Developer
+      run: sudo xcode-select -switch /Applications/Xcode_11.3.1.app/Contents/Developer
     - uses: actions/checkout@v2
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -156,7 +156,7 @@ jobs:
       KIVY_SPLIT_EXAMPLES: 0
     steps:
       - name: Switch Xcode version
-        run: xcode-select -switch /Applications/Xcode_11.3.1.app/Contents/Developer
+        run: sudo xcode-select -switch /Applications/Xcode_11.3.1.app/Contents/Developer
       - uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v2
