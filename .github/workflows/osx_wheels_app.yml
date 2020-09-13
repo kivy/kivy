@@ -185,7 +185,6 @@ jobs:
           py_version=$(python3 -c "import platform; print(platform.python_version())")
           source .ci/osx_versions.sh
           source .ci/osx_ci.sh
-          sudo ln -s /Applications/Xcode_11.3.1.app /Applications/Xcode.app
           generate_osx_app_bundle "$py_version"
       - name: Create dmg from bundle
         run: |
