@@ -180,16 +180,12 @@ jobs:
           install_kivy_test_run_sys_deps
           install_platypus
           install_kivy_test_run_pip_deps
+          exit 1
       - name: Make app bundle
         run: |
           py_version=$(python3 -c "import platform; print(platform.python_version())")
           source .ci/osx_versions.sh
           source .ci/osx_ci.sh
-          sudo bash -c 'find /Applications/Xcode_*.app/Contents/Developer/usr/bin -name ibtool -print0 | xargs -0 ls -l'
-          sudo rm /usr/bin/ibtool
-          sudo cp /Applications/Xcode_11.3.1.app/Contents/Developer/usr/bin/ibtool /usr/bin
-          ls -l /usr/bin/ibtool
-          chmod +x /usr/bin/ibtool
           generate_osx_app_bundle "$py_version"
       - name: Create dmg from bundle
         run: |
