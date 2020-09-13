@@ -144,7 +144,7 @@ rename_osx_app() {
 mount_osx_app() {
   pushd app
   hdiutil attach Kivy.dmg -mountroot .
-  cp -r Kivy/Kivy.app Kivy.app
+  cp -rP Kivy/Kivy.app Kivy.app
   popd
 }
 
