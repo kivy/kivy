@@ -21,12 +21,12 @@ jobs:
       with:
         python-version: 3.x
     - name: Cache OSX deps
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: osx-cache
         key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}
     - name: Cache OSX gst-devel deps
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: osx-cache-gst-devel
         key: gst-devel-${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}-gst-devel
