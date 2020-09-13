@@ -16,6 +16,7 @@ env:
   FFLAGS: '-ff2c'
   USE_SDL2: 1
   USE_GSTREAMER: 1
+  GST_REGISTRY: '~/registry.bin'
 
 jobs:
   kivy_examples_create:
@@ -245,9 +246,7 @@ jobs:
           activate_osx_app_venv
           install_kivy_test_wheel_run_pip_deps
           install_kivy_examples_wheel
-      - name: Test Kivy wheel
-        env:
-          GST_REGISTRY: /Applications/Kivy.app/Contents/Resources/gst.registry
+      - name: Test Kivy app
         run: |
           source .ci/osx_ci.sh
           source .ci/ubuntu_ci.sh
