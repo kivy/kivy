@@ -180,7 +180,6 @@ jobs:
           install_kivy_test_run_sys_deps
           install_platypus
           install_kivy_test_run_pip_deps
-          exit 1
       - name: Make app bundle
         run: |
           py_version=$(python3 -c "import platform; print(platform.python_version())")
