@@ -72,6 +72,7 @@ install_platypus() {
   cp Platypus.app/Contents/Resources/ScriptExec /usr/local/share/platypus/ScriptExec
   cp -a Platypus.app/Contents/Resources/MainMenu.nib /usr/local/share/platypus/MainMenu.nib
   chmod -R 755 /usr/local/share/platypus
+  chmod 755 /usr/local/bin/platypus
 }
 
 generate_osx_wheels() {
