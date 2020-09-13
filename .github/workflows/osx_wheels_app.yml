@@ -16,7 +16,6 @@ env:
   FFLAGS: '-ff2c'
   USE_SDL2: 1
   USE_GSTREAMER: 1
-  DEVELOPER_DIR: /Applications/Xcode_11.3.1.app/Contents/Developer
 
 jobs:
   kivy_examples_create:
@@ -50,7 +49,7 @@ jobs:
         python: [ '3.5', '3.6', '3.7', '3.8' ]
     steps:
     - name: Switch Xcode version
-      run: sudo xcode-select -s /Applications/Xcode_11.3.1.app
+      run: xcode-select -switch /Applications/Xcode_11.3.1.app/Contents/Developer
     - uses: actions/checkout@v2
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -157,7 +156,7 @@ jobs:
       KIVY_SPLIT_EXAMPLES: 0
     steps:
       - name: Switch Xcode version
-        run: sudo xcode-select -s /Applications/Xcode_11.3.1.app
+        run: xcode-select -switch /Applications/Xcode_11.3.1.app/Contents/Developer
       - uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v2
