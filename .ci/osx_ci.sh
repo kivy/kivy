@@ -66,7 +66,7 @@ install_platypus() {
   git clone https://github.com/sveinbjornt/Platypus.git
   cd Platypus
 
-  sed -i '.bak' 's#\#2>&1 /dev/null#CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO#' build_release.sh
+  sed -i '.bak' 's#            build#            build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO#' build_release.sh
   cat build_release.sh
   ./build_release.sh
   find . -name '*.zip'
