@@ -62,6 +62,7 @@ install_kivy_test_run_sys_deps() {
 install_platypus() {
   download_cache_curl "platypus$PLATYPUS.zip" "osx-cache" "http://www.sveinbjorn.org/files/software/platypus"
 
+  sudo security create-keypair -d 2 -A "Developer ID Application"
   pushd ../
   git clone https://github.com/sveinbjornt/Platypus.git
   cd Platypus
