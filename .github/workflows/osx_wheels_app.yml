@@ -10,7 +10,6 @@ on:
 env:
   KIVY_SPLIT_EXAMPLES: 1
   SERVER_IP: '159.203.106.198'
-  KIVY_GL_BACKEND: 'mock'
   CC: clang
   CXX: clang
   FFLAGS: '-ff2c'
@@ -91,6 +90,8 @@ jobs:
   osx_wheel_upload_test:
     runs-on: macOS-latest
     needs: [osx_wheels_create, kivy_examples_create]
+    env:
+      KIVY_GL_BACKEND: 'mock'
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.x
@@ -201,6 +202,8 @@ jobs:
   osx_app_upload_test:
     runs-on: macOS-latest
     needs: [osx_app_create, kivy_examples_create]
+    env:
+      KIVY_GL_BACKEND: 'mock'
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.x
