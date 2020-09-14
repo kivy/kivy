@@ -40,6 +40,10 @@ jobs:
       with:
         path: osx-cache-gst-devel
         key: gst-devel-${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}-gst-devel
+    - name: Generate version metadata
+      run: |
+        source .ci/ubuntu_ci.sh
+        update_version_metadata
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh
@@ -135,6 +139,10 @@ jobs:
         with:
           path: osx-cache-gst-devel
           key: gst-devel-${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}-gst-devel
+      - name: Generate version metadata
+        run: |
+          source .ci/ubuntu_ci.sh
+          update_version_metadata
       - name: Install dependencies
         run: |
           source .ci/ubuntu_ci.sh

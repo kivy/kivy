@@ -37,24 +37,8 @@ import pkgutil
 import re
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.utils import platform
-
-MAJOR = 2
-MINOR = 0
-MICRO = 0
-RELEASE = False
-
-__version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
-
-if not RELEASE:
-    # if it's a rcx release, it's not proceeded by a period. If it is a
-    # devx release, it must start with a period
-    __version__ += 'rc3'
-
-try:
-    from kivy.version import __hash__, __date__
-    __hash__ = __hash__[:7]
-except ImportError:
-    __hash__ = __date__ = ''
+from kivy._version import __version__, RELEASE as _KIVY_RELEASE, \
+    _kivy_git_hash, _kivy_build_date
 
 # internals for post-configuration
 __kivy_post_configuration = []
@@ -492,10 +476,11 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 for msg in _logging_msgs:
     Logger.info(msg)
 
-if RELEASE:
+if _KIVY_RELEASE:
     Logger.info('Kivy: v%s' % __version__)
-elif not RELEASE and __hash__ and __date__:
-    Logger.info('Kivy: v%s, git-%s, %s' % (__version__, __hash__, __date__))
+elif not _KIVY_RELEASE and _kivy_git_hash and _kivy_build_date:
+    Logger.info('Kivy: v%s, git-%s, %s' % (
+        __version__, _kivy_git_hash[:7], _kivy_build_date))
 Logger.info('Kivy: Installed at "{}"'.format(__file__))
 Logger.info('Python: v{}'.format(sys.version))
 Logger.info('Python: Interpreter at "{}"'.format(sys.executable))

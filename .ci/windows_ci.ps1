@@ -12,6 +12,17 @@ function raise-only-error{
     }
 }
 
+function Update-version-metadata {
+    $current_time = python -c "from time import time; from os import environ; print(int(environ.get('SOURCE_DATE_EPOCH', time())))"
+    $date = python -c "from datetime import datetime; print(datetime.utcfromtimestamp($current_time).strftime('%Y%m%d'))"
+    echo "Version date is: $date"
+    $git_tag = git rev-parse HEAD
+    echo "Git tag is: $git_tag"
+
+    (Get-Content .\kivy\_version.py -Raw) -replace "_kivy_git_hash = ''","_kivy_git_hash = '$git_tag'" `
+        -replace "_kivy_build_date = ''","_kivy_build_date = '$date'" | Out-File -filepath .\kivy\_version.py
+}
+
 function Generate-sdist {
     python -m pip install cython
     python setup.py sdist --formats=gztar
