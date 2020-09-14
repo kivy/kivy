@@ -21,6 +21,10 @@ jobs:
         docker_images: ['balenalib/armv7hf-debian:stretch', 'balenalib/armv7hf-debian:buster']
     steps:
     - uses: actions/checkout@v2
+    - name: Generate version metadata
+      run: |
+        source .ci/ubuntu_ci.sh
+        update_version_metadata
     - name: Make ${{ matrix.docker_images }} wheel
       run: |
         source .ci/ubuntu_ci.sh

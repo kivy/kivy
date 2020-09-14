@@ -29,6 +29,10 @@ jobs:
       with:
         python-version: ${{ matrix.python }}
         architecture: ${{ matrix.arch }}
+    - name: Generate version metadata
+      run: |
+        . .\.ci\windows_ci.ps1
+        Update-version-metadata
     - name: Install dependencies
       run: |
         . .\.ci\windows_ci.ps1
