@@ -13,7 +13,14 @@ Using the Kivy SDK
 
     These instructions apply only from Kivy v2.0.0 onwards.
 
-For OS X 10.14.4+ and later, we provide a Kivy DMG with all dependencies
+.. note::
+
+    Kivy.app is built on the `current GitHub Action macOS version (10.15)
+    <https://github.com/actions/virtual-environments#available-environments>`_ and will typically
+    not work on older OS X versions. For older OS X versions, you need to build Kivy.app
+    on the oldest machine you wish to support. See below.
+
+For OS X 10.15+ and later, we provide a Kivy DMG with all dependencies
 bundled in a **virtual environment**, including a Python interpreter that can be used as
 a base to package kivy apps.
 

@@ -15,12 +15,12 @@ env:
   FFLAGS: '-ff2c'
   USE_SDL2: 1
   USE_GSTREAMER: 1
-  GST_REGISTRY: '~/registry.bin'
+  GST_REGISTRY: 'registry.bin'
 
 jobs:
   kivy_examples_create:
     # we need examples wheel for tests, but only windows actually uploads kivy-examples to pypi/server
-    runs-on: macOS-latest
+    runs-on: macos-10.15
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
@@ -42,14 +42,12 @@ jobs:
         path: dist
 
   osx_wheels_create:
-    runs-on: macOS-latest
+    runs-on: macos-10.15
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel osx]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel osx]')
     strategy:
       matrix:
         python: [ '3.5', '3.6', '3.7', '3.8' ]
     steps:
-    - name: Switch Xcode version
-      run: sudo xcode-select -switch /Applications/Xcode_11.3.1.app/Contents/Developer
     - uses: actions/checkout@v2
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -88,7 +86,7 @@ jobs:
         path: dist
 
   osx_wheel_upload_test:
-    runs-on: macOS-latest
+    runs-on: macos-10.15
     needs: [osx_wheels_create, kivy_examples_create]
     env:
       KIVY_GL_BACKEND: 'mock'
@@ -152,13 +150,11 @@ jobs:
         test_kivy_install
 
   osx_app_create:
-    runs-on: macOS-latest
+    runs-on: macos-10.15
     if: github.event_name != 'pull_request' && (github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build app osx]')) || contains(github.event.pull_request.title, '[build app osx]')
     env:
       KIVY_SPLIT_EXAMPLES: 0
     steps:
-      - name: Switch Xcode version
-        run: sudo xcode-select -switch /Applications/Xcode_11.3.1.app/Contents/Developer
       - uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v2
@@ -200,7 +196,7 @@ jobs:
           path: app
 
   osx_app_upload_test:
-    runs-on: macOS-latest
+    runs-on: macos-10.15
     needs: [osx_app_create, kivy_examples_create]
     env:
       KIVY_GL_BACKEND: 'mock'
