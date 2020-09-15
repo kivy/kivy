@@ -154,12 +154,8 @@ activate_osx_app_venv() {
   source activate
   popd
 
-  export DYLD_FALLBACK_LIBRARY_PATH="$(pwd)/app/Kivy.app/Contents/lib"
-  export LD_PRELOAD_PATH="$(pwd)/app/Kivy.app/Contents/lib"
-  export GST_REGISTRY="$(pwd)/app/Kivy.app/Contents/Resources/gst.registry"
   export GST_PLUGIN_SCANNER="$(pwd)/app/Kivy.app/Contents/Resources/gst-plugin-scanner"
   export GTK_PATH="$(pwd)/app/Kivy.app/Contents/Frameworks/GStreamer.framework/Versions/Current"
   export GST_PLUGIN_SYSTEM_PATH="$(pwd)/app/Kivy.app/Contents/Frameworks/GStreamer.framework/Versions/Current/lib/gstreamer-1.0"
   export GIO_EXTRA_MODULES="$(pwd)/app/Kivy.app/Contents/Frameworks/GStreamer.framework/Versions/Current/lib/gio/modules"
-  export KIVY_HOME="$(pwd)/app/Kivy.app/Contents/Resources/.kivy"
 }
