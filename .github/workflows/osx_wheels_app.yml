@@ -15,7 +15,7 @@ env:
   FFLAGS: '-ff2c'
   USE_SDL2: 1
   USE_GSTREAMER: 1
-  GST_REGISTRY: 'registry.bin'
+  GST_REGISTRY: '~/registry.bin'
 
 jobs:
   kivy_examples_create:

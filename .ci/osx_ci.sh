@@ -150,7 +150,7 @@ mount_osx_app() {
 }
 
 activate_osx_app_venv() {
-  pushd app/Kivy.app/Contents/Resources/venv/bin
-  source activate
+  pushd app/Kivy.app/Contents/Resources
+  source script
   popd
 }
