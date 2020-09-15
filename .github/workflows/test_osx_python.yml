@@ -44,4 +44,8 @@ jobs:
     - name: Test Kivy
       run: |
         source .ci/ubuntu_ci.sh
+        DYLD_PRINT_LIBRARIES=1 python3 -c 'from kivy.uix.widget import Widget; Widget()'
+        echo "testing video"
+        DYLD_PRINT_LIBRARIES=1 KIVY_NO_ARGS=1 python3 -m pytest -k test_video_unload "$(pwd)/kivy/tests"
+        exit 1
         test_kivy
