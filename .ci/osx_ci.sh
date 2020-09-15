@@ -85,19 +85,26 @@ generate_osx_wheels() {
   rm dist/$zip_dir/kivy/.dylibs/libg*
   rm dist/$zip_dir/kivy/.dylibs/GStreamer
 
+  cp /Library/Frameworks/SDL2.framework/Versions/A/Frameworks/hidapi.framework/Versions/A/hidapi dist/$zip_dir/kivy/.dylibs/
+  cp /Library/Frameworks/SDL2_image.framework/Versions/A/Frameworks/webp.framework/Versions/A/webp dist/$zip_dir/kivy/.dylibs/
   cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/FLAC.framework/Versions/A/FLAC dist/$zip_dir/kivy/.dylibs/
   cp /Library/Frameworks/SDL2_ttf.framework/Versions/A/Frameworks/FreeType.framework/Versions/A/FreeType dist/$zip_dir/kivy/.dylibs/
   cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/Ogg.framework/Versions/A/Ogg dist/$zip_dir/kivy/.dylibs/
   cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/Vorbis.framework/Versions/A/Vorbis dist/$zip_dir/kivy/.dylibs/
   cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/modplug.framework/Versions/A/modplug dist/$zip_dir/kivy/.dylibs/
   cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/mpg123.framework/Versions/A/mpg123 dist/$zip_dir/kivy/.dylibs/
+  cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/Opus.framework/Versions/A/Opus dist/$zip_dir/kivy/.dylibs/
+  cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/OpusFile.framework/Versions/A/OpusFile dist/$zip_dir/kivy/.dylibs/
 
   python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/SDL2.framework/Versions/A/SDL2 @loader_path/SDL2
+  python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/hidapi.framework/Versions/A/hidapi @loader_path/hidapi
+  python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/webp.framework/Versions/A/webp @loader_path/webp
   python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/FLAC.framework/Versions/A/FLAC @loader_path/FLAC
   python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/modplug.framework/Versions/A/modplug @loader_path/modplug
   python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/mpg123.framework/Versions/A/mpg123 @loader_path/mpg123
+  python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/Opus.framework/Versions/A/Opus @loader_path/Opus
+  python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/OpusFile.framework/Versions/A/OpusFile @loader_path/OpusFile
   python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/FreeType.framework/Versions/A/FreeType @loader_path/FreeType
-  python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/webp.framework/Versions/A/webp @loader_path/webp
   python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/Vorbis.framework/Versions/A/Vorbis @loader_path/Vorbis
   python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/../../../../SDL2.framework/Versions/A/SDL2 @loader_path/SDL2
   python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/Ogg.framework/Versions/A/Ogg @loader_path/Ogg
