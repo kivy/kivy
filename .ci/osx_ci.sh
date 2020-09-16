@@ -109,6 +109,8 @@ generate_osx_wheels() {
   python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/../../../../SDL2.framework/Versions/A/SDL2 @loader_path/SDL2
   python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/Ogg.framework/Versions/A/Ogg @loader_path/Ogg
 
+  codesign -fs - "dist/$zip_dir/kivy/.dylibs/hidapi"
+
   rm dist/$zip_dir.whl
   pushd dist
   python3 -c "from delocate import delocating; delocating.dir2zip('$zip_dir', '$zip_dir.whl')"
