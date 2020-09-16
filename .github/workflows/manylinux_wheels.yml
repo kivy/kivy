@@ -13,6 +13,29 @@ env:
   DOCKER_IMAGE: 'quay.io/pypa/manylinux2010_x86_64'
 
 jobs:
+  kivy_examples_create:
+    # we need examples wheel for tests, but only windows actually uploads kivy-examples to pypi/server
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+      - name: Install dependencies
+        run: |
+          source .ci/ubuntu_ci.sh
+          install_kivy_test_wheel_run_pip_deps
+      - name: Create wheel
+        run: |
+          source .ci/ubuntu_ci.sh
+          create_kivy_examples_wheel
+      - name: Upload kivy-examples wheel as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: linux_examples_wheel
+          path: dist
+
   manylinux_wheel_create:
     runs-on: ubuntu-18.04
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel linux]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel linux]')
@@ -38,7 +61,7 @@ jobs:
 
   manylinux_wheel_upload_test:
     runs-on: ubuntu-18.04
-    needs: manylinux_wheel_create
+    needs: [manylinux_wheel_create, kivy_examples_create]
     env:
       DISPLAY: ':99.0'
     steps:
@@ -91,7 +114,15 @@ jobs:
     - name: Install Kivy
       run: |
         source .ci/ubuntu_ci.sh
-        install_kivy_manylinux_wheel
+        install_kivy_wheel
+    - uses: actions/download-artifact@v2
+      with:
+        name: linux_examples_wheel
+        path: dist
+    - name: Install kivy-examples wheel
+      run: |
+        source .ci/ubuntu_ci.sh
+        install_kivy_examples_wheel
     - name: Test Kivy
       run: |
         source .ci/ubuntu_ci.sh

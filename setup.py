@@ -98,6 +98,9 @@ def get_isolated_env_paths():
 # -----------------------------------------------------------------------------
 # Determine on which platform we are
 
+build_examples = build_examples or \
+    os.environ.get('KIVY_BUILD_EXAMPLES', '0') == '1'
+
 platform = sys.platform
 
 # Detect 32/64bit for OSX (http://stackoverflow.com/a/1405971/798575)
