@@ -10,22 +10,20 @@ LeapHand vs. LeapFinger Providers
 ---------------------------------
 
 The `LeapFinger` provider generates fine-grained input based on each of the
-fingers tracked by the LeapMotion. Whilst powerful, this provider does not
-generate any useful events as is, and requires the programmer to explicitley
-capture these events.
+fingers tracked by the LeapMotion. Whilst powerful, this provider requires the
+programmer to explicitly capture these events an interpret them.
 
 The `LeapHand` provider, however, simulates a more traditional pointing device
-in order to generate the traditional `on_touch_down`, `on_touch_move` and
-`on_touch_up` events. It thus aims to be a drop-in alternative for touch
-screen and mouse input.
+in order to generate the standard `on_touch_down`, `on_touch_move` and
+`on_touch_up` events. It can therefore be used as a drop-in alternative for
+touch screen and mouse input.
 
 LeapHand Mechanics
 ------------------
 
-In order to initiate the touch gesture, the :class:`LeapHand` uses the pinch
-gesture. A pinch initiates an `on_touch_down` event, and separating the
-fingers initiates the `on_touch_up`.
-
+In order to initiate the touch gesture, the :class:`LeapHand` uses the grab
+gesture. A grab initiates an `on_touch_down` event, and opening the hand
+initiates the `on_touch_up`.
 '''
 
 __all__ = ('LeapHandEventProvider', 'LeapHandEvent')
@@ -41,11 +39,16 @@ _LEAP_QUEUE = deque()
 Leap = InteractionBox = None
 
 
-def normalize(value, a, b):
-    return (value - a) / float(b - a)
+def normalize(value, start, scale):
+    return (value - start) / float(scale - start)
 
 
 class LeapHandEvent(MotionEvent):
+    def __init__(self, device, id, args, is_touch, is_right):
+        super().__init__(device, id, args)
+        self.is_touch = is_touch
+        self.hand = "right" if is_right else "left"
+
 
     def depack(self, args):
         super(LeapHandEvent, self).depack(args)
@@ -53,16 +56,13 @@ class LeapHandEvent(MotionEvent):
             return
         self.profile = ('pos', 'pos3d', )
         x, y, z = args
-        self.sx = normalize(x, -150, 150)
-        self.sy = normalize(y, 40, 460)
+        self.sx = normalize(x, -100, 150)
+        self.sy = normalize(y, 80, 400)
         self.sz = normalize(z, -350, 350)
         self.z = z
-        self.is_touch = True
 
 
 class LeapHandEventProvider(MotionEventProvider):
-
-    __handlers__ = {}
 
     def start(self):
         # Don't import at the start, or the error will be displayed
@@ -71,7 +71,7 @@ class LeapHandEventProvider(MotionEventProvider):
         import Leap
         from Leap import InteractionBox
 
-        class LeapMotionListener(Leap.Listener):
+        class LeapHandListener(Leap.Listener):
 
             def on_init(self, controller):
                 Logger.info('leaphand: Initialized')
@@ -89,9 +89,8 @@ class LeapHandEventProvider(MotionEventProvider):
             def on_exit(self, controller):
                 pass
 
-        self.uid = 0
         self.touches = {}
-        self.listener = LeapMotionListener()
+        self.listener = LeapHandListener()
         self.controller = Leap.Controller(self.listener)
 
     def update(self, dispatch_fn):
@@ -109,18 +108,25 @@ class LeapHandEventProvider(MotionEventProvider):
         touches = self.touches
         available_uid = []
         for hand in frame.hands:
+            is_touch = bool(hand.grab_strength > 0.75)
             uid = hand.id
             available_uid.append(uid)
             position = hand.palm_position
             args = (position.x, position.y, position.z)
             if uid not in touches:
-                touch = LeapHandEvent(self.device, uid, args)
+                touch = LeapHandEvent(
+                    self.device, uid, args, is_touch, hand.is_right)
                 events.append(('begin', touch))
                 touches[uid] = touch
             else:
                 touch = touches[uid]
-                touch.move(args)
-                events.append(('update', touch))
+                if touch.is_touch != is_touch:
+                    # Switched from a touch to non-touch event
+                    events.append(('end', touch))
+                    del touches[uid]
+                else:
+                    touch.move(args)
+                    events.append(('update', touch))
         for key in list(touches.keys())[:]:
             if key not in available_uid:
                 events.append(('end', touches[key]))
