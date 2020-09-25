@@ -6,11 +6,39 @@ Creating packages for OS X
     This guide describes multiple ways for packaging Kivy applications.
     Packaging with PyInstaller is recommended for general use.
 
+Using the Kivy SDK
+------------------
+
+.. note::
+
+    These instructions apply only from Kivy v2.0.0 onwards.
+
+.. note::
+
+    Kivy.app is built on the `current GitHub Action macOS version (10.15)
+    <https://github.com/actions/virtual-environments#available-environments>`_ and will typically
+    not work on older OS X versions. For older OS X versions, you need to build Kivy.app
+    on the oldest machine you wish to support. See below.
+
+For OS X 10.15+ and later, we provide a Kivy DMG with all dependencies
+bundled in a **virtual environment**, including a Python interpreter that can be used as
+a base to package kivy apps.
+
+This is the safest approach because it packages the binaries without references to
+any binaries on the system on which the app is packaged. Because all references are
+to frameworks included in the dmg or to binaries with the dmg. As opposed to
+e.g. pyinstaller which copies binaries from your local python installation.
+
+You can find complete instructions to build and package apps with Kivy.app, starting either
+with Kivy.app or building from scratch, in the readme
+of the `kivy-sdk-packager repo <https://github.com/kivy/kivy-sdk-packager/tree/master/osx>`_.
+
 .. _osx_pyinstaller:
 
 Using PyInstaller and Homebrew
 ------------------------------
 .. note::
+
     Package your app on the oldest OS X version you want to support.
 
 Complete guide
@@ -230,126 +258,3 @@ Buildozer right now uses the Kivy SDK to package your app.
 If you want to control more details about your app than buildozer
 currently offers then you can use the SDK directly, as detailed in the
 section below.
-
-Using the Kivy SDK
-------------------
-
-.. note::
-    Kivy.app is not available for download at the moment. For details,
-    see `this <https://github.com/kivy/kivy/issues/5211>`_ issue.
-
-.. note::
-    Packaging Kivy applications with the following method must be done inside
-    OS X, 32-bit platforms are no longer supported.
-
-Since version 1.9.0, Kivy is released for the OS X platform in a
-self-contained, portable distribution.
-
-Apps can be packaged and distributed with the Kivy SDK using the method
-described below, making it easier to include frameworks like SDL2 and
-GStreamer.
-
-1. Make sure you have the unmodified Kivy SDK (Kivy.app) from the download page.
-
-2. Run the following commands::
-
-    > mkdir packaging
-    > cd packaging
-    packaging> git clone https://github.com/kivy/kivy-sdk-packager
-    packaging> cd kivy-sdk-packager/osx
-    osx> cp -a /Applications/Kivy.app ./Kivy.App
-
-  .. note::
-    This step above is important, you have to make sure to preserve the paths
-    and permissions. A command like ``cp -rf`` will copy but make the app
-    unusable and lead to error later on.
-
-3. Now all you need to do is to include your compiled app in the Kivy.app
-   by running the following command::
-
-    osx> ./package-app.sh /path/to/your/<app_folder_name>/
-
-  Where <app_folder_name> is the name of your app.
-
-  This copies Kivy.app to `<app_folder_name>.app` and includes a compiled copy
-  of your app into this package.
-
-4. That's it, your self-contained package is ready to be deployed!
-   You can now further customize your app as described bellow.
-
-Installing modules
-~~~~~~~~~~~~~~~~~~
-
-Kivy package on osx uses its own virtual env that is activated when you run
-your app using `kivy` command.
-To install any module you need to install the module like so::
-
-    $ kivy -m pip install <modulename>
-
-Where are the modules/files installed?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Inside the portable venv within the app at::
-
-    Kivy.app/Contents/Resources/venv/
-
-If you install a module that installs a binary for example like kivy-garden
-That binary will be only available from the venv above, as in after you do::
-
-    kivy -m pip install kivy-garden
-
-The garden lib will be only available when you activate this env.
-
-    source /Applications/Kivy.app/Contents/Resources/venv/bin/activate
-    garden install mapview
-    deactivate
-
-To install binary files
-~~~~~~~~~~~~~~~~~~~~~~~
-
-Just copy the binary to the Kivy.app/Contents/Resources/venv/bin/ directory.
-
-To include other frameworks
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Kivy.app comes with SDL2 and Gstreamer frameworks provided.
-To include frameworks other than the ones provided do the following::
-
-    git clone http://github.com/tito/osxrelocator
-    export PYTHONPATH=~/path/to/osxrelocator
-    cd Kivy.app
-    python -m osxrelocator -r . /Library/Frameworks/<Framework_name>.framework/ \
-    @executable_path/../Frameworks/<Framework_name>.framework/
-
-Do not forget to replace <Framework_name> with your framework.
-This tool `osxrelocator` essentially changes the path for the
-libs in the framework such that they are relative to the executable
-within the .app, making the Framework portable with the .app.
-
-
-Shrinking the app size
-^^^^^^^^^^^^^^^^^^^^^^
-The app has a considerable size right now, however the unneeded parts can be
-removed from the package.
-
-For example if you don't use GStreamer, simply remove it from
-YourApp.app/Contents/Frameworks.
-Similarly you can remove the examples folder from
-/Applications/Kivy.app/Contents/Resources/kivy/examples/ or kivy/tools,
-kivy/docs etc.
-
-This way the package can be made to only include the parts that are needed for
-your app.
-
-Adjust settings
-^^^^^^^^^^^^^^^
-Icons and other settings of your app can be changed by editing
-YourApp/Contents/info.plist to suit your needs.
-
-Create a DMG
-^^^^^^^^^^^^
-To make a DMG of your app use the following command::
-
-    osx> ./create-osx-dmg.sh YourApp.app
-
-Note the lack of `/` at the end.
-This should give you a compressed dmg that will further shrink the size of your
-distributed app.

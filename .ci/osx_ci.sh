@@ -62,7 +62,7 @@ install_kivy_test_run_sys_deps() {
 install_platypus() {
   download_cache_curl "platypus$PLATYPUS.zip" "osx-cache" "http://www.sveinbjorn.org/files/software/platypus"
 
-  unzip platypus$PLATYPUS.zip
+  unzip "platypus$PLATYPUS.zip"
   gunzip Platypus.app/Contents/Resources/platypus_clt.gz
   gunzip Platypus.app/Contents/Resources/ScriptExec.gz
 
@@ -85,22 +85,31 @@ generate_osx_wheels() {
   rm dist/$zip_dir/kivy/.dylibs/libg*
   rm dist/$zip_dir/kivy/.dylibs/GStreamer
 
+  cp /Library/Frameworks/SDL2.framework/Versions/A/Frameworks/hidapi.framework/Versions/A/hidapi dist/$zip_dir/kivy/.dylibs/
+  cp /Library/Frameworks/SDL2_image.framework/Versions/A/Frameworks/webp.framework/Versions/A/webp dist/$zip_dir/kivy/.dylibs/
   cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/FLAC.framework/Versions/A/FLAC dist/$zip_dir/kivy/.dylibs/
   cp /Library/Frameworks/SDL2_ttf.framework/Versions/A/Frameworks/FreeType.framework/Versions/A/FreeType dist/$zip_dir/kivy/.dylibs/
   cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/Ogg.framework/Versions/A/Ogg dist/$zip_dir/kivy/.dylibs/
   cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/Vorbis.framework/Versions/A/Vorbis dist/$zip_dir/kivy/.dylibs/
   cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/modplug.framework/Versions/A/modplug dist/$zip_dir/kivy/.dylibs/
   cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/mpg123.framework/Versions/A/mpg123 dist/$zip_dir/kivy/.dylibs/
+  cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/Opus.framework/Versions/A/Opus dist/$zip_dir/kivy/.dylibs/
+  cp /Library/Frameworks/SDL2_mixer.framework/Versions/A/Frameworks/OpusFile.framework/Versions/A/OpusFile dist/$zip_dir/kivy/.dylibs/
 
   python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/SDL2.framework/Versions/A/SDL2 @loader_path/SDL2
+  python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/hidapi.framework/Versions/A/hidapi @loader_path/hidapi
+  python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/webp.framework/Versions/A/webp @loader_path/webp
   python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/FLAC.framework/Versions/A/FLAC @loader_path/FLAC
   python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/modplug.framework/Versions/A/modplug @loader_path/modplug
   python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/mpg123.framework/Versions/A/mpg123 @loader_path/mpg123
+  python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/Opus.framework/Versions/A/Opus @loader_path/Opus
+  python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/OpusFile.framework/Versions/A/OpusFile @loader_path/OpusFile
   python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/FreeType.framework/Versions/A/FreeType @loader_path/FreeType
-  python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/webp.framework/Versions/A/webp @loader_path/webp
   python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/Vorbis.framework/Versions/A/Vorbis @loader_path/Vorbis
   python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/../../../../SDL2.framework/Versions/A/SDL2 @loader_path/SDL2
   python3 -m osxrelocator.__init__ dist/$zip_dir/kivy/.dylibs @rpath/Ogg.framework/Versions/A/Ogg @loader_path/Ogg
+
+  codesign -fs - "dist/$zip_dir/kivy/.dylibs/hidapi"
 
   rm dist/$zip_dir.whl
   pushd dist
@@ -111,20 +120,47 @@ generate_osx_wheels() {
   delocate-addplat --rm-orig -x 10_9 -x 10_10 dist/*.whl
 }
 
-generate_osx_app() {
+generate_osx_app_bundle() {
   py_version="$1"
-  branch_name="$2"
-  git clone https://github.com/kivy/kivy-sdk-packager
-  pushd kivy-sdk-packager/osx
+  app_ver=$(PYTHONPATH=. KIVY_NO_CONSOLELOG=1 python3 -c 'import kivy; print(kivy.__version__)')
+
+  cd ../
+  git clone https://github.com/kivy/kivy-sdk-packager.git
+  cd kivy-sdk-packager/osx
+
+  ./create-osx-bundle.sh -k ../../kivy -p "$py_version" -v "$app_ver"
+}
+
+generate_osx_app_dmg_from_bundle() {
+  pushd ../kivy-sdk-packager/osx
+  ./create-osx-dmg.sh Kivy.app Kivy
+  popd
+
+  mkdir app
+
+  mv ../kivy-sdk-packager/osx/Kivy.dmg "app/Kivy.dmg"
+}
+
+rename_osx_app() {
+  py_version=${1:0:3}
+
   app_date=$(python3 -c "from datetime import datetime; print(datetime.utcnow().strftime('%Y%m%d'))")
   git_tag=$(git rev-parse --short HEAD)
+  app_ver=$(PYTHONPATH=. KIVY_NO_CONSOLELOG=1 python3 -c 'import kivy; print(kivy.__version__)')
 
-  ./create-osx-bundle.sh "$branch_name" "$py_version"
-  app_ver=$(KIVY_NO_CONSOLELOG=1 Kivy.app/Contents/Resources/script -c 'import kivy; print(kivy.__version__)')
-  mv Kivy.app Kivy3.app
-  ./create-osx-dmg.sh Kivy3.app
-  mkdir app
-  cp Kivy3.dmg "app/Kivy-$app_ver-python$py_version.dmg"
-  mv Kivy3.dmg "app/Kivy-$app_ver-$git_tag-$app_date-python$py_version.dmg"
+  cp app/Kivy.dmg "app/Kivy-$app_ver-$git_tag-$app_date-python$py_version.dmg"
+}
+
+mount_osx_app() {
+  pushd app
+  hdiutil attach Kivy.dmg -mountroot .
+  cp -R Kivy/Kivy.app Kivy.app
+  popd
+}
+
+activate_osx_app_venv() {
+  pushd app/Kivy.app/Contents/Resources/venv/bin
+  source activate
+  source kivy_activate
   popd
 }

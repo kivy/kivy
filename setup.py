@@ -18,9 +18,7 @@ from distutils.command.build_ext import build_ext
 from distutils.version import LooseVersion
 from distutils.sysconfig import get_python_inc
 from collections import OrderedDict
-from time import time, sleep
-from subprocess import check_output, CalledProcessError
-from datetime import datetime
+from time import sleep
 from sysconfig import get_paths
 from pathlib import Path
 import logging
@@ -45,37 +43,6 @@ LooseVersion.__eq__ = ver_equal
 def get_description():
     with open(join(dirname(__file__), 'README.md'), 'rb') as fileh:
         return fileh.read().decode("utf8").replace('\r\n', '\n')
-
-
-def get_version(filename='kivy/version.py'):
-    VERSION = kivy.__version__
-    epoch = int(environ.get('SOURCE_DATE_EPOCH', time()))
-    DATE = datetime.utcfromtimestamp(epoch).strftime('%Y%m%d')
-    try:
-        GIT_REVISION = check_output(
-            ['git', 'rev-parse', 'HEAD']
-        ).strip().decode('ascii')
-    except (CalledProcessError, OSError, IOError, FileNotFoundError) as e:
-        # CalledProcessError has no errno
-        errno = getattr(e, 'errno', None)
-        if errno != 2 and 'CalledProcessError' not in repr(e):
-            raise
-        GIT_REVISION = "Unknown"
-
-    cnt = (
-        "# THIS FILE IS GENERATED FROM KIVY SETUP.PY\n"
-        "__version__ = '%(version)s'\n"
-        "__hash__ = '%(hash)s'\n"
-        "__date__ = '%(date)s'\n"
-    )
-
-    with open(filename, 'w') as f:
-        f.write(cnt % {
-            'version': VERSION,
-            'hash': GIT_REVISION,
-            'date': DATE
-        })
-    return VERSION
 
 
 def getoutput(cmd, env=None):
@@ -130,6 +97,9 @@ def get_isolated_env_paths():
 
 # -----------------------------------------------------------------------------
 # Determine on which platform we are
+
+build_examples = build_examples or \
+    os.environ.get('KIVY_BUILD_EXAMPLES', '0') == '1'
 
 platform = sys.platform
 
@@ -231,6 +201,11 @@ if platform in ('ios', 'android'):
 src_path = build_path = dirname(__file__)
 print("Current directory is: {}".format(os.getcwd()))
 print("Source and initial build directory is: {}".format(src_path))
+
+# __version__ is imported by exec, but help linter not complain
+__version__ = None
+with open(join(src_path, 'kivy', '_version.py'), encoding="utf-8") as f:
+    exec(f.read())
 
 
 class KivyBuildExt(build_ext, object):
@@ -1089,7 +1064,7 @@ def glob_paths(*patterns, excludes=('.pyc', )):
 if not build_examples:
     setup(
         name='Kivy',
-        version=get_version(),
+        version=__version__,
         author='Kivy Team and other contributors',
         author_email='kivy-dev@googlegroups.com',
         url='http://kivy.org',
@@ -1151,7 +1126,7 @@ if not build_examples:
 else:
     setup(
         name='Kivy-examples',
-        version=get_version(),
+        version=__version__,
         author='Kivy Team and other contributors',
         author_email='kivy-dev@googlegroups.com',
         url='http://kivy.org',
