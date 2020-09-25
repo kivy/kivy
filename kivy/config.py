@@ -252,8 +252,8 @@ Available configuration tokens
 
     .. seealso::
 
-        Check the providers in :mod:`kivy.input.providers` for the syntax to
-        use inside the configuration file.
+        Please see the providers in :mod:`kivy.input.providers` for the syntax
+        to use inside the configuration file.
 
 :widgets:
 

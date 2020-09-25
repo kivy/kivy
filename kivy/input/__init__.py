@@ -12,6 +12,11 @@ natively support :
 * Linux wacom drivers (pencil and finger)
 * TUIO
 
+Experimental support is also available for the:
+
+* UltraLeap Motion (`leapfinger` and `leaphand` providers)
+* Android Joystick
+
 All the input management is configurable in the Kivy :mod:`~kivy.config`. You
 can easily use many multitouch devices in one Kivy application.
 
