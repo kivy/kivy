@@ -6,6 +6,7 @@ Input management
 Our input system is wide and simple at the same time. We are currently able to
 natively support :
 
+* Android Joystick
 * Windows multitouch events (pencil and finger)
 * OS X touchpads
 * Linux multitouch events (kernel and mtdev)
@@ -14,8 +15,8 @@ natively support :
 
 Experimental support is also available for the:
 
-* UltraLeap Motion (`leapfinger` and `leaphand` providers)
-* Android Joystick
+* Leap Motion (:mod:`~kivy.input.providers.leapfinger` and
+  :mod:`~kivy.input.providers.leaphand` providers)
 
 All the input management is configurable in the Kivy :mod:`~kivy.config`. You
 can easily use many multitouch devices in one Kivy application.
@@ -28,6 +29,9 @@ several default modules for :
 * Decreasing jittering
 * Decreasing the inaccuracy of touch on "bad" DIY hardware
 * Ignoring regions
+
+Please refer the the :mod:`kivy.input.providers` documentation for more
+detailed device information.
 '''
 
 

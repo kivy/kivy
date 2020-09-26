@@ -31,10 +31,17 @@ The list of available input **providerid**\s is as follows:
 | Windows Pen                       | wm_pen     |
 +-----------------------------------+------------+
 
-Please see the :mod:`kivy.config` **input** section for details on home to use
-these **providerid**\s.
+In order to activate an input provider, you need to add it to the **input**
+section of the configuration. For example::
 
-For specific details on the input providers, please see the documentation below.
+    [input]
+    acert230h = mtdev,/dev/input/event2
+
+Please see the :mod:`kivy.config` **input** section for more detail on how to
+use these **providerid**\s.
+
+For specific details on the input providers, please see the module specific
+documentation below.
 '''
 
 import os
