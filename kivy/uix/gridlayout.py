@@ -93,8 +93,9 @@ from kivy.logger import Logger
 from kivy.uix.layout import Layout
 from kivy.properties import NumericProperty, BooleanProperty, DictProperty, \
     BoundedNumericProperty, ReferenceListProperty, VariableListProperty, \
-    ObjectProperty, StringProperty
+    ObjectProperty, StringProperty, OptionProperty
 from math import ceil
+from itertools import accumulate, product
 
 
 def nmax(*args):
@@ -251,6 +252,27 @@ class GridLayout(Layout):
     only.
     '''
 
+    orientation = OptionProperty('lr-tb', options=(
+        'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt', 'bt-lr', 'rl-bt',
+        'bt-rl'))
+    '''Orientation of the layout.
+
+    :attr:`orientation` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to 'lr-tb'.
+
+    Valid orientations are 'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt',
+    'bt-lr', 'rl-bt' and 'bt-rl'.
+
+    .. versionadded:: 2.0.0
+
+    .. note::
+
+        'lr' means Left to Right.
+        'rl' means Right to Left.
+        'tb' means Top to Bottom.
+        'bt' means Bottom to Top.
+    '''
+
     def __init__(self, **kwargs):
         self._cols = self._rows = None
         super(GridLayout, self).__init__(**kwargs)
@@ -268,6 +290,7 @@ class GridLayout(Layout):
         fbind('children', update)
         fbind('size', update)
         fbind('pos', update)
+        fbind('orientation', update)
 
     def get_max_widgets(self):
         if self.cols and self.rows:
@@ -283,6 +306,10 @@ class GridLayout(Layout):
             raise GridLayoutException(
                 'Too many children in GridLayout. Increase rows/cols!')
 
+    @property
+    def _fills_row_first(self):
+        return self.orientation[0] in 'lr'
+
     def _init_rows_cols_sizes(self, count):
         # the goal here is to calculate the minimum size of every cols/rows
         # and determine if they have stretch or not
@@ -295,9 +322,18 @@ class GridLayout(Layout):
             Logger.warning('%r have no cols or rows set, '
                            'layout is not triggered.' % self)
             return
+
         if current_cols is None:
+            if self._fills_row_first:
+                Logger.warning(
+                    'Being asked to fill row-first, but a number of columns '
+                    'is not defined. You might get an unexpected result.')
             current_cols = int(ceil(count / float(current_rows)))
         elif current_rows is None:
+            if not self._fills_row_first:
+                Logger.warning(
+                    'Being asked to fill column-first, but a number of rows '
+                    'is not defined. You might get an unexpected result.')
             current_rows = int(ceil(count / float(current_cols)))
 
         current_cols = max(1, current_cols)
@@ -315,6 +351,8 @@ class GridLayout(Layout):
         self._rows_sh = [None] * current_rows
         self._rows_sh_min = [None] * current_rows
         self._rows_sh_max = [None] * current_rows
+        self._col_and_row_indices = tuple(_create_col_and_row_index_iter(
+            current_cols, current_rows, self.orientation))
 
         # update minimum size from the dicts
         items = (i for i in self.cols_minimum.items() if i[0] < len(cols))
@@ -333,13 +371,12 @@ class GridLayout(Layout):
         cols_sh_max, rows_sh_max = self._cols_sh_max, self._rows_sh_max
 
         # calculate minimum size for each columns and rows
-        n_cols = len(cols)
         has_bound_y = has_bound_x = False
-        for i, child in enumerate(reversed(self.children)):
+        for child, (col, row) in zip(reversed(self.children),
+                                     self._col_and_row_indices):
             (shw, shh), (w, h) = child.size_hint, child.size
             shw_min, shh_min = child.size_hint_min
             shw_max, shh_max = child.size_hint_max
-            row, col = divmod(i, n_cols)
 
             # compute minimum size / maximum stretch needed
             if shw is None:
@@ -480,24 +517,40 @@ class GridLayout(Layout):
                     rows[index] += stretch_h * row_stretch / rows_weight
 
     def _iterate_layout(self, count):
-        selfx = self.x
-        padding_left = self.padding[0]
-        padding_top = self.padding[1]
+        orientation = self.orientation
+        padding = self.padding
         spacing_x, spacing_y = self.spacing
 
-        i = count - 1
-        y = self.top - padding_top
         cols = self._cols
-        for row_height in self._rows:
-            x = selfx + padding_left
-            for col_width in cols:
-                if i < 0:
-                    break
+        x_list = list(accumulate((
+            self.x + padding[0],
+            *(col_width + spacing_x for col_width in cols[:-1]))))
+        if 'rl' in orientation:
+            cols = reversed(cols)
+            x_list.reverse()
 
-                yield i, x, y - row_height, col_width, row_height
-                i = i - 1
-                x = x + col_width + spacing_x
-            y -= row_height + spacing_y
+        rows = self._rows
+        reversed_rows = list(reversed(rows))
+        y_list = list(accumulate((
+            self.y + padding[3],
+            *(row_height + spacing_y for row_height in reversed_rows[:-1]))))
+        if 'tb' in orientation:
+            y_list.reverse()
+        else:
+            rows = reversed_rows
+
+        if self._fills_row_first:
+            for i, (y, x), (row_height, col_width) in zip(
+                    reversed(range(count)),
+                    product(y_list, x_list),
+                    product(rows, cols)):
+                yield i, x, y, col_width, row_height
+        else:
+            for i, (x, y), (col_width, row_height) in zip(
+                    reversed(range(count)),
+                    product(x_list, y_list),
+                    product(cols, rows)):
+                yield i, x, y, col_width, row_height
 
     def do_layout(self, *largs):
         children = self.children
@@ -542,3 +595,19 @@ class GridLayout(Layout):
                     c.width = w
                 else:
                     c.size = (w, h)
+
+
+def _create_col_and_row_index_iter(n_cols, n_rows, orientation):
+    col_indices = list(range(n_cols))
+    if 'rl' in orientation:
+        col_indices.reverse()
+    row_indices = list(range(n_rows))
+    if 'bt' in orientation:
+        row_indices.reverse()
+
+    if orientation[0] in 'rl':
+        return (
+            (col_index, row_index)
+            for row_index, col_index in product(row_indices, col_indices))
+    else:
+        return product(col_indices, row_indices)
