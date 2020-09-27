@@ -108,8 +108,9 @@ class Camera(Image):
             self._camera.bind(on_texture=self.on_tex)
 
     def _camera_loaded(self, *largs):
-        self.texture = self._camera.texture
-        self.texture_size = list(self.texture.size)
+        if self._camera.texture is not None:
+            self.texture = self._camera.texture
+            self.texture_size = list(self.texture.size)
 
     def on_play(self, instance, value):
         if not self._camera:
