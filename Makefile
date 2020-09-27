@@ -1,4 +1,16 @@
+ifeq (, $(shell which python ))
+  $(error "PYTHON=$(PYTHON) not found in $(PATH)")
+endif
+
 PYTHON = python
+PYTHON_VERSION_MIN=3.0
+PYTHON_VERSION=$(shell $(PYTHON) -c 'import sys; print("%d.%d"% sys.version_info[0:2])' )
+PYTHON_VERSION_OK=$(shell $(PYTHON) -c 'import sys;\
+  print(int(float("%d.%d"% sys.version_info[0:2]) >= $(PYTHON_VERSION_MIN)))' )
+
+ifeq ($(PYTHON_VERSION_OK),0)
+  $(error "detected Python $(PYTHON_VERSION) need Python >= $(PYTHON_VERSION_MIN)")
+endif
 CHECKSCRIPT = -m flake8
 KIVY_DIR = kivy/
 PYTEST = $(PYTHON) -m pytest
@@ -27,7 +39,6 @@ endif
 ifneq ($(INSTALL_LAYOUT),)
 	INSTALL_OPTIONS += --install-layout=$(INSTALL_LAYOUT)
 endif
-
 
 .PHONY: build force mesabuild pdf style hook test batchtest cover clean distclean theming
 
