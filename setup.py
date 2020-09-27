@@ -6,4 +6,4 @@ if sys.version_info < PYTHON_MINIMUM_VERSION:
     sys.exit(-1)
 
 import subprocess
-subprocess.call(['python', 'msetup.py'] + sys.argv[1:])
+subprocess.call([sys.executable, 'msetup.py'] + sys.argv[1:])
