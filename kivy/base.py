@@ -387,21 +387,26 @@ class EventLoopBase(EventDispatcher):
         Clock.tick()
 
         # read and dispatch input from providers
-        self.dispatch_input()
+        if not self.quit:
+            self.dispatch_input()
 
         # flush all the canvas operation
-        Builder.sync()
+        if not self.quit:
+            Builder.sync()
 
         # tick before draw
-        Clock.tick_draw()
+        if not self.quit:
+            Clock.tick_draw()
 
         # flush all the canvas operation
-        Builder.sync()
+        if not self.quit:
+            Builder.sync()
 
-        window = self.window
-        if window and window.canvas.needs_redraw:
-            window.dispatch('on_draw')
-            window.dispatch('on_flip')
+        if not self.quit:
+            window = self.window
+            if window and window.canvas.needs_redraw:
+                window.dispatch('on_draw')
+                window.dispatch('on_flip')
 
         # don't loop if we don't have listeners !
         if len(self.event_listeners) == 0:
@@ -421,21 +426,26 @@ class EventLoopBase(EventDispatcher):
         await Clock.async_tick()
 
         # read and dispatch input from providers
-        self.dispatch_input()
+        if not self.quit:
+            self.dispatch_input()
 
         # flush all the canvas operation
-        Builder.sync()
+        if not self.quit:
+            Builder.sync()
 
         # tick before draw
-        Clock.tick_draw()
+        if not self.quit:
+            Clock.tick_draw()
 
         # flush all the canvas operation
-        Builder.sync()
+        if not self.quit:
+            Builder.sync()
 
-        window = self.window
-        if window and window.canvas.needs_redraw:
-            window.dispatch('on_draw')
-            window.dispatch('on_flip')
+        if not self.quit:
+            window = self.window
+            if window and window.canvas.needs_redraw:
+                window.dispatch('on_draw')
+                window.dispatch('on_flip')
 
         # don't loop if we don't have listeners !
         if len(self.event_listeners) == 0:
