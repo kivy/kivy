@@ -3,7 +3,7 @@ ifeq (, $(shell which python ))
 endif
 
 PYTHON = python
-PYTHON_VERSION_MIN=3.6
+PYTHON_VERSION_MIN=3.0
 PYTHON_VERSION=$(shell $(PYTHON) -c 'import sys; print("%d.%d"% sys.version_info[0:2])' )
 PYTHON_VERSION_OK=$(shell $(PYTHON) -c 'import sys;\
   print(int(float("%d.%d"% sys.version_info[0:2]) >= $(PYTHON_VERSION_MIN)))' )
