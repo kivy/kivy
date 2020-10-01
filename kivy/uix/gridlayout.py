@@ -95,7 +95,8 @@ from kivy.properties import NumericProperty, BooleanProperty, DictProperty, \
     BoundedNumericProperty, ReferenceListProperty, VariableListProperty, \
     ObjectProperty, StringProperty, OptionProperty
 from math import ceil
-from itertools import accumulate, product
+from itertools import accumulate, product, chain, islice
+from operator import sub
 
 
 def nmax(*args):
@@ -522,33 +523,53 @@ class GridLayout(Layout):
         spacing_x, spacing_y = self.spacing
 
         cols = self._cols
-        x_list = list(accumulate((
-            self.x + padding[0],
-            *(col_width + spacing_x for col_width in cols[:-1]))))
-        if 'rl' in orientation:
+        if 'lr' in orientation:
+            x_iter = accumulate(chain(
+                (self.x + padding[0], ),
+                (
+                    col_width + spacing_x
+                    for col_width in islice(cols, len(cols) - 1)
+                ),
+            ))
+        else:
+            x_iter = accumulate(chain(
+                (self.right - padding[2] - cols[-1], ),
+                (
+                    col_width + spacing_x
+                    for col_width in islice(reversed(cols), 1, None)
+                ),
+            ), sub)
             cols = reversed(cols)
-            x_list.reverse()
 
         rows = self._rows
-        reversed_rows = list(reversed(rows))
-        y_list = list(accumulate((
-            self.y + padding[3],
-            *(row_height + spacing_y for row_height in reversed_rows[:-1]))))
         if 'tb' in orientation:
-            y_list.reverse()
+            y_iter = accumulate(chain(
+                (self.top - padding[1] - rows[0], ),
+                (
+                    row_height + spacing_y
+                    for row_height in islice(rows, 1, None)
+                ),
+            ), sub)
         else:
-            rows = reversed_rows
+            y_iter = accumulate(chain(
+                (self.y + padding[3], ),
+                (
+                    row_height + spacing_y
+                    for row_height in islice(reversed(rows), len(rows) - 1)
+                ),
+            ))
+            rows = reversed(rows)
 
         if self._fills_row_first:
             for i, (y, x), (row_height, col_width) in zip(
                     reversed(range(count)),
-                    product(y_list, x_list),
+                    product(y_iter, x_iter),
                     product(rows, cols)):
                 yield i, x, y, col_width, row_height
         else:
             for i, (x, y), (col_width, row_height) in zip(
                     reversed(range(count)),
-                    product(x_list, y_list),
+                    product(x_iter, y_iter),
                     product(cols, rows)):
                 yield i, x, y, col_width, row_height
 
@@ -598,12 +619,10 @@ class GridLayout(Layout):
 
 
 def _create_col_and_row_index_iter(n_cols, n_rows, orientation):
-    col_indices = list(range(n_cols))
-    if 'rl' in orientation:
-        col_indices.reverse()
-    row_indices = list(range(n_rows))
-    if 'bt' in orientation:
-        row_indices.reverse()
+    col_indices = range(n_cols) if 'lr' in orientation \
+        else range(n_cols - 1, -1, -1)
+    row_indices = range(n_rows) if 'tb' in orientation \
+        else range(n_rows - 1, -1, -1)
 
     if orientation[0] in 'rl':
         return (
