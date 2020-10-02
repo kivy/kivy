@@ -40,7 +40,6 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
         cols_sh_min, rows_sh_min = self._cols_sh_min, self._rows_sh_min
         cols_sh_max, rows_sh_max = self._cols_sh_max, self._rows_sh_max
         self._cols_count = cols_count = [defaultdict(int) for _ in cols]
-        # !! bottom-to-top, the opposite of the other attributes.
         self._rows_count = rows_count = [defaultdict(int) for _ in rows]
 
         # calculate minimum size for each columns and rows
@@ -224,7 +223,7 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
         top = y + h
         at_idx = self.get_view_index_at
         # 'tl' is not actually 'top-left' unless 'orientation' is 'lr-tb'.
-        # But we can pretend it is. Same for 'bl' and 'br'.
+        # But we can pretend it always is. Same for 'bl' and 'br'.
         tl, __, bl, br = sorted((
             at_idx((x, y)),
             at_idx((right, y)),
