@@ -15,7 +15,8 @@ The RecycleGridLayout is designed to provide a
 """
 
 from kivy.uix.recyclelayout import RecycleLayout
-from kivy.uix.gridlayout import GridLayout, GridLayoutException, nmax, nmin
+from kivy.uix.gridlayout import \
+    GridLayout, GridLayoutException, nmax, nmin, _create_idx_iter
 from collections import defaultdict
 
 __all__ = ('RecycleGridLayout', )
@@ -43,13 +44,12 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
         self._rows_count = rows_count = [defaultdict(int) for _ in rows]
 
         # calculate minimum size for each columns and rows
-        col_and_row_indices = self._col_and_row_indices
+        idx_iter = _create_idx_iter(len(cols), len(rows), self.orientation)
         has_bound_y = has_bound_x = False
-        for i, opt in enumerate(self.view_opts):
+        for opt, (col, row) in zip(self.view_opts, idx_iter):
             (shw, shh), (w, h) = opt['size_hint'], opt['size']
             shw_min, shh_min = opt['size_hint_min']
             shw_max, shh_max = opt['size_hint_max']
-            col, row = col_and_row_indices[i]
 
             if shw is None:
                 cols_count[col][w] += 1
@@ -85,7 +85,9 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
         cols_count, rows_count = self._cols_count, self._rows_count
         cols, rows = self._cols, self._rows
         remove_view = self.remove_view
-        col_and_row_indices = self._col_and_row_indices
+        n_cols = len(cols)
+        n_rows = len(rows)
+        orientation = self.orientation
 
         # this can be further improved to reduce re-comp, but whatever...
         for index, widget, (w, h), (wn, hn), sh, shn, sh_min, shn_min, \
@@ -98,8 +100,8 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
                   (w == wn or sh[0] is not None)):
                 remove_view(widget, index)
             else:  # size hint is None, so check if it can be resized inplace
-                col, row = col_and_row_indices[index]
-
+                col, row = _calculate_idx_from_a_view_idx(
+                    n_cols, n_rows, orientation, index)
                 if w != wn:
                     col_w = cols[col]
                     cols_count[col][w] -= 1
@@ -238,3 +240,16 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
             for s in range(tl, bl + 1, stride):
                 indices.extend(range(min(s, n), min(n, s + x_slice)))
         return indices
+
+
+def _calculate_idx_from_a_view_idx(n_cols, n_rows, orientation, view_idx):
+    '''returns a tuple of (column-index, row-index) from a view-index'''
+    if orientation[0] in 'rl':
+        row_idx, col_idx = divmod(view_idx, n_cols)
+    else:
+        col_idx, row_idx = divmod(view_idx, n_rows)
+    if 'rl' in orientation:
+        col_idx = n_cols - col_idx - 1
+    if 'bt' in orientation:
+        row_idx = n_rows - row_idx - 1
+    return (col_idx, row_idx, )
