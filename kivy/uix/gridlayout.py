@@ -352,7 +352,7 @@ class GridLayout(Layout):
         self._rows_sh = [None] * current_rows
         self._rows_sh_min = [None] * current_rows
         self._rows_sh_max = [None] * current_rows
-        self._col_and_row_indices = tuple(_create_col_and_row_index_iter(
+        self._col_and_row_indices = tuple(_create_idx_iter(
             current_cols, current_rows, self.orientation))
 
         # update minimum size from the dicts
@@ -618,7 +618,7 @@ class GridLayout(Layout):
                     c.size = (w, h)
 
 
-def _create_col_and_row_index_iter(n_cols, n_rows, orientation):
+def _create_idx_iter(n_cols, n_rows, orientation):
     col_indices = range(n_cols) if 'lr' in orientation \
         else range(n_cols - 1, -1, -1)
     row_indices = range(n_rows) if 'tb' in orientation \
