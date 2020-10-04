@@ -16,6 +16,18 @@ In order to initiate the touch gesture, the `LeapHand` uses the grab
 gesture. A grab initiates :meth:`~kivy.core.window.WindowBase.on_touch_down`,
 :meth:`~kivy.core.window.WindowBase.on_touch_move` and
 :meth:`~kivy.core.window.WindowBase.on_touch_up` events.
+
+The axes of the input are used as follow:
+    x - derived from the leap x co-ordinate (left/right)
+    y - derived from the leap y co-ordinate (up/down)
+    z - dervied from the inverse of the leap z co-ordinate
+
+.. note::
+
+    The z co-ordinate is used to set the "pressure" parameter of the touch
+    event where moving your hand closer to the monitor results in greater
+    pressure. The pressure is set as a normalized value between 0 and 1.
+
 '''
 
 __all__ = ('LeapHandEventProvider', 'LeapHandEvent')
@@ -31,8 +43,11 @@ _LEAP_QUEUE = deque()
 Leap = InteractionBox = None
 
 
-def normalize(value, start, scale):
-    return (value - start) / float(scale - start)
+def normalize(value, minimum, maximum):
+    """Convert the *value* from leapmotion coordinate system to a value between
+    o and 1.
+    """
+    return (value - minimum) / float(maximum - minimum)
 
 
 class LeapHandEvent(MotionEvent):
@@ -45,12 +60,15 @@ class LeapHandEvent(MotionEvent):
         super(LeapHandEvent, self).depack(args)
         if args[0] is None:
             return
-        self.profile = ('pos', 'pos3d', )
+        self.profile = ('pos', 'pos3d', 'pressure')
         x, y, z = args
         self.sx = normalize(x, -100, 150)
         self.sy = normalize(y, 80, 400)
         self.sz = normalize(z, -350, 350)
-        self.z = z
+        self.z = z  # Ranges from 0 (directly above) to about 300
+        norm = normalize(z, 0, 300)
+        norm = 0 if norm <= 0 else min(norm, 1)
+        self.pressure = 1 - norm  # Invert, so pressure closer to screen
 
 
 class LeapHandEventProvider(MotionEventProvider):
