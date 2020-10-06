@@ -619,7 +619,7 @@ cdef extern from "SDL.h":
     cdef SDL_Scancode SDL_GetScancodeFromName(char *name)
     cdef char *SDL_GetKeyName(SDL_Keycode key)
     cdef SDL_Keycode SDL_GetKeyFromName(char *name)
-    cdef void SDL_StartTextInput(int keyboard_type)
+    cdef void SDL_StartTextInput()
     cdef SDL_bool SDL_IsTextInputActive()
     cdef void SDL_StopTextInput()
     cdef void SDL_SetTextInputRect(SDL_Rect *rect)
