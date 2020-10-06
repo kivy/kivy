@@ -773,9 +773,20 @@ class WindowSDL(WindowBase):
         return
 
     def request_keyboard(self, callback, target, input_type='text'):
+        if platform == 'ios':
+            input_type_dict = {'text': 0,
+                               'datetime': 0,
+                               'url': 3,
+                               'number': 5,
+                               'tel': 6,
+                               'mail': 7,
+                               'address': 7}
+            input_type = input_type_dict[input_type]
         self._sdl_keyboard = super(WindowSDL, self).\
             request_keyboard(callback, target, input_type)
-        self._win.show_keyboard(self._system_keyboard, self.softinput_mode)
+        self._win.show_keyboard(self._system_keyboard,
+                                self.softinput_mode,
+                                input_type)
         Clock.schedule_interval(self._check_keyboard_shown, 1 / 5.)
         return self._sdl_keyboard
 

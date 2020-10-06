@@ -468,7 +468,7 @@ cdef class _WindowSDL2Storage:
         SDL_DestroyWindow(self.win)
         SDL_Quit()
 
-    def show_keyboard(self, system_keyboard, softinput_mode):
+    def show_keyboard(self, system_keyboard, softinput_mode, keyboard_type=None):
         if SDL_IsTextInputActive():
             return
         cdef SDL_Rect *rect = <SDL_Rect *>PyMem_Malloc(sizeof(SDL_Rect))
@@ -513,8 +513,11 @@ cdef class _WindowSDL2Storage:
                     rect.w = 10
                     rect.h = 1
                     SDL_SetTextInputRect(rect)
-
-            SDL_StartTextInput()
+                SDL_StartTextInput()
+            elif platform == 'ios':
+                SDL_StartTextInput(keyboard_type)
+            else:
+                SDL_StartTextInput()
         finally:
             PyMem_Free(<void *>rect)
 
