@@ -16,7 +16,7 @@ The RecycleGridLayout is designed to provide a
 
 from kivy.uix.recyclelayout import RecycleLayout
 from kivy.uix.gridlayout import \
-    GridLayout, GridLayoutException, nmax, nmin, _create_idx_iter
+    GridLayout, GridLayoutException, nmax, nmin
 from collections import defaultdict
 
 __all__ = ('RecycleGridLayout', )
@@ -43,7 +43,7 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
         self._rows_count = rows_count = [defaultdict(int) for _ in rows]
 
         # calculate minimum size for each columns and rows
-        idx_iter = _create_idx_iter(len(cols), len(rows), self.orientation)
+        idx_iter = self._create_idx_iter(len(cols), len(rows))
         has_bound_y = has_bound_x = False
         for opt, (col, row) in zip(self.view_opts, idx_iter):
             (shw, shh), (w, h) = opt['size_hint'], opt['size']
@@ -99,8 +99,8 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
                   (w == wn or sh[0] is not None)):
                 remove_view(widget, index)
             else:  # size hint is None, so check if it can be resized inplace
-                col, row = _calculate_idx_from_a_view_idx(
-                    n_cols, n_rows, orientation, index)
+                col, row = self._calculate_idx_from_a_view_idx(
+                    n_cols, n_rows, index)
                 if w != wn:
                     col_w = cols[col]
                     cols_count[col][w] -= 1
@@ -207,10 +207,9 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
                     break
                 iy += 1
 
-        ori = self.orientation
-        if 'rl' in ori:
+        if not self.fills_from_left_to_right:
             ix = len(cols) - ix - 1
-        if 'tb' in ori:
+        if self.fills_from_top_to_bottom:
             iy = len(rows) - iy - 1
         return (iy * len(cols) + ix) if self.fills_row_first else \
             (ix * len(rows) + iy)
@@ -240,15 +239,14 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
                 indices.extend(range(min(s, n), min(n, s + x_slice)))
         return indices
 
-
-def _calculate_idx_from_a_view_idx(n_cols, n_rows, orientation, view_idx):
-    '''returns a tuple of (column-index, row-index) from a view-index'''
-    if orientation[0] in 'rl':
-        row_idx, col_idx = divmod(view_idx, n_cols)
-    else:
-        col_idx, row_idx = divmod(view_idx, n_rows)
-    if 'rl' in orientation:
-        col_idx = n_cols - col_idx - 1
-    if 'bt' in orientation:
-        row_idx = n_rows - row_idx - 1
-    return (col_idx, row_idx, )
+    def _calculate_idx_from_a_view_idx(self, n_cols, n_rows, view_idx):
+        '''returns a tuple of (column-index, row-index) from a view-index'''
+        if self.fills_row_first:
+            row_idx, col_idx = divmod(view_idx, n_cols)
+        else:
+            col_idx, row_idx = divmod(view_idx, n_rows)
+        if not self.fills_from_left_to_right:
+            col_idx = n_cols - col_idx - 1
+        if not self.fills_from_top_to_bottom:
+            row_idx = n_rows - row_idx - 1
+        return (col_idx, row_idx, )

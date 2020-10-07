@@ -311,6 +311,14 @@ class GridLayout(Layout):
     def fills_row_first(self):
         return self.orientation[0] in 'lr'
 
+    @property
+    def fills_from_left_to_right(self):
+        return 'lr' in self.orientation
+
+    @property
+    def fills_from_top_to_bottom(self):
+        return 'tb' in self.orientation
+
     def _init_rows_cols_sizes(self, count):
         # the goal here is to calculate the minimum size of every cols/rows
         # and determine if they have stretch or not
@@ -371,7 +379,7 @@ class GridLayout(Layout):
 
         # calculate minimum size for each columns and rows
         has_bound_y = has_bound_x = False
-        idx_iter = _create_idx_iter(len(cols), len(rows), self.orientation)
+        idx_iter = self._create_idx_iter(len(cols), len(rows))
         for child, (col, row) in zip(reversed(self.children), idx_iter):
             (shw, shh), (w, h) = child.size_hint, child.size
             shw_min, shh_min = child.size_hint_min
@@ -521,7 +529,7 @@ class GridLayout(Layout):
         spacing_x, spacing_y = self.spacing
 
         cols = self._cols
-        if 'lr' in orientation:
+        if self.fills_from_left_to_right:
             x_iter = accumulate(chain(
                 (self.x + padding[0], ),
                 (
@@ -540,7 +548,7 @@ class GridLayout(Layout):
             cols = reversed(cols)
 
         rows = self._rows
-        if 'tb' in orientation:
+        if self.fills_from_top_to_bottom:
             y_iter = accumulate(chain(
                 (self.top - padding[1] - rows[0], ),
                 (
@@ -615,16 +623,15 @@ class GridLayout(Layout):
                 else:
                     c.size = (w, h)
 
+    def _create_idx_iter(self, n_cols, n_rows):
+        col_indices = range(n_cols) if self.fills_from_left_to_right \
+            else range(n_cols - 1, -1, -1)
+        row_indices = range(n_rows) if self.fills_from_top_to_bottom \
+            else range(n_rows - 1, -1, -1)
 
-def _create_idx_iter(n_cols, n_rows, orientation):
-    col_indices = range(n_cols) if 'lr' in orientation \
-        else range(n_cols - 1, -1, -1)
-    row_indices = range(n_rows) if 'tb' in orientation \
-        else range(n_rows - 1, -1, -1)
-
-    if orientation[0] in 'rl':
-        return (
-            (col_index, row_index)
-            for row_index, col_index in product(row_indices, col_indices))
-    else:
-        return product(col_indices, row_indices)
+        if self.fills_row_first:
+            return (
+                (col_index, row_index)
+                for row_index, col_index in product(row_indices, col_indices))
+        else:
+            return product(col_indices, row_indices)

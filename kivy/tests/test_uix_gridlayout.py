@@ -67,8 +67,9 @@ class UixGridLayoutTest(GraphicUnitTest):
 )
 def test_create_idx_iter(
         n_cols, n_rows, orientation, expectation):
-    from kivy.uix.gridlayout import _create_idx_iter
-    index_iter = _create_idx_iter(n_cols, n_rows, orientation)
+    from kivy.uix.gridlayout import GridLayout
+    gl = GridLayout(orientation=orientation)
+    index_iter = gl._create_idx_iter(n_cols, n_rows)
     assert expectation == list(index_iter)
 
 
@@ -77,8 +78,9 @@ def test_create_idx_iter(
     'tb-lr', 'tb-rl', 'bt-lr', 'bt-rl',
 ])
 def test_create_idx_iter2(orientation):
-    from kivy.uix.gridlayout import _create_idx_iter
-    index_iter = _create_idx_iter(1, 1, orientation)
+    from kivy.uix.gridlayout import GridLayout
+    gl = GridLayout(orientation=orientation)
+    index_iter = gl._create_idx_iter(1, 1)
     assert [(0, 0)] == list(index_iter)
 
 
