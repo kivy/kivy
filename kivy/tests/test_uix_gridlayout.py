@@ -109,5 +109,26 @@ def test_children_pos(n_cols, n_rows, orientation, n_children, expectation):
     assert actual_layout == expectation
 
 
+@pytest.mark.parametrize(
+    "n_cols, n_rows, orientation", [
+        (None, 2, 'lr-tb', ),
+        (None, 2, 'lr-bt', ),
+        (None, 2, 'rl-tb', ),
+        (None, 2, 'rl-bt', ),
+        (2, None, 'tb-lr', ),
+        (2, None, 'tb-rl', ),
+        (2, None, 'bt-lr', ),
+        (2, None, 'bt-rl', ),
+    ]
+)
+def test_invalid_configuration(n_cols, n_rows, orientation):
+    from kivy.uix.widget import Widget
+    from kivy.uix.gridlayout import GridLayout, GridLayoutException
+    gl = GridLayout(cols=n_cols, rows=n_rows, orientation=orientation)
+    gl.add_widget(Widget())
+    with pytest.raises(GridLayoutException):
+        gl.do_layout()
+
+
 if __name__ == '__main__':
     unittest.main()

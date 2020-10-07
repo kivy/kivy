@@ -336,15 +336,15 @@ class GridLayout(Layout):
 
         if current_cols is None:
             if self.fills_row_first:
-                Logger.warning(
+                raise GridLayoutException(
                     'Being asked to fill row-first, but a number of columns '
-                    'is not defined. You might get an unexpected result.')
+                    'is not defined.')
             current_cols = int(ceil(count / float(current_rows)))
         elif current_rows is None:
             if not self.fills_row_first:
-                Logger.warning(
+                raise GridLayoutException(
                     'Being asked to fill column-first, but a number of rows '
-                    'is not defined. You might get an unexpected result.')
+                    'is not defined.')
             current_rows = int(ceil(count / float(current_cols)))
 
         current_cols = max(1, current_cols)
