@@ -255,14 +255,14 @@ class GridLayout(Layout):
 
     orientation = OptionProperty('lr-tb', options=(
         'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt', 'bt-lr', 'rl-bt',
-        'bt-rl'))
+        'bt-rl', 'horizontal', 'vertical', ))
     '''Orientation of the layout.
 
     :attr:`orientation` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'lr-tb'.
 
     Valid orientations are 'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt',
-    'bt-lr', 'rl-bt' and 'bt-rl'.
+    'bt-lr', 'rl-bt', 'bt-rl', 'horizontal' and 'vertical'.
 
     .. versionadded:: 2.0.0
 
@@ -272,6 +272,8 @@ class GridLayout(Layout):
         'rl' means Right to Left.
         'tb' means Top to Bottom.
         'bt' means Bottom to Top.
+        'horizontal' is an alias of 'lr-tb'.
+        'vertical' is an alias of 'tb-lr'.
     '''
 
     def __init__(self, **kwargs):
@@ -309,15 +311,15 @@ class GridLayout(Layout):
 
     @property
     def fills_row_first(self):
-        return self.orientation[0] in 'lr'
+        return self.orientation[0] in 'lrh'
 
     @property
     def fills_from_left_to_right(self):
-        return 'lr' in self.orientation
+        return 'rl' not in self.orientation
 
     @property
     def fills_from_top_to_bottom(self):
-        return 'tb' in self.orientation
+        return 'bt' not in self.orientation
 
     def _init_rows_cols_sizes(self, count):
         # the goal here is to calculate the minimum size of every cols/rows
