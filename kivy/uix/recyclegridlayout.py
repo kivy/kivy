@@ -212,7 +212,7 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
             ix = len(cols) - ix - 1
         if 'tb' in ori:
             iy = len(rows) - iy - 1
-        return (iy * len(cols) + ix) if self._fills_row_first else \
+        return (iy * len(cols) + ix) if self.fills_row_first else \
             (ix * len(rows) + iy)
 
     def compute_visible_views(self, data, viewport):
@@ -233,7 +233,7 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
 
         n = len(data)
         indices = []
-        stride = len(self._cols) if self._fills_row_first else len(self._rows)
+        stride = len(self._cols) if self.fills_row_first else len(self._rows)
         if stride:
             x_slice = br - bl + 1
             for s in range(tl, bl + 1, stride):

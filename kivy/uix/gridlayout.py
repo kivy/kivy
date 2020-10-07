@@ -308,7 +308,7 @@ class GridLayout(Layout):
                 'Too many children in GridLayout. Increase rows/cols!')
 
     @property
-    def _fills_row_first(self):
+    def fills_row_first(self):
         return self.orientation[0] in 'lr'
 
     def _init_rows_cols_sizes(self, count):
@@ -325,13 +325,13 @@ class GridLayout(Layout):
             return
 
         if current_cols is None:
-            if self._fills_row_first:
+            if self.fills_row_first:
                 Logger.warning(
                     'Being asked to fill row-first, but a number of columns '
                     'is not defined. You might get an unexpected result.')
             current_cols = int(ceil(count / float(current_rows)))
         elif current_rows is None:
-            if not self._fills_row_first:
+            if not self.fills_row_first:
                 Logger.warning(
                     'Being asked to fill column-first, but a number of rows '
                     'is not defined. You might get an unexpected result.')
@@ -558,7 +558,7 @@ class GridLayout(Layout):
             ))
             rows = reversed(rows)
 
-        if self._fills_row_first:
+        if self.fills_row_first:
             for i, (y, x), (row_height, col_width) in zip(
                     reversed(range(count)),
                     product(y_iter, x_iter),
