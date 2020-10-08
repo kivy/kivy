@@ -255,14 +255,14 @@ class GridLayout(Layout):
 
     orientation = OptionProperty('lr-tb', options=(
         'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt', 'bt-lr', 'rl-bt',
-        'bt-rl', 'horizontal', 'vertical', ))
+        'bt-rl', ))
     '''Orientation of the layout.
 
     :attr:`orientation` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'lr-tb'.
 
     Valid orientations are 'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt',
-    'bt-lr', 'rl-bt', 'bt-rl', 'horizontal' and 'vertical'.
+    'bt-lr', 'rl-bt' and 'bt-rl'.
 
     .. versionadded:: 2.0.0
 
@@ -272,8 +272,6 @@ class GridLayout(Layout):
         'rl' means Right to Left.
         'tb' means Top to Bottom.
         'bt' means Bottom to Top.
-        'horizontal' is an alias of 'lr-tb'.
-        'vertical' is an alias of 'tb-lr'.
     '''
 
     def __init__(self, **kwargs):
@@ -311,7 +309,7 @@ class GridLayout(Layout):
 
     @property
     def fills_row_first(self):
-        return self.orientation[0] in 'lrh'
+        return self.orientation[0] not in 'tb'
 
     @property
     def fills_from_left_to_right(self):

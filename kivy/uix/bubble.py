@@ -159,6 +159,14 @@ class Bubble(GridLayout):
     defaults to 'None'.
     '''
 
+    orientation = OptionProperty('horizontal',
+                                 options=('horizontal', 'vertical'))
+    '''This specifies the manner in which the children inside bubble
+    are arranged. Can be one of 'vertical' or 'horizontal'.
+    :attr:`orientation` is a :class:`~kivy.properties.OptionProperty` and
+    defaults to 'horizontal'.
+    '''
+
     limit_to = ObjectProperty(None, allownone=True)
     '''Specifies the widget to which the bubbles position is restricted.
 
@@ -268,7 +276,7 @@ class Bubble(GridLayout):
         content = self.content
         if not content:
             return
-        if not self.fills_row_first:
+        if self.orientation[0] == 'v':
             content.cols = 1
             content.rows = 99
         else:
