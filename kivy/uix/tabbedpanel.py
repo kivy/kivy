@@ -472,11 +472,13 @@ class TabbedPanel(GridLayout):
         # these variables need to be initialized before the kv lang is
         # processed setup the base layout for the tabbed panel
         self._childrens = []
-        self._tab_layout = StripLayout(rows=1)
+        self._tab_layout = StripLayout(rows=1, orientation='tb-lr')
         self.rows = 1
+        self.orientation = 'tb-lr'
         self._tab_strip = TabbedPanelStrip(
             tabbed_panel=self,
             rows=1, size_hint=(None, None),
+            orientation='tb-lr',
             height=self.tab_height, width=self.tab_width)
 
         self._partial_update_scrollview = None
