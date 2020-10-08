@@ -255,7 +255,7 @@ class GridLayout(Layout):
 
     orientation = OptionProperty('lr-tb', options=(
         'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt', 'bt-lr', 'rl-bt',
-        'bt-rl', ))
+        'bt-rl'))
     '''Orientation of the layout.
 
     :attr:`orientation` is an :class:`~kivy.properties.OptionProperty` and

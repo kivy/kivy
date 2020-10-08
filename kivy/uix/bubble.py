@@ -163,6 +163,7 @@ class Bubble(GridLayout):
                                  options=('horizontal', 'vertical'))
     '''This specifies the manner in which the children inside bubble
     are arranged. Can be one of 'vertical' or 'horizontal'.
+
     :attr:`orientation` is a :class:`~kivy.properties.OptionProperty` and
     defaults to 'horizontal'.
     '''
