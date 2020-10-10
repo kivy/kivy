@@ -333,16 +333,8 @@ class GridLayout(Layout):
             return
 
         if current_cols is None:
-            if self._fills_row_first:
-                Logger.warning(
-                    'Being asked to fill row-first, but a number of columns '
-                    'is not defined. You might get an unexpected result.')
             current_cols = int(ceil(count / float(current_rows)))
         elif current_rows is None:
-            if not self._fills_row_first:
-                Logger.warning(
-                    'Being asked to fill column-first, but a number of rows '
-                    'is not defined. You might get an unexpected result.')
             current_rows = int(ceil(count / float(current_cols)))
 
         current_cols = max(1, current_cols)
