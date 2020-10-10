@@ -308,15 +308,15 @@ class GridLayout(Layout):
                 'Too many children in GridLayout. Increase rows/cols!')
 
     @property
-    def fills_row_first(self):
+    def _fills_row_first(self):
         return self.orientation[0] not in 'tb'
 
     @property
-    def fills_from_left_to_right(self):
+    def _fills_from_left_to_right(self):
         return 'rl' not in self.orientation
 
     @property
-    def fills_from_top_to_bottom(self):
+    def _fills_from_top_to_bottom(self):
         return 'bt' not in self.orientation
 
     def _init_rows_cols_sizes(self, count):
@@ -333,13 +333,13 @@ class GridLayout(Layout):
             return
 
         if current_cols is None:
-            if self.fills_row_first:
+            if self._fills_row_first:
                 Logger.warning(
                     'Being asked to fill row-first, but a number of columns '
                     'is not defined. You might get an unexpected result.')
             current_cols = int(ceil(count / float(current_rows)))
         elif current_rows is None:
-            if not self.fills_row_first:
+            if not self._fills_row_first:
                 Logger.warning(
                     'Being asked to fill column-first, but a number of rows '
                     'is not defined. You might get an unexpected result.')
@@ -529,7 +529,7 @@ class GridLayout(Layout):
         spacing_x, spacing_y = self.spacing
 
         cols = self._cols
-        if self.fills_from_left_to_right:
+        if self._fills_from_left_to_right:
             x_iter = accumulate(chain(
                 (self.x + padding[0], ),
                 (
@@ -548,7 +548,7 @@ class GridLayout(Layout):
             cols = reversed(cols)
 
         rows = self._rows
-        if self.fills_from_top_to_bottom:
+        if self._fills_from_top_to_bottom:
             y_iter = accumulate(chain(
                 (self.top - padding[1] - rows[0], ),
                 (
@@ -566,7 +566,7 @@ class GridLayout(Layout):
             ))
             rows = reversed(rows)
 
-        if self.fills_row_first:
+        if self._fills_row_first:
             for i, (y, x), (row_height, col_width) in zip(
                     reversed(range(count)),
                     product(y_iter, x_iter),
@@ -624,12 +624,12 @@ class GridLayout(Layout):
                     c.size = (w, h)
 
     def _create_idx_iter(self, n_cols, n_rows):
-        col_indices = range(n_cols) if self.fills_from_left_to_right \
+        col_indices = range(n_cols) if self._fills_from_left_to_right \
             else range(n_cols - 1, -1, -1)
-        row_indices = range(n_rows) if self.fills_from_top_to_bottom \
+        row_indices = range(n_rows) if self._fills_from_top_to_bottom \
             else range(n_rows - 1, -1, -1)
 
-        if self.fills_row_first:
+        if self._fills_row_first:
             return (
                 (col_index, row_index)
                 for row_index, col_index in product(row_indices, col_indices))

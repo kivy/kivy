@@ -207,11 +207,11 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
                     break
                 iy += 1
 
-        if not self.fills_from_left_to_right:
+        if not self._fills_from_left_to_right:
             ix = len(cols) - ix - 1
-        if self.fills_from_top_to_bottom:
+        if self._fills_from_top_to_bottom:
             iy = len(rows) - iy - 1
-        return (iy * len(cols) + ix) if self.fills_row_first else \
+        return (iy * len(cols) + ix) if self._fills_row_first else \
             (ix * len(rows) + iy)
 
     def compute_visible_views(self, data, viewport):
@@ -232,7 +232,7 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
 
         n = len(data)
         indices = []
-        stride = len(self._cols) if self.fills_row_first else len(self._rows)
+        stride = len(self._cols) if self._fills_row_first else len(self._rows)
         if stride:
             x_slice = br - bl + 1
             for s in range(tl, bl + 1, stride):
@@ -241,12 +241,12 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
 
     def _calculate_idx_from_a_view_idx(self, n_cols, n_rows, view_idx):
         '''returns a tuple of (column-index, row-index) from a view-index'''
-        if self.fills_row_first:
+        if self._fills_row_first:
             row_idx, col_idx = divmod(view_idx, n_cols)
         else:
             col_idx, row_idx = divmod(view_idx, n_rows)
-        if not self.fills_from_left_to_right:
+        if not self._fills_from_left_to_right:
             col_idx = n_cols - col_idx - 1
-        if not self.fills_from_top_to_bottom:
+        if not self._fills_from_top_to_bottom:
             row_idx = n_rows - row_idx - 1
         return (col_idx, row_idx, )
