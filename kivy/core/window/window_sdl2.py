@@ -732,7 +732,7 @@ class WindowSDL(WindowBase):
                 break
             elif action == 'windowrestored':
                 break
-            
+
         if app:
             app.dispatch('on_resume')
 
