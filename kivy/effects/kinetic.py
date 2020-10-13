@@ -103,7 +103,6 @@ class KineticEffect(EventDispatcher):
     defaults to 0.5.
     '''
 
-
     std_dt = NumericProperty(0.017)
     ''' std_dt
         correction update_velocity if dt is not constant
@@ -113,7 +112,6 @@ class KineticEffect(EventDispatcher):
     :attr:`std_dt` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.017.
     '''
-
 
     def __init__(self, **kwargs):
         self.history = []
