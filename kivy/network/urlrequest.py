@@ -187,7 +187,7 @@ class UrlRequest(Thread):
                  timeout=None, method=None, decode=True, debug=False,
                  file_path=None, ca_file=None, verify=True, proxy_host=None,
                  proxy_port=None, proxy_headers=None, user_agent=None,
-                 on_cancel=None):
+                 on_cancel=None, cookies=None):
         super(UrlRequest, self).__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
@@ -215,6 +215,8 @@ class UrlRequest(Thread):
         self._proxy_port = proxy_port
         self._proxy_headers = proxy_headers
         self._cancel_event = Event()
+        self._user_agent = user_agent
+        self._cookies = cookies
 
         if platform in ['android', 'ios']:
             import certifi
@@ -241,12 +243,22 @@ class UrlRequest(Thread):
         url = self.url
         req_body = self.req_body
         req_headers = self.req_headers or {}
-        if (
+
+        user_agent = self._user_agent
+        cookies = self._cookies
+
+        if user_agent:
+            req_headers.setdefault('User-Agent', user_agent)
+
+        elif (
             Config.has_section('network')
             and 'useragent' in Config.items('network')
         ):
             useragent = Config.get('network', 'useragent')
             req_headers.setdefault('User-Agent', useragent)
+
+        if cookies:
+            req_headers.setdefault("Cookie", cookies)
 
         try:
             result, resp = self._fetch_url(url, req_body, req_headers, q)
@@ -457,6 +469,7 @@ class UrlRequest(Thread):
                     return loads(result)
                 except:
                     return result
+
         return result
 
     def _dispatch_result(self, dt):
