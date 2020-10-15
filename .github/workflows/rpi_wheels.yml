@@ -18,7 +18,7 @@ jobs:
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel armv7l]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel armv7l]')
     strategy:
       matrix:
-        docker_images: ['balenalib/armv7hf-debian:stretch', 'balenalib/armv7hf-debian:buster']
+        docker_images: ['balenalib/armv7hf-debian:buster']
     steps:
     - uses: actions/checkout@v2
     - name: Generate version metadata
