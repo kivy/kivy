@@ -209,7 +209,6 @@ class Bubble(GridLayout):
         content.parent = None
         self.add_widget(content)
         self.on_arrow_pos()
-        self.on_orientation()
 
     def add_widget(self, *l):
         content = self.content
