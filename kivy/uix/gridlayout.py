@@ -95,7 +95,8 @@ from kivy.properties import NumericProperty, BooleanProperty, DictProperty, \
     BoundedNumericProperty, ReferenceListProperty, VariableListProperty, \
     ObjectProperty, StringProperty, OptionProperty
 from math import ceil
-from itertools import accumulate, product
+from itertools import accumulate, product, chain, islice
+from operator import sub
 
 
 def nmax(*args):
@@ -310,6 +311,14 @@ class GridLayout(Layout):
     def _fills_row_first(self):
         return self.orientation[0] in 'lr'
 
+    @property
+    def _fills_from_left_to_right(self):
+        return 'lr' in self.orientation
+
+    @property
+    def _fills_from_top_to_bottom(self):
+        return 'tb' in self.orientation
+
     def _init_rows_cols_sizes(self, count):
         # the goal here is to calculate the minimum size of every cols/rows
         # and determine if they have stretch or not
@@ -324,16 +333,8 @@ class GridLayout(Layout):
             return
 
         if current_cols is None:
-            if self._fills_row_first:
-                Logger.warning(
-                    'Being asked to fill row-first, but a number of columns '
-                    'is not defined. You might get an unexpected result.')
             current_cols = int(ceil(count / float(current_rows)))
         elif current_rows is None:
-            if not self._fills_row_first:
-                Logger.warning(
-                    'Being asked to fill column-first, but a number of rows '
-                    'is not defined. You might get an unexpected result.')
             current_rows = int(ceil(count / float(current_cols)))
 
         current_cols = max(1, current_cols)
@@ -351,8 +352,6 @@ class GridLayout(Layout):
         self._rows_sh = [None] * current_rows
         self._rows_sh_min = [None] * current_rows
         self._rows_sh_max = [None] * current_rows
-        self._col_and_row_indices = tuple(_create_col_and_row_index_iter(
-            current_cols, current_rows, self.orientation))
 
         # update minimum size from the dicts
         items = (i for i in self.cols_minimum.items() if i[0] < len(cols))
@@ -372,8 +371,8 @@ class GridLayout(Layout):
 
         # calculate minimum size for each columns and rows
         has_bound_y = has_bound_x = False
-        for child, (col, row) in zip(reversed(self.children),
-                                     self._col_and_row_indices):
+        idx_iter = self._create_idx_iter(len(cols), len(rows))
+        for child, (col, row) in zip(reversed(self.children), idx_iter):
             (shw, shh), (w, h) = child.size_hint, child.size
             shw_min, shh_min = child.size_hint_min
             shw_max, shh_max = child.size_hint_max
@@ -522,33 +521,53 @@ class GridLayout(Layout):
         spacing_x, spacing_y = self.spacing
 
         cols = self._cols
-        x_list = list(accumulate((
-            self.x + padding[0],
-            *(col_width + spacing_x for col_width in cols[:-1]))))
-        if 'rl' in orientation:
+        if self._fills_from_left_to_right:
+            x_iter = accumulate(chain(
+                (self.x + padding[0], ),
+                (
+                    col_width + spacing_x
+                    for col_width in islice(cols, len(cols) - 1)
+                ),
+            ))
+        else:
+            x_iter = accumulate(chain(
+                (self.right - padding[2] - cols[-1], ),
+                (
+                    col_width + spacing_x
+                    for col_width in islice(reversed(cols), 1, None)
+                ),
+            ), sub)
             cols = reversed(cols)
-            x_list.reverse()
 
         rows = self._rows
-        reversed_rows = list(reversed(rows))
-        y_list = list(accumulate((
-            self.y + padding[3],
-            *(row_height + spacing_y for row_height in reversed_rows[:-1]))))
-        if 'tb' in orientation:
-            y_list.reverse()
+        if self._fills_from_top_to_bottom:
+            y_iter = accumulate(chain(
+                (self.top - padding[1] - rows[0], ),
+                (
+                    row_height + spacing_y
+                    for row_height in islice(rows, 1, None)
+                ),
+            ), sub)
         else:
-            rows = reversed_rows
+            y_iter = accumulate(chain(
+                (self.y + padding[3], ),
+                (
+                    row_height + spacing_y
+                    for row_height in islice(reversed(rows), len(rows) - 1)
+                ),
+            ))
+            rows = reversed(rows)
 
         if self._fills_row_first:
             for i, (y, x), (row_height, col_width) in zip(
                     reversed(range(count)),
-                    product(y_list, x_list),
+                    product(y_iter, x_iter),
                     product(rows, cols)):
                 yield i, x, y, col_width, row_height
         else:
             for i, (x, y), (col_width, row_height) in zip(
                     reversed(range(count)),
-                    product(x_list, y_list),
+                    product(x_iter, y_iter),
                     product(cols, rows)):
                 yield i, x, y, col_width, row_height
 
@@ -596,18 +615,15 @@ class GridLayout(Layout):
                 else:
                     c.size = (w, h)
 
+    def _create_idx_iter(self, n_cols, n_rows):
+        col_indices = range(n_cols) if self._fills_from_left_to_right \
+            else range(n_cols - 1, -1, -1)
+        row_indices = range(n_rows) if self._fills_from_top_to_bottom \
+            else range(n_rows - 1, -1, -1)
 
-def _create_col_and_row_index_iter(n_cols, n_rows, orientation):
-    col_indices = list(range(n_cols))
-    if 'rl' in orientation:
-        col_indices.reverse()
-    row_indices = list(range(n_rows))
-    if 'bt' in orientation:
-        row_indices.reverse()
-
-    if orientation[0] in 'rl':
-        return (
-            (col_index, row_index)
-            for row_index, col_index in product(row_indices, col_indices))
-    else:
-        return product(col_indices, row_indices)
+        if self._fills_row_first:
+            return (
+                (col_index, row_index)
+                for row_index, col_index in product(row_indices, col_indices))
+        else:
+            return product(col_indices, row_indices)

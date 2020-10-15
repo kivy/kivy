@@ -39,17 +39,15 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
         cols_sh_min, rows_sh_min = self._cols_sh_min, self._rows_sh_min
         cols_sh_max, rows_sh_max = self._cols_sh_max, self._rows_sh_max
         self._cols_count = cols_count = [defaultdict(int) for _ in cols]
-        # !! bottom-to-top, the opposite of the other attributes.
         self._rows_count = rows_count = [defaultdict(int) for _ in rows]
 
         # calculate minimum size for each columns and rows
-        col_and_row_indices = self._col_and_row_indices
+        idx_iter = self._create_idx_iter(len(cols), len(rows))
         has_bound_y = has_bound_x = False
-        for i, opt in enumerate(self.view_opts):
+        for opt, (col, row) in zip(self.view_opts, idx_iter):
             (shw, shh), (w, h) = opt['size_hint'], opt['size']
             shw_min, shh_min = opt['size_hint_min']
             shw_max, shh_max = opt['size_hint_max']
-            col, row = col_and_row_indices[i]
 
             if shw is None:
                 cols_count[col][w] += 1
@@ -85,7 +83,9 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
         cols_count, rows_count = self._cols_count, self._rows_count
         cols, rows = self._cols, self._rows
         remove_view = self.remove_view
-        col_and_row_indices = self._col_and_row_indices
+        n_cols = len(cols)
+        n_rows = len(rows)
+        orientation = self.orientation
 
         # this can be further improved to reduce re-comp, but whatever...
         for index, widget, (w, h), (wn, hn), sh, shn, sh_min, shn_min, \
@@ -98,8 +98,8 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
                   (w == wn or sh[0] is not None)):
                 remove_view(widget, index)
             else:  # size hint is None, so check if it can be resized inplace
-                col, row = col_and_row_indices[index]
-
+                col, row = self._calculate_idx_from_a_view_idx(
+                    n_cols, n_rows, index)
                 if w != wn:
                     col_w = cols[col]
                     cols_count[col][w] -= 1
@@ -206,10 +206,9 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
                     break
                 iy += 1
 
-        ori = self.orientation
-        if 'rl' in ori:
+        if not self._fills_from_left_to_right:
             ix = len(cols) - ix - 1
-        if 'tb' in ori:
+        if self._fills_from_top_to_bottom:
             iy = len(rows) - iy - 1
         return (iy * len(cols) + ix) if self._fills_row_first else \
             (ix * len(rows) + iy)
@@ -222,7 +221,7 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
         top = y + h
         at_idx = self.get_view_index_at
         # 'tl' is not actually 'top-left' unless 'orientation' is 'lr-tb'.
-        # But we can pretend it is. Same for 'bl' and 'br'.
+        # But we can pretend it always is. Same for 'bl' and 'br'.
         tl, __, bl, br = sorted((
             at_idx((x, y)),
             at_idx((right, y)),
@@ -238,3 +237,15 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
             for s in range(tl, bl + 1, stride):
                 indices.extend(range(min(s, n), min(n, s + x_slice)))
         return indices
+
+    def _calculate_idx_from_a_view_idx(self, n_cols, n_rows, view_idx):
+        '''returns a tuple of (column-index, row-index) from a view-index'''
+        if self._fills_row_first:
+            row_idx, col_idx = divmod(view_idx, n_cols)
+        else:
+            col_idx, row_idx = divmod(view_idx, n_rows)
+        if not self._fills_from_left_to_right:
+            col_idx = n_cols - col_idx - 1
+        if not self._fills_from_top_to_bottom:
+            row_idx = n_rows - row_idx - 1
+        return (col_idx, row_idx, )

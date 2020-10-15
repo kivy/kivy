@@ -393,3 +393,15 @@ class Bubble(GridLayout):
     def _update_arrow(self, *dt):
         if self.arrow_pos in ('left_mid', 'right_mid'):
             self._sctr.center_y = self._arrow_layout.center_y
+
+    @property
+    def _fills_row_first(self):
+        return True
+
+    @property
+    def _fills_from_left_to_right(self):
+        return True
+
+    @property
+    def _fills_from_top_to_bottom(self):
+        return True
