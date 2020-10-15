@@ -309,15 +309,15 @@ class GridLayout(Layout):
 
     @property
     def _fills_row_first(self):
-        return self.orientation[0] not in 'tb'
+        return self.orientation[0] in 'lr'
 
     @property
     def _fills_from_left_to_right(self):
-        return 'rl' not in self.orientation
+        return 'lr' in self.orientation
 
     @property
     def _fills_from_top_to_bottom(self):
-        return 'bt' not in self.orientation
+        return 'tb' in self.orientation
 
     def _init_rows_cols_sizes(self, count):
         # the goal here is to calculate the minimum size of every cols/rows
