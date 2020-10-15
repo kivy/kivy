@@ -43,7 +43,7 @@ make distclean;
 
 cd /io;
 for PYBIN in /opt/python/*3*/bin; do
-    if [[ $PYBIN != *"34"* ]]; then
+    if [[ $PYBIN != *"34"* && $PYBIN != *"35"* ]]; then
         "${PYBIN}/pip" install --upgrade setuptools pip;
         "${PYBIN}/pip" install --upgrade cython nose pygments docutils;
         KIVY_SPLIT_EXAMPLES=1 USE_X11=1 USE_SDL2=1 USE_PANGOFT2=0 USE_GSTREAMER=0 PKG_CONFIG_PATH="$HOME/kivy_build/lib/pkgconfig" "${PYBIN}/pip" wheel --no-deps . -w dist/;
