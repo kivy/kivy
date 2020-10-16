@@ -1,11 +1,10 @@
 
-PYTHON := python3
-ifeq (, $(shell command -v $(PYTHON)))
-  $(error "PYTHON=$(PYTHON) not found in $(PATH)")
+PYTHON = python3
+ifeq (, $(shell which $(PYTHON) 2> /dev/null ))
   PYTHON := python
 endif
 
-ifeq (, $(shell command -v $(PYTHON)))
+ifeq (, $(shell which $(PYTHON) 2> /dev/null))
   $(error "PYTHON=$(PYTHON) not found in $(PATH)")
 endif
 
