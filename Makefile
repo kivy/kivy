@@ -1,8 +1,13 @@
-ifeq (, $(shell which python ))
+
+PYTHON = python3
+ifeq (, $(shell command -v $(PYTHON)))
+  PYTHON := python
+endif
+
+ifeq (, $(shell command -v $(PYTHON)))
   $(error "PYTHON=$(PYTHON) not found in $(PATH)")
 endif
 
-PYTHON = python
 PYTHON_VERSION_MIN=3.0
 PYTHON_VERSION=$(shell $(PYTHON) -c 'import sys; print("%d.%d"% sys.version_info[0:2])' )
 PYTHON_VERSION_OK=$(shell $(PYTHON) -c 'import sys;\
