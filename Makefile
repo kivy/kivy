@@ -1,6 +1,7 @@
 
 PYTHON := python3
 ifeq (, $(shell command -v $(PYTHON)))
+  $(error "PYTHON=$(PYTHON) not found in $(PATH)")
   PYTHON := python
 endif
 
