@@ -87,7 +87,7 @@ class Application(App):
         # the animation we actually want to do on the item, note that any
         # property animated here needs to be synchronised from the proxy to the
         # animated widget (in on_animation_proxy and using methods for each
-        # animation) 
+        # animation)
         proxy = F.Widget(opacity=1)
         item = copy(self.data[index])
         animation = (

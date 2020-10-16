@@ -1,6 +1,8 @@
 """Detecting and acting upon "Pull down actions" in a RecycleView
-- When using overscroll or being at the to, a "pull down to refresh" message appears
-- if the user pulls down far enough, then a refresh is triggered, which adds new elements at the top of the list.
+- When using overscroll or being at the to, a "pull down to refresh" message
+  appears
+- if the user pulls down far enough, then a refresh is triggered, which adds
+  new elements at the top of the list.
 
 """
 from threading import Thread

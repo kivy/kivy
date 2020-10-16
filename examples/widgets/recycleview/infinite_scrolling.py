@@ -100,7 +100,10 @@ class FixedRecycleView(Factory.RecycleView):
         are currently scrolled back.
         """
         if self.scroll_y > 0:
-            self.scroll_y = (self.scrollable_distance - self.distance_to_top) / self.scrollable_distance
+            self.scroll_y = (
+                (self.scrollable_distance - self.distance_to_top)
+                / self.scrollable_distance
+            )
 
     def on_scroll_y(self, *args):
         """Save the distance_to_top everytime we scroll.
