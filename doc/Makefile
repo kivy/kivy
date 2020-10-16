@@ -4,7 +4,15 @@
 ENDUSER_BUILD	= yes
 
 # You can set these variables from the command line.
-PYTHON		= python
+PYTHON = python3
+ifeq (, $(shell which $(PYTHON) 2> /dev/null ))
+  PYTHON := python
+endif
+
+ifeq (, $(shell which $(PYTHON) 2> /dev/null))
+  $(error "PYTHON=$(PYTHON) not found in $(PATH)")
+endif
+
 SPHINXOPTS	= -Q
 SPHINXOPTS_TEST	= -W -T
 SPHINXBUILD	= sphinx-build
@@ -31,10 +39,10 @@ ALLSPHINXOPTS_TEST	= -d build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS_TEST) s
 ALLSPHINXOPTSGT		= -d build/doctrees_gettext $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) sources
 ALLSPHINXOPTSGT_TEST	= -d build/doctrees_gettext $(PAPEROPT_$(PAPER)) $(SPHINXOPTS_TEST) sources
 LATEXOPTS		= -interaction=batchmode
-LATEXOPTS_TESTS		= 
+LATEXOPTS_TESTS		=
 
 ifeq ($(ENDUSER_BUILD),yes)
-	_TESTS = 
+	_TESTS =
 else
 	_TESTS = _TEST
 endif
@@ -154,5 +162,5 @@ linkcheck:
 
 build-all: html pickle htmlhelp pdf ps gettext
 
-# TODO: Make test run in non-enduser-build mode 
+# TODO: Make test run in non-enduser-build mode
 test: build-all
