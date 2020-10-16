@@ -1,5 +1,5 @@
 
-PYTHON = python3
+PYTHON := python3
 ifeq (, $(shell command -v $(PYTHON)))
   PYTHON := python
 endif
