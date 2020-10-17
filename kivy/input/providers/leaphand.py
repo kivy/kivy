@@ -17,10 +17,10 @@ gesture. A grab initiates :meth:`~kivy.core.window.WindowBase.on_touch_down`,
 :meth:`~kivy.core.window.WindowBase.on_touch_move` and
 :meth:`~kivy.core.window.WindowBase.on_touch_up` events.
 
-The axes of the input are used as follow:
-    x - derived from the leap x co-ordinate (left/right)
-    y - derived from the leap y co-ordinate (up/down)
-    z - dervied from the inverse of the leap z co-ordinate
+The axes of the input are used as follows:
+* x - derived from the leap x co-ordinate (left/right)
+* y - derived from the leap y co-ordinate (up/down)
+* z - dervied from the inverse of the leap z co-ordinate
 
 .. note::
 
