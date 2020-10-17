@@ -16,8 +16,9 @@ from copy import copy
 from kivy.app import App
 from kivy.clock import triggered
 from kivy.lang import Builder
+from kivy.uix.widget import Widget
 from kivy.animation import Animation
-from kivy.factory import Factory as F
+from kivy.uix.button import Button
 from kivy.properties import (
     ObjectProperty, ListProperty
 )
@@ -42,7 +43,7 @@ RecycleView:
 '''
 
 
-class Item(F.Button):
+class Item(Button):
     animation_proxy = ObjectProperty(allownone=True)
     _animation_proxy = None
 
@@ -88,7 +89,7 @@ class Application(App):
         # property animated here needs to be synchronised from the proxy to the
         # animated widget (in on_animation_proxy and using methods for each
         # animation)
-        proxy = F.Widget(opacity=1)
+        proxy = Widget(opacity=1)
         item = copy(self.data[index])
         animation = (
             Animation(opacity=0, d=.1, t='out_quad')

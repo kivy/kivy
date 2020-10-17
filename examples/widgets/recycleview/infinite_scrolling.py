@@ -12,7 +12,7 @@ from string import printable
 from time import asctime
 
 from kivy.app import App
-from kivy.factory import Factory
+from kivy.uix.recycleview import RecycleView
 from kivy.lang import Builder
 from kivy.properties import NumericProperty, ListProperty
 from kivy.clock import Clock
@@ -90,7 +90,7 @@ BoxLayout:
 """
 
 
-class FixedRecycleView(Factory.RecycleView):
+class FixedRecycleView(RecycleView):
     distance_to_top = NumericProperty()
     scrollable_distance = NumericProperty()
 

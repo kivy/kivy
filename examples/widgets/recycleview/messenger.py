@@ -1,6 +1,6 @@
 from kivy.app import App
 from kivy.lang import Builder
-from kivy.clock import Clock, mainthread
+from kivy.clock import Clock
 from kivy.properties import ListProperty
 from kivy.animation import Animation
 from kivy.metrics import dp
@@ -169,7 +169,6 @@ class MessengerApp(App):
             }
 
     @staticmethod
-    @mainthread
     def focus_textinput(textinput):
         textinput.focus = True
 

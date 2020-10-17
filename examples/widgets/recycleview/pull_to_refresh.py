@@ -13,6 +13,7 @@ from kivy.app import App
 from kivy.lang import Builder
 from kivy.properties import ListProperty, BooleanProperty
 from kivy.metrics import dp
+from kivy.clock import mainthread
 
 
 KV = r'''
@@ -72,10 +73,10 @@ class Application(App):
     def refresh_data(self):
         # using a Thread to do a potentially long operation without blocking
         # the UI.
+        self.refreshing = True
         Thread(target=self._refresh_data).start()
 
     def _refresh_data(self):
-        self.refreshing = True
         sleep(2)
         update_time = datetime.now().strftime("%H:%M:%S")
 
@@ -83,10 +84,11 @@ class Application(App):
             {'_id': i, 'text': '[{}] hello {}'.format(update_time, i)}
             for i in range(len(self.data) + 10, len(self.data), -1)
         ])
-        self.refreshing = False
 
+    @mainthread
     def prepend_data(self, data):
         self.data = data + self.data
+        self.refreshing = False
 
 
 if __name__ == "__main__":
