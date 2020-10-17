@@ -147,17 +147,18 @@ class MessengerApp(App):
         one_line = dp(50)  # a bit of  hack, YMMV
 
         # if the texture is too big, limit its size
-        if texture_size[0] >= max_width * 2/3:
+        if texture_size[0] >= max_width * 2 / 3:
             self.messages[message_id] = {
                 **self.messages[message_id],
-                'text_size': (max_width * 2/3, None),
+                'text_size': (max_width * 2 / 3, None),
             }
 
         # if it was limited, but is now too small to be limited, raise the limit
-        elif texture_size[0] < max_width * 2/3 and texture_size[1] > one_line:
+        elif texture_size[0] < max_width * 2 / 3 and \
+                texture_size[1] > one_line:
             self.messages[message_id] = {
                 **self.messages[message_id],
-                'text_size': (max_width * 2/3, None),
+                'text_size': (max_width * 2 / 3, None),
                 '_size': texture_size,
             }
 
