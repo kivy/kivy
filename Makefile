@@ -91,7 +91,7 @@ html-embedded:
 	$(MAKE) -C doc html
 
 style:
-	$(PYTHON) $(CHECKSCRIPT) .
+	black --check .
 
 hook:
 	# Install pre-commit git hook to check your changes for styleguide

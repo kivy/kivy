@@ -124,7 +124,7 @@ upload_coveralls() {
 }
 
 validate_pep8() {
-  python3 -m pip install flake8
+  python3 -m pip install black==19.10b0
   make style
 }
 
